@@ -1,0 +1,55 @@
+{
+  "contestId":   "CQ_WW_CW",
+  "contestName": "CQ World Wide DX Contest (CW)",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "RST ZONE  (e.g. 599 05)",
+
+  "entryFields": [
+    { "id": "callsign",  "label": "Callsign",  "type": "text",   "width": 130, "required": true  },
+    { "id": "rst_sent",  "label": "RST S",      "type": "text",   "width":  50, "required": false },
+    { "id": "rst_rcvd",  "label": "RST R",      "type": "text",   "width":  50, "required": false },
+    { "id": "cq_zone",   "label": "CQ Zone",    "type": "number", "width":  60, "required": true  },
+    {
+      "id": "band", "label": "Band", "type": "combo", "width": 80,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "modePoints": { "CW": 3, "USB": 1, "LSB": 1 },
+    "multiplierType": "dxcc",
+    "scoreFormula": "qsoPoints * (dxccMults + zoneMults)",
+    "allowDupes": false
+  },
+
+  "multiplierModel": {
+    "field": "cq_zone",
+    "perBand": true,
+    "validValues": [
+      "01","02","03","04","05","06","07","08","09","10",
+      "11","12","13","14","15","16","17","18","19","20",
+      "21","22","23","24","25","26","27","28","29","30",
+      "31","32","33","34","35","36","37","38","39","40"
+    ]
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "dupe_checker", "title": "Dupe Checker", "config": {} },
+    { "paneIndex": 2, "paneType": "custom",        "title": "Zone Map",     "config": {} },
+    { "paneIndex": 3, "paneType": "custom",        "title": "Band Summary", "config": {} },
+    { "paneIndex": 4, "paneType": "statistics",    "title": "Statistics",   "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour","dxcc_count","zone_count"],
+
+  "cabrilloMapping": {
+    "callsign":  "rcvd_callsign",
+    "rst_sent":  "sent_rst",
+    "cq_zone":   "sent_zone",
+    "rst_rcvd":  "rcvd_rst"
+  },
+
+  "sections": []
+}

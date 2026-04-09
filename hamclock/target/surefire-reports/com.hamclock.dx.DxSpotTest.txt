@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.hamclock.dx.DxSpotTest
+-------------------------------------------------------------------------------
+Tests run: 39, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.745 s -- in com.hamclock.dx.DxSpotTest

@@ -1,0 +1,1209 @@
+2026-04-08 06:17:09.274 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 06:17:09.278 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 06:17:09.316 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 06:17:54.005 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 06:17:54.053 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 06:17:54.054 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 06:17:54.081 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 06:17:54.087 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 06:17:54.096 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 06:17:54.214 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 06:17:54.214 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 06:17:54.216 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 06:17:54.216 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 06:18:00.722 WARN  com.hamradio.hub.ui.HubStatusWindow — Could not open browser: The BROWSE action is not supported on the current platform!
+2026-04-08 06:18:01.811 WARN  com.hamradio.hub.ui.HubStatusWindow — Could not open browser: The BROWSE action is not supported on the current platform!
+2026-04-08 06:18:05.103 WARN  com.hamradio.hub.ui.HubStatusWindow — Could not open browser: The BROWSE action is not supported on the current platform!
+2026-04-08 06:18:40.080 WARN  com.hamradio.hub.ui.HubStatusWindow — Could not open browser: The BROWSE action is not supported on the current platform!
+2026-04-08 06:20:06.371 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 06:20:06.372 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 06:20:06.400 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 06:20:41.936 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 06:20:41.977 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 06:20:41.978 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 06:20:42.008 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 06:20:42.015 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 06:20:42.023 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 06:20:42.147 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 06:20:42.147 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 06:20:42.150 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 06:20:42.150 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 06:20:49.310 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:55162
+2026-04-08 06:20:49.328 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 06:20:49.329 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 06:21:50.052 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 06:21:50.052 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 06:21:56.817 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 06:21:56.819 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 06:22:23.923 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:48554
+2026-04-08 06:22:23.928 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 06:22:23.929 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 06:23:03.901 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 06:23:03.902 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 06:41:22.997 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 06:41:22.998 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 06:41:23.002 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 06:41:23.003 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 06:41:23.005 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1001, reason=)
+2026-04-08 06:41:23.005 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 06:41:23.006 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 07:02:14.096 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:02:14.134 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:02:14.136 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:02:14.159 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:02:14.164 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:02:14.174 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 07:02:14.281 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:02:14.281 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:02:14.283 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:02:14.289 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:02:14.290 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:02:56.305 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:58234
+2026-04-08 07:02:56.329 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 07:02:56.330 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 07:08:23.528 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 07:11:49.021 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:41320
+2026-04-08 07:11:49.025 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 07:11:49.026 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 07:12:09.921 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:58898
+2026-04-08 07:12:09.924 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 07:12:09.925 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 07:12:46.670 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 07:12:46.672 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 07:12:46.677 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 07:12:46.677 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 07:12:46.680 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1001, reason=)
+2026-04-08 07:12:46.681 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 07:12:46.681 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1001, reason=)
+2026-04-08 07:12:46.681 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 07:12:46.683 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 07:12:53.634 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:12:53.679 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:12:53.680 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:12:53.709 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:12:53.715 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:12:53.729 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 07:12:53.853 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:12:53.853 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:12:53.855 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:12:53.858 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:12:53.859 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:12:56.727 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:58140
+2026-04-08 07:12:56.730 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 07:12:56.731 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 07:13:13.205 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:45794
+2026-04-08 07:13:13.212 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 07:13:13.213 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 07:14:00.657 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1006, reason=)
+2026-04-08 07:14:00.657 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 07:14:07.625 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 07:14:44.435 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 07:14:44.436 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 07:14:44.439 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 07:14:44.439 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 07:14:44.478 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 07:24:45.763 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:24:45.809 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:24:45.810 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:24:45.843 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:24:45.851 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:24:45.869 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 07:24:46.004 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:24:46.004 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:24:46.006 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:24:46.009 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:24:46.009 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:25:06.110 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:49872
+2026-04-08 07:25:06.116 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 07:25:06.120 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 07:25:07.876 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1006, reason=)
+2026-04-08 07:25:07.877 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 07:25:46.800 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:33326
+2026-04-08 07:25:46.804 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 07:25:46.804 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 07:25:48.073 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1006, reason=)
+2026-04-08 07:25:48.073 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 07:28:16.111 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:28:16.239 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:28:16.241 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:28:16.305 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:28:16.320 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:28:16.347 ERROR o.j.server.WebSocketServer — Shutdown due to fatal error
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+	at org.java_websocket.server.WebSocketServer.doSetupSelectorAndServerThread(WebSocketServer.java:567)
+	at org.java_websocket.server.WebSocketServer.run(WebSocketServer.java:367)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-04-08 07:28:16.351 ERROR com.hamradio.hub.HubServer — WebSocket error on null: Address already in use
+2026-04-08 07:28:16.709 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:28:16.709 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:28:16.714 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:28:16.724 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:28:16.725 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:28:32.587 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:28:32.660 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:28:32.662 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:28:32.721 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:28:32.732 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:28:32.750 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 07:28:32.943 ERROR com.hamradio.hub.HubMain — Fatal startup error
+java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8081
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:304)
+	at org.eclipse.jetty.server.Server.lambda$doStart$0(Server.java:402)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.eclipse.jetty.server.Server.doStart(Server.java:398)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:93)
+	at com.hamradio.hub.WebConfigServer.start(WebConfigServer.java:67)
+	at com.hamradio.hub.HubMain.bootstrap(HubMain.java:90)
+	at com.hamradio.hub.HubMain.start(HubMain.java:49)
+	at javafx.graphics/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:847)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:484)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:457)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:456)
+	at javafx.graphics/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:96)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$11(GtkApplication.java:290)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 26 common frames omitted
+2026-04-08 07:28:34.491 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:51286
+2026-04-08 07:28:34.564 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 07:28:34.570 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 07:28:34.610 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:51292
+2026-04-08 07:28:34.639 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 07:28:34.647 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 07:28:40.955 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 07:28:40.955 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 07:28:40.957 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 07:28:40.958 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 07:28:53.045 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:28:53.084 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:28:53.086 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:28:53.106 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:28:53.112 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:28:53.124 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 07:28:53.241 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:28:53.241 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:28:53.243 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:28:53.247 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:28:53.247 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:29:49.682 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 07:30:17.355 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:56646
+2026-04-08 07:30:17.360 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 07:30:17.362 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 07:30:18.661 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1006, reason=)
+2026-04-08 07:30:18.661 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 07:31:00.326 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 07:31:00.327 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 07:31:00.356 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 07:31:48.515 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:31:48.634 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:31:48.637 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:31:48.709 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:31:48.730 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:31:48.758 ERROR o.j.server.WebSocketServer — Shutdown due to fatal error
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+	at org.java_websocket.server.WebSocketServer.doSetupSelectorAndServerThread(WebSocketServer.java:567)
+	at org.java_websocket.server.WebSocketServer.run(WebSocketServer.java:367)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-04-08 07:31:48.761 ERROR com.hamradio.hub.HubServer — WebSocket error on null: Address already in use
+2026-04-08 07:31:49.128 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:31:49.129 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:31:49.134 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:31:49.145 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:31:49.147 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:32:18.865 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 07:32:18.868 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 07:32:18.882 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 07:32:25.400 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 07:32:25.472 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 07:32:25.474 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 07:32:25.519 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 07:32:25.529 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 07:32:25.543 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 07:32:25.716 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 07:32:25.717 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 07:32:25.719 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 07:32:25.724 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 07:32:25.724 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 07:33:16.198 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:43888
+2026-04-08 07:33:16.210 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 07:33:16.212 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 07:33:17.562 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1006, reason=)
+2026-04-08 07:33:17.562 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 07:59:38.553 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:48272
+2026-04-08 07:59:38.556 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 07:59:38.557 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 08:00:10.597 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:37368
+2026-04-08 08:00:10.641 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 08:00:10.642 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 08:01:12.462 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:41994
+2026-04-08 08:01:12.469 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 08:01:12.470 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 08:01:45.278 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 08:01:45.279 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 08:02:08.480 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1000, reason=)
+2026-04-08 08:02:08.480 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 08:02:18.934 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 08:02:43.377 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1006, reason=)
+2026-04-08 08:02:43.377 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 09:03:26.003 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 09:03:26.049 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 09:03:26.050 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 09:03:26.075 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 09:03:26.082 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 09:03:26.090 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 09:03:26.200 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 09:03:26.200 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 09:03:26.202 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 09:03:26.205 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 09:03:26.206 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 09:03:34.454 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:40432
+2026-04-08 09:03:34.461 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 09:03:34.463 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 09:14:37.096 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 09:14:37.137 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 09:14:37.138 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 09:14:37.167 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 09:14:37.173 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 09:14:37.179 ERROR o.j.server.WebSocketServer — Shutdown due to fatal error
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+	at org.java_websocket.server.WebSocketServer.doSetupSelectorAndServerThread(WebSocketServer.java:567)
+	at org.java_websocket.server.WebSocketServer.run(WebSocketServer.java:367)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-04-08 09:14:37.180 ERROR com.hamradio.hub.HubServer — WebSocket error on null: Address already in use
+2026-04-08 09:14:37.267 ERROR com.hamradio.hub.HubMain — Fatal startup error
+java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8081
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:304)
+	at org.eclipse.jetty.server.Server.lambda$doStart$0(Server.java:402)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.eclipse.jetty.server.Server.doStart(Server.java:398)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:93)
+	at com.hamradio.hub.WebConfigServer.start(WebConfigServer.java:69)
+	at com.hamradio.hub.HubMain.bootstrap(HubMain.java:91)
+	at com.hamradio.hub.HubMain.start(HubMain.java:50)
+	at javafx.graphics/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:847)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:484)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:457)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:456)
+	at javafx.graphics/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:96)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$11(GtkApplication.java:290)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 26 common frames omitted
+2026-04-08 09:14:52.285 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 09:14:52.330 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 09:14:52.331 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 09:14:52.362 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 09:14:52.376 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 09:14:52.390 ERROR o.j.server.WebSocketServer — Shutdown due to fatal error
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+	at org.java_websocket.server.WebSocketServer.doSetupSelectorAndServerThread(WebSocketServer.java:567)
+	at org.java_websocket.server.WebSocketServer.run(WebSocketServer.java:367)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-04-08 09:14:52.394 ERROR com.hamradio.hub.HubServer — WebSocket error on null: Address already in use
+2026-04-08 09:14:52.506 ERROR com.hamradio.hub.HubMain — Fatal startup error
+java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8081
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:304)
+	at org.eclipse.jetty.server.Server.lambda$doStart$0(Server.java:402)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.eclipse.jetty.server.Server.doStart(Server.java:398)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:93)
+	at com.hamradio.hub.WebConfigServer.start(WebConfigServer.java:69)
+	at com.hamradio.hub.HubMain.bootstrap(HubMain.java:91)
+	at com.hamradio.hub.HubMain.start(HubMain.java:50)
+	at javafx.graphics/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:847)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:484)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:457)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:456)
+	at javafx.graphics/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:96)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$11(GtkApplication.java:290)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 26 common frames omitted
+2026-04-08 09:15:04.594 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 09:15:04.639 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 09:15:04.640 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 09:15:04.667 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 09:15:04.677 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 09:15:04.688 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 09:15:04.805 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:40452
+2026-04-08 09:15:04.808 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 09:15:04.811 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 09:15:04.839 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 09:15:04.839 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 09:15:04.841 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 09:15:04.844 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 09:15:04.845 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 09:15:39.846 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:32966
+2026-04-08 09:15:39.870 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 09:15:39.871 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 09:57:15.120 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 09:57:15.121 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 09:57:17.121 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 09:57:17.121 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 09:57:59.312 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:47364
+2026-04-08 09:57:59.317 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 09:57:59.317 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 09:58:12.833 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 09:58:13.834 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 09:58:16.766 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 09:58:16.766 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 09:58:20.103 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 09:58:51.300 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 09:58:51.350 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 09:58:51.351 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 09:58:51.374 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 09:58:51.379 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 09:58:51.390 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 09:58:51.518 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 09:58:51.519 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 09:58:51.522 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 09:58:51.525 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 09:58:51.526 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 09:58:58.240 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:56464
+2026-04-08 09:58:58.254 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 09:58:58.255 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 09:59:13.264 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 09:59:15.083 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1001, reason=)
+2026-04-08 09:59:15.084 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 10:04:46.736 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 10:04:46.773 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 10:04:46.775 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 10:04:46.805 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 10:04:46.811 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 10:04:46.827 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 10:04:46.949 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 10:04:46.949 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 10:04:46.951 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:04:46.955 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 10:04:46.955 WARN  com.hamradio.hub.HubMain — Auto-launch enabled for 'hamclock' but no command is configured — skipping
+2026-04-08 10:04:46.956 WARN  com.hamradio.hub.HubMain — Auto-launch enabled for 'hamlog' but no command is configured — skipping
+2026-04-08 10:04:46.956 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 10:07:01.077 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 10:07:15.493 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 10:07:15.539 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 10:07:15.541 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 10:07:15.566 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 10:07:15.574 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 10:07:15.585 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 10:07:15.697 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 10:07:15.698 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 10:07:15.700 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:07:15.703 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 10:07:15.704 WARN  com.hamradio.hub.HubMain — Auto-launch enabled for 'hamclock' but no command is configured — skipping
+2026-04-08 10:07:15.704 WARN  com.hamradio.hub.HubMain — Auto-launch enabled for 'hamlog' but no command is configured — skipping
+2026-04-08 10:07:15.704 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 10:07:56.017 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:48260
+2026-04-08 10:07:56.031 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:07:56.033 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:12:11.465 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 10:12:11.467 ERROR com.hamradio.hub.AppLauncher — Failed to launch 'hamclock': Cannot run program "hamclock": Exec failed, error: 2 (No such file or directory) 
+2026-04-08 10:14:51.183 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 10:14:51.185 ERROR com.hamradio.hub.AppLauncher — Failed to launch 'hamclock': Cannot run program "hamclock": Exec failed, error: 2 (No such file or directory) 
+2026-04-08 10:18:08.974 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 10:18:09.023 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 10:18:09.025 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 10:18:09.056 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 10:18:09.063 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 10:18:09.073 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 10:18:09.214 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 10:18:09.214 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 10:18:09.216 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:18:09.219 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 10:18:09.227 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 86169) — java -jar /home/mike/hamclock/target/hamclock-clone-1.0.0-fat.jar
+2026-04-08 10:18:09.228 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 86174) — java -jar /home/mike/hamlog/target/hamlog-1.0.0-shaded.jar
+2026-04-08 10:18:09.229 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 10:18:10.223 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:50252
+2026-04-08 10:18:10.227 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:18:10.227 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:20:14.797 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 10:20:14.835 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 10:20:14.836 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 10:20:14.858 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 10:20:14.864 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 10:20:14.877 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 10:20:14.991 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 10:20:14.992 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 10:20:14.994 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:20:14.997 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 10:20:15.004 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 86432) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 10:20:15.006 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 86438) — bash /home/mike/hamlog/run.sh
+2026-04-08 10:20:15.006 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 10:20:16.236 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:42670
+2026-04-08 10:20:16.249 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:20:16.252 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:20:19.708 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:48260
+2026-04-08 10:20:19.711 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 10:20:19.712 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 10:20:45.139 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:57480
+2026-04-08 10:20:45.179 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:20:45.181 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:20:52.922 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:33854
+2026-04-08 10:20:52.929 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 10:20:52.930 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 10:21:40.726 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 10:24:16.708 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:24:35.864 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:25:03.040 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:25:35.954 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:26:13.174 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1000, reason=)
+2026-04-08 10:26:13.174 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 10:26:18.324 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 10:26:18.324 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 10:26:18.326 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 10:26:18.327 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 10:26:25.814 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:42686
+2026-04-08 10:26:25.820 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:26:25.824 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:26:43.839 WARN  com.hamradio.hub.ClusterManager — Cluster server not configured — skipping connection
+2026-04-08 10:26:55.452 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 10:26:56.453 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 10:26:56.971 INFO  com.hamradio.hub.ClusterManager — Connected to cluster k1ttt.net:7373
+2026-04-08 10:27:00.568 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 7Z1IS
+2026-04-08 10:27:00.569 DEBUG com.hamradio.hub.ClusterManager — Spot: ON8ON 7Z1IS 28074000Hz
+2026-04-08 10:27:09.571 DEBUG com.hamradio.hub.ClusterManager — Spot: DF2QZ DQ44WCA 7011000Hz
+2026-04-08 10:27:15.095 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B TN8GD 21074000Hz
+2026-04-08 10:27:28.317 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 10:27:28.317 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ0INT V4/SP9FIH 21347000Hz
+2026-04-08 10:27:45.212 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 10:27:45.512 INFO  com.hamradio.hub.ClusterManager — Connected to cluster k1ttt.net:7373
+2026-04-08 10:27:53.706 DEBUG com.hamradio.hub.ClusterManager — Spot: YC1JEL N6PE 14074000Hz
+2026-04-08 10:28:01.186 DEBUG com.hamradio.hub.ClusterManager — Spot: IW0GNC IW0HOQ 7128000Hz
+2026-04-08 10:28:02.921 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL IZ8WGR 28390000Hz
+2026-04-08 10:28:05.280 DEBUG com.hamradio.hub.ClusterManager — Spot: N6EK RT5T 18073000Hz
+2026-04-08 10:28:30.170 DEBUG com.hamradio.hub.ClusterManager — Spot: W1JCW VP8LP 28495000Hz
+2026-04-08 10:28:37.852 DEBUG com.hamradio.hub.ClusterManager — Spot: RJ6D R65CTC 14074000Hz
+2026-04-08 10:28:38.883 DEBUG com.hamradio.hub.ClusterManager — Spot: EB5JJI AO750SJ 18100000Hz
+2026-04-08 10:28:53.421 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR EW8GT 21074000Hz
+2026-04-08 10:29:02.837 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8WGR YB8IEL 28390000Hz
+2026-04-08 10:29:06.825 DEBUG com.hamradio.hub.ClusterManager — Spot: LZ3AD S21IM 21074000Hz
+2026-04-08 10:29:09.289 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 10:29:09.290 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 10:29:09.330 DEBUG com.hamradio.hub.ClusterManager — Spot: IU1RVQ IT9ECY 7117000Hz
+2026-04-08 10:29:15.055 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 3V8LL
+2026-04-08 10:29:15.056 DEBUG com.hamradio.hub.ClusterManager — Spot: N8II 3V8LL 28503500Hz
+2026-04-08 10:29:15.063 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 10:29:18.167 DEBUG com.hamradio.hub.ClusterManager — Spot: ES2DR EA7/LA9DL 14085600Hz
+2026-04-08 10:29:51.855 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 8R/PZ5TW
+2026-04-08 10:29:51.855 DEBUG com.hamradio.hub.ClusterManager — Spot: IU6HWW 8R/PZ5TW 21074000Hz
+2026-04-08 10:29:52.498 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1FCL DL4ISW 14060000Hz
+2026-04-08 10:30:08.650 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8STJ IW0HOQ 7128000Hz
+2026-04-08 10:30:13.867 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 7Z1DR
+2026-04-08 10:30:13.867 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL 7Z1DR 28390000Hz
+2026-04-08 10:30:13.868 DEBUG com.hamradio.hub.ClusterManager — Spot: F8GFA OH1HAQ 14038000Hz
+2026-04-08 10:30:16.022 DEBUG com.hamradio.hub.ClusterManager — Spot: RA3AAA R65CTC 14016000Hz
+2026-04-08 10:30:19.355 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1IWO AO750SJ 7148000Hz
+2026-04-08 10:30:26.343 DEBUG com.hamradio.hub.ClusterManager — Spot: ON8ON LU6HLE 28074000Hz
+2026-04-08 10:31:19.730 DEBUG com.hamradio.hub.ClusterManager — Spot: N2TA RI0SP 18075000Hz
+2026-04-08 10:31:29.102 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for TE4RC
+2026-04-08 10:31:29.102 DEBUG com.hamradio.hub.ClusterManager — Spot: GM3CQD TE4RC 21347000Hz
+2026-04-08 10:31:36.467 DEBUG com.hamradio.hub.ClusterManager — Spot: EA5MR AO750SJ 14074000Hz
+2026-04-08 10:31:48.548 DEBUG com.hamradio.hub.ClusterManager — Spot: RJ6D R65MCC 14074000Hz
+2026-04-08 10:32:36.472 DEBUG com.hamradio.hub.ClusterManager — Spot: RA0WHT DL8KAC 14048000Hz
+2026-04-08 10:32:37.096 DEBUG com.hamradio.hub.ClusterManager — Spot: F5NZO YT3IN 14280000Hz
+2026-04-08 10:32:48.361 DEBUG com.hamradio.hub.ClusterManager — Spot: XE2KJT VP8LP 28495000Hz
+2026-04-08 10:32:49.477 DEBUG com.hamradio.hub.ClusterManager — Spot: PA4EN PA02WT 7130000Hz
+2026-04-08 10:33:46.065 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 10:33:46.121 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 10:33:46.122 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 10:33:46.144 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 10:33:46.155 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 10:33:46.173 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 10:33:46.343 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 10:33:46.343 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 10:33:46.345 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 10:33:46.348 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 10:33:46.356 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 87237) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 10:33:46.363 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 87244) — bash /home/mike/hamlog/run.sh
+2026-04-08 10:33:46.366 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 10:33:46.703 INFO  com.hamradio.hub.ClusterManager — Connected to cluster k1ttt.net:7373
+2026-04-08 10:33:52.172 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:54234
+2026-04-08 10:33:52.178 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 10:33:52.181 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 10:33:53.448 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR PC9K 21074000Hz
+2026-04-08 10:34:20.364 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ0VNJ LA1DHA 18132000Hz
+2026-04-08 10:34:23.336 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:53178
+2026-04-08 10:34:23.349 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 10:34:23.360 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 10:34:30.125 DEBUG com.hamradio.hub.ClusterManager — Spot: K1RCO VP8LP 28495000Hz
+2026-04-08 10:34:30.838 DEBUG com.hamradio.hub.ClusterManager — Spot: SP5SO-14 IU5HIU 14074800Hz
+2026-04-08 10:34:33.197 DEBUG com.hamradio.hub.ClusterManager — Spot: OH0M-44 DQ44WCA 7009000Hz
+2026-04-08 10:34:48.861 DEBUG com.hamradio.hub.ClusterManager — Spot: IW6DGJ-12 R1LP 18100000Hz
+2026-04-08 10:34:59.918 DEBUG com.hamradio.hub.ClusterManager — Spot: KB8OTK EA3IEG 24916300Hz
+2026-04-08 10:35:09.447 DEBUG com.hamradio.hub.ClusterManager — Spot: KN4SA HB9TWK 21250000Hz
+2026-04-08 10:35:12.715 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:49228
+2026-04-08 10:35:12.726 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:35:12.755 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:35:19.313 DEBUG com.hamradio.hub.ClusterManager — Spot: ES2DR CT3MD 14085000Hz
+2026-04-08 10:35:22.795 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for HF5W
+2026-04-08 10:35:22.796 DEBUG com.hamradio.hub.ClusterManager — Spot: SP5SO-14 HF5W 14074800Hz
+2026-04-08 10:35:30.171 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B TY5AD 21074000Hz
+2026-04-08 10:35:33.245 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for MM7JNT
+2026-04-08 10:35:33.246 DEBUG com.hamradio.hub.ClusterManager — Spot: OH0M-44 MM7JNT 14244000Hz
+2026-04-08 10:35:36.112 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL YO8WTW 21270000Hz
+2026-04-08 10:35:51.266 DEBUG com.hamradio.hub.ClusterManager — Spot: LU6YR DG4FAI 28074000Hz
+2026-04-08 10:36:01.302 DEBUG com.hamradio.hub.ClusterManager — Spot: ON6ZQ ON/PA4N 18088000Hz
+2026-04-08 10:36:01.303 DEBUG com.hamradio.hub.ClusterManager — Spot: PD9RW DK0GI 7149000Hz
+2026-04-08 10:36:12.775 DEBUG com.hamradio.hub.ClusterManager — Spot: 9A5ACK IW0HOQ 7128000Hz
+2026-04-08 10:36:16.048 DEBUG com.hamradio.hub.ClusterManager — Spot: EA3HXV YB9BXM 21240000Hz
+2026-04-08 10:36:27.925 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 10:36:27.925 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1BVG EA1EC 7090000Hz
+2026-04-08 10:36:33.441 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 10:36:33.442 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 10:36:33.755 INFO  com.hamradio.hub.ClusterManager — Connected to cluster k1ttt.net:7373
+2026-04-08 10:36:47.175 DEBUG com.hamradio.hub.ClusterManager — Spot: NU1O VP8LP 28495000Hz
+2026-04-08 10:36:47.682 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2CD RN3QO 18102500Hz
+2026-04-08 10:36:51.547 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL I1IKT 21270000Hz
+2026-04-08 10:36:54.753 DEBUG com.hamradio.hub.ClusterManager — Spot: OE1KSG V4/SP9FIH 21347000Hz
+2026-04-08 10:37:00.086 DEBUG com.hamradio.hub.ClusterManager — Spot: RA3AAA R65CTC 14016000Hz
+2026-04-08 10:37:00.996 DEBUG com.hamradio.hub.ClusterManager — Spot: ES2DR R6YBU 14086100Hz
+2026-04-08 10:37:14.209 DEBUG com.hamradio.hub.ClusterManager — Spot: DG7MAQ OH6FSO 14086300Hz
+2026-04-08 10:37:45.141 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B EY7AD 24915000Hz
+2026-04-08 10:37:51.693 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for MM7JNT
+2026-04-08 10:37:51.693 DEBUG com.hamradio.hub.ClusterManager — Spot: IK2UIG MM7JNT 14244000Hz
+2026-04-08 10:37:59.474 DEBUG com.hamradio.hub.ClusterManager — Spot: DG7MAQ CT3MD 14085800Hz
+2026-04-08 10:38:18.290 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1000, reason=)
+2026-04-08 10:38:18.291 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 10:38:21.290 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:44182
+2026-04-08 10:38:21.293 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 10:38:21.299 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 10:38:23.233 DEBUG com.hamradio.hub.ClusterManager — Spot: N8UX N2JPR 7031700Hz
+2026-04-08 10:38:34.913 DEBUG com.hamradio.hub.ClusterManager — Spot: IW4BLZ V4/SP9FIH 21347000Hz
+2026-04-08 10:38:59.724 DEBUG com.hamradio.hub.ClusterManager — Spot: PE1CYI PA3CLP/P 7103000Hz
+2026-04-08 10:39:00.711 DEBUG com.hamradio.hub.ClusterManager — Spot: IK0FFU IZ0PAP 7135000Hz
+2026-04-08 10:39:00.744 DEBUG com.hamradio.hub.ClusterManager — Spot: RJ6D OM0RX 14074000Hz
+2026-04-08 10:39:02.757 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL EA3GEH 21270000Hz
+2026-04-08 10:39:24.264 DEBUG com.hamradio.hub.ClusterManager — Spot: N2TA RI0SP 14178000Hz
+2026-04-08 10:39:24.873 DEBUG com.hamradio.hub.ClusterManager — Spot: LZ3AD K1BZ 18100000Hz
+2026-04-08 10:39:30.405 DEBUG com.hamradio.hub.ClusterManager — Spot: PD3ED LA6KOA 14200000Hz
+2026-04-08 10:39:45.430 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 10:39:45.576 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 10:39:45.580 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 10:39:45.678 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 10:39:45.700 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 10:39:45.731 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 10:39:46.131 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 10:39:46.132 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 10:39:46.139 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 10:39:46.154 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 10:39:46.183 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 87945) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 10:39:46.192 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 87952) — bash /home/mike/hamlog/run.sh
+2026-04-08 10:39:46.196 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 10:39:46.561 INFO  com.hamradio.hub.ClusterManager — Connected to cluster k1ttt.net:7373
+2026-04-08 10:39:47.296 INFO  com.hamradio.hub.HubServer — New connection from /10.86.76.181:56556
+2026-04-08 10:39:47.298 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:35194
+2026-04-08 10:39:47.312 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 10:39:47.317 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 10:39:47.314 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 10:39:47.320 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 10:39:53.859 DEBUG com.hamradio.hub.ClusterManager — Spot: RJ6D EX8ABQ 14074000Hz
+2026-04-08 10:39:57.161 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:53838
+2026-04-08 10:39:57.182 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 10:39:57.203 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 10:39:59.360 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:53854
+2026-04-08 10:39:59.382 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 10:39:59.386 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 10:40:01.322 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1006, reason=)
+2026-04-08 10:40:01.324 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 10:40:05.708 DEBUG com.hamradio.hub.ClusterManager — Spot: N8UX K4VSV 7030000Hz
+2026-04-08 10:40:07.754 DEBUG com.hamradio.hub.ClusterManager — Spot: 4Z4ME V4/SP9FIH 21347000Hz
+2026-04-08 10:40:07.765 DEBUG com.hamradio.hub.ClusterManager — Spot: IK3TND IT9ECY 7117000Hz
+2026-04-08 10:40:08.365 DEBUG com.hamradio.hub.ClusterManager — Spot: IU5VMC IU0KNS 7153000Hz
+2026-04-08 10:40:17.587 DEBUG com.hamradio.hub.ClusterManager — Spot: IK2UIG AO650SJ 14241000Hz
+2026-04-08 10:40:25.781 DEBUG com.hamradio.hub.ClusterManager — Spot: N2TA RI0SP 14179000Hz
+2026-04-08 10:40:30.280 DEBUG com.hamradio.hub.ClusterManager — Spot: M7MOK 9K2ES 21245000Hz
+2026-04-08 10:40:30.281 DEBUG com.hamradio.hub.ClusterManager — Spot: KB8OTK IU2UBA 24916300Hz
+2026-04-08 10:40:44.005 DEBUG com.hamradio.hub.ClusterManager — Spot: EA8BC EA8CWA 28425000Hz
+2026-04-08 10:40:48.715 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 5P1KZX
+2026-04-08 10:40:48.716 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2CD 5P1KZX 18102700Hz
+2026-04-08 10:41:03.051 DEBUG com.hamradio.hub.ClusterManager — Spot: HB3YNJ HB3YOR 21281000Hz
+2026-04-08 10:41:09.096 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4Z5LA
+2026-04-08 10:41:09.098 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ4TNN 4Z5LA 21275000Hz
+2026-04-08 10:41:17.837 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for MM7JNT
+2026-04-08 10:41:17.838 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1IWO MM7JNT 14244000Hz
+2026-04-08 10:41:18.895 DEBUG com.hamradio.hub.ClusterManager — Spot: RJ6D HB9/OS4K 14074000Hz
+2026-04-08 10:41:32.953 DEBUG com.hamradio.hub.ClusterManager — Spot: IT9CHA IT9ECY 7117000Hz
+2026-04-08 10:41:41.352 DEBUG com.hamradio.hub.ClusterManager — Spot: HA2EOA CU8AI 14085000Hz
+2026-04-08 10:41:56.294 DEBUG com.hamradio.hub.ClusterManager — Spot: IU5KZF EA8CWA 28425000Hz
+2026-04-08 10:42:00.192 DEBUG com.hamradio.hub.ClusterManager — Spot: IT9VXS IT9VXS 14093000Hz
+2026-04-08 10:42:05.917 DEBUG com.hamradio.hub.ClusterManager — Spot: IU5ANK IW5DAX 7115000Hz
+2026-04-08 10:42:09.001 DEBUG com.hamradio.hub.ClusterManager — Spot: EA3GEH YB8IEL 21270000Hz
+2026-04-08 10:42:15.347 DEBUG com.hamradio.hub.ClusterManager — Spot: OM8AEI EC8ADS 28445000Hz
+2026-04-08 10:42:24.555 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for E24WBO
+2026-04-08 10:42:24.557 DEBUG com.hamradio.hub.ClusterManager — Spot: XV9R E24WBO 21292000Hz
+2026-04-08 10:42:28.447 DEBUG com.hamradio.hub.ClusterManager — Spot: DK7XX RG65VO 14029000Hz
+2026-04-08 10:42:36.539 DEBUG com.hamradio.hub.ClusterManager — Spot: YL3BF W1AW 14022000Hz
+2026-04-08 10:42:37.873 DEBUG com.hamradio.hub.ClusterManager — Spot: RA3AAA R65CTC 14016000Hz
+2026-04-08 10:42:42.694 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8STJ IU0KNS 7153000Hz
+2026-04-08 10:42:45.967 DEBUG com.hamradio.hub.ClusterManager — Spot: RZ9YW RI0SP 14179000Hz
+2026-04-08 10:42:46.993 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1FNS N4C 21300000Hz
+2026-04-08 10:42:50.022 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for SX200M
+2026-04-08 10:42:50.024 DEBUG com.hamradio.hub.ClusterManager — Spot: SV7BAY SX200M 14024000Hz
+2026-04-08 10:42:57.642 DEBUG com.hamradio.hub.ClusterManager — Spot: RY3LAD RL7C 7025000Hz
+2026-04-08 10:43:00.195 DEBUG com.hamradio.hub.ClusterManager — Spot: N7EKD VK2MRF 7149000Hz
+2026-04-08 10:43:08.288 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL IU4QOD 21270000Hz
+2026-04-08 10:43:08.360 DEBUG com.hamradio.hub.ClusterManager — Spot: IW6DGJ-12 R3CE 18100000Hz
+2026-04-08 10:43:15.317 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B AP2SAA 14074000Hz
+2026-04-08 10:43:23.952 DEBUG com.hamradio.hub.ClusterManager — Spot: 9A5ST 9A60CBM 18077500Hz
+2026-04-08 10:43:31.436 DEBUG com.hamradio.hub.ClusterManager — Spot: W4MTO NX9T 7282000Hz
+2026-04-08 10:43:43.925 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8WGR CE3TSK 28074000Hz
+2026-04-08 10:44:11.262 DEBUG com.hamradio.hub.ClusterManager — Spot: IU4QOD YB8IEL 21270000Hz
+2026-04-08 10:44:14.699 DEBUG com.hamradio.hub.ClusterManager — Spot: EC5CC AO750SJ 14241000Hz
+2026-04-08 10:44:17.261 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8WGR CE3TSK 14074000Hz
+2026-04-08 10:44:32.020 DEBUG com.hamradio.hub.ClusterManager — Spot: PD4PS PA3CLP 7103000Hz
+2026-04-08 10:44:44.399 DEBUG com.hamradio.hub.ClusterManager — Spot: N8ZI-1 RT5T 18073000Hz
+2026-04-08 10:44:47.067 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL YO7VXD 21270000Hz
+2026-04-08 10:44:58.320 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for VA2AM
+2026-04-08 10:44:58.320 DEBUG com.hamradio.hub.ClusterManager — Spot: ON1JV VA2AM 18127000Hz
+2026-04-08 10:45:08.776 DEBUG com.hamradio.hub.ClusterManager — Spot: LU6YR KB1GTG 28074000Hz
+2026-04-08 10:45:17.577 DEBUG com.hamradio.hub.ClusterManager — Spot: HA2EOA JT1CO 14084900Hz
+2026-04-08 10:45:29.349 DEBUG com.hamradio.hub.ClusterManager — Spot: IU6HWW KZ7Y 28074000Hz
+2026-04-08 10:45:45.170 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B UB8CPH 14074000Hz
+2026-04-08 10:45:45.172 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL DG8DBW 21270000Hz
+2026-04-08 10:45:48.148 DEBUG com.hamradio.hub.ClusterManager — Spot: W0CKT VE5DTM 14075900Hz
+2026-04-08 10:46:08.159 DEBUG com.hamradio.hub.ClusterManager — Spot: DM7MA DA0ANT 7043000Hz
+2026-04-08 10:46:09.737 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for BD3OD
+2026-04-08 10:46:09.738 DEBUG com.hamradio.hub.ClusterManager — Spot: KF6A BD3OD 14075900Hz
+2026-04-08 10:46:14.711 DEBUG com.hamradio.hub.ClusterManager — Spot: RA3AAA R65CTC 14016000Hz
+2026-04-08 10:46:20.247 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for M6GYU/P
+2026-04-08 10:46:20.247 DEBUG com.hamradio.hub.ClusterManager — Spot: IK4MTF M6GYU/P 14065900Hz
+2026-04-08 10:46:21.164 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2CD HA7TM 18102900Hz
+2026-04-08 10:46:23.418 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR SP6JQC 21074000Hz
+2026-04-08 10:46:30.229 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4Z5LA
+2026-04-08 10:46:30.233 DEBUG com.hamradio.hub.ClusterManager — Spot: N3HKX 4Z5LA 21275000Hz
+2026-04-08 10:46:31.059 DEBUG com.hamradio.hub.ClusterManager — Spot: SP4TKA RG65KO 14021700Hz
+2026-04-08 10:46:32.123 DEBUG com.hamradio.hub.ClusterManager — Spot: IW6DGJ-12 TT1GD 18101000Hz
+2026-04-08 10:46:32.358 DEBUG com.hamradio.hub.ClusterManager — Spot: EA3HXV TA3BD 21255000Hz
+2026-04-08 10:46:39.985 DEBUG com.hamradio.hub.ClusterManager — Spot: EA5ASM AO750SJ 18135000Hz
+2026-04-08 10:46:53.166 DEBUG com.hamradio.hub.ClusterManager — Spot: S59EIJ S51DX 21310000Hz
+2026-04-08 10:46:59.925 DEBUG com.hamradio.hub.ClusterManager — Spot: N7EKD VK7VZ 7149000Hz
+2026-04-08 10:47:06.067 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for M8JJS
+2026-04-08 10:47:06.068 DEBUG com.hamradio.hub.ClusterManager — Spot: CT7AUT M8JJS 14080000Hz
+2026-04-08 10:47:38.324 DEBUG com.hamradio.hub.ClusterManager — Spot: LA3EQ HA5KA 50313000Hz
+2026-04-08 10:47:50.617 DEBUG com.hamradio.hub.ClusterManager — Spot: LA3EQ EW6FL 50313000Hz
+2026-04-08 10:47:50.619 DEBUG com.hamradio.hub.ClusterManager — Spot: LZ3AD W3GQ 18100000Hz
+2026-04-08 10:47:56.116 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL F4LBS 21270000Hz
+2026-04-08 10:48:00.039 DEBUG com.hamradio.hub.ClusterManager — Spot: KB0MPV HB3YOR 21281000Hz
+2026-04-08 10:48:00.652 DEBUG com.hamradio.hub.ClusterManager — Spot: RA3AAA R65CTC 14016000Hz
+2026-04-08 10:48:09.453 DEBUG com.hamradio.hub.ClusterManager — Spot: MI0GTA R7TG 14182000Hz
+2026-04-08 10:48:35.012 DEBUG com.hamradio.hub.ClusterManager — Spot: IX1HPN-10 IX1HPN 7097000Hz
+2026-04-08 10:48:35.523 DEBUG com.hamradio.hub.ClusterManager — Spot: ES2DR YB8EAR 14085700Hz
+2026-04-08 10:48:41.996 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ7HNO W4WFC 24916500Hz
+2026-04-08 10:48:50.997 DEBUG com.hamradio.hub.ClusterManager — Spot: RC6N R1996VK 14149000Hz
+2026-04-08 10:48:52.225 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for MM7JNT
+2026-04-08 10:48:52.225 DEBUG com.hamradio.hub.ClusterManager — Spot: EA3IWI MM7JNT 14244000Hz
+2026-04-08 10:48:53.966 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4X6TT
+2026-04-08 10:48:53.966 DEBUG com.hamradio.hub.ClusterManager — Spot: IU7LJG 4X6TT 21210000Hz
+2026-04-08 10:49:09.232 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4X6TT
+2026-04-08 10:49:09.233 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1FNS 4X6TT 21210000Hz
+2026-04-08 10:49:18.249 DEBUG com.hamradio.hub.ClusterManager — Spot: LU6YR AC8TO 28074000Hz
+2026-04-08 10:49:28.701 DEBUG com.hamradio.hub.ClusterManager — Spot: DF6EX DQ44WCA 10121000Hz
+2026-04-08 10:49:31.975 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2CD IU5HIU 14076900Hz
+2026-04-08 10:49:33.832 DEBUG com.hamradio.hub.ClusterManager — Spot: ON8ON PY5TD 28074000Hz
+2026-04-08 10:49:36.178 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL LZ1MS 21270000Hz
+2026-04-08 10:49:45.290 DEBUG com.hamradio.hub.ClusterManager — Spot: KI6KGC W1AW/5 7220000Hz
+2026-04-08 10:49:51.714 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ5EBD IU6OLM/P 7088000Hz
+2026-04-08 10:50:15.195 DEBUG com.hamradio.hub.ClusterManager — Spot: N7EKD WF1A 7149000Hz
+2026-04-08 10:50:30.117 DEBUG com.hamradio.hub.ClusterManager — Spot: K6EI JW/KK6IK 14058000Hz
+2026-04-08 10:50:37.265 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for E24WBO
+2026-04-08 10:50:37.266 DEBUG com.hamradio.hub.ClusterManager — Spot: F4UJU E24WBO 21292000Hz
+2026-04-08 10:50:48.503 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2CD G0AZH 14076900Hz
+2026-04-08 10:51:06.482 DEBUG com.hamradio.hub.ClusterManager — Spot: R3KII RO2E/M 10146000Hz
+2026-04-08 10:51:08.844 DEBUG com.hamradio.hub.ClusterManager — Spot: ON8ON HC1DAZ 28074000Hz
+2026-04-08 10:51:10.967 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL PA1LX 21270000Hz
+2026-04-08 10:51:15.910 DEBUG com.hamradio.hub.ClusterManager — Spot: NU1O J79PE 28422000Hz
+2026-04-08 10:51:26.418 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ7HNO N4C 21300000Hz
+2026-04-08 10:51:34.411 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8WGR V31MA 24915000Hz
+2026-04-08 10:51:46.170 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4Z5LA
+2026-04-08 10:51:46.171 DEBUG com.hamradio.hub.ClusterManager — Spot: AA5H-2 4Z5LA 21275000Hz
+2026-04-08 10:51:54.580 DEBUG com.hamradio.hub.ClusterManager — Spot: N2TA RI0SP 14007000Hz
+2026-04-08 10:51:57.546 DEBUG com.hamradio.hub.ClusterManager — Spot: IU5KZF CT7ANX 18118000Hz
+2026-04-08 10:51:59.703 DEBUG com.hamradio.hub.ClusterManager — Spot: DG4FDQ RT5T 18073000Hz
+2026-04-08 10:52:00.099 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 7Z1FF
+2026-04-08 10:52:00.100 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B 7Z1FF 14074000Hz
+2026-04-08 10:52:14.755 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ1WYO CX7RM 28412000Hz
+2026-04-08 10:52:18.123 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ4TNN V4/SP9FIH 21347000Hz
+2026-04-08 10:52:18.124 DEBUG com.hamradio.hub.ClusterManager — Spot: IK0FFU IZ0PAP 7135000Hz
+2026-04-08 10:52:23.448 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL SP2AHM 21270000Hz
+2026-04-08 10:52:30.001 DEBUG com.hamradio.hub.ClusterManager — Spot: KB8OTK 9A3KG 24916300Hz
+2026-04-08 10:52:51.913 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR YU1OTW 21074000Hz
+2026-04-08 10:53:22.456 DEBUG com.hamradio.hub.ClusterManager — Spot: W4LES W3NH/B 50059000Hz
+2026-04-08 10:53:30.737 DEBUG com.hamradio.hub.ClusterManager — Spot: SP8DR N4C 21300000Hz
+2026-04-08 10:53:30.738 DEBUG com.hamradio.hub.ClusterManager — Spot: N7EKD KV7M 7149000Hz
+2026-04-08 10:53:52.549 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR YT1MP 21074000Hz
+2026-04-08 10:54:08.611 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL LZ7VV 21270000Hz
+2026-04-08 10:54:15.368 DEBUG com.hamradio.hub.ClusterManager — Spot: RM6LW R1996VK 21074000Hz
+2026-04-08 10:54:15.802 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4X6TT
+2026-04-08 10:54:15.802 DEBUG com.hamradio.hub.ClusterManager — Spot: F4UJU 4X6TT 21210000Hz
+2026-04-08 10:54:22.648 DEBUG com.hamradio.hub.ClusterManager — Spot: RA3AAA R65CTC 14016000Hz
+2026-04-08 10:54:23.466 DEBUG com.hamradio.hub.ClusterManager — Spot: EC5CC AO750SJ 14241000Hz
+2026-04-08 10:54:26.330 DEBUG com.hamradio.hub.ClusterManager — Spot: ON8ON LU8EX 28074000Hz
+2026-04-08 10:54:40.875 DEBUG com.hamradio.hub.ClusterManager — Spot: MI0GTA R1996VK 14149000Hz
+2026-04-08 10:54:45.582 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B ON5AG/QRP 14074000Hz
+2026-04-08 10:54:45.582 DEBUG com.hamradio.hub.ClusterManager — Spot: PA3CLP PA3CLP 14314000Hz
+2026-04-08 10:54:45.583 DEBUG com.hamradio.hub.ClusterManager — Spot: N7EKD VK4AVO 7149000Hz
+2026-04-08 10:54:56.174 DEBUG com.hamradio.hub.ClusterManager — Spot: IU2SMA-1 YB8IEL 21270000Hz
+2026-04-08 10:54:57.991 DEBUG com.hamradio.hub.ClusterManager — Spot: TA7TET TF4M 18105600Hz
+2026-04-08 10:55:01.028 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL IU2SMA 21270000Hz
+2026-04-08 10:55:04.005 DEBUG com.hamradio.hub.ClusterManager — Spot: F4FCZ-10 IK8FZD 14300000Hz
+2026-04-08 10:55:05.039 DEBUG com.hamradio.hub.ClusterManager — Spot: YC1JEL YB2CPO 14080000Hz
+2026-04-08 10:55:18.129 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ8WGR 9Y4DG 24915000Hz
+2026-04-08 10:55:24.096 DEBUG com.hamradio.hub.ClusterManager — Spot: N8ZI-1 J79PE 28422000Hz
+2026-04-08 10:55:25.836 DEBUG com.hamradio.hub.ClusterManager — Spot: LU6YR DL4AMJ 28074000Hz
+2026-04-08 10:55:30.314 DEBUG com.hamradio.hub.ClusterManager — Spot: RL1B TJ1GD/P 14074000Hz
+2026-04-08 10:55:51.862 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4X6TT
+2026-04-08 10:55:51.862 DEBUG com.hamradio.hub.ClusterManager — Spot: NI1Q 4X6TT 21210000Hz
+2026-04-08 10:56:08.191 DEBUG com.hamradio.hub.ClusterManager — Spot: YO3GK K2ND 18133000Hz
+2026-04-08 10:56:08.209 DEBUG com.hamradio.hub.ClusterManager — Spot: EA5U-1 AO750SJ 21021000Hz
+2026-04-08 10:56:26.046 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for M5EEE
+2026-04-08 10:56:26.047 DEBUG com.hamradio.hub.ClusterManager — Spot: IK4MTF M5EEE 14062000Hz
+2026-04-08 10:56:33.108 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL 9K2MP 21270000Hz
+2026-04-08 10:56:43.440 DEBUG com.hamradio.hub.ClusterManager — Spot: F5NZO NC4XL 14336000Hz
+2026-04-08 10:56:44.053 DEBUG com.hamradio.hub.ClusterManager — Spot: IW6DGJ-12 GM5CAR 18101000Hz
+2026-04-08 10:56:56.548 DEBUG com.hamradio.hub.ClusterManager — Spot: KY4E S51DX 21310000Hz
+2026-04-08 10:56:57.468 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2CD PC9F 14075000Hz
+2026-04-08 10:57:05.722 DEBUG com.hamradio.hub.ClusterManager — Spot: IU5ANK IW5DAX 7115000Hz
+2026-04-08 10:57:23.185 DEBUG com.hamradio.hub.ClusterManager — Spot: XV9R DU7RAA 21247000Hz
+2026-04-08 10:57:29.214 DEBUG com.hamradio.hub.ClusterManager — Spot: YO3GK AO750SJ 18135000Hz
+2026-04-08 10:57:41.820 DEBUG com.hamradio.hub.ClusterManager — Spot: SP9FIH V4/SP9FIH 21080000Hz
+2026-04-08 10:57:52.248 DEBUG com.hamradio.hub.ClusterManager — Spot: LU9CSM E74K 21074000Hz
+2026-04-08 10:57:56.765 DEBUG com.hamradio.hub.ClusterManager — Spot: WA3I W1AW/7 14000000Hz
+2026-04-08 10:58:03.819 DEBUG com.hamradio.hub.ClusterManager — Spot: KU4YW HB3YOR 21281000Hz
+2026-04-08 10:58:10.710 DEBUG com.hamradio.hub.ClusterManager — Spot: KI4GIP OM3DX 18100000Hz
+2026-04-08 10:58:17.971 DEBUG com.hamradio.hub.ClusterManager — Spot: LU9CSM ZS4AW 21074000Hz
+2026-04-08 10:58:24.120 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL RG65SA 21270000Hz
+2026-04-08 10:58:42.942 DEBUG com.hamradio.hub.ClusterManager — Spot: IK1DFH IU6OLM/P 7088000Hz
+2026-04-08 10:58:43.751 DEBUG com.hamradio.hub.ClusterManager — Spot: LU9CSM TY5AD 21074000Hz
+2026-04-08 10:58:51.851 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1HLK EA1EC 7090000Hz
+2026-04-08 10:59:00.063 DEBUG com.hamradio.hub.ClusterManager — Spot: MI0GTA R1996VK 14149000Hz
+2026-04-08 10:59:13.450 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL R4HHQ 21270000Hz
+2026-04-08 10:59:21.341 DEBUG com.hamradio.hub.ClusterManager — Spot: IU6HWW ZR1ADI 28076000Hz
+2026-04-08 10:59:25.540 DEBUG com.hamradio.hub.ClusterManager — Spot: IU6HWW ZS4JAN 28076000Hz
+2026-04-08 10:59:29.740 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 10:59:29.741 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 14:24:01.667 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:33060
+2026-04-08 14:24:01.668 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 14:24:01.670 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 14:25:12.650 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1006, reason=The connection was closed because the other endpoint did not respond with a pong in time. For more information check: https://github.com/TooTallNate/Java-WebSocket/wiki/Lost-connection-detection)
+2026-04-08 14:25:12.650 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 14:25:52.561 WARN  com.hamradio.hub.ClusterManager — Cluster read error: Read timed out — reconnecting in 5s
+2026-04-08 14:25:57.562 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:25:57.564 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 10s
+2026-04-08 14:26:07.565 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:26:07.566 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 20s
+2026-04-08 14:26:27.567 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:26:27.569 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 40s
+2026-04-08 14:27:07.569 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:27:07.572 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 80s
+2026-04-08 14:28:27.573 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:28:27.575 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 160s
+2026-04-08 14:31:07.575 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:31:07.578 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 300s
+2026-04-08 14:36:07.579 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:36:07.582 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 300s
+2026-04-08 14:38:12.068 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 14:38:36.667 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 14:38:36.726 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 14:38:36.728 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 14:38:36.759 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 14:38:36.769 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 14:38:36.779 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 14:38:36.924 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 14:38:36.925 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 14:38:36.928 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:38:36.933 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 14:38:36.939 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 5s
+2026-04-08 14:38:36.947 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 90861) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 14:38:36.950 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 90868) — bash /home/mike/hamlog/run.sh
+2026-04-08 14:38:36.951 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 14:38:40.747 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:58674
+2026-04-08 14:38:40.754 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 14:38:40.757 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 14:38:41.940 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:38:41.941 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 10s
+2026-04-08 14:38:43.434 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:45686
+2026-04-08 14:38:43.444 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 14:38:43.445 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 14:38:51.941 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:38:51.944 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 20s
+2026-04-08 14:38:58.249 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:36060
+2026-04-08 14:38:58.259 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 14:38:58.261 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 14:39:05.885 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:51986
+2026-04-08 14:39:05.906 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 14:39:05.907 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 14:39:11.945 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:39:11.949 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 40s
+2026-04-08 14:39:13.101 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 14:39:14.101 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:39:14.103 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 5s
+2026-04-08 14:39:19.103 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:39:19.104 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: k1ttt.net — retrying in 10s
+2026-04-08 14:39:21.144 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 14:40:17.703 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 14:40:17.704 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster k1ttt.net:7373 …
+2026-04-08 14:40:17.823 INFO  com.hamradio.hub.ClusterManager — Connected to cluster k1ttt.net:7373
+2026-04-08 14:40:25.854 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 14:40:25.855 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 14:40:49.215 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 14:40:49.227 DEBUG com.hamradio.hub.ClusterManager — Spot: IK2GAU-6 J66BF 28074000Hz
+2026-04-08 14:45:41.285 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 14:45:41.286 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster kdx.middlebrook.ca:8000 …
+2026-04-08 14:45:43.836 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: kdx.middlebrook.ca — retrying in 5s
+2026-04-08 14:45:48.836 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster kdx.middlebrook.ca:8000 …
+2026-04-08 14:45:48.837 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: kdx.middlebrook.ca — retrying in 10s
+2026-04-08 14:45:57.913 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 14:45:58.839 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster kdx.middlebrook.ca:8000 …
+2026-04-08 14:45:59.193 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: kdx.middlebrook.ca — retrying in 5s
+2026-04-08 14:45:59.194 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster kdx.middlebrook.ca:8000 …
+2026-04-08 14:45:59.195 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: kdx.middlebrook.ca — retrying in 10s
+2026-04-08 14:46:04.194 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster kdx.middlebrook.ca:8000 …
+2026-04-08 14:46:04.196 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: kdx.middlebrook.ca — retrying in 20s
+2026-04-08 14:46:09.196 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster kdx.middlebrook.ca:8000 …
+2026-04-08 14:46:09.639 WARN  com.hamradio.hub.ClusterManager — Cluster connection failed: kdx.middlebrook.ca — retrying in 40s
+2026-04-08 14:46:10.718 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/hub/hub.json
+2026-04-08 14:46:11.719 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-08 14:46:12.916 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-08 14:46:17.736 DEBUG com.hamradio.hub.ClusterManager — Spot: LU4EFC N7DNF 28074000Hz
+2026-04-08 14:46:28.185 DEBUG com.hamradio.hub.ClusterManager — Spot: EC5EA AO750SJ 3762000Hz
+2026-04-08 14:46:28.491 DEBUG com.hamradio.hub.ClusterManager — Spot: IT9RZR PY2BW 50313000Hz
+2026-04-08 14:46:39.609 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED rebroadcast
+2026-04-08 14:47:02.899 DEBUG com.hamradio.hub.ClusterManager — Spot: IT9RZR PY2XB 50313000Hz
+2026-04-08 14:47:11.092 DEBUG com.hamradio.hub.ClusterManager — Spot: F4HSR VU29AR 14225000Hz
+2026-04-08 14:47:12.157 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED rebroadcast
+2026-04-08 14:47:19.040 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED rebroadcast
+2026-04-08 14:47:19.283 DEBUG com.hamradio.hub.ClusterManager — Spot: IU4PPL IK6PUO 7100000Hz
+2026-04-08 14:47:28.089 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for SX200M
+2026-04-08 14:47:28.090 DEBUG com.hamradio.hub.ClusterManager — Spot: RA6BX SX200M 7074000Hz
+2026-04-08 14:47:28.442 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED rebroadcast
+2026-04-08 14:47:33.003 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for M0KVK
+2026-04-08 14:47:33.004 DEBUG com.hamradio.hub.ClusterManager — Spot: LY7OK M0KVK 7140000Hz
+2026-04-08 14:47:36.649 DEBUG com.hamradio.hub.ClusterManager — Spot: LY7OK G0VQO 7140000Hz
+2026-04-08 14:47:37.795 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1000, reason=)
+2026-04-08 14:47:37.796 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 14:47:44.453 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 14:47:44.453 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 14:47:51.044 DEBUG com.hamradio.hub.ClusterManager — Spot: N1BMT EI5JTB 14267000Hz
+2026-04-08 14:47:52.676 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 14:48:00.033 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 14:48:00.037 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamlog' during shutdown
+2026-04-08 14:48:00.037 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock' during shutdown
+2026-04-08 14:48:00.401 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1006, reason=)
+2026-04-08 14:48:00.401 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 14:48:18.156 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 14:48:18.157 DEBUG com.hamradio.hub.ClusterManager — Spot: EA2DYB LA3LUA 14074000Hz
+2026-04-08 14:48:18.195 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 14:54:56.750 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 14:54:56.804 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 14:54:56.806 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 14:54:56.839 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 14:54:56.849 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 14:54:56.864 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 14:54:57.030 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 14:54:57.030 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 14:54:57.032 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-08 14:54:57.035 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 14:54:57.043 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 91973) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 14:54:57.044 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 91979) — bash /home/mike/hamlog/run.sh
+2026-04-08 14:54:57.046 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 14:54:57.279 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-08 14:55:02.707 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:56954
+2026-04-08 14:55:02.717 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 14:55:02.717 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 14:55:05.061 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:43490
+2026-04-08 14:55:05.067 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 14:55:05.069 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 14:55:20.117 DEBUG com.hamradio.hub.ClusterManager — Spot: EC5EA AO750SJ 24950000Hz
+2026-04-08 14:55:30.965 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:60904
+2026-04-08 14:55:31.052 DEBUG com.hamradio.hub.ClusterManager — Spot: K2SE GI8VL 21017000Hz
+2026-04-08 14:55:31.146 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 14:55:31.157 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 14:55:31.398 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:60920
+2026-04-08 14:55:31.436 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 14:55:31.438 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 14:55:35.157 DEBUG com.hamradio.hub.ClusterManager — Spot: JK1ESR LY2PX 7011000Hz
+2026-04-08 14:55:35.465 DEBUG com.hamradio.hub.ClusterManager — Spot: JF1KKV TN8GD 14074000Hz
+2026-04-08 14:55:38.528 DEBUG com.hamradio.hub.ClusterManager — Spot: VE2MTK DJ1TU 14086000Hz
+2026-04-08 14:55:53.189 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 14:55:53.190 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 14:56:06.897 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED: rebroadcast + RIG_STATUS (freq=14086000, mode=RTTY)
+2026-04-08 14:56:08.861 DEBUG com.hamradio.hub.ClusterManager — Spot: JF1KKV TL8GD 14074000Hz
+2026-04-08 14:56:12.644 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 8R/PZ5TW
+2026-04-08 14:56:12.647 DEBUG com.hamradio.hub.ClusterManager — Spot: WD5FCA 8R/PZ5TW 18102200Hz
+2026-04-08 14:56:37.635 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1000, reason=)
+2026-04-08 14:56:37.636 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 14:56:40.890 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 14:56:40.891 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 14:56:44.080 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 15:09:12.121 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 15:09:12.165 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 15:09:12.166 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 15:09:12.186 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 15:09:12.194 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 15:09:12.207 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 15:09:12.321 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 15:09:12.321 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 15:09:12.323 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-08 15:09:12.328 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 15:09:12.335 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 5042) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 15:09:12.336 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 5048) — bash /home/mike/hamlog/run.sh
+2026-04-08 15:09:12.337 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 15:09:12.559 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-08 15:09:13.273 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for VA2WA
+2026-04-08 15:09:13.287 DEBUG com.hamradio.hub.ClusterManager — Spot: SD6M VA2WA 14035100Hz
+2026-04-08 15:09:16.916 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:39066
+2026-04-08 15:09:16.922 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 15:09:16.923 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 15:09:19.050 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:39082
+2026-04-08 15:09:19.065 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 15:09:19.066 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 15:09:26.163 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED → RIG_STATUS freq=14035100 mode=CW
+2026-04-08 15:09:28.570 DEBUG com.hamradio.hub.ClusterManager — Spot: KC3M KE2AZ 14044400Hz
+2026-04-08 15:09:33.456 DEBUG com.hamradio.hub.ClusterManager — Spot: KV0I VE3NZ 14029900Hz
+2026-04-08 15:09:42.162 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for HD8R
+2026-04-08 15:09:42.164 DEBUG com.hamradio.hub.ClusterManager — Spot: PA3BUD HD8R 21026000Hz
+2026-04-08 15:09:45.884 DEBUG com.hamradio.hub.ClusterManager — Spot: EA3ACA AO750SJ 3575000Hz
+2026-04-08 15:09:49.825 DEBUG com.hamradio.hub.ClusterManager — Spot: K1SEI NE5A 14041000Hz
+2026-04-08 15:09:51.169 DEBUG com.hamradio.hub.ClusterManager — Spot: IU5KZF PE1HMA 7104300Hz
+2026-04-08 15:10:02.131 DEBUG com.hamradio.hub.ClusterManager — Spot: K3DQB DD2ML 14036600Hz
+2026-04-08 15:10:08.045 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1000, reason=)
+2026-04-08 15:10:08.046 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 15:10:13.186 DEBUG com.hamradio.hub.ClusterManager — Spot: K4KAL N2NWK 14338000Hz
+2026-04-08 15:10:14.619 DEBUG com.hamradio.hub.ClusterManager — Spot: K1SEI K4NMR 14040400Hz
+2026-04-08 15:10:20.804 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:59150
+2026-04-08 15:10:20.810 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 15:10:20.814 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 15:10:30.502 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 15:10:30.502 DEBUG com.hamradio.hub.ClusterManager — Spot: W3WHK DK9PY 14026900Hz
+2026-04-08 15:10:42.890 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 15:10:42.891 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 15:11:40.309 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 15:12:28.715 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 15:12:28.716 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamlog' during shutdown
+2026-04-08 15:12:28.716 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock' during shutdown
+2026-04-08 15:12:28.717 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 15:12:28.724 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1001, reason=)
+2026-04-08 15:12:28.724 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 15:12:28.724 INFO  com.hamradio.hub.HubServer — Last app disconnected — shutting down hub
+2026-04-08 15:12:29.724 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 15:12:51.996 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 15:12:52.038 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 15:12:52.039 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 15:12:52.065 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 15:12:52.073 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 15:12:52.085 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 15:12:52.204 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 15:12:52.205 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 15:12:52.207 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-08 15:12:52.211 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 15:12:52.220 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 7078) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 15:12:52.221 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 7085) — bash /home/mike/hamlog/run.sh
+2026-04-08 15:12:52.222 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 15:12:52.725 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-08 15:12:55.202 DEBUG com.hamradio.hub.ClusterManager — Spot: KC3MAL K4NMR 14040400Hz
+2026-04-08 15:12:55.204 DEBUG com.hamradio.hub.ClusterManager — Spot: WM6Y WM6Y 21037300Hz
+2026-04-08 15:12:56.657 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:34984
+2026-04-08 15:12:56.663 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 15:12:56.664 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 15:12:58.813 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:34996
+2026-04-08 15:12:58.823 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 15:12:58.826 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 15:13:07.245 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED → RIG_STATUS freq=21037300 mode=CW
+2026-04-08 15:13:07.885 DEBUG com.hamradio.hub.ClusterManager — Spot: K3DQB E70T 14037900Hz
+2026-04-08 15:13:21.819 DEBUG com.hamradio.hub.ClusterManager — Spot: A61KZ R6XW 14347000Hz
+2026-04-08 15:13:23.252 DEBUG com.hamradio.hub.ClusterManager — Spot: CT7APD V4/SP9FIH 14086600Hz
+2026-04-08 15:13:26.106 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1000, reason=)
+2026-04-08 15:13:26.106 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 15:13:29.602 DEBUG com.hamradio.hub.ClusterManager — Spot: KC3M N4KS 14037000Hz
+2026-04-08 15:13:33.149 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:59846
+2026-04-08 15:13:33.207 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 15:13:33.211 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 15:13:34.958 DEBUG com.hamradio.hub.ClusterManager — Spot: W8EH N4KS 14036900Hz
+2026-04-08 15:13:39.641 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 15:13:39.644 DEBUG com.hamradio.hub.ClusterManager — Spot: DC2AM GB0CC 7100000Hz
+2026-04-08 15:13:41.305 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 15:13:43.587 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 15:13:43.588 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 15:13:50.337 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — hub continues in background
+2026-04-08 15:21:38.516 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 15:21:38.554 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 15:21:38.555 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 15:21:38.575 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 15:21:38.580 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 15:21:38.586 ERROR o.j.server.WebSocketServer — Shutdown due to fatal error
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at java.base/sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:89)
+	at org.java_websocket.server.WebSocketServer.doSetupSelectorAndServerThread(WebSocketServer.java:567)
+	at org.java_websocket.server.WebSocketServer.run(WebSocketServer.java:367)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-04-08 15:21:38.588 ERROR com.hamradio.hub.HubServer — WebSocket error on null: Address already in use
+2026-04-08 15:21:38.658 ERROR com.hamradio.hub.HubMain — Fatal startup error
+java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8081
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:304)
+	at org.eclipse.jetty.server.Server.lambda$doStart$0(Server.java:402)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.eclipse.jetty.server.Server.doStart(Server.java:398)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:93)
+	at com.hamradio.hub.WebConfigServer.start(WebConfigServer.java:69)
+	at com.hamradio.hub.HubMain.bootstrap(HubMain.java:92)
+	at com.hamradio.hub.HubMain.start(HubMain.java:50)
+	at javafx.graphics/com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:847)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:484)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:457)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics/com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:456)
+	at javafx.graphics/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:96)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$11(GtkApplication.java:290)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 26 common frames omitted
+2026-04-08 15:22:11.691 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 15:22:11.692 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamlog' during shutdown
+2026-04-08 15:22:11.692 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock' during shutdown
+2026-04-08 15:22:11.692 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 15:22:11.701 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1001, reason=)
+2026-04-08 15:22:11.701 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 15:22:11.701 INFO  com.hamradio.hub.HubServer — Last app disconnected — shutting down hub
+2026-04-08 15:22:12.701 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-08 15:23:21.185 INFO  com.hamradio.hub.HubMain — === Ham Radio Hub starting ===
+2026-04-08 15:23:21.230 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/hub/hub.json
+2026-04-08 15:23:21.233 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-08 15:23:21.259 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-08 15:23:21.267 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-08 15:23:21.275 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-08 15:23:21.394 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-08 15:23:21.395 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-08 15:23:21.397 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-08 15:23:21.400 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-08 15:23:21.408 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 8090) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-08 15:23:21.410 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 8097) — bash /home/mike/hamlog/run.sh
+2026-04-08 15:23:21.410 INFO  com.hamradio.hub.HubMain — === Hub ready ===
+2026-04-08 15:23:21.626 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-08 15:23:25.770 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:52534
+2026-04-08 15:23:25.777 INFO  com.hamradio.hub.HubServer — App registered: hamclock v1.0.0
+2026-04-08 15:23:25.777 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamclock'
+2026-04-08 15:23:28.209 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:38968
+2026-04-08 15:23:28.218 INFO  com.hamradio.hub.HubServer — App registered: hamlog v1.0.0
+2026-04-08 15:23:28.218 DEBUG com.hamradio.hub.HubServer — State replayed to 'hamlog'
+2026-04-08 15:23:36.421 DEBUG com.hamradio.hub.ClusterManager — Spot: KC1SQ AD4EB 14034700Hz
+2026-04-08 15:23:42.383 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:54476
+2026-04-08 15:23:42.480 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-08 15:23:42.482 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-08 15:23:43.377 DEBUG com.hamradio.hub.ClusterManager — Spot: WS5D WA3AAN 14025700Hz
+2026-04-08 15:23:57.007 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED → RIG_STATUS freq=14025700 mode=CW
+2026-04-08 15:24:04.341 DEBUG com.hamradio.hub.ClusterManager — Spot: ON6ID KD4AVE 18135000Hz
+2026-04-08 15:24:05.977 DEBUG com.hamradio.hub.ClusterManager — Spot: W3WHK SE5E 14034500Hz
+2026-04-08 15:24:06.798 DEBUG com.hamradio.hub.ClusterManager — Spot: F4UJU FK8HQ 14122000Hz
+2026-04-08 15:24:19.085 DEBUG com.hamradio.hub.ClusterManager — Spot: K7QA N3AD 14035200Hz
+2026-04-08 15:24:21.177 DEBUG com.hamradio.hub.MessageRouter — SPOT_SELECTED → RIG_STATUS freq=14122000 mode=SSB
+2026-04-08 15:24:22.254 DEBUG com.hamradio.hub.ClusterManager — Spot: DH4JQ W1AW/5 18100000Hz
+2026-04-08 15:24:35.984 DEBUG com.hamradio.hub.ClusterManager — Spot: K1MT VE3NZ 14029900Hz
+2026-04-08 15:24:37.418 DEBUG com.hamradio.hub.ClusterManager — Spot: WA2RTE EB1DJ 14242000Hz
+2026-04-08 15:24:39.263 DEBUG com.hamradio.hub.ClusterManager — Spot: 2E0GMW DF40ABF 7182000Hz
+2026-04-08 15:24:43.768 DEBUG com.hamradio.hub.ClusterManager — Spot: K3DQB VE2FK 14047000Hz
+2026-04-08 15:24:55.236 DEBUG com.hamradio.hub.ClusterManager — Spot: VA2WA N4UL 14035100Hz
+2026-04-08 15:24:57.899 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-08 15:24:57.900 DEBUG com.hamradio.hub.ClusterManager — Spot: WU8T K4RUM 14022100Hz
+2026-04-08 15:24:59.966 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-08 15:24:59.966 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-08 15:25:07.368 INFO  com.hamradio.hub.ui.HubStatusWindow — Status window closed — shutting down hub
+2026-04-08 15:25:07.375 INFO  com.hamradio.hub.HubMain — Shutdown initiated …
+2026-04-08 15:25:07.376 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamlog' during shutdown
+2026-04-08 15:25:07.377 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock' during shutdown
+2026-04-08 15:25:07.378 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-08 15:25:07.394 INFO  com.hamradio.hub.HubServer — App 'hamlog' disconnected (code=1001, reason=)
+2026-04-08 15:25:07.395 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamlog' removed
+2026-04-08 15:25:07.395 INFO  com.hamradio.hub.HubServer — App 'hamclock' disconnected (code=1001, reason=)
+2026-04-08 15:25:07.396 INFO  com.hamradio.hub.MessageRouter — Routing: app 'hamclock' removed
+2026-04-08 15:25:07.396 INFO  com.hamradio.hub.HubServer — Last app disconnected — shutting down hub
+2026-04-08 15:25:08.394 INFO  com.hamradio.hub.HubMain — Hub stopped.

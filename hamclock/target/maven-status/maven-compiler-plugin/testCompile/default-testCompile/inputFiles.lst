@@ -1,0 +1,8 @@
+/home/mike/hamclock/src/test/java/com/hamclock/astronomy/GreatCircleMathTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/astronomy/SettingsSerializationTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/astronomy/SolarDataTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/astronomy/SolarPositionServiceTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/astronomy/SunriseSunsetServiceTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/dx/DxSpotTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/propagation/PropagationLogicTest.java
+/home/mike/hamclock/src/test/java/com/hamclock/rotor/RotorDataTest.java

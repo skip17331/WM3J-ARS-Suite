@@ -1,0 +1,117 @@
+/* ================================================================
+   HamLog Dark Theme
+   ================================================================ */
+
+.root {
+    -fx-base: #2b2b2b;
+    -fx-background: #1e1e1e;
+    -fx-control-inner-background: #2d2d2d;
+    -fx-text-fill: #e0e0e0;
+    -fx-accent: #4fc3f7;
+    -fx-focus-color: #4fc3f7;
+    -fx-faint-focus-color: #4fc3f720;
+}
+
+.main-window  { -fx-background-color: #1e1e1e; }
+.setup-window { -fx-background-color: #1e1e1e; }
+
+.label { -fx-text-fill: #e0e0e0; }
+
+/* Menu bar */
+.menu-bar { -fx-background-color: #2d2d2d; }
+.menu-bar .label { -fx-text-fill: #e0e0e0; }
+.context-menu { -fx-background-color: #3a3a3a; }
+
+/* Clock bar */
+.clock-bar { -fx-background-color: #1a2a3a; }
+.clock-field { -fx-text-fill: #80cbc4; -fx-background-color: transparent; -fx-border-color: transparent; }
+.clock-label { -fx-text-fill: #aaaaaa; }
+
+/* Entry pane */
+.entry-pane { -fx-background-color: #252535; }
+.entry-pane .titled-pane-header { -fx-background-color: #1a2a4a; }
+.entry-pane .title { -fx-text-fill: #90caf9; }
+
+.text-field, .combo-box, .text-area, .password-field {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #555555;
+    -fx-border-radius: 3;
+}
+.text-field:focused, .combo-box:focused, .text-area:focused {
+    -fx-border-color: #4fc3f7;
+}
+
+/* Callsign field highlight */
+.callsign-field { -fx-text-fill: #80deea; }
+
+/* Info pane row */
+.info-pane-row { -fx-background-color: #222232; }
+.info-pane-row .titled-pane-header { -fx-background-color: #1a2a3a; }
+
+/* Macro bar */
+.macro-bar { -fx-background-color: #1a2a3a; }
+.macro-button {
+    -fx-background-color: #014479;
+    -fx-text-fill: #b3e5fc;
+    -fx-background-radius: 4;
+}
+.macro-button:hover { -fx-background-color: #0277bd; }
+
+/* Tables */
+.table-view { -fx-background-color: #2a2a2a; -fx-control-inner-background: #2a2a2a; }
+.table-view .column-header { -fx-background-color: #1a2a3a; }
+.table-view .column-header .label { -fx-text-fill: #90caf9; }
+.table-row-cell { -fx-background-color: #2a2a2a; -fx-text-fill: #e0e0e0; }
+.table-row-cell:odd { -fx-background-color: #303030; }
+.table-row-cell:selected { -fx-background-color: #1a3a5a; }
+
+/* Plugin panes */
+.plugin-pane-row .titled-pane-header { -fx-background-color: #1a2a3a; }
+.section-label { -fx-background-color: #2a3a4a; -fx-text-fill: #cce; }
+
+/* DX panel */
+.dx-panel { -fx-background-color: #222222; }
+.dx-toolbar { -fx-background-color: #2a2a2a; }
+.raw-area { -fx-background-color: #1a1a1a; -fx-text-fill: #80cbc4; }
+
+/* Setup */
+.setup-tabs .tab-header-area .tab-header-background { -fx-background-color: #2a2a2a; }
+.tab { -fx-background-color: #383838; }
+.tab:selected { -fx-background-color: #1a3a5a; }
+.tab .tab-label { -fx-text-fill: #e0e0e0; }
+
+/* Buttons */
+.button { -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0; }
+.button:hover { -fx-background-color: #4a4a4a; }
+.primary-button {
+    -fx-background-color: #014479;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}
+.primary-button:hover { -fx-background-color: #0277bd; }
+
+/* Dupe */
+.dupe-label { -fx-text-fill: #ef9a9a; }
+.dupe-row { -fx-background-color: #4a2020 !important; }
+
+/* Section worked */
+.section-worked { -fx-background-color: #2e7d32; -fx-text-fill: white; }
+
+/* Score/stats */
+.stat-value  { -fx-text-fill: #80deea; }
+.score-value { -fx-text-fill: #80deea; }
+
+/* Splash */
+.splash-root { -fx-background-color: #0d1b2a; }
+.splash-title    { -fx-text-fill: #4fc3f7; }
+.splash-subtitle { -fx-text-fill: #80cbc4; }
+.splash-version  { -fx-text-fill: #546e7a; }
+
+/* List / combo */
+.list-view { -fx-background-color: #2a2a2a; }
+.list-cell { -fx-background-color: #2a2a2a; -fx-text-fill: #e0e0e0; }
+.list-cell:selected { -fx-background-color: #1a3a5a; }
+
+.scroll-pane { -fx-background-color: #2a2a2a; }
+.scroll-pane .viewport { -fx-background-color: #2a2a2a; }

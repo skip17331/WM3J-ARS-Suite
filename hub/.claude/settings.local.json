@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x:*)",
+      "Bash(./run.sh:*)",
+      "Bash(lsof -ti:8080,8081)",
+      "Bash(xargs --no-run-if-empty kill)",
+      "Bash(mvn package:*)",
+      "Bash(ls:*)",
+      "Bash(bash:*)",
+      "Bash(lsof -iUDP:9999)",
+      "Bash(ps:*)",
+      "Bash(lsof -ti:8080)",
+      "Bash(xargs --no-run-if-empty kill -9)",
+      "Bash(lsof:*)",
+      "Bash(kill 78726)",
+      "Bash(fuser -k 8080/tcp 8081/tcp)",
+      "Bash(curl -s http://localhost:8081/api/status)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8081/api/apps/launch/hamclock -H 'Content-Type: application/json' -d '{\"command\":\"hamclock\"}')",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/**)",
+      "Bash(curl -s -X POST http://localhost:8081/api/apps/launch/hamclock -H 'Content-Type: application/json' -d '{\"command\":\"\"}')",
+      "Bash(curl -s -X POST http://localhost:8081/api/apps/status)",
+      "Read(//home/mike/Desktop/**)",
+      "Bash(dpkg -l)",
+      "Bash(snap list:*)",
+      "Bash(flatpak list:*)",
+      "Bash(grep -E \"\\\\.java$\")",
+      "Bash(grep:*)",
+      "Bash(pkill -f \"com.hamradio.hub.HubMain\")",
+      "Bash(pkill -f \"hamlog\")",
+      "Bash(pkill -f \"HamClockApp\")",
+      "Bash(pkill -f \"javafx:run\")",
+      "Bash(pkill -f \"HubMain\\\\|hamlog\\\\|HamClockApp\\\\|javafx:run\")"
+    ]
+  }
+}

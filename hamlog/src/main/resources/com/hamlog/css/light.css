@@ -1,0 +1,77 @@
+/* ================================================================
+   HamLog Light Theme
+   ================================================================ */
+
+.root {
+    -fx-base: #f4f4f4;
+    -fx-background: #f4f4f4;
+    -fx-control-inner-background: #ffffff;
+    -fx-text-fill: #212121;
+    -fx-accent: #1565c0;
+    -fx-focus-color: #1565c0;
+    -fx-faint-focus-color: #1565c020;
+}
+
+.main-window  { -fx-background-color: #f4f4f4; }
+.setup-window { -fx-background-color: #f4f4f4; }
+
+/* Menu bar */
+.menu-bar { -fx-background-color: #e8e8e8; }
+.menu-bar .label { -fx-text-fill: #212121; }
+
+/* Clock bar */
+.clock-bar { -fx-background-color: #dce4f0; }
+.clock-field { -fx-background-color: transparent; -fx-border-color: transparent; }
+
+/* Entry pane */
+.entry-pane { -fx-background-color: #eef2fb; }
+.entry-pane .titled-pane-header { -fx-background-color: #c5cfe8; }
+
+/* Info pane row */
+.info-pane-row { -fx-background-color: #e8eaf0; }
+.info-pane-row .titled-pane-header { -fx-background-color: #d0d8f0; }
+
+/* Macro bar */
+.macro-bar { -fx-background-color: #dde3f4; }
+.macro-button {
+    -fx-background-color: #1565c0;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}
+.macro-button:hover { -fx-background-color: #1e88e5; }
+
+/* Tables */
+.table-view { -fx-background-color: white; }
+.table-view .column-header { -fx-background-color: #c8d8f0; }
+.table-row-cell:selected { -fx-background-color: #bbdefb; }
+
+/* Plugin panes */
+.plugin-pane-row .titled-pane-header { -fx-background-color: #c8d0e8; }
+.section-label { -fx-background-color: #e8ecf8; -fx-text-fill: #333333; }
+
+/* DX panel */
+.dx-panel { -fx-background-color: #f0f0f0; }
+.dx-toolbar { -fx-background-color: #e4e4e4; }
+
+/* Setup */
+.setup-tabs .tab-header-area .tab-header-background { -fx-background-color: #e0e4ee; }
+
+/* Buttons */
+.primary-button {
+    -fx-background-color: #1565c0;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+}
+.primary-button:hover { -fx-background-color: #1e88e5; }
+
+.dupe-label { -fx-text-fill: #c62828; }
+.dupe-status-warn { -fx-text-fill: #c62828; }
+.dupe-row { -fx-background-color: #ffcdd2 !important; }
+
+/* Section worked */
+.section-worked { -fx-background-color: #388e3c; -fx-text-fill: white; }
+
+.splash-root { -fx-background-color: #1565c0; }
+.splash-title    { -fx-text-fill: white; }
+.splash-subtitle { -fx-text-fill: #bbdefb; }
+.splash-version  { -fx-text-fill: #90caf9; }

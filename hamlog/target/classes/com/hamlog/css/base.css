@@ -1,0 +1,101 @@
+/* ================================================================
+   HamLog Base CSS — shared structural styles
+   Theme-specific colours are in light.css / dark.css
+   ================================================================ */
+
+/* ---- Root / Window ---- */
+.main-window { -fx-font-family: "DejaVu Sans", "Liberation Sans", sans-serif; -fx-font-size: 13px; }
+.setup-window { -fx-font-size: 13px; }
+
+/* ---- Clock bar ---- */
+.clock-bar { -fx-padding: 2 12 2 12; }
+.clock-field { -fx-font-family: monospace; -fx-font-size: 13px; -fx-max-width: 160px; }
+.clock-label { -fx-font-size: 12px; }
+
+/* ---- Entry pane ---- */
+.entry-pane .titled-pane-header { -fx-font-weight: bold; }
+.entry-grid { -fx-padding: 8 10 8 10; }
+.callsign-field { -fx-font-size: 15px; -fx-font-weight: bold; -fx-font-family: monospace; }
+.entry-label { -fx-font-weight: bold; -fx-font-size: 12px; }
+.auto-field   { -fx-opacity: 0.7; }
+.serial-display { -fx-font-size: 18px; -fx-font-weight: bold; -fx-font-family: monospace; -fx-padding: 0 8 0 8; }
+
+/* ---- Macro bar ---- */
+.macro-bar { -fx-padding: 2 6 2 6; }
+.macro-button { -fx-font-size: 11px; -fx-min-width: 44px; -fx-padding: 3 6 3 6; }
+
+/* ---- Plugin pane row ---- */
+.plugin-pane-row { -fx-min-height: 180px; }
+.pane-content { -fx-padding: 6; }
+.section-grid { -fx-padding: 4; }
+.section-label { -fx-font-family: monospace; -fx-font-size: 14px; -fx-padding: 2 6 2 6; -fx-background-radius: 3; }
+
+/* ---- Info pane ---- */
+.info-value { -fx-font-weight: bold; }
+
+/* ---- Dupe ---- */
+.dupe-label { -fx-font-weight: bold; -fx-font-size: 14px; }
+.dupe-status-warn { -fx-text-fill: red; -fx-font-weight: bold; }
+.dupe-status-ok   { -fx-text-fill: #28a745; }
+.dupe-row { -fx-background-color: #ffcccc; }
+
+/* ---- Tables ---- */
+.qso-table { -fx-font-size: 12px; }
+.spot-table { -fx-font-size: 12px; }
+.table-toolbar { -fx-padding: 4 6 4 6; }
+.section-title { -fx-font-weight: bold; }
+.log-section { -fx-padding: 0; }
+
+/* ---- Stats ---- */
+.stat-label { -fx-font-size: 12px; }
+.stat-value { -fx-font-size: 14px; -fx-font-weight: bold; -fx-font-family: monospace; }
+.score-value { -fx-font-weight: bold; -fx-font-family: monospace; }
+.qso-count   { -fx-font-weight: bold; }
+
+/* ---- DX panel ---- */
+.dx-panel   { -fx-padding: 0; }
+.dx-toolbar { -fx-padding: 4 6 4 6; }
+.conn-status { -fx-font-style: italic; }
+.raw-area    { -fx-font-family: monospace; -fx-font-size: 12px; }
+.raw-input-bar { -fx-padding: 2 6 2 6; }
+
+/* ---- Exchange hint ---- */
+.exchange-hint { -fx-font-style: italic; -fx-font-size: 11px; }
+
+/* ---- Two-row entry bar ---- */
+.exchange-row-label { -fx-font-weight: bold; -fx-font-size: 11px; -fx-min-width: 40px; -fx-opacity: 0.7; }
+.sent-callsign { -fx-font-family: monospace; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 4 0 4; }
+
+/* ---- Section zone groups ---- */
+.section-zones { -fx-padding: 6; }
+.zone-column   { -fx-padding: 0 10 0 0; }
+.zone-header   { -fx-font-weight: bold; -fx-font-size: 14px; -fx-underline: true; -fx-padding: 0 4 4 4; }
+
+/* ---- Section worked ---- */
+.section-worked { -fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; }
+
+/* ---- Setup ---- */
+.setup-grid  { -fx-padding: 16; }
+.help-text   { -fx-font-size: 11px; -fx-font-style: italic; }
+.test-result { -fx-font-weight: bold; }
+.macro-editor { -fx-font-family: monospace; -fx-font-size: 12px; }
+.button-bar  { -fx-padding: 10 16 10 16; }
+
+/* ---- Buttons ---- */
+.primary-button   { -fx-font-weight: bold; }
+.secondary-button { }
+.chooser-button   { -fx-font-size: 14px; -fx-min-height: 44px; }
+.chooser-prompt   { -fx-font-size: 16px; -fx-font-weight: bold; }
+
+/* ---- Splash ---- */
+.splash-root     { -fx-alignment: center; }
+.splash-title    { -fx-font-size: 42px; -fx-font-weight: bold; }
+.splash-subtitle { -fx-font-size: 16px; }
+.splash-version  { -fx-font-size: 12px; }
+
+/* ---- CIV status ---- */
+.civ-status { -fx-font-size: 11px; -fx-font-style: italic; }
+.status-label { -fx-font-size: 12px; }
+
+/* ---- Station callsign in clock bar ---- */
+.station-call { -fx-font-weight: bold; -fx-font-family: monospace; }

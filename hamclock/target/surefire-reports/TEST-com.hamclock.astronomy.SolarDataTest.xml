@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.hamclock.astronomy.SolarDataTest" time="0.116" tests="44" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="21"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/home/mike/hamclock/target/test-classes:/home/mike/hamclock/target/classes:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.16.1/jackson-databind-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.16.1/jackson-annotations-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.1/jackson-datatype-jsr310-2.16.1.jar:/home/mike/.m2/repository/org/nanohttpd/nanohttpd/2.3.1/nanohttpd-2.3.1.jar:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.1/junit-jupiter-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:/home/mike/.m2/repository/org/mockito/mockito-core/5.8.0/mockito-core-5.8.0.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.10/byte-buddy-1.14.10.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar:/home/mike/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="America/New_York"/>
+    <property name="os.name" value="Linux"/>
+    <property name="java.vm.specification.version" value="21"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
+    <property name="sun.java.command" value="/home/mike/hamclock/target/surefire/surefirebooter-20260408154054014_3.jar /home/mike/hamclock/target/surefire 2026-04-08T15-40-53_877-jvmRun1 surefire-20260408154054014_1tmp surefire_0-20260408154054014_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/home/mike/hamclock/target/test-classes:/home/mike/hamclock/target/classes:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.16.1/jackson-databind-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.16.1/jackson-annotations-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.1/jackson-datatype-jsr310-2.16.1.jar:/home/mike/.m2/repository/org/nanohttpd/nanohttpd/2.3.1/nanohttpd-2.3.1.jar:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.1/junit-jupiter-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:/home/mike/.m2/repository/org/mockito/mockito-core/5.8.0/mockito-core-5.8.0.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.10/byte-buddy-1.14.10.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar:/home/mike/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/home/mike"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-01-20"/>
+    <property name="java.home" value="/usr/lib/jvm/temurin-21"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/home/mike/hamclock"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="surefire.real.class.path" value="/home/mike/hamclock/target/surefire/surefirebooter-20260408154054014_3.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="21.0.10+7-LTS"/>
+    <property name="user.name" value="mike"/>
+    <property name="stdout.encoding" value="UTF-8"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="6.17.0-20-generic"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-21.0.10+7"/>
+    <property name="localRepository" value="/home/mike/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="java.version" value="21.0.10"/>
+    <property name="user.dir" value="/home/mike/hamclock"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="native.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="UTF-8"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="21.0.10+7-LTS"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="65.0"/>
+  </properties>
+  <testcase name="sfiQuality_allRanges_nonNull" classname="com.hamclock.astronomy.SolarDataTest" time="0.003"/>
+  <testcase name="solarData_constructorWithArgs_setsAllFields" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="mockProvider_xrayClass_isNotBlank" classname="com.hamclock.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[15:40:56.734 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.734477319Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_xrayClass_startsWithValidLetter" classname="com.hamclock.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[15:40:56.736 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.736818547Z
+]]></system-out>
+  </testcase>
+  <testcase name="getKpLabel_correctClassification(double, String)[1]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[2]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[3]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[4]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[5]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[6]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[7]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[8]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[9]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[10]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[11]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[12]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[13]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="solarData_toString_containsKeyValues" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="mockProvider_getCached_beforeFetch_isNull" classname="com.hamclock.astronomy.SolarDataTest" time="0.0"/>
+  <testcase name="mockProvider_isStale_withZeroDuration" classname="com.hamclock.astronomy.SolarDataTest" time="0.001">
+    <system-out><![CDATA[15:40:56.782 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.782159135Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_lastUpdated_setAfterFetch" classname="com.hamclock.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[15:40:56.784 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.784465878Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_aIndex_isNonNegative" classname="com.hamclock.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[15:40:56.787 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.787126199Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_lastUpdated_nullBeforeFetch" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="mockProvider_getCached_afterFetch_matchesFetch" classname="com.hamclock.astronomy.SolarDataTest" time="0.003">
+    <system-out><![CDATA[15:40:56.791 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.791705863Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_kp_inValidRange" classname="com.hamclock.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[15:40:56.794 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.794361515Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_fetch_returnsNonNull" classname="com.hamclock.astronomy.SolarDataTest" time="0.001">
+    <system-out><![CDATA[15:40:56.796 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.796257164Z
+]]></system-out>
+  </testcase>
+  <testcase name="solarData_fourArgConstructor_isFreshByDefault" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="solarData_fourArgConstructor_hasObservationTime" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[1]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[2]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[3]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[4]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[5]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[6]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[7]" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[8]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[9]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[10]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[11]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[12]" classname="com.hamclock.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="mockProvider_sunspotNumber_isNonNegative" classname="com.hamclock.astronomy.SolarDataTest" time="0.001">
+    <system-out><![CDATA[15:40:56.834 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.834965124Z
+]]></system-out>
+  </testcase>
+  <testcase name="mockProvider_isStale_afterFetch_withShortTimeout" classname="com.hamclock.astronomy.SolarDataTest" time="0.001">
+    <system-out><![CDATA[15:40:56.837 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.837140630Z
+]]></system-out>
+  </testcase>
+  <testcase name="kpLabel_allEnumValues_nonNull" classname="com.hamclock.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="mockProvider_sfi_inRealisticRange" classname="com.hamclock.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[15:40:56.841 [main] DEBUG c.h.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-08T19:40:56.841701950Z
+]]></system-out>
+  </testcase>
+</testsuite>

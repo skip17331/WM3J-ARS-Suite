@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ham Radio Hub — Configuration</title>
+<link rel="stylesheet" href="config.css"/>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">🔭 Ham Radio Hub</div>
+    <div class="status-bar">
+      <span id="clusterStatus" class="badge badge-warn">Cluster: Checking…</span>
+      <span id="spotRate" class="badge badge-info">0 spots/min</span>
+      <span id="rigStatus" class="badge badge-info">No rig data</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="station">Station</button>
+    <button class="tab" data-tab="cluster">DX Cluster</button>
+    <button class="tab" data-tab="display">Display</button>
+    <button class="tab" data-tab="hamclock">HamClock</button>
+    <button class="tab" data-tab="launcher">App Launcher</button>
+    <button class="tab" data-tab="telnet">Telnet Feed</button>
+    <button class="tab" data-tab="connected">Connected Apps</button>
+  </nav>
+
+  <!-- Station Settings -->
+  <section id="tab-station" class="tab-content active">
+    <h2>Station Settings</h2>
+    <div class="form-grid">
+      <label>Callsign</label>
+      <input type="text" id="callsign" placeholder="W3ABC" maxlength="12"/>
+
+      <label>Latitude</label>
+      <input type="number" id="lat" placeholder="40.123" step="0.0001"/>
+
+      <label>Longitude</label>
+      <input type="number" id="lon" placeholder="-76.456" step="0.0001"/>
+
+      <label>Grid Square</label>
+      <input type="text" id="gridSquare" placeholder="FM19" maxlength="8"/>
+
+      <label>Timezone</label>
+      <input type="text" id="timezone" placeholder="America/New_York"/>
+
+      <label>WebSocket Port</label>
+      <input type="number" id="wsPort" placeholder="8080" min="1024" max="65535"/>
+
+      <label>Web Config Port</label>
+      <input type="number" id="webPort" placeholder="8081" min="1024" max="65535"/>
+    </div>
+  </section>
+
+  <!-- Cluster Settings -->
+  <section id="tab-cluster" class="tab-content">
+    <h2>DX Cluster</h2>
+    <div class="form-grid">
+      <label>Cluster Server</label>
+      <input type="text" id="clusterServer" placeholder="dxc.example.com"/>
+
+      <label>Port</label>
+      <input type="number" id="clusterPort" placeholder="7373"/>
+
+      <label>Login Callsign</label>
+      <input type="text" id="clusterLogin" placeholder="W3ABC"/>
+
+      <label>Band Filter</label>
+      <div class="checkbox-group" id="bandFilter"></div>
+
+      <label>Mode Filter</label>
+      <div class="checkbox-group" id="modeFilter"></div>
+    </div>
+    <div class="cluster-actions">
+      <button class="btn-connect" onclick="clusterConnect()">⚡ Connect</button>
+      <button class="btn-kill"    onclick="clusterDisconnect()">&#9632; Disconnect</button>
+      <span id="clusterActionMsg" class="save-msg"></span>
+    </div>
+  </section>
+
+  <!-- Raw Telnet Feed -->
+  <section id="tab-telnet" class="tab-content">
+    <h2>Raw Telnet Feed</h2>
+    <div class="raw-feed-toolbar">
+      <label><input type="checkbox" id="rawFeedPause"/> Pause</label>
+      <button class="btn-kill" style="padding:4px 12px;font-size:12px" onclick="clearRawFeed()">Clear</button>
+      <span class="raw-feed-hint">Live output from the DX cluster connection</span>
+    </div>
+    <pre id="rawFeed" class="raw-feed"></pre>
+  </section>
+
+  <!-- Display Settings -->
+  <section id="tab-display" class="tab-content">
+    <h2>Display &amp; Info Screen</h2>
+    <div class="form-grid">
+      <label>Map Style</label>
+      <select id="mapStyle">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="satellite">Satellite</option>
+      </select>
+
+      <label>Show Great Circle</label>
+      <input type="checkbox" id="showGreatCircle"/>
+
+      <label>Spot Timeout (min)</label>
+      <input type="number" id="spotTimeout" min="1" max="120"/>
+
+      <label>Max Cached Spots</label>
+      <input type="number" id="maxCachedSpots" min="10" max="500"/>
+    </div>
+  </section>
+
+  <!-- HamClock Settings -->
+  <section id="tab-hamclock" class="tab-content">
+    <h2>HamClock <span id="hamclockStatusBadge" class="badge badge-warn" style="font-size:12px;vertical-align:middle">Checking…</span></h2>
+
+    <div id="hamclockForm">
+
+      <h3 class="hc-group-title">Identity</h3>
+      <div class="form-grid">
+        <label>Callsign</label>
+        <input type="text" id="hc-callsign" maxlength="12" placeholder="W3ABC"/>
+        <label>QTH Latitude</label>
+        <input type="number" id="hc-qthLat" step="0.001" min="-90" max="90"/>
+        <label>QTH Longitude</label>
+        <input type="number" id="hc-qthLon" step="0.001" min="-180" max="180"/>
+        <label>Grid Square</label>
+        <input type="text" id="hc-qthGrid" maxlength="8" placeholder="FM19"/>
+        <label>Timezone</label>
+        <input type="text" id="hc-timezone" placeholder="America/New_York"/>
+      </div>
+
+      <h3 class="hc-group-title">Data Sources</h3>
+      <div class="form-grid">
+        <label>Use Mock Data</label>
+        <input type="checkbox" id="hc-useMockData"/>
+        <label>NOAA API Key</label>
+        <input type="text" id="hc-noaaApiKey" placeholder="optional"/>
+        <label>OpenWeather API Key</label>
+        <input type="text" id="hc-openWeatherApiKey" placeholder="optional"/>
+      </div>
+
+      <h3 class="hc-group-title">Base Map</h3>
+      <div class="form-grid">
+        <label>World Map</label>
+        <input type="checkbox" id="hc-showWorldMap"/>
+        <label>Grayline / Terminator</label>
+        <input type="checkbox" id="hc-showGrayline"/>
+        <label>Grayline Opacity</label>
+        <input type="range" id="hc-graylineOpacity" min="0.1" max="1.0" step="0.05"/>
+        <label>DX Spots on Map</label>
+        <input type="checkbox" id="hc-showDxSpots"/>
+        <label>DX Band Filter</label>
+        <select id="hc-dxBandFilter">
+          <option value="ALL">All Bands</option>
+          <option value="160m">160m</option>
+          <option value="80m">80m</option>
+          <option value="40m">40m</option>
+          <option value="20m">20m</option>
+          <option value="15m">15m</option>
+          <option value="10m">10m</option>
+          <option value="6m">6m</option>
+        </select>
+        <label>DX Max Age (min)</label>
+        <input type="number" id="hc-dxMaxAgeMinutes" min="5" max="120"/>
+        <label>Show Callsigns on Map</label>
+        <input type="checkbox" id="hc-dxShowCallsigns"/>
+      </div>
+
+      <h3 class="hc-group-title">Space Weather</h3>
+      <div class="form-grid">
+        <label>Aurora Overlay</label>
+        <input type="checkbox" id="hc-showAuroraOverlay"/>
+        <label>Geomagnetic Alerts</label>
+        <input type="checkbox" id="hc-showGeomagneticAlerts"/>
+      </div>
+
+      <h3 class="hc-group-title">Terrestrial Weather</h3>
+      <div class="form-grid">
+        <label>Weather Overlay</label>
+        <input type="checkbox" id="hc-showWeatherOverlay"/>
+        <label>Tropo Ducting Overlay</label>
+        <input type="checkbox" id="hc-showTropoOverlay"/>
+        <label>Radar Overlay</label>
+        <input type="checkbox" id="hc-showRadarOverlay"/>
+        <label>Lightning Overlay</label>
+        <input type="checkbox" id="hc-showLightningOverlay"/>
+        <label>Surface Conditions</label>
+        <input type="checkbox" id="hc-showSurfaceConditions"/>
+      </div>
+
+      <h3 class="hc-group-title">Amateur Radio Overlays</h3>
+      <div class="form-grid">
+        <label>CQ Zones</label>
+        <input type="checkbox" id="hc-showCqZones"/>
+        <label>ITU Zones</label>
+        <input type="checkbox" id="hc-showItuZones"/>
+        <label>Grid Squares</label>
+        <input type="checkbox" id="hc-showGridSquares"/>
+        <label>Satellite Tracking</label>
+        <input type="checkbox" id="hc-showSatelliteTracking"/>
+      </div>
+
+      <h3 class="hc-group-title">Movable Windows</h3>
+      <div class="form-grid">
+        <label>Countdown Timer</label>
+        <input type="checkbox" id="hc-showCountdownTimer"/>
+        <label>Contest List</label>
+        <input type="checkbox" id="hc-showContestList"/>
+        <label>DE Window</label>
+        <input type="checkbox" id="hc-showDeWindow"/>
+        <label>DX Window</label>
+        <input type="checkbox" id="hc-showDxWindow"/>
+      </div>
+
+      <h3 class="hc-group-title">Rotor Map</h3>
+      <div class="form-grid">
+        <label>Show Rotor Map</label>
+        <input type="checkbox" id="hc-showRotorMap"/>
+        <label>Enable Arduino Rotor</label>
+        <input type="checkbox" id="hc-rotorEnabled"/>
+        <label>Arduino IP</label>
+        <input type="text" id="hc-arduinoIp" placeholder="192.168.1.100"/>
+        <label>Arduino Port</label>
+        <input type="number" id="hc-arduinoPort" min="1" max="65535"/>
+        <label>Protocol</label>
+        <select id="hc-arduinoProtocol">
+          <option value="HTTP">HTTP</option>
+          <option value="UDP">UDP</option>
+          <option value="WEBSOCKET">WebSocket</option>
+        </select>
+        <label>Show Beam Width Arc</label>
+        <input type="checkbox" id="hc-showBeamWidthArc"/>
+        <label>Beam Width (°)</label>
+        <input type="number" id="hc-beamWidthDegrees" min="5" max="180"/>
+        <label>Show Long Path</label>
+        <input type="checkbox" id="hc-showLongPath"/>
+      </div>
+
+      <h3 class="hc-group-title">Time &amp; Display</h3>
+      <div class="form-grid">
+        <label>Show Local Time</label>
+        <input type="checkbox" id="hc-showLocalTime"/>
+        <label>Show UTC Time</label>
+        <input type="checkbox" id="hc-showUtcTime"/>
+        <label>Dark Theme</label>
+        <input type="checkbox" id="hc-darkTheme"/>
+        <label>Font Size (px)</label>
+        <input type="number" id="hc-fontSize" min="10" max="22"/>
+      </div>
+
+      <h3 class="hc-group-title">Solar &amp; Propagation</h3>
+      <div class="form-grid">
+        <label>Show Solar Data</label>
+        <input type="checkbox" id="hc-showSolarData"/>
+        <label>Show Sunspot Graphic</label>
+        <input type="checkbox" id="hc-showSunspotGraphic"/>
+        <label>Show Propagation Data</label>
+        <input type="checkbox" id="hc-showPropagationData"/>
+        <label>Show Band Conditions</label>
+        <input type="checkbox" id="hc-showBandConditions"/>
+      </div>
+
+      <div class="cluster-actions" style="margin-top:16px">
+        <button class="btn-connect" onclick="saveHamClock()">💾 Save HamClock Settings</button>
+        <span id="hamclockSaveMsg" class="save-msg"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Launcher -->
+  <section id="tab-launcher" class="tab-content">
+    <h2>App Launcher</h2>
+    <p class="launcher-hint">Configure the command to launch each app. Enable <em>Auto-launch</em> to start it automatically when Hub loads.</p>
+
+    <div class="launcher-card">
+      <div class="launcher-card-header">
+        <span class="launcher-app-name">HamClock</span>
+        <span id="hamclockRunBadge" class="badge badge-warn">Unknown</span>
+      </div>
+      <div class="form-grid">
+        <label>Command</label>
+        <input type="text" id="launchCmdHamclock" placeholder="/usr/local/bin/hamclock"/>
+        <label>Auto-launch on start</label>
+        <input type="checkbox" id="launchAutoHamclock"/>
+      </div>
+      <div class="launcher-actions">
+        <button class="btn-connect" onclick="appLaunch('hamclock')">&#9654; Launch</button>
+        <button class="btn-kill"    onclick="appKill('hamclock')">&#9632; Stop</button>
+        <span id="hamclockLaunchMsg" class="save-msg"></span>
+      </div>
+    </div>
+
+    <div class="launcher-card">
+      <div class="launcher-card-header">
+        <span class="launcher-app-name">HamLog</span>
+        <span id="hamlogRunBadge" class="badge badge-warn">Unknown</span>
+      </div>
+      <div class="form-grid">
+        <label>Command</label>
+        <input type="text" id="launchCmdHamlog" placeholder="/usr/local/bin/hamlog"/>
+        <label>Auto-launch on start</label>
+        <input type="checkbox" id="launchAutoHamlog"/>
+      </div>
+      <div class="launcher-actions">
+        <button class="btn-connect" onclick="appLaunch('hamlog')">&#9654; Launch</button>
+        <button class="btn-kill"    onclick="appKill('hamlog')">&#9632; Stop</button>
+        <span id="hamlogLaunchMsg" class="save-msg"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Connected Apps -->
+  <section id="tab-connected" class="tab-content">
+    <h2>Connected Applications</h2>
+    <div id="appList" class="app-list">
+      <p class="empty-msg">No apps connected</p>
+    </div>
+    <div class="spots-header">
+      <h2>Recent Spots</h2>
+      <span id="spotCount" class="badge badge-info">0 spots</span>
+    </div>
+    <table id="spotTable" class="spot-table">
+      <thead>
+        <tr>
+          <th>Spotted</th><th>Spotter</th><th>Freq</th>
+          <th>Mode</th><th>Country</th><th>Bear°</th><th>Dist km</th><th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="spotTableBody"></tbody>
+    </table>
+  </section>
+
+  <footer>
+    <div id="saveMsg" class="save-msg"></div>
+    <button class="btn-save" onclick="saveConfig()">💾 Save Configuration</button>
+  </footer>
+</div>
+
+<script src="config.js"></script>
+</body>
+</html>

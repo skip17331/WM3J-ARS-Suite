@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.hamclock.astronomy.SolarDataTest
+-------------------------------------------------------------------------------
+Tests run: 44, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.116 s -- in com.hamclock.astronomy.SolarDataTest

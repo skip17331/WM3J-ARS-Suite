@@ -1,0 +1,8 @@
+com/hamclock/astronomy/SolarPositionServiceTest.class
+com/hamclock/rotor/RotorDataTest.class
+com/hamclock/astronomy/SolarDataTest.class
+com/hamclock/propagation/PropagationLogicTest.class
+com/hamclock/astronomy/SettingsSerializationTest.class
+com/hamclock/astronomy/SunriseSunsetServiceTest.class
+com/hamclock/dx/DxSpotTest.class
+com/hamclock/astronomy/GreatCircleMathTest.class

@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean:*)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\" && unzip -p {} META-INF/MANIFEST.MF 2>/dev/null | grep -i \"automatic\\\\|module\"')",
+      "Bash(./run.sh)",
+      "Bash(./build.sh)",
+      "Bash(java --module-path ./lib/javafx --add-modules javafx.controls,javafx.fxml,javafx.media -Dfile.encoding=UTF-8 -jar target/hamlog-1.0.0.jar)",
+      "Bash(kill %1)",
+      "Bash(wait)",
+      "Bash(java -version)",
+      "Bash(/usr/lib/jvm/bellsoft-java21-full-amd64/bin/java --add-modules javafx.controls,javafx.fxml,javafx.media -Dfile.encoding=UTF-8 -jar /home/mike/hamlog/target/hamlog-1.0.0.jar)",
+      "Bash(mvn -q package -DskipTests)",
+      "Read(//home/mike/.m2/repository/org/openjfx/javafx-controls/**)",
+      "Bash(mvn -version)",
+      "Bash(jar tf:*)",
+      "Bash(javap -classpath ~/.m2/repository/ch/qos/logback/logback-classic/1.5.3/logback-classic-1.5.3.jar module-info)",
+      "Read(//tmp/**)",
+      "Bash(jar xf:*)",
+      "Bash(javap module-info.class)",
+      "Bash(ls:*)",
+      "Bash(echo \"exit: $?\")"
+    ]
+  }
+}

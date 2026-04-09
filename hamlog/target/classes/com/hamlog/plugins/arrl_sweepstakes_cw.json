@@ -1,0 +1,177 @@
+{
+  "contestId":   "ARRL_SS_CW",
+  "contestName": "ARRL November Sweepstakes (CW)",
+  "version":     "1.1.0",
+
+  "exchangeFormat": "NR PREC CALL CHK SECT  (e.g. 1 A W1AW 23 CT)",
+
+  "entryFields": [
+    {
+      "id":       "callsign",
+      "label":    "Callsign",
+      "type":     "text",
+      "width":    130,
+      "required": true,
+      "entryRow": 0
+    },
+    {
+      "id":       "serial_rcvd",
+      "label":    "# Rcvd",
+      "type":     "number",
+      "width":    60,
+      "required": true,
+      "entryRow": 0
+    },
+    {
+      "id":       "precedence",
+      "label":    "Prec",
+      "type":     "text",
+      "width":    40,
+      "required": true,
+      "entryRow": 0
+    },
+    {
+      "id":       "check",
+      "label":    "Chk",
+      "type":     "text",
+      "width":    50,
+      "required": true,
+      "entryRow": 0
+    },
+    {
+      "id":       "section",
+      "label":    "Sect",
+      "type":     "text",
+      "width":    60,
+      "required": true,
+      "entryRow": 0
+    },
+    {
+      "id":         "band",
+      "label":      "Band",
+      "type":       "combo",
+      "width":      80,
+      "required":   false,
+      "entryRow":   0,
+      "persistent": true,
+      "options":    ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id":       "prec_sent",
+      "label":    "Prec",
+      "type":     "text",
+      "width":    50,
+      "required": false,
+      "entryRow": 1
+    },
+    {
+      "id":       "check_sent",
+      "label":    "Chk",
+      "type":     "text",
+      "width":    50,
+      "required": false,
+      "entryRow": 1
+    },
+    {
+      "id":       "sect_sent",
+      "label":    "Sect",
+      "type":     "text",
+      "width":    60,
+      "required": false,
+      "entryRow": 1
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 2,
+    "modePoints":   {},
+    "multiplierType": "sections",
+    "scoreFormula": "qsoPoints * multipliers",
+    "allowDupes":   false
+  },
+
+  "multiplierModel": {
+    "field":     "section",
+    "perBand":   false,
+    "validValues": [
+      "CT","EMA","ME","NH","RI","VT","WMA",
+      "ENY","NLI","NNJ","SNJ","WNY",
+      "DE","EPA","MDC","WPA",
+      "AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF",
+      "AR","LA","MS","NM","NTX","OK","STX","WTX",
+      "EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC",
+      "AZ","EWA","ID","MT","NV","OR","UT","WWA","WY",
+      "CO","IA","IL","IN","KS","MI","MN","MO","ND","NE","OH","SD","WI",
+      "MAR","NL","QC","ON","MB","SK","AB","BC","TER"
+    ]
+  },
+
+  "row2Panes": [
+    {
+      "paneIndex": 1,
+      "paneType":  "dupe_checker",
+      "title":     "Dupe Checker",
+      "config":    {}
+    },
+    {
+      "paneIndex": 2,
+      "paneType":  "statistics",
+      "title":     "Statistics",
+      "config":    {}
+    },
+    {
+      "paneIndex": 3,
+      "paneType":  "section_tracker",
+      "title":     "Sections Worked",
+      "config": {
+        "zoneGroups": [
+          { "name": "W1", "sections": ["CT","EMA","ME","NH","RI","VT","WMA"] },
+          { "name": "W2", "sections": ["ENY","NLI","NNJ","SNJ","WNY"] },
+          { "name": "W3", "sections": ["DE","EPA","MDC","WPA"] },
+          { "name": "W4", "sections": ["AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF"] },
+          { "name": "W5", "sections": ["AR","LA","MS","NM","NTX","OK","STX","WTX"] },
+          { "name": "W6", "sections": ["EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC"] },
+          { "name": "W7", "sections": ["AZ","EWA","ID","MT","NV","OR","UT","WWA","WY"] },
+          { "name": "W8", "sections": ["MI","OH"] },
+          { "name": "W9", "sections": ["IL","IN","WI"] },
+          { "name": "W0", "sections": ["CO","IA","KS","MN","MO","ND","NE","SD"] },
+          { "name": "VE", "sections": ["MAR","NL","QC","ON","MB","SK","AB","BC","TER"] }
+        ]
+      }
+    }
+  ],
+
+  "statistics": [
+    "qso_count",
+    "total_score",
+    "multipliers",
+    "qso_per_hour",
+    "sections_worked",
+    "sections_remaining"
+  ],
+
+  "cabrilloMapping": {
+    "callsign":    "rcvd_callsign",
+    "serial_sent": "sent_serial",
+    "prec_sent":   "sent_precedence",
+    "check_sent":  "sent_check",
+    "sect_sent":   "sent_section",
+    "serial_rcvd": "rcvd_serial",
+    "precedence":  "rcvd_precedence",
+    "check":       "rcvd_check",
+    "section":     "rcvd_section",
+    "rst_sent":    "sent_rst"
+  },
+
+  "sections": [
+    "CT","EMA","ME","NH","RI","VT","WMA",
+    "ENY","NLI","NNJ","SNJ","WNY",
+    "DE","EPA","MDC","WPA",
+    "AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF",
+    "AR","LA","MS","NM","NTX","OK","STX","WTX",
+    "EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC",
+    "AZ","EWA","ID","MT","NV","OR","UT","WWA","WY",
+    "CO","IA","IL","IN","KS","MI","MN","MO","ND","NE","OH","SD","WI",
+    "MAR","NL","QC","ON","MB","SK","AB","BC","TER"
+  ]
+}
