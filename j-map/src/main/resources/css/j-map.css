@@ -1,0 +1,47 @@
+/* ============================================================
+   J-Map — JavaFX Stylesheet
+   Dark operator-centric theme with phosphor-green accents
+   ============================================================ */
+
+.root {
+    -fx-base:             #0a0a0f;
+    -fx-background:       #0a0a0f;
+    -fx-control-inner-background: #0d1020;
+    -fx-accent:           #2a7fff;
+    -fx-focus-color:      #2a7fff;
+    -fx-faint-focus-color: rgba(42,127,255,0.15);
+    -fx-text-fill:        #ccd6f6;
+    -fx-font-family:      "Liberation Mono";
+}
+
+/* ── Scrollbars ── */
+.scroll-bar { -fx-background-color: #0a0b12; }
+.scroll-bar .thumb { -fx-background-color: #1a2a4a; -fx-background-radius: 4; }
+.scroll-bar .thumb:hover { -fx-background-color: #2a3a5a; }
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button { -fx-background-color: transparent; }
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow { -fx-background-color: #334455; }
+
+/* ── Labels (fallback) ── */
+.label {
+    -fx-text-fill: #ccd6f6;
+    -fx-font-family: "Liberation Mono";
+}
+
+/* ── Tooltip ── */
+.tooltip {
+    -fx-background-color: #0d1020;
+    -fx-border-color: #1e2d50;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #aabbdd;
+    -fx-font-family: "Courier New";
+    -fx-font-size: 11px;
+}
+
+/* ── Separator ── */
+.separator .line {
+    -fx-border-color: #1a2a4a;
+    -fx-border-width: 1 0 0 0;
+}

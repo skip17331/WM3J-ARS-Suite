@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.jlog.controller.DxSpotController"
+      styleClass="dx-panel" prefHeight="400">
+
+    <!-- Connection toolbar -->
+    <HBox spacing="8" alignment="CENTER_LEFT" styleClass="dx-toolbar">
+        <padding><Insets top="4" left="6" right="6" bottom="4"/></padding>
+        <Label text="%label.hub.url"/>
+        <TextField fx:id="tfHubUrl" prefWidth="220" promptText="ws://localhost:8080"/>
+        <Button fx:id="btnConnect"    text="%button.connect"    onAction="#doConnect"/>
+        <Button fx:id="btnDisconnect" text="%button.disconnect" onAction="#doDisconnect" disable="true"/>
+        <Button text="%button.clear" onAction="#doClearSpots"/>
+        <Label fx:id="lblConnStatus" styleClass="conn-status"/>
+    </HBox>
+
+    <!-- Tab pane: Spots / Raw -->
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+            <!-- Spots tab -->
+            <Tab text="%tab.spots">
+                <TableView fx:id="spotTable" styleClass="spot-table">
+                    <columns>
+                        <TableColumn fx:id="colSpotter" text="%col.spotter"  prefWidth="90"/>
+                        <TableColumn fx:id="colDx"      text="%col.dx"       prefWidth="100"/>
+                        <TableColumn fx:id="colFreq"    text="%col.freq.khz" prefWidth="85"/>
+                        <TableColumn fx:id="colBand"    text="%col.band"     prefWidth="55"/>
+                        <TableColumn fx:id="colMode"    text="%col.mode"     prefWidth="55"/>
+                        <TableColumn fx:id="colCountry" text="%col.country"  prefWidth="120"/>
+                        <TableColumn fx:id="colComment" text="%col.comment"  prefWidth="200"/>
+                        <TableColumn fx:id="colTime"    text="%col.time"     prefWidth="55"/>
+                    </columns>
+                </TableView>
+            </Tab>
+
+            <!-- Raw tab — shows raw JSON messages from hub -->
+            <Tab text="%tab.raw">
+                <TextArea fx:id="rawArea" editable="false"
+                          VBox.vgrow="ALWAYS" styleClass="raw-area"
+                          wrapText="false" prefHeight="200"/>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>

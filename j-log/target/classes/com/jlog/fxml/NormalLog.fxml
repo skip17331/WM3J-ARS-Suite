@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.jlog.controller.NormalLogController"
+            styleClass="main-window">
+
+    <!-- ============================================================
+         ROW 1: MENU BAR
+         ============================================================ -->
+    <top>
+        <VBox>
+            <MenuBar styleClass="menu-bar">
+                <menus>
+                    <Menu text="%menu.file">
+                        <items>
+                            <MenuItem text="%menu.export.adif" onAction="#menuExportAdif"/>
+                            <MenuItem text="%menu.export.csv"  onAction="#menuExportCsv"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="%menu.exit" onAction="#menuExit"/>
+                        </items>
+                    </Menu>
+                    <Menu text="%menu.dx">
+                        <items>
+                            <MenuItem text="%menu.dx.show" onAction="#menuDxSpotting"/>
+                        </items>
+                    </Menu>
+                    <Menu text="%menu.radio">
+                        <items>
+                            <MenuItem text="%menu.civ.connect"    onAction="#menuConnectCiv"/>
+                            <MenuItem text="%menu.civ.disconnect" onAction="#menuDisconnectCiv"/>
+                        </items>
+                    </Menu>
+                    <Menu text="%menu.setup">
+                        <items>
+                            <MenuItem text="%menu.setup.open" onAction="#menuSetup"/>
+                        </items>
+                    </Menu>
+                </menus>
+            </MenuBar>
+
+            <!-- UTC + Local time bar -->
+            <HBox styleClass="clock-bar" spacing="20" alignment="CENTER_RIGHT">
+                <padding><Insets right="12" top="2" bottom="2"/></padding>
+                <Label fx:id="lblStationCall" styleClass="station-call"/>
+                <Label text="%label.utc" styleClass="clock-label"/>
+                <TextField fx:id="tfUtcTime" styleClass="clock-field" editable="false" prefWidth="140"/>
+                <Label text="%label.local" styleClass="clock-label"/>
+                <TextField fx:id="tfLocalTime" styleClass="clock-field" editable="false" prefWidth="160"/>
+                <Label fx:id="lblCivStatus" styleClass="civ-status" text="CI-V: —"/>
+            </HBox>
+
+            <!-- ============================================================
+                 ROW 2: DATA ENTRY PANE
+                 ============================================================ -->
+            <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane">
+                <GridPane hgap="8" vgap="6" styleClass="entry-grid">
+                    <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
+
+                    <!-- Row 0: Callsign, Date, Band, Mode, Power, RST Sent, RST Rcvd -->
+                    <Label text="%label.callsign" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="tfCallsign" styleClass="callsign-field"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="130"/>
+
+                    <Label text="%label.band" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="cbBand" GridPane.columnIndex="3" GridPane.rowIndex="0" prefWidth="80"/>
+
+                    <Label text="%label.mode" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="cbMode" GridPane.columnIndex="5" GridPane.rowIndex="0" prefWidth="90"/>
+
+                    <Label text="%label.power" GridPane.columnIndex="6" GridPane.rowIndex="0"/>
+                    <TextField fx:id="tfPower" GridPane.columnIndex="7" GridPane.rowIndex="0" prefWidth="60"/>
+
+                    <Label text="%label.rst.sent" GridPane.columnIndex="8" GridPane.rowIndex="0"/>
+                    <TextField fx:id="tfRstSent" GridPane.columnIndex="9" GridPane.rowIndex="0" prefWidth="50"/>
+
+                    <Label text="%label.rst.rcvd" GridPane.columnIndex="10" GridPane.rowIndex="0"/>
+                    <TextField fx:id="tfRstReceived" GridPane.columnIndex="11" GridPane.rowIndex="0" prefWidth="50"/>
+
+                    <!-- Row 1: Country, Name, State, County, Frequency -->
+                    <Label text="%label.country" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <TextField fx:id="tfCountry" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="130"/>
+
+                    <Label text="%label.name" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                    <TextField fx:id="tfOperatorName" GridPane.columnIndex="3" GridPane.rowIndex="1"
+                               prefWidth="140" GridPane.columnSpan="2"/>
+
+                    <Label text="%label.state" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                    <TextField fx:id="tfState" GridPane.columnIndex="6" GridPane.rowIndex="1" prefWidth="60"/>
+
+                    <Label text="%label.county" GridPane.columnIndex="7" GridPane.rowIndex="1"/>
+                    <TextField fx:id="tfCounty" GridPane.columnIndex="8" GridPane.rowIndex="1" prefWidth="100"/>
+
+                    <Label text="%label.freq" GridPane.columnIndex="9" GridPane.rowIndex="1"/>
+                    <TextField fx:id="tfFrequency" GridPane.columnIndex="10" GridPane.rowIndex="1" prefWidth="90"/>
+
+                    <!-- Row 2: Notes, QSL, Buttons -->
+                    <Label text="%label.notes" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <TextField fx:id="tfNotes" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                               GridPane.columnSpan="5" prefWidth="300"/>
+
+                    <CheckBox fx:id="cbQslSent"     text="%label.qsl.sent"
+                              GridPane.columnIndex="6" GridPane.rowIndex="2"/>
+                    <CheckBox fx:id="cbQslReceived" text="%label.qsl.rcvd"
+                              GridPane.columnIndex="7" GridPane.rowIndex="2"/>
+
+                    <HBox GridPane.columnIndex="8" GridPane.rowIndex="2" spacing="6">
+                        <Button text="%button.save"   onAction="#doSave"            styleClass="primary-button"/>
+                        <Button text="%button.clear"  onAction="#doClear"           styleClass="secondary-button"/>
+                        <Button text="%button.lookup" onAction="#doCallsignLookup"  styleClass="secondary-button"/>
+                    </HBox>
+                </GridPane>
+            </TitledPane>
+
+            <!-- Macro button bar -->
+            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
+                <padding><Insets top="2" left="6" bottom="2"/></padding>
+            </HBox>
+
+            <!-- Info pane row -->
+            <HBox spacing="0" styleClass="info-pane-row">
+                <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
+                    <VBox spacing="4" styleClass="info-content">
+                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
+                        <HBox spacing="8">
+                            <Label text="%label.country"/>
+                            <Label fx:id="lblCountry" styleClass="info-value"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="%label.continent"/>
+                            <Label fx:id="lblContinent" styleClass="info-value"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+                <TitledPane text="%pane.bearing" collapsible="false" HBox.hgrow="ALWAYS">
+                    <VBox spacing="4" styleClass="info-content">
+                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
+                        <HBox spacing="8">
+                            <Label text="%label.bearing"/>
+                            <Label fx:id="lblBearing" styleClass="info-value"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="%label.distance"/>
+                            <Label fx:id="lblDistance" styleClass="info-value"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- ============================================================
+         CENTER: QSO TABLE + DX SPOTTING (vertical SplitPane)
+         ============================================================ -->
+    <center>
+        <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" dividerPositions="0.5">
+            <!-- QSO Table -->
+            <VBox styleClass="log-section">
+                <HBox spacing="6" styleClass="table-toolbar">
+                    <padding><Insets left="6" top="4" bottom="4"/></padding>
+                    <Label text="%pane.log" styleClass="section-title"/>
+                    <Button text="%button.edit"      onAction="#doEditSelected"/>
+                    <Button text="%button.save.edit" onAction="#doSaveEdited"/>
+                    <Button text="%button.prev"      onAction="#doPageBack"/>
+                    <Button text="%button.next"      onAction="#doPageForward"/>
+                    <Label fx:id="lblStatus" styleClass="status-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                </HBox>
+                <TableView fx:id="qsoTable" VBox.vgrow="ALWAYS" styleClass="qso-table">
+                    <columns>
+                        <TableColumn fx:id="colCallsign" text="%col.callsign" prefWidth="120"/>
+                        <TableColumn fx:id="colDate"     text="%col.date"     prefWidth="140"/>
+                        <TableColumn fx:id="colBand"     text="%col.band"     prefWidth="60"/>
+                        <TableColumn fx:id="colMode"     text="%col.mode"     prefWidth="70"/>
+                        <TableColumn fx:id="colRstSent"  text="%col.rst.sent" prefWidth="60"/>
+                        <TableColumn fx:id="colRstRcvd"  text="%col.rst.rcvd" prefWidth="60"/>
+                        <TableColumn fx:id="colCountry"  text="%col.country"  prefWidth="130"/>
+                        <TableColumn fx:id="colNotes"    text="%col.notes"    prefWidth="200"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- DX Spotting -->
+            <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane">
+                <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
+            </TitledPane>
+        </SplitPane>
+    </center>
+</BorderPane>

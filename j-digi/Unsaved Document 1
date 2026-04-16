@@ -1,0 +1,2 @@
+aplay -D hw:Loopback,0,0 rtty_4545_170_1p0_normal.wav
+

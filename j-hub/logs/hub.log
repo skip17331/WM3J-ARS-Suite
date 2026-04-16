@@ -1,0 +1,339 @@
+2026-04-14 07:50:45.353 INFO  com.hamradio.hub.HubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-14 07:50:45.412 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 07:50:45.413 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-14 07:50:45.447 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-14 07:50:45.454 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-14 07:50:45.470 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-14 07:50:45.586 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-14 07:50:45.586 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-14 07:50:45.589 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 07:50:45.593 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-14 07:50:45.603 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 11217) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 07:50:45.605 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 11219) — bash /home/mike/hamlog/run.sh
+2026-04-14 07:50:45.606 INFO  com.hamradio.hub.HubMain — === j-Hub ready ===
+2026-04-14 07:50:47.974 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 07:50:55.649 DEBUG com.hamradio.hub.ClusterManager — Spot: K0KKO KF4WMB 50145000Hz
+2026-04-14 07:51:05.471 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:38548
+2026-04-14 07:51:05.484 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 07:51:05.488 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 07:51:26.492 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 07:51:26.492 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 07:51:26.492 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 07:51:26.492 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 07:51:26.495 DEBUG com.hamradio.hub.ClusterManager — Spot: R6AF T77C 18070000Hz
+2026-04-14 07:51:52.242 INFO  com.hamradio.hub.ui.HubStatusWindow — Closing DX telnet session before exit
+2026-04-14 07:51:52.245 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 07:51:52.251 INFO  com.hamradio.hub.HubMain — Shutdown initiated ...
+2026-04-14 07:51:52.254 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 07:51:52.283 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1001, reason=)
+2026-04-14 07:51:52.283 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 07:51:52.284 INFO  com.hamradio.hub.HubServer — Last app disconnected — shutting down hub
+2026-04-14 07:51:53.283 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-14 08:08:54.671 INFO  com.hamradio.hub.HubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-14 08:08:54.716 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 08:08:54.718 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-14 08:08:54.741 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-14 08:08:54.748 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-14 08:08:54.756 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-14 08:08:54.851 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:58208
+2026-04-14 08:08:54.854 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 08:08:54.857 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 08:08:54.877 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-14 08:08:54.877 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-14 08:08:54.880 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 08:08:54.885 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-14 08:08:54.892 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 11722) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 08:08:54.893 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 11724) — bash /home/mike/hamlog/run.sh
+2026-04-14 08:08:54.894 INFO  com.hamradio.hub.HubMain — === j-Hub ready ===
+2026-04-14 08:08:55.302 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 08:08:59.484 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 3X3A
+2026-04-14 08:08:59.500 DEBUG com.hamradio.hub.ClusterManager — Spot: F4FFX 3X3A 28440000Hz
+2026-04-14 08:09:08.930 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR YO4AAC 21074000Hz
+2026-04-14 08:09:51.682 DEBUG com.hamradio.hub.ClusterManager — Spot: RA8J R80RAA 14120000Hz
+2026-04-14 08:10:05.549 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 3X3A
+2026-04-14 08:10:05.550 DEBUG com.hamradio.hub.ClusterManager — Spot: IV3SKB 3X3A 28440000Hz
+2026-04-14 08:10:07.845 DEBUG com.hamradio.hub.ClusterManager — Spot: DL3NM SQ8NOD/P 7157900Hz
+2026-04-14 08:11:02.523 DEBUG com.hamradio.hub.ClusterManager — Spot: IT9VXS IT9VXS 14093000Hz
+2026-04-14 08:11:16.864 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for TM101WARD
+2026-04-14 08:11:16.865 DEBUG com.hamradio.hub.ClusterManager — Spot: F8GGZ TM101WARD 7015000Hz
+2026-04-14 08:11:18.930 DEBUG com.hamradio.hub.ClusterManager — Spot: EI3HA F/G4MEM/P 14058000Hz
+2026-04-14 08:11:36.759 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR UB6OAK 21074000Hz
+2026-04-14 08:11:38.597 DEBUG com.hamradio.hub.ClusterManager — Spot: SQ8V SQ8V 7186000Hz
+2026-04-14 08:12:07.879 DEBUG com.hamradio.hub.ClusterManager — Spot: UW7CN F5POJ 18086000Hz
+2026-04-14 08:12:08.226 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:58400
+2026-04-14 08:12:08.232 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 08:12:08.238 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 08:12:18.539 DEBUG com.hamradio.hub.ClusterManager — Spot: ES2IPA G7SQC 14074000Hz
+2026-04-14 08:12:25.192 DEBUG com.hamradio.hub.ClusterManager — Spot: LY2LE HB0/PA3CNO 14004900Hz
+2026-04-14 08:12:25.631 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 08:12:29.284 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 08:12:42.292 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 08:12:42.294 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 08:12:42.295 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1MI EA1PG/4 7125000Hz
+2026-04-14 08:12:42.296 WARN  com.hamradio.hub.ClusterManager — Cluster read error: Stream closed — reconnecting in 5s
+2026-04-14 08:12:44.532 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 08:12:59.208 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-14 08:12:59.209 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 08:12:59.981 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-14 08:12:59.982 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 08:12:59.982 INFO  com.hamradio.hub.HubServer — Last app disconnected — shutting down hub
+2026-04-14 08:12:59.986 INFO  com.hamradio.hub.HubMain — Shutdown initiated ...
+2026-04-14 08:13:11.040 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 08:13:11.040 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR OH1XE 21074000Hz
+2026-04-14 08:13:12.049 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-14 08:13:22.960 INFO  com.hamradio.hub.HubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-14 08:13:23.007 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 08:13:23.008 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-14 08:13:23.037 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-14 08:13:23.042 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-14 08:13:23.056 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-14 08:13:23.181 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-14 08:13:23.181 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-14 08:13:23.183 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 08:13:23.189 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-14 08:13:23.197 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 11959) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 08:13:23.201 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 11961) — bash /home/mike/hamlog/run.sh
+2026-04-14 08:13:23.201 WARN  com.hamradio.hub.HubMain — Auto-launch enabled for 'digitalBridge' but no command is configured — skipping
+2026-04-14 08:13:23.202 INFO  com.hamradio.hub.HubMain — === j-Hub ready ===
+2026-04-14 08:13:23.867 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 08:13:33.798 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 11970) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 08:13:33.799 INFO  com.hamradio.hub.ui.HubStatusWindow — Launched hamclock from status window
+2026-04-14 08:13:34.210 DEBUG com.hamradio.hub.ClusterManager — Spot: UA3ARC FR5ZE 28074000Hz
+2026-04-14 08:13:41.004 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 11976) — bash /home/mike/hamlog/run.sh
+2026-04-14 08:13:41.005 INFO  com.hamradio.hub.ui.HubStatusWindow — Launched hamlog from status window
+2026-04-14 08:13:45.661 WARN  com.hamradio.hub.ui.HubStatusWindow — No command configured for 'digitalBridge' — open Web Config UI to set it
+2026-04-14 08:13:53.700 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:47556
+2026-04-14 08:13:53.715 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 08:13:53.719 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 08:13:55.339 DEBUG com.hamradio.hub.ClusterManager — Spot: R5GG R5GG 7074000Hz
+2026-04-14 08:13:55.340 DEBUG com.hamradio.hub.ClusterManager — Spot: YB3CUG EP2AES 21074000Hz
+2026-04-14 08:13:55.341 DEBUG com.hamradio.hub.ClusterManager — Spot: UA6LCT UE65YG 18084000Hz
+2026-04-14 08:14:06.426 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 08:14:06.428 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 12028) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 08:14:47.120 DEBUG com.hamradio.hub.ClusterManager — Spot: EA4JI EG1912T 7018000Hz
+2026-04-14 08:14:51.542 DEBUG com.hamradio.hub.ClusterManager — Spot: N3MAV AC1RH 7213000Hz
+2026-04-14 08:15:03.067 DEBUG com.hamradio.hub.ClusterManager — Spot: F8DRA F4MPJ/P 7185000Hz
+2026-04-14 08:17:39.588 WARN  com.hamradio.hub.ClusterManager — Cluster read error: Read timed out — reconnecting in 5s
+2026-04-14 08:17:44.590 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 08:17:45.101 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 08:17:46.905 DEBUG com.hamradio.hub.ClusterManager — Spot: ES2IPA KB9LQA 14074000Hz
+2026-04-14 08:17:50.020 DEBUG com.hamradio.hub.ClusterManager — Spot: YB8IEL ON4AHQ 21026000Hz
+2026-04-14 08:18:02.312 DEBUG com.hamradio.hub.ClusterManager — Spot: SV2HJW EG1912T 21074000Hz
+2026-04-14 08:18:10.835 DEBUG com.hamradio.hub.ClusterManager — Spot: WB4RA JT1CO 14075800Hz
+2026-04-14 08:18:26.170 DEBUG com.hamradio.hub.ClusterManager — Spot: VU3GZR OH6RM 21225000Hz
+2026-04-14 08:19:48.917 DEBUG com.hamradio.hub.ClusterManager — Spot: 9A5TW 9A170TESLA 7025000Hz
+2026-04-14 08:19:55.361 DEBUG com.hamradio.hub.ClusterManager — Spot: RN7T 9Y4M 18100400Hz
+2026-04-14 08:20:14.516 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 6K5XQE
+2026-04-14 08:20:14.517 DEBUG com.hamradio.hub.ClusterManager — Spot: EA5BCO 6K5XQE 21075200Hz
+2026-04-14 08:20:15.132 DEBUG com.hamradio.hub.ClusterManager — Spot: OH0M ES2/OH2NOS/P 14044000Hz
+2026-04-14 08:20:26.201 DEBUG com.hamradio.hub.ClusterManager — Spot: PD9RW PD05WT 7134000Hz
+2026-04-14 08:20:36.431 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 3X3A
+2026-04-14 08:20:36.432 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ0INT 3X3A 28440000Hz
+2026-04-14 08:21:02.651 DEBUG com.hamradio.hub.ClusterManager — Spot: K8TE W1AW/5 7074000Hz
+2026-04-14 08:22:22.423 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ7HNO XU7O 21074500Hz
+2026-04-14 08:22:30.484 DEBUG com.hamradio.hub.ClusterManager — Spot: RN7T HB0RER 18101000Hz
+2026-04-14 08:23:15.060 DEBUG com.hamradio.hub.ClusterManager — Spot: OH0M OH2NBC/P 14040000Hz
+2026-04-14 08:23:40.476 DEBUG com.hamradio.hub.ClusterManager — Spot: PB1HF R65RKC 14125000Hz
+2026-04-14 08:23:46.923 DEBUG com.hamradio.hub.ClusterManager — Spot: SP5WNJ SQ8NOD/P 7157000Hz
+2026-04-14 08:24:12.710 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR IK7UXY 21074000Hz
+2026-04-14 08:24:13.841 DEBUG com.hamradio.hub.ClusterManager — Spot: IQ0AP IW0HK 14260000Hz
+2026-04-14 08:24:19.987 DEBUG com.hamradio.hub.ClusterManager — Spot: SP9BIL ON5AG/QRP 10136000Hz
+2026-04-14 08:25:01.357 DEBUG com.hamradio.hub.ClusterManager — Spot: AA9WJ JT1CO 14076200Hz
+2026-04-14 08:26:04.642 DEBUG com.hamradio.hub.ClusterManager — Spot: N4WHT AC1RH 7213000Hz
+2026-04-14 08:26:04.865 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 3X3A
+2026-04-14 08:26:04.866 DEBUG com.hamradio.hub.ClusterManager — Spot: IT9VCE 3X3A 28440000Hz
+2026-04-14 08:26:09.415 DEBUG com.hamradio.hub.ClusterManager — Spot: EB5FMC EA5KE 7052000Hz
+2026-04-14 08:26:14.432 DEBUG com.hamradio.hub.ClusterManager — Spot: R1NI/M RT25KL 28074000Hz
+2026-04-14 08:26:30.964 DEBUG com.hamradio.hub.ClusterManager — Spot: PY2RT PY2TDX 28075500Hz
+2026-04-14 08:26:30.967 DEBUG com.hamradio.hub.ClusterManager — Spot: RK0SWA R80RAA 14120000Hz
+2026-04-14 08:26:43.832 DEBUG com.hamradio.hub.ClusterManager — Spot: R3KII SP8QC/P 14295000Hz
+2026-04-14 08:26:43.976 DEBUG com.hamradio.hub.ClusterManager — Spot: SP9BIL IK4TVP 10136000Hz
+2026-04-14 08:26:43.978 DEBUG com.hamradio.hub.ClusterManager — Spot: R3KII SP8ULA/P 14295000Hz
+2026-04-14 08:27:25.746 DEBUG com.hamradio.hub.ClusterManager — Spot: F4MXT/P F4MXL 7140000Hz
+2026-04-14 08:27:46.327 DEBUG com.hamradio.hub.ClusterManager — Spot: N1LID GJ0KYZ 14074000Hz
+2026-04-14 08:27:49.226 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for JE5HTN
+2026-04-14 08:27:49.227 DEBUG com.hamradio.hub.ClusterManager — Spot: DL1GLO JE5HTN 18100000Hz
+2026-04-14 08:27:50.895 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 08:28:05.473 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1001, reason=)
+2026-04-14 08:28:05.474 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 08:28:05.474 INFO  com.hamradio.hub.HubServer — Last app disconnected — shutting down hub
+2026-04-14 08:28:05.475 INFO  com.hamradio.hub.HubMain — Shutdown initiated ...
+2026-04-14 08:28:07.933 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 08:28:07.933 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 08:28:07.933 DEBUG com.hamradio.hub.ClusterManager — Spot: EA7KAU AO25DMR 14250000Hz
+2026-04-14 08:28:07.934 WARN  com.hamradio.hub.ClusterManager — Cluster read error: Stream closed — reconnecting in 5s
+2026-04-14 08:28:08.961 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-14 09:13:03.527 INFO  com.hamradio.hub.HubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-14 09:13:03.576 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:13:03.577 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-14 09:13:03.608 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-14 09:13:03.614 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-14 09:13:03.629 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-14 09:13:03.735 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-14 09:13:03.735 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-14 09:13:03.737 INFO  com.hamradio.hub.HubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-14 09:13:03.741 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-14 09:13:03.750 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 17875) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 09:13:03.752 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 17877) — bash /home/mike/hamlog/run.sh
+2026-04-14 09:13:03.752 WARN  com.hamradio.hub.HubMain — Auto-launch enabled for 'digitalBridge' but no command is configured — skipping
+2026-04-14 09:13:03.752 INFO  com.hamradio.hub.HubMain — === j-Hub ready ===
+2026-04-14 09:13:10.641 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:37108
+2026-04-14 09:13:10.657 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 09:13:10.658 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 09:13:17.876 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:13:17.879 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 09:13:18.007 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 09:13:24.392 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:13:24.397 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 18101) — cd /home/mike/hamclock && mvn javafx:run -q
+2026-04-14 09:13:32.323 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:13:32.328 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 18102) — bash /home/mike/hamlog/run.sh
+2026-04-14 09:13:41.494 DEBUG com.hamradio.hub.ClusterManager — Spot: RW4C KG4QYL 21298000Hz
+2026-04-14 09:13:49.883 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ6NIV IN3SJG 7088000Hz
+2026-04-14 09:14:08.927 DEBUG com.hamradio.hub.ClusterManager — Spot: EC2AHS OH8KXK 21300000Hz
+2026-04-14 09:14:13.943 DEBUG com.hamradio.hub.ClusterManager — Spot: W2FTJ K5FTK 14228000Hz
+2026-04-14 09:14:14.146 DEBUG com.hamradio.hub.ClusterManager — Spot: EA5DF EA4IYL 7106000Hz
+2026-04-14 09:14:35.740 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:14:35.747 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 18107) — cd /home/mike/ARS_Suite/hamclock && mvn javafx:run -q
+2026-04-14 09:14:40.382 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:44394
+2026-04-14 09:14:40.385 INFO  com.hamradio.hub.HubServer — App registered: j-map v1.0.0
+2026-04-14 09:14:40.386 DEBUG com.hamradio.hub.HubServer — State replayed to 'j-map'
+2026-04-14 09:14:43.536 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1MA 9A7R 21074000Hz
+2026-04-14 09:14:54.219 INFO  com.hamradio.hub.HubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-14 09:14:54.220 INFO  com.hamradio.hub.MessageRouter — Routing: app 'j-map' removed
+2026-04-14 09:15:05.868 DEBUG com.hamradio.hub.ClusterManager — Spot: N1QAE UR4LL 21074000Hz
+2026-04-14 09:15:44.623 DEBUG com.hamradio.hub.SpotEnricher — No DXCC entry for 4X6FB
+2026-04-14 09:15:44.624 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1MA 4X6FB 21074000Hz
+2026-04-14 09:16:04.893 DEBUG com.hamradio.hub.ClusterManager — Spot: EA1Z EG1912T 18140000Hz
+2026-04-14 09:16:04.895 DEBUG com.hamradio.hub.ClusterManager — Spot: EB5FMC EA5KE 7052000Hz
+2026-04-14 09:16:04.897 DEBUG com.hamradio.hub.ClusterManager — Spot: SV3GLM FY4JI 28420000Hz
+2026-04-14 09:16:16.048 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:16:16.052 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 18251) — bash /home/mike/ARS_Suite/hamlog/run.sh
+2026-04-14 09:16:22.785 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:16:22.790 INFO  com.hamradio.hub.AppLauncher — Launched 'digitalBridge' (pid 18309) — bash /home/mike/ARS_Suite/digitalbridge/run.sh
+2026-04-14 09:16:24.124 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:51774
+2026-04-14 09:16:24.137 INFO  com.hamradio.hub.HubServer — App registered: digitalBridge v1.0.0
+2026-04-14 09:16:24.144 DEBUG com.hamradio.hub.HubServer — State replayed to 'digitalBridge'
+2026-04-14 09:16:27.958 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:16:27.963 INFO  com.hamradio.hub.AppLauncher — Launched 'modemM1' (pid 18368) — bash /home/mike/ARS_Suite/modem-m1/run.sh
+2026-04-14 09:16:33.829 DEBUG com.hamradio.hub.ClusterManager — Spot: IX1HPN RG65SM 18090000Hz
+2026-04-14 09:16:37.455 INFO  com.hamradio.hub.HubServer — App 'digitalBridge' disconnected (code=1000, reason=)
+2026-04-14 09:16:37.456 INFO  com.hamradio.hub.MessageRouter — Routing: app 'digitalBridge' removed
+2026-04-14 09:16:43.755 DEBUG com.hamradio.hub.ClusterManager — Spot: R65MCC R65MCC 7084500Hz
+2026-04-14 09:17:00.244 DEBUG com.hamradio.hub.ClusterManager — Spot: RU3GC YB8AO 14150000Hz
+2026-04-14 09:17:04.198 INFO  com.hamradio.hub.HubMain — Shutdown initiated ...
+2026-04-14 09:17:04.201 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock' during shutdown
+2026-04-14 09:17:04.216 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-14 09:17:04.217 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 09:17:08.756 INFO  com.hamradio.hub.ui.HubStatusWindow — Closing DX telnet session before exit
+2026-04-14 09:17:10.655 INFO  com.hamradio.hub.ui.HubStatusWindow — Closing DX telnet session before exit
+2026-04-14 09:17:11.061 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 09:17:11.061 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 09:17:11.061 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 09:17:11.061 DEBUG com.hamradio.hub.ClusterManager — Spot: IN3XSV II3LAG 7134000Hz
+2026-04-14 09:17:11.096 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-14 09:25:17.843 INFO  com.hamradio.hub.HubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-14 09:25:17.895 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:25:17.897 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-14 09:25:17.931 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-14 09:25:17.940 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-14 09:25:17.951 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-14 09:25:18.068 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-14 09:25:18.069 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-14 09:25:18.070 INFO  com.hamradio.hub.HubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-14 09:25:18.075 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-14 09:25:18.084 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 18869) — cd /home/mike/ARS_Suite/hamclock && mvn javafx:run -q
+2026-04-14 09:25:18.086 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 18875) — bash /home/mike/ARS_Suite/hamlog/run.sh
+2026-04-14 09:25:18.087 INFO  com.hamradio.hub.AppLauncher — Launched 'digitalBridge' (pid 18878) — bash /home/mike/ARS_Suite/digitalbridge/run.sh
+2026-04-14 09:25:18.088 INFO  com.hamradio.hub.HubMain — === j-Hub ready ===
+2026-04-14 09:25:20.786 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:52636
+2026-04-14 09:25:20.847 INFO  com.hamradio.hub.HubServer — App registered: digitalBridge v1.0.0
+2026-04-14 09:25:20.867 DEBUG com.hamradio.hub.HubServer — State replayed to 'digitalBridge'
+2026-04-14 09:25:22.849 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:52648
+2026-04-14 09:25:22.853 INFO  com.hamradio.hub.HubServer — App registered: j-map v1.0.0
+2026-04-14 09:25:22.854 DEBUG com.hamradio.hub.HubServer — State replayed to 'j-map'
+2026-04-14 09:25:46.485 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:59646
+2026-04-14 09:25:46.531 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 09:25:46.537 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 09:26:01.879 INFO  com.hamradio.hub.HubMain — Shutdown initiated ...
+2026-04-14 09:26:01.881 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamlog' during shutdown
+2026-04-14 09:26:01.882 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock' during shutdown
+2026-04-14 09:26:01.883 INFO  com.hamradio.hub.AppLauncher — Stopped 'digitalBridge' during shutdown
+2026-04-14 09:26:01.884 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 09:26:01.892 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-14 09:26:01.893 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 09:26:01.900 INFO  com.hamradio.hub.HubServer — App 'digitalBridge' disconnected (code=1001, reason=)
+2026-04-14 09:26:01.901 INFO  com.hamradio.hub.MessageRouter — Routing: app 'digitalBridge' removed
+2026-04-14 09:26:01.902 INFO  com.hamradio.hub.HubServer — App 'j-map' disconnected (code=1001, reason=)
+2026-04-14 09:26:01.902 INFO  com.hamradio.hub.MessageRouter — Routing: app 'j-map' removed
+2026-04-14 09:26:01.903 INFO  com.hamradio.hub.HubMain — Hub stopped.
+2026-04-14 09:26:28.317 INFO  com.hamradio.hub.HubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-14 09:26:28.369 INFO  com.hamradio.hub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:26:28.371 INFO  com.hamradio.hub.HubMain — Config loaded — WS port 8080, web port 8081
+2026-04-14 09:26:28.408 INFO  com.hamradio.hub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-14 09:26:28.419 INFO  com.hamradio.hub.HubMain — WebSocket server listening on port 8080
+2026-04-14 09:26:28.431 INFO  com.hamradio.hub.HubServer — HubServer WebSocket listener started
+2026-04-14 09:26:28.540 INFO  com.hamradio.hub.WebConfigServer — Web config server started on port 8081
+2026-04-14 09:26:28.540 INFO  com.hamradio.hub.HubMain — Web config UI at http://localhost:8081
+2026-04-14 09:26:28.542 INFO  com.hamradio.hub.HubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-14 09:26:28.547 INFO  com.hamradio.hub.HubDiscovery — Hub discovery beacon started on UDP port 9999
+2026-04-14 09:26:28.556 INFO  com.hamradio.hub.AppLauncher — Launched 'hamclock' (pid 19556) — cd /home/mike/ARS_Suite/hamclock && mvn javafx:run -q
+2026-04-14 09:26:28.557 INFO  com.hamradio.hub.AppLauncher — Launched 'hamlog' (pid 19562) — bash /home/mike/ARS_Suite/hamlog/run.sh
+2026-04-14 09:26:28.559 INFO  com.hamradio.hub.AppLauncher — Launched 'digitalBridge' (pid 19566) — bash /home/mike/ARS_Suite/digitalbridge/run.sh
+2026-04-14 09:26:28.561 INFO  com.hamradio.hub.HubMain — === j-Hub ready ===
+2026-04-14 09:26:31.394 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:58688
+2026-04-14 09:26:31.425 INFO  com.hamradio.hub.HubServer — App registered: digitalBridge v1.0.0
+2026-04-14 09:26:31.432 DEBUG com.hamradio.hub.HubServer — State replayed to 'digitalBridge'
+2026-04-14 09:26:33.452 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:58692
+2026-04-14 09:26:33.456 INFO  com.hamradio.hub.HubServer — App registered: j-map v1.0.0
+2026-04-14 09:26:33.457 DEBUG com.hamradio.hub.HubServer — State replayed to 'j-map'
+2026-04-14 09:26:45.164 INFO  com.hamradio.hub.HubServer — New connection from /127.0.0.1:43702
+2026-04-14 09:26:45.168 INFO  com.hamradio.hub.HubServer — App registered: j-log v1.0.0
+2026-04-14 09:26:45.169 DEBUG com.hamradio.hub.HubServer — State replayed to 'j-log'
+2026-04-14 09:26:56.094 INFO  com.hamradio.hub.HubServer — New connection from /[0:0:0:0:0:0:0:1]:33362
+2026-04-14 09:26:56.136 INFO  com.hamradio.hub.HubServer — App registered: webconfig v1.0
+2026-04-14 09:26:56.136 DEBUG com.hamradio.hub.HubServer — State replayed to 'webconfig'
+2026-04-14 09:27:05.110 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:27:05.114 INFO  com.hamradio.hub.AppLauncher — Launched 'modemM1' (pid 20042) — bash /home/mike/ARS_Suite/modem-m1/run.sh
+2026-04-14 09:27:12.824 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:27:12.828 INFO  com.hamradio.hub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-14 09:27:12.981 INFO  com.hamradio.hub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-14 09:27:18.893 INFO  com.hamradio.hub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/hub/hub.json
+2026-04-14 09:27:18.899 INFO  com.hamradio.hub.AppLauncher — Launched 'modemM1' (pid 20116) — bash /home/mike/ARS_Suite/modem-m1/run.sh
+2026-04-14 09:27:42.617 DEBUG com.hamradio.hub.ClusterManager — Spot: MO5N UA9URI 3659300Hz
+2026-04-14 09:27:47.627 DEBUG com.hamradio.hub.ClusterManager — Spot: SP0PGA SQ8JCB 7151000Hz
+2026-04-14 09:27:54.275 DEBUG com.hamradio.hub.ClusterManager — Spot: VA2TED K5FTK 14228000Hz
+2026-04-14 09:27:57.714 DEBUG com.hamradio.hub.ClusterManager — Spot: UA6LCT UE65YG 18084000Hz
+2026-04-14 09:28:07.180 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1HR WB2CRI 21074000Hz
+2026-04-14 09:28:14.430 DEBUG com.hamradio.hub.ClusterManager — Spot: YO5IM VE2CSI 18072000Hz
+2026-04-14 09:28:43.559 DEBUG com.hamradio.hub.ClusterManager — Spot: FR8TG OM2VL 18085000Hz
+2026-04-14 09:29:07.066 DEBUG com.hamradio.hub.ClusterManager — Spot: F4CXO PY1BBM/B 28197500Hz
+2026-04-14 09:29:07.875 DEBUG com.hamradio.hub.ClusterManager — Spot: N1QAE IZ8VYU 21074000Hz
+2026-04-14 09:29:15.323 DEBUG com.hamradio.hub.ClusterManager — Spot: YB1MA YO9CX 21074000Hz
+2026-04-14 09:29:24.464 DEBUG com.hamradio.hub.ClusterManager — Spot: YO5IM VE2CSI 18072000Hz
+2026-04-14 09:29:42.483 DEBUG com.hamradio.hub.ClusterManager — Spot: IU3BXI IQ3VO/IQ5 14033000Hz
+2026-04-14 09:30:08.084 DEBUG com.hamradio.hub.ClusterManager — Spot: N1QAE RZ3ZY 21074000Hz
+2026-04-14 09:30:13.604 DEBUG com.hamradio.hub.ClusterManager — Spot: EA4JI EG1912T 14035000Hz
+2026-04-14 09:30:37.371 DEBUG com.hamradio.hub.ClusterManager — Spot: HA1DAE RG65SM 18089900Hz
+2026-04-14 09:30:37.781 DEBUG com.hamradio.hub.ClusterManager — Spot: IZ6NIV EA1FTJ 14244000Hz
+2026-04-14 09:30:41.061 DEBUG com.hamradio.hub.ClusterManager — Spot: R4PJ R65YAG 7093000Hz
+2026-04-14 09:30:42.290 DEBUG com.hamradio.hub.ClusterManager — Spot: F4CXO PY2XW/B 28222000Hz
+2026-04-14 09:31:05.851 INFO  com.hamradio.hub.HubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-14 09:31:05.851 INFO  com.hamradio.hub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-14 09:31:06.861 INFO  com.hamradio.hub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-14 09:31:08.808 INFO  com.hamradio.hub.AppLauncher — Stopped 'digitalBridge'
+2026-04-14 09:31:08.809 INFO  com.hamradio.hub.ui.HubStatusWindow — Stopped digitalBridge from status window
+2026-04-14 09:31:11.081 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamlog'
+2026-04-14 09:31:11.082 INFO  com.hamradio.hub.ui.HubStatusWindow — Stopped hamlog from status window
+2026-04-14 09:31:13.305 INFO  com.hamradio.hub.AppLauncher — Stopped 'hamclock'
+2026-04-14 09:31:13.306 INFO  com.hamradio.hub.ui.HubStatusWindow — Stopped hamclock from status window
+2026-04-14 09:31:21.818 INFO  com.hamradio.hub.HubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-14 09:31:21.819 INFO  com.hamradio.hub.MessageRouter — Routing: app 'j-map' removed
+2026-04-14 09:31:32.084 INFO  com.hamradio.hub.HubServer — App 'digitalBridge' disconnected (code=1000, reason=)
+2026-04-14 09:31:32.085 INFO  com.hamradio.hub.MessageRouter — Routing: app 'digitalBridge' removed
+2026-04-14 09:31:37.455 INFO  com.hamradio.hub.ui.HubStatusWindow — Closing DX telnet session before exit
+2026-04-14 09:31:37.458 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 09:31:37.463 INFO  com.hamradio.hub.HubMain — Shutdown initiated ...
+2026-04-14 09:31:37.466 INFO  com.hamradio.hub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-14 09:31:37.488 INFO  com.hamradio.hub.HubServer — App 'j-log' disconnected (code=1001, reason=)
+2026-04-14 09:31:37.489 INFO  com.hamradio.hub.MessageRouter — Routing: app 'j-log' removed
+2026-04-14 09:31:37.491 INFO  com.hamradio.hub.HubMain — Hub stopped.

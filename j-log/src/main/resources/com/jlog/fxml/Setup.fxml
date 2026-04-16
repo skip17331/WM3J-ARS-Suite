@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.jlog.controller.SetupController"
+            prefWidth="740" prefHeight="600" styleClass="setup-window">
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="setup-tabs">
+            <tabs>
+
+                <!-- ================================================
+                     TAB: STATION
+                     ================================================ -->
+                <Tab text="%tab.station">
+                    <ScrollPane fitToWidth="true">
+                        <GridPane hgap="10" vgap="8" styleClass="setup-grid">
+                            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                            <Label text="%label.callsign"      GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="tfCallsign"      GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="200"/>
+
+                            <Label text="%label.operator"      GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <TextField fx:id="tfOperator"      GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200"/>
+
+                            <Label text="%label.qth"           GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <TextField fx:id="tfQth"           GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="300" GridPane.columnSpan="3"/>
+
+                            <Label text="%label.grid"          GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                            <TextField fx:id="tfGrid"          GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="100"/>
+
+                            <Label text="%label.latitude"      GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                            <TextField fx:id="tfLat"           GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="120"/>
+
+                            <Label text="%label.longitude"     GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                            <TextField fx:id="tfLon"           GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="120"/>
+
+                            <Label text="%label.radio"         GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+                            <TextField fx:id="tfRadio"         GridPane.columnIndex="1" GridPane.rowIndex="6" prefWidth="200"/>
+
+                            <Label text="%label.antenna"       GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                            <TextField fx:id="tfAntenna"       GridPane.columnIndex="1" GridPane.rowIndex="7" prefWidth="200"/>
+
+                            <Label text="%label.default.power" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+                            <TextField fx:id="tfPower"         GridPane.columnIndex="1" GridPane.rowIndex="8" prefWidth="80"/>
+                        </GridPane>
+                    </ScrollPane>
+                </Tab>
+
+                <!-- ================================================
+                     TAB: CI-V
+                     ================================================ -->
+                <Tab text="%tab.civ">
+                    <GridPane hgap="10" vgap="8" styleClass="setup-grid">
+                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                        <Label text="%label.civ.port"    GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfCivPort"     GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="180"/>
+
+                        <Label text="%label.civ.baud"    GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="cbCivBaud"      GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="120"/>
+
+                        <Label text="%label.civ.address" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <TextField fx:id="tfCivAddress"  GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="80"/>
+
+                        <CheckBox fx:id="chkCivAutoConnect" text="%label.civ.autoconnect"
+                                  GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+
+                        <Button text="%button.test" onAction="#doCivTest"
+                                GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                        <Label fx:id="lblCivTestResult" styleClass="test-result"
+                               GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                    </GridPane>
+                </Tab>
+
+                <!-- ================================================
+                     TAB: CALLSIGN LOOKUP
+                     ================================================ -->
+                <Tab text="%tab.lookup">
+                    <GridPane hgap="10" vgap="8" styleClass="setup-grid">
+                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                        <Label text="%label.qrz.user" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfQrzUser"  GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="200"/>
+                        <Label text="%label.qrz.pass" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <PasswordField fx:id="pfQrzPass" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200"/>
+                    </GridPane>
+                </Tab>
+
+                <!-- ================================================
+                     TAB: MACROS
+                     ================================================ -->
+                <Tab text="%tab.macros">
+                    <HBox spacing="10">
+                        <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+                        <!-- Macro list -->
+                        <VBox spacing="6" prefWidth="200">
+                            <Label text="%label.macros" styleClass="section-title"/>
+                            <ListView fx:id="macroList" VBox.vgrow="ALWAYS" prefHeight="300"/>
+                            <HBox spacing="4">
+                                <Button text="%button.new"    onAction="#doNewMacro"/>
+                                <Button text="%button.delete" onAction="#doDeleteMacro"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Macro editor -->
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="%label.macro.name"/>
+                            <TextField fx:id="tfMacroName" prefWidth="250"/>
+
+                            <Label text="%label.macro.fkey"/>
+                            <ComboBox fx:id="cbMacroFKey" prefWidth="120"/>
+
+                            <!-- Action builder -->
+                            <Label text="%label.macro.actions" styleClass="section-title"/>
+                            <HBox spacing="6" alignment="CENTER_LEFT">
+                                <Label text="%label.action.type"/>
+                                <ComboBox fx:id="cbActionType" prefWidth="140"/>
+                                <Label text="%label.action.data"/>
+                                <TextField fx:id="tfActionData" prefWidth="180"
+                                           promptText="%prompt.action.data"/>
+                                <Button text="%button.add.action" onAction="#doAddAction"/>
+                            </HBox>
+
+                            <TextArea fx:id="taMacroActions" VBox.vgrow="ALWAYS"
+                                      prefHeight="160" styleClass="macro-editor" wrapText="false"/>
+
+                            <HBox spacing="6">
+                                <Button text="%button.clear.actions" onAction="#doClearActions"/>
+                                <Button text="%button.save.macro" onAction="#doSaveMacro" styleClass="primary-button"/>
+                            </HBox>
+                            <Label fx:id="lblMacroHelp" styleClass="help-text" wrapText="true"/>
+                        </VBox>
+                    </HBox>
+                </Tab>
+
+                <!-- ================================================
+                     TAB: DISPLAY
+                     ================================================ -->
+                <Tab text="%tab.display">
+                    <VBox spacing="14">
+                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                        <Label text="%label.theme" styleClass="section-title"/>
+                        <HBox spacing="16">
+                            <RadioButton fx:id="rbLight" text="%theme.light">
+                                <toggleGroup><ToggleGroup fx:id="themeToggle"/></toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="rbDark" text="%theme.dark" toggleGroup="$themeToggle"/>
+                        </HBox>
+
+                        <Label text="%label.font.size" styleClass="section-title"/>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Spinner fx:id="spFontSize" prefWidth="80" editable="true"/>
+                            <Label text="%label.font.size.hint" styleClass="help-text"/>
+                        </HBox>
+
+                        <Label text="%label.language" styleClass="section-title"/>
+                        <ComboBox fx:id="cbLanguage" prefWidth="120"/>
+                    </VBox>
+                </Tab>
+
+                <!-- ================================================
+                     TAB: DATABASE
+                     ================================================ -->
+                <Tab text="%tab.database">
+                    <VBox spacing="12">
+                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                        <Label text="%label.db.ops" styleClass="section-title"/>
+
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Button text="%button.backup.db" onAction="#doBackupDatabase" prefWidth="180"/>
+                            <Label text="%hint.backup.db" styleClass="help-text" wrapText="true" maxWidth="400"/>
+                        </HBox>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Button text="%menu.export.adif" onAction="#doExportAdif" prefWidth="180"/>
+                            <Label text="%hint.export.adif" styleClass="help-text" wrapText="true" maxWidth="400"/>
+                        </HBox>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Button text="%menu.export.csv" onAction="#doExportCsv" prefWidth="180"/>
+                            <Label text="%hint.export.csv" styleClass="help-text" wrapText="true" maxWidth="400"/>
+                        </HBox>
+                        <Label fx:id="lblDbStatus" styleClass="status-label"/>
+                    </VBox>
+                </Tab>
+
+                <!-- ================================================
+                     TAB: LOGGING
+                     ================================================ -->
+                <Tab text="%tab.logging">
+                    <VBox spacing="14">
+                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                        <Label text="%label.log.mode" styleClass="section-title"/>
+                        <RadioButton fx:id="rbLogNormal" text="%log.mode.normal">
+                            <toggleGroup><ToggleGroup fx:id="logToggle"/></toggleGroup>
+                        </RadioButton>
+                        <RadioButton fx:id="rbLogDebug" text="%log.mode.debug" toggleGroup="$logToggle"/>
+                        <Label text="%log.debug.warning" styleClass="help-text" wrapText="true" maxWidth="500"/>
+                    </VBox>
+                </Tab>
+
+            </tabs>
+        </TabPane>
+    </center>
+
+    <!-- Save / Cancel -->
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="button-bar">
+            <padding><Insets top="10" right="16" bottom="10"/></padding>
+            <Button fx:id="btnSave"   text="%button.save"   onAction="#doSave"   styleClass="primary-button"/>
+            <Button fx:id="btnCancel" text="%button.cancel" onAction="#doCancel"/>
+        </HBox>
+    </bottom>
+</BorderPane>
