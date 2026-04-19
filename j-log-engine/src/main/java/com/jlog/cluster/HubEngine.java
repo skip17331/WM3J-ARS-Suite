@@ -70,7 +70,7 @@ public class HubEngine {
                 public void onOpen(ServerHandshake handshake) {
                     connected.set(true);
                     // Register with hub — required before any other message
-                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-log\",\"version\":\"1.0.0\"}");
+                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"logging-engine\",\"version\":\"1.0.0\"}");
                     log.info("Hub connected: {}", wsUrl);
                     if (onConnected != null)
                         onConnected.run();

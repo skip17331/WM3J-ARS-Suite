@@ -1,5 +1,7 @@
 package com.jlog.app;
 
+import com.jlog.cluster.HubEngine;
+import com.jlog.cluster.JLogUiPresence;
 import com.jlog.i18n.I18n;
 import com.jlog.util.AppConfig;
 import javafx.fxml.FXMLLoader;
@@ -9,12 +11,18 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
 
 /**
  * Splash screen that fades in, shows the app name, then presents
@@ -49,29 +57,29 @@ public class SplashScreen {
             return;
         }
 
-        splashStage = new Stage(StageStyle.UNDECORATED);
+        splashStage = new Stage(StageStyle.TRANSPARENT);
 
-        Label title   = new Label("j-Log");
-        title.getStyleClass().add("splash-title");
+        InputStream iconStream = getClass().getResourceAsStream("/com/jlog/icons/icon.png");
+        if (iconStream == null) {
+            javafx.application.Platform.runLater(this::showModeChooser);
+            return;
+        }
 
-        Label subtitle = new Label(I18n.get("splash.subtitle"));
-        subtitle.getStyleClass().add("splash-subtitle");
+        Image img = new Image(iconStream);
+        ImageView iv = new ImageView(img);
+        iv.setPreserveRatio(true);
+        iv.setFitWidth(img.getWidth());
+        iv.setFitHeight(img.getHeight());
 
-        Label version = new Label("v1.0.0");
-        version.getStyleClass().add("splash-version");
+        StackPane root = new StackPane(iv);
+        root.setStyle("-fx-background-color: transparent;");
 
-        VBox root = new VBox(16, title, subtitle, version);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(40));
-        root.getStyleClass().add("splash-root");
-
-        Scene scene = new Scene(root, 480, 280);
-        JLogApp.applyTheme(scene);
+        Scene scene = new Scene(root, img.getWidth(), img.getHeight());
+        scene.setFill(Color.TRANSPARENT);
         splashStage.setScene(scene);
         splashStage.centerOnScreen();
         splashStage.show();
 
-        // Fade in then show mode chooser after 1.8 s
         FadeTransition ft = new FadeTransition(Duration.millis(900), root);
         ft.setFromValue(0.0);
         ft.setToValue(1.0);
@@ -137,6 +145,7 @@ public class SplashScreen {
             restoreWindow(primaryStage, scene, "NormalLog");
             primaryStage.setTitle("j-Log — Normal Log");
             primaryStage.show();
+            JLogUiPresence.getInstance().connect(HubEngine.getInstance().getUrl());
             log.info("Normal Log window opened");
         } catch (Exception ex) {
             log.error("Failed to open Normal Log", ex);

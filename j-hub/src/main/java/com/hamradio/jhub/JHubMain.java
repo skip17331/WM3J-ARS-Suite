@@ -53,8 +53,7 @@ public class JHubMain extends Application {
 
     @Override
     public void start(javafx.stage.Stage primaryStage) {
-        // Splash always shows before bootstrap
-        new SplashJHub(() -> {
+        Runnable startupRunnable = () -> {
             try {
                 bootstrap();
                 JHubStatusWindow window = new JHubStatusWindow(primaryStage, jHubServer);
@@ -63,7 +62,13 @@ public class JHubMain extends Application {
                 log.error("Fatal startup error", e);
                 Platform.exit();
             }
-        }).show();
+        };
+        boolean noSplash = getParameters().getRaw().contains("--no-splash");
+        if (noSplash) {
+            startupRunnable.run();
+        } else {
+            new SplashJHub(startupRunnable).show();
+        }
     }
 
     // ---------------------------------------------------------------
@@ -114,15 +119,24 @@ public class JHubMain extends Application {
         jHubDiscovery = new JHubDiscovery();
         jHubDiscovery.start();
 
-        // 9. Auto-launch configured companion apps
-        //    j-log and j-bridge receive --launched-by-hub so they skip their splash screens.
+        // 9. Always start logging engine (j-log --engine-only), then auto-launch other apps.
+        //    All apps receive --launched-by-hub to suppress their splash screens.
         AppLauncher launcher = AppLauncher.getInstance();
         JHubConfig.AppsSection apps = config.getApps();
+        if (apps != null && apps.jLog != null &&
+                apps.jLog.command != null && !apps.jLog.command.isBlank()) {
+            String engineCmd = apps.jLog.command + " --engine-only";
+            String err = launcher.launch("logging-engine", engineCmd);
+            if (err != null) log.error("Logging engine launch failed: {}", err);
+            else log.info("Logging engine started");
+        } else {
+            log.warn("No j-log command configured — logging engine not started");
+        }
         if (apps != null) {
-            autoLaunch(launcher, "jMap",     apps.jMap,    false);
+            autoLaunch(launcher, "jMap",     apps.jMap,    true);
             autoLaunch(launcher, "j-log",    apps.jLog,    true);
             autoLaunch(launcher, "j-bridge", apps.jBridge, true);
-            autoLaunch(launcher, "j-digi",   apps.jDigi,   false);
+            autoLaunch(launcher, "j-digi",   apps.jDigi,   true);
         }
 
         // 10. Hamlib rig controller (only when backend = HAMLIB)

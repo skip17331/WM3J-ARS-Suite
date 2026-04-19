@@ -1,5 +1,7 @@
 package com.jlog.app;
 
+import com.jlog.cluster.HubEngine;
+import com.jlog.cluster.JLogUiPresence;
 import com.jlog.controller.ContestLogController;
 import com.jlog.i18n.I18n;
 import com.jlog.plugin.ContestPlugin;
@@ -148,6 +150,7 @@ public class ContestChooser {
             owner.setScene(scene);
             owner.setTitle("j-Log — Contest Log: " + plugin.getContestName());
             owner.show();
+            JLogUiPresence.getInstance().connect(HubEngine.getInstance().getUrl());
             log.info("Contest Log opened for {}", plugin.getContestName());
         } catch (Exception ex) {
             log.error("Failed to open Contest Log", ex);

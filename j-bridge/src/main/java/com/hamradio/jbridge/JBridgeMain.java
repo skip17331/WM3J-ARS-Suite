@@ -8,6 +8,8 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+
 /**
  * JBridgeMain — JavaFX Application entry point for J-Bridge.
  *
@@ -30,6 +32,9 @@ public class JBridgeMain extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JBridgeMain.class);
 
+    private static final String JHUB_JAR  = "/home/mike/ARS_Suite/j-hub/target/j-hub-1.0.0.jar";
+    private static final int    JHUB_PORT = 8080;
+
     // Set true when J-Hub passes --launched-by-hub on the command line
     private boolean launchedByHub = false;
 
@@ -48,6 +53,8 @@ public class JBridgeMain extends Application {
         log.info("=== J-Bridge v1.0.0 starting  [WM3j ARS Suite] ===");
         if (launchedByHub) {
             log.info("Launched by J-Hub — splash suppressed");
+        } else {
+            ensureJHubRunning();
         }
     }
 
@@ -101,6 +108,33 @@ public class JBridgeMain extends Application {
         if (udpListener != null) udpListener.stop();
         if (hubClient   != null) hubClient.disconnect();
         log.info("J-Bridge stopped");
+    }
+
+    // ── j-Hub auto-start ─────────────────────────────────────────────────────
+
+    private static void ensureJHubRunning() {
+        if (isPortOpen(JHUB_PORT, 500)) return;
+        log.info("j-Hub not detected — starting j-Hub...");
+        try {
+            new ProcessBuilder("java", "-jar", JHUB_JAR, "--no-splash")
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start();
+            for (int i = 0; i < 20; i++) {
+                Thread.sleep(500);
+                if (isPortOpen(JHUB_PORT, 200)) { log.info("j-Hub ready"); return; }
+            }
+            log.warn("j-Hub did not become available within 10 seconds");
+        } catch (Exception e) {
+            log.error("Failed to start j-Hub: {}", e.getMessage());
+        }
+    }
+
+    private static boolean isPortOpen(int port, int timeoutMs) {
+        try (java.net.Socket s = new java.net.Socket()) {
+            s.connect(new InetSocketAddress("localhost", port), timeoutMs);
+            return true;
+        } catch (Exception e) { return false; }
     }
 
     // ── Main ─────────────────────────────────────────────────────────────────

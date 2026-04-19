@@ -2,23 +2,17 @@ package com.hamradio.jhub.ui;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-/**
- * SplashJHub — J-Hub startup splash screen.
- *
- * Always shown when J-Hub launches, before the main status window appears.
- * Fades in over 700 ms, holds for 1 s, then invokes the onComplete callback
- * (which boots the rest of J-Hub and shows the status window).
- */
+import java.io.InputStream;
+
 public class SplashJHub {
 
     private final Runnable onComplete;
@@ -31,39 +25,22 @@ public class SplashJHub {
     public void show() {
         splashStage = new Stage(StageStyle.TRANSPARENT);
 
-        Label title = new Label("j-Hub");
-        title.setStyle(
-            "-fx-font-size: 52px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #cba6f7;" +
-            "-fx-font-family: 'DejaVu Sans', sans-serif;"
-        );
+        InputStream iconStream = getClass().getResourceAsStream("/icons/icon.png");
+        if (iconStream == null) {
+            if (onComplete != null) onComplete.run();
+            return;
+        }
 
-        Label subtitle = new Label("WM3j ARS Suite Controller");
-        subtitle.setStyle(
-            "-fx-font-size: 16px;" +
-            "-fx-text-fill: #89b4fa;" +
-            "-fx-font-family: 'DejaVu Sans', sans-serif;"
-        );
+        Image img = new Image(iconStream);
+        ImageView iv = new ImageView(img);
+        iv.setPreserveRatio(true);
+        iv.setFitWidth(img.getWidth());
+        iv.setFitHeight(img.getHeight());
 
-        Label version = new Label("v1.0.0");
-        version.setStyle(
-            "-fx-font-size: 12px;" +
-            "-fx-text-fill: #6c7086;"
-        );
+        StackPane root = new StackPane(iv);
+        root.setStyle("-fx-background-color: transparent;");
 
-        VBox root = new VBox(12, title, subtitle, version);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(50, 70, 50, 70));
-        root.setStyle(
-            "-fx-background-color: #1e1e2e;" +
-            "-fx-border-color: #cba6f7;" +
-            "-fx-border-width: 2px;" +
-            "-fx-border-radius: 8px;" +
-            "-fx-background-radius: 8px;"
-        );
-
-        Scene scene = new Scene(root, 480, 260);
+        Scene scene = new Scene(root, img.getWidth(), img.getHeight());
         scene.setFill(Color.TRANSPARENT);
         splashStage.setScene(scene);
         splashStage.centerOnScreen();
