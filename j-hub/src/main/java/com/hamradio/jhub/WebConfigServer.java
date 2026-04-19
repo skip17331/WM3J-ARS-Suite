@@ -99,7 +99,11 @@ public class WebConfigServer {
                 JHubConfig newCfg = ConfigManager.getInstance().fromJson(body);
                 if (newCfg == null) throw new IllegalArgumentException("Parsed config was null");
                 ConfigManager.getInstance().updateConfig(newCfg);
-                ClusterManager.getInstance().reconnect();
+                if (newCfg.cluster != null && newCfg.cluster.autoConnect) {
+                    ClusterManager.getInstance().reconnect();
+                } else {
+                    ClusterManager.getInstance().softDisconnect();
+                }
                 HamlibRigController.getInstance().restart(newCfg.rig);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {

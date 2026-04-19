@@ -25,15 +25,18 @@ public class MockSolarDataProvider extends AbstractDataProvider<SolarData>
         data.setSunspotNumber(50 + random.nextInt(150));       // 50-200
         data.setSolarWindSpeed(350 + random.nextDouble() * 250); // 350-600 km/s
         data.setSolarWindDensity(3 + random.nextDouble() * 10);  // 3-13 p/cm³
+        data.setBtField(2 + random.nextDouble() * 10);           // 2-12 nT
+        data.setBzField(-8 + random.nextDouble() * 16);          // -8 to +8 nT
         data.setProtonFlux(0.1 + random.nextDouble() * 2.0);
-        data.setXrayClass(randomXrayClass());
+        data.setXrayFlux(randomXrayFlux());
         data.setObservationTime(Instant.now());
         data.setFresh(true);
         return data;
     }
 
-    private String randomXrayClass() {
-        String[] classes = {"A1.2", "A5.0", "B1.5", "B3.0", "B7.2", "C1.3", "C4.5", "C9.0", "M1.2"};
-        return classes[random.nextInt(classes.length)];
+    private double randomXrayFlux() {
+        // Weighted toward A/B class (typical quiet sun)
+        double[] fluxes = {1e-8, 3e-8, 8e-8, 2e-7, 5e-7, 1.5e-6, 4e-6, 1e-5, 3e-5};
+        return fluxes[random.nextInt(fluxes.length)];
     }
 }

@@ -39,6 +39,12 @@ public class DxSpot {
     /** DXCC prefix of DX station */
     private String dxccPrefix;
 
+    /** Mode as determined by j-hub (takes precedence over local inference) */
+    private String serverMode;
+
+    /** Pre-computed local time at the DX station's location (from j-hub SpotEnricher) */
+    private String localTimeAtSpot;
+
     public DxSpot() {}
 
     public DxSpot(String spotter, String dxCallsign, double frequencyKhz, Instant timestamp) {
@@ -85,10 +91,11 @@ public class DxSpot {
     }
 
     /**
-     * Infer operating mode from comment text and frequency.
-     * Returns a short label: CW, SSB, FT8, FT4, RTTY, PSK, AM, FM, or DIGI.
+     * Returns the operating mode. Uses the server-provided mode when available;
+     * falls back to inference from comment text and frequency.
      */
     public String getMode() {
+        if (serverMode != null && !serverMode.isEmpty()) return serverMode;
         String c = comment != null ? comment.toUpperCase() : "";
 
         // Explicit mode keywords in comment take highest priority
@@ -198,6 +205,12 @@ public class DxSpot {
 
     public String getDxccPrefix() { return dxccPrefix; }
     public void setDxccPrefix(String dxccPrefix) { this.dxccPrefix = dxccPrefix; }
+
+    public String getServerMode() { return serverMode; }
+    public void setServerMode(String serverMode) { this.serverMode = serverMode; }
+
+    public String getLocalTimeAtSpot() { return localTimeAtSpot; }
+    public void setLocalTimeAtSpot(String localTimeAtSpot) { this.localTimeAtSpot = localTimeAtSpot; }
 
     @Override
     public String toString() {

@@ -1,6 +1,7 @@
 package com.wm3j.jmap.service.geomag;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,6 +23,9 @@ public class GeomagneticAlert {
     // Kp 5 → ~60° lat, Kp 9 → ~40° lat
     private final double auroraVisibleLatitude;
 
+    // Upcoming 24-hour Kp forecast (3-hour intervals, up to 8 values)
+    private List<Double> kpForecast = Collections.emptyList();
+
     public GeomagneticAlert(double kpIndex, double aIndex, Level level,
                              String summary, List<String> messages, Instant fetchedAt) {
         this.kpIndex = kpIndex;
@@ -31,6 +35,14 @@ public class GeomagneticAlert {
         this.messages = messages;
         this.fetchedAt = fetchedAt;
         this.auroraVisibleLatitude = kpToVisibleLatitude(kpIndex);
+    }
+
+    public List<Double> getKpForecast() { return kpForecast; }
+    public void setKpForecast(List<Double> kpForecast) { this.kpForecast = kpForecast; }
+
+    /** Max forecast Kp over the next 24 hours */
+    public double getMaxForecastKp() {
+        return kpForecast.stream().mapToDouble(Double::doubleValue).max().orElse(kpIndex);
     }
 
     private static double kpToVisibleLatitude(double kp) {

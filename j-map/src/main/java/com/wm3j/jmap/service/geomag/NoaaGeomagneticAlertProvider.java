@@ -1,124 +1,150 @@
 package com.wm3j.jmap.service.geomag;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wm3j.jmap.service.AbstractDataProvider;
 import com.wm3j.jmap.service.DataProviderException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Fetches real-time geomagnetic Kp data from NOAA SWPC.
- * Uses the planetary_k_index_1m.json feed (1-minute cadence).
+ * Fetches real-time Kp and 24-hour geomagnetic forecast from NOAA SWPC.
+ *
+ * Endpoints:
+ *   kp_index.json       — current 3-hour Kp (array of [time_tag, kp, ...])
+ *   geomag_forecast.json — 3-day Kp forecast (array of {time_tag, kp, ...})
  */
 public class NoaaGeomagneticAlertProvider extends AbstractDataProvider<GeomagneticAlert>
         implements GeomagneticAlertProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(NoaaGeomagneticAlertProvider.class);
+    private static final String KP_URL       = "https://services.swpc.noaa.gov/json/kp_index.json";
+    private static final String FORECAST_URL = "https://services.swpc.noaa.gov/json/geomag_forecast.json";
 
-    // NOAA SWPC 1-minute K-index
-    private static final String KP_URL =
-        "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json";
-
-    // NOAA SWPC alert messages
-    private static final String ALERTS_URL =
-        "https://services.swpc.noaa.gov/products/alerts.json";
-
-    private final HttpClient http = HttpClient.newHttpClient();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final HttpClient   HTTP   = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build();
 
     @Override
     protected GeomagneticAlert doFetch() throws DataProviderException {
-        try {
-            // Fetch current Kp
-            double kp = fetchCurrentKp();
-            double a  = kpToAIndex(kp);
+        double kp = fetchCurrentKp();
+        List<Double> forecast = fetchForecast();
+        double a = kpToAIndex(kp);
 
-            // Fetch any active alerts
-            List<String> messages = fetchAlertMessages();
+        GeomagneticAlert.Level level;
+        String summary;
+        if (kp >= 9)      { level = GeomagneticAlert.Level.ALERT;   summary = "G5 Extreme Storm"; }
+        else if (kp >= 8) { level = GeomagneticAlert.Level.ALERT;   summary = "G4 Severe Storm";  }
+        else if (kp >= 7) { level = GeomagneticAlert.Level.ALERT;   summary = "G3 Strong Storm";  }
+        else if (kp >= 6) { level = GeomagneticAlert.Level.WARNING; summary = "G2 Moderate Storm"; }
+        else if (kp >= 5) { level = GeomagneticAlert.Level.WATCH;   summary = "G1 Minor Storm";   }
+        else              { level = GeomagneticAlert.Level.NONE;    summary = "Quiet"; }
 
-            // Determine level from Kp
-            GeomagneticAlert.Level level;
-            String summary;
-            if (kp >= 9) {
-                level = GeomagneticAlert.Level.ALERT;   summary = "G5 Extreme Storm";
-            } else if (kp >= 8) {
-                level = GeomagneticAlert.Level.ALERT;   summary = "G4 Severe Storm";
-            } else if (kp >= 7) {
-                level = GeomagneticAlert.Level.ALERT;   summary = "G3 Strong Storm";
-            } else if (kp >= 6) {
-                level = GeomagneticAlert.Level.WARNING; summary = "G2 Moderate Storm";
-            } else if (kp >= 5) {
-                level = GeomagneticAlert.Level.WATCH;   summary = "G1 Minor Storm";
-            } else {
-                level = GeomagneticAlert.Level.NONE;    summary = "Quiet (Kp=" + String.format("%.1f", kp) + ")";
+        // Escalate level if forecast shows upcoming storm
+        double maxForecast = forecast.stream().mapToDouble(Double::doubleValue).max().orElse(kp);
+        List<String> messages = new ArrayList<>();
+        messages.add(String.format("Kp=%.1f  A=%d  %s", kp, (int) a, summary));
+        if (maxForecast >= 5 && maxForecast > kp) {
+            messages.add(String.format("24h forecast max: Kp=%.1f (%s)",
+                maxForecast, kpToGScale(maxForecast)));
+        }
+        if (messages.size() < 2) messages.add("Conditions nominal");
+
+        GeomagneticAlert alert = new GeomagneticAlert(kp, a, level, summary, messages, Instant.now());
+        alert.setKpForecast(forecast);
+        return alert;
+    }
+
+    // ── Current Kp ─────────────────────────────────────────────
+    // Array of [time_tag, kp_value, a_running, station_count] — most recent last.
+    private double fetchCurrentKp() throws DataProviderException {
+        JsonNode root = get(KP_URL);
+        if (!root.isArray() || root.size() == 0) return 0;
+
+        for (int i = root.size() - 1; i >= 0; i--) {
+            JsonNode row = root.get(i);
+            if (!row.isArray() || row.size() < 2) continue;
+            String kpStr = row.get(1).asText("").trim();
+            if (!kpStr.isBlank() && !kpStr.equalsIgnoreCase("null")) {
+                try { return Double.parseDouble(kpStr); }
+                catch (NumberFormatException ignored) {}
             }
+        }
+        return 0;
+    }
 
-            return new GeomagneticAlert(kp, a, level, summary, messages, Instant.now());
+    // ── 24-hour forecast ────────────────────────────────────────
+    // Array of {time_tag, kp, a_minor, storm_level, ...}
+    // Returns up to 8 upcoming 3-hour Kp values (24 hours).
+    private List<Double> fetchForecast() {
+        try {
+            JsonNode root = get(FORECAST_URL);
+            if (!root.isArray() || root.size() == 0) return Collections.emptyList();
 
+            List<Double> values = new ArrayList<>();
+            Instant now = Instant.now();
+            for (JsonNode entry : root) {
+                if (values.size() >= 8) break;
+                double kp = entry.path("kp").asDouble(-1);
+                if (kp < 0) continue;
+                // Include entries from now onward (skip historical)
+                String timeStr = entry.path("time_tag").asText("");
+                if (!timeStr.isBlank()) {
+                    try {
+                        // Format: "2024-01-01 03:00:00" — parse as UTC
+                        Instant t = Instant.parse(timeStr.replace(" ", "T") + "Z");
+                        if (t.isBefore(now)) continue;
+                    } catch (Exception ignored) {}
+                }
+                values.add(kp);
+            }
+            return values;
         } catch (Exception e) {
-            throw new DataProviderException("NOAA geomag fetch failed: " + e.getMessage(), DataProviderException.ErrorCode.NETWORK_ERROR, e);
+            log.debug("Forecast fetch failed: {}", e.getMessage());
+            return Collections.emptyList();
         }
     }
 
-    private double fetchCurrentKp() throws Exception {
-        HttpRequest req = HttpRequest.newBuilder()
-            .uri(URI.create(KP_URL))
-            .header("User-Agent", "J-Map/1.0")
-            .build();
-
-        HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-        if (resp.statusCode() != 200) throw new Exception("HTTP " + resp.statusCode());
-
-        // JSON is array of [time, Kp, ...] rows; last entry is most recent
-        String body = resp.body().trim();
-        // Find last numeric Kp value: parse last array entry
-        Pattern p = Pattern.compile("\\[\"[^\"]+\",\\s*\"([0-9.]+)\"");
-        Matcher m = p.matcher(body);
-        double kp = 0;
-        while (m.find()) {
-            try { kp = Double.parseDouble(m.group(1)); } catch (NumberFormatException ignored) {}
-        }
-        return kp;
-    }
-
-    private List<String> fetchAlertMessages() {
-        List<String> msgs = new ArrayList<>();
+    private JsonNode get(String url) throws DataProviderException {
         try {
             HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(ALERTS_URL))
+                .uri(URI.create(url))
                 .header("User-Agent", "J-Map/1.0")
+                .GET()
                 .build();
-
-            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-            if (resp.statusCode() == 200) {
-                // Extract "message" fields from JSON array
-                Pattern p = Pattern.compile("\"message\"\\s*:\\s*\"([^\"]{5,80})\"");
-                Matcher m = p.matcher(resp.body());
-                while (m.find() && msgs.size() < 5) {
-                    msgs.add(m.group(1));
-                }
+            HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() != 200) {
+                throw new DataProviderException("HTTP " + resp.statusCode() + " from " + url,
+                    DataProviderException.ErrorCode.NETWORK_ERROR);
             }
+            return MAPPER.readTree(resp.body());
+        } catch (DataProviderException e) {
+            throw e;
         } catch (Exception e) {
-            log.debug("Could not fetch alert messages: {}", e.getMessage());
+            throw new DataProviderException("Geomag fetch failed: " + e.getMessage(),
+                DataProviderException.ErrorCode.NETWORK_ERROR, e);
         }
-        if (msgs.isEmpty()) msgs.add("No active alerts");
-        return msgs;
     }
 
     private static double kpToAIndex(double kp) {
-        // Standard conversion table (approximate)
-        double[] table = {0, 3, 7, 15, 27, 48, 80, 132, 208, 400};
-        int idx = (int) Math.min(9, Math.max(0, kp));
-        return table[idx];
+        int[] table = {0, 3, 7, 15, 27, 48, 80, 132, 208, 400};
+        return table[(int) Math.min(9, Math.max(0, kp))];
+    }
+
+    private static String kpToGScale(double kp) {
+        if (kp >= 9) return "G5";
+        if (kp >= 8) return "G4";
+        if (kp >= 7) return "G3";
+        if (kp >= 6) return "G2";
+        if (kp >= 5) return "G1";
+        return "G0";
     }
 }

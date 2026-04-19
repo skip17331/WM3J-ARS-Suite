@@ -93,3 +93,20 @@
 2026-04-19 13:37:39.585 DEBUG com.hamradio.jhub.MessageRouter — SPOT_SELECTED → RIG_STATUS freq=21339900 mode=SSB
 2026-04-19 13:42:10.574 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
 2026-04-19 13:42:10.575 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-19 16:19:50.243 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:38250
+2026-04-19 16:19:50.252 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-19 16:19:50.255 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-19 16:20:15.733 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-19 16:20:15.733 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-19 16:20:20.972 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:40798
+2026-04-19 16:20:21.154 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-04-19 16:20:21.158 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-19 16:20:28.302 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-19 16:20:28.302 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-19 16:20:31.034 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-19 16:20:31.038 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-19 16:20:31.042 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-19 16:20:31.044 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-19 16:20:31.796 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-04-19 16:20:31.798 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-19 16:20:31.838 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.

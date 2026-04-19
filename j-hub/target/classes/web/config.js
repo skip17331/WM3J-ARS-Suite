@@ -1052,6 +1052,122 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── J-Map settings ────────────────────────────────────────
+function loadJMapSettings() {
+  fetch('/api/jmap')
+    .then(r => r.json())
+    .then(s => populateJMapForm(s))
+    .catch(() => {});
+}
+
+function populateJMapForm(s) {
+  setChk('jm-mock',      !!s.useMockData);
+  setVal('jm-noaa-key',  s.noaaApiKey         || '');
+  setVal('jm-owm-key',   s.openWeatherApiKey  || '');
+
+  setChk('jm-worldmap',  s.showWorldMap  !== false);
+  setChk('jm-grayline',  s.showGrayline  !== false);
+  setChk('jm-dxspots',   s.showDxSpots   !== false);
+  const opEl = document.getElementById('jm-grayline-opacity');
+  const opLbl = document.getElementById('jm-grayline-opacity-val');
+  if (opEl) { opEl.value = s.graylineOpacity != null ? s.graylineOpacity : 0.6; }
+  if (opLbl) opLbl.textContent = parseFloat(opEl ? opEl.value : 0.6).toFixed(2);
+
+  setChk('jm-aurora',    !!s.showAuroraOverlay);
+  setChk('jm-geomag',    !!s.showGeomagneticAlerts);
+  setChk('jm-satellite', !!s.showSatelliteTracking);
+
+  setChk('jm-weather',   !!s.showWeatherOverlay);
+  setChk('jm-tropo',     !!s.showTropoOverlay);
+  setChk('jm-radar',     !!s.showRadarOverlay);
+  setChk('jm-lightning', !!s.showLightningOverlay);
+  setChk('jm-fronts',    !!s.showFrontsOverlay);
+  setChk('jm-surface',   !!s.showSurfaceConditions);
+
+  setChk('jm-cqzones',   !!s.showCqZones);
+  setChk('jm-ituzones',  !!s.showItuZones);
+  setChk('jm-gridsq',    !!s.showGridSquares);
+  setChk('jm-rotormap',  s.showRotorMap !== false);
+
+  setChk('jm-dewindow',  s.showDeWindow !== false);
+  setChk('jm-dxwindow',  !!s.showDxWindow);
+  setChk('jm-countdown', !!s.showCountdownTimer);
+  setChk('jm-contests',  !!s.showContestList);
+
+  setSelectVal('jm-dx-band', s.dxBandFilter || 'ALL');
+  setVal('jm-dx-maxage',   s.dxMaxAgeMinutes != null ? s.dxMaxAgeMinutes : 30);
+  setChk('jm-dx-callsigns', s.dxShowCallsigns !== false);
+
+  setChk('jm-localtime', s.showLocalTime !== false);
+  setChk('jm-utctime',   s.showUtcTime   !== false);
+  setVal('jm-tz2',       s.secondaryTimezone || '');
+
+  setChk('jm-solar',    s.showSolarData       !== false);
+  setChk('jm-sunspot',  s.showSunspotGraphic  !== false);
+  setChk('jm-prop',     s.showPropagationData !== false);
+  setChk('jm-bandcond', s.showBandConditions  !== false);
+}
+
+function saveJMapSettings() {
+  const chk  = id => document.getElementById(id) && document.getElementById(id).checked;
+  const val  = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const flt  = id => { const el = document.getElementById(id); return el ? parseFloat(el.value) : 0; };
+  const intn = id => { const el = document.getElementById(id); return el ? parseInt(el.value) || 0 : 0; };
+
+  const settings = {
+    useMockData:            chk('jm-mock'),
+    noaaApiKey:             val('jm-noaa-key').trim(),
+    openWeatherApiKey:      val('jm-owm-key').trim(),
+
+    showWorldMap:           chk('jm-worldmap'),
+    showGrayline:           chk('jm-grayline'),
+    showDxSpots:            chk('jm-dxspots'),
+    graylineOpacity:        flt('jm-grayline-opacity'),
+
+    showAuroraOverlay:      chk('jm-aurora'),
+    showGeomagneticAlerts:  chk('jm-geomag'),
+    showSatelliteTracking:  chk('jm-satellite'),
+
+    showWeatherOverlay:     chk('jm-weather'),
+    showTropoOverlay:       chk('jm-tropo'),
+    showRadarOverlay:       chk('jm-radar'),
+    showLightningOverlay:   chk('jm-lightning'),
+    showFrontsOverlay:      chk('jm-fronts'),
+    showSurfaceConditions:  chk('jm-surface'),
+
+    showCqZones:            chk('jm-cqzones'),
+    showItuZones:           chk('jm-ituzones'),
+    showGridSquares:        chk('jm-gridsq'),
+    showRotorMap:           chk('jm-rotormap'),
+
+    showDeWindow:           chk('jm-dewindow'),
+    showDxWindow:           chk('jm-dxwindow'),
+    showCountdownTimer:     chk('jm-countdown'),
+    showContestList:        chk('jm-contests'),
+
+    dxBandFilter:           val('jm-dx-band'),
+    dxMaxAgeMinutes:        intn('jm-dx-maxage') || 30,
+    dxShowCallsigns:        chk('jm-dx-callsigns'),
+
+    showLocalTime:          chk('jm-localtime'),
+    showUtcTime:            chk('jm-utctime'),
+    secondaryTimezone:      val('jm-tz2').trim(),
+
+    showSolarData:          chk('jm-solar'),
+    showSunspotGraphic:     chk('jm-sunspot'),
+    showPropagationData:    chk('jm-prop'),
+    showBandConditions:     chk('jm-bandcond'),
+  };
+
+  fetch('/api/jmap', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(settings) })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) { flashMsg('jmap-msg', data.error || 'Error', true); return; }
+      flashMsg('jmap-msg', 'Saved — restart J-Map to apply');
+    })
+    .catch(() => flashMsg('jmap-msg', 'Error', true));
+}
+
 // ── Boot ────────────────────────────────────────────────────
 // Restore theme before first paint to avoid flash
 (function () {
@@ -1063,6 +1179,7 @@ function esc(s) {
 populateTimezones();
 loadConfig();
 loadMacros();
+loadJMapSettings();
 connectWs();
 pollStatus();
 pollSpots();

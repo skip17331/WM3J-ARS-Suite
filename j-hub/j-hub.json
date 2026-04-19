@@ -5,10 +5,13 @@
   },
   "station": {
     "callsign": "WM3J",
-    "lat": 0.0,
-    "lon": 0.0,
-    "gridSquare": "FM19",
-    "timezone": "UTC"
+    "name": "Mike Kipps",
+    "qth": "Hanover, PA",
+    "lat": 39.745583,
+    "lon": -76.959714,
+    "gridSquare": "FM19MR",
+    "timezone": "America/New_York",
+    "language": "en"
   },
   "rig": {
     "backend": "NONE",
@@ -33,7 +36,7 @@
     "autoConnect": false,
     "server": "dx.middlebrook.ca",
     "port": 8000,
-    "loginCallsign": "wm3j",
+    "loginCallsign": "WM3J",
     "filters": {
       "bands": [
         "160m",
@@ -75,8 +78,8 @@
   },
   "apps": {
     "jMap": {
-      "autoLaunch": false,
-      "command": "cd /home/mike/ARS_Suite/j-map.sh"
+      "autoLaunch": true,
+      "command": "bash /home/mike/ARS_Suite/j-map/run.sh"
     },
     "jLog": {
       "autoLaunch": true,
@@ -87,7 +90,7 @@
       "command": "bash /home/mike/ARS_Suite/j-bridge/j-bridge.sh"
     },
     "jDigi": {
-      "autoLaunch": true,
+      "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-digi/j-digi.sh"
     }
   },
@@ -151,7 +154,7 @@
   },
   "appearance": {
     "theme": "grayline",
-    "fontSize": 13,
+    "fontSize": 17,
     "waterfallColor": "viridis",
     "mapTheme": "satellite"
   },
@@ -159,25 +162,23 @@
     "callsign": "WM3J",
     "qthLat": 39.745583,
     "qthLon": -76.959714,
-    "qthGrid": "FM19mr",
+    "qthGrid": "FM19MR",
     "timezone": "America/New_York",
     "useMockData": false,
     "noaaApiKey": "",
     "openWeatherApiKey": "",
     "showWorldMap": true,
     "showGrayline": true,
-    "graylineOpacity": 0.6,
     "showDxSpots": true,
-    "dxBandFilter": "ALL",
-    "dxMaxAgeMinutes": 30,
-    "dxShowCallsigns": true,
+    "graylineOpacity": 0.6,
     "showAuroraOverlay": true,
-    "showGeomagneticAlerts": false,
-    "showWeatherOverlay": false,
+    "showGeomagneticAlerts": true,
+    "showWeatherOverlay": true,
     "showTropoOverlay": false,
-    "showRadarOverlay": false,
-    "showLightningOverlay": false,
-    "showSurfaceConditions": false,
+    "showRadarOverlay": true,
+    "showLightningOverlay": true,
+    "showFrontsOverlay": false,
+    "showSurfaceConditions": true,
     "showCqZones": false,
     "showItuZones": false,
     "showGridSquares": false,
@@ -186,21 +187,38 @@
     "showContestList": true,
     "showDeWindow": true,
     "showDxWindow": true,
+    "dxWindowCallsign": "",
+    "countdownTimerX": 10.0,
+    "countdownTimerY": 10.0,
+    "contestListX": 10.0,
+    "contestListY": 220.0,
+    "deWindowX": 10.0,
+    "deWindowY": 460.0,
+    "dxWindowX": 250.0,
+    "dxWindowY": 10.0,
+    "dxBandFilter": "ALL",
+    "dxMaxAgeMinutes": 30,
+    "dxShowCallsigns": true,
     "showRotorMap": true,
     "rotorEnabled": false,
     "arduinoIp": "192.168.1.100",
     "arduinoPort": 4533,
     "arduinoProtocol": "HTTP",
     "showBeamWidthArc": true,
-    "beamWidthDegrees": 30,
+    "beamWidthDegrees": 30.0,
     "showLongPath": true,
     "showLocalTime": false,
     "showUtcTime": true,
-    "darkTheme": true,
-    "fontSize": 18,
+    "secondaryTimezone": "",
     "showSolarData": true,
     "showSunspotGraphic": true,
     "showPropagationData": true,
-    "showBandConditions": true
+    "showBandConditions": true,
+    "fot": 14.0,
+    "muf": 28.0,
+    "darkTheme": true,
+    "uiScale": 1.0,
+    "fontSize": 13,
+    "webServerPort": 8082
   }
 }

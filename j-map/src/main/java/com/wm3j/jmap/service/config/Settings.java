@@ -37,6 +37,7 @@ public class Settings {
     private boolean showTropoOverlay = false;
     private boolean showRadarOverlay = false;
     private boolean showLightningOverlay = false;
+    private boolean showFrontsOverlay = false;
     private boolean showSurfaceConditions = false;
 
     // === AMATEUR RADIO OVERLAYS ===
@@ -153,6 +154,9 @@ public class Settings {
 
     public boolean isShowLightningOverlay() { return showLightningOverlay; }
     public void setShowLightningOverlay(boolean showLightningOverlay) { this.showLightningOverlay = showLightningOverlay; }
+
+    public boolean isShowFrontsOverlay() { return showFrontsOverlay; }
+    public void setShowFrontsOverlay(boolean showFrontsOverlay) { this.showFrontsOverlay = showFrontsOverlay; }
 
     public boolean isShowSurfaceConditions() { return showSurfaceConditions; }
     public void setShowSurfaceConditions(boolean showSurfaceConditions) { this.showSurfaceConditions = showSurfaceConditions; }

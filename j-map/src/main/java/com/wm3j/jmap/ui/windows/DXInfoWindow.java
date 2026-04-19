@@ -75,8 +75,12 @@ public class DXInfoWindow extends FloatingWindow {
         modeLabel.setText("⬤  " + mode);
         modeLabel.setStyle("-fx-font-size: 0.85em; -fx-font-weight: bold; -fx-text-fill: " + s.getModeColor() + ";");
 
-        ZoneOffset dxOffset = ZoneOffset.ofTotalSeconds((int) (s.getDxLon() / 15.0 * 3600));
-        localTimeLabel.setText("Local: " + ZonedDateTime.now(dxOffset).format(TIME_FMT));
+        String dxLocalTime = s.getLocalTimeAtSpot();
+        if (dxLocalTime == null || dxLocalTime.isEmpty()) {
+            ZoneOffset dxOffset = ZoneOffset.ofTotalSeconds((int) (s.getDxLon() / 15.0 * 3600));
+            dxLocalTime = ZonedDateTime.now(dxOffset).format(TIME_FMT);
+        }
+        localTimeLabel.setText("Local: " + dxLocalTime);
 
         latLonLabel.setText(String.format("%.2f°  %.2f°", s.getDxLat(), s.getDxLon()));
 

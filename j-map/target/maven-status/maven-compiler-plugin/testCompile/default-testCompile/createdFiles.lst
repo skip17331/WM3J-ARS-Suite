@@ -1,0 +1,8 @@
+com/wm3j/jmap/astronomy/GreatCircleMathTest.class
+com/wm3j/jmap/astronomy/SunriseSunsetServiceTest.class
+com/wm3j/jmap/rotor/RotorDataTest.class
+com/wm3j/jmap/dx/DxSpotTest.class
+com/wm3j/jmap/astronomy/SolarDataTest.class
+com/wm3j/jmap/astronomy/SolarPositionServiceTest.class
+com/wm3j/jmap/astronomy/SettingsSerializationTest.class
+com/wm3j/jmap/propagation/PropagationLogicTest.class

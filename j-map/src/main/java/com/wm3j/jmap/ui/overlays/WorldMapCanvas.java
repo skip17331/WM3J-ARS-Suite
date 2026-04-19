@@ -5,6 +5,7 @@ import com.wm3j.jmap.service.astronomy.NightMask;
 import com.wm3j.jmap.service.config.Settings;
 import com.wm3j.jmap.service.dx.DxSpot;
 import com.wm3j.jmap.service.geomag.GeomagneticAlert;
+import com.wm3j.jmap.service.fronts.FrontsData;
 import com.wm3j.jmap.service.lightning.LightningData;
 import com.wm3j.jmap.service.radar.RadarOverlay;
 import com.wm3j.jmap.service.satellite.SatelliteData;
@@ -111,6 +112,9 @@ public class WorldMapCanvas extends Pane {
 
         // 5. Lightning
         if (s.isShowLightningOverlay()) drawLightningOverlay(gc, w, h);
+
+        // 5b. Weather fronts
+        if (s.isShowFrontsOverlay()) drawFrontsOverlay(gc, w, h);
 
         // 6. Aurora
         if (s.isShowAuroraOverlay()) drawAuroraOverlay(gc, w, h);
@@ -266,6 +270,15 @@ public class WorldMapCanvas extends Pane {
         RadarOverlay data = services.radarProvider.getCached();
         if (data == null) return;
 
+        // Tile compositor output (preferred — already equirectangular)
+        if (data.hasTileImage()) {
+            gc.save();
+            gc.setGlobalAlpha(0.70);
+            gc.drawImage(data.getTileImage(), 0, 0, w, h);
+            gc.restore();
+            return;
+        }
+
         if (data.hasPng()) {
             try {
                 Image img = new Image(new ByteArrayInputStream(data.getPngBytes()));
@@ -313,6 +326,15 @@ public class WorldMapCanvas extends Pane {
         LightningData data = services.lightningProvider.getCached();
         if (data == null) return;
 
+        // Tile compositor output (preferred — already equirectangular)
+        if (data.hasTileImage()) {
+            gc.save();
+            gc.setGlobalAlpha(0.75);
+            gc.drawImage(data.getTileImage(), 0, 0, w, h);
+            gc.restore();
+            return;
+        }
+
         double[][] density = data.getDensityGrid();
         if (density != null) {
             int lonSteps = density.length;
@@ -349,6 +371,41 @@ public class WorldMapCanvas extends Pane {
             }
             gc.restore();
         }
+    }
+
+    // ── Weather Fronts ────────────────────────────────────────────────────────
+
+    private void drawFrontsOverlay(GraphicsContext gc, double w, double h) {
+        FrontsData data = services.frontsProvider.getCached();
+        if (data == null || data.getFronts().isEmpty()) return;
+
+        gc.save();
+        gc.setLineWidth(2.5);
+
+        for (FrontsData.Front front : data.getFronts()) {
+            List<double[]> coords = front.coords();
+            if (coords.size() < 2) continue;
+
+            switch (front.type()) {
+                case COLD       -> gc.setStroke(Color.rgb(0,   100, 255, 0.85));
+                case WARM       -> gc.setStroke(Color.rgb(220,  30,  30, 0.85));
+                case OCCLUDED   -> gc.setStroke(Color.rgb(160,  0,  200, 0.85));
+                case STATIONARY -> gc.setStroke(Color.rgb(0,   160,  60, 0.85));
+                case TROUGH     -> gc.setStroke(Color.rgb(180, 100,   0, 0.85));
+                default         -> gc.setStroke(Color.rgb(150, 150, 150, 0.70));
+            }
+
+            gc.beginPath();
+            double x0 = lonToX(coords.get(0)[0], w);
+            double y0 = latToY(coords.get(0)[1], h);
+            gc.moveTo(x0, y0);
+            for (int i = 1; i < coords.size(); i++) {
+                gc.lineTo(lonToX(coords.get(i)[0], w), latToY(coords.get(i)[1], h));
+            }
+            gc.stroke();
+        }
+
+        gc.restore();
     }
 
     // ── Aurora ────────────────────────────────────────────────────────────────

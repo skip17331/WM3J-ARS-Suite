@@ -41,6 +41,7 @@ public class DxClusterClient {
     private volatile boolean connected = false;
     private volatile String statusMessage = "Disconnected";
     private volatile String hubUrl = DEFAULT_URL;
+    private volatile Instant sessionStartTime = Instant.now();
 
     private final List<DxSpot>   clusterSpots = new CopyOnWriteArrayList<>();
     private final LinkedList<String> lineBuffer = new LinkedList<>();
@@ -49,6 +50,22 @@ public class DxClusterClient {
 
     private volatile java.util.function.Consumer<DxSpot> spotSelectedListener;
     public void setSpotSelectedListener(java.util.function.Consumer<DxSpot> l) { this.spotSelectedListener = l; }
+
+    private volatile java.util.function.Consumer<JsonNode> stationListener;
+    public void setStationListener(java.util.function.Consumer<JsonNode> l) { this.stationListener = l; }
+
+    /**
+     * Override the hub host before calling start(). Disables UDP discovery
+     * so j-map connects directly to this address regardless of beacons.
+     * host may be a hostname or IP; wsPort defaults to 8080 if omitted.
+     */
+    public void setHubHost(String host, int wsPort) {
+        this.hubUrl = "ws://" + host + ":" + wsPort;
+        this.discoveryEnabled = false;
+        log.info("Hub address pinned to {}", this.hubUrl);
+    }
+
+    private volatile boolean discoveryEnabled = true;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "j-map-hub-reconnect");
@@ -60,10 +77,10 @@ public class DxClusterClient {
     // Lifecycle
     // -------------------------------------------------------
 
-    /** Start connecting to Hub and begin UDP discovery. */
+    /** Start connecting to Hub and begin UDP discovery (unless hub host was pinned). */
     public void start() {
         if (!running.compareAndSet(false, true)) return;
-        startDiscovery();
+        if (discoveryEnabled) startDiscovery();
         scheduleConnect(0);
     }
 
@@ -94,7 +111,7 @@ public class DxClusterClient {
                         sock.receive(pkt);
                         String json = new String(pkt.getData(), 0, pkt.getLength());
                         JsonNode node = MAPPER.readTree(json);
-                        if ("HUB_BEACON".equals(node.path("type").asText())) {
+                        if ("JHUB_BEACON".equals(node.path("type").asText())) {
                             int port = node.path("wsPort").asInt(8080);
                             String url = "ws://" + pkt.getAddress().getHostAddress() + ":" + port;
                             if (!url.equals(hubUrl)) {
@@ -134,6 +151,8 @@ public class DxClusterClient {
                 @Override public void onOpen(ServerHandshake h) {
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-map\",\"version\":\"1.0.0\"}");
                     connected = true;
+                    sessionStartTime = Instant.now();
+                    clusterSpots.clear();   // discard any spots from previous session
                     statusMessage = "Connected to " + url;
                     addLine(">>> Hub connected");
                     log.info("Hub connected: {}", url);
@@ -168,14 +187,37 @@ public class DxClusterClient {
             JsonNode node = MAPPER.readTree(json);
             String type = node.path("type").asText();
 
-            if ("SPOT".equals(type)) {
+            if ("JHUB_WELCOME".equals(type)) {
+                JsonNode st = node.path("station");
+                if (!st.isMissingNode() && stationListener != null) {
+                    stationListener.accept(st);
+                }
+
+            } else if ("SPOT".equals(type)) {
+                // Parse the actual spot timestamp from j-hub; ignore replayed pre-session spots
+                String tsStr = node.path("timestamp").asText("");
+                Instant spotTime;
+                try {
+                    spotTime = tsStr.isEmpty() ? Instant.now() : Instant.parse(tsStr);
+                } catch (Exception e) {
+                    spotTime = Instant.now();
+                }
+                if (spotTime.isBefore(sessionStartTime)) return;
+
                 double freqHz = node.path("frequency").asDouble(0);
                 DxSpot spot = new DxSpot(
                     node.path("spotter").asText(""),
                     node.path("spotted").asText(""),
                     freqHz / 1000.0,
-                    Instant.now());
+                    spotTime);
                 spot.setComment(node.path("comment").asText(""));
+                spot.setDxLat(node.path("lat").asDouble(0));
+                spot.setDxLon(node.path("lon").asDouble(0));
+                if (!node.path("mode").asText("").isEmpty())
+                    spot.setServerMode(node.path("mode").asText());
+                if (!node.path("localTimeAtSpot").asText("").isEmpty())
+                    spot.setLocalTimeAtSpot(node.path("localTimeAtSpot").asText());
+                spot.setDxccEntity(node.path("country").asText(""));
                 clusterSpots.add(0, spot);
                 while (clusterSpots.size() > MAX_SPOTS) clusterSpots.remove(clusterSpots.size() - 1);
 
@@ -187,6 +229,10 @@ public class DxClusterClient {
                     freqHz / 1000.0,
                     Instant.now());
                 spot.setComment(node.path("comment").asText(""));
+                spot.setDxLat(node.path("lat").asDouble(0));
+                spot.setDxLon(node.path("lon").asDouble(0));
+                if (!node.path("mode").asText("").isEmpty())
+                    spot.setServerMode(node.path("mode").asText());
                 if (spotSelectedListener != null)
                     spotSelectedListener.accept(spot);
             }

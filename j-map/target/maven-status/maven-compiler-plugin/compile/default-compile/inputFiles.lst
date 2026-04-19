@@ -25,6 +25,10 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/dx/DxSpotProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/dx/HttpDxSpotProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/dx/MockDxSpotProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/fronts/FrontsData.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/fronts/FrontsProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/fronts/MockFrontsProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/fronts/NoaaWpcFrontsProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/geomag/GeomagneticAlert.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/geomag/GeomagneticAlertProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/geomag/MockGeomagneticAlertProvider.java
@@ -33,6 +37,7 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/lightning/LightningProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/lightning/LiveLightningProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/lightning/MockLightningProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/lightning/RainViewerLightningProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/HamQslPropagationProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/MockPropagationProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/PropagationData.java
@@ -41,6 +46,7 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/NoaaRadarProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/RadarOverlay.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/RadarProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/RainViewerRadarProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/rotor/ArduinoRotorHttpProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/rotor/ArduinoRotorUdpProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/rotor/ArduinoRotorWebSocketProvider.java
@@ -59,6 +65,7 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/surface/OpenMeteoSurfaceProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/surface/SurfaceConditions.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/surface/SurfaceConditionsProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/tiles/TileCompositor.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/tropo/HepburnTropoProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/tropo/MockTropoProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/tropo/TropoOverlay.java

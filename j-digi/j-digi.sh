@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-mvn clean install
+mvn clean install -f "$SCRIPT_DIR/pom.xml"
 
 java \
     --module-path "$SCRIPT_DIR/lib/javafx" \

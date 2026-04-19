@@ -22,6 +22,7 @@
       <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor</button>
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
       <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
+      <button class="nav-btn" data-tab="jmap"><span class="nav-icon">◫</span>J-Map</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
       <button class="nav-btn" data-tab="macros"><span class="nav-icon">⊟</span>Macros</button>
       <button class="nav-btn" data-tab="appearance"><span class="nav-icon">◈</span>Appearance</button>
@@ -549,6 +550,223 @@
         <div class="btn-row" style="margin-top:8px">
           <button class="btn btn-ghost btn-sm" onclick="refreshSessions()">Refresh</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: J-Map ────────────────────────────────────── -->
+    <section id="tab-jmap" class="tab-panel">
+      <div class="panel-header">J-Map Settings</div>
+      <div class="panel-sub">Map display, overlays, windows, and API keys — applied when J-Map starts</div>
+
+      <div class="card">
+        <div class="card-title">API Keys</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Use Mock Data</div>
+            <div class="toggle-desc">Skip live API calls; use built-in sample data (good for offline use)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jm-mock">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="field-row cols-2" style="margin-top:12px">
+          <div class="field">
+            <input type="text" id="jm-noaa-key" placeholder="your-noaa-api-key" autocomplete="off">
+            <label>NOAA API Key</label>
+            <span class="hint">Used for solar data and geomagnetic alerts</span>
+          </div>
+          <div class="field">
+            <input type="text" id="jm-owm-key" placeholder="your-openweathermap-key" autocomplete="off">
+            <label>OpenWeatherMap API Key</label>
+            <span class="hint">Used for weather overlays</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Map &amp; Core Overlays</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">World Map</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-worldmap"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Grayline</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-grayline"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">DX Spots on Map</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-dxspots"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="field-row cols-2" style="margin-top:8px">
+          <div class="field">
+            <input type="range" id="jm-grayline-opacity" min="0" max="1" step="0.05" value="0.6"
+                   oninput="document.getElementById('jm-grayline-opacity-val').textContent=parseFloat(this.value).toFixed(2)">
+            <label>Grayline Opacity: <span id="jm-grayline-opacity-val">0.60</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Space Weather Overlays</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Aurora Overlay</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-aurora"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Geomagnetic Alerts</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-geomag"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Satellite Tracking</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-satellite"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Terrestrial Weather Overlays</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Weather</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-weather"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Troposcatter</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-tropo"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Radar</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-radar"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Lightning</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-lightning"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Weather Fronts</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-fronts"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Surface Conditions</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-surface"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Amateur Radio Overlays</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">CQ Zones</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-cqzones"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">ITU Zones</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-ituzones"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Grid Squares</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-gridsq"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Rotor Map</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-rotormap"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Visible Windows</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">DE Window (My Station)</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-dewindow"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">DX Window</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-dxwindow"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Countdown Timer</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-countdown"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Contest List</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-contests"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">DX Spot Filters</div>
+        <div class="field-row cols-3">
+          <div class="field">
+            <select id="jm-dx-band">
+              <option value="ALL">All Bands</option>
+              <option value="160m">160m</option>
+              <option value="80m">80m</option>
+              <option value="40m">40m</option>
+              <option value="20m">20m</option>
+              <option value="15m">15m</option>
+              <option value="10m">10m</option>
+              <option value="6m">6m</option>
+              <option value="2m">2m</option>
+            </select>
+            <label>Band Filter</label>
+          </div>
+          <div class="field">
+            <input type="number" id="jm-dx-maxage" placeholder="30" min="1" max="1440">
+            <label>Max Spot Age (min)</label>
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <div class="toggle-row" style="border:none;padding:0">
+              <div><div class="toggle-label">Show Callsigns</div></div>
+              <label class="toggle" style="margin-left:12px">
+                <input type="checkbox" id="jm-dx-callsigns">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <label style="margin-top:6px">Callsigns on Map</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Time Display</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Show Local Time</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-localtime"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Show UTC Time</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-utctime"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="field-row cols-2" style="margin-top:8px">
+          <div class="field">
+            <input type="text" id="jm-tz2" placeholder="America/Chicago">
+            <label>Secondary Timezone</label>
+            <span class="hint">Optional IANA timezone to show alongside UTC</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Solar &amp; Propagation</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Solar Data Panel</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-solar"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Sunspot Graphic</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-sunspot"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Propagation Data</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-prop"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Band Conditions</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-bandcond"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn btn-primary" onclick="saveJMapSettings()">Save J-Map Settings</button>
+        <span id="jmap-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
 

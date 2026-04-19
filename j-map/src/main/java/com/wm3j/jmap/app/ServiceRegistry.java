@@ -10,6 +10,9 @@ import com.wm3j.jmap.service.config.Settings;
 import com.wm3j.jmap.service.contest.ContestListProvider;
 import com.wm3j.jmap.service.contest.MockContestListProvider;
 import com.wm3j.jmap.service.contest.WaBnmContestListProvider;
+import com.wm3j.jmap.service.fronts.FrontsProvider;
+import com.wm3j.jmap.service.fronts.MockFrontsProvider;
+import com.wm3j.jmap.service.fronts.NoaaWpcFrontsProvider;
 import com.wm3j.jmap.service.dx.DxClusterClient;
 import com.wm3j.jmap.service.dx.DxSpotProvider;
 import com.wm3j.jmap.service.dx.HttpDxSpotProvider;
@@ -20,12 +23,14 @@ import com.wm3j.jmap.service.geomag.NoaaGeomagneticAlertProvider;
 import com.wm3j.jmap.service.lightning.LiveLightningProvider;
 import com.wm3j.jmap.service.lightning.LightningProvider;
 import com.wm3j.jmap.service.lightning.MockLightningProvider;
+import com.wm3j.jmap.service.lightning.RainViewerLightningProvider;
 import com.wm3j.jmap.service.propagation.HamQslPropagationProvider;
 import com.wm3j.jmap.service.propagation.MockPropagationProvider;
 import com.wm3j.jmap.service.propagation.PropagationDataProvider;
 import com.wm3j.jmap.service.radar.MockRadarProvider;
 import com.wm3j.jmap.service.radar.NoaaRadarProvider;
 import com.wm3j.jmap.service.radar.RadarProvider;
+import com.wm3j.jmap.service.radar.RainViewerRadarProvider;
 import com.wm3j.jmap.service.rotor.ArduinoRotorHttpProvider;
 import com.wm3j.jmap.service.rotor.MockRotorProvider;
 import com.wm3j.jmap.service.rotor.RotorProvider;
@@ -84,6 +89,7 @@ public class ServiceRegistry {
     public volatile RotorProvider              rotorProvider;
     public volatile SatelliteProvider          satelliteProvider;
     public volatile ContestListProvider        contestListProvider;
+    public volatile FrontsProvider             frontsProvider;
 
     public final DxClusterClient dxClusterClient = new DxClusterClient();
 
@@ -103,10 +109,30 @@ public class ServiceRegistry {
     }
 
     public void start() {
+        dxClusterClient.setStationListener(stationNode -> {
+            boolean changed = false;
+            if (stationNode.has("callsign") && !stationNode.path("callsign").asText().isBlank()) {
+                settings.setCallsign(stationNode.path("callsign").asText()); changed = true;
+            }
+            if (stationNode.has("lat") && stationNode.path("lat").asDouble() != 0) {
+                settings.setQthLat(stationNode.path("lat").asDouble()); changed = true;
+            }
+            if (stationNode.has("lon") && stationNode.path("lon").asDouble() != 0) {
+                settings.setQthLon(stationNode.path("lon").asDouble()); changed = true;
+            }
+            if (stationNode.has("gridSquare") && !stationNode.path("gridSquare").asText().isBlank()) {
+                settings.setQthGrid(stationNode.path("gridSquare").asText()); changed = true;
+            }
+            if (stationNode.has("timezone") && !stationNode.path("timezone").asText().isBlank()) {
+                settings.setTimezone(stationNode.path("timezone").asText()); changed = true;
+            }
+            if (changed) onSettingsChanged(settings);
+        });
         dxClusterClient.start(); // connect to Hub for spot delivery
         refreshRotor();
         refreshSolar();
         refreshDxSpots();
+        refreshFronts();
 
         scheduler = Executors.newScheduledThreadPool(6, r -> {
             Thread t = new Thread(r, "j-map-scheduler");
@@ -114,8 +140,9 @@ public class ServiceRegistry {
             return t;
         });
 
-        // Solar / geomag — every 15 min
-        scheduler.scheduleAtFixedRate(this::refreshSolar,          0, 15, TimeUnit.MINUTES);
+        // Solar wind (DSCOVR) updates every minute; Kp every 3h — fetch every 5 min
+        scheduler.scheduleAtFixedRate(this::refreshSolar,          0,  5, TimeUnit.MINUTES);
+        // Geomag Kp + forecast — every 15 min
         scheduler.scheduleAtFixedRate(this::refreshGeomagAlerts,   2, 15, TimeUnit.MINUTES);
 
         // Propagation — every 10 min
@@ -124,7 +151,7 @@ public class ServiceRegistry {
         // DX spots — every 2 min
         scheduler.scheduleAtFixedRate(this::refreshDxSpots,       10,  2, TimeUnit.MINUTES);
 
-        // Space/weather overlays — every 30 min
+        // Aurora JSON grid — every 30 min (NOAA updates ~30 min cadence)
         scheduler.scheduleAtFixedRate(this::refreshAurora,        15, 30, TimeUnit.MINUTES);
         scheduler.scheduleAtFixedRate(this::refreshRadar,         20, 10, TimeUnit.MINUTES);
         scheduler.scheduleAtFixedRate(this::refreshLightning,      5,  5, TimeUnit.MINUTES);
@@ -135,6 +162,9 @@ public class ServiceRegistry {
 
         // Contest list — every 4 hours
         scheduler.scheduleAtFixedRate(this::refreshContests,       0,  4, TimeUnit.HOURS);
+
+        // WPC fronts — every 3 hours (NWS issues new surface analysis charts ~3h)
+        scheduler.scheduleAtFixedRate(this::refreshFronts,        30,  3, TimeUnit.HOURS);
 
         // Rotor — every 1 second
         scheduler.scheduleAtFixedRate(this::refreshRotor,          0,  1, TimeUnit.SECONDS);
@@ -184,10 +214,10 @@ public class ServiceRegistry {
             ? new MockTropoProvider() : new HepburnTropoProvider();
 
         radarProvider = mock
-            ? new MockRadarProvider() : new NoaaRadarProvider();
+            ? new MockRadarProvider() : new RainViewerRadarProvider();
 
         lightningProvider = mock
-            ? new MockLightningProvider() : new LiveLightningProvider();
+            ? new MockLightningProvider() : new RainViewerLightningProvider();
 
         surfaceConditionsProvider = mock
             ? new MockSurfaceConditionsProvider() : new OpenMeteoSurfaceProvider();
@@ -200,6 +230,9 @@ public class ServiceRegistry {
 
         // WaBnmContestListProvider scraper is unreliable; always use mock contest data
         contestListProvider = new MockContestListProvider();
+
+        frontsProvider = mock
+            ? new MockFrontsProvider() : new NoaaWpcFrontsProvider();
 
         rotorProvider = (!settings.isRotorEnabled() || settings.getArduinoIp().isBlank())
             ? new MockRotorProvider()
@@ -256,6 +289,11 @@ public class ServiceRegistry {
     private void refreshContests() {
         try { contestListProvider.fetch(); }
         catch (Exception e) { log.warn("Contest list refresh failed: {}", e.getMessage()); }
+    }
+
+    private void refreshFronts() {
+        try { frontsProvider.fetch(); }
+        catch (Exception e) { log.warn("Fronts refresh failed: {}", e.getMessage()); }
     }
 
     private void refreshRotor() {
