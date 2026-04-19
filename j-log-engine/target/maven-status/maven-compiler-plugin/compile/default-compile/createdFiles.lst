@@ -10,6 +10,7 @@ com/jlog/model/DxSpot.class
 com/jlog/civ/CivConfig.class
 module-info.class
 com/jlog/plugin/ContestPlugin$FieldDef.class
+com/jlog/cluster/JLogUiPresence.class
 com/jlog/plugin/ContestPlugin$MultiplierModel.class
 com/jlog/cluster/HubEngine.class
 com/jlog/util/BandPlan$ValidationResult.class
@@ -28,6 +29,7 @@ com/jlog/util/BandPlan.class
 com/jlog/plugin/ContestPlugin$ScoringRules.class
 com/jlog/export/CabrilloExporter.class
 com/jlog/util/BandPlan$Severity.class
+com/jlog/cluster/JLogUiPresence$1.class
 com/jlog/plugin/ContestPlugin$PaneDef.class
 com/jlog/util/AppConfig.class
 com/jlog/db/DatabaseManager.class

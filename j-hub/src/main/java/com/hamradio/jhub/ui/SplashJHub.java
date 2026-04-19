@@ -50,7 +50,7 @@ public class SplashJHub {
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
         fadeIn.setOnFinished(e -> {
-            PauseTransition hold = new PauseTransition(Duration.seconds(1.0));
+            PauseTransition hold = new PauseTransition(Duration.seconds(3.0));
             hold.setOnFinished(ev -> {
                 splashStage.close();
                 if (onComplete != null) onComplete.run();
