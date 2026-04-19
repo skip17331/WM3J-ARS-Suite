@@ -373,3 +373,384 @@
 2026-04-18 13:41:02.476 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1001, reason=)
 2026-04-18 13:41:02.477 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
 2026-04-18 13:41:02.479 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 15:01:53.839 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 15:01:53.914 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 15:01:53.915 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 15:01:53.945 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 15:01:53.956 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 15:01:53.979 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 15:01:54.169 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 15:01:54.170 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 15:01:54.172 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 15:01:54.184 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 15:01:54.193 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 27696) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 15:01:54.195 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 27701) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 15:01:54.197 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 27705) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 15:01:54.199 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 27709) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 15:01:54.200 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 15:01:58.101 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:59990
+2026-04-18 15:01:58.153 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 15:01:58.163 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 15:01:59.515 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:60002
+2026-04-18 15:01:59.538 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 15:01:59.539 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 15:02:00.593 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:60010
+2026-04-18 15:02:00.599 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 15:02:00.600 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 15:02:10.601 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 15:02:10.602 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 15:02:18.636 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 15:02:18.637 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 15:02:28.253 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:51630
+2026-04-18 15:02:28.304 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0
+2026-04-18 15:02:28.306 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-18 15:02:43.885 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap'
+2026-04-18 15:02:48.779 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log'
+2026-04-18 15:03:03.371 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-18 15:03:03.371 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-18 15:11:48.794 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 15:11:48.796 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 15:35:24.625 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 15:35:24.630 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 15:35:24.635 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 15:35:24.636 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 15:35:25.389 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 15:35:25.424 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 16:03:28.997 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 16:03:29.066 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 16:03:29.067 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 16:03:29.103 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 16:03:29.110 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 16:03:29.130 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 16:03:29.271 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 16:03:29.271 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 16:03:29.273 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 16:03:29.280 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 16:03:29.288 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 30961) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 16:03:29.290 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 30966) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 16:03:29.292 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 30969) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 16:03:29.293 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 30972) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 16:03:29.294 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 16:03:32.441 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:42638
+2026-04-18 16:03:32.509 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 16:03:32.539 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 16:03:34.105 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:42652
+2026-04-18 16:03:34.124 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 16:03:34.126 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 16:03:34.904 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:32860
+2026-04-18 16:03:34.908 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 16:03:34.909 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 16:03:56.651 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:59720
+2026-04-18 16:03:56.687 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-04-18 16:03:56.706 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-18 16:04:48.391 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 16:04:48.391 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 16:04:50.549 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-18 16:04:50.551 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-18 16:04:52.306 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 16:04:52.306 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 16:04:54.342 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 16:04:54.342 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 16:04:58.755 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 16:04:58.758 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 16:04:58.764 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 16:04:58.765 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 16:04:59.547 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap' during shutdown
+2026-04-18 16:04:59.561 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log' during shutdown
+2026-04-18 16:04:59.562 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 16:04:59.590 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 16:09:42.577 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 16:09:42.645 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 16:09:42.646 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 16:09:42.677 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 16:09:42.683 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 16:09:42.693 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 16:09:42.813 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 16:09:42.813 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 16:09:42.815 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 16:09:42.822 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 16:09:42.829 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 31571) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 16:09:42.830 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 31575) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 16:09:42.834 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 31579) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 16:09:42.837 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 31585) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 16:09:42.840 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 16:09:45.773 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:50684
+2026-04-18 16:09:45.842 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 16:09:45.864 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 16:09:47.580 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:50698
+2026-04-18 16:09:47.596 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 16:09:47.601 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 16:09:48.197 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:50700
+2026-04-18 16:09:48.207 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 16:09:48.209 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 16:10:04.691 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 16:10:04.691 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 16:10:31.727 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 16:10:31.729 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 16:10:33.905 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:54194
+2026-04-18 16:10:33.912 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-18 16:10:33.914 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-18 16:10:39.052 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 16:10:39.053 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 16:10:41.178 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 16:10:41.182 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 16:10:41.186 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 16:10:41.188 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 16:10:41.948 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap' during shutdown
+2026-04-18 16:10:41.960 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log' during shutdown
+2026-04-18 16:10:41.961 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 16:10:41.973 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1001, reason=)
+2026-04-18 16:10:41.973 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-18 16:10:41.975 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 16:29:31.200 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 16:29:31.265 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 16:29:31.266 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 16:29:31.291 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 16:29:31.299 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 16:29:31.311 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 16:29:31.445 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 16:29:31.445 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 16:29:31.446 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 16:29:31.453 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 16:29:31.460 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 32302) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 16:29:31.462 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 32307) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 16:29:31.464 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 32310) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 16:29:31.468 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 32315) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 16:29:31.469 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 16:29:34.698 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:48444
+2026-04-18 16:29:34.796 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 16:29:34.852 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 16:29:36.114 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:56110
+2026-04-18 16:29:36.144 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 16:29:36.148 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 16:29:36.893 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:56126
+2026-04-18 16:29:36.900 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 16:29:36.901 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 16:29:51.524 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 16:29:51.525 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 16:32:19.453 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 16:32:19.454 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 16:32:21.587 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 16:32:21.592 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 16:32:25.827 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 16:32:25.828 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 16:32:25.830 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 16:32:25.830 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 16:32:26.599 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap' during shutdown
+2026-04-18 16:32:26.600 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 16:32:26.635 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 17:16:56.330 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 17:16:56.397 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 17:16:56.399 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 17:16:56.431 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 17:16:56.438 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 17:16:56.453 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 17:16:56.578 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 17:16:56.578 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 17:16:56.580 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 17:16:56.584 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 17:16:56.591 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 36644) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 17:16:56.594 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 36649) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 17:16:56.596 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 36652) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 17:16:56.598 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 36658) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 17:16:56.599 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 17:16:59.890 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:37802
+2026-04-18 17:16:59.945 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 17:17:00.041 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 17:17:02.049 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:37812
+2026-04-18 17:17:02.055 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 17:17:02.061 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 17:17:14.428 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:40876
+2026-04-18 17:17:14.447 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 17:17:14.457 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 17:17:32.020 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 17:17:32.026 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 17:17:43.450 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 17:17:43.451 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 17:17:47.819 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 17:17:47.820 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 17:17:49.753 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:36522
+2026-04-18 17:17:49.757 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-18 17:17:49.759 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-18 17:50:42.104 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log'
+2026-04-18 17:50:42.105 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Stopped j-log from status window
+2026-04-18 17:50:42.139 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1006, reason=)
+2026-04-18 17:50:42.140 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-18 17:50:43.829 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap'
+2026-04-18 17:50:43.830 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Stopped jMap from status window
+2026-04-18 17:50:51.286 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 17:50:51.290 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 17:50:51.296 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 17:50:51.297 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 17:50:52.050 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 17:50:52.099 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 18:00:53.308 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 18:00:53.374 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 18:00:53.376 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 18:00:53.407 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 18:00:53.416 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 18:00:53.428 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 18:00:53.568 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 18:00:53.568 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 18:00:53.570 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 18:00:53.578 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 18:00:53.586 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 39154) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 18:00:53.590 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 39158) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 18:00:53.593 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 39162) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 18:00:53.595 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 39167) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 18:00:53.596 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 18:00:56.648 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:41862
+2026-04-18 18:00:56.786 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 18:00:56.824 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 18:00:59.172 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:41878
+2026-04-18 18:00:59.179 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 18:00:59.184 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 18:01:17.118 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:48104
+2026-04-18 18:01:17.147 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 18:01:17.161 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 18:02:30.032 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:50552
+2026-04-18 18:02:30.048 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-04-18 18:02:30.057 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-18 18:03:05.931 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-18 18:03:05.932 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-18 18:03:09.789 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 18:03:09.792 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 18:03:09.798 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 18:03:09.800 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 18:03:09.810 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 18:03:09.811 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 18:03:09.825 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 18:03:09.827 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 18:03:10.583 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap' during shutdown
+2026-04-18 18:03:10.600 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log' during shutdown
+2026-04-18 18:03:10.601 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 18:03:10.612 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1001, reason=)
+2026-04-18 18:03:10.613 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 18:03:10.614 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 21:54:23.691 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 21:54:23.759 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 21:54:23.760 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 21:54:23.785 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 21:54:23.794 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 21:54:23.806 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 21:54:23.969 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 21:54:23.969 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 21:54:23.971 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 21:54:23.981 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 21:54:23.994 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 46398) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 21:54:23.996 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 46404) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 21:54:23.998 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 46407) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 21:54:24.000 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 46411) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 21:54:24.001 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 21:54:26.924 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:57458
+2026-04-18 21:54:26.981 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 21:54:27.020 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 21:54:29.114 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:57466
+2026-04-18 21:54:29.123 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 21:54:29.125 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 21:54:29.429 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:57476
+2026-04-18 21:54:29.449 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 21:54:29.450 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 21:54:40.488 DEBUG com.hamradio.jhub.MessageRouter — SPOT_SELECTED → RIG_STATUS freq=7149900 mode=SSB
+2026-04-18 21:55:33.805 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:56928
+2026-04-18 21:55:33.809 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-18 21:55:33.811 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-18 21:55:42.796 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:46010
+2026-04-18 21:55:42.826 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-04-18 21:55:42.852 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-18 21:57:25.203 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 21:57:49.109 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 21:57:55.268 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 21:58:13.275 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 21:58:13.276 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 21:58:47.027 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 21:58:47.028 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 21:58:53.822 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 21:58:53.823 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 21:59:18.090 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 21:59:18.092 INFO  com.hamradio.jhub.ClusterManager — Connecting to DX cluster dx.middlebrook.ca:8000 …
+2026-04-18 21:59:20.279 INFO  com.hamradio.jhub.ClusterManager — Connected to cluster dx.middlebrook.ca:8000
+2026-04-18 21:59:30.216 DEBUG com.hamradio.jhub.ClusterManager — Spot: HK6JG N5TJ 14074000Hz
+2026-04-18 21:59:34.949 DEBUG com.hamradio.jhub.ClusterManager — Spot: WA3AAN NF8M 3544900Hz
+2026-04-18 21:59:44.948 DEBUG com.hamradio.jhub.ClusterManager — Spot: KU4YW K8NWN 7251600Hz
+2026-04-18 21:59:46.343 DEBUG com.hamradio.jhub.SpotEnricher — No DXCC entry for BH6BAS
+2026-04-18 21:59:46.344 DEBUG com.hamradio.jhub.ClusterManager — Spot: BA3AX BH6BAS 14256000Hz
+2026-04-18 21:59:57.840 DEBUG com.hamradio.jhub.ClusterManager — Spot: K1BZ VE3JM 3532500Hz
+2026-04-18 22:00:01.271 DEBUG com.hamradio.jhub.ClusterManager — Spot: WB2PJH W4IX 7014500Hz
+2026-04-18 22:00:18.807 DEBUG com.hamradio.jhub.ClusterManager — Spot: EU4E EU4E 7022900Hz
+2026-04-18 22:00:41.480 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-18 22:00:41.480 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-18 22:00:46.130 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap'
+2026-04-18 22:00:46.131 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Stopped jMap from status window
+2026-04-18 22:00:48.231 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log'
+2026-04-18 22:00:48.231 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Stopped j-log from status window
+2026-04-18 22:00:48.269 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1006, reason=)
+2026-04-18 22:00:48.269 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-18 22:00:53.037 DEBUG com.hamradio.jhub.SpotEnricher — No DXCC entry for BD4XGP
+2026-04-18 22:00:53.043 DEBUG com.hamradio.jhub.ClusterManager — Spot: BA3AX BD4XGP 14256000Hz
+2026-04-18 22:00:54.063 DEBUG com.hamradio.jhub.ClusterManager — Spot: VA3WB VE3KP 1827700Hz
+2026-04-18 22:00:54.306 DEBUG com.hamradio.jhub.SpotEnricher — No DXCC entry for BA3RX
+2026-04-18 22:00:54.307 DEBUG com.hamradio.jhub.ClusterManager — Spot: BD4XGP BA3RX 14256000Hz
+2026-04-18 22:00:59.102 DEBUG com.hamradio.jhub.ClusterManager — Spot: NA8V K8GL 3544100Hz
+2026-04-18 22:01:00.234 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:58872
+2026-04-18 22:01:00.255 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-04-18 22:01:00.266 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-18 22:01:13.964 INFO  com.hamradio.jhub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-18 22:01:13.965 DEBUG com.hamradio.jhub.SpotEnricher — No DXCC entry for VA3CCO
+2026-04-18 22:01:13.964 INFO  com.hamradio.jhub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-18 22:01:13.966 DEBUG com.hamradio.jhub.ClusterManager — Spot: K1BZ VA3CCO 1830000Hz
+2026-04-18 22:01:16.907 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-04-18 22:01:16.907 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-18 22:01:19.602 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 22:01:19.605 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 22:01:19.610 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 22:01:19.611 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 22:01:20.364 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 22:01:20.407 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-18 23:09:46.848 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-18 23:09:46.925 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-18 23:09:46.927 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-18 23:09:46.953 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-18 23:09:46.961 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-18 23:09:46.974 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-18 23:09:47.107 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-18 23:09:47.107 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-18 23:09:47.109 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-18 23:09:47.113 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-18 23:09:47.121 INFO  com.hamradio.jhub.AppLauncher — Launched 'jMap' (pid 54444) — cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q
+2026-04-18 23:09:47.124 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 54449) — bash /home/mike/ARS_Suite/j-log/run.sh --launched-by-hub
+2026-04-18 23:09:47.126 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-bridge' (pid 54452) — bash /home/mike/ARS_Suite/j-bridge/run.sh --launched-by-hub
+2026-04-18 23:09:47.128 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-digi' (pid 54456) — bash /home/mike/ARS_Suite/j-digi/run.sh
+2026-04-18 23:09:47.130 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib controller not started
+2026-04-18 23:09:47.131 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-18 23:09:52.987 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:49110
+2026-04-18 23:09:53.002 INFO  com.hamradio.jhub.JHubServer — App registered: j-map v1.0.0
+2026-04-18 23:09:53.019 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-map'
+2026-04-18 23:10:02.434 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:49556
+2026-04-18 23:10:02.477 INFO  com.hamradio.jhub.JHubServer — App registered: jBridge v1.0.0
+2026-04-18 23:10:02.487 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'jBridge'
+2026-04-18 23:10:07.816 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:42076
+2026-04-18 23:10:07.847 INFO  com.hamradio.jhub.JHubServer — App registered: j-digi v0.1.0
+2026-04-18 23:10:07.855 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-digi'
+2026-04-18 23:10:11.692 INFO  com.hamradio.jhub.JHubServer — App 'j-digi' disconnected (code=1000, reason=)
+2026-04-18 23:10:11.693 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-digi' removed
+2026-04-18 23:10:14.061 INFO  com.hamradio.jhub.JHubServer — App 'jBridge' disconnected (code=1000, reason=)
+2026-04-18 23:10:14.061 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'jBridge' removed
+2026-04-18 23:10:17.211 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:35884
+2026-04-18 23:10:17.221 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-18 23:10:17.224 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-18 23:10:39.291 INFO  com.hamradio.jhub.JHubServer — App 'j-map' disconnected (code=1000, reason=)
+2026-04-18 23:10:39.292 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-map' removed
+2026-04-18 23:10:44.292 INFO  com.hamradio.jhub.AppLauncher — Stopped 'j-log'
+2026-04-18 23:10:44.292 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Stopped j-log from status window
+2026-04-18 23:10:44.328 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1006, reason=)
+2026-04-18 23:10:44.328 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-18 23:10:49.047 INFO  com.hamradio.jhub.AppLauncher — Stopped 'jMap'
+2026-04-18 23:10:49.048 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Stopped jMap from status window
+2026-04-18 23:10:53.592 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-18 23:10:53.595 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 23:10:53.599 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-18 23:10:53.600 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-18 23:10:54.354 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-04-18 23:10:54.356 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-18 23:10:54.404 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.

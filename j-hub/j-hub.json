@@ -10,6 +10,25 @@
     "gridSquare": "FM19",
     "timezone": "UTC"
   },
+  "rig": {
+    "backend": "NONE",
+    "civPort": "",
+    "civBaud": 9600,
+    "civAddress": "94",
+    "hamlibHost": "localhost",
+    "hamlibPort": 4532,
+    "pollRateMs": 500,
+    "enablePtt": false
+  },
+  "rotor": {
+    "backend": "NONE",
+    "model": "",
+    "comPort": "",
+    "tcpHost": "localhost",
+    "tcpPort": 4533,
+    "shortPathOffset": 0.0,
+    "customPreset": 0.0
+  },
   "cluster": {
     "autoConnect": false,
     "server": "dx.middlebrook.ca",
@@ -29,13 +48,15 @@
         "6m"
       ],
       "modes": [
-        "SSB",
         "CW",
+        "SSB",
         "FT8",
         "FT4",
         "RTTY",
         "PSK31",
-        "JS8"
+        "JS8",
+        "OLIVIA",
+        "MFSK16"
       ]
     }
   },
@@ -69,6 +90,70 @@
       "autoLaunch": true,
       "command": "bash /home/mike/ARS_Suite/j-digi/run.sh"
     }
+  },
+  "macros": {
+    "list": [
+      {
+        "key": "CQ",
+        "label": "CQ",
+        "text": "CQ CQ CQ DE {MYCALL} {MYCALL} {MYCALL} K",
+        "type": "FIXED"
+      },
+      {
+        "key": "ANS_CQ",
+        "label": "Ans CQ",
+        "text": "{CALL} DE {MYCALL} {MYCALL} PSE K",
+        "type": "FIXED"
+      },
+      {
+        "key": "QSO",
+        "label": "QSO",
+        "text": "{CALL} DE {MYCALL} UR RST {RST} {RST} NAME {NAME} QTH {BAND} 73 DE {MYCALL} K",
+        "type": "FIXED"
+      },
+      {
+        "key": "SK",
+        "label": "73 SK",
+        "text": "{CALL} DE {MYCALL} QSL TNX QSO 73 SK",
+        "type": "FIXED"
+      },
+      {
+        "key": "KN",
+        "label": "KN",
+        "text": "{CALL} DE {MYCALL} KN",
+        "type": "FIXED"
+      },
+      {
+        "key": "F1",
+        "label": "F1",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      },
+      {
+        "key": "F2",
+        "label": "F2",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      },
+      {
+        "key": "F3",
+        "label": "F3",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      },
+      {
+        "key": "F4",
+        "label": "F4",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      }
+    ]
+  },
+  "appearance": {
+    "theme": "grayline",
+    "fontSize": 13,
+    "waterfallColor": "viridis",
+    "mapTheme": "satellite"
   },
   "jMapSettings": {
     "callsign": "WM3J",

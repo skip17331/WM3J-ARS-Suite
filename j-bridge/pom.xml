@@ -30,6 +30,13 @@
     </properties>
 
     <dependencies>
+        <!-- j-log engine (QSO DB, CI-V, hub client, models) -->
+        <dependency>
+            <groupId>com.jlog</groupId>
+            <artifactId>j-log-engine</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- JavaFX — same version as j-log -->
         <dependency>
             <groupId>org.openjfx</groupId>

@@ -9,9 +9,12 @@ import com.hamradio.modem.hub.HubMessageListener;
 import com.hamradio.modem.mode.ModeManager;
 import com.hamradio.modem.mode.RttyMode;
 import com.hamradio.modem.model.DecodeMessage;
+import com.hamradio.modem.model.HubMacro;
 import com.hamradio.modem.model.HubRigStatus;
+import com.hamradio.modem.model.HubSpot;
 import com.hamradio.modem.model.ModeType;
 import com.hamradio.modem.model.ModemStatus;
+import com.hamradio.modem.model.RotorStatus;
 import com.hamradio.modem.model.SignalSnapshot;
 import com.hamradio.modem.tx.AudioTxEngine;
 import com.hamradio.modem.tx.CwTransmitter;
@@ -31,6 +34,8 @@ import javax.sound.sampled.LineUnavailableException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -52,11 +57,12 @@ public class ModemService implements HubMessageListener {
     private static final long CONNECT_TIMEOUT_MS = 3000L;
 
     private static final Preferences PREFS = Preferences.userNodeForPackage(ModemService.class);
-    private static final String PREF_HUB_URL = "hub.url";
-    private static final String PREF_MODE = "modem.mode";
+    private static final String PREF_HUB_URL     = "hub.url";
+    private static final String PREF_MODE         = "modem.mode";
     private static final String PREF_RTTY_REVERSE = "rtty.reverse";
-    private static final String PREF_AUDIO_INPUT = "audio.input.device";
+    private static final String PREF_AUDIO_INPUT  = "audio.input.device";
     private static final String PREF_AUDIO_OUTPUT = "audio.output.device";
+    private static final String PREF_MY_CALL      = "station.callsign";
 
     private final AudioEngine audioEngine = new AudioEngine();
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
@@ -73,9 +79,23 @@ public class ModemService implements HubMessageListener {
     private final DigitalTransmitter mfsk16Transmitter   = new Mfsk16Transmitter();
     private final DigitalTransmitter dominoExTransmitter = new DominoExTransmitter();
 
-    private Consumer<SignalSnapshot> spectrumListener = s -> {};
-    private Consumer<String> decodeListener = s -> {};
-    private Consumer<ModemStatus> statusListener = s -> {};
+    private Consumer<SignalSnapshot> spectrumListener     = s -> {};
+    private Consumer<String>        decodeListener       = s -> {};
+    private Consumer<ModemStatus>   statusListener       = s -> {};
+    private Consumer<List<HubMacro>> macrosListener      = l -> {};
+    private Consumer<HubSpot>       spotListener         = s -> {};
+    private Consumer<HubSpot>       spotSelectedListener = s -> {};
+    private Consumer<RotorStatus>   rotorListener        = r -> {};
+    /** Fires on the FX thread when j-hub delivers station identity via JHUB_WELCOME. */
+    private Consumer<String[]>      stationListener      = a -> {};  // [callsign, grid, tz]
+
+    private final List<HubMacro> macros = new ArrayList<>();
+    private final List<HubSpot>  spots  = new ArrayList<>();
+    private volatile double rotorBearing = -1;
+
+    // Station identity — populated from j-hub JHUB_WELCOME; prefs used as fallback
+    private volatile String hubCallsign  = null;
+    private volatile String hubGridSquare = null;
 
     private HubClient hubClient;
     private boolean shuttingDown = false;
@@ -146,6 +166,28 @@ public class ModemService implements HubMessageListener {
     public void setStatusListener(Consumer<ModemStatus> statusListener) {
         this.statusListener = statusListener != null ? statusListener : s -> {};
     }
+
+    public void setMacrosListener(Consumer<List<HubMacro>> l)    { this.macrosListener      = l != null ? l : list -> {}; }
+    public void setSpotListener(Consumer<HubSpot> l)            { this.spotListener         = l != null ? l : s -> {}; }
+    public void setSpotSelectedListener(Consumer<HubSpot> l)    { this.spotSelectedListener = l != null ? l : s -> {}; }
+    public void setRotorListener(Consumer<RotorStatus> l)       { this.rotorListener        = l != null ? l : r -> {}; }
+    public void setStationListener(Consumer<String[]> l)        { this.stationListener      = l != null ? l : a -> {}; }
+
+    public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
+    public List<HubSpot>  getSpots()     { return Collections.unmodifiableList(spots);  }
+    public double getRotorBearing()      { return rotorBearing; }
+    /** Returns callsign from j-hub config if available, otherwise falls back to local prefs. */
+    public String getMyCall() {
+        return hubCallsign != null && !hubCallsign.isBlank()
+               ? hubCallsign
+               : PREFS.get(PREF_MY_CALL, "NOCALL");
+    }
+    public String getMyGrid() { return hubGridSquare != null ? hubGridSquare : ""; }
+    public void   setMyCall(String call) {
+        PREFS.put(PREF_MY_CALL, call != null ? call.trim().toUpperCase() : "NOCALL");
+        flushPrefsQuietly("myCall");
+    }
+    public void transmitMacro(String text) { transmitText(text); }
 
     public List<AudioEngine.AudioInputDevice> getAvailableAudioInputDevices() {
         return audioEngine.getAvailableInputDevices();
@@ -716,7 +758,21 @@ public class ModemService implements HubMessageListener {
         String type = msg.has("type") ? msg.get("type").getAsString() : "";
 
         switch (type) {
-            case "JHUB_WELCOME" -> decodeListener.accept("Hub welcome received");
+            case "JHUB_WELCOME" -> {
+                // Extract global station config from j-hub so we don't need our own copy
+                if (msg.has("station")) {
+                    com.google.gson.JsonObject st = msg.getAsJsonObject("station");
+                    if (st.has("callsign")) {
+                        String call = st.get("callsign").getAsString().trim().toUpperCase();
+                        if (!call.isBlank()) hubCallsign = call;
+                    }
+                    if (st.has("gridSquare"))
+                        hubGridSquare = st.get("gridSquare").getAsString().trim().toUpperCase();
+                    String tz = st.has("timezone") ? st.get("timezone").getAsString() : "UTC";
+                    stationListener.accept(new String[]{ getMyCall(), getMyGrid(), tz });
+                }
+                decodeListener.accept("Connected to J-Hub — station: " + getMyCall());
+            }
 
             case "RIG_STATUS" -> {
                 HubRigStatus rig = GSON.fromJson(msg, HubRigStatus.class);
@@ -725,7 +781,15 @@ public class ModemService implements HubMessageListener {
                 fireStatus();
             }
 
+            case "SPOT" -> {
+                HubSpot spot = GSON.fromJson(msg, HubSpot.class);
+                if (spots.size() >= 200) spots.remove(spots.size() - 1);
+                spots.add(0, spot);
+                spotListener.accept(spot);
+            }
+
             case "SPOT_SELECTED" -> {
+                HubSpot spot = GSON.fromJson(msg, HubSpot.class);
                 if (msg.has("frequency")) {
                     status.setRigFrequencyHz(msg.get("frequency").getAsLong());
                 }
@@ -733,9 +797,27 @@ public class ModemService implements HubMessageListener {
                     status.setRigMode(msg.get("mode").getAsString());
                 }
                 fireStatus();
+                spotSelectedListener.accept(spot);
             }
 
-            case "APP_LIST" -> decodeListener.accept("APP_LIST received");
+            case "MACRO_LIST" -> {
+                macros.clear();
+                if (msg.has("macros")) {
+                    com.google.gson.reflect.TypeToken<List<HubMacro>> token =
+                        new com.google.gson.reflect.TypeToken<>(){};
+                    List<HubMacro> received = GSON.fromJson(msg.getAsJsonArray("macros"), token);
+                    if (received != null) macros.addAll(received);
+                }
+                macrosListener.accept(Collections.unmodifiableList(macros));
+            }
+
+            case "ROTOR_STATUS" -> {
+                RotorStatus rotor = GSON.fromJson(msg, RotorStatus.class);
+                rotorBearing = rotor.bearing;
+                rotorListener.accept(rotor);
+            }
+
+            case "APP_LIST" -> {} // no-op
 
             case "SHUTDOWN" -> {
                 // J-Hub is shutting down — exit cleanly

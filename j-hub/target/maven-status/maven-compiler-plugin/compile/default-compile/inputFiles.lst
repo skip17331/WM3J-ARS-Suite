@@ -9,6 +9,7 @@
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/AppLauncher.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ClusterManager.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ui/JHubStatusWindow.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/HamlibRigController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/StateCache.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/StationConfig.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/JHubConfig.java

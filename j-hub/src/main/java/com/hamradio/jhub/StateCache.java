@@ -65,6 +65,16 @@ public class StateCache {
     public void setLastSelectedSpot(String rawJson) { this.lastSelectedSpot = rawJson; }
 
     // ---------------------------------------------------------------
+    // Rotor status (raw JSON)
+    // ---------------------------------------------------------------
+
+    private volatile String lastRotorStatus;
+
+    public String getLastRotorStatus() { return lastRotorStatus; }
+
+    public void setLastRotorStatus(String rawJson) { this.lastRotorStatus = rawJson; }
+
+    // ---------------------------------------------------------------
     // Recent spots (ring buffer)
     // ---------------------------------------------------------------
 

@@ -3,379 +3,771 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>J-Hub — Configuration</title>
+<title>J-Hub · ARS Suite Controller</title>
 <link rel="stylesheet" href="config.css"/>
 </head>
 <body>
 <div id="app">
-  <header>
-    <div class="logo">🔭 J-Hub</div>
-    <div class="status-bar">
-      <span id="clusterStatus" class="badge badge-warn">Cluster: Checking…</span>
-      <span id="spotRate" class="badge badge-info">0 spots/min</span>
-      <span id="rigStatus" class="badge badge-info">No rig data</span>
-    </div>
-  </header>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="station">Station</button>
-    <button class="tab" data-tab="cluster">DX Cluster</button>
-    <button class="tab" data-tab="display">Display</button>
-    <button class="tab" data-tab="jMap">J-Map</button>
-    <button class="tab" data-tab="launcher">App Launcher</button>
-    <button class="tab" data-tab="telnet">Telnet Feed</button>
-    <button class="tab" data-tab="connected">Connected Apps</button>
+  <!-- ═══════════════════════════════════════ LEFT NAV ══ -->
+  <nav id="nav">
+    <div class="nav-header">
+      <div class="nav-logo">J-HUB</div>
+      <div class="nav-sub">ARS Suite Controller</div>
+    </div>
+    <div class="nav-items">
+      <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">⬡</span>Dashboard</button>
+      <button class="nav-btn" data-tab="rig"><span class="nav-icon">📻</span>Rig Control</button>
+      <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor</button>
+      <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
+      <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
+      <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
+      <button class="nav-btn" data-tab="macros"><span class="nav-icon">⊟</span>Macros</button>
+      <button class="nav-btn" data-tab="appearance"><span class="nav-icon">◈</span>Appearance</button>
+    </div>
+    <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
+      <span id="nav-ws">WebSocket: <span id="nav-ws-state">—</span></span>
+      <button class="theme-btn" id="theme-toggle-btn" onclick="toggleThemeBtn()" title="Toggle light/dark">☾</button>
+    </div>
   </nav>
 
-  <!-- Station Settings -->
-  <section id="tab-station" class="tab-content active">
-    <h2>Station Settings</h2>
-    <div class="form-grid">
-      <label>Callsign</label>
-      <input type="text" id="callsign" placeholder="W3ABC" maxlength="12"/>
+  <!-- ════════════════════════════════════ CENTER CONTENT ══ -->
+  <main id="content">
 
-      <label>Latitude</label>
-      <input type="number" id="lat" placeholder="40.123" step="0.0001"/>
+    <!-- ─── Tab: Dashboard ─────────────────────────────── -->
+    <section id="tab-dashboard" class="tab-panel active">
+      <div class="panel-header">Dashboard</div>
+      <div class="panel-sub">Real-time operational cockpit</div>
 
-      <label>Longitude</label>
-      <input type="number" id="lon" placeholder="-76.456" step="0.0001"/>
+      <div class="dash-grid">
+        <!-- Rig status card -->
+        <div class="card">
+          <div class="card-title">Rig Status</div>
+          <div class="rig-freq" id="d-freq">— — —</div>
+          <div class="rig-mode" id="d-mode">—</div>
+          <div class="rig-sub">Power: <span id="d-pwr">—</span> W &nbsp;|&nbsp;
+            Source: <span id="d-src">—</span> &nbsp;|&nbsp;
+            Band: <span id="d-band">—</span></div>
+          <hr class="divider">
+          <div style="font-size:11px;color:var(--overlay0)">Last update: <span id="d-rig-ts">—</span></div>
+        </div>
 
-      <label>Grid Square</label>
-      <input type="text" id="gridSquare" placeholder="FM19" maxlength="8"/>
+        <!-- Rotor card -->
+        <div class="card">
+          <div class="card-title">Rotor / Antenna</div>
+          <div class="compass-wrap">
+            <svg id="compass-svg" width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="#45475a" stroke-width="1.5"/>
+              <circle cx="50" cy="50" r="2" fill="#585b70"/>
+              <text x="50" y="11" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">N</text>
+              <text x="91" y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">E</text>
+              <text x="50" y="96" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">S</text>
+              <text x="9"  y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">W</text>
+              <line id="compass-needle" x1="50" y1="50" x2="50" y2="10"
+                    stroke="#f38ba8" stroke-width="3" stroke-linecap="round"
+                    transform-origin="50 50"/>
+            </svg>
+            <div>
+              <div class="big-num" id="d-heading">---°</div>
+              <div class="big-label">Heading</div>
+              <div style="margin-top:8px;font-size:11px;color:var(--overlay0)">
+                Backend: <span id="d-rotor-backend">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <label>Timezone</label>
-      <input type="text" id="timezone" placeholder="America/New_York"/>
+      <div class="dash-grid">
+        <!-- Cluster card -->
+        <div class="card">
+          <div class="card-title">DX Cluster</div>
+          <div class="intel-row">
+            <span class="intel-k">Status</span>
+            <span class="intel-v"><span class="dot gray" id="d-clus-dot"></span> <span id="d-clus-txt">Disconnected</span></span>
+          </div>
+          <div class="intel-row">
+            <span class="intel-k">Server</span>
+            <span class="intel-v" id="d-clus-srv">—</span>
+          </div>
+          <div class="intel-row">
+            <span class="intel-k">Spots/min</span>
+            <span class="intel-v live" id="d-spm">0</span>
+          </div>
+          <div class="intel-row">
+            <span class="intel-k">Total spots</span>
+            <span class="intel-v" id="d-total-spots">0</span>
+          </div>
+        </div>
 
-      <label>WebSocket Port</label>
-      <input type="number" id="wsPort" placeholder="8080" min="1024" max="65535"/>
+        <!-- Module connections card -->
+        <div class="card">
+          <div class="card-title">Module Connections</div>
+          <div class="module-row">
+            <span class="dot gray" id="dot-jlog"></span>
+            <span class="module-name">J-Log</span>
+            <span class="module-meta" id="meta-jlog">Not connected</span>
+            <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="launchApp('j-log')">Launch</button>
+              <button class="btn btn-sm btn-red" onclick="killApp('j-log')">Stop</button>
+            </div>
+          </div>
+          <div class="module-row">
+            <span class="dot gray" id="dot-jdigi"></span>
+            <span class="module-name">J-Digi</span>
+            <span class="module-meta" id="meta-jdigi">Not connected</span>
+            <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="launchApp('j-digi')">Launch</button>
+              <button class="btn btn-sm btn-red" onclick="killApp('j-digi')">Stop</button>
+            </div>
+          </div>
+          <div class="module-row">
+            <span class="dot gray" id="dot-jbridge"></span>
+            <span class="module-name">J-Bridge</span>
+            <span class="module-meta" id="meta-jbridge">Not connected</span>
+            <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="launchApp('j-bridge')">Launch</button>
+              <button class="btn btn-sm btn-red" onclick="killApp('j-bridge')">Stop</button>
+            </div>
+          </div>
+          <div class="module-row">
+            <span class="dot gray" id="dot-jmap"></span>
+            <span class="module-name">J-Map</span>
+            <span class="module-meta" id="meta-jmap">Not connected</span>
+            <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="launchApp('jMap')">Launch</button>
+              <button class="btn btn-sm btn-red" onclick="killApp('jMap')">Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <label>Web Config Port</label>
-      <input type="number" id="webPort" placeholder="8081" min="1024" max="65535"/>
+      <!-- Quick actions -->
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <div class="action-grid">
+          <button class="action-btn" onclick="reconnectRig()">
+            <span class="action-icon">📡</span>Reconnect Rig
+          </button>
+          <button class="action-btn" onclick="reconnectCluster()">
+            <span class="action-icon">≋</span>Restart Cluster
+          </button>
+          <button class="action-btn" onclick="reloadConfig()">
+            <span class="action-icon">↺</span>Reload Config
+          </button>
+          <button class="action-btn" onclick="restartWs()">
+            <span class="action-icon">⚡</span>Restart WS
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Rig Control ────────────────────────────── -->
+    <section id="tab-rig" class="tab-panel">
+      <div class="panel-header">Rig Control</div>
+      <div class="panel-sub">Configure the transceiver backend for this station</div>
+
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;gap:10px">
+          Backend
+          <span id="rig-conn-status" class="rig-conn-badge off">Disabled</span>
+        </div>
+        <div class="seg-group" id="rig-backend-seg">
+          <button class="seg-btn" data-val="NONE" onclick="setRigBackend('NONE',this)">None</button>
+          <button class="seg-btn" data-val="CI_V"  onclick="setRigBackend('CI_V',this)">CI-V Direct</button>
+          <button class="seg-btn" data-val="HAMLIB" onclick="setRigBackend('HAMLIB',this)">Hamlib rigctld</button>
+        </div>
+
+        <!-- CI-V settings -->
+        <div class="cond-block" id="civ-block">
+          <div class="section-title">CI-V Settings</div>
+          <div class="field-row cols-3">
+            <div class="field">
+              <input type="text" id="civ-port" placeholder="/dev/ttyUSB0">
+              <label>Serial Port</label>
+              <span class="hint">e.g. /dev/ttyUSB0 or COM3</span>
+            </div>
+            <div class="field">
+              <select id="civ-baud">
+                <option>4800</option><option>9600</option><option selected>19200</option>
+                <option>38400</option><option>57600</option><option>115200</option>
+              </select>
+              <label>Baud Rate</label>
+            </div>
+            <div class="field">
+              <input type="text" id="civ-addr" placeholder="94" maxlength="4">
+              <label>CI-V Address (hex)</label>
+              <span class="hint">IC-7300 = 94, IC-7700 = 74</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hamlib settings -->
+        <div class="cond-block" id="hamlib-block">
+          <div class="section-title">Hamlib rigctld</div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <input type="text" id="rig-hamlib-host" placeholder="localhost">
+              <label>Host</label>
+            </div>
+            <div class="field">
+              <input type="number" id="rig-hamlib-port" placeholder="4532" min="1" max="65535">
+              <label>Port</label>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-title">Common Settings</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="number" id="rig-poll-ms" placeholder="500" min="100" max="5000">
+            <label>Poll Rate (ms)</label>
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <div class="toggle-row" style="border:none;padding:0">
+              <div>
+                <div class="toggle-label">Enable PTT</div>
+                <div class="toggle-desc">Allow j-hub to key transmitter</div>
+              </div>
+              <label class="toggle" style="margin-left:12px">
+                <input type="checkbox" id="rig-ptt">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <label style="margin-top:6px">PTT Control</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveRig()">Save Rig Settings</button>
+          <button class="btn btn-green" id="ptt-test-btn" onclick="testPtt()" disabled>Test PTT</button>
+          <span id="rig-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
+      <!-- Live rig readout (read-only) -->
+      <div class="card">
+        <div class="card-title">Live Rig Readout</div>
+        <div class="field-row cols-4">
+          <div class="field">
+            <input type="text" id="rig-live-freq" readonly>
+            <label>Frequency (MHz)</label>
+          </div>
+          <div class="field">
+            <input type="text" id="rig-live-mode" readonly>
+            <label>Mode</label>
+          </div>
+          <div class="field">
+            <input type="text" id="rig-live-band" readonly>
+            <label>Band</label>
+          </div>
+          <div class="field">
+            <input type="text" id="rig-live-pwr" readonly>
+            <label>Power (W)</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Rotor ──────────────────────────────────── -->
+    <section id="tab-rotor" class="tab-panel">
+      <div class="panel-header">Rotor Control</div>
+      <div class="panel-sub">Configure antenna rotor backend and manual control</div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">Backend</div>
+          <div class="seg-group" id="rot-backend-seg">
+            <button class="seg-btn" data-val="NONE"     onclick="setRotorBackend('NONE',this)">None</button>
+            <button class="seg-btn" data-val="INTERNAL" onclick="setRotorBackend('INTERNAL',this)">Internal</button>
+            <button class="seg-btn" data-val="HAMLIB"   onclick="setRotorBackend('HAMLIB',this)">Hamlib rotctld</button>
+          </div>
+
+          <div class="cond-block" id="rot-internal-block">
+            <div class="field-row cols-2">
+              <div class="field">
+                <input type="text" id="rot-model" placeholder="e.g. Yaesu G-1000">
+                <label>Rotor Model</label>
+              </div>
+              <div class="field">
+                <input type="text" id="rot-com" placeholder="/dev/ttyUSB1">
+                <label>COM / Serial Port</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="cond-block" id="rot-hamlib-block">
+            <div class="field-row cols-2">
+              <div class="field">
+                <input type="text" id="rot-hamlib-host" placeholder="localhost">
+                <label>Hamlib Host</label>
+              </div>
+              <div class="field">
+                <input type="number" id="rot-hamlib-port" placeholder="4533" min="1" max="65535">
+                <label>Hamlib Port</label>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider">
+          <div class="field-row cols-2">
+            <div class="field">
+              <input type="number" id="rot-short-offset" placeholder="0" min="0" max="359">
+              <label>Short-Path Offset (°)</label>
+            </div>
+            <div class="field">
+              <input type="number" id="rot-custom" placeholder="0" min="0" max="359">
+              <label>Custom Preset (°)</label>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveRotor()">Save Rotor Settings</button>
+            <span id="rot-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+          </div>
+        </div>
+
+        <!-- Live heading & manual control -->
+        <div class="card">
+          <div class="card-title">Live Heading &amp; Manual Control</div>
+          <div class="compass-wrap" style="margin-bottom:16px">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="#45475a" stroke-width="1.5"/>
+              <circle cx="50" cy="50" r="2" fill="#585b70"/>
+              <text x="50" y="11" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">N</text>
+              <text x="91" y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">E</text>
+              <text x="50" y="96" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">S</text>
+              <text x="9"  y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">W</text>
+              <line id="rot-needle" x1="50" y1="50" x2="50" y2="10"
+                    stroke="#f38ba8" stroke-width="3" stroke-linecap="round"
+                    transform-origin="50 50"/>
+            </svg>
+            <div>
+              <div class="big-num" id="rot-heading-big">---°</div>
+              <div class="big-label">Current Heading</div>
+            </div>
+          </div>
+
+          <div class="section-title">Manual Direction</div>
+          <div class="compass-btns" style="margin-bottom:12px">
+            <button class="compass-btn" onclick="rotorCmd('NW')">NW</button>
+            <button class="compass-btn" onclick="rotorCmd('N')">N</button>
+            <button class="compass-btn" onclick="rotorCmd('NE')">NE</button>
+            <button class="compass-btn" onclick="rotorCmd('W')">W</button>
+            <button class="compass-btn center">—</button>
+            <button class="compass-btn" onclick="rotorCmd('E')">E</button>
+            <button class="compass-btn" onclick="rotorCmd('SW')">SW</button>
+            <button class="compass-btn" onclick="rotorCmd('S')">S</button>
+            <button class="compass-btn" onclick="rotorCmd('SE')">SE</button>
+          </div>
+
+          <div class="section-title">Presets</div>
+          <div class="btn-row">
+            <button class="btn btn-ghost btn-sm" onclick="rotorPreset('short')">Short Path</button>
+            <button class="btn btn-ghost btn-sm" onclick="rotorPreset('long')">Long Path</button>
+            <button class="btn btn-ghost btn-sm" onclick="rotorPreset('custom')">Custom</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: DX Cluster ─────────────────────────────── -->
+    <section id="tab-cluster" class="tab-panel">
+      <div class="panel-header">DX Cluster</div>
+      <div class="panel-sub">Telnet connection to a DX cluster node</div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">Connection</div>
+          <div class="field-row cols-auto">
+            <div class="field">
+              <input type="text" id="cl-host" placeholder="dxc.w3ur.org">
+              <label>Host</label>
+            </div>
+            <div class="field">
+              <input type="number" id="cl-port" placeholder="7373" min="1" max="65535">
+              <label>Port</label>
+            </div>
+            <div class="field">
+              <input type="text" id="cl-login" placeholder="W1AW" style="text-transform:uppercase">
+              <label>Login Callsign</label>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Auto-Reconnect</div>
+              <div class="toggle-desc">Reconnect on disconnect with exponential backoff</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="cl-auto">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-green" onclick="clusterConnect()">Connect</button>
+            <button class="btn btn-red"   onclick="clusterDisconnect()">Disconnect</button>
+            <button class="btn btn-primary" onclick="saveCluster()">Save</button>
+            <span id="cl-msg" style="font-size:12px;color:var(--overlay0)"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Status</div>
+          <div class="intel-row"><span class="intel-k">Status</span>
+            <span class="intel-v"><span class="dot gray" id="cl-dot"></span> <span id="cl-status-txt">Disconnected</span></span>
+          </div>
+          <div class="intel-row"><span class="intel-k">Server</span><span class="intel-v" id="cl-srv-live">—</span></div>
+          <div class="intel-row"><span class="intel-k">Spots/min</span><span class="intel-v live" id="cl-spm">0</span></div>
+          <div class="intel-row"><span class="intel-k">Total spots</span><span class="intel-v" id="cl-total">0</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Spot Filters</div>
+        <div class="section-title">Bands</div>
+        <div class="filter-grid" id="band-filters"></div>
+        <hr class="divider">
+        <div class="section-title">Modes</div>
+        <div class="filter-grid" id="mode-filters"></div>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn-primary" onclick="saveFilters()">Save Filters</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectAllBands()">All Bands</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAllBands()">Clear Bands</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Spots</div>
+        <div class="spot-preview-wrap">
+          <table class="spot-table">
+            <thead>
+              <tr><th>DX</th><th>Freq</th><th>Mode</th><th>Country</th><th>Dist</th><th>Brg</th><th>Time</th></tr>
+            </thead>
+            <tbody id="spot-tbody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="btn btn-ghost btn-sm" onclick="refreshSpots()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Raw Telnet Feed</div>
+        <div class="raw-feed" id="raw-feed"></div>
+        <div class="btn-row" style="margin-top:6px">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('raw-feed').innerHTML=''">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Modules ────────────────────────────────── -->
+    <section id="tab-modules" class="tab-panel">
+      <div class="panel-header">Module Connections</div>
+      <div class="panel-sub">Manage ARS Suite module processes and launch commands</div>
+
+      <div id="module-cards"></div>
+
+      <div class="card" style="margin-top:8px">
+        <div class="card-title">Connected WebSocket Sessions</div>
+        <table class="macro-table" id="ws-sessions-table">
+          <thead><tr><th>App</th><th>Version</th><th>Connected</th></tr></thead>
+          <tbody id="ws-sessions-tbody"></tbody>
+        </table>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="btn btn-ghost btn-sm" onclick="refreshSessions()">Refresh</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Logging & Data ──────────────────────────── -->
+    <section id="tab-logging" class="tab-panel">
+      <div class="panel-header">Logging &amp; Data</div>
+      <div class="panel-sub">Log storage, spot routing, and configuration backup</div>
+
+      <div class="card">
+        <div class="card-title">Station Identity (Global Config)</div>
+        <div class="field-row cols-3">
+          <div class="field">
+            <input type="text" id="st-call" placeholder="W1AW" style="text-transform:uppercase;font-family:Consolas;font-size:15px;font-weight:700">
+            <label>Callsign</label>
+          </div>
+          <div class="field">
+            <input type="text" id="st-grid" placeholder="FN31" style="text-transform:uppercase">
+            <label>Grid Square</label>
+          </div>
+          <div class="field">
+            <input type="text" id="st-tz" placeholder="America/New_York">
+            <label>Timezone</label>
+          </div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="number" id="st-lat" placeholder="41.71" step="0.0001">
+            <label>Latitude</label>
+          </div>
+          <div class="field">
+            <input type="number" id="st-lon" placeholder="-72.72" step="0.0001">
+            <label>Longitude</label>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveStation()">Save Station Info</button>
+          <span id="st-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+        <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
+          ⓘ This is the single source of truth for callsign/grid across all ARS Suite modules.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Log Database</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="text" id="log-db-path" placeholder="/home/user/ars/log.db">
+            <label>Database Path</label>
+            <span class="hint">Managed by J-Log. Leave blank to use J-Log's default location.</span>
+          </div>
+          <div class="field">
+            <select id="log-mode">
+              <option value="normal">Normal</option>
+              <option value="contest">Contest</option>
+            </select>
+            <label>Logging Mode</label>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Log Spots</div>
+            <div class="toggle-desc">Route clicked DX spots directly to J-Log as draft entries</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="log-auto-spot">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveLogging()">Save</button>
+          <span id="log-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Configuration Backup &amp; Export</div>
+        <div class="btn-row">
+          <button class="btn btn-blue"  onclick="exportConfig()">Export Config (JSON)</button>
+          <button class="btn btn-ghost" onclick="importConfig()">Import Config</button>
+          <button class="btn btn-yellow" onclick="exportDiag()">Export Diagnostics</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
+        <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
+          Exports include all j-hub settings. Diagnostics include logs and status snapshot.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">J-Hub Ports</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="number" id="ws-port" placeholder="8080" min="1024" max="65535">
+            <label>WebSocket Port</label>
+            <span class="hint">Restart required after change</span>
+          </div>
+          <div class="field">
+            <input type="number" id="web-port" placeholder="8081" min="1024" max="65535">
+            <label>Web Config Port</label>
+            <span class="hint">Restart required after change</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="savePorts()">Save Ports</button>
+          <span id="ports-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Macros ──────────────────────────────────── -->
+    <section id="tab-macros" class="tab-panel">
+      <div class="panel-header">Macro Keys</div>
+      <div class="panel-sub">Templates sent by J-Digi macro buttons. Variables: {MYCALL} {CALL} {RST} {NAME} {FREQ} {BAND} {MODE}</div>
+
+      <div class="card">
+        <table class="macro-table" id="macro-table">
+          <thead>
+            <tr><th style="width:80px">Key</th><th style="width:80px">Label</th><th style="width:70px">Type</th><th>Template Text</th><th style="width:60px"></th></tr>
+          </thead>
+          <tbody id="macro-tbody"></tbody>
+        </table>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveMacros()">Save Macros</button>
+          <button class="btn btn-ghost btn-sm" onclick="addMacro()">+ Add Programmable</button>
+          <span id="macro-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Appearance ─────────────────────────────── -->
+    <section id="tab-appearance" class="tab-panel">
+      <div class="panel-header">Appearance &amp; Themes</div>
+      <div class="panel-sub">Theme settings shared across ARS Suite modules</div>
+
+      <div class="card">
+        <div class="card-title">Application Theme</div>
+        <div class="seg-group" id="theme-seg">
+          <button class="seg-btn" data-val="dark"     onclick="setTheme('dark',this)">Dark</button>
+          <button class="seg-btn" data-val="light"    onclick="setTheme('light',this)">Light</button>
+          <button class="seg-btn" data-val="grayline" onclick="setTheme('grayline',this)">Grayline</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Font Size</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="font-size-range" min="11" max="18" value="13"
+                   oninput="document.getElementById('font-size-val').textContent=this.value">
+            <label>Size: <span id="font-size-val">13</span> px</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Waterfall Color Scheme (shared with J-Digi)</div>
+        <div class="swatch-row" id="wf-swatches">
+          <div class="swatch sw-viridis"   data-val="viridis"   title="Viridis"   onclick="setWfColor('viridis',this)"></div>
+          <div class="swatch sw-plasma"    data-val="plasma"    title="Plasma"    onclick="setWfColor('plasma',this)"></div>
+          <div class="swatch sw-inferno"   data-val="inferno"   title="Inferno"   onclick="setWfColor('inferno',this)"></div>
+          <div class="swatch sw-grayscale" data-val="grayscale" title="Grayscale" onclick="setWfColor('grayscale',this)"></div>
+        </div>
+        <div id="wf-color-label" style="font-size:11px;color:var(--overlay0);margin-top:4px">Selected: —</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Map Theme (shared with J-Map)</div>
+        <div class="swatch-row" id="map-swatches">
+          <div class="swatch sw-dark"      data-val="dark"      title="Dark"      onclick="setMapTheme('dark',this)"></div>
+          <div class="swatch sw-light"     data-val="light"     title="Light"     onclick="setMapTheme('light',this)"></div>
+          <div class="swatch sw-terrain"   data-val="terrain"   title="Terrain"   onclick="setMapTheme('terrain',this)"></div>
+          <div class="swatch sw-satellite" data-val="satellite" title="Satellite" onclick="setMapTheme('satellite',this)"></div>
+          <div class="swatch sw-grayline"  data-val="grayline"  title="Grayline"  onclick="setMapTheme('grayline',this)"></div>
+        </div>
+        <div id="map-theme-label" style="font-size:11px;color:var(--overlay0);margin-top:4px">Selected: —</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveAppearance()">Save Appearance</button>
+        <span id="ap-msg" style="font-size:12px;color:var(--overlay0)"></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════ OPERATOR INTELLIGENCE PANE ══ -->
+  <aside id="intel">
+    <div class="intel-header">Operator Intel</div>
+
+    <!-- Station identity -->
+    <div class="intel-section">
+      <div class="intel-callsign" id="i-callsign">—</div>
+      <div class="intel-grid"    id="i-grid">—</div>
+      <div class="intel-row">
+        <span class="intel-k">Rig</span>
+        <span class="intel-v" id="i-rig-model">—</span>
+      </div>
     </div>
-  </section>
 
-  <!-- Cluster Settings -->
-  <section id="tab-cluster" class="tab-content">
-    <h2>DX Cluster</h2>
-    <div class="form-grid">
-      <label>Cluster Server</label>
-      <input type="text" id="clusterServer" placeholder="dxc.example.com"/>
-
-      <label>Port</label>
-      <input type="number" id="clusterPort" placeholder="7373"/>
-
-      <label>Login Callsign</label>
-      <input type="text" id="clusterLogin" placeholder="W3ABC"/>
-
-      <label>Band Filter</label>
-      <div class="checkbox-group" id="bandFilter"></div>
-
-      <label>Mode Filter</label>
-      <div class="checkbox-group" id="modeFilter"></div>
-    </div>
-    <div class="cluster-actions">
-      <button class="btn-connect" onclick="clusterConnect()">⚡ Connect</button>
-      <button class="btn-kill"    onclick="clusterDisconnect()">&#9632; Disconnect</button>
-      <span id="clusterActionMsg" class="save-msg"></span>
-    </div>
-  </section>
-
-  <!-- Raw Telnet Feed -->
-  <section id="tab-telnet" class="tab-content">
-    <h2>Raw Telnet Feed</h2>
-    <div class="raw-feed-toolbar">
-      <label><input type="checkbox" id="rawFeedPause"/> Pause</label>
-      <button class="btn-kill" style="padding:4px 12px;font-size:12px" onclick="clearRawFeed()">Clear</button>
-      <span class="raw-feed-hint">Live output from the DX cluster connection</span>
-    </div>
-    <pre id="rawFeed" class="raw-feed"></pre>
-  </section>
-
-  <!-- Display Settings -->
-  <section id="tab-display" class="tab-content">
-    <h2>Display &amp; Info Screen</h2>
-    <div class="form-grid">
-      <label>Map Style</label>
-      <select id="mapStyle">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-        <option value="satellite">Satellite</option>
-      </select>
-
-      <label>Show Great Circle</label>
-      <input type="checkbox" id="showGreatCircle"/>
-
-      <label>Spot Timeout (min)</label>
-      <input type="number" id="spotTimeout" min="1" max="120"/>
-
-      <label>Max Cached Spots</label>
-      <input type="number" id="maxCachedSpots" min="10" max="500"/>
-    </div>
-  </section>
-
-  <!-- J-Map Settings -->
-  <section id="tab-jMap" class="tab-content">
-    <h2>J-Map <span id="jMapStatusBadge" class="badge badge-warn" style="font-size:12px;vertical-align:middle">Checking…</span></h2>
-
-    <div id="jMapForm">
-
-      <h3 class="hc-group-title">Identity</h3>
-      <div class="form-grid">
-        <label>Callsign</label>
-        <input type="text" id="hc-callsign" maxlength="12" placeholder="W3ABC"/>
-        <label>QTH Latitude</label>
-        <input type="number" id="hc-qthLat" step="0.001" min="-90" max="90"/>
-        <label>QTH Longitude</label>
-        <input type="number" id="hc-qthLon" step="0.001" min="-180" max="180"/>
-        <label>Grid Square</label>
-        <input type="text" id="hc-qthGrid" maxlength="8" placeholder="FM19"/>
-        <label>Timezone</label>
-        <input type="text" id="hc-timezone" placeholder="America/New_York"/>
+    <!-- Live rig -->
+    <div class="intel-section">
+      <div class="intel-lbl">Rig</div>
+      <div class="intel-row">
+        <span class="intel-k">Freq</span>
+        <span class="intel-v live" id="i-freq">—</span>
       </div>
-
-      <h3 class="hc-group-title">Data Sources</h3>
-      <div class="form-grid">
-        <label>Use Mock Data</label>
-        <input type="checkbox" id="hc-useMockData"/>
-        <label>NOAA API Key</label>
-        <input type="text" id="hc-noaaApiKey" placeholder="optional"/>
-        <label>OpenWeather API Key</label>
-        <input type="text" id="hc-openWeatherApiKey" placeholder="optional"/>
+      <div class="intel-row">
+        <span class="intel-k">Mode</span>
+        <span class="intel-v" id="i-mode">—</span>
       </div>
-
-      <h3 class="hc-group-title">Base Map</h3>
-      <div class="form-grid">
-        <label>World Map</label>
-        <input type="checkbox" id="hc-showWorldMap"/>
-        <label>Grayline / Terminator</label>
-        <input type="checkbox" id="hc-showGrayline"/>
-        <label>Grayline Opacity</label>
-        <input type="range" id="hc-graylineOpacity" min="0.1" max="1.0" step="0.05"/>
-        <label>DX Spots on Map</label>
-        <input type="checkbox" id="hc-showDxSpots"/>
-        <label>DX Band Filter</label>
-        <select id="hc-dxBandFilter">
-          <option value="ALL">All Bands</option>
-          <option value="160m">160m</option>
-          <option value="80m">80m</option>
-          <option value="40m">40m</option>
-          <option value="20m">20m</option>
-          <option value="15m">15m</option>
-          <option value="10m">10m</option>
-          <option value="6m">6m</option>
-        </select>
-        <label>DX Max Age (min)</label>
-        <input type="number" id="hc-dxMaxAgeMinutes" min="5" max="120"/>
-        <label>Show Callsigns on Map</label>
-        <input type="checkbox" id="hc-dxShowCallsigns"/>
+      <div class="intel-row">
+        <span class="intel-k">Band</span>
+        <span class="intel-v" id="i-band">—</span>
       </div>
-
-      <h3 class="hc-group-title">Space Weather</h3>
-      <div class="form-grid">
-        <label>Aurora Overlay</label>
-        <input type="checkbox" id="hc-showAuroraOverlay"/>
-        <label>Geomagnetic Alerts</label>
-        <input type="checkbox" id="hc-showGeomagneticAlerts"/>
-      </div>
-
-      <h3 class="hc-group-title">Terrestrial Weather</h3>
-      <div class="form-grid">
-        <label>Weather Overlay</label>
-        <input type="checkbox" id="hc-showWeatherOverlay"/>
-        <label>Tropo Ducting Overlay</label>
-        <input type="checkbox" id="hc-showTropoOverlay"/>
-        <label>Radar Overlay</label>
-        <input type="checkbox" id="hc-showRadarOverlay"/>
-        <label>Lightning Overlay</label>
-        <input type="checkbox" id="hc-showLightningOverlay"/>
-        <label>Surface Conditions</label>
-        <input type="checkbox" id="hc-showSurfaceConditions"/>
-      </div>
-
-      <h3 class="hc-group-title">Amateur Radio Overlays</h3>
-      <div class="form-grid">
-        <label>CQ Zones</label>
-        <input type="checkbox" id="hc-showCqZones"/>
-        <label>ITU Zones</label>
-        <input type="checkbox" id="hc-showItuZones"/>
-        <label>Grid Squares</label>
-        <input type="checkbox" id="hc-showGridSquares"/>
-        <label>Satellite Tracking</label>
-        <input type="checkbox" id="hc-showSatelliteTracking"/>
-      </div>
-
-      <h3 class="hc-group-title">Movable Windows</h3>
-      <div class="form-grid">
-        <label>Countdown Timer</label>
-        <input type="checkbox" id="hc-showCountdownTimer"/>
-        <label>Contest List</label>
-        <input type="checkbox" id="hc-showContestList"/>
-        <label>DE Window</label>
-        <input type="checkbox" id="hc-showDeWindow"/>
-        <label>DX Window</label>
-        <input type="checkbox" id="hc-showDxWindow"/>
-      </div>
-
-      <h3 class="hc-group-title">Rotor Map</h3>
-      <div class="form-grid">
-        <label>Show Rotor Map</label>
-        <input type="checkbox" id="hc-showRotorMap"/>
-        <label>Enable Arduino Rotor</label>
-        <input type="checkbox" id="hc-rotorEnabled"/>
-        <label>Arduino IP</label>
-        <input type="text" id="hc-arduinoIp" placeholder="192.168.1.100"/>
-        <label>Arduino Port</label>
-        <input type="number" id="hc-arduinoPort" min="1" max="65535"/>
-        <label>Protocol</label>
-        <select id="hc-arduinoProtocol">
-          <option value="HTTP">HTTP</option>
-          <option value="UDP">UDP</option>
-          <option value="WEBSOCKET">WebSocket</option>
-        </select>
-        <label>Show Beam Width Arc</label>
-        <input type="checkbox" id="hc-showBeamWidthArc"/>
-        <label>Beam Width (°)</label>
-        <input type="number" id="hc-beamWidthDegrees" min="5" max="180"/>
-        <label>Show Long Path</label>
-        <input type="checkbox" id="hc-showLongPath"/>
-      </div>
-
-      <h3 class="hc-group-title">Time &amp; Display</h3>
-      <div class="form-grid">
-        <label>Show Local Time</label>
-        <input type="checkbox" id="hc-showLocalTime"/>
-        <label>Show UTC Time</label>
-        <input type="checkbox" id="hc-showUtcTime"/>
-        <label>Dark Theme</label>
-        <input type="checkbox" id="hc-darkTheme"/>
-        <label>Font Size (px)</label>
-        <input type="number" id="hc-fontSize" min="10" max="22"/>
-      </div>
-
-      <h3 class="hc-group-title">Solar &amp; Propagation</h3>
-      <div class="form-grid">
-        <label>Show Solar Data</label>
-        <input type="checkbox" id="hc-showSolarData"/>
-        <label>Show Sunspot Graphic</label>
-        <input type="checkbox" id="hc-showSunspotGraphic"/>
-        <label>Show Propagation Data</label>
-        <input type="checkbox" id="hc-showPropagationData"/>
-        <label>Show Band Conditions</label>
-        <input type="checkbox" id="hc-showBandConditions"/>
-      </div>
-
-      <div class="cluster-actions" style="margin-top:16px">
-        <button class="btn-connect" onclick="saveJMap()">💾 Save J-Map Settings</button>
-        <span id="jMapSaveMsg" class="save-msg"></span>
-      </div>
-    </div>
-  </section>
-
-  <!-- App Launcher -->
-  <section id="tab-launcher" class="tab-content">
-    <h2>App Launcher</h2>
-    <p class="launcher-hint">Configure the command to launch each app. Enable <em>Auto-launch</em> to start it automatically when J-Hub loads.</p>
-
-    <div class="launcher-card">
-      <div class="launcher-card-header">
-        <span class="launcher-app-name">J-Map</span>
-        <span id="jMapRunBadge" class="badge badge-warn">Unknown</span>
-      </div>
-      <div class="form-grid">
-        <label>Command</label>
-        <input type="text" id="launchCmdJMap" placeholder="cd ~/ARS_Suite/j-map && mvn javafx:run"/>
-        <label>Auto-launch on start</label>
-        <input type="checkbox" id="launchAutoJMap"/>
-      </div>
-      <div class="launcher-actions">
-        <button class="btn-connect" onclick="appLaunch('jMap')">&#9654; Launch</button>
-        <button class="btn-kill"    onclick="appKill('jMap')">&#9632; Stop</button>
-        <span id="jMapLaunchMsg" class="save-msg"></span>
+      <div class="intel-row">
+        <span class="intel-k">Power</span>
+        <span class="intel-v" id="i-pwr">—</span>
       </div>
     </div>
 
-    <div class="launcher-card">
-      <div class="launcher-card-header">
-        <span class="launcher-app-name">J-Log</span>
-        <span id="jLogRunBadge" class="badge badge-warn">Unknown</span>
+    <!-- Rotor -->
+    <div class="intel-section">
+      <div class="intel-lbl">Rotor</div>
+      <div class="intel-row">
+        <span class="intel-k">Heading</span>
+        <span class="intel-v" id="i-heading">—</span>
       </div>
-      <div class="form-grid">
-        <label>Command</label>
-        <input type="text" id="launchCmdJLog" placeholder="bash ~/ARS_Suite/j-log/run.sh"/>
-        <label>Auto-launch on start</label>
-        <input type="checkbox" id="launchAutoJLog"/>
-      </div>
-      <div class="launcher-actions">
-        <button class="btn-connect" onclick="appLaunch('j-log')">&#9654; Launch</button>
-        <button class="btn-kill"    onclick="appKill('j-log')">&#9632; Stop</button>
-        <span id="jLogLaunchMsg" class="save-msg"></span>
+      <div class="intel-row">
+        <span class="intel-k">Backend</span>
+        <span class="intel-v" id="i-rot-backend">—</span>
       </div>
     </div>
 
-    <div class="launcher-card">
-      <div class="launcher-card-header">
-        <span class="launcher-app-name">J-Bridge</span>
-        <span id="jBridgeRunBadge" class="badge badge-warn">Unknown</span>
+    <!-- Cluster -->
+    <div class="intel-section">
+      <div class="intel-lbl">DX Cluster</div>
+      <div class="intel-row">
+        <span class="intel-k">Status</span>
+        <span class="intel-v" id="i-clus-status">—</span>
       </div>
-      <div class="form-grid">
-        <label>Command</label>
-        <input type="text" id="launchCmdJBridge" placeholder="bash ~/ARS_Suite/j-bridge/run.sh"/>
-        <label>Auto-launch on start</label>
-        <input type="checkbox" id="launchAutoJBridge"/>
-      </div>
-      <div class="launcher-actions">
-        <button class="btn-connect" onclick="appLaunch('j-bridge')">&#9654; Launch</button>
-        <button class="btn-kill"    onclick="appKill('j-bridge')">&#9632; Stop</button>
-        <span id="jBridgeLaunchMsg" class="save-msg"></span>
+      <div class="intel-row">
+        <span class="intel-k">Spots/min</span>
+        <span class="intel-v live" id="i-spm">0</span>
       </div>
     </div>
 
-    <div class="launcher-card">
-      <div class="launcher-card-header">
-        <span class="launcher-app-name">J-Digi</span>
-        <span id="jDigiRunBadge" class="badge badge-warn">Unknown</span>
-      </div>
-      <div class="form-grid">
-        <label>Command</label>
-        <input type="text" id="launchCmdJDigi" placeholder="bash ~/ARS_Suite/j-digi/run.sh"/>
-        <label>Auto-launch on start</label>
-        <input type="checkbox" id="launchAutoJDigi"/>
-      </div>
-      <div class="launcher-actions">
-        <button class="btn-connect" onclick="appLaunch('j-digi')">&#9654; Launch</button>
-        <button class="btn-kill"    onclick="appKill('j-digi')">&#9632; Stop</button>
-        <span id="jDigiLaunchMsg" class="save-msg"></span>
-      </div>
+    <!-- Modules -->
+    <div class="intel-section">
+      <div class="intel-lbl">Modules</div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jlog"></span> J-Log</span><span class="intel-v" id="i-jlog">—</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jdigi"></span> J-Digi</span><span class="intel-v" id="i-jdigi">—</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jbridge"></span> J-Bridge</span><span class="intel-v" id="i-jbridge">—</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jmap"></span> J-Map</span><span class="intel-v" id="i-jmap">—</span></div>
     </div>
-  </section>
 
-  <!-- Connected Apps -->
-  <section id="tab-connected" class="tab-content">
-    <h2>Connected Applications</h2>
-    <div id="appList" class="app-list">
-      <p class="empty-msg">No apps connected</p>
+    <!-- Alerts -->
+    <div class="intel-section">
+      <div class="intel-lbl">Alerts</div>
+      <div id="alerts-list"><div class="no-alerts">No active alerts</div></div>
     </div>
-    <div class="spots-header">
-      <h2>Recent Spots</h2>
-      <span id="spotCount" class="badge badge-info">0 spots</span>
-    </div>
-    <table id="spotTable" class="spot-table">
-      <thead>
-        <tr>
-          <th>Spotted</th><th>Spotter</th><th>Freq</th>
-          <th>Mode</th><th>Country</th><th>Bear°</th><th>Dist km</th><th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="spotTableBody"></tbody>
-    </table>
-  </section>
+  </aside>
 
-  <footer>
-    <div id="saveMsg" class="save-msg"></div>
-    <button class="btn-save" onclick="saveConfig()">💾 Save Configuration</button>
+  <!-- ══════════════════════════════════════ STATUS BAR ══ -->
+  <footer id="statusbar">
+    <div class="sb-item">
+      <span class="sb-k">UTC</span>
+      <span class="sb-v" id="sb-utc">—</span>
+    </div>
+    <div class="sb-item">
+      <span class="sb-k">Local</span>
+      <span class="sb-v" id="sb-local">—</span>
+    </div>
+    <div class="sb-item">
+      <span class="sb-k">Rig Poll</span>
+      <span class="sb-v" id="sb-rig-poll">—</span>
+    </div>
+    <div class="sb-item">
+      <span class="sb-k">Cluster</span>
+      <span class="sb-v" id="sb-cluster">—</span>
+    </div>
+    <div class="sb-item">
+      <span class="sb-k">WebSocket</span>
+      <span class="sb-v" id="sb-ws">Connecting…</span>
+    </div>
+    <div class="sb-item">
+      <span class="sb-k">Uptime</span>
+      <span class="sb-v" id="sb-uptime">—</span>
+    </div>
   </footer>
-</div>
 
+</div><!-- #app -->
 <script src="config.js"></script>
 </body>
 </html>

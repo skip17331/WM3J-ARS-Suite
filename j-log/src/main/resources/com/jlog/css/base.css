@@ -99,3 +99,30 @@
 
 /* ---- Station callsign in clock bar ---- */
 .station-call { -fx-font-weight: bold; -fx-font-family: monospace; }
+
+/* ---- Band / mode warning bar ---- */
+.band-warning {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 8 3 8;
+    -fx-background-radius: 3;
+    -fx-max-width: Infinity;
+}
+
+/* ---- Band Plan window ---- */
+.bp-header   { -fx-padding: 6 10 6 10; }
+.bp-key      { -fx-font-size: 11px; -fx-font-style: italic; }
+.bp-legend   { -fx-font-size: 11px; }
+.bp-table    { -fx-font-size: 12px; }
+
+/* Structural row styles (no colors — themed in dark/light) */
+.bp-cw, .bp-data, .bp-phone, .bp-fm, .bp-satellite, .bp-usb-only { }
+
+/* Extra-only row: slightly bolder label */
+.table-row-cell.bp-extra .table-cell { -fx-font-weight: bold; }
+
+/* Current frequency row */
+.table-row-cell.bp-current {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1 0 1 3;
+}

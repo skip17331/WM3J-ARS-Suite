@@ -75,3 +75,54 @@
 .splash-title    { -fx-text-fill: white; }
 .splash-subtitle { -fx-text-fill: #bbdefb; }
 .splash-version  { -fx-text-fill: #90caf9; }
+
+/* ── Band warning bar ──────────────────────────────────────── */
+.band-warning-error {
+    -fx-background-color: #ffebee;
+    -fx-text-fill: #c62828;
+    -fx-border-color: #e53935;
+    -fx-border-width: 0 0 0 4;
+}
+.band-warning-warn {
+    -fx-background-color: #fff8e1;
+    -fx-text-fill: #e65100;
+    -fx-border-color: #ffa000;
+    -fx-border-width: 0 0 0 4;
+}
+
+/* ── Band Plan window rows ─────────────────────────────────── */
+.bp-header { -fx-background-color: #c8d8f0; }
+
+.table-row-cell.bp-cw         { -fx-background-color: #e0f7fa; }
+.table-row-cell.bp-cw:odd     { -fx-background-color: #d6f2f7; }
+.table-row-cell.bp-cw:selected{ -fx-background-color: #80deea; }
+
+.table-row-cell.bp-data         { -fx-background-color: #e8f5e9; }
+.table-row-cell.bp-data:odd     { -fx-background-color: #dff0e0; }
+.table-row-cell.bp-data:selected{ -fx-background-color: #a5d6a7; }
+
+.table-row-cell.bp-phone         { -fx-background-color: #e3f2fd; }
+.table-row-cell.bp-phone:odd     { -fx-background-color: #daecfa; }
+.table-row-cell.bp-phone:selected{ -fx-background-color: #90caf9; }
+
+.table-row-cell.bp-fm         { -fx-background-color: #f3e5f5; }
+.table-row-cell.bp-fm:odd     { -fx-background-color: #eeddf1; }
+.table-row-cell.bp-fm:selected{ -fx-background-color: #ce93d8; }
+
+.table-row-cell.bp-satellite         { -fx-background-color: #f5f5f5; }
+.table-row-cell.bp-satellite:odd     { -fx-background-color: #eeeeee; }
+.table-row-cell.bp-satellite:selected{ -fx-background-color: #bdbdbd; }
+
+.table-row-cell.bp-usb-only         { -fx-background-color: #e0f2f1; }
+.table-row-cell.bp-usb-only:odd     { -fx-background-color: #d6ede9; }
+.table-row-cell.bp-usb-only:selected{ -fx-background-color: #80cbc4; }
+
+.table-row-cell.bp-current {
+    -fx-border-color: #1565c0;
+    -fx-border-width: 2 0 2 4;
+}
+
+/* License class text color in band plan */
+.table-row-cell.bp-extra   .table-cell { -fx-text-fill: #bf6f00; }
+.table-row-cell.bp-general .table-cell { -fx-text-fill: #2e7d32; }
+.table-row-cell.bp-all-class .table-cell { -fx-text-fill: #1565c0; }

@@ -6,20 +6,16 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-/**
- * SplashJBridge — J-Bridge startup splash screen.
- *
- * Shown ONLY when J-Bridge is launched directly by the user.
- * When J-Hub launches J-Bridge it passes {@code --launched-by-hub}, which
- * causes {@link com.hamradio.jbridge.JBridgeMain} to skip the splash and
- * call the onComplete callback immediately.
- */
+import java.io.InputStream;
+
 public class SplashJBridge {
 
     private final Runnable onComplete;
@@ -32,6 +28,27 @@ public class SplashJBridge {
     public void show() {
         splashStage = new Stage(StageStyle.TRANSPARENT);
 
+        VBox root = new VBox(12);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(40, 70, 40, 70));
+        root.setStyle(
+            "-fx-background-color: #1e1e2e;" +
+            "-fx-border-color: #cba6f7;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 8px;" +
+            "-fx-background-radius: 8px;"
+        );
+
+        // App icon (skipped gracefully if not yet placed)
+        InputStream iconStream = getClass().getResourceAsStream("/icons/icon.png");
+        if (iconStream != null) {
+            ImageView iv = new ImageView(new Image(iconStream));
+            iv.setFitWidth(72);
+            iv.setFitHeight(72);
+            iv.setPreserveRatio(true);
+            root.getChildren().add(iv);
+        }
+
         Label title = new Label("J-Bridge");
         title.setStyle(
             "-fx-font-size: 48px;" +
@@ -40,7 +57,7 @@ public class SplashJBridge {
             "-fx-font-family: 'DejaVu Sans', sans-serif;"
         );
 
-        Label subtitle = new Label("WSJT-X ↔ ARS Suite Bridge");
+        Label subtitle = new Label("WSJT-X \u2194 ARS Suite Bridge");
         subtitle.setStyle(
             "-fx-font-size: 16px;" +
             "-fx-text-fill: #89b4fa;" +
@@ -53,22 +70,15 @@ public class SplashJBridge {
             "-fx-text-fill: #6c7086;"
         );
 
-        VBox root = new VBox(12, title, subtitle, version);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(50, 70, 50, 70));
-        root.setStyle(
-            "-fx-background-color: #1e1e2e;" +
-            "-fx-border-color: #cba6f7;" +
-            "-fx-border-width: 2px;" +
-            "-fx-border-radius: 8px;" +
-            "-fx-background-radius: 8px;"
-        );
+        root.getChildren().addAll(title, subtitle, version);
 
         Scene scene = new Scene(root, 480, 260);
         scene.setFill(Color.TRANSPARENT);
         splashStage.setScene(scene);
         splashStage.centerOnScreen();
         splashStage.show();
+
+        applyIcon(splashStage);
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(700), root);
         fadeIn.setFromValue(0.0);
@@ -82,5 +92,12 @@ public class SplashJBridge {
             hold.play();
         });
         fadeIn.play();
+    }
+
+    public static void applyIcon(Stage stage) {
+        InputStream is = SplashJBridge.class.getResourceAsStream("/icons/icon.png");
+        if (is != null) {
+            stage.getIcons().add(new Image(is));
+        }
     }
 }

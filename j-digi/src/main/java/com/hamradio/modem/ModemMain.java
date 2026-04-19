@@ -11,6 +11,9 @@ public class ModemMain extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("J-Digi");
+        try {
+            com.jlog.db.DatabaseManager.getInstance().initAll();
+        } catch (Exception ignored) {}
         modemService = new ModemService();
         ModemAppContext context = new ModemAppContext(modemService);
         ModemAppContext.applyIcon(primaryStage);

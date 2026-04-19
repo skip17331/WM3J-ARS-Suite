@@ -69,7 +69,11 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new ClusterApiServlet()),   "/api/cluster/*");
         ctx.addServlet(new ServletHolder(new JMapApiServlet()),       "/api/jmap");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
-        ctx.addServlet(new ServletHolder(new StaticServlet()),       "/*");
+        ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
+        ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
+        ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
+        ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
+        ctx.addServlet(new ServletHolder(new StaticServlet()),      "/*");
 
         server.setHandler(ctx);
         server.start();
@@ -95,6 +99,7 @@ public class WebConfigServer {
                 JHubConfig newCfg = ConfigManager.getInstance().fromJson(body);
                 ConfigManager.getInstance().updateConfig(newCfg);
                 ClusterManager.getInstance().reconnect();
+                HamlibRigController.getInstance().restart(newCfg.rig);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -315,6 +320,175 @@ public class WebConfigServer {
             if ("j-bridge".equals(name)) return apps.jBridge;
             if ("j-digi".equals(name))   return apps.jDigi;
             return null;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/macros — GET returns macro list, POST saves updated list
+    // ---------------------------------------------------------------
+
+    private static class MacrosApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            JHubConfig.MacrosSection ms = ConfigManager.getInstance().getConfig().macros;
+            json(res, ms == null || ms.list == null ? "[]" : ConfigManager.gson().toJson(ms.list));
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                java.lang.reflect.Type listType =
+                    new com.google.gson.reflect.TypeToken<java.util.List<JHubConfig.MacroDefinition>>(){}.getType();
+                java.util.List<JHubConfig.MacroDefinition> list =
+                    ConfigManager.gson().fromJson(body, listType);
+                ConfigManager cm = ConfigManager.getInstance();
+                if (cm.getConfig().macros == null) cm.getConfig().macros = new JHubConfig.MacrosSection();
+                cm.getConfig().macros.list = list;
+                cm.save();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res);
+            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/rig  — rig config + control actions
+    //
+    //   GET  /api/rig           → current rig config JSON
+    //   GET  /api/rig/status    → { connected, running, frequency, mode }
+    //   POST /api/rig           → save rig config; (re)starts controller
+    //   POST /api/rig/ptt       → { "ptt": true|false }  key/un-key TX
+    //   POST /api/rig/reconnect → force-close and reopen rigctld connection
+    // ---------------------------------------------------------------
+
+    private static class RigApiServlet extends HttpServlet {
+
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+            if ("/status".equals(path)) {
+                HamlibRigController ctrl = HamlibRigController.getInstance();
+                com.google.gson.JsonObject status = new com.google.gson.JsonObject();
+                status.addProperty("running",   ctrl.isRunning());
+                status.addProperty("connected", ctrl.isConnected());
+                status.addProperty("frequency", ctrl.getLastFreq());
+                status.addProperty("mode",      ctrl.getLastMode());
+                json(res, status.toString());
+            } else {
+                json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().rig));
+            }
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+
+            // ── PTT key/unkey ──────────────────────────────────────
+            if ("/ptt".equals(path)) {
+                HamlibRigController ctrl = HamlibRigController.getInstance();
+                if (!ctrl.isRunning()) {
+                    res.setStatus(HttpServletResponse.SC_CONFLICT);
+                    json(res, "{\"error\":\"Hamlib controller is not running\"}");
+                    return;
+                }
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    boolean on = true; // default: key TX
+                    if (!body.isBlank()) {
+                        com.google.gson.JsonObject j = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                        if (j.has("ptt")) on = j.get("ptt").getAsBoolean();
+                    }
+                    ctrl.setPtt(on);
+                    json(res, "{\"status\":\"ptt " + (on ? "on" : "off") + "\"}");
+                } catch (Exception e) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+                return;
+            }
+
+            // ── Force reconnect ─────────────────────────────────────
+            if ("/reconnect".equals(path)) {
+                HamlibRigController.getInstance().reconnect();
+                json(res, "{\"status\":\"reconnecting\"}");
+                return;
+            }
+
+            // ── Save config (no path suffix) ────────────────────────
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.RigSection rig = ConfigManager.gson().fromJson(body, JHubConfig.RigSection.class);
+                ConfigManager.getInstance().getConfig().rig = rig;
+                ConfigManager.getInstance().save();
+                // Apply immediately — restart controller if backend changed
+                HamlibRigController.getInstance().restart(rig);
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/rotor — GET/POST rotor config
+    // ---------------------------------------------------------------
+
+    private static class RotorApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().rotor));
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.RotorSection rotor = ConfigManager.gson().fromJson(body, JHubConfig.RotorSection.class);
+                ConfigManager.getInstance().getConfig().rotor = rotor;
+                ConfigManager.getInstance().save();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/appearance — GET/POST appearance config
+    // ---------------------------------------------------------------
+
+    private static class AppearanceApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().appearance));
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.AppearanceSection ap = ConfigManager.gson().fromJson(body, JHubConfig.AppearanceSection.class);
+                ConfigManager.getInstance().getConfig().appearance = ap;
+                ConfigManager.getInstance().save();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
     }
 

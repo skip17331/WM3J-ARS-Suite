@@ -69,6 +69,8 @@ public class JBridgeMain extends Application {
                 mainWindow.show();
             };
 
+            SplashJBridge.applyIcon(primaryStage);
+
             if (launchedByHub) {
                 // Skip splash — show main window directly
                 showMain.run();

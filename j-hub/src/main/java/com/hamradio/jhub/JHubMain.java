@@ -38,10 +38,11 @@ public class JHubMain extends Application {
     private static final Logger log = LoggerFactory.getLogger(JHubMain.class);
 
     // Singleton references kept for the shutdown hook
-    private static JHubServer       jHubServer;
-    private static WebConfigServer  webConfigServer;
-    private static ClusterManager   clusterManager;
-    private static JHubDiscovery    jHubDiscovery;
+    private static JHubServer            jHubServer;
+    private static WebConfigServer       webConfigServer;
+    private static ClusterManager        clusterManager;
+    private static JHubDiscovery         jHubDiscovery;
+    private static HamlibRigController   rigController;
 
     // Uptime reference
     public static final Instant START_TIME = Instant.now();
@@ -124,7 +125,17 @@ public class JHubMain extends Application {
             autoLaunch(launcher, "j-digi",   apps.jDigi,   false);
         }
 
-        // 10. Graceful shutdown hook
+        // 10. Hamlib rig controller (only when backend = HAMLIB)
+        rigController = HamlibRigController.getInstance();
+        rigController.setRouter(router);
+        if ("HAMLIB".equals(config.getConfig().rig.backend)) {
+            rigController.start(config.getConfig().rig);
+        } else {
+            log.info("Rig backend is '{}' — Hamlib controller not started",
+                    config.getConfig().rig.backend);
+        }
+
+        // 11. Graceful shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(JHubMain::shutdown, "shutdown-hook"));
 
         log.info("=== j-Hub ready ===");
@@ -178,6 +189,7 @@ public class JHubMain extends Application {
         } catch (Exception e) { log.warn("Shutdown broadcast error", e); }
 
         // 2. Force-kill all child processes (any that did not self-terminate)
+        try { if (rigController     != null) rigController.stop();           } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
         try { AppLauncher.getInstance().stopAll();                          } catch (Exception e) { log.warn("App launcher shutdown error", e); }
         try { if (jHubDiscovery   != null) jHubDiscovery.stop();           } catch (Exception e) { log.warn("Discovery shutdown error", e); }
         try { if (clusterManager  != null) clusterManager.disconnect();    } catch (Exception e) { log.warn("Cluster shutdown error", e); }

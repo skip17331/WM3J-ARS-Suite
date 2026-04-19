@@ -18,13 +18,8 @@ import java.util.Set;
 
 /**
  * SettingsWindow — modal settings dialog for J-Bridge.
- *
- * Sections:
- *   Hub       — j-hub WebSocket address and port
- *   WSJT-X    — UDP port and bind address
- *   Display   — history length, SNR filter, auto-scroll, CQ-only, band filters
- *
- * Visual style: Catppuccin Mocha dark, matching j-hub HubStatusWindow.
+ * Sections: Hub, WSJT-X, Display.
+ * Theme matches MainWindow (reads MainWindow.isDark).
  */
 public class SettingsWindow {
 
@@ -33,19 +28,14 @@ public class SettingsWindow {
 
     private final Stage stage;
 
-    // Hub
     private final TextField hubAddressFld = tf();
     private final TextField hubPortFld    = tf();
-
-    // WSJT-X
     private final TextField wsjtxPortFld  = tf();
     private final TextField wsjtxBindFld  = tf();
-
-    // Display
-    private final TextField  historyFld   = tf();
-    private final TextField  minSnrFld    = tf();
-    private final CheckBox   autoScrollChk = chk("Auto-scroll to newest decode");
-    private final CheckBox   cqOnlyChk    = chk("Show CQ calls only");
+    private final TextField historyFld    = tf();
+    private final TextField minSnrFld     = tf();
+    private final CheckBox  autoScrollChk = new CheckBox("Auto-scroll to newest decode");
+    private final CheckBox  cqOnlyChk     = new CheckBox("Show CQ calls only");
     private final Map<String, CheckBox> bandChks = new LinkedHashMap<>();
 
     private Runnable onSettingsChanged;
@@ -54,14 +44,12 @@ public class SettingsWindow {
         stage = new Stage();
         stage.initModality(Modality.WINDOW_MODAL);
         stage.initOwner(owner);
-        stage.setTitle("J-Bridge — Settings");
+        stage.setTitle("J-Bridge \u2014 Settings");
         stage.setResizable(false);
 
         loadCurrentValues();
         buildUI();
     }
-
-    // ── Load ──────────────────────────────────────────────────────────────────
 
     private void loadCurrentValues() {
         ConfigManager cfg = ConfigManager.getInstance();
@@ -76,13 +64,11 @@ public class SettingsWindow {
 
         Set<String> active = new HashSet<>(Arrays.asList(cfg.getBandFilters()));
         for (String b : ALL_BANDS) {
-            CheckBox cb = chk(b);
+            CheckBox cb = new CheckBox(b);
             cb.setSelected(active.contains(b));
             bandChks.put(b, cb);
         }
     }
-
-    // ── Build ─────────────────────────────────────────────────────────────────
 
     private void buildUI() {
         VBox content = new VBox(10,
@@ -100,31 +86,34 @@ public class SettingsWindow {
                 bandFilterPane()));
 
         content.setPadding(new Insets(14));
-        content.setStyle("-fx-background-color: #1e1e2e;");
 
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
         scroll.setPrefViewportHeight(460);
-        scroll.setStyle("-fx-background: #1e1e2e; -fx-background-color: #1e1e2e;");
 
-        Button okBtn     = btn("OK",     "#a6e3a1", "#1e1e2e");
-        Button cancelBtn = btn("Cancel", "#313244", "#cdd6f4");
+        Button okBtn     = new Button("OK");
+        Button cancelBtn = new Button("Cancel");
+        okBtn    .getStyleClass().add("jb-ok-btn");
+        cancelBtn.getStyleClass().add("jb-cancel-btn");
 
-        okBtn.setOnAction(e -> { if (save()) { stage.close(); if (onSettingsChanged != null) onSettingsChanged.run(); } });
+        okBtn.setOnAction(e -> {
+            if (save()) { stage.close(); if (onSettingsChanged != null) onSettingsChanged.run(); }
+        });
         cancelBtn.setOnAction(e -> stage.close());
 
         HBox buttons = new HBox(8, cancelBtn, okBtn);
         buttons.setAlignment(Pos.CENTER_RIGHT);
         buttons.setPadding(new Insets(8, 14, 10, 14));
-        buttons.setStyle("-fx-background-color: #1e1e2e;");
 
         VBox root = new VBox(0, scroll, buttons);
-        root.setStyle("-fx-background-color: #1e1e2e;");
 
-        stage.setScene(new Scene(root, 430, 570));
+        Scene sc = new Scene(root, 430, 570);
+        java.net.URL css = getClass().getResource("/css/j-bridge.css");
+        if (css != null) sc.getStylesheets().add(css.toExternalForm());
+        sc.getRoot().getStyleClass().add(MainWindow.isDark ? "dark" : "light");
+
+        stage.setScene(sc);
     }
-
-    // ── Save ──────────────────────────────────────────────────────────────────
 
     private boolean save() {
         try {
@@ -136,9 +125,9 @@ public class SettingsWindow {
             int    minSnr  = Integer.parseInt(minSnrFld.getText().trim());
 
             if (address.isEmpty()) throw new IllegalArgumentException("Hub address cannot be empty");
-            if (hubPort < 1 || hubPort > 65535) throw new IllegalArgumentException("Hub port must be 1–65535");
-            if (udpPort < 1 || udpPort > 65535) throw new IllegalArgumentException("UDP port must be 1–65535");
-            if (history < 10 || history > 5000) throw new IllegalArgumentException("History must be 10–5000");
+            if (hubPort < 1 || hubPort > 65535) throw new IllegalArgumentException("Hub port must be 1\u201365535");
+            if (udpPort < 1 || udpPort > 65535) throw new IllegalArgumentException("UDP port must be 1\u201365535");
+            if (history < 10 || history > 5000) throw new IllegalArgumentException("History must be 10\u20135000");
 
             ConfigManager cfg = ConfigManager.getInstance();
             cfg.setHubAddress(address);
@@ -164,27 +153,21 @@ public class SettingsWindow {
         return false;
     }
 
-    // ── Public ────────────────────────────────────────────────────────────────
-
-    public void show()                              { stage.show(); }
-    public void setOnSettingsChanged(Runnable cb)   { this.onSettingsChanged = cb; }
-
-    // ── Layout helpers ────────────────────────────────────────────────────────
+    public void show()                            { stage.show(); }
+    public void setOnSettingsChanged(Runnable cb) { this.onSettingsChanged = cb; }
 
     private VBox section(String title, javafx.scene.Node... children) {
         Label hdr = new Label(title);
-        hdr.setStyle("-fx-text-fill: #cba6f7; -fx-font-size: 12px; -fx-font-weight: bold;");
+        hdr.getStyleClass().add("jb-section-hdr");
         VBox box = new VBox(5, hdr);
         box.getChildren().addAll(children);
-        box.setStyle("-fx-background-color: #181825; -fx-padding: 10; " +
-                     "-fx-border-color: #313244; -fx-border-width: 1;");
+        box.getStyleClass().add("jb-section-card");
         return box;
     }
 
     private HBox row(String label, javafx.scene.Node control) {
         Label lbl = new Label(label);
-        lbl.setMinWidth(115);
-        lbl.setStyle("-fx-text-fill: #a6adc8; -fx-font-size: 11px;");
+        lbl.getStyleClass().add("jb-row-lbl");
         HBox row = new HBox(8, lbl, control);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
@@ -198,23 +181,8 @@ public class SettingsWindow {
 
     private TextField tf() {
         TextField f = new TextField();
-        f.setStyle("-fx-background-color: #313244; -fx-text-fill: #cdd6f4; " +
-                   "-fx-border-color: #45475a; -fx-font-size: 11px;");
         f.setPrefWidth(200);
         return f;
-    }
-
-    private CheckBox chk(String text) {
-        CheckBox cb = new CheckBox(text);
-        cb.setStyle("-fx-text-fill: #cdd6f4; -fx-font-size: 11px;");
-        return cb;
-    }
-
-    private Button btn(String text, String bg, String fg) {
-        Button b = new Button(text);
-        b.setStyle("-fx-background-color: " + bg + "; -fx-text-fill: " + fg +
-                   "; -fx-font-size: 12px; -fx-cursor: hand; -fx-padding: 5 16 5 16;");
-        return b;
     }
 
     private void alert(String title, String msg) {

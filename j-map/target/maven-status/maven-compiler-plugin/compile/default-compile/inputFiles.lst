@@ -1,5 +1,6 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/app/JMapApp.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/app/ServiceRegistry.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/app/SplashScreen.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/AbstractDataProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/DataProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/DataProviderException.java

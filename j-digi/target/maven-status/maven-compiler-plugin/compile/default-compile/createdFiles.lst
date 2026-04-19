@@ -1,3 +1,4 @@
+com/hamradio/modem/ui/RightPanel.class
 com/hamradio/modem/tx/Psk31Transmitter$Psk31SampleSource.class
 com/hamradio/modem/tx/Mfsk16Transmitter.class
 com/hamradio/modem/tx/RttyBaudot$EncodedText.class
@@ -6,6 +7,7 @@ com/hamradio/modem/tx/Psk31Transmitter.class
 com/hamradio/modem/tx/SampleSource.class
 com/hamradio/modem/model/ModeType.class
 com/hamradio/modem/tx/NoOpRigControl.class
+com/hamradio/modem/ModemService$2.class
 com/hamradio/modem/dsp/FftAnalyzer$SpectrumResult.class
 com/hamradio/modem/mode/RttyMode$BiquadBandpass.class
 com/hamradio/modem/tx/OliviaTransmitter.class
@@ -15,6 +17,7 @@ com/hamradio/modem/ui/ModemAppContext.class
 com/hamradio/modem/mode/CwMode.class
 com/hamradio/modem/ModemMain.class
 com/hamradio/modem/dsp/Goertzel.class
+com/hamradio/modem/ui/DxSpotPane.class
 com/hamradio/modem/mode/Mfsk16Mode.class
 com/hamradio/modem/tx/AudioTxEngine.class
 com/hamradio/modem/dsp/WindowFunctions.class
@@ -22,6 +25,8 @@ com/hamradio/modem/dsp/ViterbiK7.class
 com/hamradio/modem/tx/RttyBaudot.class
 com/hamradio/modem/mode/DigitalMode.class
 com/hamradio/modem/tx/DominoExTransmitter.class
+com/hamradio/modem/ui/LogEntryPane.class
+com/hamradio/modem/ui/MacroBar.class
 com/hamradio/modem/tx/DominoExTransmitter$DominoSampleSource.class
 com/hamradio/modem/mode/RttyMode$SimpleAgc.class
 com/hamradio/modem/tx/CwTransmitter.class
@@ -29,11 +34,13 @@ com/hamradio/modem/mode/Psk31Mode.class
 com/hamradio/modem/audio/AudioFrameListener.class
 com/hamradio/modem/tx/OliviaTransmitter$OliviaSampleSource.class
 com/hamradio/modem/ui/WaterfallPane.class
+com/hamradio/modem/model/HubMacro.class
 com/hamradio/modem/dsp/FftAnalyzer.class
 com/hamradio/modem/hub/HubMessageListener.class
 com/hamradio/modem/mode/ModeManager.class
 com/hamradio/modem/mode/DominoExMode.class
 com/hamradio/modem/mode/Ax25Mode.class
+com/hamradio/modem/model/HubSpot.class
 com/hamradio/modem/ui/SplashScreen.class
 com/hamradio/modem/ui/MainWindow$1.class
 com/hamradio/modem/ModemService.class
@@ -57,6 +64,7 @@ com/hamradio/modem/mode/OliviaMode.class
 com/hamradio/modem/ModemService$1.class
 com/hamradio/modem/ui/SpectrumPane.class
 com/hamradio/modem/tx/RttyTransmitter.class
+com/hamradio/modem/model/RotorStatus.class
 com/hamradio/modem/tx/CwTransmitter$CwSampleSource.class
 com/hamradio/modem/mode/RttyMode.class
 com/hamradio/modem/model/ModemStatus.class

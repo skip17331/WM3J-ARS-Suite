@@ -31,6 +31,8 @@
                         <items>
                             <MenuItem text="%menu.civ.connect"    onAction="#menuConnectCiv"/>
                             <MenuItem text="%menu.civ.disconnect" onAction="#menuDisconnectCiv"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Band Plan Reference"  onAction="#showBandPlan"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.setup">
@@ -95,6 +97,9 @@
 
                     <Label text="%label.freq" GridPane.columnIndex="9" GridPane.rowIndex="1"/>
                     <TextField fx:id="tfFrequency" GridPane.columnIndex="10" GridPane.rowIndex="1" prefWidth="90"/>
+                    <Button text="Band Plan \u25BE" onAction="#showBandPlan"
+                            styleClass="secondary-button"
+                            GridPane.columnIndex="11" GridPane.rowIndex="1"/>
 
                     <!-- Row 2: Notes, QSL, Buttons -->
                     <Label text="%label.notes" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
@@ -106,11 +111,18 @@
                     <CheckBox fx:id="cbQslReceived" text="%label.qsl.rcvd"
                               GridPane.columnIndex="7" GridPane.rowIndex="2"/>
 
-                    <HBox GridPane.columnIndex="8" GridPane.rowIndex="2" spacing="6">
+                    <HBox GridPane.columnIndex="8" GridPane.rowIndex="2"
+                          GridPane.columnSpan="4" spacing="6">
                         <Button text="%button.save"   onAction="#doSave"            styleClass="primary-button"/>
                         <Button text="%button.clear"  onAction="#doClear"           styleClass="secondary-button"/>
                         <Button text="%button.lookup" onAction="#doCallsignLookup"  styleClass="secondary-button"/>
                     </HBox>
+
+                    <!-- Row 3: Band / mode warning bar (hidden when no warning) -->
+                    <Label fx:id="lblBandWarning" styleClass="band-warning"
+                           visible="false" managed="false"
+                           GridPane.columnIndex="0" GridPane.rowIndex="3"
+                           GridPane.columnSpan="12" maxWidth="Infinity"/>
                 </GridPane>
             </TitledPane>
 

@@ -1,887 +1,1212 @@
 package com.hamradio.modem.ui;
 
 import com.hamradio.modem.ModemService;
-import com.hamradio.modem.audio.AudioEngine;
 import com.hamradio.modem.model.ModeType;
 import com.hamradio.modem.model.ModemStatus;
+import com.hamradio.modem.model.RotorStatus;
+import com.hamradio.modem.audio.AudioEngine;
 import com.hamradio.modem.tx.AudioTxEngine;
 import com.hamradio.modem.tx.TxState;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.util.List;
+import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * J-Digi main window — DM-780 layout, j-log shared theme (light / dark).
+ *
+ * Structural nodes carry CSS class names so that swapping the stylesheet
+ * (via scene.getStylesheets().setAll()) is sufficient to retheme the app.
+ * Only runtime-varying elements (SNR text color, TX state color, indicator
+ * dot fills) are updated via applyThemeColors() after a theme switch.
+ *
+ * CSS class map:
+ *   .jd-toolbar       toolbar HBox
+ *   .jd-bezel         instrument bezel VBox
+ *   .jd-freq-panel    frequency display dark-glass VBox
+ *   .jd-ruler         audio-Hz ruler Pane
+ *   .jd-rx-header     RX pane header HBox
+ *   .jd-tx-header     TX pane header HBox
+ *   .jd-statusbar     status bar HBox
+ *   .jd-callsign      callsign label
+ *   .jd-grid-label    grid-square label
+ *   .jd-freq-display  frequency readout label
+ *   .jd-audio-sub     audio-offset sub-label
+ *   .jd-mode-tag      rig mode pill
+ *   .jd-rotor         rotor bearing readout label
+ *   .jd-inst-label    tiny bezel section labels (SIGNAL, BEARING, …)
+ *   .jd-rx-sub        RX pane SNR/Peak sub-labels
+ *   .jd-panel-title   RECEIVE / TRANSMIT nameplate labels
+ *   .macro-button     macro bar buttons  (shared with j-log name)
+ *   .primary-button   primary action buttons (shared with j-log name)
+ */
 public class MainWindow {
-    private final ModemService service;
 
-    private final Circle hubStatusDot = new Circle(6, Color.RED);
-    private final Label hubLabel = new Label("Disconnected");
-    private final Label audioLabel = new Label("Stopped");
-    private final Label modeLabel = new Label("RTTY");
-    private final Label rigFreqLabel = new Label("--");
-    private final Label rigModeLabel = new Label("--");
-    private final Label rmsLabel = new Label("0.0000");
-    private final Label peakLabel = new Label("0.0 Hz");
-    private final Label snrLabel = new Label("0.0 dB");
-    private final Label offsetLabel = new Label("0.0 Hz");
-    private final Label tuningHintLabel = new Label("No signal");
-    private final Label logCountLabel = new Label("0 lines");
+    // ── Runtime theme state ───────────────────────────────────────────
+    private boolean darkTheme;
+    private Scene   scene;
+    private static final Preferences PREFS =
+            Preferences.userNodeForPackage(MainWindow.class);
 
-    private final Label rttyMarkLabel = new Label("0.000");
-    private final Label rttySpaceLabel = new Label("0.000");
-    private final Label rttyDomLabel = new Label("0.00");
-    private final CheckBox rttyReverseBox = new CheckBox("RTTY Reverse");
+    // ── Connection indicator dots ────────────────────────────────────
+    private final Circle hubDot = new Circle(5);
+    private final Circle rxDot  = new Circle(5);
+    private final Circle txDot  = new Circle(5);
 
-    private VBox rttyCard;
+    // ── Instrument displays ──────────────────────────────────────────
+    private final Label callsignLabel = new Label("NOCALL");
+    private final Label gridLabel     = new Label("");
+    private final Label freqLabel     = new Label("——  ———  ———");
+    private final Label audioOffLabel = new Label("——— Hz");
+    private final Label modeTag       = new Label("---");
+    private final Label rotorLabel    = new Label("000°");
+    private final Canvas snrCanvas    = new Canvas(110, 10);
 
-    private final Circle txStatusDot = new Circle(6, Color.DARKGRAY);
-    private final Label txStateLabel = new Label("Idle");
-    private final Label txModeLabel = new Label("RTTY");
-    private final Label txPreviewLabel = new Label("--");
+    // ── Toolbar controls ─────────────────────────────────────────────
+    private final ComboBox<ModeType> modeBox      = new ComboBox<>();
+    private final ToggleButton       afcBtn       = new ToggleButton("AFC");
+    private final ToggleButton       sqlBtn       = new ToggleButton("SQL");
+    private final Button             transmitBtn  = new Button("▶  Transmit");
+    private final Button             cancelBtn    = new Button("■  Cancel");
+    private final Button             saveTxWavBtn = new Button("WAV");
+    private final Button             themeBtn     = new Button();   // ☀ / ☾
 
-    private final TextArea decodeArea = new TextArea();
-    private final TextArea txTextArea = new TextArea();
+    // ── RX pane controls ─────────────────────────────────────────────
+    private final Label    rx_snr        = new Label("SNR: —");
+    private final Label    rx_peak       = new Label("Peak: —");
+    private final Label    rx_afc        = new Label("AFC");
+    private final CheckBox autoScrollBox = new CheckBox("Auto");
+    private final Button   clearRxBtn   = new Button("Clear");
+    private final Button   sendToLogBtn = new Button("→ Log");
 
-    private final ComboBox<ModeType> modeBox = new ComboBox<>();
-    private final CheckBox autoScrollBox = new CheckBox("Auto-scroll log");
+    // ── TX pane controls ─────────────────────────────────────────────
+    private final Label txStateLabel = new Label("IDLE");
+    private final Label txCharCount  = new Label("0 ch");
 
-    private final Button transmitButton = new Button("Transmit");
-    private final Button cancelTxButton = new Button("Cancel TX");
-    private final Button saveTxWavButton = new Button("Save TX WAV");
+    // ── Main text areas ──────────────────────────────────────────────
+    private final TextArea rxArea = new TextArea();
+    private final TextArea txArea = new TextArea();
 
-    private final SpectrumPane spectrumPane = new SpectrumPane();
+    // ── Status-bar labels ────────────────────────────────────────────
+    private final Label sb_snr   = new Label("SNR —");
+    private final Label sb_peak  = new Label("Peak —");
+    private final Label sb_mode  = new Label("—");
+    private final Label sb_audio = new Label("Audio ○");
+    private final Label sb_hub   = new Label("Hub ○");
+
+    // ── Panel state ──────────────────────────────────────────────────
+    private boolean rightPanelVisible = true;
+    private static final double PANEL_OPEN  = 0.74;
+    private static final double PANEL_CLOSE = 1.00;
+
+    private SplitPane  mainSplit;
+    private RightPanel rightPanel;
+
+    // ── Signal display panes ─────────────────────────────────────────
     private final WaterfallPane waterfallPane = new WaterfallPane();
+    private final SpectrumPane  spectrumPane  = new SpectrumPane();
 
-    private final Label draftCallsignLabel = new Label("--");
-    private final Label draftExchangeLabel = new Label("--");
-    private final Label draftBandLabel = new Label("--");
-    private final Label draftFreqLabel = new Label("--");
-
-    private String lastNonEmptyDecodeLine = "";
+    // ── Decode state ─────────────────────────────────────────────────
+    private String      lastDecodeLine = "";
     private ModemStatus lastStatus;
-
-    private static final Pattern CALLSIGN_PATTERN =
+    private static final Pattern CALLSIGN_RE =
             Pattern.compile("\\b([A-Z0-9]{1,3}[0-9][A-Z0-9/]{1,6})\\b");
 
-    public MainWindow(ModemService service) {
-        this.service = service;
-    }
+    private final ModemService service;
+
+    public MainWindow(ModemService service) { this.service = service; }
+
+    // ================================================================
+    // Entry point
+    // ================================================================
 
     public void show(Stage stage) {
+        darkTheme = PREFS.getBoolean("darkTheme", false);   // default: light
+        rightPanel = new RightPanel(service);
+
+        String prefsCall = service.getMyCall();
+        callsignLabel.setText(prefsCall);
+        rightPanel.getLogEntryPane().setStationCallsign(prefsCall);
+
         BorderPane root = new BorderPane();
-        root.setPadding(new Insets(10));
-        root.setTop(buildTopArea(stage));
-        root.setCenter(buildMainBody(stage));
+        root.setTop(buildTop(stage));
+        root.setCenter(buildCenter());
+        root.setBottom(buildStatusBar());
 
-        configureControls(stage);
+        configureTextAreas();
+        wireModeBox();
         wireService();
+        wireToggleButtons();
 
-        Scene scene = new Scene(root, 1260, 860);
+        scene = new Scene(root, 1440, 960);
+        scene.getStylesheets().add(buildCombinedStylesheet());
+        // Class-based theming: root carries .dark or .light
+        scene.getRoot().getStyleClass().add(darkTheme ? "dark" : "light");
+
         stage.setTitle("J-Digi");
         stage.setScene(scene);
-        stage.setMinWidth(1100);
-        stage.setMinHeight(760);
+        stage.setMinWidth(1024);
+        stage.setMinHeight(720);
         stage.show();
+
+        applyThemeColors();
     }
 
-    private void configureControls(Stage stage) {
-        decodeArea.setEditable(false);
-        decodeArea.setWrapText(false);
-        decodeArea.setFont(Font.font("Consolas", 13));
-        decodeArea.setPrefRowCount(8);
+    // ================================================================
+    // Theme switching
+    // ================================================================
 
-        txTextArea.setWrapText(true);
-        txTextArea.setFont(Font.font("Consolas", 13));
-        txTextArea.setPrefRowCount(5);
-        txTextArea.setPromptText("Enter text to transmit as RTTY");
-
-        autoScrollBox.setSelected(true);
-
-        modeBox.getItems().addAll(ModeType.values());
-        modeBox.setValue(ModeType.RTTY);
-
-        rttyReverseBox.setOnAction(e -> service.setRttyReverse(rttyReverseBox.isSelected()));
-
-        transmitButton.setOnAction(e -> service.transmitText(txTextArea.getText()));
-        cancelTxButton.setOnAction(e -> service.cancelTransmit());
-        saveTxWavButton.setOnAction(e -> saveTxWav(stage));
-
-        cancelTxButton.setDisable(true);
+    private void toggleTheme() {
+        darkTheme = !darkTheme;
+        PREFS.putBoolean("darkTheme", darkTheme);
+        // Swap CSS class on root — the combined stylesheet handles both
+        var cls = scene.getRoot().getStyleClass();
+        if (darkTheme) { cls.remove("light"); cls.add("dark"); }
+        else           { cls.remove("dark");  cls.add("light"); }
+        applyThemeColors();
+        themeBtn.setText(darkTheme ? "☀" : "☾");
+        drawSnrBar(lastStatus != null ? lastStatus.getSnr() : 0);
+        redrawFreqRuler();
     }
 
-    private void wireService() {
-        service.setSpectrumListener(snapshot -> {
-            spectrumPane.update(snapshot);
-            waterfallPane.update(snapshot);
-            updateTuningStrip(snapshot.getPeakFrequencyHz());
-        });
-
-        service.setDecodeListener(this::appendLogLine);
-        service.setStatusListener(this::updateStatus);
+    /** Finds the ruler Canvas and redraws it with current theme colors. */
+    private void redrawFreqRuler() {
+        javafx.scene.Node n = scene.lookup(".jd-ruler");
+        if (n instanceof Pane p && !p.getChildren().isEmpty()
+                && p.getChildren().get(0) instanceof Canvas c) {
+            drawFreqRuler(c);
+        }
     }
 
-    private SplitPane buildMainBody(Stage stage) {
-        SplitPane horizontal = new SplitPane();
-        horizontal.setOrientation(Orientation.HORIZONTAL);
+    /** Re-applies the inline styles that vary at runtime AND are theme-sensitive. */
+    private void applyThemeColors() {
+        themeBtn.setText(darkTheme ? "☀" : "☾");
 
-        SplitPane vertical = new SplitPane();
-        vertical.setOrientation(Orientation.VERTICAL);
+        // Dots (re-driven by last status; seed defaults here)
+        hubDot.setFill(Color.web(err()));
+        rxDot.setFill(Color.web(sub()));
+        txDot.setFill(Color.web(sub()));
 
-        Pane visualPane = buildVisualPane();
-        Pane decodePane = buildDecodePane();
+        // AFC indicator in RX header
+        rx_afc.setStyle("-fx-text-fill: " + sub() + ";");
+        rx_peak.setStyle("-fx-text-fill: " + sub() + ";");
+        rx_snr.setStyle("-fx-text-fill: " + teal() + ";");
 
-        vertical.getItems().addAll(visualPane, decodePane);
-        vertical.setDividerPositions(0.68);
+        // TX state label
+        txStateLabel.setStyle(
+            "-fx-font-family: monospace; -fx-font-size: 10; -fx-font-weight: bold;" +
+            "-fx-text-fill: " + sub() + ";");
 
-        ScrollPane rightScroll = new ScrollPane(buildRightPane(stage));
-        rightScroll.setFitToWidth(true);
-        rightScroll.setFitToHeight(true);
-        rightScroll.setPannable(true);
-        rightScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        rightScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        rightScroll.setPrefWidth(345);
-        rightScroll.setMinWidth(300);
+        // Status bar labels (set default; onStatusUpdate will override with live values)
+        sb_audio.setStyle("-fx-text-fill: " + sub() + ";");
+        sb_hub.setStyle("-fx-text-fill: " + sub() + ";");
+        sb_snr.setStyle("-fx-text-fill: " + text() + ";");
+        sb_peak.setStyle("-fx-text-fill: " + text() + ";");
+        sb_mode.setStyle("-fx-text-fill: " + text() + ";");
 
-        horizontal.getItems().addAll(vertical, rightScroll);
-        horizontal.setDividerPositions(0.74);
-
-        return horizontal;
+        drawSnrBar(0);
     }
 
-    private Pane buildTopArea(Stage stage) {
-        VBox box = new VBox(10, buildMenuBar(stage), buildTopBar(), buildSummaryBar());
-        return box;
+    // Theme-aware color helpers (always check darkTheme at call time)
+    private String accent() { return darkTheme ? "#4fc3f7" : "#1565c0"; }
+    private String text()   { return darkTheme ? "#e0e0e0" : "#212121"; }
+    private String sub()    { return darkTheme ? "#888888" : "#666666"; }
+    private String teal()   { return darkTheme ? "#80cbc4" : "#00695c"; }
+    private String ok()     { return darkTheme ? "#80cbc4" : "#388e3c"; }
+    private String warn()   { return darkTheme ? "#80deea" : "#0277bd"; }
+    private String err()    { return darkTheme ? "#ef9a9a" : "#c62828"; }
+
+    // ================================================================
+    // Top
+    // ================================================================
+
+    private VBox buildTop(Stage stage) {
+        return new VBox(0,
+            buildMenuBar(stage),
+            buildToolBar(),
+            buildMacroRow()
+        );
     }
 
     private MenuBar buildMenuBar(Stage stage) {
         Menu fileMenu = new Menu("File");
-
-        MenuItem setupItem = new MenuItem("Setup");
+        MenuItem setupItem = new MenuItem("Setup…");
         setupItem.setOnAction(e -> showSetupDialog());
-
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(e -> stage.close());
-
         fileMenu.getItems().addAll(setupItem, new SeparatorMenuItem(), exitItem);
 
-        return new MenuBar(fileMenu);
+        Menu viewMenu = new Menu("View");
+        MenuItem toggleLog   = new MenuItem("Toggle Log Panel");
+        MenuItem toggleSpots = new MenuItem("Toggle Spots Panel");
+        toggleLog.setOnAction(e   -> toggleRightPanel());
+        toggleSpots.setOnAction(e -> { showRightPanel(); rightPanel.showSpotsTab(); });
+        viewMenu.getItems().addAll(toggleLog, toggleSpots);
+
+        return new MenuBar(fileMenu, viewMenu);
     }
 
-    private Pane buildTopBar() {
-        Button startAudioButton = new Button("Start Audio");
-        Button stopAudioButton = new Button("Stop Audio");
-        Button clearLogButton = new Button("Clear Log");
-        Button sendToLogButton = new Button("Send To Log");
+    private HBox buildToolBar() {
 
-        startAudioButton.setOnAction(e -> {
-            try {
-                service.startAudio();
-            } catch (Exception ex) {
-                appendLogLine("Audio failed: " + ex.getMessage());
-            }
-        });
+        // ── Station ──────────────────────────────────────────────────
+        callsignLabel.setFont(Font.font("monospace", FontWeight.BOLD, 18));
+        callsignLabel.getStyleClass().add("jd-callsign");
+        gridLabel.getStyleClass().add("jd-grid-label");
+        VBox stationBox = new VBox(1, callsignLabel, gridLabel);
+        stationBox.setAlignment(Pos.CENTER_LEFT);
 
-        stopAudioButton.setOnAction(e -> service.stopAudio());
+        // ── Frequency panel ──────────────────────────────────────────
+        freqLabel.setFont(Font.font("monospace", FontWeight.BOLD, 26));
+        freqLabel.getStyleClass().add("jd-freq-display");
+        audioOffLabel.getStyleClass().add("jd-audio-sub");
+        VBox freqContent = new VBox(1, freqLabel, audioOffLabel);
+        freqContent.setAlignment(Pos.CENTER_LEFT);
+        freqContent.setPadding(new Insets(3, 8, 3, 8));
+        freqContent.getStyleClass().add("jd-freq-panel");
 
-        clearLogButton.setOnAction(e -> {
-            decodeArea.clear();
-            lastNonEmptyDecodeLine = "";
-            clearDraftPreview();
-            updateLogCount();
-        });
+        // ── Mode combo + tag ─────────────────────────────────────────
+        modeBox.setItems(FXCollections.observableArrayList(ModeType.values()));
+        modeBox.setValue(ModeType.RTTY);
+        modeBox.setPrefWidth(108);
+        modeTag.setFont(Font.font("monospace", FontWeight.BOLD, 10));
+        modeTag.getStyleClass().add("jd-mode-tag");
+        Label modeLbl = instLabel("MODE");
+        VBox modeVBox = new VBox(2, modeLbl, new HBox(4, modeBox, modeTag));
+        ((HBox) modeVBox.getChildren().get(1)).setAlignment(Pos.CENTER_LEFT);
+        modeVBox.setAlignment(Pos.CENTER_LEFT);
 
-        sendToLogButton.setOnAction(e -> sendCurrentDraftToLog());
+        // ── AFC / SQL toggles ────────────────────────────────────────
+        afcBtn.setPrefSize(50, 22);
+        sqlBtn.setPrefSize(50, 22);
+        afcBtn.getStyleClass().add("afc-btn");
+        sqlBtn.getStyleClass().add("sql-btn");
+        VBox guardContent = new VBox(3, afcBtn, sqlBtn);
+        guardContent.setAlignment(Pos.CENTER);
 
-        modeBox.setOnAction(e -> {
-            service.setMode(modeBox.getValue());
-            updateModeControls(modeBox.getValue());
-        });
+        // ── Transmit / Cancel ────────────────────────────────────────
+        transmitBtn.setFont(Font.font("DejaVu Sans", FontWeight.BOLD, 12));
+        transmitBtn.getStyleClass().add("xmit-btn");
+        transmitBtn.setPrefSize(116, 36);
+        cancelBtn.setFont(Font.font("DejaVu Sans", FontWeight.BOLD, 12));
+        cancelBtn.getStyleClass().add("cancel-btn");
+        cancelBtn.setPrefSize(100, 36);
+        cancelBtn.setDisable(true);
+        transmitBtn.setOnAction(e -> service.transmitText(txArea.getText()));
+        cancelBtn.setOnAction(e   -> service.cancelTransmit());
 
-        HBox hubIndicator = new HBox(6, hubStatusDot, new Label("Hub"));
-        hubIndicator.setAlignment(Pos.CENTER_LEFT);
+        txStateLabel.setFont(Font.font("monospace", 9));
+        VBox xmitContent = new VBox(4,
+            new HBox(6, transmitBtn, cancelBtn), txStateLabel);
+        xmitContent.setAlignment(Pos.CENTER_LEFT);
 
-        HBox txIndicator = new HBox(6, txStatusDot, new Label("TX"));
-        txIndicator.setAlignment(Pos.CENTER_LEFT);
+        // ── WAV / Theme ───────────────────────────────────────────────
+        saveTxWavBtn.getStyleClass().add("tb-btn");
+        saveTxWavBtn.setOnAction(e -> saveTxWav((Stage) txArea.getScene().getWindow()));
+        themeBtn.getStyleClass().add("tb-btn");
+        themeBtn.setFont(Font.font(14));
+        themeBtn.setTooltip(new Tooltip("Toggle light / dark theme"));
+        themeBtn.setOnAction(e -> toggleTheme());
 
-        HBox bar = new HBox(
-                10,
-                hubIndicator,
-                txIndicator,
-                new Separator(),
-                new Label("Mode:"),
-                modeBox,
-                new Separator(),
-                rttyReverseBox,
-                startAudioButton,
-                stopAudioButton,
-                clearLogButton,
-                sendToLogButton
+        // ── SNR VU meter ──────────────────────────────────────────────
+        Label snrSectionLbl = instLabel("SIGNAL");
+        rx_snr.getStyleClass().add("jd-rx-sub");
+        drawSnrBar(0);
+        VBox snrContent = new VBox(3, snrSectionLbl, snrCanvas, rx_snr);
+        snrContent.setAlignment(Pos.CENTER_LEFT);
+
+        // ── Rotor bearing ─────────────────────────────────────────────
+        Label rotorSectionLbl = instLabel("BEARING");
+        rotorLabel.setFont(Font.font("monospace", FontWeight.BOLD, 18));
+        rotorLabel.getStyleClass().add("jd-rotor");
+        VBox rotorContent = new VBox(2, rotorSectionLbl, rotorLabel);
+        rotorContent.setAlignment(Pos.CENTER_LEFT);
+
+        // ── Indicator dots ────────────────────────────────────────────
+        VBox hubGrp = dotGroup(hubDot, "HUB");
+        VBox rxGrp  = dotGroup(rxDot,  "RX");
+        VBox txGrp  = dotGroup(txDot,  "TX");
+        HBox dotsContent = new HBox(10, hubGrp, rxGrp, txGrp);
+        dotsContent.setAlignment(Pos.CENTER);
+
+        // ── Panel toggle buttons ──────────────────────────────────────
+        Button logBtn   = new Button("Log");
+        Button spotsBtn = new Button("Spots");
+        logBtn.getStyleClass().add("tb-btn");
+        spotsBtn.getStyleClass().add("tb-btn");
+        logBtn.setOnAction(e   -> { showRightPanel(); rightPanel.showLogTab();   });
+        spotsBtn.setOnAction(e -> { showRightPanel(); rightPanel.showSpotsTab(); });
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox bar = new HBox(6,
+            bezel("STATION",  stationBox),   tbSep(),
+            bezel("FREQUENCY", freqContent), tbSep(),
+            bezel("MODE",     modeVBox),     tbSep(),
+            bezel("GUARD SW", guardContent), tbSep(),
+            bezel("CONTROL",  xmitContent),  tbSep(),
+            bezel("AUX",      new HBox(4, saveTxWavBtn, themeBtn)), tbSep(),
+            bezel("SNR",      snrContent),   tbSep(),
+            bezel("ROTOR",    rotorContent), tbSep(),
+            bezel("STATUS",   dotsContent),
+            spacer,
+            logBtn, spotsBtn
         );
         bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setPrefHeight(36);
+        bar.setPadding(new Insets(5, 8, 5, 8));
+        bar.getStyleClass().add("jd-toolbar");
         return bar;
     }
 
-    private Pane buildSummaryBar() {
-        HBox row = new HBox(
-                10,
-                buildStatusChip("Hub", hubLabel),
-                buildStatusChip("Audio", audioLabel),
-                buildStatusChip("Mode", modeLabel),
-                buildStatusChip("Rig Freq", rigFreqLabel),
-                buildStatusChip("Rig Mode", rigModeLabel),
-                buildStatusChip("TX State", txStateLabel)
+    private HBox buildMacroRow() {
+        MacroBar macroBar = new MacroBar(
+            service,
+            () -> rightPanel.getLogEntryPane().getCallsign(),
+            () -> rightPanel.getLogEntryPane().getRst()
         );
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
+        return macroBar;
     }
 
-    private VBox buildStatusChip(String title, Label valueLabel) {
-        Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666666;");
-        valueLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+    // ================================================================
+    // Center — DM-780 layout: waterfall on top, RX/TX below
+    // ================================================================
 
-        VBox box = new VBox(3, titleLabel, valueLabel);
-        box.setPadding(new Insets(8));
-        box.setMinWidth(110);
-        box.setStyle(
-                "-fx-background-color: #f4f4f4;" +
-                "-fx-border-color: #d0d0d0;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
+    private SplitPane buildCenter() {
+        spectrumPane.setPrefHeight(65);
+        spectrumPane.setMinHeight(50);
+        spectrumPane.setMaxHeight(80);
+
+        waterfallPane.setPrefHeight(160);
+        waterfallPane.setMinHeight(100);
+        waterfallPane.setMaxHeight(220);
+
+        SplitPane rxTxSplit = new SplitPane();
+        rxTxSplit.setOrientation(Orientation.VERTICAL);
+        rxTxSplit.getItems().addAll(buildRxPane(), buildTxPane());
+        rxTxSplit.setDividerPositions(0.65);
+        VBox.setVgrow(rxTxSplit, Priority.ALWAYS);
+
+        VBox leftColumn = new VBox(0,
+            spectrumPane,
+            waterfallPane,
+            buildFreqRuler(),
+            rxTxSplit
         );
-        return box;
+
+        mainSplit = new SplitPane();
+        mainSplit.setOrientation(Orientation.HORIZONTAL);
+        mainSplit.getItems().addAll(leftColumn, rightPanel);
+        mainSplit.setDividerPositions(PANEL_OPEN);
+        return mainSplit;
     }
 
-    private Pane buildVisualPane() {
-        VBox center = new VBox(10);
-
-        VBox spectrumBox = new VBox(
-                6,
-                sectionTitle("Spectrum"),
-                spectrumPane,
-                buildTuningStrip()
-        );
-
-        VBox waterfallBox = new VBox(
-                6,
-                sectionTitle("Waterfall"),
-                waterfallPane
-        );
-
-        spectrumPane.setPrefHeight(210);
-        spectrumPane.setMinHeight(180);
-
-        waterfallPane.setPrefHeight(260);
-        waterfallPane.setMinHeight(180);
-
-        VBox.setVgrow(spectrumPane, Priority.ALWAYS);
-        VBox.setVgrow(waterfallPane, Priority.ALWAYS);
-
-        center.getChildren().addAll(spectrumBox, waterfallBox);
-        VBox.setVgrow(spectrumBox, Priority.ALWAYS);
-        VBox.setVgrow(waterfallBox, Priority.ALWAYS);
-
-        return center;
+    private Pane buildFreqRuler() {
+        Canvas canvas = new Canvas(800, 20);
+        Pane wrapper = new Pane(canvas);
+        wrapper.getStyleClass().add("jd-ruler");
+        wrapper.setPrefHeight(20);
+        wrapper.setMaxHeight(20);
+        wrapper.widthProperty().addListener((obs, o, w) -> {
+            canvas.setWidth(w.doubleValue());
+            drawFreqRuler(canvas);
+        });
+        return wrapper;
     }
 
-    private Pane buildTuningStrip() {
-        Label offsetTitle = new Label("Audio Peak Offset:");
-        offsetTitle.setStyle("-fx-font-weight: bold;");
-        offsetLabel.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 13px;");
+    private void drawFreqRuler(Canvas c) {
+        if (c.getWidth() == 0) return;
+        double w = c.getWidth(), h = c.getHeight();
+        GraphicsContext gc = c.getGraphicsContext2D();
 
-        Label hintTitle = new Label("Tuning:");
-        hintTitle.setStyle("-fx-font-weight: bold;");
-        tuningHintLabel.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 13px;");
+        gc.setFill(Color.web(darkTheme ? "#1a1a1a" : "#f4f4f4"));
+        gc.fillRect(0, 0, w, h);
 
-        HBox box = new HBox(14, offsetTitle, offsetLabel, new Separator(), hintTitle, tuningHintLabel);
-        box.setAlignment(Pos.CENTER_LEFT);
-        box.setPadding(new Insets(8));
-        box.setStyle(
-                "-fx-background-color: #f8f8f8;" +
-                "-fx-border-color: #d8d8d8;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
-        );
-        return box;
+        String tickColor  = darkTheme ? "#3a5a7a" : "#9ab4d0";
+        String labelColor = darkTheme ? "#888888" : "#666666";
+        gc.setFont(Font.font("monospace", 8));
+
+        int[] ticks = {0,250,500,750,1000,1250,1500,1750,2000,
+                        2250,2500,2750,3000,3250,3500,3750,4000};
+        for (int hz : ticks) {
+            double x = (hz / 4000.0) * w;
+            boolean major = hz % 1000 == 0;
+            gc.setStroke(Color.web(major ? tickColor : (darkTheme ? "#2a3a4a" : "#ccd8e8")));
+            gc.setLineWidth(0.5);
+            gc.strokeLine(x, 0, x, major ? 10 : 5);
+            if (major) {
+                gc.setFill(Color.web(labelColor));
+                gc.fillText(hz == 0 ? "0" : (hz / 1000) + "k", x + 2, h - 1);
+            }
+        }
     }
 
-    private Pane buildRightPane(Stage stage) {
-        VBox pane = new VBox(
-                12,
-                buildMetricsCard(),
-                buildRttyCard(),
-                buildTxCard(stage),
-                buildDraftCard(),
-                buildLogOptionsCard()
+    // ── RX pane ──────────────────────────────────────────────────────
+
+    private VBox buildRxPane() {
+        rxArea.setEditable(false);
+        rxArea.setWrapText(false);
+        rxArea.setFont(Font.font("monospace", 13));
+        rxArea.getStyleClass().add("rx-area");
+
+        rx_peak.getStyleClass().add("jd-rx-sub");
+        rx_afc.getStyleClass().add("jd-rx-sub");
+        autoScrollBox.setSelected(true);
+        autoScrollBox.getStyleClass().add("cockpit-check");
+
+        clearRxBtn.getStyleClass().add("tb-btn");
+        sendToLogBtn.getStyleClass().add("secondary-button");
+        clearRxBtn.setOnAction(e  -> { rxArea.clear(); lastDecodeLine = ""; });
+        sendToLogBtn.setOnAction(e -> sendToLog());
+
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        HBox header = new HBox(10,
+            panelTitle("RECEIVE"), tbSep(),
+            rx_snr, rx_peak, rx_afc,
+            sp,
+            autoScrollBox, clearRxBtn, sendToLogBtn
         );
-        pane.setPadding(new Insets(0, 0, 0, 10));
-        pane.setPrefWidth(320);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(4, 8, 4, 8));
+        header.getStyleClass().add("jd-rx-header");
+
+        VBox pane = new VBox(0, header, rxArea);
+        VBox.setVgrow(rxArea, Priority.ALWAYS);
         return pane;
     }
 
-    private Pane buildMetricsCard() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
+    // ── TX pane ──────────────────────────────────────────────────────
 
-        addMetricRow(grid, 0, "RMS", rmsLabel);
-        addMetricRow(grid, 1, "Peak", peakLabel);
-        addMetricRow(grid, 2, "SNR", snrLabel);
+    private VBox buildTxPane() {
+        txArea.setWrapText(true);
+        txArea.setFont(Font.font("monospace", 13));
+        txArea.setPromptText("Enter text to transmit…");
+        txArea.getStyleClass().add("tx-area");
+        txArea.textProperty().addListener((obs, o, n) ->
+            txCharCount.setText(n.length() + " ch"));
 
-        VBox card = new VBox(8, sectionTitle("Live Metrics"), grid);
-        card.setPadding(new Insets(10));
-        card.setStyle(
-                "-fx-background-color: #f8f8f8;" +
-                "-fx-border-color: #d8d8d8;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
+        txStateLabel.setFont(Font.font("monospace", FontWeight.BOLD, 10));
+        txCharCount.setStyle("-fx-font-family: monospace; -fx-font-size: 11;");
+        txCharCount.getStyleClass().add("jd-rx-sub");
+
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        HBox header = new HBox(10,
+            panelTitle("TRANSMIT"), tbSep(),
+            txStateLabel, sp, txCharCount
         );
-        return card;
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(4, 8, 4, 8));
+        header.getStyleClass().add("jd-tx-header");
+
+        VBox pane = new VBox(0, header, txArea);
+        VBox.setVgrow(txArea, Priority.ALWAYS);
+        return pane;
     }
 
-    private Pane buildRttyCard() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
+    // ================================================================
+    // Status bar
+    // ================================================================
 
-        addMetricRow(grid, 0, "Mark", rttyMarkLabel);
-        addMetricRow(grid, 1, "Space", rttySpaceLabel);
-        addMetricRow(grid, 2, "Dominance", rttyDomLabel);
+    private HBox buildStatusBar() {
+        Label sbCall = new Label();
+        sbCall.textProperty().bind(callsignLabel.textProperty());
+        sbCall.getStyleClass().add("jd-callsign");
+        sbCall.setStyle("-fx-font-weight: bold;");
 
-        rttyCard = new VBox(8, sectionTitle("RTTY Diagnostics"), grid);
-        rttyCard.setPadding(new Insets(10));
-        rttyCard.setStyle(
-                "-fx-background-color: #f8f8f8;" +
-                "-fx-border-color: #d8d8d8;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
+        HBox bar = new HBox(0,
+            sbItem(sbCall,   null),
+            sbItem(sb_snr,   null),
+            sbItem(sb_peak,  null),
+            sbItem(sb_mode,  "MODE"),
+            sbItem(sb_audio, null),
+            sbItem(sb_hub,   null)
         );
-        return rttyCard;
+        bar.setAlignment(Pos.CENTER_LEFT);
+        bar.setStyle("-fx-font-family: monospace; -fx-font-size: 11;");
+        bar.setMinHeight(24);
+        bar.setMaxHeight(24);
+        bar.getStyleClass().add("jd-statusbar");
+        return bar;
     }
 
-    private Pane buildTxCard(Stage stage) {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
+    // ================================================================
+    // Service wiring
+    // ================================================================
 
-        addMetricRow(grid, 0, "State", txStateLabel);
-        addMetricRow(grid, 1, "Mode", txModeLabel);
-        addMetricRow(grid, 2, "Preview", txPreviewLabel);
+    private void wireService() {
+        service.setSpectrumListener(snap -> {
+            spectrumPane.update(snap);
+            waterfallPane.update(snap);
+            spectrumPane.setPeakFrequencyHz(snap.getPeakFrequencyHz());
+        });
+        service.setDecodeListener(this::onDecodeReceived);
+        service.setStatusListener(this::onStatusUpdate);
+        service.setRotorListener(this::onRotorUpdate);
 
-        HBox buttonRow = new HBox(10, transmitButton, cancelTxButton, saveTxWavButton);
-        buttonRow.setAlignment(Pos.CENTER_LEFT);
+        service.setStationListener(parts -> Platform.runLater(() -> {
+            String call = parts.length > 0 ? parts[0] : "NOCALL";
+            String grid = parts.length > 1 ? parts[1] : "";
+            callsignLabel.setText(call);
+            gridLabel.setText(grid);
+            rightPanel.getLogEntryPane().setStationCallsign(call);
+        }));
 
-        VBox card = new VBox(
-                8,
-                sectionTitle("Transmit"),
-                new Label("TX Text"),
-                txTextArea,
-                buttonRow,
-                new Separator(),
-                grid
-        );
-        card.setPadding(new Insets(10));
-        card.setStyle(
-                "-fx-background-color: #f8f8f8;" +
-                "-fx-border-color: #d8d8d8;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
-        );
-        return card;
+        service.setSpotSelectedListener(spot ->
+            Platform.runLater(() -> rightPanel.onHubSpotSelected(spot)));
     }
 
-    private Pane buildDraftCard() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
-
-        addMetricRow(grid, 0, "Callsign", draftCallsignLabel);
-        addMetricRow(grid, 1, "Exchange", draftExchangeLabel);
-        addMetricRow(grid, 2, "Band", draftBandLabel);
-        addMetricRow(grid, 3, "Freq", draftFreqLabel);
-
-        VBox card = new VBox(8, sectionTitle("Log Draft Preview"), grid);
-        card.setPadding(new Insets(10));
-        card.setStyle(
-                "-fx-background-color: #f8f8f8;" +
-                "-fx-border-color: #d8d8d8;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
-        );
-        return card;
+    private void wireToggleButtons() {
+        afcBtn.setOnAction(e -> {
+            boolean on = afcBtn.isSelected();
+            rx_afc.setStyle("-fx-text-fill: " + (on ? accent() : sub()) + ";");
+        });
     }
 
-    private Pane buildLogOptionsCard() {
-        VBox card = new VBox(10, sectionTitle("Log View"), autoScrollBox, logCountLabel);
-        card.setPadding(new Insets(10));
-        card.setStyle(
-                "-fx-background-color: #f8f8f8;" +
-                "-fx-border-color: #d8d8d8;" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
-        );
-        return card;
+    private void onDecodeReceived(String line) {
+        if (line == null || line.isBlank()) return;
+        if (sqlBtn.isSelected() && !line.contains(callsignLabel.getText())) return;
+        rxArea.appendText(line + System.lineSeparator());
+        lastDecodeLine = line;
+        if (autoScrollBox.isSelected())
+            rxArea.positionCaret(rxArea.getText().length());
     }
 
-    private void addMetricRow(GridPane grid, int row, String name, Label value) {
-        Label key = new Label(name + ":");
-        key.setStyle("-fx-font-weight: bold;");
-        value.setStyle("-fx-font-family: 'Consolas';");
-        value.setMaxWidth(220);
-        grid.add(key, 0, row);
-        grid.add(value, 1, row);
-    }
+    private void onStatusUpdate(ModemStatus st) {
+        lastStatus = st;
 
-    private Pane buildDecodePane() {
-        VBox box = new VBox(6, sectionTitle("Decoded / Event Log"), decodeArea);
-        box.setPadding(new Insets(4, 0, 0, 0));
-        decodeArea.setMinHeight(160);
-        VBox.setVgrow(decodeArea, Priority.ALWAYS);
-        return box;
-    }
+        boolean hubOk    = st.isHubConnected();
+        boolean audioOk  = st.isAudioRunning();
+        boolean txActive = st.isTransmitting();
 
-    private Label sectionTitle(String text) {
-        Label label = new Label(text);
-        label.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-        return label;
-    }
+        // Indicator dots
+        hubDot.setFill(hubOk  ? Color.web(ok())  : Color.web(err()));
+        rxDot.setFill(audioOk ? Color.web(ok())  : Color.web(sub()));
+        TxState txState = st.getTxState() != null ? st.getTxState() : TxState.IDLE;
+        txDot.setFill(switch (txState) {
+            case TRANSMITTING       -> Color.web(err());
+            case STARTING, STOPPING -> Color.web(warn());
+            case COMPLETE           -> Color.web(ok());
+            default                 -> Color.web(sub());
+        });
 
-    private void appendLogLine(String line) {
-        if (line == null || line.isBlank()) {
-            return;
-        }
-
-        decodeArea.appendText(line + System.lineSeparator());
-        lastNonEmptyDecodeLine = line;
-
-        updateDraftPreview(line);
-
-        if (autoScrollBox.isSelected()) {
-            decodeArea.positionCaret(decodeArea.getText().length());
-        }
-        updateLogCount();
-    }
-
-    private void updateLogCount() {
-        String text = decodeArea.getText();
-        if (text == null || text.isEmpty()) {
-            logCountLabel.setText("0 lines");
-            return;
-        }
-
-        int lines = text.split("\\R", -1).length;
-        if (text.endsWith("\n") || text.endsWith("\r")) {
-            lines -= 1;
-        }
-        if (lines < 0) {
-            lines = 0;
-        }
-
-        logCountLabel.setText(lines + " line" + (lines == 1 ? "" : "s"));
-    }
-
-    private void updateStatus(ModemStatus status) {
-        lastStatus = status;
-
-        boolean connected = status.isHubConnected();
-        hubStatusDot.setFill(connected ? Color.LIMEGREEN : Color.RED);
-
-        hubLabel.setText(connected ? "Connected" : "Disconnected");
-        audioLabel.setText(status.isAudioRunning() ? "Running" : "Stopped");
-        modeLabel.setText(String.valueOf(status.getMode()));
-        rigFreqLabel.setText(status.getRigFrequencyHz() > 0 ? status.getRigFrequencyHz() + " Hz" : "--");
-        rigModeLabel.setText(
-                status.getRigMode() != null && !status.getRigMode().isBlank()
-                        ? status.getRigMode()
-                        : "--"
-        );
-
-        rmsLabel.setText("%.4f".formatted(status.getRms()));
-        peakLabel.setText("%.1f Hz".formatted(status.getPeakFrequencyHz()));
-        snrLabel.setText("%.1f dB".formatted(status.getSnr()));
-
-        rttyMarkLabel.setText("%.3f".formatted(status.getRttyMarkPower()));
-        rttySpaceLabel.setText("%.3f".formatted(status.getRttySpacePower()));
-        rttyDomLabel.setText("%.2f".formatted(status.getRttyDominance()));
-
-        rttyReverseBox.setSelected(status.isRttyReverse());
-
-        if (modeBox.getValue() != status.getMode()) {
-            modeBox.setValue(status.getMode());
-            updateModeControls(status.getMode());
-        }
-
-        updateTxState(status);
-
-        if (lastNonEmptyDecodeLine != null && !lastNonEmptyDecodeLine.isBlank()) {
-            updateDraftPreview(lastNonEmptyDecodeLine);
-        }
-    }
-
-    private void updateTxState(ModemStatus status) {
-        TxState state = status.getTxState();
-        if (state == null) {
-            state = TxState.IDLE;
-        }
-
-        txStateLabel.setText(status.getTxStatusText() != null && !status.getTxStatusText().isBlank()
-                ? status.getTxStatusText()
-                : state.name());
-
-        txModeLabel.setText(status.getTxMode() != null ? status.getTxMode().name() : "--");
-
-        String preview = status.getTxTextPreview();
-        txPreviewLabel.setText(preview != null && !preview.isBlank() ? preview : "--");
-
-        boolean active = status.isTransmitting();
-        transmitButton.setDisable(active);
-        cancelTxButton.setDisable(!active);
-        saveTxWavButton.setDisable(active);
-        modeBox.setDisable(active);
-
-        switch (state) {
-            case TRANSMITTING -> txStatusDot.setFill(Color.RED);
-            case STARTING, STOPPING -> txStatusDot.setFill(Color.ORANGE);
-            case COMPLETE -> txStatusDot.setFill(Color.LIMEGREEN);
-            case CANCELLED -> txStatusDot.setFill(Color.DARKGRAY);
-            case ERROR -> txStatusDot.setFill(Color.DARKRED);
-            default -> txStatusDot.setFill(Color.DARKGRAY);
-        }
-    }
-
-    private void updateModeControls(ModeType mode) {
-        boolean isRtty = mode == ModeType.RTTY;
-        rttyReverseBox.setDisable(!isRtty);
-        if (rttyCard != null) {
-            rttyCard.setVisible(isRtty);
-            rttyCard.setManaged(isRtty);
-        }
-        String prompt = switch (mode) {
-            case RTTY     -> "Enter text to transmit as RTTY";
-            case PSK31    -> "Enter text to transmit as PSK31";
-            case CW       -> "Enter text to transmit as CW";
-            case OLIVIA   -> "Enter text to transmit as Olivia";
-            case MFSK16   -> "Enter text to transmit as MFSK16";
-            case DOMINOEX -> "Enter text to transmit as DominoEX";
-            case AX25     -> "Enter AX.25 packet text";
+        // TX state label
+        String stateTxt = switch (txState) {
+            case TRANSMITTING -> "TRANSMITTING";
+            case STARTING     -> "STARTING…";
+            case STOPPING     -> "STOPPING…";
+            case COMPLETE     -> "COMPLETE";
+            default           -> "IDLE";
         };
-        txTextArea.setPromptText(prompt);
-    }
+        txStateLabel.setText(stateTxt);
+        txStateLabel.setStyle(
+            "-fx-font-family: monospace; -fx-font-size: 10; -fx-font-weight: bold;" +
+            "-fx-text-fill: " + (txActive ? err() : sub()) + ";");
 
-    private void updateTuningStrip(double peakHz) {
-        offsetLabel.setText("%.1f Hz".formatted(peakHz));
+        // Frequency
+        long hz = st.getRigFrequencyHz();
+        freqLabel.setText(hz > 0 ? formatFreq(hz) : "——  ———  ———");
+        double audioHz = st.getPeakFrequencyHz();
+        audioOffLabel.setText(audioHz > 0 ? "%.0f Hz".formatted(audioHz) : "——— Hz");
+        modeTag.setText(st.getRigMode() != null && !st.getRigMode().isBlank()
+                        ? st.getRigMode() : "---");
 
-        ModeType mode = modeBox.getValue();
-        String hint;
+        // SNR
+        double snr = st.getSnr();
+        drawSnrBar(snr);
+        String snrColor = snr > 20 ? err() : snr > 10 ? warn() : teal();
+        rx_snr.setStyle("-fx-font-family: monospace; -fx-font-size: 9; -fx-text-fill: " + snrColor + ";");
+        rx_snr.setText("SNR %.1fdB".formatted(snr));
+        rx_peak.setText("Pk %.0fHz".formatted(audioHz));
 
-        if (peakHz <= 0.0) {
-            hint = "No signal";
-        } else if (mode == ModeType.RTTY) {
-            hint = rttyHint(peakHz);
-        } else if (mode == ModeType.PSK31) {
-            hint = pskHint(peakHz);
-        } else if (mode == ModeType.AX25) {
-            hint = ax25Hint(peakHz);
-        } else if (mode == ModeType.CW) {
-            hint = cwHint(peakHz);
-        } else if (mode == ModeType.OLIVIA) {
-            hint = oliviaHint(peakHz);
-        } else if (mode == ModeType.MFSK16) {
-            hint = mfsk16Hint(peakHz);
-        } else if (mode == ModeType.DOMINOEX) {
-            hint = dominoExHint(peakHz);
-        } else {
-            hint = "Monitor signal";
+        // Status bar
+        sb_snr.setText("SNR %.1f".formatted(snr));
+        sb_peak.setText("%.0fHz".formatted(audioHz));
+        sb_mode.setText(st.getMode() != null ? st.getMode().name() : "—");
+        sb_audio.setText(audioOk ? "Audio ●" : "Audio ○");
+        sb_audio.setStyle("-fx-text-fill: " + (audioOk ? ok() : err()) + ";");
+        sb_hub.setText(hubOk ? "Hub ●" : "Hub ○");
+        sb_hub.setStyle("-fx-text-fill: " + (hubOk ? ok() : err()) + ";");
+
+        // Button states
+        transmitBtn.setDisable(txActive);
+        cancelBtn.setDisable(!txActive);
+        saveTxWavBtn.setDisable(txActive);
+        modeBox.setDisable(txActive);
+
+        if (st.getMode() != null && modeBox.getValue() != st.getMode()) {
+            modeBox.setValue(st.getMode());
+            updateTxPrompt(st.getMode());
         }
-
-        tuningHintLabel.setText(hint);
-        spectrumPane.setStatusMode(mode);
-        spectrumPane.setPeakFrequencyHz(peakHz);
+        spectrumPane.setStatusMode(st.getMode());
     }
 
-    private String rttyHint(double peakHz) {
-        double markError = Math.abs(peakHz - 2125.0);
-        double spaceError = Math.abs(peakHz - 2295.0);
-        double nearest = Math.min(markError, spaceError);
-
-        if (nearest < 25.0) return "Well tuned";
-        if (nearest < 80.0) return "Close - fine tune";
-        return "Far off expected RTTY tones";
+    private void onRotorUpdate(RotorStatus rotor) {
+        Platform.runLater(() ->
+            rotorLabel.setText("%.0f°".formatted(rotor.bearing)));
     }
 
-    private String pskHint(double peakHz) {
-        if (peakHz >= 400.0 && peakHz <= 2500.0) return "Usable PSK audio range";
-        return "Peak outside normal PSK audio range";
+    // ================================================================
+    // Mode selector
+    // ================================================================
+
+    private void wireModeBox() {
+        modeBox.setOnAction(e -> {
+            service.setMode(modeBox.getValue());
+            updateTxPrompt(modeBox.getValue());
+        });
     }
 
-    private String ax25Hint(double peakHz) {
-        double e1 = Math.abs(peakHz - 1200.0);
-        double e2 = Math.abs(peakHz - 2200.0);
-        double nearest = Math.min(e1, e2);
-
-        if (nearest < 40.0) return "Near Bell 202 tones";
-        if (nearest < 120.0) return "Close to AX.25 tones";
-        return "Far from Bell 202 tones";
+    private void updateTxPrompt(ModeType mode) {
+        if (mode == null) return;
+        txArea.setPromptText("Enter text to transmit as " + mode.name() + "…");
     }
 
-    private String cwHint(double peakHz) {
-        double error = Math.abs(peakHz - 700.0);
-        if (error < 30.0) return "Near CW carrier (700 Hz)";
-        if (error < 100.0) return "Close - fine tune to 700 Hz";
-        if (peakHz >= 300.0 && peakHz <= 1500.0) return "Signal present - tune to 700 Hz";
-        return "Peak outside CW audio range";
+    // ================================================================
+    // Panel toggle
+    // ================================================================
+
+    private void toggleRightPanel() {
+        rightPanelVisible = !rightPanelVisible;
+        mainSplit.setDividerPositions(rightPanelVisible ? PANEL_OPEN : PANEL_CLOSE);
     }
 
-    private String oliviaHint(double peakHz) {
-        double error = Math.abs(peakHz - 1500.0);
-        if (error < 50.0) return "Well centered for Olivia";
-        if (error < 200.0) return "Close to Olivia center (1500 Hz)";
-        return "Center signal on 1500 Hz for Olivia";
+    private void showRightPanel() {
+        rightPanelVisible = true;
+        mainSplit.setDividerPositions(PANEL_OPEN);
     }
 
-    private String mfsk16Hint(double peakHz) {
-        if (peakHz >= 1350.0 && peakHz <= 1680.0) return "Within MFSK16 tone range";
-        double error = Math.abs(peakHz - 1500.0);
-        if (error < 200.0) return "Near MFSK16 range - center on 1500 Hz";
-        return "Center signal on 1500 Hz for MFSK16";
+    // ================================================================
+    // Transmit helpers
+    // ================================================================
+
+    private void configureTextAreas() {
+        rxArea.setPrefRowCount(14);
+        txArea.setPrefRowCount(5);
     }
 
-    private String dominoExHint(double peakHz) {
-        double error = Math.abs(peakHz - 1500.0);
-        if (error < 80.0) return "Well centered for DominoEX";
-        if (error < 200.0) return "Close to DominoEX center (1500 Hz)";
-        return "Center signal on 1500 Hz for DominoEX";
+    private void saveTxWav(Stage stage) {
+        String text = txArea.getText();
+        if (text == null || text.isBlank()) return;
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Save TX WAV");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("WAV (*.wav)", "*.wav"));
+        fc.setInitialFileName(modeBox.getValue().name().toLowerCase() + "_tx.wav");
+        File f = fc.showSaveDialog(stage);
+        if (f == null) return;
+        try {
+            service.saveTransmitWav(text, f.toPath());
+        } catch (Exception ex) {
+            onDecodeReceived("[ERR] WAV: " + ex.getMessage());
+        }
     }
+
+    // ================================================================
+    // Send-to-log
+    // ================================================================
+
+    private void sendToLog() {
+        String source = rxArea.getSelectedText();
+        if (source == null || source.isBlank()) source = lastDecodeLine;
+        if (source == null || source.isBlank()) return;
+
+        String call = extractCallsign(source);
+        long   hz   = lastStatus != null ? lastStatus.getRigFrequencyHz() : 0L;
+        String band = hz > 0 ? bandFromHz(hz) : "";
+        String mode = modeBox.getValue() != null ? modeBox.getValue().name() : "RTTY";
+
+        service.sendLogDraft(call, mode, band, hz, "599", "599",
+                             extractExchange(source, call), source, 0.0);
+        rightPanel.getLogEntryPane().prefillCallsign(call);
+        showRightPanel();
+        rightPanel.showLogTab();
+    }
+
+    private String extractCallsign(String text) {
+        Matcher m = CALLSIGN_RE.matcher(text.toUpperCase());
+        while (m.find()) {
+            String c = m.group(1);
+            if (c.chars().anyMatch(Character::isDigit)
+                    && c.chars().anyMatch(Character::isLetter))
+                return c;
+        }
+        return "";
+    }
+
+    private String extractExchange(String text, String callsign) {
+        String s = text.toUpperCase();
+        if (!callsign.isBlank()) s = s.replace(callsign, " ");
+        s = s.replaceAll("\\b(CQ|DE|TEST|QRZ|K)\\b", " ");
+        return s.replaceAll("\\s+", " ").trim();
+    }
+
+    // ================================================================
+    // Setup dialog
+    // ================================================================
 
     private void showSetupDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Setup");
-        dialog.setHeaderText("Modem Setup");
+        dialog.setTitle("J-Digi Setup");
+        dialog.setHeaderText(null);
 
-        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+        ButtonType saveType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveType, ButtonType.CANCEL);
 
-        TextField hubUrlField = new TextField(service.getHubUrl());
-        hubUrlField.setPrefWidth(420);
+        TextField hubField = new TextField(service.getHubUrl());
 
-        List<AudioEngine.AudioInputDevice> inputDevices = service.getAvailableAudioInputDevices();
-        ComboBox<AudioEngine.AudioInputDevice> audioInputBox =
-                new ComboBox<>(FXCollections.observableArrayList(inputDevices));
-        audioInputBox.setPrefWidth(420);
+        List<AudioEngine.AudioInputDevice> inputs = service.getAvailableAudioInputDevices();
+        ComboBox<AudioEngine.AudioInputDevice> inputBox =
+            new ComboBox<>(FXCollections.observableArrayList(inputs));
+        String curInput = service.getSelectedAudioInputDevice();
+        inputs.stream().filter(d -> d.id().equals(curInput)).findFirst()
+              .ifPresent(inputBox::setValue);
+        if (inputBox.getValue() == null && !inputs.isEmpty()) inputBox.setValue(inputs.get(0));
 
-        String selectedInputId = service.getSelectedAudioInputDevice();
-        for (AudioEngine.AudioInputDevice device : inputDevices) {
-            if (device.id().equals(selectedInputId)) {
-                audioInputBox.setValue(device);
-                break;
-            }
-        }
-        if (audioInputBox.getValue() == null && !inputDevices.isEmpty()) {
-            audioInputBox.setValue(inputDevices.get(0));
-        }
-
-        List<AudioTxEngine.AudioOutputDevice> outputDevices = service.getAvailableAudioOutputDevices();
-        ComboBox<AudioTxEngine.AudioOutputDevice> audioOutputBox =
-                new ComboBox<>(FXCollections.observableArrayList(outputDevices));
-        audioOutputBox.setPrefWidth(420);
-
-        String selectedOutputId = service.getSelectedAudioOutputDevice();
-        for (AudioTxEngine.AudioOutputDevice device : outputDevices) {
-            if (device.id().equals(selectedOutputId)) {
-                audioOutputBox.setValue(device);
-                break;
-            }
-        }
-        if (audioOutputBox.getValue() == null && !outputDevices.isEmpty()) {
-            audioOutputBox.setValue(outputDevices.get(0));
-        }
+        List<AudioTxEngine.AudioOutputDevice> outputs = service.getAvailableAudioOutputDevices();
+        ComboBox<AudioTxEngine.AudioOutputDevice> outputBox =
+            new ComboBox<>(FXCollections.observableArrayList(outputs));
+        String curOutput = service.getSelectedAudioOutputDevice();
+        outputs.stream().filter(d -> d.id().equals(curOutput)).findFirst()
+               .ifPresent(outputBox::setValue);
+        if (outputBox.getValue() == null && !outputs.isEmpty()) outputBox.setValue(outputs.get(0));
 
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(10); grid.setVgap(10);
         grid.setPadding(new Insets(10));
+        int r = 0;
+        grid.add(new Label("Hub WebSocket URL:"), 0, r); grid.add(hubField,  1, r++);
+        grid.add(new Label("Audio Input:"),       0, r); grid.add(inputBox,  1, r++);
+        grid.add(new Label("Audio Output:"),      0, r); grid.add(outputBox, 1, r);
+        hubField.setPrefWidth(360);
+        inputBox.setPrefWidth(360);
+        outputBox.setPrefWidth(360);
 
-        grid.add(new Label("Hub WebSocket URL:"), 0, 0);
-        grid.add(hubUrlField, 1, 0);
+        Label hint = new Label("Callsign and macros are managed in J-Hub → http://hub:8081");
+        hint.setStyle("-fx-font-style: italic; -fx-font-size: 11;");
+        hint.getStyleClass().add("jd-rx-sub");
 
-        grid.add(new Label("Audio Input Device:"), 0, 1);
-        grid.add(audioInputBox, 1, 1);
-
-        grid.add(new Label("TX Output Device:"), 0, 2);
-        grid.add(audioOutputBox, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().setContent(new VBox(10, grid, hint));
 
         dialog.showAndWait().ifPresent(result -> {
-            if (result == saveButtonType) {
-                service.reconnectHubFromSetup(hubUrlField.getText().trim());
-
-                AudioEngine.AudioInputDevice selectedInput = audioInputBox.getValue();
-                if (selectedInput != null) {
-                    service.setAudioInputDevice(selectedInput.id());
-                }
-
-                AudioTxEngine.AudioOutputDevice selectedOutput = audioOutputBox.getValue();
-                if (selectedOutput != null) {
-                    service.setAudioOutputDevice(selectedOutput.id());
-                }
+            if (result == saveType) {
+                service.reconnectHubFromSetup(hubField.getText().trim());
+                AudioEngine.AudioInputDevice selIn = inputBox.getValue();
+                if (selIn != null) service.setAudioInputDevice(selIn.id());
+                AudioTxEngine.AudioOutputDevice selOut = outputBox.getValue();
+                if (selOut != null) service.setAudioOutputDevice(selOut.id());
             }
         });
     }
 
-    private void saveTxWav(Stage stage) {
-        String text = txTextArea.getText();
-        if (text == null || text.isBlank()) {
-            appendLogLine("No TX text entered");
-            return;
-        }
+    // ================================================================
+    // Visual helpers
+    // ================================================================
 
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save TX WAV");
-        chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("WAV Audio (*.wav)", "*.wav")
-        );
-        chooser.setInitialFileName(defaultTxFilename());
-
-        File file = chooser.showSaveDialog(stage);
-        if (file == null) {
-            return;
-        }
-
-        try {
-            service.saveTransmitWav(text, file.toPath());
-        } catch (Exception e) {
-            appendLogLine("Save TX WAV failed: " + e.getMessage());
-        }
+    /** Wraps content in a labeled bezel box. CSS class controls all colors. */
+    private VBox bezel(String sectionName, javafx.scene.Node content) {
+        Label lbl = instLabel(sectionName);
+        VBox box = new VBox(3, lbl, content);
+        box.setAlignment(Pos.TOP_LEFT);
+        box.setPadding(new Insets(4, 8, 4, 8));
+        box.getStyleClass().add("jd-bezel");
+        return box;
     }
 
-    private String defaultTxFilename() {
-        String mode = modeBox.getValue() != null ? modeBox.getValue().name().toLowerCase() : "tx";
-        return mode + "_tx_test.wav";
+    /** Tiny all-caps section label for bezel headers and dot groups. */
+    private Label instLabel(String text) {
+        Label l = new Label(text);
+        l.getStyleClass().add("jd-inst-label");
+        return l;
     }
 
-    private void sendCurrentDraftToLog() {
-        String selected = decodeArea.getSelectedText();
-        String sourceLine = (selected != null && !selected.isBlank())
-                ? selected.trim()
-                : lastNonEmptyDecodeLine;
+    /** RECEIVE / TRANSMIT nameplate label. */
+    private Label panelTitle(String text) {
+        Label l = new Label(text);
+        l.getStyleClass().add("jd-panel-title");
+        return l;
+    }
 
-        if (sourceLine == null || sourceLine.isBlank()) {
-            appendLogLine("No decode text available to send");
-            return;
+    /** Indicator dot + label below. */
+    private VBox dotGroup(Circle dot, String label) {
+        dot.setRadius(5);
+        VBox box = new VBox(2, dot, instLabel(label));
+        box.setAlignment(Pos.CENTER);
+        return box;
+    }
+
+    private Separator tbSep() {
+        Separator s = new Separator(Orientation.VERTICAL);
+        s.setPrefHeight(44);
+        return s;
+    }
+
+    private HBox sbItem(Label value, String keyPrefix) {
+        HBox item = new HBox(0);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setPadding(new Insets(0, 10, 0, 10));
+        item.getStyleClass().add("jd-sb-item");
+        item.setMinHeight(24);
+        if (keyPrefix != null) {
+            Label key = new Label(keyPrefix + ": ");
+            key.getStyleClass().add("jd-rx-sub");
+            item.getChildren().addAll(key, value);
+        } else {
+            item.getChildren().add(value);
         }
-
-        String callsign = extractCallsign(sourceLine);
-        String exchange = extractExchange(sourceLine, callsign);
-        String mode = modeBox.getValue() != null ? modeBox.getValue().name() : "RTTY";
-
-        long frequency = (lastStatus != null) ? lastStatus.getRigFrequencyHz() : 0L;
-        String band = frequency > 0 ? bandFromFrequencyHz(frequency) : "";
-        double confidence = 0.0;
-
-        service.sendLogDraft(
-                callsign,
-                mode,
-                band,
-                frequency,
-                "599",
-                "599",
-                exchange,
-                sourceLine,
-                confidence
-        );
-
-        appendLogLine("Sent log draft: " +
-                (callsign.isBlank() ? "<no callsign>" : callsign) +
-                (exchange.isBlank() ? "" : " / " + exchange));
+        return item;
     }
 
-    private void updateDraftPreview(String line) {
-        if (line == null || line.isBlank()) {
-            clearDraftPreview();
-            return;
-        }
+    /** Segmented VU-meter bar — segment colors are theme-aware. */
+    private void drawSnrBar(double snrDb) {
+        GraphicsContext gc = snrCanvas.getGraphicsContext2D();
+        double w = snrCanvas.getWidth(), h = snrCanvas.getHeight();
+        int    segs    = 22;
+        double segW    = (w - segs + 1.0) / segs;
+        double fill    = Math.min(1.0, Math.max(0, snrDb / 30.0));
+        int    litSegs = (int) (fill * segs);
 
-        String callsign = extractCallsign(line);
-        String exchange = extractExchange(line, callsign);
-        long frequency = lastStatus != null ? lastStatus.getRigFrequencyHz() : 0L;
-        String band = frequency > 0 ? bandFromFrequencyHz(frequency) : "";
+        gc.setFill(Color.web(darkTheme ? "#1a1a1a" : "#e8eef8"));
+        gc.fillRect(0, 0, w, h);
 
-        draftCallsignLabel.setText(callsign.isBlank() ? "--" : callsign);
-        draftExchangeLabel.setText(exchange.isBlank() ? "--" : exchange);
-        draftBandLabel.setText(band.isBlank() ? "--" : band);
-        draftFreqLabel.setText(frequency > 0 ? String.valueOf(frequency) : "--");
-    }
-
-    private void clearDraftPreview() {
-        draftCallsignLabel.setText("--");
-        draftExchangeLabel.setText("--");
-        draftBandLabel.setText("--");
-        draftFreqLabel.setText("--");
-    }
-
-    private String extractCallsign(String text) {
-        String upper = text.toUpperCase();
-        Matcher m = CALLSIGN_PATTERN.matcher(upper);
-
-        while (m.find()) {
-            String candidate = m.group(1);
-            if (looksLikeCallsign(candidate)) {
-                return candidate;
+        for (int i = 0; i < segs; i++) {
+            double x = i * (segW + 1.0);
+            boolean lit = i < litSegs;
+            String color;
+            if (i < segs * 0.55) {
+                color = lit ? (darkTheme ? "#80cbc4" : "#00897b")
+                            : (darkTheme ? "#0d2a28" : "#c8e6e2");
+            } else if (i < segs * 0.82) {
+                color = lit ? (darkTheme ? "#80deea" : "#0277bd")
+                            : (darkTheme ? "#0d2030" : "#c8dff0");
+            } else {
+                color = lit ? (darkTheme ? "#ef9a9a" : "#c62828")
+                            : (darkTheme ? "#2a0d0d" : "#f0c8c8");
             }
+            gc.setFill(Color.web(color));
+            gc.fillRect(x, 0, segW, h);
         }
+    }
+
+    private String formatFreq(long hz) {
+        return "%d  %03d  %03d".formatted(hz / 1_000_000, (hz % 1_000_000) / 1_000, hz % 1_000);
+    }
+
+    private String bandFromHz(long hz) {
+        long k = hz / 1000;
+        if (k >= 1800  && k <= 2000)    return "160m";
+        if (k >= 3500  && k <= 4000)    return "80m";
+        if (k >= 7000  && k <= 7300)    return "40m";
+        if (k >= 10100 && k <= 10150)   return "30m";
+        if (k >= 14000 && k <= 14350)   return "20m";
+        if (k >= 18068 && k <= 18168)   return "17m";
+        if (k >= 21000 && k <= 21450)   return "15m";
+        if (k >= 24890 && k <= 24990)   return "12m";
+        if (k >= 28000 && k <= 29700)   return "10m";
+        if (k >= 50000 && k <= 54000)   return "6m";
+        if (k >= 144000 && k <= 148000) return "2m";
+        if (k >= 420000 && k <= 450000) return "70cm";
         return "";
     }
 
-    private boolean looksLikeCallsign(String candidate) {
-        if (candidate == null || candidate.length() < 3) return false;
-        return candidate.chars().anyMatch(Character::isDigit)
-                && candidate.chars().anyMatch(Character::isLetter);
-    }
+    // ================================================================
+    // CSS — single combined stylesheet; .dark / .light on root node
+    // controls which theme rules win via descendant-selector specificity.
+    // ================================================================
 
-    private String extractExchange(String text, String callsign) {
-        if (text == null || text.isBlank()) return "";
-        String upper = text.toUpperCase();
-
-        if (callsign != null && !callsign.isBlank()) {
-            upper = upper.replace(callsign, " ");
+    /** Writes the combined CSS file once at startup. */
+    private String buildCombinedStylesheet() {
+        String css = buildCss();
+        try {
+            java.nio.file.Path tmp =
+                java.nio.file.Files.createTempFile("jdigi-theme-", ".css");
+            java.nio.file.Files.writeString(tmp, css);
+            tmp.toFile().deleteOnExit();
+            return tmp.toUri().toString();
+        } catch (Exception e) {
+            // fallback: inline (JavaFX doesn't support data: URIs for stylesheets,
+            // so if this path is taken the app will have no custom styling)
+            return "";
         }
-
-        upper = upper.replaceAll("\\b(CQ|DE|TEST|QRZ|K)\\b", " ");
-        upper = upper.replaceAll("\\s+", " ").trim();
-
-        return upper;
     }
 
-    private String bandFromFrequencyHz(long hz) {
-        long khz = hz / 1000;
-        if (khz >= 1800 && khz <= 2000) return "160m";
-        if (khz >= 3500 && khz <= 4000) return "80m";
-        if (khz >= 5330 && khz <= 5410) return "60m";
-        if (khz >= 7000 && khz <= 7300) return "40m";
-        if (khz >= 10100 && khz <= 10150) return "30m";
-        if (khz >= 14000 && khz <= 14350) return "20m";
-        if (khz >= 18068 && khz <= 18168) return "17m";
-        if (khz >= 21000 && khz <= 21450) return "15m";
-        if (khz >= 24890 && khz <= 24990) return "12m";
-        if (khz >= 28000 && khz <= 29700) return "10m";
-        if (khz >= 50000 && khz <= 54000) return "6m";
-        if (khz >= 144000 && khz <= 148000) return "2m";
-        if (khz >= 420000 && khz <= 450000) return "70cm";
-        return "";
+    private String buildCss() {
+        return
+        // ── Shared structural rules (no colors) ──────────────────────
+        """
+        .root {
+            -fx-font-family: 'DejaVu Sans', 'Liberation Sans', sans-serif;
+            -fx-font-size: 13;
+        }
+        .rx-area, .tx-area { -fx-font-family: monospace; -fx-font-size: 13; }
+
+        .jd-inst-label  { -fx-font-size: 8;  -fx-font-weight: bold; }
+        .jd-panel-title { -fx-font-size: 11; -fx-font-weight: bold; }
+        .jd-freq-display{ -fx-font-family: monospace; -fx-font-size: 26; -fx-font-weight: bold; }
+        .jd-audio-sub   { -fx-font-family: monospace; -fx-font-size: 11; }
+        .jd-grid-label  { -fx-font-family: monospace; -fx-font-size: 10; }
+        .jd-callsign    { -fx-font-family: monospace; -fx-font-size: 18; -fx-font-weight: bold; }
+        .jd-rotor       { -fx-font-family: monospace; -fx-font-size: 18; -fx-font-weight: bold; }
+        .jd-mode-tag    { -fx-font-family: monospace; -fx-font-size: 10; -fx-font-weight: bold;
+                          -fx-padding: 1 6 1 6; -fx-background-radius: 3; -fx-border-radius: 3;
+                          -fx-border-width: 1; }
+        .jd-rx-sub      { -fx-font-family: monospace; -fx-font-size: 10; }
+        .jd-section-label { -fx-font-size: 13; -fx-font-weight: bold; -fx-padding: 2 0 6 0; }
+        .jd-status-label  { -fx-font-style: italic; -fx-font-size: 11; }
+        .jd-entry-pane    { }
+
+        .jd-bezel      { -fx-border-radius: 3; -fx-background-radius: 3; -fx-border-width: 1; }
+        .jd-freq-panel { -fx-border-radius: 3; -fx-background-radius: 3; -fx-border-width: 1; }
+        .jd-rx-header  { -fx-border-width: 0 0 1 0; }
+        .jd-tx-header  { -fx-border-width: 0 0 1 0; }
+        .jd-statusbar  { -fx-border-width: 1 0 0 0; }
+        .jd-toolbar    { -fx-border-width: 0 0 1 0; }
+        .jd-sb-item    { -fx-border-width: 0 1 0 0; }
+
+        .afc-btn, .sql-btn { -fx-font-size: 10; -fx-font-weight: bold;
+                             -fx-border-width: 1; -fx-background-radius: 3; -fx-border-radius: 3;
+                             -fx-padding: 3 8 3 8; }
+        .xmit-btn   { -fx-font-weight: bold; -fx-background-radius: 4;
+                      -fx-border-width: 0; -fx-text-fill: white; }
+        .cancel-btn { -fx-background-radius: 4; -fx-border-width: 1; }
+        .tb-btn     { -fx-font-size: 11; -fx-font-weight: bold;
+                      -fx-background-radius: 4; -fx-border-width: 1;
+                      -fx-padding: 5 12 5 12; }
+        .macro-button, .macro-button-programmable, .macro-button-disabled {
+            -fx-font-size: 11; -fx-min-width: 44px;
+            -fx-padding: 3 6 3 6; -fx-background-radius: 4; }
+        .macro-button-disabled { -fx-opacity: 0.45; }
+        .primary-button   { -fx-background-radius: 4; -fx-font-weight: bold; -fx-text-fill: white; }
+        .secondary-button { -fx-background-radius: 4; }
+        .entry-label      { -fx-font-weight: bold; -fx-font-size: 11; }
+        .cockpit-check .box { -fx-border-width: 1; -fx-background-radius: 3; -fx-border-radius: 3; }
+        """
+        // ── Dark theme — root carries .dark class ────────────────────
+        + """
+        .dark.root {
+            -fx-base: #2b2b2b;
+            -fx-background: #1e1e1e;
+            -fx-control-inner-background: #2d2d2d;
+            -fx-accent: #4fc3f7;
+            -fx-focus-color: #4fc3f7;
+            -fx-faint-focus-color: transparent;
+        }
+        .dark .label { -fx-text-fill: #e0e0e0; }
+        .dark .jd-toolbar    { -fx-background-color: #1a2a3a; -fx-border-color: #555555; }
+        .dark .jd-bezel      { -fx-background-color: #252535; -fx-border-color: #555555; }
+        .dark .jd-freq-panel { -fx-background-color: #1a1a1a; -fx-border-color: #555555; }
+        .dark .jd-ruler      { -fx-background-color: #1a1a1a; }
+        .dark .jd-rx-header  { -fx-background-color: #1a2a4a; -fx-border-color: #555555; }
+        .dark .jd-tx-header  { -fx-background-color: #252535; -fx-border-color: #555555; }
+        .dark .jd-statusbar  { -fx-background-color: #0d1b2a; -fx-border-color: #555555; }
+        .dark .jd-sb-item    { -fx-border-color: #555555; }
+        .dark .jd-callsign   { -fx-text-fill: #4fc3f7; }
+        .dark .jd-grid-label { -fx-text-fill: #888888; }
+        .dark .jd-freq-display { -fx-text-fill: #4fc3f7; }
+        .dark .jd-audio-sub  { -fx-text-fill: #80cbc4; }
+        .dark .jd-mode-tag   { -fx-text-fill: #90caf9; -fx-background-color: #1a2a4a; -fx-border-color: #555555; }
+        .dark .jd-rotor      { -fx-text-fill: #80deea; }
+        .dark .jd-inst-label { -fx-text-fill: #888888; }
+        .dark .jd-rx-sub     { -fx-text-fill: #888888; }
+        .dark .jd-panel-title{ -fx-text-fill: #90caf9; }
+        .dark .jd-section-label { -fx-text-fill: #90caf9; }
+        .dark .jd-status-label  { -fx-text-fill: #888888; }
+        .dark .entry-label   { -fx-text-fill: #90caf9; }
+        .dark .rx-area { -fx-control-inner-background: #1a1a1a; -fx-text-fill: #80cbc4;
+                         -fx-highlight-fill: #1a3a5a; -fx-highlight-text-fill: #e0e0e0; }
+        .dark .rx-area .content { -fx-background-color: #1a1a1a; }
+        .dark .tx-area { -fx-control-inner-background: #2d2d2d; -fx-text-fill: #e0e0e0;
+                         -fx-highlight-fill: #1a3a5a; -fx-highlight-text-fill: #e0e0e0;
+                         -fx-prompt-text-fill: #555555; }
+        .dark .tx-area .content { -fx-background-color: #2d2d2d; }
+        .dark .afc-btn          { -fx-background-color: #2d2d2d; -fx-text-fill: #555555; -fx-border-color: #555555; }
+        .dark .afc-btn:selected { -fx-background-color: #1a2a4a; -fx-text-fill: #4fc3f7; -fx-border-color: #4fc3f7; }
+        .dark .afc-btn:hover    { -fx-background-color: #3a3a3a; }
+        .dark .sql-btn          { -fx-background-color: #2d2d2d; -fx-text-fill: #555555; -fx-border-color: #555555; }
+        .dark .sql-btn:selected { -fx-background-color: #0d2a28; -fx-text-fill: #80cbc4; -fx-border-color: #80cbc4; }
+        .dark .sql-btn:hover    { -fx-background-color: #3a3a3a; }
+        .dark .xmit-btn          { -fx-background-color: #014479; }
+        .dark .xmit-btn:hover    { -fx-background-color: #0277bd; }
+        .dark .xmit-btn:disabled { -fx-background-color: #2d2d2d; -fx-text-fill: #555555; }
+        .dark .cancel-btn          { -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0; -fx-border-color: #555555; }
+        .dark .cancel-btn:hover    { -fx-background-color: #4a4a4a; -fx-text-fill: #ef9a9a; -fx-border-color: #ef9a9a; }
+        .dark .cancel-btn:disabled { -fx-background-color: #2d2d2d; -fx-text-fill: #555555; -fx-border-color: #3a3a3a; }
+        .dark .tb-btn      { -fx-background-color: #2d2d2d; -fx-text-fill: #888888; -fx-border-color: #555555; }
+        .dark .tb-btn:hover{ -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0; }
+        .dark .macro-button              { -fx-background-color: #014479; -fx-text-fill: #b3e5fc; }
+        .dark .macro-button:hover        { -fx-background-color: #0277bd; }
+        .dark .macro-button-programmable { -fx-background-color: #0d3a5a; -fx-text-fill: #b3e5fc; }
+        .dark .macro-button-programmable:hover { -fx-background-color: #0277bd; }
+        .dark .macro-button-disabled     { -fx-background-color: #2d2d2d; -fx-text-fill: #555555; }
+        .dark .primary-button      { -fx-background-color: #014479; }
+        .dark .primary-button:hover{ -fx-background-color: #0277bd; }
+        .dark .secondary-button      { -fx-background-color: #2d2d2d; -fx-text-fill: #90caf9; -fx-border-color: #555555; -fx-border-width: 1; }
+        .dark .secondary-button:hover{ -fx-background-color: #3a3a3a; }
+        .dark .cockpit-check .text { -fx-fill: #888888; -fx-font-weight: bold; }
+        .dark .cockpit-check .box  { -fx-background-color: #3a3a3a; -fx-border-color: #555555; }
+        .dark .cockpit-check:selected .mark { -fx-background-color: #4fc3f7; }
+        .dark .split-pane { -fx-background-color: #1e1e1e; }
+        .dark .split-pane > .split-pane-divider { -fx-background-color: #2d2d2d; -fx-padding: 0 1 0 1; }
+        .dark .split-pane > .split-pane-divider:hover { -fx-background-color: #4fc3f7; }
+        .dark .tab-pane { -fx-background-color: #1e1e1e; }
+        .dark .tab-pane > .tab-header-area { -fx-background-color: #2a2a2a; }
+        .dark .tab { -fx-background-color: #383838; -fx-padding: 4 14 4 14; -fx-background-radius: 0; }
+        .dark .tab:selected { -fx-background-color: #1a3a5a; }
+        .dark .tab .tab-label { -fx-text-fill: #e0e0e0; -fx-font-weight: bold; -fx-font-size: 11; }
+        .dark .tab:selected .tab-label { -fx-text-fill: #4fc3f7; }
+        .dark .combo-box { -fx-background-color: #3a3a3a; -fx-border-color: #555555; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-radius: 3; }
+        .dark .combo-box .list-cell { -fx-text-fill: #e0e0e0; -fx-background-color: #3a3a3a; }
+        .dark .combo-box-popup .list-view { -fx-background-color: #2b2b2b; -fx-border-color: #555555; }
+        .dark .combo-box-popup .list-cell { -fx-text-fill: #e0e0e0; -fx-background-color: #2b2b2b; }
+        .dark .combo-box-popup .list-cell:hover { -fx-background-color: #1a3a5a; }
+        .dark .scroll-bar { -fx-background-color: #1e1e1e; }
+        .dark .scroll-bar .thumb { -fx-background-color: #3a3a3a; -fx-background-radius: 3; }
+        .dark .scroll-bar .thumb:hover { -fx-background-color: #4a4a4a; }
+        .dark .scroll-bar .increment-button, .dark .scroll-bar .decrement-button { -fx-background-color: #2b2b2b; }
+        .dark .menu-bar { -fx-background-color: #2d2d2d; }
+        .dark .menu-bar .label { -fx-text-fill: #e0e0e0; }
+        .dark .menu-bar .menu:hover, .dark .menu-bar .menu:showing { -fx-background-color: #3a3a3a; }
+        .dark .context-menu { -fx-background-color: #3a3a3a; -fx-border-color: #555555; }
+        .dark .menu-item .label { -fx-text-fill: #e0e0e0; }
+        .dark .menu-item:hover  { -fx-background-color: #1a3a5a; }
+        .dark .table-view { -fx-background-color: #2a2a2a; -fx-control-inner-background: #2a2a2a; }
+        .dark .table-view .column-header { -fx-background-color: #1a2a3a; -fx-border-color: #555555; -fx-border-width: 0 0 1 0; }
+        .dark .table-view .column-header .label { -fx-text-fill: #90caf9; -fx-font-weight: bold; }
+        .dark .table-row-cell { -fx-background-color: #2a2a2a; -fx-text-fill: #e0e0e0; }
+        .dark .table-row-cell:odd { -fx-background-color: #303030; }
+        .dark .table-row-cell:selected { -fx-background-color: #1a3a5a; }
+        .dark .table-cell { -fx-text-fill: #e0e0e0; -fx-font-size: 11; }
+        .dark .dialog-pane { -fx-background-color: #2b2b2b; }
+        .dark .dialog-pane .label { -fx-text-fill: #e0e0e0; }
+        .dark .dialog-pane .button-bar .button { -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0; -fx-background-radius: 4; }
+        .dark .text-field { -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0;
+                            -fx-border-color: #555555; -fx-border-width: 1;
+                            -fx-border-radius: 3; -fx-background-radius: 3;
+                            -fx-prompt-text-fill: #555555; }
+        .dark .text-field:focused { -fx-border-color: #4fc3f7; }
+        .dark .text-area .content { -fx-background-color: #2d2d2d; }
+        """
+        // ── Light theme — root carries .light class ──────────────────
+        + """
+        .light.root {
+            -fx-base: #ececec;
+            -fx-background: #f4f4f4;
+            -fx-control-inner-background: #ffffff;
+            -fx-accent: #1565c0;
+            -fx-focus-color: #1565c0;
+            -fx-faint-focus-color: transparent;
+        }
+        .light .jd-toolbar    { -fx-background-color: #dce4f0; -fx-border-color: #c8d0e8; }
+        .light .jd-bezel      { -fx-background-color: #eef2fb; -fx-border-color: #c8d0e8; }
+        .light .jd-freq-panel { -fx-background-color: #ffffff; -fx-border-color: #c8d0e8; }
+        .light .jd-ruler      { -fx-background-color: #f4f4f4; }
+        .light .jd-rx-header  { -fx-background-color: #c5cfe8; -fx-border-color: #b0bcd8; }
+        .light .jd-tx-header  { -fx-background-color: #dde3f4; -fx-border-color: #b0bcd8; }
+        .light .jd-statusbar  { -fx-background-color: #e8ecf4; -fx-border-color: #c8d0e8; }
+        .light .jd-sb-item    { -fx-border-color: #c8d0e8; }
+        .light .jd-callsign   { -fx-text-fill: #1565c0; }
+        .light .jd-grid-label { -fx-text-fill: #666666; }
+        .light .jd-freq-display { -fx-text-fill: #1565c0; }
+        .light .jd-audio-sub  { -fx-text-fill: #00695c; }
+        .light .jd-mode-tag   { -fx-text-fill: #1565c0; -fx-background-color: #e3f2fd; -fx-border-color: #90caf9; }
+        .light .jd-rotor      { -fx-text-fill: #0277bd; }
+        .light .jd-inst-label { -fx-text-fill: #666666; }
+        .light .jd-rx-sub     { -fx-text-fill: #666666; }
+        .light .jd-panel-title{ -fx-text-fill: #1565c0; }
+        .light .jd-section-label { -fx-text-fill: #1565c0; }
+        .light .jd-status-label  { -fx-text-fill: #666666; }
+        .light .entry-label   { -fx-text-fill: #1565c0; }
+        .light .rx-area { -fx-control-inner-background: #f0f8f4; -fx-text-fill: #004d40;
+                          -fx-highlight-fill: #bbdefb; -fx-highlight-text-fill: #212121; }
+        .light .rx-area .content { -fx-background-color: #f0f8f4; }
+        .light .tx-area { -fx-control-inner-background: #ffffff; -fx-text-fill: #212121;
+                          -fx-highlight-fill: #bbdefb; -fx-highlight-text-fill: #212121;
+                          -fx-prompt-text-fill: #aaaaaa; }
+        .light .tx-area .content { -fx-background-color: #ffffff; }
+        .light .afc-btn          { -fx-background-color: #e8e8e8; -fx-text-fill: #aaaaaa; -fx-border-color: #c8d0e8; }
+        .light .afc-btn:selected { -fx-background-color: #bbdefb; -fx-text-fill: #1565c0; -fx-border-color: #1565c0; }
+        .light .afc-btn:hover    { -fx-background-color: #dde3f4; }
+        .light .sql-btn          { -fx-background-color: #e8e8e8; -fx-text-fill: #aaaaaa; -fx-border-color: #c8d0e8; }
+        .light .sql-btn:selected { -fx-background-color: #c8e6c9; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; }
+        .light .sql-btn:hover    { -fx-background-color: #dde3f4; }
+        .light .xmit-btn          { -fx-background-color: #1565c0; }
+        .light .xmit-btn:hover    { -fx-background-color: #1e88e5; }
+        .light .xmit-btn:disabled { -fx-background-color: #e0e0e0; -fx-text-fill: #aaaaaa; }
+        .light .cancel-btn          { -fx-background-color: #f5f5f5; -fx-text-fill: #212121; -fx-border-color: #c8d0e8; }
+        .light .cancel-btn:hover    { -fx-background-color: #ffcdd2; -fx-text-fill: #c62828; -fx-border-color: #c62828; }
+        .light .cancel-btn:disabled { -fx-background-color: #f5f5f5; -fx-text-fill: #aaaaaa; -fx-border-color: #e0e0e0; }
+        .light .tb-btn      { -fx-background-color: #f4f4f4; -fx-text-fill: #555555; -fx-border-color: #c8d0e8; }
+        .light .tb-btn:hover{ -fx-background-color: #dce4f0; -fx-text-fill: #1565c0; }
+        .light .macro-button              { -fx-background-color: #1565c0; -fx-text-fill: white; }
+        .light .macro-button:hover        { -fx-background-color: #1e88e5; }
+        .light .macro-button-programmable { -fx-background-color: #1976d2; -fx-text-fill: white; }
+        .light .macro-button-programmable:hover { -fx-background-color: #1e88e5; }
+        .light .macro-button-disabled     { -fx-background-color: #e0e0e0; -fx-text-fill: #aaaaaa; }
+        .light .primary-button      { -fx-background-color: #1565c0; }
+        .light .primary-button:hover{ -fx-background-color: #1e88e5; }
+        .light .secondary-button      { -fx-background-color: #f4f4f4; -fx-text-fill: #1565c0; -fx-border-color: #c8d0e8; -fx-border-width: 1; }
+        .light .secondary-button:hover{ -fx-background-color: #dce4f0; }
+        .light .cockpit-check .text { -fx-fill: #555555; -fx-font-weight: bold; }
+        .light .cockpit-check .box  { -fx-background-color: #ffffff; -fx-border-color: #c8d0e8; }
+        .light .cockpit-check:selected .mark { -fx-background-color: #1565c0; }
+        .light .split-pane { -fx-background-color: #f4f4f4; }
+        .light .split-pane > .split-pane-divider { -fx-background-color: #dce4f0; -fx-padding: 0 1 0 1; }
+        .light .split-pane > .split-pane-divider:hover { -fx-background-color: #1565c0; }
+        .light .tab-pane { -fx-background-color: #f4f4f4; }
+        .light .tab-pane > .tab-header-area { -fx-background-color: #e0e4ee; }
+        .light .tab { -fx-background-color: #eef2fb; -fx-padding: 4 14 4 14; -fx-background-radius: 0; }
+        .light .tab:selected { -fx-background-color: #bbdefb; }
+        .light .tab .tab-label { -fx-text-fill: #212121; -fx-font-weight: bold; -fx-font-size: 11; }
+        .light .tab:selected .tab-label { -fx-text-fill: #1565c0; }
+        .light .combo-box { -fx-background-color: #ffffff; -fx-border-color: #c8d0e8; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-radius: 3; }
+        .light .combo-box .list-cell { -fx-text-fill: #212121; -fx-background-color: #ffffff; }
+        .light .combo-box-popup .list-view { -fx-background-color: #ffffff; -fx-border-color: #c8d0e8; }
+        .light .combo-box-popup .list-cell { -fx-text-fill: #212121; -fx-background-color: #ffffff; }
+        .light .combo-box-popup .list-cell:hover { -fx-background-color: #bbdefb; }
+        .light .scroll-bar { -fx-background-color: #f4f4f4; }
+        .light .scroll-bar .thumb { -fx-background-color: #c8d0e8; -fx-background-radius: 3; }
+        .light .scroll-bar .thumb:hover { -fx-background-color: #90caf9; }
+        .light .scroll-bar .increment-button, .light .scroll-bar .decrement-button { -fx-background-color: #eef2fb; }
+        .light .menu-bar { -fx-background-color: #e8e8e8; }
+        .light .menu-bar .label { -fx-text-fill: #212121; }
+        .light .menu-bar .menu:hover, .light .menu-bar .menu:showing { -fx-background-color: #dce4f0; }
+        .light .context-menu { -fx-background-color: #ffffff; -fx-border-color: #c8d0e8; }
+        .light .menu-item .label { -fx-text-fill: #212121; }
+        .light .menu-item:hover  { -fx-background-color: #bbdefb; }
+        .light .table-view { -fx-background-color: white; -fx-control-inner-background: white; }
+        .light .table-view .column-header { -fx-background-color: #c8d8f0; -fx-border-color: #b0c4e0; -fx-border-width: 0 0 1 0; }
+        .light .table-view .column-header .label { -fx-text-fill: #212121; -fx-font-weight: bold; }
+        .light .table-row-cell { -fx-background-color: white; -fx-text-fill: #212121; }
+        .light .table-row-cell:odd { -fx-background-color: #f8faff; }
+        .light .table-row-cell:selected { -fx-background-color: #bbdefb; }
+        .light .table-cell { -fx-text-fill: #212121; -fx-font-size: 11; }
+        .light .dialog-pane { -fx-background-color: #f4f4f4; }
+        .light .dialog-pane .label { -fx-text-fill: #212121; }
+        .light .dialog-pane .button-bar .button { -fx-background-color: #e0e0e0; -fx-text-fill: #212121; -fx-background-radius: 4; }
+        .light .text-field { -fx-background-color: #ffffff; -fx-text-fill: #212121;
+                             -fx-border-color: #c8d0e8; -fx-border-width: 1;
+                             -fx-border-radius: 3; -fx-background-radius: 3;
+                             -fx-prompt-text-fill: #aaaaaa; }
+        .light .text-field:focused { -fx-border-color: #1565c0; }
+        """;
     }
 }

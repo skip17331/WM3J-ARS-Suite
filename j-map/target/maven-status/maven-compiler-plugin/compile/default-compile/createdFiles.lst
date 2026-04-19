@@ -26,6 +26,7 @@ com/wm3j/jmap/service/contest/MockContestListProvider.class
 com/wm3j/jmap/service/satellite/SatelliteProvider.class
 com/wm3j/jmap/service/geomag/GeomagneticAlert$Level.class
 com/wm3j/jmap/ui/overlays/WorldMapCanvas.class
+com/wm3j/jmap/app/SplashScreen.class
 com/wm3j/jmap/service/DataProviderException$ErrorCode.class
 com/wm3j/jmap/ui/windows/DXInfoWindow.class
 com/wm3j/jmap/service/lightning/LightningData$Strike.class

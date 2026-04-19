@@ -50,9 +50,12 @@ public class JMapApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        MainWindow mainWindow = new MainWindow(primaryStage, serviceRegistry);
-        mainWindow.show();
-        log.info("Main display started");
+        SplashScreen.applyIcon(primaryStage);
+        new SplashScreen(() -> {
+            MainWindow mainWindow = new MainWindow(primaryStage, serviceRegistry);
+            mainWindow.show();
+            log.info("Main display started");
+        }).show();
     }
 
     @Override

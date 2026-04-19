@@ -125,11 +125,16 @@ public class JHubServer extends WebSocketServer {
 
         log.info("App registered: {} v{}", session.appName, session.version);
 
-        // Acknowledge registration
+        // Acknowledge registration — include station config so apps need not store it locally
         JsonObject ack = new JsonObject();
         ack.addProperty("type", "JHUB_WELCOME");
         ack.addProperty("jHubVersion", "1.0.0");
         ack.addProperty("timestamp", Instant.now().toString());
+        com.hamradio.jhub.model.JHubConfig.StationSection st =
+                ConfigManager.getInstance().getConfig().station;
+        if (st != null) {
+            ack.add("station", ConfigManager.gson().toJsonTree(st));
+        }
         sendTo(session.socket, ack.toString());
 
         // Replay cached state so the new app is immediately current
@@ -167,7 +172,35 @@ public class JHubServer extends WebSocketServer {
             sendTo(session.socket, selectedSpot);
         }
 
+        // Macro list (always sent — built from config)
+        sendTo(session.socket, buildMacroListMessage());
+
+        // Last rotor status
+        String rotorStatus = cache.getLastRotorStatus();
+        if (rotorStatus != null) {
+            sendTo(session.socket, rotorStatus);
+        }
+
         log.debug("State replayed to '{}'", session.appName);
+    }
+
+    // ---------------------------------------------------------------
+    // Macro list builder
+    // ---------------------------------------------------------------
+
+    private String buildMacroListMessage() {
+        JsonObject msg = new JsonObject();
+        msg.addProperty("type", "MACRO_LIST");
+        com.google.gson.JsonArray arr = new com.google.gson.JsonArray();
+        com.hamradio.jhub.model.JHubConfig.MacrosSection ms =
+                ConfigManager.getInstance().getConfig().macros;
+        if (ms != null && ms.list != null) {
+            for (com.hamradio.jhub.model.JHubConfig.MacroDefinition m : ms.list) {
+                arr.add(ConfigManager.gson().toJsonTree(m));
+            }
+        }
+        msg.add("macros", arr);
+        return msg.toString();
     }
 
     // ---------------------------------------------------------------

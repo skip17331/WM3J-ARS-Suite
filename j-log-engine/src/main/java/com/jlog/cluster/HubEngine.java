@@ -41,13 +41,14 @@ public class HubEngine {
     private final AtomicBoolean connected = new AtomicBoolean(false);
     private String url;
 
-    // Listeners (same contract as the old DxClusterEngine)
+    // Listeners — called on the WebSocket thread; callers must dispatch to UI thread if needed
     private Consumer<DxSpot>   spotListener;
     private Consumer<DxSpot>   spotSelectedListener;
     private Consumer<String>   rawLineListener;
     private Consumer<JsonNode> logEntryDraftListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
+    private Runnable           onShutdown;
 
     // ---------------------------------------------------------------
     // Connection management
@@ -72,7 +73,7 @@ public class HubEngine {
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-log\",\"version\":\"1.0.0\"}");
                     log.info("Hub connected: {}", wsUrl);
                     if (onConnected != null)
-                        javafx.application.Platform.runLater(onConnected);
+                        onConnected.run();
                 }
 
                 @Override
@@ -85,7 +86,7 @@ public class HubEngine {
                     boolean wasConnected = connected.getAndSet(false);
                     log.info("Hub disconnected (code={}, reason={})", code, reason);
                     if (wasConnected && onDisconnected != null)
-                        javafx.application.Platform.runLater(onDisconnected);
+                        onDisconnected.run();
                 }
 
                 @Override
@@ -109,7 +110,7 @@ public class HubEngine {
         }
         connected.set(false);
         if (onDisconnected != null)
-            javafx.application.Platform.runLater(onDisconnected);
+            onDisconnected.run();
     }
 
     public boolean isConnected() { return connected.get(); }
@@ -122,7 +123,7 @@ public class HubEngine {
     private void handleMessage(String json) {
         // Always forward raw message to raw listener
         if (rawLineListener != null)
-            javafx.application.Platform.runLater(() -> rawLineListener.accept(json));
+            rawLineListener.accept(json);
 
         try {
             JsonNode node = MAPPER.readTree(json);
@@ -131,21 +132,21 @@ public class HubEngine {
             if ("SPOT".equals(type)) {
                 DxSpot spot = spotFromJson(node);
                 if (spotListener != null)
-                    javafx.application.Platform.runLater(() -> spotListener.accept(spot));
+                    spotListener.accept(spot);
 
             } else if ("SPOT_SELECTED".equals(type)) {
                 DxSpot spot = spotFromJson(node);
                 if (spotSelectedListener != null)
-                    javafx.application.Platform.runLater(() -> spotSelectedListener.accept(spot));
+                    spotSelectedListener.accept(spot);
 
             } else if ("LOG_ENTRY_DRAFT".equals(type)) {
                 if (logEntryDraftListener != null)
-                    javafx.application.Platform.runLater(() -> logEntryDraftListener.accept(node));
+                    logEntryDraftListener.accept(node);
 
             } else if ("SHUTDOWN".equals(type)) {
-                // J-Hub is shutting down — exit cleanly
-                log.info("SHUTDOWN command received from j-hub — closing j-log");
-                javafx.application.Platform.runLater(() -> javafx.application.Platform.exit());
+                log.info("SHUTDOWN command received from j-hub");
+                if (onShutdown != null)
+                    onShutdown.run();
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -198,6 +199,7 @@ public class HubEngine {
     public void setLogEntryDraftListener(Consumer<JsonNode> l) { this.logEntryDraftListener = l; }
     public void setOnConnected          (Runnable r)           { this.onConnected           = r; }
     public void setOnDisconnected       (Runnable r)           { this.onDisconnected        = r; }
+    public void setOnShutdown           (Runnable r)           { this.onShutdown            = r; }
 
     // ---------------------------------------------------------------
     // Spot selection — publish to hub so other apps (e.g. HamClock) react
@@ -210,7 +212,7 @@ public class HubEngine {
      */
     public void notifySpotSelected(DxSpot spot) {
         if (spotSelectedListener != null)
-            javafx.application.Platform.runLater(() -> spotSelectedListener.accept(spot));
+            spotSelectedListener.accept(spot);
     }
 
     public void sendSpotSelected(DxSpot spot) {

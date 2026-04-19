@@ -10,7 +10,10 @@ import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.util.AppConfig;
+import com.jlog.util.BandPlan;
+import com.jlog.util.BandPlan.ValidationResult;
 import com.jlog.util.QrzLookup;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -26,6 +29,7 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.net.URL;
@@ -94,6 +98,10 @@ public class NormalLogController implements Initializable {
     @FXML private Label lblCivStatus;
     @FXML private Label lblStationCall;
 
+    // ---- Band / mode warning ----
+    @FXML private Label lblBandWarning;
+    private final PauseTransition freqValidateDelay = new PauseTransition(Duration.millis(400));
+
     // ---- Macro buttons ----
     @FXML private HBox macroButtonBar;
 
@@ -117,6 +125,7 @@ public class NormalLogController implements Initializable {
         initCivListeners();
         initMacroBar();
         initKeyHandlers();
+        initBandWarning();
         loadQsos();
         initQrzLookup();
 
@@ -205,8 +214,12 @@ public class NormalLogController implements Initializable {
             tfFrequency.setText(String.format("%.3f", hz / 1_000_000.0));
             String band = CivEngine.freqToBand(hz);
             cbBand.setValue(band);
+            checkBandWarning();
         }));
-        civ.setModeListener(mode -> Platform.runLater(() -> cbMode.setValue(mode)));
+        civ.setModeListener(mode -> Platform.runLater(() -> {
+            cbMode.setValue(mode);
+            checkBandWarning();
+        }));
     }
 
     private void initMacroBar() {
@@ -620,6 +633,63 @@ public class NormalLogController implements Initializable {
             case "SSB", "USB"     -> "USB";
             default               -> "USB";
         };
+    }
+
+    // ---------------------------------------------------------------
+    // Band / mode warning
+    // ---------------------------------------------------------------
+
+    private void initBandWarning() {
+        // Debounce frequency field changes — validate 400 ms after the user stops typing
+        freqValidateDelay.setOnFinished(e -> checkBandWarning());
+        tfFrequency.textProperty().addListener((obs, o, n) -> freqValidateDelay.playFromStart());
+
+        // Mode changes take effect immediately
+        cbMode.valueProperty().addListener((obs, o, n) -> checkBandWarning());
+    }
+
+    private void checkBandWarning() {
+        String freqText = tfFrequency.getText().trim();
+        String mode     = cbMode.getValue();
+        if (freqText.isEmpty() || mode == null) {
+            clearBandWarning();
+            return;
+        }
+        double freqKhz;
+        try {
+            freqKhz = Double.parseDouble(freqText) * 1000.0; // MHz → kHz
+        } catch (NumberFormatException e) {
+            clearBandWarning();
+            return;
+        }
+        ValidationResult result = BandPlan.validate(freqKhz, mode);
+        if (result.isOk()) {
+            clearBandWarning();
+        } else {
+            showBandWarning(result);
+        }
+    }
+
+    private void showBandWarning(ValidationResult result) {
+        lblBandWarning.setText((result.isError() ? "\u26D4 " : "\u26A0 ") + result.message());
+        lblBandWarning.getStyleClass().removeAll("band-warning-error", "band-warning-warn");
+        lblBandWarning.getStyleClass().add(result.isError() ? "band-warning-error" : "band-warning-warn");
+        lblBandWarning.setVisible(true);
+        lblBandWarning.setManaged(true);
+    }
+
+    private void clearBandWarning() {
+        lblBandWarning.setVisible(false);
+        lblBandWarning.setManaged(false);
+        lblBandWarning.setText("");
+    }
+
+    @FXML private void showBandPlan() {
+        double freqKhz = 0;
+        try { freqKhz = Double.parseDouble(tfFrequency.getText().trim()) * 1000.0; }
+        catch (NumberFormatException ignored) {}
+        String band = cbBand.getValue();
+        new BandPlanWindow(getStage(), band, freqKhz).show();
     }
 
     private void connectCiv() {

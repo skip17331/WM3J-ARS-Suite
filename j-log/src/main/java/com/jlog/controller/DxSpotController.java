@@ -109,29 +109,31 @@ public class DxSpotController implements Initializable {
     private void initHubEngine() {
         HubEngine engine = HubEngine.getInstance();
 
-        engine.setSpotListener(spot -> {
+        engine.setSpotListener(spot -> Platform.runLater(() -> {
             if (spots.size() >= MAX_SPOTS) spots.remove(spots.size() - 1);
             spots.add(0, spot);
-        });
+        }));
 
-        engine.setRawLineListener(line -> {
+        engine.setRawLineListener(line -> Platform.runLater(() -> {
             rawArea.appendText(line + "\n");
             if (rawArea.getLength() > MAX_RAW_CHARS) {
                 rawArea.deleteText(0, 5000);
             }
-        });
+        }));
 
-        engine.setOnConnected(() -> {
+        engine.setOnConnected(() -> Platform.runLater(() -> {
             lblConnStatus.setText(I18n.get("dx.connected"));
             btnConnect.setDisable(true);
             btnDisconnect.setDisable(false);
-        });
+        }));
 
-        engine.setOnDisconnected(() -> {
+        engine.setOnDisconnected(() -> Platform.runLater(() -> {
             lblConnStatus.setText(I18n.get("dx.disconnected"));
             btnConnect.setDisable(false);
             btnDisconnect.setDisable(true);
-        });
+        }));
+
+        engine.setOnShutdown(() -> Platform.runLater(Platform::exit));
     }
 
     // ---------------------------------------------------------------

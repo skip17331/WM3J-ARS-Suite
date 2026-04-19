@@ -91,6 +91,10 @@ public class MessageRouter {
                 handleInboundSpot(msg, rawJson, session.socket, server);
                 break;
 
+            case "ROTOR_STATUS":
+                handleRotorStatus(rawJson, session.socket, server);
+                break;
+
             default:
                 log.debug("Unhandled message type '{}' from '{}'", type, session.appName);
         }
@@ -168,6 +172,13 @@ public class MessageRouter {
             //   • j-log populates its entry bar
             //   • j-map populates its DX window
             server.broadcastToAll(rawJson);
+
+            // If j-hub owns Hamlib rig control, tune the rig directly.
+            HamlibRigController hamlibCtrl = HamlibRigController.getInstance();
+            if (freq > 0 && hamlibCtrl.isRunning()) {
+                String m = msg.has("mode") ? msg.get("mode").getAsString() : null;
+                hamlibCtrl.tune(freq, m);
+            }
 
             // Also derive and broadcast RIG_STATUS so the app that owns CI-V/CAT
             // (j-log) tunes the rig to the correct frequency and mode.
@@ -259,6 +270,16 @@ public class MessageRouter {
     }
 
     // ---------------------------------------------------------------
+    // ROTOR_STATUS
+    // ---------------------------------------------------------------
+
+    private void handleRotorStatus(String rawJson, WebSocket sender, JHubServer server) {
+        StateCache.getInstance().setLastRotorStatus(rawJson);
+        server.broadcastToAll(rawJson);
+        log.debug("ROTOR_STATUS cached and rebroadcast");
+    }
+
+    // ---------------------------------------------------------------
     // Called by ClusterManager when a new enriched spot arrives
     // ---------------------------------------------------------------
 
@@ -273,6 +294,17 @@ public class MessageRouter {
             // Only send to the web config UI — ham radio apps don't need raw telnet lines
             jHubServer.broadcastToAppName("webconfig", msg.toString());
         }
+    }
+
+    /**
+     * Publish a RIG_STATUS originating from HamlibRigController (or any internal source).
+     */
+    public void publishRigStatus(RigStatus rig) {
+        StateCache.getInstance().setLastRigStatus(rig);
+        if (jHubServer != null) {
+            jHubServer.broadcastToAll(ConfigManager.gson().toJson(rig));
+        }
+        log.debug("RIG_STATUS published: {} Hz, {}", rig.frequency, rig.mode);
     }
 
     /**
