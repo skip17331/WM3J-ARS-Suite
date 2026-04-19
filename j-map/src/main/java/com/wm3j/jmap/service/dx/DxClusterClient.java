@@ -73,7 +73,7 @@ public class DxClusterClient {
         statusMessage = "Disconnected";
         scheduler.shutdownNow();
         if (ws != null) {
-            try { ws.closeBlocking(); } catch (Exception ignored) {}
+            try { ws.close(); } catch (Exception ignored) {}
             ws = null;
         }
         log.info("Hub spot client disconnected");

@@ -13,8 +13,8 @@ public class JMapApp extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JMapApp.class);
 
-    private static final String JHUB_JAR  = "/home/mike/ARS_Suite/j-hub/target/j-hub-1.0.0.jar";
-    private static final int    JHUB_PORT = 8080;
+    private static final String JHUB_START = "/home/mike/ARS_Suite/j-hub/start.sh";
+    private static final int    JHUB_PORT  = 8080;
 
     private SetupWebServer  webServer;
     private ServiceRegistry serviceRegistry;
@@ -62,11 +62,23 @@ public class JMapApp extends Application {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         log.info("j-Map shutting down...");
-        if (webServer != null) webServer.stop();
-        if (serviceRegistry != null) serviceRegistry.stop();
-        SettingsLoader.save(serviceRegistry.getSettings());
+        try {
+            if (webServer != null) webServer.stop();
+        } catch (Exception e) {
+            log.warn("Web server stop error: {}", e.getMessage());
+        }
+        try {
+            if (serviceRegistry != null) serviceRegistry.stop();
+        } catch (Exception e) {
+            log.warn("Service registry stop error: {}", e.getMessage());
+        }
+        try {
+            if (serviceRegistry != null) SettingsLoader.save(serviceRegistry.getSettings());
+        } catch (Exception e) {
+            log.warn("Settings save error: {}", e.getMessage());
+        }
         log.info("Shutdown complete");
         System.exit(0);
     }
@@ -77,7 +89,7 @@ public class JMapApp extends Application {
         if (isPortOpen(JHUB_PORT, 500)) return;
         log.info("j-Hub not detected — starting j-Hub...");
         try {
-            new ProcessBuilder("java", "-jar", JHUB_JAR, "--no-splash")
+            new ProcessBuilder("bash", JHUB_START, "--no-splash")
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                 .redirectError(ProcessBuilder.Redirect.DISCARD)
                 .start();

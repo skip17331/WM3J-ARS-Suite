@@ -383,11 +383,14 @@ function loadConfig() {
 function populateForms(cfg) {
   // Station
   const st = cfg.station || {};
-  setVal('st-call', st.callsign  || '');
+  setVal('st-call', st.callsign   || '');
+  setVal('st-name', st.name       || '');
+  setVal('st-qth',  st.qth        || '');
   setVal('st-grid', st.gridSquare || '');
   setVal('st-lat',  st.lat  != null ? st.lat  : '');
   setVal('st-lon',  st.lon  != null ? st.lon  : '');
-  setVal('st-tz',   st.timezone  || '');
+  setSelectVal('st-tz',   st.timezone || 'UTC');
+  setSelectVal('st-lang', st.language || 'en');
   applyStationIntel(st);
 
   // J-Hub ports
@@ -669,10 +672,13 @@ function saveStation() {
   const body = {
     station: {
       callsign:   (document.getElementById('st-call').value||'').toUpperCase().trim(),
+      name:       document.getElementById('st-name').value.trim(),
+      qth:        document.getElementById('st-qth').value.trim(),
       gridSquare: (document.getElementById('st-grid').value||'').toUpperCase().trim(),
-      lat:   parseFloat(document.getElementById('st-lat').value)||0,
-      lon:   parseFloat(document.getElementById('st-lon').value)||0,
-      timezone:   document.getElementById('st-tz').value.trim()||'UTC',
+      lat:        parseFloat(document.getElementById('st-lat').value)||0,
+      lon:        parseFloat(document.getElementById('st-lon').value)||0,
+      timezone:   document.getElementById('st-tz').value || 'UTC',
+      language:   document.getElementById('st-lang').value || 'en',
     }
   };
   postPartialConfig(body, 'st-msg', 'Station saved');
@@ -788,8 +794,12 @@ function saveModuleCmd(key, id) {
 function postPartialConfig(patch, msgId, okText) {
   const merged = deepMerge(state.config, patch);
   fetch('/api/config', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(merged) })
-    .then(r => r.json())
-    .then(() => { state.config = merged; flashMsg(msgId, okText); })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) { flashMsg(msgId, data.error || 'Error', true); return; }
+      state.config = merged;
+      flashMsg(msgId, okText);
+    })
     .catch(() => flashMsg(msgId, 'Error', true));
 }
 
@@ -976,6 +986,44 @@ function setChk(id, val) {
   if (el) el.checked = !!val;
 }
 
+function setSelectVal(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const opt = el.querySelector(`option[value="${val}"]`);
+  if (opt) opt.selected = true;
+}
+
+function populateTimezones() {
+  const sel = document.getElementById('st-tz');
+  if (!sel) return;
+  let zones;
+  try {
+    zones = Intl.supportedValuesOf('timeZone');
+  } catch(_) {
+    // Fallback for older browsers — common IANA zones grouped by region
+    zones = [
+      'UTC',
+      'America/Anchorage','America/Chicago','America/Denver','America/Los_Angeles',
+      'America/New_York','America/Phoenix','America/Sao_Paulo','America/Toronto',
+      'America/Vancouver',
+      'Europe/Amsterdam','Europe/Athens','Europe/Berlin','Europe/Brussels',
+      'Europe/Budapest','Europe/Copenhagen','Europe/Dublin','Europe/Helsinki',
+      'Europe/Lisbon','Europe/London','Europe/Madrid','Europe/Moscow',
+      'Europe/Oslo','Europe/Paris','Europe/Prague','Europe/Rome',
+      'Europe/Stockholm','Europe/Vienna','Europe/Warsaw','Europe/Zurich',
+      'Asia/Bangkok','Asia/Colombo','Asia/Dubai','Asia/Hong_Kong',
+      'Asia/Istanbul','Asia/Jakarta','Asia/Jerusalem','Asia/Karachi',
+      'Asia/Kolkata','Asia/Kuala_Lumpur','Asia/Manila','Asia/Seoul',
+      'Asia/Shanghai','Asia/Singapore','Asia/Taipei','Asia/Tokyo',
+      'Australia/Adelaide','Australia/Brisbane','Australia/Melbourne',
+      'Australia/Perth','Australia/Sydney',
+      'Pacific/Auckland','Pacific/Honolulu',
+      'Africa/Cairo','Africa/Johannesburg','Africa/Lagos','Africa/Nairobi',
+    ];
+  }
+  sel.innerHTML = zones.map(z => `<option value="${z}">${z.replace(/_/g,' ')}</option>`).join('');
+}
+
 function setDot(id, color) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1012,6 +1060,7 @@ function esc(s) {
   state.appearance.theme = saved;
 })();
 
+populateTimezones();
 loadConfig();
 loadMacros();
 connectWs();

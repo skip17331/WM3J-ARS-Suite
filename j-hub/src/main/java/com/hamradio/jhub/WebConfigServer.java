@@ -97,13 +97,17 @@ public class WebConfigServer {
             try {
                 String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                 JHubConfig newCfg = ConfigManager.getInstance().fromJson(body);
+                if (newCfg == null) throw new IllegalArgumentException("Parsed config was null");
                 ConfigManager.getInstance().updateConfig(newCfg);
                 ClusterManager.getInstance().reconnect();
                 HamlibRigController.getInstance().restart(newCfg.rig);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
+                log.error("Config save failed", e);
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                com.google.gson.JsonObject err = new com.google.gson.JsonObject();
+                err.addProperty("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                json(res, err.toString());
             }
         }
 

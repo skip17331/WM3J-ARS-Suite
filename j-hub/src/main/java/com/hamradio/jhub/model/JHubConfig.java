@@ -38,11 +38,14 @@ public class JHubConfig {
     // ---------------------------------------------------------------
 
     public static class StationSection {
-        public String callsign  = "NOCALL";
-        public double lat       = 0.0;
-        public double lon       = 0.0;
+        public String callsign   = "NOCALL";
+        public String name       = "";
+        public String qth        = "";
+        public double lat        = 0.0;
+        public double lon        = 0.0;
         public String gridSquare = "";
-        public String timezone  = "UTC";
+        public String timezone   = "UTC";
+        public String language   = "en";
     }
 
     // ---------------------------------------------------------------

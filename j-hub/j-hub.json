@@ -75,20 +75,20 @@
   },
   "apps": {
     "jMap": {
-      "autoLaunch": true,
-      "command": "cd /home/mike/ARS_Suite/j-map \u0026\u0026 mvn javafx:run -q"
+      "autoLaunch": false,
+      "command": "cd /home/mike/ARS_Suite/j-map.sh"
     },
     "jLog": {
       "autoLaunch": true,
-      "command": "bash /home/mike/ARS_Suite/j-log/run.sh"
+      "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh"
     },
     "jBridge": {
-      "autoLaunch": true,
-      "command": "bash /home/mike/ARS_Suite/j-bridge/run.sh"
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-bridge/j-bridge.sh"
     },
     "jDigi": {
       "autoLaunch": true,
-      "command": "bash /home/mike/ARS_Suite/j-digi/run.sh"
+      "command": "bash /home/mike/ARS_Suite/j-digi/j-digi.sh"
     }
   },
   "macros": {

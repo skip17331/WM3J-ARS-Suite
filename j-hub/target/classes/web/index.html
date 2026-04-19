@@ -17,6 +17,7 @@
     </div>
     <div class="nav-items">
       <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">⬡</span>Dashboard</button>
+      <button class="nav-btn" data-tab="station"><span class="nav-icon">⊙</span>Station</button>
       <button class="nav-btn" data-tab="rig"><span class="nav-icon">📻</span>Rig Control</button>
       <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor</button>
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
@@ -158,6 +159,77 @@
           <button class="action-btn" onclick="restartWs()">
             <span class="action-icon">⚡</span>Restart WS
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Station ────────────────────────────────── -->
+    <section id="tab-station" class="tab-panel">
+      <div class="panel-header">Station</div>
+      <div class="panel-sub">Operator identity and location — shared across all ARS Suite modules</div>
+
+      <div class="card">
+        <div class="card-title">Operator</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="text" id="st-call" placeholder="W1AW" style="text-transform:uppercase;font-family:Consolas;font-size:15px;font-weight:700">
+            <label>Callsign</label>
+          </div>
+          <div class="field">
+            <input type="text" id="st-name" placeholder="John Smith">
+            <label>Operator Name</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Location</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="text" id="st-qth" placeholder="Springfield, IL">
+            <label>QTH</label>
+          </div>
+          <div class="field">
+            <input type="text" id="st-grid" placeholder="EM57" style="text-transform:uppercase">
+            <label>Grid Square</label>
+          </div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="number" id="st-lat" placeholder="39.78" step="0.0001">
+            <label>Latitude</label>
+          </div>
+          <div class="field">
+            <input type="number" id="st-lon" placeholder="-89.65" step="0.0001">
+            <label>Longitude</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Regional Settings</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <select id="st-tz"></select>
+            <label>Timezone</label>
+          </div>
+          <div class="field">
+            <select id="st-lang">
+              <option value="en">English</option>
+              <option value="de">Deutsch (German)</option>
+              <option value="es">Español (Spanish)</option>
+              <option value="fr">Français (French)</option>
+              <option value="it">Italiano (Italian)</option>
+              <option value="ja">日本語 (Japanese)</option>
+              <option value="pt">Português (Portuguese)</option>
+              <option value="ru">Русский (Russian)</option>
+            </select>
+            <label>Language</label>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveStation()">Save Station</button>
+          <span id="st-msg" style="font-size:12px;color:var(--overlay0)"></span>
         </div>
       </div>
     </section>
@@ -484,41 +556,6 @@
     <section id="tab-logging" class="tab-panel">
       <div class="panel-header">Logging &amp; Data</div>
       <div class="panel-sub">Log storage, spot routing, and configuration backup</div>
-
-      <div class="card">
-        <div class="card-title">Station Identity (Global Config)</div>
-        <div class="field-row cols-3">
-          <div class="field">
-            <input type="text" id="st-call" placeholder="W1AW" style="text-transform:uppercase;font-family:Consolas;font-size:15px;font-weight:700">
-            <label>Callsign</label>
-          </div>
-          <div class="field">
-            <input type="text" id="st-grid" placeholder="FN31" style="text-transform:uppercase">
-            <label>Grid Square</label>
-          </div>
-          <div class="field">
-            <input type="text" id="st-tz" placeholder="America/New_York">
-            <label>Timezone</label>
-          </div>
-        </div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <input type="number" id="st-lat" placeholder="41.71" step="0.0001">
-            <label>Latitude</label>
-          </div>
-          <div class="field">
-            <input type="number" id="st-lon" placeholder="-72.72" step="0.0001">
-            <label>Longitude</label>
-          </div>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="saveStation()">Save Station Info</button>
-          <span id="st-msg" style="font-size:12px;color:var(--overlay0)"></span>
-        </div>
-        <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
-          ⓘ This is the single source of truth for callsign/grid across all ARS Suite modules.
-        </div>
-      </div>
 
       <div class="card">
         <div class="card-title">Log Database</div>

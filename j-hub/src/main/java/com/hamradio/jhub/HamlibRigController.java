@@ -92,6 +92,7 @@ public class HamlibRigController {
 
     /** Apply new config — stop current poll, start fresh. */
     public void restart(RigSection cfg) {
+        if (cfg == null) { running = false; return; }
         if (pollFuture != null) { pollFuture.cancel(false); pollFuture = null; }
         scheduler.execute(this::closeSocket);
         connected = false;

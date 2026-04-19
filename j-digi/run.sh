@@ -7,11 +7,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 JAR="$SCRIPT_DIR/target/j-digi-0.1.0-jar-with-dependencies.jar"
 
-if [ ! -f "$JAR" ]; then
-    echo "J-Digi: jar not found — building..."
-    cd "$SCRIPT_DIR"
-    mvn -q package -DskipTests
-fi
+mvn clean install -f "$SCRIPT_DIR/pom.xml"
 
 echo "Starting J-Digi..."
 java \

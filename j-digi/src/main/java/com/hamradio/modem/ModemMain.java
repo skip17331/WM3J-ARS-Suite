@@ -13,8 +13,8 @@ public class ModemMain extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(ModemMain.class);
 
-    private static final String JHUB_JAR  = "/home/mike/ARS_Suite/j-hub/target/j-hub-1.0.0.jar";
-    private static final int    JHUB_PORT = 8080;
+    private static final String JHUB_START = "/home/mike/ARS_Suite/j-hub/start.sh";
+    private static final int    JHUB_PORT  = 8080;
 
     private ModemService modemService;
     private boolean      launchedByHub = false;
@@ -53,7 +53,7 @@ public class ModemMain extends Application {
         if (isPortOpen(JHUB_PORT, 500)) return;
         log.info("j-Hub not detected — starting j-Hub...");
         try {
-            new ProcessBuilder("java", "-jar", JHUB_JAR, "--no-splash")
+            new ProcessBuilder("bash", JHUB_START, "--no-splash")
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                 .redirectError(ProcessBuilder.Redirect.DISCARD)
                 .start();
