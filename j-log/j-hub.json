@@ -5,10 +5,13 @@
   },
   "station": {
     "callsign": "NOCALL",
+    "name": "",
+    "qth": "",
     "lat": 0.0,
     "lon": 0.0,
     "gridSquare": "",
-    "timezone": "UTC"
+    "timezone": "UTC",
+    "language": "en"
   },
   "rig": {
     "backend": "NONE",
@@ -31,32 +34,43 @@
   },
   "cluster": {
     "autoConnect": false,
-    "server": "",
-    "port": 7373,
-    "loginCallsign": "",
+    "server": "104.128.238.234",
+    "port": 7300,
+    "loginCallsign": "WM3J",
     "filters": {
       "bands": [
-        "30m",
-        "40m",
         "160m",
         "80m",
-        "17m",
-        "6m",
+        "40m",
+        "20m",
         "15m",
-        "12m",
         "10m",
-        "20m"
+        "6m"
       ],
       "modes": [
-        "RTTY",
-        "SSB",
         "CW",
-        "FT4",
-        "PSK31",
+        "SSB",
         "FT8",
+        "FT4",
+        "RTTY",
+        "PSK31",
         "JS8"
       ]
-    }
+    },
+    "networks": [
+      {
+        "name": "AB2VY-3",
+        "server": "104.128.238.234",
+        "port": 7300,
+        "loginCallsign": "WM3J"
+      },
+      {
+        "name": "N7TR",
+        "server": "dxc.n7tr.com",
+        "port": 7300,
+        "loginCallsign": "WM3J"
+      }
+    ]
   },
   "logger": {
     "mode": "normal",
@@ -85,6 +99,10 @@
       "command": ""
     },
     "jDigi": {
+      "autoLaunch": false,
+      "command": ""
+    },
+    "jSat": {
       "autoLaunch": false,
       "command": ""
     }

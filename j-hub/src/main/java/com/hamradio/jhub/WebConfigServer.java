@@ -69,6 +69,8 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new ClusterApiServlet()),   "/api/cluster/*");
         ctx.addServlet(new ServletHolder(new JMapApiServlet()),        "/api/jmap");
         ctx.addServlet(new ServletHolder(new JSatApiServlet()),        "/api/jsat");
+        ctx.addServlet(new ServletHolder(new JLogApiServlet()),        "/api/jlog");
+        ctx.addServlet(new ServletHolder(new JDigiApiServlet()),       "/api/jdigi");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
@@ -128,6 +130,16 @@ public class WebConfigServer {
     // ---------------------------------------------------------------
 
     private static class ClusterApiServlet extends HttpServlet {
+
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            if ("/networks".equals(req.getPathInfo())) {
+                JHubConfig.ClusterSection c = ConfigManager.getInstance().getCluster();
+                json(res, ConfigManager.gson().toJson(c.networks));
+            } else {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        }
+
         @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
             String action = req.getPathInfo();
             if ("/connect".equals(action)) {
@@ -137,20 +149,82 @@ public class WebConfigServer {
                         com.google.gson.JsonObject j =
                             com.google.gson.JsonParser.parseString(body).getAsJsonObject();
                         JHubConfig.ClusterSection c = ConfigManager.getInstance().getCluster();
-                        if (j.has("server"))        c.server        = j.get("server").getAsString();
-                        if (j.has("port"))          c.port          = j.get("port").getAsInt();
-                        if (j.has("loginCallsign")) c.loginCallsign = j.get("loginCallsign").getAsString();
+                        if (j.has("networkName")) {
+                            // Look up saved network by name and apply its settings
+                            String name = j.get("networkName").getAsString();
+                            if (c.networks != null) {
+                                c.networks.stream()
+                                    .filter(n -> n.name.equals(name))
+                                    .findFirst()
+                                    .ifPresent(net -> {
+                                        c.server        = net.server;
+                                        c.port          = net.port;
+                                        c.loginCallsign = net.loginCallsign;
+                                    });
+                            }
+                        } else {
+                            if (j.has("server"))        c.server        = j.get("server").getAsString();
+                            if (j.has("port"))          c.port          = j.get("port").getAsInt();
+                            if (j.has("loginCallsign")) c.loginCallsign = j.get("loginCallsign").getAsString();
+                        }
                         ConfigManager.getInstance().save();
                     }
                 } catch (Exception ignored) {}
                 ClusterManager.getInstance().reconnect();
                 json(res, "{\"status\":\"connecting\"}");
+
             } else if ("/disconnect".equals(action)) {
                 ClusterManager.getInstance().softDisconnect();
                 json(res, "{\"status\":\"disconnected\"}");
+
+            } else if ("/networks".equals(action)) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j =
+                        com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    JHubConfig.DxNetwork net = new JHubConfig.DxNetwork();
+                    net.name          = j.has("name")          ? j.get("name").getAsString()          : "";
+                    net.server        = j.has("server")        ? j.get("server").getAsString()        : "";
+                    net.port          = j.has("port")          ? j.get("port").getAsInt()             : 7373;
+                    net.loginCallsign = j.has("loginCallsign") ? j.get("loginCallsign").getAsString() : "";
+                    if (net.name.isBlank()) { res.setStatus(HttpServletResponse.SC_BAD_REQUEST); return; }
+                    JHubConfig.ClusterSection c = ConfigManager.getInstance().getCluster();
+                    if (c.networks == null) c.networks = new java.util.ArrayList<>();
+                    c.networks.removeIf(n -> n.name.equals(net.name)); // upsert
+                    c.networks.add(net);
+                    ConfigManager.getInstance().save();
+                    json(res, "{\"status\":\"saved\"}");
+                } catch (Exception e) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
+
             } else {
                 res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }
+        }
+
+        @Override protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            if ("/networks".equals(req.getPathInfo())) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j =
+                        com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    String name = j.get("name").getAsString();
+                    JHubConfig.ClusterSection c = ConfigManager.getInstance().getCluster();
+                    c.networks.removeIf(n -> n.name.equals(name));
+                    ConfigManager.getInstance().save();
+                    json(res, "{\"status\":\"deleted\"}");
+                } catch (Exception e) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
+            } else {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res);
+            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
     }
 
@@ -216,6 +290,19 @@ public class WebConfigServer {
                 ConfigManager cm = ConfigManager.getInstance();
                 cm.getConfig().jMapSettings = settings;
                 cm.save();
+                // Forward to j-map's own setup server for live apply (port 8082 by default)
+                try {
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection)
+                        new java.net.URL("http://localhost:8082/api/settings").openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setDoOutput(true);
+                    conn.setConnectTimeout(500);
+                    conn.setReadTimeout(500);
+                    conn.setRequestProperty("Content-Type", "application/json");
+                    conn.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
+                    conn.getResponseCode();
+                    conn.disconnect();
+                } catch (Exception ignored) {}
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -262,6 +349,82 @@ public class WebConfigServer {
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res);
             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/jlog — persist J-Log settings in j-hub.json; broadcast CONFIG_UPDATE
+    // ---------------------------------------------------------------
+
+    private class JLogApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonObject stored = ConfigManager.getInstance().getConfig().jLogSettings;
+            json(res, stored != null ? stored.toString() : "{}");
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject settings =
+                    com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                ConfigManager cm = ConfigManager.getInstance();
+                cm.getConfig().jLogSettings = settings;
+                cm.save();
+                // Push CONFIG_UPDATE to j-log via WebSocket
+                JHubServer server = router.getJHubServer();
+                if (server != null && settings.has("fontSize")) {
+                    com.google.gson.JsonObject upd = new com.google.gson.JsonObject();
+                    upd.addProperty("type", "CONFIG_UPDATE");
+                    upd.add("settings", settings);
+                    server.broadcastToAppName("logging-engine", upd.toString());
+                }
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/jdigi — persist J-Digi settings in j-hub.json; broadcast CONFIG_UPDATE
+    // ---------------------------------------------------------------
+
+    private class JDigiApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonObject stored = ConfigManager.getInstance().getConfig().jDigiSettings;
+            json(res, stored != null ? stored.toString() : "{}");
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject settings =
+                    com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                ConfigManager cm = ConfigManager.getInstance();
+                cm.getConfig().jDigiSettings = settings;
+                cm.save();
+                // Push CONFIG_UPDATE to j-digi via WebSocket
+                JHubServer server = router.getJHubServer();
+                if (server != null && settings.has("fontSize")) {
+                    com.google.gson.JsonObject upd = new com.google.gson.JsonObject();
+                    upd.addProperty("type", "CONFIG_UPDATE");
+                    upd.add("settings", settings);
+                    server.broadcastToAppName("j-digi", upd.toString());
+                }
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
     }
 

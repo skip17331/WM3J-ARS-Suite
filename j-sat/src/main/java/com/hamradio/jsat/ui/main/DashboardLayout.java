@@ -49,10 +49,10 @@ public class DashboardLayout {
         JsatSettings s = services.getSettings();
 
         // ── Top bar ────────────────────────────────────────────────────────────
-        Label title = styled("J-SAT", "#00e5ff", true, 16);
-        Label callsign = styled(s.callsign, "#aabbdd", true, 14);
-        utcClock = styled("--:--:-- Z", "#88bbff", false, 13);
-        locClock = styled("--:--:--",   "#6688aa", false, 13);
+        Label title = styled("J-SAT", "#00e5ff", true, Math.round(s.fontSize * 1.23f));
+        Label callsign = styled(s.callsign, "#aabbdd", true, Math.round(s.fontSize * 1.08f));
+        utcClock = styled("--:--:-- Z", "#88bbff", false, s.fontSize);
+        locClock = styled("--:--:--",   "#6688aa", false, s.fontSize);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -88,7 +88,7 @@ public class DashboardLayout {
         root.setTop(topBar);
         root.setCenter(worldMap);
         root.setRight(sidebarScroll);
-        root.setStyle("-fx-background-color: #0a0a0f; -fx-font-size: 13px; "
+        root.setStyle("-fx-background-color: #0a0a0f; -fx-font-size: " + s.fontSize + "px; "
                     + "-fx-font-family: 'Liberation Mono', monospace;");
 
         return root;

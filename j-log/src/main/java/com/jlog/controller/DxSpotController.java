@@ -38,6 +38,7 @@ public class DxSpotController implements Initializable {
     @FXML private TableColumn<DxSpot, String> colComment;
     @FXML private TableColumn<DxSpot, String> colTime;
 
+    @FXML private ComboBox<String> cbNetwork;
     @FXML private Button btnClusterConnect;
     @FXML private Button btnClusterDisconnect;
     @FXML private Label  lblClusterStatus;
@@ -56,6 +57,7 @@ public class DxSpotController implements Initializable {
         initHubEngine();
         autoConnect();
         refreshClusterStatus();
+        loadNetworkList();
     }
 
     // ---------------------------------------------------------------
@@ -102,6 +104,12 @@ public class DxSpotController implements Initializable {
             spots.add(0, spot);
         }));
 
+        engine.setConfigUpdateListener(newSize -> Platform.runLater(() -> {
+            com.jlog.util.AppConfig.getInstance().setFontSize(newSize);
+            javafx.scene.Scene s = spotTable.getScene();
+            if (s != null) com.jlog.app.JLogApp.applyTheme(s);
+        }));
+
         engine.setOnShutdown(() -> Platform.runLater(Platform::exit));
     }
 
@@ -140,14 +148,37 @@ public class DxSpotController implements Initializable {
 
     @FXML private void doClusterConnect() {
         setClusterBusy("Connecting...");
+        String selected = cbNetwork.getValue();
         new Thread(() -> {
             try {
-                hubPost("/api/cluster/connect", "");
+                String body;
+                if (selected != null && !selected.isEmpty()) {
+                    body = "{\"networkName\":\"" + selected.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
+                } else {
+                    body = "";
+                }
+                hubPost("/api/cluster/connect", body);
                 Platform.runLater(() -> setClusterConnected(true));
             } catch (Exception e) {
                 Platform.runLater(() -> lblClusterStatus.setText("Error: " + e.getMessage()));
             }
         }, "cluster-connect").start();
+    }
+
+    private void loadNetworkList() {
+        new Thread(() -> {
+            try {
+                String json = hubGet("/api/cluster/networks");
+                com.fasterxml.jackson.databind.JsonNode arr =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+                java.util.List<String> names = new java.util.ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode n : arr) {
+                    String name = n.path("name").asText("");
+                    if (!name.isEmpty()) names.add(name);
+                }
+                Platform.runLater(() -> cbNetwork.getItems().setAll(names));
+            } catch (Exception ignored) {}
+        }, "network-list").start();
     }
 
     @FXML private void doClusterDisconnect() {

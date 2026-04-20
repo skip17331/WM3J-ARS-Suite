@@ -41,10 +41,10 @@ public class SolarDataPanel extends VBox {
     private final Canvas sunspotCanvas;
     private final Canvas kpBarCanvas;
 
-    private static final int SUNSPOT_W = 200;
-    private static final int SUNSPOT_H = 60;
-    private static final int KPBAR_W   = 200;
-    private static final int KPBAR_H   = 14;
+    private static final int SUNSPOT_W = 230;
+    private static final int SUNSPOT_H = 69;
+    private static final int KPBAR_W   = 230;
+    private static final int KPBAR_H   = 16;
 
     public SolarDataPanel(ServiceRegistry services) {
         this.services = services;

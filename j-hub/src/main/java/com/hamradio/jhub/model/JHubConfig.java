@@ -1,7 +1,9 @@
 package com.hamradio.jhub.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,6 +26,8 @@ public class JHubConfig {
     public AppearanceSection appearance      = new AppearanceSection();
     public com.google.gson.JsonObject jMapSettings  = null;
     public com.google.gson.JsonObject jSatSettings  = null;
+    public com.google.gson.JsonObject jLogSettings  = null;
+    public com.google.gson.JsonObject jDigiSettings = null;
 
     // ---------------------------------------------------------------
     // J-Hub network settings
@@ -96,12 +100,20 @@ public class JHubConfig {
     // DX cluster connection
     // ---------------------------------------------------------------
 
-    public static class ClusterSection {
-        public boolean autoConnect  = false;
+    public static class DxNetwork {
+        public String name          = "";
         public String server        = "";
         public int    port          = 7373;
         public String loginCallsign = "";
-        public ClusterFilters filters = new ClusterFilters();
+    }
+
+    public static class ClusterSection {
+        public boolean          autoConnect  = false;
+        public String           server       = "";
+        public int              port         = 7373;
+        public String           loginCallsign = "";
+        public ClusterFilters   filters      = new ClusterFilters();
+        public List<DxNetwork>  networks     = new ArrayList<>();
     }
 
     public static class ClusterFilters {

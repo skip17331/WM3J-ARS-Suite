@@ -166,3 +166,18 @@
 .table-row-cell.bp-extra   .table-cell { -fx-text-fill: #ffe082; }
 .table-row-cell.bp-general .table-cell { -fx-text-fill: #a5d6a7; }
 .table-row-cell.bp-all-class .table-cell { -fx-text-fill: #90caf9; }
+
+/* ── Graphical band plan segment colors ──────────────────────── */
+.bp-seg          { -fx-border-color: rgba(255,255,255,0.20); }
+.bp-seg-cw       { -fx-background-color: #c0392b; }   /* red     */
+.bp-seg-data     { -fx-background-color: #cc8800; }   /* amber   */
+.bp-seg-phone    { -fx-background-color: #27ae60; }   /* green   */
+.bp-seg-fm       { -fx-background-color: #7d3c98; }   /* purple  */
+.bp-seg-sat      { -fx-background-color: #566573; }   /* gray    */
+.bp-seg-usb      { -fx-background-color: #2471a3; }   /* blue    */
+
+.bp-class-lbl       { -fx-text-fill: #aaaaaa; }
+.bp-marker-line     { -fx-stroke: #ffff44; -fx-stroke-width: 2; }
+.bp-marker-tri      { -fx-fill: #ffff44; -fx-stroke: transparent; }
+.bp-active-row      { -fx-background-color: rgba(255,255,100,0.07); }
+.bp-band-name-active { -fx-text-fill: #ffff88; }

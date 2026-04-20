@@ -183,7 +183,7 @@ public class DashboardLayout {
 
         VBox sidebar = new VBox(4);
         sidebar.setPadding(new Insets(4, 4, 4, 4));
-        sidebar.setPrefWidth(220);
+        sidebar.setPrefWidth(253);
         sidebar.setStyle("-fx-background-color: #090912;");
 
         if (s.isShowSolarData())       sidebar.getChildren().add(solarPanel);

@@ -358,6 +358,12 @@ function jsatSelectNone() { document.querySelectorAll('.jsat-sat-cb').forEach(cb
 function populateJSatTab(cfg) {
   const s  = cfg.jSatSettings || {};
   const ap = cfg.apps && cfg.apps.jSat ? cfg.apps.jSat : {};
+
+  const fsEl  = document.getElementById('jsat-font-size');
+  const fsLbl = document.getElementById('jsat-font-size-val');
+  if (fsEl)  fsEl.value = s.fontSize || 13;
+  if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+
   setChk('jsat-doppler-enable',    !!s.rigControlEnabled);
   setChk('jsat-rotor-enable',      !!s.rotorControlEnabled);
   setChk('jsat-show-track',        s.showGroundTrack  !== false);
@@ -384,6 +390,7 @@ function populateJSatTab(cfg) {
 
 function saveJSatSettings() {
   const settings = {
+    fontSize:             parseInt(document.getElementById('jsat-font-size').value) || 13,
     callsign:             document.getElementById('jsat-callsign').value.trim() || undefined,
     qthLat:               parseFloat(document.getElementById('jsat-lat').value)  || undefined,
     qthLon:               parseFloat(document.getElementById('jsat-lon').value)  || undefined,
@@ -584,6 +591,7 @@ function populateForms(cfg) {
   setVal('cl-login', cl.loginCallsign || '');
   setChk('cl-auto',  !!cl.autoConnect);
   if (cfg.cluster) setText('d-clus-srv', cl.server || '—');
+  loadNetworks();
 
   // Logging
   const lg = cfg.logger || {};
@@ -605,6 +613,14 @@ function populateForms(cfg) {
 
   // J-Sat tab
   populateJSatTab(cfg);
+
+  // J-Log tab
+  const jl = cfg.jLogSettings || {};
+  populateJLogForm(jl, cfg.apps && cfg.apps.jLog ? cfg.apps.jLog : {});
+
+  // J-Digi tab
+  const jd = cfg.jDigiSettings || {};
+  populateJDigiForm(jd, cfg.apps && cfg.apps.jDigi ? cfg.apps.jDigi : {});
 }
 
 // ── Rig backend segmented control ─────────────────────────
@@ -991,13 +1007,98 @@ function killApp(name) {
     .catch(() => {});
 }
 
+// ── Saved DX networks ──────────────────────────────────────
+function loadNetworks() {
+  fetch('/api/cluster/networks')
+    .then(r => r.json())
+    .then(nets => {
+      const sel = document.getElementById('cl-network-select');
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">— manual entry —</option>';
+      (nets || []).forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n.name;
+        opt.textContent = n.name + '  (' + n.server + ':' + n.port + ')';
+        sel.appendChild(opt);
+      });
+      if (prev) sel.value = prev;
+      document.getElementById('cl-del-btn').style.display = sel.value ? 'inline-block' : 'none';
+      // Keep the networks list in state for field population
+      state.dxNetworks = nets || [];
+    })
+    .catch(() => {});
+}
+
+function onNetworkSelect() {
+  const sel   = document.getElementById('cl-network-select');
+  const name  = sel.value;
+  const delBtn = document.getElementById('cl-del-btn');
+  delBtn.style.display = name ? 'inline-block' : 'none';
+  if (!name) return;
+  const net = (state.dxNetworks || []).find(n => n.name === name);
+  if (!net) return;
+  setVal('cl-host',    net.server        || '');
+  setVal('cl-port',    net.port          || 7373);
+  setVal('cl-login',   net.loginCallsign || '');
+  setVal('cl-net-name', net.name);
+}
+
+function saveNetwork() {
+  const name  = (document.getElementById('cl-net-name').value || '').trim();
+  const host  = document.getElementById('cl-host').value.trim();
+  const port  = parseInt(document.getElementById('cl-port').value) || 7373;
+  const login = document.getElementById('cl-login').value.toUpperCase().trim();
+  if (!name)  { flashMsg('cl-net-msg', 'Enter a network name', true); return; }
+  if (!host)  { flashMsg('cl-net-msg', 'Enter a host', true);         return; }
+  fetch('/api/cluster/networks', { method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name, server: host, port, loginCallsign: login }) })
+    .then(r => r.json())
+    .then(() => {
+      flashMsg('cl-net-msg', '\u2713 Saved');
+      loadNetworks();
+      // Select the newly saved network
+      setTimeout(() => {
+        const sel = document.getElementById('cl-network-select');
+        if (sel) { sel.value = name; onNetworkSelect(); }
+      }, 200);
+    })
+    .catch(() => flashMsg('cl-net-msg', 'Error saving', true));
+}
+
+function deleteNetwork() {
+  const sel  = document.getElementById('cl-network-select');
+  const name = sel && sel.value;
+  if (!name) return;
+  if (!confirm('Delete network "' + name + '"?')) return;
+  fetch('/api/cluster/networks', { method: 'DELETE',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name }) })
+    .then(r => r.json())
+    .then(() => {
+      flashMsg('cl-net-msg', 'Deleted');
+      loadNetworks();
+    })
+    .catch(() => flashMsg('cl-net-msg', 'Error', true));
+}
+
 // ── Cluster actions ────────────────────────────────────────
 function clusterConnect() {
-  const host  = document.getElementById('cl-host').value.trim();
-  const port  = parseInt(document.getElementById('cl-port').value)||7373;
-  const login = document.getElementById('cl-login').value.trim();
+  const sel  = document.getElementById('cl-network-select');
+  const name = sel && sel.value;
+  let body;
+  if (name) {
+    body = { networkName: name };
+  } else {
+    body = {
+      server:        document.getElementById('cl-host').value.trim(),
+      port:          parseInt(document.getElementById('cl-port').value) || 7373,
+      loginCallsign: document.getElementById('cl-login').value.trim()
+    };
+  }
   fetch('/api/cluster/connect', { method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ server: host, port, loginCallsign: login }) })
+    body: JSON.stringify(body) })
     .then(r => r.json())
     .then(() => flashMsg('cl-msg', 'Connecting…'))
     .catch(() => flashMsg('cl-msg', 'Error', true));
@@ -1220,6 +1321,11 @@ function loadJMapSettings() {
 }
 
 function populateJMapForm(s) {
+  const fsEl  = document.getElementById('jm-font-size');
+  const fsLbl = document.getElementById('jm-font-size-val');
+  if (fsEl)  fsEl.value = s.fontSize || 13;
+  if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+
   setChk('jm-mock',      !!s.useMockData);
   setVal('jm-noaa-key',  s.noaaApiKey         || '');
   setVal('jm-owm-key',   s.openWeatherApiKey  || '');
@@ -1274,6 +1380,8 @@ function saveJMapSettings() {
   const intn = id => { const el = document.getElementById(id); return el ? parseInt(el.value) || 0 : 0; };
 
   const settings = {
+    fontSize:               intn('jm-font-size') || 13,
+
     useMockData:            chk('jm-mock'),
     noaaApiKey:             val('jm-noaa-key').trim(),
     openWeatherApiKey:      val('jm-owm-key').trim(),
@@ -1327,6 +1435,78 @@ function saveJMapSettings() {
     .catch(() => flashMsg('jmap-msg', 'Error', true));
 }
 
+// ── J-Log settings ────────────────────────────────────────
+function loadJLogSettings() {
+  fetch('/api/jlog')
+    .then(r => r.json())
+    .then(s => {
+      const apps = (state.config.apps && state.config.apps.jLog) ? state.config.apps.jLog : {};
+      populateJLogForm(s, apps);
+    })
+    .catch(() => {});
+}
+
+function populateJLogForm(s, ap) {
+  const fsEl  = document.getElementById('jlog-font-size');
+  const fsLbl = document.getElementById('jlog-font-size-val');
+  if (fsEl)  fsEl.value = s.fontSize || 13;
+  if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+  setVal('jlog-cmd', (ap && ap.command) || '');
+  if (ap && ap.autoLaunch != null) setChk('jlog-auto', !!ap.autoLaunch);
+}
+
+function saveJLogSettings() {
+  const fontSize = parseInt(document.getElementById('jlog-font-size').value) || 13;
+  const cmd      = document.getElementById('jlog-cmd').value.trim();
+  const auto     = document.getElementById('jlog-auto').checked;
+  fetch('/api/jlog', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ fontSize })
+  })
+  .then(r => r.json())
+  .then(() => {
+    postPartialConfig({ apps: { jLog: { command: cmd, autoLaunch: auto } } }, 'jlog-msg', 'J-Log settings saved');
+  })
+  .catch(() => flashMsg('jlog-msg', 'Error', true));
+}
+
+// ── J-Digi settings ───────────────────────────────────────
+function loadJDigiSettings() {
+  fetch('/api/jdigi')
+    .then(r => r.json())
+    .then(s => {
+      const apps = (state.config.apps && state.config.apps.jDigi) ? state.config.apps.jDigi : {};
+      populateJDigiForm(s, apps);
+    })
+    .catch(() => {});
+}
+
+function populateJDigiForm(s, ap) {
+  const fsEl  = document.getElementById('jdigi-font-size');
+  const fsLbl = document.getElementById('jdigi-font-size-val');
+  if (fsEl)  fsEl.value = s.fontSize || 13;
+  if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+  setVal('jdigi-cmd', (ap && ap.command) || '');
+  if (ap && ap.autoLaunch != null) setChk('jdigi-auto', !!ap.autoLaunch);
+}
+
+function saveJDigiSettings() {
+  const fontSize = parseInt(document.getElementById('jdigi-font-size').value) || 13;
+  const cmd      = document.getElementById('jdigi-cmd').value.trim();
+  const auto     = document.getElementById('jdigi-auto').checked;
+  fetch('/api/jdigi', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ fontSize })
+  })
+  .then(r => r.json())
+  .then(() => {
+    postPartialConfig({ apps: { jDigi: { command: cmd, autoLaunch: auto } } }, 'jdigi-msg', 'J-Digi settings saved');
+  })
+  .catch(() => flashMsg('jdigi-msg', 'Error', true));
+}
+
 // ── Boot ────────────────────────────────────────────────────
 // Restore theme before first paint to avoid flash
 (function () {
@@ -1339,6 +1519,8 @@ populateTimezones();
 loadConfig();
 loadMacros();
 loadJMapSettings();
+loadJLogSettings();
+loadJDigiSettings();
 loadJSatSatelliteRegistry();
 connectWs();
 pollStatus();

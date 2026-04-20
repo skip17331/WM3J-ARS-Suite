@@ -100,10 +100,22 @@ public final class BandPlan {
     private static final double SSB_BW_KHZ = 3.0; // assumed occupied SSB bandwidth
 
     static {
+        // ── 2200m ─────────────────────────────────────────────────────
+        band("2200m",
+            seg(135.7, 137.8, "USB / WSPR / CW",     ModeGroup.USB_ONLY,  LicenseClass.GENERAL,
+                "1W EIRP max · Register with UTC before use"));
+
+        // ── 630m ──────────────────────────────────────────────────────
+        band("630m",
+            seg(472, 479,  "USB / WSPR / CW",        ModeGroup.USB_ONLY,  LicenseClass.GENERAL,
+                "5W EIRP max · Register with UTC before use"));
+
         // ── 160m ──────────────────────────────────────────────────────
         band("160m",
-            seg(1800, 2000, "CW / Phone / Data",     ModeGroup.PHONE,     LicenseClass.GENERAL,
-                "FT8: 1.840 · SSB: 1.900 MHz"));
+            seg(1800, 1900, "CW / Data",              ModeGroup.CW_DATA,   LicenseClass.GENERAL,
+                "FT8: 1.840 · CW calling: 1.800 MHz"),
+            seg(1900, 2000, "Phone / CW",             ModeGroup.PHONE,     LicenseClass.GENERAL,
+                "LSB calling: 1.900 · AM: 1.885 MHz"));
 
         // ── 80m ───────────────────────────────────────────────────────
         band("80m",
@@ -207,6 +219,37 @@ public final class BandPlan {
                 "FM simplex: 144.360 · APRS: 144.390"),
             seg(145000, 148000, "FM / Repeaters",        ModeGroup.FM,        LicenseClass.ALL,
                 "FM calling: 146.520 · Packet: 145.010"));
+
+        // ── 1.25m ─────────────────────────────────────────────────────
+        band("1.25m",
+            seg(219000, 220000, "Fixed/Mobile (secondary)", ModeGroup.PHONE, LicenseClass.GENERAL,
+                "Limited ham use — secondary allocation"),
+            seg(220000, 222000, "All Modes",                ModeGroup.PHONE, LicenseClass.GENERAL,
+                "SSB/CW/FM — lower segment"),
+            seg(222000, 225000, "FM / Phone",               ModeGroup.FM,    LicenseClass.GENERAL,
+                "FM simplex: 223.500 · Repeater inputs: 224 MHz"));
+
+        // ── 33cm ──────────────────────────────────────────────────────
+        band("33cm",
+            seg(902000, 904000, "CW / Weak Signal",         ModeGroup.CW_DATA,   LicenseClass.GENERAL,
+                "CW/SSB calling: 903.100 MHz"),
+            seg(904000, 909000, "All Modes",                 ModeGroup.PHONE,     LicenseClass.GENERAL,
+                "FT8: 903.074 MHz"),
+            seg(909000, 915000, "FM / Phone",                ModeGroup.FM,        LicenseClass.GENERAL,
+                "ISM band — share with Part 15 devices"),
+            seg(915000, 928000, "FM / Repeaters",            ModeGroup.FM,        LicenseClass.GENERAL,
+                "FM repeaters: 927 MHz range"));
+
+        // ── 23cm ──────────────────────────────────────────────────────
+        band("23cm",
+            seg(1240000, 1246000, "CW / Weak Signal",       ModeGroup.CW_DATA,   LicenseClass.GENERAL,
+                "EME: 1296.050 · CW calling: 1296.100"),
+            seg(1246000, 1270000, "All Modes",               ModeGroup.PHONE,     LicenseClass.GENERAL,
+                "SSB/CW/Digital"),
+            seg(1270000, 1295000, "FM / Repeaters",          ModeGroup.FM,        LicenseClass.GENERAL,
+                "FM repeater pairs"),
+            seg(1295000, 1300000, "Experimental / ATV",      ModeGroup.PHONE,     LicenseClass.GENERAL,
+                "ATV (Amateur TV) · experimental modes"));
 
         // ── 70cm ──────────────────────────────────────────────────────
         band("70cm",

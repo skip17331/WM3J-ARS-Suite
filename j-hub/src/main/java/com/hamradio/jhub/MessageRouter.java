@@ -41,6 +41,8 @@ public class MessageRouter {
         this.jHubServer = server;
     }
 
+    public JHubServer getJHubServer() { return jHubServer; }
+
     // ---------------------------------------------------------------
     // Main dispatch method — called by JHubServer.onMessage
     // ---------------------------------------------------------------

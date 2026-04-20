@@ -77,19 +77,19 @@
   "apps": {
     "jMap": {
       "autoLaunch": false,
-      "command": ""
+      "command": "/home/mike/ARS_Suite/j-map/jmap.sh"
     },
     "jLog": {
       "autoLaunch": false,
-      "command": ""
+      "command": "/home/mike/ARS_Suite/j-log/j-log.sh"
     },
     "jBridge": {
       "autoLaunch": false,
-      "command": ""
+      "command": "/home/mike/ARS_Suite/j-bridge/j-bridge.sh"
     },
     "jDigi": {
       "autoLaunch": false,
-      "command": ""
+      "command": "/home/mike/ARS_Suite/j-digit/j-digi.sh"
     },
     "jSat": {
       "autoLaunch": false,

@@ -523,7 +523,7 @@ public class SetupPageHtml {
       <div class="field-label">Font Size<div class="desc">Base size for all text (10–22 px)</div></div>
       <div style="display:flex;align-items:center;gap:10px">
         <input type="range" id="fontSize" min="10" max="22" step="1" value=\"""" + s.getFontSize() + """
-\" oninput="document.getElementById('fontSizeVal').textContent=this.value+'px'">
+\" oninput="previewFontSize(this.value)">
         <span id="fontSizeVal" style="color:var(--gold);font-size:12px;min-width:32px">""" + s.getFontSize() + """
 px</span>
       </div>
@@ -668,6 +668,25 @@ async function saveSettings() {
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveSettings(); }
 });
+
+// Live font-size preview while dragging the slider (debounced)
+let fontSizeDebounce;
+function previewFontSize(val) {
+  document.getElementById('fontSizeVal').textContent = val + 'px';
+  clearTimeout(fontSizeDebounce);
+  fontSizeDebounce = setTimeout(() => autoApplyFontSize(parseInt(val)), 400);
+}
+async function autoApplyFontSize(size) {
+  const settings = collectSettings();
+  settings.fontSize = size;
+  try {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    });
+  } catch (e) {}
+}
 
 </script>
 </body>

@@ -23,6 +23,8 @@
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
       <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
       <button class="nav-btn" data-tab="jmap"><span class="nav-icon">◫</span>J-Map</button>
+      <button class="nav-btn" data-tab="jlog"><span class="nav-icon">◩</span>J-Log</button>
+      <button class="nav-btn" data-tab="jdigi"><span class="nav-icon">〰</span>J-Digi</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
       <button class="nav-btn" data-tab="macros"><span class="nav-icon">⊟</span>Macros</button>
       <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
@@ -463,6 +465,22 @@
       <div class="dash-grid">
         <div class="card">
           <div class="card-title">Connection</div>
+
+          <!-- Saved Networks -->
+          <div class="section-title" style="margin-bottom:6px">Saved Networks</div>
+          <div class="field-row" style="align-items:flex-end;gap:8px;margin-bottom:14px">
+            <div class="field" style="flex:1">
+              <select id="cl-network-select" onchange="onNetworkSelect()">
+                <option value="">— manual entry —</option>
+              </select>
+              <label>Select Network</label>
+            </div>
+            <button class="btn btn-red btn-sm" id="cl-del-btn" onclick="deleteNetwork()"
+                    style="display:none;margin-bottom:2px">Delete</button>
+          </div>
+
+          <!-- Manual / edit fields -->
+          <div class="section-title" style="margin-bottom:6px">Connection Details</div>
           <div class="field-row cols-auto">
             <div class="field">
               <input type="text" id="cl-host" placeholder="dxc.w3ur.org">
@@ -477,7 +495,17 @@
               <label>Login Callsign</label>
             </div>
           </div>
-          <div class="toggle-row">
+          <div class="field-row" style="align-items:flex-end;gap:8px;margin-top:8px;margin-bottom:4px">
+            <div class="field" style="flex:1">
+              <input type="text" id="cl-net-name" placeholder="e.g. DX Middlebrook">
+              <label>Save as Network Name</label>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="saveNetwork()"
+                    style="margin-bottom:2px">Save Network</button>
+          </div>
+          <span id="cl-net-msg" style="font-size:12px;color:var(--overlay0);display:block;min-height:16px"></span>
+
+          <div class="toggle-row" style="margin-top:8px">
             <div>
               <div class="toggle-label">Auto-Reconnect</div>
               <div class="toggle-desc">Reconnect on disconnect with exponential backoff</div>
@@ -490,7 +518,7 @@
           <div class="btn-row" style="margin-top:12px">
             <button class="btn btn-green" onclick="clusterConnect()">Connect</button>
             <button class="btn btn-red"   onclick="clusterDisconnect()">Disconnect</button>
-            <button class="btn btn-primary" onclick="saveCluster()">Save</button>
+            <button class="btn btn-primary" onclick="saveCluster()">Save Settings</button>
             <span id="cl-msg" style="font-size:12px;color:var(--overlay0)"></span>
           </div>
         </div>
@@ -774,9 +802,111 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-title">Font Size</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jm-font-size" min="10" max="22" value="13"
+                   oninput="document.getElementById('jm-font-size-val').textContent=this.value">
+            <label>Size: <span id="jm-font-size-val">13</span> px</label>
+            <span class="hint">Applied immediately if J-Map is running; otherwise on next start</span>
+          </div>
+        </div>
+      </div>
+
       <div class="btn-row" style="margin-top:4px">
         <button class="btn btn-primary" onclick="saveJMapSettings()">Save J-Map Settings</button>
         <span id="jmap-msg" style="font-size:12px;color:var(--overlay0)"></span>
+      </div>
+    </section>
+
+    <!-- ─── Tab: J-Log ──────────────────────────────────── -->
+    <section id="tab-jlog" class="tab-panel">
+      <div class="panel-header">J-Log Settings</div>
+      <div class="panel-sub">Ham radio logging — font size and launch configuration</div>
+
+      <div class="card">
+        <div class="card-title">Font Size</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jlog-font-size" min="10" max="22" value="13"
+                   oninput="document.getElementById('jlog-font-size-val').textContent=this.value">
+            <label>Size: <span id="jlog-font-size-val">13</span> px</label>
+            <span class="hint">Applied immediately if J-Log is connected; otherwise on next start</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Launch Configuration</div>
+        <div class="field">
+          <input type="text" id="jlog-cmd" placeholder="bash /home/user/ARS_Suite/j-log/run.sh">
+          <label>Launch Command</label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Launch</div>
+            <div class="toggle-desc">Start J-Log automatically when J-Hub starts</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jlog-auto">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-green btn-sm" onclick="launchApp('j-log')">Launch</button>
+          <button class="btn btn-red btn-sm"   onclick="killApp('j-log')">Stop</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveJLogSettings()">Save J-Log Settings</button>
+        <span id="jlog-msg" style="font-size:12px;color:var(--overlay0)"></span>
+      </div>
+    </section>
+
+    <!-- ─── Tab: J-Digi ─────────────────────────────────── -->
+    <section id="tab-jdigi" class="tab-panel">
+      <div class="panel-header">J-Digi Settings</div>
+      <div class="panel-sub">Digital modem / RTTY / PSK — font size and launch configuration</div>
+
+      <div class="card">
+        <div class="card-title">Font Size</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jdigi-font-size" min="10" max="22" value="13"
+                   oninput="document.getElementById('jdigi-font-size-val').textContent=this.value">
+            <label>Size: <span id="jdigi-font-size-val">13</span> px</label>
+            <span class="hint">Applied immediately if J-Digi is connected; otherwise on next start</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Launch Configuration</div>
+        <div class="field">
+          <input type="text" id="jdigi-cmd" placeholder="bash /home/user/ARS_Suite/j-digi/run.sh">
+          <label>Launch Command</label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Launch</div>
+            <div class="toggle-desc">Start J-Digi automatically when J-Hub starts</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jdigi-auto">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-green btn-sm" onclick="launchApp('j-digi')">Launch</button>
+          <button class="btn btn-red btn-sm"   onclick="killApp('j-digi')">Stop</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveJDigiSettings()">Save J-Digi Settings</button>
+        <span id="jdigi-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
 
@@ -1042,6 +1172,18 @@
         <div class="intel-row">
           <span class="intel-k">Rotor AZ / EL</span>
           <span class="intel-v" id="jsat-rotor-pos">—</span>
+        </div>
+      </div>
+
+      <!-- Font size -->
+      <div class="card">
+        <div class="card-title">Font Size</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jsat-font-size" min="10" max="22" value="13"
+                   oninput="document.getElementById('jsat-font-size-val').textContent=this.value">
+            <label>Size: <span id="jsat-font-size-val">13</span> px — applied when J-Sat starts</label>
+          </div>
         </div>
       </div>
 

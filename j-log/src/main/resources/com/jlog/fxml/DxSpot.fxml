@@ -9,6 +9,8 @@
 
     <HBox spacing="8" alignment="CENTER_LEFT" styleClass="dx-toolbar">
         <padding><Insets top="4" left="6" right="6" bottom="4"/></padding>
+        <Label text="Network:"/>
+        <ComboBox fx:id="cbNetwork" prefWidth="185" promptText="(active network)"/>
         <Button fx:id="btnClusterConnect"    text="Connect"    onAction="#doClusterConnect"/>
         <Button fx:id="btnClusterDisconnect" text="Disconnect" onAction="#doClusterDisconnect" disable="true"/>
         <Label  fx:id="lblClusterStatus"     styleClass="conn-status"/>

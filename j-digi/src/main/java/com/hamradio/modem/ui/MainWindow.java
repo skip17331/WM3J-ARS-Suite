@@ -62,6 +62,7 @@ public class MainWindow {
 
     // ── Runtime theme state ───────────────────────────────────────────
     private boolean darkTheme;
+    private int     fontSize;
     private Scene   scene;
     private static final Preferences PREFS =
             Preferences.userNodeForPackage(MainWindow.class);
@@ -140,6 +141,7 @@ public class MainWindow {
 
     public void show(Stage stage) {
         darkTheme = PREFS.getBoolean("darkTheme", false);   // default: light
+        fontSize  = PREFS.getInt("fontSize", 13);
         rightPanel = new RightPanel(service);
 
         String prefsCall = service.getMyCall();
@@ -160,6 +162,7 @@ public class MainWindow {
         scene.getStylesheets().add(buildCombinedStylesheet());
         // Class-based theming: root carries .dark or .light
         scene.getRoot().getStyleClass().add(darkTheme ? "dark" : "light");
+        scene.getRoot().setStyle("-fx-font-size: " + fontSize + "px;");
 
         stage.setTitle("J-Digi");
         stage.setScene(scene);
@@ -212,7 +215,7 @@ public class MainWindow {
 
         // TX state label
         txStateLabel.setStyle(
-            "-fx-font-family: monospace; -fx-font-size: 10; -fx-font-weight: bold;" +
+            "-fx-font-family: monospace; -fx-font-size: 0.77em; -fx-font-weight: bold;" +
             "-fx-text-fill: " + sub() + ";");
 
         // Status bar labels (set default; onStatusUpdate will override with live values)
@@ -267,14 +270,12 @@ public class MainWindow {
     private HBox buildToolBar() {
 
         // ── Station ──────────────────────────────────────────────────
-        callsignLabel.setFont(Font.font("monospace", FontWeight.BOLD, 18));
         callsignLabel.getStyleClass().add("jd-callsign");
         gridLabel.getStyleClass().add("jd-grid-label");
         VBox stationBox = new VBox(1, callsignLabel, gridLabel);
         stationBox.setAlignment(Pos.CENTER_LEFT);
 
         // ── Frequency panel ──────────────────────────────────────────
-        freqLabel.setFont(Font.font("monospace", FontWeight.BOLD, 26));
         freqLabel.getStyleClass().add("jd-freq-display");
         audioOffLabel.getStyleClass().add("jd-audio-sub");
         VBox freqContent = new VBox(1, freqLabel, audioOffLabel);
@@ -286,7 +287,6 @@ public class MainWindow {
         modeBox.setItems(FXCollections.observableArrayList(ModeType.values()));
         modeBox.setValue(ModeType.RTTY);
         modeBox.setPrefWidth(108);
-        modeTag.setFont(Font.font("monospace", FontWeight.BOLD, 10));
         modeTag.getStyleClass().add("jd-mode-tag");
         Label modeLbl = instLabel("MODE");
         VBox modeVBox = new VBox(2, modeLbl, new HBox(4, modeBox, modeTag));
@@ -302,10 +302,8 @@ public class MainWindow {
         guardContent.setAlignment(Pos.CENTER);
 
         // ── Transmit / Cancel ────────────────────────────────────────
-        transmitBtn.setFont(Font.font("DejaVu Sans", FontWeight.BOLD, 12));
         transmitBtn.getStyleClass().add("xmit-btn");
         transmitBtn.setPrefSize(116, 36);
-        cancelBtn.setFont(Font.font("DejaVu Sans", FontWeight.BOLD, 12));
         cancelBtn.getStyleClass().add("cancel-btn");
         cancelBtn.setPrefSize(100, 36);
         cancelBtn.setDisable(true);
@@ -321,7 +319,6 @@ public class MainWindow {
         saveTxWavBtn.getStyleClass().add("tb-btn");
         saveTxWavBtn.setOnAction(e -> saveTxWav((Stage) txArea.getScene().getWindow()));
         themeBtn.getStyleClass().add("tb-btn");
-        themeBtn.setFont(Font.font(14));
         themeBtn.setTooltip(new Tooltip("Toggle light / dark theme"));
         themeBtn.setOnAction(e -> toggleTheme());
 
@@ -334,7 +331,6 @@ public class MainWindow {
 
         // ── Rotor bearing ─────────────────────────────────────────────
         Label rotorSectionLbl = instLabel("BEARING");
-        rotorLabel.setFont(Font.font("monospace", FontWeight.BOLD, 18));
         rotorLabel.getStyleClass().add("jd-rotor");
         VBox rotorContent = new VBox(2, rotorSectionLbl, rotorLabel);
         rotorContent.setAlignment(Pos.CENTER_LEFT);
@@ -463,7 +459,6 @@ public class MainWindow {
     private VBox buildRxPane() {
         rxArea.setEditable(false);
         rxArea.setWrapText(false);
-        rxArea.setFont(Font.font("monospace", 13));
         rxArea.getStyleClass().add("rx-area");
 
         rx_peak.getStyleClass().add("jd-rx-sub");
@@ -498,14 +493,12 @@ public class MainWindow {
 
     private VBox buildTxPane() {
         txArea.setWrapText(true);
-        txArea.setFont(Font.font("monospace", 13));
         txArea.setPromptText("Enter text to transmit…");
         txArea.getStyleClass().add("tx-area");
         txArea.textProperty().addListener((obs, o, n) ->
             txCharCount.setText(n.length() + " ch"));
 
-        txStateLabel.setFont(Font.font("monospace", FontWeight.BOLD, 10));
-        txCharCount.setStyle("-fx-font-family: monospace; -fx-font-size: 11;");
+        txCharCount.setStyle("-fx-font-family: monospace; -fx-font-size: 0.85em;");
         txCharCount.getStyleClass().add("jd-rx-sub");
 
         Region sp = new Region();
@@ -543,7 +536,7 @@ public class MainWindow {
             sbItem(sb_hub,   null)
         );
         bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setStyle("-fx-font-family: monospace; -fx-font-size: 11;");
+        bar.setStyle("-fx-font-family: monospace; -fx-font-size: 0.85em;");
         bar.setMinHeight(24);
         bar.setMaxHeight(24);
         bar.getStyleClass().add("jd-statusbar");
@@ -574,6 +567,12 @@ public class MainWindow {
 
         service.setSpotSelectedListener(spot ->
             Platform.runLater(() -> rightPanel.onHubSpotSelected(spot)));
+
+        service.setFontSizeListener(newSize -> Platform.runLater(() -> {
+            fontSize = newSize;
+            PREFS.putInt("fontSize", newSize);
+            scene.getRoot().setStyle("-fx-font-size: " + newSize + "px;");
+        }));
     }
 
     private void wireToggleButtons() {
@@ -620,7 +619,7 @@ public class MainWindow {
         };
         txStateLabel.setText(stateTxt);
         txStateLabel.setStyle(
-            "-fx-font-family: monospace; -fx-font-size: 10; -fx-font-weight: bold;" +
+            "-fx-font-family: monospace; -fx-font-size: 0.77em; -fx-font-weight: bold;" +
             "-fx-text-fill: " + (txActive ? err() : sub()) + ";");
 
         // Frequency
@@ -635,7 +634,7 @@ public class MainWindow {
         double snr = st.getSnr();
         drawSnrBar(snr);
         String snrColor = snr > 20 ? err() : snr > 10 ? warn() : teal();
-        rx_snr.setStyle("-fx-font-family: monospace; -fx-font-size: 9; -fx-text-fill: " + snrColor + ";");
+        rx_snr.setStyle("-fx-font-family: monospace; -fx-font-size: 0.69em; -fx-text-fill: " + snrColor + ";");
         rx_snr.setText("SNR %.1fdB".formatted(snr));
         rx_peak.setText("Pk %.0fHz".formatted(audioHz));
 
@@ -790,19 +789,25 @@ public class MainWindow {
                .ifPresent(outputBox::setValue);
         if (outputBox.getValue() == null && !outputs.isEmpty()) outputBox.setValue(outputs.get(0));
 
+        Spinner<Integer> fontSizeSpinner = new Spinner<>(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(10, 22, fontSize));
+        fontSizeSpinner.setEditable(true);
+        fontSizeSpinner.setPrefWidth(80);
+
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
         grid.setPadding(new Insets(10));
         int r = 0;
-        grid.add(new Label("Hub WebSocket URL:"), 0, r); grid.add(hubField,  1, r++);
-        grid.add(new Label("Audio Input:"),       0, r); grid.add(inputBox,  1, r++);
-        grid.add(new Label("Audio Output:"),      0, r); grid.add(outputBox, 1, r);
+        grid.add(new Label("Hub WebSocket URL:"), 0, r); grid.add(hubField,       1, r++);
+        grid.add(new Label("Audio Input:"),       0, r); grid.add(inputBox,       1, r++);
+        grid.add(new Label("Audio Output:"),      0, r); grid.add(outputBox,      1, r++);
+        grid.add(new Label("Font Size (px):"),    0, r); grid.add(fontSizeSpinner,1, r);
         hubField.setPrefWidth(360);
         inputBox.setPrefWidth(360);
         outputBox.setPrefWidth(360);
 
         Label hint = new Label("Callsign and macros are managed in J-Hub → http://hub:8081");
-        hint.setStyle("-fx-font-style: italic; -fx-font-size: 11;");
+        hint.setStyle("-fx-font-style: italic; -fx-font-size: 0.85em;");
         hint.getStyleClass().add("jd-rx-sub");
 
         dialog.getDialogPane().setContent(new VBox(10, grid, hint));
@@ -814,6 +819,12 @@ public class MainWindow {
                 if (selIn != null) service.setAudioInputDevice(selIn.id());
                 AudioTxEngine.AudioOutputDevice selOut = outputBox.getValue();
                 if (selOut != null) service.setAudioOutputDevice(selOut.id());
+                int newFontSize = fontSizeSpinner.getValue();
+                if (newFontSize != fontSize) {
+                    fontSize = newFontSize;
+                    PREFS.putInt("fontSize", fontSize);
+                    scene.getRoot().setStyle("-fx-font-size: " + fontSize + "px;");
+                }
             }
         });
     }
@@ -957,21 +968,21 @@ public class MainWindow {
             -fx-font-family: 'DejaVu Sans', 'Liberation Sans', sans-serif;
             -fx-font-size: 13;
         }
-        .rx-area, .tx-area { -fx-font-family: monospace; -fx-font-size: 13; }
+        .rx-area, .tx-area { -fx-font-family: monospace; -fx-font-size: 1em; }
 
-        .jd-inst-label  { -fx-font-size: 8;  -fx-font-weight: bold; }
-        .jd-panel-title { -fx-font-size: 11; -fx-font-weight: bold; }
-        .jd-freq-display{ -fx-font-family: monospace; -fx-font-size: 26; -fx-font-weight: bold; }
-        .jd-audio-sub   { -fx-font-family: monospace; -fx-font-size: 11; }
-        .jd-grid-label  { -fx-font-family: monospace; -fx-font-size: 10; }
-        .jd-callsign    { -fx-font-family: monospace; -fx-font-size: 18; -fx-font-weight: bold; }
-        .jd-rotor       { -fx-font-family: monospace; -fx-font-size: 18; -fx-font-weight: bold; }
-        .jd-mode-tag    { -fx-font-family: monospace; -fx-font-size: 10; -fx-font-weight: bold;
+        .jd-inst-label  { -fx-font-size: 0.62em; -fx-font-weight: bold; }
+        .jd-panel-title { -fx-font-size: 0.85em; -fx-font-weight: bold; }
+        .jd-freq-display{ -fx-font-family: monospace; -fx-font-size: 2.0em; -fx-font-weight: bold; }
+        .jd-audio-sub   { -fx-font-family: monospace; -fx-font-size: 0.85em; }
+        .jd-grid-label  { -fx-font-family: monospace; -fx-font-size: 0.77em; }
+        .jd-callsign    { -fx-font-family: monospace; -fx-font-size: 1.38em; -fx-font-weight: bold; }
+        .jd-rotor       { -fx-font-family: monospace; -fx-font-size: 1.38em; -fx-font-weight: bold; }
+        .jd-mode-tag    { -fx-font-family: monospace; -fx-font-size: 0.77em; -fx-font-weight: bold;
                           -fx-padding: 1 6 1 6; -fx-background-radius: 3; -fx-border-radius: 3;
                           -fx-border-width: 1; }
-        .jd-rx-sub      { -fx-font-family: monospace; -fx-font-size: 10; }
-        .jd-section-label { -fx-font-size: 13; -fx-font-weight: bold; -fx-padding: 2 0 6 0; }
-        .jd-status-label  { -fx-font-style: italic; -fx-font-size: 11; }
+        .jd-rx-sub      { -fx-font-family: monospace; -fx-font-size: 0.77em; }
+        .jd-section-label { -fx-font-size: 1em; -fx-font-weight: bold; -fx-padding: 2 0 6 0; }
+        .jd-status-label  { -fx-font-style: italic; -fx-font-size: 0.85em; }
         .jd-entry-pane    { }
 
         .jd-bezel      { -fx-border-radius: 3; -fx-background-radius: 3; -fx-border-width: 1; }
@@ -982,22 +993,22 @@ public class MainWindow {
         .jd-toolbar    { -fx-border-width: 0 0 1 0; }
         .jd-sb-item    { -fx-border-width: 0 1 0 0; }
 
-        .afc-btn, .sql-btn { -fx-font-size: 10; -fx-font-weight: bold;
+        .afc-btn, .sql-btn { -fx-font-size: 0.77em; -fx-font-weight: bold;
                              -fx-border-width: 1; -fx-background-radius: 3; -fx-border-radius: 3;
                              -fx-padding: 3 8 3 8; }
-        .xmit-btn   { -fx-font-weight: bold; -fx-background-radius: 4;
-                      -fx-border-width: 0; -fx-text-fill: white; }
-        .cancel-btn { -fx-background-radius: 4; -fx-border-width: 1; }
-        .tb-btn     { -fx-font-size: 11; -fx-font-weight: bold;
+        .xmit-btn   { -fx-font-size: 0.92em; -fx-font-family: 'DejaVu Sans'; -fx-font-weight: bold;
+                      -fx-background-radius: 4; -fx-border-width: 0; -fx-text-fill: white; }
+        .cancel-btn { -fx-font-size: 0.92em; -fx-background-radius: 4; -fx-border-width: 1; }
+        .tb-btn     { -fx-font-size: 0.85em; -fx-font-weight: bold;
                       -fx-background-radius: 4; -fx-border-width: 1;
                       -fx-padding: 5 12 5 12; }
         .macro-button, .macro-button-programmable, .macro-button-disabled {
-            -fx-font-size: 11; -fx-min-width: 44px;
+            -fx-font-size: 0.85em; -fx-min-width: 44px;
             -fx-padding: 3 6 3 6; -fx-background-radius: 4; }
         .macro-button-disabled { -fx-opacity: 0.45; }
         .primary-button   { -fx-background-radius: 4; -fx-font-weight: bold; -fx-text-fill: white; }
         .secondary-button { -fx-background-radius: 4; }
-        .entry-label      { -fx-font-weight: bold; -fx-font-size: 11; }
+        .entry-label      { -fx-font-weight: bold; -fx-font-size: 0.85em; }
         .cockpit-check .box { -fx-border-width: 1; -fx-background-radius: 3; -fx-border-radius: 3; }
         """
         // ── Dark theme — root carries .dark class ────────────────────
@@ -1071,7 +1082,7 @@ public class MainWindow {
         .dark .tab-pane > .tab-header-area { -fx-background-color: #2a2a2a; }
         .dark .tab { -fx-background-color: #383838; -fx-padding: 4 14 4 14; -fx-background-radius: 0; }
         .dark .tab:selected { -fx-background-color: #1a3a5a; }
-        .dark .tab .tab-label { -fx-text-fill: #e0e0e0; -fx-font-weight: bold; -fx-font-size: 11; }
+        .dark .tab .tab-label { -fx-text-fill: #e0e0e0; -fx-font-weight: bold; -fx-font-size: 0.85em; }
         .dark .tab:selected .tab-label { -fx-text-fill: #4fc3f7; }
         .dark .combo-box { -fx-background-color: #3a3a3a; -fx-border-color: #555555; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-radius: 3; }
         .dark .combo-box .list-cell { -fx-text-fill: #e0e0e0; -fx-background-color: #3a3a3a; }
@@ -1094,7 +1105,7 @@ public class MainWindow {
         .dark .table-row-cell { -fx-background-color: #2a2a2a; -fx-text-fill: #e0e0e0; }
         .dark .table-row-cell:odd { -fx-background-color: #303030; }
         .dark .table-row-cell:selected { -fx-background-color: #1a3a5a; }
-        .dark .table-cell { -fx-text-fill: #e0e0e0; -fx-font-size: 11; }
+        .dark .table-cell { -fx-text-fill: #e0e0e0; -fx-font-size: 0.85em; }
         .dark .dialog-pane { -fx-background-color: #2b2b2b; }
         .dark .dialog-pane .label { -fx-text-fill: #e0e0e0; }
         .dark .dialog-pane .button-bar .button { -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0; -fx-background-radius: 4; }
@@ -1175,7 +1186,7 @@ public class MainWindow {
         .light .tab-pane > .tab-header-area { -fx-background-color: #e0e4ee; }
         .light .tab { -fx-background-color: #eef2fb; -fx-padding: 4 14 4 14; -fx-background-radius: 0; }
         .light .tab:selected { -fx-background-color: #bbdefb; }
-        .light .tab .tab-label { -fx-text-fill: #212121; -fx-font-weight: bold; -fx-font-size: 11; }
+        .light .tab .tab-label { -fx-text-fill: #212121; -fx-font-weight: bold; -fx-font-size: 0.85em; }
         .light .tab:selected .tab-label { -fx-text-fill: #1565c0; }
         .light .combo-box { -fx-background-color: #ffffff; -fx-border-color: #c8d0e8; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-radius: 3; }
         .light .combo-box .list-cell { -fx-text-fill: #212121; -fx-background-color: #ffffff; }
@@ -1198,7 +1209,7 @@ public class MainWindow {
         .light .table-row-cell { -fx-background-color: white; -fx-text-fill: #212121; }
         .light .table-row-cell:odd { -fx-background-color: #f8faff; }
         .light .table-row-cell:selected { -fx-background-color: #bbdefb; }
-        .light .table-cell { -fx-text-fill: #212121; -fx-font-size: 11; }
+        .light .table-cell { -fx-text-fill: #212121; -fx-font-size: 0.85em; }
         .light .dialog-pane { -fx-background-color: #f4f4f4; }
         .light .dialog-pane .label { -fx-text-fill: #212121; }
         .light .dialog-pane .button-bar .button { -fx-background-color: #e0e0e0; -fx-text-fill: #212121; -fx-background-radius: 4; }

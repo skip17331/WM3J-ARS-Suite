@@ -27,14 +27,14 @@ public class DEInfoWindow extends FloatingWindow {
     private final Label gridLabel;
 
     public DEInfoWindow(ServiceRegistry services) {
-        super("🏠  DE — YOUR STATION", 220);
+        super("🏠  DE — YOUR STATION", 260);
         this.services = services;
 
-        callsignLabel  = styled("", "1.69em", "#ffd700", true);
-        localTimeLabel = styled("", "1em",    "#00cc66", false);
-        latLonLabel    = styled("", "0.85em", "#ccd6f6", false);
-        zonesLabel     = styled("", "0.85em", "#ccd6f6", false);
-        gridLabel      = styled("", "1em",    "#2a7fff", true);
+        callsignLabel  = styled("", "2.10em", "#ffd700", true);
+        localTimeLabel = styled("", "1.21em", "#00cc66", false);
+        latLonLabel    = styled("", "1.06em", "#ccd6f6", false);
+        zonesLabel     = styled("", "1.06em", "#ccd6f6", false);
+        gridLabel      = styled("", "1.21em", "#2a7fff", true);
 
         contentBox.getChildren().addAll(
             callsignLabel, localTimeLabel, latLonLabel,

@@ -88,6 +88,7 @@ public class ModemService implements HubMessageListener {
     private Consumer<RotorStatus>   rotorListener        = r -> {};
     /** Fires on the FX thread when j-hub delivers station identity via JHUB_WELCOME. */
     private Consumer<String[]>      stationListener      = a -> {};  // [callsign, grid, tz]
+    private Consumer<Integer>       fontSizeListener     = s -> {};
 
     private final List<HubMacro> macros = new ArrayList<>();
     private final List<HubSpot>  spots  = new ArrayList<>();
@@ -172,6 +173,7 @@ public class ModemService implements HubMessageListener {
     public void setSpotSelectedListener(Consumer<HubSpot> l)    { this.spotSelectedListener = l != null ? l : s -> {}; }
     public void setRotorListener(Consumer<RotorStatus> l)       { this.rotorListener        = l != null ? l : r -> {}; }
     public void setStationListener(Consumer<String[]> l)        { this.stationListener      = l != null ? l : a -> {}; }
+    public void setFontSizeListener(Consumer<Integer> l)        { this.fontSizeListener     = l != null ? l : s -> {}; }
 
     public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
     public List<HubSpot>  getSpots()     { return Collections.unmodifiableList(spots);  }
@@ -818,6 +820,15 @@ public class ModemService implements HubMessageListener {
             }
 
             case "APP_LIST" -> {} // no-op
+
+            case "CONFIG_UPDATE" -> {
+                if (msg.has("settings")) {
+                    com.google.gson.JsonObject settings = msg.getAsJsonObject("settings");
+                    if (settings.has("fontSize")) {
+                        fontSizeListener.accept(settings.get("fontSize").getAsInt());
+                    }
+                }
+            }
 
             case "SHUTDOWN" -> {
                 // J-Hub is shutting down — exit cleanly

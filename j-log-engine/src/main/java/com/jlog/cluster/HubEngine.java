@@ -38,7 +38,8 @@ public class HubEngine {
     // ---------------------------------------------------------------
 
     private WebSocketClient wsClient;
-    private final AtomicBoolean connected = new AtomicBoolean(false);
+    private final AtomicBoolean connected  = new AtomicBoolean(false);
+    private final AtomicBoolean connecting = new AtomicBoolean(false);
     private String url;
 
     // Listeners — called on the WebSocket thread; callers must dispatch to UI thread if needed
@@ -46,6 +47,7 @@ public class HubEngine {
     private Consumer<DxSpot>   spotSelectedListener;
     private Consumer<String>   rawLineListener;
     private Consumer<JsonNode> logEntryDraftListener;
+    private Consumer<Integer>  configUpdateListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -60,10 +62,14 @@ public class HubEngine {
      * @return true if connection succeeded
      */
     public boolean connect(String wsUrl) {
-        if (connected.get()) disconnect();
-        this.url = wsUrl;
-
+        if (!connecting.compareAndSet(false, true)) {
+            log.debug("Connection attempt ignored — already connecting to hub");
+            return false;
+        }
         try {
+            if (connected.get()) disconnect();
+            this.url = wsUrl;
+
             wsClient = new WebSocketClient(new URI(wsUrl)) {
 
                 @Override
@@ -101,6 +107,8 @@ public class HubEngine {
         } catch (Exception ex) {
             log.error("Hub connect failed: {}", wsUrl, ex);
             return false;
+        } finally {
+            connecting.set(false);
         }
     }
 
@@ -142,6 +150,12 @@ public class HubEngine {
             } else if ("LOG_ENTRY_DRAFT".equals(type)) {
                 if (logEntryDraftListener != null)
                     logEntryDraftListener.accept(node);
+
+            } else if ("CONFIG_UPDATE".equals(type)) {
+                JsonNode settings = node.path("settings");
+                int size = settings.path("fontSize").asInt(0);
+                if (size > 0 && configUpdateListener != null)
+                    configUpdateListener.accept(size);
 
             } else if ("SHUTDOWN".equals(type)) {
                 log.info("SHUTDOWN command received from j-hub");
@@ -197,6 +211,7 @@ public class HubEngine {
     public void setSpotSelectedListener (Consumer<DxSpot> l)   { this.spotSelectedListener  = l; }
     public void setRawLineListener      (Consumer<String> l)   { this.rawLineListener       = l; }
     public void setLogEntryDraftListener(Consumer<JsonNode> l) { this.logEntryDraftListener = l; }
+    public void setConfigUpdateListener (Consumer<Integer> l)  { this.configUpdateListener  = l; }
     public void setOnConnected          (Runnable r)           { this.onConnected           = r; }
     public void setOnDisconnected       (Runnable r)           { this.onDisconnected        = r; }
     public void setOnShutdown           (Runnable r)           { this.onShutdown            = r; }

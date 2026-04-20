@@ -5,117 +5,227 @@ import com.jlog.util.BandPlan;
 import com.jlog.util.BandPlan.BandSegment;
 import com.jlog.util.BandPlan.LicenseClass;
 import com.jlog.util.BandPlan.ModeGroup;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.util.List;
 
 /**
- * BandPlanWindow — US FCC Part 97 band plan reference viewer.
+ * BandPlanWindow — graphical US FCC Part 97 band plan reference.
  *
- * Displays all segments for the selected band in a color-coded table:
- *   Cyan/teal  — CW only
- *   Green      — CW / Data (no phone)
- *   Blue       — Phone / CW (all modes)
- *   Purple     — FM / Repeaters
- *   Gray       — Satellite
- *   Teal bold  — USB-only (60m)
- *
- * Rows are additionally marked with the minimum license class.
- * The segment containing {@code currentFreqKhz} is scrolled to and highlighted.
+ * HF bands show three stacked license-class rows (Extra / General / Tech),
+ * matching the ARRL band-plan chart layout. VHF/UHF bands where all segments
+ * are open to all classes show a single unified bar. Mode type is color-coded
+ * across all rows. The band containing {@code currentFreqKhz} is highlighted
+ * with a vertical marker and scrolled into view.
  */
 public class BandPlanWindow {
 
+    // Row heights
+    private static final double CLASS_BAR_H  = 11;  // per license-class sub-bar (HF)
+    private static final double SINGLE_BAR_H = 22;  // unified bar (VHF/UHF)
+    private static final double TICK_H       = 13;
+    private static final double CLASS_GAP    =  1;  // gap between sub-bars
+
+    // Column widths
+    private static final double NAME_W      = 68;
+    private static final double CLASS_COL_W = 16;   // "E" / "G" / "T" labels
+    private static final double RANGE_W     = 150;
+
     private final Stage stage;
 
-    @SuppressWarnings("unchecked")
     public BandPlanWindow(Window owner, String initialBand, double currentFreqKhz) {
-
         stage = new Stage();
         stage.setTitle("US Amateur Band Plan  —  FCC Part 97");
-        stage.setWidth(760);
-        stage.setHeight(520);
+        stage.setMinWidth(700);
+        stage.setMinHeight(400);
+        stage.setWidth(960);
+        stage.setHeight(680);
         if (owner != null) stage.initOwner(owner);
 
-        // ── Band selector ─────────────────────────────────────────────
-        Label bandLbl = new Label("Band:");
-        ComboBox<String> bandCb = new ComboBox<>(
-                FXCollections.observableArrayList(BandPlan.allBands()));
-        bandCb.setValue(initialBand != null ? initialBand : "20m");
+        // ── Chart content ───────────────────────────────────────────────
+        VBox bandsBox = new VBox(3);
+        bandsBox.setPadding(new Insets(8, 12, 10, 12));
+        bandsBox.getStyleClass().add("bp-chart");
 
-        Label legendLbl = new Label(
-                "  \u25A0 CW only   \u25A0 CW/Data   \u25A0 Phone/CW   \u25A0 FM   \u25A0 Satellite");
-        legendLbl.getStyleClass().add("bp-legend");
+        // Column headers
+        Label hName  = new Label("Band");
+        hName.setPrefWidth(NAME_W + CLASS_COL_W + 4);
+        hName.getStyleClass().add("bp-col-hdr");
+        Label hBar   = new Label("Frequency Allocation");
+        hBar.getStyleClass().add("bp-col-hdr");
+        HBox.setHgrow(hBar, Priority.ALWAYS);
+        Label hRange = new Label("Range");
+        hRange.setPrefWidth(RANGE_W);
+        hRange.getStyleClass().add("bp-col-hdr");
+        HBox colHdr = new HBox(6, hName, hBar, hRange);
+        colHdr.setAlignment(Pos.CENTER_LEFT);
+        colHdr.setPadding(new Insets(0, 0, 4, 0));
+        bandsBox.getChildren().addAll(colHdr, new Separator());
 
-        HBox header = new HBox(8, bandLbl, bandCb, new Region(), legendLbl);
-        HBox.setHgrow(header.getChildren().get(2), Priority.ALWAYS);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(8, 10, 8, 10));
-        header.getStyleClass().add("bp-header");
+        for (String band : BandPlan.allBands()) {
+            List<BandSegment> segs = BandPlan.getSegments(band);
+            if (segs.isEmpty()) continue;
 
-        // ── Table ─────────────────────────────────────────────────────
-        TableView<BandSegment> table = new TableView<>();
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        table.getStyleClass().add("bp-table");
+            double bandStart = segs.get(0).startKhz();
+            double bandEnd   = segs.get(segs.size() - 1).endKhz();
+            double bandSpan  = bandEnd - bandStart;
 
-        TableColumn<BandSegment, String> colFreq = col("Frequency (MHz)", 190,
-                s -> s.freqRangeLabel());
-        TableColumn<BandSegment, String> colMode = col("Usage / Mode", 145,
-                s -> s.modeGroup().label());
-        TableColumn<BandSegment, String> colLic  = col("Min. License", 100,
-                s -> s.minLicense().label);
-        TableColumn<BandSegment, String> colDesc = col("Segment", 150,
-                BandSegment::description);
-        TableColumn<BandSegment, String> colNotes = col("Common Frequencies / Notes", 230,
-                BandSegment::notes);
+            boolean isCurrentBand = currentFreqKhz > 0
+                    && currentFreqKhz >= bandStart
+                    && currentFreqKhz <= bandEnd;
 
-        table.getColumns().addAll(colFreq, colMode, colLic, colDesc, colNotes);
+            // HF bands have license-class tiers; VHF/UHF bands open to all → single bar
+            boolean tiered = segs.stream().anyMatch(s -> s.minLicense() != LicenseClass.ALL);
 
-        // Row factory: color by mode group + license
-        table.setRowFactory(tv -> new TableRow<>() {
-            @Override protected void updateItem(BandSegment seg, boolean empty) {
-                super.updateItem(seg, empty);
-                getStyleClass().removeIf(c -> c.startsWith("bp-") && !c.equals("bp-table"));
-                if (empty || seg == null) return;
-                getStyleClass().add(seg.modeGroup().styleClass());
-                getStyleClass().add(seg.minLicense().styleClass());
-                // Highlight the row containing the current operating frequency
-                if (currentFreqKhz > 0
-                        && currentFreqKhz >= seg.startKhz()
-                        && currentFreqKhz <= seg.endKhz()) {
-                    getStyleClass().add("bp-current");
-                }
+            // ── Band name ──────────────────────────────────────────────
+            Label nameLbl = new Label(band);
+            nameLbl.setPrefWidth(NAME_W);
+            nameLbl.setAlignment(Pos.CENTER_RIGHT);
+            nameLbl.getStyleClass().add("bp-band-name");
+            if (isCurrentBand) nameLbl.getStyleClass().add("bp-band-name-active");
+
+            // ── Class label column ─────────────────────────────────────
+            VBox classCol = new VBox(CLASS_GAP);
+            classCol.setPrefWidth(CLASS_COL_W);
+            classCol.setMinWidth(CLASS_COL_W);
+            classCol.setAlignment(Pos.TOP_RIGHT);
+            if (tiered) {
+                classCol.getChildren().addAll(
+                    classLbl("E", CLASS_BAR_H),
+                    classLbl("G", CLASS_BAR_H),
+                    classLbl("T", CLASS_BAR_H));
             }
-        });
 
-        // ── License key ───────────────────────────────────────────────
-        Label keyLbl = new Label(
-                "License:  \u25CF Extra only   \u25CF General+   \u25CF All (incl. Technician)   " +
-                "\u2605 = current operating frequency");
-        keyLbl.getStyleClass().add("bp-key");
-        keyLbl.setPadding(new Insets(4, 10, 4, 10));
+            // ── Bar area (VBox of sub-bars + tick pane) ────────────────
+            VBox barArea = new VBox(CLASS_GAP);
+            HBox.setHgrow(barArea, Priority.ALWAYS);
 
-        // ── Layout ────────────────────────────────────────────────────
+            if (tiered) {
+                // Three rows: tier 0 = Extra, tier 1 = General, tier 2 = Tech/All
+                // Condition: show segment in tier t if seg.minLicense().ordinal() >= t
+                //   EXTRA=0, GENERAL=1, ALL=2
+                //   Extra row (t=0): shows all segments   (ordinal >= 0)
+                //   General row (t=1): shows General+All  (ordinal >= 1)
+                //   Tech row (t=2): shows All only        (ordinal >= 2)
+                for (int tier = 0; tier < 3; tier++) {
+                    Pane cp = new Pane();
+                    cp.setPrefHeight(CLASS_BAR_H);
+                    cp.setMinHeight(CLASS_BAR_H);
+                    final int t = tier;
+                    for (BandSegment seg : segs) {
+                        if (seg.minLicense().ordinal() < t) continue;
+                        addSegRegion(cp, seg, bandStart, bandSpan, CLASS_BAR_H);
+                    }
+                    barArea.getChildren().add(cp);
+                }
+            } else {
+                // Single unified bar
+                Pane cp = new Pane();
+                cp.setPrefHeight(SINGLE_BAR_H);
+                cp.setMinHeight(SINGLE_BAR_H);
+                for (BandSegment seg : segs) {
+                    addSegRegion(cp, seg, bandStart, bandSpan, SINGLE_BAR_H);
+                }
+                barArea.getChildren().add(cp);
+            }
+
+            // Tick labels at each segment's start frequency
+            Pane tickPane = new Pane();
+            tickPane.setPrefHeight(TICK_H);
+            tickPane.setMinHeight(TICK_H);
+            for (BandSegment seg : segs) {
+                double relPos = (seg.startKhz() - bandStart) / bandSpan;
+                Label tick = new Label(tickLabel(seg.startKhz()));
+                tick.getStyleClass().add("bp-tick");
+                tick.setLayoutY(1);
+                tick.layoutXProperty().bind(tickPane.widthProperty().multiply(relPos).add(2));
+                tickPane.getChildren().add(tick);
+            }
+            barArea.getChildren().add(tickPane);
+
+            // ── Current-frequency marker ───────────────────────────────
+            // Drawn in the first bar pane; extends visually through all rows
+            // (Pane does not clip children, so the line spans naturally)
+            if (isCurrentBand) {
+                double relPos = (currentFreqKhz - bandStart) / bandSpan;
+                Pane topPane = (Pane) barArea.getChildren().get(0);
+                double markerH = tiered
+                    ? (3 * CLASS_BAR_H + 2 * CLASS_GAP)
+                    : SINGLE_BAR_H;
+
+                Line line = new Line(0, 1, 0, markerH - 1);
+                line.getStyleClass().add("bp-marker-line");
+                line.layoutXProperty().bind(topPane.widthProperty().multiply(relPos));
+                line.setLayoutY(0);
+
+                Polygon tri = new Polygon(-4.0, 1.0, 4.0, 1.0, 0.0, 8.0);
+                tri.getStyleClass().add("bp-marker-tri");
+                tri.layoutXProperty().bind(topPane.widthProperty().multiply(relPos));
+                tri.setLayoutY(0);
+
+                topPane.getChildren().addAll(line, tri);
+            }
+
+            // ── Frequency range ────────────────────────────────────────
+            Label rangeLbl = new Label(freqRangeStr(bandStart, bandEnd));
+            rangeLbl.setPrefWidth(RANGE_W);
+            rangeLbl.setAlignment(Pos.TOP_LEFT);
+            rangeLbl.getStyleClass().add("bp-band-mhz");
+
+            HBox row = new HBox(4, nameLbl, classCol, barArea, rangeLbl);
+            row.setAlignment(Pos.TOP_LEFT);
+            row.getStyleClass().add("bp-band-row");
+            if (isCurrentBand) row.getStyleClass().add("bp-active-row");
+
+            bandsBox.getChildren().add(row);
+        }
+
+        ScrollPane scroll = new ScrollPane(bandsBox);
+        scroll.setFitToWidth(true);
+
+        HBox legend = buildLegend();
+        legend.getStyleClass().add("bp-header");
+
+        Label key = new Label(
+            "HF rows:  E = Extra   G = General   T = Technician/All    "
+            + "▲ = current operating frequency   Hover segment for details");
+        key.getStyleClass().add("bp-key");
+        key.setPadding(new Insets(5, 10, 5, 10));
+
         BorderPane root = new BorderPane();
-        root.setTop(header);
-        root.setCenter(table);
-        root.setBottom(keyLbl);
+        root.setTop(legend);
+        root.setCenter(scroll);
+        root.setBottom(key);
 
-        // ── Theme ─────────────────────────────────────────────────────
         Scene scene = new Scene(root);
         JLogApp.applyTheme(scene);
         stage.setScene(scene);
 
-        // ── Load data and scroll to current row ───────────────────────
-        bandCb.valueProperty().addListener((obs, o, band) -> loadBand(table, band, currentFreqKhz));
-        loadBand(table, bandCb.getValue(), currentFreqKhz);
+        // Auto-scroll to active band
+        if (currentFreqKhz > 0) {
+            Platform.runLater(() -> {
+                List<String> bands = BandPlan.allBands();
+                for (int i = 0; i < bands.size(); i++) {
+                    List<BandSegment> segs = BandPlan.getSegments(bands.get(i));
+                    if (segs.isEmpty()) continue;
+                    if (currentFreqKhz >= segs.get(0).startKhz()
+                            && currentFreqKhz <= segs.get(segs.size() - 1).endKhz()) {
+                        double vval = (double)(i + 2) / (bands.size() + 2);
+                        scroll.setVvalue(Math.max(0.0, vval - 0.12));
+                        break;
+                    }
+                }
+            });
+        }
     }
 
     public void show() {
@@ -123,34 +233,99 @@ public class BandPlanWindow {
         stage.toFront();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────
+    // ── Segment region builder ──────────────────────────────────────────
 
-    private static void loadBand(TableView<BandSegment> table, String band, double freqKhz) {
-        List<BandSegment> segs = BandPlan.getSegments(band);
-        table.setItems(FXCollections.observableArrayList(segs));
+    private static void addSegRegion(Pane cp, BandSegment seg,
+                                     double bandStart, double bandSpan, double barH) {
+        double relStart = (seg.startKhz() - bandStart) / bandSpan;
+        double relWidth = (seg.endKhz()   - seg.startKhz()) / bandSpan;
 
-        // Scroll to the segment containing the current frequency
-        if (freqKhz > 0) {
-            for (int i = 0; i < segs.size(); i++) {
-                BandSegment s = segs.get(i);
-                if (freqKhz >= s.startKhz() && freqKhz <= s.endKhz()) {
-                    final int idx = i;
-                    javafx.application.Platform.runLater(() -> {
-                        table.scrollTo(idx);
-                        table.getSelectionModel().select(idx);
-                    });
-                    break;
-                }
-            }
-        }
+        Region r = new Region();
+        r.setPrefHeight(barH);
+        r.setMinHeight(barH);
+        r.setLayoutY(0);
+        r.layoutXProperty().bind(cp.widthProperty().multiply(relStart));
+        r.prefWidthProperty().bind(cp.widthProperty().multiply(relWidth));
+        r.getStyleClass().addAll("bp-seg", modeClass(seg.modeGroup()));
+
+        Tooltip tt = new Tooltip(
+            seg.description() + "\n"
+            + seg.freqRangeLabel() + " MHz\n"
+            + seg.modeGroup().label() + " · " + seg.minLicense().label
+            + (seg.notes().isEmpty() ? "" : "\n" + seg.notes()));
+        Tooltip.install(r, tt);
+        cp.getChildren().add(r);
     }
 
-    private static TableColumn<BandSegment, String> col(String title, double width,
-            java.util.function.Function<BandSegment, String> fn) {
-        TableColumn<BandSegment, String> c = new TableColumn<>(title);
-        c.setPrefWidth(width);
-        c.setSortable(false);
-        c.setCellValueFactory(cell -> new SimpleStringProperty(fn.apply(cell.getValue())));
-        return c;
+    // ── Legend ──────────────────────────────────────────────────────────
+
+    private static HBox buildLegend() {
+        HBox box = new HBox(10);
+        box.setPadding(new Insets(7, 12, 7, 12));
+        box.setAlignment(Pos.CENTER_LEFT);
+
+        Label title = new Label("US Amateur Band Plan  —  FCC Part 97");
+        title.getStyleClass().add("bp-title");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        box.getChildren().addAll(title, spacer);
+
+        addSwatch(box, "bp-seg-cw",    "CW Only");
+        addSwatch(box, "bp-seg-data",  "CW / Data");
+        addSwatch(box, "bp-seg-phone", "Phone / CW");
+        addSwatch(box, "bp-seg-fm",    "FM");
+        addSwatch(box, "bp-seg-sat",   "Satellite");
+        addSwatch(box, "bp-seg-usb",   "USB Only");
+        return box;
+    }
+
+    private static void addSwatch(HBox parent, String styleClass, String label) {
+        Region sw = new Region();
+        sw.setPrefSize(14, 10);
+        sw.getStyleClass().addAll("bp-seg", styleClass);
+        Label lbl = new Label(label);
+        lbl.getStyleClass().add("bp-legend-txt");
+        HBox item = new HBox(3, sw, lbl);
+        item.setAlignment(Pos.CENTER_LEFT);
+        parent.getChildren().add(item);
+    }
+
+    private static Label classLbl(String text, double height) {
+        Label l = new Label(text);
+        l.setPrefHeight(height);
+        l.setMinHeight(height);
+        l.setMaxHeight(height);
+        l.setAlignment(Pos.CENTER);
+        l.getStyleClass().add("bp-class-lbl");
+        return l;
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────
+
+    private static String modeClass(ModeGroup mg) {
+        return switch (mg) {
+            case CW_ONLY   -> "bp-seg-cw";
+            case CW_DATA   -> "bp-seg-data";
+            case PHONE     -> "bp-seg-phone";
+            case FM        -> "bp-seg-fm";
+            case SATELLITE -> "bp-seg-sat";
+            case USB_ONLY  -> "bp-seg-usb";
+        };
+    }
+
+    private static String tickLabel(double khz) {
+        if (khz < 1000) return String.format("%.1f", khz);
+        return mhzStr(khz / 1000.0);
+    }
+
+    private static String freqRangeStr(double startKhz, double endKhz) {
+        if (startKhz < 1000) return String.format("%.1f – %.1f kHz", startKhz, endKhz);
+        return mhzStr(startKhz / 1000.0) + " – " + mhzStr(endKhz / 1000.0) + " MHz";
+    }
+
+    private static String mhzStr(double mhz) {
+        if (mhz == Math.floor(mhz)) return String.format("%.0f", mhz);
+        String s = String.format("%.3f", mhz).replaceAll("0+$", "").replaceAll("\\.$", "");
+        return s;
     }
 }

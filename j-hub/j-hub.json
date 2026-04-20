@@ -174,7 +174,7 @@
     "showGrayline": true,
     "showDxSpots": true,
     "graylineOpacity": 0.6,
-    "showAuroraOverlay": true,
+    "showAuroraOverlay": false,
     "showGeomagneticAlerts": true,
     "showWeatherOverlay": true,
     "showTropoOverlay": false,
@@ -221,7 +221,7 @@
     "muf": 28.0,
     "darkTheme": true,
     "uiScale": 1.0,
-    "fontSize": 13,
+    "fontSize": 17,
     "webServerPort": 8082
   },
   "jSatSettings": {
