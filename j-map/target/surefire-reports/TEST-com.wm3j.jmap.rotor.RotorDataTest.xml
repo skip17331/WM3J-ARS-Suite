@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.rotor.RotorDataTest" time="0.288" tests="36" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.rotor.RotorDataTest" time="0.239" tests="36" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -13,7 +13,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
-    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T20-05-02_731-jvmRun1 surefire-20260419200502965_1tmp surefire_0-20260419200502965_2tmp"/>
+    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419201108801_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T20-11-08_551-jvmRun1 surefire-20260419201108801_1tmp surefire_0-20260419201108801_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/mike/ARS_Suite/j-map/target/test-classes:/home/mike/ARS_Suite/j-map/target/classes:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.16.1/jackson-databind-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.16.1/jackson-annotations-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.1/jackson-datatype-jsr310-2.16.1.jar:/home/mike/.m2/repository/org/nanohttpd/nanohttpd/2.3.1/nanohttpd-2.3.1.jar:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.1/junit-jupiter-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:/home/mike/.m2/repository/org/mockito/mockito-core/5.8.0/mockito-core-5.8.0.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.10/byte-buddy-1.14.10.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar:/home/mike/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar"/>
+    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419201108801_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.10+7-LTS"/>
     <property name="user.name" value="mike"/>
@@ -55,68 +55,68 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="azimuth_normalization_over360_wraps" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.009"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[1]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.013"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[2]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.006"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[3]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[4]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[5]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.008"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[6]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[7]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.008"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[8]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.004"/>
-  <testcase name="rotorData_shortPlusLong_is360(double)[9]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.012"/>
-  <testcase name="mockProvider_azimuth_changesOverTime" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.012">
-    <system-out><![CDATA[20:05:06.964 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:06.964762417Z
-20:05:06.965 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:06.965489773Z
+  <testcase name="azimuth_normalization_over360_wraps" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.012"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[1]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.011"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[2]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.008"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[3]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.01"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[4]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[5]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.004"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[6]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[7]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.007"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[8]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="rotorData_shortPlusLong_is360(double)[9]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="mockProvider_azimuth_changesOverTime" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.008">
+    <system-out><![CDATA[20:11:14.607 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.606476120Z
+20:11:14.608 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.608001091Z
 ]]></system-out>
   </testcase>
-  <testcase name="rotorData_longPath_wrapsAt360" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.004"/>
-  <testcase name="rotorData_constructor_setsTimestamp" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003"/>
-  <testcase name="toString_containsAzimuth" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005"/>
-  <testcase name="mockProvider_isConnected_returnsFalse" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003">
-    <system-out><![CDATA[20:05:06.994 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:06.994387973Z
+  <testcase name="rotorData_longPath_wrapsAt360" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="rotorData_constructor_setsTimestamp" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="toString_containsAzimuth" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="mockProvider_isConnected_returnsFalse" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002">
+    <system-out><![CDATA[20:11:14.623 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.623647961Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_azimuth_inValidRange" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.007">
-    <system-out><![CDATA[20:05:06.999 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:06.999030412Z
-20:05:07.000 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.000282162Z
-20:05:07.000 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.000745661Z
-20:05:07.001 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.001002188Z
-20:05:07.001 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.001357050Z
-20:05:07.001 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.001604521Z
-20:05:07.001 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.001836781Z
-20:05:07.002 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.002093201Z
-20:05:07.002 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.002440329Z
-20:05:07.002 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.002678443Z
+  <testcase name="mockProvider_azimuth_inValidRange" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005">
+    <system-out><![CDATA[20:11:14.628 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.628052362Z
+20:11:14.628 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.628929580Z
+20:11:14.629 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.629209817Z
+20:11:14.629 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.629578911Z
+20:11:14.629 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.629819611Z
+20:11:14.630 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.630049846Z
+20:11:14.630 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.630399065Z
+20:11:14.630 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.630659790Z
+20:11:14.630 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.630883600Z
+20:11:14.631 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.631108301Z
 ]]></system-out>
   </testcase>
   <testcase name="rotorData_defaultConstructor_isNotConnected" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
-  <testcase name="mockProvider_getCached_returnsDataAfterFetch" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005">
-    <system-out><![CDATA[20:05:07.014 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.014266929Z
+  <testcase name="mockProvider_getCached_returnsDataAfterFetch" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002">
+    <system-out><![CDATA[20:11:14.639 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.639730210Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_fetch_returnsData" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005">
-    <system-out><![CDATA[20:05:07.021 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.021627739Z
+  <testcase name="mockProvider_fetch_returnsData" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002">
+    <system-out><![CDATA[20:11:14.643 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.643297060Z
 ]]></system-out>
   </testcase>
-  <testcase name="rotorData_longPath_northFacingIsNorth" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.007"/>
-  <testcase name="azimuth_normalization_negative_wraps" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
-  <testcase name="rotorData_twoArgConstructor_hasElevation" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005"/>
+  <testcase name="rotorData_longPath_northFacingIsNorth" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="azimuth_normalization_negative_wraps" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.001"/>
+  <testcase name="rotorData_twoArgConstructor_hasElevation" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
   <testcase name="rotorData_longPath_alwaysInValidRange(double)[1]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003"/>
-  <testcase name="rotorData_longPath_alwaysInValidRange(double)[2]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003"/>
+  <testcase name="rotorData_longPath_alwaysInValidRange(double)[2]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.001"/>
   <testcase name="rotorData_longPath_alwaysInValidRange(double)[3]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
-  <testcase name="rotorData_longPath_alwaysInValidRange(double)[4]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="rotorData_longPath_alwaysInValidRange(double)[4]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.001"/>
   <testcase name="rotorData_longPath_alwaysInValidRange(double)[5]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
-  <testcase name="rotorData_longPath_alwaysInValidRange(double)[6]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.004"/>
+  <testcase name="rotorData_longPath_alwaysInValidRange(double)[6]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
   <testcase name="rotorData_longPath_alwaysInValidRange(double)[7]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
   <testcase name="rotorData_longPath_alwaysInValidRange(double)[8]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
-  <testcase name="rotorData_longPath_alwaysInValidRange(double)[9]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.004"/>
-  <testcase name="rotorData_longPath_is180DegreesFromShortPath" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
-  <testcase name="mockProvider_getCached_returnsNullBeforeFetch" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.001"/>
-  <testcase name="mockProvider_lastUpdated_isSetAfterFetch" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002">
-    <system-out><![CDATA[20:05:07.106 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:05:07.106846619Z
+  <testcase name="rotorData_longPath_alwaysInValidRange(double)[9]" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.005"/>
+  <testcase name="rotorData_longPath_is180DegreesFromShortPath" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.006"/>
+  <testcase name="mockProvider_getCached_returnsNullBeforeFetch" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.004"/>
+  <testcase name="mockProvider_lastUpdated_isSetAfterFetch" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.003">
+    <system-out><![CDATA[20:11:14.705 [main] DEBUG c.w.j.s.rotor.MockRotorProvider - Fetched MockRotorProvider data at 2026-04-20T00:11:14.705278646Z
 ]]></system-out>
   </testcase>
-  <testcase name="rotorData_singleArgConstructor_isConnected" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
+  <testcase name="rotorData_singleArgConstructor_isConnected" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.001"/>
   <testcase name="rotorData_longPath_zeroAzimuth_is180" classname="com.wm3j.jmap.rotor.RotorDataTest" time="0.002"/>
 </testsuite>
