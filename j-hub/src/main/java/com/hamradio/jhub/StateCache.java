@@ -75,6 +75,16 @@ public class StateCache {
     public void setLastRotorStatus(String rawJson) { this.lastRotorStatus = rawJson; }
 
     // ---------------------------------------------------------------
+    // Satellite state (from J-Sat)
+    // ---------------------------------------------------------------
+
+    private volatile String lastSatState;
+
+    public String getLastSatState() { return lastSatState; }
+
+    public void setLastSatState(String rawJson) { this.lastSatState = rawJson; }
+
+    // ---------------------------------------------------------------
     // Recent spots (ring buffer)
     // ---------------------------------------------------------------
 

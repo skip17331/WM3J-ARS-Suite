@@ -103,6 +103,9 @@ function handleWsMsg(msg) {
     case 'CLUSTER_RAW':
       appendRawFeed(msg.line || '');
       break;
+    case 'SAT_STATE':
+      updateJSatLive(msg);
+      break;
   }
 }
 
@@ -239,7 +242,7 @@ function updateIntelPane(status) {
 
 function updateModulesUI() {
   const apps = state.connectedApps;
-  const keys = { 'j-log': 'jlog', 'j-digi': 'jdigi', 'j-bridge': 'jbridge', 'jMap': 'jmap', 'webconfig': null };
+  const keys = { 'j-log': 'jlog', 'j-digi': 'jdigi', 'j-bridge': 'jbridge', 'jMap': 'jmap', 'j-sat': 'jsat', 'webconfig': null };
 
   Object.entries(keys).forEach(([appName, key]) => {
     if (!key) return;
@@ -257,6 +260,7 @@ function updateModulesUI() {
 
   // Module tab session table
   renderSessionTable(apps);
+  updateJSatConnStatus();
 }
 
 function updateAlerts(status) {
@@ -279,6 +283,158 @@ function updateAlerts(status) {
         <div><div class="alert-text">${a.text}</div>${a.sub ? `<div style="font-size:11px;color:var(--overlay0)">${a.sub}</div>` : ''}</div>
       </div>`
     ).join('');
+  }
+}
+
+// ── J-Sat ─────────────────────────────────────────────────
+
+let jsatSatellites = [];   // full registry loaded from /data/satellite-registry.json
+
+function updateJSatLive(msg) {
+  setText('jsat-tracking', msg.satName || '—');
+  const az  = msg.azDeg  != null ? msg.azDeg.toFixed(1)  + '°' : '—';
+  const el  = msg.elDeg  != null ? msg.elDeg.toFixed(1)  + '°' : '—';
+  setText('jsat-azel', az + ' / ' + el);
+  const dl  = msg.downlinkHz > 0 ? (msg.downlinkHz / 1e6).toFixed(3) + ' MHz' : '—';
+  setText('jsat-dl', dl);
+}
+
+function loadJSatSatelliteRegistry() {
+  fetch('/data/satellite-registry.json')
+    .then(r => r.json())
+    .then(data => {
+      jsatSatellites = data.satellites || [];
+      renderJSatSatList(null);
+    })
+    .catch(() => {
+      const el = document.getElementById('jsat-sat-list');
+      if (el) el.innerHTML = '<div style="color:var(--red);font-size:12px">Failed to load satellite list</div>';
+    });
+}
+
+function renderJSatSatList(enabledNames) {
+  const container = document.getElementById('jsat-sat-list');
+  if (!container) return;
+  if (!jsatSatellites.length) { container.innerHTML = '<div style="color:var(--overlay0);font-size:12px">No satellites</div>'; return; }
+
+  const groups = {};
+  jsatSatellites.forEach(sat => {
+    const g = sat.type || 'Other';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(sat);
+  });
+
+  let html = '';
+  Object.entries(groups).sort().forEach(([grp, sats]) => {
+    html += `<div style="font-size:11px;font-weight:bold;color:var(--overlay0);padding:4px 0 2px;border-top:1px solid var(--surface1);margin-top:4px">${grp}</div>`;
+    sats.forEach(sat => {
+      const checked = enabledNames
+        ? enabledNames.includes(sat.name)
+        : sat.enabled;
+      const norad = sat.noradId > 0 ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">#${sat.noradId}</span>` : '';
+      const status = sat.status ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">${sat.status}</span>` : '';
+      html += `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer">
+        <input type="checkbox" class="jsat-sat-cb" data-name="${sat.name}" data-type="${sat.type || ''}" ${checked ? 'checked' : ''}>
+        <span style="font-size:12px">${sat.name}</span>${norad}${status}
+      </label>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+function jsatGetCheckedNames() {
+  return Array.from(document.querySelectorAll('.jsat-sat-cb:checked')).map(cb => cb.dataset.name);
+}
+
+function jsatSelectByType(typeKeyword) {
+  document.querySelectorAll('.jsat-sat-cb').forEach(cb => {
+    cb.checked = cb.dataset.type && cb.dataset.type.toLowerCase().includes(typeKeyword.toLowerCase());
+  });
+}
+
+function jsatSelectAll()  { document.querySelectorAll('.jsat-sat-cb').forEach(cb => cb.checked = true);  }
+function jsatSelectNone() { document.querySelectorAll('.jsat-sat-cb').forEach(cb => cb.checked = false); }
+
+function populateJSatTab(cfg) {
+  const s  = cfg.jSatSettings || {};
+  const ap = cfg.apps && cfg.apps.jSat ? cfg.apps.jSat : {};
+  setChk('jsat-doppler-enable',    !!s.rigControlEnabled);
+  setChk('jsat-rotor-enable',      !!s.rotorControlEnabled);
+  setChk('jsat-show-track',        s.showGroundTrack  !== false);
+  setChk('jsat-show-footprint',    s.showFootprint    !== false);
+  setChk('jsat-show-spaceweather', s.showSpaceWeather !== false);
+  setVal('cmd-jSat',   ap.command    || '');
+  setChk('auto-jSat',  !!ap.autoLaunch);
+  setVal('jsat-callsign',  s.callsign  || '');
+  setVal('jsat-lat',       s.qthLat    != null ? s.qthLat   : '');
+  setVal('jsat-lon',       s.qthLon    != null ? s.qthLon   : '');
+  setVal('jsat-alt',       s.qthAltKm  != null ? s.qthAltKm : '');
+  setVal('jsat-min-el',    s.minPassElevationDeg != null ? s.minPassElevationDeg : '');
+  setVal('jsat-lookahead', s.passLookAheadHours  != null ? s.passLookAheadHours  : '');
+
+  const rig   = cfg.rig   || {};
+  const rotor = cfg.rotor || {};
+  setText('jsat-rig-backend',   rig.backend   || 'NONE');
+  setText('jsat-rotor-backend', rotor.backend || 'NONE');
+
+  const enabledNames = Array.isArray(s.enabledSatellites) && s.enabledSatellites.length
+    ? s.enabledSatellites : null;
+  if (jsatSatellites.length) renderJSatSatList(enabledNames);
+}
+
+function saveJSatSettings() {
+  const settings = {
+    callsign:             document.getElementById('jsat-callsign').value.trim() || undefined,
+    qthLat:               parseFloat(document.getElementById('jsat-lat').value)  || undefined,
+    qthLon:               parseFloat(document.getElementById('jsat-lon').value)  || undefined,
+    qthAltKm:             parseFloat(document.getElementById('jsat-alt').value)  || undefined,
+    minPassElevationDeg:  parseFloat(document.getElementById('jsat-min-el').value)    || undefined,
+    passLookAheadHours:   parseInt(document.getElementById('jsat-lookahead').value)   || undefined,
+    rigControlEnabled:   document.getElementById('jsat-doppler-enable').checked,
+    rotorControlEnabled: document.getElementById('jsat-rotor-enable').checked,
+    showGroundTrack:      document.getElementById('jsat-show-track').checked,
+    showFootprint:        document.getElementById('jsat-show-footprint').checked,
+    showSpaceWeather:     document.getElementById('jsat-show-spaceweather').checked,
+    enabledSatellites:    jsatGetCheckedNames(),
+  };
+  const appCmd    = document.getElementById('cmd-jSat').value.trim();
+  const autoLaunch = document.getElementById('auto-jSat').checked;
+
+  fetch('/api/jsat', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(settings)
+  })
+  .then(r => r.json())
+  .then(() => {
+    const appsUpdate = { jSat: { command: appCmd, autoLaunch } };
+    postPartialConfig({ apps: appsUpdate }, 'jsat-msg', 'J-Sat settings saved');
+  })
+  .catch(() => flashMsg('jsat-msg', 'Error', true));
+}
+
+function updateJSatConnStatus() {
+  const apps  = state.connectedApps || [];
+  const jsat  = apps.find(a => a.appName === 'j-sat');
+  const dot   = document.getElementById('jsat-conn-dot');
+  const meta  = document.getElementById('jsat-conn-meta');
+  if (dot)  setDot('jsat-conn-dot', jsat ? 'green' : 'gray');
+  if (meta) meta.textContent = jsat
+    ? 'Connected ' + (jsat.connectedAt ? new Date(jsat.connectedAt).toLocaleTimeString() : '')
+    : 'Not connected';
+
+  // Rotor pos from last ROTOR_STATUS
+  if (state.rotor) {
+    const az = state.rotor.bearing   != null ? state.rotor.bearing.toFixed(1)   + '°' : '—';
+    const el = state.rotor.elevation != null ? state.rotor.elevation.toFixed(1) + '°' : '—';
+    setText('jsat-rotor-pos', az + ' / ' + el);
+  }
+
+  // Rig status
+  if (state.rig) {
+    const hz  = state.rig.frequency || 0;
+    const mhz = hz > 0 ? (hz / 1e6).toFixed(3) + ' MHz' : 'Unknown';
+    setText('jsat-rig-status', mhz);
   }
 }
 
@@ -446,6 +602,9 @@ function populateForms(cfg) {
 
   // Module cards
   buildModuleCards(cfg.apps || {});
+
+  // J-Sat tab
+  populateJSatTab(cfg);
 }
 
 // ── Rig backend segmented control ─────────────────────────
@@ -1180,6 +1339,7 @@ populateTimezones();
 loadConfig();
 loadMacros();
 loadJMapSettings();
+loadJSatSatelliteRegistry();
 connectWs();
 pollStatus();
 pollSpots();

@@ -1,6 +1,7 @@
 com/hamradio/jhub/ui/JHubStatusWindow.class
 com/hamradio/jhub/WebConfigServer$ConfigApiServlet.class
 com/hamradio/jhub/WebConfigServer$RigApiServlet.class
+com/hamradio/jhub/HamlibRotorController.class
 com/hamradio/jhub/SpotEnricher.class
 com/hamradio/jhub/WebConfigServer$SpotsApiServlet.class
 com/hamradio/jhub/StateCache.class
@@ -35,6 +36,7 @@ com/hamradio/jhub/model/Spot.class
 com/hamradio/jhub/model/JHubConfig$MacroDefinition.class
 com/hamradio/jhub/model/JHubConfig$JHubSection.class
 com/hamradio/jhub/ClusterManager.class
+com/hamradio/jhub/WebConfigServer$JSatApiServlet.class
 com/hamradio/jhub/JHubDiscovery.class
 com/hamradio/jhub/model/JHubConfig$AppearanceSection.class
 com/hamradio/jhub/model/JHubConfig$InfoScreenSection.class

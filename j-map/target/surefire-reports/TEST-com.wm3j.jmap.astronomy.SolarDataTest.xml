@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.astronomy.SolarDataTest" time="0.31" tests="44" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.astronomy.SolarDataTest" time="0.206" tests="44" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -13,7 +13,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
-    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419174445360_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T17-44-45_135-jvmRun1 surefire-20260419174445360_1tmp surefire_0-20260419174445360_2tmp"/>
+    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T20-05-02_731-jvmRun1 surefire-20260419200502965_1tmp surefire_0-20260419200502965_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/mike/ARS_Suite/j-map/target/test-classes:/home/mike/ARS_Suite/j-map/target/classes:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.16.1/jackson-databind-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.16.1/jackson-annotations-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.1/jackson-datatype-jsr310-2.16.1.jar:/home/mike/.m2/repository/org/nanohttpd/nanohttpd/2.3.1/nanohttpd-2.3.1.jar:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.1/junit-jupiter-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:/home/mike/.m2/repository/org/mockito/mockito-core/5.8.0/mockito-core-5.8.0.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.10/byte-buddy-1.14.10.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar:/home/mike/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419174445360_3.jar"/>
+    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.10+7-LTS"/>
     <property name="user.name" value="mike"/>
@@ -55,81 +55,81 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="sfiQuality_allRanges_nonNull" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.004"/>
+  <testcase name="sfiQuality_allRanges_nonNull" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
   <testcase name="solarData_constructorWithArgs_setsAllFields" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="mockProvider_xrayClass_isNotBlank" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
-    <system-out><![CDATA[17:44:49.522 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.522783331Z
+    <system-out><![CDATA[20:05:07.514 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.514631421Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_xrayClass_startsWithValidLetter" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
-    <system-out><![CDATA[17:44:49.526 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.526755609Z
+  <testcase name="mockProvider_xrayClass_startsWithValidLetter" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
+    <system-out><![CDATA[20:05:07.518 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.518266935Z
 ]]></system-out>
   </testcase>
-  <testcase name="getKpLabel_correctClassification(double, String)[1]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="getKpLabel_correctClassification(double, String)[2]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.022"/>
-  <testcase name="getKpLabel_correctClassification(double, String)[3]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.017"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[1]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[2]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[3]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getKpLabel_correctClassification(double, String)[4]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getKpLabel_correctClassification(double, String)[5]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="getKpLabel_correctClassification(double, String)[6]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.009"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[6]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getKpLabel_correctClassification(double, String)[7]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
-  <testcase name="getKpLabel_correctClassification(double, String)[8]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[8]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
   <testcase name="getKpLabel_correctClassification(double, String)[9]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="getKpLabel_correctClassification(double, String)[10]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
+  <testcase name="getKpLabel_correctClassification(double, String)[10]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getKpLabel_correctClassification(double, String)[11]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getKpLabel_correctClassification(double, String)[12]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getKpLabel_correctClassification(double, String)[13]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="solarData_toString_containsKeyValues" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="mockProvider_getCached_beforeFetch_isNull" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="mockProvider_isStale_withZeroDuration" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
-    <system-out><![CDATA[17:44:49.651 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.651569059Z
+  <testcase name="mockProvider_getCached_beforeFetch_isNull" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="mockProvider_isStale_withZeroDuration" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[20:05:07.582 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.582737854Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_lastUpdated_setAfterFetch" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
-    <system-out><![CDATA[17:44:49.657 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.657354663Z
+  <testcase name="mockProvider_lastUpdated_setAfterFetch" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[20:05:07.585 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.585756601Z
 ]]></system-out>
   </testcase>
   <testcase name="mockProvider_aIndex_isNonNegative" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
-    <system-out><![CDATA[17:44:49.661 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.661141508Z
+    <system-out><![CDATA[20:05:07.588 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.588493783Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_lastUpdated_nullBeforeFetch" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.005"/>
-  <testcase name="mockProvider_getCached_afterFetch_matchesFetch" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
-    <system-out><![CDATA[17:44:49.671 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.671699200Z
+  <testcase name="mockProvider_lastUpdated_nullBeforeFetch" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="mockProvider_getCached_afterFetch_matchesFetch" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.004">
+    <system-out><![CDATA[20:05:07.597 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.597523930Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_kp_inValidRange" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
-    <system-out><![CDATA[17:44:49.677 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.677081721Z
+  <testcase name="mockProvider_kp_inValidRange" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
+    <system-out><![CDATA[20:05:07.601 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.601651542Z
 ]]></system-out>
   </testcase>
   <testcase name="mockProvider_fetch_returnsNonNull" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
-    <system-out><![CDATA[17:44:49.681 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.681883441Z
+    <system-out><![CDATA[20:05:07.605 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.605288636Z
 ]]></system-out>
   </testcase>
-  <testcase name="solarData_fourArgConstructor_isFreshByDefault" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
-  <testcase name="solarData_fourArgConstructor_hasObservationTime" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[1]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.004"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[2]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.005"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[3]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.004"/>
+  <testcase name="solarData_fourArgConstructor_isFreshByDefault" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="solarData_fourArgConstructor_hasObservationTime" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[1]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[2]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[3]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getSfiQuality_correctClassification(double, String)[4]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[5]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[6]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.005"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[7]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[8]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.004"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[5]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[6]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[7]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.001"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[8]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
   <testcase name="getSfiQuality_correctClassification(double, String)[9]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[10]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.004"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[11]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.009"/>
-  <testcase name="getSfiQuality_correctClassification(double, String)[12]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="mockProvider_sunspotNumber_isNonNegative" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
-    <system-out><![CDATA[17:44:49.802 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.802912142Z
+  <testcase name="getSfiQuality_correctClassification(double, String)[10]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.013"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[11]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.014"/>
+  <testcase name="getSfiQuality_correctClassification(double, String)[12]" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.011"/>
+  <testcase name="mockProvider_sunspotNumber_isNonNegative" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.006">
+    <system-out><![CDATA[20:05:07.699 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.699085176Z
 ]]></system-out>
   </testcase>
   <testcase name="mockProvider_isStale_afterFetch_withShortTimeout" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002">
-    <system-out><![CDATA[17:44:49.806 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.806242582Z
+    <system-out><![CDATA[20:05:07.702 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.702397766Z
 ]]></system-out>
   </testcase>
   <testcase name="kpLabel_allEnumValues_nonNull" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.002"/>
-  <testcase name="mockProvider_sfi_inRealisticRange" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.006">
-    <system-out><![CDATA[17:44:49.815 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-19T21:44:49.815338149Z
+  <testcase name="mockProvider_sfi_inRealisticRange" classname="com.wm3j.jmap.astronomy.SolarDataTest" time="0.003">
+    <system-out><![CDATA[20:05:07.708 [main] DEBUG c.w.j.s.solar.MockSolarDataProvider - Fetched MockSolarDataProvider data at 2026-04-20T00:05:07.708889876Z
 ]]></system-out>
   </testcase>
 </testsuite>

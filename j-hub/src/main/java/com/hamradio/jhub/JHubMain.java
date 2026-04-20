@@ -38,11 +38,12 @@ public class JHubMain extends Application {
     private static final Logger log = LoggerFactory.getLogger(JHubMain.class);
 
     // Singleton references kept for the shutdown hook
-    private static JHubServer            jHubServer;
-    private static WebConfigServer       webConfigServer;
-    private static ClusterManager        clusterManager;
-    private static JHubDiscovery         jHubDiscovery;
-    private static HamlibRigController   rigController;
+    private static JHubServer              jHubServer;
+    private static WebConfigServer         webConfigServer;
+    private static ClusterManager          clusterManager;
+    private static JHubDiscovery           jHubDiscovery;
+    private static HamlibRigController     rigController;
+    private static HamlibRotorController   rotorController;
 
     // Uptime reference
     public static final Instant START_TIME = Instant.now();
@@ -137,6 +138,7 @@ public class JHubMain extends Application {
             autoLaunch(launcher, "j-log",    apps.jLog,    true);
             autoLaunch(launcher, "j-bridge", apps.jBridge, true);
             autoLaunch(launcher, "j-digi",   apps.jDigi,   true);
+            autoLaunch(launcher, "j-sat",    apps.jSat,    true);
         }
 
         // 10. Hamlib rig controller (only when backend = HAMLIB)
@@ -145,8 +147,18 @@ public class JHubMain extends Application {
         if ("HAMLIB".equals(config.getConfig().rig.backend)) {
             rigController.start(config.getConfig().rig);
         } else {
-            log.info("Rig backend is '{}' — Hamlib controller not started",
+            log.info("Rig backend is '{}' — Hamlib rig controller not started",
                     config.getConfig().rig.backend);
+        }
+
+        // 11a. Hamlib rotor controller (only when rotor backend = HAMLIB)
+        rotorController = HamlibRotorController.getInstance();
+        rotorController.setRouter(router);
+        if ("HAMLIB".equals(config.getConfig().rotor.backend)) {
+            rotorController.start(config.getConfig().rotor);
+        } else {
+            log.info("Rotor backend is '{}' — Hamlib rotor controller not started",
+                    config.getConfig().rotor.backend);
         }
 
         // 11. Graceful shutdown hook
@@ -203,6 +215,7 @@ public class JHubMain extends Application {
         } catch (Exception e) { log.warn("Shutdown broadcast error", e); }
 
         // 2. Force-kill all child processes (any that did not self-terminate)
+        try { if (rotorController   != null) rotorController.stop();         } catch (Exception e) { log.warn("Rotor controller shutdown error", e); }
         try { if (rigController     != null) rigController.stop();           } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
         try { AppLauncher.getInstance().stopAll();                          } catch (Exception e) { log.warn("App launcher shutdown error", e); }
         try { if (jHubDiscovery   != null) jHubDiscovery.stop();           } catch (Exception e) { log.warn("Discovery shutdown error", e); }

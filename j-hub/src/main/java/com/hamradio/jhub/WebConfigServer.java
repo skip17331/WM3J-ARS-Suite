@@ -40,7 +40,7 @@ public class WebConfigServer {
 
     /** All app names recognised by the launcher API. */
     private static final java.util.Set<String> KNOWN_APPS =
-            java.util.Set.of("jMap", "j-log", "j-bridge", "j-digi");
+            java.util.Set.of("jMap", "j-log", "j-bridge", "j-digi", "j-sat");
 
     private final int           port;
     private final MessageRouter router;
@@ -67,7 +67,8 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new StatusApiServlet()),    "/api/status");
         ctx.addServlet(new ServletHolder(new SpotsApiServlet()),     "/api/spots");
         ctx.addServlet(new ServletHolder(new ClusterApiServlet()),   "/api/cluster/*");
-        ctx.addServlet(new ServletHolder(new JMapApiServlet()),       "/api/jmap");
+        ctx.addServlet(new ServletHolder(new JMapApiServlet()),        "/api/jmap");
+        ctx.addServlet(new ServletHolder(new JSatApiServlet()),        "/api/jsat");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
@@ -105,6 +106,7 @@ public class WebConfigServer {
                     ClusterManager.getInstance().softDisconnect();
                 }
                 HamlibRigController.getInstance().restart(newCfg.rig);
+                HamlibRotorController.getInstance().restart(newCfg.rotor);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 log.error("Config save failed", e);
@@ -228,6 +230,42 @@ public class WebConfigServer {
     }
 
     // ---------------------------------------------------------------
+    // /api/jsat — persist J-Sat settings in j-hub.json
+    // ---------------------------------------------------------------
+
+    private static class JSatApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonObject stored =
+                ConfigManager.getInstance().getConfig().jSatSettings;
+            if (stored == null || stored.size() == 0) {
+                res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                return;
+            }
+            json(res, stored.toString());
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject settings =
+                    com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                ConfigManager cm = ConfigManager.getInstance();
+                cm.getConfig().jSatSettings = settings;
+                cm.save();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res);
+            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
     // /api/apps — launch / kill / status for all managed apps
     //
     //   Valid names: jMap | j-log | j-bridge | j-digi
@@ -327,6 +365,7 @@ public class WebConfigServer {
             if ("j-log".equals(name))    return apps.jLog;
             if ("j-bridge".equals(name)) return apps.jBridge;
             if ("j-digi".equals(name))   return apps.jDigi;
+            if ("j-sat".equals(name))    return apps.jSat;
             return null;
         }
     }
@@ -461,6 +500,7 @@ public class WebConfigServer {
                 JHubConfig.RotorSection rotor = ConfigManager.gson().fromJson(body, JHubConfig.RotorSection.class);
                 ConfigManager.getInstance().getConfig().rotor = rotor;
                 ConfigManager.getInstance().save();
+                HamlibRotorController.getInstance().restart(rotor);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -513,8 +553,11 @@ public class WebConfigServer {
             if (is == null) { res.sendError(HttpServletResponse.SC_NOT_FOUND); return; }
 
             if      (path.endsWith(".html")) res.setContentType("text/html; charset=utf-8");
-            else if (path.endsWith(".js"))   res.setContentType("application/javascript");
-            else if (path.endsWith(".css"))  res.setContentType("text/css");
+            else if (path.endsWith(".js"))   res.setContentType("application/javascript; charset=utf-8");
+            else if (path.endsWith(".css"))  res.setContentType("text/css; charset=utf-8");
+            else if (path.endsWith(".json")) res.setContentType("application/json; charset=utf-8");
+            else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) res.setContentType("image/jpeg");
+            else if (path.endsWith(".png")) res.setContentType("image/png");
             else                             res.setContentType("application/octet-stream");
 
             res.getOutputStream().write(is.readAllBytes());

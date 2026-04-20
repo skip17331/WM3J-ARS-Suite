@@ -1,0 +1,37 @@
+2026-04-19 19:35:27.349 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-19 19:35:27.368 INFO  com.hamradio.jhub.ConfigManager — No config file found — creating default j-hub.json
+2026-04-19 19:35:27.388 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:35:27.389 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:35:27.389 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-19 19:35:27.413 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-19 19:35:27.419 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-19 19:35:27.436 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-19 19:35:27.545 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-19 19:35:27.545 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-19 19:35:27.546 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-19 19:35:27.550 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-19 19:35:27.550 WARN  com.hamradio.jhub.JHubMain — No j-log command configured — logging engine not started
+2026-04-19 19:35:27.551 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-04-19 19:35:27.552 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-04-19 19:35:27.552 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-19 19:35:53.518 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:38:29.422 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:53:40.269 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:42558
+2026-04-19 19:53:40.287 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-04-19 19:53:40.299 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-04-19 19:54:19.461 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:54:19.462 INFO  com.hamradio.jhub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-19 19:54:37.229 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:54:37.229 INFO  com.hamradio.jhub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
+2026-04-19 19:55:39.071 WARN  c.hamradio.jhub.ui.JHubStatusWindow — No command configured for 'j-log' — open Web Config UI to set it
+2026-04-19 19:55:58.167 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-sat/j-hub.json
+2026-04-19 19:56:23.132 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-19 19:56:23.135 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-19 19:56:23.138 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-19 19:56:23.139 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-19 19:56:23.891 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-04-19 19:56:23.892 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-04-19 19:56:23.894 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-19 19:56:23.903 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1001, reason=)
+2026-04-19 19:56:23.904 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-04-19 19:56:23.905 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.

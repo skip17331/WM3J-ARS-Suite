@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.106" tests="13" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.083" tests="13" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -13,7 +13,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
-    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419174445360_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T17-44-45_135-jvmRun1 surefire-20260419174445360_1tmp surefire_0-20260419174445360_2tmp"/>
+    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T20-05-02_731-jvmRun1 surefire-20260419200502965_1tmp surefire_0-20260419200502965_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/mike/ARS_Suite/j-map/target/test-classes:/home/mike/ARS_Suite/j-map/target/classes:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.16.1/jackson-databind-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.16.1/jackson-annotations-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.1/jackson-datatype-jsr310-2.16.1.jar:/home/mike/.m2/repository/org/nanohttpd/nanohttpd/2.3.1/nanohttpd-2.3.1.jar:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.1/junit-jupiter-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:/home/mike/.m2/repository/org/mockito/mockito-core/5.8.0/mockito-core-5.8.0.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.10/byte-buddy-1.14.10.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar:/home/mike/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419174445360_3.jar"/>
+    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.10+7-LTS"/>
     <property name="user.name" value="mike"/>
@@ -55,17 +55,17 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="subsolarLongitude_changesWith_time" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.009"/>
+  <testcase name="subsolarLongitude_changesWith_time" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.004"/>
   <testcase name="declination_isWithinExpectedRange(int, double, double)[1]" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.011"/>
-  <testcase name="declination_isWithinExpectedRange(int, double, double)[2]" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.006"/>
-  <testcase name="declination_isWithinExpectedRange(int, double, double)[3]" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.004"/>
+  <testcase name="declination_isWithinExpectedRange(int, double, double)[2]" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.003"/>
+  <testcase name="declination_isWithinExpectedRange(int, double, double)[3]" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.002"/>
   <testcase name="declination_isWithinExpectedRange(int, double, double)[4]" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.003"/>
-  <testcase name="zenithAngle_atAntipodalPoint_isNear180" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.007"/>
-  <testcase name="subsolarPoint_atSummerSolstice_isNearTropicOfCancer" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.002"/>
+  <testcase name="zenithAngle_atAntipodalPoint_isNear180" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.002"/>
+  <testcase name="subsolarPoint_atSummerSolstice_isNearTropicOfCancer" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.001"/>
   <testcase name="subsolarLongitude_atNoon_isNearPrimeMeridian" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.001"/>
   <testcase name="subsolarPoint_atVernalEquinox_isNearEquator" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.002"/>
-  <testcase name="zenithAngle_atSubsolarPoint_isZero" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.003"/>
-  <testcase name="julianDay_J2000epoch_isCorrect" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.004"/>
-  <testcase name="subsolarPoint_atWinterSolstice_isNearTropicOfCapricorn" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.003"/>
-  <testcase name="position_isConsistent_overShortInterval" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.003"/>
+  <testcase name="zenithAngle_atSubsolarPoint_isZero" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.001"/>
+  <testcase name="julianDay_J2000epoch_isCorrect" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.002"/>
+  <testcase name="subsolarPoint_atWinterSolstice_isNearTropicOfCapricorn" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.002"/>
+  <testcase name="position_isConsistent_overShortInterval" classname="com.wm3j.jmap.astronomy.SolarPositionServiceTest" time="0.021"/>
 </testsuite>

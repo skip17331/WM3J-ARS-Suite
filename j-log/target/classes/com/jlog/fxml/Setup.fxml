@@ -201,6 +201,65 @@
                     </VBox>
                 </Tab>
 
+                <!-- ================================================
+                     TAB: DX CLUSTER
+                     ================================================ -->
+                <Tab text="DX Cluster">
+                    <ScrollPane fitToWidth="true">
+                        <VBox spacing="14">
+                            <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                            <Label text="Connection" styleClass="section-title"/>
+                            <GridPane hgap="10" vgap="8" styleClass="setup-grid">
+                                <Label text="Server"           GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <TextField fx:id="tfClusterServer" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                           prefWidth="220" promptText="dxc.k0xm.net"/>
+
+                                <Label text="Port"             GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <TextField fx:id="tfClusterPort"   GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="80"/>
+
+                                <Label text="Login callsign"   GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <TextField fx:id="tfClusterLogin"  GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="140"/>
+
+                                <CheckBox fx:id="chkClusterAutoConnect" text="Auto-connect on startup"
+                                          GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+                            </GridPane>
+
+                            <Label text="Band Filters" styleClass="section-title"/>
+                            <FlowPane hgap="10" vgap="6">
+                                <CheckBox fx:id="chkBand160" text="160m"/>
+                                <CheckBox fx:id="chkBand80"  text="80m"/>
+                                <CheckBox fx:id="chkBand40"  text="40m"/>
+                                <CheckBox fx:id="chkBand30"  text="30m"/>
+                                <CheckBox fx:id="chkBand20"  text="20m"/>
+                                <CheckBox fx:id="chkBand17"  text="17m"/>
+                                <CheckBox fx:id="chkBand15"  text="15m"/>
+                                <CheckBox fx:id="chkBand12"  text="12m"/>
+                                <CheckBox fx:id="chkBand10"  text="10m"/>
+                                <CheckBox fx:id="chkBand6"   text="6m"/>
+                                <CheckBox fx:id="chkBand2"   text="2m"/>
+                            </FlowPane>
+
+                            <Label text="Mode Filters" styleClass="section-title"/>
+                            <FlowPane hgap="10" vgap="6">
+                                <CheckBox fx:id="chkModeSSB"   text="SSB"/>
+                                <CheckBox fx:id="chkModeCW"    text="CW"/>
+                                <CheckBox fx:id="chkModeFT8"   text="FT8"/>
+                                <CheckBox fx:id="chkModeFT4"   text="FT4"/>
+                                <CheckBox fx:id="chkModeRTTY"  text="RTTY"/>
+                                <CheckBox fx:id="chkModePSK31" text="PSK31"/>
+                                <CheckBox fx:id="chkModeJS8"   text="JS8"/>
+                            </FlowPane>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Button text="Connect"    onAction="#doClusterConnect"    styleClass="primary-button"/>
+                                <Button text="Disconnect" onAction="#doClusterDisconnect"/>
+                                <Label fx:id="lblClusterStatus" styleClass="status-label"/>
+                            </HBox>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+
             </tabs>
         </TabPane>
     </center>

@@ -53,6 +53,7 @@ J-Hub manages the following ARS Suite modules:
 | `j-log` | J-Log | `bash /home/mike/ARS_Suite/j-log/run.sh` |
 | `j-bridge` | J-Bridge | `bash /home/mike/ARS_Suite/j-bridge/run.sh` |
 | `j-digi` | J-Digi | `bash /home/mike/ARS_Suite/j-digi/run.sh` |
+| `j-sat` | J-Sat | `bash /home/mike/ARS_Suite/j-sat/run.sh --launched-by-hub` |
 
 ## Adding a New Message Type
 

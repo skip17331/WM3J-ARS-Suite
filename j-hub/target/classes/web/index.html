@@ -25,6 +25,7 @@
       <button class="nav-btn" data-tab="jmap"><span class="nav-icon">◫</span>J-Map</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
       <button class="nav-btn" data-tab="macros"><span class="nav-icon">⊟</span>Macros</button>
+      <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
       <button class="nav-btn" data-tab="appearance"><span class="nav-icon">◈</span>Appearance</button>
     </div>
     <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
@@ -139,6 +140,15 @@
             <div class="module-acts">
               <button class="btn btn-sm btn-ghost" onclick="launchApp('jMap')">Launch</button>
               <button class="btn btn-sm btn-red" onclick="killApp('jMap')">Stop</button>
+            </div>
+          </div>
+          <div class="module-row">
+            <span class="dot gray" id="dot-jsat"></span>
+            <span class="module-name">J-Sat</span>
+            <span class="module-meta" id="meta-jsat">Not connected</span>
+            <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="launchApp('j-sat')">Launch</button>
+              <button class="btn btn-sm btn-red" onclick="killApp('j-sat')">Stop</button>
             </div>
           </div>
         </div>
@@ -861,6 +871,204 @@
       </div>
     </section>
 
+    <!-- ─── Tab: J-Sat ──────────────────────────────────── -->
+    <section id="tab-jsat" class="tab-panel">
+      <div class="panel-header">J-Sat</div>
+      <div class="panel-sub">Satellite tracking — setup, Doppler correction, and rotor control via J-Hub</div>
+
+      <!-- Connection status -->
+      <div class="card">
+        <div class="card-title">J-Sat Connection</div>
+        <div class="module-row">
+          <span class="dot gray" id="jsat-conn-dot"></span>
+          <span class="module-name">J-Sat</span>
+          <span class="module-meta" id="jsat-conn-meta">Not connected</span>
+          <div class="module-acts">
+            <button class="btn btn-sm btn-ghost" onclick="launchApp('j-sat')">Launch</button>
+            <button class="btn btn-sm btn-red"   onclick="killApp('j-sat')">Stop</button>
+          </div>
+        </div>
+        <div class="intel-row" style="margin-top:8px">
+          <span class="intel-k">Tracking</span>
+          <span class="intel-v live" id="jsat-tracking">—</span>
+        </div>
+        <div class="intel-row">
+          <span class="intel-k">AZ / EL</span>
+          <span class="intel-v" id="jsat-azel">— / —</span>
+        </div>
+        <div class="intel-row">
+          <span class="intel-k">Downlink</span>
+          <span class="intel-v" id="jsat-dl">—</span>
+        </div>
+      </div>
+
+      <!-- Station configuration -->
+      <div class="card">
+        <div class="card-title">Station</div>
+        <div class="field">
+          <input type="text" id="jsat-callsign" placeholder="WM3J">
+          <label>Callsign</label>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div class="field">
+            <input type="number" id="jsat-lat" step="0.0001" placeholder="40.0">
+            <label>Latitude °N</label>
+          </div>
+          <div class="field">
+            <input type="number" id="jsat-lon" step="0.0001" placeholder="-75.0">
+            <label>Longitude °E</label>
+          </div>
+          <div class="field">
+            <input type="number" id="jsat-alt" step="0.001" placeholder="0.0">
+            <label>Altitude km</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Satellite selection -->
+      <div class="card">
+        <div class="card-title">Satellites to Track</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-sm btn-ghost" onclick="jsatSelectByType('FM')">All FM</button>
+          <button class="btn btn-sm btn-ghost" onclick="jsatSelectByType('Linear')">All Linear</button>
+          <button class="btn btn-sm btn-ghost" onclick="jsatSelectByType('APRS')">All APRS</button>
+          <button class="btn btn-sm btn-ghost" onclick="jsatSelectByType('Weather')">Weather</button>
+          <button class="btn btn-sm btn-ghost" onclick="jsatSelectAll()">Select All</button>
+          <button class="btn btn-sm btn-ghost" onclick="jsatSelectNone()">Clear All</button>
+        </div>
+        <div id="jsat-sat-list" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+          <div style="color:var(--overlay0);font-size:12px">Loading satellite list…</div>
+        </div>
+      </div>
+
+      <!-- Pass prediction settings -->
+      <div class="card">
+        <div class="card-title">Pass Prediction</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field">
+            <input type="number" id="jsat-min-el" step="1" min="0" max="30" placeholder="5">
+            <label>Min Elevation °</label>
+          </div>
+          <div class="field">
+            <input type="number" id="jsat-lookahead" step="1" min="1" max="72" placeholder="24">
+            <label>Look-ahead Hours</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Display settings -->
+      <div class="card">
+        <div class="card-title">Display</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Ground Track</div>
+            <div class="toggle-desc">Show orbital ground track on world map</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jsat-show-track">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Footprint</div>
+            <div class="toggle-desc">Show satellite visibility footprint</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jsat-show-footprint">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Space Weather Panel</div>
+            <div class="toggle-desc">Show Kp / SFI / solar flux sidebar</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jsat-show-spaceweather">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Doppler rig control -->
+      <div class="card">
+        <div class="card-title">Doppler Rig Control</div>
+        <div class="panel-sub" style="margin-bottom:10px">
+          When enabled, J-Hub tunes the rig via Hamlib (rigctld) on each SAT_DOPPLER message from J-Sat.
+          Configure the rig backend in the <strong>Rig Control</strong> tab.
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Enable Doppler Correction</div>
+            <div class="toggle-desc">Allow J-Hub to auto-tune the rig for Doppler shift</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jsat-doppler-enable">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="intel-row" style="margin-top:8px">
+          <span class="intel-k">Rig backend</span>
+          <span class="intel-v" id="jsat-rig-backend">—</span>
+        </div>
+        <div class="intel-row">
+          <span class="intel-k">Rig status</span>
+          <span class="intel-v" id="jsat-rig-status">—</span>
+        </div>
+      </div>
+
+      <!-- Rotor control -->
+      <div class="card">
+        <div class="card-title">AZ/EL Rotor Tracking</div>
+        <div class="panel-sub" style="margin-bottom:10px">
+          When enabled, J-Hub drives the rotor via Hamlib (rotctld) on each SAT_ROTOR_CMD from J-Sat.
+          Configure the rotor backend in the <strong>Rotor</strong> tab.
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Enable Rotor Tracking</div>
+            <div class="toggle-desc">Allow J-Hub to auto-aim the antenna at the satellite</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jsat-rotor-enable">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="intel-row" style="margin-top:8px">
+          <span class="intel-k">Rotor backend</span>
+          <span class="intel-v" id="jsat-rotor-backend">—</span>
+        </div>
+        <div class="intel-row">
+          <span class="intel-k">Rotor AZ / EL</span>
+          <span class="intel-v" id="jsat-rotor-pos">—</span>
+        </div>
+      </div>
+
+      <!-- Launch config -->
+      <div class="card">
+        <div class="card-title">Launch Configuration</div>
+        <div class="field">
+          <input type="text" id="cmd-jSat" placeholder="bash /home/user/ARS_Suite/j-sat/run.sh">
+          <label>Launch Command</label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Launch</div>
+            <div class="toggle-desc">Start J-Sat automatically when J-Hub starts</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="auto-jSat">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveJSatSettings()">Save J-Sat Settings</button>
+          <span id="jsat-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+    </section>
+
     <!-- ─── Tab: Appearance ─────────────────────────────── -->
     <section id="tab-appearance" class="tab-panel">
       <div class="panel-header">Appearance &amp; Themes</div>
@@ -985,6 +1193,7 @@
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jdigi"></span> J-Digi</span><span class="intel-v" id="i-jdigi">—</span></div>
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jbridge"></span> J-Bridge</span><span class="intel-v" id="i-jbridge">—</span></div>
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jmap"></span> J-Map</span><span class="intel-v" id="i-jmap">—</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jsat"></span> J-Sat</span><span class="intel-v" id="i-jsat">—</span></div>
     </div>
 
     <!-- Alerts -->

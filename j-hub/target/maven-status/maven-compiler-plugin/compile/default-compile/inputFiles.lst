@@ -5,6 +5,7 @@
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/JHubDiscovery.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/RigStatus.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/JHubMain.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/HamlibRotorController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ui/SplashJHub.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/AppLauncher.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ClusterManager.java

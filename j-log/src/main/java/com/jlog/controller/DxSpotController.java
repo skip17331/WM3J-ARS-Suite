@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 
@@ -22,17 +23,11 @@ import java.util.ResourceBundle;
  * Controller for the DX Spotting panel (DxSpot.fxml).
  * Embedded inside NormalLog and ContestLog via fx:include.
  *
- * Receives enriched DX spots from the ham-radio-hub WebSocket server.
- *
- * Two tabs:
- *   Spots — parsed DxSpot rows with enrichment (mode, country, bearing)
- *   Raw   — raw JSON messages received from hub
+ * Spots flow from j-hub via WebSocket. The Connect/Disconnect buttons
+ * open and close the DX cluster telnet session inside j-hub.
  */
 public class DxSpotController implements Initializable {
 
-    @FXML private TabPane  tabPane;
-
-    // Spots tab
     @FXML private TableView<DxSpot>           spotTable;
     @FXML private TableColumn<DxSpot, String> colSpotter;
     @FXML private TableColumn<DxSpot, String> colDx;
@@ -43,30 +38,24 @@ public class DxSpotController implements Initializable {
     @FXML private TableColumn<DxSpot, String> colComment;
     @FXML private TableColumn<DxSpot, String> colTime;
 
-    // Raw tab
-    @FXML private TextArea rawArea;
-
-    // Toolbar controls
-    @FXML private TextField tfHubUrl;
-    @FXML private Button    btnConnect;
-    @FXML private Button    btnDisconnect;
-    @FXML private Label     lblConnStatus;
+    @FXML private Button btnClusterConnect;
+    @FXML private Button btnClusterDisconnect;
+    @FXML private Label  lblClusterStatus;
 
     private static final String DEFAULT_HUB_URL = "ws://localhost:8080";
     private static final int    MAX_SPOTS        = 200;
+    private static final String HUB_REST         = "http://localhost:8081";
 
-    private final HubDiscoveryListener discovery = new HubDiscoveryListener();
-    private static final int    MAX_RAW_CHARS    = 20_000;
-    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
-
-    private final ObservableList<DxSpot> spots = FXCollections.observableArrayList();
+    private final HubDiscoveryListener        discovery = new HubDiscoveryListener();
+    private static final DateTimeFormatter    TIME_FMT  = DateTimeFormatter.ofPattern("HH:mm");
+    private final ObservableList<DxSpot>      spots     = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         initTable();
         initHubEngine();
-        loadSavedUrl();
         autoConnect();
+        refreshClusterStatus();
     }
 
     // ---------------------------------------------------------------
@@ -88,14 +77,13 @@ public class DxSpotController implements Initializable {
         spotTable.setItems(spots);
         spotTable.setPlaceholder(new Label(I18n.get("dx.no.spots")));
 
-        // Double-click on a spot row → populate entry bar immediately, then notify hub
         spotTable.setRowFactory(tv -> {
             TableRow<DxSpot> row = new TableRow<>();
             row.setOnMouseClicked(e -> {
                 if (!row.isEmpty() && e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY) {
                     DxSpot spot = row.getItem();
-                    HubEngine.getInstance().notifySpotSelected(spot); // fills entry bar immediately
-                    HubEngine.getInstance().sendSpotSelected(spot);   // broadcasts to hamclock etc.
+                    HubEngine.getInstance().notifySpotSelected(spot);
+                    HubEngine.getInstance().sendSpotSelected(spot);
                 }
             });
             return row;
@@ -114,59 +102,29 @@ public class DxSpotController implements Initializable {
             spots.add(0, spot);
         }));
 
-        engine.setRawLineListener(line -> Platform.runLater(() -> {
-            rawArea.appendText(line + "\n");
-            if (rawArea.getLength() > MAX_RAW_CHARS) {
-                rawArea.deleteText(0, 5000);
-            }
-        }));
-
-        engine.setOnConnected(() -> Platform.runLater(() -> {
-            lblConnStatus.setText(I18n.get("dx.connected"));
-            btnConnect.setDisable(true);
-            btnDisconnect.setDisable(false);
-        }));
-
-        engine.setOnDisconnected(() -> Platform.runLater(() -> {
-            lblConnStatus.setText(I18n.get("dx.disconnected"));
-            btnConnect.setDisable(false);
-            btnDisconnect.setDisable(true);
-        }));
-
         engine.setOnShutdown(() -> Platform.runLater(Platform::exit));
     }
 
     // ---------------------------------------------------------------
-    // Hub URL persistence
+    // Auto-connect to j-hub WebSocket
     // ---------------------------------------------------------------
 
-    private void loadSavedUrl() {
-        String saved = DatabaseManager.getInstance().getConfig("hub.url", DEFAULT_HUB_URL);
-        tfHubUrl.setText(saved);
-    }
-
     private void autoConnect() {
-        // 1. Try saved URL immediately
-        String savedUrl = tfHubUrl.getText().trim();
+        String savedUrl = DatabaseManager.getInstance().getConfig("hub.url", DEFAULT_HUB_URL);
         if (!savedUrl.isBlank()) {
-            connectTo(savedUrl);
+            connectToHub(savedUrl);
         }
 
-        // 2. Start beacon listener — reconnects whenever hub is found and we're disconnected
         discovery.setOnHubFound(wsUrl -> {
             if (!HubEngine.getInstance().isConnected()) {
-                Platform.runLater(() -> {
-                    tfHubUrl.setText(wsUrl);
-                    saveUrl(wsUrl);
-                });
-                connectTo(wsUrl);
+                saveUrl(wsUrl);
+                connectToHub(wsUrl);
             }
         });
         discovery.start();
     }
 
-    private void connectTo(String url) {
-        Platform.runLater(() -> lblConnStatus.setText(I18n.get("dx.connecting", url)));
+    private void connectToHub(String url) {
         Thread t = new Thread(() -> HubEngine.getInstance().connect(url), "hub-connect");
         t.setDaemon(true);
         t.start();
@@ -177,21 +135,89 @@ public class DxSpotController implements Initializable {
     }
 
     // ---------------------------------------------------------------
+    // Cluster telnet session controls
+    // ---------------------------------------------------------------
+
+    @FXML private void doClusterConnect() {
+        setClusterBusy("Connecting...");
+        new Thread(() -> {
+            try {
+                hubPost("/api/cluster/connect", "");
+                Platform.runLater(() -> setClusterConnected(true));
+            } catch (Exception e) {
+                Platform.runLater(() -> lblClusterStatus.setText("Error: " + e.getMessage()));
+            }
+        }, "cluster-connect").start();
+    }
+
+    @FXML private void doClusterDisconnect() {
+        setClusterBusy("Disconnecting...");
+        new Thread(() -> {
+            try {
+                hubPost("/api/cluster/disconnect", "");
+                Platform.runLater(() -> setClusterConnected(false));
+            } catch (Exception e) {
+                Platform.runLater(() -> lblClusterStatus.setText("Error: " + e.getMessage()));
+            }
+        }, "cluster-disconnect").start();
+    }
+
+    private void refreshClusterStatus() {
+        new Thread(() -> {
+            try {
+                String json = hubGet("/api/status");
+                boolean connected = json.contains("\"clusterConnected\":true");
+                Platform.runLater(() -> setClusterConnected(connected));
+            } catch (Exception ignored) {}
+        }, "cluster-status").start();
+    }
+
+    private void setClusterConnected(boolean connected) {
+        btnClusterConnect   .setDisable(connected);
+        btnClusterDisconnect.setDisable(!connected);
+        lblClusterStatus.setText(connected ? "● Connected" : "○ Disconnected");
+        lblClusterStatus.setStyle(connected
+            ? "-fx-text-fill: #69f0ae;"
+            : "-fx-text-fill: #888888;");
+    }
+
+    private void setClusterBusy(String msg) {
+        btnClusterConnect   .setDisable(true);
+        btnClusterDisconnect.setDisable(true);
+        lblClusterStatus.setText(msg);
+        lblClusterStatus.setStyle("-fx-text-fill: #ffdd00;");
+    }
+
+    // ---------------------------------------------------------------
     // Actions
     // ---------------------------------------------------------------
 
-    @FXML private void doConnect() {
-        String url = tfHubUrl.getText().trim();
-        if (url.isBlank()) url = DEFAULT_HUB_URL;
-        saveUrl(url);
-        connectTo(url);
-    }
-
-    @FXML private void doDisconnect() {
-        HubEngine.getInstance().disconnect();
-    }
-
     @FXML private void doClearSpots() {
         spots.clear();
+    }
+
+    // ---------------------------------------------------------------
+    // HTTP helpers (calls j-hub REST on localhost:8081)
+    // ---------------------------------------------------------------
+
+    private static String hubGet(String path) throws Exception {
+        java.net.HttpURLConnection c =
+            (java.net.HttpURLConnection) new java.net.URL(HUB_REST + path).openConnection();
+        c.setConnectTimeout(2000);
+        c.setReadTimeout(3000);
+        return new String(c.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    private static void hubPost(String path, String body) throws Exception {
+        java.net.HttpURLConnection c =
+            (java.net.HttpURLConnection) new java.net.URL(HUB_REST + path).openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setConnectTimeout(2000);
+        c.setReadTimeout(3000);
+        c.setRequestProperty("Content-Type", "application/json");
+        if (!body.isEmpty())
+            c.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
+        c.getInputStream().readAllBytes();
     }
 }

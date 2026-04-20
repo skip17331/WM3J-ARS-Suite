@@ -42,7 +42,6 @@
         "160m",
         "80m",
         "40m",
-        "30m",
         "20m",
         "17m",
         "15m",
@@ -92,6 +91,10 @@
     "jDigi": {
       "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-digi/j-digi.sh"
+    },
+    "jSat": {
+      "autoLaunch": false,
+      "command": ""
     }
   },
   "macros": {
@@ -153,7 +156,7 @@
     ]
   },
   "appearance": {
-    "theme": "grayline",
+    "theme": "light",
     "fontSize": 17,
     "waterfallColor": "viridis",
     "mapTheme": "satellite"
@@ -194,8 +197,8 @@
     "contestListY": 220.0,
     "deWindowX": 10.0,
     "deWindowY": 460.0,
-    "dxWindowX": 250.0,
-    "dxWindowY": 10.0,
+    "dxWindowX": 10.5,
+    "dxWindowY": 631.5,
     "dxBandFilter": "ALL",
     "dxMaxAgeMinutes": 30,
     "dxShowCallsigns": true,
@@ -220,5 +223,24 @@
     "uiScale": 1.0,
     "fontSize": 13,
     "webServerPort": 8082
+  },
+  "jSatSettings": {
+    "callsign": "WM3J",
+    "qthLat": 40,
+    "qthLon": -75,
+    "qthAltKm": 0,
+    "enabledSatellites": [],
+    "minPassElevationDeg": 5,
+    "passLookAheadHours": 24,
+    "rigControlEnabled": false,
+    "rotorControlEnabled": false,
+    "showSpaceWeather": true,
+    "showGroundTrack": true,
+    "showFootprint": true,
+    "showPassList": true,
+    "fontSize": 13,
+    "hubHost": "localhost",
+    "hubWsPort": 8080,
+    "hubWebPort": 8081
   }
 }

@@ -1,0 +1,182 @@
+{
+  "jHub": {
+    "websocketPort": 8080,
+    "webConfigPort": 8081
+  },
+  "station": {
+    "callsign": "WM3J",
+    "name": "Mike Kipps",
+    "qth": "Hanover, PA",
+    "lat": 0.0,
+    "lon": 0.0,
+    "gridSquare": "",
+    "timezone": "America/New_York",
+    "language": "en"
+  },
+  "rig": {
+    "backend": "NONE",
+    "civPort": "",
+    "civBaud": 9600,
+    "civAddress": "94",
+    "hamlibHost": "localhost",
+    "hamlibPort": 4532,
+    "pollRateMs": 500,
+    "enablePtt": false
+  },
+  "rotor": {
+    "backend": "NONE",
+    "model": "",
+    "comPort": "",
+    "tcpHost": "localhost",
+    "tcpPort": 4533,
+    "shortPathOffset": 0.0,
+    "customPreset": 0.0
+  },
+  "cluster": {
+    "autoConnect": false,
+    "server": "",
+    "port": 7373,
+    "loginCallsign": "",
+    "filters": {
+      "bands": [
+        "30m",
+        "40m",
+        "160m",
+        "80m",
+        "17m",
+        "6m",
+        "15m",
+        "12m",
+        "10m",
+        "20m"
+      ],
+      "modes": [
+        "RTTY",
+        "SSB",
+        "CW",
+        "FT4",
+        "PSK31",
+        "FT8",
+        "JS8"
+      ]
+    }
+  },
+  "logger": {
+    "mode": "normal",
+    "normalLog": {
+      "dbPath": ""
+    },
+    "contests": []
+  },
+  "infoScreen": {
+    "mapStyle": "dark",
+    "showGreatCircle": true,
+    "spotTimeout": 30,
+    "maxCachedSpots": 50
+  },
+  "apps": {
+    "jMap": {
+      "autoLaunch": false,
+      "command": ""
+    },
+    "jLog": {
+      "autoLaunch": false,
+      "command": ""
+    },
+    "jBridge": {
+      "autoLaunch": false,
+      "command": ""
+    },
+    "jDigi": {
+      "autoLaunch": false,
+      "command": ""
+    },
+    "jSat": {
+      "autoLaunch": false,
+      "command": ""
+    }
+  },
+  "macros": {
+    "list": [
+      {
+        "key": "CQ",
+        "label": "CQ",
+        "text": "CQ CQ CQ DE {MYCALL} {MYCALL} {MYCALL} K",
+        "type": "FIXED"
+      },
+      {
+        "key": "ANS_CQ",
+        "label": "Ans CQ",
+        "text": "{CALL} DE {MYCALL} {MYCALL} PSE K",
+        "type": "FIXED"
+      },
+      {
+        "key": "QSO",
+        "label": "QSO",
+        "text": "{CALL} DE {MYCALL} UR RST {RST} {RST} NAME {NAME} QTH {BAND} 73 DE {MYCALL} K",
+        "type": "FIXED"
+      },
+      {
+        "key": "SK",
+        "label": "73 SK",
+        "text": "{CALL} DE {MYCALL} QSL TNX QSO 73 SK",
+        "type": "FIXED"
+      },
+      {
+        "key": "KN",
+        "label": "KN",
+        "text": "{CALL} DE {MYCALL} KN",
+        "type": "FIXED"
+      },
+      {
+        "key": "F1",
+        "label": "F1",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      },
+      {
+        "key": "F2",
+        "label": "F2",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      },
+      {
+        "key": "F3",
+        "label": "F3",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      },
+      {
+        "key": "F4",
+        "label": "F4",
+        "text": "",
+        "type": "PROGRAMMABLE"
+      }
+    ]
+  },
+  "appearance": {
+    "theme": "dark",
+    "fontSize": 13,
+    "waterfallColor": "viridis",
+    "mapTheme": "dark"
+  },
+  "jSatSettings": {
+    "callsign": "WM3J",
+    "qthLat": 40.0,
+    "qthLon": -75.0,
+    "qthAltKm": 0.0,
+    "enabledSatellites": [],
+    "minPassElevationDeg": 5.0,
+    "passLookAheadHours": 24,
+    "rigControlEnabled": false,
+    "rotorControlEnabled": false,
+    "showSpaceWeather": true,
+    "showGroundTrack": true,
+    "showFootprint": true,
+    "showPassList": true,
+    "fontSize": 13,
+    "hubHost": "localhost",
+    "hubWsPort": 8080,
+    "hubWebPort": 8081
+  }
+}

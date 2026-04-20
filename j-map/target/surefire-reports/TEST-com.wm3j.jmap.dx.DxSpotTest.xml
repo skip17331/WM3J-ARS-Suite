@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.dx.DxSpotTest" time="1.155" tests="39" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.wm3j.jmap.dx.DxSpotTest" time="1.742" tests="39" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -13,7 +13,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
-    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419174445360_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T17-44-45_135-jvmRun1 surefire-20260419174445360_1tmp surefire_0-20260419174445360_2tmp"/>
+    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar /home/mike/ARS_Suite/j-map/target/surefire 2026-04-19T20-05-02_731-jvmRun1 surefire-20260419200502965_1tmp surefire_0-20260419200502965_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/mike/ARS_Suite/j-map/target/test-classes:/home/mike/ARS_Suite/j-map/target/classes:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/21.0.1/javafx-fxml-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/21.0.1/javafx-controls-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/21.0.1/javafx-graphics-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/21.0.1/javafx-base-21.0.1-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-swing/21.0.1/javafx-swing-21.0.1-linux.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.16.1/jackson-databind-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.16.1/jackson-annotations-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.16.1/jackson-core-2.16.1.jar:/home/mike/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.1/jackson-datatype-jsr310-2.16.1.jar:/home/mike/.m2/repository/org/nanohttpd/nanohttpd/2.3.1/nanohttpd-2.3.1.jar:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.14/logback-classic-1.4.14.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.14/logback-core-1.4.14.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.1/junit-jupiter-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar:/home/mike/.m2/repository/org/mockito/mockito-core/5.8.0/mockito-core-5.8.0.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.10/byte-buddy-1.14.10.jar:/home/mike/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar:/home/mike/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419174445360_3.jar"/>
+    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-map/target/surefire/surefirebooter-20260419200502965_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.10+7-LTS"/>
     <property name="user.name" value="mike"/>
@@ -55,67 +55,67 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="frequencyToBand_correctMapping(double, String)[1]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.118"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[2]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[3]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[4]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[5]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[6]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[7]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[8]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[9]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[10]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[11]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[12]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[13]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[14]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[15]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[16]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[17]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[1]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.238"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[2]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.008"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[3]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.017"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[4]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.01"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[5]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.007"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[6]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.02"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[7]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.015"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[8]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.013"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[9]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.018"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[10]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.018"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[11]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.014"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[12]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.012"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[13]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.007"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[14]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.009"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[15]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.009"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[16]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.012"/>
+  <testcase name="frequencyToBand_correctMapping(double, String)[17]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.011"/>
   <testcase name="frequencyToBand_correctMapping(double, String)[18]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="frequencyToBand_correctMapping(double, String)[19]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005"/>
-  <testcase name="mockProvider_getCached_afterFetch_isNotNull" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.566">
-    <system-out><![CDATA[17:44:48.446 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.444703652Z
+  <testcase name="frequencyToBand_correctMapping(double, String)[19]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.009"/>
+  <testcase name="mockProvider_getCached_afterFetch_isNotNull" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.752">
+    <system-out><![CDATA[20:05:06.490 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.487063324Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_spots_haveValidBands" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004">
-    <system-out><![CDATA[17:44:48.454 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.454514462Z
+  <testcase name="mockProvider_spots_haveValidBands" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.007">
+    <system-out><![CDATA[20:05:06.515 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.515805461Z
 ]]></system-out>
   </testcase>
-  <testcase name="dxSpot_ageMinutes_oldSpotIsCorrect" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.006"/>
+  <testcase name="dxSpot_ageMinutes_oldSpotIsCorrect" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.016"/>
   <testcase name="mockProvider_spots_haveValidCallsigns" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004">
-    <system-out><![CDATA[17:44:48.467 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.467021772Z
+    <system-out><![CDATA[20:05:06.548 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.548112139Z
 ]]></system-out>
   </testcase>
-  <testcase name="mockProvider_spots_haveValidFrequencies" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.01">
-    <system-out><![CDATA[17:44:48.471 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.471725315Z
+  <testcase name="mockProvider_spots_haveValidFrequencies" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004">
+    <system-out><![CDATA[20:05:06.553 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.553882043Z
 ]]></system-out>
   </testcase>
-  <testcase name="getBandColor_unknownBand_returnsWhite" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="mockProvider_spots_haveTimestamps" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.006">
-    <system-out><![CDATA[17:44:48.492 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.492229722Z
+  <testcase name="getBandColor_unknownBand_returnsWhite" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
+  <testcase name="mockProvider_spots_haveTimestamps" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.007">
+    <system-out><![CDATA[20:05:06.568 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.567386009Z
 ]]></system-out>
   </testcase>
-  <testcase name="dxSpot_ageMinutes_freshSpotIsZero" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004"/>
-  <testcase name="mockProvider_fetch_returnsNonEmptyList" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004">
-    <system-out><![CDATA[17:44:48.506 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.506194611Z
+  <testcase name="dxSpot_ageMinutes_freshSpotIsZero" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.001"/>
+  <testcase name="mockProvider_fetch_returnsNonEmptyList" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.006">
+    <system-out><![CDATA[20:05:06.589 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.589449111Z
 ]]></system-out>
   </testcase>
-  <testcase name="dxSpot_setFrequency_updatesBand" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="getBandColor_returnsCorrectColor(String, String)[1]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.006"/>
-  <testcase name="getBandColor_returnsCorrectColor(String, String)[2]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004"/>
+  <testcase name="dxSpot_setFrequency_updatesBand" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
+  <testcase name="getBandColor_returnsCorrectColor(String, String)[1]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005"/>
+  <testcase name="getBandColor_returnsCorrectColor(String, String)[2]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
   <testcase name="getBandColor_returnsCorrectColor(String, String)[3]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
   <testcase name="getBandColor_returnsCorrectColor(String, String)[4]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="getBandColor_returnsCorrectColor(String, String)[5]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.001"/>
+  <testcase name="getBandColor_returnsCorrectColor(String, String)[5]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
   <testcase name="getBandColor_returnsCorrectColor(String, String)[6]" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
-  <testcase name="mockProvider_returnsReasonableCount" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.005">
-    <system-out><![CDATA[17:44:48.557 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.557548347Z
+  <testcase name="mockProvider_returnsReasonableCount" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003">
+    <system-out><![CDATA[20:05:06.648 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.648975231Z
 ]]></system-out>
   </testcase>
-  <testcase name="dxSpot_constructor_setsBandAutomatically" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004"/>
-  <testcase name="dxSpot_toString_containsCallsign" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.003"/>
-  <testcase name="dxSpot_bandColorIsValidHex" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.007">
-    <system-out><![CDATA[17:44:48.577 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-19T21:44:48.577289687Z
+  <testcase name="dxSpot_constructor_setsBandAutomatically" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.002"/>
+  <testcase name="dxSpot_toString_containsCallsign" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.004"/>
+  <testcase name="dxSpot_bandColorIsValidHex" classname="com.wm3j.jmap.dx.DxSpotTest" time="0.009">
+    <system-out><![CDATA[20:05:06.667 [main] DEBUG c.w.j.service.dx.MockDxSpotProvider - Fetched MockDxSpotProvider data at 2026-04-20T00:05:06.667865259Z
 ]]></system-out>
   </testcase>
 </testsuite>

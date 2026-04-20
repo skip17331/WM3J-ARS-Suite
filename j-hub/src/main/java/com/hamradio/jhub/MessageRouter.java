@@ -95,6 +95,18 @@ public class MessageRouter {
                 handleRotorStatus(rawJson, session.socket, server);
                 break;
 
+            case "SAT_STATE":
+                handleSatState(rawJson, session.socket, server);
+                break;
+
+            case "SAT_DOPPLER":
+                handleSatDoppler(msg, rawJson, session.socket, server);
+                break;
+
+            case "SAT_ROTOR_CMD":
+                handleSatRotorCmd(msg, rawJson, session.socket, server);
+                break;
+
             default:
                 log.debug("Unhandled message type '{}' from '{}'", type, session.appName);
         }
@@ -280,6 +292,58 @@ public class MessageRouter {
     }
 
     // ---------------------------------------------------------------
+    // SAT_STATE (from J-Sat)
+    // ---------------------------------------------------------------
+
+    private void handleSatState(String rawJson, WebSocket sender, JHubServer server) {
+        StateCache.getInstance().setLastSatState(rawJson);
+        server.broadcastToAll(rawJson);
+        log.debug("SAT_STATE cached and rebroadcast");
+    }
+
+    // ---------------------------------------------------------------
+    // SAT_DOPPLER — Doppler-corrected frequencies from J-Sat
+    // ---------------------------------------------------------------
+
+    private void handleSatDoppler(JsonObject msg, String rawJson,
+                                  WebSocket sender, JHubServer server) {
+        try {
+            long downlinkHz = msg.has("downlinkHz") ? msg.get("downlinkHz").getAsLong() : 0L;
+            long uplinkHz   = msg.has("uplinkHz")   ? msg.get("uplinkHz").getAsLong()   : 0L;
+            String mode     = msg.has("mode")        ? msg.get("mode").getAsString()     : null;
+
+            HamlibRigController rig = HamlibRigController.getInstance();
+            if (rig.isRunning() && downlinkHz > 0) {
+                rig.tune(downlinkHz, mode);
+                log.debug("SAT_DOPPLER → rig DL={} Hz mode={}", downlinkHz, mode);
+            }
+            server.broadcastToAll(rawJson);
+        } catch (Exception e) {
+            log.warn("Failed to process SAT_DOPPLER: {}", e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // SAT_ROTOR_CMD — AZ/EL rotor command from J-Sat
+    // ---------------------------------------------------------------
+
+    private void handleSatRotorCmd(JsonObject msg, String rawJson,
+                                   WebSocket sender, JHubServer server) {
+        try {
+            double az = msg.has("azDeg") ? msg.get("azDeg").getAsDouble() : 0.0;
+            double el = msg.has("elDeg") ? msg.get("elDeg").getAsDouble() : 0.0;
+
+            HamlibRotorController rotor = HamlibRotorController.getInstance();
+            if (rotor.isRunning()) {
+                rotor.trackPosition(az, el);
+                log.debug("SAT_ROTOR_CMD → AZ={} EL={}", az, el);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process SAT_ROTOR_CMD: {}", e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
     // Called by ClusterManager when a new enriched spot arrives
     // ---------------------------------------------------------------
 
@@ -314,6 +378,16 @@ public class MessageRouter {
         StateCache.getInstance().addSpot(spot);
         if (jHubServer != null) {
             jHubServer.broadcastToAll(ConfigManager.gson().toJson(spot));
+        }
+    }
+
+    /**
+     * Publish a ROTOR_STATUS originating from HamlibRotorController.
+     */
+    public void publishRotorStatus(String rawJson) {
+        StateCache.getInstance().setLastRotorStatus(rawJson);
+        if (jHubServer != null) {
+            jHubServer.broadcastToAll(rawJson);
         }
     }
 

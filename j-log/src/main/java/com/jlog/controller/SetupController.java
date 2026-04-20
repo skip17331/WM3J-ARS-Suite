@@ -7,6 +7,7 @@ import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.Macro;
 import com.jlog.util.AppConfig;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -17,6 +18,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -72,6 +74,17 @@ public class SetupController implements Initializable {
     @FXML private RadioButton rbLogNormal;
     @FXML private RadioButton rbLogDebug;
 
+    // ---- DX Cluster tab ----
+    @FXML private TextField tfClusterServer;
+    @FXML private TextField tfClusterPort;
+    @FXML private TextField tfClusterLogin;
+    @FXML private CheckBox  chkClusterAutoConnect;
+    @FXML private CheckBox  chkBand160, chkBand80, chkBand40, chkBand30, chkBand20;
+    @FXML private CheckBox  chkBand17, chkBand15, chkBand12, chkBand10, chkBand6, chkBand2;
+    @FXML private CheckBox  chkModeSSB, chkModeCW, chkModeFT8, chkModeFT4;
+    @FXML private CheckBox  chkModeRTTY, chkModePSK31, chkModeJS8;
+    @FXML private Label     lblClusterStatus;
+
     // ---- Buttons ----
     @FXML private Button btnSave;
     @FXML private Button btnCancel;
@@ -124,6 +137,9 @@ public class SetupController implements Initializable {
 
         // Macros
         loadMacros();
+
+        // DX Cluster — load from j-hub
+        loadClusterConfig();
 
         // Action type choices
         cbActionType.setItems(FXCollections.observableArrayList(
@@ -329,6 +345,155 @@ public class SetupController implements Initializable {
     // Save / Cancel
     // ---------------------------------------------------------------
 
+    // ---------------------------------------------------------------
+    // DX Cluster
+    // ---------------------------------------------------------------
+
+    private void loadClusterConfig() {
+        new Thread(() -> {
+            try {
+                String json = hubGet("http://localhost:8081/api/config");
+                com.fasterxml.jackson.databind.ObjectMapper m =
+                    new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.JsonNode root = m.readTree(json);
+                com.fasterxml.jackson.databind.JsonNode c = root.path("cluster");
+                boolean autoC  = c.path("autoConnect").asBoolean(false);
+                String  server = c.path("server").asText("");
+                int     port   = c.path("port").asInt(7373);
+                String  login  = c.path("loginCallsign").asText("");
+                Set<String> bands = new HashSet<>();
+                c.path("filters").path("bands").forEach(n -> bands.add(n.asText()));
+                Set<String> modes = new HashSet<>();
+                c.path("filters").path("modes").forEach(n -> modes.add(n.asText()));
+                Platform.runLater(() -> {
+                    chkClusterAutoConnect.setSelected(autoC);
+                    tfClusterServer.setText(server);
+                    tfClusterPort.setText(String.valueOf(port));
+                    tfClusterLogin.setText(login);
+                    applyBandFilters(bands);
+                    applyModeFilters(modes);
+                });
+            } catch (Exception ignored) {}
+        }, "load-cluster-cfg").start();
+    }
+
+    private void applyBandFilters(Set<String> enabled) {
+        boolean all = enabled.isEmpty();
+        bandBoxes().forEach((b, box) -> box.setSelected(all || enabled.contains(b)));
+    }
+
+    private void applyModeFilters(Set<String> enabled) {
+        boolean all = enabled.isEmpty();
+        modeBoxes().forEach((m, box) -> box.setSelected(all || enabled.contains(m)));
+    }
+
+    private Map<String, CheckBox> bandBoxes() {
+        Map<String, CheckBox> m = new LinkedHashMap<>();
+        m.put("160m", chkBand160); m.put("80m",  chkBand80);  m.put("40m", chkBand40);
+        m.put("30m",  chkBand30);  m.put("20m",  chkBand20);  m.put("17m", chkBand17);
+        m.put("15m",  chkBand15);  m.put("12m",  chkBand12);  m.put("10m", chkBand10);
+        m.put("6m",   chkBand6);   m.put("2m",   chkBand2);
+        return m;
+    }
+
+    private Map<String, CheckBox> modeBoxes() {
+        Map<String, CheckBox> m = new LinkedHashMap<>();
+        m.put("SSB",   chkModeSSB);  m.put("CW",    chkModeCW);   m.put("FT8",   chkModeFT8);
+        m.put("FT4",   chkModeFT4);  m.put("RTTY",  chkModeRTTY); m.put("PSK31", chkModePSK31);
+        m.put("JS8",   chkModeJS8);
+        return m;
+    }
+
+    @FXML private void doClusterConnect() {
+        String server = tfClusterServer.getText().trim();
+        if (server.isBlank()) { lblClusterStatus.setText("Server required"); return; }
+        int port;
+        try { port = Integer.parseInt(tfClusterPort.getText().trim()); }
+        catch (Exception e) { port = 7373; }
+        final int finalPort = port;
+        String login = tfClusterLogin.getText().trim();
+        String body  = String.format("{\"server\":\"%s\",\"port\":%d,\"loginCallsign\":\"%s\"}",
+            server, finalPort, login);
+        lblClusterStatus.setText("Connecting...");
+        new Thread(() -> {
+            try {
+                hubPost("http://localhost:8081/api/cluster/connect", body);
+                Platform.runLater(() -> lblClusterStatus.setText("Connected"));
+            } catch (Exception e) {
+                Platform.runLater(() -> lblClusterStatus.setText("Error: " + e.getMessage()));
+            }
+        }, "cluster-connect").start();
+    }
+
+    @FXML private void doClusterDisconnect() {
+        new Thread(() -> {
+            try {
+                hubPost("http://localhost:8081/api/cluster/disconnect", "");
+                Platform.runLater(() -> lblClusterStatus.setText("Disconnected"));
+            } catch (Exception e) {
+                Platform.runLater(() -> lblClusterStatus.setText("Error: " + e.getMessage()));
+            }
+        }, "cluster-disconnect").start();
+    }
+
+    private void saveClusterConfig() {
+        boolean autoC  = chkClusterAutoConnect.isSelected();
+        String  server = tfClusterServer.getText().trim();
+        int     port;
+        try { port = Integer.parseInt(tfClusterPort.getText().trim()); } catch (Exception e) { port = 7373; }
+        String  login  = tfClusterLogin.getText().trim();
+        Set<String> bands = new LinkedHashSet<>();
+        bandBoxes().forEach((b, box) -> { if (box.isSelected()) bands.add(b); });
+        Set<String> modes = new LinkedHashSet<>();
+        modeBoxes().forEach((m, box) -> { if (box.isSelected()) modes.add(m); });
+        final int fp = port;
+        new Thread(() -> {
+            try {
+                String currentJson = hubGet("http://localhost:8081/api/config");
+                com.fasterxml.jackson.databind.ObjectMapper mapper =
+                    new com.fasterxml.jackson.databind.ObjectMapper();
+                com.fasterxml.jackson.databind.node.ObjectNode root =
+                    (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(currentJson);
+                com.fasterxml.jackson.databind.node.ObjectNode cluster = mapper.createObjectNode();
+                cluster.put("autoConnect",    autoC);
+                cluster.put("server",         server);
+                cluster.put("port",           fp);
+                cluster.put("loginCallsign",  login);
+                com.fasterxml.jackson.databind.node.ObjectNode filters = mapper.createObjectNode();
+                com.fasterxml.jackson.databind.node.ArrayNode bandsArr = mapper.createArrayNode();
+                bands.forEach(bandsArr::add);
+                com.fasterxml.jackson.databind.node.ArrayNode modesArr = mapper.createArrayNode();
+                modes.forEach(modesArr::add);
+                filters.set("bands", bandsArr);
+                filters.set("modes", modesArr);
+                cluster.set("filters", filters);
+                root.set("cluster", cluster);
+                hubPost("http://localhost:8081/api/config", mapper.writeValueAsString(root));
+            } catch (Exception ignored) {}
+        }, "save-cluster-cfg").start();
+    }
+
+    private static String hubGet(String url) throws Exception {
+        java.net.HttpURLConnection c =
+            (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+        c.setConnectTimeout(2000);
+        c.setReadTimeout(3000);
+        return new String(c.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    private static void hubPost(String url, String body) throws Exception {
+        java.net.HttpURLConnection c =
+            (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setConnectTimeout(2000);
+        c.setReadTimeout(3000);
+        c.setRequestProperty("Content-Type", "application/json");
+        if (!body.isEmpty())
+            c.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
+        c.getInputStream().readAllBytes();
+    }
+
     @FXML private void doSave() {
         AppConfig cfg = AppConfig.getInstance();
 
@@ -364,6 +529,9 @@ public class SetupController implements Initializable {
         boolean debug = rbLogDebug.isSelected();
         cfg.setDebugMode(debug);
         com.jlog.util.LoggingConfigurator.configure(debug);
+
+        // DX Cluster — save to j-hub
+        saveClusterConfig();
 
         // Re-apply theme / font to this window immediately
         JLogApp.applyTheme(btnSave.getScene());

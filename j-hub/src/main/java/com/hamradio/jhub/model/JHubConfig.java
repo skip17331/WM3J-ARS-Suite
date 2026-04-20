@@ -22,7 +22,8 @@ public class JHubConfig {
     public AppsSection       apps            = new AppsSection();
     public MacrosSection     macros          = new MacrosSection();
     public AppearanceSection appearance      = new AppearanceSection();
-    public com.google.gson.JsonObject jMapSettings = null;
+    public com.google.gson.JsonObject jMapSettings  = null;
+    public com.google.gson.JsonObject jSatSettings  = null;
 
     // ---------------------------------------------------------------
     // J-Hub network settings
@@ -143,6 +144,7 @@ public class JHubConfig {
         public AppLaunchEntry jLog    = new AppLaunchEntry();
         public AppLaunchEntry jBridge = new AppLaunchEntry();
         public AppLaunchEntry jDigi   = new AppLaunchEntry();
+        public AppLaunchEntry jSat    = new AppLaunchEntry();
     }
 
     public static class AppLaunchEntry {
