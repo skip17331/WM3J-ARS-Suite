@@ -16,6 +16,9 @@ public class Settings {
     private double qthLon = -72.7271;
     private String qthGrid = "FN31pr";
     private String timezone = "UTC";
+    private String arrlSection = "";
+    private int    cqZone     = 0;
+    private int    ituZone    = 0;
 
     // Data source flags
     private boolean useMockData = true;
@@ -94,11 +97,18 @@ public class Settings {
     private double fot = 14.0;   // MHz
     private double muf = 28.0;   // MHz
 
+    // Map source and data
+    private String tileProvider   = "FLAT";
+    private int    mapZoom        = 2;
+    private double mapCenterLat   = 0.0;
+    private double mapCenterLon   = 0.0;
+    private String tleSource      = "";
+    private int    refreshSeconds = 30;
+
     // UI preferences
     private boolean darkTheme = true;
     private double uiScale = 1.0;
-    private int fontSize = 13;      // base font size in px (range 10–22)
-    private int webServerPort = 8082;
+    private int fontSize = 13;
 
     // -------------------------------------------------------
     // Getters and setters
@@ -118,6 +128,15 @@ public class Settings {
 
     public String getTimezone() { return timezone; }
     public void setTimezone(String timezone) { this.timezone = timezone; }
+
+    public String getArrlSection() { return arrlSection != null ? arrlSection : ""; }
+    public void setArrlSection(String arrlSection) { this.arrlSection = arrlSection; }
+
+    public int getCqZone() { return cqZone; }
+    public void setCqZone(int cqZone) { this.cqZone = cqZone; }
+
+    public int getItuZone() { return ituZone; }
+    public void setItuZone(int ituZone) { this.ituZone = ituZone; }
 
     public boolean isUseMockData() { return useMockData; }
     public void setUseMockData(boolean useMockData) { this.useMockData = useMockData; }
@@ -269,6 +288,21 @@ public class Settings {
     public int getFontSize() { return (fontSize >= 10 && fontSize <= 22) ? fontSize : 13; }
     public void setFontSize(int fontSize) { this.fontSize = fontSize; }
 
-    public int getWebServerPort() { return webServerPort; }
-    public void setWebServerPort(int webServerPort) { this.webServerPort = webServerPort; }
+    public String getTileProvider() { return tileProvider != null ? tileProvider : "FLAT"; }
+    public void setTileProvider(String tileProvider) { this.tileProvider = tileProvider; }
+
+    public int getMapZoom() { return mapZoom > 0 ? mapZoom : 2; }
+    public void setMapZoom(int mapZoom) { this.mapZoom = mapZoom; }
+
+    public double getMapCenterLat() { return mapCenterLat; }
+    public void setMapCenterLat(double mapCenterLat) { this.mapCenterLat = mapCenterLat; }
+
+    public double getMapCenterLon() { return mapCenterLon; }
+    public void setMapCenterLon(double mapCenterLon) { this.mapCenterLon = mapCenterLon; }
+
+    public String getTleSource() { return tleSource != null ? tleSource : ""; }
+    public void setTleSource(String tleSource) { this.tleSource = tleSource; }
+
+    public int getRefreshSeconds() { return refreshSeconds > 0 ? refreshSeconds : 30; }
+    public void setRefreshSeconds(int refreshSeconds) { this.refreshSeconds = refreshSeconds; }
 }

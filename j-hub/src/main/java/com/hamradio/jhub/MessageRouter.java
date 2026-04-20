@@ -109,6 +109,10 @@ public class MessageRouter {
                 handleSatRotorCmd(msg, rawJson, session.socket, server);
                 break;
 
+            case "JMAP_CONFIG_REQUEST":
+                handleJMapConfigRequest(session, server);
+                break;
+
             default:
                 log.debug("Unhandled message type '{}' from '{}'", type, session.appName);
         }
@@ -322,6 +326,25 @@ public class MessageRouter {
             server.broadcastToAll(rawJson);
         } catch (Exception e) {
             log.warn("Failed to process SAT_DOPPLER: {}", e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // JMAP_CONFIG_REQUEST — j-map asks for its current config
+    // ---------------------------------------------------------------
+
+    private void handleJMapConfigRequest(JHubServer.AppSession session, JHubServer server) {
+        String cached = StateCache.getInstance().getLastJMapConfig();
+        if (cached != null) {
+            server.sendTo(session.socket, cached);
+            return;
+        }
+        // Fall back to stored jMapSettings if cache is cold (e.g. first boot)
+        com.google.gson.JsonObject stored = ConfigManager.getInstance().getConfig().jMapSettings;
+        if (stored != null && stored.size() > 0) {
+            com.google.gson.JsonObject reply = stored.deepCopy();
+            reply.addProperty("type", "JMAP_CONFIG");
+            server.sendTo(session.socket, reply.toString());
         }
     }
 

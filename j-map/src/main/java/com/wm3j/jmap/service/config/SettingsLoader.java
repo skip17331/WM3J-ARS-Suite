@@ -7,22 +7,32 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Loads J-Map settings.
+ *
+ * Local mode  (hub reachable): fetch from J-Hub HTTP /api/jmap, fall back to ~/.j-map/settings.json
+ * Remote mode (hub not reachable): load /config/jmap_config.json, fall back to ~/.j-map/settings.json
+ *
+ * Settings are no longer pushed back to port 8082 — J-Hub is the sole config authority.
+ * Live updates arrive via WebSocket as JMAP_CONFIG messages.
+ */
 public class SettingsLoader {
 
     private static final Logger log = LoggerFactory.getLogger(SettingsLoader.class);
+
     private static final String SETTINGS_DIR  = System.getProperty("user.home") + File.separator + ".j-map";
     private static final String SETTINGS_FILE = SETTINGS_DIR + File.separator + "settings.json";
+    private static final String REMOTE_CONFIG = "/config/jmap_config.json";
+
     private static volatile String jhubApiUrl = "http://localhost:8081/api/jmap";
 
-    /** Call before loadOrDefaults() to point at a remote j-hub. */
+    /** Call before loadOrDefaults() to point at a remote J-Hub. */
     public static void setJHubHost(String host, int webPort) {
         jhubApiUrl = "http://" + host + ":" + webPort + "/api/jmap";
         log.info("J-Hub API URL set to {}", jhubApiUrl);
@@ -31,29 +41,50 @@ public class SettingsLoader {
     private static final ObjectMapper mapper = new ObjectMapper()
         .enable(SerializationFeature.INDENT_OUTPUT);
 
-    public static Settings loadOrDefaults() {
-        // Try j-hub first
-        try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(jhubApiUrl).openConnection();
-            conn.setConnectTimeout(1500);
-            conn.setReadTimeout(2000);
-            if (conn.getResponseCode() == 200) {
-                byte[] body = conn.getInputStream().readAllBytes();
-                if (body.length > 2) {
-                    Settings s = mapper.readValue(body, Settings.class);
-                    log.info("Settings loaded from j-hub");
-                    return s;
+    /**
+     * Load settings.
+     *
+     * @param hubReachable true if J-Hub WS port was reachable at startup (local mode)
+     */
+    public static Settings loadOrDefaults(boolean hubReachable) {
+        if (hubReachable) {
+            // Local mode: try J-Hub HTTP API first
+            try {
+                HttpURLConnection conn = (HttpURLConnection) new URL(jhubApiUrl).openConnection();
+                conn.setConnectTimeout(1500);
+                conn.setReadTimeout(2000);
+                if (conn.getResponseCode() == 200) {
+                    byte[] body = conn.getInputStream().readAllBytes();
+                    if (body.length > 2) {
+                        Settings s = mapper.readValue(body, Settings.class);
+                        log.info("Settings loaded from J-Hub (local mode)");
+                        return s;
+                    }
                 }
+            } catch (Exception e) {
+                log.debug("J-Hub HTTP not available for initial load: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            log.debug("j-hub not available for settings load: {}", e.getMessage());
+        } else {
+            // Remote mode: try /config/jmap_config.json
+            Path remotePath = Path.of(REMOTE_CONFIG);
+            if (Files.exists(remotePath)) {
+                try {
+                    Settings s = mapper.readValue(remotePath.toFile(), Settings.class);
+                    log.info("Settings loaded from remote config: {}", REMOTE_CONFIG);
+                    return s;
+                } catch (IOException e) {
+                    log.warn("Failed to load remote config {}: {}", REMOTE_CONFIG, e.getMessage());
+                }
+            } else {
+                log.debug("Remote config not found at {}", REMOTE_CONFIG);
+            }
         }
 
-        // Fall back to local file
-        Path path = Paths.get(SETTINGS_FILE);
-        if (Files.exists(path)) {
+        // Fall back to local settings.json
+        Path localPath = Paths.get(SETTINGS_FILE);
+        if (Files.exists(localPath)) {
             try {
-                Settings s = mapper.readValue(path.toFile(), Settings.class);
+                Settings s = mapper.readValue(localPath.toFile(), Settings.class);
                 log.info("Settings loaded from {}", SETTINGS_FILE);
                 return s;
             } catch (IOException e) {
@@ -65,33 +96,21 @@ public class SettingsLoader {
         return new Settings();
     }
 
+    /** Backward-compat overload — assumes local mode. */
+    public static Settings loadOrDefaults() {
+        return loadOrDefaults(true);
+    }
+
     public static void save(Settings settings) {
-        // Save to local file (always)
         try {
             Files.createDirectories(Paths.get(SETTINGS_DIR));
             mapper.writeValue(new File(SETTINGS_FILE), settings);
-            log.info("Settings saved to {}", SETTINGS_FILE);
+            log.debug("Settings saved locally to {}", SETTINGS_FILE);
         } catch (IOException e) {
             log.error("Failed to save settings locally: {}", e.getMessage());
         }
-
-        // Also push to j-hub so the UI stays in sync
-        try {
-            byte[] json = mapper.writeValueAsBytes(settings);
-            HttpURLConnection conn = (HttpURLConnection) new URL(jhubApiUrl).openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setConnectTimeout(1500);
-            conn.setReadTimeout(2000);
-            conn.setRequestProperty("Content-Type", "application/json");
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(json);
-            }
-            conn.getResponseCode(); // consume
-            log.debug("Settings pushed to j-hub");
-        } catch (Exception e) {
-            log.debug("Could not push settings to j-hub: {}", e.getMessage());
-        }
+        // No push to port 8082 — J-Hub is the sole configuration authority.
+        // Live updates flow from J-Hub → J-Map via WebSocket (JMAP_CONFIG).
     }
 
     public static String getSettingsFilePath() {

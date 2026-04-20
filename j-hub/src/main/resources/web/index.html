@@ -958,13 +958,73 @@
             <input type="range" id="jm-font-size" min="10" max="22" value="13"
                    oninput="document.getElementById('jm-font-size-val').textContent=this.value">
             <label>Size: <span id="jm-font-size-val">13</span> px</label>
-            <span class="hint">Applied immediately if J-Map is running; otherwise on next start</span>
+            <span class="hint">Applied immediately when J-Map is connected</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Map Images</div>
+        <div class="field" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px">
+          <div class="toggle-label">World Map<div class="toggle-desc">Equirectangular JPEG used as the main display background. Saved to ~/.j-map/world_map.jpg</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="worldMapFile" accept=".jpg,.jpeg" style="font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 8px">
+            <button class="btn btn-sm btn-ghost" onclick="uploadJMapImage('worldMapFile','/api/jmap/map-image','world-map-msg')">Upload</button>
+            <span id="world-map-msg" style="font-size:12px;color:var(--overlay0)"></span>
+          </div>
+        </div>
+        <div class="field" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px;border-top:1px solid var(--surface1)">
+          <div class="toggle-label">Great Circle Map (Rotor Pane)<div class="toggle-desc">Azimuthal equidistant projection centered on your QTH. Replaces the flat world map in the rotor compass pane. Saved to ~/.j-map/gcm.jpg</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="gcmFile" accept=".jpg,.jpeg" style="font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 8px">
+            <button class="btn btn-sm btn-ghost" onclick="uploadJMapImage('gcmFile','/api/jmap/gcm-image','gcm-msg')">Upload</button>
+            <span id="gcm-msg" style="font-size:12px;color:var(--overlay0)"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Map Source &amp; Data</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <select id="jm-tile-provider">
+              <option value="FLAT">Flat (Built-in)</option>
+              <option value="OSM">OpenStreetMap</option>
+              <option value="ESRI">ESRI World Imagery</option>
+              <option value="CARTODB">CartoDB Dark</option>
+            </select>
+            <label>Tile Provider</label>
+          </div>
+          <div class="field">
+            <input type="number" id="jm-zoom" min="1" max="18" placeholder="2">
+            <label>Default Zoom</label>
+          </div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="number" id="jm-center-lat" step="0.0001" placeholder="0.0">
+            <label>Default Center Lat</label>
+          </div>
+          <div class="field">
+            <input type="number" id="jm-center-lon" step="0.0001" placeholder="0.0">
+            <label>Default Center Lon</label>
+          </div>
+        </div>
+        <div class="field-row cols-2" style="margin-top:4px">
+          <div class="field">
+            <input type="text" id="jm-tle-source" placeholder="https://celestrak.org/SOCRATES/...">
+            <label>TLE Source URL</label>
+            <span class="hint">URL for satellite TLE data (used when Satellite Tracking is enabled)</span>
+          </div>
+          <div class="field">
+            <input type="number" id="jm-refresh" min="5" max="3600" placeholder="30">
+            <label>Refresh Interval (sec)</label>
           </div>
         </div>
       </div>
 
       <div class="btn-row" style="margin-top:4px">
-        <button class="btn btn-primary" onclick="saveJMapSettings()">Save J-Map Settings</button>
+        <button class="btn btn-primary" onclick="saveJMapSettings()">Save &amp; Apply J-Map Settings</button>
         <span id="jmap-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>

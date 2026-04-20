@@ -80,13 +80,11 @@ com/wm3j/jmap/service/aurora/AuroraProvider.class
 com/wm3j/jmap/service/surface/SurfaceConditions$DisplayMode.class
 com/wm3j/jmap/service/DataProvider.class
 com/wm3j/jmap/ui/panels/DxScrollerBar$1.class
-com/wm3j/jmap/web/SetupWebServer.class
 com/wm3j/jmap/service/geomag/MockGeomagneticAlertProvider.class
 com/wm3j/jmap/service/tropo/TropoOverlay.class
 com/wm3j/jmap/service/propagation/PropagationDataProvider.class
 com/wm3j/jmap/service/aurora/MockAuroraProvider.class
 com/wm3j/jmap/app/ServiceRegistry.class
-com/wm3j/jmap/web/SetupPageHtml.class
 com/wm3j/jmap/service/weather/WeatherOverlay.class
 com/wm3j/jmap/service/radar/MockRadarProvider.class
 com/wm3j/jmap/service/rotor/MockRotorProvider.class

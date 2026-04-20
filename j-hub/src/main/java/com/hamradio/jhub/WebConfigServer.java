@@ -78,6 +78,8 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
         ctx.addServlet(new ServletHolder(new JBridgeApiServlet()),   "/api/jbridge");
         ctx.addServlet(new ServletHolder(new DbApiServlet()),        "/api/db/*");
+        ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("world_map.jpg", "RELOAD_MAP_IMAGE")), "/api/jmap/map-image");
+        ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("gcm.jpg",       "RELOAD_GCM")),       "/api/jmap/gcm-image");
         ctx.addServlet(new ServletHolder(new StaticServlet()),      "/*");
 
         server.setHandler(ctx);
@@ -310,19 +312,40 @@ public class WebConfigServer {
                 ConfigManager cm = ConfigManager.getInstance();
                 cm.getConfig().jMapSettings = settings;
                 cm.save();
-                // Forward to j-map's own setup server for live apply (port 8082 by default)
+
+                // Broadcast JMAP_CONFIG via WebSocket so local j-map applies it immediately
+                com.google.gson.JsonObject wsMsg = settings.deepCopy();
+                wsMsg.addProperty("type", "JMAP_CONFIG");
+                String wsJson = wsMsg.toString();
+                StateCache.getInstance().setLastJMapConfig(wsJson);
+                JHubServer jhub = MessageRouter.getInstance().getJHubServer();
+                if (jhub != null) {
+                    jhub.broadcastToAppName("j-map", wsJson);
+                }
+
+                // Write /config/jmap_config.json for remote J-Map instances
                 try {
-                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection)
-                        new java.net.URL("http://localhost:8082/api/settings").openConnection();
-                    conn.setRequestMethod("POST");
-                    conn.setDoOutput(true);
-                    conn.setConnectTimeout(500);
-                    conn.setReadTimeout(500);
-                    conn.setRequestProperty("Content-Type", "application/json");
-                    conn.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
-                    conn.getResponseCode();
-                    conn.disconnect();
-                } catch (Exception ignored) {}
+                    com.google.gson.JsonObject remote = new com.google.gson.JsonObject();
+                    remote.addProperty("version", 1);
+                    if (settings.has("tileProvider"))      remote.add("tileProvider",      settings.get("tileProvider"));
+                    if (settings.has("noaaApiKey"))        remote.add("apiKey",             settings.get("noaaApiKey"));
+                    if (settings.has("mapZoom"))           remote.add("zoom",               settings.get("mapZoom"));
+                    if (settings.has("mapCenterLat") && settings.has("mapCenterLon")) {
+                        com.google.gson.JsonObject center = new com.google.gson.JsonObject();
+                        center.add("lat", settings.get("mapCenterLat"));
+                        center.add("lon", settings.get("mapCenterLon"));
+                        remote.add("center", center);
+                    }
+                    if (settings.has("showSatelliteTracking")) remote.add("satelliteTracking", settings.get("showSatelliteTracking"));
+                    if (settings.has("tleSource"))         remote.add("tleSource",          settings.get("tleSource"));
+                    if (settings.has("refreshSeconds"))    remote.add("refreshSeconds",      settings.get("refreshSeconds"));
+                    java.nio.file.Path remoteFile = java.nio.file.Path.of("/config/jmap_config.json");
+                    java.nio.file.Files.createDirectories(remoteFile.getParent());
+                    java.nio.file.Files.writeString(remoteFile, ConfigManager.gson().toJson(remote));
+                } catch (Exception e) {
+                    log.debug("Could not write remote jmap config: {}", e.getMessage());
+                }
+
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -944,6 +967,70 @@ public class WebConfigServer {
 
     // ---------------------------------------------------------------
     // Helpers
+    // ---------------------------------------------------------------
+
+    // ---------------------------------------------------------------
+    // /api/jmap/map-image  — upload world_map.jpg to ~/.j-map/
+    // /api/jmap/gcm-image  — upload gcm.jpg to ~/.j-map/
+    // Both notify j-map via WebSocket to reload immediately.
+    // ---------------------------------------------------------------
+
+    private static class JMapImageUploadServlet extends HttpServlet {
+
+        private static final java.nio.file.Path JMAP_DIR =
+            java.nio.file.Path.of(System.getProperty("user.home"), ".j-map");
+
+        private final String fileName;
+        private final String wsReloadType;
+
+        JMapImageUploadServlet(String fileName, String wsReloadType) {
+            this.fileName     = fileName;
+            this.wsReloadType = wsReloadType;
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                jakarta.servlet.MultipartConfigElement mpConfig =
+                    new jakarta.servlet.MultipartConfigElement(
+                        System.getProperty("java.io.tmpdir"), 20 * 1024 * 1024, 20 * 1024 * 1024, 1024 * 1024);
+                req.setAttribute("org.eclipse.jetty.multipartConfig", mpConfig);
+
+                jakarta.servlet.http.Part part = req.getPart("image");
+                if (part == null) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"No file part named 'image'\"}");
+                    return;
+                }
+
+                java.nio.file.Files.createDirectories(JMAP_DIR);
+                java.nio.file.Path dest = JMAP_DIR.resolve(fileName);
+                try (java.io.InputStream in = part.getInputStream()) {
+                    java.nio.file.Files.copy(in, dest,
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                log.info("J-Map image saved: {}", dest);
+
+                // Signal j-map to reload
+                com.google.gson.JsonObject msg = new com.google.gson.JsonObject();
+                msg.addProperty("type", wsReloadType);
+                String wsJson = msg.toString();
+                JHubServer jhub = MessageRouter.getInstance().getJHubServer();
+                if (jhub != null) jhub.broadcastToAppName("j-map", wsJson);
+
+                json(res, "{\"status\":\"ok\",\"file\":\"" + fileName + "\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
     // ---------------------------------------------------------------
 
     private static void json(HttpServletResponse res, String body) throws IOException {

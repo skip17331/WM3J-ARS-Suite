@@ -181,6 +181,14 @@ public class JHubServer extends WebSocketServer {
             sendTo(session.socket, rotorStatus);
         }
 
+        // J-Map config — only sent to j-map sessions
+        if ("j-map".equals(session.appName)) {
+            String jmapConfig = cache.getLastJMapConfig();
+            if (jmapConfig != null) {
+                sendTo(session.socket, jmapConfig);
+            }
+        }
+
         log.debug("State replayed to '{}'", session.appName);
     }
 

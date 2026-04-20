@@ -36,11 +36,7 @@ public class RotorMapPane extends StackPane {
         this.services = services;
 
         canvas = new Canvas(MAP_SIZE, MAP_SIZE);
-        try {
-            worldMapImage = new Image(
-                getClass().getResourceAsStream("/images/world_map.jpg"),
-                MAP_SIZE * 2, MAP_SIZE, true, true);
-        } catch (Exception ignored) {}
+        loadMapImage();
         setPadding(new Insets(4));
         setStyle("-fx-background-color: #08090f; -fx-background-radius: 6; " +
                  "-fx-border-color: #1a2a4a; -fx-border-width: 1; -fx-border-radius: 6;");
@@ -48,6 +44,34 @@ public class RotorMapPane extends StackPane {
         setMaxSize(MAP_SIZE + 8, MAP_SIZE + 8);
 
         getChildren().add(canvas);
+        drawBaseMap();
+    }
+
+    public void loadMapImage() {
+        // GCM (great circle map) takes priority over the flat world map
+        java.nio.file.Path gcm = java.nio.file.Path.of(
+            System.getProperty("user.home"), ".j-map", "gcm.jpg");
+        java.nio.file.Path flat = java.nio.file.Path.of(
+            System.getProperty("user.home"), ".j-map", "world_map.jpg");
+        try {
+            if (java.nio.file.Files.exists(gcm)) {
+                worldMapImage = new Image(gcm.toUri().toString(),
+                    MAP_SIZE * 2, MAP_SIZE, true, true);
+            } else if (java.nio.file.Files.exists(flat)) {
+                worldMapImage = new Image(flat.toUri().toString(),
+                    MAP_SIZE * 2, MAP_SIZE, true, true);
+            } else {
+                worldMapImage = new Image(
+                    getClass().getResourceAsStream("/images/world_map.jpg"),
+                    MAP_SIZE * 2, MAP_SIZE, true, true);
+            }
+        } catch (Exception ignored) {
+            worldMapImage = null;
+        }
+    }
+
+    public void reloadMapImage() {
+        loadMapImage();
         drawBaseMap();
     }
 

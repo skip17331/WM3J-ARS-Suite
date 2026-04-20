@@ -95,7 +95,11 @@ public class ServiceRegistry {
 
     private ScheduledExecutorService scheduler;
 
+    private volatile String jHubHost = "localhost";
+
     private Runnable settingsChangedCallback;
+    private Runnable mapImageReloadCallback;
+    private Runnable gcmReloadCallback;
 
     public ServiceRegistry(Settings settings) {
         this.settings = settings;
@@ -109,6 +113,26 @@ public class ServiceRegistry {
     }
 
     public void start() {
+        dxClusterClient.setJMapConfigListener(configNode -> {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                Settings updated = mapper.treeToValue(configNode, Settings.class);
+                // Preserve fields that aren't in the config payload
+                updated.setCallsign(this.settings.getCallsign());
+                updated.setQthLat(this.settings.getQthLat());
+                updated.setQthLon(this.settings.getQthLon());
+                updated.setQthGrid(this.settings.getQthGrid());
+                updated.setTimezone(this.settings.getTimezone());
+                updated.setArrlSection(this.settings.getArrlSection());
+                updated.setCqZone(this.settings.getCqZone());
+                updated.setItuZone(this.settings.getItuZone());
+                this.settings = updated;
+                onSettingsChanged(updated);
+            } catch (Exception e) {
+                log.warn("Failed to apply JMAP_CONFIG: {}", e.getMessage());
+            }
+        });
+
         dxClusterClient.setStationListener(stationNode -> {
             boolean changed = false;
             if (stationNode.has("callsign") && !stationNode.path("callsign").asText().isBlank()) {
@@ -125,6 +149,15 @@ public class ServiceRegistry {
             }
             if (stationNode.has("timezone") && !stationNode.path("timezone").asText().isBlank()) {
                 settings.setTimezone(stationNode.path("timezone").asText()); changed = true;
+            }
+            if (stationNode.has("arrlSection") && !stationNode.path("arrlSection").asText().isBlank()) {
+                settings.setArrlSection(stationNode.path("arrlSection").asText()); changed = true;
+            }
+            if (stationNode.has("cqZone") && stationNode.path("cqZone").asInt(0) != 0) {
+                settings.setCqZone(stationNode.path("cqZone").asInt()); changed = true;
+            }
+            if (stationNode.has("ituZone") && stationNode.path("ituZone").asInt(0) != 0) {
+                settings.setItuZone(stationNode.path("ituZone").asInt()); changed = true;
             }
             if (changed) onSettingsChanged(settings);
         });
@@ -186,8 +219,29 @@ public class ServiceRegistry {
         scheduler.submit(() -> { refreshSolar(); refreshPropagation(); refreshContests(); });
     }
 
+    public String getJHubHost() { return jHubHost; }
+    public void setJHubHost(String host) { this.jHubHost = host; }
+
     public void setSettingsChangedCallback(Runnable callback) {
         this.settingsChangedCallback = callback;
+    }
+
+    public void setMapImageReloadCallback(Runnable callback) {
+        this.mapImageReloadCallback = callback;
+        dxClusterClient.setMapImageReloadListener(callback);
+    }
+
+    public void triggerMapImageReload() {
+        if (mapImageReloadCallback != null) mapImageReloadCallback.run();
+    }
+
+    public void setGcmReloadCallback(Runnable callback) {
+        this.gcmReloadCallback = callback;
+        dxClusterClient.setGcmReloadListener(callback);
+    }
+
+    public void triggerGcmReload() {
+        if (gcmReloadCallback != null) gcmReloadCallback.run();
     }
 
     private void rebuildProviders() {

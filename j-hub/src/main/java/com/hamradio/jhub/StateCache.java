@@ -75,6 +75,16 @@ public class StateCache {
     public void setLastRotorStatus(String rawJson) { this.lastRotorStatus = rawJson; }
 
     // ---------------------------------------------------------------
+    // J-Map config (JMAP_CONFIG message, broadcast to j-map on connect)
+    // ---------------------------------------------------------------
+
+    private volatile String lastJMapConfig;
+
+    public String getLastJMapConfig() { return lastJMapConfig; }
+
+    public void setLastJMapConfig(String rawJson) { this.lastJMapConfig = rawJson; }
+
+    // ---------------------------------------------------------------
     // Satellite state (from J-Sat)
     // ---------------------------------------------------------------
 

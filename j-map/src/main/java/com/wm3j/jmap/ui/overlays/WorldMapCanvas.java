@@ -76,13 +76,24 @@ public class WorldMapCanvas extends Pane {
         // Click handler for DX spot selection
         canvas.setOnMouseClicked(e -> handleMapClick(e.getX(), e.getY()));
 
+        loadMapImage();
+    }
+
+    public void loadMapImage() {
+        java.nio.file.Path external = java.nio.file.Path.of(
+            System.getProperty("user.home"), ".j-map", "world_map.jpg");
         try {
-            worldMapImage = new Image(
-                getClass().getResourceAsStream("/images/world_map.jpg"),
-                0, 0, true, true);
+            if (java.nio.file.Files.exists(external)) {
+                worldMapImage = new Image(external.toUri().toString(), 0, 0, true, true);
+            } else {
+                worldMapImage = new Image(
+                    getClass().getResourceAsStream("/images/world_map.jpg"),
+                    0, 0, true, true);
+            }
         } catch (Exception ex) {
             worldMapImage = null;
         }
+        redraw();
     }
 
     public void setDxSpotClickCallback(Consumer<DxSpot> callback) {
@@ -840,4 +851,6 @@ public class WorldMapCanvas extends Pane {
     public double latToY(double lat, double h) { return (90.0 - lat) / 180.0 * h; }
 
     public void settingsChanged() { redraw(); }
+
+    public void reloadMapImage() { loadMapImage(); }
 }

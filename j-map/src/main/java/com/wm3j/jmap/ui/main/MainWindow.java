@@ -61,7 +61,7 @@ public class MainWindow {
         // Configure stage
         stage.setTitle("j-Map — " + settings.getCallsign());
         stage.setScene(scene);
-        stage.setFullScreenExitHint("Press F or F11 to toggle full screen | Setup: http://localhost:8080/setup");
+        stage.setFullScreenExitHint("Press F or F11 to toggle full screen | Configure via J-Hub: http://" + services.getJHubHost() + ":8081");
 
         // Full screen by default
         javafx.geometry.Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
@@ -80,9 +80,12 @@ public class MainWindow {
             applyRootFontSize(root, services.getSettings().getFontSize());
             dashboard.applySettings();
         }));
+        services.setMapImageReloadCallback(() ->
+            javafx.application.Platform.runLater(dashboard::reloadMapImage));
+        services.setGcmReloadCallback(() ->
+            javafx.application.Platform.runLater(dashboard::reloadGcmImage));
 
-        log.info("Main window displayed. Setup: http://localhost:{}/setup",
-            settings.getWebServerPort());
+        log.info("Main window displayed. Configure via J-Hub: http://{}:8081", services.getJHubHost());
     }
 
     private void startRenderLoop() {

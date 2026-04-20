@@ -158,7 +158,7 @@ public class DashboardLayout {
         mapStack.getChildren().addAll(worldMap, rotorMap, mapOverlayPane);
 
         // ── DX scroller + hint bar ─────────────────────────────────────────
-        setupHint = new SetupHintBar(services.getSettings().getWebServerPort());
+        setupHint = new SetupHintBar(services.getJHubHost(), 8081);
         dxScroller = new com.wm3j.jmap.ui.panels.DxScrollerBar(services);
 
         VBox bottomBar = new VBox(0);
@@ -269,6 +269,15 @@ public class DashboardLayout {
     }
 
     /** Called when settings change from Setup Page */
+    public void reloadMapImage() {
+        if (worldMap != null) worldMap.reloadMapImage();
+        if (rotorMap != null) rotorMap.reloadMapImage();
+    }
+
+    public void reloadGcmImage() {
+        if (rotorMap != null) rotorMap.reloadMapImage();
+    }
+
     public void applySettings() {
         Settings s = services.getSettings();
 

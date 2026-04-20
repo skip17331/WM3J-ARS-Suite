@@ -19,7 +19,7 @@ class SettingsSerializationTest {
         assertFalse(s.getCallsign().isBlank(), "Default callsign should not be blank");
         assertTrue(s.getQthLat() >= -90 && s.getQthLat() <= 90, "QTH lat should be valid");
         assertTrue(s.getQthLon() >= -180 && s.getQthLon() <= 180, "QTH lon should be valid");
-        assertTrue(s.getWebServerPort() > 0 && s.getWebServerPort() < 65536, "Port should be valid");
+        assertTrue(s.getMapZoom() > 0 && s.getMapZoom() <= 18, "Map zoom should be valid");
     }
 
     @Test

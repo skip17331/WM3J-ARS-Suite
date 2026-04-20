@@ -56,7 +56,10 @@ public class DEInfoWindow extends FloatingWindow {
         latLonLabel.setText(String.format("%.4f°  %.4f°", s.getQthLat(), s.getQthLon()));
 
         ZoneInfo zi = services.zoneLookupService.lookup(s.getQthLat(), s.getQthLon());
-        zonesLabel.setText(String.format("CQ %d  ITU %d  %s", zi.cqZone(), zi.ituZone(), zi.arrlSection()));
+        int    cq   = s.getCqZone()     > 0              ? s.getCqZone()     : zi.cqZone();
+        int    itu  = s.getItuZone()    > 0              ? s.getItuZone()    : zi.ituZone();
+        String arrl = !s.getArrlSection().isBlank()      ? s.getArrlSection(): zi.arrlSection();
+        zonesLabel.setText(String.format("CQ %d  ITU %d  %s", cq, itu, arrl));
 
         String grid = s.getQthGrid().isBlank()
             ? services.zoneLookupService.toGridSquare(s.getQthLat(), s.getQthLon())

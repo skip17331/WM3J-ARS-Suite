@@ -28,7 +28,13 @@ Java 21 and Maven 3.8+ required. JavaFX is bundled via Maven — no separate ins
 
 ## Architecture Overview
 
-**Entry point:** `JMapApp` (JavaFX `Application`) loads settings, wires `ServiceRegistry`, starts `SetupWebServer`, then hands off to `MainWindow`.
+**Entry point:** `JMapApp` (JavaFX `Application`) detects local vs. remote mode, loads initial settings, wires `ServiceRegistry`, then hands off to `MainWindow`. J-Map is **headless** — it binds to no HTTP port.
+
+**Mode detection (JMapApp.init):**
+- *Local mode* — J-Hub WS (port 8080) reachable at startup → initial settings via `GET /api/jmap`, live updates via `JMAP_CONFIG` WebSocket messages.
+- *Remote mode* — J-Hub not reachable → initial settings from `/config/jmap_config.json`, then `~/.j-map/settings.json` as fallback.
+
+**Configuration authority:** J-Hub (port 8081) is the sole UI for all J-Map settings. Changes saved in J-Hub are broadcast as `JMAP_CONFIG` WebSocket messages. `DxClusterClient` receives them and calls `ServiceRegistry`'s `jMapConfigListener`, which applies the new settings live.
 
 **Service layer pattern:** All external data sources implement `DataProvider<T>`, extend `AbstractDataProvider<T>` (which provides thread-safe caching via `AtomicReference`), and override `doFetch()`. Every domain has a pair: a live provider (e.g., `NoaaSolarDataProvider`) and a `Mock*` provider. `ServiceRegistry` selects between them based on `Settings.isUseMockData()` and whether API keys are set. Providers are held as `volatile` fields so hot-swapping on settings change is safe.
 
@@ -36,7 +42,7 @@ Java 21 and Maven 3.8+ required. JavaFX is bundled via Maven — no separate ins
 
 **Render loop:** `MainWindow` uses a JavaFX `AnimationTimer` to drive all UI updates. Full UI (time + grayline + panels) refreshes every second; rotor map refreshes every 500ms. All UI mutations happen on the JavaFX Application Thread via `Platform.runLater`.
 
-**Settings flow:** Settings are persisted at `~/.j-map/settings.json` (Jackson). The `SetupWebServer` (NanoHTTPD on port 8080) is the only way to change settings — the main display has no settings UI. When the web page POSTs a change, `ServiceRegistry.onSettingsChanged()` rebuilds providers and fires `settingsChangedCallback`, which calls `DashboardLayout.applySettings()` via `Platform.runLater`.
+**Settings flow:** Initial settings loaded by `SettingsLoader.loadOrDefaults(hubReachable)`. Local settings also persisted at `~/.j-map/settings.json` as a fallback. Live changes come exclusively via `JMAP_CONFIG` WebSocket messages from J-Hub.
 
 **UI layout:** `DashboardLayout` builds a `BorderPane`: `TimePanel` top, `WorldMapCanvas` (wrapped in a `StackPane` with `RotorMapPane` overlaid bottom-right) center, right sidebar (`SolarDataPanel` / `PropagationPanel` / `BandConditionsPanel`). `WorldMapCanvas` is a JavaFX `Canvas` that composites the world map image, grayline night mask, DX spot dots, and aurora/weather/tropo overlay images on every `redraw()` call.
 
@@ -57,9 +63,10 @@ Java 21 and Maven 3.8+ required. JavaFX is bundled via Maven — no separate ins
 | File | Purpose |
 |---|---|
 | `app/ServiceRegistry.java` | DI container; provider lifecycle, scheduling, hot-swap |
-| `app/JMapApp.java` | JavaFX entry point; startup/shutdown sequence |
+| `app/JMapApp.java` | JavaFX entry point; mode detection; no web server |
 | `service/AbstractDataProvider.java` | Caching base class for all providers |
 | `service/config/Settings.java` | All configuration fields; Jackson-serialized |
+| `service/config/SettingsLoader.java` | Initial load (local: J-Hub HTTP; remote: /config/jmap_config.json) |
+| `service/dx/DxClusterClient.java` | J-Hub WebSocket client; handles JMAP_CONFIG messages |
 | `ui/main/DashboardLayout.java` | Layout orchestrator; update dispatch |
 | `ui/overlays/WorldMapCanvas.java` | Map compositing (grayline, DX, overlays) |
-| `web/SetupWebServer.java` | NanoHTTPD embedded server; settings POST handler |

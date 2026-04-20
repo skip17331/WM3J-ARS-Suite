@@ -1263,6 +1263,27 @@ function esc(s) {
 }
 
 // ── J-Map settings ────────────────────────────────────────
+async function uploadJMapImage(fileInputId, endpoint, msgId) {
+  const input = document.getElementById(fileInputId);
+  const msg   = document.getElementById(msgId);
+  if (!input || !input.files.length) { if (msg) msg.textContent = 'Choose a file first'; return; }
+  const fd = new FormData();
+  fd.append('image', input.files[0]);
+  if (msg) { msg.style.color = ''; msg.textContent = 'Uploading…'; }
+  try {
+    const res  = await fetch(endpoint, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (res.ok) {
+      if (msg) { msg.style.color = 'var(--green)'; msg.textContent = '✓ Applied'; }
+    } else {
+      throw new Error(data.error || 'Upload failed');
+    }
+  } catch (e) {
+    if (msg) { msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message; }
+  }
+  setTimeout(() => { if (msg) { msg.textContent = ''; msg.style.color = ''; } }, 5000);
+}
+
 function loadJMapSettings() {
   fetch('/api/jmap')
     .then(r => r.json())
@@ -1321,6 +1342,13 @@ function populateJMapForm(s) {
   setChk('jm-sunspot',  s.showSunspotGraphic  !== false);
   setChk('jm-prop',     s.showPropagationData !== false);
   setChk('jm-bandcond', s.showBandConditions  !== false);
+
+  setSelectVal('jm-tile-provider', s.tileProvider || 'FLAT');
+  setVal('jm-zoom',       s.mapZoom       != null ? s.mapZoom       : 2);
+  setVal('jm-center-lat', s.mapCenterLat  != null ? s.mapCenterLat  : 0);
+  setVal('jm-center-lon', s.mapCenterLon  != null ? s.mapCenterLon  : 0);
+  setVal('jm-tle-source', s.tleSource     || '');
+  setVal('jm-refresh',    s.refreshSeconds != null ? s.refreshSeconds : 30);
 }
 
 function saveJMapSettings() {
@@ -1365,13 +1393,19 @@ function saveJMapSettings() {
     showSunspotGraphic:     chk('jm-sunspot'),
     showPropagationData:    chk('jm-prop'),
     showBandConditions:     chk('jm-bandcond'),
+    tileProvider:           val('jm-tile-provider') || 'FLAT',
+    mapZoom:                intn('jm-zoom') || 2,
+    mapCenterLat:           flt('jm-center-lat'),
+    mapCenterLon:           flt('jm-center-lon'),
+    tleSource:              val('jm-tle-source').trim(),
+    refreshSeconds:         intn('jm-refresh') || 30,
   };
 
   fetch('/api/jmap', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(settings) })
     .then(r => r.json().then(data => ({ ok: r.ok, data })))
     .then(({ ok, data }) => {
       if (!ok) { flashMsg('jmap-msg', data.error || 'Error', true); return; }
-      flashMsg('jmap-msg', 'Saved — restart J-Map to apply');
+      flashMsg('jmap-msg', 'Saved — applied to J-Map via WebSocket');
     })
     .catch(() => flashMsg('jmap-msg', 'Error', true));
 }

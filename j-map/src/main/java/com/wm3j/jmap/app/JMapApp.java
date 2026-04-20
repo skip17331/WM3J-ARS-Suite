@@ -3,22 +3,30 @@ package com.wm3j.jmap.app;
 import com.wm3j.jmap.service.config.Settings;
 import com.wm3j.jmap.service.config.SettingsLoader;
 import com.wm3j.jmap.ui.main.MainWindow;
-import com.wm3j.jmap.web.SetupWebServer;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
 
+/**
+ * J-Map entry point.
+ *
+ * Headless configuration — no local web server.
+ * All settings come from J-Hub (port 8081/8080) and are delivered via WebSocket.
+ *
+ * Mode detection:
+ *   Local  — J-Hub WS reachable at startup → config via WebSocket (JMAP_CONFIG messages)
+ *   Remote — J-Hub not reachable           → config from /config/jmap_config.json
+ */
 public class JMapApp extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JMapApp.class);
 
-    private static final String JHUB_START  = "/home/mike/ARS_Suite/j-hub/start.sh";
+    private static final String JHUB_START    = "/home/mike/ARS_Suite/j-hub/start.sh";
     private static final int    JHUB_WS_PORT  = 8080;
     private static final int    JHUB_WEB_PORT = 8081;
 
-    private SetupWebServer  webServer;
     private ServiceRegistry serviceRegistry;
     private boolean         launchedByHub = false;
     private String          hubHost       = "localhost";
@@ -29,12 +37,11 @@ public class JMapApp extends Application {
 
     @Override
     public void init() throws Exception {
-        log.info("=== j-Map starting  [WM3j ARS Suite] ===");
+        log.info("=== J-Map starting [WM3J ARS Suite] — headless mode ===");
 
         List<String> raw = getParameters().getRaw();
         launchedByHub = raw.contains("--launched-by-hub");
 
-        // --hub <hostname>  →  connect to j-hub on a specific host (skips local auto-start)
         int hubIdx = raw.indexOf("--hub");
         if (hubIdx >= 0 && hubIdx + 1 < raw.size()) {
             hubHost = raw.get(hubIdx + 1);
@@ -42,27 +49,35 @@ public class JMapApp extends Application {
         }
 
         boolean hubIsLocal = "localhost".equals(hubHost) || "127.0.0.1".equals(hubHost);
+
+        // Auto-start J-Hub if local and not already running
         if (hubIsLocal && !launchedByHub) {
             ensureJHubRunning();
         }
 
+        // Detect mode
+        boolean hubReachable = isPortOpen(hubHost, JHUB_WS_PORT, 1000);
+        if (hubReachable) {
+            log.info("J-Hub reachable — LOCAL mode: config via WebSocket");
+        } else {
+            log.info("J-Hub not reachable — REMOTE mode: config from /config/jmap_config.json");
+        }
+
+        // Load initial settings
         if (!hubIsLocal) {
             SettingsLoader.setJHubHost(hubHost, JHUB_WEB_PORT);
         }
-
-        Settings settings = SettingsLoader.loadOrDefaults();
-        log.info("Settings loaded: callsign={}, qthLat={}, qthLon={}",
+        Settings settings = SettingsLoader.loadOrDefaults(hubReachable);
+        log.info("Settings loaded: callsign={}, lat={}, lon={}",
             settings.getCallsign(), settings.getQthLat(), settings.getQthLon());
 
         serviceRegistry = new ServiceRegistry(settings);
+        serviceRegistry.setJHubHost(hubHost);
+
         if (!hubIsLocal) {
             serviceRegistry.dxClusterClient.setHubHost(hubHost, JHUB_WS_PORT);
         }
         serviceRegistry.start();
-
-        webServer = new SetupWebServer(settings, serviceRegistry, settings.getWebServerPort());
-        webServer.start();
-        log.info("Settings API available at: http://localhost:{}/api/settings", settings.getWebServerPort());
     }
 
     @Override
@@ -71,7 +86,7 @@ public class JMapApp extends Application {
         if (launchedByHub) {
             MainWindow mainWindow = new MainWindow(primaryStage, serviceRegistry);
             mainWindow.show();
-            log.info("Main display started (hub-launched, no splash)");
+            log.info("Main display started (hub-launched)");
         } else {
             new SplashScreen(() -> {
                 MainWindow mainWindow = new MainWindow(primaryStage, serviceRegistry);
@@ -83,31 +98,21 @@ public class JMapApp extends Application {
 
     @Override
     public void stop() {
-        log.info("j-Map shutting down...");
-        try {
-            if (webServer != null) webServer.stop();
-        } catch (Exception e) {
-            log.warn("Web server stop error: {}", e.getMessage());
-        }
+        log.info("J-Map shutting down...");
         try {
             if (serviceRegistry != null) serviceRegistry.stop();
         } catch (Exception e) {
             log.warn("Service registry stop error: {}", e.getMessage());
         }
-        try {
-            if (serviceRegistry != null) SettingsLoader.save(serviceRegistry.getSettings());
-        } catch (Exception e) {
-            log.warn("Settings save error: {}", e.getMessage());
-        }
         log.info("Shutdown complete");
         System.exit(0);
     }
 
-    // ── j-Hub auto-start ─────────────────────────────────────────────────────
+    // ── J-Hub auto-start ─────────────────────────────────────────────────────
 
     private static void ensureJHubRunning() {
         if (isPortOpen("localhost", JHUB_WS_PORT, 500)) return;
-        log.info("j-Hub not detected — starting j-Hub...");
+        log.info("J-Hub not detected — starting J-Hub...");
         try {
             new ProcessBuilder("bash", JHUB_START, "--no-splash")
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD)
@@ -116,17 +121,17 @@ public class JMapApp extends Application {
             for (int i = 0; i < 20; i++) {
                 Thread.sleep(500);
                 if (isPortOpen("localhost", JHUB_WS_PORT, 200)) {
-                    log.info("j-Hub ready");
+                    log.info("J-Hub ready");
                     return;
                 }
             }
-            log.warn("j-Hub did not become available within 10 seconds");
+            log.warn("J-Hub did not become available within 10 seconds");
         } catch (Exception e) {
-            log.error("Failed to start j-Hub: {}", e.getMessage());
+            log.error("Failed to start J-Hub: {}", e.getMessage());
         }
     }
 
-    private static boolean isPortOpen(String host, int port, int timeoutMs) {
+    static boolean isPortOpen(String host, int port, int timeoutMs) {
         try (java.net.Socket s = new java.net.Socket()) {
             s.connect(new java.net.InetSocketAddress(host, port), timeoutMs);
             return true;

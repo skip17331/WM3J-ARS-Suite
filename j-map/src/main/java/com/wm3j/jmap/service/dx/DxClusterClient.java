@@ -54,6 +54,15 @@ public class DxClusterClient {
     private volatile java.util.function.Consumer<JsonNode> stationListener;
     public void setStationListener(java.util.function.Consumer<JsonNode> l) { this.stationListener = l; }
 
+    private volatile java.util.function.Consumer<JsonNode> jMapConfigListener;
+    public void setJMapConfigListener(java.util.function.Consumer<JsonNode> l) { this.jMapConfigListener = l; }
+
+    private volatile Runnable mapImageReloadListener;
+    public void setMapImageReloadListener(Runnable l) { this.mapImageReloadListener = l; }
+
+    private volatile Runnable gcmReloadListener;
+    public void setGcmReloadListener(Runnable l) { this.gcmReloadListener = l; }
+
     /**
      * Override the hub host before calling start(). Disables UDP discovery
      * so j-map connects directly to this address regardless of beacons.
@@ -152,10 +161,12 @@ public class DxClusterClient {
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-map\",\"version\":\"1.0.0\"}");
                     connected = true;
                     sessionStartTime = Instant.now();
-                    clusterSpots.clear();   // discard any spots from previous session
+                    clusterSpots.clear();
                     statusMessage = "Connected to " + url;
                     addLine(">>> Hub connected");
                     log.info("Hub connected: {}", url);
+                    // Request current J-Map config from hub
+                    send("{\"type\":\"JMAP_CONFIG_REQUEST\"}");
                 }
 
                 @Override public void onMessage(String msg) {
@@ -192,6 +203,17 @@ public class DxClusterClient {
                 if (!st.isMissingNode() && stationListener != null) {
                     stationListener.accept(st);
                 }
+
+            } else if ("JMAP_CONFIG".equals(type)) {
+                if (jMapConfigListener != null) {
+                    jMapConfigListener.accept(node);
+                }
+
+            } else if ("RELOAD_MAP_IMAGE".equals(type)) {
+                if (mapImageReloadListener != null) mapImageReloadListener.run();
+
+            } else if ("RELOAD_GCM".equals(type)) {
+                if (gcmReloadListener != null) gcmReloadListener.run();
 
             } else if ("SPOT".equals(type)) {
                 // Parse the actual spot timestamp from j-hub; ignore replayed pre-session spots

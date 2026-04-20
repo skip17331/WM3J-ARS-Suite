@@ -39,6 +39,8 @@ J-Hub is the **central message broker** for the WM3J ARS Suite of ham radio desk
 
 `j-hub.json` is created at first run. Key sections: `jHub` (ports), `station` (callsign, lat/lon, grid), `cluster` (server, port, loginCallsign, filters), `logger`, `infoScreen`. Edit directly or use the web UI at `http://localhost:8081`.
 
+**J-Hub is the sole configuration UI for the entire ARS Suite.** Port 8082 (old J-Map setup server) is permanently removed. J-Map configuration lives in the J-Map tab at port 8081 and is delivered to J-Map via `JMAP_CONFIG` WebSocket messages.
+
 ## WebSocket Protocol
 
 All messages are JSON with a `type` field. First message from any client must be `APP_CONNECTED`. Handled types: `APP_CONNECTED`, `JHUB_WELCOME`, `APP_LIST`, `RIG_STATUS`, `LOGGER_SESSION`, `SPOT_SELECTED`, `SPOT`, `WSJTX_DECODE`.
