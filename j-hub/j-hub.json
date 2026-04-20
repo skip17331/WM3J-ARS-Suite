@@ -1,7 +1,8 @@
 {
   "jHub": {
     "websocketPort": 8080,
-    "webConfigPort": 8081
+    "webConfigPort": 8081,
+    "ip": "localhost"
   },
   "station": {
     "callsign": "WM3J",
@@ -11,7 +12,10 @@
     "lon": -76.959714,
     "gridSquare": "FM19MR",
     "timezone": "America/New_York",
-    "language": "en"
+    "language": "en",
+    "cqZone": 5,
+    "arrlSection": "EPA",
+    "ituZone": 0
   },
   "rig": {
     "backend": "NONE",
@@ -60,7 +64,8 @@
         "OLIVIA",
         "MFSK16"
       ]
-    }
+    },
+    "networks": []
   },
   "logger": {
     "mode": "normal",
@@ -78,23 +83,28 @@
   "apps": {
     "jMap": {
       "autoLaunch": true,
-      "command": "bash /home/mike/ARS_Suite/j-map/run.sh"
+      "command": "bash /home/mike/ARS_Suite/j-map/run.sh",
+      "ip": "localhost"
     },
     "jLog": {
       "autoLaunch": true,
-      "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh"
+      "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh",
+      "ip": "localhost"
     },
     "jBridge": {
       "autoLaunch": false,
-      "command": "bash /home/mike/ARS_Suite/j-bridge/j-bridge.sh"
+      "command": "bash /home/mike/ARS_Suite/j-bridge/j-bridge.sh",
+      "ip": "localhost"
     },
     "jDigi": {
       "autoLaunch": false,
-      "command": "bash /home/mike/ARS_Suite/j-digi/j-digi.sh"
+      "command": "bash /home/mike/ARS_Suite/j-digi/j-digi.sh",
+      "ip": "localhost"
     },
     "jSat": {
       "autoLaunch": false,
-      "command": ""
+      "command": "",
+      "ip": "localhost"
     }
   },
   "macros": {
@@ -191,14 +201,14 @@
     "showDeWindow": true,
     "showDxWindow": true,
     "dxWindowCallsign": "",
-    "countdownTimerX": 10.0,
-    "countdownTimerY": 10.0,
-    "contestListX": 10.0,
-    "contestListY": 220.0,
-    "deWindowX": 10.0,
-    "deWindowY": 460.0,
-    "dxWindowX": 250.0,
-    "dxWindowY": 10.0,
+    "countdownTimerX": 10,
+    "countdownTimerY": 10,
+    "contestListX": 10,
+    "contestListY": 220,
+    "deWindowX": 10,
+    "deWindowY": 460,
+    "dxWindowX": 250,
+    "dxWindowY": 10,
     "dxBandFilter": "ALL",
     "dxMaxAgeMinutes": 30,
     "dxShowCallsigns": true,
@@ -208,7 +218,7 @@
     "arduinoPort": 4533,
     "arduinoProtocol": "HTTP",
     "showBeamWidthArc": true,
-    "beamWidthDegrees": 30.0,
+    "beamWidthDegrees": 30,
     "showLongPath": true,
     "showLocalTime": false,
     "showUtcTime": true,
@@ -217,10 +227,10 @@
     "showSunspotGraphic": true,
     "showPropagationData": true,
     "showBandConditions": true,
-    "fot": 14.0,
-    "muf": 28.0,
+    "fot": 14,
+    "muf": 28,
     "darkTheme": true,
-    "uiScale": 1.0,
+    "uiScale": 1,
     "fontSize": 17,
     "webServerPort": 8082
   },

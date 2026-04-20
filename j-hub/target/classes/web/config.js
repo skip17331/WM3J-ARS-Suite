@@ -9,8 +9,8 @@ const state = {
   status:      {},
   spots:       [],
   connectedApps: [],
-  rig:         null,   // last RIG_STATUS
-  rotor:       null,   // last ROTOR_STATUS { bearing, elevation }
+  rig:         null,
+  rotor:       null,
   clusterConn: false,
   spm:         0,
   wsState:     'CLOSED',
@@ -149,13 +149,11 @@ function updateRigUI(rig) {
   setText('d-band', band);
   setText('d-rig-ts', rig.timestamp ? new Date(rig.timestamp).toLocaleTimeString() : '—');
 
-  // Rig tab live readout
   setVal('rig-live-freq', hz > 0 ? (hz / 1e6).toFixed(3) : '');
   setVal('rig-live-mode', mode);
   setVal('rig-live-band', band);
   setVal('rig-live-pwr',  rig.power != null ? rig.power : '');
 
-  // Intel pane
   setText('i-freq', mhz);
   setText('i-mode', mode);
   setText('i-band', band !== '' ? band : '—');
@@ -171,13 +169,11 @@ function updateRotorUI(rot) {
   setText('rot-heading-big', txt);
   setText('i-heading', txt);
 
-  // Rotate compass needles
   ['compass-needle', 'rot-needle'].forEach(id => {
     const el = document.getElementById(id);
     if (el && hdg != null) el.setAttribute('transform', `rotate(${hdg}, 50, 50)`);
   });
 
-  // Dashboard rotor backend
   const rb = (state.config.rotor && state.config.rotor.backend) || '—';
   setText('d-rotor-backend', rb);
   setText('i-rot-backend', rb);
@@ -188,26 +184,25 @@ function updateDashboard(status) {
   const cc = status.clusterConnected;
   const cfg = state.config;
 
-  // Cluster card
   setDot('d-clus-dot', cc ? 'green' : 'red');
   setText('d-clus-txt', cc ? 'Connected' : 'Disconnected');
   setText('d-spm', status.spotsPerMinute || 0);
   setText('d-total-spots', status.totalSpots || 0);
   if (cfg.cluster) setText('d-clus-srv', cfg.cluster.server || '—');
 
-  // Cluster tab
   setDot('cl-dot', cc ? 'green' : 'red');
   setText('cl-status-txt', cc ? 'Connected' : 'Disconnected');
   setText('cl-spm', status.spotsPerMinute || 0);
   setText('cl-total', status.totalSpots || 0);
   if (cfg.cluster) setText('cl-srv-live', cfg.cluster.server || '—');
 
-  // Module launch buttons from appsRunning
+  // Module running state from appsRunning
   const ar = status.appsRunning || {};
   updateModuleDot('jmap',    ar['jMap'],     'J-Map');
   updateModuleDot('jlog',    ar['j-log'],    'J-Log');
   updateModuleDot('jdigi',   ar['j-digi'],   'J-Digi');
   updateModuleDot('jbridge', ar['j-bridge'], 'J-Bridge');
+  updateModuleDot('jsat',    ar['j-sat'],    'J-Sat');
 }
 
 function updateModuleDot(key, running, label) {
@@ -221,12 +216,14 @@ function updateModuleDot(key, running, label) {
 function applyStationIntel(st) {
   setText('i-callsign', st.callsign || '—');
   setText('i-grid', st.gridSquare  || '—');
-  // Populate station fields in logging tab
-  setVal('st-call', st.callsign  || '');
-  setVal('st-grid', st.gridSquare || '');
-  setVal('st-lat',  st.lat  != null ? st.lat  : '');
-  setVal('st-lon',  st.lon  != null ? st.lon  : '');
-  setVal('st-tz',   st.timezone  || '');
+  setVal('st-call',    st.callsign   || '');
+  setVal('st-grid',    st.gridSquare || '');
+  setVal('st-lat',     st.lat  != null ? st.lat  : '');
+  setVal('st-lon',     st.lon  != null ? st.lon  : '');
+  setVal('st-tz',      st.timezone  || '');
+  setVal('st-cqzone',  st.cqZone     || '');
+  setVal('st-arrl',    st.arrlSection || '');
+  setVal('st-ituzone', st.ituZone    || '');
 }
 
 function updateIntelPane(status) {
@@ -258,7 +255,6 @@ function updateModulesUI() {
       ? 'Connected ' + (connAt ? new Date(connAt).toLocaleTimeString() : '') : 'Not connected';
   });
 
-  // Module tab session table
   renderSessionTable(apps);
   updateJSatConnStatus();
 }
@@ -288,7 +284,7 @@ function updateAlerts(status) {
 
 // ── J-Sat ─────────────────────────────────────────────────
 
-let jsatSatellites = [];   // full registry loaded from /data/satellite-registry.json
+let jsatSatellites = [];
 
 function updateJSatLive(msg) {
   setText('jsat-tracking', msg.satName || '—');
@@ -328,9 +324,7 @@ function renderJSatSatList(enabledNames) {
   Object.entries(groups).sort().forEach(([grp, sats]) => {
     html += `<div style="font-size:11px;font-weight:bold;color:var(--overlay0);padding:4px 0 2px;border-top:1px solid var(--surface1);margin-top:4px">${grp}</div>`;
     sats.forEach(sat => {
-      const checked = enabledNames
-        ? enabledNames.includes(sat.name)
-        : sat.enabled;
+      const checked = enabledNames ? enabledNames.includes(sat.name) : sat.enabled;
       const norad = sat.noradId > 0 ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">#${sat.noradId}</span>` : '';
       const status = sat.status ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">${sat.status}</span>` : '';
       html += `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer">
@@ -430,14 +424,12 @@ function updateJSatConnStatus() {
     ? 'Connected ' + (jsat.connectedAt ? new Date(jsat.connectedAt).toLocaleTimeString() : '')
     : 'Not connected';
 
-  // Rotor pos from last ROTOR_STATUS
   if (state.rotor) {
     const az = state.rotor.bearing   != null ? state.rotor.bearing.toFixed(1)   + '°' : '—';
     const el = state.rotor.elevation != null ? state.rotor.elevation.toFixed(1) + '°' : '—';
     setText('jsat-rotor-pos', az + ' / ' + el);
   }
 
-  // Rig status
   if (state.rig) {
     const hz  = state.rig.frequency || 0;
     const mhz = hz > 0 ? (hz / 1e6).toFixed(3) + ' MHz' : 'Unknown';
@@ -512,6 +504,23 @@ function appendRawFeed(line) {
   while (el.childNodes.length > 200) el.removeChild(el.firstChild);
 }
 
+function sendTelnetCommand() {
+  const input = document.getElementById('cl-send-input');
+  const cmd = input ? input.value.trim() : '';
+  if (!cmd) return;
+  fetch('/api/cluster/send', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ command: cmd })
+  })
+  .then(r => r.json())
+  .then(() => {
+    appendRawFeed('> ' + cmd);
+    if (input) input.value = '';
+  })
+  .catch(() => flashMsg('cl-msg', 'Send error', true));
+}
+
 // ── Session table ───────────────────────────────────────────
 function renderSessionTable(apps) {
   const tbody = document.getElementById('ws-sessions-tbody');
@@ -527,7 +536,7 @@ function renderSessionTable(apps) {
 }
 
 function refreshSessions() {
-  fetch('/api/status').then(r => r.json()).then(d => {
+  fetch('/api/status').then(r => r.json()).then(() => {
     renderSessionTable(state.connectedApps);
   });
 }
@@ -546,18 +555,22 @@ function loadConfig() {
 function populateForms(cfg) {
   // Station
   const st = cfg.station || {};
-  setVal('st-call', st.callsign   || '');
-  setVal('st-name', st.name       || '');
-  setVal('st-qth',  st.qth        || '');
-  setVal('st-grid', st.gridSquare || '');
-  setVal('st-lat',  st.lat  != null ? st.lat  : '');
-  setVal('st-lon',  st.lon  != null ? st.lon  : '');
+  setVal('st-call',    st.callsign    || '');
+  setVal('st-name',    st.name        || '');
+  setVal('st-qth',     st.qth         || '');
+  setVal('st-grid',    st.gridSquare  || '');
+  setVal('st-lat',     st.lat  != null ? st.lat  : '');
+  setVal('st-lon',     st.lon  != null ? st.lon  : '');
+  setVal('st-cqzone',  st.cqZone      || '');
+  setVal('st-arrl',    st.arrlSection || '');
+  setVal('st-ituzone', st.ituZone     || '');
   setSelectVal('st-tz',   st.timezone || 'UTC');
   setSelectVal('st-lang', st.language || 'en');
   applyStationIntel(st);
 
-  // J-Hub ports
+  // J-Hub ports + IP
   const jh = cfg.jHub || {};
+  setVal('jhub-ip',  jh.ip          || 'localhost');
   setVal('ws-port',  jh.websocketPort || 8080);
   setVal('web-port', jh.webConfigPort || 8081);
 
@@ -603,10 +616,12 @@ function populateForms(cfg) {
   buildFilterChips('band-filters', ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'], filters.bands || []);
   buildFilterChips('mode-filters', ['CW','SSB','FT8','FT4','RTTY','PSK31','JS8','OLIVIA','MFSK16'], filters.modes || []);
 
-  // Appearance
+  // Appearance (theme only — tab removed, but still apply saved theme)
   const ap = cfg.appearance || {};
   state.appearance = ap;
-  applyAppearanceUI(ap);
+  const theme = ap.theme || localStorage.getItem('jhub-theme') || 'dark';
+  applyTheme(theme);
+  state.appearance.theme = theme;
 
   // Module cards
   buildModuleCards(cfg.apps || {});
@@ -616,11 +631,11 @@ function populateForms(cfg) {
 
   // J-Log tab
   const jl = cfg.jLogSettings || {};
-  populateJLogForm(jl, cfg.apps && cfg.apps.jLog ? cfg.apps.jLog : {});
+  populateJLogForm(jl);
 
   // J-Digi tab
   const jd = cfg.jDigiSettings || {};
-  populateJDigiForm(jd, cfg.apps && cfg.apps.jDigi ? cfg.apps.jDigi : {});
+  populateJDigiForm(jd);
 }
 
 // ── Rig backend segmented control ─────────────────────────
@@ -669,59 +684,6 @@ function toggleThemeBtn() {
   const next = current === 'light' ? 'dark' : 'light';
   applyTheme(next);
   state.appearance.theme = next;
-  // keep the Appearance tab seg control in sync
-  document.querySelectorAll('#theme-seg .seg-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === next);
-  });
-}
-
-// ── Appearance controls ────────────────────────────────────
-function setTheme(val, btn) {
-  document.querySelectorAll('#theme-seg .seg-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  state.appearance.theme = val;
-  applyTheme(val);
-}
-
-function setWfColor(val, el) {
-  document.querySelectorAll('#wf-swatches .swatch').forEach(s => s.classList.remove('sel'));
-  el.classList.add('sel');
-  state.appearance.waterfallColor = val;
-  setText('wf-color-label', 'Selected: ' + val);
-}
-
-function setMapTheme(val, el) {
-  document.querySelectorAll('#map-swatches .swatch').forEach(s => s.classList.remove('sel'));
-  el.classList.add('sel');
-  state.appearance.mapTheme = val;
-  setText('map-theme-label', 'Selected: ' + val);
-}
-
-function applyAppearanceUI(ap) {
-  // Theme — server value overrides localStorage only if explicitly set
-  const theme = ap.theme || localStorage.getItem('jhub-theme') || 'dark';
-  applyTheme(theme);
-  state.appearance.theme = theme;
-  document.querySelectorAll('#theme-seg .seg-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.val === theme);
-  });
-
-  // Font size
-  const fsRange = document.getElementById('font-size-range');
-  if (fsRange) fsRange.value = ap.fontSize || 13;
-  setText('font-size-val', ap.fontSize || 13);
-
-  // Waterfall
-  document.querySelectorAll('#wf-swatches .swatch').forEach(s => {
-    s.classList.toggle('sel', s.dataset.val === ap.waterfallColor);
-  });
-  setText('wf-color-label', 'Selected: ' + (ap.waterfallColor || 'viridis'));
-
-  // Map theme
-  document.querySelectorAll('#map-swatches .swatch').forEach(s => {
-    s.classList.toggle('sel', s.dataset.val === ap.mapTheme);
-  });
-  setText('map-theme-label', 'Selected: ' + (ap.mapTheme || 'dark'));
 }
 
 // ── Module cards (Modules tab) ─────────────────────────────
@@ -731,6 +693,7 @@ function buildModuleCards(appsSection) {
     { key: 'jDigi',   id: 'j-digi',   label: 'J-Digi',   desc: 'Digital modem / RTTY / PSK' },
     { key: 'jBridge', id: 'j-bridge', label: 'J-Bridge', desc: 'WSJT-X / FT8 integration bridge' },
     { key: 'jMap',    id: 'jMap',     label: 'J-Map',    desc: 'Real-time grayline + DX map' },
+    { key: 'jSat',    id: 'j-sat',    label: 'J-Sat',    desc: 'Satellite tracking and Doppler control' },
   ];
 
   const container = document.getElementById('module-cards');
@@ -744,6 +707,12 @@ function buildModuleCards(appsSection) {
         <div class="field" style="grid-column:1/-1">
           <input type="text" id="cmd-${m.key}" placeholder="bash /home/user/ars/${m.id}/run.sh" value="${esc(entry.command||'')}">
           <label>Launch Command</label>
+        </div>
+      </div>
+      <div class="field-row cols-2" style="margin-top:6px">
+        <div class="field">
+          <input type="text" id="ip-${m.key}" placeholder="localhost" value="${esc(entry.ip||'localhost')}">
+          <label>IP Address</label>
         </div>
       </div>
       <div class="toggle-row">
@@ -846,14 +815,17 @@ function removeMacroRow(btn) {
 function saveStation() {
   const body = {
     station: {
-      callsign:   (document.getElementById('st-call').value||'').toUpperCase().trim(),
-      name:       document.getElementById('st-name').value.trim(),
-      qth:        document.getElementById('st-qth').value.trim(),
-      gridSquare: (document.getElementById('st-grid').value||'').toUpperCase().trim(),
-      lat:        parseFloat(document.getElementById('st-lat').value)||0,
-      lon:        parseFloat(document.getElementById('st-lon').value)||0,
-      timezone:   document.getElementById('st-tz').value || 'UTC',
-      language:   document.getElementById('st-lang').value || 'en',
+      callsign:    (document.getElementById('st-call').value||'').toUpperCase().trim(),
+      name:        document.getElementById('st-name').value.trim(),
+      qth:         document.getElementById('st-qth').value.trim(),
+      gridSquare:  (document.getElementById('st-grid').value||'').toUpperCase().trim(),
+      lat:         parseFloat(document.getElementById('st-lat').value)||0,
+      lon:         parseFloat(document.getElementById('st-lon').value)||0,
+      timezone:    document.getElementById('st-tz').value || 'UTC',
+      language:    document.getElementById('st-lang').value || 'en',
+      cqZone:      parseInt(document.getElementById('st-cqzone').value)||0,
+      arrlSection: (document.getElementById('st-arrl').value||'').toUpperCase().trim(),
+      ituZone:     parseInt(document.getElementById('st-ituzone').value)||0,
     }
   };
   postPartialConfig(body, 'st-msg', 'Station saved');
@@ -929,24 +901,12 @@ function saveLogging() {
 function savePorts() {
   const body = {
     jHub: {
+      ip:            document.getElementById('jhub-ip').value.trim() || 'localhost',
       websocketPort: parseInt(document.getElementById('ws-port').value)||8080,
       webConfigPort: parseInt(document.getElementById('web-port').value)||8081,
     }
   };
   postPartialConfig(body, 'ports-msg', 'Ports saved — restart required');
-}
-
-function saveAppearance() {
-  const ap = {
-    theme:          activeSegVal('#theme-seg'),
-    fontSize:       parseInt(document.getElementById('font-size-range').value)||13,
-    waterfallColor: state.appearance.waterfallColor || 'viridis',
-    mapTheme:       state.appearance.mapTheme       || 'dark',
-  };
-  fetch('/api/appearance', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(ap) })
-    .then(r => r.json())
-    .then(() => { flashMsg('ap-msg', 'Saved'); state.appearance = ap; })
-    .catch(() => flashMsg('ap-msg', 'Error', true));
 }
 
 function saveMacros() {
@@ -958,10 +918,11 @@ function saveMacros() {
 }
 
 function saveModuleCmd(key, id) {
-  const cmd  = document.getElementById('cmd-' + key).value.trim();
-  const auto = document.getElementById('auto-' + key).checked;
+  const cmd  = (document.getElementById('cmd-' + key) || {}).value || '';
+  const auto = (document.getElementById('auto-' + key) || {}).checked || false;
+  const ip   = (document.getElementById('ip-' + key)   || {}).value || 'localhost';
   const appsUpdate = {};
-  appsUpdate[key] = { command: cmd, autoLaunch: auto };
+  appsUpdate[key] = { command: cmd.trim(), autoLaunch: auto, ip: ip.trim() };
   postPartialConfig({ apps: appsUpdate }, 'mod-msg-' + key, 'Saved');
 }
 
@@ -1024,7 +985,6 @@ function loadNetworks() {
       });
       if (prev) sel.value = prev;
       document.getElementById('cl-del-btn').style.display = sel.value ? 'inline-block' : 'none';
-      // Keep the networks list in state for field population
       state.dxNetworks = nets || [];
     })
     .catch(() => {});
@@ -1058,7 +1018,6 @@ function saveNetwork() {
     .then(() => {
       flashMsg('cl-net-msg', '\u2713 Saved');
       loadNetworks();
-      // Select the newly saved network
       setTimeout(() => {
         const sel = document.getElementById('cl-network-select');
         if (sel) { sel.value = name; onNetworkSelect(); }
@@ -1126,9 +1085,8 @@ function restartWs() {
   if (ws) ws.close();
 }
 
-// ── PTT test (key TX for 1 second, then release) ──────────
+// ── PTT test ───────────────────────────────────────────────
 function testPtt() {
-  const msg = document.getElementById('rig-save-msg');
   fetch('/api/rig/ptt', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1150,7 +1108,7 @@ function testPtt() {
   .catch(() => flashMsg('rig-save-msg', 'PTT error', true));
 }
 
-// ── Rig connection status (polled for the Rig tab) ─────────
+// ── Rig connection status ──────────────────────────────────
 function updateRigConnStatus() {
   fetch('/api/rig/status')
     .then(r => r.json())
@@ -1260,7 +1218,6 @@ function populateTimezones() {
   try {
     zones = Intl.supportedValuesOf('timeZone');
   } catch(_) {
-    // Fallback for older browsers — common IANA zones grouped by region
     zones = [
       'UTC',
       'America/Anchorage','America/Chicago','America/Denver','America/Los_Angeles',
@@ -1381,45 +1338,36 @@ function saveJMapSettings() {
 
   const settings = {
     fontSize:               intn('jm-font-size') || 13,
-
     useMockData:            chk('jm-mock'),
     noaaApiKey:             val('jm-noaa-key').trim(),
     openWeatherApiKey:      val('jm-owm-key').trim(),
-
     showWorldMap:           chk('jm-worldmap'),
     showGrayline:           chk('jm-grayline'),
     showDxSpots:            chk('jm-dxspots'),
     graylineOpacity:        flt('jm-grayline-opacity'),
-
     showAuroraOverlay:      chk('jm-aurora'),
     showGeomagneticAlerts:  chk('jm-geomag'),
     showSatelliteTracking:  chk('jm-satellite'),
-
     showWeatherOverlay:     chk('jm-weather'),
     showTropoOverlay:       chk('jm-tropo'),
     showRadarOverlay:       chk('jm-radar'),
     showLightningOverlay:   chk('jm-lightning'),
     showFrontsOverlay:      chk('jm-fronts'),
     showSurfaceConditions:  chk('jm-surface'),
-
     showCqZones:            chk('jm-cqzones'),
     showItuZones:           chk('jm-ituzones'),
     showGridSquares:        chk('jm-gridsq'),
     showRotorMap:           chk('jm-rotormap'),
-
     showDeWindow:           chk('jm-dewindow'),
     showDxWindow:           chk('jm-dxwindow'),
     showCountdownTimer:     chk('jm-countdown'),
     showContestList:        chk('jm-contests'),
-
     dxBandFilter:           val('jm-dx-band'),
     dxMaxAgeMinutes:        intn('jm-dx-maxage') || 30,
     dxShowCallsigns:        chk('jm-dx-callsigns'),
-
     showLocalTime:          chk('jm-localtime'),
     showUtcTime:            chk('jm-utctime'),
     secondaryTimezone:      val('jm-tz2').trim(),
-
     showSolarData:          chk('jm-solar'),
     showSunspotGraphic:     chk('jm-sunspot'),
     showPropagationData:    chk('jm-prop'),
@@ -1435,76 +1383,185 @@ function saveJMapSettings() {
     .catch(() => flashMsg('jmap-msg', 'Error', true));
 }
 
-// ── J-Log settings ────────────────────────────────────────
+// ── J-Log settings (font size only — launch config removed) ──
 function loadJLogSettings() {
   fetch('/api/jlog')
     .then(r => r.json())
-    .then(s => {
-      const apps = (state.config.apps && state.config.apps.jLog) ? state.config.apps.jLog : {};
-      populateJLogForm(s, apps);
-    })
+    .then(s => populateJLogForm(s))
     .catch(() => {});
 }
 
-function populateJLogForm(s, ap) {
+function populateJLogForm(s) {
   const fsEl  = document.getElementById('jlog-font-size');
   const fsLbl = document.getElementById('jlog-font-size-val');
   if (fsEl)  fsEl.value = s.fontSize || 13;
   if (fsLbl) fsLbl.textContent = s.fontSize || 13;
-  setVal('jlog-cmd', (ap && ap.command) || '');
-  if (ap && ap.autoLaunch != null) setChk('jlog-auto', !!ap.autoLaunch);
 }
 
 function saveJLogSettings() {
   const fontSize = parseInt(document.getElementById('jlog-font-size').value) || 13;
-  const cmd      = document.getElementById('jlog-cmd').value.trim();
-  const auto     = document.getElementById('jlog-auto').checked;
   fetch('/api/jlog', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ fontSize })
   })
   .then(r => r.json())
-  .then(() => {
-    postPartialConfig({ apps: { jLog: { command: cmd, autoLaunch: auto } } }, 'jlog-msg', 'J-Log settings saved');
-  })
+  .then(() => flashMsg('jlog-msg', 'J-Log settings saved'))
   .catch(() => flashMsg('jlog-msg', 'Error', true));
 }
 
-// ── J-Digi settings ───────────────────────────────────────
+// ── J-Digi settings (font size only — launch config removed) ─
 function loadJDigiSettings() {
   fetch('/api/jdigi')
     .then(r => r.json())
-    .then(s => {
-      const apps = (state.config.apps && state.config.apps.jDigi) ? state.config.apps.jDigi : {};
-      populateJDigiForm(s, apps);
-    })
+    .then(s => populateJDigiForm(s))
     .catch(() => {});
 }
 
-function populateJDigiForm(s, ap) {
+function populateJDigiForm(s) {
   const fsEl  = document.getElementById('jdigi-font-size');
   const fsLbl = document.getElementById('jdigi-font-size-val');
   if (fsEl)  fsEl.value = s.fontSize || 13;
   if (fsLbl) fsLbl.textContent = s.fontSize || 13;
-  setVal('jdigi-cmd', (ap && ap.command) || '');
-  if (ap && ap.autoLaunch != null) setChk('jdigi-auto', !!ap.autoLaunch);
 }
 
 function saveJDigiSettings() {
   const fontSize = parseInt(document.getElementById('jdigi-font-size').value) || 13;
-  const cmd      = document.getElementById('jdigi-cmd').value.trim();
-  const auto     = document.getElementById('jdigi-auto').checked;
   fetch('/api/jdigi', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ fontSize })
   })
   .then(r => r.json())
-  .then(() => {
-    postPartialConfig({ apps: { jDigi: { command: cmd, autoLaunch: auto } } }, 'jdigi-msg', 'J-Digi settings saved');
-  })
+  .then(() => flashMsg('jdigi-msg', 'J-Digi settings saved'))
   .catch(() => flashMsg('jdigi-msg', 'Error', true));
+}
+
+// ── J-Bridge settings ─────────────────────────────────────
+function loadJBridgeSettings() {
+  fetch('/api/jbridge')
+    .then(r => r.json())
+    .then(s => populateJBridgeForm(s))
+    .catch(() => {});
+}
+
+function populateJBridgeForm(s) {
+  setVal('jbridge-wsjtx-path', s.wsjtxPath || '');
+}
+
+function saveJBridgeSettings() {
+  const wsjtxPath = document.getElementById('jbridge-wsjtx-path').value.trim();
+  fetch('/api/jbridge', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ wsjtxPath })
+  })
+  .then(r => r.json())
+  .then(() => flashMsg('jbridge-msg', 'J-Bridge settings saved'))
+  .catch(() => flashMsg('jbridge-msg', 'Error', true));
+}
+
+// ── Database Tools ─────────────────────────────────────────
+function loadDbList() {
+  fetch('/api/db/list')
+    .then(r => r.json())
+    .then(data => {
+      const sel = document.getElementById('db-list-sel');
+      if (!sel) return;
+      const active = data.active || 'j-log.db';
+      sel.innerHTML = (data.databases || []).map(d =>
+        `<option value="${esc(d)}">${esc(d)}</option>`
+      ).join('');
+      sel.value = active;
+      setText('db-active-name', active);
+    })
+    .catch(() => {});
+}
+
+function doAddDatabase() {
+  const name = prompt('Enter a name for the new log database:');
+  if (!name || !name.trim()) return;
+  fetch('/api/db/create', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name: name.trim() })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) { flashMsg('db-status-msg', d.error, true); return; }
+    flashMsg('db-status-msg', 'Created: ' + (d.name || ''));
+    loadDbList();
+  })
+  .catch(() => flashMsg('db-status-msg', 'Error creating database', true));
+}
+
+function doSelectDatabase() {
+  const sel = document.getElementById('db-list-sel');
+  const name = sel && sel.value;
+  if (!name) { flashMsg('db-status-msg', 'No database selected', true); return; }
+  fetch('/api/db/select', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) { flashMsg('db-status-msg', d.error, true); return; }
+    flashMsg('db-status-msg', 'Active set to: ' + name + ' (restart J-Log to apply)');
+    setText('db-active-name', name);
+  })
+  .catch(() => flashMsg('db-status-msg', 'Error', true));
+}
+
+function doDeleteDatabase() {
+  const sel = document.getElementById('db-list-sel');
+  const name = sel && sel.value;
+  if (!name) { flashMsg('db-status-msg', 'No database selected', true); return; }
+  if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+  fetch('/api/db/delete', {
+    method: 'DELETE',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) { flashMsg('db-status-msg', d.error, true); return; }
+    flashMsg('db-status-msg', 'Deleted: ' + name);
+    loadDbList();
+  })
+  .catch(() => flashMsg('db-status-msg', 'Error deleting database', true));
+}
+
+function exportAdif() {
+  flashMsg('db-export-msg', 'Exporting…');
+  fetch('/api/db/export/adif', { method: 'POST' })
+  .then(r => {
+    if (!r.ok) return r.json().then(d => { flashMsg('db-export-msg', d.error || 'Export failed', true); });
+    return r.blob().then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'log-export.adi';
+      a.click();
+      flashMsg('db-export-msg', 'ADIF exported');
+    });
+  })
+  .catch(() => flashMsg('db-export-msg', 'Export error', true));
+}
+
+function exportCsv() {
+  flashMsg('db-export-msg', 'Exporting…');
+  fetch('/api/db/export/csv', { method: 'POST' })
+  .then(r => {
+    if (!r.ok) return r.json().then(d => { flashMsg('db-export-msg', d.error || 'Export failed', true); });
+    return r.blob().then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'log-export.csv';
+      a.click();
+      flashMsg('db-export-msg', 'CSV exported');
+    });
+  })
+  .catch(() => flashMsg('db-export-msg', 'Export error', true));
 }
 
 // ── Boot ────────────────────────────────────────────────────
@@ -1521,7 +1578,9 @@ loadMacros();
 loadJMapSettings();
 loadJLogSettings();
 loadJDigiSettings();
+loadJBridgeSettings();
 loadJSatSatelliteRegistry();
+loadDbList();
 connectWs();
 pollStatus();
 pollSpots();

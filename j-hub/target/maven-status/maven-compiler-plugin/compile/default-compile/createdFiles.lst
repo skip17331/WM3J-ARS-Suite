@@ -15,8 +15,10 @@ com/hamradio/jhub/model/RigStatus.class
 com/hamradio/jhub/model/JHubConfig$LoggerSection.class
 com/hamradio/jhub/model/JHubConfig$ClusterSection.class
 com/hamradio/jhub/WebConfigServer$RotorApiServlet.class
+com/hamradio/jhub/WebConfigServer$DbApiServlet.class
 com/hamradio/jhub/model/StationConfig.class
 com/hamradio/jhub/WebConfigServer$AppsApiServlet.class
+com/hamradio/jhub/WebConfigServer$JBridgeApiServlet.class
 com/hamradio/jhub/model/JHubConfig$RotorSection.class
 com/hamradio/jhub/WebConfigServer$MacrosApiServlet$1.class
 com/hamradio/jhub/WebConfigServer$JMapApiServlet.class

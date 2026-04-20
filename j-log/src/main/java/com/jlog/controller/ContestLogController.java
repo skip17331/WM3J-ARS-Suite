@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   Row 2 — Dynamic entry bar: two HBox rows (Rcvd / Sent) inside a VBox
  *   Row 3 — Plugin panes (dupe checker, section tracker by FCC zone, stats)
  *   Row 4 — QSO database table
- *   Row 5 — DX Spotting window
+ *   Row 5 — DX Spotting pane
  */
 public class ContestLogController implements Initializable {
 
@@ -90,6 +90,9 @@ public class ContestLogController implements Initializable {
     private TextField tfCallsign;
     private TextField tfOperator;
 
+    // Divider position captured when DX pane was last expanded; restored on re-expand
+    private double dxExpandedDividerPos = 0.5;
+
     private static final DateTimeFormatter TABLE_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @Override
@@ -105,10 +108,10 @@ public class ContestLogController implements Initializable {
         buildRow2Panes();
         initCivListeners();
         initKeyHandlers();
+        initDxPaneRestore();
         loadQsos();
         startStatsPoller();
 
-        // Incoming LOG_ENTRY_DRAFT from j-digi via j-hub → populate contest entry fields
         HubEngine.getInstance().setLogEntryDraftListener(node ->
             Platform.runLater(() -> fillFromLogDraft(node)));
 
@@ -126,14 +129,12 @@ public class ContestLogController implements Initializable {
         HBox rcvdRow = makeExchangeRow("Rcvd");
         HBox sentRow = makeExchangeRow("Sent");
 
-        // Sent row: your callsign (read-only display, from SS setup)
         Label yourCall = new Label(AppConfig.getInstance().getSsCallsign());
         yourCall.setId("sentCallsign");
         yourCall.getStyleClass().add("sent-callsign");
         yourCall.setPrefWidth(130);
         sentRow.getChildren().add(yourCall);
 
-        // Sent row: serial# display (auto-incrementing)
         Label lblSerial = new Label(I18n.get("label.serial") + ":");
         lblSerial.getStyleClass().add("entry-label");
         Label serialDisplay = new Label(String.valueOf(serialCounter.get()));
@@ -141,7 +142,6 @@ public class ContestLogController implements Initializable {
         serialDisplay.setId("serialDisplay");
         sentRow.getChildren().addAll(lblSerial, serialDisplay);
 
-        // Plugin-defined fields routed to rcvd or sent row
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             Label lbl = new Label(fd.getLabel() + ":");
             lbl.getStyleClass().add("entry-label");
@@ -156,14 +156,12 @@ public class ContestLogController implements Initializable {
             }
         }
 
-        // Operator field (rcvd row, after plugin fields)
         Label lblOp = new Label(I18n.get("label.operator") + ":");
         lblOp.getStyleClass().add("entry-label");
         tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
         tfOperator.setPrefWidth(80);
         rcvdRow.getChildren().addAll(lblOp, tfOperator);
 
-        // Save / Clear buttons (rcvd row)
         Button btnSave  = new Button(I18n.get("button.save"));
         Button btnClear = new Button(I18n.get("button.clear"));
         btnSave .getStyleClass().add("primary-button");
@@ -172,14 +170,11 @@ public class ContestLogController implements Initializable {
         btnClear.setOnAction(e -> doClear());
         rcvdRow.getChildren().addAll(btnSave, btnClear);
 
-        // Exchange format hint (rcvd row)
         Label hint = new Label("  " + plugin.getExchangeFormat());
         hint.getStyleClass().add("exchange-hint");
         rcvdRow.getChildren().add(hint);
 
-        // Pre-fill sent-row fields from SS config
         prefillSentFields();
-
         entryBar.getChildren().addAll(rcvdRow, sentRow);
     }
 
@@ -315,7 +310,6 @@ public class ContestLogController implements Initializable {
             return zonesBox;
         }
 
-        // Fallback: flat grid without scroll
         GridPane grid = new GridPane();
         grid.setHgap(4); grid.setVgap(2);
         grid.getStyleClass().add("section-grid");
@@ -428,6 +422,38 @@ public class ContestLogController implements Initializable {
         }
     }
 
+    /**
+     * Wires the DX pane expand/collapse listener so its height is preserved
+     * across minimise/restore cycles.
+     */
+    private void initDxPaneRestore() {
+        AppConfig cfg = AppConfig.getInstance();
+        double saved = cfg.getDivider("contestLog.div0", 0.5);
+        dxExpandedDividerPos = saved;
+
+        Platform.runLater(() -> {
+            mainSplitPane.setDividerPositions(saved);
+
+            mainSplitPane.getDividers().forEach(div ->
+                div.positionProperty().addListener((o, ov, nv) -> {
+                    if (dxPane.isExpanded()) {
+                        dxExpandedDividerPos = nv.doubleValue();
+                        cfg.setDivider("contestLog.div0", dxExpandedDividerPos);
+                    }
+                }));
+
+            dxPane.expandedProperty().addListener((obs, wasExpanded, isExpanded) -> {
+                if (!isExpanded) {
+                    dxExpandedDividerPos = mainSplitPane.getDividerPositions()[0];
+                    cfg.setDivider("contestLog.div0", dxExpandedDividerPos);
+                } else {
+                    final double target = dxExpandedDividerPos;
+                    Platform.runLater(() -> mainSplitPane.setDividerPositions(target));
+                }
+            });
+        });
+    }
+
     // ---------------------------------------------------------------
     // Save / clear
     // ---------------------------------------------------------------
@@ -462,7 +488,6 @@ public class ContestLogController implements Initializable {
 
     @FXML private void doClear() {
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
-            // Persistent fields (band) stay; sent-row fields stay
             if (fd.isPersistent() || fd.getEntryRow() == 1) continue;
             Control ctrl = entryFields.get(fd.getId());
             if (ctrl instanceof TextField tf && !tf.getStyleClass().contains("auto-field")) tf.clear();
@@ -488,7 +513,6 @@ public class ContestLogController implements Initializable {
             Control ctrl = entryFields.get(fd.getId());
             String val = getControlValue(ctrl);
             switch (fd.getId()) {
-                // These are handled outside the slot system
                 case "callsign", "prec_sent", "check_sent", "sect_sent" -> {}
                 case "serial_sent" -> q.setSerialSent(val);
                 case "serial_rcvd" -> q.setSerialReceived(val);
@@ -556,35 +580,26 @@ public class ContestLogController implements Initializable {
             checkDupe(callsign);
         }
 
-        setIfPresent("mode", mode);
-        setIfPresent("band", band);
+        setIfPresent("mode",     mode);
+        setIfPresent("band",     band);
         setIfPresent("rst_sent", rstSent);
         setIfPresent("rst_rcvd", rstRcvd);
 
-        // Try to map exchange into contest-specific received fields
-        if (!exchange.isBlank()) {
-            applyExchangeToFields(exchange);
-        }
+        if (!exchange.isBlank()) applyExchangeToFields(exchange);
 
-        if (tfCallsign != null) {
-            tfCallsign.requestFocus();
-        }
+        if (tfCallsign != null) tfCallsign.requestFocus();
         setStatus("Log draft received" + (callsign.isBlank() ? "" : ": " + callsign));
     }
 
     private void setIfPresent(String fieldId, String value) {
         if (value == null || value.isBlank()) return;
         Control ctrl = entryFields.get(fieldId);
-        if (ctrl instanceof TextField tf) {
-            tf.setText(value);
-        } else if (ctrl instanceof ComboBox<?> cb) {
-            ((ComboBox<String>) cb).setValue(value);
-        }
+        if (ctrl instanceof TextField tf) tf.setText(value);
+        else if (ctrl instanceof ComboBox<?> cb) ((ComboBox<String>) cb).setValue(value);
     }
 
     private void applyExchangeToFields(String exchange) {
         if (exchange == null || exchange.isBlank()) return;
-
         String[] tokens = exchange.trim().split("\\s+");
         if (tokens.length == 0) return;
 
@@ -601,19 +616,13 @@ public class ContestLogController implements Initializable {
         int tokenIndex = 0;
         for (ContestPlugin.FieldDef fd : rcvdFields) {
             if (tokenIndex >= tokens.length) break;
-
             Control ctrl = entryFields.get(fd.getId());
             String token = tokens[tokenIndex];
-
             if (ctrl instanceof TextField tf) {
-                if (tf.getText() == null || tf.getText().isBlank()) {
-                    tf.setText(token);
-                    tokenIndex++;
-                }
+                if (tf.getText() == null || tf.getText().isBlank()) { tf.setText(token); tokenIndex++; }
             } else if (ctrl instanceof ComboBox<?> cb) {
                 if (cb.getValue() == null || cb.getValue().toString().isBlank()) {
-                    ((ComboBox<String>) cb).setValue(token);
-                    tokenIndex++;
+                    ((ComboBox<String>) cb).setValue(token); tokenIndex++;
                 }
             }
         }
@@ -672,7 +681,6 @@ public class ContestLogController implements Initializable {
                 if (lblScore    != null) lblScore.setText(String.valueOf(score));
                 if (lblMults    != null) lblMults.setText(String.valueOf(mults));
                 if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                // Reset all section labels then re-highlight worked ones
                 sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
                 worked.forEach(sec -> {
                     Label lbl = sectionLabels.get(sec);
@@ -682,11 +690,6 @@ public class ContestLogController implements Initializable {
         } catch (Exception ignored) {}
     }
 
-    /**
-     * Determine which database column (field1–field5) holds the multiplier value,
-     * by computing the slot index of the multiplier field id in the plugin's entry fields.
-     * Fields with special handling (callsign, band, rst, serial, sent-row) don't consume slots.
-     */
     private String getMultiplierColumn() {
         if (plugin.getMultiplierModel() == null) return "field1";
         String targetId = plugin.getMultiplierModel().getField();
@@ -781,16 +784,13 @@ public class ContestLogController implements Initializable {
         new Thread(task).start();
     }
 
+    @FXML private void menuDatabaseTools() {
+        DatabaseToolsController.show(getStage());
+    }
+
     @FXML private void menuSetup() {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081").start(); }
         catch (Exception e) { setStatus(e.getMessage()); }
-    }
-
-    @FXML private void menuDxSpotting() { dxPane.setExpanded(true); }
-    @FXML private void menuConnectCiv()    { connectCiv(); }
-    @FXML private void menuDisconnectCiv() {
-        CivEngine.getInstance().disconnect();
-        lblCivStatus.setText(I18n.get("civ.disconnected"));
     }
 
     // ---------------------------------------------------------------
@@ -827,10 +827,10 @@ public class ContestLogController implements Initializable {
         cbSect.setValue(cfg.getSsSection().isBlank() ? null : cfg.getSsSection());
         cbSect.setPrefWidth(100);
 
-        grid.add(new Label("Callsign:"),    0, 0); grid.add(tfCall,  1, 0);
-        grid.add(new Label("Precedence:"),  0, 1); grid.add(cbPrec,  1, 1);
-        grid.add(new Label("Check (year):"),0, 2); grid.add(tfCheck, 1, 2);
-        grid.add(new Label("Section:"),     0, 3); grid.add(cbSect,  1, 3);
+        grid.add(new Label("Callsign:"),     0, 0); grid.add(tfCall,  1, 0);
+        grid.add(new Label("Precedence:"),   0, 1); grid.add(cbPrec,  1, 1);
+        grid.add(new Label("Check (year):"), 0, 2); grid.add(tfCheck, 1, 2);
+        grid.add(new Label("Section:"),      0, 3); grid.add(cbSect,  1, 3);
 
         Button btnSave   = new Button("Save");
         Button btnCancel = new Button("Cancel");
@@ -848,7 +848,6 @@ public class ContestLogController implements Initializable {
             cfg.setSsPrecedence(cbPrec.getValue() != null ? cbPrec.getValue() : "");
             cfg.setSsCheck(tfCheck.getText().trim());
             cfg.setSsSection(cbSect.getValue() != null ? cbSect.getValue() : "");
-            // Refresh sent row
             prefillSentFields();
             Label callLbl = (Label) entryBar.lookup("#sentCallsign");
             if (callLbl != null) callLbl.setText(cfg.getSsCallsign());
@@ -860,7 +859,6 @@ public class ContestLogController implements Initializable {
         buttons.setPadding(new Insets(0, 16, 12, 16));
 
         VBox root = new VBox(0, grid, buttons);
-
         Scene scene = new Scene(root);
         JLogApp.applyTheme(scene);
         dialog.setScene(scene);

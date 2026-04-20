@@ -20,9 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
@@ -46,9 +44,9 @@ import java.util.concurrent.TimeUnit;
  *
  * Layout rows:
  *   Row 1 — Menu bar + UTC/Local clock
- *   Row 2 — Data entry pane + pane1/2/3/4 (callsign info, bearing, etc.)
+ *   Row 2 — Data entry pane + country/bearing info panes
  *   Row 3 — QSO database table
- *   Row 4 — DX Spotting window
+ *   Row 4 — DX Spotting pane
  */
 public class NormalLogController implements Initializable {
 
@@ -78,7 +76,7 @@ public class NormalLogController implements Initializable {
     @FXML private Label lblDistance;
 
     // ---- QSO table ----
-    @FXML private TableView<QsoRecord>      qsoTable;
+    @FXML private TableView<QsoRecord>          qsoTable;
     @FXML private TableColumn<QsoRecord,String> colCallsign;
     @FXML private TableColumn<QsoRecord,String> colDate;
     @FXML private TableColumn<QsoRecord,String> colBand;
@@ -89,9 +87,9 @@ public class NormalLogController implements Initializable {
     @FXML private TableColumn<QsoRecord,String> colNotes;
 
     // ---- DX Spotting ----
-    @FXML private SplitPane    mainSplitPane;
-    @FXML private TitledPane   dxPane;
-    @FXML private AnchorPane   dxContainer;
+    @FXML private SplitPane  mainSplitPane;
+    @FXML private TitledPane dxPane;
+    @FXML private AnchorPane dxContainer;
 
     // ---- Status / clock bar ----
     @FXML private Label lblStatus;
@@ -113,6 +111,9 @@ public class NormalLogController implements Initializable {
 
     private DxSpotController dxSpotController;
 
+    // Divider position captured when DX pane was last expanded; restored on re-expand
+    private double dxExpandedDividerPos = 0.5;
+
     private static final DateTimeFormatter UTC_FMT   = DateTimeFormatter.ofPattern("HH:mm:ss 'UTC'");
     private static final DateTimeFormatter LOCAL_FMT  = DateTimeFormatter.ofPattern("HH:mm:ss z");
     private static final DateTimeFormatter TABLE_FMT  = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -129,19 +130,15 @@ public class NormalLogController implements Initializable {
         loadQsos();
         initQrzLookup();
 
-        // Load divider positions
         Platform.runLater(this::restoreDividers);
 
-        // CI-V auto-connect if configured
         if (AppConfig.getInstance().getCivAutoConnect()) {
             connectCiv();
         }
 
-        // Incoming SPOT_SELECTED from hub (HamClock or J-Log spot click) → fill entry bar
         HubEngine.getInstance().setSpotSelectedListener(spot ->
             Platform.runLater(() -> fillFromSpot(spot)));
 
-        // Incoming LOG_ENTRY_DRAFT from j-digi via j-hub → populate logging fields
         HubEngine.getInstance().setLogEntryDraftListener(node ->
             Platform.runLater(() -> fillFromLogDraft(node)));
 
@@ -160,12 +157,8 @@ public class NormalLogController implements Initializable {
             "CW","USB","LSB","AM","FM","RTTY","FT8","FT4","PSK31","OLIVIA","DV"));
         cbBand.setValue("20m");
         cbMode.setValue("CW");
-
-        // Default RST
         tfRstSent.setText("599");
         tfRstReceived.setText("599");
-
-        // Default power
         tfPower.setText(AppConfig.getInstance().getDefaultPower());
     }
 
@@ -229,7 +222,6 @@ public class NormalLogController implements Initializable {
         });
         engine.setAutofillHandler(this::doCallsignLookup);
 
-        // Build F1-F12 buttons
         macroButtonBar.getChildren().clear();
         for (int fk = 1; fk <= 12; fk++) {
             final int fkey = fk;
@@ -241,7 +233,6 @@ public class NormalLogController implements Initializable {
     }
 
     private void initKeyHandlers() {
-        // F1-F12 global key handler on the scene
         Platform.runLater(() -> {
             if (tfCallsign.getScene() != null) {
                 tfCallsign.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
@@ -260,7 +251,6 @@ public class NormalLogController implements Initializable {
             }
         });
 
-        // Callsign field — lookup on TAB or Enter
         tfCallsign.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.TAB || e.getCode() == KeyCode.ENTER) {
                 doCallsignLookup();
@@ -276,13 +266,36 @@ public class NormalLogController implements Initializable {
         }
     }
 
+    /**
+     * Restores the main SplitPane divider to its last persisted position and
+     * wires the DX pane expand/collapse listener so the divider height is
+     * preserved across minimise/restore cycles.
+     */
     private void restoreDividers() {
         AppConfig cfg = AppConfig.getInstance();
-        double d0 = cfg.getDivider("normalLog.div0", 0.5);
-        mainSplitPane.setDividerPositions(d0);
+        double saved = cfg.getDivider("normalLog.div0", 0.5);
+        dxExpandedDividerPos = saved;
+        mainSplitPane.setDividerPositions(saved);
+
+        // Persist divider changes only while the DX pane is open
         mainSplitPane.getDividers().forEach(div ->
-            div.positionProperty().addListener((o, ov, nv) ->
-                cfg.setDivider("normalLog.div0", mainSplitPane.getDividerPositions()[0])));
+            div.positionProperty().addListener((o, ov, nv) -> {
+                if (dxPane.isExpanded()) {
+                    dxExpandedDividerPos = nv.doubleValue();
+                    cfg.setDivider("normalLog.div0", dxExpandedDividerPos);
+                }
+            }));
+
+        // Capture height before collapse; restore it on re-expand
+        dxPane.expandedProperty().addListener((obs, wasExpanded, isExpanded) -> {
+            if (!isExpanded) {
+                dxExpandedDividerPos = mainSplitPane.getDividerPositions()[0];
+                cfg.setDivider("normalLog.div0", dxExpandedDividerPos);
+            } else {
+                final double target = dxExpandedDividerPos;
+                Platform.runLater(() -> mainSplitPane.setDividerPositions(target));
+            }
+        });
     }
 
     // ---------------------------------------------------------------
@@ -343,15 +356,13 @@ public class NormalLogController implements Initializable {
                     tfState.setText(data.getOrDefault("state", ""));
                     tfCounty.setText(data.getOrDefault("county", ""));
                     lblCountry.setText(data.getOrDefault("country", ""));
-
-                    // Bearing / distance
                     try {
                         double myLat = Double.parseDouble(AppConfig.getInstance().getLatitude());
                         double myLon = Double.parseDouble(AppConfig.getInstance().getLongitude());
                         double dxLat = Double.parseDouble(data.getOrDefault("lat", "0"));
                         double dxLon = Double.parseDouble(data.getOrDefault("lon", "0"));
-                        double brg   = QrzLookup.bearing(myLat, myLon, dxLat, dxLon);
-                        double dist  = QrzLookup.distanceKm(myLat, myLon, dxLat, dxLon);
+                        double brg  = QrzLookup.bearing(myLat, myLon, dxLat, dxLon);
+                        double dist = QrzLookup.distanceKm(myLat, myLon, dxLat, dxLon);
                         lblBearing.setText(String.format("%.0f°", brg));
                         lblDistance.setText(String.format("%.0f km", dist));
                     } catch (Exception ignored) {}
@@ -446,22 +457,13 @@ public class NormalLogController implements Initializable {
         new Thread(task).start();
     }
 
+    @FXML private void menuDatabaseTools() {
+        DatabaseToolsController.show(getStage());
+    }
+
     @FXML private void menuSetup() {
-        openSetup();
+        openJHubSetup();
         updateStationCallLabel();
-    }
-
-    @FXML private void menuDxSpotting() {
-        dxPane.setExpanded(true);
-    }
-
-    @FXML private void menuConnectCiv() {
-        connectCiv();
-    }
-
-    @FXML private void menuDisconnectCiv() {
-        CivEngine.getInstance().disconnect();
-        lblCivStatus.setText(I18n.get("civ.disconnected"));
     }
 
     // ---------------------------------------------------------------
@@ -535,7 +537,7 @@ public class NormalLogController implements Initializable {
     }
 
     // ---------------------------------------------------------------
-    // Spot selection — fill entry bar from a DX spot
+    // Spot / log-draft intake
     // ---------------------------------------------------------------
 
     private void fillFromSpot(DxSpot spot) {
@@ -555,7 +557,6 @@ public class NormalLogController implements Initializable {
         }
         if (spot.getBearing() > 0)    lblBearing.setText(String.format("%.0f°", spot.getBearing()));
         if (spot.getDistanceKm() > 0) lblDistance.setText(String.format("%.0f km", spot.getDistanceKm()));
-
         civTune(spot);
         tfCallsign.requestFocus();
         setStatus(I18n.get("status.spot.selected", spot.getDxCallsign()));
@@ -567,44 +568,24 @@ public class NormalLogController implements Initializable {
         String callsign = node.path("callsign").asText("").trim().toUpperCase();
         String mode     = node.path("mode").asText("").trim();
         String band     = node.path("band").asText("").trim();
-        long frequency  = node.path("frequency").asLong(0L);
+        long   frequency = node.path("frequency").asLong(0L);
         String rstSent  = node.path("rstSent").asText("").trim();
         String rstRcvd  = node.path("rstReceived").asText("").trim();
         String notes    = node.path("notes").asText("").trim();
 
-        if (!callsign.isBlank()) {
-            tfCallsign.setText(callsign);
-        }
-
-        if (!mode.isBlank()) {
-            cbMode.setValue(mapMode(mode));
-        }
-
-        if (!band.isBlank()) {
-            cbBand.setValue(band);
-        }
-
+        if (!callsign.isBlank())  tfCallsign.setText(callsign);
+        if (!mode.isBlank())      cbMode.setValue(mapMode(mode));
+        if (!band.isBlank())      cbBand.setValue(band);
         if (frequency > 0) {
             tfFrequency.setText(String.format("%.3f", frequency / 1_000_000.0));
             if (band.isBlank()) {
-                String derivedBand = CivEngine.freqToBand(frequency);
-                if (derivedBand != null && !derivedBand.isBlank()) {
-                    cbBand.setValue(derivedBand);
-                }
+                String derived = CivEngine.freqToBand(frequency);
+                if (derived != null && !derived.isBlank()) cbBand.setValue(derived);
             }
         }
-
-        if (!rstSent.isBlank()) {
-            tfRstSent.setText(rstSent);
-        }
-
-        if (!rstRcvd.isBlank()) {
-            tfRstReceived.setText(rstRcvd);
-        }
-
-        if (!notes.isBlank()) {
-            tfNotes.setText(notes);
-        }
+        if (!rstSent.isBlank()) tfRstSent.setText(rstSent);
+        if (!rstRcvd.isBlank()) tfRstReceived.setText(rstRcvd);
+        if (!notes.isBlank())   tfNotes.setText(notes);
 
         tfCallsign.requestFocus();
         setStatus("Log draft received" + (callsign.isBlank() ? "" : ": " + callsign));
@@ -622,16 +603,16 @@ public class NormalLogController implements Initializable {
     private String mapMode(String mode) {
         if (mode == null) return "USB";
         return switch (mode.toUpperCase()) {
-            case "CW"             -> "CW";
-            case "FT8"            -> "FT8";
-            case "FT4"            -> "FT4";
-            case "RTTY"           -> "RTTY";
-            case "PSK31"          -> "PSK31";
-            case "LSB"            -> "LSB";
-            case "AM"             -> "AM";
-            case "FM"             -> "FM";
-            case "SSB", "USB"     -> "USB";
-            default               -> "USB";
+            case "CW"         -> "CW";
+            case "FT8"        -> "FT8";
+            case "FT4"        -> "FT4";
+            case "RTTY"       -> "RTTY";
+            case "PSK31"      -> "PSK31";
+            case "LSB"        -> "LSB";
+            case "AM"         -> "AM";
+            case "FM"         -> "FM";
+            case "SSB", "USB" -> "USB";
+            default           -> "USB";
         };
     }
 
@@ -640,34 +621,25 @@ public class NormalLogController implements Initializable {
     // ---------------------------------------------------------------
 
     private void initBandWarning() {
-        // Debounce frequency field changes — validate 400 ms after the user stops typing
         freqValidateDelay.setOnFinished(e -> checkBandWarning());
         tfFrequency.textProperty().addListener((obs, o, n) -> freqValidateDelay.playFromStart());
-
-        // Mode changes take effect immediately
         cbMode.valueProperty().addListener((obs, o, n) -> checkBandWarning());
     }
 
     private void checkBandWarning() {
         String freqText = tfFrequency.getText().trim();
         String mode     = cbMode.getValue();
-        if (freqText.isEmpty() || mode == null) {
-            clearBandWarning();
-            return;
-        }
+        if (freqText.isEmpty() || mode == null) { clearBandWarning(); return; }
         double freqKhz;
         try {
-            freqKhz = Double.parseDouble(freqText) * 1000.0; // MHz → kHz
+            freqKhz = Double.parseDouble(freqText) * 1000.0;
         } catch (NumberFormatException e) {
             clearBandWarning();
             return;
         }
         ValidationResult result = BandPlan.validate(freqKhz, mode);
-        if (result.isOk()) {
-            clearBandWarning();
-        } else {
-            showBandWarning(result);
-        }
+        if (result.isOk()) clearBandWarning();
+        else showBandWarning(result);
     }
 
     private void showBandWarning(ValidationResult result) {
@@ -688,8 +660,7 @@ public class NormalLogController implements Initializable {
         double freqKhz = 0;
         try { freqKhz = Double.parseDouble(tfFrequency.getText().trim()) * 1000.0; }
         catch (NumberFormatException ignored) {}
-        String band = cbBand.getValue();
-        new BandPlanWindow(getStage(), band, freqKhz).show();
+        new BandPlanWindow(getStage(), cbBand.getValue(), freqKhz).show();
     }
 
     private void connectCiv() {
@@ -702,7 +673,7 @@ public class NormalLogController implements Initializable {
             I18n.get("civ.connected", port) : I18n.get("civ.failed")));
     }
 
-    private void openSetup() {
+    private void openJHubSetup() {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081").start(); }
         catch (Exception e) { setStatus("Could not open browser: " + e.getMessage()); }
     }

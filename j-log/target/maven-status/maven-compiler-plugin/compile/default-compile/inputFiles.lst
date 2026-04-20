@@ -3,8 +3,10 @@
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/app/SplashScreen.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/BandPlanWindow.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/ContestLogController.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/DatabaseToolsController.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/DxSpotController.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/NormalLogController.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/SetupController.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/macro/MacroEngine.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/service/DatabaseToolsService.java
 /home/mike/ARS_Suite/j-log/src/main/java/module-info.java

@@ -24,18 +24,20 @@ public class JHubConfig {
     public AppsSection       apps            = new AppsSection();
     public MacrosSection     macros          = new MacrosSection();
     public AppearanceSection appearance      = new AppearanceSection();
-    public com.google.gson.JsonObject jMapSettings  = null;
-    public com.google.gson.JsonObject jSatSettings  = null;
-    public com.google.gson.JsonObject jLogSettings  = null;
-    public com.google.gson.JsonObject jDigiSettings = null;
+    public com.google.gson.JsonObject jMapSettings    = null;
+    public com.google.gson.JsonObject jSatSettings    = null;
+    public com.google.gson.JsonObject jLogSettings    = null;
+    public com.google.gson.JsonObject jDigiSettings   = null;
+    public com.google.gson.JsonObject jBridgeSettings = null;
 
     // ---------------------------------------------------------------
     // J-Hub network settings
     // ---------------------------------------------------------------
 
     public static class JHubSection {
-        public int websocketPort = 8080;
-        public int webConfigPort = 8081;
+        public int    websocketPort = 8080;
+        public int    webConfigPort = 8081;
+        public String ip            = "localhost";
     }
 
     // ---------------------------------------------------------------
@@ -43,14 +45,17 @@ public class JHubConfig {
     // ---------------------------------------------------------------
 
     public static class StationSection {
-        public String callsign   = "NOCALL";
-        public String name       = "";
-        public String qth        = "";
-        public double lat        = 0.0;
-        public double lon        = 0.0;
-        public String gridSquare = "";
-        public String timezone   = "UTC";
-        public String language   = "en";
+        public String callsign    = "NOCALL";
+        public String name        = "";
+        public String qth         = "";
+        public double lat         = 0.0;
+        public double lon         = 0.0;
+        public String gridSquare  = "";
+        public String timezone    = "UTC";
+        public String language    = "en";
+        public int    cqZone      = 0;
+        public String arrlSection = "";
+        public int    ituZone     = 0;
     }
 
     // ---------------------------------------------------------------
@@ -162,6 +167,7 @@ public class JHubConfig {
     public static class AppLaunchEntry {
         public boolean autoLaunch = false;
         public String  command    = "";
+        public String  ip         = "localhost";
     }
 
     // ---------------------------------------------------------------

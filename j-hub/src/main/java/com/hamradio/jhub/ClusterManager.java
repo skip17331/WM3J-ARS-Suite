@@ -128,6 +128,14 @@ public class ClusterManager {
 
     public boolean isConnected() { return connected.get(); }
 
+    /** Send a raw command line to the telnet cluster session. No-op if not connected. */
+    public void sendRawCommand(String command) {
+        PrintWriter w = writer;
+        if (w != null && connected.get()) {
+            w.println(command);
+        }
+    }
+
     // ---------------------------------------------------------------
     // Connection lifecycle
     // ---------------------------------------------------------------

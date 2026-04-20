@@ -19,16 +19,15 @@
       <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">⬡</span>Dashboard</button>
       <button class="nav-btn" data-tab="station"><span class="nav-icon">⊙</span>Station</button>
       <button class="nav-btn" data-tab="rig"><span class="nav-icon">📻</span>Rig Control</button>
-      <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor</button>
+      <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor Control</button>
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
-      <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
-      <button class="nav-btn" data-tab="jmap"><span class="nav-icon">◫</span>J-Map</button>
-      <button class="nav-btn" data-tab="jlog"><span class="nav-icon">◩</span>J-Log</button>
-      <button class="nav-btn" data-tab="jdigi"><span class="nav-icon">〰</span>J-Digi</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
-      <button class="nav-btn" data-tab="macros"><span class="nav-icon">⊟</span>Macros</button>
+      <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
+      <button class="nav-btn" data-tab="jlog"><span class="nav-icon">◩</span>J-Log</button>
+      <button class="nav-btn" data-tab="jmap"><span class="nav-icon">◫</span>J-Map</button>
+      <button class="nav-btn" data-tab="jdigi"><span class="nav-icon">〰</span>J-Digi</button>
+      <button class="nav-btn" data-tab="jbridge"><span class="nav-icon">⇄</span>J-Bridge</button>
       <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
-      <button class="nav-btn" data-tab="appearance"><span class="nav-icon">◈</span>Appearance</button>
     </div>
     <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
       <span id="nav-ws">WebSocket: <span id="nav-ws-state">—</span></span>
@@ -217,6 +216,20 @@
             <label>Longitude</label>
           </div>
         </div>
+        <div class="field-row cols-3">
+          <div class="field">
+            <input type="number" id="st-cqzone" placeholder="4" min="1" max="40">
+            <label>CQ Zone</label>
+          </div>
+          <div class="field">
+            <input type="text" id="st-arrl" placeholder="IL" style="text-transform:uppercase">
+            <label>ARRL Section</label>
+          </div>
+          <div class="field">
+            <input type="number" id="st-ituzone" placeholder="8" min="1" max="90">
+            <label>ITU Zone</label>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -355,7 +368,7 @@
       </div>
     </section>
 
-    <!-- ─── Tab: Rotor ──────────────────────────────────── -->
+    <!-- ─── Tab: Rotor Control ─────────────────────────── -->
     <section id="tab-rotor" class="tab-panel">
       <div class="panel-header">Rotor Control</div>
       <div class="panel-sub">Configure antenna rotor backend and manual control</div>
@@ -566,8 +579,121 @@
       <div class="card">
         <div class="card-title">Raw Telnet Feed</div>
         <div class="raw-feed" id="raw-feed"></div>
+        <div class="field-row" style="align-items:flex-end;gap:8px;margin-top:8px">
+          <div class="field" style="flex:1">
+            <input type="text" id="cl-send-input" placeholder="Type command (e.g. SH/DX 10, SH/WWV)"
+                   onkeydown="if(event.key==='Enter') sendTelnetCommand()">
+            <label>Send to Telnet</label>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="sendTelnetCommand()" style="margin-bottom:2px">Send</button>
+        </div>
         <div class="btn-row" style="margin-top:6px">
           <button class="btn btn-ghost btn-sm" onclick="document.getElementById('raw-feed').innerHTML=''">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Logging & Data ──────────────────────────── -->
+    <section id="tab-logging" class="tab-panel">
+      <div class="panel-header">Logging &amp; Data</div>
+      <div class="panel-sub">Log storage, spot routing, and configuration backup</div>
+
+      <div class="card">
+        <div class="card-title">Log Database</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="text" id="log-db-path" placeholder="/home/user/ars/log.db">
+            <label>Database Path</label>
+            <span class="hint">Managed by J-Log. Leave blank to use J-Log's default location.</span>
+          </div>
+          <div class="field">
+            <select id="log-mode">
+              <option value="normal">Normal</option>
+              <option value="contest">Contest</option>
+            </select>
+            <label>Logging Mode</label>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Auto-Log Spots</div>
+            <div class="toggle-desc">Route clicked DX spots directly to J-Log as draft entries</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="log-auto-spot">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveLogging()">Save</button>
+          <span id="log-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Database Tools</div>
+        <div class="section-title" style="margin-bottom:6px">Log Databases (~/.j-log/)</div>
+        <div class="field-row" style="align-items:flex-end;gap:8px;margin-bottom:8px">
+          <div class="field" style="flex:1">
+            <select id="db-list-sel"></select>
+            <label>Select Database</label>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadDbList()" style="margin-bottom:2px">Refresh</button>
+        </div>
+        <div style="font-size:11px;color:var(--overlay0);margin-bottom:10px">
+          Active: <span id="db-active-name" style="color:var(--green)">—</span>
+          <span style="margin-left:6px;font-size:10px">(restart J-Log to apply change)</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-sm" onclick="doAddDatabase()">+ Add Database</button>
+          <button class="btn btn-primary btn-sm" onclick="doSelectDatabase()">Set Active</button>
+          <button class="btn btn-red btn-sm" onclick="doDeleteDatabase()">Delete</button>
+        </div>
+        <span id="db-status-msg" style="font-size:12px;color:var(--overlay0);display:block;min-height:16px;margin-top:4px"></span>
+        <hr class="divider">
+        <div class="section-title">Export</div>
+        <div class="btn-row" style="margin-top:6px">
+          <button class="btn btn-blue" onclick="exportAdif()">Export ADIF</button>
+          <button class="btn btn-ghost" onclick="exportCsv()">Export CSV</button>
+        </div>
+        <span id="db-export-msg" style="font-size:12px;color:var(--overlay0);display:block;min-height:16px;margin-top:4px"></span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Configuration Backup &amp; Export</div>
+        <div class="btn-row">
+          <button class="btn btn-blue"  onclick="exportConfig()">Export Config (JSON)</button>
+          <button class="btn btn-ghost" onclick="importConfig()">Import Config</button>
+          <button class="btn btn-yellow" onclick="exportDiag()">Export Diagnostics</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
+        <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
+          Exports include all j-hub settings. Diagnostics include logs and status snapshot.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">J-Hub Ports</div>
+        <div class="field-row cols-3">
+          <div class="field">
+            <input type="text" id="jhub-ip" placeholder="localhost">
+            <label>J-Hub IP Address</label>
+            <span class="hint">Address that modules use to reach J-Hub</span>
+          </div>
+          <div class="field">
+            <input type="number" id="ws-port" placeholder="8080" min="1024" max="65535">
+            <label>WebSocket Port</label>
+            <span class="hint">Restart required after change</span>
+          </div>
+          <div class="field">
+            <input type="number" id="web-port" placeholder="8081" min="1024" max="65535">
+            <label>Web Config Port</label>
+            <span class="hint">Restart required after change</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="savePorts()">Save Ports</button>
+          <span id="ports-msg" style="font-size:12px;color:var(--overlay0)"></span>
         </div>
       </div>
     </section>
@@ -588,6 +714,29 @@
         <div class="btn-row" style="margin-top:8px">
           <button class="btn btn-ghost btn-sm" onclick="refreshSessions()">Refresh</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: J-Log ──────────────────────────────────── -->
+    <section id="tab-jlog" class="tab-panel">
+      <div class="panel-header">J-Log Settings</div>
+      <div class="panel-sub">Ham radio logging — font size and display preferences</div>
+
+      <div class="card">
+        <div class="card-title">Font Size</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jlog-font-size" min="10" max="22" value="13"
+                   oninput="document.getElementById('jlog-font-size-val').textContent=this.value">
+            <label>Size: <span id="jlog-font-size-val">13</span> px</label>
+            <span class="hint">Applied immediately if J-Log is connected; otherwise on next start</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveJLogSettings()">Save J-Log Settings</button>
+        <span id="jlog-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
 
@@ -820,55 +969,10 @@
       </div>
     </section>
 
-    <!-- ─── Tab: J-Log ──────────────────────────────────── -->
-    <section id="tab-jlog" class="tab-panel">
-      <div class="panel-header">J-Log Settings</div>
-      <div class="panel-sub">Ham radio logging — font size and launch configuration</div>
-
-      <div class="card">
-        <div class="card-title">Font Size</div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <input type="range" id="jlog-font-size" min="10" max="22" value="13"
-                   oninput="document.getElementById('jlog-font-size-val').textContent=this.value">
-            <label>Size: <span id="jlog-font-size-val">13</span> px</label>
-            <span class="hint">Applied immediately if J-Log is connected; otherwise on next start</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Launch Configuration</div>
-        <div class="field">
-          <input type="text" id="jlog-cmd" placeholder="bash /home/user/ARS_Suite/j-log/run.sh">
-          <label>Launch Command</label>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Auto-Launch</div>
-            <div class="toggle-desc">Start J-Log automatically when J-Hub starts</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="jlog-auto">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn btn-green btn-sm" onclick="launchApp('j-log')">Launch</button>
-          <button class="btn btn-red btn-sm"   onclick="killApp('j-log')">Stop</button>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveJLogSettings()">Save J-Log Settings</button>
-        <span id="jlog-msg" style="font-size:12px;color:var(--overlay0)"></span>
-      </div>
-    </section>
-
     <!-- ─── Tab: J-Digi ─────────────────────────────────── -->
     <section id="tab-jdigi" class="tab-panel">
       <div class="panel-header">J-Digi Settings</div>
-      <div class="panel-sub">Digital modem / RTTY / PSK — font size and launch configuration</div>
+      <div class="panel-sub">Digital modem / RTTY / PSK — font size and display preferences</div>
 
       <div class="card">
         <div class="card-title">Font Size</div>
@@ -882,121 +986,27 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Launch Configuration</div>
-        <div class="field">
-          <input type="text" id="jdigi-cmd" placeholder="bash /home/user/ARS_Suite/j-digi/run.sh">
-          <label>Launch Command</label>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Auto-Launch</div>
-            <div class="toggle-desc">Start J-Digi automatically when J-Hub starts</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="jdigi-auto">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn btn-green btn-sm" onclick="launchApp('j-digi')">Launch</button>
-          <button class="btn btn-red btn-sm"   onclick="killApp('j-digi')">Stop</button>
-        </div>
-      </div>
-
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveJDigiSettings()">Save J-Digi Settings</button>
         <span id="jdigi-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
 
-    <!-- ─── Tab: Logging & Data ──────────────────────────── -->
-    <section id="tab-logging" class="tab-panel">
-      <div class="panel-header">Logging &amp; Data</div>
-      <div class="panel-sub">Log storage, spot routing, and configuration backup</div>
+    <!-- ─── Tab: J-Bridge ───────────────────────────────── -->
+    <section id="tab-jbridge" class="tab-panel">
+      <div class="panel-header">J-Bridge</div>
+      <div class="panel-sub">WSJT-X / FT8 integration bridge — connect WSJT-X to ARS Suite</div>
 
       <div class="card">
-        <div class="card-title">Log Database</div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <input type="text" id="log-db-path" placeholder="/home/user/ars/log.db">
-            <label>Database Path</label>
-            <span class="hint">Managed by J-Log. Leave blank to use J-Log's default location.</span>
-          </div>
-          <div class="field">
-            <select id="log-mode">
-              <option value="normal">Normal</option>
-              <option value="contest">Contest</option>
-            </select>
-            <label>Logging Mode</label>
-          </div>
+        <div class="card-title">WSJT-X Integration</div>
+        <div class="field">
+          <input type="text" id="jbridge-wsjtx-path" placeholder="/home/user/wsjtx/bin/wsjtx">
+          <label>WSJT-X Executable Path</label>
+          <span class="hint">Full path to the wsjtx executable, used when J-Bridge launches WSJT-X</span>
         </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Auto-Log Spots</div>
-            <div class="toggle-desc">Route clicked DX spots directly to J-Log as draft entries</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="log-auto-spot">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="saveLogging()">Save</button>
-          <span id="log-msg" style="font-size:12px;color:var(--overlay0)"></span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Configuration Backup &amp; Export</div>
-        <div class="btn-row">
-          <button class="btn btn-blue"  onclick="exportConfig()">Export Config (JSON)</button>
-          <button class="btn btn-ghost" onclick="importConfig()">Import Config</button>
-          <button class="btn btn-yellow" onclick="exportDiag()">Export Diagnostics</button>
-        </div>
-        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
-        <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
-          Exports include all j-hub settings. Diagnostics include logs and status snapshot.
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">J-Hub Ports</div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <input type="number" id="ws-port" placeholder="8080" min="1024" max="65535">
-            <label>WebSocket Port</label>
-            <span class="hint">Restart required after change</span>
-          </div>
-          <div class="field">
-            <input type="number" id="web-port" placeholder="8081" min="1024" max="65535">
-            <label>Web Config Port</label>
-            <span class="hint">Restart required after change</span>
-          </div>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="savePorts()">Save Ports</button>
-          <span id="ports-msg" style="font-size:12px;color:var(--overlay0)"></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── Tab: Macros ──────────────────────────────────── -->
-    <section id="tab-macros" class="tab-panel">
-      <div class="panel-header">Macro Keys</div>
-      <div class="panel-sub">Templates sent by J-Digi macro buttons. Variables: {MYCALL} {CALL} {RST} {NAME} {FREQ} {BAND} {MODE}</div>
-
-      <div class="card">
-        <table class="macro-table" id="macro-table">
-          <thead>
-            <tr><th style="width:80px">Key</th><th style="width:80px">Label</th><th style="width:70px">Type</th><th>Template Text</th><th style="width:60px"></th></tr>
-          </thead>
-          <tbody id="macro-tbody"></tbody>
-        </table>
-        <div class="btn-row" style="margin-top:10px">
-          <button class="btn btn-primary" onclick="saveMacros()">Save Macros</button>
-          <button class="btn btn-ghost btn-sm" onclick="addMacro()">+ Add Programmable</button>
-          <span id="macro-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn-primary" onclick="saveJBridgeSettings()">Save J-Bridge Settings</button>
+          <span id="jbridge-msg" style="font-size:12px;color:var(--overlay0)"></span>
         </div>
       </div>
     </section>
@@ -1153,7 +1163,7 @@
         <div class="card-title">AZ/EL Rotor Tracking</div>
         <div class="panel-sub" style="margin-bottom:10px">
           When enabled, J-Hub drives the rotor via Hamlib (rotctld) on each SAT_ROTOR_CMD from J-Sat.
-          Configure the rotor backend in the <strong>Rotor</strong> tab.
+          Configure the rotor backend in the <strong>Rotor Control</strong> tab.
         </div>
         <div class="toggle-row">
           <div>
@@ -1208,60 +1218,6 @@
           <button class="btn btn-primary" onclick="saveJSatSettings()">Save J-Sat Settings</button>
           <span id="jsat-msg" style="font-size:12px;color:var(--overlay0)"></span>
         </div>
-      </div>
-    </section>
-
-    <!-- ─── Tab: Appearance ─────────────────────────────── -->
-    <section id="tab-appearance" class="tab-panel">
-      <div class="panel-header">Appearance &amp; Themes</div>
-      <div class="panel-sub">Theme settings shared across ARS Suite modules</div>
-
-      <div class="card">
-        <div class="card-title">Application Theme</div>
-        <div class="seg-group" id="theme-seg">
-          <button class="seg-btn" data-val="dark"     onclick="setTheme('dark',this)">Dark</button>
-          <button class="seg-btn" data-val="light"    onclick="setTheme('light',this)">Light</button>
-          <button class="seg-btn" data-val="grayline" onclick="setTheme('grayline',this)">Grayline</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Font Size</div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <input type="range" id="font-size-range" min="11" max="18" value="13"
-                   oninput="document.getElementById('font-size-val').textContent=this.value">
-            <label>Size: <span id="font-size-val">13</span> px</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Waterfall Color Scheme (shared with J-Digi)</div>
-        <div class="swatch-row" id="wf-swatches">
-          <div class="swatch sw-viridis"   data-val="viridis"   title="Viridis"   onclick="setWfColor('viridis',this)"></div>
-          <div class="swatch sw-plasma"    data-val="plasma"    title="Plasma"    onclick="setWfColor('plasma',this)"></div>
-          <div class="swatch sw-inferno"   data-val="inferno"   title="Inferno"   onclick="setWfColor('inferno',this)"></div>
-          <div class="swatch sw-grayscale" data-val="grayscale" title="Grayscale" onclick="setWfColor('grayscale',this)"></div>
-        </div>
-        <div id="wf-color-label" style="font-size:11px;color:var(--overlay0);margin-top:4px">Selected: —</div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Map Theme (shared with J-Map)</div>
-        <div class="swatch-row" id="map-swatches">
-          <div class="swatch sw-dark"      data-val="dark"      title="Dark"      onclick="setMapTheme('dark',this)"></div>
-          <div class="swatch sw-light"     data-val="light"     title="Light"     onclick="setMapTheme('light',this)"></div>
-          <div class="swatch sw-terrain"   data-val="terrain"   title="Terrain"   onclick="setMapTheme('terrain',this)"></div>
-          <div class="swatch sw-satellite" data-val="satellite" title="Satellite" onclick="setMapTheme('satellite',this)"></div>
-          <div class="swatch sw-grayline"  data-val="grayline"  title="Grayline"  onclick="setMapTheme('grayline',this)"></div>
-        </div>
-        <div id="map-theme-label" style="font-size:11px;color:var(--overlay0);margin-top:4px">Selected: —</div>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="saveAppearance()">Save Appearance</button>
-        <span id="ap-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
 

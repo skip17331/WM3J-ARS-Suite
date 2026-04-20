@@ -230,6 +230,12 @@ public class JHubServer extends WebSocketServer {
         }
     }
 
+    /** Returns true if at least one registered session has the given appName. */
+    public boolean hasAppConnected(String appName) {
+        return sessions.values().stream()
+            .anyMatch(s -> s.registered && s.socket.isOpen() && appName.equals(s.appName));
+    }
+
     /**
      * Broadcast to all registered sessions EXCEPT the one that sent the message.
      */

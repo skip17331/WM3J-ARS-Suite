@@ -10,4 +10,5 @@ module com.jlog.app {
 
     exports com.jlog.app;
     exports com.jlog.controller;
+    exports com.jlog.service;
 }

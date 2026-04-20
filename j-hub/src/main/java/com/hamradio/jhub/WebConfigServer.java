@@ -76,6 +76,8 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
         ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
         ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
+        ctx.addServlet(new ServletHolder(new JBridgeApiServlet()),   "/api/jbridge");
+        ctx.addServlet(new ServletHolder(new DbApiServlet()),        "/api/db/*");
         ctx.addServlet(new ServletHolder(new StaticServlet()),      "/*");
 
         server.setHandler(ctx);
@@ -196,6 +198,24 @@ public class WebConfigServer {
                     json(res, "{\"status\":\"saved\"}");
                 } catch (Exception e) {
                     res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
+
+            } else if ("/send".equals(action)) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j =
+                        com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    String command = j.has("command") ? j.get("command").getAsString() : "";
+                    if (command.isBlank()) {
+                        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        json(res, "{\"error\":\"empty command\"}");
+                        return;
+                    }
+                    ClusterManager.getInstance().sendRawCommand(command);
+                    json(res, "{\"status\":\"sent\"}");
+                } catch (Exception e) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
                 }
 
             } else {
@@ -700,6 +720,201 @@ public class WebConfigServer {
 
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/jbridge — persist J-Bridge settings in j-hub.json
+    // ---------------------------------------------------------------
+
+    private static class JBridgeApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonObject stored = ConfigManager.getInstance().getConfig().jBridgeSettings;
+            json(res, stored != null ? stored.toString() : "{}");
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject settings =
+                    com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                ConfigManager cm = ConfigManager.getInstance();
+                cm.getConfig().jBridgeSettings = settings;
+                cm.save();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/db  — log database management (files in ~/.j-log/)
+    //
+    //   GET  /api/db/list         → { databases: [...], active: "j-log.db" }
+    //   GET  /api/db/active       → { active: "j-log.db" }
+    //   POST /api/db/create       → { name: "mylog" }
+    //   POST /api/db/select       → { name: "mylog.db" }
+    //   POST /api/db/export/adif  → streams .adi file (requires J-Log connected)
+    //   POST /api/db/export/csv   → streams .csv file (requires J-Log connected)
+    //   DELETE /api/db/delete     → { name: "mylog.db" }
+    // ---------------------------------------------------------------
+
+    private class DbApiServlet extends HttpServlet {
+
+        private final java.nio.file.Path LOG_DIR = java.nio.file.Path.of(System.getProperty("user.home"), ".j-log");
+        private static final String DEFAULT_DB  = "j-log.db";
+        private static final String ACTIVE_FILE = ".active-db";
+
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+            if ("/list".equals(path)) {
+                try {
+                    java.util.List<String> dbs;
+                    if (java.nio.file.Files.exists(LOG_DIR)) {
+                        dbs = java.nio.file.Files.list(LOG_DIR)
+                            .map(p -> p.getFileName().toString())
+                            .filter(n -> n.endsWith(".db") && !n.equals("contest.db") && !n.equals("config.db"))
+                            .sorted()
+                            .collect(java.util.stream.Collectors.toList());
+                    } else {
+                        dbs = new java.util.ArrayList<>();
+                    }
+                    if (!dbs.contains(DEFAULT_DB)) dbs.add(0, DEFAULT_DB);
+                    com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+                    obj.add("databases", ConfigManager.gson().toJsonTree(dbs));
+                    obj.addProperty("active", readActiveDb());
+                    json(res, obj.toString());
+                } catch (Exception e) {
+                    res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+            } else if ("/active".equals(path)) {
+                json(res, "{\"active\":\"" + readActiveDb() + "\"}");
+            } else {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+
+            if ("/create".equals(path)) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    String rawName = j.has("name") ? j.get("name").getAsString() : "";
+                    String safe = rawName.trim().replaceAll("[^a-zA-Z0-9_\\-]", "_");
+                    if (safe.isBlank()) { res.setStatus(400); json(res, "{\"error\":\"Invalid database name\"}"); return; }
+                    if (!safe.endsWith(".db")) safe += ".db";
+                    java.nio.file.Path target = LOG_DIR.resolve(safe);
+                    if (java.nio.file.Files.exists(target)) { res.setStatus(409); json(res, "{\"error\":\"Database already exists: " + safe + "\"}"); return; }
+                    java.nio.file.Files.createDirectories(LOG_DIR);
+                    new java.io.FileOutputStream(target.toFile()).close();
+                    json(res, "{\"name\":\"" + safe + "\"}");
+                } catch (Exception e) {
+                    res.setStatus(500);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+
+            } else if ("/select".equals(path)) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    String name = j.has("name") ? j.get("name").getAsString() : "";
+                    if (name.isBlank()) { res.setStatus(400); json(res, "{\"error\":\"No database name provided\"}"); return; }
+                    writeActiveDb(name);
+                    json(res, "{\"active\":\"" + name + "\"}");
+                } catch (Exception e) {
+                    res.setStatus(500);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+
+            } else if ("/export/adif".equals(path) || "/export/csv".equals(path)) {
+                boolean isAdif = path.endsWith("adif");
+                JHubServer jhubServer = router.getJHubServer();
+                if (jhubServer == null || !jhubServer.hasAppConnected("logging-engine")) {
+                    res.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                    json(res, "{\"error\":\"J-Log is not connected — run J-Log to export\"}");
+                    return;
+                }
+                String tmpFile = System.getProperty("java.io.tmpdir") + java.io.File.separator
+                    + "jhub-export-" + System.currentTimeMillis() + (isAdif ? ".adi" : ".csv");
+                com.google.gson.JsonObject msg = new com.google.gson.JsonObject();
+                msg.addProperty("type", isAdif ? "EXPORT_ADIF" : "EXPORT_CSV");
+                msg.addProperty("targetPath", tmpFile);
+                jhubServer.broadcastToAppName("logging-engine", msg.toString());
+                java.nio.file.Path outPath = java.nio.file.Path.of(tmpFile);
+                for (int i = 0; i < 50; i++) {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                    if (java.nio.file.Files.exists(outPath)) break;
+                }
+                if (!java.nio.file.Files.exists(outPath)) {
+                    res.setStatus(504);
+                    json(res, "{\"error\":\"Export timed out — J-Log did not respond\"}");
+                    return;
+                }
+                try {
+                    byte[] data = java.nio.file.Files.readAllBytes(outPath);
+                    java.nio.file.Files.deleteIfExists(outPath);
+                    res.setContentType(isAdif ? "text/plain; charset=utf-8" : "text/csv; charset=utf-8");
+                    res.setHeader("Content-Disposition",
+                        "attachment; filename=\"" + (isAdif ? "log-export.adi" : "log-export.csv") + "\"");
+                    res.setHeader("Access-Control-Allow-Origin", "*");
+                    res.getOutputStream().write(data);
+                } catch (Exception e) {
+                    res.setStatus(500);
+                    json(res, "{\"error\":\"File read failed: " + e.getMessage() + "\"}");
+                }
+
+            } else {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        }
+
+        @Override protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            if ("/delete".equals(req.getPathInfo())) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    String name = j.has("name") ? j.get("name").getAsString() : "";
+                    if (DEFAULT_DB.equals(name)) {
+                        res.setStatus(400);
+                        json(res, "{\"error\":\"Cannot delete the default database\"}");
+                        return;
+                    }
+                    java.nio.file.Files.deleteIfExists(LOG_DIR.resolve(name));
+                    json(res, "{\"status\":\"deleted\"}");
+                } catch (Exception e) {
+                    res.setStatus(500);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+            } else {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res);
+            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+
+        private String readActiveDb() {
+            try {
+                java.nio.file.Path f = LOG_DIR.resolve(ACTIVE_FILE);
+                if (java.nio.file.Files.exists(f)) return java.nio.file.Files.readString(f).trim();
+            } catch (Exception ignored) {}
+            return DEFAULT_DB;
+        }
+
+        private void writeActiveDb(String name) throws java.io.IOException {
+            java.nio.file.Files.createDirectories(LOG_DIR);
+            java.nio.file.Files.writeString(LOG_DIR.resolve(ACTIVE_FILE), name);
         }
     }
 

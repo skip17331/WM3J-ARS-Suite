@@ -22,20 +22,10 @@
                             <MenuItem text="%menu.export.cabrillo" onAction="#menuExportCabrillo"/>
                         </items>
                     </Menu>
-                    <Menu text="%menu.dx">
-                        <items>
-                            <MenuItem text="%menu.dx.show" onAction="#menuDxSpotting"/>
-                        </items>
-                    </Menu>
-                    <Menu text="%menu.radio">
-                        <items>
-                            <MenuItem text="%menu.civ.connect"    onAction="#menuConnectCiv"/>
-                            <MenuItem text="%menu.civ.disconnect" onAction="#menuDisconnectCiv"/>
-                        </items>
-                    </Menu>
                     <Menu text="%menu.setup">
                         <items>
-                            <MenuItem text="%menu.setup.open" onAction="#menuSetup"/>
+                            <MenuItem text="Database Tools"  onAction="#menuDatabaseTools"/>
+                            <MenuItem text="J-Hub Setup UI"  onAction="#menuSetup"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.contest">

@@ -22,22 +22,10 @@
                             <MenuItem text="%menu.exit" onAction="#menuExit"/>
                         </items>
                     </Menu>
-                    <Menu text="%menu.dx">
-                        <items>
-                            <MenuItem text="%menu.dx.show" onAction="#menuDxSpotting"/>
-                        </items>
-                    </Menu>
-                    <Menu text="%menu.radio">
-                        <items>
-                            <MenuItem text="%menu.civ.connect"    onAction="#menuConnectCiv"/>
-                            <MenuItem text="%menu.civ.disconnect" onAction="#menuDisconnectCiv"/>
-                            <SeparatorMenuItem/>
-                            <MenuItem text="Band Plan Reference"  onAction="#showBandPlan"/>
-                        </items>
-                    </Menu>
                     <Menu text="%menu.setup">
                         <items>
-                            <MenuItem text="%menu.setup.open" onAction="#menuSetup"/>
+                            <MenuItem text="Database Tools"  onAction="#menuDatabaseTools"/>
+                            <MenuItem text="J-Hub Setup UI"  onAction="#menuSetup"/>
                         </items>
                     </Menu>
                 </menus>
@@ -61,7 +49,7 @@
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
                     <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
 
-                    <!-- Row 0: Callsign, Date, Band, Mode, Power, RST Sent, RST Rcvd -->
+                    <!-- Row 0: Callsign, Band, Mode, Power, RST Sent, RST Rcvd -->
                     <Label text="%label.callsign" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <TextField fx:id="tfCallsign" styleClass="callsign-field"
                                GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="130"/>
