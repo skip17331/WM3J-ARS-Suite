@@ -2,6 +2,8 @@ package com.hamradio.jhub;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.hamradio.jhub.callsign.CallsignLookupService;
+import com.hamradio.jhub.callsign.CallsignResult;
 import com.hamradio.jhub.model.RigStatus;
 import com.hamradio.jhub.model.Spot;
 import org.java_websocket.WebSocket;
@@ -117,6 +119,10 @@ public class MessageRouter {
                 handleJMapConfigRequest(session, server);
                 break;
 
+            case "CALLSIGN_LOOKUP":
+                handleCallsignLookup(msg, server);
+                break;
+
             default:
                 log.debug("Unhandled message type '{}' from '{}'", type, session.appName);
         }
@@ -189,6 +195,10 @@ public class MessageRouter {
 
             // Cache for replay to late-joining apps
             StateCache.getInstance().setLastSelectedSpot(rawJson);
+
+            // Kick off an async callsign lookup so all apps get operator details
+            String spotted = msg.has("spotted") ? msg.get("spotted").getAsString().trim() : "";
+            if (!spotted.isEmpty()) asyncCallsignLookup(spotted, server);
 
             // Broadcast enriched SPOT_SELECTED to ALL apps:
             //   • j-log populates its entry bar
@@ -455,6 +465,52 @@ public class MessageRouter {
             jHubServer.broadcastToAll(rawJson);
         }
     }
+
+    // ---------------------------------------------------------------
+    // CALLSIGN_LOOKUP — app requests a callsign lookup
+    // ---------------------------------------------------------------
+
+    private void handleCallsignLookup(JsonObject msg, JHubServer server) {
+        String callsign = msg.has("callsign") ? msg.get("callsign").getAsString().trim().toUpperCase() : "";
+        if (!callsign.isEmpty()) asyncCallsignLookup(callsign, server);
+    }
+
+    /**
+     * Runs a callsign lookup in a daemon thread and broadcasts CALLSIGN_RESULT to all apps.
+     * Lookup results are cached by CallsignLookupService so repeated calls are fast.
+     */
+    private void asyncCallsignLookup(String callsign, JHubServer server) {
+        Thread t = new Thread(() -> {
+            try {
+                CallsignResult r = CallsignLookupService.getInstance().lookup(callsign);
+                JsonObject out = new JsonObject();
+                out.addProperty("type",           "CALLSIGN_RESULT");
+                out.addProperty("callsign",        r.callsign != null ? r.callsign : callsign);
+                out.addProperty("found",           r.found);
+                out.addProperty("name",            nvl(r.name));
+                out.addProperty("firstName",       nvl(r.firstName));
+                out.addProperty("lastName",        nvl(r.lastName));
+                out.addProperty("addr1",           nvl(r.addr1));
+                out.addProperty("city",            nvl(r.city));
+                out.addProperty("state",           nvl(r.state));
+                out.addProperty("country",         nvl(r.country));
+                out.addProperty("grid",            nvl(r.grid));
+                out.addProperty("licenseClass",    nvl(r.licenseClass));
+                out.addProperty("licenseExpires",  nvl(r.licenseExpires));
+                out.addProperty("lat",             r.lat);
+                out.addProperty("lon",             r.lon);
+                out.addProperty("source",          nvl(r.source));
+                server.broadcastToAll(out.toString());
+                log.debug("CALLSIGN_RESULT broadcast for {}: found={} source={}", callsign, r.found, r.source);
+            } catch (Exception e) {
+                log.warn("Callsign lookup failed for {}: {}", callsign, e.getMessage());
+            }
+        }, "jhub-callsign-lookup");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private static String nvl(String v) { return v != null ? v : ""; }
 
     // ---------------------------------------------------------------
     // Called when an app disconnects

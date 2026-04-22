@@ -47,6 +47,7 @@ public class HubEngine {
     private Consumer<DxSpot>   spotSelectedListener;
     private Consumer<String>   rawLineListener;
     private Consumer<JsonNode> logEntryDraftListener;
+    private Consumer<JsonNode> callsignResultListener;
     private Consumer<Integer>  configUpdateListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
@@ -147,6 +148,10 @@ public class HubEngine {
                 if (spotSelectedListener != null)
                     spotSelectedListener.accept(spot);
 
+            } else if ("CALLSIGN_RESULT".equals(type)) {
+                if (callsignResultListener != null)
+                    callsignResultListener.accept(node);
+
             } else if ("LOG_ENTRY_DRAFT".equals(type)) {
                 if (logEntryDraftListener != null)
                     logEntryDraftListener.accept(node);
@@ -207,14 +212,15 @@ public class HubEngine {
     // Listener setters
     // ---------------------------------------------------------------
 
-    public void setSpotListener         (Consumer<DxSpot> l)   { this.spotListener          = l; }
-    public void setSpotSelectedListener (Consumer<DxSpot> l)   { this.spotSelectedListener  = l; }
-    public void setRawLineListener      (Consumer<String> l)   { this.rawLineListener       = l; }
-    public void setLogEntryDraftListener(Consumer<JsonNode> l) { this.logEntryDraftListener = l; }
-    public void setConfigUpdateListener (Consumer<Integer> l)  { this.configUpdateListener  = l; }
-    public void setOnConnected          (Runnable r)           { this.onConnected           = r; }
-    public void setOnDisconnected       (Runnable r)           { this.onDisconnected        = r; }
-    public void setOnShutdown           (Runnable r)           { this.onShutdown            = r; }
+    public void setSpotListener             (Consumer<DxSpot> l)   { this.spotListener             = l; }
+    public void setSpotSelectedListener     (Consumer<DxSpot> l)   { this.spotSelectedListener     = l; }
+    public void setRawLineListener          (Consumer<String> l)   { this.rawLineListener          = l; }
+    public void setLogEntryDraftListener    (Consumer<JsonNode> l) { this.logEntryDraftListener    = l; }
+    public void setCallsignResultListener   (Consumer<JsonNode> l) { this.callsignResultListener   = l; }
+    public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
+    public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
+    public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
+    public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }
 
     // ---------------------------------------------------------------
     // Spot selection — publish to hub so other apps (e.g. HamClock) react
@@ -228,6 +234,20 @@ public class HubEngine {
     public void notifySpotSelected(DxSpot spot) {
         if (spotSelectedListener != null)
             spotSelectedListener.accept(spot);
+    }
+
+    /** Send a CALLSIGN_LOOKUP request to hub; hub will broadcast CALLSIGN_RESULT to all apps. */
+    public void sendCallsignLookup(String callsign) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",     "CALLSIGN_LOOKUP");
+            msg.put("callsign", callsign.toUpperCase().trim());
+            wsClient.send(msg.toString());
+            log.debug("Sent CALLSIGN_LOOKUP: {}", callsign);
+        } catch (Exception e) {
+            log.warn("sendCallsignLookup failed: {}", e.getMessage());
+        }
     }
 
     public void sendSpotSelected(DxSpot spot) {

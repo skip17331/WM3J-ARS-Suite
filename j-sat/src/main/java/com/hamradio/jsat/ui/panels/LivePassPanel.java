@@ -8,9 +8,7 @@ import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -41,16 +39,19 @@ public class LivePassPanel extends VBox {
     private final Canvas elBarCanvas;
 
     private final Label countdownLabel;
-    private final Label passInfoLabel;
+    private final Label passLine1Label;
+    private final Label passLine2Label;
+
+    // Bottom-bar panes — built in constructor, placed by DashboardLayout
+    private final VBox passPredictionPane;
+    private final VBox rangeRatePane;
 
     public LivePassPanel(ServiceRegistry services) {
         this.services = services;
         int fz = services.getSettings().fontSize;
 
         setSpacing(6);
-        setPadding(new Insets(8));
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
-               + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle(cardStyle());
 
         satNameLabel = styledLabel("— NO SATELLITE SELECTED —", "#aabbdd", true, fz + 1);
 
@@ -72,22 +73,43 @@ public class LivePassPanel extends VBox {
         elBarCanvas = new Canvas(POLAR_SIZE, 14);
         drawElBarBackground(elBarCanvas.getGraphicsContext2D(), 0);
 
-        // ── AOS / LOS countdown ──────────────────────────────────────────────
-        countdownLabel = styledLabel("—", "#445566", true, fz + 3);
-        passInfoLabel  = styledLabel("", "#445566", false, fz - 3);
-        VBox countdownBox = new VBox(1, countdownLabel, passInfoLabel);
-        countdownBox.setStyle("-fx-background-color: #080e1c; -fx-background-radius: 4; "
-                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1; "
-                + "-fx-padding: 5 8 5 8;");
-        countdownBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        // ── AOS / LOS countdown (bottom-bar pane) ────────────────────────────
+        countdownLabel = styledLabel("—",  "#445566", true,  fz + 3);
+        passLine1Label = styledLabel("",   "#7799bb", false, fz - 1);
+        passLine2Label = styledLabel("",   "#7799bb", false, fz - 1);
+        Label passHeader = styledLabel("PASS PREDICTION", "#334466", false, fz - 3);
+        passPredictionPane = new VBox(2, passHeader, countdownLabel, passLine1Label, passLine2Label);
+        passPredictionPane.setStyle(cardStyle());
+        passPredictionPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        passPredictionPane.setMaxWidth(Double.MAX_VALUE);
 
-        // ── Telemetry grid ───────────────────────────────────────────────────
+        // ── Range / Rate (bottom-bar pane) ───────────────────────────────────
+        rangeLabel = styledLabel("---", "#00e5ff", true, fz + 3);
+        rateLabel  = styledLabel("---", "#69f0ae", true, fz + 3);
+        Label rrHeader   = styledLabel("RANGE / RATE",   "#334466", false, fz - 3);
+        Label rangeKey   = styledLabel("Range",  "#556688", false, fz - 3);
+        Label rateKey    = styledLabel("Rate",   "#556688", false, fz - 3);
+        VBox  rangeBlock = new VBox(1, rangeKey, rangeLabel);
+        VBox  rateBlock  = new VBox(1, rateKey,  rateLabel);
+        HBox  rrRow      = new HBox(20, rangeBlock, rateBlock);
+        rangeRatePane = new VBox(2, rrHeader, rrRow);
+        rangeRatePane.setStyle(cardStyle());
+        rangeRatePane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        rangeRatePane.setMaxWidth(Double.MAX_VALUE);
+
+        // ── Telemetry grid (right sidebar — no range/rate) ───────────────────
         GridPane grid = new GridPane();
-        grid.setHgap(14); grid.setVgap(4);
+        grid.setHgap(10); grid.setVgap(4);
         grid.setPadding(new Insets(4, 0, 4, 0));
 
-        rangeLabel    = val("---", fz);
-        rateLabel     = val("---", fz);
+        ColumnConstraints keyCol = new ColumnConstraints();
+        keyCol.setMinWidth(Region.USE_PREF_SIZE);
+        keyCol.setHgrow(Priority.NEVER);
+        ColumnConstraints valCol = new ColumnConstraints();
+        valCol.setHgrow(Priority.ALWAYS);
+        valCol.setFillWidth(true);
+        grid.getColumnConstraints().addAll(keyCol, valCol);
+
         downlinkLabel = val("---", fz);
         uplinkLabel   = val("---", fz);
         sunlitLabel   = val("---", fz);
@@ -96,18 +118,35 @@ public class LivePassPanel extends VBox {
         apogeeLabel   = val("---", fz);
         perigeeLabel  = val("---", fz);
 
-        addRow(grid, 0, "Range",    rangeLabel,    "Rate",      rateLabel,    fz);
-        addRow(grid, 1, "Downlink", downlinkLabel, "Uplink",    uplinkLabel,  fz);
-        addRow(grid, 2, "Sunlit",   sunlitLabel,   "Pass",      risingLabel,  fz);
-        addRow(grid, 3, "Altitude", altLabel,      "Apogee",    apogeeLabel,  fz);
-        grid.add(key("Perigee", fz), 0, 4);
-        grid.add(perigeeLabel,       1, 4);
+        int r = 0;
+        grid.add(key("Downlink", fz), 0, r); grid.add(downlinkLabel, 1, r++);
+        grid.add(key("Uplink",   fz), 0, r); grid.add(uplinkLabel,   1, r++);
+        grid.add(key("Sunlit",   fz), 0, r); grid.add(sunlitLabel,   1, r++);
+        grid.add(key("Pass",     fz), 0, r); grid.add(risingLabel,   1, r++);
+        grid.add(key("Altitude", fz), 0, r); grid.add(altLabel,      1, r++);
+        grid.add(key("Apogee",   fz), 0, r); grid.add(apogeeLabel,   1, r++);
+        grid.add(key("Perigee",  fz), 0, r); grid.add(perigeeLabel,  1, r);
 
         // ── Polar plot ───────────────────────────────────────────────────────
         polarCanvas = new Canvas(POLAR_SIZE, POLAR_SIZE);
         drawPolarBackground(polarCanvas.getGraphicsContext2D());
 
-        getChildren().addAll(satNameLabel, azelBox, elBarCanvas, countdownBox, grid, polarCanvas);
+        getChildren().addAll(satNameLabel, azelBox, elBarCanvas, grid);
+    }
+
+    public VBox getPassPredictionPane() { return passPredictionPane; }
+    public VBox getRangeRatePane()      { return rangeRatePane; }
+
+    /** Returns the polar plot wrapped in a styled card that floats over the world map. */
+    public VBox buildPolarCard(int fz) {
+        Label header = styledLabel("POLAR PLOT", "#334466", false, fz - 3);
+        VBox card = new VBox(4, header, polarCanvas);
+        card.setAlignment(javafx.geometry.Pos.CENTER);
+        card.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        card.setStyle("-fx-background-color: rgba(13,16,32,0.88); -fx-background-radius: 6; "
+                    + "-fx-border-color: #1a2a5a; -fx-border-radius: 6; -fx-border-width: 1; "
+                    + "-fx-padding: 8; -fx-effect: dropshadow(gaussian, #000000aa, 10, 0.4, 0, 2);");
+        return card;
     }
 
     public void update() {
@@ -283,7 +322,8 @@ public class LivePassPanel extends VBox {
         if (passes == null || passes.isEmpty()) {
             countdownLabel.setText("No pass data");
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
-            passInfoLabel.setText("Prediction pending…");
+            passLine1Label.setText("Prediction pending…");
+            passLine2Label.setText("");
             return;
         }
 
@@ -302,19 +342,22 @@ public class LivePassPanel extends VBox {
             countdownLabel.setText("LOS  " + formatCountdown(secsLeft));
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 secsLeft < 60 ? "-fx-text-fill: #ff4444;" : "-fx-text-fill: #ff8844;"));
-            passInfoLabel.setText(String.format("Max El %.0f°  AOS Az %.0f°  LOS Az %.0f°",
-                active.maxElDeg, active.aosAzDeg, active.losAzDeg));
+            passLine1Label.setText(String.format("Max El  %.0f°", active.maxElDeg));
+            passLine2Label.setText(String.format("AOS Az  %.0f°   LOS Az  %.0f°",
+                active.aosAzDeg, active.losAzDeg));
         } else if (next != null) {
             long secsUntil = next.aos.getEpochSecond() - now.getEpochSecond();
             countdownLabel.setText("AOS  " + formatCountdown(secsUntil));
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 secsUntil < 300 ? "-fx-text-fill: #69f0ae;" : "-fx-text-fill: #00b0ff;"));
-            passInfoLabel.setText(String.format("Max El %.0f°  Az %.0f°  Dur %s",
-                next.maxElDeg, next.aosAzDeg, formatCountdown(next.durationSeconds())));
+            passLine1Label.setText(String.format("Max El  %.0f°", next.maxElDeg));
+            passLine2Label.setText(String.format("AOS Az  %.0f°   Dur  %s",
+                next.aosAzDeg, formatCountdown(next.durationSeconds())));
         } else {
             countdownLabel.setText("No upcoming pass");
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
-            passInfoLabel.setText("");
+            passLine1Label.setText("");
+            passLine2Label.setText("");
         }
     }
 
@@ -335,10 +378,19 @@ public class LivePassPanel extends VBox {
         prevElevationDeg = Double.NaN;
         countdownLabel.setText("—");
         countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
-        passInfoLabel.setText("");
-        for (Label l : new Label[]{rangeLabel, rateLabel, downlinkLabel, uplinkLabel,
+        passLine1Label.setText("");
+        passLine2Label.setText("");
+        rangeLabel.setText("---");
+        rateLabel.setText("---");
+        for (Label l : new Label[]{downlinkLabel, uplinkLabel,
                                    sunlitLabel, risingLabel, altLabel, apogeeLabel, perigeeLabel})
             l.setText("---");
+    }
+
+    private static String cardStyle() {
+        return "-fx-background-color: #0d1020; -fx-background-radius: 4; "
+             + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1; "
+             + "-fx-padding: 6 10 6 10;";
     }
 
     private static javafx.scene.layout.Region separator() {
@@ -355,11 +407,6 @@ public class LivePassPanel extends VBox {
 
     private static String formatHz(long hz) {
         return String.format("%+d Hz", hz);
-    }
-
-    private static void addRow(GridPane g, int row, String k1, Label v1, String k2, Label v2, int fz) {
-        g.add(key(k1, fz), 0, row); g.add(v1, 1, row);
-        g.add(key(k2, fz), 2, row); g.add(v2, 3, row);
     }
 
     private static Label key(String text, int fz) {

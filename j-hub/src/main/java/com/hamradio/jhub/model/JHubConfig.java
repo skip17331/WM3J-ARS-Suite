@@ -14,16 +14,17 @@ import java.util.Set;
  */
 public class JHubConfig {
 
-    public JHubSection       jHub            = new JHubSection();
-    public StationSection    station         = new StationSection();
-    public RigSection        rig             = new RigSection();
-    public RotorSection      rotor           = new RotorSection();
-    public ClusterSection    cluster         = new ClusterSection();
-    public LoggerSection     logger          = new LoggerSection();
-    public InfoScreenSection infoScreen      = new InfoScreenSection();
-    public AppsSection       apps            = new AppsSection();
-    public MacrosSection     macros          = new MacrosSection();
-    public AppearanceSection appearance      = new AppearanceSection();
+    public JHubSection        jHub            = new JHubSection();
+    public StationSection     station         = new StationSection();
+    public RigSection         rig             = new RigSection();
+    public RotorSection       rotor           = new RotorSection();
+    public ClusterSection     cluster         = new ClusterSection();
+    public LoggerSection      logger          = new LoggerSection();
+    public InfoScreenSection  infoScreen      = new InfoScreenSection();
+    public AppsSection        apps            = new AppsSection();
+    public MacrosSection      macros          = new MacrosSection();
+    public AppearanceSection  appearance      = new AppearanceSection();
+    public CallsignSection    callsignLookup  = new CallsignSection();
     public com.google.gson.JsonObject jMapSettings    = null;
     public com.google.gson.JsonObject jSatSettings    = null;
     public com.google.gson.JsonObject jLogSettings    = null;
@@ -204,6 +205,39 @@ public class JHubConfig {
             d.key = key; d.label = label; d.text = text; d.type = type;
             return d;
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Callsign lookup service configuration
+    // ---------------------------------------------------------------
+
+    public static class CallsignSection {
+        /** Enable or disable the lookup service entirely. */
+        public boolean enabled          = true;
+        /**
+         * Which provider to use: "auto" (priority chain), "qrz", "hamqth", "hamdb", "callook".
+         * In "auto" mode the order is: QRZ → HamQTH → HamDB → Callook.
+         */
+        public String  provider         = "auto";
+        /**
+         * Path to the local SQLite callsign database (e.g. "/home/user/callsigns.db").
+         * Leave blank to disable local-DB lookups.
+         * Populate via POST /api/callsign/db/import/fcc or /api/callsign/db/import/csv.
+         */
+        public String  localDbPath      = "";
+        // QRZ.com XML subscription credentials (https://www.qrz.com/page/xml_data.html)
+        public String  qrzUsername      = "";
+        public String  qrzPassword      = "";
+        // HamQTH.com free-registration credentials (https://www.hamqth.com)
+        public String  hamqthUsername   = "";
+        public String  hamqthPassword   = "";
+        /** How long to cache a successful lookup result (hours). */
+        public int     cacheTtlHours    = 24;
+        /**
+         * Override URL for the FCC ULS amateur ZIP download.
+         * Leave blank to use the default: https://data.fcc.gov/download/pub/uls/complete/l_amat.zip
+         */
+        public String  fccUlsUrl        = "";
     }
 
     // ---------------------------------------------------------------

@@ -705,6 +705,9 @@ function populateForms(cfg) {
   // J-Sat tab
   populateJSatTab(cfg);
 
+  // Callsign tab
+  populateCallsignTab(cfg);
+
   // J-Log tab
   const jl = cfg.jLogSettings || {};
   populateJLogForm(jl);
@@ -1406,8 +1409,9 @@ function populateJMapForm(s) {
   setVal('jm-owm-key',   s.openWeatherApiKey  || '');
 
   setChk('jm-worldmap',  s.showWorldMap  !== false);
-  setChk('jm-grayline',  s.showGrayline  !== false);
-  setChk('jm-dxspots',   s.showDxSpots   !== false);
+  setChk('jm-grayline',     s.showGrayline    !== false);
+  setChk('jm-dxspots',      s.showDxSpots     !== false);
+  setChk('jm-sunposition',  s.showSunPosition !== false);
   const opEl = document.getElementById('jm-grayline-opacity');
   const opLbl = document.getElementById('jm-grayline-opacity-val');
   if (opEl) { opEl.value = s.graylineOpacity != null ? s.graylineOpacity : 0.6; }
@@ -1468,6 +1472,7 @@ function saveJMapSettings() {
     showWorldMap:           chk('jm-worldmap'),
     showGrayline:           chk('jm-grayline'),
     showDxSpots:            chk('jm-dxspots'),
+    showSunPosition:        chk('jm-sunposition'),
     graylineOpacity:        flt('jm-grayline-opacity'),
     showAuroraOverlay:      chk('jm-aurora'),
     showGeomagneticAlerts:  chk('jm-geomag'),
@@ -1799,6 +1804,195 @@ function updateWeatherUI(d) {
     setText('wx-vis',      vis);
     setText('wx-location', lw.name || '—');
   }
+}
+
+// ── Callsign tab ─────────────────────────────────────────────
+
+function populateCallsignTab(cfg) {
+  const cs = cfg.callsignLookup || {};
+  setChk('cs-enabled',     cs.enabled !== false);
+  setSelectVal('cs-provider',  cs.provider      || 'auto');
+  setVal('cs-db-path-cfg', cs.localDbPath    || '');
+  setVal('cs-cache-ttl',   cs.cacheTtlHours  != null ? cs.cacheTtlHours : 24);
+  setVal('cs-qrz-user',    cs.qrzUsername    || '');
+  setVal('cs-qrz-pass',    cs.qrzPassword    || '');
+  setVal('cs-hamqth-user', cs.hamqthUsername || '');
+  setVal('cs-hamqth-pass', cs.hamqthPassword || '');
+  setVal('cs-fcc-url-cfg', cs.fccUlsUrl      || '');
+  loadCallsignDbStatus();
+}
+
+function saveCallsignSettings() {
+  const cfg = state.config || {};
+  cfg.callsignLookup = {
+    enabled:        document.getElementById('cs-enabled').checked,
+    provider:       document.getElementById('cs-provider').value,
+    localDbPath:    document.getElementById('cs-db-path-cfg').value.trim(),
+    cacheTtlHours:  parseInt(document.getElementById('cs-cache-ttl').value) || 24,
+    qrzUsername:    document.getElementById('cs-qrz-user').value.trim(),
+    qrzPassword:    document.getElementById('cs-qrz-pass').value,
+    hamqthUsername: document.getElementById('cs-hamqth-user').value.trim(),
+    hamqthPassword: document.getElementById('cs-hamqth-pass').value,
+    fccUlsUrl:      document.getElementById('cs-fcc-url-cfg').value.trim(),
+  };
+  fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cfg)
+  })
+    .then(r => r.json())
+    .then(() => loadCallsignDbStatus())
+    .catch(e => alert('Save failed: ' + e));
+}
+
+function loadCallsignDbStatus() {
+  fetch('/api/callsign/db/status')
+    .then(r => r.json())
+    .then(d => {
+      setText('cs-db-path',     d.dbPath || '(not configured)');
+      setText('cs-db-records',  d.exists ? (d.records >= 0 ? Number(d.records).toLocaleString() : '—') : 'DB not found');
+      setText('cs-db-size',     d.sizeBytes != null ? (d.sizeBytes / 1048576).toFixed(1) + ' MB' : '—');
+      setText('cs-db-modified', d.lastModified ? new Date(d.lastModified).toLocaleString() : '—');
+    })
+    .catch(() => {});
+}
+
+function doCallsignLookup() {
+  const call = (document.getElementById('cs-search').value || '').toUpperCase().trim();
+  if (!call) return;
+  document.getElementById('cs-result').style.display    = 'none';
+  document.getElementById('cs-not-found').style.display = 'none';
+  fetch('/api/callsign/' + encodeURIComponent(call))
+    .then(r => r.json())
+    .then(d => {
+      if (!d.found) {
+        const el = document.getElementById('cs-not-found');
+        el.textContent = d.reason || 'Not found';
+        el.style.display = '';
+        return;
+      }
+      document.getElementById('cs-result').style.display = '';
+      setText('cs-r-call',   d.callsign       || '—');
+      setText('cs-r-name',   d.name           || '—');
+      const addr = [d.addr1, d.city, d.state, d.zip].filter(Boolean).join(', ');
+      setText('cs-r-addr',   addr             || '—');
+      setText('cs-r-grid',   d.grid           || '—');
+      setText('cs-r-class',  d.licenseClass   || '—');
+      setText('cs-r-exp',    d.licenseExpires || '—');
+      setText('cs-r-source', d.source         || '—');
+    })
+    .catch(e => {
+      const el = document.getElementById('cs-not-found');
+      el.textContent = 'Error: ' + e;
+      el.style.display = '';
+    });
+}
+
+let fccPollTimer = null;
+
+function doFccDownload() {
+  const btn = document.getElementById('cs-fcc-dl-btn');
+  btn.disabled = true;
+  btn.textContent = 'Starting…';
+  document.getElementById('cs-fcc-dl-progress').style.display = '';
+  fetch('/api/callsign/db/download/fcc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}'
+  })
+    .then(r => r.json())
+    .then(d => {
+      startFccPoll();
+      if (!d.started) setText('cs-dl-msg', 'Pipeline already running — monitoring progress');
+    })
+    .catch(e => {
+      btn.disabled = false;
+      btn.textContent = 'Download from FCC';
+      setText('cs-dl-msg', 'Error: ' + e);
+    });
+}
+
+function startFccPoll() {
+  if (fccPollTimer) return;
+  pollFccProgress();
+  fccPollTimer = setInterval(pollFccProgress, 1500);
+}
+
+function pollFccProgress() {
+  fetch('/api/callsign/db/import/progress')
+    .then(r => r.json())
+    .then(d => {
+      const phase = d.dlPhase || 'IDLE';
+      setText('cs-dl-phase', phase);
+      setText('cs-dl-msg',   d.dlMsg || '');
+
+      const barWrap = document.getElementById('cs-dl-bar-wrap');
+      const bar     = document.getElementById('cs-dl-bar');
+      if (phase === 'DOWNLOADING' && d.dlBytesTotal > 0) {
+        barWrap.style.display = '';
+        bar.style.width = Math.min(100, (d.dlBytesReceived / d.dlBytesTotal) * 100).toFixed(1) + '%';
+      } else {
+        barWrap.style.display = 'none';
+      }
+
+      if (phase === 'DONE' || phase === 'FAILED') {
+        clearInterval(fccPollTimer);
+        fccPollTimer = null;
+        const btn = document.getElementById('cs-fcc-dl-btn');
+        btn.disabled = false;
+        btn.textContent = 'Download from FCC';
+        if (phase === 'DONE') loadCallsignDbStatus();
+      }
+    })
+    .catch(() => {});
+}
+
+function doFccManualImport() {
+  const ulsDir = document.getElementById('cs-uls-dir').value.trim();
+  if (!ulsDir) { alert('Enter the path to the extracted ULS directory'); return; }
+  const msgEl = document.getElementById('cs-fcc-import-msg');
+  msgEl.textContent = 'Starting…';
+  msgEl.style.color = '';
+  fetch('/api/callsign/db/import/fcc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ulsDir })
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.started) {
+        msgEl.textContent = 'Import started';
+        msgEl.style.color = 'var(--green)';
+      } else {
+        msgEl.textContent = d.error || 'An import is already running';
+        msgEl.style.color = 'var(--red)';
+      }
+    })
+    .catch(e => { msgEl.textContent = 'Error: ' + e; msgEl.style.color = 'var(--red)'; });
+}
+
+function doCsvImport() {
+  const csvPath = document.getElementById('cs-csv-path').value.trim();
+  if (!csvPath) { alert('Enter the path to the CSV file'); return; }
+  const msgEl = document.getElementById('cs-csv-import-msg');
+  msgEl.textContent = 'Starting…';
+  msgEl.style.color = '';
+  fetch('/api/callsign/db/import/csv', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ csvPath })
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.started) {
+        msgEl.textContent = 'CSV import started';
+        msgEl.style.color = 'var(--green)';
+      } else {
+        msgEl.textContent = d.error || 'An import is already running';
+        msgEl.style.color = 'var(--red)';
+      }
+    })
+    .catch(e => { msgEl.textContent = 'Error: ' + e; msgEl.style.color = 'var(--red)'; });
 }
 
 function compassDir(deg) {

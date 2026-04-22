@@ -29,6 +29,7 @@
       <button class="nav-btn" data-tab="jbridge"><span class="nav-icon">⇄</span>J-Bridge</button>
       <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
       <button class="nav-btn" data-tab="weather"><span class="nav-icon">☁</span>Weather</button>
+      <button class="nav-btn" data-tab="callsign"><span class="nav-icon">⊛</span>Callsign</button>
     </div>
     <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
       <span id="nav-ws">WebSocket: <span id="nav-ws-state">—</span></span>
@@ -837,11 +838,15 @@
           <div><div class="toggle-label">DX Spots on Map</div></div>
           <label class="toggle"><input type="checkbox" id="jm-dxspots"><span class="toggle-slider"></span></label>
         </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Sun Position</div></div>
+          <label class="toggle"><input type="checkbox" id="jm-sunposition" checked><span class="toggle-slider"></span></label>
+        </div>
         <div class="field-row cols-2" style="margin-top:8px">
           <div class="field">
+            <label>Grayline Opacity: <span id="jm-grayline-opacity-val">0.60</span></label>
             <input type="range" id="jm-grayline-opacity" min="0" max="1" step="0.05" value="0.6"
                    oninput="document.getElementById('jm-grayline-opacity-val').textContent=parseFloat(this.value).toFixed(2)">
-            <label>Grayline Opacity: <span id="jm-grayline-opacity-val">0.60</span></label>
           </div>
         </div>
       </div>
@@ -1428,6 +1433,141 @@
         <div id="local-wx-err" style="color:var(--red);font-size:12px;display:none"></div>
       </div>
 
+    </section>
+
+    <!-- ─── Tab: Callsign ───────────────────────────────────── -->
+    <section id="tab-callsign" class="tab-panel">
+      <div class="panel-header">Callsign Lookup</div>
+      <div class="panel-sub">Multi-provider callsign lookup with local SQLite database, QRZ.com, HamQTH, HamDB, and Callook.</div>
+
+      <!-- Live lookup -->
+      <div class="card">
+        <div class="card-title">Lookup</div>
+        <div class="field-row" style="align-items:center;gap:8px">
+          <input type="text" id="cs-search" placeholder="Enter callsign…" style="text-transform:uppercase;max-width:200px" onkeydown="if(event.key==='Enter')doCallsignLookup()">
+          <button class="btn btn-primary btn-sm" onclick="doCallsignLookup()">Look Up</button>
+        </div>
+        <div id="cs-result" style="display:none;margin-top:10px">
+          <div class="intel-row"><span class="intel-k">Callsign</span><span class="intel-v" id="cs-r-call">—</span></div>
+          <div class="intel-row"><span class="intel-k">Name</span><span class="intel-v" id="cs-r-name">—</span></div>
+          <div class="intel-row"><span class="intel-k">Address</span><span class="intel-v" id="cs-r-addr">—</span></div>
+          <div class="intel-row"><span class="intel-k">Grid</span><span class="intel-v" id="cs-r-grid">—</span></div>
+          <div class="intel-row"><span class="intel-k">Class</span><span class="intel-v" id="cs-r-class">—</span></div>
+          <div class="intel-row"><span class="intel-k">Expires</span><span class="intel-v" id="cs-r-exp">—</span></div>
+          <div class="intel-row"><span class="intel-k">Source</span><span class="intel-v" id="cs-r-source">—</span></div>
+        </div>
+        <div id="cs-not-found" style="display:none;margin-top:8px;color:var(--overlay0);font-size:12px"></div>
+      </div>
+
+      <!-- Local DB + download -->
+      <div class="card">
+        <div class="card-title">Local Database</div>
+        <div class="intel-row"><span class="intel-k">Path</span><span class="intel-v" id="cs-db-path">—</span></div>
+        <div class="intel-row"><span class="intel-k">Records</span><span class="intel-v" id="cs-db-records">—</span></div>
+        <div class="intel-row"><span class="intel-k">Size</span><span class="intel-v" id="cs-db-size">—</span></div>
+        <div class="intel-row"><span class="intel-k">Last Updated</span><span class="intel-v" id="cs-db-modified">—</span></div>
+
+        <div style="margin-top:14px">
+          <div class="card-title" style="font-size:12px;margin-bottom:4px">FCC ULS Auto-Download</div>
+          <div class="panel-sub" style="margin-bottom:8px">Downloads the complete FCC amateur radio database directly from source, extracts, and imports — all in one step. ~220 MB download, 700k+ US amateur records.</div>
+          <div class="btn-row">
+            <button class="btn btn-primary btn-sm" id="cs-fcc-dl-btn" onclick="doFccDownload()">Download from FCC</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadCallsignDbStatus()">Refresh Status</button>
+          </div>
+          <div id="cs-fcc-dl-progress" style="display:none;margin-top:10px">
+            <div class="intel-row"><span class="intel-k">Phase</span><span class="intel-v" id="cs-dl-phase">—</span></div>
+            <div class="intel-row"><span class="intel-k">Status</span><span class="intel-v" id="cs-dl-msg">—</span></div>
+            <div id="cs-dl-bar-wrap" style="display:none;margin-top:6px">
+              <div style="background:var(--surface1);border-radius:4px;height:6px;overflow:hidden">
+                <div id="cs-dl-bar" style="background:var(--blue);height:6px;width:0%;transition:width 0.3s"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;border-top:1px solid var(--surface1);padding-top:12px">
+          <div class="card-title" style="font-size:12px;margin-bottom:4px">Manual FCC Import</div>
+          <div class="panel-sub" style="margin-bottom:8px">Already extracted l_amat.zip? Point to the folder containing HD.dat, EN.dat, and AM.dat.</div>
+          <div class="field">
+            <input type="text" id="cs-uls-dir" placeholder="/path/to/extracted/l_amat">
+            <label>ULS Directory</label>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="doFccManualImport()">Import</button>
+          <div id="cs-fcc-import-msg" style="margin-top:6px;font-size:12px;color:var(--overlay0)"></div>
+        </div>
+
+        <div style="margin-top:16px;border-top:1px solid var(--surface1);padding-top:12px">
+          <div class="card-title" style="font-size:12px;margin-bottom:4px">CSV Import</div>
+          <div class="panel-sub" style="margin-bottom:8px">Import from HamCall, Buckmaster, or any CSV file with a callsign column.</div>
+          <div class="field">
+            <input type="text" id="cs-csv-path" placeholder="/path/to/callsigns.csv">
+            <label>CSV File Path</label>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="doCsvImport()">Import CSV</button>
+          <div id="cs-csv-import-msg" style="margin-top:6px;font-size:12px;color:var(--overlay0)"></div>
+        </div>
+      </div>
+
+      <!-- Provider settings -->
+      <div class="card">
+        <div class="card-title">Provider Settings</div>
+        <div class="field">
+          <select id="cs-provider">
+            <option value="auto">Auto (Local DB → QRZ → HamQTH → HamDB → Callook)</option>
+            <option value="local">Local DB only</option>
+            <option value="qrz">QRZ.com</option>
+            <option value="hamqth">HamQTH</option>
+            <option value="hamdb">HamDB (free, no auth)</option>
+            <option value="callook">Callook (free, US only)</option>
+          </select>
+          <label>Lookup Provider</label>
+        </div>
+        <div class="field">
+          <input type="text" id="cs-db-path-cfg" placeholder="/home/user/callsigns.db">
+          <label>Local Database Path</label>
+          <span class="hint">SQLite file. Created automatically on first import.</span>
+        </div>
+        <div class="field">
+          <input type="number" id="cs-cache-ttl" min="1" max="168" placeholder="24">
+          <label>Cache TTL (hours)</label>
+        </div>
+        <div class="field">
+          <input type="text" id="cs-qrz-user" placeholder="N0CALL" autocomplete="off">
+          <label>QRZ.com Username</label>
+          <span class="hint">Requires paid XML Data subscription</span>
+        </div>
+        <div class="field">
+          <input type="password" id="cs-qrz-pass" autocomplete="new-password">
+          <label>QRZ.com Password</label>
+        </div>
+        <div class="field">
+          <input type="text" id="cs-hamqth-user" placeholder="N0CALL" autocomplete="off">
+          <label>HamQTH Username</label>
+          <span class="hint">Free registration at hamqth.com</span>
+        </div>
+        <div class="field">
+          <input type="password" id="cs-hamqth-pass" autocomplete="new-password">
+          <label>HamQTH Password</label>
+        </div>
+        <div class="field">
+          <input type="text" id="cs-fcc-url-cfg" placeholder="(use FCC default)">
+          <label>FCC Download URL Override</label>
+          <span class="hint">Leave blank to use the official FCC source</span>
+        </div>
+        <div class="toggle-row" style="margin-top:10px">
+          <div>
+            <div class="toggle-label">Enable Callsign Lookup</div>
+            <div class="toggle-desc">Allow modules to look up callsign data</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cs-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn btn-primary" onclick="saveCallsignSettings()">Save Settings</button>
+        </div>
+      </div>
     </section>
 
   </main>

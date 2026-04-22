@@ -159,7 +159,7 @@ public class WorldMapCanvas extends Pane {
         drawQthMarker(gc, w, h, s);
 
         // 15. Subsolar point
-        drawSubsolarPoint(gc, w, h);
+        if (s.isShowSunPosition()) drawSubsolarPoint(gc, w, h);
     }
 
     // ── Base map ─────────────────────────────────────────────────────────────
@@ -192,8 +192,9 @@ public class WorldMapCanvas extends Pane {
         double colW = w / lonSteps;
         double rowH = h / latSteps;
 
+        double opacity = Math.max(0.0, Math.min(1.0, services.getSettings().getGraylineOpacity()));
         gc.save();
-        gc.setFill(Color.rgb(0, 0, 30, 0.55));
+        gc.setFill(Color.rgb(0, 0, 30, opacity));
         for (int li = 0; li < lonSteps; li++) {
             for (int lj = 0; lj < latSteps; lj++) {
                 if (mask[li][lj]) gc.fillRect(li * colW, lj * rowH, colW + 1, rowH + 1);

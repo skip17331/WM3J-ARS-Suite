@@ -48,8 +48,11 @@ public class DxClusterClient {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    private volatile java.util.function.Consumer<DxSpot> spotSelectedListener;
+    private volatile java.util.function.Consumer<DxSpot>   spotSelectedListener;
     public void setSpotSelectedListener(java.util.function.Consumer<DxSpot> l) { this.spotSelectedListener = l; }
+
+    private volatile java.util.function.Consumer<JsonNode> callsignResultListener;
+    public void setCallsignResultListener(java.util.function.Consumer<JsonNode> l) { this.callsignResultListener = l; }
 
     private volatile java.util.function.Consumer<JsonNode> stationListener;
     public void setStationListener(java.util.function.Consumer<JsonNode> l) { this.stationListener = l; }
@@ -257,10 +260,28 @@ public class DxClusterClient {
                     spot.setServerMode(node.path("mode").asText());
                 if (spotSelectedListener != null)
                     spotSelectedListener.accept(spot);
+
+            } else if ("CALLSIGN_RESULT".equals(type)) {
+                if (callsignResultListener != null)
+                    callsignResultListener.accept(node);
             }
 
         } catch (Exception e) {
             log.debug("Message parse error: {}", e.getMessage());
+        }
+    }
+
+    /** Send a CALLSIGN_LOOKUP request; hub will broadcast CALLSIGN_RESULT to all apps. */
+    public void sendCallsignLookup(String callsign) {
+        WebSocketClient wsCopy = ws;
+        if (!connected || wsCopy == null || callsign == null || callsign.isBlank()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",     "CALLSIGN_LOOKUP");
+            msg.put("callsign", callsign.toUpperCase().trim());
+            wsCopy.send(msg.toString());
+        } catch (Exception e) {
+            log.warn("sendCallsignLookup failed: {}", e.getMessage());
         }
     }
 

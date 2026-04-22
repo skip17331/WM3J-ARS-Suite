@@ -29,7 +29,8 @@ public class Settings {
     private boolean showWorldMap = true;
     private boolean showGrayline = true;
     private boolean showDxSpots = true;
-    private double graylineOpacity = 0.6;
+    private double  graylineOpacity = 0.6;
+    private boolean showSunPosition = true;
 
     // === SPACE WEATHER OVERLAYS ===
     private boolean showAuroraOverlay = true;
@@ -219,6 +220,9 @@ public class Settings {
 
     public double getGraylineOpacity() { return graylineOpacity; }
     public void setGraylineOpacity(double graylineOpacity) { this.graylineOpacity = graylineOpacity; }
+
+    public boolean isShowSunPosition() { return showSunPosition; }
+    public void setShowSunPosition(boolean showSunPosition) { this.showSunPosition = showSunPosition; }
 
     public String getDxBandFilter() { return dxBandFilter; }
     public void setDxBandFilter(String dxBandFilter) { this.dxBandFilter = dxBandFilter; }

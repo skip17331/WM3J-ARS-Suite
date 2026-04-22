@@ -16,7 +16,7 @@
     "cqZone": 5,
     "arrlSection": "EPA",
     "ituZone": 0,
-    "rigAlias": ""
+    "rigAlias": "Icom 746pro"
   },
   "rig": {
     "backend": "NONE",
@@ -171,6 +171,17 @@
     "fontSize": 17,
     "waterfallColor": "viridis",
     "mapTheme": "satellite"
+  },
+  "callsignLookup": {
+    "enabled": true,
+    "provider": "auto",
+    "localDbPath": "",
+    "qrzUsername": "",
+    "qrzPassword": "",
+    "hamqthUsername": "",
+    "hamqthPassword": "",
+    "cacheTtlHours": 24,
+    "fccUlsUrl": ""
   },
   "jMapSettings": {
     "fontSize": 19,

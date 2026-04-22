@@ -5,6 +5,7 @@ import com.hamradio.jsat.service.config.JsatSettings;
 import com.hamradio.jsat.ui.canvas.SatTrackCanvas;
 import com.hamradio.jsat.ui.panels.*;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
@@ -17,14 +18,15 @@ import java.time.format.DateTimeFormatter;
 /**
  * Main dashboard layout for J-Sat.
  *
- *  ┌──────────────────────────────────────────────────────┐
- *  │  TOP BAR: title + clock + UTC                        │
- *  ├──────────────────────────────────┬───────────────────┤
- *  │                                  │  LIVE PASS        │
- *  │    WORLD MAP  +  TRACKS          │  PASS LIST        │
- *  │                                  │  SPACE WEATHER    │
- *  │                                  │  RIG / ROTOR      │
- *  └──────────────────────────────────┴───────────────────┘
+ *  ┌─────────────────────────────────────────────────────────────────────┐
+ *  │  TOP BAR: title + clock + UTC                                       │
+ *  ├────────────────────────────────────────────┬────────────────────────┤
+ *  │                                            │  LIVE PASS             │
+ *  │    WORLD MAP  +  TRACKS                    │  PASS LIST             │
+ *  │    [POLAR PLOT — floating overlay]         │                        │
+ *  ├────────────────────────────────────────────┴────────────────────────┤
+ *  │  PASS PREDICTION │ RANGE/RATE │ SPACE WEATHER │ RIG / ROTOR         │
+ *  └─────────────────────────────────────────────────────────────────────┘
  */
 public class DashboardLayout {
 
@@ -64,30 +66,55 @@ public class DashboardLayout {
         // ── World map ──────────────────────────────────────────────────────────
         worldMap = new SatTrackCanvas(services);
 
-        // ── Right sidebar ──────────────────────────────────────────────────────
+        // ── Panels ─────────────────────────────────────────────────────────────
         livePass = new LivePassPanel(services);
         passList = new PassListPanel(services);
         swPanel  = new SpaceWeatherPanel(services);
         rigRotor = new RigRotorPanel(services);
 
-        VBox sidebar = new VBox(8, livePass, passList);
-        if (s.showSpaceWeather) sidebar.getChildren().add(swPanel);
-        sidebar.getChildren().add(rigRotor);
-        sidebar.setPadding(new Insets(8));
-        sidebar.setPrefWidth(280);
-        sidebar.setStyle("-fx-background-color: #08090f;");
+        // ── Center: world map with floating polar plot overlay ─────────────────
+        VBox polarCard = livePass.buildPolarCard(s.fontSize);
+        StackPane.setAlignment(polarCard, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(polarCard, new Insets(0, 0, 12, 12));
+        StackPane centerPane = new StackPane(worldMap, polarCard);
 
-        ScrollPane sidebarScroll = new ScrollPane(sidebar);
-        sidebarScroll.setFitToWidth(true);
-        sidebarScroll.setPrefWidth(288);
-        sidebarScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sidebarScroll.setStyle("-fx-background-color: #08090f; -fx-border-color: #1a2a4a; "
-                             + "-fx-border-width: 0 0 0 1;");
+        // ── Right sidebar: live pass data + upcoming passes ─────────────────────
+        VBox rightSidebar = new VBox(8, livePass, passList);
+        rightSidebar.setPadding(new Insets(8));
+        rightSidebar.setPrefWidth(340);
+        rightSidebar.setStyle("-fx-background-color: #08090f;");
+
+        ScrollPane rightScroll = new ScrollPane(rightSidebar);
+        rightScroll.setFitToWidth(true);
+        rightScroll.setPrefWidth(348);
+        rightScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        rightScroll.setStyle("-fx-background-color: #08090f; -fx-border-color: #1a2a4a; "
+                           + "-fx-border-width: 0 0 0 1;");
+
+        // ── Bottom bar: pass prediction + range/rate + space weather + rig/rotor
+        VBox passPred  = livePass.getPassPredictionPane();
+        VBox rangeRate = livePass.getRangeRatePane();
+        HBox.setHgrow(passPred,  Priority.ALWAYS);
+        HBox.setHgrow(rangeRate, Priority.ALWAYS);
+
+        HBox bottomBar = new HBox(8, passPred, rangeRate);
+        if (s.showSpaceWeather) {
+            HBox.setHgrow(swPanel, Priority.ALWAYS);
+            swPanel.setMaxWidth(Double.MAX_VALUE);
+            bottomBar.getChildren().add(swPanel);
+        }
+        HBox.setHgrow(rigRotor, Priority.ALWAYS);
+        rigRotor.setMaxWidth(Double.MAX_VALUE);
+        bottomBar.getChildren().add(rigRotor);
+        bottomBar.setPadding(new Insets(6, 8, 6, 8));
+        bottomBar.setStyle("-fx-background-color: #08090f; -fx-border-color: #1a2a4a; "
+                         + "-fx-border-width: 1 0 0 0;");
 
         BorderPane root = new BorderPane();
         root.setTop(topBar);
-        root.setCenter(worldMap);
-        root.setRight(sidebarScroll);
+        root.setCenter(centerPane);
+        root.setRight(rightScroll);
+        root.setBottom(bottomBar);
         root.setStyle("-fx-background-color: #0a0a0f; -fx-font-size: " + s.fontSize + "px; "
                     + "-fx-font-family: 'Liberation Mono', monospace;");
 

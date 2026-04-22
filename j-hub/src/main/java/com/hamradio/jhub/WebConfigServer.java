@@ -1,6 +1,8 @@
 package com.hamradio.jhub;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.hamradio.jhub.callsign.*;
 import com.hamradio.jhub.model.JHubConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -81,7 +83,8 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new DbApiServlet()),        "/api/db/*");
         ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("world_map.jpg", "RELOAD_MAP_IMAGE")), "/api/jmap/map-image");
         ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("gcm.jpg",       "RELOAD_GCM")),       "/api/jmap/gcm-image");
-        ctx.addServlet(new ServletHolder(new WeatherApiServlet()),  "/api/weather");
+        ctx.addServlet(new ServletHolder(new WeatherApiServlet()),    "/api/weather");
+        ctx.addServlet(new ServletHolder(new CallsignApiServlet()), "/api/callsign/*");
         ctx.addServlet(new ServletHolder(new StaticServlet()),      "/*");
 
         server.setHandler(ctx);
@@ -1088,6 +1091,163 @@ public class WebConfigServer {
     // ---------------------------------------------------------------
     // /api/weather — cached space weather + local weather
     // ---------------------------------------------------------------
+
+    // ── /api/callsign/{call} ───────────────────────────────────────────────────
+
+    private static class CallsignApiServlet extends HttpServlet {
+
+        /**
+         * GET  /api/callsign/{call}           — look up a callsign
+         * GET  /api/callsign/cache            — dump in-memory lookup cache
+         * GET  /api/callsign/db/status        — local DB record count + import state
+         * GET  /api/callsign/db/import/progress — live import progress
+         * POST /api/callsign/db/import/fcc    — start FCC ULS import  {ulsDir, dbPath?}
+         * POST /api/callsign/db/import/csv    — start CSV import       {csvPath, dbPath?}
+         * DELETE /api/callsign/{call}         — evict one entry from cache
+         */
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+            if (path == null || path.equals("/")) {
+                json(res, "{\"error\":\"No callsign specified\"}");
+                return;
+            }
+
+            if (path.equals("/db/status")) {
+                dbStatus(res); return;
+            }
+            if (path.equals("/db/import/progress")) {
+                dbImportProgress(res); return;
+            }
+            if (path.equals("/cache")) {
+                json(res, CallsignLookupService.getInstance().getCacheJson()); return;
+            }
+
+            String call = path.substring(1).toUpperCase().trim();
+            json(res, new Gson().toJson(CallsignLookupService.getInstance().lookup(call)));
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+            String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject j = body.isBlank() ? new JsonObject()
+                : com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+
+            String cfgDbPath = ConfigManager.getInstance().getConfig().callsignLookup.localDbPath;
+
+            if ("/db/download/fcc".equals(path)) {
+                String dbPath = j.has("dbPath") ? j.get("dbPath").getAsString() : cfgDbPath;
+                if (dbPath.isBlank()) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"localDbPath must be set in config or passed as dbPath\"}");
+                    return;
+                }
+                String urlOverride = ConfigManager.getInstance().getConfig().callsignLookup.fccUlsUrl;
+                boolean started = FccUlsDownloader.getInstance().start(dbPath, urlOverride);
+                json(res, "{\"started\":" + started + "}");
+
+            } else if ("/db/import/fcc".equals(path)) {
+                String ulsDir = j.has("ulsDir") ? j.get("ulsDir").getAsString() : "";
+                String dbPath = j.has("dbPath") ? j.get("dbPath").getAsString() : cfgDbPath;
+                if (ulsDir.isBlank() || dbPath.isBlank()) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"ulsDir and localDbPath (in config) are required\"}");
+                    return;
+                }
+                boolean started = FccUlsImporter.getInstance().start(ulsDir, dbPath);
+                json(res, "{\"started\":" + started + "}");
+
+            } else if ("/db/import/csv".equals(path)) {
+                String csvPath = j.has("csvPath") ? j.get("csvPath").getAsString() : "";
+                String dbPath  = j.has("dbPath")  ? j.get("dbPath").getAsString()  : cfgDbPath;
+                if (csvPath.isBlank() || dbPath.isBlank()) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"csvPath and localDbPath (in config) are required\"}");
+                    return;
+                }
+                boolean started = CsvImporter.getInstance().start(csvPath, dbPath);
+                json(res, "{\"started\":" + started + "}");
+
+            } else {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"Unknown endpoint\"}");
+            }
+        }
+
+        @Override protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo();
+            if (path != null && path.length() > 1) {
+                String call = path.substring(1).toUpperCase().trim();
+                CallsignLookupService.getInstance().invalidate(call);
+                json(res, "{\"status\":\"evicted\",\"callsign\":\"" + call + "\"}");
+            } else {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"No callsign specified\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+
+        private void dbStatus(HttpServletResponse res) throws IOException {
+            LocalDbProvider local = new LocalDbProvider();
+            String dbPath = LocalDbProvider.dbPath();
+            JsonObject o  = new JsonObject();
+            o.addProperty("dbPath",   dbPath != null ? dbPath : "");
+            o.addProperty("exists",   local.isAvailable());
+            o.addProperty("records",  local.recordCount());
+
+            if (dbPath != null && !dbPath.isBlank()) {
+                try {
+                    java.nio.file.Path p = java.nio.file.Path.of(dbPath);
+                    if (java.nio.file.Files.exists(p)) {
+                        o.addProperty("sizeBytes", java.nio.file.Files.size(p));
+                        o.addProperty("lastModified",
+                            java.nio.file.Files.getLastModifiedTime(p).toInstant().toString());
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            FccUlsImporter fcc = FccUlsImporter.getInstance();
+            CsvImporter    csv = CsvImporter.getInstance();
+            JsonObject imp = new JsonObject();
+            imp.addProperty("fccStatus",  fcc.getStatus().name());
+            imp.addProperty("fccMsg",     fcc.getStatusMsg());
+            imp.addProperty("fccCount",   fcc.getImported());
+            imp.addProperty("csvStatus",  csv.getStatus().name());
+            imp.addProperty("csvMsg",     csv.getStatusMsg());
+            imp.addProperty("csvCount",   csv.getImported());
+            o.add("importers", imp);
+
+            json(res, o.toString());
+        }
+
+        private void dbImportProgress(HttpServletResponse res) throws IOException {
+            FccUlsDownloader dl  = FccUlsDownloader.getInstance();
+            FccUlsImporter   fcc = FccUlsImporter.getInstance();
+            CsvImporter      csv = CsvImporter.getInstance();
+            JsonObject o = new JsonObject();
+            // downloader (end-to-end pipeline)
+            o.addProperty("dlPhase",         dl.getPhase().name());
+            o.addProperty("dlMsg",           dl.getStatusMsg());
+            o.addProperty("dlBytesReceived", dl.getBytesReceived());
+            o.addProperty("dlBytesTotal",    dl.getBytesTotal());
+            o.addProperty("dlRunning",       dl.isRunning());
+            // importer (manual ULS dir path)
+            o.addProperty("fccStatus",  fcc.getStatus().name());
+            o.addProperty("fccMsg",     fcc.getStatusMsg());
+            o.addProperty("fccCount",   fcc.getImported());
+            o.addProperty("fccRunning", fcc.isRunning());
+            // CSV importer
+            o.addProperty("csvStatus",  csv.getStatus().name());
+            o.addProperty("csvMsg",     csv.getStatusMsg());
+            o.addProperty("csvCount",   csv.getImported());
+            o.addProperty("csvRunning", csv.isRunning());
+            json(res, o.toString());
+        }
+    }
+
+    // ── /api/weather ───────────────────────────────────────────────────────────
 
     private static class WeatherApiServlet extends HttpServlet {
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {

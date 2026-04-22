@@ -118,19 +118,26 @@ public class DashboardLayout {
             SettingsLoader.save(s);
         });
 
-        // Wire DX spot clicks → DX window + publish to hub for other apps
+        // Wire DX spot clicks → DX window + publish to hub + request callsign lookup
         worldMap.setDxSpotClickCallback(spot -> {
             dxWindow.showSpot(spot);
             if (s.isShowDxWindow()) dxWindow.setVisible(true);
             services.dxClusterClient.sendSpotSelected(spot);
+            services.dxClusterClient.sendCallsignLookup(spot.getDxCallsign());
         });
 
-        // Incoming SPOT_SELECTED from hub (e.g. HamLog clicked a spot) → DX window
+        // Incoming SPOT_SELECTED from hub (e.g. j-log clicked a spot) → DX window
         services.dxClusterClient.setSpotSelectedListener(spot ->
             javafx.application.Platform.runLater(() -> {
                 dxWindow.showSpot(spot);
                 if (s.isShowDxWindow()) dxWindow.setVisible(true);
+                // Lookup may already be in flight from the originating app; send anyway (cache hit = fast)
+                services.dxClusterClient.sendCallsignLookup(spot.getDxCallsign());
             }));
+
+        // Incoming CALLSIGN_RESULT from hub → enrich the DX info window
+        services.dxClusterClient.setCallsignResultListener(node ->
+            javafx.application.Platform.runLater(() -> dxWindow.applyCallsignResult(node)));
 
         // ── Map overlay AnchorPane — all layers fill 100% ─────────────────
         AnchorPane mapStack = new AnchorPane();

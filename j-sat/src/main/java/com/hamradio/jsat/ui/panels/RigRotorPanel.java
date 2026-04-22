@@ -3,20 +3,20 @@ package com.hamradio.jsat.ui.panels;
 import com.hamradio.jsat.app.ServiceRegistry;
 import com.hamradio.jsat.model.SatelliteState;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 /**
- * Rig and rotor status panel.
- * Rig and rotor are controlled via J-Hub; this panel shows the status
- * received back from J-Hub (RIG_STATUS / ROTOR_STATUS messages).
+ * Rig and rotor status panel — compact horizontal layout for bottom bar.
+ * Status is received from J-Hub (RIG_STATUS / ROTOR_STATUS messages).
  */
-public class RigRotorPanel extends VBox {
+public class RigRotorPanel extends HBox {
 
-    private static final int COMPASS_SIZE = 120;
+    private static final int COMPASS_SIZE = 56;
 
     private final ServiceRegistry services;
 
@@ -31,26 +31,28 @@ public class RigRotorPanel extends VBox {
         this.services = services;
         int fz = services.getSettings().fontSize;
 
-        setSpacing(5);
-        setPadding(new Insets(8));
+        setSpacing(10);
+        setPadding(new Insets(6, 8, 6, 8));
+        setAlignment(Pos.CENTER_LEFT);
         setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = styled("🎛  RIG / ROTOR (via J-Hub)", "#aabbdd", true, fz + 1);
+        Label title = styled("🎛  RIG / ROTOR", "#aabbdd", true, fz - 1);
 
-        rigStatusLabel   = styled("Rig: —", "#445566", false, fz - 1);
-        rotorStatusLabel = styled("Rotor: —", "#445566", false, fz - 1);
-        rigFreqLabel     = styled("DL: ---  UL: ---", "#ccd6f6", true, fz - 1);
-        rotorPosLabel    = styled("AZ ---°  EL ---°", "#ccd6f6", false, fz - 1);
-        rotorTargetLabel = styled("→ ---°  ---°", "#7a8aaa", false, fz - 1);
+        rigStatusLabel   = styled("Rig: —",           "#445566", false, fz - 2);
+        rigFreqLabel     = styled("DL: ---  UL: ---",  "#ccd6f6", true,  fz - 2);
+        rotorStatusLabel = styled("Rotor: —",          "#445566", false, fz - 2);
+        rotorPosLabel    = styled("AZ ---°  EL ---°",  "#ccd6f6", false, fz - 2);
+        rotorTargetLabel = styled("→ ---°  ---°",      "#7a8aaa", false, fz - 2);
+
+        VBox textSide = new VBox(2, title,
+            rigStatusLabel, rigFreqLabel,
+            rotorStatusLabel, rotorPosLabel, rotorTargetLabel);
 
         compassCanvas = new Canvas(COMPASS_SIZE, COMPASS_SIZE);
         drawCompassBackground(compassCanvas.getGraphicsContext2D());
 
-        getChildren().addAll(title,
-            rigStatusLabel, rigFreqLabel,
-            rotorStatusLabel, rotorPosLabel, rotorTargetLabel,
-            compassCanvas);
+        getChildren().addAll(textSide, compassCanvas);
     }
 
     public void update() {

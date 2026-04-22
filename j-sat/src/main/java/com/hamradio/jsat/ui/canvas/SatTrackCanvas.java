@@ -84,11 +84,14 @@ public class SatTrackCanvas extends Pane {
         // ── Satellite states ──────────────────────────────────────────────────
         Map<String, SatelliteState> states = services.tracker.getCurrentStates();
         satPositions.clear();
+        String selectedSat = services.tracker.getSelectedSatellite();
+        boolean hasSelection = selectedSat != null && !selectedSat.isEmpty();
         int colorIdx = 0;
         for (Map.Entry<String, SatelliteState> entry : states.entrySet()) {
             Color color = SAT_COLORS[colorIdx % SAT_COLORS.length];
             colorIdx++;
-            drawSatellite(gc, w, h, entry.getValue(), color, s, entry.getKey());
+            boolean dimmed = hasSelection && !entry.getKey().equals(selectedSat);
+            drawSatellite(gc, w, h, entry.getValue(), color, s, entry.getKey(), dimmed);
         }
 
         // ── Sun sub-solar point ──────────────────────────────────────────────
@@ -102,25 +105,31 @@ public class SatTrackCanvas extends Pane {
 
     private void drawSatellite(GraphicsContext gc, double w, double h,
                                SatelliteState state, Color color,
-                               JsatSettings s, String name) {
+                               JsatSettings s, String name, boolean dimmed) {
         double px = lonToX(state.lonDeg, w);
         double py = latToY(state.latDeg, h);
         satPositions.put(name, new double[]{px, py});
+
+        double trackAlpha    = dimmed ? 0.10 : 0.60;
+        double footAlpha     = dimmed ? 0.08 : 0.35;
+        double footFillAlpha = dimmed ? 0.02 : 0.08;
+        double dotAlpha      = dimmed ? 0.20 : 1.00;
+        double labelAlpha    = dimmed ? 0.20 : 1.00;
 
         // Footprint circle
         if (s.showFootprint && state.footprintRadiusDeg > 0) {
             double fpW = state.footprintRadiusDeg / 180.0 * w * 2;
             double fpH = state.footprintRadiusDeg / 90.0  * h;
-            gc.setStroke(color.deriveColor(0, 1, 1, 0.35));
+            gc.setStroke(color.deriveColor(0, 1, 1, footAlpha));
             gc.setLineWidth(1.0);
             gc.strokeOval(px - fpW / 2, py - fpH / 2, fpW, fpH);
-            gc.setFill(color.deriveColor(0, 1, 1, 0.08));
+            gc.setFill(color.deriveColor(0, 1, 1, footFillAlpha));
             gc.fillOval(px - fpW / 2, py - fpH / 2, fpW, fpH);
         }
 
         // Ground track
         if (s.showGroundTrack && state.groundTrack != null) {
-            gc.setStroke(color.deriveColor(0, 1, 1, 0.60));
+            gc.setStroke(color.deriveColor(0, 1, 1, trackAlpha));
             gc.setLineWidth(1.2);
             double prevX = -999, prevY = -999;
             for (double[] pt : state.groundTrack) {
@@ -135,9 +144,9 @@ public class SatTrackCanvas extends Pane {
         }
 
         // Satellite dot
-        boolean selected = name.equals(services.tracker.getSelectedSatellite());
+        boolean selected = !dimmed && name.equals(services.tracker.getSelectedSatellite());
         double dotR = selected ? 7 : 5;
-        gc.setFill(color);
+        gc.setFill(color.deriveColor(0, 1, 1, dotAlpha));
         gc.fillOval(px - dotR, py - dotR, dotR * 2, dotR * 2);
 
         if (selected) {
@@ -147,14 +156,14 @@ public class SatTrackCanvas extends Pane {
         }
 
         // Label
-        gc.setFill(color);
+        gc.setFill(color.deriveColor(0, 1, 1, labelAlpha));
         gc.setFont(Font.font("Liberation Mono", FontWeight.BOLD, 11));
         gc.fillText(state.name, px + dotR + 3, py + 4);
 
         // Elevation badge if visible
         if (state.elevationDeg > 0) {
             String elStr = String.format("%.0f°", state.elevationDeg);
-            gc.setFill(Color.web("#ffffff", 0.85));
+            gc.setFill(Color.web("#ffffff", dimmed ? 0.15 : 0.85));
             gc.setFont(Font.font("Liberation Mono", 10));
             gc.fillText(elStr, px + dotR + 3, py + 15);
         }
@@ -267,9 +276,7 @@ public class SatTrackCanvas extends Pane {
 
     private void handleClick(javafx.scene.input.MouseEvent e) {
         String nearest = nearestSatellite(e.getX(), e.getY());
-        if (nearest != null) {
-            services.tracker.setSelectedSatellite(nearest);
-        }
+        services.tracker.setSelectedSatellite(nearest); // null clears selection → all tracks full brightness
     }
 
     private void handleHover(javafx.scene.input.MouseEvent e) {

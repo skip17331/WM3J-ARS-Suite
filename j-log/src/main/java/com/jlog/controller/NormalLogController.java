@@ -142,6 +142,9 @@ public class NormalLogController implements Initializable {
         HubEngine.getInstance().setLogEntryDraftListener(node ->
             Platform.runLater(() -> fillFromLogDraft(node)));
 
+        HubEngine.getInstance().setCallsignResultListener(node ->
+            Platform.runLater(() -> fillFromCallsignResult(node)));
+
         setStatus(I18n.get("status.ready"));
         updateStationCallLabel();
     }
@@ -342,34 +345,33 @@ public class NormalLogController implements Initializable {
 
     @FXML private void doCallsignLookup() {
         String call = tfCallsign.getText().trim().toUpperCase();
-        if (call.isEmpty() || qrzLookup == null) return;
+        if (call.isEmpty()) return;
+        // Route through hub so all apps get CALLSIGN_RESULT; falls back to QRZ if hub unavailable
+        if (HubEngine.getInstance().isConnected()) {
+            HubEngine.getInstance().sendCallsignLookup(call);
+        } else if (qrzLookup != null) {
+            Task<Map<String, String>> task = new Task<>() {
+                @Override protected Map<String,String> call() { return qrzLookup.lookup(call); }
+                @Override protected void succeeded() { applyQrzData(getValue()); }
+            };
+            new Thread(task).start();
+        }
+    }
 
-        Task<Map<String, String>> task = new Task<>() {
-            @Override protected Map<String,String> call() {
-                return qrzLookup.lookup(call);
-            }
-            @Override protected void succeeded() {
-                Map<String,String> data = getValue();
-                if (!data.isEmpty()) {
-                    tfOperatorName.setText(data.getOrDefault("fullname", ""));
-                    tfCountry.setText(data.getOrDefault("country", ""));
-                    tfState.setText(data.getOrDefault("state", ""));
-                    tfCounty.setText(data.getOrDefault("county", ""));
-                    lblCountry.setText(data.getOrDefault("country", ""));
-                    try {
-                        double myLat = Double.parseDouble(AppConfig.getInstance().getLatitude());
-                        double myLon = Double.parseDouble(AppConfig.getInstance().getLongitude());
-                        double dxLat = Double.parseDouble(data.getOrDefault("lat", "0"));
-                        double dxLon = Double.parseDouble(data.getOrDefault("lon", "0"));
-                        double brg  = QrzLookup.bearing(myLat, myLon, dxLat, dxLon);
-                        double dist = QrzLookup.distanceKm(myLat, myLon, dxLat, dxLon);
-                        lblBearing.setText(String.format("%.0f°", brg));
-                        lblDistance.setText(String.format("%.0f km", dist));
-                    } catch (Exception ignored) {}
-                }
-            }
-        };
-        new Thread(task).start();
+    private void applyQrzData(Map<String, String> data) {
+        if (data == null || data.isEmpty()) return;
+        if (!data.getOrDefault("fullname", "").isEmpty()) tfOperatorName.setText(data.get("fullname"));
+        if (!data.getOrDefault("country",  "").isEmpty()) { tfCountry.setText(data.get("country")); lblCountry.setText(data.get("country")); }
+        if (!data.getOrDefault("state",    "").isEmpty()) tfState.setText(data.get("state"));
+        if (!data.getOrDefault("county",   "").isEmpty()) tfCounty.setText(data.get("county"));
+        try {
+            double myLat = Double.parseDouble(AppConfig.getInstance().getLatitude());
+            double myLon = Double.parseDouble(AppConfig.getInstance().getLongitude());
+            double dxLat = Double.parseDouble(data.getOrDefault("lat", "0"));
+            double dxLon = Double.parseDouble(data.getOrDefault("lon", "0"));
+            lblBearing.setText(String.format("%.0f°",  QrzLookup.bearing(myLat, myLon, dxLat, dxLon)));
+            lblDistance.setText(String.format("%.0f km", QrzLookup.distanceKm(myLat, myLon, dxLat, dxLon)));
+        } catch (Exception ignored) {}
     }
 
     // ---------------------------------------------------------------
@@ -540,9 +542,36 @@ public class NormalLogController implements Initializable {
     // Spot / log-draft intake
     // ---------------------------------------------------------------
 
+    private void fillFromCallsignResult(com.fasterxml.jackson.databind.JsonNode node) {
+        if (!node.path("found").asBoolean(false)) return;
+        String call = node.path("callsign").asText("").trim().toUpperCase();
+        // Only apply if the result matches the currently-entered callsign
+        if (!call.isEmpty() && !call.equals(tfCallsign.getText().trim().toUpperCase())) return;
+
+        String name    = node.path("name").asText("").trim();
+        String state   = node.path("state").asText("").trim();
+        String country = node.path("country").asText("").trim();
+
+        if (!name.isEmpty())    tfOperatorName.setText(name);
+        if (!state.isEmpty())   tfState.setText(state);
+        if (!country.isEmpty()) { tfCountry.setText(country); lblCountry.setText(country); }
+
+        double dxLat = node.path("lat").asDouble(0);
+        double dxLon = node.path("lon").asDouble(0);
+        if (dxLat != 0 || dxLon != 0) {
+            try {
+                double myLat = Double.parseDouble(AppConfig.getInstance().getLatitude());
+                double myLon = Double.parseDouble(AppConfig.getInstance().getLongitude());
+                lblBearing.setText(String.format("%.0f°",  QrzLookup.bearing(myLat, myLon, dxLat, dxLon)));
+                lblDistance.setText(String.format("%.0f km", QrzLookup.distanceKm(myLat, myLon, dxLat, dxLon)));
+            } catch (Exception ignored) {}
+        }
+    }
+
     private void fillFromSpot(DxSpot spot) {
         if (spot.getDxCallsign() != null && !spot.getDxCallsign().isBlank()) {
             tfCallsign.setText(spot.getDxCallsign().toUpperCase());
+            HubEngine.getInstance().sendCallsignLookup(spot.getDxCallsign());
         }
         if (spot.getFrequencyKHz() > 0) {
             tfFrequency.setText(String.format("%.3f", spot.getFrequencyKHz() / 1000.0));
