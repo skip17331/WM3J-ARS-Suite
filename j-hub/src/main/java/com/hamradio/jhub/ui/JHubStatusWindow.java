@@ -65,10 +65,12 @@ public class JHubStatusWindow {
     private Label  lblJLog;
     private Label  lblJBridge;
     private Label  lblJDigi;
+    private Label  lblJSat;
     private Button btnJMap;
     private Button btnJLog;
     private Button btnJBridge;
     private Button btnJDigi;
+    private Button btnJSat;
 
     private static final DateTimeFormatter TIME_FMT =
         DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
@@ -106,7 +108,7 @@ public class JHubStatusWindow {
         });
 
         VBox root = buildUI();
-        Scene scene = new Scene(root, 420, 680);
+        Scene scene = new Scene(root, 420, 716);
         scene.setFill(Color.web(C_BASE));
         stage.setScene(scene);
         stage.show();
@@ -178,17 +180,20 @@ public class JHubStatusWindow {
         lblJLog    = styledValue("○ j-log");
         lblJBridge = styledValue("○ j-bridge");
         lblJDigi   = styledValue("○ j-digi");
+        lblJSat    = styledValue("○ j-sat");
 
         btnJMap    = launchButton("jMap");
         btnJLog    = launchButton("j-log");
         btnJBridge = launchButton("j-bridge");
         btnJDigi   = launchButton("j-digi");
+        btnJSat    = launchButton("j-sat");
 
         VBox managedBox = new VBox(6,
             appRow(lblJMap,    btnJMap),
             appRow(lblJLog,    btnJLog),
             appRow(lblJBridge, btnJBridge),
-            appRow(lblJDigi,   btnJDigi));
+            appRow(lblJDigi,   btnJDigi),
+            appRow(lblJSat,    btnJSat));
         managedBox.setPadding(new Insets(4, 0, 0, 0));
 
         root.getChildren().addAll(
@@ -262,6 +267,7 @@ public class JHubStatusWindow {
         refreshAppRow("j-log",    al.isRunning("j-log"),    lblJLog,    btnJLog);
         refreshAppRow("j-bridge", al.isRunning("j-bridge"), lblJBridge, btnJBridge);
         refreshAppRow("j-digi",   al.isRunning("j-digi"),   lblJDigi,   btnJDigi);
+        refreshAppRow("j-sat",    al.isRunning("j-sat"),    lblJSat,    btnJSat);
     }
 
     // ---------------------------------------------------------------
@@ -310,6 +316,9 @@ public class JHubStatusWindow {
         } else if ("j-digi".equals(name)) {
             entry = apps != null ? apps.jDigi : null;
             passHubFlag = false;
+        } else if ("j-sat".equals(name)) {
+            entry = apps != null ? apps.jSat : null;
+            passHubFlag = true;
         } else {
             entry = null;
             passHubFlag = false;

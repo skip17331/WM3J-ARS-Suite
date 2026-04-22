@@ -249,7 +249,8 @@ public class ServiceRegistry {
         boolean hasNoaa = !settings.getNoaaApiKey().isBlank();
         boolean hasOwm  = !settings.getOpenWeatherApiKey().isBlank();
 
-        solarDataProvider = (mock || !hasNoaa)
+        // NOAA SWPC requires no API key — only fall back to mock when mock mode is on
+        solarDataProvider = mock
             ? new MockSolarDataProvider() : new NoaaSolarDataProvider();
 
         // HamQSL endpoint times out in most environments; always use mock propagation data
@@ -258,7 +259,8 @@ public class ServiceRegistry {
         auroraProvider = mock
             ? new MockAuroraProvider() : new NoaaOvationProvider();
 
-        geomagneticAlertProvider = (mock || !hasNoaa)
+        // NOAA SWPC requires no API key
+        geomagneticAlertProvider = mock
             ? new MockGeomagneticAlertProvider() : new NoaaGeomagneticAlertProvider();
 
         weatherProvider = (mock || !hasOwm)
@@ -279,8 +281,13 @@ public class ServiceRegistry {
         dxSpotProvider = mock
             ? new MockDxSpotProvider() : new HttpDxSpotProvider();
 
-        satelliteProvider = mock
-            ? new MockSatelliteProvider() : new CelestrakSatelliteProvider();
+        if (mock) {
+            satelliteProvider = new MockSatelliteProvider();
+        } else {
+            CelestrakSatelliteProvider csp = new CelestrakSatelliteProvider();
+            csp.setJSatApiUrl(settings.getJSatApiUrl());
+            satelliteProvider = csp;
+        }
 
         // WaBnmContestListProvider scraper is unreliable; always use mock contest data
         contestListProvider = new MockContestListProvider();

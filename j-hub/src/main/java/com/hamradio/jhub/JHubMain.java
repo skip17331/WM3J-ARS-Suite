@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.time.Instant;
 
 /**
@@ -44,6 +45,7 @@ public class JHubMain extends Application {
     private static JHubDiscovery           jHubDiscovery;
     private static HamlibRigController     rigController;
     private static HamlibRotorController   rotorController;
+    private static WeatherService          weatherService;
 
     // Uptime reference
     public static final Instant START_TIME = Instant.now();
@@ -76,6 +78,14 @@ public class JHubMain extends Application {
     // Bootstrap sequence
     // ---------------------------------------------------------------
 
+    private static boolean isPortInUse(int port) {
+        try (ServerSocket s = new ServerSocket(port)) {
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     private static void bootstrap() throws Exception {
         log.info("=== j-Hub starting  [WM3j ARS Suite] ===");
 
@@ -84,6 +94,14 @@ public class JHubMain extends Application {
         config.load();
         log.info("Config loaded — WS port {}, web port {}",
                 config.getJHub().websocketPort, config.getJHub().webConfigPort);
+
+        int wsPort  = config.getJHub().websocketPort;
+        int webPort = config.getJHub().webConfigPort;
+        if (isPortInUse(wsPort) || isPortInUse(webPort)) {
+            log.warn("J-Hub is already running (port {} or {} is in use) — exiting.", wsPort, webPort);
+            Platform.exit();
+            return;
+        }
 
         // 2. State cache
         StateCache cache = StateCache.getInstance();
@@ -95,14 +113,12 @@ public class JHubMain extends Application {
         MessageRouter router = MessageRouter.getInstance();
 
         // 5. WebSocket server
-        int wsPort = config.getJHub().websocketPort;
         jHubServer = new JHubServer(new InetSocketAddress(wsPort), router, cache);
         jHubServer.start();
         router.setJHubServer(jHubServer);
         log.info("WebSocket server listening on port {}", wsPort);
 
         // 6. HTTP config UI
-        int webPort = config.getJHub().webConfigPort;
         webConfigServer = new WebConfigServer(webPort, router, cache);
         webConfigServer.start();
         log.info("Web config UI at http://localhost:{}", webPort);
@@ -120,18 +136,21 @@ public class JHubMain extends Application {
         jHubDiscovery = new JHubDiscovery();
         jHubDiscovery.start();
 
-        // 9. Always start logging engine (j-log --engine-only), then auto-launch other apps.
-        //    All apps receive --launched-by-hub to suppress their splash screens.
+        // 9. Start logging engine and auto-launch other apps.
+        //    Full j-log includes its own engine — only launch engine-only when j-log won't auto-launch.
         AppLauncher launcher = AppLauncher.getInstance();
         JHubConfig.AppsSection apps = config.getApps();
-        if (apps != null && apps.jLog != null &&
-                apps.jLog.command != null && !apps.jLog.command.isBlank()) {
-            String engineCmd = apps.jLog.command + " --engine-only";
-            String err = launcher.launch("logging-engine", engineCmd);
-            if (err != null) log.error("Logging engine launch failed: {}", err);
-            else log.info("Logging engine started");
-        } else {
-            log.warn("No j-log command configured — logging engine not started");
+        boolean jLogAutoLaunching = apps != null && apps.jLog != null && apps.jLog.autoLaunch;
+        if (!jLogAutoLaunching) {
+            if (apps != null && apps.jLog != null &&
+                    apps.jLog.command != null && !apps.jLog.command.isBlank()) {
+                String engineCmd = apps.jLog.command + " --engine-only";
+                String err = launcher.launch("logging-engine", engineCmd);
+                if (err != null) log.error("Logging engine launch failed: {}", err);
+                else log.info("Logging engine started (engine-only — j-log not auto-launching)");
+            } else {
+                log.warn("No j-log command configured — logging engine not started");
+            }
         }
         if (apps != null) {
             autoLaunch(launcher, "jMap",     apps.jMap,    true);
@@ -160,6 +179,10 @@ public class JHubMain extends Application {
             log.info("Rotor backend is '{}' — Hamlib rotor controller not started",
                     config.getConfig().rotor.backend);
         }
+
+        // 12. Weather service (NOAA SWPC + OpenWeather, 5-minute refresh)
+        weatherService = WeatherService.getInstance();
+        weatherService.start();
 
         // 11. Graceful shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(JHubMain::shutdown, "shutdown-hook"));
@@ -215,6 +238,7 @@ public class JHubMain extends Application {
         } catch (Exception e) { log.warn("Shutdown broadcast error", e); }
 
         // 2. Force-kill all child processes (any that did not self-terminate)
+        try { if (weatherService    != null) weatherService.stop();           } catch (Exception e) { log.warn("Weather service shutdown error", e); }
         try { if (rotorController   != null) rotorController.stop();         } catch (Exception e) { log.warn("Rotor controller shutdown error", e); }
         try { if (rigController     != null) rigController.stop();           } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
         try { AppLauncher.getInstance().stopAll();                          } catch (Exception e) { log.warn("App launcher shutdown error", e); }

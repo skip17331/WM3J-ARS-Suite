@@ -39,7 +39,11 @@ public class JsatSettings {
     public boolean showGroundTrack = true;
     public boolean showFootprint   = true;
     public boolean showPassList    = true;
-    public int     fontSize        = 13;
+    public int     fontSize        = 15;
+
+    // TLE management
+    public int    tleStaleThresholdHours = 48;
+    public int    tleApiPort             = 4540;
 
     // J-Hub connection
     public String hubHost    = "localhost";

@@ -109,6 +109,10 @@ public class MessageRouter {
                 handleSatRotorCmd(msg, rawJson, session.socket, server);
                 break;
 
+            case "ROTOR_CMD":
+                handleRotorCmd(msg, session.socket, server);
+                break;
+
             case "JMAP_CONFIG_REQUEST":
                 handleJMapConfigRequest(session, server);
                 break;
@@ -365,6 +369,42 @@ public class MessageRouter {
             }
         } catch (Exception e) {
             log.warn("Failed to process SAT_ROTOR_CMD: {}", e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // ROTOR_CMD — manual command from web config UI
+    // ---------------------------------------------------------------
+
+    private void handleRotorCmd(JsonObject msg, WebSocket sender, JHubServer server) {
+        try {
+            HamlibRotorController rotor = HamlibRotorController.getInstance();
+            if (!rotor.isRunning()) return;
+
+            if (msg.has("stop") && msg.get("stop").getAsBoolean()) {
+                rotor.stopRotor();
+                log.debug("ROTOR_CMD → STOP");
+                return;
+            }
+
+            // Determine current az/el from cached status so partial updates work
+            double currentAz = 0.0, currentEl = 0.0;
+            String cached = StateCache.getInstance().getLastRotorStatus();
+            if (cached != null) {
+                try {
+                    JsonObject c = JsonParser.parseString(cached).getAsJsonObject();
+                    if (c.has("bearing"))   currentAz = c.get("bearing").getAsDouble();
+                    if (c.has("elevation")) currentEl = c.get("elevation").getAsDouble();
+                } catch (Exception ignored) {}
+            }
+
+            double az = msg.has("heading")   ? msg.get("heading").getAsDouble()   : currentAz;
+            double el = msg.has("elevation") ? msg.get("elevation").getAsDouble() : currentEl;
+
+            rotor.trackPosition(az, el);
+            log.debug("ROTOR_CMD → AZ={} EL={}", az, el);
+        } catch (Exception e) {
+            log.warn("Failed to process ROTOR_CMD: {}", e.getMessage());
         }
     }
 

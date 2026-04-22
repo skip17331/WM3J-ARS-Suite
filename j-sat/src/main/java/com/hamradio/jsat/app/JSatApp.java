@@ -1,5 +1,6 @@
 package com.hamradio.jsat.app;
 
+import com.hamradio.jsat.api.JsatApiServer;
 import com.hamradio.jsat.service.config.JsatSettings;
 import com.hamradio.jsat.service.config.JsatSettingsLoader;
 import com.hamradio.jsat.ui.main.MainWindow;
@@ -26,6 +27,7 @@ public class JSatApp extends Application {
     private static final int JHUB_WEB_PORT = 8081;
 
     private ServiceRegistry serviceRegistry;
+    private JsatApiServer   apiServer;
     private boolean launchedByHub = false;
     private String  hubHost       = "localhost";
 
@@ -62,20 +64,42 @@ public class JSatApp extends Application {
         serviceRegistry = new ServiceRegistry(settings);
         serviceRegistry.start();
 
+        // Start TLE API server — J-Sat becomes the authoritative TLE source
+        try {
+            apiServer = new JsatApiServer(
+                serviceRegistry.tleManager,
+                settings.tleApiPort,
+                settings.tleStaleThresholdHours
+            );
+            apiServer.start();
+        } catch (Exception e) {
+            log.warn("Could not start TLE API server on port {}: {}", settings.tleApiPort, e.getMessage());
+        }
+
         log.info("Services started. Station: {} ({}, {})",
             settings.callsign, settings.qthLat, settings.qthLon);
     }
 
     @Override
     public void start(Stage primaryStage) {
-        MainWindow win = new MainWindow(primaryStage, serviceRegistry);
-        win.show();
-        log.info("J-Sat UI started");
+        SplashScreen.applyIcon(primaryStage);
+        if (launchedByHub) {
+            MainWindow win = new MainWindow(primaryStage, serviceRegistry);
+            win.show();
+            log.info("J-Sat UI started");
+        } else {
+            new SplashScreen(() -> {
+                MainWindow win = new MainWindow(primaryStage, serviceRegistry);
+                win.show();
+                log.info("J-Sat UI started");
+            }).show();
+        }
     }
 
     @Override
     public void stop() {
         log.info("J-Sat shutting down...");
+        if (apiServer != null) apiServer.stop();
         if (serviceRegistry != null) {
             JsatSettingsLoader.save(serviceRegistry.getSettings());
             serviceRegistry.stop();

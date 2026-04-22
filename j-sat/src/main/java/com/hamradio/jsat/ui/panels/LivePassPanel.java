@@ -2,6 +2,7 @@ package com.hamradio.jsat.ui.panels;
 
 import com.hamradio.jsat.app.ServiceRegistry;
 import com.hamradio.jsat.model.SatelliteDefinition;
+import com.hamradio.jsat.model.SatellitePass;
 import com.hamradio.jsat.model.SatelliteState;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
@@ -13,6 +14,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Live pass display panel: prominent AZ/EL readout, polar plot, Doppler
@@ -30,27 +34,31 @@ public class LivePassPanel extends VBox {
     private final Label rangeLabel, rateLabel;
     private final Label downlinkLabel, uplinkLabel;
     private final Label sunlitLabel, risingLabel;
-    private final Label apogeeLabel, perigeeLabel;
+    private final Label altLabel, apogeeLabel, perigeeLabel;
 
     private double prevElevationDeg = Double.NaN;
     private final Canvas polarCanvas;
     private final Canvas elBarCanvas;
 
+    private final Label countdownLabel;
+    private final Label passInfoLabel;
+
     public LivePassPanel(ServiceRegistry services) {
         this.services = services;
+        int fz = services.getSettings().fontSize;
 
         setSpacing(6);
         setPadding(new Insets(8));
         setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        satNameLabel = styledLabel("— NO SATELLITE SELECTED —", "#aabbdd", true, 12);
+        satNameLabel = styledLabel("— NO SATELLITE SELECTED —", "#aabbdd", true, fz + 1);
 
         // ── Big AZ / EL display ──────────────────────────────────────────────
-        azBigLabel   = styledLabel("---", "#00e5ff", true, 28);
-        elBigLabel   = styledLabel("---", "#69f0ae", true, 28);
-        azUnitLabel  = styledLabel("AZ", "#445566", false, 10);
-        elUnitLabel  = styledLabel("EL", "#445566", false, 10);
+        azBigLabel   = styledLabel("---", "#00e5ff", true, fz + 13);
+        elBigLabel   = styledLabel("---", "#69f0ae", true, fz + 13);
+        azUnitLabel  = styledLabel("AZ", "#445566", false, fz - 3);
+        elUnitLabel  = styledLabel("EL", "#445566", false, fz - 3);
 
         VBox azBox = new VBox(2, azUnitLabel, azBigLabel);
         azBox.setStyle("-fx-alignment: center; -fx-padding: 0 12 0 0;");
@@ -64,30 +72,42 @@ public class LivePassPanel extends VBox {
         elBarCanvas = new Canvas(POLAR_SIZE, 14);
         drawElBarBackground(elBarCanvas.getGraphicsContext2D(), 0);
 
+        // ── AOS / LOS countdown ──────────────────────────────────────────────
+        countdownLabel = styledLabel("—", "#445566", true, fz + 3);
+        passInfoLabel  = styledLabel("", "#445566", false, fz - 3);
+        VBox countdownBox = new VBox(1, countdownLabel, passInfoLabel);
+        countdownBox.setStyle("-fx-background-color: #080e1c; -fx-background-radius: 4; "
+                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1; "
+                + "-fx-padding: 5 8 5 8;");
+        countdownBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
         // ── Telemetry grid ───────────────────────────────────────────────────
         GridPane grid = new GridPane();
         grid.setHgap(14); grid.setVgap(4);
         grid.setPadding(new Insets(4, 0, 4, 0));
 
-        rangeLabel    = val("---");
-        rateLabel     = val("---");
-        downlinkLabel = val("---");
-        uplinkLabel   = val("---");
-        sunlitLabel   = val("---");
-        risingLabel   = val("---");
-        apogeeLabel   = val("---");
-        perigeeLabel  = val("---");
+        rangeLabel    = val("---", fz);
+        rateLabel     = val("---", fz);
+        downlinkLabel = val("---", fz);
+        uplinkLabel   = val("---", fz);
+        sunlitLabel   = val("---", fz);
+        risingLabel   = val("---", fz);
+        altLabel      = val("---", fz);
+        apogeeLabel   = val("---", fz);
+        perigeeLabel  = val("---", fz);
 
-        addRow(grid, 0, "Range",    rangeLabel,    "Rate",      rateLabel);
-        addRow(grid, 1, "Downlink", downlinkLabel, "Uplink",    uplinkLabel);
-        addRow(grid, 2, "Sunlit",   sunlitLabel,   "Pass",      risingLabel);
-        addRow(grid, 3, "Apogee",   apogeeLabel,   "Perigee",   perigeeLabel);
+        addRow(grid, 0, "Range",    rangeLabel,    "Rate",      rateLabel,    fz);
+        addRow(grid, 1, "Downlink", downlinkLabel, "Uplink",    uplinkLabel,  fz);
+        addRow(grid, 2, "Sunlit",   sunlitLabel,   "Pass",      risingLabel,  fz);
+        addRow(grid, 3, "Altitude", altLabel,      "Apogee",    apogeeLabel,  fz);
+        grid.add(key("Perigee", fz), 0, 4);
+        grid.add(perigeeLabel,       1, 4);
 
         // ── Polar plot ───────────────────────────────────────────────────────
         polarCanvas = new Canvas(POLAR_SIZE, POLAR_SIZE);
         drawPolarBackground(polarCanvas.getGraphicsContext2D());
 
-        getChildren().addAll(satNameLabel, azelBox, elBarCanvas, grid, polarCanvas);
+        getChildren().addAll(satNameLabel, azelBox, elBarCanvas, countdownBox, grid, polarCanvas);
     }
 
     public void update() {
@@ -111,6 +131,9 @@ public class LivePassPanel extends VBox {
 
         // Elevation bar
         drawElBar(elBarCanvas.getGraphicsContext2D(), elDeg);
+
+        // AOS / LOS countdown
+        updateCountdown(state);
 
         // Telemetry
         rangeLabel.setText(String.format("%.0f km", state.slantRangeKm));
@@ -148,7 +171,8 @@ public class LivePassPanel extends VBox {
         risingLabel.setStyle(risingLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
             "-fx-text-fill: " + passColor + ";"));
 
-        // Apogee / perigee
+        // Altitude / apogee / perigee
+        altLabel.setText(String.format("%.0f km", state.altKm));
         apogeeLabel.setText(String.format("%.0f km", state.apogeeKm));
         perigeeLabel.setText(String.format("%.0f km", state.perigeeKm));
 
@@ -252,14 +276,68 @@ public class LivePassPanel extends VBox {
             px + 10, py - 2);
     }
 
+    // ── AOS / LOS countdown ──────────────────────────────────────────────────
+
+    private void updateCountdown(SatelliteState state) {
+        List<SatellitePass> passes = services.tracker.getPassesFor(state.name);
+        if (passes == null || passes.isEmpty()) {
+            countdownLabel.setText("No pass data");
+            countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
+            passInfoLabel.setText("Prediction pending…");
+            return;
+        }
+
+        Instant now = Instant.now();
+
+        // Find an active pass first, then fall back to next upcoming
+        SatellitePass active = null;
+        SatellitePass next   = null;
+        for (SatellitePass p : passes) {
+            if (p.isActive(now)) { active = p; break; }
+            if (p.aos.isAfter(now) && (next == null || p.aos.isBefore(next.aos))) { next = p; }
+        }
+
+        if (active != null) {
+            long secsLeft = active.los.getEpochSecond() - now.getEpochSecond();
+            countdownLabel.setText("LOS  " + formatCountdown(secsLeft));
+            countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
+                secsLeft < 60 ? "-fx-text-fill: #ff4444;" : "-fx-text-fill: #ff8844;"));
+            passInfoLabel.setText(String.format("Max El %.0f°  AOS Az %.0f°  LOS Az %.0f°",
+                active.maxElDeg, active.aosAzDeg, active.losAzDeg));
+        } else if (next != null) {
+            long secsUntil = next.aos.getEpochSecond() - now.getEpochSecond();
+            countdownLabel.setText("AOS  " + formatCountdown(secsUntil));
+            countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
+                secsUntil < 300 ? "-fx-text-fill: #69f0ae;" : "-fx-text-fill: #00b0ff;"));
+            passInfoLabel.setText(String.format("Max El %.0f°  Az %.0f°  Dur %s",
+                next.maxElDeg, next.aosAzDeg, formatCountdown(next.durationSeconds())));
+        } else {
+            countdownLabel.setText("No upcoming pass");
+            countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
+            passInfoLabel.setText("");
+        }
+    }
+
+    private static String formatCountdown(long totalSeconds) {
+        if (totalSeconds < 0) totalSeconds = 0;
+        long h = totalSeconds / 3600;
+        long m = (totalSeconds % 3600) / 60;
+        long s = totalSeconds % 60;
+        if (h > 0) return String.format("%d:%02d:%02d", h, m, s);
+        return String.format("%02d:%02d", m, s);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private void setLabelsEmpty() {
         azBigLabel.setText("---");
         elBigLabel.setText("---");
         prevElevationDeg = Double.NaN;
+        countdownLabel.setText("—");
+        countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
+        passInfoLabel.setText("");
         for (Label l : new Label[]{rangeLabel, rateLabel, downlinkLabel, uplinkLabel,
-                                   sunlitLabel, risingLabel, apogeeLabel, perigeeLabel})
+                                   sunlitLabel, risingLabel, altLabel, apogeeLabel, perigeeLabel})
             l.setText("---");
     }
 
@@ -279,17 +357,17 @@ public class LivePassPanel extends VBox {
         return String.format("%+d Hz", hz);
     }
 
-    private static void addRow(GridPane g, int row, String k1, Label v1, String k2, Label v2) {
-        g.add(key(k1), 0, row); g.add(v1, 1, row);
-        g.add(key(k2), 2, row); g.add(v2, 3, row);
+    private static void addRow(GridPane g, int row, String k1, Label v1, String k2, Label v2, int fz) {
+        g.add(key(k1, fz), 0, row); g.add(v1, 1, row);
+        g.add(key(k2, fz), 2, row); g.add(v2, 3, row);
     }
 
-    private static Label key(String text) {
-        return styledLabel(text, "#556688", false, 10);
+    private static Label key(String text, int fz) {
+        return styledLabel(text, "#556688", false, fz - 3);
     }
 
-    private static Label val(String text) {
-        return styledLabel(text, "#ccd6f6", true, 11);
+    private static Label val(String text, int fz) {
+        return styledLabel(text, "#ccd6f6", true, fz - 2);
     }
 
     private static Label styledLabel(String text, String color, boolean bold, int size) {

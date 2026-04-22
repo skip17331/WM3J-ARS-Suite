@@ -1,5 +1,7 @@
+/home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/api/JsatApiServer.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/JSatApp.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/ServiceRegistry.java
+/home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/SplashScreen.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/hub/JHubClient.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/model/SatelliteDefinition.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/model/SatellitePass.java

@@ -15,7 +15,8 @@
     "language": "en",
     "cqZone": 5,
     "arrlSection": "EPA",
-    "ituZone": 0
+    "ituZone": 0,
+    "rigAlias": ""
   },
   "rig": {
     "backend": "NONE",
@@ -82,12 +83,12 @@
   },
   "apps": {
     "jMap": {
-      "autoLaunch": true,
-      "command": "bash /home/mike/ARS_Suite/j-map/run.sh",
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-map/j-map.sh",
       "ip": "localhost"
     },
     "jLog": {
-      "autoLaunch": true,
+      "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh",
       "ip": "localhost"
     },
@@ -102,8 +103,8 @@
       "ip": "localhost"
     },
     "jSat": {
-      "autoLaunch": false,
-      "command": "",
+      "autoLaunch": true,
+      "command": "bash /home/mike/ARS_Suite/j-sat/j-sat.sh",
       "ip": "localhost"
     }
   },
@@ -172,14 +173,7 @@
     "mapTheme": "satellite"
   },
   "jMapSettings": {
-    "callsign": "WM3J",
-    "qthLat": 39.745583,
-    "qthLon": -76.959714,
-    "qthGrid": "FM19MR",
-    "timezone": "America/New_York",
-    "arrlSection": "EPA",
-    "cqZone": 5,
-    "ituZone": 0,
+    "fontSize": 19,
     "useMockData": false,
     "noaaApiKey": "",
     "openWeatherApiKey": "",
@@ -189,6 +183,7 @@
     "graylineOpacity": 0.6,
     "showAuroraOverlay": false,
     "showGeomagneticAlerts": true,
+    "showSatelliteTracking": false,
     "showWeatherOverlay": true,
     "showTropoOverlay": false,
     "showRadarOverlay": true,
@@ -198,31 +193,14 @@
     "showCqZones": false,
     "showItuZones": false,
     "showGridSquares": false,
-    "showSatelliteTracking": false,
-    "showCountdownTimer": true,
-    "showContestList": false,
+    "showRotorMap": false,
     "showDeWindow": true,
     "showDxWindow": true,
-    "dxWindowCallsign": "",
-    "countdownTimerX": 10.0,
-    "countdownTimerY": 10.0,
-    "contestListX": 10.0,
-    "contestListY": 220.0,
-    "deWindowX": 10.0,
-    "deWindowY": 460.0,
-    "dxWindowX": 250.0,
-    "dxWindowY": 10.0,
+    "showCountdownTimer": true,
+    "showContestList": false,
     "dxBandFilter": "ALL",
     "dxMaxAgeMinutes": 30,
     "dxShowCallsigns": true,
-    "showRotorMap": true,
-    "rotorEnabled": false,
-    "arduinoIp": "192.168.1.100",
-    "arduinoPort": 4533,
-    "arduinoProtocol": "HTTP",
-    "showBeamWidthArc": true,
-    "beamWidthDegrees": 30.0,
-    "showLongPath": true,
     "showLocalTime": false,
     "showUtcTime": true,
     "secondaryTimezone": "",
@@ -230,20 +208,34 @@
     "showSunspotGraphic": true,
     "showPropagationData": true,
     "showBandConditions": true,
-    "fot": 14.0,
-    "muf": 28.0,
-    "darkTheme": true,
-    "uiScale": 1.0,
-    "fontSize": 17,
-    "webServerPort": 8082
+    "tileProvider": "FLAT",
+    "mapZoom": 2,
+    "mapCenterLat": 0,
+    "mapCenterLon": 0,
+    "refreshSeconds": 30
   },
   "jSatSettings": {
     "callsign": "WM3J",
-    "qthLat": 40,
-    "qthLon": -75,
-    "qthAltKm": 0,
-    "enabledSatellites": [],
-    "minPassElevationDeg": 5,
+    "qthLat": 39.745583,
+    "qthLon": -76.959714,
+    "qthAltKm": 0.0,
+    "enabledSatellites": [
+      "AO-92",
+      "AO-109",
+      "ISS (ZARYA)",
+      "AO-73",
+      "RS-44",
+      "AO-7",
+      "HO-113",
+      "AO-91",
+      "FO-29",
+      "PO-101",
+      "RS-83S",
+      "SO-50",
+      "FO-99",
+      "XW-2C"
+    ],
+    "minPassElevationDeg": 5.0,
     "passLookAheadHours": 24,
     "rigControlEnabled": false,
     "rotorControlEnabled": false,
@@ -251,9 +243,20 @@
     "showGroundTrack": true,
     "showFootprint": true,
     "showPassList": true,
-    "fontSize": 13,
+    "fontSize": 21,
+    "tleStaleThresholdHours": 48,
+    "tleApiPort": 4540,
     "hubHost": "localhost",
     "hubWsPort": 8080,
     "hubWebPort": 8081
+  },
+  "jLogSettings": {
+    "fontSize": 19
+  },
+  "jDigiSettings": {
+    "fontSize": 19
+  },
+  "jBridgeSettings": {
+    "wsjtxPath": "wsjtx"
   }
 }

@@ -16,18 +16,21 @@ import java.time.Instant;
  * Fetches solar and space weather data from NOAA SWPC JSON feeds.
  *
  * Endpoints:
- *   kp_index.json          — Kp (3-hour planetary index)
- *   dscovr_solar_wind.json — Solar wind speed, density, IMF Bt/Bz
- *   xrays-1-day.json       — GOES X-ray flux → X-ray class
- *   protons-1-day.json     — GOES proton flux ≥10 MeV
+ *   products/noaa-planetary-k-index.json   — Kp (array of objects, field "Kp" capital K)
+ *   products/solar-wind/plasma-1-day.json  — Solar wind speed, density (array of arrays)
+ *   products/solar-wind/mag-1-day.json     — IMF Bz, Bt (array of arrays)
+ *   json/goes/primary/xrays-1-day.json     — GOES X-ray flux
+ *   json/goes/primary/protons-1-day.json   — GOES proton flux ≥10 MeV
  */
 public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
         implements SolarDataProvider {
 
-    private static final String BASE = "https://services.swpc.noaa.gov/json/";
+    private static final String BASE     = "https://services.swpc.noaa.gov/json/";
+    private static final String PRODUCTS = "https://services.swpc.noaa.gov/products/";
 
-    private static final String KP_URL      = BASE + "kp_index.json";
-    private static final String SW_URL      = BASE + "dscovr_solar_wind.json";
+    private static final String KP_URL      = PRODUCTS + "noaa-planetary-k-index.json";
+    private static final String PLASMA_URL  = PRODUCTS + "solar-wind/plasma-1-day.json";
+    private static final String MAG_URL     = PRODUCTS + "solar-wind/mag-1-day.json";
     private static final String XRAY_URL    = BASE + "goes/primary/xrays-1-day.json";
     private static final String PROTON_URL  = BASE + "goes/primary/protons-1-day.json";
 
@@ -41,7 +44,8 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
         SolarData data = new SolarData();
 
         fetchKp(data);
-        fetchSolarWind(data);
+        fetchSolarWindPlasma(data);
+        fetchSolarWindMag(data);
         fetchXray(data);
         fetchProtons(data);
 
@@ -51,20 +55,17 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
     }
 
     // ── Kp index ───────────────────────────────────────────────
-    // Array of [time_tag, kp, a_running, station_count] — last entry = most recent.
-    // Values are strings.
+    // Array of objects with field "Kp" (capital K).  Walk backwards for last valid value.
     private void fetchKp(SolarData data) {
         try {
             JsonNode root = get(KP_URL);
             if (!root.isArray() || root.size() == 0) return;
-
-            // Walk backwards to find last non-null Kp value
             for (int i = root.size() - 1; i >= 0; i--) {
                 JsonNode row = root.get(i);
-                if (row.isArray() && row.size() >= 2) {
-                    String kpStr = row.get(1).asText("");
-                    if (!kpStr.isBlank() && !kpStr.equals("null")) {
-                        double kp = Double.parseDouble(kpStr);
+                JsonNode kpNode = row.path("Kp");
+                if (!kpNode.isMissingNode() && !kpNode.isNull()) {
+                    double kp = kpNode.asDouble(-1);
+                    if (kp >= 0) {
                         data.setKp(kp);
                         data.setAIndex(kpToAIndex(kp));
                         break;
@@ -76,27 +77,45 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
         }
     }
 
-    // ── DSCOVR solar wind ──────────────────────────────────────
-    // Array of objects; last entry = most recent 1-minute reading.
-    private void fetchSolarWind(SolarData data) {
+    // ── Solar wind plasma ──────────────────────────────────────
+    // Array of arrays.  Row 0 = headers.  Columns: [time_tag, density, speed, temperature]
+    private void fetchSolarWindPlasma(SolarData data) {
         try {
-            JsonNode root = get(SW_URL);
-            if (!root.isArray() || root.size() == 0) return;
-
-            // Walk backwards for a recent entry with valid speed
-            for (int i = root.size() - 1; i >= 0; i--) {
-                JsonNode entry = root.get(i);
-                double speed = entry.path("speed").asDouble(-1);
-                if (speed > 0) {
+            JsonNode root = get(PLASMA_URL);
+            if (!root.isArray() || root.size() < 2) return;
+            for (int i = root.size() - 1; i >= 1; i--) {
+                JsonNode row = root.get(i);
+                double speed = parseCell(row.get(2));
+                if (!Double.isNaN(speed) && speed > 0) {
                     data.setSolarWindSpeed(speed);
-                    data.setSolarWindDensity(entry.path("density").asDouble(0));
-                    data.setBtField(entry.path("bt").asDouble(0));
-                    data.setBzField(entry.path("bz_gsm").asDouble(0));
+                    double dens = parseCell(row.get(1));
+                    data.setSolarWindDensity(Double.isNaN(dens) ? 0 : dens);
                     break;
                 }
             }
         } catch (Exception e) {
-            log.warn("Solar wind fetch failed: {}", e.getMessage());
+            log.warn("Solar wind plasma fetch failed: {}", e.getMessage());
+        }
+    }
+
+    // ── Solar wind mag (IMF) ───────────────────────────────────
+    // Array of arrays.  Row 0 = headers.  Columns: [time_tag, bx_gsm, by_gsm, bz_gsm, lon_gsm, lat_gsm, bt]
+    private void fetchSolarWindMag(SolarData data) {
+        try {
+            JsonNode root = get(MAG_URL);
+            if (!root.isArray() || root.size() < 2) return;
+            for (int i = root.size() - 1; i >= 1; i--) {
+                JsonNode row = root.get(i);
+                double bz = parseCell(row.get(3));
+                if (!Double.isNaN(bz)) {
+                    data.setBzField(bz);
+                    double bt = parseCell(row.get(6));
+                    data.setBtField(Double.isNaN(bt) ? 0 : bt);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Solar wind mag fetch failed: {}", e.getMessage());
         }
     }
 
@@ -148,7 +167,14 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
         }
     }
 
-    // ── HTTP helper ────────────────────────────────────────────
+    // ── Helpers ────────────────────────────────────────────────
+
+    private static double parseCell(JsonNode cell) {
+        if (cell == null || cell.isNull()) return Double.NaN;
+        String s = cell.asText("").trim();
+        if (s.isEmpty() || s.equalsIgnoreCase("null")) return Double.NaN;
+        try { return Double.parseDouble(s); } catch (NumberFormatException e) { return Double.NaN; }
+    }
 
     private JsonNode get(String url) throws DataProviderException {
         try {

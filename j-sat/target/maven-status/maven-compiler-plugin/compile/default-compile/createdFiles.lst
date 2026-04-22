@@ -14,6 +14,7 @@ com/hamradio/jsat/model/SatellitePass.class
 com/hamradio/jsat/service/DataProviderException$ErrorCode.class
 com/hamradio/jsat/service/tle/TleManager.class
 com/hamradio/jsat/service/config/JsatSettingsLoader.class
+com/hamradio/jsat/app/SplashScreen.class
 com/hamradio/jsat/ui/main/MainWindow.class
 com/hamradio/jsat/service/spaceweather/SpaceWeatherService.class
 com/hamradio/jsat/model/TleSet$TleFreshness.class
@@ -24,6 +25,7 @@ com/hamradio/jsat/service/orbital/DopplerCalculator.class
 com/hamradio/jsat/service/orbital/Sgp4Propagator.class
 com/hamradio/jsat/service/tracking/SatelliteTracker.class
 com/hamradio/jsat/service/orbital/CoordTransform.class
+com/hamradio/jsat/api/JsatApiServer.class
 com/hamradio/jsat/hub/JHubClient$1.class
 com/hamradio/jsat/ui/panels/PassListPanel.class
 com/hamradio/jsat/service/config/JsatSettings.class

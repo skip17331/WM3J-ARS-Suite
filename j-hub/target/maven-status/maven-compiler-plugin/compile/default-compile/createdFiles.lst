@@ -10,6 +10,7 @@ com/hamradio/jhub/model/JHubConfig$NormalLog.class
 com/hamradio/jhub/model/JHubConfig$ClusterFilters.class
 com/hamradio/jhub/JHubServer.class
 com/hamradio/jhub/JHubMain.class
+com/hamradio/jhub/WebConfigServer$WeatherApiServlet.class
 com/hamradio/jhub/WebConfigServer$MacrosApiServlet.class
 com/hamradio/jhub/WebConfigServer.class
 com/hamradio/jhub/model/RigStatus.class
@@ -24,6 +25,7 @@ com/hamradio/jhub/model/JHubConfig$RotorSection.class
 com/hamradio/jhub/WebConfigServer$MacrosApiServlet$1.class
 com/hamradio/jhub/WebConfigServer$JMapApiServlet.class
 com/hamradio/jhub/model/JHubConfig$RigSection.class
+com/hamradio/jhub/WeatherService.class
 com/hamradio/jhub/model/JHubConfig.class
 com/hamradio/jhub/WebConfigServer$JDigiApiServlet.class
 com/hamradio/jhub/AppLauncher.class
@@ -49,6 +51,7 @@ com/hamradio/jhub/WebConfigServer$StaticServlet.class
 com/hamradio/jhub/WebConfigServer$StatusApiServlet.class
 com/hamradio/jhub/WebConfigServer$AppearanceApiServlet.class
 com/hamradio/jhub/WebConfigServer$JLogApiServlet.class
+com/hamradio/jhub/WebConfigServer$JSatTleStatusServlet.class
 com/hamradio/jhub/model/JHubConfig$AppsSection.class
 com/hamradio/jhub/SpotEnricher$DxccEntry.class
 com/hamradio/jhub/WebConfigServer$ClusterApiServlet.class

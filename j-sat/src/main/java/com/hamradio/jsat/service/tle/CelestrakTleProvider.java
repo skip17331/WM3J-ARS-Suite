@@ -18,10 +18,10 @@ import java.util.List;
  */
 public class CelestrakTleProvider extends AbstractDataProvider<List<TleSet>> {
 
-    private static final String URL_AMATEUR =
-        "https://celestrak.org/SOCRATES/query.php?GROUP=amateur&FORMAT=tle";
-    private static final String URL_VISUAL =
-        "https://celestrak.org/SOCRATES/query.php?GROUP=visual&FORMAT=tle";
+    private static final String URL_AMATEUR  =
+        "https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=TLE";
+    private static final String URL_STATIONS =
+        "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=TLE";
     // Fallback: AMSAT bare TLE
     private static final String URL_AMSAT =
         "https://amsat.org/tle/current/nasabare.txt";
@@ -32,16 +32,29 @@ public class CelestrakTleProvider extends AbstractDataProvider<List<TleSet>> {
 
     @Override
     protected List<TleSet> doFetch() throws DataProviderException {
-        // Try Celestrak first, fallback to AMSAT
-        String body = fetchUrl(URL_AMATEUR);
-        if (body == null || body.isBlank()) {
-            body = fetchUrl(URL_AMSAT);
+        List<TleSet> result = new ArrayList<>();
+
+        // Amateur satellite group
+        String amateurBody = fetchUrl(URL_AMATEUR);
+        if (amateurBody != null && !amateurBody.isBlank())
+            result.addAll(parseTles(amateurBody));
+
+        // Stations group (includes ISS ZARYA, CSS, etc.)
+        String stationsBody = fetchUrl(URL_STATIONS);
+        if (stationsBody != null && !stationsBody.isBlank())
+            result.addAll(parseTles(stationsBody));
+
+        // Fallback to AMSAT if neither Celestrak group returned usable TLEs
+        if (result.isEmpty()) {
+            String amsatBody = fetchUrl(URL_AMSAT);
+            if (amsatBody != null && !amsatBody.isBlank())
+                result.addAll(parseTles(amsatBody));
         }
-        if (body == null || body.isBlank()) {
+
+        if (result.isEmpty())
             throw new DataProviderException("No TLE data available from any source",
                 DataProviderException.ErrorCode.NETWORK_ERROR);
-        }
-        List<TleSet> result = parseTles(body);
+
         log.info("Loaded {} TLEs from Celestrak/AMSAT", result.size());
         return result;
     }

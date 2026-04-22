@@ -133,7 +133,14 @@ public class SatelliteTracker {
                 TleSet tle = resolveTle(def);
                 if (tle == null) continue;
                 try {
-                    List<SatellitePass> passes = predictor.predict(tle, lat, lon, alt, now);
+                    List<SatellitePass> raw = predictor.predict(tle, lat, lon, alt, now);
+                    // Remap to use registry def.name so selection matches currentStates keys
+                    List<SatellitePass> passes = raw.stream()
+                        .map(p -> new SatellitePass(def.name, p.noradId,
+                                                    p.aos, p.los, p.maxElTime,
+                                                    p.maxElDeg, p.aosAzDeg, p.losAzDeg,
+                                                    p.maxElAzDeg, p.slantRangeKm))
+                        .collect(java.util.stream.Collectors.toList());
                     passPredictions.put(def.name, passes);
                 } catch (Exception e) {
                     log.debug("Pass prediction failed for {}: {}", def.name, e.getMessage());

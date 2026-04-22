@@ -103,6 +103,7 @@ public class Settings {
     private double mapCenterLat   = 0.0;
     private double mapCenterLon   = 0.0;
     private String tleSource      = "";
+    private String jSatApiUrl     = "http://localhost:4540";
     private int    refreshSeconds = 30;
 
     // UI preferences
@@ -302,6 +303,9 @@ public class Settings {
 
     public String getTleSource() { return tleSource != null ? tleSource : ""; }
     public void setTleSource(String tleSource) { this.tleSource = tleSource; }
+
+    public String getJSatApiUrl() { return jSatApiUrl != null && !jSatApiUrl.isBlank() ? jSatApiUrl : "http://localhost:4540"; }
+    public void setJSatApiUrl(String jSatApiUrl) { this.jSatApiUrl = jSatApiUrl; }
 
     public int getRefreshSeconds() { return refreshSeconds > 0 ? refreshSeconds : 30; }
     public void setRefreshSeconds(int refreshSeconds) { this.refreshSeconds = refreshSeconds; }

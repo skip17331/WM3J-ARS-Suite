@@ -14,52 +14,92 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fetches amateur satellite TLE data from Celestrak and computes positions
- * using a simplified SGP4-like propagator.
- *
- * Full SGP4 implementation requires the full algorithm (Vallado 2013).
- * This implementation fetches TLEs and provides approximate circular-orbit
- * positions sufficient for a map overlay. For precise tracking, integrate
- * a full SGP4 library (e.g., predict4java or orekit).
+ * Fetches amateur satellite TLE data, preferring J-Sat's authoritative TLE API.
+ * Falls back to direct AMSAT fetch if J-Sat is unavailable.
  */
 public class CelestrakSatelliteProvider extends AbstractDataProvider<SatelliteData>
         implements SatelliteProvider {
 
     private static final Logger log = LoggerFactory.getLogger(CelestrakSatelliteProvider.class);
 
-    // Celestrak amateur satellite group
-    private static final String TLE_URL =
-        "https://celestrak.org/SOCRATES/query.php?GROUP=amateur&FORMAT=tle";
-
-    private static final String TLE_AMATEUR =
-        "https://celestrak.org/SOCRATES/query.php?GROUP=amateur&FORMAT=tle";
-
-    // Use the simpler stations endpoint for AMSAT
     private static final String AMSAT_TLE =
         "https://amsat.org/tle/current/nasabare.txt";
 
     private final HttpClient http = HttpClient.newHttpClient();
+    private volatile String jSatApiUrl = "http://localhost:4540";
+
+    public void setJSatApiUrl(String url) {
+        this.jSatApiUrl = (url != null && !url.isBlank()) ? url : "http://localhost:4540";
+    }
 
     @Override
     protected SatelliteData doFetch() throws DataProviderException {
+        // Try J-Sat authoritative TLE API first
+        try {
+            String tleText = fetchTleFromJSat();
+            if (tleText != null && !tleText.isBlank()) {
+                log.debug("Satellite data fetched from J-Sat TLE API");
+                return parseTleAndPropagate(tleText);
+            }
+        } catch (Exception e) {
+            log.debug("J-Sat TLE API unavailable ({}), falling back to AMSAT direct", e.getMessage());
+        }
+
+        // Fall back to direct AMSAT fetch
         try {
             HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(AMSAT_TLE))
                 .header("User-Agent", "J-Map/1.0")
                 .build();
-
             HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() != 200) {
-                throw new DataProviderException("Celestrak HTTP " + resp.statusCode(), DataProviderException.ErrorCode.NETWORK_ERROR);
+                throw new DataProviderException("AMSAT TLE HTTP " + resp.statusCode(), DataProviderException.ErrorCode.NETWORK_ERROR);
             }
-
             return parseTleAndPropagate(resp.body());
-
         } catch (DataProviderException e) {
             throw e;
         } catch (Exception e) {
             throw new DataProviderException("Satellite fetch failed: " + e.getMessage(), DataProviderException.ErrorCode.NETWORK_ERROR, e);
         }
+    }
+
+    /** Fetch TLE text from J-Sat API and convert JSON array to 3-line TLE format. */
+    private String fetchTleFromJSat() throws Exception {
+        HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create(jSatApiUrl + "/api/tle/all"))
+            .header("User-Agent", "J-Map/1.0")
+            .timeout(java.time.Duration.ofSeconds(3))
+            .build();
+        HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+        if (resp.statusCode() != 200) return null;
+
+        // Parse JSON array and reconstruct 3-line TLE text
+        String body = resp.body().trim();
+        if (!body.startsWith("[")) return null;
+        StringBuilder sb = new StringBuilder();
+        // Simple JSON array parsing — extract name/line1/line2 fields
+        String[] entries = body.substring(1, body.length() - 1).split("\\},\\{");
+        for (String entry : entries) {
+            String name  = extractJsonString(entry, "name");
+            String line1 = extractJsonString(entry, "line1");
+            String line2 = extractJsonString(entry, "line2");
+            if (name != null && line1 != null && line2 != null) {
+                sb.append(name).append('\n')
+                  .append(line1).append('\n')
+                  .append(line2).append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String extractJsonString(String json, String key) {
+        String search = "\"" + key + "\":\"";
+        int start = json.indexOf(search);
+        if (start < 0) return null;
+        start += search.length();
+        int end = json.indexOf('"', start);
+        if (end < 0) return null;
+        return json.substring(start, end).replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
     private SatelliteData parseTleAndPropagate(String body) {

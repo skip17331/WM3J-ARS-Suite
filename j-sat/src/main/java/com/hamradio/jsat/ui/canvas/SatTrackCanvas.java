@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -25,9 +26,14 @@ import java.util.Map;
  */
 public class SatTrackCanvas extends Pane {
 
+    private static final double HIT_RADIUS = 16.0;   // px — click tolerance around dot
+
     private final ServiceRegistry services;
     private final Canvas canvas;
     private final Image  mapImage;
+
+    // Satellite screen positions from the last render pass — FX thread only
+    private final Map<String, double[]> satPositions = new LinkedHashMap<>();
 
     // Satellite colors by index
     private static final Color[] SAT_COLORS = {
@@ -48,6 +54,9 @@ public class SatTrackCanvas extends Pane {
             if (in != null) img = new Image(in);
         } catch (Exception ignored) {}
         this.mapImage = (img != null && !img.isError()) ? img : null;
+
+        canvas.setOnMouseClicked(this::handleClick);
+        canvas.setOnMouseMoved(this::handleHover);
     }
 
     /** Called from animation loop — renders one frame. */
@@ -74,12 +83,16 @@ public class SatTrackCanvas extends Pane {
 
         // ── Satellite states ──────────────────────────────────────────────────
         Map<String, SatelliteState> states = services.tracker.getCurrentStates();
+        satPositions.clear();
         int colorIdx = 0;
         for (Map.Entry<String, SatelliteState> entry : states.entrySet()) {
             Color color = SAT_COLORS[colorIdx % SAT_COLORS.length];
             colorIdx++;
             drawSatellite(gc, w, h, entry.getValue(), color, s, entry.getKey());
         }
+
+        // ── Sun sub-solar point ──────────────────────────────────────────────
+        drawSun(gc, w, h);
 
         // ── Observer crosshair ───────────────────────────────────────────────
         drawObserver(gc, w, h, s.qthLat, s.qthLon);
@@ -92,6 +105,7 @@ public class SatTrackCanvas extends Pane {
                                JsatSettings s, String name) {
         double px = lonToX(state.lonDeg, w);
         double py = latToY(state.latDeg, h);
+        satPositions.put(name, new double[]{px, py});
 
         // Footprint circle
         if (s.showFootprint && state.footprintRadiusDeg > 0) {
@@ -164,6 +178,30 @@ public class SatTrackCanvas extends Pane {
         gc.strokeLine(px, py + r + 2, px, py + 14);
     }
 
+    private void drawSun(GraphicsContext gc, double w, double h) {
+        double[] sp  = sunPosition(Instant.now());
+        double sunLat = sp[0];
+        double sunLon = sp[1];
+        double sx = lonToX(sunLon, w);
+        double sy = latToY(sunLat, h);
+
+        // Rays
+        gc.setStroke(Color.web("#ffe066", 0.7));
+        gc.setLineWidth(1.2);
+        int rayLen = 8;
+        for (int i = 0; i < 8; i++) {
+            double ang = Math.toRadians(i * 45);
+            gc.strokeLine(sx + Math.cos(ang) * 6, sy + Math.sin(ang) * 6,
+                          sx + Math.cos(ang) * (6 + rayLen), sy + Math.sin(ang) * (6 + rayLen));
+        }
+        // Core disc
+        gc.setFill(Color.web("#ffe566"));
+        gc.fillOval(sx - 5, sy - 5, 10, 10);
+        gc.setStroke(Color.web("#ffaa00"));
+        gc.setLineWidth(1.2);
+        gc.strokeOval(sx - 5, sy - 5, 10, 10);
+    }
+
     private void drawTerminator(GraphicsContext gc, double w, double h) {
         Instant now = Instant.now();
         // Sun declination and GHA
@@ -224,6 +262,37 @@ public class SatTrackCanvas extends Pane {
     }
 
     // ── Coordinate helpers ─────────────────────────────────────────────────────
+
+    // ── Mouse interaction ──────────────────────────────────────────────────────
+
+    private void handleClick(javafx.scene.input.MouseEvent e) {
+        String nearest = nearestSatellite(e.getX(), e.getY());
+        if (nearest != null) {
+            services.tracker.setSelectedSatellite(nearest);
+        }
+    }
+
+    private void handleHover(javafx.scene.input.MouseEvent e) {
+        boolean overSat = nearestSatellite(e.getX(), e.getY()) != null;
+        canvas.setCursor(overSat ? javafx.scene.Cursor.HAND : javafx.scene.Cursor.DEFAULT);
+    }
+
+    /** Returns the name of the closest satellite within HIT_RADIUS, or null. */
+    private String nearestSatellite(double mouseX, double mouseY) {
+        String best = null;
+        double bestDist = HIT_RADIUS;
+        for (Map.Entry<String, double[]> entry : satPositions.entrySet()) {
+            double[] pos = entry.getValue();
+            double dx = mouseX - pos[0];
+            double dy = mouseY - pos[1];
+            double dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = entry.getKey();
+            }
+        }
+        return best;
+    }
 
     private static double lonToX(double lon, double w) { return (lon + 180.0) / 360.0 * w; }
     private static double latToY(double lat, double h) { return (90.0 - lat)  / 180.0 * h; }

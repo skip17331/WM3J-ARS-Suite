@@ -29,19 +29,20 @@ public class RigRotorPanel extends VBox {
 
     public RigRotorPanel(ServiceRegistry services) {
         this.services = services;
+        int fz = services.getSettings().fontSize;
 
         setSpacing(5);
         setPadding(new Insets(8));
         setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = styled("🎛  RIG / ROTOR (via J-Hub)", "#aabbdd", true, 12);
+        Label title = styled("🎛  RIG / ROTOR (via J-Hub)", "#aabbdd", true, fz + 1);
 
-        rigStatusLabel   = styled("Rig: —", "#445566", false, 11);
-        rotorStatusLabel = styled("Rotor: —", "#445566", false, 11);
-        rigFreqLabel     = styled("DL: ---  UL: ---", "#ccd6f6", true, 11);
-        rotorPosLabel    = styled("AZ ---°  EL ---°", "#ccd6f6", false, 11);
-        rotorTargetLabel = styled("→ ---°  ---°", "#7a8aaa", false, 11);
+        rigStatusLabel   = styled("Rig: —", "#445566", false, fz - 1);
+        rotorStatusLabel = styled("Rotor: —", "#445566", false, fz - 1);
+        rigFreqLabel     = styled("DL: ---  UL: ---", "#ccd6f6", true, fz - 1);
+        rotorPosLabel    = styled("AZ ---°  EL ---°", "#ccd6f6", false, fz - 1);
+        rotorTargetLabel = styled("→ ---°  ---°", "#7a8aaa", false, fz - 1);
 
         compassCanvas = new Canvas(COMPASS_SIZE, COMPASS_SIZE);
         drawCompassBackground(compassCanvas.getGraphicsContext2D());

@@ -650,3 +650,31 @@ body.light .btn-ghost {
 body.light .rig-conn-badge.ok   { background: #e8f5e9; color: #2e7d32; border-color: #388e3c; }
 body.light .rig-conn-badge.warn { background: #fff8e1; color: #f57f17; border-color: #ffa000; }
 body.light .rig-conn-badge.off  { background: #f0f0f0; color: #888; border: none; }
+
+/* ── Weather / Space-weather tiles ──────────────────────── */
+.sw-tile {
+  background: var(--surface0);
+  border: 1px solid var(--surface2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.sw-tile-val {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: Consolas, monospace;
+  color: var(--blue);
+  line-height: 1.2;
+}
+.sw-tile-lbl {
+  font-size: 10px;
+  color: var(--subtext0);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+.sw-tile-sub {
+  font-size: 11px;
+  color: var(--overlay0);
+  margin-top: 2px;
+}

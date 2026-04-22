@@ -56,6 +56,7 @@ public class JHubConfig {
         public int    cqZone      = 0;
         public String arrlSection = "";
         public int    ituZone     = 0;
+        public String rigAlias    = "";   // friendly name displayed in all module UIs
     }
 
     // ---------------------------------------------------------------

@@ -1,11 +1,11 @@
 {
-  "j-hub": {
+  "hub": {
     "address": "localhost",
     "port": 8080
   },
   "wsjtx": {
     "udpPort": 2237,
-    "bindAddress": "0.0.0.0"
+    "bindAddress": "127.0.0.0"
   },
   "display": {
     "decodeHistoryLength": 200,

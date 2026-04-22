@@ -16,15 +16,17 @@ import java.util.concurrent.atomic.AtomicReference;
  * No API key required. Updated every 5 minutes by the scheduler.
  *
  * Endpoints:
- *   kp_index.json           — Kp 1-min cadence
- *   dscovr_solar_wind.json  — ACE/DSCOVR solar wind
- *   goes/primary/xrays-1-day.json
- *   goes/primary/protons-1-day.json
+ *   products/noaa-planetary-k-index.json      — Kp (array of objects, "Kp" field, capital K)
+ *   products/solar-wind/plasma-1-day.json     — speed, density (array of arrays)
+ *   products/solar-wind/mag-1-day.json        — Bz, Bt (array of arrays)
+ *   json/goes/primary/xrays-1-day.json        — X-ray flux
+ *   json/goes/primary/protons-1-day.json      — proton flux
  */
 public class SpaceWeatherService {
 
     private static final Logger log = LoggerFactory.getLogger(SpaceWeatherService.class);
-    private static final String BASE = "https://services.swpc.noaa.gov/json/";
+    private static final String BASE     = "https://services.swpc.noaa.gov/json/";
+    private static final String PRODUCTS = "https://services.swpc.noaa.gov/products/";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient   HTTP   = HttpClient.newBuilder()
@@ -54,16 +56,17 @@ public class SpaceWeatherService {
 
     private void fetchKp(SpaceWeatherData d) {
         try {
-            JsonNode arr = get(BASE + "kp_index.json");
-            if (!arr.isArray()) return;
-            // Walk backwards to find last non-null kp value
+            // products/noaa-planetary-k-index.json — array of objects, field "Kp" (capital K)
+            JsonNode arr = get(PRODUCTS + "noaa-planetary-k-index.json");
+            if (!arr.isArray() || arr.isEmpty()) return;
             for (int i = arr.size() - 1; i >= 0; i--) {
                 JsonNode row = arr.get(i);
-                if (row.size() >= 2 && !row.get(1).isNull()) {
-                    String kpStr = row.get(1).asText("");
-                    if (!kpStr.isBlank() && !kpStr.equals("null")) {
-                        d.kp      = Double.parseDouble(kpStr);
-                        d.kpLabel = "Kp " + kpStr;
+                JsonNode kpNode = row.path("Kp");
+                if (!kpNode.isMissingNode() && !kpNode.isNull()) {
+                    double kp = kpNode.asDouble(-1);
+                    if (kp >= 0) {
+                        d.kp      = kp;
+                        d.kpLabel = String.format("Kp %.2f", kp);
                         break;
                     }
                 }
@@ -74,22 +77,47 @@ public class SpaceWeatherService {
     }
 
     private void fetchSolarWind(SpaceWeatherData d) {
+        fetchSolarWindPlasma(d);
+        fetchSolarWindMag(d);
+    }
+
+    // plasma-1-day: array of arrays, row[0]=headers ["time_tag","density","speed","temperature"]
+    private void fetchSolarWindPlasma(SpaceWeatherData d) {
         try {
-            JsonNode arr = get(BASE + "dscovr_solar_wind.json");
-            if (!arr.isArray()) return;
-            for (int i = arr.size() - 1; i >= 0; i--) {
+            JsonNode arr = get(PRODUCTS + "solar-wind/plasma-1-day.json");
+            if (!arr.isArray() || arr.size() < 2) return;
+            for (int i = arr.size() - 1; i >= 1; i--) {
                 JsonNode row = arr.get(i);
-                double speed = row.path("speed").asDouble(0);
-                if (speed > 0) {
+                double speed = parseCell(row.get(2));
+                if (!Double.isNaN(speed) && speed > 0) {
                     d.solarWindSpeedKmS = speed;
-                    d.solarWindDensity  = row.path("density").asDouble(0);
-                    d.imfBt             = row.path("bt").asDouble(0);
-                    d.imfBz             = row.path("bz_gsm").asDouble(0);
+                    double dens = parseCell(row.get(1));
+                    d.solarWindDensity  = Double.isNaN(dens) ? 0 : dens;
                     break;
                 }
             }
         } catch (Exception e) {
-            log.debug("Solar wind fetch error: {}", e.getMessage());
+            log.debug("Solar wind plasma fetch error: {}", e.getMessage());
+        }
+    }
+
+    // mag-1-day: array of arrays, row[0]=headers ["time_tag","bx_gsm","by_gsm","bz_gsm","lon_gsm","lat_gsm","bt"]
+    private void fetchSolarWindMag(SpaceWeatherData d) {
+        try {
+            JsonNode arr = get(PRODUCTS + "solar-wind/mag-1-day.json");
+            if (!arr.isArray() || arr.size() < 2) return;
+            for (int i = arr.size() - 1; i >= 1; i--) {
+                JsonNode row = arr.get(i);
+                double bz = parseCell(row.get(3));
+                if (!Double.isNaN(bz)) {
+                    d.imfBz = bz;
+                    double bt = parseCell(row.get(6));
+                    d.imfBt = Double.isNaN(bt) ? 0 : bt;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Solar wind mag fetch error: {}", e.getMessage());
         }
     }
 
@@ -131,6 +159,13 @@ public class SpaceWeatherService {
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private static double parseCell(JsonNode cell) {
+        if (cell == null || cell.isNull()) return Double.NaN;
+        String s = cell.asText("").trim();
+        if (s.isEmpty() || s.equalsIgnoreCase("null")) return Double.NaN;
+        try { return Double.parseDouble(s); } catch (NumberFormatException e) { return Double.NaN; }
+    }
 
     private JsonNode get(String url) throws Exception {
         HttpRequest req = HttpRequest.newBuilder()

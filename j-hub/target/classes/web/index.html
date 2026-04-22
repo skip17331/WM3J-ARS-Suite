@@ -28,6 +28,7 @@
       <button class="nav-btn" data-tab="jdigi"><span class="nav-icon">〰</span>J-Digi</button>
       <button class="nav-btn" data-tab="jbridge"><span class="nav-icon">⇄</span>J-Bridge</button>
       <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
+      <button class="nav-btn" data-tab="weather"><span class="nav-icon">☁</span>Weather</button>
     </div>
     <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
       <span id="nav-ws">WebSocket: <span id="nav-ws-state">—</span></span>
@@ -46,7 +47,7 @@
       <div class="dash-grid">
         <!-- Rig status card -->
         <div class="card">
-          <div class="card-title">Rig Status</div>
+          <div class="card-title">Rig Status <span id="d-rig-alias" style="font-size:11px;font-weight:normal;color:var(--subtext0);margin-left:6px"></span></div>
           <div class="rig-freq" id="d-freq">— — —</div>
           <div class="rig-mode" id="d-mode">—</div>
           <div class="rig-sub">Power: <span id="d-pwr">—</span> W &nbsp;|&nbsp;
@@ -60,6 +61,7 @@
         <div class="card">
           <div class="card-title">Rotor / Antenna</div>
           <div class="compass-wrap">
+            <!-- Azimuth gauge -->
             <svg id="compass-svg" width="100" height="100" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="46" fill="none" stroke="#45475a" stroke-width="1.5"/>
               <circle cx="50" cy="50" r="2" fill="#585b70"/>
@@ -73,7 +75,23 @@
             </svg>
             <div>
               <div class="big-num" id="d-heading">---°</div>
-              <div class="big-label">Heading</div>
+              <div class="big-label">Azimuth</div>
+            </div>
+            <!-- Elevation gauge -->
+            <svg id="elev-svg" width="100" height="100" viewBox="0 0 100 100" style="margin-left:12px">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="#45475a" stroke-width="1.5"/>
+              <circle cx="50" cy="50" r="2" fill="#585b70"/>
+              <text x="50" y="11" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">90°</text>
+              <text x="91" y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">45°</text>
+              <text x="50" y="96" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">0°</text>
+              <text x="9"  y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">45°</text>
+              <line id="elev-needle" x1="50" y1="50" x2="50" y2="10"
+                    stroke="#89b4fa" stroke-width="3" stroke-linecap="round"
+                    transform="rotate(180, 50, 50)" transform-origin="50 50"/>
+            </svg>
+            <div>
+              <div class="big-num" id="d-elevation">---°</div>
+              <div class="big-label">Elevation</div>
               <div style="margin-top:8px;font-size:11px;color:var(--overlay0)">
                 Backend: <span id="d-rotor-backend">—</span>
               </div>
@@ -192,6 +210,13 @@
             <label>Operator Name</label>
           </div>
         </div>
+        <div class="field-row cols-2" style="margin-top:6px">
+          <div class="field">
+            <input type="text" id="st-rig-alias" placeholder="Icom IC-7300 (Main)">
+            <label>Rig Alias / Friendly Name</label>
+            <span class="hint">Displayed in all modules wherever the rig name appears</span>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -262,7 +287,7 @@
 
     <!-- ─── Tab: Rig Control ────────────────────────────── -->
     <section id="tab-rig" class="tab-panel">
-      <div class="panel-header">Rig Control</div>
+      <div class="panel-header">Rig Control <span id="rig-header-alias" style="font-size:13px;font-weight:normal;color:var(--subtext0);margin-left:8px"></span></div>
       <div class="panel-sub">Configure the transceiver backend for this station</div>
 
       <div class="card">
@@ -428,8 +453,9 @@
 
         <!-- Live heading & manual control -->
         <div class="card">
-          <div class="card-title">Live Heading &amp; Manual Control</div>
+          <div class="card-title">Live Position &amp; Manual Control</div>
           <div class="compass-wrap" style="margin-bottom:16px">
+            <!-- Azimuth gauge -->
             <svg width="100" height="100" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="46" fill="none" stroke="#45475a" stroke-width="1.5"/>
               <circle cx="50" cy="50" r="2" fill="#585b70"/>
@@ -443,11 +469,27 @@
             </svg>
             <div>
               <div class="big-num" id="rot-heading-big">---°</div>
-              <div class="big-label">Current Heading</div>
+              <div class="big-label">Azimuth</div>
+            </div>
+            <!-- Elevation gauge -->
+            <svg width="100" height="100" viewBox="0 0 100 100" style="margin-left:12px">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="#45475a" stroke-width="1.5"/>
+              <circle cx="50" cy="50" r="2" fill="#585b70"/>
+              <text x="50" y="11" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">90°</text>
+              <text x="91" y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">45°</text>
+              <text x="50" y="96" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">0°</text>
+              <text x="9"  y="53" text-anchor="middle" fill="#a6adc8" font-size="9" font-family="Consolas">45°</text>
+              <line id="rot-elev-needle" x1="50" y1="50" x2="50" y2="10"
+                    stroke="#89b4fa" stroke-width="3" stroke-linecap="round"
+                    transform="rotate(180, 50, 50)" transform-origin="50 50"/>
+            </svg>
+            <div>
+              <div class="big-num" id="rot-elev-big">---°</div>
+              <div class="big-label">Elevation</div>
             </div>
           </div>
 
-          <div class="section-title">Manual Direction</div>
+          <div class="section-title">Azimuth</div>
           <div class="compass-btns" style="margin-bottom:12px">
             <button class="compass-btn" onclick="rotorCmd('NW')">NW</button>
             <button class="compass-btn" onclick="rotorCmd('N')">N</button>
@@ -458,6 +500,16 @@
             <button class="compass-btn" onclick="rotorCmd('SW')">SW</button>
             <button class="compass-btn" onclick="rotorCmd('S')">S</button>
             <button class="compass-btn" onclick="rotorCmd('SE')">SE</button>
+          </div>
+
+          <div class="section-title">Elevation</div>
+          <div class="btn-row" style="margin-bottom:12px">
+            <button class="btn btn-ghost btn-sm" onclick="rotorElevJog(10)">▲ +10°</button>
+            <button class="btn btn-ghost btn-sm" onclick="rotorElevJog(5)">▲ +5°</button>
+            <button class="btn btn-ghost btn-sm" onclick="rotorElevJog(-5)">▼ −5°</button>
+            <button class="btn btn-ghost btn-sm" onclick="rotorElevJog(-10)">▼ −10°</button>
+            <button class="btn btn-ghost btn-sm" onclick="rotorElevPark()">Park (0°)</button>
+            <button class="btn btn-danger  btn-sm" onclick="rotorStop()">■ Stop</button>
           </div>
 
           <div class="section-title">Presets</div>
@@ -1012,14 +1064,12 @@
         </div>
         <div class="field-row cols-2" style="margin-top:4px">
           <div class="field">
-            <input type="text" id="jm-tle-source" placeholder="https://celestrak.org/SOCRATES/...">
-            <label>TLE Source URL</label>
-            <span class="hint">URL for satellite TLE data (used when Satellite Tracking is enabled)</span>
-          </div>
-          <div class="field">
             <input type="number" id="jm-refresh" min="5" max="3600" placeholder="30">
             <label>Refresh Interval (sec)</label>
           </div>
+        </div>
+        <div style="font-size:11px;color:var(--overlay0);margin-top:6px">
+          TLE satellite data is managed by J-Sat. Configure TLE sources and stale thresholds in the <strong>J-Sat</strong> tab.
         </div>
       </div>
 
@@ -1245,14 +1295,38 @@
         </div>
       </div>
 
+      <!-- TLE Configuration -->
+      <div class="card">
+        <div class="card-title">TLE Configuration</div>
+        <div class="panel-sub" style="margin-bottom:10px">
+          J-Sat is the authoritative TLE source for all ARS Suite modules. TLEs are fetched from Celestrak and served to J-Map and other modules via the J-Sat TLE API.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field">
+            <input type="number" id="jsat-tle-threshold" step="1" min="1" max="168" placeholder="48">
+            <label>Stale Threshold (hours)</label>
+            <span class="hint">TLEs older than this are flagged as stale (default 48h)</span>
+          </div>
+          <div class="field">
+            <input type="number" id="jsat-tle-port" step="1" min="1024" max="65535" placeholder="4540">
+            <label>TLE API Port</label>
+            <span class="hint">HTTP port for J-Sat's TLE API (default 4540)</span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="btn btn-ghost btn-sm" onclick="refreshJSatTleStatus()">Refresh TLE Status</button>
+          <span id="jsat-tle-refresh-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
       <!-- Font size -->
       <div class="card">
         <div class="card-title">Font Size</div>
         <div class="field-row cols-2">
           <div class="field">
-            <input type="range" id="jsat-font-size" min="10" max="22" value="13"
+            <input type="range" id="jsat-font-size" min="10" max="22" value="15"
                    oninput="document.getElementById('jsat-font-size-val').textContent=this.value">
-            <label>Size: <span id="jsat-font-size-val">13</span> px — applied when J-Sat starts</label>
+            <label>Size: <span id="jsat-font-size-val">15</span> px — applied when J-Sat starts</label>
           </div>
         </div>
       </div>
@@ -1261,6 +1335,99 @@
         <button class="btn btn-primary" onclick="saveJSatSettings()">Save J-Sat Settings</button>
         <span id="jsat-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
+    </section>
+
+    <!-- ─── Tab: Weather ──────────────────────────────── -->
+    <section id="tab-weather" class="tab-panel">
+      <div class="panel-header">Weather</div>
+      <div class="panel-sub">Space weather conditions from NOAA SWPC and local weather from OpenWeather</div>
+
+      <!-- Space Weather -->
+      <div class="card">
+        <div class="card-title">Space Weather <span id="sw-fetched" style="font-size:11px;font-weight:normal;color:var(--subtext0);margin-left:8px"></span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:8px">
+
+          <div class="sw-tile">
+            <div class="sw-tile-val" id="sw-kp">—</div>
+            <div class="sw-tile-lbl">Kp Index</div>
+            <div class="sw-tile-sub" id="sw-kp-cond">—</div>
+          </div>
+
+          <div class="sw-tile">
+            <div class="sw-tile-val" id="sw-xray">—</div>
+            <div class="sw-tile-lbl">X-Ray Flux</div>
+            <div class="sw-tile-sub">Solar flare class</div>
+          </div>
+
+          <div class="sw-tile">
+            <div class="sw-tile-val" id="sw-bz">— nT</div>
+            <div class="sw-tile-lbl">IMF Bz</div>
+            <div class="sw-tile-sub" id="sw-bt">Bt — nT</div>
+          </div>
+
+          <div class="sw-tile">
+            <div class="sw-tile-val" id="sw-wind">— km/s</div>
+            <div class="sw-tile-lbl">Solar Wind Speed</div>
+            <div class="sw-tile-sub" id="sw-dens">Density — p/cc</div>
+          </div>
+
+          <div class="sw-tile">
+            <div class="sw-tile-val" id="sw-proton">—</div>
+            <div class="sw-tile-lbl">Proton Flux</div>
+            <div class="sw-tile-sub">≥10 MeV pfu</div>
+          </div>
+
+        </div>
+
+        <div class="sw-band-note" style="margin-top:12px;font-size:11px;color:var(--subtext0)">
+          <strong>HF conditions:</strong>
+          <span id="sw-hf-note">—</span>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="fetchWeather()">Refresh Now</button>
+          <a class="btn btn-ghost btn-sm" href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA SWPC ↗</a>
+        </div>
+      </div>
+
+      <!-- Local Weather -->
+      <div class="card" id="local-wx-card">
+        <div class="card-title">Local Weather</div>
+        <div id="local-wx-no-key" style="color:var(--overlay0);font-size:12px;display:none">
+          No OpenWeather API key configured. Add <code>openWeatherApiKey</code> to J-Map Settings to enable local weather.
+        </div>
+        <div id="local-wx-data" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:8px">
+            <div class="sw-tile">
+              <div class="sw-tile-val" id="wx-temp">—</div>
+              <div class="sw-tile-lbl">Temperature</div>
+              <div class="sw-tile-sub" id="wx-feels">Feels like —</div>
+            </div>
+            <div class="sw-tile">
+              <div class="sw-tile-val" id="wx-desc">—</div>
+              <div class="sw-tile-lbl">Conditions</div>
+              <div class="sw-tile-sub" id="wx-clouds">—</div>
+            </div>
+            <div class="sw-tile">
+              <div class="sw-tile-val" id="wx-wind">—</div>
+              <div class="sw-tile-lbl">Wind</div>
+              <div class="sw-tile-sub" id="wx-wind-dir">—</div>
+            </div>
+            <div class="sw-tile">
+              <div class="sw-tile-val" id="wx-humidity">—</div>
+              <div class="sw-tile-lbl">Humidity</div>
+              <div class="sw-tile-sub" id="wx-pressure">—</div>
+            </div>
+            <div class="sw-tile">
+              <div class="sw-tile-val" id="wx-vis">—</div>
+              <div class="sw-tile-lbl">Visibility</div>
+              <div class="sw-tile-sub" id="wx-location">—</div>
+            </div>
+          </div>
+        </div>
+        <div id="local-wx-err" style="color:var(--red);font-size:12px;display:none"></div>
+      </div>
+
     </section>
 
   </main>
@@ -1276,6 +1443,10 @@
       <div class="intel-row">
         <span class="intel-k">Rig</span>
         <span class="intel-v" id="i-rig-model">—</span>
+      </div>
+      <div class="intel-row" id="i-rig-alias-row" style="display:none">
+        <span class="intel-k">Alias</span>
+        <span class="intel-v" id="i-rig-alias" style="color:var(--subtext0);font-size:11px">—</span>
       </div>
     </div>
 

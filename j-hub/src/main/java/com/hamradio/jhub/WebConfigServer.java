@@ -69,6 +69,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new ClusterApiServlet()),   "/api/cluster/*");
         ctx.addServlet(new ServletHolder(new JMapApiServlet()),        "/api/jmap");
         ctx.addServlet(new ServletHolder(new JSatApiServlet()),        "/api/jsat");
+        ctx.addServlet(new ServletHolder(new JSatTleStatusServlet()), "/api/jsat/tle-status");
         ctx.addServlet(new ServletHolder(new JLogApiServlet()),        "/api/jlog");
         ctx.addServlet(new ServletHolder(new JDigiApiServlet()),       "/api/jdigi");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
@@ -80,6 +81,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new DbApiServlet()),        "/api/db/*");
         ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("world_map.jpg", "RELOAD_MAP_IMAGE")), "/api/jmap/map-image");
         ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("gcm.jpg",       "RELOAD_GCM")),       "/api/jmap/gcm-image");
+        ctx.addServlet(new ServletHolder(new WeatherApiServlet()),  "/api/weather");
         ctx.addServlet(new ServletHolder(new StaticServlet()),      "/*");
 
         server.setHandler(ctx);
@@ -277,7 +279,23 @@ public class WebConfigServer {
             appsRunning.addProperty("j-log",    al.isRunning("j-log"));
             appsRunning.addProperty("j-bridge", al.isRunning("j-bridge"));
             appsRunning.addProperty("j-digi",   al.isRunning("j-digi"));
+            appsRunning.addProperty("j-sat",    al.isRunning("j-sat"));
             status.add("appsRunning", appsRunning);
+
+            // Connected WebSocket sessions — authoritative for module status lights
+            JHubServer jhubServer = router.getJHubServer();
+            if (jhubServer != null) {
+                com.google.gson.JsonArray connectedApps = new com.google.gson.JsonArray();
+                for (JHubServer.AppSession s : jhubServer.getSessions().values()) {
+                    if (s.registered && s.socket.isOpen()) {
+                        JsonObject appObj = new JsonObject();
+                        appObj.addProperty("appName", s.appName);
+                        appObj.addProperty("connectedAt", s.connectedAt.toString());
+                        connectedApps.add(appObj);
+                    }
+                }
+                status.add("connectedApps", connectedApps);
+            }
 
             json(res, status.toString());
         }
@@ -392,6 +410,42 @@ public class WebConfigServer {
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res);
             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/jsat/tle-status — proxy to J-Sat TLE API and return freshness data
+    // ---------------------------------------------------------------
+
+    private static class JSatTleStatusServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            int tleApiPort = 4540;
+            try {
+                com.google.gson.JsonObject jss = ConfigManager.getInstance().getConfig().jSatSettings;
+                if (jss != null && jss.has("tleApiPort")) {
+                    tleApiPort = jss.get("tleApiPort").getAsInt();
+                }
+            } catch (Exception ignored) {}
+
+            try {
+                java.net.URL url = new java.net.URL("http://localhost:" + tleApiPort + "/api/tle/all");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(2000);
+                conn.setReadTimeout(3000);
+                if (conn.getResponseCode() == 200) {
+                    String body = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    json(res, body);
+                } else {
+                    json(res, "[]");
+                }
+            } catch (Exception e) {
+                log.debug("J-Sat TLE API unreachable on port {}: {}", tleApiPort, e.getMessage());
+                json(res, "[]");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
     }
 
@@ -1024,6 +1078,20 @@ public class WebConfigServer {
                 res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 json(res, "{\"error\":\"" + e.getMessage() + "\"}");
             }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/weather — cached space weather + local weather
+    // ---------------------------------------------------------------
+
+    private static class WeatherApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            json(res, WeatherService.getInstance().getCachedJson());
         }
 
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {

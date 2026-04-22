@@ -74,6 +74,17 @@ public class TleManager {
 
     public Instant getLastUpdated() { return lastUpdated; }
 
+    /**
+     * Returns true if the TLE for the given NORAD ID or name is stale
+     * (age in days exceeds the given threshold in hours).
+     */
+    public boolean isStale(String satId, int thresholdHours) {
+        TleSet t = findByNorad(satId);
+        if (t == null) t = findByName(satId);
+        if (t == null) return true;
+        return t.ageInDays() * 24 > thresholdHours;
+    }
+
     public TleSet.TleFreshness overallFreshness() {
         if (byName.isEmpty() || lastUpdated == null) return TleSet.TleFreshness.RED;
         long daysSince = ChronoUnit.DAYS.between(lastUpdated, Instant.now());

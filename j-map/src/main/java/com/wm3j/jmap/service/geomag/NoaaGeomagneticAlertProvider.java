@@ -19,14 +19,14 @@ import java.util.List;
  * Fetches real-time Kp and 24-hour geomagnetic forecast from NOAA SWPC.
  *
  * Endpoints:
- *   kp_index.json       — current 3-hour Kp (array of [time_tag, kp, ...])
- *   geomag_forecast.json — 3-day Kp forecast (array of {time_tag, kp, ...})
+ *   products/noaa-planetary-k-index.json          — current Kp (array of objects, field "Kp")
+ *   products/noaa-planetary-k-index-forecast.json — Kp forecast (array of objects, field "kp")
  */
 public class NoaaGeomagneticAlertProvider extends AbstractDataProvider<GeomagneticAlert>
         implements GeomagneticAlertProvider {
 
-    private static final String KP_URL       = "https://services.swpc.noaa.gov/json/kp_index.json";
-    private static final String FORECAST_URL = "https://services.swpc.noaa.gov/json/geomag_forecast.json";
+    private static final String KP_URL       = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json";
+    private static final String FORECAST_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient   HTTP   = HttpClient.newBuilder()
@@ -64,18 +64,17 @@ public class NoaaGeomagneticAlertProvider extends AbstractDataProvider<Geomagnet
     }
 
     // ── Current Kp ─────────────────────────────────────────────
-    // Array of [time_tag, kp_value, a_running, station_count] — most recent last.
+    // Array of objects with field "Kp" (capital K) — most recent last.
     private double fetchCurrentKp() throws DataProviderException {
         JsonNode root = get(KP_URL);
         if (!root.isArray() || root.size() == 0) return 0;
 
         for (int i = root.size() - 1; i >= 0; i--) {
             JsonNode row = root.get(i);
-            if (!row.isArray() || row.size() < 2) continue;
-            String kpStr = row.get(1).asText("").trim();
-            if (!kpStr.isBlank() && !kpStr.equalsIgnoreCase("null")) {
-                try { return Double.parseDouble(kpStr); }
-                catch (NumberFormatException ignored) {}
+            JsonNode kpNode = row.path("Kp");
+            if (!kpNode.isMissingNode() && !kpNode.isNull()) {
+                double kp = kpNode.asDouble(-1);
+                if (kp >= 0) return kp;
             }
         }
         return 0;

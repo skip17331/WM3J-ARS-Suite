@@ -30,6 +30,7 @@ public class JHubClient {
     private volatile WebSocketClient ws;
     private volatile boolean discoveryEnabled;
     private volatile boolean intentionalClose;
+    private volatile boolean connecting;
 
     private Consumer<JsonNode> onRigStatus;
     private Consumer<JsonNode> onRotorStatus;
@@ -43,6 +44,7 @@ public class JHubClient {
     });
 
     private ScheduledFuture<?> discoveryFuture;
+    private ScheduledFuture<?> reconnectFuture;
 
     public JHubClient(String hubHost, int hubPort) {
         this.hubHost          = hubHost;
@@ -51,10 +53,9 @@ public class JHubClient {
     }
 
     public void start() {
+        connectDirect();                   // always connect immediately with known host/port
         if (discoveryEnabled) {
-            startUdpDiscovery();
-        } else {
-            connectDirect();
+            startUdpDiscovery();           // additionally watch for beacon to handle remote hub
         }
     }
 
@@ -128,30 +129,37 @@ public class JHubClient {
     // ── Private connection logic ───────────────────────────────────────────────
 
     private void connectDirect() {
+        if (ws != null && ws.isOpen()) return;
+        if (connecting) return;
         connectTo("ws://" + hubHost + ":" + hubPort);
     }
 
     private void connectTo(String url) {
+        connecting = true;
         try {
             ws = buildClient(URI.create(url));
             ws.connect();
         } catch (Exception e) {
+            connecting = false;
             log.warn("Hub connect failed to {}: {}", url, e.getMessage());
             scheduleReconnect();
         }
     }
 
-    private void scheduleReconnect() {
-        if (!intentionalClose) {
-            reconnectScheduler.schedule(this::connectDirect, 10, TimeUnit.SECONDS);
-        }
+    private synchronized void scheduleReconnect() {
+        if (intentionalClose) return;
+        if (ws != null && ws.isOpen()) return;
+        if (reconnectFuture != null && !reconnectFuture.isDone()) return;
+        reconnectFuture = reconnectScheduler.schedule(this::connectDirect, 10, TimeUnit.SECONDS);
     }
+
+    private static final int DISCOVERY_PORT = 9999;
 
     private void startUdpDiscovery() {
         discoveryFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
             if (ws != null && ws.isOpen()) return;
-            try {
-                java.net.DatagramSocket sock = new java.net.DatagramSocket();
+            if (connecting) return;
+            try (java.net.DatagramSocket sock = new java.net.DatagramSocket(DISCOVERY_PORT)) {
                 sock.setSoTimeout(3000);
                 byte[] buf = new byte[512];
                 java.net.DatagramPacket pkt = new java.net.DatagramPacket(buf, buf.length);
@@ -163,7 +171,6 @@ public class JHubClient {
                     String host = pkt.getAddress().getHostAddress();
                     connectTo("ws://" + host + ":" + wsPort);
                 }
-                sock.close();
             } catch (Exception e) {
                 log.trace("Discovery: {}", e.getMessage());
             }
@@ -174,6 +181,7 @@ public class JHubClient {
         return new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake h) {
+                connecting = false;
                 log.info("Connected to J-Hub at {}", uri);
                 try {
                     ObjectNode reg = MAPPER.createObjectNode();
@@ -210,13 +218,16 @@ public class JHubClient {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
+                connecting = false;
                 log.info("J-Hub connection closed (code={} reason={})", code, reason);
                 if (!intentionalClose) scheduleReconnect();
             }
 
             @Override
             public void onError(Exception e) {
+                connecting = false;
                 log.debug("Hub WebSocket error: {}", e.getMessage());
+                scheduleReconnect();
             }
         };
     }

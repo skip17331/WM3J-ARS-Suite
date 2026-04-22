@@ -17,6 +17,9 @@ const state = {
   appearance:  { theme: 'dark', fontSize: 13, waterfallColor: 'viridis', mapTheme: 'dark' },
 };
 
+// TLE freshness data keyed by satellite name, populated from J-Sat TLE API
+let jsatTleStatus = {};
+
 // ── Tab navigation ─────────────────────────────────────────
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -120,6 +123,11 @@ function pollStatus() {
       updateStatusBar(d);
       updateDashboard(d);
       updateIntelPane(d);
+      // Sync connected apps from HTTP status — reliable fallback when WS APP_LIST is missed
+      if (Array.isArray(d.connectedApps)) {
+        state.connectedApps = d.connectedApps;
+        updateModulesUI();
+      }
     })
     .catch(() => {});
 }
@@ -162,21 +170,34 @@ function updateRigUI(rig) {
 
 // ── Rotor UI ───────────────────────────────────────────────
 function updateRotorUI(rot) {
-  const hdg = rot.bearing != null ? Math.round(rot.bearing) : null;
-  const txt = hdg != null ? hdg + '°' : '---°';
+  const hdg = rot.bearing   != null ? Math.round(rot.bearing)   : null;
+  const elv = rot.elevation != null ? Math.round(rot.elevation) : null;
 
-  setText('d-heading',     txt);
-  setText('rot-heading-big', txt);
-  setText('i-heading', txt);
+  const hdgTxt = hdg != null ? hdg + '°' : '---°';
+  const elvTxt = elv != null ? elv + '°' : '---°';
+
+  setText('d-heading',       hdgTxt);
+  setText('rot-heading-big', hdgTxt);
+  setText('i-heading',       hdgTxt);
+  setText('d-elevation',     elvTxt);
+  setText('rot-elev-big',    elvTxt);
 
   ['compass-needle', 'rot-needle'].forEach(id => {
     const el = document.getElementById(id);
     if (el && hdg != null) el.setAttribute('transform', `rotate(${hdg}, 50, 50)`);
   });
 
+  ['elev-needle', 'rot-elev-needle'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && elv != null) {
+      const clamped = Math.min(90, Math.max(0, elv));
+      el.setAttribute('transform', `rotate(${180 - clamped * 2}, 50, 50)`);
+    }
+  });
+
   const rb = (state.config.rotor && state.config.rotor.backend) || '—';
   setText('d-rotor-backend', rb);
-  setText('i-rot-backend', rb);
+  setText('i-rot-backend',   rb);
 }
 
 // ── Dashboard update ───────────────────────────────────────
@@ -205,25 +226,40 @@ function updateDashboard(status) {
   updateModuleDot('jsat',    ar['j-sat'],    'J-Sat');
 }
 
+const MODULE_APP_NAMES = { jmap: 'j-map', jlog: 'j-log', jdigi: 'j-digi', jbridge: 'j-bridge', jsat: 'j-sat' };
 function updateModuleDot(key, running, label) {
-  const dot = document.getElementById('dot-' + key);
-  if (dot) setDot('dot-' + key, running ? 'green' : 'gray');
+  // WebSocket connectedApps is authoritative; appsRunning is a fallback for process-started-but-not-yet-connected
+  const appName = MODULE_APP_NAMES[key];
+  const wsConnected = appName && state.connectedApps.some(a => a.appName === appName);
+  const isUp = wsConnected || running;
+  setDot('dot-' + key, isUp ? 'green' : 'gray');
   const meta = document.getElementById('meta-' + key);
-  if (meta) meta.textContent = running ? 'Running' : 'Not running';
+  if (meta) meta.textContent = wsConnected ? 'Connected' : (running ? 'Running' : 'Not running');
 }
 
 // ── Intel pane ─────────────────────────────────────────────
 function applyStationIntel(st) {
   setText('i-callsign', st.callsign || '—');
   setText('i-grid', st.gridSquare  || '—');
-  setVal('st-call',    st.callsign   || '');
-  setVal('st-grid',    st.gridSquare || '');
-  setVal('st-lat',     st.lat  != null ? st.lat  : '');
-  setVal('st-lon',     st.lon  != null ? st.lon  : '');
-  setVal('st-tz',      st.timezone  || '');
-  setVal('st-cqzone',  st.cqZone     || '');
-  setVal('st-arrl',    st.arrlSection || '');
-  setVal('st-ituzone', st.ituZone    || '');
+  setVal('st-call',      st.callsign    || '');
+  setVal('st-name',      st.name        || '');
+  setVal('st-grid',      st.gridSquare  || '');
+  setVal('st-lat',       st.lat  != null ? st.lat  : '');
+  setVal('st-lon',       st.lon  != null ? st.lon  : '');
+  setVal('st-tz',        st.timezone    || '');
+  setVal('st-cqzone',    st.cqZone      || '');
+  setVal('st-arrl',      st.arrlSection || '');
+  setVal('st-ituzone',   st.ituZone     || '');
+  setVal('st-rig-alias', st.rigAlias    || '');
+
+  // Show rig alias in intel pane, dashboard, and rig control header
+  const aliasRow = document.getElementById('i-rig-alias-row');
+  const alias = st.rigAlias || '';
+  if (aliasRow) aliasRow.style.display = alias ? '' : 'none';
+  setText('i-rig-alias',     alias || '—');
+  setText('i-rig-model',     alias || (st.callsign ? st.callsign + ' Rig' : '—'));
+  setText('d-rig-alias',     alias);
+  setText('rig-header-alias', alias ? '— ' + alias : '');
 }
 
 function updateIntelPane(status) {
@@ -239,20 +275,27 @@ function updateIntelPane(status) {
 
 function updateModulesUI() {
   const apps = state.connectedApps;
-  const keys = { 'j-log': 'jlog', 'j-digi': 'jdigi', 'j-bridge': 'jbridge', 'jMap': 'jmap', 'j-sat': 'jsat', 'webconfig': null };
+  const ar   = (state.status && state.status.appsRunning) || {};
+  // Maps module key → appsRunning property name returned by /api/status
+  const RUNNING_KEY = { jmap: 'jMap', jlog: 'j-log', jdigi: 'j-digi', jbridge: 'j-bridge', jsat: 'j-sat' };
+  const keys = { 'j-log': 'jlog', 'j-digi': 'jdigi', 'j-bridge': 'jbridge', 'j-map': 'jmap', 'j-sat': 'jsat', 'logging-engine': null, 'webconfig': null };
 
   Object.entries(keys).forEach(([appName, key]) => {
     if (!key) return;
     const connected = apps.some(a => a.appName === appName);
-    const connAt   = connected ? apps.find(a => a.appName === appName).connectedAt : null;
+    const connAt    = connected ? apps.find(a => a.appName === appName).connectedAt : null;
+    const running   = !!ar[RUNNING_KEY[key]];
 
-    setDot('i-dot-' + key, connected ? 'green' : 'gray');
-    setText('i-' + key, connected ? 'Online' : 'Offline');
+    // Side panel (Operator Intel)
+    setDot('i-dot-' + key, connected ? 'green' : (running ? 'yellow' : 'gray'));
+    setText('i-' + key, connected ? 'Online' : (running ? 'Starting' : 'Offline'));
 
-    setDot('dot-' + key, connected ? 'green' : 'gray');
+    // Center panel (Module Connections)
+    setDot('dot-' + key, connected ? 'green' : (running ? 'yellow' : 'gray'));
     const meta = document.getElementById('meta-' + key);
     if (meta) meta.textContent = connected
-      ? 'Connected ' + (connAt ? new Date(connAt).toLocaleTimeString() : '') : 'Not connected';
+      ? 'Connected ' + (connAt ? new Date(connAt).toLocaleTimeString() : '')
+      : (running ? 'Starting...' : 'Not connected');
   });
 
   renderSessionTable(apps);
@@ -326,10 +369,21 @@ function renderJSatSatList(enabledNames) {
     sats.forEach(sat => {
       const checked = enabledNames ? enabledNames.includes(sat.name) : sat.enabled;
       const norad = sat.noradId > 0 ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">#${sat.noradId}</span>` : '';
-      const status = sat.status ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">${sat.status}</span>` : '';
+      const satStatus = sat.status ? `<span style="color:var(--overlay0);font-size:10px;margin-left:6px">${sat.status}</span>` : '';
+      const tleInfo = jsatTleStatus[sat.name];
+      let staleBadge = '';
+      if (tleInfo) {
+        if (tleInfo.freshness === 'RED') {
+          const age = tleInfo.ageHours != null ? tleInfo.ageHours.toFixed(1) + 'h old' : 'stale';
+          staleBadge = `<span style="font-size:9px;background:var(--red);color:#fff;border-radius:3px;padding:1px 4px;margin-left:4px;flex-shrink:0" title="${age}">STALE</span>`;
+        } else if (tleInfo.freshness === 'YELLOW' || tleInfo.stale) {
+          const age = tleInfo.ageHours != null ? tleInfo.ageHours.toFixed(1) + 'h old' : 'aging';
+          staleBadge = `<span style="font-size:9px;background:var(--yellow,#f9e2af);color:#1e1e2e;border-radius:3px;padding:1px 4px;margin-left:4px;flex-shrink:0" title="${age}">AGING</span>`;
+        }
+      }
       html += `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer">
         <input type="checkbox" class="jsat-sat-cb" data-name="${sat.name}" data-type="${sat.type || ''}" ${checked ? 'checked' : ''}>
-        <span style="font-size:12px">${sat.name}</span>${norad}${status}
+        <span style="font-size:12px">${sat.name}</span>${norad}${satStatus}${staleBadge}
       </label>`;
     });
   });
@@ -378,6 +432,9 @@ function populateJSatTab(cfg) {
   const enabledNames = Array.isArray(s.enabledSatellites) && s.enabledSatellites.length
     ? s.enabledSatellites : null;
   if (jsatSatellites.length) renderJSatSatList(enabledNames);
+
+  setVal('jsat-tle-threshold', s.tleStaleThresholdHours != null ? s.tleStaleThresholdHours : 48);
+  setVal('jsat-tle-port',      s.tleApiPort            != null ? s.tleApiPort             : 4540);
 }
 
 function saveJSatSettings() {
@@ -395,6 +452,8 @@ function saveJSatSettings() {
     showFootprint:        document.getElementById('jsat-show-footprint').checked,
     showSpaceWeather:     document.getElementById('jsat-show-spaceweather').checked,
     enabledSatellites:    jsatGetCheckedNames(),
+    tleStaleThresholdHours: parseInt(document.getElementById('jsat-tle-threshold').value) || 48,
+    tleApiPort:             parseInt(document.getElementById('jsat-tle-port').value)      || 4540,
   };
 
   fetch('/api/jsat', {
@@ -428,6 +487,30 @@ function updateJSatConnStatus() {
     const mhz = hz > 0 ? (hz / 1e6).toFixed(3) + ' MHz' : 'Unknown';
     setText('jsat-rig-status', mhz);
   }
+}
+
+// ── J-Sat TLE status ───────────────────────────────────────
+
+function loadJSatTleStatus() {
+  fetch('/api/jsat/tle-status')
+    .then(r => r.json())
+    .then(data => {
+      jsatTleStatus = {};
+      (data || []).forEach(t => { jsatTleStatus[t.name] = t; });
+      // Re-render satellite list to show/hide stale badges
+      if (jsatSatellites.length) {
+        const s = (state.config.jSatSettings) || {};
+        const enabledNames = Array.isArray(s.enabledSatellites) && s.enabledSatellites.length
+          ? s.enabledSatellites : null;
+        renderJSatSatList(enabledNames);
+      }
+    })
+    .catch(() => {});
+}
+
+function refreshJSatTleStatus() {
+  loadJSatTleStatus();
+  flashMsg('jsat-tle-refresh-msg', 'TLE status refreshed');
 }
 
 // ── Status bar ─────────────────────────────────────────────
@@ -819,6 +902,7 @@ function saveStation() {
       cqZone:      parseInt(document.getElementById('st-cqzone').value)||0,
       arrlSection: (document.getElementById('st-arrl').value||'').toUpperCase().trim(),
       ituZone:     parseInt(document.getElementById('st-ituzone').value)||0,
+      rigAlias:    document.getElementById('st-rig-alias').value.trim(),
     }
   };
   postPartialConfig(body, 'st-msg', 'Station saved');
@@ -1140,6 +1224,26 @@ function rotorPreset(type) {
   }
 }
 
+function rotorElevJog(delta) {
+  const currentEl = state.rotor && state.rotor.elevation != null ? state.rotor.elevation : 0;
+  const newEl = Math.min(90, Math.max(0, currentEl + delta));
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ROTOR_CMD', elevation: newEl }));
+  }
+}
+
+function rotorElevPark() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ROTOR_CMD', elevation: 0 }));
+  }
+}
+
+function rotorStop() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ROTOR_CMD', stop: true }));
+  }
+}
+
 // ── Config export / import ─────────────────────────────────
 function exportConfig() {
   fetch('/api/config').then(r => r.json()).then(cfg => {
@@ -1347,7 +1451,6 @@ function populateJMapForm(s) {
   setVal('jm-zoom',       s.mapZoom       != null ? s.mapZoom       : 2);
   setVal('jm-center-lat', s.mapCenterLat  != null ? s.mapCenterLat  : 0);
   setVal('jm-center-lon', s.mapCenterLon  != null ? s.mapCenterLon  : 0);
-  setVal('jm-tle-source', s.tleSource     || '');
   setVal('jm-refresh',    s.refreshSeconds != null ? s.refreshSeconds : 30);
 }
 
@@ -1397,7 +1500,6 @@ function saveJMapSettings() {
     mapZoom:                intn('jm-zoom') || 2,
     mapCenterLat:           flt('jm-center-lat'),
     mapCenterLon:           flt('jm-center-lon'),
-    tleSource:              val('jm-tle-source').trim(),
     refreshSeconds:         intn('jm-refresh') || 30,
   };
 
@@ -1591,6 +1693,121 @@ function exportCsv() {
   .catch(() => flashMsg('db-export-msg', 'Export error', true));
 }
 
+// ── Weather tab ────────────────────────────────────────────
+function fetchWeather() {
+  fetch('/api/weather')
+    .then(r => r.json())
+    .then(d => updateWeatherUI(d))
+    .catch(() => {});
+}
+
+function updateWeatherUI(d) {
+  const sw = d.spaceWeather || {};
+  const lw = d.localWeather;
+
+  // Fetched timestamp
+  if (d.fetchedAt) {
+    const t = new Date(d.fetchedAt);
+    setText('sw-fetched', 'Updated ' + t.toLocaleTimeString());
+  }
+
+  // Kp
+  const kp = sw.kp != null ? sw.kp.toFixed(2) : '—';
+  setText('sw-kp', kp);
+  const cond = sw.kpCondition || '—';
+  const kpEl = document.getElementById('sw-kp');
+  if (kpEl && sw.kp != null) {
+    const c = sw.kp >= 7 ? 'var(--red)' : sw.kp >= 5 ? 'var(--peach)' : sw.kp >= 3 ? 'var(--yellow)' : 'var(--green)';
+    kpEl.style.color = c;
+  }
+  setText('sw-kp-cond', cond);
+
+  // X-ray
+  setText('sw-xray', sw.xrayClass || '—');
+  const xrEl = document.getElementById('sw-xray');
+  if (xrEl && sw.xrayClass) {
+    const cls = sw.xrayClass[0];
+    const c = cls === 'X' ? 'var(--red)' : cls === 'M' ? 'var(--peach)' : cls === 'C' ? 'var(--yellow)' : 'var(--green)';
+    xrEl.style.color = c;
+  }
+
+  // IMF Bz / Bt
+  const bz = sw.imfBz != null ? sw.imfBz.toFixed(1) + ' nT' : '— nT';
+  setText('sw-bz', bz);
+  const bzEl = document.getElementById('sw-bz');
+  if (bzEl && sw.imfBz != null) {
+    bzEl.style.color = sw.imfBz < -10 ? 'var(--red)' : sw.imfBz < 0 ? 'var(--peach)' : 'var(--green)';
+  }
+  setText('sw-bt', sw.imfBt != null ? 'Bt ' + sw.imfBt.toFixed(1) + ' nT' : 'Bt — nT');
+
+  // Solar wind
+  setText('sw-wind', sw.solarWindSpeed != null ? Math.round(sw.solarWindSpeed) + ' km/s' : '— km/s');
+  setText('sw-dens', sw.solarWindDensity != null ? 'Density ' + sw.solarWindDensity.toFixed(1) + ' p/cc' : 'Density — p/cc');
+
+  // Proton
+  setText('sw-proton', sw.protonFlux != null ? sw.protonFlux.toFixed(2) : '—');
+
+  // HF conditions note
+  let hfNote = '';
+  if (sw.xrayClass) {
+    const cls = sw.xrayClass[0];
+    if (cls === 'X') hfNote += 'Strong HF blackout possible. ';
+    else if (cls === 'M') hfNote += 'HF degradation likely. ';
+    else if (cls === 'C') hfNote += 'Minor HF fadeout possible. ';
+    else hfNote += 'Solar flux OK. ';
+  }
+  if (sw.kp != null) {
+    if (sw.kp >= 7) hfNote += 'Severe aurora/polar blackout.';
+    else if (sw.kp >= 5) hfNote += 'Geomagnetic storm — polar paths degraded.';
+    else if (sw.kp >= 3) hfNote += 'Slightly disturbed conditions.';
+    else hfNote += 'Quiet geomagnetic conditions.';
+  }
+  setText('sw-hf-note', hfNote || '—');
+
+  // Local weather
+  const noKeyEl   = document.getElementById('local-wx-no-key');
+  const dataEl    = document.getElementById('local-wx-data');
+  const errEl     = document.getElementById('local-wx-err');
+
+  if (lw === null || lw === undefined) {
+    if (noKeyEl) noKeyEl.style.display = '';
+    if (dataEl)  dataEl.style.display  = 'none';
+    if (errEl)   errEl.style.display   = 'none';
+  } else if (lw.cod != null && lw.cod !== 200 && lw.cod !== '200') {
+    if (noKeyEl) noKeyEl.style.display = 'none';
+    if (dataEl)  dataEl.style.display  = 'none';
+    if (errEl) { errEl.style.display = ''; errEl.textContent = 'OpenWeather error: ' + (lw.message || lw.cod); }
+  } else {
+    if (noKeyEl) noKeyEl.style.display = 'none';
+    if (errEl)   errEl.style.display   = 'none';
+    if (dataEl)  dataEl.style.display  = '';
+
+    const main  = lw.main  || {};
+    const wind  = lw.wind  || {};
+    const wDesc = (lw.weather && lw.weather[0]) ? lw.weather[0] : {};
+    const deg   = (wind.deg != null) ? compassDir(wind.deg) : '';
+
+    setText('wx-temp',     main.temp   != null ? Math.round(main.temp) + '°F' : '—');
+    setText('wx-feels',    main.feels_like != null ? 'Feels like ' + Math.round(main.feels_like) + '°F' : '—');
+    setText('wx-desc',     (wDesc.main || '—'));
+    setText('wx-clouds',   wDesc.description ? cap(wDesc.description) : '—');
+    setText('wx-wind',     wind.speed  != null ? Math.round(wind.speed) + ' mph' : '—');
+    setText('wx-wind-dir', deg ? deg + (wind.gust ? ' · Gusts ' + Math.round(wind.gust) + ' mph' : '') : '—');
+    setText('wx-humidity', main.humidity != null ? main.humidity + '%' : '—');
+    setText('wx-pressure', main.pressure != null ? main.pressure + ' hPa' : '—');
+    const vis = lw.visibility != null ? (lw.visibility / 1609.34).toFixed(1) + ' mi' : '—';
+    setText('wx-vis',      vis);
+    setText('wx-location', lw.name || '—');
+  }
+}
+
+function compassDir(deg) {
+  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  return dirs[Math.round(deg / 45) % 8];
+}
+
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
 // ── Boot ────────────────────────────────────────────────────
 // Restore theme before first paint to avoid flash
 (function () {
@@ -1612,8 +1829,13 @@ connectWs();
 pollStatus();
 pollSpots();
 updateRigConnStatus();
+loadJSatTleStatus();
 setInterval(updateRigConnStatus, 3000);
+
+fetchWeather();
+setInterval(fetchWeather, 300000);   // refresh every 5 minutes
 
 setInterval(tickClock, 1000);
 setInterval(pollStatus, 2000);
 setInterval(pollSpots, 10000);
+setInterval(loadJSatTleStatus, 60000);

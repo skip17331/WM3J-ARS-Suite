@@ -7,6 +7,7 @@
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/JHubMain.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/HamlibRotorController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ui/SplashJHub.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/WeatherService.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/AppLauncher.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ClusterManager.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/ui/JHubStatusWindow.java

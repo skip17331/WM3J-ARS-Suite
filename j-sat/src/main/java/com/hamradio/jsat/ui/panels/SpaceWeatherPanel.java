@@ -37,35 +37,36 @@ public class SpaceWeatherPanel extends VBox {
 
     public SpaceWeatherPanel(ServiceRegistry services) {
         this.services = services;
+        int fz = services.getSettings().fontSize;
 
         setSpacing(4);
         setPadding(new Insets(8));
         setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = styledLabel("☀  SPACE WEATHER", "#aabbdd", true, 12);
+        Label title = styledLabel("☀  SPACE WEATHER", "#aabbdd", true, fz + 1);
 
-        kpValue     = styledLabel("---",  "#44cc44", true, 20);
-        swSpeedLabel= styledLabel("--- km/s", "#ccd6f6", false, 11);
-        swDensLabel = styledLabel("--- n/cm³", "#ccd6f6", false, 11);
-        bzLabel     = styledLabel("Bz ---", "#ccd6f6", true, 11);
-        xrayLabel   = styledLabel("---",   "#44cc44", true, 11);
-        protonLabel = styledLabel("--- pfu", "#ccd6f6", false, 11);
-        updatedLabel= styledLabel("",      "#445566", false, 10);
+        kpValue     = styledLabel("---",  "#44cc44", true, fz + 7);
+        swSpeedLabel= styledLabel("--- km/s", "#ccd6f6", false, fz);
+        swDensLabel = styledLabel("--- n/cm³", "#ccd6f6", false, fz);
+        bzLabel     = styledLabel("Bz ---", "#ccd6f6", true, fz);
+        xrayLabel   = styledLabel("---",   "#44cc44", true, fz);
+        protonLabel = styledLabel("--- pfu", "#ccd6f6", false, fz);
+        updatedLabel= styledLabel("",      "#445566", false, fz - 2);
 
         kpBar = new Canvas(BAR_W, BAR_H);
 
         GridPane grid = new GridPane();
         grid.setHgap(12); grid.setVgap(3);
         grid.setPadding(new Insets(4, 0, 4, 0));
-        grid.add(key("Solar Wind"), 0, 0); grid.add(swSpeedLabel, 1, 0);
-        grid.add(key("Density"),    0, 1); grid.add(swDensLabel,  1, 1);
-        grid.add(key("IMF Bz"),     0, 2); grid.add(bzLabel,      1, 2);
-        grid.add(key("X-Ray"),      0, 3); grid.add(xrayLabel,    1, 3);
-        grid.add(key("Protons"),    0, 4); grid.add(protonLabel,  1, 4);
+        grid.add(key("Solar Wind", fz), 0, 0); grid.add(swSpeedLabel, 1, 0);
+        grid.add(key("Density",    fz), 0, 1); grid.add(swDensLabel,  1, 1);
+        grid.add(key("IMF Bz",     fz), 0, 2); grid.add(bzLabel,      1, 2);
+        grid.add(key("X-Ray",      fz), 0, 3); grid.add(xrayLabel,    1, 3);
+        grid.add(key("Protons",    fz), 0, 4); grid.add(protonLabel,  1, 4);
 
         getChildren().addAll(title,
-            styledLabel("Kp Index", "#7a8aaa", false, 10),
+            styledLabel("Kp Index", "#7a8aaa", false, fz - 2),
             kpValue,
             kpBar,
             grid,
@@ -125,8 +126,8 @@ public class SpaceWeatherPanel extends VBox {
         gc.fillRect(kpX - 1, 0, 2, BAR_H);
     }
 
-    private static Label key(String text) {
-        return styledLabel(text, "#556688", false, 11);
+    private static Label key(String text, int fz) {
+        return styledLabel(text, "#556688", false, fz - 2);
     }
 
     private static Label styledLabel(String text, String color, boolean bold, int size) {
