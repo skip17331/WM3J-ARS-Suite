@@ -1,0 +1,95 @@
+{
+  "contestId":   "ARRL_RRU_RTTY",
+  "contestName": "ARRL Rookie Roundup (RTTY)",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "NAME YY STATE/PROV/DX  (e.g. JOHN 23 PA, SUE 05 ON)",
+
+  "lockedMode":       "RTTY",
+  "contestWideDupe":  true,
+  "stationClassifier": "callsignRegion",
+  "autoFillDxccPrefix": true,
+
+  "entryFields": [
+    {
+      "id": "callsign", "label": "Callsign", "type": "text",
+      "width": 140, "required": true, "entryRow": 0
+    },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 60, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["RTTY","PSK31","PSK63","Digital"]
+    },
+    {
+      "id": "name_rcvd", "label": "Name R", "type": "text",
+      "width": 90, "required": true, "entryRow": 0
+    },
+    {
+      "id": "year_rcvd", "label": "Yr R", "type": "text",
+      "width": 45, "required": true, "entryRow": 0,
+      "validator": "numeric"
+    },
+    {
+      "id": "state_prov_rcvd", "label": "St/Pv/DX", "type": "text",
+      "width": 70, "required": true, "entryRow": 0
+    },
+    {
+      "id": "name_sent", "label": "Name S", "type": "text",
+      "width": 90, "required": false, "entryRow": 1,
+      "persistent": true
+    },
+    {
+      "id": "year_sent", "label": "Yr S", "type": "text",
+      "width": 45, "required": false, "entryRow": 1,
+      "persistent": true,
+      "validator": "numeric"
+    },
+    {
+      "id": "state_prov_sent", "label": "St/Pv/DX", "type": "text",
+      "width": 70, "required": false, "entryRow": 1,
+      "persistent": true
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso":  1,
+    "modePoints":    {},
+    "rookieRoundupScoring": true,
+    "multiplierType": "custom",
+    "scoreFormula":  "qsoPoints * multipliers",
+    "allowDupes":    false
+  },
+
+  "multiplierModel": {
+    "field":   "state_prov_rcvd",
+    "perBand": false,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before",   "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "ss_section_map",  "title": "Sections / DXCC", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",      "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":         "rcvd_callsign",
+    "name_sent":        "sent_name",
+    "year_sent":        "sent_check",
+    "state_prov_sent":  "sent_section",
+    "name_rcvd":        "rcvd_name",
+    "year_rcvd":        "rcvd_check",
+    "state_prov_rcvd":  "rcvd_section"
+  },
+
+  "sections": []
+}

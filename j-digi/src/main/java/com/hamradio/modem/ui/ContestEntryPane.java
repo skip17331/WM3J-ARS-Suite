@@ -29,8 +29,10 @@ public class ContestEntryPane extends VBox {
 
     private final ModemService service;
 
-    private String contestId         = "";
-    private String multiplierDbColumn = "field1";
+    private String  contestId          = "";
+    private String  multiplierDbColumn = "field1";
+    private boolean contestWideDupe    = false;
+    private boolean roverAwareDupe     = false;
 
     // Dynamic rcvd fields: fieldId → TextField
     private final Map<String, TextField> rcvdFields = new LinkedHashMap<>();
@@ -91,6 +93,8 @@ public class ContestEntryPane extends VBox {
     public void activate(JsonObject schema) {
         contestId          = getString(schema, "contestId", "");
         multiplierDbColumn = getString(schema, "multiplierDbColumn", "field1");
+        contestWideDupe    = schema.has("contestWideDupe")  && schema.get("contestWideDupe").getAsBoolean();
+        roverAwareDupe     = schema.has("roverAwareDupe")   && schema.get("roverAwareDupe").getAsBoolean();
         String name        = getString(schema, "contestName", "Contest");
         String hint        = getString(schema, "exchangeFormat", "");
 
@@ -105,6 +109,8 @@ public class ContestEntryPane extends VBox {
     public void deactivate() {
         Platform.runLater(() -> {
             contestId = "";
+            contestWideDupe = false;
+            roverAwareDupe  = false;
             lblContest.setText("No contest active");
             lblHint.setText("");
             fieldArea.getChildren().clear();
@@ -188,11 +194,31 @@ public class ContestEntryPane extends VBox {
         String mode = service.getStatus().getRigMode() != null ? service.getStatus().getRigMode() : "";
         CompletableFuture.runAsync(() -> {
             try {
-                boolean dupe = ContestQsoDao.getInstance().isDuplicate(contestId, callsign, band, mode);
+                boolean dupe;
+                String  scope;
+                if (contestWideDupe) {
+                    // Sweepstakes / Rookie Roundup: one QSO per callsign, entire contest.
+                    dupe  = ContestQsoDao.getInstance().isDuplicateContestWide(contestId, callsign);
+                    scope = "contest";
+                } else if (roverAwareDupe && isRoverCall(callsign)) {
+                    // VHF rovers: (callsign, band, grid) — new grid = new QSO.
+                    String grid = firstRcvdText("grid_rcvd", "gridsquare_rcvd");
+                    dupe  = ContestQsoDao.getInstance().isDuplicateBandGrid(
+                                contestId, callsign, band, multiplierDbColumn, grid);
+                    scope = band.isBlank() ? "band" : band;
+                } else if (roverAwareDupe) {
+                    dupe  = ContestQsoDao.getInstance().isDuplicatePerBand(contestId, callsign, band);
+                    scope = band.isBlank() ? "band" : band;
+                } else {
+                    dupe  = ContestQsoDao.getInstance().isDuplicate(contestId, callsign, band, mode);
+                    scope = band.isBlank() ? "?" : band;
+                }
+                final boolean d = dupe;
+                final String  s = scope;
                 Platform.runLater(() -> {
                     lblDupe.getStyleClass().removeAll("dupe-status-warn","dupe-status-ok");
-                    if (dupe) {
-                        lblDupe.setText("DUPE on " + (band.isBlank() ? "?" : band));
+                    if (d) {
+                        lblDupe.setText("DUPE on " + s);
                         lblDupe.getStyleClass().add("dupe-status-warn");
                     } else {
                         lblDupe.setText("New");
@@ -201,6 +227,20 @@ public class ContestEntryPane extends VBox {
                 });
             } catch (Exception ignored) {}
         });
+    }
+
+    private static boolean isRoverCall(String call) {
+        if (call == null) return false;
+        String c = call.trim().toUpperCase();
+        return c.endsWith("/R") || c.endsWith("/ROVER");
+    }
+
+    private String firstRcvdText(String... ids) {
+        for (String id : ids) {
+            TextField tf = rcvdFields.get(id);
+            if (tf != null && tf.getText() != null && !tf.getText().isBlank()) return tf.getText().trim();
+        }
+        return "";
     }
 
     private void checkMult() {

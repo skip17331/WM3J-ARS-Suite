@@ -9,4 +9,11 @@
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/SetupController.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/macro/MacroEngine.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/service/DatabaseToolsService.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/DxccListPane.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/PerModeMultGridPane.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/SweepProgressPane.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/WorkedBeforePane.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/WorkedGridsPane.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/WorkedMultsPane.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/map/RegionMapPane.java
 /home/mike/ARS_Suite/j-log/src/main/java/module-info.java

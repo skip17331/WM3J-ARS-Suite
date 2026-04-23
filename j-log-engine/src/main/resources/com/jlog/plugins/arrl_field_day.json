@@ -1,0 +1,106 @@
+{
+  "contestId":   "ARRL_FIELD_DAY",
+  "contestName": "ARRL Field Day",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "Both stations send CLASS + SECTION (e.g. 2A EPA, 1D STX, 3E NC)",
+
+  "entryFields": [
+    {
+      "id": "callsign", "label": "Callsign", "type": "text",
+      "width": 140, "required": true, "entryRow": 0
+    },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","70cm"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","FM","FT8","FT4","RTTY","PSK31","Digital"]
+    },
+    {
+      "id": "class_rcvd", "label": "Class R", "type": "text",
+      "width": 60, "required": true, "entryRow": 0,
+      "validator": "fd_class"
+    },
+    {
+      "id": "sect_rcvd", "label": "Sect R", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "options": [
+        "CT","EMA","ME","NH","RI","VT","WMA",
+        "ENY","NLI","NNJ","SNJ","WNY",
+        "DE","EPA","MDC","WPA",
+        "AL","FL","GA","KY","NC","SC","TN","VA",
+        "AR","LA","MS","NM","NTX","OK","STX","WTX",
+        "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV",
+        "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA",
+        "MI","OH","WV",
+        "IL","IN","WI",
+        "CO","IA","KS","MO","NE","ND","SD","WY",
+        "AB","BC","MB","NB","NL","NT","NS","NU","ONN","ONE","ONS","QC","SK","YT","MAR",
+        "HI","PR","VI"
+      ]
+    },
+    {
+      "id": "class_sent", "label": "Class S", "type": "text",
+      "width": 60, "required": false, "entryRow": 1,
+      "persistent": true,
+      "validator": "fd_class"
+    },
+    {
+      "id": "sect_sent", "label": "Sect S", "type": "text",
+      "width": 70, "required": false, "entryRow": 1,
+      "persistent": true
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso":  1,
+    "modePoints":    { "CW": 2, "FT8": 2, "FT4": 2, "RTTY": 2, "PSK31": 2, "Digital": 2 },
+    "multiplierType": "sections",
+    "scoreFormula":  "qsoPoints + bonusPoints",
+    "scoreIsPointsOnly": true,
+    "allowDupes":    false
+  },
+
+  "multiplierModel": {
+    "field":     "sect_rcvd",
+    "perBand":   false,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before",  "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "ss_section_map", "title": "Sections Worked", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",     "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","qso_per_hour","sections_worked"],
+
+  "cabrilloMapping": {
+    "callsign":   "rcvd_callsign",
+    "class_sent": "sent_class",
+    "sect_sent":  "sent_section",
+    "class_rcvd": "rcvd_class",
+    "sect_rcvd":  "rcvd_section"
+  },
+
+  "sections": [
+    "CT","EMA","ME","NH","RI","VT","WMA",
+    "ENY","NLI","NNJ","SNJ","WNY",
+    "DE","EPA","MDC","WPA",
+    "AL","FL","GA","KY","NC","SC","TN","VA",
+    "AR","LA","MS","NM","NTX","OK","STX","WTX",
+    "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV",
+    "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA",
+    "MI","OH","WV",
+    "IL","IN","WI",
+    "CO","IA","KS","MO","NE","ND","SD","WY",
+    "AB","BC","MB","NB","NL","NT","NS","NU","ONN","ONE","ONS","QC","SK","YT","MAR",
+    "HI","PR","VI"
+  ]
+}

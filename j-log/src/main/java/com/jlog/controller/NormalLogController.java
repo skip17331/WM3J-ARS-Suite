@@ -1,7 +1,6 @@
 package com.jlog.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jlog.app.JLogApp;
 import com.jlog.cluster.HubEngine;
 import com.jlog.model.DxSpot;
 import com.jlog.civ.CivEngine;
@@ -22,7 +21,6 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;

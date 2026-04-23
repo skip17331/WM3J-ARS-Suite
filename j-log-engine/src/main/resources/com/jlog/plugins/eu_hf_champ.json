@@ -1,0 +1,62 @@
+{
+  "contestId":   "EU_HF_CHAMP",
+  "contestName": "EU HF Championship",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "RST + 2-digit year first licensed  (e.g. 599 97)",
+
+  "autoFillDxccPrefix": true,
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB"]
+    },
+    { "id": "rst_rcvd",  "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "year_rcvd", "label": "Yr R",  "type": "text", "width": 45, "required": true,  "entryRow": 0, "validator": "numeric" },
+    { "id": "state_prov_rcvd", "label": "DXCC", "type": "text", "width": 70, "required": false, "entryRow": 0 },
+    { "id": "rst_sent",  "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "year_sent", "label": "Yr S",  "type": "text", "width": 45, "required": false, "entryRow": 1, "persistent": true, "validator": "numeric" }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "modePoints":   {},
+    "multiplierType": "dxcc",
+    "scoreFormula": "qsoPoints * multipliers",
+    "allowDupes":   false
+  },
+
+  "multiplierModel": {
+    "field":   "state_prov_rcvd",
+    "perBand": true,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "DXCC",          "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":  "rcvd_callsign",
+    "rst_sent":  "sent_rst",
+    "rst_rcvd":  "rcvd_rst",
+    "year_sent": "sent_exchange",
+    "year_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

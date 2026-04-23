@@ -63,11 +63,14 @@ public class ContestChooser {
         refreshList(list);
 
         Button importBtn = new Button(I18n.get("contest.import.plugin"));
+        Button removeBtn = new Button("Remove");
         Button selectBtn = new Button(I18n.get("contest.select"));
         Button cancelBtn = new Button(I18n.get("button.cancel"));
 
         selectBtn.setDefaultButton(true);
         selectBtn.disableProperty().bind(
+            list.getSelectionModel().selectedItemProperty().isNull());
+        removeBtn.disableProperty().bind(
             list.getSelectionModel().selectedItemProperty().isNull());
 
         importBtn.setOnAction(e -> {
@@ -95,6 +98,30 @@ public class ContestChooser {
             launchContestLog(chosen);
         });
 
+        removeBtn.setOnAction(e -> {
+            ContestPlugin target = list.getSelectionModel().getSelectedItem();
+            if (target == null) return;
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Remove '" + target.getContestName() + "' from the chooser?\n\n"
+                + "User-installed plugin files will be deleted. Bundled plugins\n"
+                + "will be hidden — re-import the JSON to restore.",
+                ButtonType.OK, ButtonType.CANCEL);
+            confirm.setHeaderText(null);
+            confirm.initOwner(dialog);
+            confirm.showAndWait().ifPresent(bt -> {
+                if (bt != ButtonType.OK) return;
+                try {
+                    PluginLoader.getInstance().removePlugin(target.getContestId());
+                    refreshList(list);
+                    log.info("Removed plugin {}", target.getContestId());
+                } catch (Exception ex) {
+                    log.error("Failed to remove plugin", ex);
+                    new Alert(Alert.AlertType.ERROR,
+                        "Failed to remove plugin:\n" + ex.getMessage()).showAndWait();
+                }
+            });
+        });
+
         cancelBtn.setOnAction(e -> dialog.close());
 
         // Double-click to select
@@ -106,7 +133,7 @@ public class ContestChooser {
             }
         });
 
-        HBox buttons = new HBox(10, importBtn, selectBtn, cancelBtn);
+        HBox buttons = new HBox(10, importBtn, removeBtn, selectBtn, cancelBtn);
         buttons.setAlignment(Pos.CENTER_RIGHT);
 
         Label prompt = new Label(I18n.get("contest.chooser.prompt"));

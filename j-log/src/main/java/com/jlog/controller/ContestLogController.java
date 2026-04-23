@@ -9,8 +9,19 @@ import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
+import com.jlog.ui.contest.DxccListPane;
+import com.jlog.ui.contest.PerModeMultGridPane;
+import com.jlog.ui.contest.SweepProgressPane;
+import com.jlog.ui.contest.WorkedBeforePane;
+import com.jlog.ui.contest.WorkedGridsPane;
+import com.jlog.ui.contest.WorkedMultsPane;
+import com.jlog.ui.map.RegionMapPane;
 import com.jlog.util.AppConfig;
 import com.jlog.util.BandPlan;
+import com.jlog.util.CallsignRegion;
+import com.jlog.util.Maidenhead;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -44,6 +55,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   Row 5 — DX Spotting pane
  */
 public class ContestLogController implements Initializable {
+
+    private static final Logger log = LoggerFactory.getLogger(ContestLogController.class);
 
     // ---- Row 1: dynamic entry fields (created programmatically) ----
     @FXML private VBox  entryBar;
@@ -79,6 +92,19 @@ public class ContestLogController implements Initializable {
     private ListView<String> dupeList;
     private Label            dupeStatusLabel;
     private final Map<String, Label> sectionLabels = new LinkedHashMap<>();
+    private RegionMapPane        usMapPane;
+    private RegionMapPane        caMapPane;
+    private DxccListPane         dxccPane;
+    private PerModeMultGridPane  perModeGrid;
+    private WorkedBeforePane     workedBeforePane;
+    private WorkedGridsPane      gridsPane;
+    private RegionMapPane        ssSectionMapPane;
+    private SweepProgressPane    sweepProgressPane;
+    private WorkedMultsPane      workedMultsPane;
+    // Column (field1..field5) holding the multiplier value for this plugin.
+    private String multColumn = "field1";
+    // Modes we track for per-mode accounting (e.g. ["CW","Phone"] for 10M).
+    private static final List<String> TRACKED_MODES_DEFAULT = List.of("CW", "Phone");
 
     // ---- State ----
     private ContestPlugin plugin;
@@ -88,6 +114,8 @@ public class ContestLogController implements Initializable {
 
     // Dynamic field map: fieldId -> Control
     private final Map<String, Control> entryFields = new LinkedHashMap<>();
+    // Label that precedes each field, used to hide label + control together.
+    private final Map<String, Label>   entryLabels = new LinkedHashMap<>();
     private TextField tfCallsign;
     private TextField tfOperator;
 
@@ -112,8 +140,13 @@ public class ContestLogController implements Initializable {
     /** Called after FXML load with the chosen plugin. */
     public void initPlugin(ContestPlugin p) {
         this.plugin = p;
+        this.multColumn = computeMultiplierColumn();
+        initSerialCounter();
         buildEntryBar();
         buildRow2Panes();
+        applyLockedBand();
+        wireConditionalFields();
+        wireRegionMapClicks();
         initCivListeners();
         initKeyHandlers();
         initDxPaneRestore();
@@ -142,6 +175,7 @@ public class ContestLogController implements Initializable {
     private void buildEntryBar() {
         entryBar.getChildren().clear();
         entryFields.clear();
+        entryLabels.clear();
 
         HBox rcvdRow = makeExchangeRow("Rcvd");
         HBox sentRow = makeExchangeRow("Sent");
@@ -165,6 +199,7 @@ public class ContestLogController implements Initializable {
             Control ctrl = buildFieldControl(fd);
             ctrl.setId(fd.getId());
             entryFields.put(fd.getId(), ctrl);
+            entryLabels.put(fd.getId(), lbl);
 
             if (fd.getEntryRow() == 1) {
                 sentRow.getChildren().addAll(lbl, ctrl);
@@ -205,22 +240,6 @@ public class ContestLogController implements Initializable {
     }
 
     private Control buildFieldControl(ContestPlugin.FieldDef fd) {
-        // Band and mode are always validated text fields (not dropdowns) so the
-        // user can type freely and see invalid entries highlighted.
-        if ("band".equals(fd.getId())) {
-            TextField tf = new TextField();
-            tf.setPrefWidth(fd.getWidth() > 0 ? fd.getWidth() : 80);
-            tf.textProperty().addListener((obs, o, n) ->
-                applyValidStyle(tf, VALID_BANDS.stream().anyMatch(b -> b.equalsIgnoreCase(n.trim()))));
-            return tf;
-        }
-        if ("mode".equals(fd.getId())) {
-            TextField tf = new TextField();
-            tf.setPrefWidth(fd.getWidth() > 0 ? fd.getWidth() : 80);
-            tf.textProperty().addListener((obs, o, n) ->
-                applyValidStyle(tf, VALID_MODES.stream().anyMatch(m -> m.equalsIgnoreCase(n.trim()))));
-            return tf;
-        }
         if ("combo".equals(fd.getType()) && fd.getOptions() != null) {
             ComboBox<String> cb = new ComboBox<>();
             cb.setItems(FXCollections.observableArrayList(fd.getOptions()));
@@ -240,14 +259,81 @@ public class ContestLogController implements Initializable {
                     tf.setText(nv.replace(" ", "").toUpperCase());
             });
         }
+        // Unified options-based validation: any text field whose plugin FieldDef
+        // declares options (or is a band/mode with a generic fallback) gets its
+        // value validated against that list — red ring on mismatch.
+        Collection<String> allowed = effectiveOptions(fd);
+        if (allowed != null && !allowed.isEmpty()) {
+            tf.textProperty().addListener((obs, o, n) -> applyValidStyle(tf, isAllowed(allowed, n)));
+        }
+        applyFieldValidator(tf, fd.getValidator());
         if ("callsign".equals(fd.getId())) tfCallsign = tf;
         return tf;
     }
 
+    /** Allowed-value set for a text field: plugin options first, else a
+     *  generic catalogue for band/mode, else null (no options-based validation). */
+    private static Collection<String> effectiveOptions(ContestPlugin.FieldDef fd) {
+        if (fd.getOptions() != null && !fd.getOptions().isEmpty()) return fd.getOptions();
+        if ("band".equals(fd.getId())) return VALID_BANDS;
+        if ("mode".equals(fd.getId())) return VALID_MODES;
+        return null;
+    }
+
+    private static boolean isAllowed(Collection<String> allowed, String value) {
+        if (value == null) return true;
+        String t = value.trim();
+        return t.isEmpty() || allowed.stream().anyMatch(v -> v.equalsIgnoreCase(t));
+    }
+
+    private static void applyFieldValidator(TextField tf, String validator) {
+        if (validator == null || validator.isBlank()) return;
+        switch (validator) {
+            case "maidenhead" -> tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, n == null || n.isBlank() || Maidenhead.isValid(n)));
+            case "numeric"    -> tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, n == null || n.isBlank() || n.trim().matches("[0-9]+")));
+            // Field Day station class: digits followed by A/B/C/D/E/F/I.
+            case "fd_class"   -> tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, n == null || n.isBlank()
+                    || n.trim().toUpperCase().matches("[0-9]{1,2}[A-FI]")));
+            default -> { /* unknown validator — ignore */ }
+        }
+    }
+
     private static void applyValidStyle(TextField tf, boolean valid) {
         String txt = tf.getText() == null ? "" : tf.getText().trim();
-        if (txt.isEmpty() || valid) tf.getStyleClass().remove("field-invalid");
-        else if (!tf.getStyleClass().contains("field-invalid")) tf.getStyleClass().add("field-invalid");
+        boolean invalid = !txt.isEmpty() && !valid;
+        // removeAll clears any accumulated duplicates; one atomic state change.
+        tf.getStyleClass().removeAll("field-invalid");
+        if (invalid) tf.getStyleClass().add("field-invalid");
+    }
+
+    /** Returns null if every required field is non-empty and every field with
+     *  options / validator holds a permissible value; otherwise a short error
+     *  message naming the offending field. Called by doSave to block invalid
+     *  QSOs before they reach the database. */
+    private String validateAllFields() {
+        if (plugin == null) return null;
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            Control ctrl = entryFields.get(fd.getId());
+            if (ctrl == null) continue;
+            String value = getControlValue(ctrl);
+            if (fd.isRequired() && (value == null || value.isBlank()))
+                return "Missing required field: " + fd.getLabel();
+            if (value == null || value.isBlank()) continue;
+            Collection<String> allowed = effectiveOptions(fd);
+            if (allowed != null && !isAllowed(allowed, value))
+                return "Invalid " + fd.getLabel() + ": '" + value + "'";
+            String v = fd.getValidator();
+            if ("maidenhead".equals(v) && !Maidenhead.isValid(value))
+                return "Invalid grid: '" + value + "'";
+            if ("numeric".equals(v) && !value.trim().matches("[0-9]+"))
+                return "Field " + fd.getLabel() + " must be numeric";
+            if ("fd_class".equals(v) && !value.trim().toUpperCase().matches("[0-9]{1,2}[A-FI]"))
+                return "Field " + fd.getLabel() + " must be a Field Day class (e.g. 2A, 1D)";
+        }
+        return null;
     }
 
     private void prefillSentFields() {
@@ -255,9 +341,18 @@ public class ContestLogController implements Initializable {
         setFieldValue("prec_sent",  cfg.getSsPrecedence());
         setFieldValue("check_sent", cfg.getSsCheck());
         setFieldValue("sect_sent",  cfg.getSsSection());
-        // Band and mode prefill from last saved value; persistent until the user changes them.
-        setFieldValue("band", cfg.getLastBand());
-        setFieldValue("mode", cfg.getLastMode());
+        // Band and mode prefill from last saved value, but only if the value is
+        // acceptable under the plugin's options — otherwise leave the field empty
+        // rather than stuck in an invalid state (e.g. lastBand="30m" vs SS bands).
+        prefillIfAllowed("band", cfg.getLastBand());
+        prefillIfAllowed("mode", cfg.getLastMode());
+    }
+
+    private void prefillIfAllowed(String id, String value) {
+        if (value == null || value.isBlank()) return;
+        ContestPlugin.FieldDef fd = plugin.getField(id);
+        Collection<String> allowed = fd != null ? effectiveOptions(fd) : null;
+        if (allowed == null || isAllowed(allowed, value)) setFieldValue(id, value);
     }
 
     private void setFieldValue(String id, String value) {
@@ -297,6 +392,74 @@ public class ContestLogController implements Initializable {
                     HBox.setHgrow(tp, Priority.NEVER);
                     tp.setMaxWidth(160);
                 }
+                case "us_state_map" -> {
+                    usMapPane = RegionMapPane.usStates();
+                    usMapPane.setTooltipProvider(this::stateTooltip);
+                    tp.setContent(usMapPane);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
+                case "canada_map" -> {
+                    caMapPane = RegionMapPane.canada();
+                    caMapPane.setTooltipProvider(this::stateTooltip);
+                    tp.setContent(caMapPane);
+                    HBox.setHgrow(tp, Priority.NEVER);
+                }
+                case "dxcc_list" -> {
+                    List<String> entities = defaultDxccEntities();
+                    dxccPane = new DxccListPane(entities);
+                    tp.setContent(dxccPane);
+                    tp.setMaxWidth(160);
+                    HBox.setHgrow(tp, Priority.NEVER);
+                }
+                case "per_mode_mult_grid" -> {
+                    perModeGrid = new PerModeMultGridPane(
+                        TRACKED_MODES_DEFAULT,
+                        multsForGrid());
+                    ScrollPane sp = new ScrollPane(perModeGrid);
+                    sp.setFitToWidth(true);
+                    sp.setPrefHeight(200);
+                    tp.setContent(sp);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
+                case "worked_before" -> {
+                    workedBeforePane = new WorkedBeforePane();
+                    tp.setContent(workedBeforePane);
+                    tp.setMaxWidth(240);
+                    HBox.setHgrow(tp, Priority.NEVER);
+                }
+                case "grid_map" -> {
+                    gridsPane = new WorkedGridsPane(contestBands());
+                    tp.setContent(gridsPane);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
+                case "ss_section_map" -> {
+                    ssSectionMapPane = RegionMapPane.ssSections();
+                    ssSectionMapPane.setTooltipProvider(this::stateTooltip);
+                    ssSectionMapPane.setOnRegionClicked(sec -> onMultiplierSelected(sec, "US"));
+                    ScrollPane sp = new ScrollPane(ssSectionMapPane);
+                    sp.setFitToWidth(true);
+                    sp.setPrefHeight(320);
+                    tp.setContent(sp);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
+                case "sweep_progress" -> {
+                    int total = plugin.getSections() != null ? plugin.getSections().size() : 0;
+                    sweepProgressPane = new SweepProgressPane(total);
+                    tp.setContent(sweepProgressPane);
+                    tp.setMaxWidth(220);
+                    HBox.setHgrow(tp, Priority.NEVER);
+                }
+                case "worked_mults" -> {
+                    workedMultsPane = new WorkedMultsPane();
+                    // Seed the full multiplier universe if the plugin declared one.
+                    String listPath = plugin.getMultiplierList();
+                    if (listPath != null && !listPath.isBlank()) {
+                        List<String> universe = com.jlog.plugin.MultiplierLists.load(listPath);
+                        if (!universe.isEmpty()) workedMultsPane.setUniverse(universe);
+                    }
+                    tp.setContent(workedMultsPane);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
                 default -> {
                     tp.setContent(new Label(pd.getTitle()));
                     HBox.setHgrow(tp, Priority.NEVER);
@@ -304,6 +467,59 @@ public class ContestLogController implements Initializable {
             }
             row2PaneContainer.getChildren().add(tp);
         }
+    }
+
+    private List<String> contestBands() {
+        // Use band-field options when declared; otherwise all BandPlan bands.
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            if ("band".equals(fd.getId()) && fd.getOptions() != null && !fd.getOptions().isEmpty())
+                return fd.getOptions();
+        }
+        return BandPlan.allBands();
+    }
+
+    private List<String> multsForGrid() {
+        List<String> mults = new ArrayList<>();
+        if (plugin.getUsStates() != null)        mults.addAll(plugin.getUsStates());
+        if (plugin.getCanadaProvinces() != null) mults.addAll(plugin.getCanadaProvinces());
+        if (mults.isEmpty() && plugin.getMultiplierModel() != null
+                && plugin.getMultiplierModel().getValidValues() != null) {
+            mults.addAll(plugin.getMultiplierModel().getValidValues());
+        }
+        return mults;
+    }
+
+    private String stateTooltip(String id) {
+        StringBuilder sb = new StringBuilder(id);
+        try {
+            for (String mode : TRACKED_MODES_DEFAULT) {
+                int count = ContestQsoDao.getInstance()
+                    .countQsosForMultValue(plugin.getContestId(), multColumn, id, mode);
+                LocalDateTime first = ContestQsoDao.getInstance()
+                    .firstWorkedAt(plugin.getContestId(), multColumn, id, mode);
+                if (count > 0) {
+                    sb.append("\n").append(mode).append(": ").append(count).append(" QSO")
+                      .append(count == 1 ? "" : "s");
+                    if (first != null) sb.append("  first ").append(first);
+                }
+            }
+        } catch (Exception ignored) {}
+        return sb.toString();
+    }
+
+    private static List<String> defaultDxccEntities() {
+        // Short list of commonly-worked DXCC entities for 10M; supplemented by live log data.
+        return List.of(
+            "United States","Canada","Mexico","Cuba","Puerto Rico","Jamaica","Bahamas",
+            "Haiti","Dominican Republic","Costa Rica","Panama","Colombia","Venezuela",
+            "Brazil","Argentina","Chile","Peru","Uruguay","Paraguay","Ecuador","Bolivia",
+            "England","Scotland","Wales","Ireland","France","Germany","Italy","Spain",
+            "Portugal","Netherlands","Belgium","Switzerland","Austria","Sweden","Norway",
+            "Finland","Denmark","Poland","Czech Republic","Slovakia","Hungary","Romania",
+            "Greece","Turkey","Russia","Ukraine","Japan","China","South Korea","Taiwan",
+            "Australia","New Zealand","South Africa","Egypt","Morocco","Israel","India",
+            "Indonesia","Philippines","Thailand","Vietnam","Malaysia","Singapore",
+            "Hong Kong","UAE","Saudi Arabia");
     }
 
     private VBox buildDupePane() {
@@ -314,6 +530,131 @@ public class ContestLogController implements Initializable {
         VBox box = new VBox(4, dupeStatusLabel, dupeList);
         box.getStyleClass().add("pane-content");
         return box;
+    }
+
+    // -----------------------------------------------------------------
+    // Cockpit extensions: locked band, conditional fields, region clicks
+    // -----------------------------------------------------------------
+
+    /** Resume the serial counter from the database so exchanges continue
+     *  monotonically across app restarts (counter = max previously sent + 1). */
+    private void initSerialCounter() {
+        try {
+            int maxSoFar = ContestQsoDao.getInstance().maxSerialSent(plugin.getContestId());
+            serialCounter.set(maxSoFar + 1);
+        } catch (Exception e) {
+            log.warn("could not resume serial counter for {}", plugin.getContestId(), e);
+            serialCounter.set(1);
+        }
+    }
+
+    private void applyLockedBand() {
+        applyLockedField("band", plugin.getLockedBand());
+        applyLockedField("mode", plugin.getLockedMode());
+    }
+
+    private void applyLockedField(String id, String value) {
+        if (value == null || value.isBlank()) return;
+        Control ctrl = entryFields.get(id);
+        if (ctrl == null) return;
+        setFieldValue(id, value);
+        ctrl.setDisable(true);
+        ctrl.setOpacity(0.65);
+        ctrl.setTooltip(new Tooltip(id + " locked to " + value + " for this contest"));
+    }
+
+    private void wireConditionalFields() {
+        if (plugin.getConditionalFields() == null || plugin.getConditionalFields().isEmpty()) return;
+        if (tfCallsign == null) return;
+        tfCallsign.textProperty().addListener((obs, ov, nv) -> applyConditionalFields(nv));
+        applyConditionalFields(tfCallsign.getText());
+    }
+
+    private void applyConditionalFields(String callsign) {
+        String region = classifyRegion(callsign);
+        for (ContestPlugin.ConditionalField cf : plugin.getConditionalFields()) {
+            Control ctrl = entryFields.get(cf.getFieldId());
+            Label   lbl  = entryLabels.get(cf.getFieldId());
+            if (ctrl == null) continue;
+            boolean show = true;
+            if (cf.getShowForRegions() != null && !cf.getShowForRegions().isEmpty()) {
+                show = region != null && cf.getShowForRegions().contains(region);
+            }
+            if (cf.getHideForRegions() != null && cf.getHideForRegions().contains(region)) {
+                show = false;
+            }
+            ctrl.setVisible(show); ctrl.setManaged(show);
+            if (lbl != null) { lbl.setVisible(show); lbl.setManaged(show); }
+        }
+    }
+
+    private String classifyRegion(String callsign) {
+        if (!"callsignRegion".equals(plugin.getStationClassifier())) return null;
+        return regionTag(callsign);
+    }
+
+    /** True if the callsign has a "/R" rover suffix. */
+    private static boolean isRover(String call) {
+        if (call == null) return false;
+        String c = call.trim().toUpperCase();
+        return c.endsWith("/R") || c.endsWith("/ROVER");
+    }
+
+    /** Callsign → "US" | "CA" | "DX" irrespective of plugin classifier setting.
+     *  Used by scoring rules (region-pair points) which must always know the region. */
+    private static String regionTag(String callsign) {
+        return switch (CallsignRegion.classify(callsign)) {
+            case US     -> "US";
+            case CANADA -> "CA";
+            case DX     -> "DX";
+        };
+    }
+
+    private void wireRegionMapClicks() {
+        if (usMapPane != null) {
+            usMapPane.setOnRegionClicked(id -> onMultiplierSelected(id, "US"));
+        }
+        if (caMapPane != null) {
+            caMapPane.setOnRegionClicked(id -> onMultiplierSelected(id, "CA"));
+        }
+        if (dxccPane != null) {
+            dxccPane.setOnEntityClicked(entity -> onMultiplierSelected(entity, "DX"));
+        }
+        if (gridsPane != null) {
+            gridsPane.setOnGridClicked(this::onGridSelected);
+        }
+        if (workedMultsPane != null) {
+            workedMultsPane.setOnMultClicked(v -> {
+                String target = firstPresent("state_prov_rcvd","state_rcvd","sect_rcvd","dxcc");
+                if (target != null) setFieldValue(target, v);
+                if (tfCallsign != null) tfCallsign.requestFocus();
+            });
+        }
+    }
+
+    private void onGridSelected(String grid) {
+        String target = firstPresent("grid_rcvd", "gridsquare_rcvd");
+        if (target != null) setFieldValue(target, grid);
+        if (tfCallsign != null) tfCallsign.requestFocus();
+    }
+
+    /** A multiplier was clicked on a map/list: fill the appropriate received-exchange field. */
+    private void onMultiplierSelected(String value, String region) {
+        // state_prov_rcvd for US / Canada, dxcc_rcvd for DX — controller tolerates either name.
+        String target = switch (region) {
+            case "US", "CA" -> firstPresent("state_prov_rcvd", "state_rcvd", "section");
+            case "DX"       -> firstPresent("dxcc_rcvd", "country_rcvd");
+            default          -> null;
+        };
+        if (target != null) setFieldValue(target, value);
+        if (tfCallsign != null) tfCallsign.requestFocus();
+        if (usMapPane  != null && "US".equals(region)) usMapPane.setCurrent(value);
+        if (caMapPane  != null && "CA".equals(region)) caMapPane.setCurrent(value);
+    }
+
+    private String firstPresent(String... ids) {
+        for (String id : ids) if (entryFields.containsKey(id)) return id;
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -456,10 +797,81 @@ public class ContestLogController implements Initializable {
 
         if (tfCallsign != null) {
             tfCallsign.textProperty().addListener((obs, ov, nv) -> {
-                if (nv != null && nv.length() >= 3) checkDupe(nv.toUpperCase());
+                if (nv != null && nv.length() >= 3) {
+                    String up = nv.toUpperCase();
+                    checkDupe(up);
+                    refreshWorkedBefore(up);
+                    maybeAutoFillDxccPrefix(up);
+                    maybeAutoFillWpxPrefix(up);
+                } else if (workedBeforePane != null) {
+                    workedBeforePane.clear();
+                }
             });
         }
     }
+
+    /** For single-exchange contests (ARRL 160M): when a DX callsign is entered,
+     *  auto-fill the state/prov-rcvd field with the callsign's DXCC prefix so the
+     *  multiplier count differentiates between DX entities. */
+    private void maybeAutoFillDxccPrefix(String callsign) {
+        if (plugin == null || !plugin.isAutoFillDxccPrefix()) return;
+        if (CallsignRegion.classify(callsign) != CallsignRegion.Region.DX) return;
+        String target = firstPresent("state_prov_rcvd", "state_rcvd");
+        if (target == null) return;
+        Control ctrl = entryFields.get(target);
+        // Only overwrite if the operator hasn't typed something else.
+        String current = getFieldValue(target);
+        if (current != null && !current.isBlank()
+                && !current.equalsIgnoreCase(CallsignRegion.dxccPrefix(callsign))
+                && !isPriorDxccPrefix(current)) return;
+        String prefix = CallsignRegion.dxccPrefix(callsign);
+        if (!prefix.isBlank()) setFieldValue(target, prefix);
+    }
+
+    /** True if the value looks like a DXCC prefix (letters only, length 1-3) —
+     *  used to decide whether to overwrite auto-filled content safely. */
+    private static boolean isPriorDxccPrefix(String v) {
+        return v != null && v.matches("[A-Z]{1,3}");
+    }
+
+    /** CQ WPX contests: auto-fill a "prefix_rcvd" field with the WPX prefix
+     *  (letters + first digit) derived from the worked callsign. Unlike the
+     *  DXCC version this fires for every callsign, not just DX. */
+    private void maybeAutoFillWpxPrefix(String callsign) {
+        if (plugin == null || !plugin.isAutoFillWpxPrefix()) return;
+        String target = firstPresent("prefix_rcvd", "wpx_prefix_rcvd");
+        if (target == null) return;
+        String current = getFieldValue(target);
+        String prefix  = CallsignRegion.wpxPrefix(callsign);
+        // Only overwrite if blank or previously auto-populated (looks like a prefix).
+        if (current != null && !current.isBlank()
+                && !current.equalsIgnoreCase(prefix)
+                && !current.matches("[A-Z]{1,3}[0-9]?")) return;
+        if (!prefix.isBlank()) setFieldValue(target, prefix);
+    }
+
+    private void refreshWorkedBefore(String callsign) {
+        if (workedBeforePane == null || plugin == null) return;
+        String currentMode = getFieldValue("mode");
+        // Fetch exact-match QSOs AND prefix matches so the pane can flag
+        // "possible dupe" when the operator has typed a partial callsign.
+        Task<WorkedBeforeResult> task = new Task<>() {
+            @Override protected WorkedBeforeResult call() throws Exception {
+                var exact    = ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), callsign);
+                var partials = ContestQsoDao.getInstance().partialMatch(plugin.getContestId(), callsign);
+                // Remove the exact match from the "partial" list so it isn't reported twice.
+                partials.removeIf(c -> c.equalsIgnoreCase(callsign));
+                return new WorkedBeforeResult(exact, partials);
+            }
+            @Override protected void succeeded() {
+                var r = getValue();
+                workedBeforePane.update(callsign, currentMode, r.exact, r.partials);
+            }
+        };
+        new Thread(task).start();
+    }
+
+    private record WorkedBeforeResult(List<QsoRecord> exact, List<String> partials) {}
 
     /**
      * Wires the DX pane expand/collapse listener so its height is preserved
@@ -502,6 +914,8 @@ public class ContestLogController implements Initializable {
             setStatus(I18n.get("error.callsign.required"));
             return;
         }
+        String problem = validateAllFields();
+        if (problem != null) { setStatus("⛔ " + problem); return; }
         final boolean isEdit = editingRecord != null;
         final QsoRecord q = isEdit ? editingRecord : buildRecord();
         if (isEdit) applyFieldsToRecord(q);
@@ -564,12 +978,39 @@ public class ContestLogController implements Initializable {
         q.setSerialSent(String.valueOf(serialCounter.get()));
 
         try {
-            boolean dupe = ContestQsoDao.getInstance().isDuplicate(
-                plugin.getContestId(), q.getCallsign(),
-                q.getBand() != null ? q.getBand() : "",
-                q.getMode() != null ? q.getMode() : "");
+            boolean dupe;
+            if (plugin.isContestWideDupe()) {
+                // ARRL Sweepstakes: one QSO per callsign for the entire contest.
+                dupe = ContestQsoDao.getInstance().isDuplicateContestWide(
+                    plugin.getContestId(), q.getCallsign());
+            } else if (plugin.isRoverAwareDupe() && isRover(q.getCallsign())) {
+                // June VHF rovers: (callsign, band, grid) — new grid = new QSO.
+                String grid = getFieldValue(firstPresent("grid_rcvd", "gridsquare_rcvd"));
+                dupe = ContestQsoDao.getInstance().isDuplicateBandGrid(
+                    plugin.getContestId(), q.getCallsign(),
+                    q.getBand() != null ? q.getBand() : "",
+                    multColumn,
+                    grid != null ? grid : "");
+            } else if (plugin.isRoverAwareDupe()) {
+                // Non-rover on a rover-aware contest: (callsign, band).
+                dupe = ContestQsoDao.getInstance().isDuplicatePerBand(
+                    plugin.getContestId(), q.getCallsign(),
+                    q.getBand() != null ? q.getBand() : "");
+            } else if (plugin.isPerModeMultipliers()) {
+                // Dupe rule is mode-specific, band-independent (e.g. ARRL 10M).
+                dupe = ContestQsoDao.getInstance().isDuplicatePerMode(
+                    plugin.getContestId(), q.getCallsign(),
+                    q.getMode() != null ? q.getMode() : "");
+            } else {
+                dupe = ContestQsoDao.getInstance().isDuplicate(
+                    plugin.getContestId(), q.getCallsign(),
+                    q.getBand() != null ? q.getBand() : "",
+                    q.getMode() != null ? q.getMode() : "");
+            }
             q.setDupe(dupe);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("dupe check failed", e);
+        }
 
         return q;
     }
@@ -603,7 +1044,39 @@ public class ContestLogController implements Initializable {
             }
         }
         q.setExchange(exch.toString());
-        q.setPoints(plugin.pointsForMode(q.getMode() != null ? q.getMode() : ""));
+        q.setPoints(computeQsoPoints(q));
+    }
+
+    /** Resolve QSO points honouring region-pair (ARRL 160M) / band-class (Intl
+     *  Digital) / rookie-roundup rules when declared; falls back to mode / default. */
+    private int computeQsoPoints(QsoRecord q) {
+        String mode = q.getMode() != null ? q.getMode() : "";
+        String band = q.getBand() != null ? q.getBand() : "";
+        var rules = plugin.getScoringRules();
+        if (rules != null && rules.isRookieRoundupScoring()) {
+            // Received 2-digit "year first licensed" vs current 2-digit year.
+            // Rookie = licensed within the last 3 calendar years (current + 2 prior).
+            String yearField = firstPresent("year_rcvd", "chk_rcvd", "check_rcvd");
+            String yearStr   = yearField == null ? "" : getFieldValue(yearField);
+            if (yearStr != null && yearStr.trim().matches("[0-9]{1,2}")) {
+                int yy    = Integer.parseInt(yearStr.trim());
+                int curYy = LocalDateTime.now(ZoneOffset.UTC).getYear() % 100;
+                int delta = ((curYy - yy) + 100) % 100;   // wraparound-safe
+                return delta <= 2 ? 2 : 1;
+            }
+            return 1;
+        }
+        if (rules != null && rules.getPointsByRegionPair() != null
+                && !rules.getPointsByRegionPair().isEmpty()) {
+            String myCall = AppConfig.getInstance().getStationCallsign();
+            if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+            return plugin.pointsFor(regionTag(myCall), regionTag(q.getCallsign()), mode);
+        }
+        if (rules != null && ((rules.getPointsByBand() != null && !rules.getPointsByBand().isEmpty())
+                || (rules.getPointsByBandClass() != null && !rules.getPointsByBandClass().isEmpty()))) {
+            return plugin.pointsForBand(band, mode);
+        }
+        return plugin.pointsForMode(mode);
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -793,30 +1266,126 @@ public class ContestLogController implements Initializable {
     private void updateStats() {
         if (plugin == null) return;
         try {
-            String multCol = getMultiplierColumn();
+            String multCol = multColumn;
             int count  = ContestQsoDao.getInstance().countByContest(plugin.getContestId());
-            int total  = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
-            List<String> worked = ContestQsoDao.getInstance()
-                .distinctFieldByColumn(plugin.getContestId(), multCol);
-            int mults  = worked.size();
-            int score  = total * mults;
             int qsoHr  = computeQsoHour();
 
-            Platform.runLater(() -> {
-                if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
-                worked.forEach(sec -> {
-                    Label lbl = sectionLabels.get(sec);
-                    if (lbl != null) lbl.getStyleClass().add("section-worked");
+            // Field Day-style scoring: final score = QSO points (no multiplier).
+            // Bonus points are computed off-log at submission time.
+            if (plugin.getScoringRules() != null && plugin.getScoringRules().isScoreIsPointsOnly()) {
+                int total = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
+                List<String> worked = ContestQsoDao.getInstance()
+                    .distinctFieldByColumn(plugin.getContestId(), multCol);
+                final int score = total;
+                final int sections = worked.size();
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(sections));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                    sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
+                    worked.forEach(sec -> {
+                        Label lbl = sectionLabels.get(sec);
+                        if (lbl != null) lbl.getStyleClass().add("section-worked");
+                    });
                 });
-            });
-        } catch (Exception ignored) {}
+                return;
+            }
+
+            if (plugin.isPerModeMultipliers()) {
+                // Per-mode mults + per-mode point sums. Score = (P_cw + P_phone) × (M_cw + M_phone).
+                Map<String, List<String>> workedByMode = new LinkedHashMap<>();
+                int totalMults = 0, totalPoints = 0;
+                for (String mode : TRACKED_MODES_DEFAULT) {
+                    List<String> w = ContestQsoDao.getInstance()
+                        .distinctFieldByColumnAndMode(plugin.getContestId(), multCol, mode);
+                    workedByMode.put(mode, w);
+                    totalMults  += w.size();
+                    totalPoints += ContestQsoDao.getInstance()
+                        .pointsByMode(plugin.getContestId(), mode);
+                }
+                final int score = totalPoints * totalMults;
+                final int mults = totalMults;
+
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                    refreshMapsWorked(workedByMode);
+                    refreshPerModeGrid(workedByMode);
+                });
+            } else if (plugin.getMultiplierModel() != null
+                    && plugin.getMultiplierModel().isPerBand()) {
+                // Per-band multiplier accounting (ARRL Intl Digital): total mults =
+                // Σ over bands of distinct values on that band. Feeds WorkedGridsPane.
+                Map<String, List<String>> workedByBand = new LinkedHashMap<>();
+                int totalMults = 0;
+                for (String band : contestBands()) {
+                    List<String> w = ContestQsoDao.getInstance()
+                        .distinctFieldByColumnAndBand(plugin.getContestId(), multCol, band);
+                    workedByBand.put(band, w);
+                    totalMults += w.size();
+                }
+                int total = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
+                final int score = total * totalMults;
+                final int mults = totalMults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                    if (gridsPane != null) {
+                        workedByBand.forEach(gridsPane::setWorked);
+                    }
+                });
+            } else {
+                List<String> worked = ContestQsoDao.getInstance()
+                    .distinctFieldByColumn(plugin.getContestId(), multCol);
+                int total  = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
+                int mults  = worked.size();
+                int score  = total * mults;
+
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                    sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
+                    worked.forEach(sec -> {
+                        Label lbl = sectionLabels.get(sec);
+                        if (lbl != null) lbl.getStyleClass().add("section-worked");
+                    });
+                    if (ssSectionMapPane  != null) ssSectionMapPane.setAllWorked(worked);
+                    if (sweepProgressPane != null) sweepProgressPane.setWorked(mults);
+                    if (workedMultsPane   != null) workedMultsPane.setWorked(worked);
+                });
+            }
+        } catch (Exception e) {
+            log.warn("updateStats failed", e);
+        }
     }
 
-    private String getMultiplierColumn() {
+    /** Colour each region on the US / Canada maps and the DXCC list if any mode worked it. */
+    private void refreshMapsWorked(Map<String, List<String>> workedByMode) {
+        Set<String> allWorked = new HashSet<>();
+        workedByMode.values().forEach(allWorked::addAll);
+        if (usMapPane != null) usMapPane.setAllWorked(allWorked);
+        if (caMapPane != null) caMapPane.setAllWorked(allWorked);
+        if (dxccPane  != null) dxccPane.setAllWorked(allWorked);
+    }
+
+    private void refreshPerModeGrid(Map<String, List<String>> workedByMode) {
+        if (perModeGrid == null) return;
+        for (String mode : perModeGrid.getModes()) {
+            List<String> worked = workedByMode.getOrDefault(mode, List.of());
+            for (String mult : perModeGrid.getMults()) {
+                perModeGrid.setWorked(mode, mult, worked.contains(mult));
+            }
+        }
+    }
+
+    private String computeMultiplierColumn() {
         if (plugin.getMultiplierModel() == null) return "field1";
         String targetId = plugin.getMultiplierModel().getField();
         int slot = 0;

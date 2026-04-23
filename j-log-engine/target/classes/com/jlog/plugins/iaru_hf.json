@@ -1,0 +1,61 @@
+{
+  "contestId":   "IARU_HF",
+  "contestName": "IARU HF World Championship",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "RST + ITU zone (1-90) or HQ society abbrev  (e.g. 599 08, 599 ARRL)",
+
+  "autoFillDxccPrefix": true,
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB"]
+    },
+    { "id": "rst_rcvd",    "label": "RST R",    "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "zone_hq_rcvd","label": "Zone/HQ R","type": "text", "width": 80, "required": true,  "entryRow": 0 },
+    { "id": "rst_sent",    "label": "RST S",    "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "zone_hq_sent","label": "Zone/HQ S","type": "text", "width": 80, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "modePoints":   {},
+    "multiplierType": "custom",
+    "scoreFormula": "qsoPoints * multipliers",
+    "allowDupes":   false
+  },
+
+  "multiplierModel": {
+    "field":   "zone_hq_rcvd",
+    "perBand": true,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "HQ Societies",  "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":     "rcvd_callsign",
+    "rst_sent":     "sent_rst",
+    "rst_rcvd":     "rcvd_rst",
+    "zone_hq_sent": "sent_exchange",
+    "zone_hq_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

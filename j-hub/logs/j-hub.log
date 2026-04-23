@@ -100,3 +100,156 @@
 2026-04-23 06:52:46.079 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
 2026-04-23 06:52:46.081 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
 2026-04-23 06:52:46.112 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-23 08:52:44.855 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-23 08:52:44.917 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-23 08:52:44.918 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-23 08:52:44.950 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-23 08:52:44.956 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-23 08:52:44.966 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-23 08:52:45.085 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-23 08:52:45.085 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-23 08:52:45.087 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-23 08:52:45.091 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-23 08:52:45.099 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 26650) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-04-23 08:52:45.100 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-04-23 08:52:45.101 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-04-23 08:52:45.335 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-23 08:52:46.735 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 08:52:46.740 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 08:53:14.445 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:52612
+2026-04-23 08:53:14.453 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-04-23 08:53:14.461 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-04-23 08:53:14.570 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-04-23 08:53:15.042 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:52614
+2026-04-23 08:53:15.044 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-23 08:53:15.047 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-23 08:55:48.100 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-04-23 08:55:48.109 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-04-23 08:55:48.110 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-23 08:55:48.113 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-04-23 08:55:48.115 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-04-23 08:55:52.585 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 26912) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-04-23 08:55:52.586 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Launched j-log from status window
+2026-04-23 08:56:13.190 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:49912
+2026-04-23 08:56:13.196 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-04-23 08:56:13.198 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-04-23 08:56:13.228 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-04-23 08:56:13.677 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:49918
+2026-04-23 08:56:13.680 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-23 08:56:13.682 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-23 08:57:00.767 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-04-23 08:57:00.777 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-04-23 08:57:00.778 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-23 08:57:00.780 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-04-23 08:57:00.781 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-04-23 08:57:46.141 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 08:57:46.142 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:02:46.031 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:02:46.032 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:07:45.882 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:07:45.883 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:12:46.163 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:12:46.164 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:17:47.445 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:17:47.446 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:22:46.754 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:22:46.755 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:23:45.378 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 28972) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-04-23 09:23:45.379 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Launched j-log from status window
+2026-04-23 09:24:06.580 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:52048
+2026-04-23 09:24:06.585 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-04-23 09:24:06.586 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-04-23 09:24:06.688 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-04-23 09:24:07.153 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:52052
+2026-04-23 09:24:07.155 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-23 09:24:07.156 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-23 09:24:32.627 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-04-23 09:24:32.631 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-04-23 09:24:32.632 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-23 09:24:32.633 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-04-23 09:24:32.633 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-04-23 09:27:46.128 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:27:46.129 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:32:45.888 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:32:45.890 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:37:46.208 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:37:46.209 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:42:46.011 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:42:46.011 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:47:46.096 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:47:46.097 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:52:47.286 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 09:52:47.287 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 09:56:59.024 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-23 09:56:59.028 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-23 09:56:59.032 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-23 09:56:59.032 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-23 09:56:59.785 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-04-23 09:56:59.788 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-04-23 09:56:59.790 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-23 09:56:59.828 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-04-23 11:28:08.418 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-04-23 11:28:08.478 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-04-23 11:28:08.479 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-04-23 11:28:08.511 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-04-23 11:28:08.518 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-04-23 11:28:08.528 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-04-23 11:28:08.651 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-04-23 11:28:08.651 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-04-23 11:28:08.653 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-04-23 11:28:08.657 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-04-23 11:28:08.665 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 36022) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-04-23 11:28:08.666 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-04-23 11:28:08.667 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-04-23 11:28:08.894 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-04-23 11:28:10.530 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 11:28:10.535 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 11:28:48.703 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:55056
+2026-04-23 11:28:48.714 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-04-23 11:28:48.727 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-04-23 11:28:48.746 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-04-23 11:28:49.217 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:55070
+2026-04-23 11:28:49.219 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-04-23 11:28:49.220 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-04-23 11:29:09.419 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-04-23 11:29:09.423 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-04-23 11:29:09.423 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-04-23 11:29:09.424 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-04-23 11:29:09.425 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-04-23 11:33:08.898 DEBUG com.hamradio.jhub.WeatherService — Kp fetch: null
+2026-04-23 11:33:08.901 DEBUG com.hamradio.jhub.WeatherService — Solar wind plasma: null
+2026-04-23 11:33:08.904 DEBUG com.hamradio.jhub.WeatherService — Solar wind mag: null
+2026-04-23 11:33:08.907 DEBUG com.hamradio.jhub.WeatherService — X-ray fetch: null
+2026-04-23 11:33:08.908 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: null
+2026-04-23 11:33:08.909 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 11:38:09.883 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 11:38:09.884 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 11:43:10.233 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 11:43:10.233 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 11:48:09.641 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 11:48:09.642 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 11:53:09.476 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 11:53:09.478 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 11:58:09.656 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 11:58:09.657 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:03:09.698 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 12:03:09.699 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:08:09.638 DEBUG com.hamradio.jhub.WeatherService — X-ray fetch: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 656736 path $
+2026-04-23 12:08:09.737 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 12:08:09.739 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:13:09.537 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 12:13:09.539 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:18:09.665 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 12:18:09.666 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:23:09.907 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 12:23:09.908 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:28:10.049 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-04-23 12:28:10.051 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-04-23 12:31:01.555 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-04-23 12:31:01.558 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-23 12:31:01.562 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-04-23 12:31:01.563 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-04-23 12:31:02.316 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-04-23 12:31:02.318 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-04-23 12:31:02.320 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-04-23 12:31:02.351 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.

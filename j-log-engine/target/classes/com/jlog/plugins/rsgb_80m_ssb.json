@@ -1,0 +1,56 @@
+{
+  "contestId":   "RSGB_80M_SSB",
+  "contestName": "RSGB 80m Club Championships (SSB)",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "RST + serial  (e.g. 599 001)",
+
+  "lockedBand": "80m",
+  "lockedMode": "SSB",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 60, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["SSB","USB","LSB"]
+    },
+    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true,  "entryRow": 0, "validator": "numeric" },
+    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "modePoints":   {},
+    "multiplierType": "custom",
+    "scoreFormula": "qsoPoints",
+    "scoreIsPointsOnly": true,
+    "allowDupes":   false
+  },
+
+  "multiplierModel": { "field": "serial_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":    "rcvd_callsign",
+    "rst_sent":    "sent_rst",
+    "rst_rcvd":    "rcvd_rst",
+    "serial_rcvd": "rcvd_serial"
+  },
+
+  "sections": []
+}

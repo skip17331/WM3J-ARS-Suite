@@ -175,6 +175,36 @@ public class AppConfig {
     public void setCivAutoConnect(boolean v)    { setDb("civ.autoConnect", String.valueOf(v)); }
 
     // ---------------------------------------------------------------
+    // Hidden contest plugins — contest IDs the user has removed from the
+    // chooser. Lets bundled (resource-only) plugins also be "removed".
+    // ---------------------------------------------------------------
+
+    public java.util.Set<String> getHiddenContestIds() {
+        String raw = prefs.get("hiddenContestIds", "");
+        java.util.Set<String> out = new java.util.LinkedHashSet<>();
+        if (raw.isBlank()) return out;
+        for (String s : raw.split(",")) if (!s.isBlank()) out.add(s.trim());
+        return out;
+    }
+
+    public void setHiddenContestIds(java.util.Set<String> ids) {
+        prefs.put("hiddenContestIds", String.join(",", ids));
+    }
+
+    public void addHiddenContestId(String id) {
+        if (id == null || id.isBlank()) return;
+        java.util.Set<String> s = getHiddenContestIds();
+        s.add(id);
+        setHiddenContestIds(s);
+    }
+
+    public void removeHiddenContestId(String id) {
+        if (id == null || id.isBlank()) return;
+        java.util.Set<String> s = getHiddenContestIds();
+        if (s.remove(id)) setHiddenContestIds(s);
+    }
+
+    // ---------------------------------------------------------------
     // Last band / mode (prefill for contest entry; persists until changed)
     // ---------------------------------------------------------------
 
