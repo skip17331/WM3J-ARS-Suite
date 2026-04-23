@@ -175,6 +175,16 @@ public class AppConfig {
     public void setCivAutoConnect(boolean v)    { setDb("civ.autoConnect", String.valueOf(v)); }
 
     // ---------------------------------------------------------------
+    // Last band / mode (prefill for contest entry; persists until changed)
+    // ---------------------------------------------------------------
+
+    public String getLastBand()         { return prefs.get("lastBand", ""); }
+    public void   setLastBand(String v) { prefs.put("lastBand", v == null ? "" : v); }
+
+    public String getLastMode()         { return prefs.get("lastMode", ""); }
+    public void   setLastMode(String v) { prefs.put("lastMode", v == null ? "" : v); }
+
+    // ---------------------------------------------------------------
     // SS Contest Exchange (saved per-station, not per-contest)
     // ---------------------------------------------------------------
 

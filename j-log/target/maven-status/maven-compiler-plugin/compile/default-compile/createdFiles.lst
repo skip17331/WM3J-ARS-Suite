@@ -1,4 +1,5 @@
 com/jlog/macro/MacroEngine$1.class
+com/jlog/controller/NormalLogController$7.class
 com/jlog/controller/DatabaseToolsController$2.class
 com/jlog/controller/ContestLogController$2.class
 com/jlog/controller/SetupController$1.class
@@ -18,6 +19,7 @@ com/jlog/controller/ContestLogController$5.class
 com/jlog/macro/MacroEngine.class
 com/jlog/controller/NormalLogController$1.class
 com/jlog/controller/DatabaseToolsController$1.class
+com/jlog/controller/ContestLogController$6.class
 com/jlog/controller/SetupController.class
 com/jlog/controller/NormalLogController$6.class
 com/jlog/controller/ContestLogController.class

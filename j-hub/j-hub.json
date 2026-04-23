@@ -88,7 +88,7 @@
       "ip": "localhost"
     },
     "jLog": {
-      "autoLaunch": false,
+      "autoLaunch": true,
       "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh",
       "ip": "localhost"
     },
@@ -103,7 +103,7 @@
       "ip": "localhost"
     },
     "jSat": {
-      "autoLaunch": true,
+      "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-sat/j-sat.sh",
       "ip": "localhost"
     }
@@ -229,7 +229,7 @@
     "callsign": "WM3J",
     "qthLat": 39.745583,
     "qthLon": -76.959714,
-    "qthAltKm": 0.0,
+    "qthAltKm": 0,
     "enabledSatellites": [
       "AO-92",
       "AO-109",
@@ -246,7 +246,7 @@
       "FO-99",
       "XW-2C"
     ],
-    "minPassElevationDeg": 5.0,
+    "minPassElevationDeg": 5,
     "passLookAheadHours": 24,
     "rigControlEnabled": false,
     "rotorControlEnabled": false,

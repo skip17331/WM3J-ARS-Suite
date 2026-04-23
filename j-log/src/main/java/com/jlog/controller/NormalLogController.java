@@ -53,8 +53,8 @@ public class NormalLogController implements Initializable {
     // ---- Data entry fields ----
     @FXML private TextField tfCallsign;
     @FXML private DatePicker dpDate;
-    @FXML private ComboBox<String> cbBand;
-    @FXML private ComboBox<String> cbMode;
+    @FXML private TextField tfBand;
+    @FXML private TextField tfMode;
     @FXML private TextField tfPower;
     @FXML private TextField tfRstSent;
     @FXML private TextField tfRstReceived;
@@ -120,7 +120,7 @@ public class NormalLogController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        initComboBoxes();
+        initEntryFields();
         initTable();
         initClock();
         initCivListeners();
@@ -153,16 +153,24 @@ public class NormalLogController implements Initializable {
     // Initialisation helpers
     // ---------------------------------------------------------------
 
-    private void initComboBoxes() {
-        cbBand.setItems(FXCollections.observableArrayList(
-            "160m","80m","60m","40m","30m","20m","17m","15m","12m","10m","6m","2m","70cm"));
-        cbMode.setItems(FXCollections.observableArrayList(
-            "CW","USB","LSB","AM","FM","RTTY","FT8","FT4","PSK31","OLIVIA","DV"));
-        cbBand.setValue("20m");
-        cbMode.setValue("CW");
+    private static final List<String> VALID_BANDS = BandPlan.allBands();
+    private static final Set<String>  VALID_MODES = Set.of(
+        "CW","USB","LSB","AM","FM","RTTY","FT8","FT4","PSK31","OLIVIA","DV","JS8");
+
+    private void initEntryFields() {
         tfRstSent.setText("599");
         tfRstReceived.setText("599");
         tfPower.setText(AppConfig.getInstance().getDefaultPower());
+        tfBand.textProperty().addListener((obs, o, n) ->
+            applyValidStyle(tfBand, VALID_BANDS.stream().anyMatch(b -> b.equalsIgnoreCase(n.trim()))));
+        tfMode.textProperty().addListener((obs, o, n) ->
+            applyValidStyle(tfMode, VALID_MODES.stream().anyMatch(m -> m.equalsIgnoreCase(n.trim()))));
+    }
+
+    private static void applyValidStyle(TextField tf, boolean valid) {
+        String txt = tf.getText().trim();
+        if (txt.isEmpty() || valid) tf.getStyleClass().remove("field-invalid");
+        else if (!tf.getStyleClass().contains("field-invalid")) tf.getStyleClass().add("field-invalid");
     }
 
     private void initTable() {
@@ -209,11 +217,11 @@ public class NormalLogController implements Initializable {
         civ.setFrequencyListener(hz -> Platform.runLater(() -> {
             tfFrequency.setText(String.format("%.3f", hz / 1_000_000.0));
             String band = CivEngine.freqToBand(hz);
-            cbBand.setValue(band);
+            if (band != null) tfBand.setText(band);
             checkBandWarning();
         }));
         civ.setModeListener(mode -> Platform.runLater(() -> {
-            cbMode.setValue(mode);
+            if (mode != null) tfMode.setText(mode);
             checkBandWarning();
         }));
     }
@@ -419,6 +427,32 @@ public class NormalLogController implements Initializable {
         new Thread(task).start();
     }
 
+    @FXML private void doDeleteSelected() {
+        QsoRecord sel = qsoTable.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+            "Delete QSO with " + sel.getCallsign() + "?",
+            ButtonType.OK, ButtonType.CANCEL);
+        confirm.setHeaderText(null);
+        confirm.showAndWait().ifPresent(bt -> {
+            if (bt != ButtonType.OK) return;
+            Task<Void> task = new Task<>() {
+                @Override protected Void call() throws Exception {
+                    QsoDao.getInstance().delete(sel.getId());
+                    return null;
+                }
+                @Override protected void succeeded() {
+                    setStatus("Deleted: " + sel.getCallsign());
+                    loadQsos();
+                }
+                @Override protected void failed() {
+                    setStatus("Delete failed: " + getException().getMessage());
+                }
+            };
+            new Thread(task).start();
+        });
+    }
+
     // ---------------------------------------------------------------
     // Menu actions
     // ---------------------------------------------------------------
@@ -488,8 +522,8 @@ public class NormalLogController implements Initializable {
         QsoRecord q = new QsoRecord();
         q.setCallsign(tfCallsign.getText().trim().toUpperCase());
         q.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
-        q.setBand(cbBand.getValue());
-        q.setMode(cbMode.getValue());
+        q.setBand(tfBand.getText().trim());
+        q.setMode(tfMode.getText().trim());
         q.setFrequency(tfFrequency.getText());
         try { q.setPowerWatts(Integer.parseInt(tfPower.getText())); } catch (Exception e) { q.setPowerWatts(0); }
         q.setRstSent(tfRstSent.getText());
@@ -506,8 +540,8 @@ public class NormalLogController implements Initializable {
 
     private void populateFromRecord(QsoRecord q) {
         tfCallsign.setText(q.getCallsign());
-        cbBand.setValue(q.getBand());
-        cbMode.setValue(q.getMode());
+        tfBand.setText(q.getBand() != null ? q.getBand() : "");
+        tfMode.setText(q.getMode() != null ? q.getMode() : "");
         tfFrequency.setText(q.getFrequency());
         tfPower.setText(String.valueOf(q.getPowerWatts()));
         tfRstSent.setText(q.getRstSent());
@@ -523,8 +557,8 @@ public class NormalLogController implements Initializable {
 
     private void applyFieldsTo(QsoRecord q) {
         q.setCallsign(tfCallsign.getText().trim().toUpperCase());
-        q.setBand(cbBand.getValue());
-        q.setMode(cbMode.getValue());
+        q.setBand(tfBand.getText().trim());
+        q.setMode(tfMode.getText().trim());
         q.setFrequency(tfFrequency.getText());
         try { q.setPowerWatts(Integer.parseInt(tfPower.getText())); } catch (Exception e) {}
         q.setRstSent(tfRstSent.getText());
@@ -575,10 +609,10 @@ public class NormalLogController implements Initializable {
         }
         if (spot.getFrequencyKHz() > 0) {
             tfFrequency.setText(String.format("%.3f", spot.getFrequencyKHz() / 1000.0));
-            cbBand.setValue(spot.getBand());
+            if (spot.getBand() != null) tfBand.setText(spot.getBand());
         }
         if (spot.getMode() != null && !spot.getMode().isBlank()) {
-            cbMode.setValue(mapMode(spot.getMode()));
+            tfMode.setText(mapMode(spot.getMode()));
         }
         if (spot.getCountry() != null && !spot.getCountry().isBlank()) {
             tfCountry.setText(spot.getCountry());
@@ -603,13 +637,13 @@ public class NormalLogController implements Initializable {
         String notes    = node.path("notes").asText("").trim();
 
         if (!callsign.isBlank())  tfCallsign.setText(callsign);
-        if (!mode.isBlank())      cbMode.setValue(mapMode(mode));
-        if (!band.isBlank())      cbBand.setValue(band);
+        if (!mode.isBlank())      tfMode.setText(mapMode(mode));
+        if (!band.isBlank())      tfBand.setText(band);
         if (frequency > 0) {
             tfFrequency.setText(String.format("%.3f", frequency / 1_000_000.0));
             if (band.isBlank()) {
                 String derived = CivEngine.freqToBand(frequency);
-                if (derived != null && !derived.isBlank()) cbBand.setValue(derived);
+                if (derived != null && !derived.isBlank()) tfBand.setText(derived);
             }
         }
         if (!rstSent.isBlank()) tfRstSent.setText(rstSent);
@@ -652,13 +686,13 @@ public class NormalLogController implements Initializable {
     private void initBandWarning() {
         freqValidateDelay.setOnFinished(e -> checkBandWarning());
         tfFrequency.textProperty().addListener((obs, o, n) -> freqValidateDelay.playFromStart());
-        cbMode.valueProperty().addListener((obs, o, n) -> checkBandWarning());
+        tfMode.textProperty().addListener((obs, o, n) -> checkBandWarning());
     }
 
     private void checkBandWarning() {
         String freqText = tfFrequency.getText().trim();
-        String mode     = cbMode.getValue();
-        if (freqText.isEmpty() || mode == null) { clearBandWarning(); return; }
+        String mode     = tfMode.getText().trim();
+        if (freqText.isEmpty() || mode.isEmpty()) { clearBandWarning(); return; }
         double freqKhz;
         try {
             freqKhz = Double.parseDouble(freqText) * 1000.0;
@@ -689,7 +723,7 @@ public class NormalLogController implements Initializable {
         double freqKhz = 0;
         try { freqKhz = Double.parseDouble(tfFrequency.getText().trim()) * 1000.0; }
         catch (NumberFormatException ignored) {}
-        new BandPlanWindow(getStage(), cbBand.getValue(), freqKhz).show();
+        new BandPlanWindow(getStage(), tfBand.getText().trim(), freqKhz).show();
     }
 
     private void connectCiv() {

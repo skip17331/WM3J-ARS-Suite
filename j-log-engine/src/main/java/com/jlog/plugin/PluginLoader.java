@@ -49,7 +49,10 @@ public class PluginLoader {
             "/com/jlog/plugins/arrl_sweepstakes_cw.json",
             "/com/jlog/plugins/arrl_sweepstakes_ssb.json",
             "/com/jlog/plugins/cq_ww_cw.json",
-            "/com/jlog/plugins/cq_ww_ssb.json"
+            "/com/jlog/plugins/cq_ww_ssb.json",
+            "/com/jlog/plugins/arrl_dx_cw_us.json",
+            "/com/jlog/plugins/arrl_dx_cw_dx.json",
+            "/com/jlog/plugins/arrl_rtty_ru.json"
         };
         for (String resource : bundled) {
             try (InputStream is = getClass().getResourceAsStream(resource)) {

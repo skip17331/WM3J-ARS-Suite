@@ -136,22 +136,9 @@ public class JHubMain extends Application {
         jHubDiscovery = new JHubDiscovery();
         jHubDiscovery.start();
 
-        // 9. Start logging engine and auto-launch other apps.
-        //    Full j-log includes its own engine — only launch engine-only when j-log won't auto-launch.
+        // 9. Auto-launch managed apps.
         AppLauncher launcher = AppLauncher.getInstance();
         JHubConfig.AppsSection apps = config.getApps();
-        boolean jLogAutoLaunching = apps != null && apps.jLog != null && apps.jLog.autoLaunch;
-        if (!jLogAutoLaunching) {
-            if (apps != null && apps.jLog != null &&
-                    apps.jLog.command != null && !apps.jLog.command.isBlank()) {
-                String engineCmd = apps.jLog.command + " --engine-only";
-                String err = launcher.launch("logging-engine", engineCmd);
-                if (err != null) log.error("Logging engine launch failed: {}", err);
-                else log.info("Logging engine started (engine-only — j-log not auto-launching)");
-            } else {
-                log.warn("No j-log command configured — logging engine not started");
-            }
-        }
         if (apps != null) {
             autoLaunch(launcher, "jMap",     apps.jMap,    true);
             autoLaunch(launcher, "j-log",    apps.jLog,    true);

@@ -256,6 +256,7 @@ public class DxClusterClient {
                 spot.setComment(node.path("comment").asText(""));
                 spot.setDxLat(node.path("lat").asDouble(0));
                 spot.setDxLon(node.path("lon").asDouble(0));
+                spot.setDxccEntity(node.path("country").asText(""));
                 if (!node.path("mode").asText("").isEmpty())
                     spot.setServerMode(node.path("mode").asText());
                 if (spotSelectedListener != null)

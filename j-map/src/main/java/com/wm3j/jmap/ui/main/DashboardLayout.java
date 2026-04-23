@@ -50,9 +50,11 @@ public class DashboardLayout {
     private com.wm3j.jmap.ui.panels.DxScrollerBar dxScroller;
 
     // Floating windows
-    private ContestListWindow    contestList;
-    private DEInfoWindow         deWindow;
-    private DXInfoWindow         dxWindow;
+    private ContestListWindow      contestList;
+    private DEInfoWindow           deWindow;
+    private DXInfoWindow           dxWindow;
+    private PropagationModelWindow propagationModelWindow;
+    private LunarPlanetaryWindow   lunarWindow;
 
     // ID timer state (displayed in TimePanel)
     private static final int TIMER_TOTAL_SECONDS = 600;
@@ -118,6 +120,26 @@ public class DashboardLayout {
             SettingsLoader.save(s);
         });
 
+        propagationModelWindow = new PropagationModelWindow(services);
+        propagationModelWindow.setLayoutX(s.getPropagationModelWindowX());
+        propagationModelWindow.setLayoutY(s.getPropagationModelWindowY());
+        propagationModelWindow.setVisible(s.isShowPropagationModelWindow());
+        propagationModelWindow.setOnPositionSaved(() -> {
+            s.setPropagationModelWindowX(propagationModelWindow.getLayoutX());
+            s.setPropagationModelWindowY(propagationModelWindow.getLayoutY());
+            SettingsLoader.save(s);
+        });
+
+        lunarWindow = new LunarPlanetaryWindow(services);
+        lunarWindow.setLayoutX(s.getLunarWindowX());
+        lunarWindow.setLayoutY(s.getLunarWindowY());
+        lunarWindow.setVisible(s.isShowLunarPlanetaryWindow());
+        lunarWindow.setOnPositionSaved(() -> {
+            s.setLunarWindowX(lunarWindow.getLayoutX());
+            s.setLunarWindowY(lunarWindow.getLayoutY());
+            SettingsLoader.save(s);
+        });
+
         // Wire DX spot clicks → DX window + publish to hub + request callsign lookup
         worldMap.setDxSpotClickCallback(spot -> {
             dxWindow.showSpot(spot);
@@ -156,7 +178,8 @@ public class DashboardLayout {
         mapOverlayPane = new Pane();
         mapOverlayPane.setMouseTransparent(false);
         mapOverlayPane.setPickOnBounds(false);
-        mapOverlayPane.getChildren().addAll(contestList, deWindow, dxWindow);
+        mapOverlayPane.getChildren().addAll(contestList, deWindow, dxWindow,
+            propagationModelWindow, lunarWindow);
         AnchorPane.setTopAnchor(mapOverlayPane,    0.0);
         AnchorPane.setBottomAnchor(mapOverlayPane, 0.0);
         AnchorPane.setLeftAnchor(mapOverlayPane,   0.0);
@@ -220,6 +243,8 @@ public class DashboardLayout {
         if (deWindow    != null && deWindow.isVisible())    deWindow.update();
         if (dxWindow    != null && dxWindow.isVisible())    dxWindow.update();
         if (contestList != null && contestList.isVisible()) contestList.update();
+        if (propagationModelWindow != null && propagationModelWindow.isVisible()) propagationModelWindow.update();
+        if (lunarWindow != null && lunarWindow.isVisible()) lunarWindow.update();
         if (dxScroller  != null) dxScroller.update();
     }
 
@@ -292,9 +317,11 @@ public class DashboardLayout {
         if (worldMap    != null) worldMap.settingsChanged();
         if (timePanel   != null) timePanel.settingsChanged(s);
         if (contestList != null) contestList.setVisible(s.isShowContestList());
-        if (deWindow       != null) deWindow.setVisible(s.isShowDeWindow());
-        if (dxWindow       != null) {
+        if (deWindow    != null) deWindow.setVisible(s.isShowDeWindow());
+        if (dxWindow    != null) {
             if (!s.isShowDxWindow()) dxWindow.setVisible(false);
         }
+        if (propagationModelWindow != null) propagationModelWindow.setVisible(s.isShowPropagationModelWindow());
+        if (lunarWindow != null) lunarWindow.setVisible(s.isShowLunarPlanetaryWindow());
     }
 }

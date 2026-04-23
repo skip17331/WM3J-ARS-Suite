@@ -55,10 +55,10 @@
                                GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="130"/>
 
                     <Label text="%label.band" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                    <ComboBox fx:id="cbBand" GridPane.columnIndex="3" GridPane.rowIndex="0" prefWidth="80"/>
+                    <TextField fx:id="tfBand" GridPane.columnIndex="3" GridPane.rowIndex="0" prefWidth="80" promptText="band"/>
 
                     <Label text="%label.mode" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
-                    <ComboBox fx:id="cbMode" GridPane.columnIndex="5" GridPane.rowIndex="0" prefWidth="90"/>
+                    <TextField fx:id="tfMode" GridPane.columnIndex="5" GridPane.rowIndex="0" prefWidth="90" promptText="mode"/>
 
                     <Label text="%label.power" GridPane.columnIndex="6" GridPane.rowIndex="0"/>
                     <TextField fx:id="tfPower" GridPane.columnIndex="7" GridPane.rowIndex="0" prefWidth="60"/>
@@ -85,7 +85,7 @@
 
                     <Label text="%label.freq" GridPane.columnIndex="9" GridPane.rowIndex="1"/>
                     <TextField fx:id="tfFrequency" GridPane.columnIndex="10" GridPane.rowIndex="1" prefWidth="90"/>
-                    <Button text="Band Plan \u25BE" onAction="#showBandPlan"
+                    <Button text="Band Plan" onAction="#showBandPlan"
                             styleClass="secondary-button"
                             GridPane.columnIndex="11" GridPane.rowIndex="1"/>
 
@@ -163,6 +163,7 @@
                     <Label text="%pane.log" styleClass="section-title"/>
                     <Button text="%button.edit"      onAction="#doEditSelected"/>
                     <Button text="%button.save.edit" onAction="#doSaveEdited"/>
+                    <Button text="%button.delete"    onAction="#doDeleteSelected"/>
                     <Button text="%button.prev"      onAction="#doPageBack"/>
                     <Button text="%button.next"      onAction="#doPageForward"/>
                     <Label fx:id="lblStatus" styleClass="status-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>

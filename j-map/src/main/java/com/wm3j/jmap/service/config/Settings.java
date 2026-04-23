@@ -50,6 +50,24 @@ public class Settings {
     private boolean showGridSquares = false;
     private boolean showSatelliteTracking = false;
 
+    // === PROPAGATION MODEL ===
+    private boolean showPropagationOverlay = false;
+    private boolean showPropagationModelWindow = false;
+    private double propagationModelWindowX = 10;
+    private double propagationModelWindowY = 100;
+
+    // === LUNAR / PLANETARY ===
+    private boolean showLunarPlanetaryWindow = false;
+    private boolean showMoonMarker = true;
+    private double lunarWindowX = 10;
+    private double lunarWindowY = 300;
+
+    // === PSK REPORTER ===
+    private boolean showPskOverlay = false;
+    private String  pskCallsign = "";
+    private String  pskBandFilter = "ALL";
+    private int     pskMaxAgeMinutes = 30;
+
     // === MOVABLE WINDOWS ===
     private boolean showCountdownTimer = false;
     private boolean showContestList = false;
@@ -205,6 +223,42 @@ public class Settings {
 
     public boolean isShowDxWindow() { return showDxWindow; }
     public void setShowDxWindow(boolean showDxWindow) { this.showDxWindow = showDxWindow; }
+
+    public boolean isShowPropagationOverlay() { return showPropagationOverlay; }
+    public void setShowPropagationOverlay(boolean showPropagationOverlay) { this.showPropagationOverlay = showPropagationOverlay; }
+
+    public boolean isShowPropagationModelWindow() { return showPropagationModelWindow; }
+    public void setShowPropagationModelWindow(boolean showPropagationModelWindow) { this.showPropagationModelWindow = showPropagationModelWindow; }
+
+    public double getPropagationModelWindowX() { return propagationModelWindowX; }
+    public void setPropagationModelWindowX(double v) { propagationModelWindowX = v; }
+
+    public double getPropagationModelWindowY() { return propagationModelWindowY; }
+    public void setPropagationModelWindowY(double v) { propagationModelWindowY = v; }
+
+    public boolean isShowLunarPlanetaryWindow() { return showLunarPlanetaryWindow; }
+    public void setShowLunarPlanetaryWindow(boolean showLunarPlanetaryWindow) { this.showLunarPlanetaryWindow = showLunarPlanetaryWindow; }
+
+    public boolean isShowMoonMarker() { return showMoonMarker; }
+    public void setShowMoonMarker(boolean showMoonMarker) { this.showMoonMarker = showMoonMarker; }
+
+    public double getLunarWindowX() { return lunarWindowX; }
+    public void setLunarWindowX(double v) { lunarWindowX = v; }
+
+    public double getLunarWindowY() { return lunarWindowY; }
+    public void setLunarWindowY(double v) { lunarWindowY = v; }
+
+    public boolean isShowPskOverlay() { return showPskOverlay; }
+    public void setShowPskOverlay(boolean showPskOverlay) { this.showPskOverlay = showPskOverlay; }
+
+    public String getPskCallsign() { return pskCallsign != null ? pskCallsign : ""; }
+    public void setPskCallsign(String pskCallsign) { this.pskCallsign = pskCallsign; }
+
+    public String getPskBandFilter() { return pskBandFilter != null ? pskBandFilter : "ALL"; }
+    public void setPskBandFilter(String pskBandFilter) { this.pskBandFilter = pskBandFilter; }
+
+    public int getPskMaxAgeMinutes() { return pskMaxAgeMinutes; }
+    public void setPskMaxAgeMinutes(int pskMaxAgeMinutes) { this.pskMaxAgeMinutes = pskMaxAgeMinutes; }
 
     public double getCountdownTimerX() { return countdownTimerX; } public void setCountdownTimerX(double v) { countdownTimerX = v; }
     public double getCountdownTimerY() { return countdownTimerY; } public void setCountdownTimerY(double v) { countdownTimerY = v; }

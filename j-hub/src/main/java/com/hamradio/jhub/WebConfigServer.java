@@ -143,7 +143,21 @@ public class WebConfigServer {
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
             if ("/networks".equals(req.getPathInfo())) {
                 JHubConfig.ClusterSection c = ConfigManager.getInstance().getCluster();
-                json(res, ConfigManager.gson().toJson(c.networks));
+                java.util.List<JHubConfig.DxNetwork> list = new java.util.ArrayList<>(
+                    c.networks != null ? c.networks : java.util.Collections.emptyList());
+                if (c.server != null && !c.server.isBlank()) {
+                    boolean alreadyPresent = list.stream()
+                        .anyMatch(n -> c.server.equals(n.server) && c.port == n.port);
+                    if (!alreadyPresent) {
+                        JHubConfig.DxNetwork def = new JHubConfig.DxNetwork();
+                        def.name   = c.server + ":" + c.port;
+                        def.server = c.server;
+                        def.port   = c.port;
+                        def.loginCallsign = c.loginCallsign != null ? c.loginCallsign : "";
+                        list.add(0, def);
+                    }
+                }
+                json(res, ConfigManager.gson().toJson(list));
             } else {
                 res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }

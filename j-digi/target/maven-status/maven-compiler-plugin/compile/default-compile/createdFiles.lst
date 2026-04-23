@@ -14,6 +14,7 @@ com/hamradio/modem/tx/OliviaTransmitter.class
 com/hamradio/modem/ui/MainWindow.class
 com/hamradio/modem/hub/HubClient.class
 com/hamradio/modem/ui/ModemAppContext.class
+com/hamradio/modem/ui/ContestEntryPane.class
 com/hamradio/modem/mode/CwMode.class
 com/hamradio/modem/ModemMain.class
 com/hamradio/modem/dsp/Goertzel.class

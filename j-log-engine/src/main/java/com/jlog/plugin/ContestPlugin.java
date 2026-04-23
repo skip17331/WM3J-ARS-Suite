@@ -167,6 +167,29 @@ public class ContestPlugin {
             .findFirst().orElse(null);
     }
 
+    /**
+     * Returns the DB column name (field1–field5) that holds multiplier values for this plugin.
+     * Mirrors ContestLogController.getMultiplierColumn() so callers outside the controller
+     * (e.g. j-digi via CONTEST_ACTIVE broadcast) can do accurate mult lookups.
+     */
+    public String computeMultiplierDbColumn() {
+        if (multiplierModel == null || multiplierModel.getField() == null) return "field1";
+        String targetId = multiplierModel.getField();
+        int slot = 0;
+        if (entryFields == null) return "field1";
+        for (FieldDef fd : entryFields) {
+            switch (fd.getId() != null ? fd.getId() : "") {
+                case "callsign", "serial_sent", "serial_rcvd", "band", "mode",
+                     "rst_sent", "rst_rcvd", "prec_sent", "check_sent", "sect_sent" -> {}
+                default -> {
+                    if (fd.getId().equals(targetId)) return "field" + (slot + 1);
+                    slot++;
+                }
+            }
+        }
+        return "field1";
+    }
+
     /** Points per QSO, honouring mode override if present. */
     public int pointsForMode(String mode) {
         if (scoringRules == null) return 1;

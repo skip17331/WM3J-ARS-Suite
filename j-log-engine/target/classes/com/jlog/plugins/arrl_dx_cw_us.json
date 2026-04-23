@@ -1,0 +1,78 @@
+{
+  "contestId":   "ARRL_DX_CW_US",
+  "contestName": "ARRL International DX (CW) — W/VE",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "Send 599 STATE | Rcv 599 POWER  (e.g. send: 599 PA  rcv: 599 100)",
+
+  "entryFields": [
+    {
+      "id": "callsign", "label": "Callsign", "type": "text",
+      "width": 130, "required": true, "entryRow": 0
+    },
+    {
+      "id": "band", "label": "Band", "type": "combo",
+      "width": 80, "required": false, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "rst_sent", "label": "RST S", "type": "text",
+      "width": 50, "required": false, "entryRow": 1
+    },
+    {
+      "id": "rst_rcvd", "label": "RST R", "type": "text",
+      "width": 50, "required": false, "entryRow": 0,
+      "persistent": true
+    },
+    {
+      "id": "dxcc", "label": "DXCC", "type": "text",
+      "width": 70, "required": true, "entryRow": 0
+    },
+    {
+      "id": "power_rcvd", "label": "Pwr R", "type": "text",
+      "width": 60, "required": false, "entryRow": 0
+    },
+    {
+      "id": "state_sent", "label": "State S", "type": "text",
+      "width": 55, "required": false, "entryRow": 1,
+      "persistent": true
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "combo",
+      "width": 55, "required": false, "entryRow": 1,
+      "persistent": true,
+      "options": ["CW"]
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 3,
+    "modePoints":   {},
+    "multiplierType": "dxcc",
+    "scoreFormula": "qsoPoints * dxccMults",
+    "allowDupes": false
+  },
+
+  "multiplierModel": {
+    "field":  "dxcc",
+    "perBand": true,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "dupe_checker", "title": "Dupe Checker", "config": {} },
+    { "paneIndex": 2, "paneType": "statistics",   "title": "Statistics",   "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour","dxcc_count"],
+
+  "cabrilloMapping": {
+    "rst_sent":   "sent_1_rst",
+    "field3":     "sent_2_state",
+    "rst_rcvd":   "rcvd_1_rst",
+    "field2":     "rcvd_2_power"
+  },
+
+  "sections": []
+}

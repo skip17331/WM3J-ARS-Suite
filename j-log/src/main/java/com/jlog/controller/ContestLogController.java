@@ -10,6 +10,7 @@ import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.util.AppConfig;
+import com.jlog.util.BandPlan;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -90,6 +91,13 @@ public class ContestLogController implements Initializable {
     private TextField tfCallsign;
     private TextField tfOperator;
 
+    // When non-null, doSave() updates this record instead of inserting a new one.
+    private QsoRecord editingRecord;
+
+    private static final List<String> VALID_BANDS = BandPlan.allBands();
+    private static final Set<String>  VALID_MODES = Set.of(
+        "CW","USB","LSB","AM","FM","RTTY","FT8","FT4","PSK31","OLIVIA","DV","JS8");
+
     // Divider position captured when DX pane was last expanded; restored on re-expand
     private double dxExpandedDividerPos = 0.5;
 
@@ -116,6 +124,15 @@ public class ContestLogController implements Initializable {
             Platform.runLater(() -> fillFromLogDraft(node)));
 
         if (AppConfig.getInstance().getCivAutoConnect()) connectCiv();
+
+        HubEngine.getInstance().sendContestActive(p);
+        // Wire CONTEST_INACTIVE to window close (double runLater ensures scene is attached)
+        Platform.runLater(() -> Platform.runLater(() -> {
+            javafx.scene.Scene sc = entryBar.getScene();
+            if (sc != null && sc.getWindow() instanceof javafx.stage.Stage st) {
+                st.setOnCloseRequest(e -> HubEngine.getInstance().sendContestInactive());
+            }
+        }));
     }
 
     // ---------------------------------------------------------------
@@ -188,6 +205,22 @@ public class ContestLogController implements Initializable {
     }
 
     private Control buildFieldControl(ContestPlugin.FieldDef fd) {
+        // Band and mode are always validated text fields (not dropdowns) so the
+        // user can type freely and see invalid entries highlighted.
+        if ("band".equals(fd.getId())) {
+            TextField tf = new TextField();
+            tf.setPrefWidth(fd.getWidth() > 0 ? fd.getWidth() : 80);
+            tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, VALID_BANDS.stream().anyMatch(b -> b.equalsIgnoreCase(n.trim()))));
+            return tf;
+        }
+        if ("mode".equals(fd.getId())) {
+            TextField tf = new TextField();
+            tf.setPrefWidth(fd.getWidth() > 0 ? fd.getWidth() : 80);
+            tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, VALID_MODES.stream().anyMatch(m -> m.equalsIgnoreCase(n.trim()))));
+            return tf;
+        }
         if ("combo".equals(fd.getType()) && fd.getOptions() != null) {
             ComboBox<String> cb = new ComboBox<>();
             cb.setItems(FXCollections.observableArrayList(fd.getOptions()));
@@ -211,11 +244,20 @@ public class ContestLogController implements Initializable {
         return tf;
     }
 
+    private static void applyValidStyle(TextField tf, boolean valid) {
+        String txt = tf.getText() == null ? "" : tf.getText().trim();
+        if (txt.isEmpty() || valid) tf.getStyleClass().remove("field-invalid");
+        else if (!tf.getStyleClass().contains("field-invalid")) tf.getStyleClass().add("field-invalid");
+    }
+
     private void prefillSentFields() {
         AppConfig cfg = AppConfig.getInstance();
         setFieldValue("prec_sent",  cfg.getSsPrecedence());
         setFieldValue("check_sent", cfg.getSsCheck());
         setFieldValue("sect_sent",  cfg.getSsSection());
+        // Band and mode prefill from last saved value; persistent until the user changes them.
+        setFieldValue("band", cfg.getLastBand());
+        setFieldValue("mode", cfg.getLastMode());
     }
 
     private void setFieldValue(String id, String value) {
@@ -386,14 +428,11 @@ public class ContestLogController implements Initializable {
 
     private void initCivListeners() {
         CivEngine.getInstance().setFrequencyListener(hz -> Platform.runLater(() -> {
-            Control bandCtrl = entryFields.get("band");
-            if (bandCtrl instanceof ComboBox<?> cb)
-                ((ComboBox<String>) cb).setValue(CivEngine.freqToBand(hz));
+            String band = CivEngine.freqToBand(hz);
+            if (band != null) setFieldValue("band", band);
         }));
         CivEngine.getInstance().setModeListener(mode -> Platform.runLater(() -> {
-            Control modeCtrl = entryFields.get("mode");
-            if (modeCtrl instanceof ComboBox<?> cb)
-                ((ComboBox<String>) cb).setValue(mode);
+            if (mode != null) setFieldValue("mode", mode);
         }));
     }
 
@@ -463,20 +502,28 @@ public class ContestLogController implements Initializable {
             setStatus(I18n.get("error.callsign.required"));
             return;
         }
-        QsoRecord q = buildRecord();
+        final boolean isEdit = editingRecord != null;
+        final QsoRecord q = isEdit ? editingRecord : buildRecord();
+        if (isEdit) applyFieldsToRecord(q);
 
         Task<Void> task = new Task<>() {
             @Override protected Void call() throws Exception {
-                ContestQsoDao.getInstance().insert(q);
+                if (isEdit) ContestQsoDao.getInstance().update(q);
+                else        ContestQsoDao.getInstance().insert(q);
                 return null;
             }
             @Override protected void succeeded() {
-                serialCounter.incrementAndGet();
-                updateSerialDisplay();
+                rememberLastBandMode();
+                if (!isEdit) {
+                    serialCounter.incrementAndGet();
+                    updateSerialDisplay();
+                }
+                editingRecord = null;
                 doClear();
                 loadQsos();
                 updateStats();
-                if (q.isDupe()) setStatus("⚠ DUPE logged: " + q.getCallsign());
+                if (isEdit) setStatus(I18n.get("status.updated"));
+                else if (q.isDupe()) setStatus("⚠ DUPE logged: " + q.getCallsign());
                 else setStatus(I18n.get("status.saved", q.getCallsign()));
             }
             @Override protected void failed() {
@@ -487,8 +534,11 @@ public class ContestLogController implements Initializable {
     }
 
     @FXML private void doClear() {
+        editingRecord = null;
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             if (fd.isPersistent() || fd.getEntryRow() == 1) continue;
+            // Band and mode persist until the user changes them.
+            if ("band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
             Control ctrl = entryFields.get(fd.getId());
             if (ctrl instanceof TextField tf && !tf.getStyleClass().contains("auto-field")) tf.clear();
             else if (ctrl instanceof ComboBox<?> cb) ((ComboBox<String>) cb).getSelectionModel().clearSelection();
@@ -498,38 +548,19 @@ public class ContestLogController implements Initializable {
         if (dupeList != null) dupeList.getItems().clear();
     }
 
+    private void rememberLastBandMode() {
+        AppConfig cfg = AppConfig.getInstance();
+        String band = getFieldValue("band");
+        String mode = getFieldValue("mode");
+        if (band != null && !band.isBlank()) cfg.setLastBand(band.trim());
+        if (mode != null && !mode.isBlank()) cfg.setLastMode(mode.trim());
+    }
+
     private QsoRecord buildRecord() {
         QsoRecord q = new QsoRecord();
         q.setContestId(plugin.getContestId());
-        q.setCallsign(tfCallsign != null ? tfCallsign.getText().trim().toUpperCase() : "");
         q.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
-        q.setOperator(tfOperator != null ? tfOperator.getText() : "");
-
-        String[] fieldSlots = {"field1","field2","field3","field4","field5"};
-        int slot = 0;
-        StringBuilder exch = new StringBuilder();
-
-        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
-            Control ctrl = entryFields.get(fd.getId());
-            String val = getControlValue(ctrl);
-            switch (fd.getId()) {
-                case "callsign", "prec_sent", "check_sent", "sect_sent" -> {}
-                case "serial_sent" -> q.setSerialSent(val);
-                case "serial_rcvd" -> q.setSerialReceived(val);
-                case "band"        -> q.setBand(val);
-                case "mode"        -> q.setMode(val);
-                case "rst_sent"    -> q.setRstSent(val);
-                case "rst_rcvd"    -> q.setRstReceived(val);
-                default -> {
-                    if (slot < fieldSlots.length) { setFieldSlot(q, slot, val); slot++; }
-                }
-            }
-            if (val != null && !val.isBlank()) {
-                if (exch.length() > 0) exch.append(" ");
-                exch.append(val);
-            }
-        }
-        q.setExchange(exch.toString());
+        applyFieldsToRecord(q);
         q.setSerialSent(String.valueOf(serialCounter.get()));
 
         try {
@@ -540,8 +571,103 @@ public class ContestLogController implements Initializable {
             q.setDupe(dupe);
         } catch (Exception ignored) {}
 
-        q.setPoints(plugin.pointsForMode(q.getMode() != null ? q.getMode() : ""));
         return q;
+    }
+
+    /** Copies the current entry-field values into the given record, preserving
+     *  id/contestId/datetime/serialSent (caller manages those). */
+    private void applyFieldsToRecord(QsoRecord q) {
+        q.setCallsign(tfCallsign != null ? tfCallsign.getText().trim().toUpperCase() : "");
+        q.setOperator(tfOperator != null ? tfOperator.getText() : "");
+
+        int slot = 0;
+        StringBuilder exch = new StringBuilder();
+
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            Control ctrl = entryFields.get(fd.getId());
+            String val = getControlValue(ctrl);
+            switch (fd.getId()) {
+                case "callsign", "prec_sent", "check_sent", "sect_sent", "serial_sent" -> {}
+                case "serial_rcvd" -> q.setSerialReceived(val);
+                case "band"        -> q.setBand(val);
+                case "mode"        -> q.setMode(val);
+                case "rst_sent"    -> q.setRstSent(val);
+                case "rst_rcvd"    -> q.setRstReceived(val);
+                default -> {
+                    if (slot < 5) { setFieldSlot(q, slot, val); slot++; }
+                }
+            }
+            if (val != null && !val.isBlank()) {
+                if (exch.length() > 0) exch.append(" ");
+                exch.append(val);
+            }
+        }
+        q.setExchange(exch.toString());
+        q.setPoints(plugin.pointsForMode(q.getMode() != null ? q.getMode() : ""));
+    }
+
+    private void populateFromRecord(QsoRecord q) {
+        if (tfCallsign != null) tfCallsign.setText(q.getCallsign() != null ? q.getCallsign() : "");
+        if (tfOperator != null) tfOperator.setText(q.getOperator() != null ? q.getOperator() : "");
+
+        String[] slots = {q.getContestField1(), q.getContestField2(), q.getContestField3(),
+                          q.getContestField4(), q.getContestField5()};
+        int slot = 0;
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            switch (fd.getId()) {
+                case "callsign", "prec_sent", "check_sent", "sect_sent", "serial_sent" -> {}
+                case "serial_rcvd" -> setFieldValue(fd.getId(), q.getSerialReceived());
+                case "band"        -> setFieldValue(fd.getId(), q.getBand() != null ? q.getBand() : "");
+                case "mode"        -> setFieldValue(fd.getId(), q.getMode() != null ? q.getMode() : "");
+                case "rst_sent"    -> setFieldValue(fd.getId(), q.getRstSent());
+                case "rst_rcvd"    -> setFieldValue(fd.getId(), q.getRstReceived());
+                default -> {
+                    if (slot < slots.length) {
+                        setFieldValue(fd.getId(), slots[slot] != null ? slots[slot] : "");
+                        slot++;
+                    }
+                }
+            }
+        }
+    }
+
+    @FXML private void doEditSelected() {
+        QsoRecord sel = qsoTable.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        editingRecord = sel;
+        populateFromRecord(sel);
+        setStatus("Editing: " + sel.getCallsign());
+    }
+
+    @FXML private void doDeleteSelected() {
+        QsoRecord sel = qsoTable.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+            "Delete QSO with " + sel.getCallsign() + "?",
+            ButtonType.OK, ButtonType.CANCEL);
+        confirm.setHeaderText(null);
+        confirm.showAndWait().ifPresent(bt -> {
+            if (bt != ButtonType.OK) return;
+            Task<Void> task = new Task<>() {
+                @Override protected Void call() throws Exception {
+                    ContestQsoDao.getInstance().delete(sel.getId());
+                    return null;
+                }
+                @Override protected void succeeded() {
+                    if (editingRecord != null && editingRecord.getId() == sel.getId()) {
+                        editingRecord = null;
+                        doClear();
+                    }
+                    setStatus("Deleted: " + sel.getCallsign());
+                    loadQsos();
+                    updateStats();
+                }
+                @Override protected void failed() {
+                    setStatus("Delete failed: " + getException().getMessage());
+                }
+            };
+            new Thread(task).start();
+        });
     }
 
     private void setFieldSlot(QsoRecord q, int slot, String val) {

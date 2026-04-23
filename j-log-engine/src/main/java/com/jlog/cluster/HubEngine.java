@@ -270,4 +270,60 @@ public class HubEngine {
             log.warn("sendSpotSelected failed: {}", e.getMessage());
         }
     }
+
+    // ---------------------------------------------------------------
+    // Contest protocol — broadcast to all connected apps via hub
+    // ---------------------------------------------------------------
+
+    /** Broadcast CONTEST_ACTIVE when a contest is loaded in J-Log. */
+    public void sendContestActive(com.jlog.plugin.ContestPlugin plugin) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",              "CONTEST_ACTIVE");
+            msg.put("contestId",         plugin.getContestId());
+            msg.put("contestName",       plugin.getContestName());
+            msg.put("exchangeFormat",    plugin.getExchangeFormat() != null ? plugin.getExchangeFormat() : "");
+            msg.put("multiplierDbColumn", plugin.computeMultiplierDbColumn());
+
+            com.fasterxml.jackson.databind.node.ArrayNode fields = MAPPER.createArrayNode();
+            if (plugin.getEntryFields() != null) {
+                for (com.jlog.plugin.ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+                    com.fasterxml.jackson.databind.node.ObjectNode f = MAPPER.createObjectNode();
+                    f.put("id",         fd.getId()    != null ? fd.getId()    : "");
+                    f.put("label",      fd.getLabel() != null ? fd.getLabel() : "");
+                    f.put("type",       fd.getType()  != null ? fd.getType()  : "text");
+                    f.put("required",   fd.isRequired());
+                    f.put("persistent", fd.isPersistent());
+                    f.put("entryRow",   fd.getEntryRow());
+                    f.put("width",      fd.getWidth());
+                    if (fd.getOptions() != null) {
+                        com.fasterxml.jackson.databind.node.ArrayNode opts = MAPPER.createArrayNode();
+                        fd.getOptions().forEach(opts::add);
+                        f.set("options", opts);
+                    }
+                    fields.add(f);
+                }
+            }
+            msg.set("entryFields", fields);
+
+            wsClient.send(msg.toString());
+            log.info("Sent CONTEST_ACTIVE: {}", plugin.getContestId());
+        } catch (Exception e) {
+            log.warn("sendContestActive failed: {}", e.getMessage());
+        }
+    }
+
+    /** Broadcast CONTEST_INACTIVE when the contest log is closed. */
+    public void sendContestInactive() {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "CONTEST_INACTIVE");
+            wsClient.send(msg.toString());
+            log.info("Sent CONTEST_INACTIVE");
+        } catch (Exception e) {
+            log.warn("sendContestInactive failed: {}", e.getMessage());
+        }
+    }
 }

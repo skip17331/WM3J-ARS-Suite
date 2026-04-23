@@ -100,16 +100,6 @@ public final class BandPlan {
     private static final double SSB_BW_KHZ = 3.0; // assumed occupied SSB bandwidth
 
     static {
-        // ── 2200m ─────────────────────────────────────────────────────
-        band("2200m",
-            seg(135.7, 137.8, "USB / WSPR / CW",     ModeGroup.USB_ONLY,  LicenseClass.GENERAL,
-                "1W EIRP max · Register with UTC before use"));
-
-        // ── 630m ──────────────────────────────────────────────────────
-        band("630m",
-            seg(472, 479,  "USB / WSPR / CW",        ModeGroup.USB_ONLY,  LicenseClass.GENERAL,
-                "5W EIRP max · Register with UTC before use"));
-
         // ── 160m ──────────────────────────────────────────────────────
         band("160m",
             seg(1800, 1900, "CW / Data",              ModeGroup.CW_DATA,   LicenseClass.GENERAL,
@@ -229,6 +219,23 @@ public final class BandPlan {
             seg(222000, 225000, "FM / Phone",               ModeGroup.FM,    LicenseClass.GENERAL,
                 "FM simplex: 223.500 · Repeater inputs: 224 MHz"));
 
+        // ── 70cm ──────────────────────────────────────────────────────
+        band("70cm",
+            seg(420000, 426000, "All Modes",             ModeGroup.PHONE,     LicenseClass.GENERAL,
+                ""),
+            seg(426000, 432000, "ATV / All Modes",       ModeGroup.PHONE,     LicenseClass.GENERAL,
+                "ATV (Amateur TV)"),
+            seg(432000, 432100, "CW / EME",              ModeGroup.CW_ONLY,   LicenseClass.GENERAL,
+                "Moonbounce calling: 432.010"),
+            seg(432100, 433000, "All Modes / SSB",       ModeGroup.CW_DATA,   LicenseClass.GENERAL,
+                "SSB calling: 432.100 · FT8: 432.174"),
+            seg(433000, 435000, "FM / Repeaters",        ModeGroup.FM,        LicenseClass.ALL,
+                "FM calling: 433.000 MHz"),
+            seg(435000, 438000, "Satellite",             ModeGroup.SATELLITE, LicenseClass.ALL,
+                "AO-7, AO-8 passband"),
+            seg(438000, 450000, "FM / Phone / Mixed",    ModeGroup.FM,        LicenseClass.ALL,
+                "FM repeaters: 447.000 MHz"));
+
         // ── 33cm ──────────────────────────────────────────────────────
         band("33cm",
             seg(902000, 904000, "CW / Weak Signal",         ModeGroup.CW_DATA,   LicenseClass.GENERAL,
@@ -251,22 +258,15 @@ public final class BandPlan {
             seg(1295000, 1300000, "Experimental / ATV",      ModeGroup.PHONE,     LicenseClass.GENERAL,
                 "ATV (Amateur TV) · experimental modes"));
 
-        // ── 70cm ──────────────────────────────────────────────────────
-        band("70cm",
-            seg(420000, 426000, "All Modes",             ModeGroup.PHONE,     LicenseClass.GENERAL,
-                ""),
-            seg(426000, 432000, "ATV / All Modes",       ModeGroup.PHONE,     LicenseClass.GENERAL,
-                "ATV (Amateur TV)"),
-            seg(432000, 432100, "CW / EME",              ModeGroup.CW_ONLY,   LicenseClass.GENERAL,
-                "Moonbounce calling: 432.010"),
-            seg(432100, 433000, "All Modes / SSB",       ModeGroup.CW_DATA,   LicenseClass.GENERAL,
-                "SSB calling: 432.100 · FT8: 432.174"),
-            seg(433000, 435000, "FM / Repeaters",        ModeGroup.FM,        LicenseClass.ALL,
-                "FM calling: 433.000 MHz"),
-            seg(435000, 438000, "Satellite",             ModeGroup.SATELLITE, LicenseClass.ALL,
-                "AO-7, AO-8 passband"),
-            seg(438000, 450000, "FM / Phone / Mixed",    ModeGroup.FM,        LicenseClass.ALL,
-                "FM repeaters: 447.000 MHz"));
+        // ── 630m ──────────────────────────────────────────────────────
+        band("630m",
+            seg(472, 479,  "USB / WSPR / CW",        ModeGroup.USB_ONLY,  LicenseClass.GENERAL,
+                "5W EIRP max · Register with UTC before use"));
+
+        // ── 2200m ─────────────────────────────────────────────────────
+        band("2200m",
+            seg(135.7, 137.8, "USB / WSPR / CW",     ModeGroup.USB_ONLY,  LicenseClass.GENERAL,
+                "1W EIRP max · Register with UTC before use"));
     }
 
     // ── Public accessors ─────────────────────────────────────────────

@@ -5,7 +5,10 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/DataProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/DataProviderException.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/GraylineService.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/LunarData.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/LunarPlanetaryService.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/NightMask.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/PlanetData.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/SolarPosition.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/SolarPositionService.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/astronomy/SunriseSunsetService.java
@@ -42,6 +45,13 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/MockPropagationProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/PropagationData.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/PropagationDataProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/PropagationModelData.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/propagation/PropagationModelService.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/pskreporter/LivePskReporterProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/pskreporter/MockPskReporterProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/pskreporter/PskReporterData.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/pskreporter/PskReporterProvider.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/pskreporter/PskSpot.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/MockRadarProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/NoaaRadarProvider.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/radar/RadarOverlay.java
@@ -91,3 +101,5 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/windows/DEInfoWindow.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/windows/DXInfoWindow.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/windows/FloatingWindow.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/windows/LunarPlanetaryWindow.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/windows/PropagationModelWindow.java

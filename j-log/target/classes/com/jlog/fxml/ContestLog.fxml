@@ -80,8 +80,10 @@
                 <HBox spacing="6" styleClass="table-toolbar">
                     <padding><Insets left="6" top="4" bottom="4"/></padding>
                     <Label text="%pane.log" styleClass="section-title"/>
-                    <Button text="%button.prev" onAction="#doPageBack"/>
-                    <Button text="%button.next" onAction="#doPageForward"/>
+                    <Button text="%button.edit"   onAction="#doEditSelected"/>
+                    <Button text="%button.delete" onAction="#doDeleteSelected"/>
+                    <Button text="%button.prev"   onAction="#doPageBack"/>
+                    <Button text="%button.next"   onAction="#doPageForward"/>
                     <Label fx:id="lblQsoCount" styleClass="qso-count"/>
                     <Label text=" | Score: "/>
                     <Label fx:id="lblScore" styleClass="score-value"/>

@@ -123,6 +123,12 @@ public class MessageRouter {
                 handleCallsignLookup(msg, server);
                 break;
 
+            case "CONTEST_ACTIVE":
+            case "CONTEST_INACTIVE":
+                server.broadcastExcept(rawJson, session.socket);
+                log.debug("{} broadcast from '{}'", type, session.appName);
+                break;
+
             default:
                 log.debug("Unhandled message type '{}' from '{}'", type, session.appName);
         }

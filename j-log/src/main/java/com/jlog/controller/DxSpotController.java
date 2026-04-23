@@ -111,6 +111,7 @@ public class DxSpotController implements Initializable {
         }));
 
         engine.setOnShutdown(() -> Platform.runLater(Platform::exit));
+        engine.setOnConnected(() -> Platform.runLater(this::loadNetworkList));
     }
 
     // ---------------------------------------------------------------

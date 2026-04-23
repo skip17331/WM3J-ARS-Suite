@@ -100,6 +100,9 @@
 /* ---- Station callsign in clock bar ---- */
 .station-call { -fx-font-weight: bold; -fx-font-family: monospace; }
 
+/* ---- Field validation ---- */
+.field-invalid { -fx-border-color: #e53935; -fx-border-width: 2; -fx-border-radius: 3; }
+
 /* ---- Band / mode warning bar ---- */
 .band-warning {
     -fx-font-size: 11px;

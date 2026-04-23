@@ -89,6 +89,8 @@ public class ModemService implements HubMessageListener {
     /** Fires on the FX thread when j-hub delivers station identity via JHUB_WELCOME. */
     private Consumer<String[]>      stationListener      = a -> {};  // [callsign, grid, tz]
     private Consumer<Integer>       fontSizeListener     = s -> {};
+    /** Fires with the CONTEST_ACTIVE JsonObject when a j-log contest is loaded, or null for CONTEST_INACTIVE. */
+    private Consumer<com.google.gson.JsonObject> contestListener = c -> {};
 
     private final List<HubMacro> macros = new ArrayList<>();
     private final List<HubSpot>  spots  = new ArrayList<>();
@@ -174,6 +176,7 @@ public class ModemService implements HubMessageListener {
     public void setRotorListener(Consumer<RotorStatus> l)       { this.rotorListener        = l != null ? l : r -> {}; }
     public void setStationListener(Consumer<String[]> l)        { this.stationListener      = l != null ? l : a -> {}; }
     public void setFontSizeListener(Consumer<Integer> l)        { this.fontSizeListener     = l != null ? l : s -> {}; }
+    public void setContestListener(Consumer<com.google.gson.JsonObject> l) { this.contestListener = l != null ? l : c -> {}; }
 
     public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
     public List<HubSpot>  getSpots()     { return Collections.unmodifiableList(spots);  }
@@ -185,6 +188,22 @@ public class ModemService implements HubMessageListener {
                : PREFS.get(PREF_MY_CALL, "NOCALL");
     }
     public String getMyGrid() { return hubGridSquare != null ? hubGridSquare : ""; }
+
+    /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
+    public String bandFromRigHz() {
+        long k = status.getRigFrequencyHz() / 1000;
+        if (k >= 1800  && k <= 2000)  return "160m";
+        if (k >= 3500  && k <= 4000)  return "80m";
+        if (k >= 7000  && k <= 7300)  return "40m";
+        if (k >= 10100 && k <= 10150) return "30m";
+        if (k >= 14000 && k <= 14350) return "20m";
+        if (k >= 18068 && k <= 18168) return "17m";
+        if (k >= 21000 && k <= 21450) return "15m";
+        if (k >= 24890 && k <= 24990) return "12m";
+        if (k >= 28000 && k <= 29700) return "10m";
+        if (k >= 50000 && k <= 54000) return "6m";
+        return "";
+    }
     public void   setMyCall(String call) {
         PREFS.put(PREF_MY_CALL, call != null ? call.trim().toUpperCase() : "NOCALL");
         flushPrefsQuietly("myCall");
@@ -818,6 +837,9 @@ public class ModemService implements HubMessageListener {
                 rotorBearing = rotor.bearing;
                 rotorListener.accept(rotor);
             }
+
+            case "CONTEST_ACTIVE"   -> contestListener.accept(msg);
+            case "CONTEST_INACTIVE" -> contestListener.accept(null);
 
             case "APP_LIST" -> {} // no-op
 

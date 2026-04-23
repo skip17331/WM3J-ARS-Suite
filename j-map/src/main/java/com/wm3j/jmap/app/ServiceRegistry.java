@@ -1,6 +1,7 @@
 package com.wm3j.jmap.app;
 
 import com.wm3j.jmap.service.astronomy.GraylineService;
+import com.wm3j.jmap.service.astronomy.LunarPlanetaryService;
 import com.wm3j.jmap.service.astronomy.SolarPositionService;
 import com.wm3j.jmap.service.astronomy.SunriseSunsetService;
 import com.wm3j.jmap.service.aurora.AuroraProvider;
@@ -27,6 +28,11 @@ import com.wm3j.jmap.service.lightning.RainViewerLightningProvider;
 import com.wm3j.jmap.service.propagation.HamQslPropagationProvider;
 import com.wm3j.jmap.service.propagation.MockPropagationProvider;
 import com.wm3j.jmap.service.propagation.PropagationDataProvider;
+import com.wm3j.jmap.service.propagation.PropagationModelData;
+import com.wm3j.jmap.service.propagation.PropagationModelService;
+import com.wm3j.jmap.service.pskreporter.LivePskReporterProvider;
+import com.wm3j.jmap.service.pskreporter.MockPskReporterProvider;
+import com.wm3j.jmap.service.pskreporter.PskReporterProvider;
 import com.wm3j.jmap.service.radar.MockRadarProvider;
 import com.wm3j.jmap.service.radar.NoaaRadarProvider;
 import com.wm3j.jmap.service.radar.RadarProvider;
@@ -71,6 +77,11 @@ public class ServiceRegistry {
     public final SolarPositionService solarPositionService;
     public final GraylineService graylineService;
     public final SunriseSunsetService sunriseSunsetService;
+    public final LunarPlanetaryService lunarPlanetaryService;
+
+    // Propagation model (pure computation)
+    public final PropagationModelService propagationModelService;
+    public volatile PropagationModelData propagationModelData;
 
     // Zone lookup (pure calculation, no external calls)
     public final ZoneLookupService zoneLookupService;
@@ -90,6 +101,7 @@ public class ServiceRegistry {
     public volatile SatelliteProvider          satelliteProvider;
     public volatile ContestListProvider        contestListProvider;
     public volatile FrontsProvider             frontsProvider;
+    public volatile PskReporterProvider        pskReporterProvider;
 
     public final DxClusterClient dxClusterClient = new DxClusterClient();
 
@@ -104,10 +116,12 @@ public class ServiceRegistry {
     public ServiceRegistry(Settings settings) {
         this.settings = settings;
 
-        this.solarPositionService = new SolarPositionService();
-        this.graylineService      = new GraylineService(solarPositionService);
-        this.sunriseSunsetService = new SunriseSunsetService(solarPositionService);
-        this.zoneLookupService    = new ZoneLookupService();
+        this.solarPositionService   = new SolarPositionService();
+        this.graylineService        = new GraylineService(solarPositionService);
+        this.sunriseSunsetService   = new SunriseSunsetService(solarPositionService);
+        this.lunarPlanetaryService  = new LunarPlanetaryService(solarPositionService);
+        this.propagationModelService = new PropagationModelService(solarPositionService);
+        this.zoneLookupService      = new ZoneLookupService();
 
         rebuildProviders();
     }
@@ -199,6 +213,12 @@ public class ServiceRegistry {
         // WPC fronts — every 3 hours (NWS issues new surface analysis charts ~3h)
         scheduler.scheduleAtFixedRate(this::refreshFronts,        30,  3, TimeUnit.HOURS);
 
+        // Propagation model — every 10 min (pure computation, no network)
+        scheduler.scheduleAtFixedRate(this::refreshPropagationModel, 6, 10, TimeUnit.MINUTES);
+
+        // PSK Reporter — every 15 min
+        scheduler.scheduleAtFixedRate(this::refreshPskReporter,    8, 15, TimeUnit.MINUTES);
+
         // Rotor — every 1 second
         scheduler.scheduleAtFixedRate(this::refreshRotor,          0,  1, TimeUnit.SECONDS);
 
@@ -216,7 +236,7 @@ public class ServiceRegistry {
         if (settingsChangedCallback != null) settingsChangedCallback.run();
         log.info("Settings applied, providers rebuilt");
         // Re-fetch key providers immediately so panels don't go blank after a settings save
-        scheduler.submit(() -> { refreshSolar(); refreshPropagation(); refreshContests(); });
+        scheduler.submit(() -> { refreshSolar(); refreshPropagation(); refreshContests(); refreshPropagationModel(); });
     }
 
     public String getJHubHost() { return jHubHost; }
@@ -298,6 +318,11 @@ public class ServiceRegistry {
         rotorProvider = (!settings.isRotorEnabled() || settings.getArduinoIp().isBlank())
             ? new MockRotorProvider()
             : new ArduinoRotorHttpProvider(settings.getArduinoIp(), settings.getArduinoPort());
+
+        String pskCall = settings.getPskCallsign().isBlank()
+            ? settings.getCallsign() : settings.getPskCallsign();
+        pskReporterProvider = mock
+            ? new MockPskReporterProvider() : new LivePskReporterProvider(pskCall);
     }
 
     // ── Refresh helpers ────────────────────────────────────────
@@ -360,6 +385,20 @@ public class ServiceRegistry {
     private void refreshRotor() {
         try { rotorProvider.fetch(); }
         catch (Exception e) { /* Rotor offline - normal when not connected */ }
+    }
+
+    private void refreshPropagationModel() {
+        try {
+            propagationModelData = propagationModelService.compute(
+                settings.getQthLat(), settings.getQthLon(),
+                solarDataProvider.getCached(),
+                java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC));
+        } catch (Exception e) { log.warn("Propagation model refresh failed: {}", e.getMessage()); }
+    }
+
+    private void refreshPskReporter() {
+        try { pskReporterProvider.fetch(); }
+        catch (Exception e) { log.warn("PSK Reporter refresh failed: {}", e.getMessage()); }
     }
 
     public Settings getSettings() { return settings; }

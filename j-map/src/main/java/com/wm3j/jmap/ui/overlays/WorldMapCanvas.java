@@ -1,12 +1,16 @@
 package com.wm3j.jmap.ui.overlays;
 
 import com.wm3j.jmap.app.ServiceRegistry;
+import com.wm3j.jmap.service.astronomy.LunarData;
 import com.wm3j.jmap.service.astronomy.NightMask;
 import com.wm3j.jmap.service.config.Settings;
 import com.wm3j.jmap.service.dx.DxSpot;
 import com.wm3j.jmap.service.geomag.GeomagneticAlert;
 import com.wm3j.jmap.service.fronts.FrontsData;
 import com.wm3j.jmap.service.lightning.LightningData;
+import com.wm3j.jmap.service.propagation.PropagationModelData;
+import com.wm3j.jmap.service.pskreporter.PskReporterData;
+import com.wm3j.jmap.service.pskreporter.PskSpot;
 import com.wm3j.jmap.service.radar.RadarOverlay;
 import com.wm3j.jmap.service.satellite.SatelliteData;
 import com.wm3j.jmap.service.surface.SurfaceConditions;
@@ -130,6 +134,9 @@ public class WorldMapCanvas extends Pane {
         // 6. Aurora
         if (s.isShowAuroraOverlay()) drawAuroraOverlay(gc, w, h);
 
+        // 6b. Propagation model overlay
+        if (s.isShowPropagationOverlay()) drawPropagationOverlay(gc, w, h);
+
         // 7. Geomagnetic alert ring
         if (s.isShowGeomagneticAlerts()) drawGeomagneticAlerts(gc, w, h);
 
@@ -149,6 +156,9 @@ public class WorldMapCanvas extends Pane {
         // 12. Satellite ground tracks
         if (s.isShowSatelliteTracking()) drawSatellites(gc, w, h);
 
+        // 12b. PSK Reporter spots
+        if (s.isShowPskOverlay()) drawPskOverlay(gc, w, h, s);
+
         // 13. DX spots
         if (s.isShowDxSpots()) {
             drawDxSpots(gc, w, h, s);
@@ -160,6 +170,9 @@ public class WorldMapCanvas extends Pane {
 
         // 15. Subsolar point
         if (s.isShowSunPosition()) drawSubsolarPoint(gc, w, h);
+
+        // 16. Moon position marker
+        if (s.isShowMoonMarker()) drawMoonMarker(gc, w, h);
     }
 
     // ── Base map ─────────────────────────────────────────────────────────────
@@ -814,6 +827,130 @@ public class WorldMapCanvas extends Pane {
                 px + 11 * Math.cos(angle), py + 11 * Math.sin(angle),
                 px + 17 * Math.cos(angle), py + 17 * Math.sin(angle));
         }
+        gc.restore();
+    }
+
+    // ── Propagation model overlay ─────────────────────────────────────────────
+
+    private void drawPropagationOverlay(GraphicsContext gc, double w, double h) {
+        PropagationModelData data = services.propagationModelData;
+        if (data == null || data.getMufGrid() == null) return;
+
+        double[][] grid = data.getMufGrid();
+        int lonCells = grid.length;
+        int latCells = grid[0].length;
+        double cellW = w / lonCells;
+        double cellH = h / latCells;
+
+        gc.save();
+        for (int li = 0; li < lonCells; li++) {
+            for (int lj = 0; lj < latCells; lj++) {
+                double muf = grid[li][lj];
+                Color c;
+                if      (muf >= 28)  c = Color.rgb(0,   200, 0,   0.35);
+                else if (muf >= 14)  c = Color.rgb(100, 200, 0,   0.30);
+                else if (muf >= 7)   c = Color.rgb(200, 150, 0,   0.30);
+                else if (muf >= 3.8) c = Color.rgb(0,   80,  200, 0.25);
+                else                 continue;
+
+                gc.setFill(c);
+                gc.fillRect(li * cellW, lj * cellH, cellW + 1, cellH + 1);
+            }
+        }
+        gc.restore();
+    }
+
+    // ── PSK Reporter overlay ──────────────────────────────────────────────────
+
+    private void drawPskOverlay(GraphicsContext gc, double w, double h, Settings s) {
+        PskReporterData data = services.pskReporterProvider.getCached();
+        if (data == null || data.getSpots() == null) return;
+
+        long maxAgeSec = s.getPskMaxAgeMinutes() * 60L;
+        String bandFilter = s.getPskBandFilter();
+
+        gc.save();
+        for (PskSpot spot : data.getSpots()) {
+            if (spot.ageSeconds() > maxAgeSec) continue;
+            if (!"ALL".equals(bandFilter) && !bandFilter.equals(spot.getBand())) continue;
+
+            double sLat = spot.getSenderLat();
+            double sLon = spot.getSenderLon();
+            double rLat = spot.getReceiverLat();
+            double rLon = spot.getReceiverLon();
+
+            if (sLat == 0 && sLon == 0) continue;
+
+            Color modeColor = pskModeColor(spot.getMode());
+
+            // Sender dot
+            double sx = lonToX(sLon, w);
+            double sy = latToY(sLat, h);
+            gc.setFill(modeColor);
+            gc.fillOval(sx - 3, sy - 3, 6, 6);
+
+            // Line from receiver to sender
+            if (!(rLat == 0 && rLon == 0)) {
+                double rx = lonToX(rLon, w);
+                double ry = latToY(rLat, h);
+                gc.setStroke(modeColor.deriveColor(0, 1, 1, 0.20));
+                gc.setLineWidth(0.8);
+                // Skip lines that cross the antimeridian
+                if (Math.abs(sx - rx) < w * 0.5) {
+                    gc.strokeLine(rx, ry, sx, sy);
+                }
+            }
+        }
+        gc.restore();
+    }
+
+    private Color pskModeColor(String mode) {
+        if (mode == null) return Color.web("#aaaaaa");
+        return switch (mode.toUpperCase()) {
+            case "FT8"   -> Color.web("#00ff88");
+            case "FT4"   -> Color.web("#aaff00");
+            case "PSK31" -> Color.web("#ff44ff");
+            case "CW"    -> Color.web("#00ccff");
+            default      -> Color.web("#aaaaaa");
+        };
+    }
+
+    // ── Moon marker ───────────────────────────────────────────────────────────
+
+    private void drawMoonMarker(GraphicsContext gc, double w, double h) {
+        double lat = services.getSettings().getQthLat();
+        double lon = services.getSettings().getQthLon();
+        ZonedDateTime utc = ZonedDateTime.now(ZoneOffset.UTC);
+
+        LunarData moon;
+        try {
+            moon = services.lunarPlanetaryService.compute(utc, lat, lon);
+        } catch (Exception e) {
+            return;
+        }
+
+        double px = lonToX(moon.getSublunarLon(), w);
+        double py = latToY(moon.getSublunarLat(), h);
+
+        gc.save();
+        // Subtle glow
+        gc.setFill(Color.web("#aaaacc", 0.10));
+        gc.fillOval(px - 10, py - 10, 20, 20);
+
+        // Moon disc
+        gc.setFill(Color.web("#ccccdd", 0.85));
+        gc.fillOval(px - 6, py - 6, 12, 12);
+
+        // Phase shadow (crescent effect): cover part of disc based on illumination)
+        double illum = moon.getIllumination();
+        double phaseAngle = moon.getPhaseAngle();
+        gc.setFill(Color.web("#080c1a", 0.75));
+        // Shadow width proportional to how unlit the face is
+        double shadowFrac = 1.0 - illum;
+        double shadowW = 12.0 * shadowFrac;
+        double offsetX = (phaseAngle < 180) ? (6 - shadowW / 2) : -(6 - shadowW / 2);
+        gc.fillOval(px - 6 + offsetX, py - 6, shadowW, 12);
+
         gc.restore();
     }
 

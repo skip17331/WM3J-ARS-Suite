@@ -30,6 +30,7 @@
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/RttyMode.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/NoOpRigControl.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/dsp/WindowFunctions.java
+/home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/ui/ContestEntryPane.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/ui/WaterfallPane.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/Mfsk16Mode.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/OliviaTransmitter.java
