@@ -5,6 +5,7 @@
 # WM3J‑ARS‑Suite
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Build](https://github.com/YOUR-USERNAME/ARS_Suite/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR-USERNAME/ARS_Suite/actions/workflows/build.yml)
 
 WM3J‑ARS‑Suite is a modular, operator‑centric amateur radio software ecosystem designed to provide a unified, streamlined workflow for contesting, everyday logging, mapping, digital modes, and station integration. The goal of this project is to build a modern, reliable, cross‑platform toolkit that supports real operators in real conditions — without the clutter, fragmentation, or outdated interfaces common in legacy ham‑radio software.
 

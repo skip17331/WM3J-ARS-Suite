@@ -1,0 +1,68 @@
+name: Build
+
+# When this workflow runs:
+#   - every push to main
+#   - every pull request (useful later if contributors show up)
+#   - when you push a tag starting with 'v' (e.g. v1.0.0) — will later attach
+#     the built jars to a GitHub Release
+on:
+  push:
+    branches: [main]
+    tags:     ['v*']
+  pull_request:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      # Don't abort the whole matrix if one OS fails — we want to see both.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin) + Maven cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # j-log-engine is the shared library — every other module depends on it
+      # via the local .m2 repository, so it has to be installed first.
+      - name: Build j-log-engine (shared library)
+        run: mvn -B -DskipTests -f j-log-engine/pom.xml install
+
+      # Loop over the six user-facing modules plus the installer. -B =
+      # batch mode (no color, cleaner log output).
+      - name: Build all modules
+        shell: bash
+        run: |
+          set -e
+          for module in j-hub j-log j-map j-digi j-bridge j-sat installer; do
+            echo "::group::Building $module"
+            mvn -B -DskipTests -f "$module/pom.xml" package
+            echo "::endgroup::"
+          done
+
+      # Collect every module's shaded jar into one artifact per OS. Testers
+      # can download these from the run page on github.com — no need to
+      # build locally.
+      - name: Upload built jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: ars-suite-jars-${{ matrix.os }}
+          retention-days: 14
+          path: |
+            j-hub/target/j-hub-*.jar
+            j-log/target/j-log-*.jar
+            j-map/target/j-map-*.jar
+            j-digi/target/j-digi-*-jar-with-dependencies.jar
+            j-bridge/target/j-bridge-*.jar
+            j-sat/target/j-sat-*.jar
+            installer/target/j-installer-*.jar
+            !**/original-*.jar
