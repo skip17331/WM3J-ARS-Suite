@@ -1,0 +1,45 @@
+{
+  "awardId":     "13_COLONIES_2026",
+  "awardName":   "13 Colonies Special Event 2026",
+  "description": "Work each of the 13 Colony stations (K2A–K2M) during Independence Day week. Bonus stations WM3PHL (Philadelphia), GB13COL (UK), TM13COL (France).",
+  "matchOn":     "callsign",
+  "targetLabel": "Colony stations",
+
+  "window": {
+    "startUtc": "2026-07-01T13:00:00",
+    "endUtc":   "2026-07-08T05:00:00"
+  },
+
+  "targets": [
+    {"id":"K2A","label":"Connecticut"},
+    {"id":"K2B","label":"Delaware"},
+    {"id":"K2C","label":"Georgia"},
+    {"id":"K2D","label":"Maryland"},
+    {"id":"K2E","label":"Massachusetts"},
+    {"id":"K2F","label":"New Hampshire"},
+    {"id":"K2G","label":"New Jersey"},
+    {"id":"K2H","label":"New York"},
+    {"id":"K2I","label":"North Carolina"},
+    {"id":"K2J","label":"Pennsylvania"},
+    {"id":"K2K","label":"Rhode Island"},
+    {"id":"K2L","label":"South Carolina"},
+    {"id":"K2M","label":"Virginia"}
+  ],
+
+  "bonus": [
+    {"id":"WM3PHL",  "label":"Philadelphia"},
+    {"id":"GB13COL", "label":"UK companion"},
+    {"id":"TM13COL", "label":"France companion"}
+  ],
+
+  "tiers": [
+    {"threshold":  5, "name": "Bronze (5)"},
+    {"threshold": 10, "name": "Silver (10)"},
+    {"threshold": 13, "name": "Clean Sweep (all 13)"},
+    {"threshold": 16, "name": "Sweep + Bonus (all 16)"}
+  ],
+
+  "options": {
+    "matchBaseCallsign": true
+  }
+}

@@ -99,6 +99,53 @@ public class ContestQsoDao {
         }
     }
 
+    /**
+     * Natural-key upsert for network sync. Two stations logging the same call
+     * in the same contest at the same second is essentially impossible in one
+     * operation, so {@code (contest_id, callsign, datetime_utc)} is a reliable
+     * identity. Inserts when no match; updates when found. Returns true if a
+     * new row was inserted.
+     */
+    public boolean upsertByNaturalKey(QsoRecord q) throws SQLException {
+        String call = q.getCallsign() == null ? "" : q.getCallsign().toUpperCase();
+        String dt   = q.getDateTimeUtc() == null ? null : q.getDateTimeUtc().format(FMT);
+        if (dt == null) return false;
+
+        Long existingId = null;
+        try (PreparedStatement ps = conn().prepareStatement(
+                "SELECT id FROM contest_qso WHERE contest_id=? AND callsign=? AND datetime_utc=?")) {
+            ps.setString(1, q.getContestId());
+            ps.setString(2, call);
+            ps.setString(3, dt);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) existingId = rs.getLong(1);
+        }
+
+        if (existingId == null) {
+            insert(q);
+            return true;
+        }
+        q.setId(existingId);
+        update(q);
+        return false;
+    }
+
+    /**
+     * Delete by the same natural key upsert uses. Silently no-ops if there is
+     * no match — idempotent so repeated broadcasts don't fail.
+     */
+    public int deleteByNaturalKey(String contestId, String callsign,
+                                  java.time.LocalDateTime datetimeUtc) throws SQLException {
+        if (datetimeUtc == null) return 0;
+        try (PreparedStatement ps = conn().prepareStatement(
+                "DELETE FROM contest_qso WHERE contest_id=? AND callsign=? AND datetime_utc=?")) {
+            ps.setString(1, contestId);
+            ps.setString(2, callsign == null ? "" : callsign.toUpperCase());
+            ps.setString(3, datetimeUtc.format(FMT));
+            return ps.executeUpdate();
+        }
+    }
+
     /** Check if callsign is already worked this contest on same band+mode. */
     public boolean isDuplicate(String contestId, String callsign, String band, String mode) throws SQLException {
         String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? AND band=? AND mode=? AND is_dupe=0";

@@ -841,6 +841,19 @@ public class ModemService implements HubMessageListener {
             case "CONTEST_ACTIVE"   -> contestListener.accept(msg);
             case "CONTEST_INACTIVE" -> contestListener.accept(null);
 
+            case "MODEM_TX" -> {
+                // Inbound command from j-log's keyer: transmit the given text.
+                String text = msg.has("text") ? msg.get("text").getAsString() : "";
+                String mode = msg.has("mode") ? msg.get("mode").getAsString() : "";
+                if (text == null || text.isBlank()) break;
+                if (mode != null && !mode.isBlank()) {
+                    // Switch modes if requested (CW / RTTY / PSK31 / etc.)
+                    try { setMode(ModeType.valueOf(mode.trim().toUpperCase())); }
+                    catch (IllegalArgumentException ignored) {}
+                }
+                transmitText(text);
+            }
+
             case "APP_LIST" -> {} // no-op
 
             case "CONFIG_UPDATE" -> {

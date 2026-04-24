@@ -1,0 +1,27 @@
+{
+  "awardId":     "WAC",
+  "awardName":   "Worked All Continents",
+  "description": "Confirm QSOs on all six continents (IARU).",
+  "matchOn":     "continent",
+  "targetLabel": "Continents",
+
+  "targets": [
+    {"id":"NA","label":"North America"},
+    {"id":"SA","label":"South America"},
+    {"id":"EU","label":"Europe"},
+    {"id":"AF","label":"Africa"},
+    {"id":"AS","label":"Asia"},
+    {"id":"OC","label":"Oceania"}
+  ],
+
+  "bonus": [
+    {"id":"AN","label":"Antarctica"}
+  ],
+
+  "tiers": [
+    {"threshold": 3, "name": "3 continents"},
+    {"threshold": 5, "name": "5 continents"},
+    {"threshold": 6, "name": "WAC (all 6)"},
+    {"threshold": 7, "name": "WAC + Antarctica"}
+  ]
+}

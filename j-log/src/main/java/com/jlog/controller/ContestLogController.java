@@ -83,6 +83,8 @@ public class ContestLogController implements Initializable {
     @FXML private Label lblQsoHour;
     @FXML private Label lblStatus;
     @FXML private Label lblCivStatus;
+    @FXML private Label lblRoster;
+    @FXML private Label lblSyncProgress;
 
     // ---- DX pane ----
     @FXML private SplitPane  mainSplitPane;
@@ -111,6 +113,15 @@ public class ContestLogController implements Initializable {
     private final ObservableList<QsoRecord> qsoData = FXCollections.observableArrayList();
     private final AtomicInteger serialCounter = new AtomicInteger(1);
     private ScheduledExecutorService statsService;
+
+    // Multi-op sync state. stationCount/Index default to solo (stride=1, offset=0);
+    // a CONTEST_ROSTER from the hub updates them when peers join.
+    private volatile int stationCount = 1;
+    private volatile int stationIndex = 0;
+    private String       stationName  = "";
+    // Full-sync request is fired once per session — the first time we see a
+    // roster that includes at least one other station beyond ourselves.
+    private boolean      fullSyncRequested = false;
 
     // Dynamic field map: fieldId -> Control
     private final Map<String, Control> entryFields = new LinkedHashMap<>();
@@ -159,11 +170,27 @@ public class ContestLogController implements Initializable {
         if (AppConfig.getInstance().getCivAutoConnect()) connectCiv();
 
         HubEngine.getInstance().sendContestActive(p);
-        // Wire CONTEST_INACTIVE to window close (double runLater ensures scene is attached)
+        joinContestRoster();
+
+        // If the hub drops and reconnects, re-announce contest + re-join the
+        // roster automatically so the peer group repopulates itself.
+        HubEngine.getInstance().enableAutoReconnect();
+        HubEngine.getInstance().setOnConnected(() -> Platform.runLater(() -> {
+            HubEngine.getInstance().sendContestActive(p);
+            fullSyncRequested = false;
+            joinContestRoster();
+            setStatus("Reconnected to hub.");
+        }));
+
+        // Wire CONTEST_INACTIVE + LEAVE_CONTEST to window close.
         Platform.runLater(() -> Platform.runLater(() -> {
             javafx.scene.Scene sc = entryBar.getScene();
             if (sc != null && sc.getWindow() instanceof javafx.stage.Stage st) {
-                st.setOnCloseRequest(e -> HubEngine.getInstance().sendContestInactive());
+                st.setOnCloseRequest(e -> {
+                    HubEngine.getInstance().disableAutoReconnect();
+                    HubEngine.getInstance().sendLeaveContest(p.getContestId(), stationName);
+                    HubEngine.getInstance().sendContestInactive();
+                });
             }
         }));
     }
@@ -537,15 +564,225 @@ public class ContestLogController implements Initializable {
     // -----------------------------------------------------------------
 
     /** Resume the serial counter from the database so exchanges continue
-     *  monotonically across app restarts (counter = max previously sent + 1). */
+     *  monotonically across app restarts. In multi-op mode the counter is
+     *  aligned to this station's stride slot — every station in the operation
+     *  uses a disjoint arithmetic progression, so network partitions can never
+     *  cause serial collisions. */
     private void initSerialCounter() {
         try {
             int maxSoFar = ContestQsoDao.getInstance().maxSerialSent(plugin.getContestId());
-            serialCounter.set(maxSoFar + 1);
+            serialCounter.set(nextSerialForStride(maxSoFar, stationIndex, stationCount));
         } catch (Exception e) {
             log.warn("could not resume serial counter for {}", plugin.getContestId(), e);
-            serialCounter.set(1);
+            serialCounter.set(nextSerialForStride(0, stationIndex, stationCount));
         }
+    }
+
+    /** Smallest serial ≥ max+1 that satisfies serial-mod-N == index. */
+    static int nextSerialForStride(int max, int index, int count) {
+        if (count <= 1) return max + 1;
+        int start = max + 1;
+        while (((start - 1) % count) != index) start++;
+        return start;
+    }
+
+    // -----------------------------------------------------------------
+    // Multi-op sync
+    // -----------------------------------------------------------------
+
+    /** Join the networked contest roster via j-hub. The station's stride/offset
+     *  come from the CONTEST_ROSTER response and are applied on the FX thread
+     *  by {@link #onRosterUpdate}. Station name defaults to the logged-in
+     *  callsign so everyone in the roster sees who's who. */
+    private void joinContestRoster() {
+        stationName = AppConfig.getInstance().getStationCallsign();
+        if (stationName == null || stationName.isBlank()) stationName = "station";
+
+        HubEngine.getInstance().setContestRosterListener(node ->
+            Platform.runLater(() -> onRosterUpdate(node)));
+        HubEngine.getInstance().setContestQsoSavedListener(node ->
+            Platform.runLater(() -> onRemoteQsoSaved(node)));
+        HubEngine.getInstance().setContestQsoDeletedListener(node ->
+            Platform.runLater(() -> onRemoteQsoDeleted(node)));
+        HubEngine.getInstance().setContestFullSyncRequestListener(node ->
+            onFullSyncRequest(node));   // runs on worker thread to stream QSOs
+        HubEngine.getInstance().setContestFullSyncStartListener(node ->
+            Platform.runLater(() -> onFullSyncStart(node)));
+
+        HubEngine.getInstance().sendJoinContest(plugin.getContestId(), stationName);
+    }
+
+    /** Respond to a peer's REQUEST_FULL_SYNC by streaming every local contest
+     *  QSO as a QSO_SAVED broadcast. Idempotent upsert on the receiving side
+     *  means even if multiple peers respond, the joining station collapses
+     *  duplicates automatically. */
+    private void onFullSyncRequest(com.fasterxml.jackson.databind.JsonNode node) {
+        if (plugin == null) return;
+        String contestId = node.path("contestId").asText("");
+        if (!plugin.getContestId().equals(contestId)) return;
+        String requester = node.path("stationName").asText("");
+        if (stationName.equals(requester)) return;   // ignore our own request echo
+
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                var qsos = ContestQsoDao.getInstance().fetchByContest(contestId);
+                HubEngine.getInstance().sendFullSyncStart(contestId, requester, qsos.size());
+                for (QsoRecord q : qsos) HubEngine.getInstance().sendContestQsoSaved(q);
+                log.info("Streamed {} QSOs to peer '{}' for contest {}",
+                    qsos.size(), requester, contestId);
+                return null;
+            }
+            @Override protected void failed() {
+                log.warn("full-sync response failed", getException());
+            }
+        };
+        new Thread(task).start();
+    }
+
+    // -----------------------------------------------------------------
+    // Full-sync progress (requester side)
+    // -----------------------------------------------------------------
+
+    private volatile Integer expectedSyncCount;
+    private volatile int     receivedSyncCount;
+
+    private void onFullSyncStart(com.fasterxml.jackson.databind.JsonNode node) {
+        String contestId = node.path("contestId").asText("");
+        if (plugin == null || !plugin.getContestId().equals(contestId)) return;
+        String to = node.path("toStation").asText("");
+        if (!to.isBlank() && !stationName.equals(to)) return;
+        expectedSyncCount = node.path("count").asInt(0);
+        receivedSyncCount = 0;
+        updateSyncProgress();
+    }
+
+    private void noteSyncTick() {
+        if (expectedSyncCount == null) return;
+        receivedSyncCount++;
+        updateSyncProgress();
+        if (receivedSyncCount >= expectedSyncCount) {
+            // Hold the final "done" state briefly, then clear.
+            final int done = expectedSyncCount;
+            new Thread(() -> {
+                try { Thread.sleep(1200); } catch (InterruptedException ignored) {}
+                Platform.runLater(() -> {
+                    if (expectedSyncCount != null && expectedSyncCount == done) {
+                        expectedSyncCount = null;
+                        updateSyncProgress();
+                    }
+                });
+            }, "sync-progress-clear").start();
+        }
+    }
+
+    private void updateSyncProgress() {
+        if (lblSyncProgress == null) return;
+        if (expectedSyncCount == null) { lblSyncProgress.setText(""); return; }
+        lblSyncProgress.setText(String.format("⟳ syncing %d / %d",
+            Math.min(receivedSyncCount, expectedSyncCount), expectedSyncCount));
+    }
+
+    /** Process a CONTEST_ROSTER broadcast — pick our index out of the list and
+     *  realign the serial counter to the new stride. Keeps the serial counter
+     *  monotone (we never rewind). */
+    private void onRosterUpdate(com.fasterxml.jackson.databind.JsonNode node) {
+        String contestId = node.path("contestId").asText("");
+        if (!plugin.getContestId().equals(contestId)) return;
+
+        com.fasterxml.jackson.databind.JsonNode arr = node.path("stations");
+        if (!arr.isArray() || arr.isEmpty()) return;
+
+        int newCount = arr.size();
+        int newIndex = -1;
+        for (int i = 0; i < arr.size(); i++) {
+            if (stationName.equals(arr.get(i).asText(""))) { newIndex = i; break; }
+        }
+        if (newIndex < 0) {
+            log.warn("roster update for {} missing station '{}' — staying solo",
+                contestId, stationName);
+            return;
+        }
+
+        stationCount = newCount;
+        stationIndex = newIndex;
+        // Realign the counter to the new stride without rewinding. Use the
+        // max of (current, database max) so we never re-issue a used serial.
+        try {
+            int maxSoFar = Math.max(
+                serialCounter.get() - 1,
+                ContestQsoDao.getInstance().maxSerialSent(plugin.getContestId()));
+            serialCounter.set(nextSerialForStride(maxSoFar, stationIndex, stationCount));
+            updateSerialDisplay();
+            setStatus("Multi-op: station " + (stationIndex + 1) + " of " + stationCount);
+        } catch (Exception e) {
+            log.warn("roster apply: max-serial read failed", e);
+        }
+
+        updateRosterDisplay(arr);
+
+        // First time we see peers beyond ourselves, pull the shared log once.
+        if (!fullSyncRequested && stationCount > 1) {
+            fullSyncRequested = true;
+            HubEngine.getInstance().sendRequestFullSync(plugin.getContestId(), stationName);
+        }
+    }
+
+    private void updateRosterDisplay(com.fasterxml.jackson.databind.JsonNode arr) {
+        if (lblRoster == null) return;
+        if (arr == null || arr.size() <= 1) { lblRoster.setText(""); return; }
+        StringBuilder sb = new StringBuilder("Sync: ");
+        for (int i = 0; i < arr.size(); i++) {
+            if (i > 0) sb.append(", ");
+            String n = arr.get(i).asText("");
+            sb.append(n);
+            if (n.equals(stationName)) sb.append(" (you)");
+        }
+        lblRoster.setText(sb.toString());
+    }
+
+    /** Apply a QSO_SAVED broadcast from a peer station. Idempotent via
+     *  natural-key upsert, so it's safe to handle our own echo (though we
+     *  filter it out by default). */
+    private void onRemoteQsoSaved(com.fasterxml.jackson.databind.JsonNode node) {
+        if (plugin == null) return;
+        com.fasterxml.jackson.databind.JsonNode qn = node.path("qso");
+        if (qn.isMissingNode()) return;
+
+        QsoRecord q = HubEngine.qsoFromJson(qn);
+        if (q.getContestId() == null || !q.getContestId().equals(plugin.getContestId())) return;
+
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                ContestQsoDao.getInstance().upsertByNaturalKey(q);
+                return null;
+            }
+            @Override protected void succeeded() { loadQsos(); updateStats(); noteSyncTick(); }
+            @Override protected void failed()    { log.warn("remote QSO apply failed", getException()); }
+        };
+        new Thread(task).start();
+    }
+
+    /** Apply a QSO_DELETED broadcast from a peer station. */
+    private void onRemoteQsoDeleted(com.fasterxml.jackson.databind.JsonNode node) {
+        if (plugin == null) return;
+        String contestId = node.path("contestId").asText("");
+        if (!plugin.getContestId().equals(contestId)) return;
+
+        String callsign = node.path("callsign").asText("");
+        String dtStr    = node.path("datetimeUtc").asText("");
+        java.time.LocalDateTime dt;
+        try { dt = java.time.LocalDateTime.parse(dtStr); }
+        catch (Exception e) { log.warn("remote delete: bad datetimeUtc: {}", dtStr); return; }
+
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                ContestQsoDao.getInstance().deleteByNaturalKey(contestId, callsign, dt);
+                return null;
+            }
+            @Override protected void succeeded() { loadQsos(); updateStats(); }
+            @Override protected void failed()    { log.warn("remote QSO delete failed", getException()); }
+        };
+        new Thread(task).start();
     }
 
     private void applyLockedBand() {
@@ -929,9 +1166,12 @@ public class ContestLogController implements Initializable {
             @Override protected void succeeded() {
                 rememberLastBandMode();
                 if (!isEdit) {
-                    serialCounter.incrementAndGet();
+                    // Stride-aware advance: +N where N = station count (1 in solo mode).
+                    serialCounter.addAndGet(stationCount);
                     updateSerialDisplay();
                 }
+                // Broadcast the saved QSO to peer stations (idempotent on receipt).
+                HubEngine.getInstance().sendContestQsoSaved(q);
                 editingRecord = null;
                 doClear();
                 loadQsos();
@@ -1134,6 +1374,9 @@ public class ContestLogController implements Initializable {
                     setStatus("Deleted: " + sel.getCallsign());
                     loadQsos();
                     updateStats();
+                    // Broadcast the delete to peer stations.
+                    HubEngine.getInstance().sendContestQsoDeleted(
+                        plugin.getContestId(), sel.getCallsign(), sel.getDateTimeUtc());
                 }
                 @Override protected void failed() {
                     setStatus("Delete failed: " + getException().getMessage());
@@ -1464,6 +1707,11 @@ public class ContestLogController implements Initializable {
     }
 
     @FXML private void menuExportCabrillo() {
+        // Collect category fields first — they're required in the header and
+        // vary between events. Choices persist in AppConfig so the next export
+        // inherits the operator's preferences.
+        if (!showCabrilloCategoryDialog()) return;
+
         javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
         fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Cabrillo", "*.log"));
         java.io.File f = fc.showSaveDialog(getStage());
@@ -1475,6 +1723,116 @@ public class ContestLogController implements Initializable {
             }
             @Override protected void succeeded() { setStatus(I18n.get("status.export.done")); }
             @Override protected void failed()    { setStatus(getException().getMessage()); }
+        };
+        new Thread(task).start();
+    }
+
+    /** Modal dialog collecting the Cabrillo 3.0 category fields. Returns true
+     *  if the user clicked Export, false if they cancelled. */
+    private boolean showCabrilloCategoryDialog() {
+        AppConfig cfg = AppConfig.getInstance();
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(8); grid.setVgap(6);
+        grid.setPadding(new Insets(12));
+
+        ComboBox<String> cbOp    = new ComboBox<>(FXCollections.observableArrayList(
+            "SINGLE-OP","SINGLE-OP-ASSISTED","MULTI-OP","MULTI-OP-ONE","MULTI-OP-TWO","MULTI-OP-MULTI","CHECKLOG"));
+        ComboBox<String> cbBand  = new ComboBox<>(FXCollections.observableArrayList(
+            "ALL","160M","80M","40M","20M","15M","10M","6M","2M","70CM","VHF-3-BAND","VHF-FM-ONLY"));
+        ComboBox<String> cbMode  = new ComboBox<>(FXCollections.observableArrayList(
+            "MIXED","CW","SSB","RTTY","DIGI","FM"));
+        ComboBox<String> cbPower = new ComboBox<>(FXCollections.observableArrayList(
+            "HIGH","LOW","QRP"));
+        ComboBox<String> cbAsst  = new ComboBox<>(FXCollections.observableArrayList(
+            "NON-ASSISTED","ASSISTED"));
+        ComboBox<String> cbTx    = new ComboBox<>(FXCollections.observableArrayList(
+            "ONE","TWO","LIMITED","UNLIMITED","SWL"));
+        ComboBox<String> cbStn   = new ComboBox<>(FXCollections.observableArrayList(
+            "FIXED","MOBILE","PORTABLE","ROVER","EXPEDITION","HQ","SCHOOL","DISTRIBUTED"));
+        ComboBox<String> cbTime  = new ComboBox<>(FXCollections.observableArrayList(
+            "","6-HOURS","8-HOURS","12-HOURS","24-HOURS"));
+        TextField tfEmail = new TextField(cfg.getCabEmail());
+        TextField tfClub  = new TextField(cfg.getCabClub());
+
+        cbOp.setValue(cfg.getCabOperator());
+        cbBand.setValue(cfg.getCabBand());
+        cbMode.setValue(cfg.getCabMode());
+        cbPower.setValue(cfg.getCabPower());
+        cbAsst.setValue(cfg.getCabAssisted());
+        cbTx.setValue(cfg.getCabTransmitter());
+        cbStn.setValue(cfg.getCabStation());
+        cbTime.setValue(cfg.getCabTime());
+
+        int r = 0;
+        grid.add(new Label("Operator:"),    0, r); grid.add(cbOp,    1, r++);
+        grid.add(new Label("Band:"),        0, r); grid.add(cbBand,  1, r++);
+        grid.add(new Label("Mode:"),        0, r); grid.add(cbMode,  1, r++);
+        grid.add(new Label("Power:"),       0, r); grid.add(cbPower, 1, r++);
+        grid.add(new Label("Assisted:"),    0, r); grid.add(cbAsst,  1, r++);
+        grid.add(new Label("Transmitter:"), 0, r); grid.add(cbTx,    1, r++);
+        grid.add(new Label("Station:"),     0, r); grid.add(cbStn,   1, r++);
+        grid.add(new Label("Time:"),        0, r); grid.add(cbTime,  1, r++);
+        grid.add(new Label("Email:"),       0, r); grid.add(tfEmail, 1, r++);
+        grid.add(new Label("Club:"),        0, r); grid.add(tfClub,  1, r++);
+
+        Dialog<ButtonType> dlg = new Dialog<>();
+        dlg.initOwner(getStage());
+        dlg.setTitle("Cabrillo Export — Categories");
+        dlg.getDialogPane().setContent(grid);
+        ButtonType exportBtn = new ButtonType("Export", ButtonBar.ButtonData.OK_DONE);
+        dlg.getDialogPane().getButtonTypes().addAll(exportBtn, ButtonType.CANCEL);
+        ButtonType result = dlg.showAndWait().orElse(ButtonType.CANCEL);
+        if (result != exportBtn) return false;
+
+        cfg.setCabOperator(cbOp.getValue());
+        cfg.setCabBand(cbBand.getValue());
+        cfg.setCabMode(cbMode.getValue());
+        cfg.setCabPower(cbPower.getValue());
+        cfg.setCabAssisted(cbAsst.getValue());
+        cfg.setCabTransmitter(cbTx.getValue());
+        cfg.setCabStation(cbStn.getValue());
+        cfg.setCabTime(cbTime.getValue() == null ? "" : cbTime.getValue());
+        cfg.setCabEmail(tfEmail.getText() == null ? "" : tfEmail.getText().trim());
+        cfg.setCabClub(tfClub.getText() == null ? "" : tfClub.getText().trim());
+        return true;
+    }
+
+    @FXML private void menuExportAdif() {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("ADIF", "*.adi","*.adif"));
+        java.io.File f = fc.showSaveDialog(getStage());
+        if (f == null) return;
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                com.jlog.export.AdifExporter.exportContestAdif(plugin.getContestId(), f.toPath());
+                return null;
+            }
+            @Override protected void succeeded() { setStatus(I18n.get("status.export.done")); }
+            @Override protected void failed()    { setStatus(getException().getMessage()); }
+        };
+        new Thread(task).start();
+    }
+
+    @FXML private void menuLotwUpload() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+            "Sign the contest log and upload to LoTW?\n\n"
+          + "Contest: " + plugin.getContestName() + "\n"
+          + "Station location (tqsl): " + AppConfig.getInstance().getLotwStationLocation(),
+            ButtonType.OK, ButtonType.CANCEL);
+        confirm.setHeaderText("LoTW Upload");
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
+
+        Task<com.jlog.export.LotwService.TqslResult> task = new Task<>() {
+            @Override protected com.jlog.export.LotwService.TqslResult call() throws Exception {
+                var qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId());
+                return com.jlog.export.LotwService.signAndUpload(qsos);
+            }
+            @Override protected void succeeded() {
+                var r = getValue();
+                setStatus(r.ok() ? "LoTW upload succeeded" : "LoTW upload failed (exit " + r.exitCode + ")");
+                if (!r.ok() && !r.stderr.isBlank()) new Alert(Alert.AlertType.ERROR, r.stderr).showAndWait();
+            }
+            @Override protected void failed() { setStatus("LoTW: " + getException().getMessage()); }
         };
         new Thread(task).start();
     }

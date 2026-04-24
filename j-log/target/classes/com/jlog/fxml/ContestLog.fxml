@@ -20,6 +20,8 @@
                             <MenuItem text="%menu.file.backup" onAction="#menuBackupDatabase"/>
                             <SeparatorMenuItem/>
                             <MenuItem text="%menu.export.cabrillo" onAction="#menuExportCabrillo"/>
+                            <MenuItem text="Export ADIF…"          onAction="#menuExportAdif"/>
+                            <MenuItem text="Upload to LoTW…"       onAction="#menuLotwUpload"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.setup">
@@ -41,7 +43,9 @@
             <!-- Status bar -->
             <HBox styleClass="clock-bar" spacing="16" alignment="CENTER_RIGHT">
                 <padding><Insets right="12" top="2" bottom="2"/></padding>
-                <Label fx:id="lblCivStatus" styleClass="civ-status" text="CI-V: —"/>
+                <Label fx:id="lblRoster"       styleClass="civ-status"/>
+                <Label fx:id="lblSyncProgress" styleClass="civ-status"/>
+                <Label fx:id="lblCivStatus"    styleClass="civ-status" text="CI-V: —"/>
                 <Label fx:id="lblStatus" styleClass="status-label"/>
             </HBox>
 

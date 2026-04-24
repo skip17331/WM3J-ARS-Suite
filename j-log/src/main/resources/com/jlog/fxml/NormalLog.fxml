@@ -16,10 +16,24 @@
                 <menus>
                     <Menu text="%menu.file">
                         <items>
+                            <MenuItem text="Import ADIF…"      onAction="#menuImportAdif"/>
                             <MenuItem text="%menu.export.adif" onAction="#menuExportAdif"/>
                             <MenuItem text="%menu.export.csv"  onAction="#menuExportCsv"/>
                             <SeparatorMenuItem/>
+                            <MenuItem text="Upload to LoTW…"        onAction="#menuLotwUpload"/>
+                            <MenuItem text="Download LoTW QSLs…"    onAction="#menuLotwDownload"/>
+                            <SeparatorMenuItem/>
                             <MenuItem text="%menu.exit" onAction="#menuExit"/>
+                        </items>
+                    </Menu>
+                    <Menu text="Awards">
+                        <items>
+                            <MenuItem text="Awards Dashboard…" onAction="#menuAwards"/>
+                        </items>
+                    </Menu>
+                    <Menu text="Tools">
+                        <items>
+                            <MenuItem text="CW / Digital Keyer…" onAction="#menuCwKeyer"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.setup">
@@ -117,6 +131,20 @@
             <!-- Macro button bar -->
             <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
                 <padding><Insets top="2" left="6" bottom="2"/></padding>
+            </HBox>
+
+            <!-- POTA/SOTA activation bar — hidden unless launched in activation mode -->
+            <HBox fx:id="activationBar" spacing="8" alignment="CENTER_LEFT"
+                  visible="false" managed="false" styleClass="macro-bar">
+                <padding><Insets top="3" left="6" right="6" bottom="3"/></padding>
+                <Label text="Activation:"/>
+                <Label text="SIG"/>
+                <TextField fx:id="tfActivationSig" prefWidth="80" promptText="POTA"/>
+                <Label text="Ref"/>
+                <TextField fx:id="tfActivationSigInfo" prefWidth="110" promptText="K-0001"/>
+                <Button text="Start" onAction="#startActivation"/>
+                <Button text="Stop"  onAction="#stopActivation"/>
+                <Label fx:id="lblActivationStatus" style="-fx-font-style: italic;"/>
             </HBox>
 
             <!-- Info pane row -->

@@ -215,6 +215,61 @@ public class AppConfig {
     public void   setLastMode(String v) { prefs.put("lastMode", v == null ? "" : v); }
 
     // ---------------------------------------------------------------
+    // Automatic database backup
+    // ---------------------------------------------------------------
+
+    public boolean isBackupEnabled()        { return !"false".equalsIgnoreCase(getDb("backup.enabled", "true")); }
+    public void    setBackupEnabled(boolean v){ setDb("backup.enabled", String.valueOf(v)); }
+
+    public int getBackupIntervalHours()      {
+        try { return Integer.parseInt(getDb("backup.intervalHours", "6")); }
+        catch (NumberFormatException e) { return 6; }
+    }
+    public void setBackupIntervalHours(int h){ setDb("backup.intervalHours", String.valueOf(h)); }
+
+    public int getBackupKeepCount()          {
+        try { return Integer.parseInt(getDb("backup.keepCount", "7")); }
+        catch (NumberFormatException e) { return 7; }
+    }
+    public void setBackupKeepCount(int n)    { setDb("backup.keepCount", String.valueOf(n)); }
+
+    // ---------------------------------------------------------------
+    // LoTW (TrustedQSL) integration
+    // ---------------------------------------------------------------
+
+    public String getTqslPath()                  { return getDb("lotw.tqslPath", "tqsl"); }
+    public void   setTqslPath(String v)          { setDb("lotw.tqslPath", v); }
+
+    public String getLotwStationLocation()       { return getDb("lotw.stationLocation", ""); }
+    public void   setLotwStationLocation(String v){ setDb("lotw.stationLocation", v); }
+
+    // ---------------------------------------------------------------
+    // Cabrillo category defaults — persisted between exports so operators
+    // don't re-enter them every weekend. Values map to Cabrillo 3.0 headers.
+    // ---------------------------------------------------------------
+
+    public String getCabOperator()     { return getDb("cab.operator",    "SINGLE-OP"); }
+    public void   setCabOperator(String v)   { setDb("cab.operator", v); }
+    public String getCabBand()         { return getDb("cab.band",        "ALL"); }
+    public void   setCabBand(String v)       { setDb("cab.band", v); }
+    public String getCabMode()         { return getDb("cab.mode",        "MIXED"); }
+    public void   setCabMode(String v)       { setDb("cab.mode", v); }
+    public String getCabPower()        { return getDb("cab.power",       "HIGH"); }
+    public void   setCabPower(String v)      { setDb("cab.power", v); }
+    public String getCabAssisted()     { return getDb("cab.assisted",    "NON-ASSISTED"); }
+    public void   setCabAssisted(String v)   { setDb("cab.assisted", v); }
+    public String getCabTransmitter()  { return getDb("cab.transmitter", "ONE"); }
+    public void   setCabTransmitter(String v){ setDb("cab.transmitter", v); }
+    public String getCabStation()      { return getDb("cab.station",     "FIXED"); }
+    public void   setCabStation(String v)    { setDb("cab.station", v); }
+    public String getCabTime()         { return getDb("cab.time",        ""); }
+    public void   setCabTime(String v)       { setDb("cab.time", v); }
+    public String getCabEmail()        { return getDb("cab.email",       ""); }
+    public void   setCabEmail(String v)      { setDb("cab.email", v); }
+    public String getCabClub()         { return getDb("cab.club",        ""); }
+    public void   setCabClub(String v)       { setDb("cab.club", v); }
+
+    // ---------------------------------------------------------------
     // SS Contest Exchange (saved per-station, not per-contest)
     // ---------------------------------------------------------------
 

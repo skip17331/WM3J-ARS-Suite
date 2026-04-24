@@ -38,9 +38,11 @@ public class HubEngine {
     // ---------------------------------------------------------------
 
     private WebSocketClient wsClient;
-    private final AtomicBoolean connected  = new AtomicBoolean(false);
-    private final AtomicBoolean connecting = new AtomicBoolean(false);
+    private final AtomicBoolean connected       = new AtomicBoolean(false);
+    private final AtomicBoolean connecting      = new AtomicBoolean(false);
+    private final AtomicBoolean autoReconnect   = new AtomicBoolean(false);
     private String url;
+    private Thread reconnectThread;
 
     // Listeners — called on the WebSocket thread; callers must dispatch to UI thread if needed
     private Consumer<DxSpot>   spotListener;
@@ -49,6 +51,13 @@ public class HubEngine {
     private Consumer<JsonNode> logEntryDraftListener;
     private Consumer<JsonNode> callsignResultListener;
     private Consumer<Integer>  configUpdateListener;
+    // Contest multi-op sync
+    private Consumer<JsonNode> contestQsoSavedListener;
+    private Consumer<JsonNode> contestQsoDeletedListener;
+    private Consumer<JsonNode> contestRosterListener;
+    private Consumer<JsonNode> contestFullSyncRequestListener;
+    private Consumer<JsonNode> contestFullSyncStartListener;
+    private Consumer<JsonNode> modemDecodeListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -94,6 +103,7 @@ public class HubEngine {
                     log.info("Hub disconnected (code={}, reason={})", code, reason);
                     if (wasConnected && onDisconnected != null)
                         onDisconnected.run();
+                    if (autoReconnect.get()) scheduleReconnect();
                 }
 
                 @Override
@@ -166,6 +176,30 @@ public class HubEngine {
                 log.info("SHUTDOWN command received from j-hub");
                 if (onShutdown != null)
                     onShutdown.run();
+
+            } else if ("QSO_SAVED".equals(type)) {
+                if (contestQsoSavedListener != null)
+                    contestQsoSavedListener.accept(node);
+
+            } else if ("QSO_DELETED".equals(type)) {
+                if (contestQsoDeletedListener != null)
+                    contestQsoDeletedListener.accept(node);
+
+            } else if ("CONTEST_ROSTER".equals(type)) {
+                if (contestRosterListener != null)
+                    contestRosterListener.accept(node);
+
+            } else if ("REQUEST_FULL_SYNC".equals(type)) {
+                if (contestFullSyncRequestListener != null)
+                    contestFullSyncRequestListener.accept(node);
+
+            } else if ("FULL_SYNC_START".equals(type)) {
+                if (contestFullSyncStartListener != null)
+                    contestFullSyncStartListener.accept(node);
+
+            } else if ("MODEM_DECODE".equals(type)) {
+                if (modemDecodeListener != null)
+                    modemDecodeListener.accept(node);
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -217,6 +251,12 @@ public class HubEngine {
     public void setRawLineListener          (Consumer<String> l)   { this.rawLineListener          = l; }
     public void setLogEntryDraftListener    (Consumer<JsonNode> l) { this.logEntryDraftListener    = l; }
     public void setCallsignResultListener   (Consumer<JsonNode> l) { this.callsignResultListener   = l; }
+    public void setContestQsoSavedListener  (Consumer<JsonNode> l) { this.contestQsoSavedListener  = l; }
+    public void setContestQsoDeletedListener(Consumer<JsonNode> l) { this.contestQsoDeletedListener= l; }
+    public void setContestRosterListener    (Consumer<JsonNode> l) { this.contestRosterListener    = l; }
+    public void setContestFullSyncRequestListener(Consumer<JsonNode> l) { this.contestFullSyncRequestListener = l; }
+    public void setContestFullSyncStartListener  (Consumer<JsonNode> l) { this.contestFullSyncStartListener   = l; }
+    public void setModemDecodeListener           (Consumer<JsonNode> l) { this.modemDecodeListener            = l; }
     public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
@@ -325,5 +365,194 @@ public class HubEngine {
         } catch (Exception e) {
             log.warn("sendContestInactive failed: {}", e.getMessage());
         }
+    }
+
+    // -----------------------------------------------------------------
+    // Contest multi-op sync outbound
+    // -----------------------------------------------------------------
+
+    /** Announce that this station is joining a networked contest. The hub
+     *  replies with CONTEST_ROSTER (relayed to every station) which the
+     *  controller uses to determine its stride/offset. */
+    public void sendJoinContest(String contestId, String stationName) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",        "JOIN_CONTEST");
+            msg.put("contestId",   contestId);
+            msg.put("stationName", stationName == null ? "" : stationName);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendJoinContest failed: {}", e.getMessage()); }
+    }
+
+    public void sendLeaveContest(String contestId, String stationName) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",        "LEAVE_CONTEST");
+            msg.put("contestId",   contestId);
+            msg.put("stationName", stationName == null ? "" : stationName);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendLeaveContest failed: {}", e.getMessage()); }
+    }
+
+    /** Broadcast a just-saved contest QSO for peer stations to apply. The
+     *  receiving side uses ContestQsoDao.upsertByNaturalKey so repeats are
+     *  idempotent (e.g. self-echo, late joiners). */
+    public void sendContestQsoSaved(com.jlog.model.QsoRecord q) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "QSO_SAVED");
+            msg.set ("qso",  qsoToJson(q));
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendContestQsoSaved failed: {}", e.getMessage()); }
+    }
+
+    /** Enable automatic reconnect with exponential backoff after every drop.
+     *  Call once after the initial {@link #connect(String)}; the reconnect
+     *  thread re-fires {@code onConnected} on success, so controllers can
+     *  re-join contests / re-register listeners naturally. */
+    public void enableAutoReconnect() {
+        autoReconnect.set(true);
+    }
+
+    public void disableAutoReconnect() {
+        autoReconnect.set(false);
+        if (reconnectThread != null) reconnectThread.interrupt();
+    }
+
+    private void scheduleReconnect() {
+        if (reconnectThread != null && reconnectThread.isAlive()) return;
+        reconnectThread = new Thread(() -> {
+            int backoffMs = 1000;
+            while (autoReconnect.get() && !connected.get()) {
+                try { Thread.sleep(backoffMs); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
+                if (!autoReconnect.get()) return;
+                log.info("Hub: attempting reconnect to {}", url);
+                try {
+                    boolean ok = connect(url);
+                    if (ok) { log.info("Hub: reconnect succeeded"); return; }
+                } catch (Exception e) {
+                    log.debug("Hub: reconnect attempt failed: {}", e.getMessage());
+                }
+                // Exponential backoff capped at 30s.
+                backoffMs = Math.min(backoffMs * 2, 30_000);
+            }
+        }, "hub-reconnect");
+        reconnectThread.setDaemon(true);
+        reconnectThread.start();
+    }
+
+    /** Send text to be transmitted by the modem app (j-digi). Optionally
+     *  switches the modem to a specific mode first (CW / RTTY / PSK31 / FT8 /
+     *  …). The modem app echoes audio out its configured output device. */
+    public void sendModemTx(String mode, String text) {
+        if (!connected.get() || wsClient == null || text == null || text.isBlank()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "MODEM_TX");
+            if (mode != null && !mode.isBlank()) msg.put("mode", mode);
+            msg.put("text", text);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendModemTx failed: {}", e.getMessage()); }
+    }
+
+    /** Announce "I'm about to stream N QSOs to you" before a full-sync response.
+     *  The requesting station uses {@code count} to drive a progress indicator. */
+    public void sendFullSyncStart(String contestId, String toStation, int count) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",        "FULL_SYNC_START");
+            msg.put("contestId",   contestId);
+            msg.put("toStation",   toStation == null ? "" : toStation);
+            msg.put("count",       count);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendFullSyncStart failed: {}", e.getMessage()); }
+    }
+
+    /** Ask peer stations for their full contest log — they respond by streaming
+     *  each of their QSOs as QSO_SAVED. Idempotent upserts on the receive side
+     *  handle the natural cross-station duplication. */
+    public void sendRequestFullSync(String contestId, String stationName) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",        "REQUEST_FULL_SYNC");
+            msg.put("contestId",   contestId);
+            msg.put("stationName", stationName == null ? "" : stationName);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendRequestFullSync failed: {}", e.getMessage()); }
+    }
+
+    /** Broadcast a deleted contest QSO. Recipients call deleteByNaturalKey. */
+    public void sendContestQsoDeleted(String contestId, String callsign,
+                                       java.time.LocalDateTime dt) {
+        if (!connected.get() || wsClient == null || dt == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",      "QSO_DELETED");
+            msg.put("contestId", contestId);
+            msg.put("callsign",  callsign);
+            msg.put("datetimeUtc", dt.toString());
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendContestQsoDeleted failed: {}", e.getMessage()); }
+    }
+
+    private static com.fasterxml.jackson.databind.node.ObjectNode qsoToJson(com.jlog.model.QsoRecord q) {
+        com.fasterxml.jackson.databind.node.ObjectNode n = MAPPER.createObjectNode();
+        n.put("contestId",      q.getContestId());
+        n.put("callsign",       q.getCallsign());
+        if (q.getDateTimeUtc() != null) n.put("datetimeUtc", q.getDateTimeUtc().toString());
+        n.put("band",           q.getBand());
+        n.put("mode",           q.getMode());
+        n.put("frequency",      q.getFrequency());
+        n.put("operator",       q.getOperator());
+        n.put("serialSent",     q.getSerialSent());
+        n.put("serialReceived", q.getSerialReceived());
+        n.put("exchange",       q.getExchange());
+        n.put("field1",         q.getContestField1());
+        n.put("field2",         q.getContestField2());
+        n.put("field3",         q.getContestField3());
+        n.put("field4",         q.getContestField4());
+        n.put("field5",         q.getContestField5());
+        n.put("points",         q.getPoints());
+        n.put("isDupe",         q.isDupe());
+        n.put("rstSent",        q.getRstSent());
+        n.put("rstReceived",    q.getRstReceived());
+        n.put("notes",          q.getNotes());
+        return n;
+    }
+
+    /** Reconstruct a QsoRecord from the JSON payload produced by {@link #qsoToJson}. */
+    public static com.jlog.model.QsoRecord qsoFromJson(JsonNode n) {
+        com.jlog.model.QsoRecord q = new com.jlog.model.QsoRecord();
+        q.setContestId     (n.path("contestId").asText(null));
+        q.setCallsign      (n.path("callsign").asText(null));
+        String dt = n.path("datetimeUtc").asText(null);
+        if (dt != null && !dt.isBlank()) {
+            try { q.setDateTimeUtc(java.time.LocalDateTime.parse(dt)); }
+            catch (Exception ignored) {}
+        }
+        q.setBand          (n.path("band").asText(null));
+        q.setMode          (n.path("mode").asText(null));
+        q.setFrequency     (n.path("frequency").asText(null));
+        q.setOperator      (n.path("operator").asText(null));
+        q.setSerialSent    (n.path("serialSent").asText(null));
+        q.setSerialReceived(n.path("serialReceived").asText(null));
+        q.setExchange      (n.path("exchange").asText(null));
+        q.setContestField1 (n.path("field1").asText(null));
+        q.setContestField2 (n.path("field2").asText(null));
+        q.setContestField3 (n.path("field3").asText(null));
+        q.setContestField4 (n.path("field4").asText(null));
+        q.setContestField5 (n.path("field5").asText(null));
+        q.setPoints        (n.path("points").asInt(0));
+        q.setDupe          (n.path("isDupe").asBoolean(false));
+        q.setRstSent       (n.path("rstSent").asText(null));
+        q.setRstReceived   (n.path("rstReceived").asText(null));
+        q.setNotes         (n.path("notes").asText(null));
+        return q;
     }
 }

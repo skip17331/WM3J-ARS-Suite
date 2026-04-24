@@ -124,7 +124,7 @@ public final class CallsignRegion {
      *   W1AW/JA  → JA    (country override on right)
      *   K1ABC    → K1ABC (no change)
      */
-    static String normalise(String raw) {
+    public static String normalise(String raw) {
         if (raw == null) return "";
         String call = raw.trim().toUpperCase();
         if (!call.contains("/")) return call;

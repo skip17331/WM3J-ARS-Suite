@@ -1,5 +1,6 @@
 package com.hamradio.jhub;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.hamradio.jhub.callsign.CallsignLookupService;
@@ -11,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MessageRouter — central dispatcher for all WebSocket messages.
@@ -42,6 +45,11 @@ public class MessageRouter {
     public void setJHubServer(JHubServer server) {
         this.jHubServer = server;
     }
+
+    // Contest-sync roster. Keyed by contestId; each entry is the ordered list
+    // of stationName strings currently joined. The ordering determines stride
+    // allocation — joiners get the next slot.
+    private final Map<String, List<String>> contestRoster = new ConcurrentHashMap<>();
 
     public JHubServer getJHubServer() { return jHubServer; }
 
@@ -84,6 +92,12 @@ public class MessageRouter {
 
             case "MODEM_DECODE":
                 handleModemDecode(msg, rawJson, session.socket, server);
+                break;
+
+            case "MODEM_TX":
+                // j-log sends text to be transmitted via the modem app.
+                server.broadcastExcept(rawJson, session.socket);
+                log.debug("MODEM_TX relayed from '{}'", session.appName);
                 break;
 
             case "LOG_ENTRY_DRAFT":
@@ -129,9 +143,68 @@ public class MessageRouter {
                 log.debug("{} broadcast from '{}'", type, session.appName);
                 break;
 
+            // Contest multi-op sync — hub relays QSOs and maintains the roster.
+            case "QSO_SAVED":
+            case "QSO_DELETED":
+            case "REQUEST_FULL_SYNC":
+            case "FULL_SYNC_START":
+                server.broadcastExcept(rawJson, session.socket);
+                log.debug("{} relayed from '{}'", type, session.appName);
+                break;
+
+            case "JOIN_CONTEST":
+                handleJoinContest(msg, session, server);
+                break;
+
+            case "LEAVE_CONTEST":
+                handleLeaveContest(msg, session, server);
+                break;
+
             default:
                 log.debug("Unhandled message type '{}' from '{}'", type, session.appName);
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Contest roster (multi-op sync)
+    // ---------------------------------------------------------------
+
+    private void handleJoinContest(JsonObject msg, JHubServer.AppSession session, JHubServer server) {
+        String contestId   = msg.has("contestId")   ? msg.get("contestId").getAsString()   : "";
+        String stationName = msg.has("stationName") ? msg.get("stationName").getAsString() : session.appName;
+        if (contestId.isBlank()) return;
+
+        List<String> roster = contestRoster.computeIfAbsent(contestId, k -> new ArrayList<>());
+        synchronized (roster) {
+            roster.remove(stationName);           // idempotent rejoin
+            roster.add(stationName);
+        }
+        broadcastRoster(contestId, server);
+        log.info("JOIN_CONTEST: {} joined {} (now {} stations)", stationName, contestId, roster.size());
+    }
+
+    private void handleLeaveContest(JsonObject msg, JHubServer.AppSession session, JHubServer server) {
+        String contestId   = msg.has("contestId")   ? msg.get("contestId").getAsString()   : "";
+        String stationName = msg.has("stationName") ? msg.get("stationName").getAsString() : session.appName;
+        if (contestId.isBlank()) return;
+
+        List<String> roster = contestRoster.get(contestId);
+        if (roster == null) return;
+        synchronized (roster) { roster.remove(stationName); }
+        if (roster.isEmpty()) contestRoster.remove(contestId);
+        broadcastRoster(contestId, server);
+        log.info("LEAVE_CONTEST: {} left {} (now {} stations)", stationName, contestId, roster.size());
+    }
+
+    private void broadcastRoster(String contestId, JHubServer server) {
+        List<String> roster = contestRoster.get(contestId);
+        JsonObject msg = new JsonObject();
+        msg.addProperty("type",      "CONTEST_ROSTER");
+        msg.addProperty("contestId", contestId);
+        JsonArray arr = new JsonArray();
+        if (roster != null) synchronized (roster) { roster.forEach(arr::add); }
+        msg.add("stations", arr);
+        server.broadcastToAll(msg.toString());
     }
 
     // ---------------------------------------------------------------

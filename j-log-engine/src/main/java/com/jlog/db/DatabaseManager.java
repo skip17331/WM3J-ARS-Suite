@@ -42,6 +42,11 @@ public class DatabaseManager {
         applyContestSchema();
         applyConfigSchema();
         log.info("Databases initialised in {}", dataDir);
+
+        // Kick off scheduled backups. The service is a no-op if backups are
+        // disabled in AppConfig; calling start() twice is safe.
+        try { BackupService.getInstance().start(); }
+        catch (Exception e) { log.warn("could not start backup service: {}", e.getMessage()); }
     }
 
     private Connection openDb(String path) throws SQLException {
@@ -77,11 +82,29 @@ public class DatabaseManager {
                     notes         TEXT,
                     qsl_sent      INTEGER DEFAULT 0,
                     qsl_received  INTEGER DEFAULT 0,
+                    sig           TEXT,
+                    sig_info      TEXT,
                     created_at    TEXT DEFAULT (datetime('now'))
                 )
                 """);
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_qso_call ON qso(callsign)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_qso_dt   ON qso(datetime_utc)");
+            // In-place upgrade for pre-sig databases. SQLite's PRAGMA
+            // table_info is the portable way to detect an existing column.
+            addColumnIfMissing("qso", "sig",      "TEXT");
+            addColumnIfMissing("qso", "sig_info", "TEXT");
+            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_qso_sig ON qso(sig_info)");
+        }
+    }
+
+    private void addColumnIfMissing(String table, String column, String type) throws SQLException {
+        try (Statement st = logConn.createStatement();
+             ResultSet rs = st.executeQuery("PRAGMA table_info(" + table + ")")) {
+            while (rs.next()) if (column.equalsIgnoreCase(rs.getString("name"))) return;
+        }
+        try (Statement st = logConn.createStatement()) {
+            st.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+            log.info("Upgraded {}: added column {}", table, column);
         }
     }
 

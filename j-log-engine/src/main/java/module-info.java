@@ -11,11 +11,13 @@ module com.jlog.engine {
 
     opens com.jlog.model  to com.fasterxml.jackson.databind;
     opens com.jlog.plugin to com.fasterxml.jackson.databind;
+    opens com.jlog.award  to com.fasterxml.jackson.databind;
 
     exports com.jlog.db;
     exports com.jlog.civ;
     exports com.jlog.cluster;
     exports com.jlog.plugin;
+    exports com.jlog.award;
     exports com.jlog.export;
     exports com.jlog.util;
     exports com.jlog.model;

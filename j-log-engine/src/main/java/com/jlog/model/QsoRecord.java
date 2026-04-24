@@ -25,6 +25,10 @@ public class QsoRecord {
     private boolean qslSent;
     private boolean qslReceived;
 
+    // ADIF SIG / SIG_INFO — used for POTA / SOTA activation tagging.
+    private String sig;
+    private String sigInfo;
+
     // Contest-specific fields
     private String contestId;
     private String operator;        // current op (contest multi-op)
@@ -90,6 +94,11 @@ public class QsoRecord {
 
     public boolean isQslReceived() { return qslReceived; }
     public void setQslReceived(boolean qslReceived) { this.qslReceived = qslReceived; }
+
+    public String getSig()                { return sig; }
+    public void setSig(String v)          { this.sig = v; }
+    public String getSigInfo()            { return sigInfo; }
+    public void setSigInfo(String v)      { this.sigInfo = v; }
 
     public String getContestId() { return contestId; }
     public void setContestId(String contestId) { this.contestId = contestId; }

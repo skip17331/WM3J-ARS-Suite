@@ -30,8 +30,8 @@ public class QsoDao {
         String sql = """
             INSERT INTO qso(callsign,datetime_utc,band,mode,frequency,power_watts,
                 rst_sent,rst_received,country,operator_name,state,county,notes,
-                qsl_sent,qsl_received)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                qsl_sent,qsl_received,sig,sig_info)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """;
         try (PreparedStatement ps = conn().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1,  qso.getCallsign());
@@ -49,6 +49,8 @@ public class QsoDao {
             ps.setString(13, qso.getNotes());
             ps.setInt   (14, qso.isQslSent()     ? 1 : 0);
             ps.setInt   (15, qso.isQslReceived()  ? 1 : 0);
+            ps.setString(16, qso.getSig());
+            ps.setString(17, qso.getSigInfo());
             ps.executeUpdate();
             ResultSet gk = ps.getGeneratedKeys();
             if (gk.next()) {
@@ -66,7 +68,7 @@ public class QsoDao {
         String sql = """
             UPDATE qso SET callsign=?,datetime_utc=?,band=?,mode=?,frequency=?,
                 power_watts=?,rst_sent=?,rst_received=?,country=?,operator_name=?,
-                state=?,county=?,notes=?,qsl_sent=?,qsl_received=?
+                state=?,county=?,notes=?,qsl_sent=?,qsl_received=?,sig=?,sig_info=?
             WHERE id=?
             """;
         try (PreparedStatement ps = conn().prepareStatement(sql)) {
@@ -85,7 +87,9 @@ public class QsoDao {
             ps.setString(13, qso.getNotes());
             ps.setInt   (14, qso.isQslSent()     ? 1 : 0);
             ps.setInt   (15, qso.isQslReceived()  ? 1 : 0);
-            ps.setLong  (16, qso.getId());
+            ps.setString(16, qso.getSig());
+            ps.setString(17, qso.getSigInfo());
+            ps.setLong  (18, qso.getId());
             ps.executeUpdate();
         }
     }
@@ -163,6 +167,8 @@ public class QsoDao {
         q.setNotes        (rs.getString("notes"));
         q.setQslSent      (rs.getInt   ("qsl_sent")     == 1);
         q.setQslReceived  (rs.getInt   ("qsl_received") == 1);
+        q.setSig          (rs.getString("sig"));
+        q.setSigInfo      (rs.getString("sig_info"));
         return q;
     }
 }

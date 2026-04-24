@@ -101,6 +101,15 @@ public class NormalLogController implements Initializable {
     // ---- Macro buttons ----
     @FXML private HBox macroButtonBar;
 
+    // ---- POTA/SOTA activation bar ----
+    @FXML private HBox      activationBar;
+    @FXML private TextField tfActivationSig;
+    @FXML private TextField tfActivationSigInfo;
+    @FXML private Label     lblActivationStatus;
+
+    private volatile String currentSig;
+    private volatile String currentSigInfo;
+
     private final ObservableList<QsoRecord> qsoData = FXCollections.observableArrayList();
     private ScheduledExecutorService clockService;
     private QrzLookup qrzLookup;
@@ -491,8 +500,99 @@ public class NormalLogController implements Initializable {
         new Thread(task).start();
     }
 
+    @FXML private void menuImportAdif() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Import ADIF");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("ADIF Files", "*.adi","*.adif"));
+        File f = fc.showOpenDialog(getStage());
+        if (f == null) return;
+
+        // Three choices: Skip / Overwrite / Append
+        Alert dupeChoice = new Alert(Alert.AlertType.CONFIRMATION,
+            "How should duplicates be handled?\n\n"
+          + "Skip — keep existing, drop incoming.\n"
+          + "Append — insert all rows, even duplicates.\n"
+          + "Cancel — abort import.",
+            new ButtonType("Skip"), new ButtonType("Append"), ButtonType.CANCEL);
+        dupeChoice.setHeaderText("Duplicate handling");
+        ButtonType choice = dupeChoice.showAndWait().orElse(ButtonType.CANCEL);
+        if (choice == ButtonType.CANCEL) return;
+        final com.jlog.export.AdifImporter.DupeMode mode =
+            "Append".equals(choice.getText())
+                ? com.jlog.export.AdifImporter.DupeMode.APPEND
+                : com.jlog.export.AdifImporter.DupeMode.SKIP;
+
+        Task<com.jlog.export.AdifImporter.Result> task = new Task<>() {
+            @Override protected com.jlog.export.AdifImporter.Result call() throws Exception {
+                return com.jlog.export.AdifImporter.importAdif(f.toPath(), mode);
+            }
+            @Override protected void succeeded() {
+                var r = getValue();
+                setStatus("Imported " + r.imported + ", skipped " + r.skipped
+                          + ", failed " + r.failed);
+                loadQsos();
+            }
+            @Override protected void failed() { setStatus("Import failed: " + getException().getMessage()); }
+        };
+        new Thread(task).start();
+    }
+
+    @FXML private void menuLotwUpload() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+            "Sign the full log and upload to LoTW?\n\n"
+          + "Uses tqsl with station location: "
+          + AppConfig.getInstance().getLotwStationLocation(),
+            ButtonType.OK, ButtonType.CANCEL);
+        confirm.setHeaderText("LoTW Upload");
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
+
+        Task<com.jlog.export.LotwService.TqslResult> task = new Task<>() {
+            @Override protected com.jlog.export.LotwService.TqslResult call() throws Exception {
+                return com.jlog.export.LotwService.signAndUpload(
+                    com.jlog.db.QsoDao.getInstance().fetchAll());
+            }
+            @Override protected void succeeded() {
+                var r = getValue();
+                setStatus(r.ok() ? "LoTW upload succeeded" : "LoTW upload failed (exit " + r.exitCode + ")");
+                if (!r.ok() && !r.stderr.isBlank()) {
+                    new Alert(Alert.AlertType.ERROR, r.stderr).showAndWait();
+                }
+            }
+            @Override protected void failed() { setStatus("LoTW: " + getException().getMessage()); }
+        };
+        new Thread(task).start();
+    }
+
+    @FXML private void menuLotwDownload() {
+        Task<com.jlog.export.LotwService.DownloadResult> task = new Task<>() {
+            @Override protected com.jlog.export.LotwService.DownloadResult call() throws Exception {
+                return com.jlog.export.LotwService.downloadConfirmations(null);
+            }
+            @Override protected void succeeded() {
+                var r = getValue();
+                if (r.ok()) {
+                    setStatus("LoTW confirmations: " + r.matched + " matched, " + r.unmatched + " unmatched");
+                    loadQsos();
+                } else {
+                    setStatus("LoTW download failed (exit " + r.exitCode + ")");
+                    if (!r.stderr.isBlank()) new Alert(Alert.AlertType.ERROR, r.stderr).showAndWait();
+                }
+            }
+            @Override protected void failed() { setStatus("LoTW: " + getException().getMessage()); }
+        };
+        new Thread(task).start();
+    }
+
     @FXML private void menuDatabaseTools() {
         DatabaseToolsController.show(getStage());
+    }
+
+    @FXML private void menuAwards() {
+        new AwardsWindow(getStage()).show();
+    }
+
+    @FXML private void menuCwKeyer() {
+        new CwKeyerWindow(getStage()).show();
     }
 
     @FXML private void menuSetup() {
@@ -533,7 +633,16 @@ public class NormalLogController implements Initializable {
         q.setNotes(tfNotes.getText());
         q.setQslSent(cbQslSent.isSelected());
         q.setQslReceived(cbQslReceived.isSelected());
+        applyActivationTag(q);
         return q;
+    }
+
+    /** If an activation is running, stamp SIG / SIG_INFO onto the QSO. */
+    private void applyActivationTag(QsoRecord q) {
+        if (currentSig == null || currentSig.isBlank()) return;
+        if (currentSigInfo == null || currentSigInfo.isBlank()) return;
+        q.setSig(currentSig);
+        q.setSigInfo(currentSigInfo);
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -568,6 +677,44 @@ public class NormalLogController implements Initializable {
         q.setNotes(tfNotes.getText());
         q.setQslSent(cbQslSent.isSelected());
         q.setQslReceived(cbQslReceived.isSelected());
+        applyActivationTag(q);
+    }
+
+    // ---------------------------------------------------------------
+    // POTA / SOTA activation mode
+    // ---------------------------------------------------------------
+
+    /** Called by the splash when launching in activation mode — unhides the
+     *  activation bar and defaults SIG to POTA. */
+    public void enableActivationMode() {
+        if (activationBar != null) {
+            activationBar.setVisible(true);
+            activationBar.setManaged(true);
+        }
+        if (tfActivationSig != null && (tfActivationSig.getText() == null || tfActivationSig.getText().isBlank()))
+            tfActivationSig.setText("POTA");
+        if (lblActivationStatus != null) lblActivationStatus.setText("(not active)");
+    }
+
+    @FXML private void startActivation() {
+        if (tfActivationSig == null || tfActivationSigInfo == null) return;
+        String sig  = tfActivationSig.getText() == null ? "" : tfActivationSig.getText().trim().toUpperCase();
+        String sigInfo = tfActivationSigInfo.getText() == null ? "" : tfActivationSigInfo.getText().trim().toUpperCase();
+        if (sig.isBlank() || sigInfo.isBlank()) {
+            setStatus("Enter SIG (POTA/SOTA) and reference (e.g. K-0001) first.");
+            return;
+        }
+        currentSig     = sig;
+        currentSigInfo = sigInfo;
+        if (lblActivationStatus != null) lblActivationStatus.setText("🏔️ Activating " + sig + " " + sigInfo);
+        setStatus("Activation started: " + sig + " " + sigInfo);
+    }
+
+    @FXML private void stopActivation() {
+        currentSig     = null;
+        currentSigInfo = null;
+        if (lblActivationStatus != null) lblActivationStatus.setText("(not active)");
+        setStatus("Activation stopped.");
     }
 
     // ---------------------------------------------------------------

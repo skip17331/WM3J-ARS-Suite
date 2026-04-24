@@ -28,17 +28,28 @@ public class CabrilloExporter {
         Map<String, String> mapping = plugin.getCabrilloMapping();
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(destination.toFile()))) {
-            // Cabrillo header
+            // Cabrillo 3.0 header — categories come from AppConfig (set via the
+            // pre-export dialog) rather than being hardcoded. Score computed
+            // against plugin rules instead of being a raw point sum.
             pw.println("START-OF-LOG: 3.0");
             pw.println("CREATED-BY: j-Log v1.0.0");
             pw.println("CONTEST: " + plugin.getContestId().replace("_", "-"));
             pw.println("CALLSIGN: " + nullSafe(cfg.getStationCallsign()));
-            pw.println("CATEGORY-OPERATOR: SINGLE-OP");
-            pw.println("CATEGORY-BAND: ALL");
-            pw.println("CATEGORY-POWER: HIGH");
-            pw.println("CLAIMED-SCORE: " + ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId()));
-            pw.println("NAME: " + nullSafe(cfg.getOperatorName()));
+            pw.println("CATEGORY-OPERATOR: "    + cfg.getCabOperator());
+            pw.println("CATEGORY-BAND: "        + cfg.getCabBand());
+            pw.println("CATEGORY-MODE: "        + cfg.getCabMode());
+            pw.println("CATEGORY-POWER: "       + cfg.getCabPower());
+            pw.println("CATEGORY-ASSISTED: "    + cfg.getCabAssisted());
+            pw.println("CATEGORY-TRANSMITTER: " + cfg.getCabTransmitter());
+            pw.println("CATEGORY-STATION: "     + cfg.getCabStation());
+            if (!cfg.getCabTime().isBlank())  pw.println("CATEGORY-TIME: "  + cfg.getCabTime());
+            pw.println("CLAIMED-SCORE: "        + computeClaimedScore(plugin));
+            pw.println("NAME: "    + nullSafe(cfg.getOperatorName()));
             pw.println("ADDRESS: " + nullSafe(cfg.getQth()));
+            if (!cfg.getCabEmail().isBlank()) pw.println("EMAIL: " + cfg.getCabEmail());
+            if (!cfg.getCabClub().isBlank())  pw.println("CLUB: "  + cfg.getCabClub());
+            if (!nullSafe(cfg.getGridSquare()).isBlank())
+                pw.println("GRID-LOCATOR: " + cfg.getGridSquare());
             pw.println("X-JLOG-PLUGIN: " + plugin.getContestId() + " v" + plugin.getVersion());
             pw.println();
 
@@ -64,6 +75,46 @@ public class CabrilloExporter {
 
             pw.println("END-OF-LOG:");
             log.info("Cabrillo export: {} QSOs to {}", qsos.size(), destination);
+        }
+    }
+
+    /** Claimed score = (stored QSO points) × (multipliers) using the plugin's
+     *  rules. Field-day-style contests and others with {@code scoreIsPointsOnly}
+     *  get just the point total. Per-mode and per-band multiplier contests are
+     *  unfolded so the score matches what the controller's stats pane shows. */
+    private static int computeClaimedScore(ContestPlugin plugin) {
+        try {
+            ContestQsoDao dao = ContestQsoDao.getInstance();
+            String contestId  = plugin.getContestId();
+            int totalPoints   = dao.totalPointsByContest(contestId);
+
+            ContestPlugin.ScoringRules rules = plugin.getScoringRules();
+            if (rules != null && rules.isScoreIsPointsOnly()) return totalPoints;
+
+            String multColumn = plugin.computeMultiplierDbColumn();
+            int mults;
+            if (plugin.isPerModeMultipliers()) {
+                mults = 0;
+                for (String mode : new String[]{"CW", "Phone"})
+                    mults += dao.distinctFieldByColumnAndMode(contestId, multColumn, mode).size();
+            } else if (plugin.getMultiplierModel() != null
+                    && plugin.getMultiplierModel().isPerBand()) {
+                mults = 0;
+                List<String> bands = null;
+                for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+                    if ("band".equals(fd.getId()) && fd.getOptions() != null)
+                        bands = fd.getOptions();
+                }
+                if (bands == null) bands = List.of("160m","80m","40m","20m","15m","10m","6m","2m","70cm");
+                for (String band : bands)
+                    mults += dao.distinctFieldByColumnAndBand(contestId, multColumn, band).size();
+            } else {
+                mults = dao.distinctFieldByColumn(contestId, multColumn).size();
+            }
+            return totalPoints * Math.max(1, mults);
+        } catch (Exception e) {
+            log.warn("claimed-score computation failed: {}", e.getMessage());
+            return 0;
         }
     }
 
