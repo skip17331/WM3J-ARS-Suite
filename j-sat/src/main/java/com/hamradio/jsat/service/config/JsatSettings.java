@@ -41,6 +41,18 @@ public class JsatSettings {
     public boolean showPassList    = true;
     public int     fontSize        = 15;
 
+    // Per-pane font overrides (0 = inherit from fontSize)
+    public int topBarFontSize        = 0;
+    public int livePassFontSize      = 0;
+    public int passListFontSize      = 0;
+    public int spaceWeatherFontSize  = 0;
+    public int rigRotorFontSize      = 0;
+
+    /** Returns {@code override} when positive, otherwise the global {@link #fontSize}. */
+    public int effective(int override) {
+        return override > 0 ? override : fontSize;
+    }
+
     // TLE management
     public int    tleStaleThresholdHours = 48;
     public int    tleApiPort             = 4540;

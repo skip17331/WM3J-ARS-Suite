@@ -31,6 +31,7 @@ com/hamradio/jsat/ui/panels/PassListPanel.class
 com/hamradio/jsat/service/config/JsatSettings.class
 com/hamradio/jsat/model/SatelliteState.class
 com/hamradio/jsat/service/registry/SatelliteRegistry.class
+com/hamradio/jsat/app/CrashHandler.class
 com/hamradio/jsat/ui/canvas/SatTrackCanvas.class
 com/hamradio/jsat/service/tle/CelestrakTleProvider.class
 com/hamradio/jsat/ui/main/MainWindow$1.class

@@ -128,6 +128,34 @@ public class StateCache {
         }
     }
 
+    // ---------------------------------------------------------------
+    // Heard-By spots (PSK Reporter, WSPR) — raw JSON, oldest first
+    // ---------------------------------------------------------------
+
+    private static final int MAX_HEARD_BY = 100;
+    private final LinkedList<String> recentHeardBy = new LinkedList<>();
+    private final ReadWriteLock heardByLock = new ReentrantReadWriteLock();
+
+    public void addHeardBySpot(String rawJson) {
+        if (rawJson == null) return;
+        heardByLock.writeLock().lock();
+        try {
+            recentHeardBy.addLast(rawJson);
+            if (recentHeardBy.size() > MAX_HEARD_BY) recentHeardBy.removeFirst();
+        } finally {
+            heardByLock.writeLock().unlock();
+        }
+    }
+
+    public List<String> getRecentHeardBy() {
+        heardByLock.readLock().lock();
+        try {
+            return Collections.unmodifiableList(new ArrayList<>(recentHeardBy));
+        } finally {
+            heardByLock.readLock().unlock();
+        }
+    }
+
     /** Returns an unmodifiable snapshot of recent spots (oldest first). */
     public List<Spot> getRecentSpots() {
         spotLock.readLock().lock();

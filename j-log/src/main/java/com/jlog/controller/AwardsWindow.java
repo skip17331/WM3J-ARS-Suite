@@ -47,21 +47,29 @@ public class AwardsWindow {
         title.getStyleClass().add("chooser-prompt");
 
         Button refresh = new Button("Refresh");
+        refresh.getStyleClass().add("primary-button");
         refresh.setOnAction(e -> {
             AwardLoader.getInstance().reload();
-            rebuild();
+            try { rebuild(); }
+            catch (Throwable t) { showError(t); }
         });
         Button importBtn = new Button("Import Award…");
+        importBtn.getStyleClass().add("secondary-button");
         importBtn.setOnAction(e -> doImport());
 
         HBox toolbar = new HBox(10, refresh, importBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
+        toolbar.setPadding(new Insets(4, 0, 4, 0));
 
         cards.setPrefColumns(3);
         cards.setHgap(12);
         cards.setVgap(12);
         cards.setPadding(new Insets(12));
-        rebuild();
+        try {
+            rebuild();
+        } catch (Throwable t) {
+            showError(t);
+        }
 
         ScrollPane scroll = new ScrollPane(cards);
         scroll.setFitToWidth(true);
@@ -76,9 +84,21 @@ public class AwardsWindow {
         dialog.show();
     }
 
+    private void showError(Throwable t) {
+        cards.getChildren().clear();
+        String msg = t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
+        Label err = new Label("Awards could not be loaded:\n"
+            + t.getClass().getSimpleName() + ": " + msg
+            + "\n\nDrop award JSONs into ~/.j-log/awards/ and click Refresh.");
+        err.setWrapText(true);
+        cards.getChildren().add(err);
+    }
+
     private void rebuild() {
         cards.getChildren().clear();
-        List<AwardPlugin> awards = AwardLoader.getInstance().getAvailableAwards();
+        // AwardLoader.getAvailableAwards() returns an immutable copy — wrap
+        // in ArrayList before sorting so Collection.sort() doesn't throw.
+        List<AwardPlugin> awards = new ArrayList<>(AwardLoader.getInstance().getAvailableAwards());
         // Sort: active special events first, then standard, then expired
         awards.sort(Comparator
             .<AwardPlugin, Integer>comparing(this::sortCategory)

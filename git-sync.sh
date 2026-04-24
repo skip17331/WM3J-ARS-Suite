@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Directory of your project
-PROJECT_DIR="/home/mike/ARS_Suite"
+# Directory of your project — derived from this script's own location so the
+# repo works when cloned to any path.
+PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "$PROJECT_DIR" || exit 1
 

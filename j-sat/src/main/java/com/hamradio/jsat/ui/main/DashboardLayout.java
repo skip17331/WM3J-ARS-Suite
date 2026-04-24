@@ -51,10 +51,11 @@ public class DashboardLayout {
         JsatSettings s = services.getSettings();
 
         // ── Top bar ────────────────────────────────────────────────────────────
-        Label title = styled("J-SAT", "#00e5ff", true, Math.round(s.fontSize * 1.23f));
-        Label callsign = styled(s.callsign, "#aabbdd", true, Math.round(s.fontSize * 1.08f));
-        utcClock = styled("--:--:-- Z", "#88bbff", false, s.fontSize);
-        locClock = styled("--:--:--",   "#6688aa", false, s.fontSize);
+        int topFz = s.effective(s.topBarFontSize);
+        Label title = styled("J-SAT", "#00e5ff", true, Math.round(topFz * 1.23f));
+        Label callsign = styled(s.callsign, "#aabbdd", true, Math.round(topFz * 1.08f));
+        utcClock = styled("--:--:-- Z", "#88bbff", false, topFz);
+        locClock = styled("--:--:--",   "#6688aa", false, topFz);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -73,7 +74,7 @@ public class DashboardLayout {
         rigRotor = new RigRotorPanel(services);
 
         // ── Center: world map with floating polar plot overlay ─────────────────
-        VBox polarCard = livePass.buildPolarCard(s.fontSize);
+        VBox polarCard = livePass.buildPolarCard(s.effective(s.livePassFontSize));
         StackPane.setAlignment(polarCard, Pos.BOTTOM_LEFT);
         StackPane.setMargin(polarCard, new Insets(0, 0, 12, 12));
         StackPane centerPane = new StackPane(worldMap, polarCard);

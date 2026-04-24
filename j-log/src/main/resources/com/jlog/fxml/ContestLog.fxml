@@ -26,7 +26,6 @@
                     </Menu>
                     <Menu text="%menu.setup">
                         <items>
-                            <MenuItem text="Database Tools"  onAction="#menuDatabaseTools"/>
                             <MenuItem text="J-Hub Setup UI"  onAction="#menuSetup"/>
                         </items>
                     </Menu>
@@ -45,6 +44,7 @@
                 <padding><Insets right="12" top="2" bottom="2"/></padding>
                 <Label fx:id="lblRoster"       styleClass="civ-status"/>
                 <Label fx:id="lblSyncProgress" styleClass="civ-status"/>
+                <Label fx:id="lblSolar"        styleClass="civ-status"/>
                 <Label fx:id="lblCivStatus"    styleClass="civ-status" text="CI-V: —"/>
                 <Label fx:id="lblStatus" styleClass="status-label"/>
             </HBox>

@@ -34,7 +34,7 @@ public class SpaceWeatherPanel extends HBox {
 
     public SpaceWeatherPanel(ServiceRegistry services) {
         this.services = services;
-        int fz = services.getSettings().fontSize;
+        int fz = services.getSettings().effective(services.getSettings().spaceWeatherFontSize);
 
         setSpacing(0);
         setPadding(new Insets(6, 8, 6, 8));

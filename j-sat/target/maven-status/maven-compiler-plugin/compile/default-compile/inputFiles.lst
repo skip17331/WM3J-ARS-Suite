@@ -1,4 +1,5 @@
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/api/JsatApiServer.java
+/home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/CrashHandler.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/JSatApp.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/ServiceRegistry.java
 /home/mike/ARS_Suite/j-sat/src/main/java/com/hamradio/jsat/app/SplashScreen.java

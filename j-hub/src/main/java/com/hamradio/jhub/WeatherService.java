@@ -110,6 +110,38 @@ public class WeatherService {
             }
         } catch (Exception e) { log.debug("Kp fetch: {}", e.getMessage()); }
 
+        // SFI (10.7cm Solar Flux Index) — key ham-band propagation number
+        try {
+            JsonArray arr = getArray(NOAA_BASE + "f107_cm_flux.json");
+            if (arr != null) {
+                for (int i = arr.size() - 1; i >= 0; i--) {
+                    JsonObject row = arr.get(i).getAsJsonObject();
+                    JsonElement v = row.has("flux") ? row.get("flux")
+                                  : row.has("observed_flux") ? row.get("observed_flux") : null;
+                    if (v != null && !v.isJsonNull()) {
+                        try { sw.addProperty("sfi", v.getAsDouble()); break; }
+                        catch (Exception ignored) {}
+                    }
+                }
+            }
+        } catch (Exception e) { log.debug("SFI fetch: {}", e.getMessage()); }
+
+        // Sunspot number — from NOAA solar-cycle data
+        try {
+            JsonArray arr = getArray(NOAA_BASE + "solar-cycle/observed-solar-cycle-indices.json");
+            if (arr != null) {
+                for (int i = arr.size() - 1; i >= 0; i--) {
+                    JsonObject row = arr.get(i).getAsJsonObject();
+                    JsonElement v = row.has("ssn") ? row.get("ssn")
+                                  : row.has("sunspot_number") ? row.get("sunspot_number") : null;
+                    if (v != null && !v.isJsonNull()) {
+                        try { sw.addProperty("sunspots", v.getAsDouble()); break; }
+                        catch (Exception ignored) {}
+                    }
+                }
+            }
+        } catch (Exception e) { log.debug("Sunspot fetch: {}", e.getMessage()); }
+
         // Solar wind plasma (speed index[2], density index[1], row[0] = header)
         try {
             JsonArray arr = getArray(NOAA_PRODUCTS + "solar-wind/plasma-1-day.json");

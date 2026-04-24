@@ -73,6 +73,11 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new JSatApiServlet()),        "/api/jsat");
         ctx.addServlet(new ServletHolder(new JSatTleStatusServlet()), "/api/jsat/tle-status");
         ctx.addServlet(new ServletHolder(new JLogApiServlet()),        "/api/jlog");
+        ctx.addServlet(new ServletHolder(new JLogRestartServlet()),    "/api/jlog/restart");
+        ctx.addServlet(new ServletHolder(new AppRestartServlet("jMap",    "j-map")),     "/api/jmap/restart");
+        ctx.addServlet(new ServletHolder(new AppRestartServlet("j-digi",  "j-digi")),    "/api/jdigi/restart");
+        ctx.addServlet(new ServletHolder(new AppRestartServlet("j-bridge","jBridge")),   "/api/jbridge/restart");
+        ctx.addServlet(new ServletHolder(new AppRestartServlet("j-sat",   "j-sat")),     "/api/jsat/restart");
         ctx.addServlet(new ServletHolder(new JDigiApiServlet()),       "/api/jdigi");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
@@ -80,6 +85,9 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
         ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
         ctx.addServlet(new ServletHolder(new JBridgeApiServlet()),   "/api/jbridge");
+        ctx.addServlet(new ServletHolder(new SessionsApiServlet()),  "/api/sessions");
+        ctx.addServlet(new ServletHolder(new DepsApiServlet()),      "/api/deps");
+        ctx.addServlet(new ServletHolder(new DiagnosticsBundleServlet()), "/api/diagnostics/bundle");
         ctx.addServlet(new ServletHolder(new DbApiServlet()),        "/api/db/*");
         ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("world_map.jpg", "RELOAD_MAP_IMAGE")), "/api/jmap/map-image");
         ctx.addServlet(new ServletHolder(new JMapImageUploadServlet("gcm.jpg",       "RELOAD_GCM")),       "/api/jmap/gcm-image");
@@ -818,6 +826,243 @@ public class WebConfigServer {
     }
 
     // ---------------------------------------------------------------
+    // /api/jlog/restart — send SHUTDOWN to the j-log UI and relaunch
+    // ---------------------------------------------------------------
+
+    private class JLogRestartServlet extends HttpServlet {
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            JHubServer server = router.getJHubServer();
+            // The j-log UI registers as "logging-engine" on the hub; send it
+            // a SHUTDOWN so JLogApp.setOnShutdown fires and Platform.exit()
+            // runs the stop() hook (WebSocket close + DB close).
+            if (server != null) {
+                server.broadcastToAppName("logging-engine",
+                    "{\"type\":\"SHUTDOWN\",\"reason\":\"restart-requested\"}");
+            }
+            // Re-launch after a short delay so the old process has time to
+            // release its ports/file locks. Runs on a daemon thread so the
+            // HTTP response returns immediately.
+            Thread t = new Thread(() -> {
+                try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
+                try {
+                    JHubConfig.AppsSection apps = ConfigManager.getInstance().getApps();
+                    String cmd = (apps != null && apps.jLog != null) ? apps.jLog.command : null;
+                    if (cmd == null || cmd.isBlank()) {
+                        log.warn("Cannot restart j-log: no launch command configured");
+                        return;
+                    }
+                    AppLauncher.getInstance().launch("j-log", cmd);
+                } catch (Exception e) {
+                    log.warn("j-log relaunch failed: {}", e.getMessage());
+                }
+            }, "jlog-restart");
+            t.setDaemon(true);
+            t.start();
+
+            json(res, "{\"status\":\"restarting\"}");
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/{jmap,jdigi,jbridge,jsat}/restart — generic shutdown + relaunch
+    // ---------------------------------------------------------------
+
+    /** Restart one of the managed apps: broadcast SHUTDOWN to its connected
+     *  session, wait briefly for the process to unwind, then re-launch via
+     *  {@link AppLauncher} using the command saved in {@code j-hub.json}. */
+    private class AppRestartServlet extends HttpServlet {
+        private final String launcherKey;   // e.g. "j-map" — key for AppLauncher + config
+        private final String wsAppName;     // e.g. "j-map" — appName used on the WebSocket
+        AppRestartServlet(String launcherKey, String wsAppName) {
+            this.launcherKey = launcherKey;
+            this.wsAppName   = wsAppName;
+        }
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            JHubServer server = router.getJHubServer();
+            if (server != null) {
+                server.broadcastToAppName(wsAppName,
+                    "{\"type\":\"SHUTDOWN\",\"reason\":\"restart-requested\"}");
+            }
+            Thread t = new Thread(() -> {
+                try { Thread.sleep(2500); } catch (InterruptedException ignored) {}
+                try {
+                    JHubConfig.AppsSection apps = ConfigManager.getInstance().getApps();
+                    JHubConfig.AppLaunchEntry entry = entryFor(apps, launcherKey);
+                    String cmd = (entry != null) ? entry.command : null;
+                    if (cmd == null || cmd.isBlank()) {
+                        log.warn("Cannot restart {}: no launch command configured", launcherKey);
+                        return;
+                    }
+                    AppLauncher.getInstance().launch(launcherKey, cmd);
+                } catch (Exception e) {
+                    log.warn("{} relaunch failed: {}", launcherKey, e.getMessage());
+                }
+            }, launcherKey + "-restart");
+            t.setDaemon(true);
+            t.start();
+            json(res, "{\"status\":\"restarting\"}");
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+        private JHubConfig.AppLaunchEntry entryFor(JHubConfig.AppsSection apps, String name) {
+            if (apps == null) return null;
+            if ("jMap".equals(name))     return apps.jMap;
+            if ("j-log".equals(name))    return apps.jLog;
+            if ("j-bridge".equals(name)) return apps.jBridge;
+            if ("j-digi".equals(name))   return apps.jDigi;
+            if ("j-sat".equals(name))    return apps.jSat;
+            return null;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/diagnostics/bundle — zip of all module logs + config snapshot
+    //
+    // Used by beta testers to attach a support bundle to bug reports. Walks
+    // the standard ARS_Suite layout ($ARS_SUITE_HOME or ~/ARS_Suite) and
+    // collects every module's logs/*.log plus the active j-hub.json, the
+    // current session list, and deps-check output.
+    // ---------------------------------------------------------------
+
+    private class DiagnosticsBundleServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String stamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+            res.setContentType("application/zip");
+            res.setHeader("Content-Disposition",
+                "attachment; filename=\"ars-diag-" + stamp + ".zip\"");
+            res.setHeader("Access-Control-Allow-Origin", "*");
+
+            java.nio.file.Path arsRoot = resolveArsRoot();
+            try (java.util.zip.ZipOutputStream zip =
+                    new java.util.zip.ZipOutputStream(res.getOutputStream())) {
+
+                // 1. Logs from each module
+                String[] modules = { "j-hub", "j-log", "j-map", "j-digi", "j-bridge", "j-sat", "j-wae" };
+                for (String m : modules) {
+                    java.nio.file.Path logs = arsRoot.resolve(m).resolve("logs");
+                    if (!java.nio.file.Files.isDirectory(logs)) continue;
+                    try (java.util.stream.Stream<java.nio.file.Path> s = java.nio.file.Files.list(logs)) {
+                        for (java.nio.file.Path f : s.toList()) {
+                            if (!java.nio.file.Files.isRegularFile(f)) continue;
+                            String entry = m + "/logs/" + f.getFileName();
+                            zip.putNextEntry(new java.util.zip.ZipEntry(entry));
+                            java.nio.file.Files.copy(f, zip);
+                            zip.closeEntry();
+                        }
+                    }
+                }
+
+                // 2. j-hub config snapshot
+                writeZipEntry(zip, "j-hub/j-hub.json",
+                    ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig()));
+
+                // 3. Live session list + heartbeat timestamps
+                com.google.gson.JsonArray sessions = new com.google.gson.JsonArray();
+                JHubServer server = router.getJHubServer();
+                if (server != null) {
+                    java.time.Instant now = java.time.Instant.now();
+                    for (JHubServer.AppSession s : server.getSessions().values()) {
+                        if (!s.registered) continue;
+                        com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+                        o.addProperty("appName",   s.appName);
+                        o.addProperty("version",   s.version);
+                        o.addProperty("connectedAt", s.connectedAt.toString());
+                        o.addProperty("ageSeconds", java.time.Duration.between(s.connectedAt, now).getSeconds());
+                        sessions.add(o);
+                    }
+                }
+                writeZipEntry(zip, "snapshot/sessions.json", sessions.toString());
+
+                // 4. External dependency check
+                writeZipEntry(zip, "snapshot/deps.json",
+                    DependencyChecker.checkAll().toString());
+
+                // 5. Environment summary — Java version, OS, ARS_SUITE_HOME
+                com.google.gson.JsonObject env = new com.google.gson.JsonObject();
+                env.addProperty("javaVersion",   System.getProperty("java.version", ""));
+                env.addProperty("javaVendor",    System.getProperty("java.vendor",  ""));
+                env.addProperty("osName",        System.getProperty("os.name",      ""));
+                env.addProperty("osArch",        System.getProperty("os.arch",      ""));
+                env.addProperty("osVersion",     System.getProperty("os.version",   ""));
+                env.addProperty("userHome",      System.getProperty("user.home",    ""));
+                env.addProperty("arsSuiteHome",  System.getenv().getOrDefault("ARS_SUITE_HOME", ""));
+                env.addProperty("resolvedRoot",  arsRoot.toString());
+                env.addProperty("bundledAt",     java.time.Instant.now().toString());
+                writeZipEntry(zip, "snapshot/environment.json", env.toString());
+
+            } catch (Exception e) {
+                log.warn("Diagnostics bundle failed: {}", e.getMessage());
+                // Best-effort; client already has a partial zip.
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+
+        private java.nio.file.Path resolveArsRoot() {
+            String env = System.getenv("ARS_SUITE_HOME");
+            if (env != null && !env.isBlank()) return java.nio.file.Path.of(env);
+            return java.nio.file.Path.of(System.getProperty("user.home", ""), "ARS_Suite");
+        }
+
+        private void writeZipEntry(java.util.zip.ZipOutputStream zip, String name, String content) throws IOException {
+            zip.putNextEntry(new java.util.zip.ZipEntry(name));
+            zip.write(content.getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/deps — probe Hamlib + WSJT-X presence and version
+    // ---------------------------------------------------------------
+
+    private static class DepsApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            json(res, DependencyChecker.checkAll().toString());
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/sessions — active WebSocket sessions + heartbeat timestamps
+    // ---------------------------------------------------------------
+
+    private class SessionsApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonArray arr = new com.google.gson.JsonArray();
+            JHubServer server = router.getJHubServer();
+            if (server != null) {
+                java.time.Instant now = java.time.Instant.now();
+                for (JHubServer.AppSession s : server.getSessions().values()) {
+                    if (!s.registered) continue;
+                    com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+                    o.addProperty("appName",       s.appName);
+                    o.addProperty("version",       s.version);
+                    o.addProperty("connectedAt",   s.connectedAt.toString());
+                    o.addProperty("ageSeconds",    java.time.Duration.between(s.connectedAt, now).getSeconds());
+                    o.addProperty("lastMessageAgeSeconds",
+                        s.lastMessageAt != null ? java.time.Duration.between(s.lastMessageAt, now).getSeconds() : -1);
+                    o.addProperty("lastHeartbeatAgeSeconds",
+                        s.lastHeartbeatAt != null ? java.time.Duration.between(s.lastHeartbeatAt, now).getSeconds() : -1);
+                    arr.add(o);
+                }
+            }
+            json(res, arr.toString());
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
     // /api/jbridge — persist J-Bridge settings in j-hub.json
     // ---------------------------------------------------------------
 
@@ -924,6 +1169,65 @@ public class WebConfigServer {
                     if (name.isBlank()) { res.setStatus(400); json(res, "{\"error\":\"No database name provided\"}"); return; }
                     writeActiveDb(name);
                     json(res, "{\"active\":\"" + name + "\"}");
+                } catch (Exception e) {
+                    res.setStatus(500);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+
+            } else if ("/backup".equals(path)) {
+                // Create a timestamped copy of the active DB alongside it in ~/.j-log/
+                try {
+                    String active = readActiveDb();
+                    java.nio.file.Path src = LOG_DIR.resolve(active);
+                    if (!java.nio.file.Files.exists(src)) {
+                        res.setStatus(404);
+                        json(res, "{\"error\":\"Active DB not found: " + active + "\"}");
+                        return;
+                    }
+                    String stamp = java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+                    String backupName = active + ".bak-" + stamp;
+                    java.nio.file.Path dest = LOG_DIR.resolve(backupName);
+                    java.nio.file.Files.copy(src, dest,
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    json(res, "{\"backup\":\"" + backupName + "\"}");
+                } catch (Exception e) {
+                    res.setStatus(500);
+                    json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+
+            } else if ("/import/adif".equals(path)) {
+                // Multipart upload → temp file → ask j-log to run the
+                // existing AdifImporter. j-log must be running; j-hub has no
+                // ADIF parser of its own.
+                try {
+                    JHubServer jhubServer = router.getJHubServer();
+                    if (jhubServer == null || !jhubServer.hasAppConnected("logging-engine")) {
+                        res.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                        json(res, "{\"error\":\"J-Log is not connected — start J-Log first\"}");
+                        return;
+                    }
+                    jakarta.servlet.MultipartConfigElement mpConfig =
+                        new jakarta.servlet.MultipartConfigElement(
+                            System.getProperty("java.io.tmpdir"),
+                            100L * 1024 * 1024, 100L * 1024 * 1024, 1024 * 1024);
+                    req.setAttribute("org.eclipse.jetty.multipartConfig", mpConfig);
+                    jakarta.servlet.http.Part part = req.getPart("adif");
+                    if (part == null) {
+                        res.setStatus(400);
+                        json(res, "{\"error\":\"No file part named 'adif'\"}");
+                        return;
+                    }
+                    java.nio.file.Path tmp = java.nio.file.Files.createTempFile("jhub-import-", ".adi");
+                    try (java.io.InputStream in = part.getInputStream()) {
+                        java.nio.file.Files.copy(in, tmp,
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    com.google.gson.JsonObject msg = new com.google.gson.JsonObject();
+                    msg.addProperty("type", "IMPORT_ADIF");
+                    msg.addProperty("path", tmp.toString());
+                    jhubServer.broadcastToAppName("logging-engine", msg.toString());
+                    json(res, "{\"status\":\"queued\",\"path\":\"" + tmp + "\"}");
                 } catch (Exception e) {
                     res.setStatus(500);
                     json(res, "{\"error\":\"" + e.getMessage() + "\"}");

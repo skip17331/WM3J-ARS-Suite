@@ -86,6 +86,11 @@ public class MainWindow {
         wireUdpCallbacks();
         wireHubCallbacks();
 
+        wsjtxPanel.setOnReconnect(() -> {
+            udp.reconnect();
+            wsjtxPanel.setConnected(false, "");
+        });
+
         hubPanel.setOnReconnect(() -> {
             hub.disconnect();
             hub.connect(cfg.getHubUri());
@@ -100,6 +105,10 @@ public class MainWindow {
         primaryStage.setTitle("J-Bridge  |  ARS Suite");
         scene = buildScene();
         scene.getRoot().getStyleClass().add(isDark ? "dark" : "light");
+        // Apply font preferences from j-hub.json (global baseline + per-pane overrides)
+        int baseFontPx = JBridgeFontScaler.readGlobalFontSize(12);
+        scene.getRoot().setStyle("-fx-font-size: " + baseFontPx + "px;");
+        JBridgeFontScaler.apply(scene);
         primaryStage.setScene(scene);
         primaryStage.setWidth(1110);
         primaryStage.setHeight(680);

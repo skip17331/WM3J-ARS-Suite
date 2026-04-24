@@ -37,6 +37,8 @@ public class JHubClient {
     private Consumer<JsonNode> onSpotSelected;
     private Consumer<JsonNode> onStationUpdate;
 
+    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
+
     private final ScheduledExecutorService reconnectScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "jsat-hub-reconnect");
         t.setDaemon(true);
@@ -192,6 +194,12 @@ public class JHubClient {
                 } catch (Exception e) {
                     log.warn("APP_CONNECTED send failed", e);
                 }
+                if (heartbeatFuture != null) heartbeatFuture.cancel(false);
+                heartbeatFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
+                    if (!isOpen()) return;
+                    try { send("{\"type\":\"HEARTBEAT\",\"appName\":\"j-sat\"}"); }
+                    catch (Exception ignored) {}
+                }, 15, 15, TimeUnit.SECONDS);
             }
 
             @Override
@@ -200,6 +208,10 @@ public class JHubClient {
                     JsonNode msg = MAPPER.readTree(message);
                     String type = msg.path("type").asText("");
                     switch (type) {
+                        case "SHUTDOWN" -> {
+                            log.info("SHUTDOWN received from j-hub — exiting");
+                            javafx.application.Platform.runLater(javafx.application.Platform::exit);
+                        }
                         case "RIG_STATUS"    -> { if (onRigStatus     != null) onRigStatus.accept(msg); }
                         case "ROTOR_STATUS"  -> { if (onRotorStatus   != null) onRotorStatus.accept(msg); }
                         case "SPOT_SELECTED" -> { if (onSpotSelected  != null) onSpotSelected.accept(msg); }
@@ -219,6 +231,7 @@ public class JHubClient {
             @Override
             public void onClose(int code, String reason, boolean remote) {
                 connecting = false;
+                if (heartbeatFuture != null) { heartbeatFuture.cancel(false); heartbeatFuture = null; }
                 log.info("J-Hub connection closed (code={} reason={})", code, reason);
                 if (!intentionalClose) scheduleReconnect();
             }

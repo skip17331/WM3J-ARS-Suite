@@ -18,10 +18,37 @@ public abstract class FloatingWindow extends VBox {
     protected final Label titleLabel;
     protected final VBox  contentBox;
 
+    /** Frame-only style (colors, borders); font-size is appended separately so
+     *  subclasses can flip frame state (e.g. countdown flash) without losing
+     *  the per-window font-size override. */
+    private String frameStyle = "-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;";
+    private int    baseFontSizePx = 0;   // 0 = inherit from scene root
+
     public void setOnPositionSaved(Runnable callback) { this.onPositionSaved = callback; }
 
+    /** Set the base font size for this window in px. Children using em-relative
+     *  sizes scale from here. Pass 0 to inherit from the scene root. */
+    public void setBaseFontSize(int px) {
+        this.baseFontSizePx = px;
+        refreshFrameStyle();
+    }
+
+    /** Subclasses use this instead of {@code setStyle(...)} when they need to
+     *  flip the frame colors transiently (e.g. the countdown flash states),
+     *  so the per-window font-size override is preserved. */
+    protected void setFrameStyle(String s) {
+        this.frameStyle = s;
+        refreshFrameStyle();
+    }
+
+    private void refreshFrameStyle() {
+        String full = frameStyle;
+        if (baseFontSizePx > 0) full += " -fx-font-size: " + baseFontSizePx + "px;";
+        setStyle(full);
+    }
+
     public FloatingWindow(String title, double prefWidth) {
-        setStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
+        refreshFrameStyle();
         setPrefWidth(prefWidth);
         setMaxWidth(prefWidth);
 

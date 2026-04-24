@@ -45,15 +45,17 @@ public class SplashScreen {
         }
 
         Image img = new Image(iconStream);
+        double w = img.getWidth()  * 0.6;   // 40% smaller than native
+        double h = img.getHeight() * 0.6;
         ImageView iv = new ImageView(img);
         iv.setPreserveRatio(true);
-        iv.setFitWidth(img.getWidth());
-        iv.setFitHeight(img.getHeight());
+        iv.setFitWidth(w);
+        iv.setFitHeight(h);
 
         StackPane root = new StackPane(iv);
         root.setStyle("-fx-background-color: transparent;");
 
-        Scene scene = new Scene(root, img.getWidth(), img.getHeight());
+        Scene scene = new Scene(root, w, h);
         scene.setFill(Color.TRANSPARENT);
         splashStage.setScene(scene);
         splashStage.centerOnScreen();

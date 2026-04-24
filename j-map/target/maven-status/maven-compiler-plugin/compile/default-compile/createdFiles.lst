@@ -109,6 +109,7 @@ com/wm3j/jmap/service/geomag/GeomagneticAlertProvider.class
 com/wm3j/jmap/service/lightning/LiveLightningProvider.class
 com/wm3j/jmap/ui/main/MainWindow.class
 com/wm3j/jmap/ui/panels/TimePanel.class
+com/wm3j/jmap/app/CrashHandler.class
 com/wm3j/jmap/service/fronts/MockFrontsProvider.class
 com/wm3j/jmap/service/radar/RainViewerRadarProvider.class
 com/wm3j/jmap/service/dx/MockDxSpotProvider.class

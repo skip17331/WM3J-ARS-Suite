@@ -75,10 +75,10 @@ public class CountdownTimerWindow extends FloatingWindow {
             if (flashVisible) {
                 timeDisplay.setText("0:00");
                 timeDisplay.setStyle("-fx-font-size: 2.77em; -fx-font-weight: bold; -fx-text-fill: #ff4455; -fx-alignment: center;");
-                setStyle("-fx-background-color: #1a0505; -fx-border-color: #ff4455; -fx-border-width: 2;");
+                setFrameStyle("-fx-background-color: #1a0505; -fx-border-color: #ff4455; -fx-border-width: 2;");
             } else {
                 timeDisplay.setStyle("-fx-font-size: 2.77em; -fx-font-weight: bold; -fx-text-fill: transparent; -fx-alignment: center;");
-                setStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
+                setFrameStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
             }
 
             if (++flashCount >= FLASH_CYCLES) stopFlash();
@@ -93,7 +93,7 @@ public class CountdownTimerWindow extends FloatingWindow {
         flashVisible     = true;
         remainingSeconds = TOTAL_SECONDS;
         statusLabel.setText("RUNNING");
-        setStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
+        setFrameStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
         renderTime();
     }
 
@@ -102,7 +102,7 @@ public class CountdownTimerWindow extends FloatingWindow {
         flashing         = false;
         remainingSeconds = TOTAL_SECONDS;
         statusLabel.setText("RUNNING");
-        setStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
+        setFrameStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
         renderTime();
     }
 }

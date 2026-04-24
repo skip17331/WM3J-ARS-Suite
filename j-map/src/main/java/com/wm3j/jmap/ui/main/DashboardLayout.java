@@ -316,12 +316,13 @@ public class DashboardLayout {
         if (rotorMap    != null) rotorMap.setVisible(s.isShowRotorMap());
         if (worldMap    != null) worldMap.settingsChanged();
         if (timePanel   != null) timePanel.settingsChanged(s);
-        if (contestList != null) contestList.setVisible(s.isShowContestList());
-        if (deWindow    != null) deWindow.setVisible(s.isShowDeWindow());
+        if (contestList != null) { contestList.setVisible(s.isShowContestList());          contestList.setBaseFontSize(s.getContestListFontSize()); }
+        if (deWindow    != null) { deWindow.setVisible(s.isShowDeWindow());                deWindow.setBaseFontSize(s.getDeInfoFontSize()); }
         if (dxWindow    != null) {
             if (!s.isShowDxWindow()) dxWindow.setVisible(false);
+            dxWindow.setBaseFontSize(s.getDxInfoFontSize());
         }
-        if (propagationModelWindow != null) propagationModelWindow.setVisible(s.isShowPropagationModelWindow());
-        if (lunarWindow != null) lunarWindow.setVisible(s.isShowLunarPlanetaryWindow());
+        if (propagationModelWindow != null) { propagationModelWindow.setVisible(s.isShowPropagationModelWindow()); propagationModelWindow.setBaseFontSize(s.getPropagationFontSize()); }
+        if (lunarWindow != null) { lunarWindow.setVisible(s.isShowLunarPlanetaryWindow()); lunarWindow.setBaseFontSize(s.getLunarFontSize()); }
     }
 }

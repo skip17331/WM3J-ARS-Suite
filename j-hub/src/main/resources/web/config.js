@@ -409,8 +409,21 @@ function populateJSatTab(cfg) {
 
   const fsEl  = document.getElementById('jsat-font-size');
   const fsLbl = document.getElementById('jsat-font-size-val');
-  if (fsEl)  fsEl.value = s.fontSize || 13;
-  if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+  if (fsEl)  fsEl.value = s.fontSize || 15;
+  if (fsLbl) fsLbl.textContent = s.fontSize || 15;
+
+  const setFontSlider = (id, valId, v) => {
+    const el  = document.getElementById(id);
+    const lbl = document.getElementById(valId);
+    const n   = (typeof v === 'number' ? v : 0);
+    if (el)  el.value = n;
+    if (lbl) lbl.textContent = (n === 0 ? 'auto' : n);
+  };
+  setFontSlider('jsat-font-topbar',   'jsat-font-topbar-val',   s.topBarFontSize);
+  setFontSlider('jsat-font-livepass', 'jsat-font-livepass-val', s.livePassFontSize);
+  setFontSlider('jsat-font-passlist', 'jsat-font-passlist-val', s.passListFontSize);
+  setFontSlider('jsat-font-weather',  'jsat-font-weather-val',  s.spaceWeatherFontSize);
+  setFontSlider('jsat-font-rigrotor', 'jsat-font-rigrotor-val', s.rigRotorFontSize);
 
   setChk('jsat-doppler-enable',    !!s.rigControlEnabled);
   setChk('jsat-rotor-enable',      !!s.rotorControlEnabled);
@@ -438,8 +451,14 @@ function populateJSatTab(cfg) {
 }
 
 function saveJSatSettings() {
+  const intOf = id => parseInt(document.getElementById(id).value, 10) || 0;
   const settings = {
-    fontSize:             parseInt(document.getElementById('jsat-font-size').value) || 13,
+    fontSize:             intOf('jsat-font-size') || 15,
+    topBarFontSize:       intOf('jsat-font-topbar'),
+    livePassFontSize:     intOf('jsat-font-livepass'),
+    passListFontSize:     intOf('jsat-font-passlist'),
+    spaceWeatherFontSize: intOf('jsat-font-weather'),
+    rigRotorFontSize:     intOf('jsat-font-rigrotor'),
     callsign:             document.getElementById('jsat-callsign').value.trim() || undefined,
     qthLat:               parseFloat(document.getElementById('jsat-lat').value)  || undefined,
     qthLon:               parseFloat(document.getElementById('jsat-lon').value)  || undefined,
@@ -1278,14 +1297,22 @@ function handleImport(input) {
 }
 
 function exportDiag() {
-  fetch('/api/status').then(r => r.json()).then(status => {
-    const diag = { timestamp: new Date().toISOString(), status, config: state.config };
-    const blob = new Blob([JSON.stringify(diag, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'j-hub-diagnostics.json';
-    a.click();
-  });
+  // Pulls a zip from j-hub containing every module's logs/*.log + a config
+  // snapshot, current sessions, deps check, and environment info. Attach the
+  // resulting file to bug reports.
+  fetch('/api/diagnostics/bundle')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.blob();
+    })
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      a.download = 'ars-diag-' + stamp + '.zip';
+      a.click();
+    })
+    .catch(() => alert('Diagnostics bundle failed — check j-hub logs'));
 }
 
 // ── Utilities ──────────────────────────────────────────────
@@ -1404,6 +1431,19 @@ function populateJMapForm(s) {
   if (fsEl)  fsEl.value = s.fontSize || 13;
   if (fsLbl) fsLbl.textContent = s.fontSize || 13;
 
+  const setFontSlider = (id, valId, v) => {
+    const el  = document.getElementById(id);
+    const lbl = document.getElementById(valId);
+    const n   = (typeof v === 'number' ? v : 0);
+    if (el)  el.value = n;
+    if (lbl) lbl.textContent = (n === 0 ? 'auto' : n);
+  };
+  setFontSlider('jm-font-de',      'jm-font-de-val',      s.deInfoFontSize);
+  setFontSlider('jm-font-dx',      'jm-font-dx-val',      s.dxInfoFontSize);
+  setFontSlider('jm-font-contest', 'jm-font-contest-val', s.contestListFontSize);
+  setFontSlider('jm-font-prop',    'jm-font-prop-val',    s.propagationFontSize);
+  setFontSlider('jm-font-lunar',   'jm-font-lunar-val',   s.lunarFontSize);
+
   setChk('jm-mock',      !!s.useMockData);
   setVal('jm-noaa-key',  s.noaaApiKey         || '');
   setVal('jm-owm-key',   s.openWeatherApiKey  || '');
@@ -1466,6 +1506,11 @@ function saveJMapSettings() {
 
   const settings = {
     fontSize:               intn('jm-font-size') || 13,
+    deInfoFontSize:         intn('jm-font-de'),
+    dxInfoFontSize:         intn('jm-font-dx'),
+    contestListFontSize:    intn('jm-font-contest'),
+    propagationFontSize:    intn('jm-font-prop'),
+    lunarFontSize:          intn('jm-font-lunar'),
     useMockData:            chk('jm-mock'),
     noaaApiKey:             val('jm-noaa-key').trim(),
     openWeatherApiKey:      val('jm-owm-key').trim(),
@@ -1526,23 +1571,73 @@ function loadJLogSettings() {
 }
 
 function populateJLogForm(s) {
-  const fsEl  = document.getElementById('jlog-font-size');
-  const fsLbl = document.getElementById('jlog-font-size-val');
-  if (fsEl)  fsEl.value = s.fontSize || 13;
-  if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+  const setSlider = (id, valId, v, dflt) => {
+    const el  = document.getElementById(id);
+    const lbl = document.getElementById(valId);
+    const n   = (typeof v === 'number') ? v : dflt;
+    if (el)  el.value = n;
+    if (lbl) lbl.textContent = n;
+  };
+  setSlider('jlog-font-size',      'jlog-font-size-val',      s.fontSize, 13);
+  const f = s.fonts || {};
+  setSlider('jlog-font-statusbar', 'jlog-font-statusbar-val', f.statusBar, 12);
+  setSlider('jlog-font-entry',     'jlog-font-entry-val',     f.entry,     13);
+  setSlider('jlog-font-table',     'jlog-font-table-val',     f.table,     12);
+  setSlider('jlog-font-info',      'jlog-font-info-val',      f.info,      12);
+  setSlider('jlog-font-spots',     'jlog-font-spots-val',     f.spots,     12);
+
+  const wx = document.getElementById('jlog-show-spacewx');
+  if (wx) wx.checked = (s.showSpaceWeather !== false);   // default true
 }
 
 function saveJLogSettings() {
-  const fontSize = parseInt(document.getElementById('jlog-font-size').value) || 13;
+  const intOf = id => parseInt(document.getElementById(id).value, 10);
+  const wxEl  = document.getElementById('jlog-show-spacewx');
+  const payload = {
+    fontSize: intOf('jlog-font-size') || 13,
+    showSpaceWeather: wxEl ? wxEl.checked : true,
+    fonts: {
+      statusBar: intOf('jlog-font-statusbar') || 12,
+      entry:     intOf('jlog-font-entry')     || 13,
+      table:     intOf('jlog-font-table')     || 12,
+      info:      intOf('jlog-font-info')      || 12,
+      spots:     intOf('jlog-font-spots')     || 12,
+    }
+  };
   fetch('/api/jlog', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ fontSize })
+    body: JSON.stringify(payload)
   })
   .then(r => r.json())
-  .then(() => flashMsg('jlog-msg', 'J-Log settings saved'))
+  .then(() => flashMsg('jlog-msg', 'J-Log settings saved — restart J-Log for per-pane overrides'))
   .catch(() => flashMsg('jlog-msg', 'Error', true));
 }
+
+function restartJLog() {
+  // Best-effort: save current settings first, then ask j-hub to shut down +
+  // re-launch the j-log process. The UI's stop() hook flushes SQLite writes
+  // and closes the WebSocket cleanly before exit.
+  saveJLogSettings();
+  fetch('/api/jlog/restart', { method: 'POST' })
+    .then(r => r.json())
+    .then(() => flashMsg('jlog-msg', 'J-Log restart requested — it will reappear in a few seconds'))
+    .catch(() => flashMsg('jlog-msg', 'Restart failed', true));
+}
+
+/** Save-then-restart helper for j-map / j-digi / j-bridge / j-sat. */
+function _saveAndRestart(saveFn, endpoint, msgEl) {
+  try { saveFn(); } catch (ignored) {}
+  fetch(endpoint, { method: 'POST' })
+    .then(r => r.json())
+    .then(() => flashMsg(msgEl, 'Restart requested — the app will reappear in a few seconds'))
+    .catch(() => flashMsg(msgEl, 'Restart failed', true));
+}
+
+function restartJMap()    { _saveAndRestart(saveJMapSettings,    '/api/jmap/restart',    'jmap-msg');    }
+function restartJDigi()   { _saveAndRestart(saveJDigiSettings,   '/api/jdigi/restart',   'jdigi-msg');   }
+function restartJBridge() { _saveAndRestart(saveJBridgeSettings, '/api/jbridge/restart', 'jbridge-msg'); }
+function restartJSat()    { _saveAndRestart(saveJSatSettings,    '/api/jsat/restart',    'jsat-msg');    }
 
 // ── J-Digi settings (font size only — launch config removed) ─
 function loadJDigiSettings() {
@@ -1557,14 +1652,38 @@ function populateJDigiForm(s) {
   const fsLbl = document.getElementById('jdigi-font-size-val');
   if (fsEl)  fsEl.value = s.fontSize || 13;
   if (fsLbl) fsLbl.textContent = s.fontSize || 13;
+
+  const setFontSlider = (id, valId, v) => {
+    const el  = document.getElementById(id);
+    const lbl = document.getElementById(valId);
+    const n   = (typeof v === 'number' ? v : 0);
+    if (el)  el.value = n;
+    if (lbl) lbl.textContent = (n === 0 ? 'auto' : n);
+  };
+  const f = s.fonts || {};
+  setFontSlider('jdigi-font-rxtx',      'jdigi-font-rxtx-val',      f.rxTx);
+  setFontSlider('jdigi-font-freq',      'jdigi-font-freq-val',      f.freq);
+  setFontSlider('jdigi-font-statusbar', 'jdigi-font-statusbar-val', f.statusBar);
+  setFontSlider('jdigi-font-toolbar',   'jdigi-font-toolbar-val',   f.toolbar);
+  setFontSlider('jdigi-font-entry',     'jdigi-font-entry-val',     f.entry);
 }
 
 function saveJDigiSettings() {
-  const fontSize = parseInt(document.getElementById('jdigi-font-size').value) || 13;
+  const intOf = id => parseInt(document.getElementById(id).value, 10) || 0;
+  const payload = {
+    fontSize: intOf('jdigi-font-size') || 13,
+    fonts: {
+      rxTx:      intOf('jdigi-font-rxtx'),
+      freq:      intOf('jdigi-font-freq'),
+      statusBar: intOf('jdigi-font-statusbar'),
+      toolbar:   intOf('jdigi-font-toolbar'),
+      entry:     intOf('jdigi-font-entry'),
+    }
+  };
   fetch('/api/jdigi', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ fontSize })
+    body: JSON.stringify(payload)
   })
   .then(r => r.json())
   .then(() => flashMsg('jdigi-msg', 'J-Digi settings saved'))
@@ -1581,17 +1700,45 @@ function loadJBridgeSettings() {
 
 function populateJBridgeForm(s) {
   setVal('jbridge-wsjtx-path', s.wsjtxPath || '');
+
+  const fsEl  = document.getElementById('jbridge-font-size');
+  const fsLbl = document.getElementById('jbridge-font-size-val');
+  if (fsEl)  fsEl.value = s.fontSize || 12;
+  if (fsLbl) fsLbl.textContent = s.fontSize || 12;
+
+  const setFontSlider = (id, valId, v) => {
+    const el  = document.getElementById(id);
+    const lbl = document.getElementById(valId);
+    const n   = (typeof v === 'number' ? v : 0);
+    if (el)  el.value = n;
+    if (lbl) lbl.textContent = (n === 0 ? 'auto' : n);
+  };
+  const f = s.fonts || {};
+  setFontSlider('jbridge-font-toolbar', 'jbridge-font-toolbar-val', f.toolbar);
+  setFontSlider('jbridge-font-sidebar', 'jbridge-font-sidebar-val', f.sidebar);
+  setFontSlider('jbridge-font-band',    'jbridge-font-band-val',    f.band);
+  setFontSlider('jbridge-font-table',   'jbridge-font-table-val',   f.table);
 }
 
 function saveJBridgeSettings() {
-  const wsjtxPath = document.getElementById('jbridge-wsjtx-path').value.trim();
+  const intOf = id => parseInt(document.getElementById(id).value, 10) || 0;
+  const payload = {
+    wsjtxPath: document.getElementById('jbridge-wsjtx-path').value.trim(),
+    fontSize:  intOf('jbridge-font-size') || 12,
+    fonts: {
+      toolbar: intOf('jbridge-font-toolbar'),
+      sidebar: intOf('jbridge-font-sidebar'),
+      band:    intOf('jbridge-font-band'),
+      table:   intOf('jbridge-font-table'),
+    }
+  };
   fetch('/api/jbridge', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ wsjtxPath })
+    body: JSON.stringify(payload)
   })
   .then(r => r.json())
-  .then(() => flashMsg('jbridge-msg', 'J-Bridge settings saved'))
+  .then(() => flashMsg('jbridge-msg', 'J-Bridge settings saved — restart J-Bridge to apply'))
   .catch(() => flashMsg('jbridge-msg', 'Error', true));
 }
 
@@ -1696,6 +1843,36 @@ function exportCsv() {
     });
   })
   .catch(() => flashMsg('db-export-msg', 'Export error', true));
+}
+
+function importAdifFile(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  const form = new FormData();
+  form.append('adif', f);
+  flashMsg('db-export-msg', 'Uploading ' + f.name + '…');
+  fetch('/api/db/import/adif', { method: 'POST', body: form })
+    .then(r => r.json().then(j => ({ ok: r.ok, j })))
+    .then(({ ok, j }) => {
+      if (!ok) {
+        flashMsg('db-export-msg', j.error || 'Import failed', true);
+      } else {
+        flashMsg('db-export-msg', 'Import queued — J-Log is processing ' + f.name);
+      }
+    })
+    .catch(() => flashMsg('db-export-msg', 'Import error', true))
+    .finally(() => { input.value = ''; });
+}
+
+function backupActiveDb() {
+  flashMsg('db-backup-msg', 'Backing up…');
+  fetch('/api/db/backup', { method: 'POST' })
+    .then(r => r.json().then(j => ({ ok: r.ok, j })))
+    .then(({ ok, j }) => {
+      if (!ok) flashMsg('db-backup-msg', j.error || 'Backup failed', true);
+      else     flashMsg('db-backup-msg', 'Backup created: ' + j.backup);
+    })
+    .catch(() => flashMsg('db-backup-msg', 'Backup error', true));
 }
 
 // ── Weather tab ────────────────────────────────────────────
@@ -2033,3 +2210,89 @@ setInterval(tickClock, 1000);
 setInterval(pollStatus, 2000);
 setInterval(pollSpots, 10000);
 setInterval(loadJSatTleStatus, 60000);
+pollSessions();
+setInterval(pollSessions, 5000);
+pollDeps();
+
+// ── Connected-apps dashboard card ─────────────────────────
+function pollSessions() {
+  fetch('/api/sessions')
+    .then(r => r.json())
+    .then(renderSessionList)
+    .catch(() => {});
+}
+
+function renderSessionList(sessions) {
+  const box   = document.getElementById('d-apps-list');
+  const count = document.getElementById('d-apps-count');
+  if (!box) return;
+  count.textContent = sessions.length ? '(' + sessions.length + ')' : '';
+  if (!sessions.length) {
+    box.innerHTML = '<span style="color:var(--overlay0)">No apps connected</span>';
+    return;
+  }
+  const fmtAge = sec => {
+    if (sec == null || sec < 0) return '—';
+    if (sec < 60)   return sec + 's';
+    if (sec < 3600) return Math.floor(sec/60) + 'm';
+    const h = Math.floor(sec/3600), m = Math.floor((sec % 3600)/60);
+    return m === 0 ? h + 'h' : h + 'h ' + m + 'm';
+  };
+  const STALE_MSG = 60, STALE_HB = 45;
+  box.innerHTML = sessions.map(s => {
+    const msgStale = s.lastMessageAgeSeconds   > STALE_MSG;
+    const hbStale  = s.lastHeartbeatAgeSeconds > STALE_HB;
+    const dotColor = (msgStale && hbStale) ? '#f38ba8' : '#a6e3a1';
+    const name = s.appName + (s.version ? ' v' + s.version : '');
+    return '<div>' +
+           '<span style="color:' + dotColor + '">●</span> <strong>' + name + '</strong>' +
+           ' <span style="color:var(--overlay0)">' +
+           'up ' + fmtAge(s.ageSeconds) +
+           ' · msg ' + fmtAge(s.lastMessageAgeSeconds) +
+           ' · hb ' + fmtAge(s.lastHeartbeatAgeSeconds) +
+           '</span></div>';
+  }).join('');
+}
+
+// ── System dependencies (Hamlib, WSJT-X) ───────────────────
+function pollDeps() {
+  const box = document.getElementById('d-deps-list');
+  if (box) box.innerHTML = '<span style="color:var(--overlay0)">Checking…</span>';
+  fetch('/api/deps')
+    .then(r => r.json())
+    .then(renderDeps)
+    .catch(() => { if (box) box.innerHTML = '<span style="color:#f38ba8">Check failed</span>'; });
+}
+
+function renderDeps(d) {
+  const box = document.getElementById('d-deps-list');
+  if (!box) return;
+  const rows = [];
+
+  // Hamlib
+  const h = d.hamlib || {};
+  if (h.installed) {
+    const details = [];
+    if (h.rigctlVersion) details.push('rigctl: ' + h.rigctlVersion);
+    if (h.rotctlVersion) details.push('rotctl: ' + h.rotctlVersion);
+    rows.push('<div><span style="color:#a6e3a1">●</span> <strong>Hamlib</strong> ' +
+              '<span style="color:var(--overlay0)">' +
+              (details.join(' · ') || (h.rigctlPath || h.rotctlPath)) +
+              '</span></div>');
+  } else {
+    rows.push('<div><span style="color:#f38ba8">●</span> <strong>Hamlib</strong> not found ' +
+              '<span style="color:var(--overlay0)">— ' + (h.installHint || '') + '</span></div>');
+  }
+
+  // WSJT-X
+  const w = d.wsjtx || {};
+  if (w.installed) {
+    rows.push('<div><span style="color:#a6e3a1">●</span> <strong>WSJT-X</strong> ' +
+              '<span style="color:var(--overlay0)">' + (w.version || w.path) + '</span></div>');
+  } else {
+    rows.push('<div><span style="color:#f38ba8">●</span> <strong>WSJT-X</strong> not found ' +
+              '<span style="color:var(--overlay0)">— ' + (w.installHint || '') + '</span></div>');
+  }
+
+  box.innerHTML = rows.join('');
+}

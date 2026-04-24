@@ -85,6 +85,7 @@ public class ContestLogController implements Initializable {
     @FXML private Label lblCivStatus;
     @FXML private Label lblRoster;
     @FXML private Label lblSyncProgress;
+    @FXML private Label lblSolar;
 
     // ---- DX pane ----
     @FXML private SplitPane  mainSplitPane;
@@ -166,6 +167,9 @@ public class ContestLogController implements Initializable {
 
         HubEngine.getInstance().setLogEntryDraftListener(node ->
             Platform.runLater(() -> fillFromLogDraft(node)));
+
+        HubEngine.getInstance().setSolarFluxListener(node ->
+            Platform.runLater(() -> updateSolarLabel(node)));
 
         if (AppConfig.getInstance().getCivAutoConnect()) connectCiv();
 
@@ -1837,10 +1841,6 @@ public class ContestLogController implements Initializable {
         new Thread(task).start();
     }
 
-    @FXML private void menuDatabaseTools() {
-        DatabaseToolsController.show(getStage());
-    }
-
     @FXML private void menuSetup() {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081").start(); }
         catch (Exception e) { setStatus(e.getMessage()); }
@@ -1934,6 +1934,17 @@ public class ContestLogController implements Initializable {
 
     private void setStatus(String msg) {
         Platform.runLater(() -> { if (lblStatus != null) lblStatus.setText(msg); });
+    }
+
+    private void updateSolarLabel(JsonNode node) {
+        if (lblSolar == null || node == null) return;
+        StringBuilder sb = new StringBuilder();
+        if (node.hasNonNull("sfi"))  sb.append("SFI ").append(node.get("sfi").asText());
+        if (node.hasNonNull("a"))    sb.append(sb.length() > 0 ? " | A " : "A ").append(node.get("a").asText());
+        if (node.hasNonNull("k"))    sb.append(sb.length() > 0 ? " K " : "K ").append(node.get("k").asText());
+        if (node.hasNonNull("sn"))   sb.append(sb.length() > 0 ? " | SN " : "SN ").append(node.get("sn").asText());
+        if (node.hasNonNull("muf"))  sb.append(sb.length() > 0 ? " | MUF " : "MUF ").append(node.get("muf").asText());
+        lblSolar.setText(sb.toString());
     }
 
     private Stage getStage() {

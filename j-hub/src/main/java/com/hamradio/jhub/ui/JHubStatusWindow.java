@@ -92,7 +92,9 @@ public class JHubStatusWindow {
 
     public void show() {
         stage.setTitle("j-Hub");
-        stage.setResizable(false);
+        stage.setResizable(true);
+        stage.setMinWidth(380);
+        stage.setMinHeight(420);
         stage.setOnCloseRequest(e -> {
             e.consume();
             ticker.stop();
@@ -108,7 +110,14 @@ public class JHubStatusWindow {
         });
 
         VBox root = buildUI();
-        Scene scene = new Scene(root, 420, 716);
+        // Wrap in a ScrollPane so content like the Connected Apps + System
+        // Dependencies cards can overflow without being clipped.
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setStyle("-fx-background: " + C_BASE + "; -fx-background-color: " + C_BASE + ";");
+        Scene scene = new Scene(scroll, 420, 720);
         scene.setFill(Color.web(C_BASE));
         stage.setScene(scene);
         stage.show();
@@ -196,11 +205,15 @@ public class JHubStatusWindow {
             appRow(lblJSat,    btnJSat));
         managedBox.setPadding(new Insets(4, 0, 0, 0));
 
+        Button btnDbBrowser = new Button("DB Browser…");
+        btnDbBrowser.setOnAction(e -> new DbBrowser(stage).show());
+
         root.getChildren().addAll(
             title,
             new Separator(),
             grid,
             btnOpen,
+            btnDbBrowser,
             new Separator(),
             wsTitle,
             appListBox,
@@ -241,20 +254,26 @@ public class JHubStatusWindow {
                 rig.frequency / 1_000_000.0, rig.mode, rig.power));
         }
 
-        // WebSocket registered apps
+        // WebSocket registered apps — show up/heartbeat/last-message ages
         appListBox.getChildren().clear();
+        Instant now = Instant.now();
         if (jHubServer != null) {
             jHubServer.getSessions().values().stream()
                 .filter(s -> s.registered)
                 .forEach(s -> {
-                    String text = s.appName + (s.version.isEmpty() ? "" : " v" + s.version);
-                    // Colour-code by app name for quick visual scanning
+                    String name = s.appName + (s.version.isEmpty() ? "" : " v" + s.version);
                     Color c = "j-bridge".equals(s.appName)
                             ? Color.web(C_MAUVE)
                             : Color.web(C_GREEN);
-                    Label lbl = styledValue("● " + text);
+                    Label lbl = styledValue("● " + name);
                     lbl.setTextFill(c);
-                    appListBox.getChildren().add(lbl);
+                    Label age = styledValue(String.format(
+                        "     up %s · msg %s · hb %s",
+                        formatAge(now, s.connectedAt),
+                        formatAge(now, s.lastMessageAt),
+                        s.lastHeartbeatAt != null ? formatAge(now, s.lastHeartbeatAt) : "—"));
+                    age.setTextFill(Color.web(C_SUBTLE));
+                    appListBox.getChildren().addAll(lbl, age);
                 });
         }
         if (appListBox.getChildren().isEmpty()) {
@@ -382,6 +401,17 @@ public class JHubStatusWindow {
         long m = (sec % 3600) / 60;
         long s = sec % 60;
         return String.format("%02d:%02d:%02d", h, m, s);
+    }
+
+    /** Short "23s" / "4m" / "1h 20m" style for status rows. */
+    private static String formatAge(Instant now, Instant then) {
+        if (then == null) return "—";
+        long sec = java.time.Duration.between(then, now).getSeconds();
+        if (sec < 0)   sec = 0;
+        if (sec < 60)  return sec + "s";
+        if (sec < 3600) return (sec / 60) + "m";
+        long h = sec / 3600, m = (sec % 3600) / 60;
+        return m == 0 ? h + "h" : h + "h " + m + "m";
     }
 
     private void openBrowser() {

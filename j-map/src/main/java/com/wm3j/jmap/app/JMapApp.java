@@ -23,9 +23,20 @@ public class JMapApp extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JMapApp.class);
 
-    private static final String JHUB_START    = "/home/mike/ARS_Suite/j-hub/start.sh";
+    /** Path to the j-hub start script. Resolved in order:
+     *  (1) {@code $ARS_SUITE_HOME/j-hub/start.sh} if env var is set,
+     *  (2) {@code $HOME/ARS_Suite/j-hub/start.sh} otherwise. */
+    private static final String JHUB_START    = resolveJHubStart();
     private static final int    JHUB_WS_PORT  = 8080;
     private static final int    JHUB_WEB_PORT = 8081;
+
+    private static String resolveJHubStart() {
+        String root = System.getenv("ARS_SUITE_HOME");
+        if (root == null || root.isBlank()) {
+            root = System.getProperty("user.home", "") + "/ARS_Suite";
+        }
+        return root + "/j-hub/start.sh";
+    }
 
     private ServiceRegistry serviceRegistry;
     private boolean         launchedByHub = false;
@@ -37,6 +48,7 @@ public class JMapApp extends Application {
 
     @Override
     public void init() throws Exception {
+        CrashHandler.install("J-Map");
         log.info("=== J-Map starting [WM3J ARS Suite] — headless mode ===");
 
         List<String> raw = getParameters().getRaw();

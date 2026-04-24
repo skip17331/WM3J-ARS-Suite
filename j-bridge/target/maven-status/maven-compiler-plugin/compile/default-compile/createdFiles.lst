@@ -5,6 +5,8 @@ com/hamradio/jbridge/ui/StatusPanels.class
 com/hamradio/jbridge/WsjtxProtocolDecoder$DecodedMessage.class
 com/hamradio/jbridge/ui/WsjtxStatusPanel.class
 com/hamradio/jbridge/model/WsjtxStatus.class
+com/hamradio/jbridge/ui/JBridgeFontScaler.class
+com/hamradio/jbridge/CrashHandler.class
 com/hamradio/jbridge/WorkedListManager.class
 com/hamradio/jbridge/ui/SplashJBridge.class
 com/hamradio/jbridge/HubClient.class

@@ -163,6 +163,8 @@ public class MainWindow {
         // Class-based theming: root carries .dark or .light
         scene.getRoot().getStyleClass().add(darkTheme ? "dark" : "light");
         scene.getRoot().setStyle("-fx-font-size: " + fontSize + "px;");
+        // Per-pane font-size overrides from j-hub.json (if any)
+        JDigiFontScaler.apply(scene);
 
         stage.setTitle("J-Digi");
         stage.setScene(scene);
@@ -573,6 +575,8 @@ public class MainWindow {
             PREFS.putInt("fontSize", newSize);
             scene.getRoot().setStyle("-fx-font-size: " + newSize + "px;");
         }));
+
+        service.setFontsListener(fonts -> JDigiFontScaler.apply(scene, fonts));
     }
 
     private void wireToggleButtons() {

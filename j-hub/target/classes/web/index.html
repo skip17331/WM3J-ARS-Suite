@@ -192,6 +192,27 @@
           </button>
         </div>
       </div>
+
+      <!-- Connected apps (WebSocket heartbeat dashboard) -->
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">Connected Apps
+          <span id="d-apps-count" style="font-size:11px;font-weight:normal;color:var(--subtext0);margin-left:6px"></span>
+        </div>
+        <div id="d-apps-list" style="font-family:Consolas,monospace;font-size:12px;line-height:1.6">
+          <span style="color:var(--overlay0)">No apps connected</span>
+        </div>
+      </div>
+
+      <!-- System dependencies (Hamlib, WSJT-X) -->
+      <div class="card" style="margin-top:12px">
+        <div class="card-title">System Dependencies
+          <button class="btn btn-sm btn-ghost" style="float:right;font-size:11px"
+                  onclick="pollDeps()">Re-check</button>
+        </div>
+        <div id="d-deps-list" style="font-family:Consolas,monospace;font-size:12px;line-height:1.8">
+          <span style="color:var(--overlay0)">Loading…</span>
+        </div>
+      </div>
     </section>
 
     <!-- ─── Tab: Station ────────────────────────────────── -->
@@ -272,9 +293,6 @@
               <option value="es">Español (Spanish)</option>
               <option value="fr">Français (French)</option>
               <option value="it">Italiano (Italian)</option>
-              <option value="ja">日本語 (Japanese)</option>
-              <option value="pt">Português (Portuguese)</option>
-              <option value="ru">Русский (Russian)</option>
             </select>
             <label>Language</label>
           </div>
@@ -704,12 +722,23 @@
         </div>
         <span id="db-status-msg" style="font-size:12px;color:var(--overlay0);display:block;min-height:16px;margin-top:4px"></span>
         <hr class="divider">
-        <div class="section-title">Export</div>
+        <div class="section-title">Import / Export</div>
         <div class="btn-row" style="margin-top:6px">
-          <button class="btn btn-blue" onclick="exportAdif()">Export ADIF</button>
+          <button class="btn btn-blue"  onclick="exportAdif()">Export ADIF</button>
           <button class="btn btn-ghost" onclick="exportCsv()">Export CSV</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('adif-import-file').click()">Import ADIF…</button>
+          <input type="file" id="adif-import-file" accept=".adi,.adif" style="display:none"
+                 onchange="importAdifFile(this)">
         </div>
         <span id="db-export-msg" style="font-size:12px;color:var(--overlay0);display:block;min-height:16px;margin-top:4px"></span>
+
+        <hr class="divider">
+        <div class="section-title">Backup</div>
+        <div class="btn-row" style="margin-top:6px">
+          <button class="btn btn-yellow" onclick="backupActiveDb()">Backup Active DB</button>
+        </div>
+        <span class="hint">Writes a timestamped copy next to the DB in ~/.j-log/</span>
+        <span id="db-backup-msg" style="font-size:12px;color:var(--overlay0);display:block;min-height:16px;margin-top:4px"></span>
       </div>
 
       <div class="card">
@@ -776,19 +805,75 @@
       <div class="panel-sub">Ham radio logging — font size and display preferences</div>
 
       <div class="card">
-        <div class="card-title">Font Size</div>
+        <div class="card-title">Display</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Show Space Weather</div>
+            <div class="toggle-desc">SFI / A / K / SN / MUF in the J-Log clock bar. Restart J-Log to apply.</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jlog-show-spacewx" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Global Base Font</div>
         <div class="field-row cols-2">
           <div class="field">
             <input type="range" id="jlog-font-size" min="10" max="22" value="13"
                    oninput="document.getElementById('jlog-font-size-val').textContent=this.value">
             <label>Size: <span id="jlog-font-size-val">13</span> px</label>
-            <span class="hint">Applied immediately if J-Log is connected; otherwise on next start</span>
+            <span class="hint">Baseline for all unstyled elements</span>
           </div>
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-title">Per-Pane Font Sizes</div>
+        <div class="panel-sub">Overrides the global baseline for specific UI areas.</div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jlog-font-statusbar" min="8" max="24" value="12"
+                   oninput="document.getElementById('jlog-font-statusbar-val').textContent=this.value">
+            <label>Status/Clock Bar: <span id="jlog-font-statusbar-val">12</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jlog-font-entry" min="8" max="24" value="13"
+                   oninput="document.getElementById('jlog-font-entry-val').textContent=this.value">
+            <label>Data Entry: <span id="jlog-font-entry-val">13</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jlog-font-table" min="8" max="24" value="12"
+                   oninput="document.getElementById('jlog-font-table-val').textContent=this.value">
+            <label>QSO Log Table: <span id="jlog-font-table-val">12</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jlog-font-info" min="8" max="24" value="12"
+                   oninput="document.getElementById('jlog-font-info-val').textContent=this.value">
+            <label>Info / Bearing Pane: <span id="jlog-font-info-val">12</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jlog-font-spots" min="8" max="24" value="12"
+                   oninput="document.getElementById('jlog-font-spots-val').textContent=this.value">
+            <label>DX + Heard By Panes: <span id="jlog-font-spots-val">12</span> px</label>
+          </div>
+        </div>
+
+        <span class="hint">Restart J-Log to apply pane overrides.</span>
+      </div>
+
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveJLogSettings()">Save J-Log Settings</button>
+        <button class="btn btn-ghost"   onclick="restartJLog()">Save Data &amp; Restart J-Log</button>
         <span id="jlog-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
@@ -1009,15 +1094,56 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Font Size</div>
+        <div class="card-title">Global Base Font</div>
         <div class="field-row cols-2">
           <div class="field">
             <input type="range" id="jm-font-size" min="10" max="22" value="13"
                    oninput="document.getElementById('jm-font-size-val').textContent=this.value">
             <label>Size: <span id="jm-font-size-val">13</span> px</label>
-            <span class="hint">Applied immediately when J-Map is connected</span>
+            <span class="hint">Baseline for the dashboard and sidebar</span>
           </div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Per-Window Font Sizes</div>
+        <div class="panel-sub">Overrides the global baseline for each floating window. Applied live when J-Map is connected.</div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jm-font-de" min="0" max="24" value="0"
+                   oninput="document.getElementById('jm-font-de-val').textContent=(this.value==0?'auto':this.value)">
+            <label>DE Info: <span id="jm-font-de-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jm-font-dx" min="0" max="24" value="0"
+                   oninput="document.getElementById('jm-font-dx-val').textContent=(this.value==0?'auto':this.value)">
+            <label>DX Info: <span id="jm-font-dx-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jm-font-contest" min="0" max="24" value="0"
+                   oninput="document.getElementById('jm-font-contest-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Contest List: <span id="jm-font-contest-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jm-font-prop" min="0" max="24" value="0"
+                   oninput="document.getElementById('jm-font-prop-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Propagation: <span id="jm-font-prop-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jm-font-lunar" min="0" max="24" value="0"
+                   oninput="document.getElementById('jm-font-lunar-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Lunar / Planetary: <span id="jm-font-lunar-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <span class="hint">0 = inherit from global baseline</span>
       </div>
 
       <div class="card">
@@ -1080,6 +1206,7 @@
 
       <div class="btn-row" style="margin-top:4px">
         <button class="btn btn-primary" onclick="saveJMapSettings()">Save &amp; Apply J-Map Settings</button>
+        <button class="btn btn-ghost"   onclick="restartJMap()">Save Data &amp; Restart J-Map</button>
         <span id="jmap-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
@@ -1090,19 +1217,59 @@
       <div class="panel-sub">Digital modem / RTTY / PSK — font size and display preferences</div>
 
       <div class="card">
-        <div class="card-title">Font Size</div>
+        <div class="card-title">Global Base Font</div>
         <div class="field-row cols-2">
           <div class="field">
             <input type="range" id="jdigi-font-size" min="10" max="22" value="13"
                    oninput="document.getElementById('jdigi-font-size-val').textContent=this.value">
             <label>Size: <span id="jdigi-font-size-val">13</span> px</label>
-            <span class="hint">Applied immediately if J-Digi is connected; otherwise on next start</span>
+            <span class="hint">Baseline for everything em-relative</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Per-Pane Font Sizes</div>
+        <div class="panel-sub">Overrides the global baseline for each major pane. Applied live when J-Digi is connected. 0 = inherit.</div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jdigi-font-rxtx" min="0" max="24" value="0"
+                   oninput="document.getElementById('jdigi-font-rxtx-val').textContent=(this.value==0?'auto':this.value)">
+            <label>RX / TX Text Areas: <span id="jdigi-font-rxtx-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jdigi-font-freq" min="0" max="32" value="0"
+                   oninput="document.getElementById('jdigi-font-freq-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Frequency / Callsign: <span id="jdigi-font-freq-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jdigi-font-statusbar" min="0" max="24" value="0"
+                   oninput="document.getElementById('jdigi-font-statusbar-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Status Bar: <span id="jdigi-font-statusbar-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jdigi-font-toolbar" min="0" max="24" value="0"
+                   oninput="document.getElementById('jdigi-font-toolbar-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Toolbar / Buttons: <span id="jdigi-font-toolbar-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jdigi-font-entry" min="0" max="24" value="0"
+                   oninput="document.getElementById('jdigi-font-entry-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Entry / Macros / Labels: <span id="jdigi-font-entry-val">auto</span> px</label>
           </div>
         </div>
       </div>
 
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveJDigiSettings()">Save J-Digi Settings</button>
+        <button class="btn btn-ghost"   onclick="restartJDigi()">Save Data &amp; Restart J-Digi</button>
         <span id="jdigi-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
@@ -1119,10 +1286,55 @@
           <label>WSJT-X Executable Path</label>
           <span class="hint">Full path to the wsjtx executable, used when J-Bridge launches WSJT-X</span>
         </div>
-        <div class="btn-row" style="margin-top:12px">
-          <button class="btn btn-primary" onclick="saveJBridgeSettings()">Save J-Bridge Settings</button>
-          <span id="jbridge-msg" style="font-size:12px;color:var(--overlay0)"></span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Global Base Font</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jbridge-font-size" min="10" max="22" value="12"
+                   oninput="document.getElementById('jbridge-font-size-val').textContent=this.value">
+            <label>Size: <span id="jbridge-font-size-val">12</span> px</label>
+            <span class="hint">Baseline for the whole window</span>
+          </div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Per-Pane Font Sizes</div>
+        <div class="panel-sub">Overrides the global baseline. Restart J-Bridge to apply. 0 = inherit.</div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jbridge-font-toolbar" min="0" max="24" value="0"
+                   oninput="document.getElementById('jbridge-font-toolbar-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Toolbar / Title: <span id="jbridge-font-toolbar-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jbridge-font-sidebar" min="0" max="24" value="0"
+                   oninput="document.getElementById('jbridge-font-sidebar-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Sidebar / Status: <span id="jbridge-font-sidebar-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jbridge-font-band" min="0" max="24" value="0"
+                   oninput="document.getElementById('jbridge-font-band-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Band Activity Panel: <span id="jbridge-font-band-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jbridge-font-table" min="0" max="24" value="0"
+                   oninput="document.getElementById('jbridge-font-table-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Decode Table: <span id="jbridge-font-table-val">auto</span> px</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn btn-primary" onclick="saveJBridgeSettings()">Save J-Bridge Settings</button>
+        <button class="btn btn-ghost"   onclick="restartJBridge()">Save Data &amp; Restart J-Bridge</button>
+        <span id="jbridge-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>
 
@@ -1326,7 +1538,7 @@
 
       <!-- Font size -->
       <div class="card">
-        <div class="card-title">Font Size</div>
+        <div class="card-title">Global Base Font</div>
         <div class="field-row cols-2">
           <div class="field">
             <input type="range" id="jsat-font-size" min="10" max="22" value="15"
@@ -1336,8 +1548,48 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-title">Per-Pane Font Sizes</div>
+        <div class="panel-sub">Overrides the global baseline. Restart J-Sat to apply. 0 = inherit.</div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jsat-font-topbar" min="0" max="28" value="0"
+                   oninput="document.getElementById('jsat-font-topbar-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Top Bar (title/clocks): <span id="jsat-font-topbar-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jsat-font-livepass" min="0" max="28" value="0"
+                   oninput="document.getElementById('jsat-font-livepass-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Live Pass Panel: <span id="jsat-font-livepass-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jsat-font-passlist" min="0" max="28" value="0"
+                   oninput="document.getElementById('jsat-font-passlist-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Upcoming Passes: <span id="jsat-font-passlist-val">auto</span> px</label>
+          </div>
+          <div class="field">
+            <input type="range" id="jsat-font-weather" min="0" max="28" value="0"
+                   oninput="document.getElementById('jsat-font-weather-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Space Weather: <span id="jsat-font-weather-val">auto</span> px</label>
+          </div>
+        </div>
+
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="range" id="jsat-font-rigrotor" min="0" max="28" value="0"
+                   oninput="document.getElementById('jsat-font-rigrotor-val').textContent=(this.value==0?'auto':this.value)">
+            <label>Rig / Rotor: <span id="jsat-font-rigrotor-val">auto</span> px</label>
+          </div>
+        </div>
+      </div>
+
       <div class="btn-row" style="margin-top:10px">
         <button class="btn btn-primary" onclick="saveJSatSettings()">Save J-Sat Settings</button>
+        <button class="btn btn-ghost"   onclick="restartJSat()">Save Data &amp; Restart J-Sat</button>
         <span id="jsat-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
     </section>

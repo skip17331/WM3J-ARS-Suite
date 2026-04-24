@@ -66,12 +66,33 @@ public class NormalLogController implements Initializable {
     @FXML private CheckBox  cbQslReceived;
     @FXML private TextField tfUtcTime;
     @FXML private TextField tfLocalTime;
+    @FXML private Button    btnSave;
+
+    /** The QSO currently loaded into the entry form for editing. When non-null,
+     *  doSave issues an UPDATE (preserving the original timestamp + id) instead
+     *  of INSERT. Cleared by doClear() and on successful save. */
+    private QsoRecord editingRecord = null;
 
     // ---- Info panes ----
     @FXML private Label lblCountry;
     @FXML private Label lblContinent;
     @FXML private Label lblBearing;
     @FXML private Label lblDistance;
+    @FXML private TitledPane spaceWxPane;
+    @FXML private Label lblSolarSfi;
+    @FXML private Label lblSolarK;
+    @FXML private Label lblSolarSsn;
+    @FXML private Label lblSolarXray;
+    @FXML private Label lblSolarWind;
+    @FXML private Label lblSolarGeo;
+
+    // ---- Embedded CW / Digital keyer ----
+    @FXML private VBox            keyerPane;
+    @FXML private CheckMenuItem   miToggleKeyer;
+    @FXML private ComboBox<String> cbKeyerMode;
+    @FXML private TextArea        taKeyerRx;
+    @FXML private TextField       tfKeyerTx;
+    @FXML private Label           lblKeyerStatus;
 
     // ---- QSO table ----
     @FXML private TableView<QsoRecord>          qsoTable;
@@ -88,6 +109,19 @@ public class NormalLogController implements Initializable {
     @FXML private SplitPane  mainSplitPane;
     @FXML private TitledPane dxPane;
     @FXML private AnchorPane dxContainer;
+
+    // ---- Heard-By (PSK Reporter / WSPR) ----
+    @FXML private TitledPane                 heardByPane;
+    @FXML private TableView<HeardBySpot>     heardByTable;
+    @FXML private TableColumn<HeardBySpot,String> colHbTime;
+    @FXML private TableColumn<HeardBySpot,String> colHbReporter;
+    @FXML private TableColumn<HeardBySpot,String> colHbGrid;
+    @FXML private TableColumn<HeardBySpot,String> colHbBand;
+    @FXML private TableColumn<HeardBySpot,String> colHbMode;
+    @FXML private TableColumn<HeardBySpot,String> colHbSnr;
+    @FXML private TableColumn<HeardBySpot,String> colHbSource;
+    private final ObservableList<HeardBySpot> heardByData = FXCollections.observableArrayList();
+    private static final int HEARD_BY_MAX_ROWS = 200;
 
     // ---- Status / clock bar ----
     @FXML private Label lblStatus;
@@ -129,6 +163,8 @@ public class NormalLogController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         initEntryFields();
         initTable();
+        initHeardByTable();
+        initKeyer();
         initClock();
         initCivListeners();
         initMacroBar();
@@ -152,8 +188,95 @@ public class NormalLogController implements Initializable {
         HubEngine.getInstance().setCallsignResultListener(node ->
             Platform.runLater(() -> fillFromCallsignResult(node)));
 
+        HubEngine.getInstance().setSolarFluxListener(node ->
+            Platform.runLater(() -> updateSolarLabel(node)));
+
+        HubEngine.getInstance().setHeardBySpotListener(node ->
+            Platform.runLater(() -> addHeardBySpot(node)));
+
+        HubEngine.getInstance().setAdifImportListener(node -> {
+            String path = node.path("path").asText("");
+            if (path.isBlank()) return;
+            Task<com.jlog.export.AdifImporter.Result> task = new Task<>() {
+                @Override protected com.jlog.export.AdifImporter.Result call() throws Exception {
+                    return com.jlog.export.AdifImporter.importAdif(
+                        java.nio.file.Path.of(path),
+                        com.jlog.export.AdifImporter.DupeMode.SKIP);
+                }
+                @Override protected void succeeded() {
+                    var r = getValue();
+                    setStatus("ADIF import: " + r.imported + " imported, " + r.skipped + " skipped");
+                    loadQsos();
+                    try { java.nio.file.Files.deleteIfExists(java.nio.file.Path.of(path)); }
+                    catch (Exception ignored) {}
+                }
+                @Override protected void failed() {
+                    setStatus("ADIF import failed: " + getException().getMessage());
+                }
+            };
+            new Thread(task).start();
+        });
+
+        // Space Weather pane — visibility driven by jLogSettings.showSpaceWeather
+        // in j-hub.json. Default true so the pane appears as soon as data arrives.
+        boolean showSpaceWx = readJLogBool("showSpaceWeather", true);
+        if (spaceWxPane != null) {
+            spaceWxPane.setVisible(showSpaceWx);
+            spaceWxPane.setManaged(showSpaceWx);
+        }
+        // Prime the info-pane values with em-dashes so the pane isn't blank
+        // until the first solar broadcast arrives (~10–20 seconds after hub start).
+        if (lblSolarSfi  != null) lblSolarSfi .setText("—");
+        if (lblSolarK    != null) lblSolarK   .setText("—");
+        if (lblSolarSsn  != null) lblSolarSsn .setText("—");
+        if (lblSolarXray != null) lblSolarXray.setText("—");
+        if (lblSolarWind != null) lblSolarWind.setText("—");
+        if (lblSolarGeo  != null) lblSolarGeo .setText("—");
+
         setStatus(I18n.get("status.ready"));
         updateStationCallLabel();
+        refreshSaveButton();
+    }
+
+    /** Read a boolean from jLogSettings in j-hub.json. Returns {@code dflt} if
+     *  the file is unreadable or the key is missing. */
+    private static boolean readJLogBool(String key, boolean dflt) {
+        String home = System.getProperty("user.home", "");
+        java.nio.file.Path[] candidates = {
+            java.nio.file.Paths.get(home, "ARS_Suite", "j-hub", "j-hub.json"),
+            java.nio.file.Paths.get(".", "j-hub.json"),
+        };
+        for (java.nio.file.Path p : candidates) {
+            if (!java.nio.file.Files.isReadable(p)) continue;
+            try {
+                com.fasterxml.jackson.databind.JsonNode root =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(p.toFile());
+                com.fasterxml.jackson.databind.JsonNode v = root.path("jLogSettings").path(key);
+                if (!v.isMissingNode() && v.isBoolean()) return v.asBoolean();
+            } catch (Exception ignored) {}
+        }
+        return dflt;
+    }
+
+    private void updateSolarLabel(JsonNode node) {
+        if (node == null) return;
+        // Fields match the SOLAR_FLUX payload built by j-hub SolarFluxService
+        // from the NOAA-backed WeatherService cache.
+        String sfi  = node.hasNonNull("sfi")       ? node.get("sfi")      .asText() : "—";
+        String k    = node.hasNonNull("k")         ? node.get("k")        .asText() : "—";
+        String sn   = node.hasNonNull("sn")        ? node.get("sn")       .asText() : "—";
+        String xray = node.hasNonNull("xray")      ? node.get("xray")     .asText() : "—";
+        String wind = node.hasNonNull("solarwind") ? node.get("solarwind").asText() : "—";
+        String geo  = node.hasNonNull("geomag")    ? node.get("geomag")   .asText() : "—";
+
+        // Info-pane grid — each value lives in its own cell with its own label,
+        // so the eye lands on the number instead of hunting through a string.
+        if (lblSolarSfi  != null) lblSolarSfi .setText(sfi);
+        if (lblSolarK    != null) lblSolarK   .setText(k);
+        if (lblSolarSsn  != null) lblSolarSsn .setText(sn);
+        if (lblSolarXray != null) lblSolarXray.setText(xray);
+        if (lblSolarWind != null) lblSolarWind.setText(wind.equals("—") ? wind : wind + " km/s");
+        if (lblSolarGeo  != null) lblSolarGeo .setText(geo);
     }
 
     // ---------------------------------------------------------------
@@ -161,23 +284,90 @@ public class NormalLogController implements Initializable {
     // ---------------------------------------------------------------
 
     private static final List<String> VALID_BANDS = BandPlan.allBands();
+    /** Mirrors the ADIF mode list + common aliases the contest engine accepts
+     *  (see {@code BandPlan.isDigital} / {@code AdifExporter}). Kept broad so
+     *  operators aren't fighting the UI. */
     private static final Set<String>  VALID_MODES = Set.of(
-        "CW","USB","LSB","AM","FM","RTTY","FT8","FT4","PSK31","OLIVIA","DV","JS8");
+        "SSB","USB","LSB","AM","FM","DV","CW","CW-R","RTTY","FSK-R",
+        "FT8","FT4","PSK31","PSK63","PSK125","OLIVIA","CONTESTI","MFSK",
+        "JS8","JT65","JT9","MSK144","Q65","PACKET","PKT","HELL","THROB",
+        "DIGITALVOICE","DOMINOEX","FREEDV","ARDOP","VARA");
 
     private void initEntryFields() {
         tfRstSent.setText("599");
         tfRstReceived.setText("599");
         tfPower.setText(AppConfig.getInstance().getDefaultPower());
-        tfBand.textProperty().addListener((obs, o, n) ->
-            applyValidStyle(tfBand, VALID_BANDS.stream().anyMatch(b -> b.equalsIgnoreCase(n.trim()))));
-        tfMode.textProperty().addListener((obs, o, n) ->
-            applyValidStyle(tfMode, VALID_MODES.stream().anyMatch(m -> m.equalsIgnoreCase(n.trim()))));
+        tfBand.textProperty().addListener((obs, o, n) -> {
+            applyValidStyle(tfBand, isBandValid(n));
+            refreshSaveButton();
+        });
+        tfMode.textProperty().addListener((obs, o, n) -> {
+            applyValidStyle(tfMode, isModeValid(n));
+            refreshSaveButton();
+        });
+
+        // All-caps transform for ham-convention fields. Name/notes stay mixed.
+        forceUpperCase(tfCallsign);
+        forceUpperCase(tfBand);
+        forceUpperCase(tfMode);
+        forceUpperCase(tfState);
+        forceUpperCase(tfCounty);
+        forceUpperCase(tfCountry);
+
+        tfCallsign.textProperty().addListener((obs, o, n) -> refreshSaveButton());
+    }
+
+    /** "20m" → true; "20" → true (accept bare number); case-insensitive. */
+    private static boolean isBandValid(String raw) {
+        if (raw == null) return false;
+        String s = raw.trim().toLowerCase();
+        if (s.isEmpty()) return false;
+        for (String b : VALID_BANDS) {
+            if (b.equalsIgnoreCase(s)) return true;
+            if (b.toLowerCase().replaceAll("[a-z]", "").equals(s)) return true;  // "20" matches "20m"
+        }
+        return false;
+    }
+
+    private static boolean isModeValid(String raw) {
+        if (raw == null) return false;
+        String s = raw.trim().toUpperCase();
+        return !s.isEmpty() && VALID_MODES.contains(s);
     }
 
     private static void applyValidStyle(TextField tf, boolean valid) {
-        String txt = tf.getText().trim();
+        String txt = tf.getText() == null ? "" : tf.getText().trim();
         if (txt.isEmpty() || valid) tf.getStyleClass().remove("field-invalid");
         else if (!tf.getStyleClass().contains("field-invalid")) tf.getStyleClass().add("field-invalid");
+    }
+
+    /** Live caret-safe uppercase transform for ham-convention fields. */
+    private static void forceUpperCase(TextField tf) {
+        tf.textProperty().addListener((obs, o, n) -> {
+            if (n == null) return;
+            String up = n.toUpperCase();
+            if (!up.equals(n)) {
+                int caret = tf.getCaretPosition();
+                tf.setText(up);
+                tf.positionCaret(Math.min(caret, up.length()));
+            }
+        });
+    }
+
+    /** Returns true when the form is in a saveable state: callsign is required,
+     *  band/mode are optional but when filled must be recognized values. Empty
+     *  band/mode is allowed so quick logs don't need both typed first. */
+    private boolean isFormValid() {
+        if (tfCallsign.getText() == null || tfCallsign.getText().trim().isEmpty()) return false;
+        String b = tfBand.getText();
+        if (b != null && !b.trim().isEmpty() && !isBandValid(b)) return false;
+        String m = tfMode.getText();
+        if (m != null && !m.trim().isEmpty() && !isModeValid(m)) return false;
+        return true;
+    }
+
+    private void refreshSaveButton() {
+        if (btnSave != null) btnSave.setDisable(!isFormValid());
     }
 
     private void initTable() {
@@ -192,15 +382,174 @@ public class NormalLogController implements Initializable {
         colNotes   .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNotes()));
 
         qsoTable.setItems(qsoData);
+        qsoTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        // Center-align every column except Notes (which reads as prose and
+        // wants left-alignment for scanability).
+        for (TableColumn<QsoRecord, ?> c : qsoTable.getColumns()) {
+            if (c != colNotes) c.setStyle("-fx-alignment: CENTER;");
+        }
         qsoTable.setRowFactory(tv -> {
             TableRow<QsoRecord> row = new TableRow<>();
             row.setOnMouseClicked(e -> {
                 if (e.getClickCount() == 2 && !row.isEmpty()) {
-                    populateFromRecord(row.getItem());
+                    QsoRecord r = row.getItem();
+                    editingRecord = r;
+                    populateFromRecord(r);
+                    refreshSaveButton();
                 }
             });
             return row;
         });
+    }
+
+    // ---------------------------------------------------------------
+    // CW / Digital keyer — embedded pane (replaces the old popup window).
+    // Receives decoded text via MODEM_DECODE; right-click selection → callsign.
+    // ---------------------------------------------------------------
+
+    private static final DateTimeFormatter KEYER_TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    private void initKeyer() {
+        cbKeyerMode.setItems(FXCollections.observableArrayList(
+            "CW", "RTTY", "PSK31", "PSK63", "FT8", "FT4"));
+        cbKeyerMode.getSelectionModel().select("CW");
+
+        taKeyerRx.setStyle("-fx-font-family: monospace; -fx-font-size: 12px;");
+
+        // Enter in TX field = Send (Ctrl+Enter also works)
+        tfKeyerTx.setOnAction(e -> doKeyerSend());
+
+        // Right-click context menu on the RX area — copy selection into callsign,
+        // operator name, or state fields in the entry form. No selection = no-op.
+        ContextMenu ctx = new ContextMenu();
+        MenuItem miCall  = new MenuItem("Use selection as Callsign");
+        MenuItem miName  = new MenuItem("Use selection as Name");
+        MenuItem miState = new MenuItem("Use selection as State");
+        MenuItem miClear = new MenuItem("Clear RX");
+        miCall .setOnAction(e -> applySelection(tfCallsign, true));
+        miName .setOnAction(e -> applySelection(tfOperatorName, false));
+        miState.setOnAction(e -> applySelection(tfState, true));
+        miClear.setOnAction(e -> taKeyerRx.clear());
+        ctx.getItems().addAll(miCall, miName, miState, new SeparatorMenuItem(), miClear);
+        taKeyerRx.setContextMenu(ctx);
+
+        // Double-click in RX auto-detects a callsign-shaped token under the cursor
+        // and fills tfCallsign — saves the right-click for quick logging.
+        taKeyerRx.setOnMouseClicked(e -> {
+            if (e.getClickCount() != 2) return;
+            String sel = taKeyerRx.getSelectedText();
+            if (sel == null || sel.isBlank()) return;
+            String token = sel.trim().toUpperCase();
+            if (token.matches("[A-Z0-9]{3,8}") && token.matches(".*\\d.*")) {
+                tfCallsign.setText(token);
+            }
+        });
+
+        // MODEM_DECODE → append to RX
+        HubEngine.getInstance().setModemDecodeListener(node ->
+            Platform.runLater(() -> onKeyerDecode(node)));
+    }
+
+    @FXML private void toggleKeyerPane() {
+        boolean show = (miToggleKeyer != null) ? miToggleKeyer.isSelected()
+                                               : !(keyerPane != null && keyerPane.isVisible());
+        if (keyerPane != null) {
+            keyerPane.setVisible(show);
+            keyerPane.setManaged(show);
+        }
+        if (miToggleKeyer != null) miToggleKeyer.setSelected(show);
+        if (show && tfKeyerTx != null) tfKeyerTx.requestFocus();
+    }
+
+    @FXML private void doKeyerSend() {
+        if (tfKeyerTx == null) return;
+        String text = tfKeyerTx.getText();
+        if (text == null || text.isBlank()) return;
+        String mode = cbKeyerMode.getValue();
+        HubEngine.getInstance().sendModemTx(mode, text);
+        String line = String.format("[%s TX %s] %s%n",
+            LocalTime.now().format(KEYER_TIME_FMT), mode, text.trim());
+        taKeyerRx.appendText(line);
+        taKeyerRx.setScrollTop(Double.MAX_VALUE);
+        if (lblKeyerStatus != null) lblKeyerStatus.setText("sent " + text.length() + " chars");
+        tfKeyerTx.clear();
+        tfKeyerTx.requestFocus();
+    }
+
+    @FXML private void doKeyerClear() {
+        if (tfKeyerTx != null) tfKeyerTx.clear();
+    }
+
+    private void onKeyerDecode(JsonNode node) {
+        if (taKeyerRx == null) return;
+        String text = node.path("text").asText("");
+        if (text == null || text.isBlank()) return;
+        String mode = node.path("mode").asText("");
+        double snr  = node.path("snr").asDouble(Double.NaN);
+        String prefix = String.format("[%s RX %s%s] ",
+            LocalTime.now().format(KEYER_TIME_FMT),
+            mode.isBlank() ? "?" : mode,
+            Double.isNaN(snr) ? "" : String.format(" %+.1fdB", snr));
+        taKeyerRx.appendText(prefix + text + "\n");
+        taKeyerRx.setScrollTop(Double.MAX_VALUE);
+    }
+
+    /** Copy RX-area selected text into the given form field. When {@code upper}
+     *  is true the value is upper-cased (callsigns, states). */
+    private void applySelection(TextField target, boolean upper) {
+        if (target == null || taKeyerRx == null) return;
+        String sel = taKeyerRx.getSelectedText();
+        if (sel == null || sel.isBlank()) return;
+        target.setText(upper ? sel.trim().toUpperCase() : sel.trim());
+    }
+
+    private void initHeardByTable() {
+        colHbTime    .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().time));
+        colHbReporter.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().reporter));
+        colHbGrid    .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().grid));
+        colHbBand    .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().band));
+        colHbMode    .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().mode));
+        colHbSnr     .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().snr));
+        colHbSource  .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().source));
+        heardByTable.setItems(heardByData);
+    }
+
+    /** Shape of a row in the Heard-By table. */
+    private static final class HeardBySpot {
+        final String time, reporter, grid, band, mode, snr, source;
+        HeardBySpot(String time, String reporter, String grid, String band,
+                    String mode, String snr, String source) {
+            this.time = time; this.reporter = reporter; this.grid = grid;
+            this.band = band; this.mode = mode; this.snr = snr; this.source = source;
+        }
+    }
+
+    private void addHeardBySpot(JsonNode node) {
+        if (node == null) return;
+        String ts   = node.path("timestampUtc").asText("");
+        String time = ts.length() >= 16 ? ts.substring(11, 16) : ts;   // HH:mm
+        String band = node.path("band").asText("");
+        if (band.isBlank()) {
+            long hz = node.path("frequencyHz").asLong(0);
+            if (hz > 0) {
+                String b = CivEngine.freqToBand(hz);
+                if (b != null) band = b;
+            }
+        }
+        HeardBySpot row = new HeardBySpot(
+            time,
+            node.path("receiverCall").asText(""),
+            node.path("receiverGrid").asText(""),
+            band,
+            node.path("mode").asText(""),
+            Integer.toString(node.path("snr").asInt(0)),
+            node.path("source").asText("")
+        );
+        heardByData.add(0, row);   // newest first
+        while (heardByData.size() > HEARD_BY_MAX_ROWS) {
+            heardByData.remove(heardByData.size() - 1);
+        }
     }
 
     private void initClock() {
@@ -321,19 +670,37 @@ public class NormalLogController implements Initializable {
     // ---------------------------------------------------------------
 
     @FXML private void doSave() {
-        String call = tfCallsign.getText().trim().toUpperCase();
-        if (call.isEmpty()) {
-            setStatus(I18n.get("error.callsign.required"));
+        if (!isFormValid()) {
+            // Refresh per-field styles so the user sees which fields are red
+            applyValidStyle(tfBand, isBandValid(tfBand.getText()));
+            applyValidStyle(tfMode, isModeValid(tfMode.getText()));
+            String reason = (tfCallsign.getText() == null || tfCallsign.getText().trim().isEmpty())
+                ? I18n.get("error.callsign.required")
+                : "Band or mode invalid — check highlighted fields";
+            setStatus(reason);
             return;
         }
-        QsoRecord q = buildRecord();
+
+        final boolean isUpdate = (editingRecord != null);
+        final QsoRecord q;
+        if (isUpdate) {
+            // Overlay form fields onto the existing record — preserves id and
+            // original dateTimeUtc so edits don't rewrite the QSO timestamp.
+            q = editingRecord;
+            applyFieldsTo(q);
+        } else {
+            q = buildRecord();
+        }
         Task<Void> task = new Task<>() {
             @Override protected Void call() throws Exception {
-                QsoDao.getInstance().insert(q);
+                if (isUpdate) QsoDao.getInstance().update(q);
+                else          QsoDao.getInstance().insert(q);
                 return null;
             }
             @Override protected void succeeded() {
-                setStatus(I18n.get("status.saved", q.getCallsign()));
+                setStatus(isUpdate
+                    ? I18n.get("status.updated")
+                    : I18n.get("status.saved", q.getCallsign()));
                 doClear();
                 loadQsos();
             }
@@ -345,6 +712,7 @@ public class NormalLogController implements Initializable {
     }
 
     @FXML private void doClear() {
+        editingRecord = null;
         tfCallsign.clear();
         tfRstSent.setText("599");
         tfRstReceived.setText("599");
@@ -355,6 +723,7 @@ public class NormalLogController implements Initializable {
         cbQslReceived.setSelected(false);
         lblCountry.setText(""); lblContinent.setText("");
         lblBearing.setText(""); lblDistance.setText("");
+        refreshSaveButton();
         tfCallsign.requestFocus();
     }
 
@@ -414,46 +783,52 @@ public class NormalLogController implements Initializable {
 
     @FXML private void doEditSelected() {
         QsoRecord sel = qsoTable.getSelectionModel().getSelectedItem();
-        if (sel != null) populateFromRecord(sel);
+        if (sel != null) {
+            editingRecord = sel;
+            populateFromRecord(sel);
+            refreshSaveButton();
+        }
     }
 
+    /** "Save Edit" delegates to the main save path, which branches on
+     *  editingRecord so insert vs. update is one code path. */
     @FXML private void doSaveEdited() {
-        QsoRecord sel = qsoTable.getSelectionModel().getSelectedItem();
-        if (sel == null) return;
-        applyFieldsTo(sel);
-        Task<Void> task = new Task<>() {
-            @Override protected Void call() throws Exception {
-                QsoDao.getInstance().update(sel);
-                return null;
-            }
-            @Override protected void succeeded() {
-                setStatus(I18n.get("status.updated"));
-                loadQsos();
-            }
-        };
-        new Thread(task).start();
+        doSave();
     }
 
     @FXML private void doDeleteSelected() {
-        QsoRecord sel = qsoTable.getSelectionModel().getSelectedItem();
-        if (sel == null) return;
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-            "Delete QSO with " + sel.getCallsign() + "?",
+        // Copy the selection list up-front — the confirmation dialog can lose
+        // focus and clear the selection on some window managers. Also supports
+        // bulk delete when multiple rows are selected.
+        java.util.List<QsoRecord> targets =
+            new java.util.ArrayList<>(qsoTable.getSelectionModel().getSelectedItems());
+        if (targets.isEmpty()) {
+            setStatus("Select a QSO first.");
+            return;
+        }
+        String msg = targets.size() == 1
+            ? "Delete QSO with " + targets.get(0).getCallsign() + "?"
+            : "Delete " + targets.size() + " selected QSOs?";
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, msg,
             ButtonType.OK, ButtonType.CANCEL);
         confirm.setHeaderText(null);
+        confirm.initOwner(getStage());
         confirm.showAndWait().ifPresent(bt -> {
             if (bt != ButtonType.OK) return;
             Task<Void> task = new Task<>() {
                 @Override protected Void call() throws Exception {
-                    QsoDao.getInstance().delete(sel.getId());
+                    for (QsoRecord r : targets) QsoDao.getInstance().delete(r.getId());
                     return null;
                 }
                 @Override protected void succeeded() {
-                    setStatus("Deleted: " + sel.getCallsign());
+                    setStatus("Deleted " + targets.size() + " QSO(s).");
+                    doClear();
                     loadQsos();
                 }
                 @Override protected void failed() {
-                    setStatus("Delete failed: " + getException().getMessage());
+                    Throwable ex = getException();
+                    setStatus("Delete failed: "
+                        + (ex != null ? ex.getClass().getSimpleName() + ": " + ex.getMessage() : "unknown"));
                 }
             };
             new Thread(task).start();
@@ -583,16 +958,24 @@ public class NormalLogController implements Initializable {
         new Thread(task).start();
     }
 
-    @FXML private void menuDatabaseTools() {
-        DatabaseToolsController.show(getStage());
-    }
-
     @FXML private void menuAwards() {
-        new AwardsWindow(getStage()).show();
+        try {
+            new AwardsWindow(getStage()).show();
+        } catch (Throwable t) {
+            // Surface the error instead of swallowing — the menu was silently
+            // no-op'ing before when anything upstream threw.
+            Alert a = new Alert(Alert.AlertType.ERROR,
+                "Could not open Awards Dashboard:\n" + t.getClass().getSimpleName() + ": " + t.getMessage(),
+                ButtonType.OK);
+            a.setHeaderText("Awards Dashboard");
+            a.showAndWait();
+        }
     }
 
-    @FXML private void menuCwKeyer() {
-        new CwKeyerWindow(getStage()).show();
+    @FXML private void menuPrintQsl() {
+        new QslPrintWindow(getStage(),
+            new ArrayList<>(qsoTable.getSelectionModel().getSelectedItems())
+        ).show();
     }
 
     @FXML private void menuSetup() {

@@ -26,7 +26,7 @@ public class PassListPanel extends VBox {
 
     public PassListPanel(ServiceRegistry services) {
         this.services = services;
-        this.fz = services.getSettings().fontSize;
+        this.fz = services.getSettings().effective(services.getSettings().passListFontSize);
 
         setSpacing(4);
         setPadding(new Insets(8));

@@ -1,4 +1,3 @@
-com/jlog/controller/DatabaseToolsController$2.class
 com/jlog/controller/NormalLogController$10.class
 com/jlog/controller/ContestLogController$2.class
 com/jlog/controller/NormalLogController$2.class
@@ -14,16 +13,16 @@ com/jlog/app/ContestChooser.class
 com/jlog/controller/ContestLogController$5.class
 com/jlog/macro/MacroEngine.class
 com/jlog/controller/NormalLogController$1.class
-com/jlog/controller/DatabaseToolsController$1.class
+com/jlog/controller/QslPrintWindow.class
 com/jlog/controller/NormalLogController$8.class
+com/jlog/app/FontScaler$Fonts.class
 com/jlog/ui/map/RegionMapPane.class
 com/jlog/controller/ContestLogController$10.class
-com/jlog/controller/DatabaseToolsController$5.class
 com/jlog/controller/NormalLogController$5.class
 com/jlog/app/JLogApp.class
 com/jlog/controller/ContestLogController$1.class
 com/jlog/controller/ContestLogController$4.class
-com/jlog/controller/CwKeyerWindow.class
+com/jlog/app/FontScaler.class
 com/jlog/controller/BandPlanWindow.class
 com/jlog/macro/MacroEngine$1.class
 com/jlog/controller/ContestLogController$13.class
@@ -32,10 +31,10 @@ com/jlog/controller/NormalLogController$7.class
 com/jlog/controller/SetupController$1.class
 com/jlog/controller/ContestLogController$7.class
 com/jlog/ui/contest/DxccListPane.class
+com/jlog/controller/QslPrintWindow$Group.class
 com/jlog/service/DatabaseToolsService.class
 com/jlog/controller/NormalLogController$4.class
 com/jlog/app/ContestChooser$1.class
-com/jlog/controller/DatabaseToolsController$4.class
 com/jlog/controller/ContestLogController$3.class
 module-info.class
 com/jlog/controller/NormalLogController.class
@@ -43,6 +42,7 @@ com/jlog/ui/contest/DxccListPane$1.class
 com/jlog/controller/BandPlanWindow$1.class
 com/jlog/controller/ContestLogController$6.class
 com/jlog/controller/ContestLogController$12.class
+com/jlog/app/CrashHandler.class
 com/jlog/controller/SetupController.class
 com/jlog/controller/NormalLogController$6.class
 com/jlog/controller/ContestLogController.class
@@ -52,6 +52,5 @@ com/jlog/ui/contest/SweepProgressPane.class
 com/jlog/controller/SetupController$2.class
 com/jlog/controller/NormalLogController$3.class
 com/jlog/controller/AwardsWindow.class
-com/jlog/controller/DatabaseToolsController$3.class
+com/jlog/controller/NormalLogController$HeardBySpot.class
 com/jlog/app/SplashScreen.class
-com/jlog/controller/DatabaseToolsController.class

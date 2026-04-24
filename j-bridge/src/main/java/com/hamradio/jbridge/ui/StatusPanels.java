@@ -80,6 +80,7 @@ class WsjtxStatusPanel extends VBox {
     private final Label  txLbl      = val("RX");
     private final Label  decodeLbl  = val("-");
     private final Label  portLbl;
+    private final javafx.scene.control.Button reconnectBtn = new javafx.scene.control.Button("Reconnect");
 
     WsjtxStatusPanel(int udpPort) {
         portLbl = val(String.valueOf(udpPort));
@@ -109,7 +110,16 @@ class WsjtxStatusPanel extends VBox {
         txLbl.getStyleClass().add("tx-idle");
         decodeLbl.getStyleClass().add("decoding-idle");
 
-        getChildren().addAll(hdr, grid);
+        reconnectBtn.getStyleClass().add("tb-btn");
+        reconnectBtn.setMaxWidth(Double.MAX_VALUE);
+        javafx.geometry.Insets btnPad = new javafx.geometry.Insets(6, 0, 0, 0);
+        VBox.setMargin(reconnectBtn, btnPad);
+
+        getChildren().addAll(hdr, grid, reconnectBtn);
+    }
+
+    void setOnReconnect(Runnable handler) {
+        reconnectBtn.setOnAction(handler == null ? null : e -> handler.run());
     }
 
     void setConnected(boolean connected, String version) {

@@ -56,6 +56,7 @@ public class JHubMain extends Application {
 
     @Override
     public void start(javafx.stage.Stage primaryStage) {
+        CrashHandler.install("J-Hub");
         Runnable startupRunnable = () -> {
             try {
                 bootstrap();
@@ -135,6 +136,15 @@ public class JHubMain extends Application {
         // 8. UDP discovery beacon so apps can auto-connect
         jHubDiscovery = new JHubDiscovery();
         jHubDiscovery.start();
+
+        // 8b. Solar-flux poller (SFI / A / K / SN / MUF from hamqsl.com)
+        SolarFluxService.getInstance().start(jHubServer);
+
+        // 8c. "Heard by" pollers — PSK Reporter + WSPR. Both broadcast
+        // HEARD_BY_SPOT for j-log's Propagation pane. No-ops when the
+        // station callsign isn't configured.
+        PskReporterService.getInstance().start(jHubServer);
+        WsprReporterService.getInstance().start(jHubServer);
 
         // 9. Auto-launch managed apps.
         AppLauncher launcher = AppLauncher.getInstance();

@@ -22,8 +22,10 @@ import java.util.concurrent.CompletableFuture;
  *
  * Activated when J-Log broadcasts CONTEST_ACTIVE via J-Hub.
  * Builds its form dynamically from the contest plugin's field schema.
- * Dupe and mult checks run against the shared contest DB in j-log-engine.
- * Logging is delegated to J-Log via LOG_ENTRY_DRAFT — J-Digi does NOT score.
+ * Dupe/mult checks AND QSO persistence run against the shared contest DB
+ * in j-log-engine, so a RTTY contest can be logged without j-log running.
+ * A QSO_SAVED broadcast lets j-log's contest view refresh if it's open.
+ * Scoring (points/serial allocation) still runs in j-log when present.
  */
 public class ContestEntryPane extends VBox {
 
@@ -33,6 +35,12 @@ public class ContestEntryPane extends VBox {
     private String  multiplierDbColumn = "field1";
     private boolean contestWideDupe    = false;
     private boolean roverAwareDupe     = false;
+
+    // Ordered list of non-special field ids in the plugin's schema, in the
+    // same slot order used for contestField1..5 persistence. Built during
+    // activate() and read at save time so direct DB writes land in the
+    // correct columns without requiring a plugin reference.
+    private final List<String> dbColOrder = new ArrayList<>();
 
     // Dynamic rcvd fields: fieldId → TextField
     private final Map<String, TextField> rcvdFields = new LinkedHashMap<>();
@@ -129,9 +137,18 @@ public class ContestEntryPane extends VBox {
     private void rebuildFields(JsonObject schema) {
         fieldArea.getChildren().clear();
         rcvdFields.clear();
+        dbColOrder.clear();
 
         if (!schema.has("entryFields")) return;
         JsonArray fields = schema.getAsJsonArray("entryFields");
+
+        // Mirror ContestPlugin.computeMultiplierDbColumn slot logic: every
+        // non-special field id gets slot 0..4, mapping to contestField1..5.
+        for (JsonElement el : fields) {
+            JsonObject fd = el.getAsJsonObject();
+            String id = getString(fd, "id", "");
+            if (!isSpecialId(id) && !id.isBlank()) dbColOrder.add(id);
+        }
 
         GridPane grid = new GridPane();
         grid.setHgap(8);
@@ -275,7 +292,7 @@ public class ContestEntryPane extends VBox {
     // ---------------------------------------------------------------
 
     private Button makeSendButton() {
-        Button btn = new Button("Send to J-Log");
+        Button btn = new Button("Log QSO");
         btn.getStyleClass().add("primary-button");
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setOnAction(e -> sendDraft());
@@ -296,17 +313,57 @@ public class ContestEntryPane extends VBox {
         long hz   = service.getStatus().getRigFrequencyHz();
         String band = service.bandFromRigHz();
         String mode = service.getStatus().getRigMode() != null ? service.getStatus().getRigMode() : "";
+        String rstRcvd = tfRstRcvd.getText().trim();
 
-        service.sendLogDraft(
-            callsign, mode, band, hz,
-            "599",
-            tfRstRcvd.getText().trim(),
-            exch.toString(),
-            "",
-            0.9
-        );
-        lblStatus.setText("Sent to J-Log: " + callsign);
-        clearEntry();
+        // No contest active — fall back to draft-send so j-log's Normal Log
+        // can pick it up.
+        if (contestId.isBlank()) {
+            service.sendLogDraft(callsign, mode, band, hz, "599", rstRcvd, exch.toString(), "", 0.9);
+            lblStatus.setText("Sent to J-Log: " + callsign);
+            clearEntry();
+            return;
+        }
+
+        // Contest active — write the QSO directly to the shared DB, then
+        // broadcast QSO_SAVED so peer apps refresh. This removes the hard
+        // requirement that j-log be running to log a digital-mode contest QSO.
+        com.jlog.model.QsoRecord q = new com.jlog.model.QsoRecord();
+        q.setContestId(contestId);
+        q.setCallsign(callsign);
+        q.setDateTimeUtc(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC));
+        q.setBand(band);
+        q.setMode(mode);
+        q.setFrequency(hz > 0 ? Long.toString(hz) : "");
+        q.setOperator(com.jlog.util.AppConfig.getInstance().getStationCallsign());
+        q.setRstSent("599");
+        q.setRstReceived(rstRcvd);
+        q.setExchange(exch.toString());
+
+        // Map rcvd fields to contestField1..5 by plugin schema order.
+        for (int slot = 0; slot < dbColOrder.size() && slot < 5; slot++) {
+            TextField tf = rcvdFields.get(dbColOrder.get(slot));
+            String v = tf != null && tf.getText() != null ? tf.getText().trim() : "";
+            switch (slot) {
+                case 0 -> q.setContestField1(v);
+                case 1 -> q.setContestField2(v);
+                case 2 -> q.setContestField3(v);
+                case 3 -> q.setContestField4(v);
+                case 4 -> q.setContestField5(v);
+            }
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                ContestQsoDao.getInstance().upsertByNaturalKey(q);
+                service.sendContestQsoSaved(q);
+                Platform.runLater(() -> {
+                    lblStatus.setText("Logged: " + callsign);
+                    clearEntry();
+                });
+            } catch (Exception ex) {
+                Platform.runLater(() -> lblStatus.setText("Log failed: " + ex.getMessage()));
+            }
+        });
     }
 
     private void clearEntry() {

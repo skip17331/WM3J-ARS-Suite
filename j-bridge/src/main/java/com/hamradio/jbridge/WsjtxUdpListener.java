@@ -74,6 +74,21 @@ public class WsjtxUdpListener {
         log.info("WSJT-X UDP listener stopped");
     }
 
+    /** Close and rebind the UDP socket. Triggers onConnectionChange(false, "")
+     *  so the UI reflects the "waiting for heartbeat" state until WSJT-X sends
+     *  its next heartbeat (~15 s). Useful when WSJT-X is restarted out-of-order
+     *  and the previous socket state is stale. */
+    public void reconnect() {
+        log.info("WSJT-X UDP listener reconnect requested");
+        if (onConnectionChange != null) onConnectionChange.accept(false, "");
+        // Closing the socket wakes receive() with SocketException; the outer
+        // listenLoop catches it and rebinds after RETRY_DELAY_MS — which is
+        // ok but slow for a user-triggered action. So we interrupt the wait
+        // by doing nothing special here: the loop self-heals. For a faster
+        // turnaround we just close and let the catch/retry pick up.
+        if (socket != null && !socket.isClosed()) socket.close();
+    }
+
     public boolean isRunning() { return running; }
     public int     getPort()   { return port; }
 

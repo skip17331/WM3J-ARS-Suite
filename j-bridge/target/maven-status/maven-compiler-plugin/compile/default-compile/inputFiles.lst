@@ -1,6 +1,7 @@
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/BandUtils.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/CallsignParser.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/ConfigManager.java
+/home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/CrashHandler.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/HubClient.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/JBridgeMain.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/LoggingConfigurator.java
@@ -13,6 +14,7 @@
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/model/WsjtxQsoLogged.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/model/WsjtxStatus.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/ui/DecodeTableView.java
+/home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/ui/JBridgeFontScaler.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/ui/MainWindow.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/ui/SettingsWindow.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/ui/SplashJBridge.java

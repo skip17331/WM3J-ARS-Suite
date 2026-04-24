@@ -32,8 +32,19 @@ public class JBridgeMain extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JBridgeMain.class);
 
-    private static final String JHUB_START = "/home/mike/ARS_Suite/j-hub/start.sh";
+    /** Path to the j-hub start script. Resolved in order:
+     *  (1) {@code $ARS_SUITE_HOME/j-hub/start.sh} if env var is set,
+     *  (2) {@code $HOME/ARS_Suite/j-hub/start.sh} otherwise. */
+    private static final String JHUB_START = resolveJHubStart();
     private static final int    JHUB_PORT  = 8080;
+
+    private static String resolveJHubStart() {
+        String root = System.getenv("ARS_SUITE_HOME");
+        if (root == null || root.isBlank()) {
+            root = System.getProperty("user.home", "") + "/ARS_Suite";
+        }
+        return root + "/j-hub/start.sh";
+    }
 
     // Set true when J-Hub passes --launched-by-hub on the command line
     private boolean launchedByHub = false;
@@ -46,6 +57,7 @@ public class JBridgeMain extends Application {
 
     @Override
     public void init() {
+        CrashHandler.install("J-Bridge");
         ConfigManager cfg = ConfigManager.getInstance();
         LoggingConfigurator.configure(false); // start INFO; user can enable debug later
         cfg.load();

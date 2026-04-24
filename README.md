@@ -10,6 +10,12 @@ WM3J‑ARS‑Suite is a modular, operator‑centric amateur radio software ecosy
 
 ---
 
+**New here?** See **[USER_GUIDE.md](USER_GUIDE.md)** for installation
+instructions (Linux / macOS / Windows), a web UI walkthrough, per-app setup
+notes, troubleshooting, and an architecture map.
+
+---
+
 ## Why This Project Exists
 
 Ham radio operators deserve modern, ergonomic, integrated tools that work consistently across all platforms.
@@ -60,6 +66,96 @@ Because Java and Hamlib are universally supported, the suite runs on:
 - macOS  
 - Raspberry Pi  
 - Any system that supports Java 17+  
+
+---
+
+## Installation
+
+**Prerequisites** (all platforms): **Java 21**. That's it. Hamlib and WSJT-X
+are optional — the Dashboard tab in j-hub's web UI tells you if either is
+missing and gives the install command for your OS.
+
+### Linux
+
+```bash
+# Install Java (Debian/Ubuntu)
+sudo apt install openjdk-21-jdk maven
+
+# Get the suite
+git clone https://github.com/YOUR-USERNAME/ARS_Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+
+# Build all modules
+mvn -DskipTests -f j-log-engine/pom.xml install
+for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+    mvn -DskipTests -f "$m/pom.xml" package
+done
+
+# Run the installer — writes .desktop entries and icons under
+# ~/.local/share/applications and ~/.local/share/icons
+./install.sh
+
+# Launch j-hub (other apps auto-start once configured)
+./j-hub/start.sh
+```
+
+Apps appear in your system menu under **Network / HamRadio**. Fedora / Arch /
+openSUSE — same flow, just substitute `dnf install java-21-openjdk-devel maven`
+or `pacman -S jdk21-openjdk maven` for the first line.
+
+### Windows
+
+1. Install **Temurin 21** from <https://adoptium.net/temurin/releases/?version=21>
+   (tick "Set JAVA_HOME" and "Add to PATH" during setup).
+2. Install **Maven** from <https://maven.apache.org/download.cgi> and add its
+   `bin\` folder to `PATH`.
+3. Unzip or clone the repo to `C:\ARS_Suite` (or anywhere — set
+   `ARS_SUITE_HOME` in System Properties → Environment Variables if not there).
+4. In a Command Prompt:
+
+```cmd
+cd C:\ARS_Suite
+mvn -DskipTests -f j-log-engine\pom.xml install
+for %m in (j-hub j-log j-map j-digi j-bridge j-sat) do mvn -DskipTests -f %m\pom.xml package
+install.bat
+j-hub\start.bat
+```
+
+`install.bat` writes Start-Menu shortcuts to
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\`. After that
+you can launch everything from the Start Menu.
+
+> **JavaFX:** each module expects `lib\javafx\` alongside its `target\` folder
+> with the Windows JavaFX 21 SDK JARs. Grab them from
+> <https://gluonhq.com/products/javafx/> if the release bundle didn't include them.
+
+### macOS
+
+```bash
+brew install --cask temurin21
+brew install maven
+git clone https://github.com/YOUR-USERNAME/ARS_Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+# build + install as on Linux
+mvn -DskipTests -f j-log-engine/pom.xml install
+for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+    mvn -DskipTests -f "$m/pom.xml" package
+done
+./install.sh
+./j-hub/start.sh
+```
+
+If Gatekeeper complains: `xattr -dr com.apple.quarantine ~/ARS_Suite`
+
+### Installation notes
+
+- Both `install.sh` and `install.bat` are **safe to re-run**. They never touch
+  `j-hub.json`, databases, or logs — rerun after a rebuild to refresh shortcuts.
+- All apps honor the **`ARS_SUITE_HOME`** environment variable if you install
+  somewhere other than `~/ARS_Suite` (Linux/macOS) or `%USERPROFILE%\ARS_Suite`
+  (Windows).
+- Full walkthrough, web-UI tour, and architecture diagram live in
+  [USER_GUIDE.md](USER_GUIDE.md).
 
 ---
 

@@ -185,21 +185,27 @@
   },
   "jMapSettings": {
     "fontSize": 19,
+    "deInfoFontSize": 0,
+    "dxInfoFontSize": 0,
+    "contestListFontSize": 0,
+    "propagationFontSize": 0,
+    "lunarFontSize": 0,
     "useMockData": false,
     "noaaApiKey": "",
     "openWeatherApiKey": "",
     "showWorldMap": true,
     "showGrayline": true,
     "showDxSpots": true,
+    "showSunPosition": true,
     "graylineOpacity": 0.6,
-    "showAuroraOverlay": false,
+    "showAuroraOverlay": true,
     "showGeomagneticAlerts": true,
     "showSatelliteTracking": false,
     "showWeatherOverlay": true,
-    "showTropoOverlay": false,
+    "showTropoOverlay": true,
     "showRadarOverlay": true,
     "showLightningOverlay": true,
-    "showFrontsOverlay": false,
+    "showFrontsOverlay": true,
     "showSurfaceConditions": true,
     "showCqZones": false,
     "showItuZones": false,
@@ -262,12 +268,34 @@
     "hubWebPort": 8081
   },
   "jLogSettings": {
-    "fontSize": 19
+    "fontSize": 19,
+    "showSpaceWeather": true,
+    "fonts": {
+      "statusBar": 12,
+      "entry": 15,
+      "table": 12,
+      "info": 12,
+      "spots": 12
+    }
   },
   "jDigiSettings": {
-    "fontSize": 19
+    "fontSize": 19,
+    "fonts": {
+      "rxTx": 16,
+      "freq": 17,
+      "statusBar": 16,
+      "toolbar": 13,
+      "entry": 16
+    }
   },
   "jBridgeSettings": {
-    "wsjtxPath": "wsjtx"
+    "wsjtxPath": "wsjtx",
+    "fontSize": 12,
+    "fonts": {
+      "toolbar": 14,
+      "sidebar": 13,
+      "band": 14,
+      "table": 13
+    }
   }
 }

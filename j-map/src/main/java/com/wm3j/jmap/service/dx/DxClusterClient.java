@@ -79,6 +79,8 @@ public class DxClusterClient {
 
     private volatile boolean discoveryEnabled = true;
 
+    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
+
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "j-map-hub-reconnect");
         t.setDaemon(true);
@@ -170,6 +172,12 @@ public class DxClusterClient {
                     log.info("Hub connected: {}", url);
                     // Request current J-Map config from hub
                     send("{\"type\":\"JMAP_CONFIG_REQUEST\"}");
+                    if (heartbeatFuture != null) heartbeatFuture.cancel(false);
+                    heartbeatFuture = scheduler.scheduleAtFixedRate(() -> {
+                        if (!connected || ws == null || !ws.isOpen()) return;
+                        try { ws.send("{\"type\":\"HEARTBEAT\",\"appName\":\"j-map\"}"); }
+                        catch (Exception ignored) {}
+                    }, 15, 15, TimeUnit.SECONDS);
                 }
 
                 @Override public void onMessage(String msg) {
@@ -178,6 +186,7 @@ public class DxClusterClient {
 
                 @Override public void onClose(int code, String reason, boolean remote) {
                     connected = false;
+                    if (heartbeatFuture != null) { heartbeatFuture.cancel(false); heartbeatFuture = null; }
                     statusMessage = "Disconnected";
                     addLine(">>> Hub disconnected");
                     log.info("Hub disconnected ({})", reason);
@@ -201,7 +210,12 @@ public class DxClusterClient {
             JsonNode node = MAPPER.readTree(json);
             String type = node.path("type").asText();
 
-            if ("JHUB_WELCOME".equals(type)) {
+            if ("SHUTDOWN".equals(type)) {
+                log.info("SHUTDOWN received from j-hub — exiting");
+                javafx.application.Platform.runLater(javafx.application.Platform::exit);
+                return;
+
+            } else if ("JHUB_WELCOME".equals(type)) {
                 JsonNode st = node.path("station");
                 if (!st.isMissingNode() && stationListener != null) {
                     stationListener.accept(st);

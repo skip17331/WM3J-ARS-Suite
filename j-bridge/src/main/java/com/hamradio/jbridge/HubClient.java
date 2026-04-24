@@ -56,6 +56,7 @@ public class HubClient {
     });
 
     private ScheduledFuture<?> reconnectFuture;
+    private ScheduledFuture<?> heartbeatFuture;
     private DatagramSocket     discoverySocket;
     private volatile boolean   discoveryRunning = false;
 
@@ -117,6 +118,7 @@ public class HubClient {
                     reg.addProperty("appName", "jBridge");
                     reg.addProperty("version", "1.0.0");
                     send(reg.toString());
+                    startHeartbeat();
                     if (onConnectionChange != null) onConnectionChange.accept(true, connectingTo);
                 }
 
@@ -142,6 +144,7 @@ public class HubClient {
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
                     log.info("Hub disconnected (code={}, reason={})", code, reason);
+                    stopHeartbeat();
                     if (onConnectionChange != null) onConnectionChange.accept(false, reason);
                     scheduleReconnect();
                 }
@@ -158,6 +161,19 @@ public class HubClient {
                      connectingTo, e.getMessage(), reconnectMs);
             scheduleReconnect();
         }
+    }
+
+    private void startHeartbeat() {
+        stopHeartbeat();
+        heartbeatFuture = scheduler.scheduleAtFixedRate(() -> {
+            if (ws == null || !ws.isOpen()) return;
+            try { ws.send("{\"type\":\"HEARTBEAT\",\"appName\":\"jBridge\"}"); }
+            catch (Exception ignored) {}
+        }, 15, 15, TimeUnit.SECONDS);
+    }
+
+    private void stopHeartbeat() {
+        if (heartbeatFuture != null) { heartbeatFuture.cancel(false); heartbeatFuture = null; }
     }
 
     private void scheduleReconnect() {

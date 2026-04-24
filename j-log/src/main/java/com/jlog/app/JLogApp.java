@@ -22,20 +22,32 @@ public class JLogApp extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JLogApp.class);
 
-    private static final String JHUB_START = "/home/mike/ARS_Suite/j-hub/start.sh";
+    /** Path to the j-hub start script. Resolved in order:
+     *  (1) {@code $ARS_SUITE_HOME/j-hub/start.sh} if env var is set,
+     *  (2) {@code $HOME/ARS_Suite/j-hub/start.sh} otherwise. */
+    private static final String JHUB_START = resolveJHubStart();
     private static final int    JHUB_PORT  = 8080;
+
+    private static String resolveJHubStart() {
+        String root = System.getenv("ARS_SUITE_HOME");
+        if (root == null || root.isBlank()) {
+            root = System.getProperty("user.home", "") + "/ARS_Suite";
+        }
+        return root + "/j-hub/start.sh";
+    }
 
     private boolean engineOnly    = false;
     private boolean launchedByHub = false;
 
     @Override
     public void init() throws Exception {
+        CrashHandler.install("J-Log");
         engineOnly    = getParameters().getRaw().contains("--engine-only");
         launchedByHub = getParameters().getRaw().contains("--launched-by-hub");
 
         AppConfig.getInstance().load();
         LoggingConfigurator.configure(AppConfig.getInstance().isDebugMode());
-        I18n.load(AppConfig.getInstance().getLanguage());
+        I18n.load(resolveLanguage());
         DatabaseManager.getInstance().initAll();
         PluginLoader.getInstance().init();
 
@@ -73,6 +85,10 @@ public class JLogApp extends Application {
         }
 
         applyIcon(primaryStage);
+        // Respond to hub SHUTDOWN broadcasts (e.g. "Save Data & Restart J-Log"
+        // from the web UI) by closing the UI. The stop() hook then flushes
+        // the WebSocket + closes all SQLite connections cleanly.
+        HubEngine.getInstance().setOnShutdown(() -> Platform.exit());
         new SplashScreen(primaryStage, launchedByHub).show();
     }
 
@@ -115,6 +131,7 @@ public class JLogApp extends Application {
             "/com/jlog/css/" + cfg.getTheme() + ".css");
         scene.getStylesheets().add(base);
         if (themeFile != null) scene.getStylesheets().add(themeFile.toExternalForm());
+        FontScaler.apply(scene);
         scene.getRoot().setStyle("-fx-font-size: " + cfg.getFontSize() + "px;");
     }
 
@@ -148,6 +165,30 @@ public class JLogApp extends Application {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * Prefer the language set in j-hub.json (the suite-wide dropdown in the
+     * j-Hub config UI) over the local j-log Preferences value. Falls back to
+     * AppConfig if j-hub.json is missing or unreadable — keeps j-log runnable
+     * standalone.
+     */
+    private static String resolveLanguage() {
+        String home   = System.getProperty("user.home", "");
+        java.nio.file.Path[] candidates = new java.nio.file.Path[] {
+            java.nio.file.Paths.get(home, "ARS_Suite", "j-hub", "j-hub.json"),
+            java.nio.file.Paths.get(".", "j-hub.json"),
+        };
+        for (java.nio.file.Path p : candidates) {
+            if (!java.nio.file.Files.isReadable(p)) continue;
+            try {
+                com.fasterxml.jackson.databind.JsonNode root =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(p.toFile());
+                String lang = root.path("station").path("language").asText("");
+                if (!lang.isBlank()) return lang;
+            } catch (Exception ignored) {}
+        }
+        return AppConfig.getInstance().getLanguage();
     }
 
     public static void main(String[] args) {

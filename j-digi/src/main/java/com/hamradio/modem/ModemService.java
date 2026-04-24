@@ -89,6 +89,8 @@ public class ModemService implements HubMessageListener {
     /** Fires on the FX thread when j-hub delivers station identity via JHUB_WELCOME. */
     private Consumer<String[]>      stationListener      = a -> {};  // [callsign, grid, tz]
     private Consumer<Integer>       fontSizeListener     = s -> {};
+    /** Per-pane font-size updates delivered as the raw jDigiSettings.fonts JsonObject. */
+    private Consumer<com.google.gson.JsonObject> fontsListener = f -> {};
     /** Fires with the CONTEST_ACTIVE JsonObject when a j-log contest is loaded, or null for CONTEST_INACTIVE. */
     private Consumer<com.google.gson.JsonObject> contestListener = c -> {};
 
@@ -176,6 +178,7 @@ public class ModemService implements HubMessageListener {
     public void setRotorListener(Consumer<RotorStatus> l)       { this.rotorListener        = l != null ? l : r -> {}; }
     public void setStationListener(Consumer<String[]> l)        { this.stationListener      = l != null ? l : a -> {}; }
     public void setFontSizeListener(Consumer<Integer> l)        { this.fontSizeListener     = l != null ? l : s -> {}; }
+    public void setFontsListener(Consumer<com.google.gson.JsonObject> l) { this.fontsListener = l != null ? l : f -> {}; }
     public void setContestListener(Consumer<com.google.gson.JsonObject> l) { this.contestListener = l != null ? l : c -> {}; }
 
     public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
@@ -544,6 +547,18 @@ public class ModemService implements HubMessageListener {
         }
     }
 
+    /** Broadcast a just-persisted contest QSO so j-log's contest view (and any
+     *  other peer stations) refresh. No-ops silently when the hub isn't open —
+     *  the DB write has already happened so the QSO isn't lost. */
+    public void sendContestQsoSaved(com.jlog.model.QsoRecord q) {
+        if (hubClient == null || !hubClient.isOpen()) return;
+        try {
+            hubClient.sendContestQsoSaved(q);
+        } catch (Exception e) {
+            log.warn("Failed to broadcast QSO_SAVED: {}", e.getMessage());
+        }
+    }
+
     private DigitalTransmitter transmitterForMode(ModeType mode) {
         if (mode == null) {
             return null;
@@ -861,6 +876,9 @@ public class ModemService implements HubMessageListener {
                     com.google.gson.JsonObject settings = msg.getAsJsonObject("settings");
                     if (settings.has("fontSize")) {
                         fontSizeListener.accept(settings.get("fontSize").getAsInt());
+                    }
+                    if (settings.has("fonts") && settings.get("fonts").isJsonObject()) {
+                        fontsListener.accept(settings.getAsJsonObject("fonts"));
                     }
                 }
             }

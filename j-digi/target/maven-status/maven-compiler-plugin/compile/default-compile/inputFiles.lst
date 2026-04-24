@@ -1,3 +1,4 @@
+/home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/ui/JDigiFontScaler.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/model/HubSpot.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/RttyBaudot.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/model/RotorStatus.java
@@ -5,6 +6,7 @@
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/ui/MacroBar.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/dsp/ViterbiK7.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/DominoExMode.java
+/home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/CrashHandler.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/ModemService.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/DigitalMode.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/CwTransmitter.java

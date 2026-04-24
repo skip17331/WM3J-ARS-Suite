@@ -130,6 +130,14 @@ public class Settings {
     private double uiScale = 1.0;
     private int fontSize = 13;
 
+    // Per-floating-window font sizes (override global, 0 = inherit)
+    private int deInfoFontSize      = 0;
+    private int dxInfoFontSize      = 0;
+    private int contestListFontSize = 0;
+    private int countdownFontSize   = 0;
+    private int propagationFontSize = 0;
+    private int lunarFontSize       = 0;
+
     // -------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------
@@ -367,4 +375,17 @@ public class Settings {
 
     public int getRefreshSeconds() { return refreshSeconds > 0 ? refreshSeconds : 30; }
     public void setRefreshSeconds(int refreshSeconds) { this.refreshSeconds = refreshSeconds; }
+
+    public int getDeInfoFontSize()      { return deInfoFontSize; }
+    public void setDeInfoFontSize(int v){ this.deInfoFontSize = v; }
+    public int getDxInfoFontSize()      { return dxInfoFontSize; }
+    public void setDxInfoFontSize(int v){ this.dxInfoFontSize = v; }
+    public int getContestListFontSize()     { return contestListFontSize; }
+    public void setContestListFontSize(int v){ this.contestListFontSize = v; }
+    public int getCountdownFontSize()     { return countdownFontSize; }
+    public void setCountdownFontSize(int v){ this.countdownFontSize = v; }
+    public int getPropagationFontSize()     { return propagationFontSize; }
+    public void setPropagationFontSize(int v){ this.propagationFontSize = v; }
+    public int getLunarFontSize()     { return lunarFontSize; }
+    public void setLunarFontSize(int v){ this.lunarFontSize = v; }
 }

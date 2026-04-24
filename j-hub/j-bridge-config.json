@@ -5,7 +5,7 @@
   },
   "wsjtx": {
     "udpPort": 2237,
-    "bindAddress": "127.0.0.0"
+    "bindAddress": "127.0.0.1"
   },
   "display": {
     "decodeHistoryLength": 200,

@@ -25,6 +25,18 @@ public class JSatApp extends Application {
 
     private static final int JHUB_WS_PORT  = 8080;
     private static final int JHUB_WEB_PORT = 8081;
+    /** Path to the j-hub start script. Resolved in order:
+     *  (1) {@code $ARS_SUITE_HOME/j-hub/start.sh} if env var is set,
+     *  (2) {@code $HOME/ARS_Suite/j-hub/start.sh} otherwise. */
+    private static final String JHUB_START = resolveJHubStart();
+
+    private static String resolveJHubStart() {
+        String root = System.getenv("ARS_SUITE_HOME");
+        if (root == null || root.isBlank()) {
+            root = System.getProperty("user.home", "") + "/ARS_Suite";
+        }
+        return root + "/j-hub/start.sh";
+    }
 
     private ServiceRegistry serviceRegistry;
     private JsatApiServer   apiServer;
@@ -37,6 +49,7 @@ public class JSatApp extends Application {
 
     @Override
     public void init() throws Exception {
+        CrashHandler.install("J-Sat");
         log.info("=== J-Sat starting [WM3J ARS Suite] ===");
 
         List<String> raw = getParameters().getRaw();
@@ -114,7 +127,7 @@ public class JSatApp extends Application {
         if (isPortOpen("localhost", JHUB_WS_PORT, 500)) return;
         log.info("J-Hub not detected — starting...");
         try {
-            new ProcessBuilder("bash", "/home/mike/ARS_Suite/j-hub/start.sh", "--no-splash")
+            new ProcessBuilder("bash", JHUB_START, "--no-splash")
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                 .redirectError(ProcessBuilder.Redirect.DISCARD)
                 .start();

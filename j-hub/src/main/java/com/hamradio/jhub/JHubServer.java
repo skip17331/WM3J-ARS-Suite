@@ -37,6 +37,8 @@ public class JHubServer extends WebSocketServer {
         public String appName    = "unknown";
         public String version    = "";
         public final Instant connectedAt = Instant.now();
+        public volatile Instant lastMessageAt   = Instant.now();
+        public volatile Instant lastHeartbeatAt = null;
         public boolean registered = false;
 
         AppSession(WebSocket socket) { this.socket = socket; }
@@ -82,6 +84,8 @@ public class JHubServer extends WebSocketServer {
         AppSession session = sessions.get(conn);
         if (session == null) return; // race — connection closed
 
+        session.lastMessageAt = Instant.now();
+
         try {
             JsonObject msg = JsonParser.parseString(rawMessage).getAsJsonObject();
             String type = msg.get("type").getAsString();
@@ -93,6 +97,12 @@ public class JHubServer extends WebSocketServer {
                 } else {
                     log.warn("Received '{}' from unregistered client — ignoring", type);
                 }
+                return;
+            }
+
+            // HEARTBEAT: just update the timestamp and swallow; no broadcast.
+            if ("HEARTBEAT".equals(type)) {
+                session.lastHeartbeatAt = Instant.now();
                 return;
             }
 
@@ -187,6 +197,19 @@ public class JHubServer extends WebSocketServer {
             if (jmapConfig != null) {
                 sendTo(session.socket, jmapConfig);
             }
+        }
+
+        // Last solar flux payload — so fresh joiners don't wait 15 min for the
+        // next poll interval.
+        String solar = SolarFluxService.getInstance().getLatestBroadcast();
+        if (solar != null) {
+            sendTo(session.socket, solar);
+        }
+
+        // Recent heard-by spots (PSK Reporter, WSPR) so j-log's Propagation
+        // pane populates immediately on connect.
+        for (String heardBy : cache.getRecentHeardBy()) {
+            sendTo(session.socket, heardBy);
         }
 
         log.debug("State replayed to '{}'", session.appName);

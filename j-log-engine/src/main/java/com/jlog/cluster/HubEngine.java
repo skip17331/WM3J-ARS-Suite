@@ -43,6 +43,8 @@ public class HubEngine {
     private final AtomicBoolean autoReconnect   = new AtomicBoolean(false);
     private String url;
     private Thread reconnectThread;
+    private java.util.concurrent.ScheduledExecutorService heartbeatScheduler;
+    private static final int HEARTBEAT_INTERVAL_SEC = 15;
 
     // Listeners — called on the WebSocket thread; callers must dispatch to UI thread if needed
     private Consumer<DxSpot>   spotListener;
@@ -58,6 +60,13 @@ public class HubEngine {
     private Consumer<JsonNode> contestFullSyncRequestListener;
     private Consumer<JsonNode> contestFullSyncStartListener;
     private Consumer<JsonNode> modemDecodeListener;
+    private Consumer<JsonNode> solarFluxListener;
+    /** Last-seen SOLAR_FLUX payload — replayed to a listener the moment it's
+     *  registered, since the hub's state-replay can fire this before
+     *  controllers have wired up. */
+    private volatile JsonNode  lastSolarFluxPayload;
+    private Consumer<JsonNode> heardBySpotListener;
+    private Consumer<JsonNode> adifImportListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -88,6 +97,7 @@ public class HubEngine {
                     // Register with hub — required before any other message
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"logging-engine\",\"version\":\"1.0.0\"}");
                     log.info("Hub connected: {}", wsUrl);
+                    startHeartbeat();
                     if (onConnected != null)
                         onConnected.run();
                 }
@@ -123,7 +133,23 @@ public class HubEngine {
         }
     }
 
+    /** Start the background heartbeat sender. Idempotent — no-op if already running. */
+    private void startHeartbeat() {
+        if (heartbeatScheduler != null && !heartbeatScheduler.isShutdown()) return;
+        heartbeatScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "hub-heartbeat");
+            t.setDaemon(true);
+            return t;
+        });
+        heartbeatScheduler.scheduleAtFixedRate(() -> {
+            if (!connected.get() || wsClient == null) return;
+            try { wsClient.send("{\"type\":\"HEARTBEAT\",\"appName\":\"logging-engine\"}"); }
+            catch (Exception ignored) {}
+        }, HEARTBEAT_INTERVAL_SEC, HEARTBEAT_INTERVAL_SEC, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
     public void disconnect() {
+        if (heartbeatScheduler != null) { heartbeatScheduler.shutdownNow(); heartbeatScheduler = null; }
         if (wsClient != null) {
             try { wsClient.closeBlocking(); } catch (Exception ignored) {}
         }
@@ -200,6 +226,19 @@ public class HubEngine {
             } else if ("MODEM_DECODE".equals(type)) {
                 if (modemDecodeListener != null)
                     modemDecodeListener.accept(node);
+
+            } else if ("SOLAR_FLUX".equals(type)) {
+                lastSolarFluxPayload = node;
+                if (solarFluxListener != null)
+                    solarFluxListener.accept(node);
+
+            } else if ("HEARD_BY_SPOT".equals(type)) {
+                if (heardBySpotListener != null)
+                    heardBySpotListener.accept(node);
+
+            } else if ("IMPORT_ADIF".equals(type)) {
+                if (adifImportListener != null)
+                    adifImportListener.accept(node);
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -257,6 +296,16 @@ public class HubEngine {
     public void setContestFullSyncRequestListener(Consumer<JsonNode> l) { this.contestFullSyncRequestListener = l; }
     public void setContestFullSyncStartListener  (Consumer<JsonNode> l) { this.contestFullSyncStartListener   = l; }
     public void setModemDecodeListener           (Consumer<JsonNode> l) { this.modemDecodeListener            = l; }
+    public void setSolarFluxListener             (Consumer<JsonNode> l) {
+        this.solarFluxListener = l;
+        // Replay last-seen payload immediately — covers the timing race where
+        // j-hub's state-replay fires SOLAR_FLUX before the controller wires up.
+        if (l != null && lastSolarFluxPayload != null) {
+            try { l.accept(lastSolarFluxPayload); } catch (Exception ignored) {}
+        }
+    }
+    public void setHeardBySpotListener           (Consumer<JsonNode> l) { this.heardBySpotListener            = l; }
+    public void setAdifImportListener            (Consumer<JsonNode> l) { this.adifImportListener             = l; }
     public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }

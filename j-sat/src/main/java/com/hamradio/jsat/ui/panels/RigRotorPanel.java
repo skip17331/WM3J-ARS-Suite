@@ -29,7 +29,7 @@ public class RigRotorPanel extends HBox {
 
     public RigRotorPanel(ServiceRegistry services) {
         this.services = services;
-        int fz = services.getSettings().fontSize;
+        int fz = services.getSettings().effective(services.getSettings().rigRotorFontSize);
 
         setSpacing(10);
         setPadding(new Insets(6, 8, 6, 8));

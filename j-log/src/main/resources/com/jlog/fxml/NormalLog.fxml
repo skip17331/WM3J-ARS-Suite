@@ -23,6 +23,8 @@
                             <MenuItem text="Upload to LoTW…"        onAction="#menuLotwUpload"/>
                             <MenuItem text="Download LoTW QSLs…"    onAction="#menuLotwDownload"/>
                             <SeparatorMenuItem/>
+                            <MenuItem text="Print QSL Cards…"       onAction="#menuPrintQsl"/>
+                            <SeparatorMenuItem/>
                             <MenuItem text="%menu.exit" onAction="#menuExit"/>
                         </items>
                     </Menu>
@@ -33,12 +35,12 @@
                     </Menu>
                     <Menu text="Tools">
                         <items>
-                            <MenuItem text="CW / Digital Keyer…" onAction="#menuCwKeyer"/>
+                            <CheckMenuItem fx:id="miToggleKeyer" text="CW / Digital Keyer"
+                                           onAction="#toggleKeyerPane"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.setup">
                         <items>
-                            <MenuItem text="Database Tools"  onAction="#menuDatabaseTools"/>
                             <MenuItem text="J-Hub Setup UI"  onAction="#menuSetup"/>
                         </items>
                     </Menu>
@@ -115,7 +117,7 @@
 
                     <HBox GridPane.columnIndex="8" GridPane.rowIndex="2"
                           GridPane.columnSpan="4" spacing="6">
-                        <Button text="%button.save"   onAction="#doSave"            styleClass="primary-button"/>
+                        <Button fx:id="btnSave" text="%button.save"   onAction="#doSave"            styleClass="primary-button"/>
                         <Button text="%button.clear"  onAction="#doClear"           styleClass="secondary-button"/>
                         <Button text="%button.lookup" onAction="#doCallsignLookup"  styleClass="secondary-button"/>
                     </HBox>
@@ -175,6 +177,41 @@
                         </HBox>
                     </VBox>
                 </TitledPane>
+                <TitledPane fx:id="spaceWxPane" text="Space Wx" collapsible="false" HBox.hgrow="ALWAYS">
+                    <GridPane hgap="14" vgap="4" styleClass="info-content">
+                        <padding><Insets top="6" right="10" bottom="6" left="10"/></padding>
+                        <columnConstraints>
+                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="50"/>
+                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="60"/>
+                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="50"/>
+                        </columnConstraints>
+
+                        <!-- Row 0 — SFI | K | SSN -->
+                        <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarSfi" styleClass="info-value"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarK"   styleClass="info-value"
+                               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                        <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarSsn" styleClass="info-value"
+                               GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+
+                        <!-- Row 1 — X-Ray | Wind | Geomag -->
+                        <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarXray" styleClass="info-value"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarWind" styleClass="info-value"
+                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                        <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarGeo"  styleClass="info-value"
+                               GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                    </GridPane>
+                </TitledPane>
             </HBox>
         </VBox>
     </top>
@@ -183,7 +220,7 @@
          CENTER: QSO TABLE + DX SPOTTING (vertical SplitPane)
          ============================================================ -->
     <center>
-        <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" dividerPositions="0.5">
+        <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" dividerPositions="0.42, 0.6">
             <!-- QSO Table -->
             <VBox styleClass="log-section">
                 <HBox spacing="6" styleClass="table-toolbar">
@@ -210,10 +247,50 @@
                 </TableView>
             </VBox>
 
-            <!-- DX Spotting -->
-            <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane">
-                <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
-            </TitledPane>
+            <!-- CW / Digital keyer — embedded pane, toggled via Tools menu.
+                 Hidden by default so it doesn't steal SplitPane height when unused. -->
+            <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
+                  visible="false" managed="false" minHeight="0" prefHeight="110">
+                <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="Keyer:" styleClass="section-title"/>
+                    <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
+                    <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
+                              prefRowCount="3" HBox.hgrow="ALWAYS"
+                              promptText="Decoded text — select a callsign, right-click to use it"/>
+                </HBox>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="TX:"/>
+                    <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
+                               promptText="Type and press Enter or Send"/>
+                    <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
+                    <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
+                    <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
+                </HBox>
+            </VBox>
+
+            <!-- DX Spotting + Heard-By stacked -->
+            <VBox spacing="0">
+                <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane">
+                    <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
+                </TitledPane>
+
+                <!-- Heard-By pane: who is currently hearing us (PSK Reporter + WSPR) -->
+                <TitledPane fx:id="heardByPane" text="Heard By" animated="false"
+                            collapsible="true" expanded="false" styleClass="dx-pane">
+                    <TableView fx:id="heardByTable" styleClass="qso-table" prefHeight="220">
+                        <columns>
+                            <TableColumn fx:id="colHbTime"     text="Time"     prefWidth="80"/>
+                            <TableColumn fx:id="colHbReporter" text="Reporter" prefWidth="100"/>
+                            <TableColumn fx:id="colHbGrid"     text="Grid"     prefWidth="70"/>
+                            <TableColumn fx:id="colHbBand"     text="Band"     prefWidth="60"/>
+                            <TableColumn fx:id="colHbMode"     text="Mode"     prefWidth="70"/>
+                            <TableColumn fx:id="colHbSnr"      text="SNR"      prefWidth="55"/>
+                            <TableColumn fx:id="colHbSource"   text="Source"   prefWidth="90"/>
+                        </columns>
+                    </TableView>
+                </TitledPane>
+            </VBox>
         </SplitPane>
     </center>
 </BorderPane>

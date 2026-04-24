@@ -48,7 +48,7 @@ public class LivePassPanel extends VBox {
 
     public LivePassPanel(ServiceRegistry services) {
         this.services = services;
-        int fz = services.getSettings().fontSize;
+        int fz = services.getSettings().effective(services.getSettings().livePassFontSize);
 
         setSpacing(6);
         setStyle(cardStyle());
