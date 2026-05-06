@@ -99,6 +99,42 @@ class SignalClassifierTest {
     }
 
     @Test
+    void ax25BellPairWithBurstyEnvelopeIsClassifiedAsAx25() {
+        // 1200 + 2200 Hz tone pair (Bell 202), gated on/off in packet bursts.
+        feed(makeKeyedTwoTones(1200, 2200, 0.45, 4), 32);
+        var r = classifier.classify(1200);
+        assertEquals(SignalClassifier.ClassifiedMode.AX25, r.mode,
+                "expected AX25 for Bell 202 bursty pair, got " + r);
+    }
+
+    @Test
+    void multiToneAround300HzWideIsClassifiedAsMfsk16() {
+        // 16 evenly-spaced tones across ~300 Hz — MFSK16's signature shape.
+        feed(makeMultiTone(1500, 16, 18, 0.4), 32);  // 18 Hz spacing × 16 tones ≈ 288 Hz
+        var r = classifier.classify(1500);
+        assertEquals(SignalClassifier.ClassifiedMode.MFSK16, r.mode,
+                "expected MFSK16 for ~300 Hz multi-tone, got " + r);
+    }
+
+    @Test
+    void multiToneAround500HzWideIsClassifiedAsDominoEx() {
+        // ~500 Hz wide — falls in the DOMINOEX/Olivia-500 ambiguity zone.
+        feed(makeMultiTone(1500, 12, 40, 0.4), 32);  // 40 Hz × 12 ≈ 480 Hz
+        var r = classifier.classify(1500);
+        assertEquals(SignalClassifier.ClassifiedMode.DOMINOEX, r.mode,
+                "expected DOMINOEX for ~500 Hz multi-tone, got " + r);
+    }
+
+    @Test
+    void multiToneAround1000HzWideIsClassifiedAsOlivia() {
+        // ~1000 Hz wide multi-tone — Olivia 1000/32 territory.
+        feed(makeMultiTone(1500, 16, 60, 0.35), 32);  // 60 Hz × 16 = 960 Hz
+        var r = classifier.classify(1500);
+        assertEquals(SignalClassifier.ClassifiedMode.OLIVIA, r.mode,
+                "expected OLIVIA for ~1000 Hz multi-tone, got " + r);
+    }
+
+    @Test
     void wideNoiseIsClassifiedAsSsb() {
         // Band-limited noise across most of the audio passband — bandwidth
         // measurement will exceed 1500 Hz and trigger the SSB branch.
@@ -151,6 +187,31 @@ class SignalClassifierTest {
         float[][] frames = new float[1][];
         frames[0] = addSines(hz1, amp, hz2, amp);
         return frames;
+    }
+
+    /** Two tones, gated on/off — packet-radio AX25 burst pattern. */
+    private static float[][] makeKeyedTwoTones(double hz1, double hz2, double amp, int onFramesOff) {
+        float[] on = addSines(hz1, amp, hz2, amp);
+        float[] off = new float[FRAME];
+        float[][] cycle = new float[onFramesOff * 2][];
+        for (int i = 0; i < onFramesOff; i++)              cycle[i] = on;
+        for (int i = onFramesOff; i < onFramesOff * 2; i++) cycle[i] = off;
+        return cycle;
+    }
+
+    /** {@code count} evenly-spaced tones centered on {@code centerHz}, each
+     *  {@code spacingHz} apart — synthetic stand-in for OLIVIA/MFSK/DOMINOEX. */
+    private static float[][] makeMultiTone(double centerHz, int count, double spacingHz, double amp) {
+        float[] f = new float[FRAME];
+        double startHz = centerHz - (count - 1) * spacingHz / 2.0;
+        double per = amp / Math.sqrt(count);
+        for (int t = 0; t < count; t++) {
+            double hz = startHz + t * spacingHz;
+            for (int i = 0; i < FRAME; i++) {
+                f[i] += (float) (per * Math.sin(2 * Math.PI * hz * i / SAMPLE_RATE));
+            }
+        }
+        return new float[][] { f };
     }
 
     private float[][] makeWideNoise(double amp) {

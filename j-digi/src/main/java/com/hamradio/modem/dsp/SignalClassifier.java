@@ -38,10 +38,16 @@ public class SignalClassifier implements java.util.function.Consumer<float[]> {
 
     private static final Logger log = LoggerFactory.getLogger(SignalClassifier.class);
 
-    /** What we tell the operator. CW/RTTY/PSK31 overlap j-digi's existing
-     *  ModeType enum; FT8/FT4/SSB are classifier-only (j-digi can't decode
-     *  those, but it can still <em>identify</em> them on the band). */
-    public enum ClassifiedMode { CW, RTTY, PSK31, FT8, FT4, SSB, UNKNOWN }
+    /** What we tell the operator. CW/RTTY/PSK31/OLIVIA/MFSK16/DOMINOEX/AX25
+     *  overlap j-digi's existing ModeType enum (operator can switch the active
+     *  decoder to match); FT8/FT4/SSB are classifier-only — j-digi can't
+     *  decode those, but it can still <em>identify</em> them on the band so
+     *  the operator knows what to launch (WSJT-X / JTDX / SSB radio). */
+    public enum ClassifiedMode {
+        CW, RTTY, PSK31, FT8, FT4, SSB,
+        OLIVIA, MFSK16, DOMINOEX, AX25,
+        UNKNOWN
+    }
 
     public static final class Result {
         public final ClassifiedMode mode;
@@ -145,9 +151,27 @@ public class SignalClassifier implements java.util.function.Consumer<float[]> {
         }
         double bw = bandwidthAtMinus10dB(mags, peakBin, hzPerBin);
 
-        // ── RTTY mark/space detector ─────────────────────────────────
+        // ── Mark/space + peak counts for multi-tone classification ───
         double rttyShiftHz = 170.0; // standard amateur shift
-        boolean hasSecondPeak = peakAt(mags, peakBin, rttyShiftHz, hzPerBin, peakMag);
+        boolean hasRttyPair = peakAt(mags, peakBin, rttyShiftHz, hzPerBin, peakMag);
+        // Bell 202 (AX.25 packet on HF/VHF): 1200 Hz mark, 2200 Hz space.
+        // The pair is 1000 Hz apart, far from any other amateur dual-tone
+        // mode, so it's the strongest single distinguishing feature.
+        boolean hasAx25Pair = peakAt(mags, peakBin, 1000.0, hzPerBin, peakMag);
+        // Multi-tone search across a wider window than the -10 dB BW would
+        // suggest — multi-tone signals (OLIVIA / MFSK / DOMINOEX) have valleys
+        // between tones that drop below the threshold, which makes the simple
+        // bandwidth walk underestimate. We hunt up to ±1500 Hz for additional
+        // peaks above 30% of the carrier and use their span as the effective
+        // bandwidth when several are present.
+        double peakSearchHz = 1500.0;
+        int peakCount = countPeaks(mags, peakBin, peakSearchHz, hzPerBin, peakMag * 0.30);
+        double multiToneSpan = peakSpan(mags, peakBin, peakSearchHz, hzPerBin, peakMag * 0.30);
+        if (peakCount >= 4 && multiToneSpan > bw) {
+            // Use the span as bandwidth so the decision tree's BW-based
+            // OLIVIA / MFSK / DOMINOEX bucketing fires correctly.
+            bw = multiToneSpan;
+        }
 
         // ── Envelope over time at this center frequency ──────────────
         double[] env = envelopeOverTime(snapshot, centerHz);
@@ -159,15 +183,48 @@ public class SignalClassifier implements java.util.function.Consumer<float[]> {
 
         // ── Decision tree ────────────────────────────────────────────
         // Tested against synthetic fixtures in SignalClassifierTest. Order
-        // matters — RTTY check must precede the narrow-CW branch since RTTY's
-        // mark+space combined width also looks "narrow".
+        // matters — RTTY/AX25 checks must precede the narrow-CW branch since
+        // their mark+space combined extent can also look "narrow"; AX25 must
+        // precede RTTY since the 1000 Hz Bell-202 spacing falls outside RTTY's
+        // 170 Hz window but bursty AX25 envelopes are unmistakable.
         if (bw > 1500.0) {
             return new Result(ClassifiedMode.SSB, 0.7, peakHz(peakBin, hzPerBin), bw,
                     "wide envelope, voice-shaped");
         }
-        if (hasSecondPeak && bw < 500.0) {
+        // AX25 (Bell 202): 1200 + 2200 Hz tone pair, bursty packet envelope
+        // (high CV from packet on/off). Distinct from RTTY (~170 Hz spacing).
+        if (hasAx25Pair && envCv > 0.35) {
+            return new Result(ClassifiedMode.AX25, 0.7, peakHz(peakBin, hzPerBin), bw,
+                    "Bell 202 1200/2200 Hz tones, bursty");
+        }
+        // RTTY = exactly the mark/space pair (≤3 distinct peaks). A multi-tone
+        // signal that happens to have *some* tone pair ~170 Hz apart would
+        // otherwise false-positive as RTTY here.
+        if (hasRttyPair && bw < 500.0 && peakCount <= 3) {
             return new Result(ClassifiedMode.RTTY, 0.85, peakHz(peakBin, hzPerBin), bw,
                     "two tones ~170 Hz apart");
+        }
+        // Multi-tone digital MFSK family (OLIVIA / MFSK16 / DOMINOEX). All
+        // three produce several distinct, evenly-spaced tones across a moderate
+        // bandwidth and a near-constant envelope — distinguishing them by
+        // shape alone is heuristic, so we report low/moderate confidence and
+        // pick the most common variant in the bandwidth range.
+        if (peakCount >= 4 && bw >= 200.0 && bw < 1500.0 && envCv < 0.4) {
+            ClassifiedMode pick;
+            String note;
+            double conf = 0.55;
+            if (bw < 350.0) {
+                pick = ClassifiedMode.MFSK16;
+                note = peakCount + " tones in ~" + (int) bw + " Hz (could also be DominoEX)";
+            } else if (bw < 600.0) {
+                pick = ClassifiedMode.DOMINOEX;
+                note = peakCount + " tones in ~" + (int) bw + " Hz (could also be Olivia 500)";
+            } else {
+                pick = ClassifiedMode.OLIVIA;
+                note = peakCount + " tones in ~" + (int) bw + " Hz";
+                conf = 0.6;
+            }
+            return new Result(pick, conf, peakHz(peakBin, hzPerBin), bw, note);
         }
         if (bw < 120.0) {
             // Narrow signal — disambiguate by temporal pattern.
@@ -194,7 +251,8 @@ public class SignalClassifier implements java.util.function.Consumer<float[]> {
         }
 
         return new Result(ClassifiedMode.UNKNOWN, 0.4, peakHz(peakBin, hzPerBin), bw,
-                String.format("BW=%.0f Hz, CV=%.2f, duty=%.2f", bw, envCv, dutyCycle));
+                String.format("BW=%.0f Hz, CV=%.2f, duty=%.2f, peaks=%d",
+                        bw, envCv, dutyCycle, peakCount));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
@@ -222,6 +280,49 @@ public class SignalClassifier implements java.util.function.Consumer<float[]> {
         int hi = peakBin;
         while (hi < mags.length - 1 && mags[hi] >= threshold) hi++;
         return (hi - lo) * hzPerBin;
+    }
+
+    /** Count distinct local-maximum bins (above {@code threshold}) within
+     *  ±halfWidthHz of {@code centerBin}. Used to spot the multi-tone signature
+     *  of OLIVIA / MFSK16 / DOMINOEX. A "local max" = bin strictly higher than
+     *  both neighbors and at least one bin away from any other counted peak,
+     *  so a wide hump isn't double-counted. */
+    static int countPeaks(double[] mags, int centerBin, double halfWidthHz,
+                          double hzPerBin, double threshold) {
+        // For very narrow signals the bandwidth measurement is small; broaden
+        // the search a touch so we don't miss tones at the edges.
+        int halfBins = Math.max(8, (int) Math.round(halfWidthHz / hzPerBin));
+        int lo = Math.max(1, centerBin - halfBins);
+        int hi = Math.min(mags.length - 2, centerBin + halfBins);
+        int count = 0, lastPeakBin = -10;
+        for (int i = lo; i <= hi; i++) {
+            if (mags[i] < threshold) continue;
+            if (mags[i] <= mags[i - 1] || mags[i] <= mags[i + 1]) continue;
+            if (i - lastPeakBin < 2) continue;
+            count++;
+            lastPeakBin = i;
+        }
+        return count;
+    }
+
+    /** Hz distance between the leftmost and rightmost local-maximum bins
+     *  above {@code threshold} within ±halfWidthHz of {@code centerBin}.
+     *  Used as the bandwidth of multi-tone signals (OLIVIA / MFSK / DOMINOEX)
+     *  whose inter-tone valleys break the simple -10 dB walk. */
+    static double peakSpan(double[] mags, int centerBin, double halfWidthHz,
+                           double hzPerBin, double threshold) {
+        int halfBins = Math.max(8, (int) Math.round(halfWidthHz / hzPerBin));
+        int lo = Math.max(1, centerBin - halfBins);
+        int hi = Math.min(mags.length - 2, centerBin + halfBins);
+        int leftmost = -1, rightmost = -1;
+        for (int i = lo; i <= hi; i++) {
+            if (mags[i] < threshold) continue;
+            if (mags[i] <= mags[i - 1] || mags[i] <= mags[i + 1]) continue;
+            if (leftmost < 0) leftmost = i;
+            rightmost = i;
+        }
+        if (leftmost < 0 || rightmost == leftmost) return 0;
+        return (rightmost - leftmost) * hzPerBin;
     }
 
     /** True if there's another bin within ±20 Hz of (peakBin ± shiftHz) whose
