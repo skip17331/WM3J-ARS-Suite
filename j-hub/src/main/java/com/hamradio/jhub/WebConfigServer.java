@@ -81,6 +81,9 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new JDigiApiServlet()),       "/api/jdigi");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
+        ctx.addServlet(new ServletHolder(new MacroTriggerServlet()), "/api/macros/trigger");
+        ctx.addServlet(new ServletHolder(new VoiceUploadServlet()),  "/api/voice/upload");
+        ctx.addServlet(new ServletHolder(new VoiceFileServlet()),    "/api/voice/file");
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
         ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
         ctx.addServlet(new ServletHolder(new AmpApiServlet()),       "/api/amp");
@@ -1682,6 +1685,117 @@ public class WebConfigServer {
             json(res, WeatherService.getInstance().getCachedJson());
         }
 
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/voice/upload — POST multipart WAV; returns { path }
+    // /api/voice/file?path=...  — GET serves a previously-uploaded WAV
+    // /api/macros/trigger — POST { key } broadcasts MACRO_TRIGGER over WS
+    // ---------------------------------------------------------------
+
+    private static final java.nio.file.Path VOICE_DIR =
+        java.nio.file.Path.of(System.getProperty("user.home"), ".j-hub", "voice");
+
+    private static class VoiceUploadServlet extends HttpServlet {
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                jakarta.servlet.MultipartConfigElement mp =
+                    new jakarta.servlet.MultipartConfigElement(
+                        System.getProperty("java.io.tmpdir"), 16 * 1024 * 1024, 16 * 1024 * 1024, 1024 * 1024);
+                req.setAttribute("org.eclipse.jetty.multipartConfig", mp);
+
+                jakarta.servlet.http.Part filePart = req.getPart("file");
+                jakarta.servlet.http.Part namePart = req.getPart("name");
+                if (filePart == null) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"missing 'file' part\"}");
+                    return;
+                }
+                String name = namePart != null
+                    ? new String(namePart.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim()
+                    : "macro_" + System.currentTimeMillis();
+                name = name.replaceAll("[^A-Za-z0-9._-]", "_");
+                if (!name.toLowerCase().endsWith(".wav")) name += ".wav";
+
+                java.nio.file.Files.createDirectories(VOICE_DIR);
+                java.nio.file.Path dest = VOICE_DIR.resolve(name);
+                try (java.io.InputStream in = filePart.getInputStream()) {
+                    java.nio.file.Files.copy(in, dest,
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+                log.info("Voice macro WAV saved: {} ({} bytes)", dest, java.nio.file.Files.size(dest));
+                json(res, "{\"path\":\"" + dest.toString().replace("\\", "\\\\") + "\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    private static class VoiceFileServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getParameter("path");
+            if (path == null || path.isBlank()) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST); return;
+            }
+            java.nio.file.Path p = java.nio.file.Path.of(path).toAbsolutePath().normalize();
+            // Confine reads to ~/.j-hub/voice — refuse anything else (path-traversal guard)
+            if (!p.startsWith(VOICE_DIR.toAbsolutePath().normalize())) {
+                res.setStatus(HttpServletResponse.SC_FORBIDDEN); return;
+            }
+            if (!java.nio.file.Files.isRegularFile(p)) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND); return;
+            }
+            res.setContentType("audio/wav");
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            try (java.io.OutputStream out = res.getOutputStream()) {
+                java.nio.file.Files.copy(p, out);
+            }
+        }
+    }
+
+    private static class MacroTriggerServlet extends HttpServlet {
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject in = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                String key = in.has("key") ? in.get("key").getAsString() : "";
+                if (key.isBlank()) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"missing 'key'\"}"); return;
+                }
+                JHubConfig.MacrosSection ms = ConfigManager.getInstance().getConfig().macros;
+                JHubConfig.MacroDefinition def = null;
+                if (ms != null && ms.list != null) {
+                    for (JHubConfig.MacroDefinition d : ms.list) {
+                        if (key.equals(d.key)) { def = d; break; }
+                    }
+                }
+                if (def == null) {
+                    res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    json(res, "{\"error\":\"unknown macro key\"}"); return;
+                }
+                com.google.gson.JsonObject msg = new com.google.gson.JsonObject();
+                msg.addProperty("type",    "MACRO_TRIGGER");
+                msg.addProperty("key",     def.key);
+                msg.addProperty("kind",    def.kind == null ? "CW" : def.kind);
+                msg.addProperty("text",    def.text == null ? "" : def.text);
+                msg.addProperty("wavPath", def.wavPath == null ? "" : def.wavPath);
+                msg.addProperty("source",  "j-hub-web");
+                JHubServer s = MessageRouter.getInstance().getJHubServer();
+                if (s != null) s.broadcastToAll(msg.toString());
+                json(res, "{\"status\":\"triggered\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }

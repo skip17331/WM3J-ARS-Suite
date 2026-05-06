@@ -30,6 +30,17 @@ public class AntennaStatus {
     /** ISO-8601 UTC timestamp of the last state change. */
     public String timestamp = "";
 
+    /** Current rig band ("20m", "40m", …) used as input to rule matching. */
+    public String band = "";
+    /** Current rig mode ("CW", "SSB", …) used as input to rule matching. */
+    public String mode = "";
+    /** Current rotor heading in degrees, or -1 if unknown. */
+    public double heading = -1;
+    /** First (or only) switch's currently selected antenna #, or null. */
+    public Integer activeAntenna;
+    /** Free-text identifier of the matched rule, e.g. "20m / SSB → ant 2". */
+    public String matchedRule = "";
+
     public AntennaStatus() {}
 
     public static class SwitchState {
