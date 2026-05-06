@@ -550,6 +550,19 @@ public class MainWindow {
     // ================================================================
 
     private void wireService() {
+        // Click-to-identify: operator clicks a signal in the waterfall, the
+        // SignalClassifier reads the rolling audio buffer at that frequency
+        // and reports the most likely mode (CW/RTTY/PSK31/FT8/FT4/SSB).
+        // The result is painted as a transient label next to the click marker.
+        waterfallPane.setNyquistHz(com.hamradio.modem.audio.AudioEngine.SAMPLE_RATE / 2.0);
+        waterfallPane.setOnFrequencyClicked(freqHz -> {
+            var r = service.classifySignal(freqHz);
+            String label = r.mode == com.hamradio.modem.dsp.SignalClassifier.ClassifiedMode.UNKNOWN
+                    ? String.format("? @ %.0f Hz", freqHz)
+                    : String.format("%s @ %.0f Hz (BW %.0f Hz)", r.mode, r.centerHz, r.bandwidthHz);
+            waterfallPane.setMarkerLabel(label);
+        });
+
         service.setSpectrumListener(snap -> {
             spectrumPane.update(snap);
             waterfallPane.update(snap);

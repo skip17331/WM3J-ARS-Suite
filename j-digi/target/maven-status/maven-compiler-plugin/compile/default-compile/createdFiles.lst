@@ -8,6 +8,7 @@ com/hamradio/modem/tx/SampleSource.class
 com/hamradio/modem/model/ModeType.class
 com/hamradio/modem/tx/NoOpRigControl.class
 com/hamradio/modem/ModemService$2.class
+com/hamradio/modem/dsp/SignalClassifier$ClassifiedMode.class
 com/hamradio/modem/dsp/FftAnalyzer$SpectrumResult.class
 com/hamradio/modem/mode/RttyMode$BiquadBandpass.class
 com/hamradio/modem/tx/OliviaTransmitter.class
@@ -27,6 +28,7 @@ com/hamradio/modem/tx/RttyBaudot.class
 com/hamradio/modem/mode/DigitalMode.class
 com/hamradio/modem/tx/DominoExTransmitter.class
 com/hamradio/modem/ui/LogEntryPane.class
+com/hamradio/modem/dsp/SignalClassifier$Result.class
 com/hamradio/modem/ui/MacroBar.class
 com/hamradio/modem/tx/DominoExTransmitter$DominoSampleSource.class
 com/hamradio/modem/mode/RttyMode$SimpleAgc.class
@@ -67,6 +69,7 @@ com/hamradio/modem/ModemService$1.class
 com/hamradio/modem/ui/SpectrumPane.class
 com/hamradio/modem/tx/RttyTransmitter.class
 com/hamradio/modem/model/RotorStatus.class
+com/hamradio/modem/dsp/SignalClassifier.class
 com/hamradio/modem/tx/CwTransmitter$CwSampleSource.class
 com/hamradio/modem/mode/RttyMode.class
 com/hamradio/modem/CrashHandler.class

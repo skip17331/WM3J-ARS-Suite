@@ -38,6 +38,7 @@
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/OliviaTransmitter.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/Psk31Mode.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/CwMode.java
+/home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/dsp/SignalClassifier.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/DigitalTransmitter.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/mode/ModeManager.java
 /home/mike/ARS_Suite/j-digi/src/main/java/com/hamradio/modem/tx/Psk31Varicode.java
