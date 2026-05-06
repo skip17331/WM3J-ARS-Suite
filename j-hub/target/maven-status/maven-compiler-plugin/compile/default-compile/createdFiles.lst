@@ -17,11 +17,13 @@ com/hamradio/jhub/model/StationConfig.class
 com/hamradio/jhub/WebConfigServer$MacrosApiServlet$1.class
 com/hamradio/jhub/WebConfigServer$SessionsApiServlet.class
 com/hamradio/jhub/WebConfigServer$JMapApiServlet.class
+com/hamradio/jhub/model/DataUpdateStatus.class
 com/hamradio/jhub/WeatherService.class
 com/hamradio/jhub/model/JHubConfig.class
 com/hamradio/jhub/WebConfigServer$AmpApiServlet.class
 com/hamradio/jhub/callsign/FccUlsImporter$Status.class
 com/hamradio/jhub/AppLauncher.class
+com/hamradio/jhub/model/DataUpdateStatus$FileStatus.class
 com/hamradio/jhub/model/JHubConfig$MacrosSection.class
 com/hamradio/jhub/model/JHubConfig$AppLaunchEntry.class
 com/hamradio/jhub/model/JHubConfig$DxNetwork.class
@@ -62,7 +64,9 @@ com/hamradio/jhub/callsign/FccUlsDownloader.class
 com/hamradio/jhub/model/RigStatus.class
 com/hamradio/jhub/WsprReporterService.class
 com/hamradio/jhub/model/JHubConfig$LoggerSection.class
+com/hamradio/jhub/model/JHubConfig$AutoUpdateSection.class
 com/hamradio/jhub/DependencyChecker$Detected.class
+com/hamradio/jhub/WebConfigServer$DataApiServlet.class
 com/hamradio/jhub/WebConfigServer$RotorApiServlet.class
 com/hamradio/jhub/model/JHubConfig$CallsignSection.class
 com/hamradio/jhub/WebConfigServer$DbApiServlet.class
@@ -84,6 +88,7 @@ com/hamradio/jhub/callsign/CallsignLookupService.class
 com/hamradio/jhub/JHubDiscovery.class
 com/hamradio/jhub/WebConfigServer$AppRestartServlet.class
 com/hamradio/jhub/WebConfigServer$StatusApiServlet.class
+com/hamradio/jhub/DataUpdateService.class
 com/hamradio/jhub/HamlibAmpController.class
 com/hamradio/jhub/PskReporterService.class
 com/hamradio/jhub/SolarFluxService.class

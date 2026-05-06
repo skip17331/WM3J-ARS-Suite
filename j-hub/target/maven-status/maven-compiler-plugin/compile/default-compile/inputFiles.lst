@@ -1,4 +1,5 @@
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/CallookProvider.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/DataUpdateService.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/SpotEnricher.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/HamlibAmpController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/AmpStatus.java
@@ -22,6 +23,7 @@
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/PskReporterService.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/JHubMain.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/CallsignLookupService.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/DataUpdateStatus.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/HamlibRotorController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/CsvImporter.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/DbMaintenance.java

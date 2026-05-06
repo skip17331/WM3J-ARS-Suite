@@ -701,6 +701,17 @@ public class MessageRouter {
         }
     }
 
+    /**
+     * Publish a DATA_UPDATE_STATUS originating from DataUpdateService —
+     * subscribers (J-Log, web UI) refresh their last-update indicators.
+     */
+    public void publishDataUpdateStatus(com.hamradio.jhub.model.DataUpdateStatus s) {
+        if (jHubServer == null) return;
+        jHubServer.broadcastToAll(ConfigManager.gson().toJson(s));
+        log.debug("DATA_UPDATE_STATUS published — cty={}B scp={}B",
+                s.cty.sizeBytes, s.scp.sizeBytes);
+    }
+
     // ---------------------------------------------------------------
     // CALLSIGN_LOOKUP — app requests a callsign lookup
     // ---------------------------------------------------------------

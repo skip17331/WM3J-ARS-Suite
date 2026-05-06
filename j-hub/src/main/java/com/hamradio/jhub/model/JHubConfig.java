@@ -27,6 +27,7 @@ public class JHubConfig {
     public MacrosSection      macros          = new MacrosSection();
     public AppearanceSection  appearance      = new AppearanceSection();
     public CallsignSection    callsignLookup  = new CallsignSection();
+    public AutoUpdateSection  autoUpdate      = new AutoUpdateSection();
     public com.google.gson.JsonObject jMapSettings    = null;
     public com.google.gson.JsonObject jSatSettings    = null;
     public com.google.gson.JsonObject jLogSettings    = null;
@@ -309,5 +310,26 @@ public class JHubConfig {
         JHubConfig cfg = new JHubConfig();
         // defaults are already set by field initializers above
         return cfg;
+    }
+
+    // ---------------------------------------------------------------
+    // Auto-update of contest data files (CTY.DAT + MASTER.SCP)
+    // ---------------------------------------------------------------
+
+    public static class AutoUpdateSection {
+        public boolean enabled       = true;
+        /** Days between scheduled fetches; default weekly. */
+        public int     intervalDays  = 7;
+        /** CTY.DAT — country/prefix list (Jim Reisert AD1C). */
+        public String  ctyUrl        = "https://www.country-files.com/cty/cty.dat";
+        /** MASTER.SCP — Super Check Partial database. */
+        public String  scpUrl        = "https://supercheckpartial.com/MASTER.SCP";
+        /** Where the fetched files land. Empty = ~/.j-hub/data/. */
+        public String  dataDir       = "";
+        /** Sanity-check minimum file sizes (bytes). A truncated CTY.DAT is
+         *  worse than an old one — these guards keep half-fetched garbage
+         *  from clobbering the working file. */
+        public int     minCtySize    = 50_000;
+        public int     minScpSize    = 200_000;
     }
 }

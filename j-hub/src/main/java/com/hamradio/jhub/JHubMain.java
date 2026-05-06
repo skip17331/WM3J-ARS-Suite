@@ -47,6 +47,7 @@ public class JHubMain extends Application {
     private static HamlibRotorController   rotorController;
     private static HamlibAmpController     ampController;
     private static AntennaController       antennaController;
+    private static DataUpdateService       dataUpdateService;
     private static WeatherService          weatherService;
 
     // Uptime reference
@@ -201,6 +202,11 @@ public class JHubMain extends Application {
         weatherService = WeatherService.getInstance();
         weatherService.start();
 
+        // 12b. Auto-update CTY.DAT + MASTER.SCP on a weekly schedule.
+        dataUpdateService = DataUpdateService.getInstance();
+        dataUpdateService.setRouter(router);
+        dataUpdateService.start(config.getConfig().autoUpdate);
+
         // 11. Graceful shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(JHubMain::shutdown, "shutdown-hook"));
 
@@ -256,6 +262,7 @@ public class JHubMain extends Application {
 
         // 2. Force-kill all child processes (any that did not self-terminate)
         try { if (weatherService    != null) weatherService.stop();           } catch (Exception e) { log.warn("Weather service shutdown error", e); }
+        try { if (dataUpdateService != null) dataUpdateService.stop();       } catch (Exception e) { log.warn("Data update service shutdown error", e); }
         try { if (antennaController != null) antennaController.stop();       } catch (Exception e) { log.warn("Antenna controller shutdown error", e); }
         try { if (ampController     != null) ampController.stop();           } catch (Exception e) { log.warn("Amp controller shutdown error",   e); }
         try { if (rotorController   != null) rotorController.stop();         } catch (Exception e) { log.warn("Rotor controller shutdown error", e); }
