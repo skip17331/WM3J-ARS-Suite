@@ -1846,6 +1846,15 @@ public class ContestLogController implements Initializable {
         catch (Exception e) { setStatus(e.getMessage()); }
     }
 
+    @FXML private void menuMacros()  { openJHubSetupAt("macros");  }
+    @FXML private void menuAmp()     { openJHubSetupAt("amp");     }
+    @FXML private void menuAntenna() { openJHubSetupAt("antenna"); }
+
+    private void openJHubSetupAt(String tab) {
+        try { new ProcessBuilder("xdg-open", "http://localhost:8081#" + tab).start(); }
+        catch (Exception e) { setStatus("Could not open browser: " + e.getMessage()); }
+    }
+
     // ---------------------------------------------------------------
     // Contest Setup dialog (SS exchange: callsign, prec, check, sect)
     // ---------------------------------------------------------------

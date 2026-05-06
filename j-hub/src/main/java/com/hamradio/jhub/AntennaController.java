@@ -62,6 +62,7 @@ public class AntennaController {
     private volatile String currentBand    = "";
     private volatile String currentMode    = "";
     private volatile double currentHeading = -1;
+    private volatile String lastMatchedRule = "";
     private final AtomicBoolean pttOn      = new AtomicBoolean(false);
 
     // State per switch
@@ -173,6 +174,9 @@ public class AntennaController {
                     why    = "rule band=" + m.band
                             + (m.mode.isEmpty() ? "" : "/mode=" + m.mode)
                             + (m.headingMin >= 0 ? "/hdg=" + (int)m.headingMin + "-" + (int)m.headingMax : "");
+                    lastMatchedRule = m.band
+                            + (m.mode.isEmpty() ? "" : " / " + m.mode)
+                            + " → " + sw.name + " ant " + target;
                 }
                 Integer cur = currentAntenna.get(sw.id);
                 if (cur != null && cur == target) continue;   // already correct, skip
@@ -296,12 +300,17 @@ public class AntennaController {
         s.locked    = cfg.lockoutOnPtt && pttOn.get();
         s.faulted   = faulted.get();
         s.timestamp = Instant.now().toString();
+        s.band      = currentBand == null ? "" : currentBand;
+        s.mode      = currentMode == null ? "" : currentMode;
+        s.heading   = currentHeading;
         for (AntennaSwitch sw : cfg.switches) {
             int    cur = currentAntenna.getOrDefault(sw.id, 0);
             boolean ov = overrides.containsKey(sw.id);
             s.switches.put(sw.id, new AntennaStatus.SwitchState(
                     sw.name, cur, ov, ov ? "OVERRIDE" : ""));
+            if (s.activeAntenna == null && cur > 0) s.activeAntenna = cur;
         }
+        s.matchedRule = lastMatchedRule == null ? "" : lastMatchedRule;
         return s;
     }
 

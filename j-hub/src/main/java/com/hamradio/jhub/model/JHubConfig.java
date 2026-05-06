@@ -239,10 +239,12 @@ public class JHubConfig {
     // ---------------------------------------------------------------
 
     public static class MacroDefinition {
-        public String key;    // "CQ", "ANS_CQ", "QSO", "SK", "KN", "F1"…"F4"
-        public String label;  // button label
-        public String text;   // template — supports {MYCALL} {CALL} {RST} {NAME} {BAND} {FREQ} {MODE}
-        public String type;   // "FIXED" | "PROGRAMMABLE"
+        public String key;     // "CQ", "ANS_CQ", "QSO", "SK", "KN", "F1"…"F12"
+        public String label;   // button label
+        public String text;    // template — supports {MYCALL} {CALL} {RST} {NAME} {BAND} {FREQ} {MODE}
+        public String type;    // "FIXED" | "PROGRAMMABLE"
+        public String kind = "CW";  // "CW" (digital/text) | "VOICE" (WAV playback)
+        public String wavPath;      // absolute path to WAV file (VOICE macros only)
     }
 
     public static class MacrosSection {

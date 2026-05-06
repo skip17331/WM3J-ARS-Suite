@@ -861,52 +861,211 @@ function getCheckedChips(containerId) {
 }
 
 // ── Macro table ────────────────────────────────────────────
+// ── Macros (Digital + Voice) ──────────────────────────────
+state.macros = [];
+state.macroKind = 'CW';
+
 function loadMacros() {
   fetch('/api/macros')
     .then(r => r.json())
-    .then(list => renderMacroTable(list))
+    .then(list => {
+      state.macros = (list || []).map(m => ({
+        key: m.key || '',
+        label: m.label || '',
+        type: m.type || 'PROGRAMMABLE',
+        text: m.text || '',
+        kind: m.kind || 'CW',
+        wavPath: m.wavPath || ''
+      }));
+      renderMacroList();
+    })
     .catch(() => {});
 }
 
-function renderMacroTable(list) {
-  const tbody = document.getElementById('macro-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = list.map((m, i) => `
-    <tr data-idx="${i}">
-      <td><input type="text" value="${esc(m.key||'')}" data-field="key" ${m.type==='FIXED'?'readonly style="color:var(--subtext0)"':''}></td>
-      <td><input type="text" value="${esc(m.label||'')}" data-field="label"></td>
-      <td><span class="${m.type==='FIXED'?'badge-fixed':'badge-prog'}">${m.type||'FIXED'}</span><input type="hidden" data-field="type" value="${m.type||'FIXED'}"></td>
-      <td><input type="text" value="${esc(m.text||'')}" data-field="text"></td>
-      <td>${m.type==='PROGRAMMABLE'?`<button class="btn btn-red btn-sm" onclick="removeMacroRow(this)">✕</button>`:'&nbsp;'}</td>
-    </tr>`
-  ).join('');
+function setMacroKind(kind, btn) {
+  state.macroKind = kind;
+  document.querySelectorAll('#macro-kind-seg .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+  document.getElementById('macro-kind-title').textContent = kind === 'VOICE' ? 'Voice Macros' : 'Digital / CW Macros';
+  document.getElementById('macro-kind-help').innerHTML = kind === 'VOICE'
+    ? 'Hold the Record button to capture audio from your default mic. Files are stored under <code>~/.j-hub/voice/</code>.'
+    : 'Substitutions: <code>{MYCALL} {CALL} {RST} {NAME} {BAND} {FREQ} {MODE}</code>';
+  renderMacroList();
 }
 
-function collectMacros() {
-  const rows = document.querySelectorAll('#macro-tbody tr');
-  return Array.from(rows).map(tr => ({
-    key:   tr.querySelector('[data-field=key]').value.trim(),
-    label: tr.querySelector('[data-field=label]').value.trim(),
-    type:  tr.querySelector('[data-field=type]').value,
-    text:  tr.querySelector('[data-field=text]').value.trim(),
-  })).filter(m => m.key !== '');
+function renderMacroList() {
+  const wrap = document.getElementById('macros-list');
+  if (!wrap) return;
+  const kind = state.macroKind;
+  const visible = state.macros.map((m, i) => ({ m, i })).filter(x => (x.m.kind || 'CW') === kind);
+  wrap.innerHTML = visible.map(({ m, i }) => kind === 'VOICE'
+    ? `<div class="row-card macro-row" data-idx="${i}">
+         <div class="row-fields">
+           <div><label>Key (F1–F12)</label><input type="text" value="${esc(m.key)}" data-field="key" placeholder="F1"></div>
+           <div><label>Label</label><input type="text" value="${esc(m.label)}" data-field="label" placeholder="CQ Voice"></div>
+           <div style="grid-column:1/-1">
+             <label>WAV file</label>
+             <input type="text" value="${esc(m.wavPath)}" data-field="wavPath" placeholder="(record below or paste path)" style="font-size:11px">
+             <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+               <button class="rec-btn" type="button" onmousedown="startVoiceRecord(${i},this)" onmouseup="stopVoiceRecord(${i},this)" onmouseleave="stopVoiceRecord(${i},this)">● Hold to Record</button>
+               <button class="rec-btn" type="button" style="background:var(--surface1);color:var(--text)" onclick="playVoicePreview(${i})">▶ Play</button>
+               <span class="wav-info" id="wav-info-${i}">${m.wavPath ? '✓ ' + m.wavPath.split('/').pop() : ''}</span>
+             </div>
+           </div>
+         </div>
+         <div class="row-actions">
+           <button onclick="triggerMacro(${i})" title="Trigger now">▶</button>
+           <button onclick="removeMacroRow(${i})" title="Delete">✕</button>
+         </div>
+       </div>`
+    : `<div class="row-card macro-row" data-idx="${i}">
+         <div class="row-fields">
+           <div><label>Key</label><input type="text" value="${esc(m.key)}" data-field="key" ${m.type==='FIXED'?'readonly style="color:var(--subtext0)"':''}></div>
+           <div><label>Label</label><input type="text" value="${esc(m.label)}" data-field="label"></div>
+           <div style="grid-column:1/-1">
+             <label>Text Template</label>
+             <textarea class="macro-text" data-field="text" placeholder="CQ CQ DE {MYCALL} {MYCALL} K">${esc(m.text)}</textarea>
+           </div>
+         </div>
+         <div class="row-actions">
+           <button onclick="triggerMacro(${i})" title="Trigger now">▶</button>
+           ${m.type === 'FIXED' ? '' : `<button onclick="removeMacroRow(${i})" title="Delete">✕</button>`}
+         </div>
+       </div>`
+  ).join('') || '<div style="font-size:13px;color:var(--subtext0);padding:10px">No '+kind+' macros yet. Click "+ Add Macro" below.</div>';
+
+  // Wire up live-edit binding so saveMacros() picks up unsaved edits.
+  wrap.querySelectorAll('.row-card').forEach(card => {
+    const idx = parseInt(card.dataset.idx);
+    card.querySelectorAll('[data-field]').forEach(input => {
+      input.addEventListener('input', () => {
+        const f = input.dataset.field;
+        state.macros[idx][f] = input.value;
+      });
+    });
+  });
 }
 
 function addMacro() {
-  const idx = document.querySelectorAll('#macro-tbody tr').length;
-  const tr = document.createElement('tr');
-  tr.dataset.idx = idx;
-  tr.innerHTML = `
-    <td><input type="text" value="F${idx}" data-field="key"></td>
-    <td><input type="text" value="F${idx}" data-field="label"></td>
-    <td><span class="badge-prog">PROGRAMMABLE</span><input type="hidden" data-field="type" value="PROGRAMMABLE"></td>
-    <td><input type="text" value="" data-field="text" placeholder="Your template here"></td>
-    <td><button class="btn btn-red btn-sm" onclick="removeMacroRow(this)">✕</button></td>`;
-  document.getElementById('macro-tbody').appendChild(tr);
+  const kind = state.macroKind;
+  const defaultKey = 'F' + (state.macros.filter(m => (m.kind||'CW') === kind).length + 1);
+  state.macros.push({
+    key: defaultKey, label: defaultKey, type: 'PROGRAMMABLE',
+    text: '', kind: kind, wavPath: ''
+  });
+  renderMacroList();
 }
 
-function removeMacroRow(btn) {
-  btn.closest('tr').remove();
+function removeMacroRow(idx) {
+  state.macros.splice(idx, 1);
+  renderMacroList();
+}
+
+function saveMacros() {
+  const body = state.macros
+    .filter(m => (m.key || '').trim() !== '')
+    .map(m => ({
+      key: m.key.trim(), label: m.label || m.key, type: m.type || 'PROGRAMMABLE',
+      text: m.text || '', kind: m.kind || 'CW', wavPath: m.wavPath || ''
+    }));
+  fetch('/api/macros', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => flashMsg('macros-save-msg', 'Saved'))
+    .catch(() => flashMsg('macros-save-msg', 'Error', true));
+}
+
+function triggerMacro(idx) {
+  const m = state.macros[idx];
+  if (!m) return;
+  fetch('/api/macros/trigger', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ key: m.key })
+  }).catch(() => {});
+}
+
+// ── Voice recording (browser MediaRecorder + inline WAV encoder) ──
+state.recorder = null;
+state.recorderChunks = [];
+state.recorderStream = null;
+
+async function startVoiceRecord(idx, btn) {
+  if (state.recorder) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    state.recorderStream = stream;
+    state.recorderChunks = [];
+    // Use WebAudio to capture raw PCM so we can encode WAV (Java's AudioSystem doesn't read WebM/Opus).
+    const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
+    const src = ctx.createMediaStreamSource(stream);
+    const proc = ctx.createScriptProcessor(4096, 1, 1);
+    proc.onaudioprocess = e => {
+      const ch = e.inputBuffer.getChannelData(0);
+      state.recorderChunks.push(new Float32Array(ch));
+    };
+    src.connect(proc); proc.connect(ctx.destination);
+    state.recorder = { ctx, proc, src, idx };
+    btn.classList.add('recording');
+    btn.textContent = '● Recording…';
+  } catch (e) {
+    alert('Microphone access denied: ' + e.message);
+  }
+}
+
+async function stopVoiceRecord(idx, btn) {
+  if (!state.recorder || state.recorder.idx !== idx) return;
+  const { ctx, proc, src } = state.recorder;
+  proc.disconnect(); src.disconnect();
+  state.recorderStream.getTracks().forEach(t => t.stop());
+  const sampleRate = ctx.sampleRate;
+  await ctx.close();
+  state.recorder = null;
+  btn.classList.remove('recording');
+  btn.textContent = '● Hold to Record';
+
+  if (state.recorderChunks.length === 0) return;
+  const wav = encodeWav(state.recorderChunks, sampleRate);
+  const m = state.macros[idx];
+  const safeName = (m.key || ('macro_' + Date.now())).replace(/[^A-Za-z0-9._-]/g, '_');
+  const fd = new FormData();
+  fd.append('name', safeName);
+  fd.append('file', new Blob([wav], { type: 'audio/wav' }), safeName + '.wav');
+  try {
+    const res = await fetch('/api/voice/upload', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (json.path) {
+      m.wavPath = json.path;
+      renderMacroList();
+    }
+  } catch (e) { alert('Upload failed: ' + e.message); }
+  state.recorderChunks = [];
+}
+
+function encodeWav(chunks, sampleRate) {
+  let len = 0; chunks.forEach(c => len += c.length);
+  const buf = new ArrayBuffer(44 + len * 2);
+  const dv = new DataView(buf);
+  const w = (o, s) => { for (let i=0;i<s.length;i++) dv.setUint8(o+i, s.charCodeAt(i)); };
+  w(0,'RIFF'); dv.setUint32(4, 36+len*2, true); w(8,'WAVE'); w(12,'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, sampleRate, true); dv.setUint32(28, sampleRate*2, true);
+  dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+  w(36,'data'); dv.setUint32(40, len*2, true);
+  let off = 44;
+  for (const c of chunks) {
+    for (let i=0; i<c.length; i++) {
+      const s = Math.max(-1, Math.min(1, c[i]));
+      dv.setInt16(off, s < 0 ? s*0x8000 : s*0x7FFF, true);
+      off += 2;
+    }
+  }
+  return buf;
+}
+
+function playVoicePreview(idx) {
+  const m = state.macros[idx];
+  if (!m || !m.wavPath) { alert('No WAV file recorded yet'); return; }
+  const url = '/api/voice/file?path=' + encodeURIComponent(m.wavPath);
+  new Audio(url).play().catch(e => alert('Playback failed: ' + e.message));
 }
 
 // ── Save functions ─────────────────────────────────────────
@@ -963,6 +1122,182 @@ function saveRotor() {
     .then(r => r.json())
     .then(() => { flashMsg('rot-save-msg', 'Saved'); state.config.rotor = body; setText('i-rot-backend', backend); })
     .catch(() => flashMsg('rot-save-msg', 'Error', true));
+}
+
+// ── Amp Control ────────────────────────────────────────────
+function setAmpBackend(val, btn) {
+  document.querySelectorAll('#amp-backend-seg .seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showCond('amp-hamlib-block', val === 'HAMLIB');
+}
+function setAmpBackendUI(val) {
+  document.querySelectorAll('#amp-backend-seg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+  showCond('amp-hamlib-block', val === 'HAMLIB');
+}
+function loadAmp() {
+  fetch('/api/amp').then(r => r.json()).then(amp => {
+    setAmpBackendUI(amp.backend || 'NONE');
+    setVal('amp-tcp-host',  amp.tcpHost   || 'localhost');
+    setVal('amp-tcp-port',  amp.tcpPort   || 4531);
+    setVal('amp-model',     amp.model     || '');
+    setVal('amp-poll',      amp.pollRateMs|| 1000);
+    setVal('amp-swr-fault', amp.swrFault != null ? amp.swrFault : 3.0);
+    setChk('amp-band-follow', amp.bandFollow !== false);
+    setChk('amp-fault-alert', amp.faultAlert !== false);
+  }).catch(() => {});
+}
+function saveAmp() {
+  const backend = activeSegVal('#amp-backend-seg');
+  const body = {
+    backend,
+    tcpHost:    document.getElementById('amp-tcp-host').value.trim()||'localhost',
+    tcpPort:    parseInt(document.getElementById('amp-tcp-port').value)||4531,
+    model:      document.getElementById('amp-model').value.trim(),
+    pollRateMs: parseInt(document.getElementById('amp-poll').value)||1000,
+    swrFault:   parseFloat(document.getElementById('amp-swr-fault').value)||3.0,
+    bandFollow: document.getElementById('amp-band-follow').checked,
+    faultAlert: document.getElementById('amp-fault-alert').checked,
+  };
+  fetch('/api/amp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => flashMsg('amp-save-msg', 'Saved'))
+    .catch(() => flashMsg('amp-save-msg', 'Error', true));
+}
+
+// ── Antenna Switching ─────────────────────────────────────
+state.antenna = { switches: [], rules: [] };
+
+function loadAntenna() {
+  fetch('/api/antenna').then(r => r.json()).then(ant => {
+    setChk('ant-enabled', !!ant.enabled);
+    setVal('ant-com',     ant.comPort || '');
+    setVal('ant-baud',    ant.baud    || 9600);
+    setChk('ant-lockout', ant.lockoutOnPtt !== false);
+    state.antenna.switches = ant.switches || [];
+    state.antenna.rules    = ant.rules    || [];
+    renderAntennaSwitches();
+    renderAntennaRules();
+  }).catch(() => {});
+}
+
+function renderAntennaSwitches() {
+  const wrap = document.getElementById('ant-switches-list');
+  if (!wrap) return;
+  wrap.innerHTML = state.antenna.switches.map((s, i) => `
+    <div class="row-card" data-idx="${i}">
+      <div class="row-fields">
+        <div><label>ID</label><input type="text" value="${esc(s.id||'')}" data-field="id"></div>
+        <div><label>Name</label><input type="text" value="${esc(s.name||'')}" data-field="name"></div>
+        <div><label>Antenna Count</label><input type="number" min="1" max="16" value="${s.antennaCount||4}" data-field="antennaCount"></div>
+      </div>
+      <div class="row-actions"><button onclick="removeAntennaSwitch(${i})">✕</button></div>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--subtext0)">No switches defined yet.</div>';
+  wrap.querySelectorAll('.row-card').forEach(card => {
+    const i = parseInt(card.dataset.idx);
+    card.querySelectorAll('[data-field]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const f = inp.dataset.field;
+        state.antenna.switches[i][f] = (f === 'antennaCount') ? parseInt(inp.value)||1 : inp.value;
+      });
+    });
+  });
+}
+
+function addAntennaSwitch() {
+  state.antenna.switches.push({ id: 'sw' + (state.antenna.switches.length + 1), name: 'Switch', antennaCount: 4 });
+  renderAntennaSwitches();
+}
+function removeAntennaSwitch(i) { state.antenna.switches.splice(i,1); renderAntennaSwitches(); }
+
+function renderAntennaRules() {
+  const wrap = document.getElementById('ant-rules-list');
+  if (!wrap) return;
+  const switchOpts = state.antenna.switches.map(s => `<option value="${esc(s.id)}">${esc(s.id)}</option>`).join('');
+  wrap.innerHTML = state.antenna.rules.map((r, i) => `
+    <div class="row-card" data-idx="${i}">
+      <div class="row-fields">
+        <div><label>Band</label>
+          <select data-field="band">
+            ${['','160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm']
+              .map(b => `<option value="${b}" ${r.band===b?'selected':''}>${b||'(any)'}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Mode</label>
+          <select data-field="mode">
+            ${['','CW','SSB','FT8','FT4','RTTY','PSK31','JS8','OLIVIA','MFSK16']
+              .map(m => `<option value="${m}" ${r.mode===m?'selected':''}>${m||'(any)'}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Heading min (°)</label><input type="number" value="${r.headingMin!=null && r.headingMin>=0?r.headingMin:''}" data-field="headingMin" placeholder="(any)"></div>
+        <div><label>Heading max (°)</label><input type="number" value="${r.headingMax!=null && r.headingMax>=0?r.headingMax:''}" data-field="headingMax" placeholder="(any)"></div>
+        <div><label>Switch</label><select data-field="switchId">${switchOpts || '<option value="">(none)</option>'}</select></div>
+        <div><label>Antenna #</label><input type="number" min="1" value="${r.antenna||1}" data-field="antenna"></div>
+        <div style="grid-column:1/-1"><label>Command Template</label>
+          <input type="text" value="${esc(r.commandTemplate||'SW{switch}={antenna}\\\\r')}" data-field="commandTemplate"></div>
+      </div>
+      <div class="row-actions">
+        <button onclick="moveAntennaRule(${i},-1)" title="Up">↑</button>
+        <button onclick="moveAntennaRule(${i},1)" title="Down">↓</button>
+        <button onclick="removeAntennaRule(${i})">✕</button>
+      </div>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--subtext0)">No rules defined yet.</div>';
+  // Restore selected switchId after innerHTML render (selects lose value otherwise)
+  wrap.querySelectorAll('.row-card').forEach(card => {
+    const i = parseInt(card.dataset.idx);
+    const sel = card.querySelector('[data-field=switchId]');
+    if (sel && state.antenna.rules[i].switchId) sel.value = state.antenna.rules[i].switchId;
+    card.querySelectorAll('[data-field]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const f = inp.dataset.field;
+        let v = inp.value;
+        if (f === 'antenna') v = parseInt(v)||1;
+        else if (f === 'headingMin' || f === 'headingMax') v = v === '' ? -1 : parseFloat(v);
+        state.antenna.rules[i][f] = v;
+      });
+    });
+  });
+}
+
+function addAntennaRule() {
+  const sw = state.antenna.switches[0];
+  state.antenna.rules.push({
+    band: '20m', mode: '', headingMin: -1, headingMax: -1,
+    switchId: sw ? sw.id : 'main', antenna: 1, commandTemplate: 'SW{switch}={antenna}\\r'
+  });
+  renderAntennaRules();
+}
+function removeAntennaRule(i) { state.antenna.rules.splice(i,1); renderAntennaRules(); }
+function moveAntennaRule(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= state.antenna.rules.length) return;
+  const tmp = state.antenna.rules[i]; state.antenna.rules[i] = state.antenna.rules[j]; state.antenna.rules[j] = tmp;
+  renderAntennaRules();
+}
+
+function saveAntenna() {
+  const body = {
+    enabled:      document.getElementById('ant-enabled').checked,
+    comPort:      document.getElementById('ant-com').value.trim(),
+    baud:         parseInt(document.getElementById('ant-baud').value)||9600,
+    lockoutOnPtt: document.getElementById('ant-lockout').checked,
+    switches:     state.antenna.switches,
+    rules:        state.antenna.rules,
+  };
+  fetch('/api/antenna', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => flashMsg('ant-save-msg', 'Saved'))
+    .catch(() => flashMsg('ant-save-msg', 'Error', true));
+}
+function saveAntennaRules() { saveAntenna(); flashMsg('ant-rules-msg', 'Saved'); }
+
+function pollAntennaStatus() {
+  fetch('/api/antenna/status').then(r => r.json()).then(s => {
+    setText('ant-st-band',    s.band || '—');
+    setText('ant-st-mode',    s.mode || '—');
+    setText('ant-st-heading', (s.heading != null && s.heading >= 0) ? s.heading.toFixed(0) + '°' : '—°');
+    setText('ant-st-active',  s.activeAntenna != null ? '#' + s.activeAntenna : '—');
+    setText('ant-st-rule',    s.matchedRule || 'No matching rule');
+  }).catch(() => {});
 }
 
 function saveCluster() {
@@ -2196,6 +2531,8 @@ function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 populateTimezones();
 loadConfig();
 loadMacros();
+loadAmp();
+loadAntenna();
 loadJMapSettings();
 loadJLogSettings();
 loadJDigiSettings();
@@ -2205,9 +2542,24 @@ loadDbList();
 connectWs();
 pollStatus();
 pollSpots();
+pollAntennaStatus();
 updateRigConnStatus();
 loadJSatTleStatus();
 setInterval(updateRigConnStatus, 3000);
+setInterval(pollAntennaStatus, 3000);
+
+// Deep-link: open browser at #macros / #amp / #antenna and the matching tab is selected
+(function applyHashTab() {
+  const h = (location.hash || '').replace('#', '').trim();
+  if (!h) return;
+  const btn = document.querySelector(`.nav-btn[data-tab="${h}"]`);
+  if (btn) btn.click();
+})();
+window.addEventListener('hashchange', () => {
+  const h = (location.hash || '').replace('#','').trim();
+  const btn = h && document.querySelector(`.nav-btn[data-tab="${h}"]`);
+  if (btn) btn.click();
+});
 
 fetchWeather();
 setInterval(fetchWeather, 300000);   // refresh every 5 minutes

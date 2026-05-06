@@ -4,6 +4,7 @@ com/hamradio/jhub/WebConfigServer$RigApiServlet.class
 com/hamradio/jhub/SpotEnricher.class
 com/hamradio/jhub/WebConfigServer$JMapImageUploadServlet.class
 com/hamradio/jhub/WebConfigServer$SpotsApiServlet.class
+com/hamradio/jhub/WebConfigServer$MacroTriggerServlet.class
 com/hamradio/jhub/callsign/CsvImporter$Status.class
 com/hamradio/jhub/StateCache.class
 com/hamradio/jhub/DependencyChecker.class
@@ -66,6 +67,7 @@ com/hamradio/jhub/callsign/DbMaintenance.class
 com/hamradio/jhub/WebConfigServer$MacrosApiServlet.class
 com/hamradio/jhub/callsign/FccUlsDownloader.class
 com/hamradio/jhub/model/RigStatus.class
+com/hamradio/jhub/WebConfigServer$VoiceUploadServlet.class
 com/hamradio/jhub/WsprReporterService.class
 com/hamradio/jhub/model/JHubConfig$AntennaRule.class
 com/hamradio/jhub/model/JHubConfig$LoggerSection.class
@@ -101,3 +103,4 @@ com/hamradio/jhub/PskReporterService.class
 com/hamradio/jhub/SolarFluxService.class
 com/hamradio/jhub/model/JHubConfig$AppsSection.class
 com/hamradio/jhub/SpotEnricher$DxccEntry.class
+com/hamradio/jhub/WebConfigServer$VoiceFileServlet.class

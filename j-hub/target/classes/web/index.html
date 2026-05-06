@@ -20,6 +20,9 @@
       <button class="nav-btn" data-tab="station"><span class="nav-icon">⊙</span>Station</button>
       <button class="nav-btn" data-tab="rig"><span class="nav-icon">📻</span>Rig Control</button>
       <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor Control</button>
+      <button class="nav-btn" data-tab="amp"><span class="nav-icon">⚡</span>Amp Control</button>
+      <button class="nav-btn" data-tab="antenna"><span class="nav-icon">⇆</span>Antenna Switch</button>
+      <button class="nav-btn" data-tab="macros"><span class="nav-icon">⌨</span>Macros</button>
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
       <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
@@ -537,6 +540,173 @@
             <button class="btn btn-ghost btn-sm" onclick="rotorPreset('long')">Long Path</button>
             <button class="btn btn-ghost btn-sm" onclick="rotorPreset('custom')">Custom</button>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Amp Control ────────────────────────────── -->
+    <section id="tab-amp" class="tab-panel">
+      <div class="panel-header">Amplifier Control</div>
+      <div class="panel-sub">Configure Hamlib ampctld and view live amp telemetry</div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">Backend</div>
+          <div class="seg-group" id="amp-backend-seg">
+            <button class="seg-btn" data-val="NONE"   onclick="setAmpBackend('NONE',this)">None</button>
+            <button class="seg-btn" data-val="HAMLIB" onclick="setAmpBackend('HAMLIB',this)">Hamlib ampctld</button>
+          </div>
+
+          <div class="cond-block" id="amp-hamlib-block">
+            <div class="field-row cols-2">
+              <div class="field">
+                <input type="text" id="amp-tcp-host" placeholder="localhost">
+                <label>ampctld Host</label>
+              </div>
+              <div class="field">
+                <input type="number" id="amp-tcp-port" placeholder="4531" min="1" max="65535">
+                <label>ampctld Port</label>
+              </div>
+            </div>
+            <div class="field-row cols-2">
+              <div class="field">
+                <input type="text" id="amp-model" placeholder="e.g. Elecraft KPA1500">
+                <label>Amp Model (informational)</label>
+              </div>
+              <div class="field">
+                <input type="number" id="amp-poll" placeholder="1000" min="200" max="10000">
+                <label>Poll Rate (ms)</label>
+              </div>
+            </div>
+            <div class="field-row cols-2">
+              <div class="field">
+                <input type="number" id="amp-swr-fault" step="0.1" placeholder="3.0" min="1.0" max="10.0">
+                <label>SWR Fault Threshold</label>
+              </div>
+              <div class="field">
+                <label class="toggle-row">
+                  <input type="checkbox" id="amp-band-follow">
+                  <span>Follow rig band changes</span>
+                </label>
+                <label class="toggle-row">
+                  <input type="checkbox" id="amp-fault-alert">
+                  <span>Show visual fault alerts</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveAmp()">Save Amp Settings</button>
+            <span id="amp-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Live Status</div>
+          <div class="status-grid">
+            <div><span class="muted">Power:</span> <span id="amp-st-power" class="big-num">—</span></div>
+            <div><span class="muted">SWR:</span> <span id="amp-st-swr" class="big-num">—</span></div>
+            <div><span class="muted">Forward:</span> <span id="amp-st-pwr" class="big-num">—</span> W</div>
+            <div><span class="muted">Frequency:</span> <span id="amp-st-freq">—</span></div>
+          </div>
+          <hr class="divider">
+          <div style="font-size:12px;color:var(--subtext0)">
+            Levels read 'unsupported' on amps that don't expose them.<br>
+            ampctld must be running externally:
+            <code style="font-family:Consolas">ampctld -m &lt;model&gt; -r &lt;port&gt;</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Antenna Switch ─────────────────────────── -->
+    <section id="tab-antenna" class="tab-panel">
+      <div class="panel-header">Automatic Antenna Switching</div>
+      <div class="panel-sub">Drive serial-controlled relay switches based on band, mode, and rotor heading</div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">Connection</div>
+          <label class="toggle-row">
+            <input type="checkbox" id="ant-enabled">
+            <span>Enable automatic switching</span>
+          </label>
+          <div class="field-row cols-2">
+            <div class="field">
+              <input type="text" id="ant-com" placeholder="/dev/ttyUSB2">
+              <label>Serial Port</label>
+            </div>
+            <div class="field">
+              <input type="number" id="ant-baud" placeholder="9600">
+              <label>Baud</label>
+            </div>
+          </div>
+          <label class="toggle-row">
+            <input type="checkbox" id="ant-lockout">
+            <span>Lockout switching while PTT is keyed (recommended)</span>
+          </label>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveAntenna()">Save Connection</button>
+            <span id="ant-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Current Status</div>
+          <div class="status-grid">
+            <div><span class="muted">Band:</span> <span id="ant-st-band" class="big-num">—</span></div>
+            <div><span class="muted">Mode:</span> <span id="ant-st-mode">—</span></div>
+            <div><span class="muted">Heading:</span> <span id="ant-st-heading">—°</span></div>
+            <div><span class="muted">Active Antenna:</span> <span id="ant-st-active" class="big-num">—</span></div>
+          </div>
+          <div style="font-size:12px;color:var(--subtext0);margin-top:8px">
+            <span id="ant-st-rule">No matching rule</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Switches</div>
+        <div id="ant-switches-list"></div>
+        <button class="btn btn-ghost" onclick="addAntennaSwitch()">+ Add Switch</button>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">Rules <span style="font-size:12px;color:var(--subtext0);font-weight:normal">(first match wins; reorder with ↑/↓)</span></div>
+        <div id="ant-rules-list"></div>
+        <button class="btn btn-ghost" onclick="addAntennaRule()">+ Add Rule</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveAntennaRules()">Save Switches &amp; Rules</button>
+          <span id="ant-rules-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+        <div style="font-size:12px;color:var(--subtext0);margin-top:6px">
+          Command template substitutes <code>{switch}</code> and <code>{antenna}</code>.
+          Use <code>\r</code> / <code>\n</code> for line endings (e.g. <code>SW{switch}={antenna}\r</code>).
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Macros ─────────────────────────────────── -->
+    <section id="tab-macros" class="tab-panel">
+      <div class="panel-header">Macros</div>
+      <div class="panel-sub">Text macros for CW/digital and recorded WAV macros for voice</div>
+
+      <div class="seg-group" id="macro-kind-seg" style="margin-bottom:14px">
+        <button class="seg-btn active" data-val="CW"    onclick="setMacroKind('CW',this)">Digital / CW</button>
+        <button class="seg-btn"        data-val="VOICE" onclick="setMacroKind('VOICE',this)">Voice</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" id="macro-kind-title">Digital / CW Macros</div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:8px" id="macro-kind-help">
+          Substitutions: <code>{MYCALL} {CALL} {RST} {NAME} {BAND} {FREQ} {MODE}</code>
+        </div>
+        <div id="macros-list"></div>
+        <button class="btn btn-ghost" onclick="addMacro()">+ Add Macro</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveMacros()">Save Macros</button>
+          <span id="macros-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
         </div>
       </div>
     </section>

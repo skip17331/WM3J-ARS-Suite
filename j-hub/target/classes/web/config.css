@@ -678,3 +678,41 @@ body.light .rig-conn-badge.off  { background: #f0f0f0; color: #888; border: none
   color: var(--overlay0);
   margin-top: 2px;
 }
+
+/* ─── Amp / Antenna / Macros tabs ───────────────────── */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  font-size: 14px;
+}
+.status-grid .muted { color: var(--subtext0); margin-right: 6px; }
+
+.row-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--surface1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--mantle);
+}
+.row-card .row-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.row-card .row-fields label { font-size: 10px; color: var(--subtext0); display:block; margin-bottom:2px; }
+.row-card .row-actions { display: flex; gap: 4px; align-items: flex-start; }
+.row-card .row-actions button {
+  background: transparent; border: 1px solid var(--surface1); color: var(--subtext0);
+  padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;
+}
+.row-card .row-actions button:hover { background: var(--surface1); color: var(--text); }
+.row-card input[type=text], .row-card input[type=number], .row-card select {
+  width: 100%; padding: 4px 6px; background: var(--base); border: 1px solid var(--surface1);
+  color: var(--text); border-radius: 4px; font-family: Consolas, monospace; font-size: 12px;
+}
+
+.macro-row .macro-text { width: 100%; min-height: 50px; resize: vertical; }
+.rec-btn { background: var(--red); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+.rec-btn.recording { background: #f38ba8; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.wav-info { font-size: 11px; color: var(--subtext0); margin-left: 8px; }
