@@ -88,7 +88,7 @@ public class MainWindow {
 
         wsjtxPanel.setOnReconnect(() -> {
             udp.reconnect();
-            wsjtxPanel.setConnected(false, "");
+            wsjtxPanel.setConnected(false, "", "");
         });
 
         hubPanel.setOnReconnect(() -> {
@@ -211,9 +211,9 @@ public class MainWindow {
 
     private void wireUdpCallbacks() {
 
-        udp.setOnConnectionChange((connected, version) -> Platform.runLater(() -> {
-            wsjtxPanel.setConnected(connected, version);
-            publisher.publishConnectionStatus(connected, version);
+        udp.setOnConnectionChange((connected, sourceApp, version) -> Platform.runLater(() -> {
+            wsjtxPanel.setConnected(connected, sourceApp, version);
+            publisher.publishConnectionStatus(connected, sourceApp, version);
         }));
 
         udp.setOnStatus(status -> {

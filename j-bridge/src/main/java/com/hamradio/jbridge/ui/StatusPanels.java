@@ -74,6 +74,7 @@ class WsjtxStatusPanel extends VBox {
 
     private final Region indicator  = new Region();
     private final Label  statusLbl  = val("Disconnected");
+    private final Label  sourceLbl  = val("-");
     private final Label  versionLbl = val("-");
     private final Label  freqLbl    = val("-");
     private final Label  modeLbl    = val("-");
@@ -87,7 +88,9 @@ class WsjtxStatusPanel extends VBox {
         setSpacing(0);
         getStyleClass().add("jb-status-panel");
 
-        Label hdr = new Label("WSJT-X");
+        // Header reads "Digital" because the panel can show either WSJT-X or
+        // JTDX (or any future fork using the same UDP protocol).
+        Label hdr = new Label("Digital");
         hdr.getStyleClass().add("jb-panel-hdr");
 
         indicator.getStyleClass().add("jb-indicator");
@@ -100,6 +103,7 @@ class WsjtxStatusPanel extends VBox {
 
         int r = 0;
         grid.add(key("Status:"),  0, r); grid.add(statusRow,  1, r++);
+        grid.add(key("App:"),     0, r); grid.add(sourceLbl,  1, r++);
         grid.add(key("Version:"), 0, r); grid.add(versionLbl, 1, r++);
         grid.add(key("Freq:"),    0, r); grid.add(freqLbl,    1, r++);
         grid.add(key("Mode:"),    0, r); grid.add(modeLbl,    1, r++);
@@ -122,14 +126,16 @@ class WsjtxStatusPanel extends VBox {
         reconnectBtn.setOnAction(handler == null ? null : e -> handler.run());
     }
 
-    void setConnected(boolean connected, String version) {
+    void setConnected(boolean connected, String sourceApp, String version) {
         if (connected) {
             indicator.getStyleClass().add("connected");
             statusLbl.setText("Connected");
-            versionLbl.setText(version != null ? version : "?");
+            sourceLbl.setText(sourceApp != null && !sourceApp.isBlank() ? sourceApp : "?");
+            versionLbl.setText(version   != null && !version.isBlank()   ? version   : "?");
         } else {
             indicator.getStyleClass().remove("connected");
             statusLbl.setText("Disconnected");
+            sourceLbl.setText("-");
             versionLbl.setText("-");
             freqLbl.setText("-");
             modeLbl.setText("-");

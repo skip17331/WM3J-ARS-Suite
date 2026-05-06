@@ -39,6 +39,27 @@ public class WsjtxProtocolDecoder {
 
     public static final int MAGIC = 0xADBCCBDA;
 
+    // Recognized source applications. Determined from the heartbeat id field
+    // (which JTDX and WSJT-X both populate with their app name by default).
+    public static final String SRC_WSJTX   = "WSJT-X";
+    public static final String SRC_JTDX    = "JTDX";
+    public static final String SRC_UNKNOWN = "Unknown";
+
+    /**
+     * Identify the upstream digital-mode app from the heartbeat {@code id}.
+     * WSJT-X defaults to {@code "WSJT-X"}; JTDX defaults to {@code "JTDX"}.
+     * Multi-instance setups suffix the name (e.g. {@code "JTDX-North"}), so
+     * we match on the prefix rather than equality.
+     */
+    public static String detectSourceApp(String id) {
+        if (id == null) return SRC_UNKNOWN;
+        String s = id.trim().toUpperCase();
+        if (s.startsWith("JTDX"))     return SRC_JTDX;
+        if (s.startsWith("WSJT-X"))   return SRC_WSJTX;
+        if (s.startsWith("WSJTX"))    return SRC_WSJTX;
+        return SRC_UNKNOWN;
+    }
+
     public static final int TYPE_HEARTBEAT   = 0;
     public static final int TYPE_STATUS      = 1;
     public static final int TYPE_DECODE      = 2;

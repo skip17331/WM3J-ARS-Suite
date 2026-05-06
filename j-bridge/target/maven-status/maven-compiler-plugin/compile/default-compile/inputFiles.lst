@@ -6,6 +6,7 @@
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/JBridgeMain.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/LoggingConfigurator.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/MessagePublisher.java
+/home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/UpstreamAppConnectionListener.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/WorkedListManager.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/WsjtxProtocolDecoder.java
 /home/mike/ARS_Suite/j-bridge/src/main/java/com/hamradio/jbridge/WsjtxUdpListener.java

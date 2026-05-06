@@ -11,7 +11,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -50,7 +49,7 @@ public class WsjtxUdpListener {
     private Consumer<WsjtxDecode>          onDecode;
     private Consumer<WsjtxStatus>          onStatus;
     private Consumer<WsjtxQsoLogged>       onQsoLogged;
-    private BiConsumer<Boolean, String>    onConnectionChange; // (connected, version)
+    private UpstreamAppConnectionListener  onConnectionChange; // (connected, sourceApp, version)
     private Runnable                       onClear;
 
     public WsjtxUdpListener(int port, String bindAddress) {
@@ -80,7 +79,7 @@ public class WsjtxUdpListener {
      *  and the previous socket state is stale. */
     public void reconnect() {
         log.info("WSJT-X UDP listener reconnect requested");
-        if (onConnectionChange != null) onConnectionChange.accept(false, "");
+        if (onConnectionChange != null) onConnectionChange.onChange(false, WsjtxProtocolDecoder.SRC_UNKNOWN, "");
         // Closing the socket wakes receive() with SocketException; the outer
         // listenLoop catches it and rebinds after RETRY_DELAY_MS — which is
         // ok but slow for a user-triggered action. So we interrupt the wait
@@ -130,9 +129,11 @@ public class WsjtxUdpListener {
 
         switch (msg.messageType) {
             case WsjtxProtocolDecoder.TYPE_HEARTBEAT:
-                log.debug("WSJT-X heartbeat v{}", msg.heartbeat != null ? msg.heartbeat.version : "?");
+                String src = WsjtxProtocolDecoder.detectSourceApp(msg.id);
+                String ver = msg.heartbeat != null ? msg.heartbeat.version : "";
+                log.debug("Upstream heartbeat: {} v{}", src, ver.isEmpty() ? "?" : ver);
                 if (onConnectionChange != null)
-                    onConnectionChange.accept(true, msg.heartbeat != null ? msg.heartbeat.version : "");
+                    onConnectionChange.onChange(true, src, ver);
                 break;
 
             case WsjtxProtocolDecoder.TYPE_STATUS:
@@ -152,8 +153,9 @@ public class WsjtxUdpListener {
                 break;
 
             case WsjtxProtocolDecoder.TYPE_CLOSE:
-                log.info("WSJT-X sent Close");
-                if (onConnectionChange != null) onConnectionChange.accept(false, null);
+                log.info("Upstream app sent Close ({})", WsjtxProtocolDecoder.detectSourceApp(msg.id));
+                if (onConnectionChange != null)
+                    onConnectionChange.onChange(false, WsjtxProtocolDecoder.detectSourceApp(msg.id), "");
                 break;
 
             default:
@@ -170,6 +172,6 @@ public class WsjtxUdpListener {
     public void setOnDecode(Consumer<WsjtxDecode> cb)               { this.onDecode = cb; }
     public void setOnStatus(Consumer<WsjtxStatus> cb)               { this.onStatus = cb; }
     public void setOnQsoLogged(Consumer<WsjtxQsoLogged> cb)         { this.onQsoLogged = cb; }
-    public void setOnConnectionChange(BiConsumer<Boolean,String> cb){ this.onConnectionChange = cb; }
+    public void setOnConnectionChange(UpstreamAppConnectionListener cb){ this.onConnectionChange = cb; }
     public void setOnClear(Runnable cb)                             { this.onClear = cb; }
 }

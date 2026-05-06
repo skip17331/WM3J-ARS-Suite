@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.hamradio.jbridge.WsjtxProtocolDecoderTest
+-------------------------------------------------------------------------------
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.575 s -- in com.hamradio.jbridge.WsjtxProtocolDecoderTest
