@@ -22,10 +22,20 @@ java --module-path ./lib/javafx \
 ## Architecture Overview
 
 J-Bridge is a **standalone** Java 21 + JavaFX 21 app in the WM3j ARS Suite.
-It acts as a bridge between WSJT-X (weak-signal digital modes) and j-hub.
+It acts as a bridge between weak-signal digital-mode apps (WSJT-X **and JTDX**)
+and j-hub.
+
+The two upstream apps share the same UDP protocol family; J-Bridge auto-detects
+which one is feeding it from the heartbeat `id` field and surfaces the source
+in both the status panel ("App: JTDX") and the published `WSJTX_CONNECTION`
+JSON message (`sourceApp` field).
+
+MSHV is intentionally **not** supported — it is closed-source freeware with no
+native macOS build, which fails the suite's "open source + Linux/Windows/macOS"
+constraint.
 
 ```
-WSJT-X  ──UDP 2237──►  WsjtxUdpListener
+WSJT-X / JTDX  ──UDP 2237──►  WsjtxUdpListener
                               │
                               ▼
                       WsjtxProtocolDecoder

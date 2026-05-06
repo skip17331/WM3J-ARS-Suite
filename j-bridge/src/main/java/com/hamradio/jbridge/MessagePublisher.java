@@ -127,11 +127,15 @@ public class MessagePublisher {
 
     /**
      * Publish WSJTX_CONNECTION state change to j-hub.
+     * Includes the upstream app identity (WSJT-X or JTDX) so subscribers can
+     * distinguish which app is currently feeding decodes — useful when an
+     * operator has both installed and switches between them.
      */
-    public void publishConnectionStatus(boolean connected, String version) {
+    public void publishConnectionStatus(boolean connected, String sourceApp, String version) {
         JsonObject msg = new JsonObject();
         msg.addProperty("type",      "WSJTX_CONNECTION");
         msg.addProperty("connected", connected);
+        msg.addProperty("sourceApp", sourceApp != null ? sourceApp : "Unknown");
         msg.addProperty("version",   version != null ? version : "");
         msg.addProperty("timestamp", isoNow(Instant.now()));
         send(msg);
