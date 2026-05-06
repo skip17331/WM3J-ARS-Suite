@@ -67,6 +67,11 @@ public class HubEngine {
     private volatile JsonNode  lastSolarFluxPayload;
     private Consumer<JsonNode> heardBySpotListener;
     private Consumer<JsonNode> adifImportListener;
+    private Consumer<String>   cwUnsupportedListener;
+    // Latches false the first time j-hub broadcasts CW_UNSUPPORTED for the
+    // current rig. MacroEngine reads this to choose between the Hamlib CW path
+    // and the legacy CI-V fallback. Reset on (re)connect to re-probe support.
+    private final AtomicBoolean hamlibCwAvailable = new AtomicBoolean(true);
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -94,6 +99,9 @@ public class HubEngine {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
                     connected.set(true);
+                    // Re-probe Hamlib CW capability on each (re)connect — the rig
+                    // configuration on the hub side may have changed.
+                    hamlibCwAvailable.set(true);
                     // Register with hub — required before any other message
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"logging-engine\",\"version\":\"1.0.0\"}");
                     log.info("Hub connected: {}", wsUrl);
@@ -239,6 +247,15 @@ public class HubEngine {
             } else if ("IMPORT_ADIF".equals(type)) {
                 if (adifImportListener != null)
                     adifImportListener.accept(node);
+
+            } else if ("CW_UNSUPPORTED".equals(type)) {
+                // Hub reports the configured rig rejected a CW command. Latch the
+                // capability flag false so subsequent macros take the CI-V fallback
+                // path; notify the listener once so the UI can surface it.
+                boolean firstNotice = hamlibCwAvailable.getAndSet(false);
+                if (firstNotice && cwUnsupportedListener != null) {
+                    cwUnsupportedListener.accept(node.path("reason").asText(""));
+                }
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -307,6 +324,11 @@ public class HubEngine {
     public void setHeardBySpotListener           (Consumer<JsonNode> l) { this.heardBySpotListener            = l; }
     public void setAdifImportListener            (Consumer<JsonNode> l) { this.adifImportListener             = l; }
     public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
+    /** Fires once (per (re)connect) when j-hub reports the rig doesn't support Hamlib CW. */
+    public void setCwUnsupportedListener    (Consumer<String>  l)  { this.cwUnsupportedListener    = l; }
+
+    /** True until j-hub broadcasts CW_UNSUPPORTED for the current rig. */
+    public boolean isHamlibCwAvailable() { return hamlibCwAvailable.get(); }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }
@@ -506,6 +528,34 @@ public class HubEngine {
             msg.put("text", text);
             wsClient.send(msg.toString());
         } catch (Exception e) { log.warn("sendModemTx failed: {}", e.getMessage()); }
+    }
+
+    /** Ask j-hub to key the rig's CW keyer (Hamlib send_morse). The hub also
+     *  sets the keyer speed (Hamlib KEYSPD) before dispatching the morse text.
+     *  No-op when not connected or when the rig has previously rejected a CW
+     *  command — callers should use {@link #isHamlibCwAvailable()} to choose
+     *  between this path and the legacy CI-V fallback. */
+    public void sendCw(String text, int wpm) {
+        if (!connected.get() || wsClient == null || text == null || text.isBlank()) return;
+        if (!hamlibCwAvailable.get()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SEND_CW");
+            msg.put("text", text);
+            msg.put("wpm",  wpm);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendCw failed: {}", e.getMessage()); }
+    }
+
+    /** Ask j-hub to abort any in-flight CW transmission (Hamlib stop_morse). */
+    public void stopCw() {
+        if (!connected.get() || wsClient == null) return;
+        if (!hamlibCwAvailable.get()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "STOP_CW");
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("stopCw failed: {}", e.getMessage()); }
     }
 
     /** Announce "I'm about to stream N QSOs to you" before a full-sync response.

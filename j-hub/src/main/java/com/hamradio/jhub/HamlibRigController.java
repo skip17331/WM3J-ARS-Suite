@@ -22,11 +22,18 @@ import java.util.concurrent.*;
  *   • Accepts setPtt(on) calls from the REST API (if enablePtt=true)
  *
  * rigctld command protocol (line-based, persistent TCP connection):
- *   f         → get frequency   → "<hz>\nRPRT 0"
- *   m         → get mode        → "<mode>\n<passband>\nRPRT 0"
- *   F <hz>    → set frequency   → "RPRT 0"
- *   M <mode> 0 → set mode       → "RPRT 0"
- *   T 0|1     → set PTT off/on  → "RPRT 0"
+ *   f             → get frequency   → "<hz>\nRPRT 0"
+ *   m             → get mode        → "<mode>\n<passband>\nRPRT 0"
+ *   F <hz>        → set frequency   → "RPRT 0"
+ *   M <mode> 0    → set mode        → "RPRT 0"
+ *   T 0|1         → set PTT off/on  → "RPRT 0"
+ *   L KEYSPD <n>  → set keyer WPM   → "RPRT 0"
+ *   b <text>      → send morse      → "RPRT 0"
+ *   \stop_morse   → abort morse     → "RPRT 0"
+ *
+ * If the rig/backend doesn't support the CW commands, sendCw/stopCw/setKeyerSpeed
+ * latch a one-shot {@code cwUnsupported} flag and notify MessageRouter so J-Log
+ * can fall back to its CI-V CW path and display a single notice to the operator.
  */
 public class HamlibRigController {
 
@@ -46,10 +53,13 @@ public class HamlibRigController {
     private volatile boolean pttEnabled = false;
 
     // Status
-    private volatile boolean running   = false;
-    private volatile boolean connected = false;
-    private volatile long    lastFreq  = 0;
-    private volatile String  lastMode  = "";
+    private volatile boolean running        = false;
+    private volatile boolean connected      = false;
+    private volatile long    lastFreq       = 0;
+    private volatile String  lastMode       = "";
+    // Latches true if the rig/backend rejects any CW command. One-shot per session;
+    // cleared only by restart() since "unsupported" is a property of the configured rig.
+    private volatile boolean cwUnsupported  = false;
 
     // Socket — only touched from the scheduler thread
     private Socket         socket;
@@ -95,7 +105,8 @@ public class HamlibRigController {
         if (cfg == null) { running = false; return; }
         if (pollFuture != null) { pollFuture.cancel(false); pollFuture = null; }
         scheduler.execute(this::closeSocket);
-        connected = false;
+        connected     = false;
+        cwUnsupported = false; // re-probe CW support against the new rig
         if ("HAMLIB".equals(cfg.backend)) {
             start(cfg);
         } else {
@@ -112,10 +123,11 @@ public class HamlibRigController {
 
     // ── Status accessors ─────────────────────────────────────────────
 
-    public boolean isRunning()   { return running; }
-    public boolean isConnected() { return connected; }
-    public long    getLastFreq() { return lastFreq; }
-    public String  getLastMode() { return lastMode; }
+    public boolean isRunning()       { return running; }
+    public boolean isConnected()     { return connected; }
+    public long    getLastFreq()     { return lastFreq; }
+    public String  getLastMode()     { return lastMode; }
+    public boolean isCwUnsupported() { return cwUnsupported; }
 
     // ── Commands (dispatched onto the scheduler thread) ───────────────
 
@@ -160,6 +172,80 @@ public class HamlibRigController {
                 closeSocket();
             }
         });
+    }
+
+    // ── CW (Morse) commands ──────────────────────────────────────────
+    // Backed by Hamlib level KEYSPD plus the send_morse / stop_morse commands.
+    // Values are clamped to a sane WPM range; rejection by the rig latches the
+    // cwUnsupported flag so subsequent CW calls become no-ops for this session.
+
+    private static int clampWpm(int wpm) {
+        if (wpm < 5)  return 5;
+        if (wpm > 60) return 60;
+        return wpm;
+    }
+
+    /** Set the rig's CW keyer speed in WPM (Hamlib level KEYSPD). */
+    public void setKeyerSpeed(int wpm) {
+        if (!running || cwUnsupported) return;
+        final int speed = clampWpm(wpm);
+        scheduler.execute(() -> {
+            try {
+                sendCommand("L KEYSPD " + speed);
+            } catch (IOException e) {
+                handleCwError("setKeyerSpeed", e);
+            }
+        });
+    }
+
+    /**
+     * Send the supplied text as CW via the rig's internal keyer.
+     * Sets KEYSPD to the requested WPM first, then dispatches the morse text.
+     * The rigctld {@code b} command returns immediately; the morse plays out on the rig.
+     */
+    public void sendCw(String text, int wpm) {
+        if (!running || cwUnsupported) return;
+        if (text == null || text.isEmpty()) return;
+        final int    speed = clampWpm(wpm);
+        final String msg   = text;
+        scheduler.execute(() -> {
+            try {
+                sendCommand("L KEYSPD " + speed);
+                sendCommand("b " + msg);
+                log.debug("CW sent ({} WPM): {}", speed, msg);
+            } catch (IOException e) {
+                handleCwError("sendCw", e);
+            }
+        });
+    }
+
+    /** Abort any in-flight CW transmission via Hamlib's stop_morse. */
+    public void stopCw() {
+        if (!running || cwUnsupported) return;
+        scheduler.execute(() -> {
+            try {
+                sendCommand("\\stop_morse");
+            } catch (IOException e) {
+                handleCwError("stopCw", e);
+            }
+        });
+    }
+
+    // RPRT failures are protocol-level rejections — connection stays good, command failed.
+    // Any RPRT on a CW command means this rig/backend can't do Hamlib CW; latch and notify once.
+    // Real I/O failures still close the socket so the next poll reconnects.
+    private void handleCwError(String op, IOException e) {
+        String msg = e.getMessage() == null ? "" : e.getMessage();
+        if (msg.contains("RPRT ")) {
+            if (!cwUnsupported) {
+                cwUnsupported = true;
+                log.warn("Hamlib CW unsupported by this rig ({}): {} — disabling CW path", op, msg);
+                if (router != null) router.publishCwUnsupported();
+            }
+        } else {
+            log.warn("Hamlib {} I/O error: {}", op, msg);
+            closeSocket();
+        }
     }
 
     // ── Poll loop ────────────────────────────────────────────────────

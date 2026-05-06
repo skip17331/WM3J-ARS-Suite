@@ -1,9 +1,12 @@
 package com.jlog.macro;
 
 import com.jlog.civ.CivEngine;
+import com.jlog.cluster.HubEngine;
 import com.jlog.db.MacroDao;
 import com.jlog.model.Macro;
 import com.jlog.model.Macro.MacroAction;
+import com.jlog.util.AppConfig;
+import com.jlog.util.MacroVariableEngine;
 import javafx.application.Platform;
 import javafx.scene.media.AudioClip;
 import org.slf4j.Logger;
@@ -13,7 +16,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Macro engine — loads macros from the database and executes them.
@@ -43,6 +48,16 @@ public class MacroEngine {
     // Hooks registered by active controller
     private Consumer<String> exchangeInsertHandler;
     private Runnable         autofillHandler;
+    // Supplies the live QSO context (callsign / RST / exchange / serial) for variable
+    // expansion in CW_TEXT macros. Populated by NormalLogController on init.
+    private Supplier<MacroVariableEngine.Context> variableContextSupplier;
+
+    // Tracks whether a CW transmission is currently in flight on the Hamlib path,
+    // so a subsequent CW_TEXT macro can abort-and-replace instead of overlapping.
+    // Reset by a scheduled timer based on the estimated send duration.
+    private final AtomicBoolean cwInFlight = new AtomicBoolean(false);
+    // Standard CW "I goofed, disregard" prosign — eight dits sent at the current speed.
+    private static final String CW_ABORT_PROSIGN = "EEEEEEEE";
 
     // ---------------------------------------------------------------
     // Public API
@@ -78,6 +93,21 @@ public class MacroEngine {
     /** Register the autofill handler. */
     public void setAutofillHandler(Runnable handler) {
         this.autofillHandler = handler;
+    }
+
+    /** Register the supplier that produces the live QSO context for macro variable
+     *  expansion (callsign field, RST fields, exchange, serial number, rig state). */
+    public void setVariableContextSupplier(Supplier<MacroVariableEngine.Context> supplier) {
+        this.variableContextSupplier = supplier;
+    }
+
+    /** Abort any in-flight CW transmission via Hamlib stop_morse and clear the
+     *  in-flight flag. Called by the ESC key handler in NormalLogController. */
+    public void abortCw() {
+        if (cwInFlight.getAndSet(false)) {
+            HubEngine.getInstance().stopCw();
+            log.debug("CW abort (ESC)");
+        }
     }
 
     /** Return all macros from the database. */
@@ -132,9 +162,20 @@ public class MacroEngine {
             }
 
             case CW_TEXT -> {
-                String text = action.getData();
-                log.debug("Macro: CW text = {}", text);
-                CivEngine.getInstance().sendCw(text);
+                String raw = action.getData();
+                String text = expandVariables(raw);
+                if (text == null || text.isEmpty()) break;
+                int wpm = AppConfig.getInstance().getCwWpm();
+                log.debug("Macro: CW text [{} WPM] = {}", wpm, text);
+
+                HubEngine hub = HubEngine.getInstance();
+                if (hub.isConnected() && hub.isHamlibCwAvailable()) {
+                    sendCwViaHamlib(hub, text, wpm);
+                } else {
+                    // Fallback path — Icom CI-V direct keying. Variable expansion
+                    // still applied so both transports stay in sync.
+                    CivEngine.getInstance().sendCw(text);
+                }
             }
 
             case INSERT_EXCHANGE -> {
@@ -160,5 +201,44 @@ public class MacroEngine {
 
             default -> log.warn("Unknown macro action type: {}", action.getType());
         }
+    }
+
+    // ---------------------------------------------------------------
+    // CW helpers
+    // ---------------------------------------------------------------
+
+    private String expandVariables(String template) {
+        if (template == null || template.isEmpty()) return template;
+        if (variableContextSupplier == null) return template;
+        MacroVariableEngine.Context ctx = variableContextSupplier.get();
+        return MacroVariableEngine.substitute(template, ctx);
+    }
+
+    /** Send {@code text} as CW via the Hamlib path, applying abort-and-replace
+     *  semantics if a previous CW transmission is still in flight. */
+    private void sendCwViaHamlib(HubEngine hub, String text, int wpm) {
+        if (cwInFlight.getAndSet(true)) {
+            // Replace: stop the running transmission, send the abort prosign so
+            // the receiving op disregards the partial, then start the new text.
+            hub.stopCw();
+            hub.sendCw(CW_ABORT_PROSIGN, wpm);
+        }
+        hub.sendCw(text, wpm);
+        scheduleInFlightClear(text.length() + CW_ABORT_PROSIGN.length(), wpm);
+    }
+
+    /** Estimate when the morse will finish and clear the in-flight flag. PARIS
+     *  standard: a word averages 50 dot-units, with ~5 chars per word, so a single
+     *  character takes 60 / (5 * wpm) seconds. A small safety margin avoids racing
+     *  the next macro press against a still-keying rig. */
+    private void scheduleInFlightClear(int charCount, int wpm) {
+        if (wpm <= 0) wpm = 25;
+        long ms = Math.round((charCount * 60_000.0) / (5.0 * wpm)) + 250L;
+        executor.submit(() -> {
+            try { Thread.sleep(ms); } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+            cwInFlight.set(false);
+        });
     }
 }

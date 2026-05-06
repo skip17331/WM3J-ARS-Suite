@@ -129,6 +129,14 @@ public class MessageRouter {
                 handleRotorCmd(msg, session.socket, server);
                 break;
 
+            case "SEND_CW":
+                handleSendCw(msg, session, server);
+                break;
+
+            case "STOP_CW":
+                handleStopCw(session);
+                break;
+
             case "JMAP_CONFIG_REQUEST":
                 handleJMapConfigRequest(session, server);
                 break;
@@ -495,6 +503,56 @@ public class MessageRouter {
         } catch (Exception e) {
             log.warn("Failed to process ROTOR_CMD: {}", e.getMessage());
         }
+    }
+
+    // ---------------------------------------------------------------
+    // SEND_CW / STOP_CW — CW keyer commands from J-Log
+    // ---------------------------------------------------------------
+
+    private void handleSendCw(JsonObject msg, JHubServer.AppSession session, JHubServer server) {
+        try {
+            String text = msg.has("text") ? msg.get("text").getAsString() : "";
+            int    wpm  = msg.has("wpm")  ? msg.get("wpm").getAsInt()     : 25;
+            if (text.isBlank()) return;
+
+            HamlibRigController rig = HamlibRigController.getInstance();
+            if (!rig.isRunning()) {
+                log.debug("SEND_CW from '{}' ignored — Hamlib not running", session.appName);
+                return;
+            }
+            if (rig.isCwUnsupported()) {
+                // Tell sender once more so a late-joining J-Log learns the state.
+                JsonObject status = new JsonObject();
+                status.addProperty("type",   "CW_UNSUPPORTED");
+                status.addProperty("reason", "rig rejected an earlier CW command");
+                server.sendTo(session.socket, status.toString());
+                return;
+            }
+            rig.sendCw(text, wpm);
+            log.debug("SEND_CW [{} WPM] from '{}': {}", wpm, session.appName, text);
+        } catch (Exception e) {
+            log.warn("Failed to process SEND_CW: {}", e.getMessage());
+        }
+    }
+
+    private void handleStopCw(JHubServer.AppSession session) {
+        HamlibRigController rig = HamlibRigController.getInstance();
+        if (!rig.isRunning() || rig.isCwUnsupported()) return;
+        rig.stopCw();
+        log.debug("STOP_CW from '{}'", session.appName);
+    }
+
+    /**
+     * Broadcast that the configured rig does not support Hamlib CW.
+     * Called once by HamlibRigController on the first failed CW command.
+     */
+    public void publishCwUnsupported() {
+        if (jHubServer == null) return;
+        JsonObject msg = new JsonObject();
+        msg.addProperty("type",   "CW_UNSUPPORTED");
+        msg.addProperty("reason", "rig rejected an earlier CW command");
+        jHubServer.broadcastToAll(msg.toString());
+        log.info("CW_UNSUPPORTED broadcast — Hamlib CW disabled for this session");
     }
 
     // ---------------------------------------------------------------
