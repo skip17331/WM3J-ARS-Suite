@@ -370,6 +370,8 @@ public class WebConfigServer {
                 try {
                     com.google.gson.JsonObject remote = new com.google.gson.JsonObject();
                     remote.addProperty("version", 1);
+                    if (settings.has("mapStyle"))          remote.add("mapStyle",           settings.get("mapStyle"));
+                    if (settings.has("mapView"))           remote.add("mapView",            settings.get("mapView"));
                     if (settings.has("tileProvider"))      remote.add("tileProvider",      settings.get("tileProvider"));
                     if (settings.has("noaaApiKey"))        remote.add("apiKey",             settings.get("noaaApiKey"));
                     if (settings.has("mapZoom"))           remote.add("zoom",               settings.get("mapZoom"));

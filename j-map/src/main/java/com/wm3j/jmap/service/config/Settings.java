@@ -29,6 +29,7 @@ public class Settings {
     private boolean showWorldMap = true;
     private boolean showGrayline = true;
     private boolean showDxSpots = true;
+    private boolean showDxPaths = true;
     private double  graylineOpacity = 0.6;
     private boolean showSunPosition = true;
 
@@ -117,6 +118,8 @@ public class Settings {
     private double muf = 28.0;   // MHz
 
     // Map source and data
+    private String mapStyle       = "BLUE_MARBLE";
+    private String mapView        = "WORLD";
     private String tileProvider   = "FLAT";
     private int    mapZoom        = 2;
     private double mapCenterLat   = 0.0;
@@ -354,6 +357,15 @@ public class Settings {
 
     public int getFontSize() { return (fontSize >= 10 && fontSize <= 22) ? fontSize : 13; }
     public void setFontSize(int fontSize) { this.fontSize = fontSize; }
+
+    public String getMapStyle() { return mapStyle != null && !mapStyle.isBlank() ? mapStyle : "BLUE_MARBLE"; }
+    public void setMapStyle(String mapStyle) { this.mapStyle = mapStyle; }
+
+    public String getMapView() { return mapView != null && !mapView.isBlank() ? mapView : "WORLD"; }
+    public void setMapView(String mapView) { this.mapView = mapView; }
+
+    public boolean isShowDxPaths() { return showDxPaths; }
+    public void setShowDxPaths(boolean showDxPaths) { this.showDxPaths = showDxPaths; }
 
     public String getTileProvider() { return tileProvider != null ? tileProvider : "FLAT"; }
     public void setTileProvider(String tileProvider) { this.tileProvider = tileProvider; }

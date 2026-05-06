@@ -89,6 +89,7 @@
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/service/zones/ZoneLookupService.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/main/DashboardLayout.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/main/MainWindow.java
+/home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/overlays/Viewport.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/overlays/WorldMapCanvas.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/panels/BandConditionsPanel.java
 /home/mike/ARS_Suite/j-map/src/main/java/com/wm3j/jmap/ui/panels/DxScrollerBar.java

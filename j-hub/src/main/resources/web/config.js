@@ -1491,7 +1491,10 @@ function populateJMapForm(s) {
   setChk('jm-prop',     s.showPropagationData !== false);
   setChk('jm-bandcond', s.showBandConditions  !== false);
 
+  setSelectVal('jm-map-style',     s.mapStyle     || 'BLUE_MARBLE');
+  setSelectVal('jm-map-view',      s.mapView      || 'WORLD');
   setSelectVal('jm-tile-provider', s.tileProvider || 'FLAT');
+  setChk('jm-dxpaths',             s.showDxPaths !== false);
   setVal('jm-zoom',       s.mapZoom       != null ? s.mapZoom       : 2);
   setVal('jm-center-lat', s.mapCenterLat  != null ? s.mapCenterLat  : 0);
   setVal('jm-center-lon', s.mapCenterLon  != null ? s.mapCenterLon  : 0);
@@ -1546,6 +1549,9 @@ function saveJMapSettings() {
     showSunspotGraphic:     chk('jm-sunspot'),
     showPropagationData:    chk('jm-prop'),
     showBandConditions:     chk('jm-bandcond'),
+    mapStyle:               val('jm-map-style') || 'BLUE_MARBLE',
+    mapView:                val('jm-map-view') || 'WORLD',
+    showDxPaths:            chk('jm-dxpaths'),
     tileProvider:           val('jm-tile-provider') || 'FLAT',
     mapZoom:                intn('jm-zoom') || 2,
     mapCenterLat:           flt('jm-center-lat'),

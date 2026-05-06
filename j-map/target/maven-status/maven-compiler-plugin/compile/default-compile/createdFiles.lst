@@ -48,6 +48,7 @@ com/wm3j/jmap/service/radar/RadarProvider.class
 com/wm3j/jmap/service/AbstractDataProvider.class
 com/wm3j/jmap/service/rotor/RotorProvider.class
 com/wm3j/jmap/service/weather/WeatherProvider.class
+com/wm3j/jmap/ui/overlays/Viewport.class
 com/wm3j/jmap/service/config/Settings.class
 com/wm3j/jmap/service/solar/SolarDataProvider.class
 com/wm3j/jmap/ui/panels/PropagationPanel.class

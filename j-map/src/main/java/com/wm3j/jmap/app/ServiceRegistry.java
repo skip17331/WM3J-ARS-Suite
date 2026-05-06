@@ -140,8 +140,10 @@ public class ServiceRegistry {
                 updated.setArrlSection(this.settings.getArrlSection());
                 updated.setCqZone(this.settings.getCqZone());
                 updated.setItuZone(this.settings.getItuZone());
+                String prevMapStyle = this.settings.getMapStyle();
                 this.settings = updated;
                 onSettingsChanged(updated);
+                if (!prevMapStyle.equals(updated.getMapStyle())) triggerMapImageReload();
             } catch (Exception e) {
                 log.warn("Failed to apply JMAP_CONFIG: {}", e.getMessage());
             }

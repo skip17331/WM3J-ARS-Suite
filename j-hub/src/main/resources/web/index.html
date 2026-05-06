@@ -924,6 +924,10 @@
           <label class="toggle"><input type="checkbox" id="jm-dxspots"><span class="toggle-slider"></span></label>
         </div>
         <div class="toggle-row">
+          <div><div class="toggle-label">DX Spot Paths<div class="toggle-desc">Great-circle short-path line from spotter to DX</div></div></div>
+          <label class="toggle"><input type="checkbox" id="jm-dxpaths"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
           <div><div class="toggle-label">Sun Position</div></div>
           <label class="toggle"><input type="checkbox" id="jm-sunposition" checked><span class="toggle-slider"></span></label>
         </div>
@@ -1148,8 +1152,30 @@
 
       <div class="card">
         <div class="card-title">Map Images</div>
-        <div class="field" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px">
-          <div class="toggle-label">World Map<div class="toggle-desc">Equirectangular JPEG used as the main display background. Saved to ~/.j-map/world_map.jpg</div></div>
+        <div class="field-row cols-2" style="padding:12px 16px">
+          <div class="field">
+            <select id="jm-map-style">
+              <option value="BLUE_MARBLE">Blue Marble (default)</option>
+              <option value="BLUE_MARBLE_CLOUDLESS">Blue Marble — Cloudless</option>
+              <option value="NIGHT_LIGHTS">Night Lights (Black Marble)</option>
+              <option value="POLITICAL">Political (country borders)</option>
+              <option value="CUSTOM">Custom (use uploaded file below)</option>
+            </select>
+            <label>Map Style</label>
+          </div>
+          <div class="field">
+            <select id="jm-map-view">
+              <option value="WORLD">World</option>
+              <option value="NORTH_AMERICA">North America</option>
+              <option value="EUROPE">Europe</option>
+              <option value="ASIA">Asia</option>
+              <option value="OCEANIA">Oceania</option>
+            </select>
+            <label>Region</label>
+          </div>
+        </div>
+        <div class="field" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px;border-top:1px solid var(--surface1)">
+          <div class="toggle-label">Custom World Map<div class="toggle-desc">Equirectangular JPEG. Used when Map Style is set to "Custom". Saved to ~/.j-map/world_map.jpg</div></div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <input type="file" id="worldMapFile" accept=".jpg,.jpeg" style="font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:4px 8px">
             <button class="btn btn-sm btn-ghost" onclick="uploadJMapImage('worldMapFile','/api/jmap/map-image','world-map-msg')">Upload</button>

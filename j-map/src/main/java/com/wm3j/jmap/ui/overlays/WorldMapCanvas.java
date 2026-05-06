@@ -54,6 +54,7 @@ public class WorldMapCanvas extends Pane {
     private final ServiceRegistry services;
     private final Canvas canvas;
     private Image worldMapImage;
+    private Viewport currentViewport = Viewport.WORLD;
 
     // Cached night mask - recomputed every ~30s
     private NightMask nightMask;
@@ -84,20 +85,39 @@ public class WorldMapCanvas extends Pane {
     }
 
     public void loadMapImage() {
-        java.nio.file.Path external = java.nio.file.Path.of(
-            System.getProperty("user.home"), ".j-map", "world_map.jpg");
+        String style = services.getSettings().getMapStyle();
         try {
-            if (java.nio.file.Files.exists(external)) {
-                worldMapImage = new Image(external.toUri().toString(), 0, 0, true, true);
+            if ("CUSTOM".equals(style)) {
+                java.nio.file.Path external = java.nio.file.Path.of(
+                    System.getProperty("user.home"), ".j-map", "world_map.jpg");
+                if (java.nio.file.Files.exists(external)) {
+                    worldMapImage = new Image(external.toUri().toString(), 0, 0, true, true);
+                } else {
+                    worldMapImage = loadBundled("/images/world_map.jpg");
+                }
             } else {
-                worldMapImage = new Image(
-                    getClass().getResourceAsStream("/images/world_map.jpg"),
-                    0, 0, true, true);
+                worldMapImage = loadBundled(resourceForStyle(style));
             }
         } catch (Exception ex) {
             worldMapImage = null;
         }
         redraw();
+    }
+
+    private Image loadBundled(String path) {
+        java.io.InputStream in = getClass().getResourceAsStream(path);
+        if (in == null) in = getClass().getResourceAsStream("/images/world_map.jpg");
+        return in != null ? new Image(in, 0, 0, true, true) : null;
+    }
+
+    private String resourceForStyle(String style) {
+        return switch (style) {
+            case "BLUE_MARBLE_CLOUDLESS" -> "/images/maps/blue_marble_cloudless.jpg";
+            case "NIGHT_LIGHTS"          -> "/images/maps/night_lights.jpg";
+            case "POLITICAL"             -> "/images/maps/political.png";
+            case "BLUE_MARBLE"           -> "/images/maps/blue_marble.jpg";
+            default                       -> "/images/world_map.jpg";
+        };
     }
 
     public void setDxSpotClickCallback(Consumer<DxSpot> callback) {
@@ -111,6 +131,7 @@ public class WorldMapCanvas extends Pane {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Settings s = services.getSettings();
+        currentViewport = Viewport.forKey(s.getMapView());
 
         // 1. Base map
         if (s.isShowWorldMap()) drawBaseMap(gc, w, h);
@@ -159,7 +180,9 @@ public class WorldMapCanvas extends Pane {
         // 12b. PSK Reporter spots
         if (s.isShowPskOverlay()) drawPskOverlay(gc, w, h, s);
 
-        // 13. DX spots
+        // 13. DX spot paths + dots
+        refreshSpotList();
+        if (s.isShowDxSpots() && s.isShowDxPaths()) drawDxPaths(gc, w, h, s);
         if (s.isShowDxSpots()) {
             drawDxSpots(gc, w, h, s);
             drawModeLegend(gc, w, h);
@@ -179,7 +202,14 @@ public class WorldMapCanvas extends Pane {
 
     private void drawBaseMap(GraphicsContext gc, double w, double h) {
         if (worldMapImage != null && !worldMapImage.isError()) {
-            gc.drawImage(worldMapImage, 0, 0, w, h);
+            Viewport v = currentViewport;
+            double imgW = worldMapImage.getWidth();
+            double imgH = worldMapImage.getHeight();
+            double sx = (v.lonMin + 180.0) / 360.0 * imgW;
+            double sy = (90.0 - v.latMax) / 180.0 * imgH;
+            double sw = v.lonRange() / 360.0 * imgW;
+            double sh = v.latRange() / 180.0 * imgH;
+            gc.drawImage(worldMapImage, sx, sy, sw, sh, 0, 0, w, h);
         } else {
             gc.setFill(Color.web("#1a3a5c"));
             gc.fillRect(0, 0, w, h);
@@ -700,11 +730,24 @@ public class WorldMapCanvas extends Pane {
 
     // ── DX spots ─────────────────────────────────────────────────────────────
 
-    private void drawDxSpots(GraphicsContext gc, double w, double h, Settings s) {
+    private void refreshSpotList() {
         lastSpots = new ArrayList<>();
         List<DxSpot> providerSpots = services.dxSpotProvider.getCached();
         if (providerSpots != null) lastSpots.addAll(providerSpots);
         lastSpots.addAll(services.dxClusterClient.getClusterSpots());
+        for (DxSpot spot : lastSpots) {
+            if (spot.getDxLat() == 0 && spot.getDxLon() == 0) {
+                double[] ll = services.zoneLookupService.callsignToLatLon(spot.getDxCallsign());
+                if (ll != null) { spot.setDxLat(ll[0]); spot.setDxLon(ll[1]); }
+            }
+            if (spot.getSpotterLat() == 0 && spot.getSpotterLon() == 0) {
+                double[] sl = services.zoneLookupService.callsignToLatLon(spot.getSpotter());
+                if (sl != null) { spot.setSpotterLat(sl[0]); spot.setSpotterLon(sl[1]); }
+            }
+        }
+    }
+
+    private void drawDxSpots(GraphicsContext gc, double w, double h, Settings s) {
         if (lastSpots.isEmpty()) return;
 
         gc.save();
@@ -716,14 +759,7 @@ public class WorldMapCanvas extends Pane {
 
             double lat = spot.getDxLat();
             double lon = spot.getDxLon();
-            if (lat == 0 && lon == 0) {
-                double[] ll = services.zoneLookupService.callsignToLatLon(spot.getDxCallsign());
-                if (ll == null) continue;
-                lat = ll[0]; lon = ll[1];
-                // Cache resolved coords on the spot so click hit-testing works
-                spot.setDxLat(lat);
-                spot.setDxLon(lon);
-            }
+            if (lat == 0 && lon == 0) continue;
 
             double px = lonToX(lon, w);
             double py = latToY(lat, h);
@@ -742,6 +778,61 @@ public class WorldMapCanvas extends Pane {
             }
         }
         gc.restore();
+    }
+
+    // ── DX spot paths (great-circle short path from spotter to DX) ───────────
+
+    private void drawDxPaths(GraphicsContext gc, double w, double h, Settings s) {
+        if (lastSpots.isEmpty()) return;
+        gc.save();
+        gc.setLineWidth(0.8);
+        for (DxSpot spot : lastSpots) {
+            if (spot.ageMinutes() > s.getDxMaxAgeMinutes()) continue;
+            if (!s.getDxBandFilter().equals("ALL") && !s.getDxBandFilter().equals(spot.getBand())) continue;
+
+            double sLat = spot.getSpotterLat(), sLon = spot.getSpotterLon();
+            double dLat = spot.getDxLat(),     dLon = spot.getDxLon();
+            if (sLat == 0 && sLon == 0) continue;
+            if (dLat == 0 && dLon == 0) continue;
+
+            gc.setStroke(Color.web(spot.getModeColor()).deriveColor(0, 1, 1, 0.4));
+
+            int N = 30;
+            double prevX = lonToX(sLon, w);
+            double prevY = latToY(sLat, h);
+            double prevLon = sLon;
+            for (int i = 1; i <= N; i++) {
+                double f = (double) i / N;
+                double[] pt = greatCircleAt(sLat, sLon, dLat, dLon, f);
+                double curLon = pt[1];
+                double curX = lonToX(curLon, w);
+                double curY = latToY(pt[0], h);
+                if (Math.abs(curLon - prevLon) <= 180) {
+                    gc.strokeLine(prevX, prevY, curX, curY);
+                }
+                prevX = curX; prevY = curY; prevLon = curLon;
+            }
+        }
+        gc.restore();
+    }
+
+    private static double[] greatCircleAt(double lat1, double lon1, double lat2, double lon2, double f) {
+        double phi1 = Math.toRadians(lat1), lam1 = Math.toRadians(lon1);
+        double phi2 = Math.toRadians(lat2), lam2 = Math.toRadians(lon2);
+        double cosD = Math.sin(phi1) * Math.sin(phi2)
+                    + Math.cos(phi1) * Math.cos(phi2) * Math.cos(lam2 - lam1);
+        if (cosD > 1) cosD = 1; else if (cosD < -1) cosD = -1;
+        double d = Math.acos(cosD);
+        if (d < 1e-9) return new double[]{lat1, lon1};
+        double sinD = Math.sin(d);
+        double A = Math.sin((1 - f) * d) / sinD;
+        double B = Math.sin(f * d) / sinD;
+        double x = A * Math.cos(phi1) * Math.cos(lam1) + B * Math.cos(phi2) * Math.cos(lam2);
+        double y = A * Math.cos(phi1) * Math.sin(lam1) + B * Math.cos(phi2) * Math.sin(lam2);
+        double z = A * Math.sin(phi1)                  + B * Math.sin(phi2);
+        double lat = Math.toDegrees(Math.atan2(z, Math.hypot(x, y)));
+        double lon = Math.toDegrees(Math.atan2(y, x));
+        return new double[]{lat, lon};
     }
 
     // ── Mode legend ───────────────────────────────────────────────────────────
@@ -961,6 +1052,7 @@ public class WorldMapCanvas extends Pane {
         double w = canvas.getWidth();
         double h = canvas.getHeight();
         Settings s = services.getSettings();
+        currentViewport = Viewport.forKey(s.getMapView());
 
         for (DxSpot spot : lastSpots) {
             if (spot.ageMinutes() > s.getDxMaxAgeMinutes()) continue;
@@ -985,8 +1077,12 @@ public class WorldMapCanvas extends Pane {
 
     // ── Projection helpers ────────────────────────────────────────────────────
 
-    public double lonToX(double lon, double w) { return (lon + 180.0) / 360.0 * w; }
-    public double latToY(double lat, double h) { return (90.0 - lat) / 180.0 * h; }
+    public double lonToX(double lon, double w) {
+        return (lon - currentViewport.lonMin) / currentViewport.lonRange() * w;
+    }
+    public double latToY(double lat, double h) {
+        return (currentViewport.latMax - lat) / currentViewport.latRange() * h;
+    }
 
     public void settingsChanged() { redraw(); }
 
