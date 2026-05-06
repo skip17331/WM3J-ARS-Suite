@@ -37,6 +37,26 @@
     "shortPathOffset": 0.0,
     "customPreset": 0.0
   },
+  "amp": {
+    "backend": "NONE",
+    "model": "",
+    "comPort": "",
+    "baud": 9600,
+    "tcpHost": "localhost",
+    "tcpPort": 4531,
+    "pollRateMs": 1000,
+    "bandFollow": true,
+    "faultAlert": true,
+    "swrFault": 3.0
+  },
+  "antenna": {
+    "enabled": false,
+    "comPort": "",
+    "baud": 9600,
+    "lockoutOnPtt": true,
+    "switches": [],
+    "rules": []
+  },
   "cluster": {
     "autoConnect": false,
     "server": "dx.middlebrook.ca",
@@ -182,6 +202,15 @@
     "hamqthPassword": "",
     "cacheTtlHours": 24,
     "fccUlsUrl": ""
+  },
+  "autoUpdate": {
+    "enabled": true,
+    "intervalDays": 7,
+    "ctyUrl": "https://www.country-files.com/cty/cty.dat",
+    "scpUrl": "https://supercheckpartial.com/MASTER.SCP",
+    "dataDir": "",
+    "minCtySize": 50000,
+    "minScpSize": 200000
   },
   "jMapSettings": {
     "fontSize": 19,

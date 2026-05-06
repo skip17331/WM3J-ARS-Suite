@@ -27,6 +27,9 @@
                     <Menu text="%menu.setup">
                         <items>
                             <MenuItem text="J-Hub Setup UI"  onAction="#menuSetup"/>
+                            <MenuItem text="Macros…"         onAction="#menuMacros"/>
+                            <MenuItem text="Amp Control…"    onAction="#menuAmp"/>
+                            <MenuItem text="Antenna Switch…" onAction="#menuAntenna"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.contest">
