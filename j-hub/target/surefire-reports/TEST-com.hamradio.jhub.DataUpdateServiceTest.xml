@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.hamradio.jhub.DataUpdateServiceTest" time="2.816" tests="9" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.hamradio.jhub.DataUpdateServiceTest" time="1.836" tests="9" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -13,7 +13,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
-    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-hub/target/surefire/surefirebooter-20260505215036886_3.jar /home/mike/ARS_Suite/j-hub/target/surefire 2026-05-05T21-50-36_602-jvmRun1 surefire-20260505215036886_1tmp surefire_0-20260505215036886_2tmp"/>
+    <property name="sun.java.command" value="/home/mike/ARS_Suite/j-hub/target/surefire/surefirebooter-20260506072722800_3.jar /home/mike/ARS_Suite/j-hub/target/surefire 2026-05-06T07-27-22_663-jvmRun1 surefire-20260506072722800_1tmp surefire_0-20260506072722800_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/mike/ARS_Suite/j-hub/target/test-classes:/home/mike/ARS_Suite/j-hub/target/classes:/home/mike/.m2/repository/org/java-websocket/Java-WebSocket/1.5.3/Java-WebSocket-1.5.3.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-server/11.0.15/jetty-server-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/toolchain/jetty-jakarta-servlet-api/5.0.2/jetty-jakarta-servlet-api-5.0.2.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-http/11.0.15/jetty-http-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-util/11.0.15/jetty-util-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-io/11.0.15/jetty-io-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-servlet/11.0.15/jetty-servlet-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-security/11.0.15/jetty-security-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-webapp/11.0.15/jetty-webapp-11.0.15.jar:/home/mike/.m2/repository/org/eclipse/jetty/jetty-xml/11.0.15/jetty-xml-11.0.15.jar:/home/mike/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar:/home/mike/.m2/repository/org/xerial/sqlite-jdbc/3.46.0.0/sqlite-jdbc-3.46.0.0.jar:/home/mike/.m2/repository/com/fazecast/jSerialComm/2.10.2/jSerialComm-2.10.2.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/17.0.2/javafx-controls-17.0.2.jar:/home/mike/.m2/repository/org/openjfx/javafx-controls/17.0.2/javafx-controls-17.0.2-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/17.0.2/javafx-graphics-17.0.2.jar:/home/mike/.m2/repository/org/openjfx/javafx-graphics/17.0.2/javafx-graphics-17.0.2-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/17.0.2/javafx-base-17.0.2.jar:/home/mike/.m2/repository/org/openjfx/javafx-base/17.0.2/javafx-base-17.0.2-linux.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/17.0.2/javafx-fxml-17.0.2.jar:/home/mike/.m2/repository/org/openjfx/javafx-fxml/17.0.2/javafx-fxml-17.0.2-linux.jar:/home/mike/.m2/repository/org/slf4j/slf4j-api/2.0.7/slf4j-api-2.0.7.jar:/home/mike/.m2/repository/ch/qos/logback/logback-classic/1.4.11/logback-classic-1.4.11.jar:/home/mike/.m2/repository/ch/qos/logback/logback-core/1.4.11/logback-core-1.4.11.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.2/junit-jupiter-5.10.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.2/junit-jupiter-api-5.10.2.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.2/junit-platform-commons-1.10.2.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.2/junit-jupiter-params-5.10.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.2/junit-jupiter-engine-5.10.2.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.2/junit-platform-engine-1.10.2.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-hub/target/surefire/surefirebooter-20260505215036886_3.jar"/>
+    <property name="surefire.real.class.path" value="/home/mike/ARS_Suite/j-hub/target/surefire/surefirebooter-20260506072722800_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.10+7-LTS"/>
     <property name="user.name" value="mike"/>
@@ -55,45 +55,45 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="validateScpAcceptsCallsignList" classname="com.hamradio.jhub.DataUpdateServiceTest" time="1.508"/>
-  <testcase name="validateScpRejectsHtmlErrorPage" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.011"/>
-  <testcase name="httpErrorLeavesPreviousFileIntact(Path)" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.735">
-    <system-out><![CDATA[21:50:40.172 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
-21:50:40.189 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
-21:50:40.573 &amp#27;[31mWARN &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Fetch http://127.0.0.1:38253/cty.dat failed — HTTP 503
-21:50:40.597 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
-21:50:40.597 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=false scp=true
-21:50:40.835 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
+  <testcase name="validateScpAcceptsCallsignList" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.896"/>
+  <testcase name="validateScpRejectsHtmlErrorPage" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.005"/>
+  <testcase name="httpErrorLeavesPreviousFileIntact(Path)" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.448">
+    <system-out><![CDATA[07:27:24.693 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+07:27:24.700 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
+07:27:24.883 &amp#27;[31mWARN &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Fetch http://127.0.0.1:39769/cty.dat failed — HTTP 503
+07:27:24.901 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
+07:27:24.902 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=false scp=true
+07:27:25.103 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
 ]]></system-out>
   </testcase>
   <testcase name="undersizedResponseFailsValidationAndKeepsExistingFile(Path)" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.26">
-    <system-out><![CDATA[21:50:40.868 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
-21:50:40.870 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
-21:50:40.890 &amp#27;[31mWARN &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Fetch http://127.0.0.1:43789/cty.dat failed validation — size 5 bytes (need ≥ 50)
-21:50:40.904 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
-21:50:40.906 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=false scp=true
-21:50:41.111 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
+    <system-out><![CDATA[07:27:25.128 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+07:27:25.130 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
+07:27:25.152 &amp#27;[31mWARN &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Fetch http://127.0.0.1:33739/cty.dat failed validation — size 5 bytes (need ≥ 50)
+07:27:25.168 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
+07:27:25.169 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=false scp=true
+07:27:25.371 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
 ]]></system-out>
   </testcase>
-  <testcase name="successfulCycleWritesBothFiles(Path)" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.057">
-    <system-out><![CDATA[21:50:41.135 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
-21:50:41.136 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
-21:50:41.147 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated cty.dat (102 bytes)
-21:50:41.165 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
-21:50:41.166 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=true scp=true
-21:50:41.177 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
+  <testcase name="successfulCycleWritesBothFiles(Path)" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.055">
+    <system-out><![CDATA[07:27:25.393 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+07:27:25.394 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
+07:27:25.406 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated cty.dat (102 bytes)
+07:27:25.421 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
+07:27:25.423 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=true scp=true
+07:27:25.435 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
 ]]></system-out>
   </testcase>
   <testcase name="backupRotationKeepsPreviousAsBak(Path)" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.058">
-    <system-out><![CDATA[21:50:41.198 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
-21:50:41.200 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
-21:50:41.210 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated cty.dat (102 bytes)
-21:50:41.221 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
-21:50:41.223 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=true scp=true
-21:50:41.243 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
+    <system-out><![CDATA[07:27:25.456 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+07:27:25.458 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: starting fetch cycle
+07:27:25.465 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated cty.dat (102 bytes)
+07:27:25.473 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — Updated MASTER.SCP (126000 bytes)
+07:27:25.474 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService: cycle done — cty=true scp=true
+07:27:25.501 &amp#27;[34mINFO &amp#27;[0;39m &amp#27;[36mc.h.jhub.DataUpdateService&amp#27;[0;39m — DataUpdateService stopped
 ]]></system-out>
   </testcase>
-  <testcase name="validateScpAcceptsCommentBeforeCalls" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.006"/>
-  <testcase name="validateCtyAcceptsRealishCty" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.008"/>
-  <testcase name="validateCtyRejectsHtmlErrorPage" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.009"/>
+  <testcase name="validateScpAcceptsCommentBeforeCalls" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.005"/>
+  <testcase name="validateCtyAcceptsRealishCty" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.005"/>
+  <testcase name="validateCtyRejectsHtmlErrorPage" classname="com.hamradio.jhub.DataUpdateServiceTest" time="0.005"/>
 </testsuite>

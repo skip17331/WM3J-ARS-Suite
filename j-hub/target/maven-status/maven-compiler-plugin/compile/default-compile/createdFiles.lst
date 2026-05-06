@@ -12,6 +12,7 @@ com/hamradio/jhub/callsign/CallsignResult.class
 com/hamradio/jhub/JHubServer.class
 com/hamradio/jhub/WebConfigServer$WeatherApiServlet.class
 com/hamradio/jhub/WebConfigServer.class
+com/hamradio/jhub/AntennaController.class
 com/hamradio/jhub/model/JHubConfig$ClusterSection.class
 com/hamradio/jhub/model/StationConfig.class
 com/hamradio/jhub/WebConfigServer$MacrosApiServlet$1.class
@@ -23,6 +24,7 @@ com/hamradio/jhub/model/JHubConfig.class
 com/hamradio/jhub/WebConfigServer$AmpApiServlet.class
 com/hamradio/jhub/callsign/FccUlsImporter$Status.class
 com/hamradio/jhub/AppLauncher.class
+com/hamradio/jhub/model/AntennaStatus.class
 com/hamradio/jhub/model/DataUpdateStatus$FileStatus.class
 com/hamradio/jhub/model/JHubConfig$MacrosSection.class
 com/hamradio/jhub/model/JHubConfig$AppLaunchEntry.class
@@ -53,8 +55,10 @@ com/hamradio/jhub/callsign/FccUlsImporter.class
 com/hamradio/jhub/CrashHandler.class
 com/hamradio/jhub/HamlibRotorController.class
 com/hamradio/jhub/callsign/HamDbProvider.class
+com/hamradio/jhub/model/JHubConfig$AntennaSection.class
 com/hamradio/jhub/callsign/QrzXmlProvider.class
 com/hamradio/jhub/WebConfigServer$JLogRestartServlet.class
+com/hamradio/jhub/WebConfigServer$AntennaApiServlet.class
 com/hamradio/jhub/model/JHubConfig$NormalLog.class
 com/hamradio/jhub/model/JHubConfig$ClusterFilters.class
 com/hamradio/jhub/JHubMain.class
@@ -63,9 +67,11 @@ com/hamradio/jhub/WebConfigServer$MacrosApiServlet.class
 com/hamradio/jhub/callsign/FccUlsDownloader.class
 com/hamradio/jhub/model/RigStatus.class
 com/hamradio/jhub/WsprReporterService.class
+com/hamradio/jhub/model/JHubConfig$AntennaRule.class
 com/hamradio/jhub/model/JHubConfig$LoggerSection.class
 com/hamradio/jhub/model/JHubConfig$AutoUpdateSection.class
 com/hamradio/jhub/DependencyChecker$Detected.class
+com/hamradio/jhub/model/AntennaStatus$SwitchState.class
 com/hamradio/jhub/WebConfigServer$DataApiServlet.class
 com/hamradio/jhub/WebConfigServer$RotorApiServlet.class
 com/hamradio/jhub/model/JHubConfig$CallsignSection.class
@@ -79,6 +85,7 @@ com/hamradio/jhub/callsign/CsvImporter.class
 com/hamradio/jhub/WebConfigServer$CallsignApiServlet.class
 com/hamradio/jhub/ui/DbBrowser.class
 com/hamradio/jhub/ConfigManager.class
+com/hamradio/jhub/model/JHubConfig$AntennaSwitch.class
 com/hamradio/jhub/ui/SplashJHub.class
 com/hamradio/jhub/JHubServer$AppSession.class
 com/hamradio/jhub/MessageRouter.class

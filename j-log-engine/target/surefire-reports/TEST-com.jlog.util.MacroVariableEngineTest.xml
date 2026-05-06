@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.jlog.util.MacroVariableEngineTest" time="0.115" tests="14" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.jlog.util.MacroVariableEngineTest" time="0.094" tests="14" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/temurin-21/lib"/>
-    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/mike/ARS_Suite/j-log-engine/target/surefire 2026-05-05T20-52-19_305-jvmRun1 surefire-20260505205219528_1tmp surefire_0-20260505205219528_2tmp"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/mike/ARS_Suite/j-log-engine/target/surefire 2026-05-06T07-27-09_128-jvmRun1 surefire-20260506072709388_1tmp surefire_0-20260506072709388_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/mike/ARS_Suite/j-log-engine/target/test-classes:/home/mike/.m2/repository/net/bytebuddy/byte-buddy/1.14.9/byte-buddy-1.14.9.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.2/junit-jupiter-5.10.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.2/junit-jupiter-api-5.10.2.jar:/home/mike/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-commons/1.10.2/junit-platform-commons-1.10.2.jar:/home/mike/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.2/junit-jupiter-params-5.10.2.jar:/home/mike/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.2/junit-jupiter-engine-5.10.2.jar:/home/mike/.m2/repository/org/junit/platform/junit-platform-engine/1.10.2/junit-platform-engine-1.10.2.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -55,16 +55,16 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="serialIsZeroPaddedToThreeDigits" classname="com.jlog.util.MacroVariableEngineTest" time="0.046"/>
-  <testcase name="zeroSerialProducesEmptyString" classname="com.jlog.util.MacroVariableEngineTest" time="0.002"/>
-  <testcase name="unknownPlaceholdersAreLeftLiteral" classname="com.jlog.util.MacroVariableEngineTest" time="0.002"/>
+  <testcase name="serialIsZeroPaddedToThreeDigits" classname="com.jlog.util.MacroVariableEngineTest" time="0.042"/>
+  <testcase name="zeroSerialProducesEmptyString" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
+  <testcase name="unknownPlaceholdersAreLeftLiteral" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
   <testcase name="bandFromHzCoversTheStandardHfBands" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
   <testcase name="blankNameFallsBackToOM" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
   <testcase name="blankRstFieldsFallBackToFiveNine" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
   <testcase name="zeroFrequencyProducesDashes" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
-  <testcase name="nullContextFieldsBecomeEmpty" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
+  <testcase name="nullContextFieldsBecomeEmpty" classname="com.jlog.util.MacroVariableEngineTest" time="0.0"/>
   <testcase name="rstAliasMatchesRstSent" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
-  <testcase name="nullTemplateReturnsNull" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
+  <testcase name="nullTemplateReturnsNull" classname="com.jlog.util.MacroVariableEngineTest" time="0.002"/>
   <testcase name="nullContextReturnsTemplateUnchanged" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
   <testcase name="dxCallIsTrimmed" classname="com.jlog.util.MacroVariableEngineTest" time="0.002"/>
   <testcase name="frequencyOutsideHamBandsProducesUnknownBand" classname="com.jlog.util.MacroVariableEngineTest" time="0.001"/>
