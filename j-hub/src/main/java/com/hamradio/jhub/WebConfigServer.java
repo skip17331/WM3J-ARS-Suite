@@ -83,6 +83,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
         ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
+        ctx.addServlet(new ServletHolder(new DataApiServlet()),      "/api/data/*");
         ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
         ctx.addServlet(new ServletHolder(new JBridgeApiServlet()),   "/api/jbridge");
         ctx.addServlet(new ServletHolder(new SessionsApiServlet()),  "/api/sessions");
@@ -788,6 +789,48 @@ public class WebConfigServer {
                 ConfigManager.getInstance().getConfig().rotor = rotor;
                 ConfigManager.getInstance().save();
                 HamlibRotorController.getInstance().restart(rotor);
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/data — GET status / config; POST /api/data/refresh forces an
+    // immediate fetch; POST /api/data with body replaces the schedule cfg.
+    // ---------------------------------------------------------------
+
+    private static class DataApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if ("/config".equals(path)) {
+                json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().autoUpdate));
+            } else {
+                // Default GET / and GET /status both return the live status snapshot
+                json(res, ConfigManager.gson().toJson(DataUpdateService.getInstance().getStatus()));
+            }
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            try {
+                if ("/refresh".equals(path)) {
+                    DataUpdateService.getInstance().updateNow();
+                    json(res, "{\"status\":\"refresh started\"}");
+                    return;
+                }
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.AutoUpdateSection cfg =
+                        ConfigManager.gson().fromJson(body, JHubConfig.AutoUpdateSection.class);
+                ConfigManager.getInstance().getConfig().autoUpdate = cfg;
+                ConfigManager.getInstance().save();
+                DataUpdateService.getInstance().restart(cfg);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
