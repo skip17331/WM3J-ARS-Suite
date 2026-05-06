@@ -67,6 +67,7 @@ public class HubEngine {
     private volatile JsonNode  lastSolarFluxPayload;
     private Consumer<JsonNode> heardBySpotListener;
     private Consumer<JsonNode> adifImportListener;
+    private Consumer<JsonNode> ampStatusListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -239,6 +240,10 @@ public class HubEngine {
             } else if ("IMPORT_ADIF".equals(type)) {
                 if (adifImportListener != null)
                     adifImportListener.accept(node);
+
+            } else if ("AMP_STATUS".equals(type)) {
+                if (ampStatusListener != null)
+                    ampStatusListener.accept(node);
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -307,6 +312,7 @@ public class HubEngine {
     public void setHeardBySpotListener           (Consumer<JsonNode> l) { this.heardBySpotListener            = l; }
     public void setAdifImportListener            (Consumer<JsonNode> l) { this.adifImportListener             = l; }
     public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
+    public void setAmpStatusListener        (Consumer<JsonNode> l) { this.ampStatusListener        = l; }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }

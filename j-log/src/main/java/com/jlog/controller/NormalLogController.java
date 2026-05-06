@@ -126,6 +126,7 @@ public class NormalLogController implements Initializable {
     // ---- Status / clock bar ----
     @FXML private Label lblStatus;
     @FXML private Label lblCivStatus;
+    @FXML private Label lblAmpStatus;
     @FXML private Label lblStationCall;
 
     // ---- Band / mode warning ----
@@ -194,6 +195,12 @@ public class NormalLogController implements Initializable {
         HubEngine.getInstance().setHeardBySpotListener(node ->
             Platform.runLater(() -> addHeardBySpot(node)));
 
+        // AMP_STATUS — when configured, j-hub publishes amp telemetry every poll cycle.
+        // The label stays hidden until the first message arrives so unconfigured rigs
+        // see no extra UI clutter (graceful degradation per P3 spec).
+        HubEngine.getInstance().setAmpStatusListener(node ->
+            Platform.runLater(() -> updateAmpStatus(node)));
+
         HubEngine.getInstance().setAdifImportListener(node -> {
             String path = node.path("path").asText("");
             if (path.isBlank()) return;
@@ -256,6 +263,47 @@ public class NormalLogController implements Initializable {
             } catch (Exception ignored) {}
         }
         return dflt;
+    }
+
+    /** Render the latest AMP_STATUS into the status bar label. Stays hidden until
+     *  the first message arrives, then becomes visible for the rest of the session.
+     *  Faulted state shows a red background and a "FAULT — &lt;reason&gt;" banner per
+     *  the P3 spec's "clear visual indicator" requirement. */
+    private void updateAmpStatus(JsonNode node) {
+        if (node == null || lblAmpStatus == null) return;
+
+        boolean faulted     = node.path("faulted").asBoolean(false);
+        String  faultReason = node.path("faultReason").asText("");
+        String  band        = node.path("band").asText("");
+        long    freqHz      = node.path("frequency").asLong(0);
+        double  swr         = node.path("swr").asDouble(Double.NaN);
+        double  pwr         = node.path("fwdPower").asDouble(Double.NaN);
+        String  powerstat   = node.path("powerstat").asText("UNKNOWN");
+
+        StringBuilder sb = new StringBuilder("AMP: ");
+        if (faulted) {
+            sb.append("FAULT — ").append(faultReason.isEmpty() ? "see amp panel" : faultReason);
+        } else {
+            if (freqHz > 0) sb.append(String.format("%.3f MHz", freqHz / 1_000_000.0));
+            if (!band.isEmpty()) sb.append(' ').append(band);
+            if (!Double.isNaN(swr)) sb.append(String.format(" | SWR %.1f", swr));
+            if (!Double.isNaN(pwr)) sb.append(String.format(" | %.0f W", pwr));
+            if (!"UNKNOWN".equals(powerstat)) sb.append(" | ").append(powerstat);
+        }
+
+        lblAmpStatus.setText(sb.toString());
+        // Make sure the label is visible the first time a status arrives.
+        if (!lblAmpStatus.isVisible()) {
+            lblAmpStatus.setVisible(true);
+            lblAmpStatus.setManaged(true);
+        }
+        // Inline style so we don't need a CSS round-trip; latches red on fault,
+        // clears when the next non-faulted status arrives.
+        if (faulted) {
+            lblAmpStatus.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-padding: 2 8 2 8;");
+        } else {
+            lblAmpStatus.setStyle("");
+        }
     }
 
     private void updateSolarLabel(JsonNode node) {

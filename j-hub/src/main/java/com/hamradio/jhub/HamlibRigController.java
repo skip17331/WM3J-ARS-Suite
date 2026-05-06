@@ -208,6 +208,10 @@ public class HamlibRigController {
         rig.timestamp  = Instant.now().toString();
         StateCache.getInstance().setLastRigStatus(rig);
         router.publishRigStatus(rig);
+        // Forward the new frequency to the amp so band-switched amps follow
+        // the rig automatically. The amp controller filters same-band repeats
+        // and respects its own bandFollow flag, so this is a cheap call.
+        HamlibAmpController.getInstance().followBand(freq);
     }
 
     // ── rigctld socket I/O ───────────────────────────────────────────

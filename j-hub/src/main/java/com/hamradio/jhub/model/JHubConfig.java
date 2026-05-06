@@ -18,6 +18,7 @@ public class JHubConfig {
     public StationSection     station         = new StationSection();
     public RigSection         rig             = new RigSection();
     public RotorSection       rotor           = new RotorSection();
+    public AmpSection         amp             = new AmpSection();
     public ClusterSection     cluster         = new ClusterSection();
     public LoggerSection      logger          = new LoggerSection();
     public InfoScreenSection  infoScreen      = new InfoScreenSection();
@@ -90,6 +91,23 @@ public class JHubConfig {
         public int     tcpPort         = 4533;
         public double  shortPathOffset = 0.0;
         public double  customPreset    = 0.0;
+    }
+
+    // ---------------------------------------------------------------
+    // Amplifier control backend (ampctld)
+    // ---------------------------------------------------------------
+
+    public static class AmpSection {
+        public String  backend     = "NONE";        // HAMLIB | NONE
+        public String  model       = "";            // hamlib amp model id (informational)
+        public String  comPort     = "";            // serial port (informational; ampctld owns the device)
+        public int     baud        = 9600;          // (informational)
+        public String  tcpHost     = "localhost";
+        public int     tcpPort     = 4531;          // ampctld default
+        public int     pollRateMs  = 1000;
+        public boolean bandFollow  = true;          // forward rig band changes to the amp
+        public boolean faultAlert  = true;          // surface visual fault indicator on overage
+        public double  swrFault    = 3.0;           // SWR threshold treated as a fault
     }
 
     // ---------------------------------------------------------------

@@ -45,6 +45,7 @@ public class JHubMain extends Application {
     private static JHubDiscovery           jHubDiscovery;
     private static HamlibRigController     rigController;
     private static HamlibRotorController   rotorController;
+    private static HamlibAmpController     ampController;
     private static WeatherService          weatherService;
 
     // Uptime reference
@@ -177,6 +178,16 @@ public class JHubMain extends Application {
                     config.getConfig().rotor.backend);
         }
 
+        // 11b. Hamlib amp controller (only when amp backend = HAMLIB)
+        ampController = HamlibAmpController.getInstance();
+        ampController.setRouter(router);
+        if ("HAMLIB".equals(config.getConfig().amp.backend)) {
+            ampController.start(config.getConfig().amp);
+        } else {
+            log.info("Amp backend is '{}' — Hamlib amp controller not started",
+                    config.getConfig().amp.backend);
+        }
+
         // 12. Weather service (NOAA SWPC + OpenWeather, 5-minute refresh)
         weatherService = WeatherService.getInstance();
         weatherService.start();
@@ -236,6 +247,7 @@ public class JHubMain extends Application {
 
         // 2. Force-kill all child processes (any that did not self-terminate)
         try { if (weatherService    != null) weatherService.stop();           } catch (Exception e) { log.warn("Weather service shutdown error", e); }
+        try { if (ampController     != null) ampController.stop();           } catch (Exception e) { log.warn("Amp controller shutdown error",   e); }
         try { if (rotorController   != null) rotorController.stop();         } catch (Exception e) { log.warn("Rotor controller shutdown error", e); }
         try { if (rigController     != null) rigController.stop();           } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
         try { AppLauncher.getInstance().stopAll();                          } catch (Exception e) { log.warn("App launcher shutdown error", e); }
