@@ -141,6 +141,14 @@ public class MessageRouter {
                 handleSetPtt(msg, session);
                 break;
 
+            case "ANT_OVERRIDE":
+                handleAntOverride(msg, session);
+                break;
+
+            case "ANT_OVERRIDE_CLEAR":
+                handleAntOverrideClear(msg, session);
+                break;
+
             case "JMAP_CONFIG_REQUEST":
                 handleJMapConfigRequest(session, server);
                 break;
@@ -597,12 +605,15 @@ public class MessageRouter {
 
     /**
      * Publish a RIG_STATUS originating from HamlibRigController (or any internal source).
+     * Forwards the new band+mode to the AntennaController so band-driven rules
+     * re-evaluate without the controller subscribing to the WS bus itself.
      */
     public void publishRigStatus(RigStatus rig) {
         StateCache.getInstance().setLastRigStatus(rig);
         if (jHubServer != null) {
             jHubServer.broadcastToAll(ConfigManager.gson().toJson(rig));
         }
+        AntennaController.getInstance().onBandMode(rig.band, rig.mode);
         log.debug("RIG_STATUS published: {} Hz, {}", rig.frequency, rig.mode);
     }
 
@@ -618,11 +629,61 @@ public class MessageRouter {
 
     /**
      * Publish a ROTOR_STATUS originating from HamlibRotorController.
+     * Also forwards the new heading to the AntennaController so heading-based
+     * rules re-evaluate without the controller having to subscribe itself.
      */
     public void publishRotorStatus(String rawJson) {
         StateCache.getInstance().setLastRotorStatus(rawJson);
         if (jHubServer != null) {
             jHubServer.broadcastToAll(rawJson);
+        }
+        try {
+            JsonObject parsed = JsonParser.parseString(rawJson).getAsJsonObject();
+            if (parsed.has("bearing")) {
+                AntennaController.getInstance().updateHeading(parsed.get("bearing").getAsDouble());
+            }
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Publish an ANT_STATUS originating from AntennaController.
+     */
+    public void publishAntennaStatus(com.hamradio.jhub.model.AntennaStatus status) {
+        if (jHubServer == null) return;
+        jHubServer.broadcastToAll(ConfigManager.gson().toJson(status));
+        if (status.faulted) {
+            log.warn("ANT fault: {}", status.reason);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // ANT_OVERRIDE / ANT_OVERRIDE_CLEAR — manual antenna selection from J-Log
+    // ---------------------------------------------------------------
+
+    private void handleAntOverride(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            String switchId = msg.has("switchId") ? msg.get("switchId").getAsString() : "main";
+            int    antenna  = msg.has("antenna")  ? msg.get("antenna").getAsInt()     : 0;
+            if (antenna <= 0) return;
+            AntennaController.getInstance().setOverride(switchId, antenna);
+            log.info("ANT_OVERRIDE from '{}' — {} = {}", session.appName, switchId, antenna);
+        } catch (Exception e) {
+            log.warn("Failed to process ANT_OVERRIDE: {}", e.getMessage());
+        }
+    }
+
+    private void handleAntOverrideClear(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            String switchId = msg.has("switchId") ? msg.get("switchId").getAsString() : "";
+            if (switchId.isEmpty()) {
+                AntennaController.getInstance().clearAllOverrides();
+                log.info("ANT_OVERRIDE_CLEAR (all) from '{}'", session.appName);
+            } else {
+                AntennaController.getInstance().clearOverride(switchId);
+                log.info("ANT_OVERRIDE_CLEAR from '{}' — {}", session.appName, switchId);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process ANT_OVERRIDE_CLEAR: {}", e.getMessage());
         }
     }
 

@@ -37,6 +37,9 @@
                         <items>
                             <CheckMenuItem fx:id="miToggleKeyer" text="CW / Digital Keyer"
                                            onAction="#toggleKeyerPane"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Override Antenna…"      onAction="#doAntennaOverride"/>
+                            <MenuItem text="Clear Antenna Override" onAction="#doAntennaOverrideClear"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.setup">
@@ -57,6 +60,8 @@
                 <TextField fx:id="tfLocalTime" styleClass="clock-field" editable="false" prefWidth="160"/>
                 <Label fx:id="lblCivStatus" styleClass="civ-status" text="CI-V: —"/>
                 <Label fx:id="lblAmpStatus" styleClass="amp-status"
+                       text="" visible="false" managed="false"/>
+                <Label fx:id="lblAntStatus" styleClass="ant-status"
                        text="" visible="false" managed="false"/>
             </HBox>
 

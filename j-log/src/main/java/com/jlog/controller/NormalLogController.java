@@ -130,6 +130,7 @@ public class NormalLogController implements Initializable {
     @FXML private Label lblStatus;
     @FXML private Label lblCivStatus;
     @FXML private Label lblAmpStatus;
+    @FXML private Label lblAntStatus;
     @FXML private Label lblStationCall;
 
     // ---- Band / mode warning ----
@@ -203,6 +204,12 @@ public class NormalLogController implements Initializable {
         // see no extra UI clutter (graceful degradation per P3 spec).
         HubEngine.getInstance().setAmpStatusListener(node ->
             Platform.runLater(() -> updateAmpStatus(node)));
+
+        // ANT_STATUS — j-hub publishes whenever a switch position changes or
+        // the PTT lockout flips. Stays hidden until the first message arrives
+        // so unconfigured stations see no extra status-bar clutter.
+        HubEngine.getInstance().setAntStatusListener(node ->
+            Platform.runLater(() -> updateAntStatus(node)));
 
         HubEngine.getInstance().setAdifImportListener(node -> {
             String path = node.path("path").asText("");
@@ -308,6 +315,66 @@ public class NormalLogController implements Initializable {
             lblAmpStatus.setStyle("");
         }
     }
+
+    /** Render the latest ANT_STATUS into the status bar. Hidden until the first
+     *  message arrives. PTT lockout shows "ANT: LOCKED"; an active operator
+     *  override shows "ANT: SW1=2*" (asterisk = override); otherwise a brief
+     *  "ANT: SW1=2 SW2=1" rollup of the current selections. */
+    private void updateAntStatus(JsonNode node) {
+        if (node == null || lblAntStatus == null) return;
+        boolean locked  = node.path("locked").asBoolean(false);
+        boolean faulted = node.path("faulted").asBoolean(false);
+        StringBuilder sb = new StringBuilder("ANT: ");
+        if (locked) {
+            sb.append("LOCKED");
+        } else {
+            JsonNode switches = node.path("switches");
+            boolean first = true;
+            for (var it = switches.fields(); it.hasNext(); ) {
+                var entry = it.next();
+                if (!first) sb.append(' ');
+                first = false;
+                int  ant = entry.getValue().path("antenna").asInt(0);
+                boolean ov = entry.getValue().path("overridden").asBoolean(false);
+                sb.append(entry.getKey()).append('=').append(ant);
+                if (ov) sb.append('*');
+            }
+            if (first) sb.append("(none)");
+        }
+        lblAntStatus.setText(sb.toString());
+        if (!lblAntStatus.isVisible()) {
+            lblAntStatus.setVisible(true);
+            lblAntStatus.setManaged(true);
+        }
+        if (faulted) {
+            lblAntStatus.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-padding: 2 8 2 8;");
+        } else if (locked) {
+            lblAntStatus.setStyle("-fx-background-color: #f39c12; -fx-text-fill: black; -fx-padding: 2 8 2 8;");
+        } else {
+            lblAntStatus.setStyle("");
+        }
+    }
+
+    /** Tools-menu action: prompt for switchId + antenna and send an override. */
+    @FXML private void doAntennaOverride() {
+        TextInputDialog d = new TextInputDialog("main:2");
+        d.setTitle("Antenna Override");
+        d.setHeaderText("Force-select an antenna until cleared");
+        d.setContentText("Enter switchId:antenna (e.g. main:2):");
+        d.showAndWait().ifPresent(input -> {
+            String[] parts = input.split(":");
+            if (parts.length != 2) return;
+            try {
+                HubEngine.getInstance().sendAntOverride(parts[0].trim(), Integer.parseInt(parts[1].trim()));
+            } catch (NumberFormatException ignored) {}
+        });
+    }
+
+    /** Tools-menu action: drop all antenna overrides; rules take over again. */
+    @FXML private void doAntennaOverrideClear() {
+        HubEngine.getInstance().sendAntOverrideClear(null);
+    }
+
 
     private void updateSolarLabel(JsonNode node) {
         if (node == null) return;

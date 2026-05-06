@@ -19,6 +19,7 @@ public class JHubConfig {
     public RigSection         rig             = new RigSection();
     public RotorSection       rotor           = new RotorSection();
     public AmpSection         amp             = new AmpSection();
+    public AntennaSection     antenna         = new AntennaSection();
     public ClusterSection     cluster         = new ClusterSection();
     public LoggerSection      logger          = new LoggerSection();
     public InfoScreenSection  infoScreen      = new InfoScreenSection();
@@ -108,6 +109,48 @@ public class JHubConfig {
         public boolean bandFollow  = true;          // forward rig band changes to the amp
         public boolean faultAlert  = true;          // surface visual fault indicator on overage
         public double  swrFault    = 3.0;           // SWR threshold treated as a fault
+    }
+
+    // ---------------------------------------------------------------
+    // Automatic antenna switching (serial-controlled relays)
+    // ---------------------------------------------------------------
+
+    public static class AntennaSection {
+        public boolean              enabled       = false;
+        public String               comPort       = "";
+        public int                  baud          = 9600;
+        public boolean              lockoutOnPtt  = true;   // safety: don't switch while keyed
+        public java.util.List<AntennaSwitch> switches = new java.util.ArrayList<>();
+        public java.util.List<AntennaRule>   rules    = new java.util.ArrayList<>();
+    }
+
+    /** A single physical antenna switch (one serial-addressable relay box). */
+    public static class AntennaSwitch {
+        public String  id            = "main";  // referenced by rules
+        public String  name          = "Main";
+        public int     antennaCount  = 4;
+    }
+
+    /**
+     * One band/mode/heading-conditioned rule. The first matching rule (in list
+     * order) wins — operators put more-specific rules above less-specific ones.
+     *
+     * <p>{@code commandTemplate} substitutes {@code {switch}} and {@code {antenna}};
+     * literal {@code \r} / {@code \n} are honored. Examples for common switches:
+     * <ul>
+     *   <li>DXEngineering RR8: "SW{switch}={antenna}\r"
+     *   <li>Microham µStation: "ANT{antenna}\r\n"
+     *   <li>ARCO RC-1A: "{antenna}\n"
+     * </ul>
+     */
+    public static class AntennaRule {
+        public String  band            = "";    // e.g. "20m" — required
+        public String  mode            = "";    // optional ("CW", "SSB", "FT8", ...) — empty = any
+        public double  headingMin      = -1;    // optional rotor heading window — -1 = unset
+        public double  headingMax      = -1;
+        public String  switchId        = "main";
+        public int     antenna         = 1;
+        public String  commandTemplate = "SW{switch}={antenna}\\r";
     }
 
     // ---------------------------------------------------------------
