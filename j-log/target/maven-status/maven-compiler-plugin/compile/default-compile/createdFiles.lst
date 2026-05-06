@@ -40,6 +40,7 @@ module-info.class
 com/jlog/controller/NormalLogController.class
 com/jlog/ui/contest/DxccListPane$1.class
 com/jlog/controller/BandPlanWindow$1.class
+com/jlog/macro/VoiceRecorder.class
 com/jlog/controller/ContestLogController$6.class
 com/jlog/controller/ContestLogController$12.class
 com/jlog/app/CrashHandler.class
@@ -52,5 +53,6 @@ com/jlog/ui/contest/SweepProgressPane.class
 com/jlog/controller/SetupController$2.class
 com/jlog/controller/NormalLogController$3.class
 com/jlog/controller/AwardsWindow.class
+com/jlog/macro/VoiceKeyer.class
 com/jlog/controller/NormalLogController$HeardBySpot.class
 com/jlog/app/SplashScreen.class

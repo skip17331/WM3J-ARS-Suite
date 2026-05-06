@@ -662,10 +662,12 @@ public class NormalLogController implements Initializable {
                         doSave();
                         e.consume();
                     }
-                    // ESC aborts any in-flight CW transmission (Hamlib stop_morse).
-                    // Filter (not handler) so it works even when focus is in a TextField.
+                    // ESC aborts any in-flight CW transmission AND voice macro
+                    // (Hamlib stop_morse + WAV stop + PTT release). Filter
+                    // rather than handler so it works regardless of focus.
                     if (e.getCode() == KeyCode.ESCAPE) {
                         MacroEngine.getInstance().abortCw();
+                        MacroEngine.getInstance().abortVoice();
                     }
                 });
             }

@@ -124,6 +124,14 @@
                                 <Button text="%button.add.action" onAction="#doAddAction"/>
                             </HBox>
 
+                            <!-- Voice keyer helpers — visible only when action type = VOICE_PLAY -->
+                            <HBox fx:id="voiceMacroHelpers" spacing="6" alignment="CENTER_LEFT"
+                                  visible="false" managed="false">
+                                <Button fx:id="btnBrowseWav" text="Browse WAV…" onAction="#doBrowseVoiceWav"/>
+                                <Button fx:id="btnRecordWav" text="● Hold to Record"/>
+                                <Label  fx:id="lblRecordStatus" styleClass="help-text"/>
+                            </HBox>
+
                             <TextArea fx:id="taMacroActions" VBox.vgrow="ALWAYS"
                                       prefHeight="160" styleClass="macro-editor" wrapText="false"/>
 
@@ -132,6 +140,18 @@
                                 <Button text="%button.save.macro" onAction="#doSaveMacro" styleClass="primary-button"/>
                             </HBox>
                             <Label fx:id="lblMacroHelp" styleClass="help-text" wrapText="true"/>
+
+                            <!-- Voice keyer settings (apply to all VOICE_PLAY macros) -->
+                            <Separator/>
+                            <Label text="Voice Keyer Settings" styleClass="section-title"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Pre-roll (ms):"/>
+                                <Spinner fx:id="spVoicePreRoll"  prefWidth="80" editable="true"/>
+                                <Label text="Post-roll (ms):"/>
+                                <Spinner fx:id="spVoicePostRoll" prefWidth="80" editable="true"/>
+                                <Label text="If a macro is already playing:"/>
+                                <ComboBox fx:id="cbVoiceConcurrentMode" prefWidth="110"/>
+                            </HBox>
                         </VBox>
                     </HBox>
                 </Tab>

@@ -5,8 +5,10 @@ import com.jlog.civ.CivEngine;
 import com.jlog.db.MacroDao;
 import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
+import com.jlog.macro.VoiceRecorder;
 import com.jlog.model.Macro;
 import com.jlog.util.AppConfig;
+import javafx.scene.input.MouseEvent;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -58,6 +60,15 @@ public class SetupController implements Initializable {
     @FXML private TextField        tfActionData;
     @FXML private TextArea         taMacroActions;
     @FXML private Label            lblMacroHelp;
+    // Voice keyer helpers (visible only when action type = VOICE_PLAY)
+    @FXML private javafx.scene.layout.HBox voiceMacroHelpers;
+    @FXML private Button                   btnBrowseWav;
+    @FXML private Button                   btnRecordWav;
+    @FXML private Label                    lblRecordStatus;
+    // Voice keyer settings (apply to all VOICE_PLAY macros)
+    @FXML private Spinner<Integer>         spVoicePreRoll;
+    @FXML private Spinner<Integer>         spVoicePostRoll;
+    @FXML private ComboBox<String>         cbVoiceConcurrentMode;
 
     // ---- Display tab ----
     @FXML private ToggleGroup      themeToggle;
@@ -149,9 +160,83 @@ public class SetupController implements Initializable {
         lblMacroHelp.setText(
             "PTT_ON / PTT_OFF — no data needed\n" +
             "CW_TEXT — data: text to send (e.g. CQ DE W1AW)\n" +
-            "VOICE_PLAY — data: audio filename\n" +
+            "VOICE_PLAY — data: WAV file path; use Browse… or Hold to Record\n" +
             "DELAY_MS — data: milliseconds (e.g. 500)\n" +
             "EXCHANGE_INSERT — data: exchange text to insert");
+
+        initVoiceMacroUi();
+    }
+
+    // ---------------------------------------------------------------
+    // Voice macro UI helpers (Browse, Hold-to-Record, voice keyer settings)
+    // ---------------------------------------------------------------
+
+    private void initVoiceMacroUi() {
+        AppConfig cfg = AppConfig.getInstance();
+
+        // Pre/post-roll spinners + concurrent mode combo
+        spVoicePreRoll.setValueFactory(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 2000, cfg.getVoicePreRollMs(), 50));
+        spVoicePostRoll.setValueFactory(
+            new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 2000, cfg.getVoicePostRollMs(), 50));
+        cbVoiceConcurrentMode.setItems(FXCollections.observableArrayList("REPLACE", "QUEUE", "IGNORE"));
+        cbVoiceConcurrentMode.setValue(cfg.getVoiceConcurrentMode());
+
+        // Show the helpers row only when the user has VOICE_PLAY selected.
+        Runnable applyVoiceVisibility = () -> {
+            boolean isVoice = "VOICE_PLAY".equals(cbActionType.getValue());
+            voiceMacroHelpers.setVisible(isVoice);
+            voiceMacroHelpers.setManaged(isVoice);
+        };
+        applyVoiceVisibility.run();
+        cbActionType.valueProperty().addListener((obs, ov, nv) -> applyVoiceVisibility.run());
+
+        // Hold-to-record: mouse press starts a recording into ~/.j-log/voice/<macroName>.wav,
+        // mouse release stops and writes the path into the action-data field.
+        btnRecordWav.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> startRecording());
+        btnRecordWav.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> stopRecording());
+    }
+
+    @FXML private void doBrowseVoiceWav() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Select WAV File");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("WAV files", "*.wav"));
+        // Default to ~/.j-log/voice/ — that's where Hold-to-Record writes recordings.
+        File initialDir = VoiceRecorder.defaultVoiceDir().toFile();
+        if (initialDir.isDirectory()) fc.setInitialDirectory(initialDir);
+        File chosen = fc.showOpenDialog(getStage());
+        if (chosen != null) {
+            tfActionData.setText(chosen.getAbsolutePath());
+        }
+    }
+
+    private void startRecording() {
+        // Derive a target filename from the macro name; fall back to a timestamp
+        // so a "New Macro" placeholder doesn't overwrite an unrelated existing file.
+        String name = tfMacroName.getText();
+        if (name == null || name.isBlank()) {
+            name = "macro_" + System.currentTimeMillis();
+        }
+        // Keep it filesystem-safe — no slashes, spaces, or colons in WAV names.
+        String safe = name.trim().replaceAll("[^A-Za-z0-9._-]", "_");
+        File target = VoiceRecorder.defaultVoiceDir().resolve(safe + ".wav").toFile();
+
+        boolean started = VoiceRecorder.getInstance().start(target);
+        if (started) {
+            lblRecordStatus.setText("● Recording → " + target.getName());
+            btnRecordWav.setText("● Recording…");
+        } else {
+            lblRecordStatus.setText("Could not start recording (mic in use?)");
+        }
+    }
+
+    private void stopRecording() {
+        File written = VoiceRecorder.getInstance().stop();
+        btnRecordWav.setText("● Hold to Record");
+        if (written != null) {
+            tfActionData.setText(written.getAbsolutePath());
+            lblRecordStatus.setText("Saved " + written.length() + " bytes");
+        }
     }
 
     // ---------------------------------------------------------------
@@ -529,6 +614,11 @@ public class SetupController implements Initializable {
         boolean debug = rbLogDebug.isSelected();
         cfg.setDebugMode(debug);
         com.jlog.util.LoggingConfigurator.configure(debug);
+
+        // Voice keyer settings
+        cfg.setVoicePreRollMs(spVoicePreRoll.getValue());
+        cfg.setVoicePostRollMs(spVoicePostRoll.getValue());
+        cfg.setVoiceConcurrentMode(cbVoiceConcurrentMode.getValue());
 
         // DX Cluster — save to j-hub
         saveClusterConfig();

@@ -11,6 +11,8 @@
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/QslPrintWindow.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/controller/SetupController.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/macro/MacroEngine.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/macro/VoiceKeyer.java
+/home/mike/ARS_Suite/j-log/src/main/java/com/jlog/macro/VoiceRecorder.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/service/DatabaseToolsService.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/DxccListPane.java
 /home/mike/ARS_Suite/j-log/src/main/java/com/jlog/ui/contest/PerModeMultGridPane.java

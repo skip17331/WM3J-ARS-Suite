@@ -137,6 +137,10 @@ public class MessageRouter {
                 handleStopCw(session);
                 break;
 
+            case "SET_PTT":
+                handleSetPtt(msg, session);
+                break;
+
             case "JMAP_CONFIG_REQUEST":
                 handleJMapConfigRequest(session, server);
                 break;
@@ -553,6 +557,25 @@ public class MessageRouter {
         msg.addProperty("reason", "rig rejected an earlier CW command");
         jHubServer.broadcastToAll(msg.toString());
         log.info("CW_UNSUPPORTED broadcast — Hamlib CW disabled for this session");
+    }
+
+    // ---------------------------------------------------------------
+    // SET_PTT — manual PTT command from J-Log (voice keyer, CW abort, etc.)
+    // ---------------------------------------------------------------
+
+    private void handleSetPtt(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            boolean on = msg.has("on") && msg.get("on").getAsBoolean();
+            HamlibRigController rig = HamlibRigController.getInstance();
+            if (!rig.isRunning()) {
+                log.debug("SET_PTT from '{}' ignored — Hamlib not running", session.appName);
+                return;
+            }
+            rig.setPtt(on);
+            log.debug("SET_PTT {} from '{}'", on ? "ON" : "OFF", session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process SET_PTT: {}", e.getMessage());
+        }
     }
 
     // ---------------------------------------------------------------
