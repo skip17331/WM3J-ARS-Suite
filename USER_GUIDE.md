@@ -3,6 +3,12 @@
 A practical guide for installing, configuring, and operating the suite.
 See [README.md](README.md) for the project's purpose and license.
 
+> **Wiring up actual radio gear?** Read [docs/HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md)
+> first — it's a beginner-friendly walk-through of cables, USB-to-serial
+> adapters, USB hubs, and stable port names. This guide assumes the
+> hardware side is already plugged in and that you can see your devices
+> as serial ports on the PC.
+
 ---
 
 ## Table of contents
