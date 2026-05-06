@@ -68,6 +68,9 @@ public class ModemService implements HubMessageListener {
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
     private final FftAnalyzer fftAnalyzer =
             new FftAnalyzer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
+    /** Click-to-identify classifier — buffers ~16 s of audio, classifies on demand. */
+    private final com.hamradio.modem.dsp.SignalClassifier signalClassifier =
+            new com.hamradio.modem.dsp.SignalClassifier(AudioEngine.SAMPLE_RATE, AudioEngine.FRAME_SIZE);
     private final ModeManager modeManager = new ModeManager();
     private final ModemStatus status = new ModemStatus();
     private final Deque<String> decodeHistory = new ArrayDeque<>();
@@ -128,6 +131,17 @@ public class ModemService implements HubMessageListener {
         audioTxEngine.setPreferredOutputDeviceId(savedOutputId);
 
         audioEngine.addListener(this::handleAudioFrame);
+        // The classifier runs alongside the active mode decoder — it never
+        // demodulates, just buffers samples for on-demand mode identification
+        // when the operator clicks a signal in the waterfall.
+        audioEngine.addListener(signalClassifier);
+    }
+
+    /** Click-to-identify entry point: invoked by the UI when the operator
+     *  clicks a signal in the waterfall. Returns the best-guess mode +
+     *  confidence + bandwidth. Cheap; safe to call from the FX thread. */
+    public com.hamradio.modem.dsp.SignalClassifier.Result classifySignal(double centerHz) {
+        return signalClassifier.classify(centerHz);
     }
 
     public void startup() throws Exception {

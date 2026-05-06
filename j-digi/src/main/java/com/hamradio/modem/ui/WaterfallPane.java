@@ -1,13 +1,17 @@
 package com.hamradio.modem.ui;
 
 import com.hamradio.modem.model.SignalSnapshot;
+import javafx.animation.PauseTransition;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.function.DoubleConsumer;
 
 public class WaterfallPane extends Region {
     private static final int MAX_LINES = 420;
@@ -15,9 +19,51 @@ public class WaterfallPane extends Region {
     private final Canvas canvas = new Canvas(600, 320);
     private final Deque<double[]> lines = new ArrayDeque<>();
 
+    /** Audio Nyquist used to map clickedX → Hz. Defaults to 4000 Hz so an
+     *  8 kHz capture pipeline works without configuration; override via
+     *  {@link #setNyquistHz(double)} for other rates. */
+    private double nyquistHz = 4000.0;
+
+    /** Optional click callback — receives the clicked frequency in Hz. */
+    private DoubleConsumer onFrequencyClicked;
+
+    /** Set when an operator has clicked; the marker stays painted on the
+     *  waterfall for a few seconds so the result-toast and the bar visually
+     *  line up. -1 = nothing to draw. */
+    private double markerHz = -1;
+    private String markerLabel = "";
+    private final PauseTransition markerFade = new PauseTransition(Duration.seconds(4));
+
     public WaterfallPane() {
         getChildren().add(canvas);
         setPrefSize(600, 320);
+        markerFade.setOnFinished(e -> { markerHz = -1; markerLabel = ""; redraw(); });
+
+        canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleClick);
+    }
+
+    /** Notify the controller of clicked-frequency events (in Hz). */
+    public void setOnFrequencyClicked(DoubleConsumer cb) { this.onFrequencyClicked = cb; }
+
+    /** Override the audio Nyquist used for x → Hz mapping. */
+    public void setNyquistHz(double hz) { this.nyquistHz = Math.max(1.0, hz); }
+
+    /** Show {@code label} next to the click marker for the duration of the
+     *  current marker fade. Used by the click-to-identify flow to display
+     *  the classifier result inline with the operator's selection. */
+    public void setMarkerLabel(String label) {
+        this.markerLabel = label == null ? "" : label;
+        redraw();
+    }
+
+    private void handleClick(MouseEvent e) {
+        double w = canvas.getWidth();
+        if (w <= 0) return;
+        double freqHz = (e.getX() / w) * nyquistHz;
+        markerHz = freqHz;
+        markerFade.playFromStart();
+        redraw();
+        if (onFrequencyClicked != null) onFrequencyClicked.accept(freqHz);
     }
 
     public void update(SignalSnapshot snapshot) {
@@ -99,6 +145,23 @@ public class WaterfallPane extends Region {
         for (int i = 0; i <= 10; i++) {
             double x = i * (w / 10.0);
             gc.strokeLine(x, 0, x, h);
+        }
+
+        // Click marker — vertical line at the most recently classified freq.
+        if (markerHz >= 0 && nyquistHz > 0) {
+            double mx = (markerHz / nyquistHz) * w;
+            gc.setStroke(Color.rgb(255, 200, 80, 0.85));
+            gc.setLineWidth(1.5);
+            gc.strokeLine(mx, 0, mx, h);
+            if (!markerLabel.isEmpty()) {
+                // Anchor the label inside the canvas so it stays visible even
+                // when the click was near the right edge.
+                double tx = Math.min(mx + 6, w - 220);
+                gc.setFill(Color.rgb(0, 0, 0, 0.65));
+                gc.fillRect(tx - 3, 4, 220, 18);
+                gc.setFill(Color.rgb(255, 220, 120, 0.95));
+                gc.fillText(markerLabel, tx, 17);
+            }
         }
     }
 
