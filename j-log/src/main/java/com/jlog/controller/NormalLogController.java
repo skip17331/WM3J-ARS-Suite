@@ -614,6 +614,11 @@ public class NormalLogController implements Initializable {
                         doSave();
                         e.consume();
                     }
+                    // ESC aborts any in-flight voice macro (stops WAV + drops PTT).
+                    // Filter (not handler) so it works regardless of focus.
+                    if (e.getCode() == KeyCode.ESCAPE) {
+                        MacroEngine.getInstance().abortVoice();
+                    }
                 });
             }
         });

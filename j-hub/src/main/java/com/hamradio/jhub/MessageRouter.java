@@ -129,6 +129,10 @@ public class MessageRouter {
                 handleRotorCmd(msg, session.socket, server);
                 break;
 
+            case "SET_PTT":
+                handleSetPtt(msg, session);
+                break;
+
             case "JMAP_CONFIG_REQUEST":
                 handleJMapConfigRequest(session, server);
                 break;
@@ -494,6 +498,25 @@ public class MessageRouter {
             log.debug("ROTOR_CMD → AZ={} EL={}", az, el);
         } catch (Exception e) {
             log.warn("Failed to process ROTOR_CMD: {}", e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // SET_PTT — manual PTT command from J-Log (voice keyer, CW abort, etc.)
+    // ---------------------------------------------------------------
+
+    private void handleSetPtt(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            boolean on = msg.has("on") && msg.get("on").getAsBoolean();
+            HamlibRigController rig = HamlibRigController.getInstance();
+            if (!rig.isRunning()) {
+                log.debug("SET_PTT from '{}' ignored — Hamlib not running", session.appName);
+                return;
+            }
+            rig.setPtt(on);
+            log.debug("SET_PTT {} from '{}'", on ? "ON" : "OFF", session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process SET_PTT: {}", e.getMessage());
         }
     }
 

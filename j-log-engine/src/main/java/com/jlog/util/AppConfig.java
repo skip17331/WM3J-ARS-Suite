@@ -52,6 +52,32 @@ public class AppConfig {
     }
 
     // ---------------------------------------------------------------
+    // Voice keyer (PTT timing + concurrent macro behavior)
+    // ---------------------------------------------------------------
+
+    /** Milliseconds to wait between PTT-on and starting WAV playback.
+     *  Gives the rig time to key fully before audio starts so the first
+     *  syllable isn't clipped. */
+    public int  getVoicePreRollMs()         { return prefs.getInt("voicePreRollMs",  250); }
+    public void setVoicePreRollMs(int ms)   { prefs.putInt("voicePreRollMs", Math.max(0, ms)); }
+
+    /** Milliseconds to wait between WAV playback finishing and PTT-off.
+     *  Prevents the rig from un-keying mid-tail of the audio file. */
+    public int  getVoicePostRollMs()        { return prefs.getInt("voicePostRollMs", 250); }
+    public void setVoicePostRollMs(int ms)  { prefs.putInt("voicePostRollMs", Math.max(0, ms)); }
+
+    /** Behavior when a voice macro fires while another is still playing.
+     *  REPLACE — abort current and start new (default; matches CW abort-and-replace).
+     *  QUEUE   — let the executor serialize them (current finishes, then new plays).
+     *  IGNORE  — drop the new macro silently. */
+    public String getVoiceConcurrentMode()           { return prefs.get("voiceConcurrentMode", "REPLACE"); }
+    public void   setVoiceConcurrentMode(String m)   {
+        if (m == null) m = "REPLACE";
+        if (!"REPLACE".equals(m) && !"QUEUE".equals(m) && !"IGNORE".equals(m)) m = "REPLACE";
+        prefs.put("voiceConcurrentMode", m);
+    }
+
+    // ---------------------------------------------------------------
     // Debug mode
     // ---------------------------------------------------------------
 

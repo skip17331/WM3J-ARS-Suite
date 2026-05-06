@@ -508,6 +508,20 @@ public class HubEngine {
         } catch (Exception e) { log.warn("sendModemTx failed: {}", e.getMessage()); }
     }
 
+    /** Ask j-hub to key (on=true) or un-key (on=false) the rig via Hamlib.
+     *  Used by the voice keyer to bracket WAV playback with PTT control.
+     *  No-op if the hub isn't connected. The hub silently ignores the call
+     *  when the rig backend is not Hamlib or PTT is disabled in config. */
+    public void sendPtt(boolean on) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_PTT");
+            msg.put("on",   on);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendPtt failed: {}", e.getMessage()); }
+    }
+
     /** Announce "I'm about to stream N QSOs to you" before a full-sync response.
      *  The requesting station uses {@code count} to drive a progress indicator. */
     public void sendFullSyncStart(String contestId, String toStation, int count) {

@@ -1,15 +1,16 @@
 package com.jlog.macro;
 
 import com.jlog.civ.CivEngine;
+import com.jlog.cluster.HubEngine;
 import com.jlog.db.MacroDao;
 import com.jlog.model.Macro;
 import com.jlog.model.Macro.MacroAction;
+import com.jlog.util.AppConfig;
 import javafx.application.Platform;
-import javafx.scene.media.AudioClip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -80,6 +81,16 @@ public class MacroEngine {
         this.autofillHandler = handler;
     }
 
+    /** Abort any in-flight voice macro (stops WAV playback and releases PTT).
+     *  Bound to ESC by NormalLogController. Idempotent. */
+    public void abortVoice() {
+        if (VoiceKeyer.getInstance().isPlaying()) {
+            VoiceKeyer.getInstance().stop();
+            HubEngine.getInstance().sendPtt(false);
+            log.debug("Voice macro abort (ESC)");
+        }
+    }
+
     /** Return all macros from the database. */
     public List<Macro> getAllMacros() {
         return MacroDao.getInstance().fetchAll();
@@ -120,15 +131,7 @@ public class MacroEngine {
             case VOICE_PLAY -> {
                 String path = action.getData();
                 log.debug("Macro: voice play = {}", path);
-                Platform.runLater(() -> {
-                    try {
-                        AudioClip clip = new AudioClip(
-                            Paths.get(path).toUri().toString());
-                        clip.play();
-                    } catch (Exception ex) {
-                        log.error("Voice playback failed: {}", path, ex);
-                    }
-                });
+                playVoiceMacro(path);
             }
 
             case CW_TEXT -> {
@@ -160,5 +163,93 @@ public class MacroEngine {
 
             default -> log.warn("Unknown macro action type: {}", action.getType());
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Voice keyer — PTT-bracketed WAV playback
+    // ---------------------------------------------------------------
+
+    /**
+     * Play a voice keyer WAV file with Hamlib PTT bracketing.
+     *
+     * <p>Sequence: PTT-on → wait pre-roll → playback → drain → wait post-roll →
+     * PTT-off. All blocking happens on the macro-executor thread (this method),
+     * which is safe because the executor is single-threaded and the controller
+     * thread isn't waiting on it.
+     *
+     * <p>Concurrent-macro behavior is read from {@link AppConfig#getVoiceConcurrentMode()}:
+     * <ul>
+     *   <li>REPLACE — abort any current playback, release PTT, then start fresh
+     *   <li>QUEUE   — wait for the current playback to finish (executor serializes)
+     *   <li>IGNORE  — drop this macro silently if one is already playing
+     * </ul>
+     */
+    private void playVoiceMacro(String path) {
+        if (path == null || path.isBlank()) return;
+        File wav = new File(path);
+        if (!wav.isFile()) {
+            log.warn("Voice macro WAV not found: {}", path);
+            return;
+        }
+
+        AppConfig cfg = AppConfig.getInstance();
+        VoiceKeyer keyer = VoiceKeyer.getInstance();
+        HubEngine  hub   = HubEngine.getInstance();
+
+        if (keyer.isPlaying()) {
+            String mode = cfg.getVoiceConcurrentMode();
+            switch (mode) {
+                case "IGNORE" -> {
+                    log.debug("Voice macro ignored — already playing (mode=IGNORE)");
+                    return;
+                }
+                case "QUEUE" -> {
+                    // Single-threaded executor: waiting here means the previous
+                    // playback's onDone has already run and PTT-off has fired
+                    // before we proceed.
+                    while (keyer.isPlaying()) {
+                        try { Thread.sleep(50); }
+                        catch (InterruptedException ignored) {
+                            Thread.currentThread().interrupt(); return;
+                        }
+                    }
+                }
+                default -> {
+                    // REPLACE
+                    keyer.stop();
+                    hub.sendPtt(false);
+                    try { Thread.sleep(50); } // brief settle so the rig sees the PTT-off edge
+                    catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt(); return;
+                    }
+                }
+            }
+        }
+
+        int preRoll  = cfg.getVoicePreRollMs();
+        int postRoll = cfg.getVoicePostRollMs();
+
+        hub.sendPtt(true);
+        try { Thread.sleep(preRoll); }
+        catch (InterruptedException ignored) {
+            hub.sendPtt(false);
+            Thread.currentThread().interrupt();
+            return;
+        }
+
+        // onDone runs on the playback thread; the post-roll + PTT-off happen
+        // there so the macro executor is free to serve the next macro press.
+        keyer.play(wav,
+                () -> {
+                    try { Thread.sleep(postRoll); }
+                    catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                    hub.sendPtt(false);
+                },
+                err -> {
+                    // Playback failed — release PTT immediately so the rig isn't stuck keyed.
+                    hub.sendPtt(false);
+                });
     }
 }
