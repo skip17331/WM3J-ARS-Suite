@@ -45,6 +45,7 @@ public class JHubMain extends Application {
     private static JHubDiscovery           jHubDiscovery;
     private static HamlibRigController     rigController;
     private static HamlibRotorController   rotorController;
+    private static AntennaController       antennaController;
     private static WeatherService          weatherService;
 
     // Uptime reference
@@ -177,6 +178,14 @@ public class JHubMain extends Application {
                     config.getConfig().rotor.backend);
         }
 
+        // 11b. Automatic antenna switching (serial-controlled relays)
+        antennaController = AntennaController.getInstance();
+        antennaController.setRouter(router);
+        antennaController.start(config.getConfig().antenna);
+        if (!config.getConfig().antenna.enabled) {
+            log.info("Antenna switching disabled in config");
+        }
+
         // 12. Weather service (NOAA SWPC + OpenWeather, 5-minute refresh)
         weatherService = WeatherService.getInstance();
         weatherService.start();
@@ -236,6 +245,7 @@ public class JHubMain extends Application {
 
         // 2. Force-kill all child processes (any that did not self-terminate)
         try { if (weatherService    != null) weatherService.stop();           } catch (Exception e) { log.warn("Weather service shutdown error", e); }
+        try { if (antennaController != null) antennaController.stop();       } catch (Exception e) { log.warn("Antenna controller shutdown error", e); }
         try { if (rotorController   != null) rotorController.stop();         } catch (Exception e) { log.warn("Rotor controller shutdown error", e); }
         try { if (rigController     != null) rigController.stop();           } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
         try { AppLauncher.getInstance().stopAll();                          } catch (Exception e) { log.warn("App launcher shutdown error", e); }

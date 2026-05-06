@@ -151,6 +151,9 @@ public class HamlibRigController {
     public void setPtt(boolean on) {
         if (!running) { log.warn("setPtt called but controller is not running"); return; }
         if (!pttEnabled) { log.warn("PTT is disabled in rig config"); return; }
+        // Notify the antenna controller immediately (before the rigctld round-trip)
+        // so the lockout-during-transmit safety blocks any in-flight switch.
+        AntennaController.getInstance().setPttOn(on);
         scheduler.execute(() -> {
             try {
                 sendCommand("T " + (on ? "1" : "0"));

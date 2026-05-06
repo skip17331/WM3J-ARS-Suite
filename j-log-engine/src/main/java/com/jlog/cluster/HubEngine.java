@@ -67,6 +67,7 @@ public class HubEngine {
     private volatile JsonNode  lastSolarFluxPayload;
     private Consumer<JsonNode> heardBySpotListener;
     private Consumer<JsonNode> adifImportListener;
+    private Consumer<JsonNode> antStatusListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -239,6 +240,10 @@ public class HubEngine {
             } else if ("IMPORT_ADIF".equals(type)) {
                 if (adifImportListener != null)
                     adifImportListener.accept(node);
+
+            } else if ("ANT_STATUS".equals(type)) {
+                if (antStatusListener != null)
+                    antStatusListener.accept(node);
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -307,6 +312,30 @@ public class HubEngine {
     public void setHeardBySpotListener           (Consumer<JsonNode> l) { this.heardBySpotListener            = l; }
     public void setAdifImportListener            (Consumer<JsonNode> l) { this.adifImportListener             = l; }
     public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
+    public void setAntStatusListener        (Consumer<JsonNode> l) { this.antStatusListener        = l; }
+
+    /** Ask j-hub to force the named switch to the given antenna until cleared. */
+    public void sendAntOverride(String switchId, int antenna) {
+        if (!connected.get() || wsClient == null || switchId == null || antenna <= 0) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "ANT_OVERRIDE");
+            msg.put("switchId", switchId);
+            msg.put("antenna",  antenna);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendAntOverride failed: {}", e.getMessage()); }
+    }
+
+    /** Clear the override on a single switch (or all switches when switchId is null/empty). */
+    public void sendAntOverrideClear(String switchId) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "ANT_OVERRIDE_CLEAR");
+            if (switchId != null && !switchId.isEmpty()) msg.put("switchId", switchId);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendAntOverrideClear failed: {}", e.getMessage()); }
+    }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }

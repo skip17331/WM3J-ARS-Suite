@@ -83,6 +83,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
         ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
+        ctx.addServlet(new ServletHolder(new AntennaApiServlet()),   "/api/antenna/*");
         ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
         ctx.addServlet(new ServletHolder(new JBridgeApiServlet()),   "/api/jbridge");
         ctx.addServlet(new ServletHolder(new SessionsApiServlet()),  "/api/sessions");
@@ -788,6 +789,41 @@ public class WebConfigServer {
                 ConfigManager.getInstance().getConfig().rotor = rotor;
                 ConfigManager.getInstance().save();
                 HamlibRotorController.getInstance().restart(rotor);
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/antenna — GET/POST antenna config; GET /api/antenna/status returns
+    // the live switch state. Mirrors the rig/rotor servlet pattern.
+    // ---------------------------------------------------------------
+
+    private static class AntennaApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if ("/status".equals(path)) {
+                json(res, ConfigManager.gson().toJson(AntennaController.getInstance().snapshotStatus()));
+            } else {
+                json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().antenna));
+            }
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.AntennaSection ant =
+                        ConfigManager.gson().fromJson(body, JHubConfig.AntennaSection.class);
+                ConfigManager.getInstance().getConfig().antenna = ant;
+                ConfigManager.getInstance().save();
+                AntennaController.getInstance().restart(ant);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -30,8 +30,10 @@
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/HamlibRigController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/StateCache.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/CallsignProvider.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/AntennaController.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/StationConfig.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/JHubConfig.java
+/home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/model/AntennaStatus.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/HamDbProvider.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/callsign/LocalDbProvider.java
 /home/mike/ARS_Suite/j-hub/src/main/java/com/hamradio/jhub/MessageRouter.java
