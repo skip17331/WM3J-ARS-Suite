@@ -255,6 +255,8 @@
                 <HBox spacing="6" alignment="CENTER_LEFT">
                     <Label text="Keyer:" styleClass="section-title"/>
                     <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
+                    <Label fx:id="lblCwWpm" text="WPM:"/>
+                    <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
                     <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
                               prefRowCount="3" HBox.hgrow="ALWAYS"
                               promptText="Decoded text — select a callsign, right-click to use it"/>

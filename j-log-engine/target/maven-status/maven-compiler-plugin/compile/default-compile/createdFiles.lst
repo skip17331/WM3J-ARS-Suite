@@ -7,6 +7,7 @@ com/jlog/export/AdifImporter$DupeMode.class
 com/jlog/cluster/JLogUiPresence.class
 com/jlog/plugin/ContestPlugin$MultiplierModel.class
 com/jlog/cluster/HubEngine.class
+com/jlog/util/MacroVariableEngine.class
 com/jlog/award/AwardPlugin$Window.class
 com/jlog/export/AdifExporter.class
 com/jlog/award/AwardLoader.class
@@ -48,6 +49,7 @@ com/jlog/plugin/MultiplierLists$1.class
 com/jlog/util/Maidenhead.class
 com/jlog/export/AdifImporter.class
 com/jlog/db/ContestQsoDao.class
+com/jlog/util/MacroVariableEngine$Context.class
 com/jlog/model/StationInfo.class
 com/jlog/export/LotwService$TqslResult.class
 com/jlog/export/LotwService$DownloadResult.class

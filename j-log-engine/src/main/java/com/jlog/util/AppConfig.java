@@ -52,6 +52,13 @@ public class AppConfig {
     }
 
     // ---------------------------------------------------------------
+    // CW keyer WPM (last value used in the J-Log keyer pane)
+    // ---------------------------------------------------------------
+
+    public int  getCwWpm()         { return prefs.getInt("cwWpm", 25); }
+    public void setCwWpm(int wpm)  { prefs.putInt("cwWpm", wpm); }
+
+    // ---------------------------------------------------------------
     // Debug mode
     // ---------------------------------------------------------------
 

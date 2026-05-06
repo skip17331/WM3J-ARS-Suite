@@ -10,6 +10,7 @@ import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.util.AppConfig;
 import com.jlog.util.BandPlan;
+import com.jlog.util.MacroVariableEngine;
 import com.jlog.util.BandPlan.ValidationResult;
 import com.jlog.util.QrzLookup;
 import javafx.animation.PauseTransition;
@@ -87,12 +88,14 @@ public class NormalLogController implements Initializable {
     @FXML private Label lblSolarGeo;
 
     // ---- Embedded CW / Digital keyer ----
-    @FXML private VBox            keyerPane;
-    @FXML private CheckMenuItem   miToggleKeyer;
+    @FXML private VBox             keyerPane;
+    @FXML private CheckMenuItem    miToggleKeyer;
     @FXML private ComboBox<String> cbKeyerMode;
-    @FXML private TextArea        taKeyerRx;
-    @FXML private TextField       tfKeyerTx;
-    @FXML private Label           lblKeyerStatus;
+    @FXML private Label            lblCwWpm;
+    @FXML private Spinner<Integer> spCwWpm;
+    @FXML private TextArea         taKeyerRx;
+    @FXML private TextField        tfKeyerTx;
+    @FXML private Label            lblKeyerStatus;
 
     // ---- QSO table ----
     @FXML private TableView<QsoRecord>          qsoTable;
@@ -415,6 +418,21 @@ public class NormalLogController implements Initializable {
             "CW", "RTTY", "PSK31", "PSK63", "FT8", "FT4"));
         cbKeyerMode.getSelectionModel().select("CW");
 
+        // CW WPM spinner — visible only in CW mode, persisted via AppConfig.
+        // Range matches Hamlib's KEYSPD level limits on most rigs (5–60 WPM).
+        int initialWpm = AppConfig.getInstance().getCwWpm();
+        spCwWpm.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 60, initialWpm));
+        spCwWpm.valueProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) AppConfig.getInstance().setCwWpm(newV);
+        });
+        Runnable applyCwVisibility = () -> {
+            boolean cw = "CW".equals(cbKeyerMode.getValue());
+            lblCwWpm.setVisible(cw); lblCwWpm.setManaged(cw);
+            spCwWpm .setVisible(cw); spCwWpm .setManaged(cw);
+        };
+        applyCwVisibility.run();
+        cbKeyerMode.valueProperty().addListener((obs, oldV, newV) -> applyCwVisibility.run());
+
         taKeyerRx.setStyle("-fx-font-family: monospace; -fx-font-size: 12px;");
 
         // Enter in TX field = Send (Ctrl+Enter also works)
@@ -449,6 +467,36 @@ public class NormalLogController implements Initializable {
         // MODEM_DECODE → append to RX
         HubEngine.getInstance().setModemDecodeListener(node ->
             Platform.runLater(() -> onKeyerDecode(node)));
+
+        // Supply the live QSO context to MacroEngine so CW_TEXT macros can
+        // expand {CALL}, {MYCALL}, {RST_S}, {RST_R}, {NAME}, {EXCH}, etc.
+        MacroEngine.getInstance().setVariableContextSupplier(this::buildMacroContext);
+
+        // One-shot notice when the configured rig doesn't support Hamlib CW —
+        // surfaced in the keyer status label, then suppressed for the session.
+        HubEngine.getInstance().setCwUnsupportedListener(reason ->
+            Platform.runLater(() -> {
+                if (lblKeyerStatus != null) {
+                    lblKeyerStatus.setText("Rig does not support Hamlib CW — using CI-V fallback");
+                }
+            }));
+    }
+
+    /** Snapshot the entry-bar fields and rig state into a MacroVariableEngine
+     *  context. Called from MacroEngine on every CW_TEXT expansion, so reads
+     *  must be cheap and side-effect-free. */
+    private MacroVariableEngine.Context buildMacroContext() {
+        MacroVariableEngine.Context ctx = new MacroVariableEngine.Context();
+        ctx.myCall      = AppConfig.getInstance().getStationCallsign();
+        ctx.dxCall      = tfCallsign       != null ? tfCallsign.getText()       : "";
+        ctx.rstSent     = tfRstSent        != null ? tfRstSent.getText()        : "";
+        ctx.rstReceived = tfRstReceived    != null ? tfRstReceived.getText()    : "";
+        ctx.name        = tfOperatorName   != null ? tfOperatorName.getText()   : "";
+        ctx.exchange    = tfNotes          != null ? tfNotes.getText()          : "";
+        ctx.frequencyHz = CivEngine.getInstance().getCurrentFrequencyHz();
+        ctx.mode        = (cbKeyerMode != null && cbKeyerMode.getValue() != null)
+                          ? cbKeyerMode.getValue() : "";
+        return ctx;
     }
 
     @FXML private void toggleKeyerPane() {
@@ -613,6 +661,11 @@ public class NormalLogController implements Initializable {
                     if (e.getCode() == KeyCode.ENTER && tfCallsign.isFocused()) {
                         doSave();
                         e.consume();
+                    }
+                    // ESC aborts any in-flight CW transmission (Hamlib stop_morse).
+                    // Filter (not handler) so it works even when focus is in a TextField.
+                    if (e.getCode() == KeyCode.ESCAPE) {
+                        MacroEngine.getInstance().abortCw();
                     }
                 });
             }
