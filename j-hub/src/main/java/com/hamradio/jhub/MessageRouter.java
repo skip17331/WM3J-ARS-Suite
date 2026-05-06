@@ -626,6 +626,20 @@ public class MessageRouter {
         }
     }
 
+    /**
+     * Publish an AMP_STATUS originating from HamlibAmpController.
+     */
+    public void publishAmpStatus(com.hamradio.jhub.model.AmpStatus amp) {
+        if (jHubServer == null) return;
+        jHubServer.broadcastToAll(ConfigManager.gson().toJson(amp));
+        if (amp.faulted) {
+            log.warn("AMP fault: {}", amp.faultReason);
+        } else {
+            log.debug("AMP_STATUS: {} Hz, swr={}, pwr={}, {}",
+                    amp.frequency, amp.swr, amp.fwdPower, amp.powerstat);
+        }
+    }
+
     // ---------------------------------------------------------------
     // CALLSIGN_LOOKUP — app requests a callsign lookup
     // ---------------------------------------------------------------

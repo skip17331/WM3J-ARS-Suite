@@ -72,6 +72,7 @@ public class HubEngine {
     // current rig. MacroEngine reads this to choose between the Hamlib CW path
     // and the legacy CI-V fallback. Reset on (re)connect to re-probe support.
     private final AtomicBoolean hamlibCwAvailable = new AtomicBoolean(true);
+    private Consumer<JsonNode> ampStatusListener;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -256,6 +257,10 @@ public class HubEngine {
                 if (firstNotice && cwUnsupportedListener != null) {
                     cwUnsupportedListener.accept(node.path("reason").asText(""));
                 }
+
+            } else if ("AMP_STATUS".equals(type)) {
+                if (ampStatusListener != null)
+                    ampStatusListener.accept(node);
             }
             // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
 
@@ -329,6 +334,7 @@ public class HubEngine {
 
     /** True until j-hub broadcasts CW_UNSUPPORTED for the current rig. */
     public boolean isHamlibCwAvailable() { return hamlibCwAvailable.get(); }
+    public void setAmpStatusListener        (Consumer<JsonNode> l) { this.ampStatusListener        = l; }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }

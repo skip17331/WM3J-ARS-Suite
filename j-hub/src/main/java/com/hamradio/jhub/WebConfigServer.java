@@ -83,6 +83,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RigApiServlet()),       "/api/rig/*");
         ctx.addServlet(new ServletHolder(new RotorApiServlet()),     "/api/rotor");
+        ctx.addServlet(new ServletHolder(new AmpApiServlet()),       "/api/amp");
         ctx.addServlet(new ServletHolder(new AppearanceApiServlet()),"/api/appearance");
         ctx.addServlet(new ServletHolder(new JBridgeApiServlet()),   "/api/jbridge");
         ctx.addServlet(new ServletHolder(new SessionsApiServlet()),  "/api/sessions");
@@ -788,6 +789,34 @@ public class WebConfigServer {
                 ConfigManager.getInstance().getConfig().rotor = rotor;
                 ConfigManager.getInstance().save();
                 HamlibRotorController.getInstance().restart(rotor);
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/amp — GET/POST amp config (Hamlib ampctld)
+    // ---------------------------------------------------------------
+
+    private static class AmpApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().amp));
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.AmpSection amp = ConfigManager.gson().fromJson(body, JHubConfig.AmpSection.class);
+                ConfigManager.getInstance().getConfig().amp = amp;
+                ConfigManager.getInstance().save();
+                HamlibAmpController.getInstance().restart(amp);
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
