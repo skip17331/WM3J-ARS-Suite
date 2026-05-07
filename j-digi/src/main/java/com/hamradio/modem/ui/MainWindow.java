@@ -266,7 +266,18 @@ public class MainWindow {
         toggleSpots.setOnAction(e -> { showRightPanel(); rightPanel.showSpotsTab(); });
         viewMenu.getItems().addAll(toggleLog, toggleSpots);
 
-        return new MenuBar(fileMenu, viewMenu);
+        Menu helpMenu = new Menu("Help");
+        MenuItem learnItem = new MenuItem("J-Learn…");
+        learnItem.setOnAction(e -> openJLearn());
+        helpMenu.getItems().add(learnItem);
+
+        return new MenuBar(fileMenu, viewMenu, helpMenu);
+    }
+
+    /** Opens the J-Hub web UI's J-Learn tab in the user's default browser. */
+    private void openJLearn() {
+        try { new ProcessBuilder("xdg-open", "http://localhost:8081#learn").start(); }
+        catch (Exception ex) { /* best-effort — j-digi has no status bar to surface this */ }
     }
 
     private HBox buildToolBar() {

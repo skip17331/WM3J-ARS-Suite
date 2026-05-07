@@ -39,12 +39,14 @@ public class MainWindow {
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.F11 || e.getCode() == KeyCode.F)
                 stage.setFullScreen(!stage.isFullScreen());
+            else if (e.getCode() == KeyCode.F1)
+                openJLearn();
         });
 
         String cs = services.getSettings().callsign;
         stage.setTitle("J-Sat — " + cs + " — Amateur Satellite Tracking");
         stage.setScene(scene);
-        stage.setFullScreenExitHint("F / F11: toggle fullscreen  |  Configure via J-Hub");
+        stage.setFullScreenExitHint("F / F11: toggle fullscreen  |  F1: open J-Learn  |  Configure via J-Hub");
 
         javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
         stage.setWidth(screen.getWidth());
@@ -89,5 +91,11 @@ public class MainWindow {
 
     public void stop() {
         if (renderTimer != null) renderTimer.stop();
+    }
+
+    /** Opens the J-Hub web UI's J-Learn tab. Best-effort; no error surface. */
+    private void openJLearn() {
+        try { new ProcessBuilder("xdg-open", "http://localhost:8081#learn").start(); }
+        catch (Exception ignored) {}
     }
 }

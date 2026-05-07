@@ -66,6 +66,15 @@
             <version>2.10.2</version>
         </dependency>
 
+        <!-- J-Learn content + manifest (in-app reference library).
+             Pulled in so /api/jlearn/* can serve the manifest and per-section
+             markdown to the J-Hub web UI without a second running process. -->
+        <dependency>
+            <groupId>com.hamradio.jlearn</groupId>
+            <artifactId>j-learn</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- JavaFX for status window -->
         <dependency>
             <groupId>org.openjfx</groupId>

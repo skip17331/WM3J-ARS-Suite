@@ -1,0 +1,7 @@
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/JLearnModule.java
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/content/ContentEntry.java
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/content/ContentLoader.java
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/content/ContentManifest.java
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/state/FileReadingStateStore.java
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/state/ReadingState.java
+/home/mike/ARS_Suite/j-learn/src/main/java/com/hamradio/jlearn/state/ReadingStateStore.java

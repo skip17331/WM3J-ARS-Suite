@@ -31,6 +31,7 @@ com/hamradio/jhub/WeatherService.class
 com/hamradio/jhub/model/JHubConfig.class
 com/hamradio/jhub/WebConfigServer$AmpApiServlet.class
 com/hamradio/jhub/callsign/FccUlsImporter$Status.class
+com/hamradio/jhub/WebConfigServer$JLearnApiServlet.class
 com/hamradio/jhub/AppLauncher.class
 com/hamradio/jhub/model/AntennaStatus.class
 com/hamradio/jhub/model/DataUpdateStatus$FileStatus.class
