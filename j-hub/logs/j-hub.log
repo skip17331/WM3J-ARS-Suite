@@ -1654,3 +1654,400 @@
 2026-05-07 12:22:31.031 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
 2026-05-07 12:22:31.033 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
 2026-05-07 12:22:31.088 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-07 12:48:58.359 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 12:48:58.431 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 12:48:58.432 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 12:48:58.457 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 12:48:58.462 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 12:48:58.469 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 12:48:58.629 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 12:48:58.630 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 12:48:58.631 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 12:48:58.633 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 12:48:58.637 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 12:48:58.639 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-07 12:48:58.913 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-07 12:48:58.915 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-07 12:48:58.917 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-07 12:48:58.918 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-07 12:48:58.919 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-07 12:48:58.920 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-07 12:48:58.920 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-07 12:48:58.926 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-07 12:48:58.928 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-07 12:48:58.928 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-07 12:48:58.937 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-07 12:48:58.937 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-07 12:48:59.015 ERROR com.hamradio.jhub.JHubMain — Fatal startup error
+java.lang.NullPointerException: Cannot invoke "com.sun.prism.GraphicsPipeline.is3DSupported()" because the return value of "com.sun.prism.GraphicsPipeline.getPipeline()" is null
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.isSupported(QuantumToolkit.java:1224)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupportedImpl(PlatformImpl.java:1044)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupported(PlatformImpl.java:655)
+	at javafx.graphics@21.0.10/javafx.application.Platform.isSupported(Platform.java:268)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.isDepthBufferInternal(Scene.java:1750)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.initPeer(Scene.java:832)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$2.initPeer(Scene.java:421)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.SceneHelper.initPeer(SceneHelper.java:73)
+	at javafx.graphics@21.0.10/javafx.stage.Window$12.invalidated(Window.java:1161)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.markInvalid(BooleanPropertyBase.java:110)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.set(BooleanPropertyBase.java:145)
+	at javafx.graphics@21.0.10/javafx.stage.Window.setShowing(Window.java:1239)
+	at javafx.graphics@21.0.10/javafx.stage.Window.show(Window.java:1254)
+	at javafx.graphics@21.0.10/javafx.stage.Stage.show(Stage.java:277)
+	at com.hamradio.jhub.ui.JHubStatusWindow.show(JHubStatusWindow.java:123)
+	at com.hamradio.jhub.JHubMain.lambda$start$0(JHubMain.java:67)
+	at com.hamradio.jhub.ui.SplashJHub.lambda$show$0(SplashJHub.java:58)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.runHandler(Animation.java:1102)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.finished(Animation.java:1096)
+	at javafx.graphics@21.0.10/javafx.animation.AnimationAccessorImpl.finished(AnimationAccessorImpl.java:49)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.shared.SingleLoopClipEnvelope.timePulse(SingleLoopClipEnvelope.java:107)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.doTimePulse(Animation.java:1189)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.lambda$timePulse$0(Animation.java:207)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.timePulse(Animation.java:206)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer.timePulseImpl(AbstractPrimaryTimer.java:343)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer$MainLoop.run(AbstractPrimaryTimer.java:266)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:588)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:572)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulseFromQueue(QuantumToolkit.java:565)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.lambda$runToolkit$11(QuantumToolkit.java:352)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$10(GtkApplication.java:265)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-05-07 12:48:59.688 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-07 12:48:59.689 DEBUG com.hamradio.jhub.WeatherService — Sunspot fetch: null
+2026-05-07 12:48:59.694 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-07 12:48:59.695 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-07 12:48:59.695 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-07 12:48:59.696 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-07 12:48:59.698 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-07 12:48:59.725 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-07 13:31:53.830 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 13:31:53.927 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 13:31:53.928 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 13:31:53.957 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 13:31:53.964 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 13:31:53.977 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 13:31:54.110 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 13:31:54.110 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 13:31:54.112 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 13:31:54.113 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 13:31:54.117 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 13:31:54.118 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-07 13:31:54.364 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-07 13:31:54.366 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-07 13:31:54.368 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-07 13:31:54.370 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-07 13:31:54.372 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-07 13:31:54.373 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-07 13:31:54.374 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-07 13:31:54.379 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-07 13:31:54.381 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-07 13:31:54.382 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-07 13:31:54.459 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-07 13:31:54.459 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-07 13:31:54.490 ERROR com.hamradio.jhub.JHubMain — Fatal startup error
+java.lang.NullPointerException: Cannot invoke "com.sun.prism.GraphicsPipeline.is3DSupported()" because the return value of "com.sun.prism.GraphicsPipeline.getPipeline()" is null
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.isSupported(QuantumToolkit.java:1224)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupportedImpl(PlatformImpl.java:1044)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupported(PlatformImpl.java:655)
+	at javafx.graphics@21.0.10/javafx.application.Platform.isSupported(Platform.java:268)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.isDepthBufferInternal(Scene.java:1750)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.initPeer(Scene.java:832)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$2.initPeer(Scene.java:421)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.SceneHelper.initPeer(SceneHelper.java:73)
+	at javafx.graphics@21.0.10/javafx.stage.Window$12.invalidated(Window.java:1161)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.markInvalid(BooleanPropertyBase.java:110)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.set(BooleanPropertyBase.java:145)
+	at javafx.graphics@21.0.10/javafx.stage.Window.setShowing(Window.java:1239)
+	at javafx.graphics@21.0.10/javafx.stage.Window.show(Window.java:1254)
+	at javafx.graphics@21.0.10/javafx.stage.Stage.show(Stage.java:277)
+	at com.hamradio.jhub.ui.JHubStatusWindow.show(JHubStatusWindow.java:123)
+	at com.hamradio.jhub.JHubMain.lambda$start$0(JHubMain.java:67)
+	at com.hamradio.jhub.ui.SplashJHub.lambda$show$0(SplashJHub.java:58)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.runHandler(Animation.java:1102)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.finished(Animation.java:1096)
+	at javafx.graphics@21.0.10/javafx.animation.AnimationAccessorImpl.finished(AnimationAccessorImpl.java:49)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.shared.SingleLoopClipEnvelope.timePulse(SingleLoopClipEnvelope.java:107)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.doTimePulse(Animation.java:1189)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.lambda$timePulse$0(Animation.java:207)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.timePulse(Animation.java:206)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer.timePulseImpl(AbstractPrimaryTimer.java:343)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer$MainLoop.run(AbstractPrimaryTimer.java:266)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:588)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:572)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulseFromQueue(QuantumToolkit.java:565)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.lambda$runToolkit$11(QuantumToolkit.java:352)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$10(GtkApplication.java:265)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-05-07 13:31:55.210 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-07 13:31:55.211 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-07 13:31:55.212 DEBUG com.hamradio.jhub.WeatherService — Sunspot fetch: null
+2026-05-07 13:31:55.212 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-07 13:31:55.213 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-07 13:31:55.214 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-07 13:31:55.215 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-07 13:31:55.247 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-07 13:49:03.896 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 13:49:03.963 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 13:49:03.964 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 13:49:03.985 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 13:49:03.991 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 13:49:03.998 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 13:49:04.135 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 13:49:04.135 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 13:49:04.136 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 13:49:04.138 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 13:49:04.141 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 13:49:04.142 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-07 13:49:04.386 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-07 13:49:04.388 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-07 13:49:04.389 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-07 13:49:04.390 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-07 13:49:04.392 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-07 13:49:04.393 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-07 13:49:04.393 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-07 13:49:04.399 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-07 13:49:04.400 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-07 13:49:04.401 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-07 13:49:04.501 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-07 13:49:04.501 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-07 13:49:04.504 ERROR com.hamradio.jhub.JHubMain — Fatal startup error
+java.lang.NullPointerException: Cannot invoke "com.sun.prism.GraphicsPipeline.is3DSupported()" because the return value of "com.sun.prism.GraphicsPipeline.getPipeline()" is null
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.isSupported(QuantumToolkit.java:1224)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupportedImpl(PlatformImpl.java:1044)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupported(PlatformImpl.java:655)
+	at javafx.graphics@21.0.10/javafx.application.Platform.isSupported(Platform.java:268)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.isDepthBufferInternal(Scene.java:1750)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.initPeer(Scene.java:832)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$2.initPeer(Scene.java:421)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.SceneHelper.initPeer(SceneHelper.java:73)
+	at javafx.graphics@21.0.10/javafx.stage.Window$12.invalidated(Window.java:1161)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.markInvalid(BooleanPropertyBase.java:110)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.set(BooleanPropertyBase.java:145)
+	at javafx.graphics@21.0.10/javafx.stage.Window.setShowing(Window.java:1239)
+	at javafx.graphics@21.0.10/javafx.stage.Window.show(Window.java:1254)
+	at javafx.graphics@21.0.10/javafx.stage.Stage.show(Stage.java:277)
+	at com.hamradio.jhub.ui.JHubStatusWindow.show(JHubStatusWindow.java:123)
+	at com.hamradio.jhub.JHubMain.lambda$start$0(JHubMain.java:67)
+	at com.hamradio.jhub.ui.SplashJHub.lambda$show$0(SplashJHub.java:58)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.runHandler(Animation.java:1102)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.finished(Animation.java:1096)
+	at javafx.graphics@21.0.10/javafx.animation.AnimationAccessorImpl.finished(AnimationAccessorImpl.java:49)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.shared.SingleLoopClipEnvelope.timePulse(SingleLoopClipEnvelope.java:107)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.doTimePulse(Animation.java:1189)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.lambda$timePulse$0(Animation.java:207)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.timePulse(Animation.java:206)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer.timePulseImpl(AbstractPrimaryTimer.java:343)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer$MainLoop.run(AbstractPrimaryTimer.java:266)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:588)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:572)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulseFromQueue(QuantumToolkit.java:565)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.lambda$runToolkit$11(QuantumToolkit.java:352)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$10(GtkApplication.java:265)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-05-07 13:49:05.252 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-07 13:49:05.253 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-07 13:49:05.254 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-07 13:49:05.254 DEBUG com.hamradio.jhub.WeatherService — Sunspot fetch: null
+2026-05-07 13:49:05.255 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-07 13:49:05.256 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-07 13:49:05.256 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-07 13:49:05.286 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-07 14:04:03.423 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 14:04:03.483 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 14:04:03.484 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 14:04:03.507 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 14:04:03.512 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 14:04:03.520 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 14:04:03.650 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 14:04:03.650 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 14:04:03.651 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 14:04:03.652 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 14:04:03.655 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 14:04:03.657 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-07 14:04:03.893 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-07 14:04:03.895 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-07 14:04:03.898 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-07 14:04:03.899 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-07 14:04:03.901 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-07 14:04:03.903 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-07 14:04:03.903 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-07 14:04:03.911 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-07 14:04:03.917 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-07 14:04:03.918 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-07 14:04:03.939 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-07 14:04:03.943 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-07 14:04:04.038 ERROR com.hamradio.jhub.JHubMain — Fatal startup error
+java.lang.NullPointerException: Cannot invoke "com.sun.prism.GraphicsPipeline.is3DSupported()" because the return value of "com.sun.prism.GraphicsPipeline.getPipeline()" is null
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.isSupported(QuantumToolkit.java:1224)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupportedImpl(PlatformImpl.java:1044)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupported(PlatformImpl.java:655)
+	at javafx.graphics@21.0.10/javafx.application.Platform.isSupported(Platform.java:268)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.isDepthBufferInternal(Scene.java:1750)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.initPeer(Scene.java:832)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$2.initPeer(Scene.java:421)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.SceneHelper.initPeer(SceneHelper.java:73)
+	at javafx.graphics@21.0.10/javafx.stage.Window$12.invalidated(Window.java:1161)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.markInvalid(BooleanPropertyBase.java:110)
+	at javafx.base@21.0.10/javafx.beans.property.BooleanPropertyBase.set(BooleanPropertyBase.java:145)
+	at javafx.graphics@21.0.10/javafx.stage.Window.setShowing(Window.java:1239)
+	at javafx.graphics@21.0.10/javafx.stage.Window.show(Window.java:1254)
+	at javafx.graphics@21.0.10/javafx.stage.Stage.show(Stage.java:277)
+	at com.hamradio.jhub.ui.JHubStatusWindow.show(JHubStatusWindow.java:123)
+	at com.hamradio.jhub.JHubMain.lambda$start$0(JHubMain.java:67)
+	at com.hamradio.jhub.ui.SplashJHub.lambda$show$0(SplashJHub.java:58)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.runHandler(Animation.java:1102)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.finished(Animation.java:1096)
+	at javafx.graphics@21.0.10/javafx.animation.AnimationAccessorImpl.finished(AnimationAccessorImpl.java:49)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.shared.SingleLoopClipEnvelope.timePulse(SingleLoopClipEnvelope.java:107)
+	at javafx.graphics@21.0.10/javafx.animation.Animation.doTimePulse(Animation.java:1189)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.lambda$timePulse$0(Animation.java:207)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics@21.0.10/javafx.animation.Animation$1.timePulse(Animation.java:206)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer.timePulseImpl(AbstractPrimaryTimer.java:343)
+	at javafx.graphics@21.0.10/com.sun.scenario.animation.AbstractPrimaryTimer$MainLoop.run(AbstractPrimaryTimer.java:266)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:588)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulse(QuantumToolkit.java:572)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.pulseFromQueue(QuantumToolkit.java:565)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.lambda$runToolkit$11(QuantumToolkit.java:352)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$10(GtkApplication.java:265)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-05-07 14:04:04.694 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-07 14:04:04.695 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-07 14:04:04.696 DEBUG com.hamradio.jhub.WeatherService — Sunspot fetch: null
+2026-05-07 14:04:04.696 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-07 14:04:04.696 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-07 14:04:04.697 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-07 14:04:04.698 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-07 14:04:04.726 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-07 14:10:49.689 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 14:10:49.746 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 14:10:49.747 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 14:10:49.769 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 14:10:49.774 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 14:10:49.781 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 14:10:49.912 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 14:10:49.912 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 14:10:49.914 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 14:10:49.916 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 14:10:49.920 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 14:10:49.921 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-07 14:25:14.073 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 14:25:14.149 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 14:25:14.150 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 14:25:14.176 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 14:25:14.181 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 14:25:14.189 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 14:25:14.318 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 14:25:14.318 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 14:25:14.320 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 14:25:14.321 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 14:25:14.325 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 14:25:14.326 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-07 14:25:14.577 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-07 14:25:14.579 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-07 14:25:14.581 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-07 14:25:14.582 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-07 14:25:14.584 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-07 14:25:14.585 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-07 14:25:14.586 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-07 14:25:14.591 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-07 14:25:14.593 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-07 14:25:14.594 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-07 14:25:15.004 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-07 14:25:15.005 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-07 14:25:15.146 ERROR com.hamradio.jhub.CrashHandler — Uncaught exception in thread 'JavaFX Application Thread':
+java.lang.NullPointerException: Cannot invoke "com.sun.prism.GraphicsPipeline.is3DSupported()" because the return value of "com.sun.prism.GraphicsPipeline.getPipeline()" is null
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.isSupported(QuantumToolkit.java:1224)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupportedImpl(PlatformImpl.java:1044)
+	at javafx.graphics@21.0.10/com.sun.javafx.application.PlatformImpl.isSupported(PlatformImpl.java:655)
+	at javafx.graphics@21.0.10/javafx.application.Platform.isSupported(Platform.java:268)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.input.PickResultChooser.processOffer(PickResultChooser.java:182)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.input.PickResultChooser.offer(PickResultChooser.java:143)
+	at javafx.graphics@21.0.10/javafx.scene.Node.intersects(Node.java:5194)
+	at javafx.graphics@21.0.10/javafx.scene.Node$1.intersects(Node.java:553)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.NodeHelper.intersects(NodeHelper.java:260)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region.doPickNodeLocal(Region.java:3173)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region$1.doPickNodeLocal(Region.java:182)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.layout.RegionHelper.pickNodeLocalImpl(RegionHelper.java:104)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.NodeHelper.pickNodeLocal(NodeHelper.java:130)
+	at javafx.graphics@21.0.10/javafx.scene.Node.pickNode(Node.java:5167)
+	at javafx.graphics@21.0.10/javafx.scene.Parent.pickChildrenNode(Parent.java:807)
+	at javafx.graphics@21.0.10/javafx.scene.Parent$1.pickChildrenNode(Parent.java:136)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.ParentHelper.pickChildrenNode(ParentHelper.java:113)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region.doPickNodeLocal(Region.java:3172)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region$1.doPickNodeLocal(Region.java:182)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.layout.RegionHelper.pickNodeLocalImpl(RegionHelper.java:104)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.NodeHelper.pickNodeLocal(NodeHelper.java:130)
+	at javafx.graphics@21.0.10/javafx.scene.Node.pickNode(Node.java:5167)
+	at javafx.graphics@21.0.10/javafx.scene.Parent.pickChildrenNode(Parent.java:807)
+	at javafx.graphics@21.0.10/javafx.scene.Parent$1.pickChildrenNode(Parent.java:136)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.ParentHelper.pickChildrenNode(ParentHelper.java:113)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region.doPickNodeLocal(Region.java:3172)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region$1.doPickNodeLocal(Region.java:182)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.layout.RegionHelper.pickNodeLocalImpl(RegionHelper.java:104)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.NodeHelper.pickNodeLocal(NodeHelper.java:130)
+	at javafx.graphics@21.0.10/javafx.scene.Node.pickNode(Node.java:5167)
+	at javafx.graphics@21.0.10/javafx.scene.Parent.pickChildrenNode(Parent.java:807)
+	at javafx.graphics@21.0.10/javafx.scene.Parent$1.pickChildrenNode(Parent.java:136)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.ParentHelper.pickChildrenNode(ParentHelper.java:113)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region.doPickNodeLocal(Region.java:3172)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region$1.doPickNodeLocal(Region.java:182)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.layout.RegionHelper.pickNodeLocalImpl(RegionHelper.java:104)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.NodeHelper.pickNodeLocal(NodeHelper.java:130)
+	at javafx.graphics@21.0.10/javafx.scene.Node.pickNode(Node.java:5167)
+	at javafx.graphics@21.0.10/javafx.scene.Parent.pickChildrenNode(Parent.java:807)
+	at javafx.graphics@21.0.10/javafx.scene.Parent$1.pickChildrenNode(Parent.java:136)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.ParentHelper.pickChildrenNode(ParentHelper.java:113)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region.doPickNodeLocal(Region.java:3172)
+	at javafx.graphics@21.0.10/javafx.scene.layout.Region$1.doPickNodeLocal(Region.java:182)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.layout.RegionHelper.pickNodeLocalImpl(RegionHelper.java:104)
+	at javafx.graphics@21.0.10/com.sun.javafx.scene.NodeHelper.pickNodeLocal(NodeHelper.java:130)
+	at javafx.graphics@21.0.10/javafx.scene.Node.pickNode(Node.java:5167)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$MouseHandler.pickNode(Scene.java:4127)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.pick(Scene.java:2070)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$MouseHandler.process(Scene.java:3937)
+	at javafx.graphics@21.0.10/javafx.scene.Scene.processMouseEvent(Scene.java:1890)
+	at javafx.graphics@21.0.10/javafx.scene.Scene$ScenePeerListener.mouseEvent(Scene.java:2708)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.GlassViewEventHandler$MouseEventNotification.run(GlassViewEventHandler.java:411)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.GlassViewEventHandler$MouseEventNotification.run(GlassViewEventHandler.java:301)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.GlassViewEventHandler.lambda$handleMouseEvent$2(GlassViewEventHandler.java:450)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.QuantumToolkit.runWithoutRenderLock(QuantumToolkit.java:424)
+	at javafx.graphics@21.0.10/com.sun.javafx.tk.quantum.GlassViewEventHandler.handleMouseEvent(GlassViewEventHandler.java:449)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.View.handleMouseEvent(View.java:551)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.View.notifyMouse(View.java:937)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)
+	at javafx.graphics@21.0.10/com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$10(GtkApplication.java:265)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+2026-05-07 14:25:15.756 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-07 14:25:15.757 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-07 14:25:15.758 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-07 14:25:15.758 DEBUG com.hamradio.jhub.WeatherService — Sunspot fetch: null
+2026-05-07 14:25:15.759 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-07 14:25:15.759 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-07 14:25:15.760 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-07 14:25:15.789 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-07 14:29:05.101 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-07 14:29:05.170 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-07 14:29:05.171 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-07 14:29:05.199 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-07 14:29:05.206 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-07 14:29:05.214 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-07 14:29:05.347 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-07 14:29:05.348 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-07 14:29:05.349 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-07 14:29:05.351 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-07 14:29:05.356 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-07 14:29:05.359 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
