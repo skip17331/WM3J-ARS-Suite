@@ -23,6 +23,7 @@
       <button class="nav-btn" data-tab="amp"><span class="nav-icon">⚡</span>Amp Control</button>
       <button class="nav-btn" data-tab="antenna"><span class="nav-icon">⇆</span>Antenna Switch</button>
       <button class="nav-btn" data-tab="macros"><span class="nav-icon">⌨</span>Macros</button>
+      <button class="nav-btn" data-tab="uploaders"><span class="nav-icon">↑</span>Log Uploaders</button>
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
       <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
@@ -711,6 +712,22 @@
       </div>
     </section>
 
+    <!-- ─── Tab: Log Uploaders ──────────────────────────── -->
+    <section id="tab-uploaders" class="tab-panel">
+      <div class="panel-header">Log Uploaders</div>
+      <div class="panel-sub">Push QSOs from <code>~/.j-log/j-log.db</code> to eQSL.cc, Club Log, QRZ Logbook, and HRDLog</div>
+
+      <div class="card">
+        <div style="font-size:12px;color:var(--subtext0)">
+          Credentials are encrypted on disk in <code>~/.j-hub/credentials.enc</code> (AES-GCM, key tied
+          to this machine's identity). Already-uploaded QSOs are tracked in a small
+          <code>upload_state</code> table inside <code>j-log.db</code>; subsequent runs
+          skip them. Click <b>Upload pending</b> to push everything new for a service.
+        </div>
+        <div id="uploaders-list" style="margin-top:10px"></div>
+      </div>
+    </section>
+
     <!-- ─── Tab: DX Cluster ─────────────────────────────── -->
     <section id="tab-cluster" class="tab-panel">
       <div class="panel-header">DX Cluster</div>
@@ -904,6 +921,54 @@
           <button class="btn btn-primary" onclick="saveLogging()">Save</button>
           <span id="log-msg" style="font-size:12px;color:var(--overlay0)"></span>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Cloud Backup</div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:8px">
+          Periodically zip every <code>~/.j-*</code> state directory and write
+          the archive to a synced cloud folder (Dropbox, Google Drive, OneDrive,
+          iCloud — any sync client) or a WebDAV server (Nextcloud, ownCloud).
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" id="bk-enabled">
+          <span>Enable scheduled cloud backup</span>
+        </label>
+        <div class="seg-group" id="bk-mode-seg" style="margin-top:8px">
+          <button class="seg-btn" data-val="FOLDER" onclick="setBackupMode('FOLDER',this)">Folder (any sync client)</button>
+          <button class="seg-btn" data-val="WEBDAV" onclick="setBackupMode('WEBDAV',this)">WebDAV (Nextcloud / ownCloud)</button>
+        </div>
+        <div class="cond-block" id="bk-folder-block" style="margin-top:8px">
+          <div class="field"><input type="text" id="bk-folder" placeholder="/home/op/Dropbox/J-Suite-Backups"><label>Backup Folder</label></div>
+        </div>
+        <div class="cond-block" id="bk-webdav-block" style="margin-top:8px">
+          <div class="field"><input type="text" id="bk-webdav-url" placeholder="https://nextcloud.example.com/remote.php/dav/files/me/J-Backups"><label>WebDAV URL</label></div>
+          <div class="field-row cols-2">
+            <div class="field"><input type="text" id="bk-webdav-user" placeholder="username" autocomplete="off"><label>WebDAV User</label></div>
+            <div class="field"><input type="password" id="bk-webdav-pass" placeholder="••••" autocomplete="off"><label>WebDAV Password</label></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="saveWebdavCreds()">Save WebDAV Credentials</button>
+          <span id="bk-cred-msg" style="font-size:12px;color:var(--overlay0);margin-left:8px"></span>
+        </div>
+        <div class="field-row cols-2" style="margin-top:8px">
+          <div class="field"><input type="number" id="bk-hours"  min="0" max="168" placeholder="24"><label>Schedule (hours, 0 = manual only)</label></div>
+          <div class="field"><input type="number" id="bk-retain" min="1" max="365" placeholder="14"><label>Keep last N backups</label></div>
+        </div>
+        <div class="section-title" style="margin-top:6px">Include directories</div>
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;font-size:13px">
+          <label><input type="checkbox" id="bk-inc-jhub">    .j-hub</label>
+          <label><input type="checkbox" id="bk-inc-jlog">    .j-log</label>
+          <label><input type="checkbox" id="bk-inc-jmap">    .j-map</label>
+          <label><input type="checkbox" id="bk-inc-jsat">    .j-sat</label>
+          <label><input type="checkbox" id="bk-inc-jdigi">   .j-digi</label>
+          <label><input type="checkbox" id="bk-inc-jbridge"> .j-bridge</label>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveBackup()">Save Settings</button>
+          <button class="btn btn-ghost"   onclick="runBackupNow()">Back up now</button>
+          <span id="bk-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+        <div style="font-size:12px;color:var(--subtext0);margin-top:10px" id="bk-status">Status: not yet run</div>
       </div>
 
       <div class="card">

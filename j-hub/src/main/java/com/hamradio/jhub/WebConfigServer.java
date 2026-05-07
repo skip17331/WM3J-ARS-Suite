@@ -82,6 +82,9 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
+        ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
+        ctx.addServlet(new ServletHolder(new UploadersApiServlet()), "/api/uploaders/*");
+        ctx.addServlet(new ServletHolder(new CredentialsApiServlet()), "/api/credentials/*");
         ctx.addServlet(new ServletHolder(new MacroTriggerServlet()), "/api/macros/trigger");
         ctx.addServlet(new ServletHolder(new VoiceUploadServlet()),  "/api/voice/upload");
         ctx.addServlet(new ServletHolder(new VoiceFileServlet()),    "/api/voice/file");
@@ -1716,6 +1719,126 @@ public class WebConfigServer {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 json(res, "{\"error\":\"" + e.getMessage() + "\"}");
             }
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/backup — cloud backup config + status; POST /api/backup/run
+    // ---------------------------------------------------------------
+
+    private static class BackupApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if ("/status".equals(path)) {
+                json(res, ConfigManager.gson().toJson(CloudBackupService.getInstance().snapshot()));
+            } else {
+                json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().backup));
+            }
+        }
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if ("/run".equals(path)) {
+                CloudBackupService.BackupResult r = CloudBackupService.getInstance().runOnce();
+                json(res, ConfigManager.gson().toJson(r));
+                return;
+            }
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.BackupSection b =
+                    ConfigManager.gson().fromJson(body, JHubConfig.BackupSection.class);
+                ConfigManager.getInstance().getConfig().backup = b;
+                ConfigManager.getInstance().save();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/credentials/{serviceId} — get/put credentials (encrypted)
+    //
+    // GET returns ONLY which fields are populated (not their values), so
+    // the UI can show "✓ saved" without leaking plaintext back over HTTP.
+    // ---------------------------------------------------------------
+
+    private static class CredentialsApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String svc = idFromPath(req);
+            if (svc == null) {
+                com.google.gson.JsonArray arr = new com.google.gson.JsonArray();
+                for (String s : CredentialStore.getInstance().listServices()) arr.add(s);
+                json(res, arr.toString());
+                return;
+            }
+            com.google.gson.JsonObject creds = CredentialStore.getInstance().get(svc);
+            com.google.gson.JsonObject mask  = new com.google.gson.JsonObject();
+            for (java.util.Map.Entry<String, com.google.gson.JsonElement> e : creds.entrySet()) {
+                mask.addProperty(e.getKey(), true);   // value omitted
+            }
+            json(res, mask.toString());
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String svc = idFromPath(req);
+            if (svc == null) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"missing service id\"}"); return;
+            }
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject creds =
+                    com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                CredentialStore.getInstance().put(svc, creds);
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String svc = idFromPath(req);
+            if (svc == null) { res.setStatus(HttpServletResponse.SC_BAD_REQUEST); return; }
+            CredentialStore.getInstance().remove(svc);
+            json(res, "{\"status\":\"removed\"}");
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+
+        private static String idFromPath(HttpServletRequest req) {
+            String p = req.getPathInfo();
+            if (p == null || p.length() < 2) return null;
+            return p.substring(1);  // strip leading "/"
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/uploaders — list configured uploaders + push pending QSOs
+    // ---------------------------------------------------------------
+
+    private static class UploadersApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            json(res, ConfigManager.gson().toJson(LogUploaderRegistry.snapshot()));
+        }
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if (!path.startsWith("/upload/")) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"POST /api/uploaders/upload/{serviceId}\"}"); return;
+            }
+            String svc = path.substring("/upload/".length());
+            LogUploader.UploadResult r = LogUploaderRegistry.upload(svc);
+            json(res, ConfigManager.gson().toJson(r));
         }
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);

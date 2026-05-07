@@ -1300,6 +1300,170 @@ function pollAntennaStatus() {
   }).catch(() => {});
 }
 
+// ── Cloud backup ──────────────────────────────────────────
+function loadBackup() {
+  fetch('/api/backup').then(r => r.json()).then(b => {
+    setChk('bk-enabled',     !!b.enabled);
+    setBackupModeUI(b.mode || 'FOLDER');
+    setVal('bk-folder',      b.folderPath || '');
+    setVal('bk-webdav-url',  b.webdavUrl || '');
+    setVal('bk-hours',       b.scheduleHours != null ? b.scheduleHours : 24);
+    setVal('bk-retain',      b.retain != null ? b.retain : 14);
+    setChk('bk-inc-jhub',    b.includeJHub !== false);
+    setChk('bk-inc-jlog',    b.includeJLog !== false);
+    setChk('bk-inc-jmap',    b.includeJMap !== false);
+    setChk('bk-inc-jsat',    b.includeJSat !== false);
+    setChk('bk-inc-jdigi',   !!b.includeJDigi);
+    setChk('bk-inc-jbridge', !!b.includeJBridge);
+  }).catch(() => {});
+  fetch('/api/backup/status').then(r => r.json()).then(s => {
+    if (!s) return;
+    const sb = document.getElementById('bk-status');
+    if (!sb) return;
+    sb.textContent = 'Last run: ' +
+      (s.lastRunAt ? new Date(s.lastRunAt).toLocaleString() : 'never') +
+      ' — ' + (s.lastRunSucceeded ? 'OK' : 'FAILED') +
+      ' — ' + (s.lastRunMessage || '') +
+      (s.lastBytes > 0 ? ' (' + Math.round(s.lastBytes/1024) + ' KB)' : '');
+  }).catch(() => {});
+}
+
+function setBackupMode(val, btn) {
+  document.querySelectorAll('#bk-mode-seg .seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showCond('bk-folder-block', val === 'FOLDER');
+  showCond('bk-webdav-block', val === 'WEBDAV');
+}
+function setBackupModeUI(val) {
+  document.querySelectorAll('#bk-mode-seg .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+  showCond('bk-folder-block', val === 'FOLDER');
+  showCond('bk-webdav-block', val === 'WEBDAV');
+}
+
+function saveBackup() {
+  const body = {
+    enabled:        document.getElementById('bk-enabled').checked,
+    mode:           activeSegVal('#bk-mode-seg') || 'FOLDER',
+    folderPath:     document.getElementById('bk-folder').value.trim(),
+    webdavUrl:      document.getElementById('bk-webdav-url').value.trim(),
+    scheduleHours:  parseInt(document.getElementById('bk-hours').value)  || 0,
+    retain:         parseInt(document.getElementById('bk-retain').value) || 14,
+    includeJHub:    document.getElementById('bk-inc-jhub').checked,
+    includeJLog:    document.getElementById('bk-inc-jlog').checked,
+    includeJMap:    document.getElementById('bk-inc-jmap').checked,
+    includeJSat:    document.getElementById('bk-inc-jsat').checked,
+    includeJDigi:   document.getElementById('bk-inc-jdigi').checked,
+    includeJBridge: document.getElementById('bk-inc-jbridge').checked,
+  };
+  fetch('/api/backup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => flashMsg('bk-msg', 'Saved'))
+    .catch(() => flashMsg('bk-msg', 'Error', true));
+}
+
+function runBackupNow() {
+  flashMsg('bk-msg', 'Running…');
+  fetch('/api/backup/run', { method: 'POST' })
+    .then(r => r.json())
+    .then(r => {
+      flashMsg('bk-msg', r.success ? 'Backup OK' : ('Failed: ' + r.message), !r.success);
+      loadBackup();
+    })
+    .catch(e => flashMsg('bk-msg', 'Error: ' + e.message, true));
+}
+
+function saveWebdavCreds() {
+  const user = document.getElementById('bk-webdav-user').value;
+  const pass = document.getElementById('bk-webdav-pass').value;
+  if (!user || !pass) { flashMsg('bk-cred-msg', 'Enter user + password', true); return; }
+  fetch('/api/credentials/webdav', { method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ user, pass }) })
+    .then(r => r.json())
+    .then(() => {
+      flashMsg('bk-cred-msg', 'Saved (encrypted)');
+      document.getElementById('bk-webdav-pass').value = '';
+    })
+    .catch(() => flashMsg('bk-cred-msg', 'Error', true));
+}
+
+// ── Log uploaders ─────────────────────────────────────────
+function loadUploaders() {
+  fetch('/api/uploaders').then(r => r.json()).then(list => renderUploaders(list)).catch(() => {});
+}
+
+function renderUploaders(list) {
+  const wrap = document.getElementById('uploaders-list');
+  if (!wrap) return;
+  wrap.innerHTML = (list || []).map(u => {
+    const fields = (u.fields || []).map(f => `
+      <div class="field" style="margin-right:8px;min-width:140px">
+        <input type="${f === 'pass' || f === 'apiKey' || f === 'uploadCode' ? 'password' : 'text'}"
+               id="cred-${u.serviceId}-${f}" autocomplete="off">
+        <label>${f}</label>
+      </div>`).join('');
+    return `<div class="row-card" data-svc="${u.serviceId}">
+      <div class="row-fields" style="grid-template-columns:1fr">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:600">${esc(u.displayName)}</div>
+            <div style="font-size:12px;color:var(--subtext0)">
+              ${u.configured ? '✓ credentials saved' : '<span style="color:var(--peach)">not configured</span>'}
+              · ${u.uploaded} uploaded · ${u.pending < 0 ? '?' : u.pending} pending
+              ${u.totalQsos < 0 ? ' (j-log.db not found)' : ''}
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-primary btn-sm" onclick="uploadNow('${u.serviceId}')">Upload pending</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;margin-top:8px">
+          ${fields}
+          <button class="btn btn-ghost btn-sm" onclick="saveUploaderCreds('${u.serviceId}',[${
+            (u.fields || []).map(f => `'${f}'`).join(',')}])">Save credentials</button>
+          <span id="cred-msg-${u.serviceId}" style="font-size:12px;color:var(--overlay0);margin-left:8px"></span>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--subtext0)">No uploaders registered.</div>';
+}
+
+function saveUploaderCreds(serviceId, fields) {
+  const body = {};
+  let any = false;
+  for (const f of fields) {
+    const el = document.getElementById('cred-' + serviceId + '-' + f);
+    if (el && el.value) { body[f] = el.value; any = true; }
+  }
+  if (!any) { flashMsg('cred-msg-' + serviceId, 'Enter all fields first', true); return; }
+  fetch('/api/credentials/' + serviceId, { method: 'POST',
+    headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => {
+      flashMsg('cred-msg-' + serviceId, 'Saved (encrypted)');
+      // Clear password fields immediately so they don't sit in the DOM
+      for (const f of fields) {
+        const el = document.getElementById('cred-' + serviceId + '-' + f);
+        if (el && el.type === 'password') el.value = '';
+      }
+      setTimeout(loadUploaders, 1000);
+    })
+    .catch(() => flashMsg('cred-msg-' + serviceId, 'Error', true));
+}
+
+function uploadNow(serviceId) {
+  flashMsg('cred-msg-' + serviceId, 'Uploading…');
+  fetch('/api/uploaders/upload/' + serviceId, { method: 'POST' })
+    .then(r => r.json())
+    .then(r => {
+      flashMsg('cred-msg-' + serviceId,
+        r.success ? (r.qsosUploaded + ' uploaded') : ('Failed: ' + r.message),
+        !r.success);
+      setTimeout(loadUploaders, 1500);
+    })
+    .catch(e => flashMsg('cred-msg-' + serviceId, 'Error: ' + e.message, true));
+}
+
 // ── Reverse Beacon Network feed ───────────────────────────
 function loadRbn() {
   fetch('/api/rbn').then(r => r.json()).then(d => {
@@ -2579,7 +2743,10 @@ loadMacros();
 loadAmp();
 loadAntenna();
 loadRbn();
+loadBackup();
+loadUploaders();
 setInterval(loadRbn, 10000);
+setInterval(loadBackup, 30000);
 loadJMapSettings();
 loadJLogSettings();
 loadJDigiSettings();
