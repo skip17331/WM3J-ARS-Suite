@@ -1395,6 +1395,41 @@ function renderLearnBanner(id) {
          + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
          + '</div>';
   }
+  if (id.startsWith('18-')) {
+    // Map J-Learn formula card id → AW_CALCS key
+    const calcId = ({
+      '18-01': 'ohms-law',
+      '18-02': 'power-law',
+      '18-03': 'reactance',
+      '18-04': 'impedance',
+      '18-05': 'resonance',
+      '18-06': 'wavelength',
+      '18-07': 'swr',
+      '18-08': 'erp',
+      '18-09': 'feedline-loss',
+      '18-10': 'decibels',
+      '18-11': 'q-factor',
+      '18-12': 'bandwidth',
+      '18-13': 'smith-chart',
+      '18-14': 'rf-exposure',
+    })[id];
+    const buttonHtml = calcId
+      ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
+      : '<button class="action-btn primary" onclick="openAntennaWorkshop()">▶ Open Workshop</button>';
+    return '<div style="margin:0 0 14px 0;padding:10px 14px;border-left:3px solid var(--mauve);'
+         + 'background:rgba(203,166,247,0.08);border-radius:4px;display:flex;align-items:center;'
+         + 'gap:12px;font-size:13px">'
+         + '<span style="font-size:18px">📐</span>'
+         + '<div style="flex:1">'
+         + '<div style="font-weight:600;color:var(--text)">Formula Calculator</div>'
+         + '<div style="color:var(--subtext0);font-size:12px">' + (calcId
+            ? "Run this formula's calculator with live inputs and outputs in the Antenna Workshop tab."
+            : 'Pick a formula calculator from the Workshop\'s Formulas section.')
+         + '</div>'
+         + '</div>'
+         + buttonHtml
+         + '</div>';
+  }
   if (id.startsWith('07-')) {
     // Map J-Learn section id → Antenna Workshop calc id (must match keys in AW_CALCS)
     const calcId = ({
@@ -4904,6 +4939,623 @@ const AW_CALCS = {
       'Bandwidth narrows in proportion to shortening — a 50% shortened antenna has ~1/4 the bandwidth.',
     ],
   },
+
+  // ════════════════════════════════════════════════════════════════
+  //  FORMULA CALCULATORS  — one per card in J-Learn ch 18 (Formulas).
+  //  Each entry has formula:true so awCalcRenderList puts it in the
+  //  "Formulas" sidebar section.
+  // ════════════════════════════════════════════════════════════════
+
+  'ohms-law': {
+    name: "Ohm's Law",
+    section: '18-01',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Solve for', type: 'select', default: 'V',
+        choices: [['V', 'Voltage (given I, R)'], ['I', 'Current (given V, R)'],
+                  ['R', 'Resistance (given V, I)']] },
+      { id: 'V', label: 'Voltage V (volts)',  type: 'number', step: '0.001', default: 13.8 },
+      { id: 'I', label: 'Current I (amps)',   type: 'number', step: '0.001', default: 22 },
+      { id: 'R', label: 'Resistance R (ohms)', type: 'number', step: '0.001', default: 0.016 },
+    ],
+    compute(v) {
+      const V = parseFloat(v.V), I = parseFloat(v.I), R = parseFloat(v.R);
+      let result, formula;
+      if (v.mode === 'V') { result = I * R; formula = 'V = I × R'; }
+      else if (v.mode === 'I') { result = V / R; formula = 'I = V / R'; }
+      else { result = V / I; formula = 'R = V / I'; }
+      const P = V * I;   // always show power as a bonus
+      return { rows: [
+        ['Formula',           formula],
+        ['Result',            v.mode === 'V' ? `V = ${result.toFixed(3)} volts`
+                            : v.mode === 'I' ? `I = ${result.toFixed(3)} amps`
+                            :                  `R = ${result.toFixed(3)} ohms`],
+        ['Power (V × I)',     `${P.toFixed(2)} W  (using current input values)`],
+        ['Power (I²R)',       `${(I * I * R).toFixed(2)} W`],
+        ['Power (V²/R)',      `${(V * V / R).toFixed(2)} W`],
+      ]};
+    },
+    notes: [
+      "Use this with all three forms: V=IR, I=V/R, R=V/I. Power forms (P=VI=I²R=V²/R) are shown as cross-checks.",
+      "Voltage drop in mobile DC cables is the classic ham use — pick I and R, solve for V_drop.",
+      "For AC with reactance, use Impedance (§18-04) instead.",
+    ],
+  },
+
+  'power-law': {
+    name: 'Power Law',
+    section: '18-02',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Solve for', type: 'select', default: 'P_VI',
+        choices: [
+          ['P_VI', 'Power from V and I'],
+          ['P_IR', 'Power from I and R'],
+          ['P_VR', 'Power from V and R'],
+          ['V_PR', 'Voltage from P and R'],
+          ['I_PR', 'Current from P and R'],
+        ]},
+      { id: 'V', label: 'Voltage V (volts)', type: 'number', step: '0.001', default: 70.7 },
+      { id: 'I', label: 'Current I (amps)',  type: 'number', step: '0.001', default: 1.41 },
+      { id: 'R', label: 'Resistance R (ohms)', type: 'number', step: '0.001', default: 50 },
+      { id: 'P', label: 'Power P (watts)',     type: 'number', step: '0.01',  default: 100 },
+    ],
+    compute(v) {
+      const V = parseFloat(v.V), I = parseFloat(v.I), R = parseFloat(v.R), P = parseFloat(v.P);
+      let result, formula, label;
+      if (v.mode === 'P_VI') { result = V * I;        formula = 'P = V × I';        label = 'P (W)'; }
+      else if (v.mode === 'P_IR') { result = I * I * R; formula = 'P = I² × R';     label = 'P (W)'; }
+      else if (v.mode === 'P_VR') { result = V * V / R; formula = 'P = V² / R';     label = 'P (W)'; }
+      else if (v.mode === 'V_PR') { result = Math.sqrt(P * R); formula = 'V = √(P · R)'; label = 'V (V)'; }
+      else                        { result = Math.sqrt(P / R); formula = 'I = √(P / R)'; label = 'I (A)'; }
+      return { rows: [
+        ['Formula', formula],
+        ['Result',  `${label}: ${result.toFixed(3)}`],
+        ['Cross-check (P = V·I)', `${(V * I).toFixed(2)} W`],
+        ['Cross-check (P = I²R)', `${(I * I * R).toFixed(2)} W`],
+        ['Cross-check (P = V²/R)', `${(V * V / R).toFixed(2)} W`],
+      ]};
+    },
+    notes: [
+      'Use RMS for AC. RMS = Peak / √2 for sine waves.',
+      'For SSB, peak power (PEP) is the maximum envelope; average is much lower (~25-40 W avg for 100 W PEP voice).',
+      'Resistor wattage rating: derate to 50%. A 100 W resistor running at 100 W is failing.',
+    ],
+  },
+
+  'reactance': {
+    name: 'Reactance (X_L, X_C)',
+    section: '18-03',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Type', type: 'select', default: 'L',
+        choices: [['L', 'Inductive (X_L = 2πfL)'], ['C', 'Capacitive (X_C = 1/(2πfC))']] },
+      { id: 'f', label: 'Frequency f (MHz)', type: 'number', step: '0.001', default: 14.150 },
+      { id: 'L', label: 'Inductance L (µH)', type: 'number', step: '0.001', default: 5 },
+      { id: 'C', label: 'Capacitance C (pF)', type: 'number', step: '0.1', default: 50 },
+    ],
+    compute(v) {
+      const f = parseFloat(v.f) * 1e6;          // Hz
+      const L = parseFloat(v.L) * 1e-6;          // H
+      const C = parseFloat(v.C) * 1e-12;         // F
+      const X_L = 2 * Math.PI * f * L;
+      const X_C = 1 / (2 * Math.PI * f * C);
+      const X = v.mode === 'L' ? X_L : X_C;
+      const formula = v.mode === 'L' ? 'X_L = 2π · f · L' : 'X_C = 1 / (2π · f · C)';
+      return { rows: [
+        ['Formula', formula],
+        ['Result',  `${v.mode === 'L' ? 'X_L' : 'X_C'} = ${X.toFixed(2)} Ω`],
+        ['X_L (cross)', `${X_L.toFixed(2)} Ω`],
+        ['X_C (cross)', `${X_C.toFixed(2)} Ω`],
+        ['X_L − X_C (net X)', `${(X_L - X_C).toFixed(2)} Ω  (${X_L > X_C ? 'inductive' : X_L < X_C ? 'capacitive' : 'resonant'})`],
+      ]};
+    },
+    notes: [
+      'Convert MHz → Hz, µH → H, pF → F before plugging in. Calculator handles this for you.',
+      'Reactance does NOT dissipate power — only resistance does.',
+      'When X_L = X_C the circuit is resonant (see §18-05).',
+    ],
+  },
+
+  'impedance': {
+    name: 'Impedance |Z| / phase',
+    section: '18-04',
+    formula: true,
+    inputs: [
+      { id: 'R',  label: 'Resistance R (Ω)',  type: 'number', step: '0.1', default: 65 },
+      { id: 'X',  label: 'Reactance X (Ω, signed: + = ind, − = cap)', type: 'number', step: '0.1', default: 28 },
+      { id: 'Z0', label: 'Reference Z₀ (Ω)',  type: 'number', step: '1',   default: 50 },
+    ],
+    compute(v) {
+      const R = parseFloat(v.R), X = parseFloat(v.X), Z0 = parseFloat(v.Z0);
+      const magZ = Math.sqrt(R * R + X * X);
+      const phase = Math.atan2(X, R) * 180 / Math.PI;
+      // Reflection coefficient Γ
+      const num_r = R - Z0, num_i = X;
+      const den_r = R + Z0, den_i = X;
+      const den_mag2 = den_r * den_r + den_i * den_i;
+      const G_r = (num_r * den_r + num_i * den_i) / den_mag2;
+      const G_i = (num_i * den_r - num_r * den_i) / den_mag2;
+      const G_mag = Math.sqrt(G_r * G_r + G_i * G_i);
+      const G_phase = Math.atan2(G_i, G_r) * 180 / Math.PI;
+      const swr = G_mag >= 1 ? Infinity : (1 + G_mag) / (1 - G_mag);
+      return { rows: [
+        ['Z = R + jX',       `${R.toFixed(2)} + j${X.toFixed(2)} Ω`],
+        ['|Z|',              `${magZ.toFixed(2)} Ω`],
+        ['Phase ∠Z',         `${phase.toFixed(2)}°  (${X > 0 ? 'inductive' : X < 0 ? 'capacitive' : 'resistive'})`],
+        ['Reflection |Γ|',   `${G_mag.toFixed(4)}  ∠ ${G_phase.toFixed(1)}°`],
+        ['SWR (vs Z₀)',      isFinite(swr) ? swr.toFixed(2) + ':1' : '∞ (open / short)'],
+      ]};
+    },
+    notes: [
+      'X is signed: + for inductive, − for capacitive. The display tells you which.',
+      "Pure resistance (X=0) gives SWR = R/Z₀ when R > Z₀, or Z₀/R when R < Z₀.",
+      'See §18-13 for the Smith chart calc using these same Γ values.',
+    ],
+  },
+
+  'resonance': {
+    name: 'Resonant Frequency',
+    section: '18-05',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Solve for', type: 'select', default: 'f',
+        choices: [['f','f from L and C'], ['L','L from f and C'], ['C','C from f and L']] },
+      { id: 'L', label: 'Inductance L (µH)',  type: 'number', step: '0.01', default: 5 },
+      { id: 'C', label: 'Capacitance C (pF)', type: 'number', step: '1',    default: 50 },
+      { id: 'f', label: 'Frequency f (MHz)',  type: 'number', step: '0.01', default: 10.07 },
+    ],
+    compute(v) {
+      const L = parseFloat(v.L) * 1e-6;
+      const C = parseFloat(v.C) * 1e-12;
+      const f = parseFloat(v.f) * 1e6;
+      let result, formula, label;
+      if (v.mode === 'f') {
+        result = 1 / (2 * Math.PI * Math.sqrt(L * C)) / 1e6;
+        formula = 'f = 1 / (2π · √(L · C))';
+        label = 'f (MHz)';
+      } else if (v.mode === 'L') {
+        result = 1 / (4 * Math.PI * Math.PI * f * f * C) * 1e6;
+        formula = 'L = 1 / (4π² · f² · C)';
+        label = 'L (µH)';
+      } else {
+        result = 1 / (4 * Math.PI * Math.PI * f * f * L) * 1e12;
+        formula = 'C = 1 / (4π² · f² · L)';
+        label = 'C (pF)';
+      }
+      return { rows: [
+        ['Formula', formula],
+        ['Result',  `${label}: ${result.toFixed(3)}`],
+        ['Quick form (MHz · µH · pF)', 'f(MHz) = 159.15 / √(L(µH)·C(pF))'],
+      ]};
+    },
+    notes: [
+      'At resonance X_L = X_C — they cancel and the circuit is purely resistive.',
+      'High Q narrows the resonance peak; low Q broadens it (see §18-11).',
+      'Use this to size traps (§07-13) and tank circuits.',
+    ],
+  },
+
+  'wavelength': {
+    name: 'Wavelength',
+    section: '18-06',
+    formula: true,
+    inputs: [
+      { id: 'f', label: 'Frequency f (MHz)', type: 'number', step: '0.001', default: 14.150 },
+      { id: 'vf', label: 'Velocity factor (1.0 = free space)', type: 'number', step: '0.01', default: 1.0,
+        hint: 'For coax, use the cable\'s VF (RG-58 ≈ 0.66, LMR-400 ≈ 0.85, ladder line ≈ 0.91).' },
+    ],
+    compute(v) {
+      const f = parseFloat(v.f);
+      const vf = parseFloat(v.vf);
+      const lambda_m = (300 / f) * vf;
+      const lambda_ft = lambda_m / 0.3048;
+      const halfDipole_ft = (468 / f);    // empirical end-effect, free space wire
+      const quarter_ft = halfDipole_ft / 2;
+      return { rows: [
+        ['Wavelength λ',         `${lambda_m.toFixed(3)} m  (${lambda_ft.toFixed(2)} ft)`],
+        ['λ/2',                  `${(lambda_m / 2).toFixed(3)} m  (${(lambda_ft / 2).toFixed(2)} ft)`],
+        ['λ/4',                  `${(lambda_m / 4).toFixed(3)} m  (${(lambda_ft / 4).toFixed(2)} ft)`],
+        ['½-wave dipole (in air, end-effect)', `${halfDipole_ft.toFixed(2)} ft  (k=468)`],
+        ['¼-wave vertical (in air)',           `${quarter_ft.toFixed(2)} ft  (k=234)`],
+      ]};
+    },
+    notes: [
+      'Free-space λ(m) = 300 / f(MHz). For coax / ladder line, multiply by VF.',
+      'Half-wave dipole length = 468 / f(MHz) ft accounts for ~5% end-effect on thin wire.',
+      'Quarter-wave vertical = 234 / f(MHz) ft (same correction, halved).',
+    ],
+  },
+
+  'swr': {
+    name: 'SWR',
+    section: '18-07',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Compute from', type: 'select', default: 'pwr',
+        choices: [['pwr', 'Forward / reflected power'], ['z', 'Load impedance Z_L vs Z₀']] },
+      { id: 'Pf', label: 'Forward power P_f (W)', type: 'number', step: '0.1', default: 100 },
+      { id: 'Pr', label: 'Reflected power P_r (W)', type: 'number', step: '0.01', default: 4 },
+      { id: 'R',  label: 'Load R (Ω)', type: 'number', step: '0.1', default: 75 },
+      { id: 'X',  label: 'Load X (Ω, signed)', type: 'number', step: '0.1', default: 0 },
+      { id: 'Z0', label: 'Z₀ (Ω)', type: 'number', step: '1', default: 50 },
+    ],
+    compute(v) {
+      let G_mag, swr, formula;
+      if (v.mode === 'pwr') {
+        const Pf = parseFloat(v.Pf), Pr = parseFloat(v.Pr);
+        G_mag = Math.sqrt(Pr / Pf);
+        formula = '|Γ| = √(P_r / P_f);  SWR = (1 + |Γ|) / (1 − |Γ|)';
+      } else {
+        const R = parseFloat(v.R), X = parseFloat(v.X), Z0 = parseFloat(v.Z0);
+        const num_r = R - Z0, num_i = X;
+        const den_r = R + Z0, den_i = X;
+        const den_mag2 = den_r * den_r + den_i * den_i;
+        const G_r = (num_r * den_r + num_i * den_i) / den_mag2;
+        const G_i = (num_i * den_r - num_r * den_i) / den_mag2;
+        G_mag = Math.sqrt(G_r * G_r + G_i * G_i);
+        formula = 'Γ = (Z_L − Z₀)/(Z_L + Z₀);  SWR = (1 + |Γ|)/(1 − |Γ|)';
+      }
+      swr = G_mag >= 1 ? Infinity : (1 + G_mag) / (1 - G_mag);
+      // Mismatch loss in dB
+      const refPct = 100 * G_mag * G_mag;
+      const mismatchLoss = G_mag >= 1 ? Infinity : -10 * Math.log10(1 - G_mag * G_mag);
+      return { rows: [
+        ['Formula',         formula],
+        ['Reflection |Γ|',  `${G_mag.toFixed(4)}`],
+        ['SWR',             isFinite(swr) ? `${swr.toFixed(2)}:1` : '∞:1 (full reflection)'],
+        ['Reflected power', `${refPct.toFixed(1)}%`],
+        ['Mismatch loss',   isFinite(mismatchLoss) ? `${mismatchLoss.toFixed(2)} dB` : '∞'],
+      ]};
+    },
+    notes: [
+      'SWR ≤ 1.5 is excellent; ≤ 2 is good; ≤ 3 is acceptable for most rigs.',
+      'Mismatch loss column: power lost vs. power available with perfect match.',
+      'On a lossy feedline, SWR at the rig reads lower than at the antenna — the cable hides mismatch.',
+    ],
+  },
+
+  'erp': {
+    name: 'ERP / EIRP',
+    section: '18-08',
+    formula: true,
+    inputs: [
+      { id: 'P_TX',  label: 'Transmitter power P_TX (W)', type: 'number', step: '1',   default: 100 },
+      { id: 'gain',  label: 'Antenna gain',                type: 'number', step: '0.1', default: 6 },
+      { id: 'unit',  label: 'Gain reference',              type: 'select', default: 'dBd',
+        choices: [['dBd','dBd (vs dipole)'], ['dBi','dBi (vs isotropic)'], ['lin','linear ratio']] },
+      { id: 'loss',  label: 'Feedline loss (dB)',          type: 'number', step: '0.1', default: 1 },
+    ],
+    compute(v) {
+      const P = parseFloat(v.P_TX);
+      const g = parseFloat(v.gain);
+      const loss_dB = parseFloat(v.loss);
+      const G_dBi = v.unit === 'dBd' ? g + 2.15
+                  : v.unit === 'dBi' ? g
+                  :                   10 * Math.log10(g);
+      const G_dBd = G_dBi - 2.15;
+      const G_lin = Math.pow(10, G_dBi / 10);
+      const L_lin = Math.pow(10, -loss_dB / 10);
+      const EIRP = P * G_lin * L_lin;
+      const ERP  = EIRP / Math.pow(10, 2.15 / 10);
+      const EIRP_dBW = 10 * Math.log10(EIRP);
+      const EIRP_dBm = 10 * Math.log10(EIRP * 1000);
+      return { rows: [
+        ['Antenna gain',    `${G_dBi.toFixed(2)} dBi  (${G_dBd.toFixed(2)} dBd, ×${G_lin.toFixed(2)})`],
+        ['Feedline factor', `×${L_lin.toFixed(3)}  (lose ${(100 * (1 - L_lin)).toFixed(1)}%)`],
+        ['EIRP',            `${EIRP.toFixed(1)} W  (${EIRP_dBW.toFixed(1)} dBW, ${EIRP_dBm.toFixed(1)} dBm)`],
+        ['ERP (vs dipole)', `${ERP.toFixed(1)} W`],
+      ]};
+    },
+    notes: [
+      'EIRP uses dBi (isotropic) reference; ERP uses dBd (dipole). Differ by 2.15 dB.',
+      'For RF-safety / FCC compliance use EIRP — see §18-14 RF Exposure.',
+      "PEP is the peak; for averaged exposure (FCC), use average power ≈ PEP × duty cycle × mode factor.",
+    ],
+  },
+
+  'feedline-loss': {
+    name: 'Feedline Loss',
+    section: '18-09',
+    formula: true,
+    inputs: [
+      { id: 'cable', label: 'Cable type', type: 'select', default: 'lmr400',
+        choices: [
+          ['rg58',   'RG-58 (foam)'],
+          ['rg58a',  'RG-58A (PVC)'],
+          ['rg8x',   'RG-8X'],
+          ['rg213',  'RG-213 (foam)'],
+          ['lmr400', 'LMR-400'],
+          ['lmr600', 'LMR-600'],
+          ['heliax', '7/8" Heliax (LDF5-50A)'],
+        ]},
+      { id: 'len_ft', label: 'Length (ft)',     type: 'number', step: '1',    default: 100 },
+      { id: 'f',      label: 'Frequency (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'P_in',   label: 'Power into line (W)', type: 'number', step: '1', default: 100 },
+    ],
+    compute(v) {
+      // dB / 100 ft at canonical frequencies; piecewise log-interpolated for any f.
+      const TBL = {
+        rg58:   { 1.8: 0.4, 7: 0.9, 14: 1.3, 28: 1.9, 50: 2.5, 144: 4.6, 432: 8.4, 1300: 16.5 },
+        rg58a:  { 1.8: 0.5, 7: 1.1, 14: 1.6, 28: 2.4, 50: 3.3, 144: 6.0, 432: 11.4, 1300: 22.0 },
+        rg8x:   { 1.8: 0.3, 7: 0.6, 14: 0.9, 28: 1.3, 50: 1.7, 144: 3.1, 432: 5.7, 1300: 11.0 },
+        rg213:  { 1.8: 0.2, 7: 0.4, 14: 0.6, 28: 0.8, 50: 1.1, 144: 1.9, 432: 3.4, 1300: 6.8 },
+        lmr400: { 1.8: 0.1, 7: 0.3, 14: 0.4, 28: 0.6, 50: 0.8, 144: 1.4, 432: 2.6, 1300: 4.8 },
+        lmr600: { 1.8: 0.1, 7: 0.2, 14: 0.3, 28: 0.4, 50: 0.5, 144: 0.9, 432: 1.7, 1300: 3.2 },
+        heliax: { 1.8: 0.05, 7: 0.1, 14: 0.15, 28: 0.2, 50: 0.3, 144: 0.5, 432: 1.0, 1300: 1.9 },
+      };
+      const row = TBL[v.cable] || TBL.lmr400;
+      const f = parseFloat(v.f);
+      const keys = Object.keys(row).map(Number).sort((a, b) => a - b);
+      // log-interpolate between bracketing entries
+      let dbPer100;
+      if (f <= keys[0]) dbPer100 = row[keys[0]];
+      else if (f >= keys[keys.length - 1]) dbPer100 = row[keys[keys.length - 1]];
+      else {
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (f >= keys[i] && f <= keys[i + 1]) {
+            const lo = keys[i], hi = keys[i + 1];
+            const lr = Math.log10(lo), hr = Math.log10(hi), fr = Math.log10(f);
+            const t = (fr - lr) / (hr - lr);
+            dbPer100 = row[lo] + t * (row[hi] - row[lo]);
+            break;
+          }
+        }
+      }
+      const len_ft = parseFloat(v.len_ft);
+      const lossDb = dbPer100 * len_ft / 100;
+      const factor = Math.pow(10, -lossDb / 10);
+      const P_in = parseFloat(v.P_in);
+      const P_out = P_in * factor;
+      const P_lost = P_in - P_out;
+      return { rows: [
+        ['Cable loss spec', `${dbPer100.toFixed(2)} dB / 100 ft @ ${f.toFixed(2)} MHz`],
+        ['Total loss',      `${lossDb.toFixed(2)} dB`],
+        ['Power factor',    `×${factor.toFixed(3)}  (${(factor * 100).toFixed(1)}% delivered)`],
+        ['Power delivered', `${P_out.toFixed(1)} W`],
+        ['Power lost',      `${P_lost.toFixed(1)} W (heats the cable)`],
+      ]};
+    },
+    notes: [
+      'Loss roughly doubles when frequency quadruples — VHF needs better cable than HF.',
+      "Mismatch on a lossy line ADDS to matched loss; see §18-07 SWR for the penalty calc.",
+      'Cable specs vary slightly by manufacturer; this calculator uses canonical values.',
+    ],
+  },
+
+  'decibels': {
+    name: 'Decibels',
+    section: '18-10',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Convert', type: 'select', default: 'lin2db',
+        choices: [
+          ['lin2db', 'Linear ratio → dB (power)'],
+          ['db2lin', 'dB → linear ratio (power)'],
+          ['lin2db_v', 'Voltage ratio → dB'],
+          ['watt2dbm','Watts → dBm'],
+          ['dbm2watt','dBm → Watts'],
+        ]},
+      { id: 'val',  label: 'Input value', type: 'number', step: 'any', default: 100 },
+    ],
+    compute(v) {
+      const x = parseFloat(v.val);
+      let result, formula, unit;
+      if (v.mode === 'lin2db')   { result = 10 * Math.log10(x);             formula = 'dB = 10 · log₁₀(P₂/P₁)'; unit = 'dB'; }
+      else if (v.mode === 'db2lin') { result = Math.pow(10, x / 10);         formula = 'ratio = 10^(dB/10)';      unit = '×';  }
+      else if (v.mode === 'lin2db_v') { result = 20 * Math.log10(x);          formula = 'dB = 20 · log₁₀(V₂/V₁)'; unit = 'dB'; }
+      else if (v.mode === 'watt2dbm') { result = 10 * Math.log10(x * 1000);   formula = 'dBm = 10 · log₁₀(W·1000)'; unit = 'dBm'; }
+      else                            { result = Math.pow(10, x / 10) / 1000; formula = 'W = 10^(dBm/10) / 1000';   unit = 'W';  }
+      return { rows: [
+        ['Formula', formula],
+        ['Result',  `${result.toFixed(3)} ${unit}`],
+        ['Reference', '0 dBm = 1 mW; 30 dBm = 1 W; 60 dBm = 1 kW; +3 dB ≈ ×2; +10 dB = ×10'],
+      ]};
+    },
+    notes: [
+      'Power: 10·log; voltage / current at same impedance: 20·log.',
+      'dBm reference is 1 mW; dBW reference is 1 W. Differ by 30 dB.',
+      'Quick mental: 3 dB = ×2; 10 dB = ×10; combine these for any dB.',
+    ],
+  },
+
+  'q-factor': {
+    name: 'Q Factor',
+    section: '18-11',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Compute from', type: 'select', default: 'XR',
+        choices: [['XR', 'X / R at resonance'], ['fbw', 'f / Δf₃dB']] },
+      { id: 'X',  label: 'Reactance X (Ω at resonance)', type: 'number', step: '1', default: 314 },
+      { id: 'R',  label: 'Loss resistance R (Ω)', type: 'number', step: '0.1', default: 1 },
+      { id: 'f',  label: 'Center frequency f (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'bw', label: '3-dB bandwidth Δf (kHz)', type: 'number', step: '1', default: 35 },
+    ],
+    compute(v) {
+      let Q, formula;
+      if (v.mode === 'XR') {
+        Q = parseFloat(v.X) / parseFloat(v.R);
+        formula = 'Q = X / R';
+      } else {
+        Q = (parseFloat(v.f) * 1000) / parseFloat(v.bw);
+        formula = 'Q = f / Δf₃dB';
+      }
+      const f = parseFloat(v.f);
+      const bw = (f * 1000) / Q;
+      return { rows: [
+        ['Formula', formula],
+        ['Q',       Q.toFixed(1)],
+        ['Implied 3-dB bandwidth', `${bw.toFixed(1)} kHz @ ${f.toFixed(2)} MHz`],
+        ['Voltage rise factor at resonance (V_C / V_in)', `Q = ${Q.toFixed(1)}× (in series LC)`],
+      ]};
+    },
+    notes: [
+      'High Q (>200) = sharp resonance, narrow bandwidth, low loss.',
+      'Q ≈ 100 typical for L/C tank circuits; ≈ 400-500 for mag loops; ≈ 10,000 for crystals.',
+      "Voltage across the cap at resonance is Q × input voltage — sizes the cap's voltage rating.",
+    ],
+  },
+
+  'bandwidth': {
+    name: 'Bandwidth',
+    section: '18-12',
+    formula: true,
+    inputs: [
+      { id: 'f',  label: 'Center frequency f (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'Q',  label: 'Q factor',                  type: 'number', step: '1',    default: 200 },
+    ],
+    compute(v) {
+      const f = parseFloat(v.f);
+      const Q = parseFloat(v.Q);
+      const bw_kHz = (f * 1000) / Q;
+      const bw_pct = 100 / Q;
+      return { rows: [
+        ['Formula',          'BW = f / Q'],
+        ['3-dB bandwidth',   `${bw_kHz.toFixed(2)} kHz  (${bw_pct.toFixed(2)}% of f)`],
+        ['Approximate SWR-2:1 BW (single-tuned antenna)', `${(bw_kHz * 1.41).toFixed(1)} kHz`],
+      ]};
+    },
+    notes: [
+      'Q = 100 antenna at 14 MHz → ~140 kHz BW; Q = 400 mag loop → ~35 kHz BW.',
+      'SWR-2:1 antenna BW is approximately √2 × the 3-dB BW.',
+      'CW filter BW typically 250-500 Hz; SSB filter 2.4-3 kHz; AM 6 kHz; FM 12.5-25 kHz.',
+    ],
+  },
+
+  'smith-chart': {
+    name: 'Smith Chart (Γ ↔ Z)',
+    section: '18-13',
+    formula: true,
+    inputs: [
+      { id: 'mode', label: 'Direction', type: 'select', default: 'z2g',
+        choices: [['z2g', 'Z → Γ'], ['g2z', 'Γ → Z']] },
+      { id: 'R',  label: 'R (Ω)', type: 'number', step: '0.1', default: 75 },
+      { id: 'X',  label: 'X (Ω, signed)', type: 'number', step: '0.1', default: 0 },
+      { id: 'Z0', label: 'Z₀ (Ω)', type: 'number', step: '1', default: 50 },
+      { id: 'Gmag',   label: '|Γ|',      type: 'number', step: '0.001', default: 0.2 },
+      { id: 'Gphase', label: '∠Γ (deg)', type: 'number', step: '1',     default: 0 },
+    ],
+    compute(v) {
+      const Z0 = parseFloat(v.Z0);
+      if (v.mode === 'z2g') {
+        const R = parseFloat(v.R), X = parseFloat(v.X);
+        const num_r = R - Z0, num_i = X;
+        const den_r = R + Z0, den_i = X;
+        const den_mag2 = den_r * den_r + den_i * den_i;
+        const G_r = (num_r * den_r + num_i * den_i) / den_mag2;
+        const G_i = (num_i * den_r - num_r * den_i) / den_mag2;
+        const G_mag = Math.sqrt(G_r * G_r + G_i * G_i);
+        const G_phase = Math.atan2(G_i, G_r) * 180 / Math.PI;
+        const swr = G_mag >= 1 ? Infinity : (1 + G_mag) / (1 - G_mag);
+        return { rows: [
+          ['Formula',         'Γ = (Z − Z₀) / (Z + Z₀)'],
+          ['z (normalized Z)', `${(R / Z0).toFixed(3)} + j${(X / Z0).toFixed(3)}`],
+          ['|Γ|',             `${G_mag.toFixed(4)}`],
+          ['∠Γ',              `${G_phase.toFixed(1)}°`],
+          ['Γ (rect)',        `${G_r.toFixed(4)} + j${G_i.toFixed(4)}`],
+          ['SWR',             isFinite(swr) ? `${swr.toFixed(2)}:1` : '∞:1'],
+        ]};
+      } else {
+        const Gmag = parseFloat(v.Gmag);
+        const Gphase = parseFloat(v.Gphase) * Math.PI / 180;
+        const G_r = Gmag * Math.cos(Gphase);
+        const G_i = Gmag * Math.sin(Gphase);
+        // z = (1 + Γ) / (1 − Γ); Z = z × Z₀
+        const num_r = 1 + G_r, num_i = G_i;
+        const den_r = 1 - G_r, den_i = -G_i;
+        const den_mag2 = den_r * den_r + den_i * den_i;
+        const z_r = (num_r * den_r + num_i * den_i) / den_mag2;
+        const z_i = (num_i * den_r - num_r * den_i) / den_mag2;
+        const Z_r = z_r * Z0;
+        const Z_i = z_i * Z0;
+        const swr = Gmag >= 1 ? Infinity : (1 + Gmag) / (1 - Gmag);
+        return { rows: [
+          ['Formula',         'z = (1 + Γ) / (1 − Γ);  Z = z × Z₀'],
+          ['z (normalized)',  `${z_r.toFixed(3)} + j${z_i.toFixed(3)}`],
+          ['Z',               `${Z_r.toFixed(2)} + j${Z_i.toFixed(2)} Ω`],
+          ['SWR',             isFinite(swr) ? `${swr.toFixed(2)}:1` : '∞:1'],
+        ]};
+      }
+    },
+    notes: [
+      'Smith chart is a polar plot of Γ. Center = perfect match (Γ=0).',
+      'Normalized impedance z = Z/Z₀. Plot at the intersection of constant-r and constant-x circles.',
+      'Half-wavelength of lossless line rotates 360° around the chart; quarter-wave rotates 180°.',
+    ],
+  },
+
+  'rf-exposure': {
+    name: 'RF Exposure',
+    section: '18-14',
+    formula: true,
+    inputs: [
+      { id: 'P_PEP', label: 'Transmitter PEP (W)', type: 'number', step: '1', default: 100 },
+      { id: 'mode',  label: 'Mode',                 type: 'select', default: 'ssb',
+        choices: [
+          ['ssb',     'SSB voice (k_avg ≈ 0.20)'],
+          ['am',      'AM voice (k_avg ≈ 0.50)'],
+          ['fm',      'FM voice (k_avg = 1.0)'],
+          ['cw',      'CW (k_avg ≈ 0.40)'],
+          ['ft8',     'FT8/FT4/RTTY (k_avg = 1.0)'],
+          ['psk31',   'PSK31 (k_avg ≈ 0.5)'],
+        ]},
+      { id: 'D',     label: 'TX duty cycle (0..1)', type: 'number', step: '0.05', default: 0.5,
+        hint: 'Fraction of TX time during a 6-min uncontrolled / 30-min controlled window.' },
+      { id: 'L_dB',  label: 'Feedline loss (dB)',   type: 'number', step: '0.1', default: 1 },
+      { id: 'G_dBi', label: 'Antenna gain (dBi)',   type: 'number', step: '0.1', default: 8.15 },
+      { id: 'd_m',   label: 'Distance to evaluation point (m)', type: 'number', step: '0.1', default: 5 },
+      { id: 'f',     label: 'Frequency (MHz)',      type: 'number', step: '0.01', default: 14.15 },
+      { id: 'env',   label: 'Environment',          type: 'select', default: 'uncontrolled',
+        choices: [['uncontrolled', 'Uncontrolled (public, neighbors)'], ['controlled', 'Controlled (operator and family)']] },
+    ],
+    compute(v) {
+      const P_PEP = parseFloat(v.P_PEP);
+      const D     = parseFloat(v.D);
+      const L_dB  = parseFloat(v.L_dB);
+      const G_dBi = parseFloat(v.G_dBi);
+      const d     = parseFloat(v.d_m);
+      const f     = parseFloat(v.f);
+      const k_avg_map = { ssb: 0.20, am: 0.50, fm: 1.0, cw: 0.40, ft8: 1.0, psk31: 0.5 };
+      const k_avg = k_avg_map[v.mode] ?? 1.0;
+      const P_avg = P_PEP * k_avg * D;
+      const P_ant = P_avg * Math.pow(10, -L_dB / 10);
+      const EIRP  = P_ant * Math.pow(10, G_dBi / 10);
+      // Power density with 4× ground-reflection enhancement (FCC worst case)
+      const S_worst = EIRP / (Math.PI * d * d);
+      // S_MPE table (W/m²) per FCC §1.1310
+      let S_MPE;
+      if (v.env === 'uncontrolled') {
+        if      (f >= 0.3 && f <= 3.0)    S_MPE = Math.min(100, 100 / (f * f));
+        else if (f > 3.0 && f <= 30)      S_MPE = 180 / (f * f);
+        else if (f > 30 && f <= 300)      S_MPE = 0.2;
+        else if (f > 300 && f <= 1500)    S_MPE = 0.0067 * f;
+        else                              S_MPE = 1.0;
+      } else {
+        if      (f >= 0.3 && f <= 3.0)    S_MPE = 100;
+        else if (f > 3.0 && f <= 30)      S_MPE = 900 / (f * f);
+        else if (f > 30 && f <= 300)      S_MPE = 1.0;
+        else if (f > 300 && f <= 1500)    S_MPE = 0.0335 * f;
+        else                              S_MPE = 5.0;
+      }
+      const compliant = S_worst <= S_MPE;
+      const margin = (S_MPE / S_worst);
+      return { rows: [
+        ['Average power factor (mode × duty)',  `${(k_avg * D).toFixed(3)} × ${P_PEP} W`],
+        ['Avg power into feedline',              `${P_avg.toFixed(1)} W`],
+        ['Power at antenna (after feedline)',    `${P_ant.toFixed(1)} W`],
+        ['EIRP',                                  `${EIRP.toFixed(1)} W (${(10 * Math.log10(EIRP)).toFixed(1)} dBW)`],
+        ['Power density at d (4× ground reflection)', `${S_worst.toFixed(3)} W/m²`],
+        [`MPE limit (${v.env})`,                 `${S_MPE.toFixed(3)} W/m²`],
+        ['Compliance',                            compliant ? `✅ COMPLIANT (margin ${margin.toFixed(2)}×)` : `❌ EXCEEDS MPE (over by ${(1 / margin).toFixed(2)}×)`],
+      ]};
+    },
+    notes: [
+      'Average power = PEP × mode-factor × duty. SSB voice averages ~10–20% of PEP.',
+      'EIRP not ERP. Convert dBd → dBi by adding 2.15 if your antenna spec is in dBd.',
+      "FCC averages over 6 min uncontrolled / 30 min controlled.",
+      'Failed scenarios: reduce power, reduce duty cycle, increase distance, or aim antenna away.',
+    ],
+  },
 };
 
 function awCalcRenderList() {
@@ -4911,11 +5563,11 @@ function awCalcRenderList() {
   const calcKeys = Object.keys(AW_CALCS);
   const antennaIds = AW_ANTENNAS.map(a => a.id);
 
-  // Antenna calcs follow the AW_ANTENNAS order so the list reads in the
-  // same sequence as the chapter sections.
-  const antennaCalcs = antennaIds.filter(id => calcKeys.includes(id));
-  const remaining    = antennaIds.filter(id => !calcKeys.includes(id));
+  // Antenna calcs follow AW_ANTENNAS order so the list mirrors the chapter sections.
+  const antennaCalcs   = antennaIds.filter(id => calcKeys.includes(id));
+  const remaining      = antennaIds.filter(id => !calcKeys.includes(id));
   const componentCalcs = calcKeys.filter(id => AW_CALCS[id].component);
+  const formulaCalcs   = calcKeys.filter(id => AW_CALCS[id].formula);
 
   let html = `<div class="aw-calc-list-divider">Antennas</div>` +
     antennaCalcs.map(id => `
@@ -4927,6 +5579,15 @@ function awCalcRenderList() {
   if (componentCalcs.length) {
     html += `<div class="aw-calc-list-divider">Components</div>` +
       componentCalcs.map(id => `
+        <div class="aw-calc-list-item" onclick="awCalcOpen('${id}')">
+          <div class="aw-calc-list-name">${escHtml(AW_CALCS[id].name)}</div>
+          <div class="aw-calc-list-section">§${AW_CALCS[id].section}</div>
+        </div>`).join('');
+  }
+
+  if (formulaCalcs.length) {
+    html += `<div class="aw-calc-list-divider">Formulas</div>` +
+      formulaCalcs.map(id => `
         <div class="aw-calc-list-item" onclick="awCalcOpen('${id}')">
           <div class="aw-calc-list-name">${escHtml(AW_CALCS[id].name)}</div>
           <div class="aw-calc-list-section">§${AW_CALCS[id].section}</div>
