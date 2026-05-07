@@ -139,18 +139,22 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 
 | id    | title                                                 | path                                                          | level    |
 |-------|-------------------------------------------------------|---------------------------------------------------------------|----------|
-| 08-00 | Antenna Calculator — Overview                         | 08-antenna-calc/08-00-overview.md                             | simple   |
-| 08-01 | Dipole Length                                         | 08-antenna-calc/08-01-dipole-length.md                        | simple   |
-| 08-02 | Inverted-V Correction                                 | 08-antenna-calc/08-02-inverted-v-correction.md                | simple   |
-| 08-03 | Vertical Quarter-Wave                                 | 08-antenna-calc/08-03-vertical-quarter-wave.md                | simple   |
-| 08-04 | EFHW Length                                           | 08-antenna-calc/08-04-efhw-length.md                          | simple   |
-| 08-05 | Loop Circumference                                    | 08-antenna-calc/08-05-loop-circumference.md                   | simple   |
-| 08-06 | Magnetic Loop Capacitor                               | 08-antenna-calc/08-06-mag-loop-capacitor.md                   | advanced |
-| 08-07 | Rhombic Dimensions                                    | 08-antenna-calc/08-07-rhombic-dimensions.md                   | advanced |
-| 08-08 | Trap Design                                           | 08-antenna-calc/08-08-trap-design.md                          | advanced |
-| 08-09 | Trimming Tables                                       | 08-antenna-calc/08-09-trimming-tables.md                      | simple   |
-| 08-10 | Velocity Factor                                       | 08-antenna-calc/08-10-velocity-factor.md                      | mixed    |
-| 08-11 | Test Equipment (NanoVNA, Analyzers, Dip Meters, SWR, FS Meters) | 08-antenna-calc/08-11-test-equipment.md             | mixed    |
+| 08-00 | Antenna Workshop — Overview                           | 08-antenna-calc/08-00-overview.md                             | simple   |
+| 08-01 | Antenna Recommender (Questionnaire)                   | 08-antenna-calc/08-01-recommender.md                          | simple   |
+| 08-02 | Flat Dipole                                           | 08-antenna-calc/08-02-flat-dipole.md                          | simple   |
+| 08-03 | Inverted-V Dipole                                     | 08-antenna-calc/08-03-inverted-v-dipole.md                    | simple   |
+| 08-04 | Fan Dipole                                            | 08-antenna-calc/08-04-fan-dipole.md                           | mixed    |
+| 08-05 | Trapped Dipole                                        | 08-antenna-calc/08-05-trapped-dipole.md                       | mixed    |
+| 08-06 | OCF Dipole (Windom)                                   | 08-antenna-calc/08-06-ocf-dipole.md                           | mixed    |
+| 08-07 | EFHW (No Traps)                                       | 08-antenna-calc/08-07-efhw-no-traps.md                        | mixed    |
+| 08-08 | EFHW (Trapped)                                        | 08-antenna-calc/08-08-efhw-trapped.md                         | mixed    |
+| 08-09 | J-Pole                                                | 08-antenna-calc/08-09-j-pole.md                               | simple   |
+| 08-10 | Yagi-Uda                                              | 08-antenna-calc/08-10-yagi-uda.md                             | mixed    |
+| 08-11 | Vertical Antennas                                     | 08-antenna-calc/08-11-vertical.md                             | mixed    |
+| 08-12 | Loading for Shortened Antennas                        | 08-antenna-calc/08-12-loading-coils.md                        | mixed    |
+| 08-13 | Trap Design & Manufacturing                           | 08-antenna-calc/08-13-trap-design.md                          | advanced |
+| 08-14 | Magnetic Loop                                         | 08-antenna-calc/08-14-magnetic-loop.md                        | advanced |
+| 08-15 | NanoVNA Trim Workflow                                 | 08-antenna-calc/08-15-nanovna-trim.md                         | simple   |
 | 09-00 | Feedline & SWR — Overview                             | 09-feedline-swr/09-00-overview.md                             | simple   |
 | 09-01 | Coax Loss by Frequency                                | 09-feedline-swr/09-01-coax-loss-by-frequency.md               | mixed    |
 | 09-02 | SWR & Reflected Power                                 | 09-feedline-swr/09-02-swr-reflected-power.md                  | mixed    |
