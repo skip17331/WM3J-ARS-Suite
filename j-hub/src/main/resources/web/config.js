@@ -1378,8 +1378,9 @@ function renderLearnContent(md) {
   document.getElementById('jl-viewer').scrollTop = 0;
 }
 
-// Per-chapter banner shown above the rendered markdown. Currently used
-// only by chapter 03 (Morse code) to surface the standalone trainer app.
+// Per-chapter banner shown above the rendered markdown. Used by:
+//   §03 (Morse code)        → launches the standalone trainer JavaFX app
+//   §08 (Antenna Workshop)  → opens the matching calculator panel in J-Hub
 function renderLearnBanner(id) {
   if (!id) return '';
   if (id.startsWith('03-')) {
@@ -1394,7 +1395,62 @@ function renderLearnBanner(id) {
          + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
          + '</div>';
   }
+  if (id.startsWith('08-')) {
+    // Map J-Learn section id → Antenna Workshop calc id (must match keys in AW_CALCS)
+    const calcId = ({
+      '08-02': 'flat-dipole',
+      '08-03': 'inverted-v',
+      '08-04': 'fan-dipole',
+      '08-05': 'trapped-dipole',
+      '08-06': 'ocf-dipole',
+      '08-07': 'efhw-no-traps',
+      '08-08': 'efhw-trapped',
+      '08-09': 'j-pole',
+      '08-10': 'yagi',
+      '08-11': 'vertical',
+      '08-12': 'loading-coil',
+      '08-13': 'trap-design',
+      '08-14': 'mag-loop',
+    })[id];
+    const buttonHtml = calcId
+      ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
+      : '<button class="action-btn primary" onclick="openAntennaWorkshop()">▶ Open Workshop</button>';
+    return '<div style="margin:0 0 14px 0;padding:10px 14px;border-left:3px solid var(--mauve);'
+         + 'background:rgba(203,166,247,0.08);border-radius:4px;display:flex;align-items:center;'
+         + 'gap:12px;font-size:13px">'
+         + '<span style="font-size:18px">📡</span>'
+         + '<div style="flex:1">'
+         + '<div style="font-weight:600;color:var(--text)">Antenna Workshop</div>'
+         + '<div style="color:var(--subtext0);font-size:12px">' + (calcId
+            ? 'Run this antenna\'s calculator with live inputs and outputs in the J-Hub Antenna Workshop tab.'
+            : 'Pick an antenna or component calculator, or run the recommender wizard to find what fits your QTH.')
+         + '</div>'
+         + '</div>'
+         + buttonHtml
+         + '</div>';
+  }
   return '';
+}
+
+function openAntennaWorkshop() {
+  const btn = document.querySelector('[data-tab=antworkshop]');
+  if (btn) btn.click();
+}
+
+function openAntennaCalc(calcId) {
+  openAntennaWorkshop();
+  // Switch the workshop subnav to "Calculators" if not already, then open the panel.
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('.aw-tab');
+    if (tabs.length >= 2) {
+      tabs.forEach(t => t.classList.remove('active'));
+      tabs[1].classList.add('active');
+      document.getElementById('aw-recommender').style.display = 'none';
+      document.getElementById('aw-calculators').style.display = '';
+      if (typeof awCalcRenderList === 'function' && !aw.calc.listRendered) awCalcRenderList();
+      if (typeof awCalcOpen === 'function') awCalcOpen(calcId);
+    }
+  }, 50);
 }
 
 function launchMorseTrainer(btn) {
