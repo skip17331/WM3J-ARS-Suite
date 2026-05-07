@@ -1758,6 +1758,10 @@ function loadJMapSettings() {
     .then(r => r.json())
     .then(s => populateJMapForm(s))
     .catch(() => {});
+  // Replace the placeholder hostname in the "remote J-Map" snippet with
+  // whatever the browser used to reach J-Hub. Works for IP, .local, FQDN.
+  const hint = document.getElementById('jmap-hub-host-hint');
+  if (hint) hint.textContent = location.hostname || 'your-shack-pc.local';
 }
 
 function populateJMapForm(s) {
