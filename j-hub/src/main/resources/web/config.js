@@ -3174,6 +3174,117 @@ function renderDeps(d) {
 // ───── Inventory tab ────────────────────────────────────────
 state.inventory = { items: [], types: [], contacts: [] };
 
+// Per-type guidance shown in the Add Item modal.
+// Keyed by type *name* (case-insensitive) so we don't depend on DB ids.
+const INV_TYPE_HINTS = {
+  'radio':       "For radios: Manufacturer/Model are obvious; Serial # is critical for warranty/recall lookup. Capture firmware version in Notes if you track that.",
+  'transceiver': "For radios: Manufacturer/Model are obvious; Serial # is critical for warranty/recall lookup. Capture firmware version in Notes if you track that.",
+  'amplifier':   "For amplifiers: record tube/transistor type and any matching tuners or power supplies in Notes. Estimated value is volatile — vintage tube amps especially.",
+  'antenna':     "For antennas: Model = the design (e.g. 'Hex Beam' or 'EFHW 80-10'); record band coverage and feedline length in Notes. Photograph it during a spring inspection.",
+  'tuner':       "For tuners: note manual vs auto, max power, and which radio it's paired with. Internal tuners in modern rigs don't need their own entry.",
+  'coax run':    "For coax runs: Model = type + length, e.g. 'LMR-400 / 75 ft'. Date Acquired = installation date (sets the 7–15 yr replacement clock — see §16-04).",
+  'coax':        "For coax runs: Model = type + length, e.g. 'LMR-400 / 75 ft'. Date Acquired = installation date (sets the 7–15 yr replacement clock — see §16-04).",
+  'feedline':    "For coax runs: Model = type + length, e.g. 'LMR-400 / 75 ft'. Date Acquired = installation date (sets the 7–15 yr replacement clock — see §16-04).",
+  'accessory':   "For accessories (mics, keys, headphones, meters): Manufacturer/Model + a note about which radio they're typically used with.",
+  'computer':    "For computers / SDRs: capture OS, key software (WSJT-X version, JS8Call version) in Notes — useful when reproducing setups.",
+  'tower':       "For towers: model and section count (Rohn 25G ×6, etc.); Notes should include guy material, anchor type, install date. See §16-05.",
+  'rotator':     "For rotators: capture controller model separately if cabled. Note maintenance history (last lube date) in Notes.",
+  'handheld':    "For HTs: include the battery type and any spare batteries / chargers in Notes. Serial # is on the battery contact area or under the battery.",
+  'receiver':    "For receivers: serial # location varies by manufacturer. Note any specialty mods (filters, IF taps) in Notes.",
+  'battery':     "For batteries: Notes should include AH rating, install date, and last capacity test (see §16-01). Replace at ~80% of original capacity.",
+  'balun':       "For baluns / ununs: ratio (1:1, 4:1, 9:1) and power rating in Notes; identify which antenna it serves.",
+  'antenna switch': "For antenna switches: number of ports and which antennas are on which ports in Notes; record any rotator or sequencer bridging.",
+  'power supply':"For power supplies: max current, rig(s) it powers, and whether it's 1-row or rack-mounted (helps the estate handoff describe what to look for).",
+  'tool':        "For tools (NanoVNA, antenna analyzer, soldering iron): brand+model usually enough. Date Acquired matters for warranty.",
+  'test equipment': "For test gear: include calibration date or last self-cal in Notes. Some test gear loses value rapidly when it goes out of cal.",
+  'book':        "For books / reference: edition / year important. ARRL Handbook editions vary in worth. Notes for autographs / dedications.",
+};
+
+function inventoryTypeHint(typeName) {
+  if (!typeName) return null;
+  const key = String(typeName).toLowerCase().trim();
+  if (INV_TYPE_HINTS[key]) return INV_TYPE_HINTS[key];
+  // partial match — try longer keys first so "antenna switch" beats "antenna".
+  const sortedKeys = Object.keys(INV_TYPE_HINTS).sort((a, b) => b.length - a.length);
+  for (const k of sortedKeys) {
+    if (key.startsWith(k) || key.includes(k)) return INV_TYPE_HINTS[k];
+  }
+  return null;
+}
+
+function updateTypeHint() {
+  const sel = document.getElementById('inv-item-type');
+  const banner = document.getElementById('inv-type-hint');
+  const text = document.getElementById('inv-type-hint-text');
+  if (!sel || !banner || !text) return;
+  const typeId = parseInt(sel.value, 10);
+  const t = state.inventory.types.find(x => x.id === typeId);
+  const hint = inventoryTypeHint(t && t.name);
+  if (hint) {
+    text.textContent = ' ' + hint;
+    banner.classList.add('active');
+  } else {
+    banner.classList.remove('active');
+  }
+}
+
+// Show/hide the Getting-Started panel; persist user's choice.
+function toggleInventoryHelp() {
+  const body = document.getElementById('inv-help-body');
+  const btn  = document.getElementById('inv-help-toggle');
+  if (!body || !btn) return;
+  const hidden = body.style.display === 'none';
+  body.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? 'Hide' : 'Show';
+  try { localStorage.setItem('jhub.inv.help.hidden', hidden ? '0' : '1'); } catch (e) {}
+}
+
+function applyInventoryHelpPref() {
+  let hidden = false;
+  try { hidden = localStorage.getItem('jhub.inv.help.hidden') === '1'; } catch (e) {}
+  if (hidden) {
+    const body = document.getElementById('inv-help-body');
+    const btn  = document.getElementById('inv-help-toggle');
+    if (body) body.style.display = 'none';
+    if (btn)  btn.textContent = 'Show';
+  }
+}
+
+// Switch to the J-Learn tab and open a specific section.
+function openLearnFromInventory(id) {
+  const tab = document.querySelector('[data-tab=learn]');
+  if (tab) tab.click();
+  if (typeof openLearnSection === 'function') openLearnSection(id);
+}
+
+// Inventory completeness pills (shown under the stats line).
+function renderInventoryHealth() {
+  const el = document.getElementById('inv-health');
+  if (!el) return;
+  const items = state.inventory.items || [];
+  if (items.length === 0) { el.innerHTML = ''; return; }
+  const noSerial = items.filter(it => !it.serial_number || !String(it.serial_number).trim()).length;
+  const noValue  = items.filter(it => it.estimated_value == null || it.estimated_value === '').length;
+  const noDate   = items.filter(it => !it.date_acquired).length;
+  const repair   = items.filter(it => it.disposition === 'repairable').length;
+  const broken   = items.filter(it => it.disposition === 'not_repairable').length;
+  const pills = [];
+  pills.push(`<span class="pill">${items.length} item${items.length === 1 ? '' : 's'}</span>`);
+  if (noSerial)
+    pills.push(`<span class="pill ${noSerial > items.length / 2 ? 'bad' : 'warn'}">${noSerial} missing serial #</span>`);
+  if (noValue)
+    pills.push(`<span class="pill ${noValue > items.length / 2 ? 'bad' : 'warn'}">${noValue} missing value</span>`);
+  if (noDate)
+    pills.push(`<span class="pill warn">${noDate} missing date</span>`);
+  if (repair)
+    pills.push(`<span class="pill warn">${repair} repairable</span>`);
+  if (broken)
+    pills.push(`<span class="pill bad">${broken} not repairable</span>`);
+  if (noSerial === 0 && noValue === 0 && noDate === 0)
+    pills.push(`<span class="pill good">✓ all fields populated</span>`);
+  el.innerHTML = pills.join('');
+}
+
 function loadInventoryAll() {
   Promise.all([
     fetch('/api/inventory/types').then(r => r.json()),
@@ -3186,6 +3297,7 @@ function loadInventoryAll() {
     populateTypeSelectors();
     renderInventoryTable();
     renderContactsTable();
+    applyInventoryHelpPref();
   }).catch(err => console.error('inventory load failed', err));
 }
 
@@ -3234,6 +3346,7 @@ function renderInventoryTable() {
       + ` ·  Estimated value: $${totalValue.toFixed(2)}`
       + ` ·  Original cost: $${totalCost.toFixed(2)}`;
   }
+  renderInventoryHealth();
 
   if (items.length === 0) {
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--subtext0);padding:20px">'
@@ -3325,6 +3438,7 @@ function openItemModal(id) {
       d.toISOString().slice(0, 10);
   }
   toggleStorageLocation();
+  updateTypeHint();
   modal.style.display = 'flex';
 }
 

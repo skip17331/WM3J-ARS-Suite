@@ -718,7 +718,49 @@
     <!-- ─── Tab: Inventory ──────────────────────────────── -->
     <section id="tab-inventory" class="tab-panel">
       <div class="panel-header">Shack Inventory</div>
-      <div class="panel-sub">Track radios, antennas, accessories, and more. Backed by SQLite at <code>~/.j-hub/inventory.db</code>. The data here feeds the estate handoff document (J-Learn §19).</div>
+      <div class="panel-sub">Track radios, antennas, accessories, coax runs, and accessories. Backed by SQLite at <code>~/.j-hub/inventory.db</code>. Feeds the estate handoff (J-Learn §15) and your insurance / theft claim list. See J-Learn §14 for what to track and how often.</div>
+
+      <!-- Getting Started / Help panel -->
+      <div id="inv-help" class="inv-help-panel">
+        <div class="inv-help-panel-header">
+          <span class="title">📋 Getting started with your inventory</span>
+          <button class="toggle" onclick="toggleInventoryHelp()" id="inv-help-toggle">Hide</button>
+        </div>
+        <div id="inv-help-body">
+          <div class="inv-help-why">
+            Why bother? An up-to-date inventory matters in four scenarios:
+            <ul>
+              <li><b>Insurance / theft</b> — claims need a list with serial numbers and values.</li>
+              <li><b>Estate / SK handoff</b> — your family needs to know what you have, what it's worth, and who would buy it.</li>
+              <li><b>Sale or upgrade</b> — purchase prices and dates set realistic asking prices.</li>
+              <li><b>Recall / firmware</b> — serial numbers let you check whether a recall affects you.</li>
+            </ul>
+          </div>
+          <div class="inv-help-steps">
+            <div class="inv-help-step">
+              <div><span class="num">1</span><span class="label">Add equipment</span></div>
+              <div class="desc">Click <b>+ Add Item</b> for each radio, antenna, coax run, tuner, accessory. Type and a name are enough to start; details can come later.</div>
+            </div>
+            <div class="inv-help-step">
+              <div><span class="num">2</span><span class="label">Capture serials &amp; values</span></div>
+              <div class="desc">Once items exist, edit each one to add serial number, purchase date, and estimated value. Serial numbers are the single most-asked-for field on insurance claims.</div>
+            </div>
+            <div class="inv-help-step">
+              <div><span class="num">3</span><span class="label">Add first-call contacts</span></div>
+              <div class="desc">List the friends, club leaders, and dealers your family should phone first. Priority sets the call order — lower number = called first.</div>
+            </div>
+            <div class="inv-help-step">
+              <div><span class="num">4</span><span class="label">Refresh annually</span></div>
+              <div class="desc">Spring inspection (J-Learn §16-03) is a good time to walk the shack and reconcile the inventory with what's actually here.</div>
+            </div>
+          </div>
+          <div class="inv-help-links">
+            Reference: <a onclick="openLearnFromInventory('14-00')">§14 Shack Inventory</a> ·
+            <a onclick="openLearnFromInventory('15-00')">§15 Estate / SK</a> ·
+            <a onclick="openLearnFromInventory('16-03')">§16-03 Scheduled Inspections</a>
+          </div>
+        </div>
+      </div>
 
       <!-- Equipment items card -->
       <div class="card">
@@ -743,6 +785,7 @@
           <button class="action-btn" onclick="exportInventoryCsv()">Export CSV</button>
         </div>
         <div id="inv-stats" class="inv-stats"></div>
+        <div id="inv-health" class="inv-health"></div>
         <div style="overflow:auto;max-height:55vh">
           <table class="inv-table">
             <thead>
@@ -767,7 +810,7 @@
       <!-- First-call contacts card -->
       <div class="card" style="margin-top:14px">
         <div class="card-title">First-Call Contacts</div>
-        <div style="font-size:12px;color:var(--subtext0);margin:6px 0">Friends, club leaders, dealers — listed in priority order (lower priority number = called first). This is the list your family will follow in the estate handoff.</div>
+        <div style="font-size:12px;color:var(--subtext0);margin:6px 0">Friends, club leaders, and dealers your family should phone first if you're no longer here. Listed in priority order (lower number = called first). The estate handoff document (J-Learn §15-03) prints this list along with the equipment table.</div>
         <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
           <span style="flex:1"></span>
           <button class="action-btn" onclick="openContactModal()">+ Add Contact</button>
@@ -797,26 +840,38 @@
           <h3 id="inv-item-modal-title" style="margin:0 0 12px 0">Add Item</h3>
           <form id="inv-item-form" onsubmit="saveItem(event)">
             <input type="hidden" id="inv-item-id">
+            <div id="inv-type-hint" class="inv-type-hint"><span class="label">Tip:</span><span id="inv-type-hint-text"></span></div>
             <div class="inv-form-grid">
-              <label>Type *<select id="inv-item-type" required></select></label>
+              <label>Type *<select id="inv-item-type" required onchange="updateTypeHint()"></select>
+                <span class="help">What this item is, structurally.</span></label>
               <label>Disposition<select id="inv-item-disposition">
                 <option value="working">Working</option>
                 <option value="repairable">Repairable</option>
                 <option value="not_repairable">Not Repairable</option>
-              </select></label>
-              <label>Manufacturer<input id="inv-item-manufacturer" placeholder="Icom, Yaesu, DX Engineering, …"></label>
-              <label>Model<input id="inv-item-model" placeholder="IC-7610, FT-991A, MBVE-5, …"></label>
-              <label>Serial #<input id="inv-item-serial" placeholder="(critical for high-value items)"></label>
-              <label>Date Acquired<input type="date" id="inv-item-date"></label>
-              <label>Purchase Price ($)<input type="number" step="0.01" id="inv-item-price"></label>
-              <label>Estimated Value ($)<input type="number" step="0.01" id="inv-item-value"></label>
+              </select>
+                <span class="help">Working = on-air now. Repairable = needs work. Not repairable = donor / parts only.</span></label>
+              <label>Manufacturer<input id="inv-item-manufacturer" placeholder="Icom, Yaesu, DX Engineering, …">
+                <span class="help">The maker. Helpful for recall and warranty searches.</span></label>
+              <label>Model<input id="inv-item-model" placeholder="IC-7610, FT-991A, MBVE-5, …">
+                <span class="help">Model number / name. For coax runs use type+length, e.g. "LMR-400 / 75 ft".</span></label>
+              <label>Serial #<input id="inv-item-serial" placeholder="(critical for high-value items)">
+                <span class="help">Insurance and recalls need this. Photograph it; tape one to the inside of the rig too.</span></label>
+              <label>Date Acquired<input type="date" id="inv-item-date">
+                <span class="help">When you got it (new or used). Sets the depreciation baseline.</span></label>
+              <label>Purchase Price ($)<input type="number" step="0.01" id="inv-item-price">
+                <span class="help">What you paid. Used for capital-loss accounting if you sell.</span></label>
+              <label>Estimated Value ($)<input type="number" step="0.01" id="inv-item-value">
+                <span class="help">Realistic resale today. Check eHam classifieds or QRZ swap for comps.</span></label>
               <label>Install Status<select id="inv-item-install" onchange="toggleStorageLocation()">
                 <option value="installed">Installed</option>
                 <option value="storage">Boxed in Storage</option>
-              </select></label>
-              <label id="inv-item-storage-row">Storage Location<input id="inv-item-storage" placeholder="e.g., basement shelf 3"></label>
+              </select>
+                <span class="help">"Installed" = wired into the station. "Storage" = boxed and not in use.</span></label>
+              <label id="inv-item-storage-row">Storage Location<input id="inv-item-storage" placeholder="e.g., basement shelf 3">
+                <span class="help">Where to find it. Specific enough that someone unfamiliar with your shack could locate it.</span></label>
             </div>
-            <label style="display:block;margin-top:10px">Notes<textarea id="inv-item-notes" rows="3" style="width:100%;resize:vertical" placeholder="Where it's used, accessories included, history, anything else…"></textarea></label>
+            <label style="display:block;margin-top:10px">Notes<textarea id="inv-item-notes" rows="3" style="width:100%;resize:vertical" placeholder="Where it's used, accessories included, history, anything else…"></textarea>
+              <span class="help">Free text. Good place to record: which antenna a radio is wired to; what cables / mics are bundled with it; any quirks ("PTT button is finicky"); insurance notes.</span></label>
             <div class="inv-form-buttons">
               <button type="button" class="action-btn" onclick="closeItemModal()">Cancel</button>
               <button type="submit" class="action-btn primary">Save</button>
@@ -832,15 +887,23 @@
           <form id="inv-contact-form" onsubmit="saveContact(event)">
             <input type="hidden" id="inv-contact-id">
             <div class="inv-form-grid">
-              <label>Name *<input id="inv-contact-name" required></label>
-              <label>Callsign<input id="inv-contact-callsign"></label>
-              <label>Phone<input id="inv-contact-phone"></label>
-              <label>Email<input id="inv-contact-email" type="email"></label>
-              <label>Relationship<input id="inv-contact-relationship" placeholder="friend, club president, dealer, family"></label>
-              <label>Priority<input type="number" id="inv-contact-priority" value="100" min="1" placeholder="Lower = called first"></label>
+              <label>Name *<input id="inv-contact-name" required>
+                <span class="help">Full name your family will recognize.</span></label>
+              <label>Callsign<input id="inv-contact-callsign">
+                <span class="help">Their amateur callsign (if any).</span></label>
+              <label>Phone<input id="inv-contact-phone">
+                <span class="help">Best number to reach them at.</span></label>
+              <label>Email<input id="inv-contact-email" type="email">
+                <span class="help">Backup contact method.</span></label>
+              <label>Relationship<input id="inv-contact-relationship" placeholder="friend, club president, dealer, family">
+                <span class="help">How your family knows them: club role, dealer, family friend, etc.</span></label>
+              <label>Priority<input type="number" id="inv-contact-priority" value="100" min="1" placeholder="Lower = called first">
+                <span class="help">Sort order. 1 = call first; 100 = default. Use this to put closest friends / executor at the top.</span></label>
             </div>
-            <label style="display:block;margin-top:10px">Items they wanted<textarea id="inv-contact-items" rows="2" style="width:100%;resize:vertical" placeholder="Specific items the friend mentioned. E.g., 'Asked about my SB-220 last year — said he'd be interested if I sold it.'"></textarea></label>
-            <label style="display:block;margin-top:10px">Notes<textarea id="inv-contact-notes" rows="2" style="width:100%;resize:vertical"></textarea></label>
+            <label style="display:block;margin-top:10px">Items they wanted<textarea id="inv-contact-items" rows="2" style="width:100%;resize:vertical" placeholder="Specific items the friend mentioned. E.g., 'Asked about my SB-220 last year — said he'd be interested if I sold it.'"></textarea>
+              <span class="help">If they ever expressed interest in a specific piece, capture it here. Helps your family match equipment to buyers.</span></label>
+            <label style="display:block;margin-top:10px">Notes<textarea id="inv-contact-notes" rows="2" style="width:100%;resize:vertical"></textarea>
+              <span class="help">Anything else useful: best time to call, special instructions, etc.</span></label>
             <div class="inv-form-buttons">
               <button type="button" class="action-btn" onclick="closeContactModal()">Cancel</button>
               <button type="submit" class="action-btn primary">Save</button>
