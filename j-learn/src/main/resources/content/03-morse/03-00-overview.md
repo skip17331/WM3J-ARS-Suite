@@ -55,13 +55,28 @@ To **operate** once you've learned:
 
 A reasonable starter setup: any HF rig + a $30 paddle + a wire antenna. Total under $400 used.
 
-## A note on the J-Learn position on training
+## The bundled Morse Code Trainer
 
-J-Learn does not include a built-in Morse trainer (yet — see roadmap notes for the planned **J-Train** module). For the foreseeable future, this chapter teaches **method** and points at external trainers that work, rather than trying to be one. The trainers below are all free (or close to it) and very good:
+The ARS Suite ships with a standalone **Morse Code Trainer** (JavaFX desktop app). Click **▶ Launch Trainer** at the top of any §03 page to start it, or run `morse-trainer/run.sh` directly.
+
+What's in it:
+
+- **Letter Trainer** — Koch-method progression with per-character feedback.
+- **Letter Group Trainer** — random 2–5 character groups with per-character accuracy stats.
+- **QSO Simulator** — realistic CW exchanges across three difficulty levels (Training / Casual / Contest).
+- **Sending Trainer** — decodes your keying in real time, scores it, and reports per-character timing diagnostics.
+- **Hardware-keyer support** — works with the keyboard out of the box; optional Arduino USB keyer or Raspberry Pi Zero wireless keyer (full BOM and wiring diagram in `morse-trainer/hardware/README.md`).
+- **Session export** — every session writes a JSON snapshot under `~/morse-trainer/logs/` for tracking progress over time.
+
+Audio is generated locally (Java Sound), so it works completely offline.
+
+### Other trainers worth knowing about
+
+The bundled trainer covers the day-to-day practice loop. These external resources still complement it:
 
 - **LCWO** — `lcwo.net` — Fabian DJ1YFK's web-based trainer. Tracks your progress, gradually introduces characters via Koch method, runs realistic QSOs.
 - **G4FON Koch trainer** — Windows desktop app. Long the standard for serious CW students.
-- **Morse Mania** — iOS/Android. Convenient for short practice sessions.
+- **Morse Mania** — iOS/Android. Convenient for short practice sessions on a phone.
 - **CW Academy** — `cwops.org` — free instructor-led classes from CWops, the international CW operators' club. Highly recommended.
 
 ## See also

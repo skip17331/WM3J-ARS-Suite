@@ -1373,8 +1373,49 @@ function renderLearnContent(md) {
     return;
   }
   const advanced = document.getElementById('jl-advanced')?.checked;
-  document.getElementById('jl-viewer').innerHTML = mdToHtml(stripFrontMatter(md), advanced);
+  const banner = renderLearnBanner(state.jlearn.currentId);
+  document.getElementById('jl-viewer').innerHTML = banner + mdToHtml(stripFrontMatter(md), advanced);
   document.getElementById('jl-viewer').scrollTop = 0;
+}
+
+// Per-chapter banner shown above the rendered markdown. Currently used
+// only by chapter 03 (Morse code) to surface the standalone trainer app.
+function renderLearnBanner(id) {
+  if (!id) return '';
+  if (id.startsWith('03-')) {
+    return '<div style="margin:0 0 14px 0;padding:10px 14px;border-left:3px solid var(--mauve);'
+         + 'background:rgba(203,166,247,0.08);border-radius:4px;display:flex;align-items:center;'
+         + 'gap:12px;font-size:13px">'
+         + '<span style="font-size:18px">🎧</span>'
+         + '<div style="flex:1">'
+         + '<div style="font-weight:600;color:var(--text)">Morse Code Trainer</div>'
+         + '<div style="color:var(--subtext0);font-size:12px">Standalone JavaFX practice app: letter/group/QSO drills, real-time decoder, optional Arduino or Pi Zero keyer.</div>'
+         + '</div>'
+         + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
+         + '</div>';
+  }
+  return '';
+}
+
+function launchMorseTrainer(btn) {
+  const original = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Launching…'; }
+  fetch('/api/morsetrainer/launch', { method: 'POST' })
+    .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+    .then(({ ok, body }) => {
+      if (btn) {
+        btn.textContent = ok ? '✓ Launched' : '✗ Failed';
+        if (!ok && body && body.error) console.error('morse-trainer launch:', body.error);
+        setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 2500);
+      }
+    })
+    .catch(e => {
+      if (btn) {
+        btn.textContent = '✗ Failed';
+        console.error('morse-trainer launch:', e);
+        setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 2500);
+      }
+    });
 }
 
 function stripFrontMatter(md) {

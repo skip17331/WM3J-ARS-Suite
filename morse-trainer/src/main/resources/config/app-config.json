@@ -1,0 +1,23 @@
+{
+  "toneFrequencyHz": 650,
+  "sampleRateHz": 44100,
+  "toneVolume": 0.7,
+  "rampMillis": 5,
+  "wpm": 18,
+  "farnsworthWpm": 18,
+  "ditDahThresholdRatio": 2.0,
+  "charGapThresholdRatio": 2.5,
+  "wordGapThresholdRatio": 6.0,
+  "adaptiveDecoder": true,
+  "arduinoSerialPort": "",
+  "arduinoBaudRate": 115200,
+  "pizeroUdpPort": 51234,
+  "pizeroBleCharacteristic": "",
+  "kochOrder": "KMURESNAPTLWI.JZ=FOY,VG5/Q92H38B?47C1D6X-0",
+  "defaultKochLevel": 2,
+  "letterSessionCount": 50,
+  "groupMinSize": 2,
+  "groupMaxSize": 5,
+  "sessionLogDir": "logs",
+  "autoExportSessions": true
+}

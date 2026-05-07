@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <style>
+    .board { fill: #1f2937; stroke: #111827; stroke-width: 1.5; }
+    .pin   { fill: #fbbf24; stroke: #92400e; }
+    .pin-label { fill: #f3f4f6; font-size: 11px; font-weight: 600; text-anchor: middle; }
+    .wire  { fill: none; stroke: #ef4444; stroke-width: 2.5; }
+    .wire-gnd { fill: none; stroke: #1f2937; stroke-width: 2.5; }
+    .wire-dah { fill: none; stroke: #3b82f6; stroke-width: 2.5; }
+    .key   { fill: #e5e7eb; stroke: #1f2937; stroke-width: 1.5; }
+    .lever { fill: #6b7280; stroke: #1f2937; stroke-width: 1; }
+    .title { font-size: 16px; font-weight: 700; fill: #111827; }
+    .label { fill: #374151; font-size: 12px; }
+    .legend-text { font-size: 11px; fill: #374151; }
+  </style>
+
+  <!-- Title -->
+  <text x="360" y="28" class="title" text-anchor="middle">Morse Trainer Keyer — Wiring</text>
+
+  <!-- ============================ STRAIGHT KEY (LEFT) ============================ -->
+  <text x="170" y="60" class="title" text-anchor="middle">Straight Key</text>
+
+  <!-- Board (left) -->
+  <rect x="50" y="100" width="240" height="120" rx="6" class="board"/>
+  <text x="170" y="130" fill="#f3f4f6" font-size="13" font-weight="700" text-anchor="middle">Arduino / Pi Zero</text>
+
+  <!-- Pins -->
+  <circle cx="100" cy="180" r="8" class="pin"/>
+  <text x="100" y="184" class="pin-label">D2</text>
+  <text x="100" y="210" class="label" text-anchor="middle">(GPIO 17 on Pi)</text>
+
+  <circle cx="240" cy="180" r="8" class="pin"/>
+  <text x="240" y="184" class="pin-label">GND</text>
+
+  <!-- Straight key -->
+  <rect x="120" y="290" width="100" height="50" rx="4" class="key"/>
+  <text x="170" y="320" text-anchor="middle" class="label">Straight Key</text>
+
+  <!-- Wires straight key -->
+  <path class="wire"     d="M 100 188 V 270 H 140 V 290"/>
+  <path class="wire-gnd" d="M 240 188 V 270 H 200 V 290"/>
+
+  <!-- Pin labels at key -->
+  <text x="135" y="362" class="label" text-anchor="middle">tip</text>
+  <text x="205" y="362" class="label" text-anchor="middle">sleeve</text>
+
+  <!-- ============================ PADDLE (RIGHT) ============================ -->
+  <text x="540" y="60" class="title" text-anchor="middle">Iambic Paddle</text>
+
+  <!-- Board (right) -->
+  <rect x="420" y="100" width="240" height="120" rx="6" class="board"/>
+  <text x="540" y="130" fill="#f3f4f6" font-size="13" font-weight="700" text-anchor="middle">Arduino / Pi Zero</text>
+
+  <!-- Pins -->
+  <circle cx="450" cy="180" r="8" class="pin"/>
+  <text x="450" y="184" class="pin-label">D2</text>
+  <text x="450" y="210" class="label" text-anchor="middle">dit (GPIO 17)</text>
+
+  <circle cx="540" cy="180" r="8" class="pin"/>
+  <text x="540" y="184" class="pin-label">D3</text>
+  <text x="540" y="210" class="label" text-anchor="middle">dah (GPIO 27)</text>
+
+  <circle cx="630" cy="180" r="8" class="pin"/>
+  <text x="630" y="184" class="pin-label">GND</text>
+
+  <!-- Paddle base -->
+  <rect x="470" y="320" width="140" height="40" rx="4" class="key"/>
+  <text x="540" y="378" text-anchor="middle" class="label">Iambic Paddle</text>
+
+  <!-- Paddle levers -->
+  <rect x="478" y="290" width="14" height="40" class="lever"/>
+  <rect x="588" y="290" width="14" height="40" class="lever"/>
+  <text x="485" y="285" class="label" text-anchor="middle" font-size="10">dit</text>
+  <text x="595" y="285" class="label" text-anchor="middle" font-size="10">dah</text>
+
+  <!-- Wires paddle -->
+  <path class="wire"     d="M 450 188 V 250 H 485 V 290"/>
+  <path class="wire-dah" d="M 540 188 V 270 H 595 V 290"/>
+  <path class="wire-gnd" d="M 630 188 V 250 H 540 V 320"/>
+
+  <!-- ============================ LEGEND ============================ -->
+  <g transform="translate(50, 410)">
+    <line x1="0" y1="0" x2="20" y2="0" class="wire"/>
+    <text x="28" y="4" class="legend-text">dit / straight key</text>
+
+    <line x1="140" y1="0" x2="160" y2="0" class="wire-dah"/>
+    <text x="168" y="4" class="legend-text">dah</text>
+
+    <line x1="220" y1="0" x2="240" y2="0" class="wire-gnd"/>
+    <text x="248" y="4" class="legend-text">ground (common)</text>
+
+    <text x="380" y="4" class="legend-text" font-style="italic">
+      INPUT_PULLUP enabled → no external resistors needed.
+    </text>
+  </g>
+</svg>

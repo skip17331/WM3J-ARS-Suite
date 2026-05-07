@@ -1,0 +1,5 @@
+/home/mike/ARS_Suite/morse-trainer/src/test/java/com/morsetrainer/analytics/AnalyticsTest.java
+/home/mike/ARS_Suite/morse-trainer/src/test/java/com/morsetrainer/decoder/MorseCodeTest.java
+/home/mike/ARS_Suite/morse-trainer/src/test/java/com/morsetrainer/decoder/TimingDecoderTest.java
+/home/mike/ARS_Suite/morse-trainer/src/test/java/com/morsetrainer/hardware/arduino/ArduinoKeyerParserTest.java
+/home/mike/ARS_Suite/morse-trainer/src/test/java/com/morsetrainer/trainer/TrainerModulesTest.java

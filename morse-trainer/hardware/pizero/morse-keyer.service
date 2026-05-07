@@ -1,0 +1,15 @@
+[Unit]
+Description=Morse Trainer Wireless Keyer (Pi Zero)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Edit --host to match the laptop running the Morse Trainer desktop app.
+# Edit --port to match `pizeroUdpPort` in app-config.json (default 51234).
+ExecStart=/usr/bin/python3 /home/pi/morse-trainer/hardware/pizero/keyer.py --host 192.168.1.10 --port 51234
+Restart=always
+RestartSec=2
+User=pi
+
+[Install]
+WantedBy=multi-user.target

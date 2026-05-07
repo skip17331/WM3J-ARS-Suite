@@ -84,6 +84,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
         ctx.addServlet(new ServletHolder(new JLearnApiServlet()),    "/api/jlearn/*");
         ctx.addServlet(new ServletHolder(new InventoryApiServlet()), "/api/inventory/*");
+        ctx.addServlet(new ServletHolder(new MorseTrainerLaunchServlet()), "/api/morsetrainer/*");
         ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
         ctx.addServlet(new ServletHolder(new UploadersApiServlet()), "/api/uploaders/*");
         ctx.addServlet(new ServletHolder(new CredentialsApiServlet()), "/api/credentials/*");
@@ -2225,6 +2226,61 @@ public class WebConfigServer {
         }
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/morsetrainer — launches the standalone morse-trainer JavaFX app.
+    //
+    //   POST /api/morsetrainer/launch   → spawn morse-trainer/run.sh detached
+    // ---------------------------------------------------------------
+
+    private static class MorseTrainerLaunchServlet extends HttpServlet {
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if (!"/launch".equals(path)) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown morsetrainer endpoint\"}");
+                return;
+            }
+            java.nio.file.Path script = locateRunScript();
+            if (script == null) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"morse-trainer/run.sh not found near working dir\"}");
+                return;
+            }
+            try {
+                ProcessBuilder pb = new ProcessBuilder("bash", script.toString())
+                        .directory(script.getParent().toFile())
+                        .redirectErrorStream(true)
+                        .redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                pb.start();
+                json(res, "{\"status\":\"launched\",\"path\":" +
+                        ConfigManager.gson().toJson(script.toString()) + "}");
+            } catch (IOException e) {
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                json(res, "{\"error\":" + ConfigManager.gson().toJson(e.getMessage()) + "}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+
+        /**
+         * Walk up from user.dir looking for a sibling morse-trainer/run.sh.
+         * Stops after a few levels so it can't run away on a misconfigured host.
+         */
+        private static java.nio.file.Path locateRunScript() {
+            java.nio.file.Path here = java.nio.file.Paths.get(System.getProperty("user.dir"));
+            for (int i = 0; i < 4 && here != null; i++, here = here.getParent()) {
+                java.nio.file.Path candidate = here.resolve("morse-trainer").resolve("run.sh");
+                if (java.nio.file.Files.isRegularFile(candidate)) return candidate;
+                java.nio.file.Path sibling = here.resolveSibling("morse-trainer").resolve("run.sh");
+                if (java.nio.file.Files.isRegularFile(sibling)) return sibling;
+            }
+            return null;
         }
     }
 

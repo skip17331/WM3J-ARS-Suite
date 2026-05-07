@@ -1,0 +1,5 @@
+com/morsetrainer/trainer/TrainerModulesTest.class
+com/morsetrainer/decoder/MorseCodeTest.class
+com/morsetrainer/analytics/AnalyticsTest.class
+com/morsetrainer/decoder/TimingDecoderTest.class
+com/morsetrainer/hardware/arduino/ArduinoKeyerParserTest.class
