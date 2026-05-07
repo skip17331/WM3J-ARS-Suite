@@ -83,6 +83,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 02-06 | Duplexers                                          | 02-repeaters-bandplans/02-06-duplexers.md                       | advanced |
 | 02-07 | Frequency Coordination                             | 02-repeaters-bandplans/02-07-frequency-coordination.md          | simple   |
 | 02-08 | Custom Offset Calculator                           | 02-repeaters-bandplans/02-08-custom-offset-calc.md              | simple   |
+| 02-09 | Where to Find Repeater Frequencies                 | 02-repeaters-bandplans/02-09-finding-repeaters.md               | simple   |
 | 03-00 | Morse — Overview                                   | 03-morse/03-00-overview.md                                      | simple   |
 | 03-01 | Koch Method                                        | 03-morse/03-01-koch-method.md                                   | simple   |
 | 03-02 | Farnsworth Spacing                                 | 03-morse/03-02-farnsworth-spacing.md                            | simple   |
@@ -109,6 +110,8 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 04-13 | Ground-Plane Effects                               | 04-antennas/04-13-ground-plane-effects.md                       | mixed    |
 | 04-14 | Modeling Concepts                                  | 04-antennas/04-14-modeling-concepts.md                          | advanced |
 | 04-15 | Radiation Patterns                                 | 04-antennas/04-15-radiation-patterns.md                         | mixed    |
+| 04-16 | Polarization                                       | 04-antennas/04-16-polarization.md                               | mixed    |
+| 04-17 | Diversity                                          | 04-antennas/04-17-diversity.md                                  | mixed    |
 | 05-00 | Satellites — Overview                              | 05-satellites/05-00-overview.md                                 | simple   |
 | 05-01 | FM vs Linear                                       | 05-satellites/05-01-fm-vs-linear.md                             | simple   |
 | 05-02 | Doppler Shift                                      | 05-satellites/05-02-doppler-shift.md                            | mixed    |
@@ -249,6 +252,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 18-12 | Bandwidth                                | 18-formulas/18-12-bandwidth.md              | mixed    |
 | 18-13 | Smith Chart Basics                       | 18-formulas/18-13-smith-chart-basics.md     | advanced |
 | 18-14 | RF Exposure         | 18-formulas/18-14-rf-exposure.md     | mixed    |
+| 18-15 | Cheat Sheet         | 18-formulas/18-15-cheat-sheet.md     | simple   |
 | 19-00 | Coax & Connectors — Overview             | 19-coax-connectors/19-00-overview.md                | simple   |
 | 19-01 | Coax Types                               | 19-coax-connectors/19-01-coax-types.md              | simple   |
 | 19-02 | Loss Tables                              | 19-coax-connectors/19-02-loss-tables.md             | mixed    |
