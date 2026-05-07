@@ -803,6 +803,41 @@
       </div>
 
       <div class="card">
+        <div class="card-title">Reverse Beacon Network <span style="font-size:12px;color:var(--subtext0);font-weight:normal">(parallel skimmer-fed feed)</span></div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:10px">
+          When enabled, J-Hub maintains a second telnet session to
+          <code>telnet.reversebeacon.net:7000</code>. Skimmer-decoded spots flow
+          through the same SPOT broadcast as cluster spots and show up in J-Map and
+          J-Log automatically (tagged <code>source:"RBN"</code> for distinct rendering).
+          Bands and modes here filter the RBN stream only — the regular cluster filter
+          above still controls operator-spotted feeds.
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" id="rbn-enabled">
+          <span>Enable RBN feed</span>
+        </label>
+        <div class="field-row cols-2" style="margin-top:8px">
+          <div class="field"><input type="text"   id="rbn-server" placeholder="telnet.reversebeacon.net"><label>Server</label></div>
+          <div class="field"><input type="number" id="rbn-port"   placeholder="7000"><label>Port</label></div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field"><input type="text"   id="rbn-login" placeholder="(falls back to station call)"><label>Login Callsign</label></div>
+          <div class="field"><input type="number" id="rbn-snr"   placeholder="5" min="-10" max="50"><label>Min SNR (dB)</label></div>
+        </div>
+        <div class="section-title">Bands</div>
+        <div class="filter-grid" id="rbn-band-filters"></div>
+        <div class="section-title" style="margin-top:8px">Modes</div>
+        <div class="filter-grid" id="rbn-mode-filters"></div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveRbn()">Save &amp; Restart RBN</button>
+          <span style="font-size:12px;color:var(--overlay0);margin-left:8px">
+            Status: <span class="dot gray" id="rbn-dot"></span> <span id="rbn-status-txt">disabled</span>
+          </span>
+          <span id="rbn-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Recent Spots</div>
         <div class="spot-preview-wrap">
           <table class="spot-table">

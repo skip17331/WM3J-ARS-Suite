@@ -21,6 +21,7 @@ public class JHubConfig {
     public AmpSection         amp             = new AmpSection();
     public AntennaSection     antenna         = new AntennaSection();
     public ClusterSection     cluster         = new ClusterSection();
+    public RbnSection         rbn             = new RbnSection();
     public LoggerSection      logger          = new LoggerSection();
     public InfoScreenSection  infoScreen      = new InfoScreenSection();
     public AppsSection        apps            = new AppsSection();
@@ -188,6 +189,20 @@ public class JHubConfig {
     public static class ClusterFilters {
         public Set<String> bands = new HashSet<>(Arrays.asList("160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"));
         public Set<String> modes = new HashSet<>(Arrays.asList("SSB","CW","FT8","FT4","RTTY","PSK31","JS8"));
+    }
+
+    // ---------------------------------------------------------------
+    // Reverse Beacon Network — parallel skimmer-fed spot stream
+    // ---------------------------------------------------------------
+
+    public static class RbnSection {
+        public boolean enabled       = false;
+        public String  server        = "telnet.reversebeacon.net";
+        public int     port          = 7000;
+        public String  loginCallsign = "";       // falls back to station callsign if blank
+        public Set<String> bands     = new HashSet<>(Arrays.asList("160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"));
+        public Set<String> modes     = new HashSet<>(Arrays.asList("CW","FT8","FT4","RTTY","PSK31"));
+        public int     minSnrDb      = 5;        // drop weak skimmer reports below this
     }
 
     // ---------------------------------------------------------------

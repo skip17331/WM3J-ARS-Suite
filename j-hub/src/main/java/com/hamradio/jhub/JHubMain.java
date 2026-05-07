@@ -136,6 +136,13 @@ public class JHubMain extends Application {
             log.info("Cluster autoConnect disabled — use Web Config UI to connect");
         }
 
+        // 7b. Reverse Beacon Network — parallel skimmer-fed spot stream.
+        // Publishes via the same MessageRouter.publishSpot path; J-Map and
+        // J-Log pick them up automatically (source = "RBN" tag for UI).
+        RbnClient rbn = RbnClient.getInstance();
+        rbn.setRouter(router);
+        rbn.start();
+
         // 8. UDP discovery beacon so apps can auto-connect
         jHubDiscovery = new JHubDiscovery();
         jHubDiscovery.start();

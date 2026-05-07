@@ -1300,6 +1300,47 @@ function pollAntennaStatus() {
   }).catch(() => {});
 }
 
+// ── Reverse Beacon Network feed ───────────────────────────
+function loadRbn() {
+  fetch('/api/rbn').then(r => r.json()).then(d => {
+    const cfg = d.config || {};
+    setChk('rbn-enabled', !!cfg.enabled);
+    setVal('rbn-server',  cfg.server || 'telnet.reversebeacon.net');
+    setVal('rbn-port',    cfg.port   || 7000);
+    setVal('rbn-login',   cfg.loginCallsign || '');
+    setVal('rbn-snr',     cfg.minSnrDb != null ? cfg.minSnrDb : 5);
+    buildFilterChips('rbn-band-filters',
+      ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
+      Array.from(cfg.bands || []));
+    buildFilterChips('rbn-mode-filters',
+      ['CW','SSB','FT8','FT4','RTTY','PSK31','JS8'],
+      Array.from(cfg.modes || []));
+    const dot = document.getElementById('rbn-dot');
+    const txt = document.getElementById('rbn-status-txt');
+    if (dot) dot.className = 'dot ' + (d.connected ? 'green' : (d.running ? 'yellow' : 'gray'));
+    if (txt) txt.textContent = d.connected ? 'connected'
+                            : d.running   ? 'reconnecting…'
+                            :               (cfg.enabled ? 'enabled, not connected' : 'disabled');
+  }).catch(() => {});
+}
+
+function saveRbn() {
+  const body = {
+    enabled:       document.getElementById('rbn-enabled').checked,
+    server:        document.getElementById('rbn-server').value.trim() || 'telnet.reversebeacon.net',
+    port:          parseInt(document.getElementById('rbn-port').value) || 7000,
+    loginCallsign: document.getElementById('rbn-login').value.toUpperCase().trim(),
+    minSnrDb:      parseInt(document.getElementById('rbn-snr').value),
+    bands:         getCheckedChips('rbn-band-filters'),
+    modes:         getCheckedChips('rbn-mode-filters'),
+  };
+  if (isNaN(body.minSnrDb)) body.minSnrDb = 5;
+  fetch('/api/rbn', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => { flashMsg('rbn-msg', 'Saved'); setTimeout(loadRbn, 1500); })
+    .catch(() => flashMsg('rbn-msg', 'Error', true));
+}
+
 function saveCluster() {
   const host  = document.getElementById('cl-host').value.trim();
   const port  = parseInt(document.getElementById('cl-port').value)||7373;
@@ -2537,6 +2578,8 @@ loadConfig();
 loadMacros();
 loadAmp();
 loadAntenna();
+loadRbn();
+setInterval(loadRbn, 10000);
 loadJMapSettings();
 loadJLogSettings();
 loadJDigiSettings();
