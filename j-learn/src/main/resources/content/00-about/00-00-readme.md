@@ -24,11 +24,11 @@ J-Learn assumes **you have a license**. It's not a Technician / General / Extra 
 
 ## What's in it
 
-Twenty-three chapters organized into four loose clusters:
+Twenty-four chapters organized into four loose clusters:
 
 | Cluster | Chapters | What it covers |
 |---------|---------|----------------|
-| **Operating fundamentals** | 01 Propagation · 02 Repeaters & Bandplans · 03 Morse · 20 Band Plans · 21 Digital Modes · 22 Emergency Comms | The day-to-day "how to operate" cluster. Where signals go, where to put yours, how to send / decode each mode, regulations |
+| **Operating fundamentals** | 01 Propagation · 02 Repeaters & Bandplans · 03 Morse · 20 Band Plans · 21 Digital Modes · 22 Emergency Comms · 23 Operating Practice | The day-to-day "how to operate" cluster. Where signals go, where to put yours, how to send / decode each mode, regulations, on-air etiquette |
 | **Antennas & RF** | 04 Antennas · 05 Satellites · 06 RF Safety · 07 Antenna Workshop · 08 Feedline & SWR · 09 Power Budget · 18 Coax & Connectors | Antenna theory, antenna designs and calculators, feedline behavior, RF exposure |
 | **Troubleshooting** | 10 High SWR · 11 Station Troubleshooting · 12 RFI · 13 Noise Sources (household + power-line) · 16 Maintenance | When things break, why, and what to do about it |
 | **Station management & reference** | 14 Shack Inventory · 15 Estate / SK · 17 Formulas · 19 Q-Codes & Prosigns | Tracking your station, planning for transition, the math behind everything |

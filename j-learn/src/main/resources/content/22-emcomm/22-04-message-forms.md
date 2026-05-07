@@ -159,6 +159,107 @@ REPLY:
 
 NTS radiograms are for **outside-incident** communication (family notifications, business messages). ICS-213 is for **inside-incident** coordination.
 
+## Prowords used in formal traffic
+
+Prowords ("procedure words") are short conventional phrases that mean specific things during voice traffic. Using them consistently keeps copy clean.
+
+| Proword | Meaning |
+|---------|---------|
+| **OVER** | I have finished transmitting; expecting a reply |
+| **OUT** | This conversation is finished; no reply expected (never use OVER OUT — pick one) |
+| **ROGER** | I received and understood your last transmission |
+| **WILCO** | I will comply (implies ROGER) |
+| **AFFIRMATIVE** | Yes |
+| **NEGATIVE** | No |
+| **BREAK** | Separator between segments of one message |
+| **BREAK BREAK BREAK** | Interrupting an ongoing exchange (urgent) |
+| **CORRECTION** | I made a mistake; the correct word is what follows |
+| **DISREGARD** | Cancel my last transmission |
+| **I SPELL** | The next group is spelled phonetically |
+| **FIGURES** | The next group is numerals |
+| **MIXED GROUP** | The next group has mixed letters and numerals |
+| **INITIALS** | The next group is single letters |
+| **READ BACK** | Repeat my entire transmission verbatim |
+| **I SAY AGAIN** | I am repeating my own transmission |
+| **SAY AGAIN** | Please repeat your transmission |
+| **SAY AGAIN ALL AFTER X** | Please repeat from the word X to the end |
+| **SAY AGAIN ALL BEFORE X** | Please repeat from the start to the word X |
+| **SAY AGAIN WORD AFTER X** | Just the one word that came after X |
+| **SAY AGAIN WORD BEFORE X** | Just the one word that came before X |
+| **THIS IS** | The next callsign or designator is the transmitting station |
+| **WAIT** | Stand by; I am pausing |
+| **WAIT OUT** | Pausing for an extended time; I'll call you back |
+
+These same prowords appear in military, maritime, and aviation radio practice — they're the lingua franca of formal voice radio.
+
+### When to use I SPELL
+
+Any time clarity matters: proper names, addresses, unusual words, addresses, callsigns. Pattern:
+
+```
+"The name is Smith. I spell. Sierra Mike India Tango Hotel. Smith. Over."
+```
+
+The proword **I SPELL** announces the phonetic spelling. The word is repeated after the spelling so the receiver can verify.
+
+### When to use FIGURES
+
+Numerals always:
+
+```
+"Phone is figures five five five one two three four. Over."
+```
+
+Prevents confusion between "five-oh" and "fifty," "one" and "won," etc.
+
+## A fully-phoneticized worked example
+
+Sending the radiogram from earlier on voice. The proper-procedure transmission:
+
+```
+WM3J:  "W1ABC this is WM3J. I have one routine for you. Over."
+W1ABC: "WM3J this is W1ABC. Roger, ready to copy. Over."
+WM3J:  "Number figures four seven, routine, WM3J, check figures
+        one six, Stafford Virginia, time figures one four three
+        zero zulu, November figures one five. Break.
+        John Smith. I spell. Juliet Oscar Hotel November
+        Sierra Mike India Tango Hotel. Smith. Break.
+        Figures one two three Main Street. Break.
+        Anytown Virginia. I spell. Alpha November Yankee
+        Tango Oscar Whiskey November. Anytown. Virginia.
+        Zip figures one two three four five. Break.
+        Phone figures five five five one two three four. Break.
+        Arrived safely hotel x-ray. I spell hotel. Hotel Oscar
+        Tango Echo Lima. Hotel. Call me when you can x-ray.
+        Love Steve. I spell Steve. Sierra Tango Echo Victor
+        Echo. Steve. Break.
+        End no more. Over."
+W1ABC: "WM3J this is W1ABC. Roger, copied number four seven
+        from WM3J. QSL the message. Over."
+WM3J:  "W1ABC this is WM3J. Roger, QRU. WM3J out."
+```
+
+Notes on what's happening:
+
+- **FIGURES** prefixes every numeric group so they aren't confused with letters.
+- **I SPELL** prefixes phonetic spelling of any name or unfamiliar word, repeating the word afterward so the receiver can confirm what was being spelled.
+- **BREAK** separates the preamble, address, text, and signature segments so the receiver can chunk their copy.
+- **X-RAY** is spoken in place of "X" in the text so the receiver knows whether it's punctuation or a literal letter.
+- **OVER** at the end of each transmission tells the other station "your turn."
+- **OUT** at the very end signals "no more from me."
+
+If W1ABC missed a word, the exchange becomes:
+
+```
+W1ABC: "WM3J this is W1ABC. Say again all after Hotel in the address. Over."
+WM3J:  "W1ABC this is WM3J. I say again all after Hotel.
+        Anytown Virginia. I spell. Alpha November Yankee
+        Tango Oscar Whiskey November. Anytown. Virginia.
+        Zip figures one two three four five. Break. Over."
+```
+
+This pattern (SAY AGAIN ALL AFTER) is faster than retransmitting the whole thing.
+
 ## Transmitting message forms
 
 Three modes for moving formal messages over amateur radio:

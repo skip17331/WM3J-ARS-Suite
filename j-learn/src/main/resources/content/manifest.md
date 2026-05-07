@@ -74,6 +74,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 01-06 | Sporadic E, TEP, Skip                              | 01-propagation/01-06-sporadic-e-tep-skip.md                     | mixed    |
 | 01-07 | Prediction Models                                  | 01-propagation/01-07-prediction-models.md                       | advanced |
 | 01-08 | Band Choice Right Now                              | 01-propagation/01-08-band-choice-now.md                         | simple   |
+| 01-09 | Weak-Signal VHF/UHF (Tropo, EME, Meteor, Aurora)   | 01-propagation/01-09-weak-signal.md                             | mixed    |
 | 02-00 | Repeaters & Bandplans — Overview                   | 02-repeaters-bandplans/02-00-overview.md                        | simple   |
 | 02-01 | What is a Repeater                                 | 02-repeaters-bandplans/02-01-what-is-a-repeater.md              | simple   |
 | 02-02 | Offsets, Tones, CTCSS, DCS                         | 02-repeaters-bandplans/02-02-offsets-tones-ctcss-dcs.md         | simple   |
@@ -283,3 +284,11 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 22-03 | Emergency Frequencies & Major Nets       | 22-emcomm/22-03-emergency-frequencies.md            | simple   |
 | 22-04 | Message Forms                            | 22-emcomm/22-04-message-forms.md                    | simple   |
 | 22-05 | Operating Procedures                     | 22-emcomm/22-05-operating-procedures.md             | simple   |
+| 23-00 | Operating Practice — Overview            | 23-operating-practice/23-00-overview.md             | simple   |
+| 23-01 | Is the Frequency in Use?                 | 23-operating-practice/23-01-frequency-in-use.md     | simple   |
+| 23-02 | Tune-up Etiquette                        | 23-operating-practice/23-02-tune-up-etiquette.md    | simple   |
+| 23-03 | Identifying — 10-Min Rule and §97.119    | 23-operating-practice/23-03-identifying.md          | simple   |
+| 23-04 | Calling CQ and the Standard QSO Flow     | 23-operating-practice/23-04-calling-cq.md           | simple   |
+| 23-05 | Pile-up Etiquette                        | 23-operating-practice/23-05-pile-up-etiquette.md    | simple   |
+| 23-06 | Power Minimum and Polite Operating       | 23-operating-practice/23-06-power-minimum.md        | simple   |
+| 23-07 | Common Operating Mistakes                | 23-operating-practice/23-07-common-mistakes.md      | simple   |

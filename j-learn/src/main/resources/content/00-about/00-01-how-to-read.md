@@ -53,6 +53,7 @@ The text box at the top filters the TOC by title or section ID. Type:
 - **`balun`** to find every section mentioning balun in the title (§04-12, §18-05).
 - **`17-`** to filter to chapter 17 (Formulas) only.
 - **`emcomm`** to find chapter 22.
+- **`23-`** to filter to chapter 23 (Operating Practice) only.
 - **(empty)** restores the full TOC.
 
 Filtering is case-insensitive and matches anywhere in the title or ID.

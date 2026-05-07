@@ -84,6 +84,104 @@ closed at [time]. Thank you to all stations. WM3J 73."
 
 A formal close transitions the frequency back to general operating.
 
+### Check-in scripts (operator side)
+
+What you say when you check into a directed traffic net depends on what you're bringing. The standard patterns:
+
+**Plain check-in, no traffic:**
+
+```
+NCS: "Stations check in now."
+You: "WM3J, no traffic."
+NCS: "WM3J, copy, no traffic. Stand by."
+```
+
+**Check-in with traffic:**
+
+```
+You: "WM3J, one routine for Stafford."
+NCS: "WM3J, copy one routine for Stafford. Stand by."
+```
+
+The format is: callsign + count + precedence + destination. Don't list the addressee on the air; the destination zone (city, region, area net) is enough at this stage.
+
+**Check-in with multiple messages:**
+
+```
+You: "WM3J, one routine Stafford, one routine Manassas, one welfare Texas."
+```
+
+**Check-in as a relay station** (you can move messages to other nets):
+
+```
+You: "WM3J, liaison to the Eastern Area Net, no traffic."
+```
+
+**Late check-in** (NCS already past the check-in phase):
+
+```
+You: "Break for late check-in."
+NCS: "Late check-in, go ahead."
+You: "WM3J, no traffic."
+```
+
+**Checking out (leaving the net):**
+
+```
+You: "WM3J requesting permission to secure."
+NCS: "WM3J, permission granted, 73."
+You: "WM3J out."
+```
+
+Don't just disappear — checking out tells NCS you're no longer available for traffic assignments and stops them from calling you.
+
+### Passing traffic on the side frequency
+
+When NCS pairs you with another station, you both QSY to a side frequency to exchange the message. The protocol:
+
+```
+NCS:  "WM3J, please listen up 5 for W1ABC who has one routine for you."
+You:  "WM3J copies, going up 5."
+[Both stations move to the working frequency]
+You:  "W1ABC, this is WM3J on the side frequency."
+W1ABC: "WM3J, W1ABC. Are you ready to copy?"
+You:  "Ready to copy. Go ahead."
+[Message is transmitted using the radiogram protocol from §22-01]
+You:  "WM3J copies number 47 from W1ABC. QRU. Over."
+W1ABC: "Roger, no more for you. W1ABC clear."
+You:  "WM3J clear, returning to the net."
+[Both stations return to the net frequency]
+You:  "Net Control, WM3J back on frequency, traffic complete."
+NCS:  "WM3J, copy. Stand by."
+```
+
+Two key rules:
+
+- **Always announce return to the net** so NCS knows you're back and available.
+- **Don't editorialize on the side frequency** — exchange the message and clear. Other stations may need that side frequency.
+
+### "Say again" procedures during traffic
+
+Missing a word during a radiogram is normal. The cleanup patterns:
+
+| You missed | You say |
+|------------|---------|
+| The whole text | "Say again the text." |
+| Words after a known word | "Say again all after [word]." |
+| Words before a known word | "Say again all before [word]." |
+| One word | "Say again word after [word]." or "Say again word before [word]." |
+| A line of address | "Say again line three of the address." |
+| The check (word count) | "Say again the check." |
+| The number | "Say again the number." |
+
+If the receiving station's check doesn't match what they copied, they say:
+
+```
+"My count is 14, your check is 16. Say again the text."
+```
+
+The sender retransmits the whole text (faster than searching for which two words were missed).
+
 ### Net control etiquette
 
 - **Wait your turn.** Don't transmit while NCS is calling.
