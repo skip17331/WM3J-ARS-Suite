@@ -22,6 +22,7 @@ public class JHubConfig {
     public AntennaSection     antenna         = new AntennaSection();
     public ClusterSection     cluster         = new ClusterSection();
     public RbnSection         rbn             = new RbnSection();
+    public BackupSection      backup          = new BackupSection();
     public LoggerSection      logger          = new LoggerSection();
     public InfoScreenSection  infoScreen      = new InfoScreenSection();
     public AppsSection        apps            = new AppsSection();
@@ -194,6 +195,25 @@ public class JHubConfig {
     // ---------------------------------------------------------------
     // Reverse Beacon Network — parallel skimmer-fed spot stream
     // ---------------------------------------------------------------
+
+    // ---------------------------------------------------------------
+    // Cloud backup of all ~/.j-* state directories
+    // ---------------------------------------------------------------
+
+    public static class BackupSection {
+        public boolean enabled       = false;
+        public String  mode          = "FOLDER";   // "FOLDER" | "WEBDAV"
+        public String  folderPath    = "";          // e.g. "/home/op/Dropbox/J-Suite-Backups"
+        public String  webdavUrl     = "";          // e.g. "https://nextcloud.example/remote.php/dav/files/me/J-Backups"
+        public int     scheduleHours = 24;          // periodic backup interval (0 = on-demand only)
+        public int     retain        = 14;          // how many timestamped backups to keep
+        public boolean includeJHub   = true;
+        public boolean includeJLog   = true;
+        public boolean includeJMap   = true;
+        public boolean includeJSat   = true;
+        public boolean includeJDigi  = false;       // mostly local logs, large
+        public boolean includeJBridge = false;
+    }
 
     public static class RbnSection {
         public boolean enabled       = false;

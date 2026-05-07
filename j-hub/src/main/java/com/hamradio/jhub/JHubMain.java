@@ -214,6 +214,10 @@ public class JHubMain extends Application {
         dataUpdateService.setRouter(router);
         dataUpdateService.start(config.getConfig().autoUpdate);
 
+        // 12c. Cloud backup of all ~/.j-* state directories.
+        // No-op when disabled; cheap to wake up otherwise.
+        CloudBackupService.getInstance().start();
+
         // 11. Graceful shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(JHubMain::shutdown, "shutdown-hook"));
 
