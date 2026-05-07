@@ -113,4 +113,4 @@ Despite best efforts, conflicts happen:
 
 - §02-01 — what a repeater is
 - §02-02 — tones and how they distinguish co-channel repeaters
-- §07-rf-safety — the FCC RF exposure rules that affect repeater coordinators' job
+- §06-rf-safety — the FCC RF exposure rules that affect repeater coordinators' job

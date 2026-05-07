@@ -93,189 +93,189 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 03-07 | Speed Tracking                                     | 03-morse/03-07-speed-tracking.md                                | simple   |
 | 03-08 | Mini Tests                                         | 03-morse/03-08-mini-tests.md                                    | simple   |
 | 03-09 | Hardware Keyer Builds                              | 03-morse/03-09-hardware-keyer-builds.md                         | simple   |
-| 05-00 | Antennas — Overview                                | 05-antennas/05-00-overview.md                                   | simple   |
-| 05-01 | Dipoles                                            | 05-antennas/05-01-dipoles.md                                    | mixed    |
-| 05-02 | Inverted V                                         | 05-antennas/05-02-inverted-v.md                                 | mixed    |
-| 05-03 | Verticals                                          | 05-antennas/05-03-verticals.md                                  | mixed    |
-| 05-04 | End-Fed Half-Wave (EFHW)                           | 05-antennas/05-04-efhw.md                                       | mixed    |
-| 05-05 | Magnetic Loops                                     | 05-antennas/05-05-magnetic-loops.md                             | mixed    |
-| 05-06 | Full-Wave Loops                                    | 05-antennas/05-06-full-wave-loops.md                            | mixed    |
-| 05-07 | Rhombic (Terminated & Unterminated)                | 05-antennas/05-07-rhombic.md                                    | advanced |
-| 05-08 | Traps                                              | 05-antennas/05-08-traps.md                                      | advanced |
-| 05-09 | Smith Charts                                       | 05-antennas/05-09-smith-charts.md                               | advanced |
-| 05-10 | Feedline Effects                                   | 05-antennas/05-10-feedline-effects.md                           | mixed    |
-| 05-11 | Impedance Transformation                           | 05-antennas/05-11-impedance-transformation.md                   | advanced |
-| 05-12 | Baluns and Chokes                                  | 05-antennas/05-12-baluns-and-chokes.md                          | mixed    |
-| 05-13 | Ground-Plane Effects                               | 05-antennas/05-13-ground-plane-effects.md                       | mixed    |
-| 05-14 | Modeling Concepts                                  | 05-antennas/05-14-modeling-concepts.md                          | advanced |
-| 05-15 | Radiation Patterns                                 | 05-antennas/05-15-radiation-patterns.md                         | mixed    |
-| 06-00 | Satellites — Overview                              | 06-satellites/06-00-overview.md                                 | simple   |
-| 06-01 | FM vs Linear                                       | 06-satellites/06-01-fm-vs-linear.md                             | simple   |
-| 06-02 | Doppler Shift                                      | 06-satellites/06-02-doppler-shift.md                            | mixed    |
-| 06-03 | Keplerian Elements                                 | 06-satellites/06-03-keplerian-elements.md                       | advanced |
-| 06-04 | Tracking Strategies                                | 06-satellites/06-04-tracking-strategies.md                      | simple   |
-| 06-05 | ISS Packet & APRS                                  | 06-satellites/06-05-iss-packet-aprs.md                          | simple   |
-| 06-06 | Footprints                                         | 06-satellites/06-06-footprints.md                               | simple   |
-| 06-07 | Pass Prediction                                    | 06-satellites/06-07-pass-prediction.md                          | simple   |
-| 06-08 | Doppler Correction Tables                          | 06-satellites/06-08-doppler-correction-tables.md                | advanced |
-| 07-00 | RF Safety — Overview                               | 07-rf-safety/07-00-overview.md                                  | simple   |
-| 07-01 | FCC Rules                                          | 07-rf-safety/07-01-fcc-rules.md                                 | simple   |
-| 07-02 | MPE Limits                                         | 07-rf-safety/07-02-mpe-limits.md                                | mixed    |
-| 07-03 | Controlled vs Uncontrolled                         | 07-rf-safety/07-03-controlled-vs-uncontrolled.md                | simple   |
-| 07-04 | Duty Cycle                                         | 07-rf-safety/07-04-duty-cycle.md                                | mixed    |
-| 07-05 | ERP                                                | 07-rf-safety/07-05-erp.md                                       | mixed    |
-| 07-06 | Safe Antenna Placement                             | 07-rf-safety/07-06-safe-antenna-placement.md                    | simple   |
-| 07-07 | RF Burns                                           | 07-rf-safety/07-07-rf-burns.md                                  | simple   |
+| 04-00 | Antennas — Overview                                | 04-antennas/04-00-overview.md                                   | simple   |
+| 04-01 | Dipoles                                            | 04-antennas/04-01-dipoles.md                                    | mixed    |
+| 04-02 | Inverted V                                         | 04-antennas/04-02-inverted-v.md                                 | mixed    |
+| 04-03 | Verticals                                          | 04-antennas/04-03-verticals.md                                  | mixed    |
+| 04-04 | End-Fed Half-Wave (EFHW)                           | 04-antennas/04-04-efhw.md                                       | mixed    |
+| 04-05 | Magnetic Loops                                     | 04-antennas/04-05-magnetic-loops.md                             | mixed    |
+| 04-06 | Full-Wave Loops                                    | 04-antennas/04-06-full-wave-loops.md                            | mixed    |
+| 04-07 | Rhombic (Terminated & Unterminated)                | 04-antennas/04-07-rhombic.md                                    | advanced |
+| 04-08 | Traps                                              | 04-antennas/04-08-traps.md                                      | advanced |
+| 04-09 | Smith Charts                                       | 04-antennas/04-09-smith-charts.md                               | advanced |
+| 04-10 | Feedline Effects                                   | 04-antennas/04-10-feedline-effects.md                           | mixed    |
+| 04-11 | Impedance Transformation                           | 04-antennas/04-11-impedance-transformation.md                   | advanced |
+| 04-12 | Baluns and Chokes                                  | 04-antennas/04-12-baluns-and-chokes.md                          | mixed    |
+| 04-13 | Ground-Plane Effects                               | 04-antennas/04-13-ground-plane-effects.md                       | mixed    |
+| 04-14 | Modeling Concepts                                  | 04-antennas/04-14-modeling-concepts.md                          | advanced |
+| 04-15 | Radiation Patterns                                 | 04-antennas/04-15-radiation-patterns.md                         | mixed    |
+| 05-00 | Satellites — Overview                              | 05-satellites/05-00-overview.md                                 | simple   |
+| 05-01 | FM vs Linear                                       | 05-satellites/05-01-fm-vs-linear.md                             | simple   |
+| 05-02 | Doppler Shift                                      | 05-satellites/05-02-doppler-shift.md                            | mixed    |
+| 05-03 | Keplerian Elements                                 | 05-satellites/05-03-keplerian-elements.md                       | advanced |
+| 05-04 | Tracking Strategies                                | 05-satellites/05-04-tracking-strategies.md                      | simple   |
+| 05-05 | ISS Packet & APRS                                  | 05-satellites/05-05-iss-packet-aprs.md                          | simple   |
+| 05-06 | Footprints                                         | 05-satellites/05-06-footprints.md                               | simple   |
+| 05-07 | Pass Prediction                                    | 05-satellites/05-07-pass-prediction.md                          | simple   |
+| 05-08 | Doppler Correction Tables                          | 05-satellites/05-08-doppler-correction-tables.md                | advanced |
+| 06-00 | RF Safety — Overview                               | 06-rf-safety/06-00-overview.md                                  | simple   |
+| 06-01 | FCC Rules                                          | 06-rf-safety/06-01-fcc-rules.md                                 | simple   |
+| 06-02 | MPE Limits                                         | 06-rf-safety/06-02-mpe-limits.md                                | mixed    |
+| 06-03 | Controlled vs Uncontrolled                         | 06-rf-safety/06-03-controlled-vs-uncontrolled.md                | simple   |
+| 06-04 | Duty Cycle                                         | 06-rf-safety/06-04-duty-cycle.md                                | mixed    |
+| 06-05 | ERP                                                | 06-rf-safety/06-05-erp.md                                       | mixed    |
+| 06-06 | Safe Antenna Placement                             | 06-rf-safety/06-06-safe-antenna-placement.md                    | simple   |
+| 06-07 | RF Burns                                           | 06-rf-safety/06-07-rf-burns.md                                  | simple   |
 
 ### Part II — Practical Tools & Calculators
 
 | id    | title                                                 | path                                                          | level    |
 |-------|-------------------------------------------------------|---------------------------------------------------------------|----------|
-| 08-00 | Antenna Workshop — Overview                           | 08-antenna-calc/08-00-overview.md                             | simple   |
-| 08-01 | Antenna Recommender (Questionnaire)                   | 08-antenna-calc/08-01-recommender.md                          | simple   |
-| 08-02 | Flat Dipole                                           | 08-antenna-calc/08-02-flat-dipole.md                          | simple   |
-| 08-03 | Inverted-V Dipole                                     | 08-antenna-calc/08-03-inverted-v-dipole.md                    | simple   |
-| 08-04 | Fan Dipole                                            | 08-antenna-calc/08-04-fan-dipole.md                           | mixed    |
-| 08-05 | Trapped Dipole                                        | 08-antenna-calc/08-05-trapped-dipole.md                       | mixed    |
-| 08-06 | OCF Dipole (Windom)                                   | 08-antenna-calc/08-06-ocf-dipole.md                           | mixed    |
-| 08-07 | EFHW (No Traps)                                       | 08-antenna-calc/08-07-efhw-no-traps.md                        | mixed    |
-| 08-08 | EFHW (Trapped)                                        | 08-antenna-calc/08-08-efhw-trapped.md                         | mixed    |
-| 08-09 | J-Pole                                                | 08-antenna-calc/08-09-j-pole.md                               | simple   |
-| 08-10 | Yagi-Uda                                              | 08-antenna-calc/08-10-yagi-uda.md                             | mixed    |
-| 08-11 | Vertical Antennas                                     | 08-antenna-calc/08-11-vertical.md                             | mixed    |
-| 08-12 | Loading for Shortened Antennas                        | 08-antenna-calc/08-12-loading-coils.md                        | mixed    |
-| 08-13 | Trap Design & Manufacturing                           | 08-antenna-calc/08-13-trap-design.md                          | advanced |
-| 08-14 | Magnetic Loop                                         | 08-antenna-calc/08-14-magnetic-loop.md                        | advanced |
-| 08-15 | NanoVNA Trim Workflow                                 | 08-antenna-calc/08-15-nanovna-trim.md                         | simple   |
-| 09-00 | Feedline & SWR — Overview                             | 09-feedline-swr/09-00-overview.md                             | simple   |
-| 09-01 | Coax Loss by Frequency                                | 09-feedline-swr/09-01-coax-loss-by-frequency.md               | mixed    |
-| 09-02 | SWR & Reflected Power                                 | 09-feedline-swr/09-02-swr-reflected-power.md                  | mixed    |
-| 09-03 | Mismatch Loss                                         | 09-feedline-swr/09-03-mismatch-loss.md                        | mixed    |
-| 09-04 | Power Delivered vs Lost                               | 09-feedline-swr/09-04-power-delivered-vs-lost.md              | mixed    |
-| 09-05 | Velocity Factor                                       | 09-feedline-swr/09-05-velocity-factor.md                      | mixed    |
-| 09-06 | Impedance Transformation                              | 09-feedline-swr/09-06-impedance-transformation.md             | advanced |
-| 11-00 | Power Budget & ERP — Overview                         | 11-power-budget-erp/11-00-overview.md                         | simple   |
-| 11-01 | TX Power                                              | 11-power-budget-erp/11-01-tx-power.md                         | simple   |
-| 11-02 | Feedline Loss                                         | 11-power-budget-erp/11-02-feedline-loss.md                    | mixed    |
-| 11-03 | Antenna Gain                                          | 11-power-budget-erp/11-03-antenna-gain.md                     | mixed    |
-| 11-04 | ERP Output                                            | 11-power-budget-erp/11-04-erp-output.md                       | mixed    |
-| 11-05 | Portable Budget                                       | 11-power-budget-erp/11-05-portable-budget.md                  | simple   |
+| 07-00 | Antenna Workshop — Overview                           | 07-antenna-calc/07-00-overview.md                             | simple   |
+| 07-01 | Antenna Recommender (Questionnaire)                   | 07-antenna-calc/07-01-recommender.md                          | simple   |
+| 07-02 | Flat Dipole                                           | 07-antenna-calc/07-02-flat-dipole.md                          | simple   |
+| 07-03 | Inverted-V Dipole                                     | 07-antenna-calc/07-03-inverted-v-dipole.md                    | simple   |
+| 07-04 | Fan Dipole                                            | 07-antenna-calc/07-04-fan-dipole.md                           | mixed    |
+| 07-05 | Trapped Dipole                                        | 07-antenna-calc/07-05-trapped-dipole.md                       | mixed    |
+| 07-06 | OCF Dipole (Windom)                                   | 07-antenna-calc/07-06-ocf-dipole.md                           | mixed    |
+| 07-07 | EFHW (No Traps)                                       | 07-antenna-calc/07-07-efhw-no-traps.md                        | mixed    |
+| 07-08 | EFHW (Trapped)                                        | 07-antenna-calc/07-08-efhw-trapped.md                         | mixed    |
+| 07-09 | J-Pole                                                | 07-antenna-calc/07-09-j-pole.md                               | simple   |
+| 07-10 | Yagi-Uda                                              | 07-antenna-calc/07-10-yagi-uda.md                             | mixed    |
+| 07-11 | Vertical Antennas                                     | 07-antenna-calc/07-11-vertical.md                             | mixed    |
+| 07-12 | Loading for Shortened Antennas                        | 07-antenna-calc/07-12-loading-coils.md                        | mixed    |
+| 07-13 | Trap Design & Manufacturing                           | 07-antenna-calc/07-13-trap-design.md                          | advanced |
+| 07-14 | Magnetic Loop                                         | 07-antenna-calc/07-14-magnetic-loop.md                        | advanced |
+| 07-15 | NanoVNA Trim Workflow                                 | 07-antenna-calc/07-15-nanovna-trim.md                         | simple   |
+| 08-00 | Feedline & SWR — Overview                             | 08-feedline-swr/08-00-overview.md                             | simple   |
+| 08-01 | Coax Loss by Frequency                                | 08-feedline-swr/08-01-coax-loss-by-frequency.md               | mixed    |
+| 08-02 | SWR & Reflected Power                                 | 08-feedline-swr/08-02-swr-reflected-power.md                  | mixed    |
+| 08-03 | Mismatch Loss                                         | 08-feedline-swr/08-03-mismatch-loss.md                        | mixed    |
+| 08-04 | Power Delivered vs Lost                               | 08-feedline-swr/08-04-power-delivered-vs-lost.md              | mixed    |
+| 08-05 | Velocity Factor                                       | 08-feedline-swr/08-05-velocity-factor.md                      | mixed    |
+| 08-06 | Impedance Transformation                              | 08-feedline-swr/08-06-impedance-transformation.md             | advanced |
+| 09-00 | Power Budget & ERP — Overview                         | 09-power-budget-erp/09-00-overview.md                         | simple   |
+| 09-01 | TX Power                                              | 09-power-budget-erp/09-01-tx-power.md                         | simple   |
+| 09-02 | Feedline Loss                                         | 09-power-budget-erp/09-02-feedline-loss.md                    | mixed    |
+| 09-03 | Antenna Gain                                          | 09-power-budget-erp/09-03-antenna-gain.md                     | mixed    |
+| 09-04 | ERP Output                                            | 09-power-budget-erp/09-04-erp-output.md                       | mixed    |
+| 09-05 | Portable Budget                                       | 09-power-budget-erp/09-05-portable-budget.md                  | simple   |
 
 ### Part III — Troubleshooting Systems
 
 | id    | title                                  | path                                                | level    |
 |-------|----------------------------------------|-----------------------------------------------------|----------|
-| 13-00 | High SWR — Overview                    | 13-high-swr/13-00-overview.md                       | simple   |
-| 13-01 | Coax Issues                            | 13-high-swr/13-01-coax-issues.md                    | simple   |
-| 13-02 | Connector Issues                       | 13-high-swr/13-02-connector-issues.md               | simple   |
-| 13-03 | Incorrect Length                       | 13-high-swr/13-03-incorrect-length.md               | simple   |
-| 13-04 | Nearby Metal                           | 13-high-swr/13-04-nearby-metal.md                   | simple   |
-| 13-05 | Faulty Balun                           | 13-high-swr/13-05-faulty-balun.md                   | simple   |
-| 13-06 | Feedline Routing                       | 13-high-swr/13-06-feedline-routing.md               | simple   |
-| 13-07 | Water Ingress                          | 13-high-swr/13-07-water-ingress.md                  | simple   |
-| 14-00 | Station Troubleshooting — Overview     | 14-station-troubleshooting/14-00-overview.md        | simple   |
-| 14-01 | No Transmit                            | 14-station-troubleshooting/14-01-no-transmit.md     | simple   |
-| 14-02 | No Receive                             | 14-station-troubleshooting/14-02-no-receive.md      | simple   |
-| 14-03 | Distorted Audio                        | 14-station-troubleshooting/14-03-distorted-audio.md | simple   |
-| 14-04 | RF Feedback                            | 14-station-troubleshooting/14-04-rf-feedback.md     | mixed    |
-| 14-05 | Grounding                              | 14-station-troubleshooting/14-05-grounding.md       | mixed    |
-| 14-06 | Power Supply                           | 14-station-troubleshooting/14-06-power-supply.md    | simple   |
-| 15-00 | RFI — Overview                         | 15-rfi/15-00-overview.md                            | simple   |
-| 15-01 | What is RFI                            | 15-rfi/15-01-what-is-rfi.md                         | simple   |
-| 15-02 | Household Sources                      | 15-rfi/15-02-household-sources.md                   | simple   |
-| 15-03 | Identifying Buzzing                    | 15-rfi/15-03-identifying-buzzing.md                 | simple   |
-| 15-04 | Ferrite Selection                      | 15-rfi/15-04-ferrite-selection.md                   | mixed    |
-| 15-05 | Isolation Workflow                     | 15-rfi/15-05-isolation-workflow.md                  | simple   |
-| 15-06 | Step-by-Step Elimination               | 15-rfi/15-06-step-by-step-elimination.md            | simple   |
-| 15-07 | AM Radio Sniffer                       | 15-rfi/15-07-am-radio-sniffer.md                    | simple   |
-| 15-08 | SDR Waterfall                          | 15-rfi/15-08-sdr-waterfall.md                       | simple   |
-| 16-00 | Noise Sources — Overview               | 16-noise-sources/16-00-overview.md                  | simple   |
-| 16-01 | Switching Power Supplies               | 16-noise-sources/16-01-switching-supplies.md        | simple   |
-| 16-02 | LED Lights                             | 16-noise-sources/16-02-led-lights.md                | simple   |
-| 16-03 | Solar Inverters                        | 16-noise-sources/16-03-solar-inverters.md           | simple   |
-| 16-04 | Ethernet Over Power                    | 16-noise-sources/16-04-ethernet-over-power.md       | simple   |
-| 16-05 | HVAC                                   | 16-noise-sources/16-05-hvac.md                      | simple   |
-| 16-06 | Battery Chargers                       | 16-noise-sources/16-06-battery-chargers.md          | simple   |
-| 16-07 | Motor Brushes                          | 16-noise-sources/16-07-motor-brushes.md             | simple   |
-| 17-00 | Power-Line Noise — Overview            | 17-power-line-noise/17-00-overview.md               | simple   |
-| 17-01 | Arcing Insulators                      | 17-power-line-noise/17-01-arcing-insulators.md      | simple   |
-| 17-02 | Bad Transformers                       | 17-power-line-noise/17-02-bad-transformers.md       | simple   |
-| 17-03 | Loose Hardware                         | 17-power-line-noise/17-03-loose-hardware.md         | simple   |
-| 17-04 | Corona Discharge                       | 17-power-line-noise/17-04-corona-discharge.md       | mixed    |
-| 17-05 | AM Radio ID                            | 17-power-line-noise/17-05-am-radio-id.md            | simple   |
-| 17-06 | SDR ID                                 | 17-power-line-noise/17-06-sdr-id.md                 | simple   |
-| 17-07 | Utility Documentation                  | 17-power-line-noise/17-07-utility-documentation.md  | simple   |
+| 10-00 | High SWR — Overview                    | 10-high-swr/10-00-overview.md                       | simple   |
+| 10-01 | Coax Issues                            | 10-high-swr/10-01-coax-issues.md                    | simple   |
+| 10-02 | Connector Issues                       | 10-high-swr/10-02-connector-issues.md               | simple   |
+| 10-03 | Incorrect Length                       | 10-high-swr/10-03-incorrect-length.md               | simple   |
+| 10-04 | Nearby Metal                           | 10-high-swr/10-04-nearby-metal.md                   | simple   |
+| 10-05 | Faulty Balun                           | 10-high-swr/10-05-faulty-balun.md                   | simple   |
+| 10-06 | Feedline Routing                       | 10-high-swr/10-06-feedline-routing.md               | simple   |
+| 10-07 | Water Ingress                          | 10-high-swr/10-07-water-ingress.md                  | simple   |
+| 11-00 | Station Troubleshooting — Overview     | 11-station-troubleshooting/11-00-overview.md        | simple   |
+| 11-01 | No Transmit                            | 11-station-troubleshooting/11-01-no-transmit.md     | simple   |
+| 11-02 | No Receive                             | 11-station-troubleshooting/11-02-no-receive.md      | simple   |
+| 11-03 | Distorted Audio                        | 11-station-troubleshooting/11-03-distorted-audio.md | simple   |
+| 11-04 | RF Feedback                            | 11-station-troubleshooting/11-04-rf-feedback.md     | mixed    |
+| 11-05 | Grounding                              | 11-station-troubleshooting/11-05-grounding.md       | mixed    |
+| 11-06 | Power Supply                           | 11-station-troubleshooting/11-06-power-supply.md    | simple   |
+| 12-00 | RFI — Overview                         | 12-rfi/12-00-overview.md                            | simple   |
+| 12-01 | What is RFI                            | 12-rfi/12-01-what-is-rfi.md                         | simple   |
+| 12-02 | Household Sources                      | 12-rfi/12-02-household-sources.md                   | simple   |
+| 12-03 | Identifying Buzzing                    | 12-rfi/12-03-identifying-buzzing.md                 | simple   |
+| 12-04 | Ferrite Selection                      | 12-rfi/12-04-ferrite-selection.md                   | mixed    |
+| 12-05 | Isolation Workflow                     | 12-rfi/12-05-isolation-workflow.md                  | simple   |
+| 12-06 | Step-by-Step Elimination               | 12-rfi/12-06-step-by-step-elimination.md            | simple   |
+| 12-07 | AM Radio Sniffer                       | 12-rfi/12-07-am-radio-sniffer.md                    | simple   |
+| 12-08 | SDR Waterfall                          | 12-rfi/12-08-sdr-waterfall.md                       | simple   |
+| 13-00 | Noise Sources — Overview               | 13-noise-sources/13-00-overview.md                  | simple   |
+| 13-01 | Switching Power Supplies               | 13-noise-sources/13-01-switching-supplies.md        | simple   |
+| 13-02 | LED Lights                             | 13-noise-sources/13-02-led-lights.md                | simple   |
+| 13-03 | Solar Inverters                        | 13-noise-sources/13-03-solar-inverters.md           | simple   |
+| 13-04 | Ethernet Over Power                    | 13-noise-sources/13-04-ethernet-over-power.md       | simple   |
+| 13-05 | HVAC                                   | 13-noise-sources/13-05-hvac.md                      | simple   |
+| 13-06 | Battery Chargers                       | 13-noise-sources/13-06-battery-chargers.md          | simple   |
+| 13-07 | Motor Brushes                          | 13-noise-sources/13-07-motor-brushes.md             | simple   |
+| 14-00 | Power-Line Noise — Overview            | 14-power-line-noise/14-00-overview.md               | simple   |
+| 14-01 | Arcing Insulators                      | 14-power-line-noise/14-01-arcing-insulators.md      | simple   |
+| 14-02 | Bad Transformers                       | 14-power-line-noise/14-02-bad-transformers.md       | simple   |
+| 14-03 | Loose Hardware                         | 14-power-line-noise/14-03-loose-hardware.md         | simple   |
+| 14-04 | Corona Discharge                       | 14-power-line-noise/14-04-corona-discharge.md       | mixed    |
+| 14-05 | AM Radio ID                            | 14-power-line-noise/14-05-am-radio-id.md            | simple   |
+| 14-06 | SDR ID                                 | 14-power-line-noise/14-06-sdr-id.md                 | simple   |
+| 14-07 | Utility Documentation                  | 14-power-line-noise/14-07-utility-documentation.md  | simple   |
 
 ### Part IV — Station Management
 
 | id    | title                          | path                                                | level    |
 |-------|--------------------------------|-----------------------------------------------------|----------|
-| 18-00 | Shack Inventory — Overview     | 18-shack-inventory/18-00-overview.md                | simple   |
-| 18-01 | Radios                         | 18-shack-inventory/18-01-radios.md                  | simple   |
-| 18-02 | Antennas                       | 18-shack-inventory/18-02-antennas.md                | simple   |
-| 18-03 | Tuners                         | 18-shack-inventory/18-03-tuners.md                  | simple   |
-| 18-04 | Coax Runs                      | 18-shack-inventory/18-04-coax-runs.md               | simple   |
-| 18-05 | Accessories                    | 18-shack-inventory/18-05-accessories.md             | simple   |
-| 18-06 | Serial Numbers                 | 18-shack-inventory/18-06-serial-numbers.md          | simple   |
-| 18-07 | Purchase Dates                 | 18-shack-inventory/18-07-purchase-dates.md          | simple   |
-| 18-08 | Firmware Versions              | 18-shack-inventory/18-08-firmware-versions.md       | simple   |
-| 19-00 | Estate / SK — Overview         | 19-estate-sk/19-00-overview.md                      | simple   |
-| 19-01 | Resale Value                   | 19-estate-sk/19-01-resale-value.md                  | simple   |
-| 19-02 | Rare Collectible               | 19-estate-sk/19-02-rare-collectible.md              | simple   |
-| 19-03 | Printable Export               | 19-estate-sk/19-03-printable-export.md              | simple   |
-| 19-04 | Family Guidance                | 19-estate-sk/19-04-family-guidance.md               | simple   |
-| 20-00 | Maintenance — Overview         | 20-maintenance/20-00-overview.md                    | simple   |
-| 20-01 | Battery Maintenance            | 20-maintenance/20-01-battery-maintenance.md         | simple   |
-| 20-02 | Firmware Updates               | 20-maintenance/20-02-firmware-updates.md            | simple   |
-| 20-03 | Scheduled Inspections          | 20-maintenance/20-03-scheduled-inspections.md       | simple   |
-| 20-04 | Coax Replacement               | 20-maintenance/20-04-coax-replacement.md            | simple   |
+| 15-00 | Shack Inventory — Overview     | 15-shack-inventory/15-00-overview.md                | simple   |
+| 15-01 | Radios                         | 15-shack-inventory/15-01-radios.md                  | simple   |
+| 15-02 | Antennas                       | 15-shack-inventory/15-02-antennas.md                | simple   |
+| 15-03 | Tuners                         | 15-shack-inventory/15-03-tuners.md                  | simple   |
+| 15-04 | Coax Runs                      | 15-shack-inventory/15-04-coax-runs.md               | simple   |
+| 15-05 | Accessories                    | 15-shack-inventory/15-05-accessories.md             | simple   |
+| 15-06 | Serial Numbers                 | 15-shack-inventory/15-06-serial-numbers.md          | simple   |
+| 15-07 | Purchase Dates                 | 15-shack-inventory/15-07-purchase-dates.md          | simple   |
+| 15-08 | Firmware Versions              | 15-shack-inventory/15-08-firmware-versions.md       | simple   |
+| 16-00 | Estate / SK — Overview         | 16-estate-sk/16-00-overview.md                      | simple   |
+| 16-01 | Resale Value                   | 16-estate-sk/16-01-resale-value.md                  | simple   |
+| 16-02 | Rare Collectible               | 16-estate-sk/16-02-rare-collectible.md              | simple   |
+| 16-03 | Printable Export               | 16-estate-sk/16-03-printable-export.md              | simple   |
+| 16-04 | Family Guidance                | 16-estate-sk/16-04-family-guidance.md               | simple   |
+| 17-00 | Maintenance — Overview         | 17-maintenance/17-00-overview.md                    | simple   |
+| 17-01 | Battery Maintenance            | 17-maintenance/17-01-battery-maintenance.md         | simple   |
+| 17-02 | Firmware Updates               | 17-maintenance/17-02-firmware-updates.md            | simple   |
+| 17-03 | Scheduled Inspections          | 17-maintenance/17-03-scheduled-inspections.md       | simple   |
+| 17-04 | Coax Replacement               | 17-maintenance/17-04-coax-replacement.md            | simple   |
 
 ### Part V — Reference Library
 
 | id    | title                                    | path                                                | level    |
 |-------|------------------------------------------|-----------------------------------------------------|----------|
-| 21-00 | Formula Appendix — Overview              | 21-formula-appendix/21-00-overview.md               | simple   |
-| 21-01 | Ohms Law                                 | 21-formula-appendix/21-01-ohms-law.md               | simple   |
-| 21-02 | Power Law                                | 21-formula-appendix/21-02-power-law.md              | simple   |
-| 21-03 | Reactance (Capacitive & Inductive)       | 21-formula-appendix/21-03-reactance.md              | mixed    |
-| 21-04 | Impedance                                | 21-formula-appendix/21-04-impedance.md              | mixed    |
-| 21-05 | Resonant Frequency                       | 21-formula-appendix/21-05-resonant-frequency.md     | mixed    |
-| 21-06 | Wavelength                               | 21-formula-appendix/21-06-wavelength.md             | simple   |
-| 21-07 | SWR                                      | 21-formula-appendix/21-07-swr.md                    | mixed    |
-| 21-08 | ERP                                      | 21-formula-appendix/21-08-erp.md                    | mixed    |
-| 21-09 | Feedline Loss                            | 21-formula-appendix/21-09-feedline-loss.md          | mixed    |
-| 21-10 | Decibels                                 | 21-formula-appendix/21-10-decibels.md               | simple   |
-| 21-11 | Q Factor                                 | 21-formula-appendix/21-11-q-factor.md               | advanced |
-| 21-12 | Bandwidth                                | 21-formula-appendix/21-12-bandwidth.md              | mixed    |
-| 21-13 | Smith Chart Basics                       | 21-formula-appendix/21-13-smith-chart-basics.md     | advanced |
-| 21-14 | Formula Calculator (RF Exposure Worked Example)         | 21-formula-appendix/21-14-formula-calculator.md     | mixed    |
-| 22-00 | Coax & Connectors — Overview             | 22-coax-connectors/22-00-overview.md                | simple   |
-| 22-01 | Coax Types                               | 22-coax-connectors/22-01-coax-types.md              | simple   |
-| 22-02 | Loss Tables                              | 22-coax-connectors/22-02-loss-tables.md             | mixed    |
-| 22-03 | Velocity Factor                          | 22-coax-connectors/22-03-velocity-factor.md         | mixed    |
-| 22-04 | Connectors                               | 22-coax-connectors/22-04-connectors.md              | simple   |
-| 22-05 | Baluns & Chokes                          | 22-coax-connectors/22-05-baluns-chokes.md           | mixed    |
-| 23-00 | Q-Codes & Prosigns — Overview            | 23-qcodes-prosigns/23-00-overview.md                | simple   |
-| 23-01 | Q-Codes                                  | 23-qcodes-prosigns/23-01-q-codes.md                 | simple   |
-| 23-02 | CW Prosigns                              | 23-qcodes-prosigns/23-02-cw-prosigns.md             | simple   |
-| 23-03 | Abbreviations                            | 23-qcodes-prosigns/23-03-abbreviations.md           | simple   |
-| 23-04 | Phonetic Alphabet                        | 23-qcodes-prosigns/23-04-phonetic-alphabet.md       | simple   |
-| 24-00 | Band Plans — Overview                    | 24-band-plans/24-00-overview.md                     | simple   |
-| 24-01 | HF                                       | 24-band-plans/24-01-hf.md                           | mixed    |
-| 24-02 | VHF                                      | 24-band-plans/24-02-vhf.md                          | simple   |
-| 24-03 | UHF                                      | 24-band-plans/24-03-uhf.md                          | simple   |
-| 24-04 | Satellite                                | 24-band-plans/24-04-satellite.md                    | simple   |
-| 24-05 | Regional Variations                      | 24-band-plans/24-05-regional-variations.md          | mixed    |
-| 25-00 | Digital Modes — Overview                 | 25-digital-modes/25-00-overview.md                  | simple   |
-| 25-01 | FT8 / FT4                                | 25-digital-modes/25-01-ft8-ft4.md                   | mixed    |
-| 25-02 | RTTY                                     | 25-digital-modes/25-02-rtty.md                      | mixed    |
-| 25-03 | PSK31                                    | 25-digital-modes/25-03-psk31.md                     | mixed    |
-| 25-04 | JS8Call                                  | 25-digital-modes/25-04-js8call.md                   | simple   |
-| 25-05 | APRS                                     | 25-digital-modes/25-05-aprs.md                      | simple   |
-| 25-06 | Packet                                   | 25-digital-modes/25-06-packet.md                    | mixed    |
-| 26-00 | Emergency & Public Service Comms — Overview | 26-emcomm/26-00-overview.md                      | simple   |
-| 26-01 | NTS — National Traffic System            | 26-emcomm/26-01-nts.md                              | simple   |
-| 26-02 | ICS Basics for Amateur Operators         | 26-emcomm/26-02-ics-basics.md                       | simple   |
-| 26-03 | Emergency Frequencies & Major Nets       | 26-emcomm/26-03-emergency-frequencies.md            | simple   |
-| 26-04 | Message Forms                            | 26-emcomm/26-04-message-forms.md                    | simple   |
-| 26-05 | Operating Procedures                     | 26-emcomm/26-05-operating-procedures.md             | simple   |
+| 18-00 | Formulas — Overview              | 18-formulas/18-00-overview.md               | simple   |
+| 18-01 | Ohms Law                                 | 18-formulas/18-01-ohms-law.md               | simple   |
+| 18-02 | Power Law                                | 18-formulas/18-02-power-law.md              | simple   |
+| 18-03 | Reactance (Capacitive & Inductive)       | 18-formulas/18-03-reactance.md              | mixed    |
+| 18-04 | Impedance                                | 18-formulas/18-04-impedance.md              | mixed    |
+| 18-05 | Resonant Frequency                       | 18-formulas/18-05-resonant-frequency.md     | mixed    |
+| 18-06 | Wavelength                               | 18-formulas/18-06-wavelength.md             | simple   |
+| 18-07 | SWR                                      | 18-formulas/18-07-swr.md                    | mixed    |
+| 18-08 | ERP                                      | 18-formulas/18-08-erp.md                    | mixed    |
+| 18-09 | Feedline Loss                            | 18-formulas/18-09-feedline-loss.md          | mixed    |
+| 18-10 | Decibels                                 | 18-formulas/18-10-decibels.md               | simple   |
+| 18-11 | Q Factor                                 | 18-formulas/18-11-q-factor.md               | advanced |
+| 18-12 | Bandwidth                                | 18-formulas/18-12-bandwidth.md              | mixed    |
+| 18-13 | Smith Chart Basics                       | 18-formulas/18-13-smith-chart-basics.md     | advanced |
+| 18-14 | RF Exposure         | 18-formulas/18-14-rf-exposure.md     | mixed    |
+| 19-00 | Coax & Connectors — Overview             | 19-coax-connectors/19-00-overview.md                | simple   |
+| 19-01 | Coax Types                               | 19-coax-connectors/19-01-coax-types.md              | simple   |
+| 19-02 | Loss Tables                              | 19-coax-connectors/19-02-loss-tables.md             | mixed    |
+| 19-03 | Velocity Factor                          | 19-coax-connectors/19-03-velocity-factor.md         | mixed    |
+| 19-04 | Connectors                               | 19-coax-connectors/19-04-connectors.md              | simple   |
+| 19-05 | Baluns & Chokes                          | 19-coax-connectors/19-05-baluns-chokes.md           | mixed    |
+| 20-00 | Q-Codes & Prosigns — Overview            | 20-qcodes-prosigns/20-00-overview.md                | simple   |
+| 20-01 | Q-Codes                                  | 20-qcodes-prosigns/20-01-q-codes.md                 | simple   |
+| 20-02 | CW Prosigns                              | 20-qcodes-prosigns/20-02-cw-prosigns.md             | simple   |
+| 20-03 | Abbreviations                            | 20-qcodes-prosigns/20-03-abbreviations.md           | simple   |
+| 20-04 | Phonetic Alphabet                        | 20-qcodes-prosigns/20-04-phonetic-alphabet.md       | simple   |
+| 21-00 | Band Plans — Overview                    | 21-band-plans/21-00-overview.md                     | simple   |
+| 21-01 | HF                                       | 21-band-plans/21-01-hf.md                           | mixed    |
+| 21-02 | VHF                                      | 21-band-plans/21-02-vhf.md                          | simple   |
+| 21-03 | UHF                                      | 21-band-plans/21-03-uhf.md                          | simple   |
+| 21-04 | Satellite                                | 21-band-plans/21-04-satellite.md                    | simple   |
+| 21-05 | Regional Variations                      | 21-band-plans/21-05-regional-variations.md          | mixed    |
+| 22-00 | Digital Modes — Overview                 | 22-digital-modes/22-00-overview.md                  | simple   |
+| 22-01 | FT8 / FT4                                | 22-digital-modes/22-01-ft8-ft4.md                   | mixed    |
+| 22-02 | RTTY                                     | 22-digital-modes/22-02-rtty.md                      | mixed    |
+| 22-03 | PSK31                                    | 22-digital-modes/22-03-psk31.md                     | mixed    |
+| 22-04 | JS8Call                                  | 22-digital-modes/22-04-js8call.md                   | simple   |
+| 22-05 | APRS                                     | 22-digital-modes/22-05-aprs.md                      | simple   |
+| 22-06 | Packet                                   | 22-digital-modes/22-06-packet.md                    | mixed    |
+| 23-00 | Emergency & Public Service Comms — Overview | 23-emcomm/23-00-overview.md                      | simple   |
+| 23-01 | NTS — National Traffic System            | 23-emcomm/23-01-nts.md                              | simple   |
+| 23-02 | ICS Basics for Amateur Operators         | 23-emcomm/23-02-ics-basics.md                       | simple   |
+| 23-03 | Emergency Frequencies & Major Nets       | 23-emcomm/23-03-emergency-frequencies.md            | simple   |
+| 23-04 | Message Forms                            | 23-emcomm/23-04-message-forms.md                    | simple   |
+| 23-05 | Operating Procedures                     | 23-emcomm/23-05-operating-procedures.md             | simple   |

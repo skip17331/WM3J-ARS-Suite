@@ -158,5 +158,5 @@ These are dial frequencies (USB) — actual signals occupy ~3 kHz above the dial
 ## See also
 
 - §02-04 — simplex calling frequencies in more detail
-- §24 (Reference Library) — full band-by-band tables for all licensees
+- §21 (Reference Library) — full band-by-band tables for all licensees
 - §01-08 — which band is open *right now* (separate question from "where on the band")

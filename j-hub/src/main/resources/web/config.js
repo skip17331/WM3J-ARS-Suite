@@ -1395,22 +1395,22 @@ function renderLearnBanner(id) {
          + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
          + '</div>';
   }
-  if (id.startsWith('08-')) {
+  if (id.startsWith('07-')) {
     // Map J-Learn section id → Antenna Workshop calc id (must match keys in AW_CALCS)
     const calcId = ({
-      '08-02': 'flat-dipole',
-      '08-03': 'inverted-v',
-      '08-04': 'fan-dipole',
-      '08-05': 'trapped-dipole',
-      '08-06': 'ocf-dipole',
-      '08-07': 'efhw-no-traps',
-      '08-08': 'efhw-trapped',
-      '08-09': 'j-pole',
-      '08-10': 'yagi',
-      '08-11': 'vertical',
-      '08-12': 'loading-coil',
-      '08-13': 'trap-design',
-      '08-14': 'mag-loop',
+      '07-02': 'flat-dipole',
+      '07-03': 'inverted-v',
+      '07-04': 'fan-dipole',
+      '07-05': 'trapped-dipole',
+      '07-06': 'ocf-dipole',
+      '07-07': 'efhw-no-traps',
+      '07-08': 'efhw-trapped',
+      '07-09': 'j-pole',
+      '07-10': 'yagi',
+      '07-11': 'vertical',
+      '07-12': 'loading-coil',
+      '07-13': 'trap-design',
+      '07-14': 'mag-loop',
     })[id];
     const buttonHtml = calcId
       ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
@@ -3728,7 +3728,7 @@ const AW_ANTENNAS = [
   {
     id: 'flat-dipole',
     name: 'Flat Dipole',
-    section: '08-02',
+    section: '07-02',
     summary: 'Half-wave dipole strung horizontally between two supports. Single-band, simplest, cheapest.',
     fit(a) {
       const reasons = [];
@@ -3755,7 +3755,7 @@ const AW_ANTENNAS = [
   {
     id: 'inverted-v',
     name: 'Inverted-V Dipole',
-    section: '08-03',
+    section: '07-03',
     summary: 'Dipole with apex at center support, ends sloping down to stakes. Needs only one tall support.',
     fit(a) {
       const reasons = [];
@@ -3780,7 +3780,7 @@ const AW_ANTENNAS = [
   {
     id: 'fan-dipole',
     name: 'Fan Dipole',
-    section: '08-04',
+    section: '07-04',
     summary: 'Multiple parallel dipoles fed from one feedpoint. Resonant on each band without traps.',
     fit(a) {
       const reasons = [];
@@ -3799,7 +3799,7 @@ const AW_ANTENNAS = [
   {
     id: 'trapped-dipole',
     name: 'Trapped Dipole',
-    section: '08-05',
+    section: '07-05',
     summary: 'Single wire with traps that isolate band segments. Multi-band in less space than fan.',
     fit(a) {
       const reasons = [];
@@ -3821,7 +3821,7 @@ const AW_ANTENNAS = [
   {
     id: 'ocf-dipole',
     name: 'OCF Dipole (Windom)',
-    section: '08-06',
+    section: '07-06',
     summary: 'Dipole fed off-center (~⅓ from one end) with 4:1 or 6:1 balun. Multi-band without traps or tuner.',
     fit(a) {
       const reasons = [];
@@ -3840,7 +3840,7 @@ const AW_ANTENNAS = [
   {
     id: 'efhw-no-traps',
     name: 'EFHW (No Traps)',
-    section: '08-07',
+    section: '07-07',
     summary: 'Half-wave wire fed at one end via 49:1 or 64:1 unun. Resonant on harmonics — 80m EFHW covers 40/20/15/10.',
     fit(a) {
       const reasons = [];
@@ -3860,7 +3860,7 @@ const AW_ANTENNAS = [
   {
     id: 'efhw-trapped',
     name: 'EFHW (Trapped)',
-    section: '08-08',
+    section: '07-08',
     summary: 'Trapped end-fed half-wave for portable / restricted-length installations. Each band cuts the wire shorter.',
     fit(a) {
       const reasons = [];
@@ -3877,7 +3877,7 @@ const AW_ANTENNAS = [
   {
     id: 'j-pole',
     name: 'J-Pole (VHF/UHF)',
-    section: '08-09',
+    section: '07-09',
     summary: 'Half-wave VHF/UHF radiator with quarter-wave matching stub. Easy build, omni, vertical polarization.',
     fit(a) {
       const reasons = [];
@@ -3895,7 +3895,7 @@ const AW_ANTENNAS = [
   {
     id: 'yagi',
     name: 'Yagi-Uda',
-    section: '08-10',
+    section: '07-10',
     summary: 'Directional beam with reflector and directors. High gain, narrow beamwidth — best for DX and contesting.',
     fit(a) {
       const reasons = [];
@@ -3917,7 +3917,7 @@ const AW_ANTENNAS = [
   {
     id: 'vertical',
     name: 'Vertical Antenna',
-    section: '08-11',
+    section: '07-11',
     summary: 'Quarter-wave / 5/8-wave / half-wave vertical with radial system. Low takeoff angle, omnidirectional.',
     fit(a) {
       const reasons = [];
@@ -3938,7 +3938,7 @@ const AW_ANTENNAS = [
   {
     id: 'mag-loop',
     name: 'Magnetic Loop',
-    section: '08-14',
+    section: '07-14',
     summary: 'Small loop, ~⅛ wavelength, with high-Q tuning capacitor. Stealth-friendly; narrow bandwidth.',
     fit(a) {
       const reasons = [];
@@ -4136,7 +4136,7 @@ function hamBandFor(mhz) {
 const AW_CALCS = {
   'flat-dipole': {
     name: 'Flat Dipole',
-    section: '08-02',
+    section: '07-02',
     inputs: [
       { id: 'freq',   label: 'Frequency (MHz)',     type: 'number', step: '0.001', default: 14.150 },
       { id: 'k',      label: 'Length factor (k)',   type: 'number', step: '0.01',  default: 468,
@@ -4175,7 +4175,7 @@ const AW_CALCS = {
 
   'inverted-v': {
     name: 'Inverted-V Dipole',
-    section: '08-03',
+    section: '07-03',
     inputs: [
       { id: 'freq',   label: 'Frequency (MHz)',     type: 'number', step: '0.001', default: 7.150 },
       { id: 'apex',   label: 'Apex height (ft)',    type: 'number', step: '1',     default: 35 },
@@ -4218,7 +4218,7 @@ const AW_CALCS = {
 
   'efhw-no-traps': {
     name: 'EFHW (No Traps)',
-    section: '08-07',
+    section: '07-07',
     inputs: [
       { id: 'freq',   label: 'Lowest band (MHz)',  type: 'number', step: '0.01',  default: 7.150,
         hint: 'EFHW is half-wave at this frequency, harmonic-resonant on 2×, 3×, 4× of it.' },
@@ -4259,7 +4259,7 @@ const AW_CALCS = {
 
   'j-pole': {
     name: 'J-Pole (VHF/UHF)',
-    section: '08-09',
+    section: '07-09',
     inputs: [
       { id: 'freq',   label: 'Center frequency (MHz)', type: 'number', step: '0.01', default: 146.000 },
       { id: 'mat',    label: 'Material',                type: 'select', default: 'copper',
@@ -4302,7 +4302,7 @@ const AW_CALCS = {
 
   'vertical': {
     name: 'Vertical Antenna (¼λ)',
-    section: '08-11',
+    section: '07-11',
     inputs: [
       { id: 'freq',   label: 'Frequency (MHz)', type: 'number', step: '0.01', default: 14.150 },
       { id: 'radials', label: 'Radials installed', type: 'number', step: '1', default: 16 },
@@ -4350,7 +4350,7 @@ const AW_CALCS = {
   // ─── Fan dipole ────────────────────────────────────────────────
   'fan-dipole': {
     name: 'Fan Dipole',
-    section: '08-04',
+    section: '07-04',
     inputs: [
       { id: 'b1', label: 'Band 1 (MHz)', type: 'number', step: '0.01', default: 7.150 },
       { id: 'b2', label: 'Band 2 (MHz)', type: 'number', step: '0.01', default: 14.150 },
@@ -4406,7 +4406,7 @@ const AW_CALCS = {
   // ─── Trapped dipole ─────────────────────────────────────────────
   'trapped-dipole': {
     name: 'Trapped Dipole',
-    section: '08-05',
+    section: '07-05',
     inputs: [
       { id: 'b1', label: 'Highest band (MHz)', type: 'number', step: '0.01', default: 14.150,
         hint: 'Highest frequency the antenna covers — innermost element' },
@@ -4468,7 +4468,7 @@ const AW_CALCS = {
   // ─── OCF (Windom) ───────────────────────────────────────────────
   'ocf-dipole': {
     name: 'OCF Dipole (Windom)',
-    section: '08-06',
+    section: '07-06',
     inputs: [
       { id: 'freq', label: 'Lowest band (MHz)', type: 'number', step: '0.01', default: 7.150 },
       { id: 'offset', label: 'Feed offset from center (%)', type: 'number', step: '1', default: 33,
@@ -4522,7 +4522,7 @@ const AW_CALCS = {
   // ─── EFHW trapped ───────────────────────────────────────────────
   'efhw-trapped': {
     name: 'EFHW (Trapped)',
-    section: '08-08',
+    section: '07-08',
     inputs: [
       { id: 'b1', label: 'Highest band (MHz)', type: 'number', step: '0.01', default: 14.150 },
       { id: 'b2', label: 'Next band (MHz)',    type: 'number', step: '0.01', default: 7.150 },
@@ -4578,7 +4578,7 @@ const AW_CALCS = {
   // ─── Yagi-Uda ──────────────────────────────────────────────────
   'yagi': {
     name: 'Yagi-Uda',
-    section: '08-10',
+    section: '07-10',
     inputs: [
       { id: 'freq', label: 'Center frequency (MHz)', type: 'number', step: '0.01', default: 14.175 },
       { id: 'elements', label: 'Total elements (incl. DE + reflector)', type: 'select', default: '3',
@@ -4652,7 +4652,7 @@ const AW_CALCS = {
   // ─── Magnetic loop ─────────────────────────────────────────────
   'mag-loop': {
     name: 'Magnetic Loop',
-    section: '08-14',
+    section: '07-14',
     inputs: [
       { id: 'freq', label: 'Operating frequency (MHz)', type: 'number', step: '0.01', default: 14.175 },
       { id: 'diam', label: 'Loop diameter (ft)', type: 'number', step: '0.1', default: 3.0,
@@ -4736,7 +4736,7 @@ const AW_CALCS = {
   // ─── Trap design (component, not in AW_ANTENNAS) ───────────────
   'trap-design': {
     name: 'Trap Design',
-    section: '08-13',
+    section: '07-13',
     component: true,
     inputs: [
       { id: 'freq', label: 'Trap resonant frequency (MHz)', type: 'number', step: '0.01', default: 14.150,
@@ -4817,7 +4817,7 @@ const AW_CALCS = {
   // ─── Loading coil for shortened antennas (component) ────────────
   'loading-coil': {
     name: 'Loading Coil',
-    section: '08-12',
+    section: '07-12',
     component: true,
     inputs: [
       { id: 'freq', label: 'Operating frequency (MHz)', type: 'number', step: '0.01', default: 7.150 },

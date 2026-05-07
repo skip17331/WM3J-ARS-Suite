@@ -108,4 +108,4 @@ Real-world example: a local repeater takes a lightning hit and is down for two w
 
 - §02-01 — repeaters, the not-simplex alternative
 - §02-03 — full band plans showing where simplex is allowed
-- §26 (EmComm chapter) — emergency operating practices that lean on simplex
+- §23 (EmComm chapter) — emergency operating practices that lean on simplex
