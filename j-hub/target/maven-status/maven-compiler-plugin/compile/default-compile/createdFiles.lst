@@ -8,6 +8,7 @@ com/hamradio/jhub/WebConfigServer$MacroTriggerServlet.class
 com/hamradio/jhub/callsign/CsvImporter$Status.class
 com/hamradio/jhub/StateCache.class
 com/hamradio/jhub/DependencyChecker.class
+com/hamradio/jhub/model/JHubConfig$RbnSection.class
 com/hamradio/jhub/WebConfigServer$DepsApiServlet.class
 com/hamradio/jhub/callsign/CallsignResult.class
 com/hamradio/jhub/JHubServer.class
@@ -55,6 +56,7 @@ com/hamradio/jhub/callsign/CallookProvider.class
 com/hamradio/jhub/callsign/FccUlsImporter.class
 com/hamradio/jhub/CrashHandler.class
 com/hamradio/jhub/HamlibRotorController.class
+com/hamradio/jhub/WebConfigServer$RbnApiServlet.class
 com/hamradio/jhub/callsign/HamDbProvider.class
 com/hamradio/jhub/model/JHubConfig$AntennaSection.class
 com/hamradio/jhub/callsign/QrzXmlProvider.class
@@ -91,6 +93,7 @@ com/hamradio/jhub/model/JHubConfig$AntennaSwitch.class
 com/hamradio/jhub/ui/SplashJHub.class
 com/hamradio/jhub/JHubServer$AppSession.class
 com/hamradio/jhub/MessageRouter.class
+com/hamradio/jhub/RbnClient.class
 com/hamradio/jhub/model/JHubConfig$StationSection.class
 com/hamradio/jhub/callsign/LocalDbProvider.class
 com/hamradio/jhub/callsign/CallsignLookupService.class

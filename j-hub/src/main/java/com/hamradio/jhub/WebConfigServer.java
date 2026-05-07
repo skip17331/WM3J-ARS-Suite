@@ -81,6 +81,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new JDigiApiServlet()),       "/api/jdigi");
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
+        ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
         ctx.addServlet(new ServletHolder(new MacroTriggerServlet()), "/api/macros/trigger");
         ctx.addServlet(new ServletHolder(new VoiceUploadServlet()),  "/api/voice/upload");
         ctx.addServlet(new ServletHolder(new VoiceFileServlet()),    "/api/voice/file");
@@ -1685,6 +1686,37 @@ public class WebConfigServer {
             json(res, WeatherService.getInstance().getCachedJson());
         }
 
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/rbn — GET/POST RBN config; restarts the client on change
+    // ---------------------------------------------------------------
+
+    private static class RbnApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonObject body = new com.google.gson.JsonObject();
+            JHubConfig.RbnSection cfg = ConfigManager.getInstance().getConfig().rbn;
+            body.add("config", ConfigManager.gson().toJsonTree(cfg));
+            body.addProperty("connected", RbnClient.getInstance().isConnected());
+            body.addProperty("running",   RbnClient.getInstance().isRunning());
+            json(res, body.toString());
+        }
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.RbnSection rbn = ConfigManager.gson().fromJson(body, JHubConfig.RbnSection.class);
+                ConfigManager.getInstance().getConfig().rbn = rbn;
+                ConfigManager.getInstance().save();
+                RbnClient.getInstance().restart();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }

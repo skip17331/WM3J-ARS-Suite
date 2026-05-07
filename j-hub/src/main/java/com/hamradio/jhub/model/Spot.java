@@ -39,5 +39,15 @@ public class Spot {
     // --- Logger integration ---
     public String workedStatus; // "needed", "worked", "confirmed", "unknown"
 
+    // --- Source tag ---
+    // "CLUSTER" (default — DX cluster operator-spotted) or "RBN" (Reverse
+    // Beacon Network skimmer-decoded). Lets the UI render skimmer spots
+    // distinctly without changing the schema.
+    public String source = "CLUSTER";
+
+    // --- RBN-specific (only populated when source = "RBN") ---
+    public Integer snrDb;     // signal-to-noise ratio reported by skimmer
+    public Integer wpm;       // CW speed reported by skimmer (CW spots only)
+
     public Spot() {}
 }
