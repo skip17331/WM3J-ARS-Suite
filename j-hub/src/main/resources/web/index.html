@@ -915,10 +915,10 @@
 
       <!-- Estate document wizard modal -->
       <div id="inv-estate-modal" class="inv-modal-backdrop" style="display:none">
-        <div class="inv-modal" style="max-width:640px">
+        <div class="inv-modal" style="max-width:680px">
           <h3 style="margin:0 0 6px 0">Estate Handoff Document</h3>
           <div style="font-size:12px;color:var(--subtext0);margin-bottom:14px;line-height:1.45">
-            Builds a print-ready document you can save as PDF (browser <kbd>Ctrl+P</kbd> → "Save as PDF") or print and tuck into a folder with your other estate paperwork. See J-Learn §15-03 for what this is and §15-04 for how your family will use it.
+            Generates a real PDF file (downloads to your browser's Downloads folder). No print dialog, no copy-paste. See J-Learn §15-03 for what this is and §15-04 for how your family will use it.
           </div>
           <form id="inv-estate-form" onsubmit="generateEstateDocument(event)">
             <div class="inv-form-grid">
@@ -939,25 +939,46 @@
               <textarea id="inv-estate-note" rows="4" style="width:100%;resize:vertical" placeholder="A note to whoever reads this. Often a short paragraph: who to thank, why some items matter, what to do with the call sign, etc."></textarea>
               <span class="help">Appears on the cover page, after the title block. Plain text; line breaks are preserved.</span></label>
 
-            <div style="margin-top:14px;font-weight:600;color:var(--text);font-size:13px">Sections to include</div>
-            <div class="inv-estate-sections">
-              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-contacts" checked>
-                <span><b>First-call contacts</b><br><span class="help inline">Friends and dealers in priority order — the first thing your family should reach for.</span></span></label>
-              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-inventory" checked>
-                <span><b>Equipment inventory</b><br><span class="help inline">Full table grouped by type, with serial #, value, location.</span></span></label>
-              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-summary" checked>
-                <span><b>Value summary</b><br><span class="help inline">Total estimated value, count by disposition, "headline" items.</span></span></label>
-              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-sale" checked>
-                <span><b>Sale recommendations</b><br><span class="help inline">Where to sell (HRO, DXE, R&amp;L, GigaParts, Universal); rough timing; what to expect.</span></span></label>
-              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-steps" checked>
-                <span><b>Step-by-step instructions</b><br><span class="help inline">Numbered checklist your family can follow without amateur-radio knowledge.</span></span></label>
-              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-glossary" checked>
-                <span><b>Glossary for non-hams</b><br><span class="help inline">Plain-language definitions: callsign, antenna, coax, repeater, etc.</span></span></label>
-            </div>
+            <div style="margin-top:14px;font-weight:600;color:var(--text);font-size:13px">Sections — pick Include or Exclude for each</div>
+            <table class="inv-estate-radios">
+              <thead><tr><th style="text-align:left">Section</th><th>Include</th><th>Exclude</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><b>First-call contacts</b><div class="help inline">Friends and dealers in priority order — the first thing your family should reach for.</div></td>
+                  <td><label><input type="radio" name="estate-contacts" value="include" checked></label></td>
+                  <td><label><input type="radio" name="estate-contacts" value="exclude"></label></td>
+                </tr>
+                <tr>
+                  <td><b>Equipment inventory</b><div class="help inline">Full table grouped by type, with serial #, value, location.</div></td>
+                  <td><label><input type="radio" name="estate-inventory" value="include" checked></label></td>
+                  <td><label><input type="radio" name="estate-inventory" value="exclude"></label></td>
+                </tr>
+                <tr>
+                  <td><b>Value summary</b><div class="help inline">Total estimated value, count by disposition, top-5 highest-value items.</div></td>
+                  <td><label><input type="radio" name="estate-summary" value="include" checked></label></td>
+                  <td><label><input type="radio" name="estate-summary" value="exclude"></label></td>
+                </tr>
+                <tr>
+                  <td><b>Sale recommendations</b><div class="help inline">Where to sell (HRO, DXE, R&amp;L, GigaParts, Universal); what to expect; scams to watch.</div></td>
+                  <td><label><input type="radio" name="estate-sale" value="include" checked></label></td>
+                  <td><label><input type="radio" name="estate-sale" value="exclude"></label></td>
+                </tr>
+                <tr>
+                  <td><b>Step-by-step instructions</b><div class="help inline">Numbered checklist your family can follow without amateur-radio knowledge.</div></td>
+                  <td><label><input type="radio" name="estate-steps" value="include" checked></label></td>
+                  <td><label><input type="radio" name="estate-steps" value="exclude"></label></td>
+                </tr>
+                <tr>
+                  <td><b>Glossary for non-hams</b><div class="help inline">Plain-language definitions: callsign, antenna, coax, repeater, etc.</div></td>
+                  <td><label><input type="radio" name="estate-glossary" value="include" checked></label></td>
+                  <td><label><input type="radio" name="estate-glossary" value="exclude"></label></td>
+                </tr>
+              </tbody>
+            </table>
 
             <div class="inv-form-buttons">
               <button type="button" class="action-btn" onclick="closeEstateModal()">Cancel</button>
-              <button type="submit" class="action-btn primary">Generate &amp; Open</button>
+              <button type="submit" class="action-btn primary">Download PDF</button>
             </div>
           </form>
         </div>
@@ -2562,6 +2583,8 @@
   </footer>
 
 </div><!-- #app -->
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/jspdf-autotable.min.js"></script>
 <script src="config.js"></script>
 </body>
 </html>
