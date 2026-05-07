@@ -128,6 +128,14 @@ public class Settings {
     private String jSatApiUrl     = "http://localhost:4540";
     private int    refreshSeconds = 30;
 
+    // === J-Hub bootstrap (where to find the upstream broker) ===
+    // These are read locally before we contact J-Hub — so they are NOT
+    // overwritten when JMAP_CONFIG arrives. Persisting them here lets
+    // J-Map run on a second machine pointed at the shack PC's J-Hub.
+    private String jhubHost    = "localhost";
+    private int    jhubWsPort  = 8080;
+    private int    jhubWebPort = 8081;
+
     // UI preferences
     private boolean darkTheme = true;
     private double uiScale = 1.0;
@@ -400,4 +408,11 @@ public class Settings {
     public void setPropagationFontSize(int v){ this.propagationFontSize = v; }
     public int getLunarFontSize()     { return lunarFontSize; }
     public void setLunarFontSize(int v){ this.lunarFontSize = v; }
+
+    public String getJhubHost()        { return jhubHost == null || jhubHost.isBlank() ? "localhost" : jhubHost; }
+    public void   setJhubHost(String v){ this.jhubHost = v; }
+    public int    getJhubWsPort()      { return jhubWsPort > 0 ? jhubWsPort : 8080; }
+    public void   setJhubWsPort(int v) { this.jhubWsPort = v; }
+    public int    getJhubWebPort()     { return jhubWebPort > 0 ? jhubWebPort : 8081; }
+    public void   setJhubWebPort(int v){ this.jhubWebPort = v; }
 }

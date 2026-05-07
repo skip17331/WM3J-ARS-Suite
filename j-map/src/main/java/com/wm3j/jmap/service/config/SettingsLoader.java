@@ -116,4 +116,40 @@ public class SettingsLoader {
     public static String getSettingsFilePath() {
         return SETTINGS_FILE;
     }
+
+    /**
+     * Quick read of just the J-Hub bootstrap fields (host, ws port, web port)
+     * from the local settings file. Used at startup before any network call,
+     * so we know where to look for J-Hub. Returns a defaults-only Settings
+     * if the file is missing — never blocks, never throws.
+     */
+    public static Settings peekBootstrap() {
+        Path local = Paths.get(SETTINGS_FILE);
+        if (Files.exists(local)) {
+            try {
+                return mapper.readValue(local.toFile(), Settings.class);
+            } catch (Exception e) {
+                log.debug("peekBootstrap: failed to read {}: {}", SETTINGS_FILE, e.getMessage());
+            }
+        }
+        return new Settings();
+    }
+
+    /** Persist just the bootstrap fields back to local settings.json. */
+    public static void saveBootstrap(String host, int wsPort, int webPort) {
+        try {
+            Files.createDirectories(Paths.get(SETTINGS_DIR));
+            Path local = Paths.get(SETTINGS_FILE);
+            Settings s = Files.exists(local)
+                ? mapper.readValue(local.toFile(), Settings.class)
+                : new Settings();
+            s.setJhubHost(host);
+            s.setJhubWsPort(wsPort);
+            s.setJhubWebPort(webPort);
+            mapper.writeValue(local.toFile(), s);
+            log.info("Bootstrap saved: jhub={}:{}/{}", host, wsPort, webPort);
+        } catch (Exception e) {
+            log.warn("saveBootstrap failed: {}", e.getMessage());
+        }
+    }
 }

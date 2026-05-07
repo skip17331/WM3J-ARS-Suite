@@ -27,8 +27,6 @@ public class JMapApp extends Application {
      *  (1) {@code $ARS_SUITE_HOME/j-hub/start.sh} if env var is set,
      *  (2) {@code $HOME/ARS_Suite/j-hub/start.sh} otherwise. */
     private static final String JHUB_START    = resolveJHubStart();
-    private static final int    JHUB_WS_PORT  = 8080;
-    private static final int    JHUB_WEB_PORT = 8081;
 
     private static String resolveJHubStart() {
         String root = System.getenv("ARS_SUITE_HOME");
@@ -41,6 +39,8 @@ public class JMapApp extends Application {
     private ServiceRegistry serviceRegistry;
     private boolean         launchedByHub = false;
     private String          hubHost       = "localhost";
+    private int             hubWsPort     = 8080;
+    private int             hubWebPort    = 8081;
 
     public static void main(String[] args) {
         launch(args);
@@ -54,41 +54,71 @@ public class JMapApp extends Application {
         List<String> raw = getParameters().getRaw();
         launchedByHub = raw.contains("--launched-by-hub");
 
+        // Bootstrap precedence: CLI flag > local settings.json > defaults.
+        // We always read the local file first, then let CLI args win.
+        Settings boot = SettingsLoader.peekBootstrap();
+        hubHost    = boot.getJhubHost();
+        hubWsPort  = boot.getJhubWsPort();
+        hubWebPort = boot.getJhubWebPort();
+
+        boolean cliOverride = false;
         int hubIdx = raw.indexOf("--hub");
         if (hubIdx >= 0 && hubIdx + 1 < raw.size()) {
             hubHost = raw.get(hubIdx + 1);
-            log.info("Hub host overridden to: {}", hubHost);
+            cliOverride = true;
         }
+        int wsIdx  = raw.indexOf("--hub-ws-port");
+        if (wsIdx >= 0 && wsIdx + 1 < raw.size()) {
+            try { hubWsPort = Integer.parseInt(raw.get(wsIdx + 1)); cliOverride = true; }
+            catch (NumberFormatException ignored) {}
+        }
+        int webIdx = raw.indexOf("--hub-web-port");
+        if (webIdx >= 0 && webIdx + 1 < raw.size()) {
+            try { hubWebPort = Integer.parseInt(raw.get(webIdx + 1)); cliOverride = true; }
+            catch (NumberFormatException ignored) {}
+        }
+        if (cliOverride) {
+            SettingsLoader.saveBootstrap(hubHost, hubWsPort, hubWebPort);
+        }
+        log.info("J-Hub bootstrap: {}:{} (web {})", hubHost, hubWsPort, hubWebPort);
 
         boolean hubIsLocal = "localhost".equals(hubHost) || "127.0.0.1".equals(hubHost);
 
         // Auto-start J-Hub if local and not already running
         if (hubIsLocal && !launchedByHub) {
-            ensureJHubRunning();
+            ensureJHubRunning(hubWsPort);
         }
 
-        // Detect mode
-        boolean hubReachable = isPortOpen(hubHost, JHUB_WS_PORT, 1000);
+        // Detect mode — quick TCP probe of the WS port
+        boolean hubReachable = isPortOpen(hubHost, hubWsPort, 1500);
         if (hubReachable) {
-            log.info("J-Hub reachable — LOCAL mode: config via WebSocket");
+            log.info("J-Hub reachable at {}:{} — LOCAL mode: config via WebSocket",
+                hubHost, hubWsPort);
         } else {
-            log.info("J-Hub not reachable — REMOTE mode: config from /config/jmap_config.json");
+            log.info("J-Hub not reachable at {}:{} — REMOTE mode: config from /config/jmap_config.json",
+                hubHost, hubWsPort);
         }
 
-        // Load initial settings
-        if (!hubIsLocal) {
-            SettingsLoader.setJHubHost(hubHost, JHUB_WEB_PORT);
-        }
+        // Load initial settings — always tell SettingsLoader where J-Hub lives
+        // (not just when remote) so the HTTP fetch URL respects custom ports.
+        SettingsLoader.setJHubHost(hubHost, hubWebPort);
         Settings settings = SettingsLoader.loadOrDefaults(hubReachable);
+        // If J-Hub returned settings that don't carry our bootstrap fields,
+        // restore them from boot so we don't drop the remote address.
+        if ("localhost".equals(settings.getJhubHost()) && !"localhost".equals(hubHost)) {
+            settings.setJhubHost(hubHost);
+            settings.setJhubWsPort(hubWsPort);
+            settings.setJhubWebPort(hubWebPort);
+        }
         log.info("Settings loaded: callsign={}, lat={}, lon={}",
             settings.getCallsign(), settings.getQthLat(), settings.getQthLon());
 
         serviceRegistry = new ServiceRegistry(settings);
         serviceRegistry.setJHubHost(hubHost);
 
-        if (!hubIsLocal) {
-            serviceRegistry.dxClusterClient.setHubHost(hubHost, JHUB_WS_PORT);
-        }
+        // Always pin the hub host on the WebSocket client — UDP discovery would
+        // otherwise replace our remote address with whatever beacon arrives last.
+        serviceRegistry.dxClusterClient.setHubHost(hubHost, hubWsPort);
         serviceRegistry.start();
     }
 
@@ -122,8 +152,8 @@ public class JMapApp extends Application {
 
     // ── J-Hub auto-start ─────────────────────────────────────────────────────
 
-    private static void ensureJHubRunning() {
-        if (isPortOpen("localhost", JHUB_WS_PORT, 500)) return;
+    private static void ensureJHubRunning(int wsPort) {
+        if (isPortOpen("localhost", wsPort, 500)) return;
         log.info("J-Hub not detected — starting J-Hub...");
         try {
             new ProcessBuilder("bash", JHUB_START, "--no-splash")
@@ -132,7 +162,7 @@ public class JMapApp extends Application {
                 .start();
             for (int i = 0; i < 20; i++) {
                 Thread.sleep(500);
-                if (isPortOpen("localhost", JHUB_WS_PORT, 200)) {
+                if (isPortOpen("localhost", wsPort, 200)) {
                     log.info("J-Hub ready");
                     return;
                 }

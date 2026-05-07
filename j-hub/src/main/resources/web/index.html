@@ -1053,6 +1053,20 @@
       <div class="panel-header">J-Map Settings</div>
       <div class="panel-sub">Map display, overlays, windows, and API keys — applied when J-Map starts</div>
 
+      <div class="card" style="border-left:3px solid var(--blue);">
+        <div class="card-title">Running J-Map on a second machine?</div>
+        <div style="font-size:13px;color:var(--subtext0);line-height:1.5">
+          J-Map can run on a different PC than J-Hub — useful for a wall-mounted display
+          in another room, or for an op position away from the shack PC. On the remote
+          machine, launch J-Map once with the <code>--hub</code> flag pointing at this
+          J-Hub's host or IP. The address is saved in <code>~/.j-map/settings.json</code>
+          and reused on every launch after that.
+          <pre style="background:var(--mantle);padding:10px;border-radius:6px;margin-top:10px;font-family:Consolas;font-size:12px;overflow-x:auto">bash j-map.sh --hub <span id="jmap-hub-host-hint">your-shack-pc.local</span> --hub-ws-port 8080 --hub-web-port 8081</pre>
+          The remote J-Map subscribes to spots and config from this J-Hub. No second
+          DX cluster connection — the shack PC remains the single source of truth.
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title">API Keys</div>
         <div class="toggle-row">
