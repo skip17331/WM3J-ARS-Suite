@@ -82,6 +82,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
+        ctx.addServlet(new ServletHolder(new JLearnApiServlet()),    "/api/jlearn/*");
         ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
         ctx.addServlet(new ServletHolder(new UploadersApiServlet()), "/api/uploaders/*");
         ctx.addServlet(new ServletHolder(new CredentialsApiServlet()), "/api/credentials/*");
@@ -1687,6 +1688,106 @@ public class WebConfigServer {
     private static class WeatherApiServlet extends HttpServlet {
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
             json(res, WeatherService.getInstance().getCachedJson());
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/jlearn — serves the J-Learn manifest + per-section markdown
+    //
+    //   GET /api/jlearn/manifest        → parsed manifest as JSON
+    //   GET /api/jlearn/content?id=X-Y  → raw markdown body for one section
+    //
+    // Resources live on the classpath under /content/ (shipped by the
+    // j-learn jar) so J-Hub doesn't need any filesystem layout assumptions.
+    // ---------------------------------------------------------------
+
+    private static class JLearnApiServlet extends HttpServlet {
+
+        // Matches a row in manifest.md's section-index tables:
+        //   | NN-NN | title | path | level |
+        // Anything that doesn't start with two-digit dash two-digit is
+        // ignored (header rows, divider rows, prose, table headers).
+        private static final java.util.regex.Pattern ROW = java.util.regex.Pattern.compile(
+            "^\\|\\s*(\\d{2}-\\d{2})\\s*\\|\\s*([^|]+?)\\s*\\|\\s*([^|]+?)\\s*\\|\\s*([a-z]+)\\s*\\|");
+
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if ("/manifest".equals(path)) { writeManifest(res); return; }
+            if ("/content".equals(path))  { writeContent(req, res); return; }
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            json(res, "{\"error\":\"unknown jlearn endpoint\"}");
+        }
+
+        private void writeManifest(HttpServletResponse res) throws IOException {
+            String md = readResource("/content/manifest.md");
+            if (md == null) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"manifest.md not on classpath — j-learn dependency missing?\"}");
+                return;
+            }
+            com.google.gson.JsonArray entries = new com.google.gson.JsonArray();
+            for (String line : md.split("\\R")) {
+                java.util.regex.Matcher m = ROW.matcher(line);
+                if (!m.find()) continue;
+                com.google.gson.JsonObject row = new com.google.gson.JsonObject();
+                String id = m.group(1);
+                row.addProperty("id",      id);
+                row.addProperty("title",   m.group(2));
+                row.addProperty("path",    m.group(3));
+                row.addProperty("level",   m.group(4));
+                row.addProperty("chapter", id.substring(0, 2));
+                row.addProperty("section", id.substring(3, 5));
+                entries.add(row);
+            }
+            json(res, entries.toString());
+        }
+
+        private void writeContent(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String id = req.getParameter("id");
+            if (id == null || !id.matches("\\d{2}-\\d{2}")) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"id query parameter required (NN-NN)\"}");
+                return;
+            }
+            // Resolve id → classpath path by re-reading the manifest. Cheap
+            // (manifest is small) and avoids holding a parsed copy in memory.
+            String md = readResource("/content/manifest.md");
+            String relPath = null;
+            if (md != null) {
+                for (String line : md.split("\\R")) {
+                    java.util.regex.Matcher m = ROW.matcher(line);
+                    if (m.find() && id.equals(m.group(1))) { relPath = m.group(3); break; }
+                }
+            }
+            if (relPath == null) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown id " + id + "\"}");
+                return;
+            }
+            String body = readResource("/content/" + relPath);
+            if (body == null) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"content file missing: " + relPath + "\"}");
+                return;
+            }
+            // Markdown served as text/plain so the browser doesn't try to
+            // interpret it; the front-end renders to HTML in JS.
+            res.setContentType("text/markdown; charset=utf-8");
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            try (java.io.PrintWriter w = res.getWriter()) { w.write(body); }
+        }
+
+        private static String readResource(String classpathPath) {
+            try (java.io.InputStream in = JLearnApiServlet.class.getResourceAsStream(classpathPath)) {
+                if (in == null) return null;
+                return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return null;
+            }
         }
 
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {

@@ -24,6 +24,7 @@
       <button class="nav-btn" data-tab="antenna"><span class="nav-icon">⇆</span>Antenna Switch</button>
       <button class="nav-btn" data-tab="macros"><span class="nav-icon">⌨</span>Macros</button>
       <button class="nav-btn" data-tab="uploaders"><span class="nav-icon">↑</span>Log Uploaders</button>
+      <button class="nav-btn" data-tab="learn"><span class="nav-icon">📖</span>J-Learn</button>
       <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
       <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
       <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
@@ -708,6 +709,27 @@
         <div class="btn-row">
           <button class="btn btn-primary" onclick="saveMacros()">Save Macros</button>
           <span id="macros-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: J-Learn ────────────────────────────────── -->
+    <section id="tab-learn" class="tab-panel">
+      <div class="panel-header">J-Learn — In-App Reference Library</div>
+      <div class="panel-sub">~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, and exam prep. Most sections are still stubs while the content is written.</div>
+
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 220px);min-height:500px">
+        <div class="card" style="overflow:auto;padding:8px">
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <input type="text" id="jl-search" placeholder="Filter…" style="flex:1;padding:4px 6px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:12px" oninput="filterLearnToc()">
+            <label style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--subtext0)">
+              <input type="checkbox" id="jl-advanced" onchange="renderLearnContent()"> Advanced
+            </label>
+          </div>
+          <div id="jl-toc"></div>
+        </div>
+        <div class="card" style="overflow:auto;padding:18px" id="jl-viewer">
+          <div style="color:var(--subtext0);font-size:13px">Pick a chapter on the left to start reading. J-Learn remembers your last-opened section automatically.</div>
         </div>
       </div>
     </section>

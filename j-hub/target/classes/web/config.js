@@ -1300,6 +1300,174 @@ function pollAntennaStatus() {
   }).catch(() => {});
 }
 
+// ── J-Learn ───────────────────────────────────────────────
+state.jlearn = { manifest: [], byId: {}, currentId: null };
+
+function loadLearn() {
+  fetch('/api/jlearn/manifest').then(r => r.json()).then(list => {
+    state.jlearn.manifest = list || [];
+    state.jlearn.byId = {};
+    for (const e of state.jlearn.manifest) state.jlearn.byId[e.id] = e;
+    renderLearnToc();
+    // Restore last-opened section if any.
+    const last = localStorage.getItem('jl-last');
+    if (last && state.jlearn.byId[last]) openLearnSection(last);
+  }).catch(() => {});
+}
+
+function renderLearnToc() {
+  const wrap = document.getElementById('jl-toc');
+  if (!wrap) return;
+  const filter   = (document.getElementById('jl-search')?.value || '').toLowerCase();
+  const advanced = document.getElementById('jl-advanced')?.checked;
+
+  const visible = state.jlearn.manifest.filter(e => {
+    if (!advanced && e.level === 'advanced') return false;
+    if (!filter) return true;
+    return e.title.toLowerCase().includes(filter) || e.id.includes(filter);
+  });
+
+  // Group by chapter for the rendered tree.
+  const byChapter = {};
+  for (const e of visible) {
+    (byChapter[e.chapter] = byChapter[e.chapter] || []).push(e);
+  }
+  const chapters = Object.keys(byChapter).sort();
+  wrap.innerHTML = chapters.map(ch => {
+    const overview = byChapter[ch].find(e => e.section === '00');
+    const sections = byChapter[ch].filter(e => e.section !== '00');
+    const chapterTitle = overview ? overview.title.replace(/ — Overview$/, '') : 'Chapter ' + ch;
+    return `<div style="margin-bottom:8px">
+      <div onclick="openLearnSection('${overview ? overview.id : (sections[0] && sections[0].id) || ''}')"
+           style="font-weight:600;font-size:13px;cursor:pointer;padding:3px 4px;border-radius:3px"
+           onmouseover="this.style.background='var(--surface1)'"
+           onmouseout="this.style.background=''">${ch} · ${esc(chapterTitle)}</div>
+      ${sections.map(s => `<div onclick="openLearnSection('${s.id}')"
+        style="cursor:pointer;font-size:12px;padding:2px 4px 2px 16px;border-radius:3px;color:var(--subtext0)"
+        onmouseover="this.style.background='var(--surface1)';this.style.color='var(--text)'"
+        onmouseout="this.style.background='';this.style.color='var(--subtext0)'">
+        ${s.section} · ${esc(s.title)}${s.level === 'advanced' ? ' <span style="font-size:10px;color:var(--peach)">⚙️</span>' : ''}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function filterLearnToc() { renderLearnToc(); }
+
+function openLearnSection(id) {
+  if (!id) return;
+  state.jlearn.currentId = id;
+  localStorage.setItem('jl-last', id);
+  fetch('/api/jlearn/content?id=' + encodeURIComponent(id))
+    .then(r => r.text())
+    .then(md => renderLearnContent(md))
+    .catch(e => {
+      document.getElementById('jl-viewer').innerHTML =
+        '<div style="color:var(--red)">Failed to load section: ' + esc(e.message) + '</div>';
+    });
+}
+
+function renderLearnContent(md) {
+  // Re-fetch when called from the Advanced toggle (no md argument).
+  if (md == null) {
+    if (state.jlearn.currentId) openLearnSection(state.jlearn.currentId);
+    return;
+  }
+  const advanced = document.getElementById('jl-advanced')?.checked;
+  document.getElementById('jl-viewer').innerHTML = mdToHtml(stripFrontMatter(md), advanced);
+  document.getElementById('jl-viewer').scrollTop = 0;
+}
+
+function stripFrontMatter(md) {
+  // Drop a leading YAML block delimited by --- on its own lines.
+  if (!md.startsWith('---')) return md;
+  const end = md.indexOf('\n---', 3);
+  if (end < 0) return md;
+  return md.substring(end + 4).replace(/^\s*\n/, '');
+}
+
+// Tiny markdown renderer — covers what J-Learn actually uses:
+// headings, paragraphs, lists, blockquotes (with the Advanced callout
+// marker recognised), code blocks, inline code, bold, italic, links.
+// Deliberately no third-party dep — keeps the suite offline-clean.
+function mdToHtml(md, includeAdvanced) {
+  const lines = md.split(/\r?\n/);
+  const out = [];
+  let i = 0;
+  const escapeHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const inline = s => escapeHtml(s)
+    .replace(/`([^`]+)`/g,           '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,     '<strong>$1</strong>')
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+  while (i < lines.length) {
+    const line = lines[i];
+    // Code fence
+    if (line.startsWith('```')) {
+      const buf = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) { buf.push(escapeHtml(lines[i])); i++; }
+      i++;
+      out.push('<pre style="background:var(--mantle);padding:10px;border-radius:6px;overflow-x:auto;font-family:Consolas,monospace;font-size:12px"><code>' + buf.join('\n') + '</code></pre>');
+      continue;
+    }
+    // Headings
+    let m;
+    if ((m = line.match(/^(#{1,4})\s+(.*)$/))) {
+      const level = m[1].length;
+      const sizes = { 1: '22px', 2: '18px', 3: '15px', 4: '13px' };
+      out.push(`<h${level} style="font-size:${sizes[level]};margin:14px 0 6px 0;color:var(--text)">${inline(m[2])}</h${level}>`);
+      i++; continue;
+    }
+    // Blockquote (with Advanced callout detection)
+    if (line.startsWith('>')) {
+      const buf = [];
+      while (i < lines.length && lines[i].startsWith('>')) {
+        buf.push(lines[i].replace(/^>\s?/, ''));
+        i++;
+      }
+      const text = buf.join(' ');
+      const isAdvanced = /^⚙️\s+\*\*Advanced\s*—/.test(text.trim());
+      if (isAdvanced && !includeAdvanced) continue;  // hide in simple mode
+      const style = isAdvanced
+        ? 'border-left:3px solid var(--peach);background:rgba(250,179,135,0.06);padding:10px 14px;margin:10px 0;font-size:13px'
+        : 'border-left:3px solid var(--blue);background:rgba(137,180,250,0.06);padding:10px 14px;margin:10px 0;font-size:13px';
+      out.push('<blockquote style="' + style + '">' + inline(text) + '</blockquote>');
+      continue;
+    }
+    // Unordered list
+    if (/^\s*[-*]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+        items.push('<li style="margin:2px 0">' + inline(lines[i].replace(/^\s*[-*]\s+/, '')) + '</li>');
+        i++;
+      }
+      out.push('<ul style="padding-left:22px;margin:8px 0">' + items.join('') + '</ul>');
+      continue;
+    }
+    // Blank line
+    if (line.trim() === '') { i++; continue; }
+    // Paragraph (gather consecutive non-special lines)
+    const para = [];
+    while (i < lines.length && lines[i].trim() !== ''
+        && !lines[i].startsWith('#')
+        && !lines[i].startsWith('>')
+        && !lines[i].startsWith('```')
+        && !/^\s*[-*]\s+/.test(lines[i])) {
+      para.push(lines[i]);
+      i++;
+    }
+    if (para.length) {
+      // TODO markers come through as plain HTML comments — show them as a placeholder.
+      let html = inline(para.join(' '));
+      html = html.replace(/&lt;!--\s*TODO:?\s*content\s*--&gt;/g,
+        '<span style="font-style:italic;color:var(--overlay0);font-size:12px">(content not yet written)</span>');
+      out.push('<p style="margin:8px 0;line-height:1.5;font-size:14px">' + html + '</p>');
+    }
+  }
+  return out.join('\n');
+}
+
 // ── Cloud backup ──────────────────────────────────────────
 function loadBackup() {
   fetch('/api/backup').then(r => r.json()).then(b => {
@@ -2745,6 +2913,7 @@ loadAntenna();
 loadRbn();
 loadBackup();
 loadUploaders();
+loadLearn();
 setInterval(loadRbn, 10000);
 setInterval(loadBackup, 30000);
 loadJMapSettings();

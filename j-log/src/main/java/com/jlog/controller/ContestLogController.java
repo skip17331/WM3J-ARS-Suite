@@ -1846,9 +1846,12 @@ public class ContestLogController implements Initializable {
         catch (Exception e) { setStatus(e.getMessage()); }
     }
 
-    @FXML private void menuMacros()  { openJHubSetupAt("macros");  }
-    @FXML private void menuAmp()     { openJHubSetupAt("amp");     }
-    @FXML private void menuAntenna() { openJHubSetupAt("antenna"); }
+    @FXML private void menuMacros()    { openJHubSetupAt("macros");    }
+    @FXML private void menuAmp()       { openJHubSetupAt("amp");       }
+    @FXML private void menuAntenna()   { openJHubSetupAt("antenna");   }
+    @FXML private void menuUploaders() { openJHubSetupAt("uploaders"); }
+    @FXML private void menuBackup()    { openJHubSetupAt("logging");   }  // backup card lives on Logging tab
+    @FXML private void menuLearn()     { openJHubSetupAt("learn");     }
 
     private void openJHubSetupAt(String tab) {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081#" + tab).start(); }

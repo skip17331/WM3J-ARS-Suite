@@ -180,8 +180,14 @@ public class MainWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        Button learnBtn = new Button("J-Learn");
+        learnBtn.setOnAction(e -> {
+            try { new ProcessBuilder("xdg-open", "http://localhost:8081#learn").start(); }
+            catch (Exception ex) { /* best-effort */ }
+        });
+
         HBox toolbar = new HBox(12, titleBox, spacer,
-                autoScrollChk, cqOnlyChk, clearBtn, settingsBtn, themeBtn);
+                autoScrollChk, cqOnlyChk, clearBtn, learnBtn, settingsBtn, themeBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.getStyleClass().add("jb-toolbar");
 

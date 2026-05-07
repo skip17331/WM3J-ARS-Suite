@@ -53,6 +53,9 @@ public class MainWindow {
             if (e.getCode() == KeyCode.F11 || e.getCode() == KeyCode.F) {
                 stage.setFullScreen(!stage.isFullScreen());
             }
+            if (e.getCode() == KeyCode.F1) {
+                openJLearn();
+            }
             if (e.getCode() == KeyCode.ESCAPE && !stage.isFullScreen()) {
                 // Don't exit on ESC unless not full screen
             }
@@ -61,7 +64,7 @@ public class MainWindow {
         // Configure stage
         stage.setTitle("j-Map — " + settings.getCallsign());
         stage.setScene(scene);
-        stage.setFullScreenExitHint("Press F or F11 to toggle full screen | Configure via J-Hub: http://" + services.getJHubHost() + ":8081");
+        stage.setFullScreenExitHint("F / F11: full screen  |  F1: J-Learn  |  Configure via J-Hub: http://" + services.getJHubHost() + ":8081");
 
         // Full screen by default
         javafx.geometry.Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
@@ -114,6 +117,13 @@ public class MainWindow {
 
     public void stop() {
         if (renderTimer != null) renderTimer.stop();
+    }
+
+    /** Opens the J-Hub web UI's J-Learn tab in the user's default browser. */
+    private void openJLearn() {
+        String host = services.getJHubHost();
+        try { new ProcessBuilder("xdg-open", "http://" + host + ":8081#learn").start(); }
+        catch (Exception ignored) {}
     }
 
     private static void applyRootFontSize(BorderPane root, int fontSize) {
