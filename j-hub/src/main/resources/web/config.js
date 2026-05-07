@@ -3371,3 +3371,1043 @@ function escHtml(s) {
 }
 
 loadInventoryAll();
+
+// ═══════════════════════════════════════════════════════════════════════
+// Antenna Workshop — recommender + calculators
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Pure browser-side; no backend. Recommender questionnaire is sourced from
+// J-Learn §08-01; calculator math from §08-02..§08-15 and §21.
+//
+// Scoring approach (§08-01):
+//   - Each antenna has a profile mapping question codes to fit functions.
+//   - Each question's answer feeds into fitᵢ(A, R) returning 0..10.
+//   - Scores are weighted-summed; antennas with any 0 are dropped.
+//   - Top results above 0.7 × top-score are returned, ranked.
+// ═══════════════════════════════════════════════════════════════════════
+
+const aw = {
+  rec: { step: 0, answers: {} },
+  calc: { current: null }
+};
+
+function awSwitch(which, btn) {
+  document.querySelectorAll('.aw-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('aw-recommender').style.display  = which === 'recommender'  ? '' : 'none';
+  document.getElementById('aw-calculators').style.display  = which === 'calculators'  ? '' : 'none';
+  if (which === 'calculators' && !aw.calc.listRendered) awCalcRenderList();
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Questionnaire definition (matches §08-01)
+// ─────────────────────────────────────────────────────────────────────
+
+const AW_STEPS = [
+  {
+    title: 'A — Your Dwelling',
+    questions: [
+      { id: 'A1', text: 'Building type',
+        type: 'single',
+        choices: [
+          ['sf-detached',  'Single-family detached'],
+          ['sf-attached',  'Single-family attached (row house, townhouse)'],
+          ['mf-low',       'Multi-family low-rise (duplex, triplex, walk-up)'],
+          ['mf-high',      'Multi-family high-rise (apartment 3+ stories)'],
+          ['mobile',       'Mobile home / manufactured'],
+          ['rv',           'RV / camper'],
+          ['none',         'No fixed residence'],
+        ]},
+      { id: 'A2', text: 'Ownership',
+        type: 'single',
+        choices: [
+          ['own',         'Own'],
+          ['rent',        'Rent'],
+          ['condo-hoa',   'Condo with HOA'],
+          ['hoa-sf',      'HOA single-family'],
+        ]},
+      { id: 'A3', text: 'HOA / antenna restrictions',
+        type: 'single',
+        choices: [
+          ['none',     'None'],
+          ['light',    'Some restrictions (no visible antennas above roofline)'],
+          ['strict',   'Strict (nothing visible from outside)'],
+          ['unknown',  "Don't know / haven't checked"],
+        ]},
+      { id: 'A4', text: 'Indoor / attic option',
+        type: 'single',
+        choices: [
+          ['attic-clear',  'Yes — usable attic, non-metal roof'],
+          ['attic-metal',  'Yes — but attic is metal-clad / has foil insulation'],
+          ['no',           'No attic option'],
+          ['unknown',      "Don't know"],
+        ]},
+    ]
+  },
+  {
+    title: 'B — Your Lot',
+    questions: [
+      { id: 'B1L', text: 'Lot length (ft)', type: 'number', placeholder: 'e.g. 120' },
+      { id: 'B1W', text: 'Lot width (ft)',  type: 'number', placeholder: 'e.g. 80' },
+      { id: 'B2', text: 'Lot orientation (long axis)',
+        type: 'single',
+        choices: [
+          ['ns',       'North-South'],
+          ['ew',       'East-West'],
+          ['square',   "Roughly square / doesn't matter"],
+          ['irregular','Irregular'],
+        ]},
+      { id: 'B3N', text: 'How many trees usable as antenna supports?',
+        type: 'single',
+        choices: [
+          ['0', 'None'],
+          ['1', '1 tree'],
+          ['2', '2 trees'],
+          ['3+','3 or more'],
+        ]},
+      { id: 'B3H', text: 'Tallest tree height (ft)', type: 'number', placeholder: 'e.g. 60' },
+      { id: 'B4', text: 'Existing tower',
+        type: 'single',
+        choices: [
+          ['none',     'None'],
+          ['pushup',   'Push-up mast (~30 ft)'],
+          ['self40',   'Self-supporting 40-50 ft'],
+          ['guyed50',  'Guyed 50+ ft'],
+          ['crankup',  'Crank-up'],
+        ]},
+      { id: 'B5', text: 'Could you put up a tower if you wanted?',
+        type: 'single',
+        choices: [
+          ['approved',   'Already approved / no obstacles'],
+          ['possible',   'Could be approved but not yet'],
+          ['forbidden',  'Forbidden (HOA, lease, code)'],
+          ['no-interest','Not interested'],
+        ]},
+      { id: 'B6', text: 'Roof access',
+        type: 'single',
+        choices: [
+          ['flat',     'Yes — flat roof'],
+          ['pitched',  'Yes — pitched roof'],
+          ['no',       "No / can't go up there"],
+        ]},
+      { id: 'B7', text: 'Soil for buried radials',
+        type: 'single',
+        choices: [
+          ['lawn',     'Lawn (good)'],
+          ['drive',    'Driveway / patio'],
+          ['rocks',    'Rocks / shallow soil'],
+          ['salt',     'Salt marsh / coastal (excellent)'],
+          ['unknown',  "Don't know"],
+        ]},
+    ]
+  },
+  {
+    title: 'C — Your Goals',
+    questions: [
+      { id: 'C1', text: 'Bands wanted (check all that apply)',
+        type: 'multi',
+        choices: [
+          ['160','160m'], ['80','80m'], ['40','40m'], ['30','30m'],
+          ['20','20m'], ['17','17m'], ['15','15m'], ['12','12m'],
+          ['10','10m'], ['6','6m'], ['2','2m'], ['70cm','70cm'],
+        ]},
+      { id: 'C2', text: 'Multi-band priority',
+        type: 'single',
+        choices: [
+          ['single', 'One band done well'],
+          ['few',    'A few specific bands done well'],
+          ['all',    'All HF bands acceptably (with tuner)'],
+        ]},
+      { id: 'C3', text: 'Operating modes (check all that apply)',
+        type: 'multi',
+        choices: [
+          ['ssb','SSB voice'], ['cw','CW'], ['ft8','FT8 / FT4'],
+          ['rtty','RTTY'], ['digital','Other digital (PSK31, JS8Call)'],
+          ['fm','FM voice (repeaters)'], ['dv','Digital voice (DMR/Fusion/D-STAR)'],
+          ['packet','Packet / APRS'],
+        ]},
+      { id: 'C4', text: 'Power level',
+        type: 'single',
+        choices: [
+          ['qrp',    'QRP (≤ 10 W)'],
+          ['100',    '100 W'],
+          ['500',    '500 W'],
+          ['legal',  'Legal limit (1500 W)'],
+        ]},
+      { id: 'C5', text: 'Operating goals (check all that apply)',
+        type: 'multi',
+        choices: [
+          ['rag',    'Local rag-chew'],
+          ['nvis',   'Regional NVIS'],
+          ['dx',     'DX hunting'],
+          ['contest','Contesting'],
+          ['emcomm', 'Emergency communications'],
+          ['portable','Portable (POTA / SOTA)'],
+          ['fd',     'Field Day'],
+        ]},
+    ]
+  },
+  {
+    title: 'D — Constraints',
+    questions: [
+      { id: 'D1', text: 'Budget',
+        type: 'single',
+        choices: [
+          ['lt50',    'Under $50'],
+          ['50-200',  '$50 – $200'],
+          ['200-500', '$200 – $500'],
+          ['500-1500','$500 – $1500'],
+          ['gt1500',  'Over $1500'],
+          ['no-limit','No firm limit'],
+        ]},
+      { id: 'D2', text: 'Time investment',
+        type: 'single',
+        choices: [
+          ['hours',     'A few hours'],
+          ['weekend',   'A weekend'],
+          ['weekends',  'Multiple weekends'],
+          ['long',      'A long-term project'],
+        ]},
+      { id: 'D3', text: 'Skill level',
+        type: 'single',
+        choices: [
+          ['first',    'First antenna'],
+          ['couple',   'Built one or two'],
+          ['exp',      'Experienced builder'],
+          ['eng',      'Antenna-engineering background'],
+        ]},
+      { id: 'D4', text: 'Climbing comfort',
+        type: 'single',
+        choices: [
+          ['tower',    "I'll climb a tower"],
+          ['roof',     'Pitched roof OK'],
+          ['ladder',   'Step ladder only'],
+          ['ground',   "No heights — keep it on the ground"],
+        ]},
+      { id: 'D5', text: 'Stealth required',
+        type: 'single',
+        choices: [
+          ['none',     'Visible OK'],
+          ['subtle',   'Subtle preferred'],
+          ['hidden',   'Must be invisible from neighbors'],
+          ['stealth',  'Must be invisible always (attic / flagpole only)'],
+        ]},
+    ]
+  },
+  {
+    title: 'E — Existing Infrastructure',
+    questions: [
+      { id: 'E2', text: 'Coax in place',
+        type: 'single',
+        choices: [
+          ['none',     'None — buying new'],
+          ['rg58',     'RG-58'],
+          ['rg8x',     'RG-8X'],
+          ['rg213',    'RG-213'],
+          ['lmr400',   'LMR-400'],
+          ['hardline', 'Hardline (Heliax, etc.)'],
+          ['ladder',   'Window line / ladder line'],
+          ['unknown',  "Don't know"],
+        ]},
+      { id: 'E3', text: 'Tuner available',
+        type: 'single',
+        choices: [
+          ['none',      'None'],
+          ['internal',  'Internal (rig only)'],
+          ['ext100',    'External 100 W'],
+          ['ext1500',   'External 1500 W'],
+          ['remote',    'Auto + remote'],
+        ]},
+      { id: 'E4', text: 'Grounding system',
+        type: 'single',
+        choices: [
+          ['none',     'None'],
+          ['rod',      'Single ground rod'],
+          ['array',    'Multi-rod bonded array'],
+          ['counter',  'Dedicated counterpoise wire'],
+        ]},
+    ]
+  }
+];
+
+// ─────────────────────────────────────────────────────────────────────
+// Per-antenna scoring profiles
+// Each profile.fit(answers) returns {score:0..10, reasons:[]}.
+// Returning score=0 disqualifies the antenna entirely.
+// ─────────────────────────────────────────────────────────────────────
+
+function awBand(answers, b) { return (answers.C1 || []).includes(b); }
+function awAnyBand(answers, bs) { return bs.some(b => awBand(answers, b)); }
+function awGoal(answers, g) { return (answers.C5 || []).includes(g); }
+function awHasModes(answers, ms) { return ms.some(m => (answers.C3 || []).includes(m)); }
+function awLot(answers) {
+  const L = parseFloat(answers.B1L), W = parseFloat(answers.B1W);
+  return { L: isNaN(L) ? null : L, W: isNaN(W) ? null : W,
+           longest: isNaN(L) ? (isNaN(W) ? null : W) : (isNaN(W) ? L : Math.max(L, W)) };
+}
+
+function awTrees(answers) {
+  const n = answers.B3N;
+  if (!n) return 0;
+  if (n === '3+') return 3;
+  return parseInt(n, 10) || 0;
+}
+
+function awHasOutdoor(answers) {
+  return answers.A3 !== 'strict';
+}
+
+function awCanTower(answers) {
+  if (answers.B4 && answers.B4 !== 'none') return true;
+  return answers.B5 === 'approved' || answers.B5 === 'possible';
+}
+
+function longestBandToMHz(b) {
+  const map = { 160:1.9, 80:3.7, 40:7.15, 30:10.13, 20:14.15, 17:18.12, 15:21.2,
+                12:24.94, 10:28.5, 6:50.15, 2:146, '70cm':446 };
+  return map[b] || 14.15;
+}
+
+const AW_ANTENNAS = [
+  {
+    id: 'flat-dipole',
+    name: 'Flat Dipole',
+    section: '08-02',
+    summary: 'Half-wave dipole strung horizontally between two supports. Single-band, simplest, cheapest.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      const lot = awLot(a);
+      const bands = a.C1 || [];
+      if (bands.length === 0) return { score: 4, reasons: ['no bands selected — generic suggestion'] };
+      const longestBand = Math.max(...bands.map(b => parseInt(b, 10) || 0).filter(n => !isNaN(n)));
+      const halfWaveFt = longestBand > 0 ? Math.round(468 / longestBandToMHz(longestBand)) : 65;
+      if (lot.longest && lot.longest < halfWaveFt + 5) {
+        return { score: 1, reasons: [`lot ${lot.longest} ft is too short for a ${longestBand}m dipole (~${halfWaveFt} ft)`] };
+      }
+      let s = 7;
+      if (awTrees(a) >= 2) { s += 1.5; reasons.push(`two supports available (${awTrees(a)} trees)`); }
+      if (a.A3 === 'none' || a.A3 === 'light') { s += 0.3; }
+      if (a.D3 === 'first' || a.D3 === 'couple') { s += 0.5; reasons.push('beginner-friendly build'); }
+      if (a.D1 === 'lt50' || a.D1 === '50-200') { s += 0.3; reasons.push('inexpensive (wire + insulators + balun)'); }
+      if (a.C2 === 'single') { s += 0.5; reasons.push('matches single-band priority'); }
+      if (a.C2 === 'all')    { s -= 1.0; reasons.push('⚠ single-band only — consider trapped or fan variant'); }
+      if (a.D5 === 'stealth') { s -= 2; reasons.push('⚠ visible installation'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'inverted-v',
+    name: 'Inverted-V Dipole',
+    section: '08-03',
+    summary: 'Dipole with apex at center support, ends sloping down to stakes. Needs only one tall support.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      const bands = a.C1 || [];
+      if (bands.length === 0) return { score: 4 };
+      const longestBand = Math.max(...bands.map(b => parseInt(b, 10) || 0).filter(n => !isNaN(n)));
+      const halfWaveFt = Math.round(468 / longestBandToMHz(longestBand));
+      const lot = awLot(a);
+      if (lot.longest && lot.longest < halfWaveFt * 0.8) {
+        return { score: 1, reasons: [`lot ${lot.longest} ft still too short for ${longestBand}m inverted-V`] };
+      }
+      let s = 7.5;
+      if (awTrees(a) >= 1) { s += 1.5; reasons.push(`one tall support sufficient — ${awTrees(a)} tree(s) available`); }
+      if (a.B3H && parseFloat(a.B3H) >= 30) { s += 0.5; reasons.push(`apex height ${a.B3H} ft is good`); }
+      if (a.D3 === 'first' || a.D3 === 'couple') { s += 0.5; reasons.push('beginner-friendly'); }
+      if (a.D1 === 'lt50' || a.D1 === '50-200') { s += 0.3; reasons.push('inexpensive build'); }
+      if (a.D5 === 'stealth') { s -= 1.5; reasons.push('⚠ apex still visible'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'fan-dipole',
+    name: 'Fan Dipole',
+    section: '08-04',
+    summary: 'Multiple parallel dipoles fed from one feedpoint. Resonant on each band without traps.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      const bands = (a.C1 || []).filter(b => parseInt(b) <= 80).length;
+      if (bands < 2) return { score: 2, reasons: ['fan only useful for 2+ bands'] };
+      let s = 7;
+      if (a.C2 === 'few') { s += 1.5; reasons.push(`fits "${bands} bands done well" goal`); }
+      if (a.D3 === 'couple' || a.D3 === 'exp') { s += 0.5; reasons.push('moderate build skill needed'); }
+      if (a.D3 === 'first') { s -= 0.5; reasons.push('⚠ harder first build than single dipole'); }
+      if (awTrees(a) >= 2) { s += 1; reasons.push('two supports available'); }
+      if (a.D5 === 'stealth') { s -= 2.5; reasons.push('⚠ multiple wires visible'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'trapped-dipole',
+    name: 'Trapped Dipole',
+    section: '08-05',
+    summary: 'Single wire with traps that isolate band segments. Multi-band in less space than fan.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      const bands = (a.C1 || []).length;
+      if (bands < 2) return { score: 2, reasons: ['traps only useful for 2+ bands'] };
+      let s = 7;
+      if (a.C2 === 'few') { s += 1; reasons.push('matches few-bands-well goal'); }
+      if (a.D2 === 'weekends' || a.D2 === 'long') { s += 0.5; reasons.push('time available for trap construction'); }
+      if (a.D2 === 'hours') { s -= 1; reasons.push('⚠ trap building takes a weekend+'); }
+      if (a.D3 === 'first') { s -= 1.5; reasons.push('⚠ requires intermediate skill'); }
+      const lot = awLot(a);
+      if (lot.longest && lot.longest < 65) { s -= 1; reasons.push('⚠ short lot may not fit even trapped 40m'); }
+      if (awTrees(a) >= 2) { s += 0.5; reasons.push('two supports available'); }
+      if (a.C4 === 'legal') { s -= 0.5; reasons.push('⚠ legal-limit traps need careful design'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'ocf-dipole',
+    name: 'OCF Dipole (Windom)',
+    section: '08-06',
+    summary: 'Dipole fed off-center (~⅓ from one end) with 4:1 or 6:1 balun. Multi-band without traps or tuner.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      const bands = a.C1 || [];
+      if (bands.length === 0) return { score: 4 };
+      let s = 7;
+      if (a.C2 === 'few' || a.C2 === 'all') { s += 1; reasons.push('OCF covers 80/40/20/15/10 with one wire'); }
+      if (a.E3 === 'none' || a.E3 === 'internal') { s += 0.5; reasons.push('works without external tuner'); }
+      if (a.D5 === 'stealth') { s -= 1.5; }
+      if (awTrees(a) >= 2) { s += 0.5; reasons.push('two supports available'); }
+      if (a.D3 === 'first') { s -= 0.5; reasons.push('⚠ needs balanced feed-line discipline'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'efhw-no-traps',
+    name: 'EFHW (No Traps)',
+    section: '08-07',
+    summary: 'Half-wave wire fed at one end via 49:1 or 64:1 unun. Resonant on harmonics — 80m EFHW covers 40/20/15/10.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      let s = 8;
+      if (awTrees(a) >= 1) { s += 1; reasons.push(`only one support needed — ${awTrees(a)} tree(s) available`); }
+      if (a.C2 === 'few' || a.C2 === 'all') { s += 1; reasons.push('harmonic coverage on 4 bands'); }
+      if (a.A4 === 'attic-clear' && !awHasOutdoor(a)) { s += 1; reasons.push('attic install possible'); }
+      if (a.D3 !== 'first') { s += 0.3; }
+      if (a.D5 === 'stealth') { s -= 1; reasons.push('⚠ wire visible if installed outdoors'); }
+      if (a.E3 === 'none') { s -= 0.3; reasons.push('⚠ tuner helps for FT8/SSB on same band'); }
+      const lot = awLot(a);
+      if (lot.longest && lot.longest < 70) { s -= 1; reasons.push('⚠ short lot — 80m EFHW needs ~134 ft, can be sloped'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'efhw-trapped',
+    name: 'EFHW (Trapped)',
+    section: '08-08',
+    summary: 'Trapped end-fed half-wave for portable / restricted-length installations. Each band cuts the wire shorter.',
+    fit(a) {
+      const reasons = [];
+      if (!awHasOutdoor(a) && a.A4 === 'no') return { score: 0 };
+      let s = 6;
+      if (awGoal(a, 'portable')) { s += 2; reasons.push('excellent for POTA / SOTA portable'); }
+      const lot = awLot(a);
+      if (lot.longest && lot.longest < 70) { s += 1.5; reasons.push('fits short lot via traps'); }
+      if (a.D3 === 'first') { s -= 2; reasons.push('⚠ trap construction is intermediate'); }
+      if (a.D2 === 'hours') { s -= 1.5; reasons.push('⚠ need a weekend to wind traps'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'j-pole',
+    name: 'J-Pole (VHF/UHF)',
+    section: '08-09',
+    summary: 'Half-wave VHF/UHF radiator with quarter-wave matching stub. Easy build, omni, vertical polarization.',
+    fit(a) {
+      const reasons = [];
+      if (!awAnyBand(a, ['2', '70cm', '6'])) return { score: 0, reasons: ['J-pole is for VHF/UHF only'] };
+      let s = 7.5;
+      if (awHasModes(a, ['fm', 'dv'])) { s += 1; reasons.push('matches FM repeater operating'); }
+      if (awGoal(a, 'rag')) { s += 0.5; reasons.push('great for local FM rag-chew'); }
+      if (a.D3 === 'first') { s += 0.5; reasons.push('beginner-friendly — copper pipe + solder'); }
+      if (a.D1 === 'lt50') { s += 0.5; reasons.push('under $20 in copper'); }
+      if (a.A1 === 'mf-high') { s -= 1; reasons.push('⚠ apartment installation challenging'); }
+      if (a.D5 === 'stealth') { s -= 1.5; reasons.push('⚠ vertical pipe is visible'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'yagi',
+    name: 'Yagi-Uda',
+    section: '08-10',
+    summary: 'Directional beam with reflector and directors. High gain, narrow beamwidth — best for DX and contesting.',
+    fit(a) {
+      const reasons = [];
+      if (!awCanTower(a)) return { score: 0, reasons: ['Yagi requires a tower'] };
+      if (a.B5 === 'forbidden') return { score: 0, reasons: ['tower forbidden'] };
+      let s = 6;
+      if (awGoal(a, 'dx') || awGoal(a, 'contest')) { s += 2.5; reasons.push('directional gain + F/B ratio for DX/contest'); }
+      if (a.B4 && a.B4 !== 'none') { s += 1.5; reasons.push('existing tower'); }
+      else if (a.B5 === 'approved') { s += 0.5; reasons.push('tower could be added'); }
+      if (a.D1 === 'no-limit' || a.D1 === 'gt1500') { s += 0.5; reasons.push('budget supports commercial Yagi'); }
+      if (a.D1 === 'lt50' || a.D1 === '50-200') { s -= 2; reasons.push('⚠ Yagi is expensive'); }
+      if (a.D3 === 'first') { s -= 1.5; reasons.push('⚠ Yagi is not a first antenna'); }
+      if (a.D4 === 'ground' || a.D4 === 'ladder') { s -= 1; reasons.push('⚠ tower work requires climbing or hire-out'); }
+      if (awAnyBand(a, ['20', '15', '10'])) { s += 0.5; reasons.push('20/15/10 are classic Yagi bands'); }
+      if (awAnyBand(a, ['80', '40']) && !awAnyBand(a, ['20', '15', '10'])) { s -= 1.5; reasons.push('⚠ 80/40 Yagis are huge and rare'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'vertical',
+    name: 'Vertical Antenna',
+    section: '08-11',
+    summary: 'Quarter-wave / 5/8-wave / half-wave vertical with radial system. Low takeoff angle, omnidirectional.',
+    fit(a) {
+      const reasons = [];
+      if (a.A3 === 'strict' && a.A4 === 'no') return { score: 0 };
+      let s = 7;
+      if (awGoal(a, 'dx')) { s += 1; reasons.push('low takeoff angle good for DX'); }
+      if (a.B7 === 'lawn' || a.B7 === 'salt') { s += 1; reasons.push(`good radial soil (${a.B7})`); }
+      if (a.B7 === 'rocks' || a.B7 === 'drive') { s -= 1.5; reasons.push('⚠ radials hard to install in your soil'); }
+      if (a.D5 === 'subtle' || a.D5 === 'hidden') { s += 0.5; reasons.push('lower visual profile than horizontal wire'); }
+      if (a.D5 === 'stealth') { s -= 1; reasons.push('⚠ still visible — flagpole hide-job needed'); }
+      const lot = awLot(a);
+      if (lot.longest && lot.longest >= 30) { s += 0.3; reasons.push('lot supports radial field'); }
+      if (lot.longest && lot.longest < 30) { s -= 1; reasons.push('⚠ too small for full radial field'); }
+      if (awGoal(a, 'nvis')) { s -= 1.5; reasons.push('⚠ vertical bad for NVIS (needs high angle)'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+  {
+    id: 'mag-loop',
+    name: 'Magnetic Loop',
+    section: '08-14',
+    summary: 'Small loop, ~⅛ wavelength, with high-Q tuning capacitor. Stealth-friendly; narrow bandwidth.',
+    fit(a) {
+      const reasons = [];
+      let s = 5;
+      if (a.D5 === 'stealth' || a.D5 === 'hidden') { s += 3; reasons.push('excellent stealth — tiny footprint'); }
+      if (a.A1 === 'mf-high' || a.A1 === 'mf-low') { s += 2; reasons.push('apartment-friendly indoor option'); }
+      if (a.A4 === 'attic-clear') { s += 1.5; reasons.push('attic install practical'); }
+      if (awGoal(a, 'portable')) { s += 1; reasons.push('compact for portable'); }
+      if (a.C4 === 'legal' || a.C4 === '500') { s -= 1; reasons.push('⚠ high-power mag loop needs vacuum capacitor'); }
+      if (a.D1 === 'lt50') { s -= 1; reasons.push('⚠ tuning capacitor often $50-100'); }
+      if (a.D3 === 'first') { s -= 1.5; reasons.push('⚠ tricky tuning, narrow BW'); }
+      return { score: Math.min(10, Math.max(0, s)), reasons };
+    }
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────
+// Wizard rendering & navigation
+// ─────────────────────────────────────────────────────────────────────
+
+function awRecRender() {
+  const step = AW_STEPS[aw.rec.step];
+  if (!step) return;
+  const wrap = document.getElementById('aw-rec-steps');
+  wrap.innerHTML =
+    `<div class="aw-rec-step-title">${escHtml(step.title)}</div>` +
+    step.questions.map(q => awRenderQuestion(q)).join('');
+  document.getElementById('aw-rec-progress').textContent =
+    `Step ${aw.rec.step + 1} of ${AW_STEPS.length}`;
+  document.getElementById('aw-rec-back').disabled = aw.rec.step === 0;
+  document.getElementById('aw-rec-next').textContent =
+    aw.rec.step === AW_STEPS.length - 1 ? 'See Results →' : 'Next →';
+}
+
+function awRenderQuestion(q) {
+  const cur = aw.rec.answers[q.id];
+  if (q.type === 'number') {
+    return `<div class="aw-q">
+      <div class="aw-q-text">${escHtml(q.text)}</div>
+      <input type="number" class="aw-q-input"
+             placeholder="${escHtml(q.placeholder || '')}"
+             value="${cur != null ? escHtml(cur) : ''}"
+             oninput="awRecAnswerNoRefresh('${q.id}', this.value)">
+    </div>`;
+  }
+  if (q.type === 'single') {
+    return `<div class="aw-q">
+      <div class="aw-q-text">${escHtml(q.text)}</div>
+      <div class="aw-q-choices">
+        ${q.choices.map(([v, label]) => `
+          <label class="aw-q-choice ${cur === v ? 'sel' : ''}">
+            <input type="radio" name="aw-${q.id}" value="${v}"
+                   ${cur === v ? 'checked' : ''}
+                   onchange="awRecAnswer('${q.id}', '${v}')">
+            <span>${escHtml(label)}</span>
+          </label>`).join('')}
+        <label class="aw-q-choice ${cur === '__skip' ? 'sel' : ''}">
+          <input type="radio" name="aw-${q.id}" value="__skip"
+                 ${cur === '__skip' ? 'checked' : ''}
+                 onchange="awRecAnswer('${q.id}', '__skip')">
+          <span style="color:var(--overlay0)">Skip / don't know</span>
+        </label>
+      </div>
+    </div>`;
+  }
+  if (q.type === 'multi') {
+    const sel = Array.isArray(cur) ? cur : [];
+    return `<div class="aw-q">
+      <div class="aw-q-text">${escHtml(q.text)}</div>
+      <div class="aw-q-choices aw-q-multi">
+        ${q.choices.map(([v, label]) => `
+          <label class="aw-q-choice ${sel.includes(v) ? 'sel' : ''}">
+            <input type="checkbox" value="${v}"
+                   ${sel.includes(v) ? 'checked' : ''}
+                   onchange="awRecAnswerMulti('${q.id}', '${v}', this.checked)">
+            <span>${escHtml(label)}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+function awRecAnswer(qid, val) {
+  aw.rec.answers[qid] = val;
+  awRecRender();
+}
+
+function awRecAnswerNoRefresh(qid, val) {
+  // For numeric inputs — don't re-render or we lose focus
+  aw.rec.answers[qid] = val;
+}
+
+function awRecAnswerMulti(qid, val, checked) {
+  if (!Array.isArray(aw.rec.answers[qid])) aw.rec.answers[qid] = [];
+  const arr = aw.rec.answers[qid];
+  const idx = arr.indexOf(val);
+  if (checked && idx < 0) arr.push(val);
+  if (!checked && idx >= 0) arr.splice(idx, 1);
+}
+
+function awRecBack() {
+  if (aw.rec.step > 0) { aw.rec.step--; awRecRender(); }
+}
+
+function awRecNext() {
+  if (aw.rec.step < AW_STEPS.length - 1) {
+    aw.rec.step++;
+    awRecRender();
+  } else {
+    awRecScore();
+  }
+}
+
+function awRecRestart() {
+  aw.rec = { step: 0, answers: {} };
+  document.getElementById('aw-rec-results').style.display = 'none';
+  awRecRender();
+}
+
+function awCleanAnswers(raw) {
+  const a = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v === '__skip') continue;
+    if (Array.isArray(v) && v.length === 0) continue;
+    if (v === '' || v == null) continue;
+    a[k] = v;
+  }
+  return a;
+}
+
+function awRecScore() {
+  const a = awCleanAnswers(aw.rec.answers);
+  const ranked = AW_ANTENNAS
+    .map(ant => {
+      const r = ant.fit(a) || { score: 0, reasons: [] };
+      return { ant, score: r.score || 0, reasons: r.reasons || [] };
+    })
+    .filter(r => r.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const top = ranked.length ? ranked[0].score : 0;
+  const cutoff = top * 0.7;
+  const show = ranked.filter(r => r.score >= cutoff).slice(0, 5);
+
+  const wrap = document.getElementById('aw-rec-results-list');
+  if (!show.length) {
+    wrap.innerHTML = '<div style="color:var(--subtext0)">No matching antennas — try answering more questions or relaxing constraints.</div>';
+  } else {
+    wrap.innerHTML = show.map((r, i) => `
+      <div class="aw-rec-result">
+        <div class="aw-rec-result-header">
+          <div>
+            <span class="aw-rec-rank">${i + 1}</span>
+            <span class="aw-rec-name">${escHtml(r.ant.name)}</span>
+            <span class="aw-rec-score">score ${r.score.toFixed(1)}</span>
+          </div>
+          <button class="action-btn primary" onclick="awCalcOpen('${r.ant.id}')">▶ Open in calculator</button>
+        </div>
+        <div class="aw-rec-result-summary">${escHtml(r.ant.summary)}</div>
+        <ul class="aw-rec-reasons">
+          ${r.reasons.map(reason => `<li>${escHtml(reason)}</li>`).join('')}
+        </ul>
+        <div class="aw-rec-result-link">
+          <a href="#" onclick="document.querySelector('[data-tab=learn]').click(); openLearnSection('${r.ant.section}'); return false">
+            Read §${r.ant.section} for the full design notes →
+          </a>
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('aw-rec-results').style.display = '';
+  document.getElementById('aw-rec-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Calculator panels (initial 5 implemented; rest are "coming soon")
+// ─────────────────────────────────────────────────────────────────────
+
+function hamBandFor(mhz) {
+  if (mhz >= 1.8 && mhz <= 2.0) return '160m';
+  if (mhz >= 3.5 && mhz <= 4.0) return '80m';
+  if (mhz >= 7.0 && mhz <= 7.3) return '40m';
+  if (mhz >= 10.1 && mhz <= 10.15) return '30m';
+  if (mhz >= 14.0 && mhz <= 14.35) return '20m';
+  if (mhz >= 18.06 && mhz <= 18.17) return '17m';
+  if (mhz >= 21.0 && mhz <= 21.45) return '15m';
+  if (mhz >= 24.89 && mhz <= 24.99) return '12m';
+  if (mhz >= 28.0 && mhz <= 29.7) return '10m';
+  if (mhz >= 50 && mhz <= 54) return '6m';
+  if (mhz >= 144 && mhz <= 148) return '2m';
+  if (mhz >= 420 && mhz <= 450) return '70cm';
+  return 'out of band';
+}
+
+const AW_CALCS = {
+  'flat-dipole': {
+    name: 'Flat Dipole',
+    section: '08-02',
+    inputs: [
+      { id: 'freq',   label: 'Frequency (MHz)',     type: 'number', step: '0.001', default: 14.150 },
+      { id: 'k',      label: 'Length factor (k)',   type: 'number', step: '0.01',  default: 468,
+        hint: 'Imperial: 468 (thin wire). Use 462 for thick aluminum, 471 for very thin wire.' },
+      { id: 'units',  label: 'Display units',       type: 'select', default: 'ft',
+        choices: [['ft','feet (and inches)'], ['m','meters']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 14.150;
+      const k = parseFloat(v.k) || 468;
+      const ft = k / f;
+      const m = ft * 0.3048;
+      const half = ft / 2;
+      return { rows: [
+        ['Total length',     v.units === 'm' ? `${m.toFixed(2)} m`     : `${ft.toFixed(2)} ft  (${(ft*12).toFixed(1)} in)`],
+        ['Each leg (half)',  v.units === 'm' ? `${(m/2).toFixed(2)} m` : `${half.toFixed(2)} ft  (${(half*12).toFixed(1)} in)`],
+        ['Free-space λ/2',   v.units === 'm' ? `${(150/f).toFixed(2)} m` : `${(492/f).toFixed(2)} ft  (no end-effect)`],
+        ['Expected feed Z (free space)', '~73 Ω resistive at resonance'],
+        ['Practical feed Z',             '~50–73 Ω depending on height; lower height drops below 50 Ω'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">   support ─────────────────────●─────────────────────── support
+                                │
+                              feed
+                              │
+                            coax to rig
+       ←───────────  half-wave  ───────────→</pre>`;
+    },
+    notes: [
+      'Trim shorter to raise resonant frequency, longer to lower it. ~1 cm = ~10 kHz on 20m.',
+      'Mount at least λ/4 above ground for usable patterns; λ/2 or higher for DX.',
+      '1:1 current balun at the feedpoint suppresses common-mode current on the coax shield.',
+    ],
+  },
+
+  'inverted-v': {
+    name: 'Inverted-V Dipole',
+    section: '08-03',
+    inputs: [
+      { id: 'freq',   label: 'Frequency (MHz)',     type: 'number', step: '0.001', default: 7.150 },
+      { id: 'apex',   label: 'Apex height (ft)',    type: 'number', step: '1',     default: 35 },
+      { id: 'angle',  label: 'Droop angle from horizontal (deg)', type: 'number', step: '5', default: 30 },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 7.150;
+      const angleDeg = parseFloat(v.angle) || 30;
+      const corr = 1 - 0.03 * (angleDeg / 45);
+      const flatLen = 468 / f;
+      const invLen = flatLen * corr;
+      const legSlope = invLen / 2;
+      const apex = parseFloat(v.apex) || 35;
+      const tipHeight = apex - legSlope * Math.cos((90 - angleDeg) * Math.PI / 180);
+      return { rows: [
+        ['Total length (corrected)', `${invLen.toFixed(2)} ft  (${(invLen*0.3048).toFixed(2)} m)`],
+        ['Each leg (sloped)',        `${legSlope.toFixed(2)} ft along the wire`],
+        ['Tip height above ground',  `${Math.max(0, tipHeight).toFixed(1)} ft (keep ≥ 8 ft for safety)`],
+        ['Expected feed Z',          '~50 Ω at typical droop angles (lower than flat dipole)'],
+        ['Match to 50 Ω coax',       '1:1 balun at apex'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">                           ●  ← apex (mast / tree)
+                          /│\\
+                         / │ \\
+                        /  │  \\
+                       /  feed  \\
+                      /    │    \\
+                     /  coax to rig  \\
+                    /                 \\
+              stake ●─── ground ───● stake</pre>`;
+    },
+    notes: [
+      'Droop 30–45° is typical; steeper makes the antenna more vertical (lower feed Z, higher angle).',
+      '~3% length correction at 45° droop accounts for end-coupling and ground proximity at the tips.',
+      'Apex must be at least λ/4 high for effective NVIS / regional coverage.',
+    ],
+  },
+
+  'efhw-no-traps': {
+    name: 'EFHW (No Traps)',
+    section: '08-07',
+    inputs: [
+      { id: 'freq',   label: 'Lowest band (MHz)',  type: 'number', step: '0.01',  default: 7.150,
+        hint: 'EFHW is half-wave at this frequency, harmonic-resonant on 2×, 3×, 4× of it.' },
+      { id: 'unun',   label: 'Unun ratio',          type: 'select', default: '49',
+        choices: [['49','49:1 — most common'], ['64','64:1 — slightly higher Z'], ['56','56:1 — alternative']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 7.150;
+      const lenFt = 478 / f;
+      const harmonics = [];
+      for (const h of [1, 2, 3, 4]) {
+        const fh = f * h;
+        if (fh < 30) harmonics.push(`${h}× (${fh.toFixed(2)} MHz → ${hamBandFor(fh)})`);
+      }
+      const unun = parseInt(v.unun, 10) || 49;
+      const expectedZ = unun === 49 ? '~2450 Ω' : unun === 64 ? '~3200 Ω' : '~2800 Ω';
+      return { rows: [
+        ['Total wire length',     `${lenFt.toFixed(1)} ft  (${(lenFt*0.3048).toFixed(2)} m)`],
+        ['Counterpoise length',   `~${(lenFt * 0.05).toFixed(1)} ft  (~5% of wire — soldered to unun ground side)`],
+        ['Expected end Z',        expectedZ],
+        ['Unun primary:secondary', unun === 49 ? '2:14 turns' : unun === 64 ? '2:16 turns' : '2:14.7 turns (typical)'],
+        ['Harmonic resonance',    harmonics.join(';  ')],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">       ┌──── 49:1 unun ────┐
+       │                   │
+   ────┴──●═════════════════════════════ wire (length above) → end insulator
+   coax   ↑
+          5% counterpoise tail</pre>`;
+    },
+    notes: [
+      'Harmonic resonance: a 40m EFHW (~67 ft) is also resonant on 20m, 15m, 10m.',
+      'Counterpoise (~5% of wire length) is critical — without it, coax shield carries common-mode current.',
+      'Run the wire in a straight line for cleanest impedance; gentle slope is fine.',
+    ],
+  },
+
+  'j-pole': {
+    name: 'J-Pole (VHF/UHF)',
+    section: '08-09',
+    inputs: [
+      { id: 'freq',   label: 'Center frequency (MHz)', type: 'number', step: '0.01', default: 146.000 },
+      { id: 'mat',    label: 'Material',                type: 'select', default: 'copper',
+        choices: [['copper','½" copper pipe — VF ≈ 0.96'], ['aluminum','Aluminum tubing — VF ≈ 0.96'], ['450ohm','450Ω ladder line — VF ≈ 0.91']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 146.000;
+      const vf = v.mat === '450ohm' ? 0.91 : 0.96;
+      const halfWaveIn = (5905.5 * vf) / f;
+      const quarterIn  = halfWaveIn / 2;
+      const feedFromBaseIn = quarterIn * 0.10;
+      return { rows: [
+        ['Half-wave radiator (long element)', `${halfWaveIn.toFixed(2)} in  (${(halfWaveIn*2.54).toFixed(1)} cm)`],
+        ['Quarter-wave matching stub',         `${quarterIn.toFixed(2)} in  (${(quarterIn*2.54).toFixed(1)} cm)`],
+        ['Stub spacing',                       v.mat === '450ohm' ? '450Ω ladder line spacing' : 'About 1.5 inches center-to-center'],
+        ['Feed point from bottom',             `${feedFromBaseIn.toFixed(2)} in  — adjust ±¼" for SWR minimum`],
+        ['Bottom of stub',                     'Connected (shorted) — tied to coax shield via short jumper'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">     ▲  ← top of half-wave radiator (free end)
+     │
+     │
+     │   ← long element (½λ)
+     │
+     │   ┌──── 1.5" spacing ───┐
+     │   │                      │
+     │   │ ← short stub (¼λ)    │
+     │   │                      │
+     ●───●─── feed point  (slide to tune)
+              ↑
+            coax to rig</pre>`;
+    },
+    notes: [
+      'Tune by sliding the feedpoint up/down the stub for SWR minimum at the operating frequency.',
+      'Vertical mounting; vertical polarization. Omnidirectional.',
+      'No radials needed — stub provides the matching network.',
+    ],
+  },
+
+  'vertical': {
+    name: 'Vertical Antenna (¼λ)',
+    section: '08-11',
+    inputs: [
+      { id: 'freq',   label: 'Frequency (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'radials', label: 'Radials installed', type: 'number', step: '1', default: 16 },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 14.150;
+      const ft = 234 / f;
+      const radials = parseInt(v.radials, 10) || 16;
+      const radialLenFt = ft;
+      const totalRadialFt = radials * radialLenFt;
+      const groundLossDb = radials >= 32 ? '< 0.5 dB' :
+                            radials >= 16 ? '~1 dB'  :
+                            radials >= 8  ? '~2 dB'  :
+                            radials >= 4  ? '~3 dB'  : '~5 dB';
+      return { rows: [
+        ['Vertical element length',   `${ft.toFixed(2)} ft  (${(ft*12).toFixed(1)} in)`],
+        ['Each radial length',         `${radialLenFt.toFixed(2)} ft  (¼λ; trim to fit your yard)`],
+        ['Number of radials',          `${radials}  (32+ ideal, 16 acceptable, 4 minimum)`],
+        ['Total radial wire needed',   `${totalRadialFt.toFixed(0)} ft`],
+        ['Estimated ground-system loss', groundLossDb],
+        ['Expected feed Z',            '~36 Ω over a perfect ground; raised radials → ~50 Ω'],
+        ['Match to 50 Ω coax',         radials >= 32 ? 'Direct or 1:1 balun' : '1:1 balun + tuner if needed'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">                  ▲  ← tip of vertical (¼λ)
+                  │
+                  │
+                  │
+                  │   feed at base
+                  ●═════════════════════ ground level
+                ╱─┼─╲
+              ╱   │   ╲
+            ╱   coax    ╲   ← buried radials (¼λ each, 16-32 ideal)
+          ╱       to       ╲
+        ╱         rig         ╲</pre>`;
+    },
+    notes: [
+      '¼λ vertical needs a radial system — verticals over poor ground can be 6 dB worse than horizontal dipoles.',
+      "Radials don't need to be exactly ¼λ — any length helps; longer is better.",
+      'Salt-marsh QTH: 4 radials may be enough. Sand or rocks: 32+ radials minimum for usable performance.',
+    ],
+  },
+};
+
+function awCalcRenderList() {
+  const wrap = document.getElementById('aw-calc-list-items');
+  const implemented = Object.keys(AW_CALCS);
+  const all = AW_ANTENNAS.map(a => a.id);
+  const remaining = all.filter(id => !implemented.includes(id));
+
+  wrap.innerHTML =
+    implemented.map(id => `
+      <div class="aw-calc-list-item" onclick="awCalcOpen('${id}')">
+        <div class="aw-calc-list-name">${escHtml(AW_CALCS[id].name)}</div>
+        <div class="aw-calc-list-section">§${AW_CALCS[id].section}</div>
+      </div>`).join('') +
+    `<div class="aw-calc-list-divider">Coming soon (Phase 2b)</div>` +
+    remaining.map(id => {
+      const ant = AW_ANTENNAS.find(a => a.id === id);
+      return `<div class="aw-calc-list-item disabled">
+        <div class="aw-calc-list-name">${escHtml(ant.name)}</div>
+        <div class="aw-calc-list-section">§${ant.section}</div>
+      </div>`;
+    }).join('');
+
+  aw.calc.listRendered = true;
+}
+
+function awCalcOpen(id) {
+  if (document.getElementById('aw-calculators').style.display === 'none') {
+    document.querySelectorAll('.aw-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.aw-tab')[1].classList.add('active');
+    document.getElementById('aw-recommender').style.display = 'none';
+    document.getElementById('aw-calculators').style.display = '';
+    if (!aw.calc.listRendered) awCalcRenderList();
+  }
+
+  const calc = AW_CALCS[id];
+  if (!calc) {
+    document.getElementById('aw-calc-panel').innerHTML =
+      `<div style="color:var(--peach);font-size:13px">This calculator is part of Phase 2b — not yet implemented. The recommender already scores it; the chapter card and full calculator are coming in a follow-up commit.</div>`;
+    return;
+  }
+  aw.calc.current = id;
+  if (!aw.calc[id]) {
+    aw.calc[id] = {};
+    calc.inputs.forEach(i => aw.calc[id][i.id] = i.default);
+  }
+  awCalcRenderPanel();
+}
+
+function awCalcRenderPanel() {
+  const id = aw.calc.current;
+  const calc = AW_CALCS[id];
+  if (!calc) return;
+  const v = aw.calc[id];
+
+  const inputsHtml = calc.inputs.map(i => {
+    if (i.type === 'select') {
+      return `<div class="aw-calc-input">
+        <label>${escHtml(i.label)}</label>
+        <select onchange="awCalcSet('${i.id}', this.value)">
+          ${i.choices.map(([cv, cl]) => `
+            <option value="${cv}" ${v[i.id] === cv ? 'selected' : ''}>${escHtml(cl)}</option>
+          `).join('')}
+        </select>
+        ${i.hint ? `<div class="aw-calc-hint">${escHtml(i.hint)}</div>` : ''}
+      </div>`;
+    }
+    return `<div class="aw-calc-input">
+      <label>${escHtml(i.label)}</label>
+      <input type="${i.type}" step="${i.step || 'any'}"
+             value="${v[i.id] != null ? escHtml(v[i.id]) : ''}"
+             oninput="awCalcSet('${i.id}', this.value)">
+      ${i.hint ? `<div class="aw-calc-hint">${escHtml(i.hint)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const result = calc.compute(v);
+  const outputsHtml = result.rows.map(([k, val]) =>
+    `<tr><td class="aw-calc-out-key">${escHtml(k)}</td>
+         <td class="aw-calc-out-val">${escHtml(val)}</td></tr>`).join('');
+
+  document.getElementById('aw-calc-panel').innerHTML = `
+    <div class="aw-calc-header">
+      <div>
+        <div class="aw-calc-title">${escHtml(calc.name)}</div>
+        <div class="aw-calc-section">
+          <a href="#" onclick="document.querySelector('[data-tab=learn]').click(); openLearnSection('${calc.section}'); return false">
+            Read §${calc.section} →
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="aw-calc-grid">
+      <div>
+        <div class="aw-calc-subhead">Inputs</div>
+        ${inputsHtml}
+      </div>
+      <div>
+        <div class="aw-calc-subhead">Outputs</div>
+        <table class="aw-calc-out"><tbody>${outputsHtml}</tbody></table>
+      </div>
+    </div>
+    ${calc.diagram ? `<div class="aw-calc-subhead">Diagram</div>${calc.diagram()}` : ''}
+    ${calc.notes && calc.notes.length ? `
+      <div class="aw-calc-subhead">Notes</div>
+      <ul class="aw-calc-notes">
+        ${calc.notes.map(n => `<li>${escHtml(n)}</li>`).join('')}
+      </ul>` : ''}
+  `;
+}
+
+function awCalcSet(field, val) {
+  const id = aw.calc.current;
+  if (!id) return;
+  if (!aw.calc[id]) aw.calc[id] = {};
+  aw.calc[id][field] = val;
+  awCalcRenderPanel();
+}
+
+// Initialize wizard on load
+awRecRender();
