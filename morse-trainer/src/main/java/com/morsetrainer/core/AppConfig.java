@@ -45,6 +45,11 @@ public class AppConfig {
     public int groupMinSize = 2;
     public int groupMaxSize = 5;
 
+    // --- User station (for the QSO simulator's send-and-receive mode) ---
+    public String userCallsign = "";    // your call (e.g. "WM3J")
+    public String userName     = "";    // first name to send during QSOs
+    public String userQth      = "";    // QTH to send during QSOs
+
     // --- Persistence ---
     public String sessionLogDir = "logs";
     public boolean autoExportSessions = true;
