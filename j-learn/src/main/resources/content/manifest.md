@@ -158,19 +158,12 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 09-04 | Power Delivered vs Lost                               | 09-feedline-swr/09-04-power-delivered-vs-lost.md              | mixed    |
 | 09-05 | Velocity Factor                                       | 09-feedline-swr/09-05-velocity-factor.md                      | mixed    |
 | 09-06 | Impedance Transformation                              | 09-feedline-swr/09-06-impedance-transformation.md             | advanced |
-| 10-00 | RF Exposure Calculator — Overview                     | 10-rf-exposure-calc/10-00-overview.md                         | simple   |
-| 10-01 | Inputs (Frequency, Power, Duty Cycle, Distance, Gain) | 10-rf-exposure-calc/10-01-inputs.md                           | simple   |
-| 10-02 | MPE Comparison                                        | 10-rf-exposure-calc/10-02-mpe-comparison.md                   | mixed    |
-| 10-03 | RF Burn Risk                                          | 10-rf-exposure-calc/10-03-rf-burn-risk.md                     | simple   |
-| 10-04 | Safe Handling                                         | 10-rf-exposure-calc/10-04-safe-handling.md                    | simple   |
 | 11-00 | Power Budget & ERP — Overview                         | 11-power-budget-erp/11-00-overview.md                         | simple   |
 | 11-01 | TX Power                                              | 11-power-budget-erp/11-01-tx-power.md                         | simple   |
 | 11-02 | Feedline Loss                                         | 11-power-budget-erp/11-02-feedline-loss.md                    | mixed    |
 | 11-03 | Antenna Gain                                          | 11-power-budget-erp/11-03-antenna-gain.md                     | mixed    |
 | 11-04 | ERP Output                                            | 11-power-budget-erp/11-04-erp-output.md                       | mixed    |
 | 11-05 | Portable Budget                                       | 11-power-budget-erp/11-05-portable-budget.md                  | simple   |
-| 12-00 | Formula Calculator — Overview ("Lazy Ham Mode")       | 12-formula-calculator/12-00-overview.md                       | simple   |
-| 12-01 | Formula Card Template                                 | 12-formula-calculator/12-01-formula-template.md               | mixed    |
 
 ### Part III — Troubleshooting Systems
 
@@ -259,6 +252,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 21-11 | Q Factor                                 | 21-formula-appendix/21-11-q-factor.md               | advanced |
 | 21-12 | Bandwidth                                | 21-formula-appendix/21-12-bandwidth.md              | mixed    |
 | 21-13 | Smith Chart Basics                       | 21-formula-appendix/21-13-smith-chart-basics.md     | advanced |
+| 21-14 | Formula Calculator (RF Exposure Worked Example)         | 21-formula-appendix/21-14-formula-calculator.md     | mixed    |
 | 22-00 | Coax & Connectors — Overview             | 22-coax-connectors/22-00-overview.md                | simple   |
 | 22-01 | Coax Types                               | 22-coax-connectors/22-01-coax-types.md              | simple   |
 | 22-02 | Loss Tables                              | 22-coax-connectors/22-02-loss-tables.md             | mixed    |
