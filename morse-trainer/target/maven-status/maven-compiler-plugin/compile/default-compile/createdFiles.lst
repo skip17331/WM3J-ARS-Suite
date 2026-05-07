@@ -1,3 +1,4 @@
+com/morsetrainer/trainer/qso/QsoGenerator$UserStation.class
 com/morsetrainer/trainer/qso/QsoGenerator.class
 com/morsetrainer/decoder/TimingDecoder$1.class
 com/morsetrainer/trainer/qso/QsoGenerator$Difficulty.class
@@ -17,7 +18,9 @@ com/morsetrainer/decoder/DecodedElement.class
 com/morsetrainer/decoder/DecodedElement$Kind.class
 com/morsetrainer/core/Logger$Level.class
 com/morsetrainer/core/AppConfig.class
+com/morsetrainer/trainer/qso/QsoGenerator$Speaker.class
 com/morsetrainer/core/Logger.class
+com/morsetrainer/trainer/qso/QsoGenerator$Turn.class
 com/morsetrainer/analytics/ScoringEngine.class
 com/morsetrainer/ui/QsoTrainerView.class
 com/morsetrainer/analytics/CharStats.class

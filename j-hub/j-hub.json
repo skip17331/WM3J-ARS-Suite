@@ -88,6 +88,46 @@
     },
     "networks": []
   },
+  "rbn": {
+    "enabled": false,
+    "server": "telnet.reversebeacon.net",
+    "port": 7000,
+    "loginCallsign": "",
+    "bands": [
+      "30m",
+      "40m",
+      "160m",
+      "80m",
+      "17m",
+      "6m",
+      "15m",
+      "12m",
+      "10m",
+      "20m"
+    ],
+    "modes": [
+      "RTTY",
+      "CW",
+      "FT4",
+      "PSK31",
+      "FT8"
+    ],
+    "minSnrDb": 5
+  },
+  "backup": {
+    "enabled": true,
+    "mode": "FOLDER",
+    "folderPath": "/tmp/jhub-bk-smoke",
+    "webdavUrl": "",
+    "scheduleHours": 0,
+    "retain": 3,
+    "includeJHub": true,
+    "includeJLog": false,
+    "includeJMap": true,
+    "includeJSat": false,
+    "includeJDigi": false,
+    "includeJBridge": false
+  },
   "logger": {
     "mode": "normal",
     "normalLog": {
@@ -108,7 +148,7 @@
       "ip": "localhost"
     },
     "jLog": {
-      "autoLaunch": true,
+      "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh",
       "ip": "localhost"
     },
@@ -134,55 +174,64 @@
         "key": "CQ",
         "label": "CQ",
         "text": "CQ CQ CQ DE {MYCALL} {MYCALL} {MYCALL} K",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "ANS_CQ",
         "label": "Ans CQ",
         "text": "{CALL} DE {MYCALL} {MYCALL} PSE K",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "QSO",
         "label": "QSO",
         "text": "{CALL} DE {MYCALL} UR RST {RST} {RST} NAME {NAME} QTH {BAND} 73 DE {MYCALL} K",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "SK",
         "label": "73 SK",
         "text": "{CALL} DE {MYCALL} QSL TNX QSO 73 SK",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "KN",
         "label": "KN",
         "text": "{CALL} DE {MYCALL} KN",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "F1",
         "label": "F1",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       },
       {
         "key": "F2",
         "label": "F2",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       },
       {
         "key": "F3",
         "label": "F3",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       },
       {
         "key": "F4",
         "label": "F4",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       }
     ]
   },
