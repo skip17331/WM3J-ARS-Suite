@@ -13,16 +13,21 @@ status: draft
 
 A radio station is a system of components installed outdoors, indoors, on poles, in vehicles, behind walls — exposed to UV, water, ice, vibration, current cycling, and the slow march of firmware bugs. None of it is permanent. Coax water-ingresses, batteries lose capacity, connectors corrode, antennas droop, firmware develops new failure modes nobody saw at launch. **A station that worked great five years ago will work much less great today if nothing has been touched in that time** — and the slide is gradual enough that you may not notice until you wonder why your S-meter reads two units lower than your neighbor's.
 
-This chapter is the maintenance discipline. Five sections covering the things that wear out, how often to check them, and what to do when you find degradation.
+This chapter is the maintenance discipline. Ten sections covering the things that wear out, how often to check them, and what to do when you find degradation.
 
 ## How the chapter is organized
 
 | § | Topic | Cadence |
 |---|-------|---------|
-| 20-01 | Battery maintenance | Monthly check, annual capacity test |
-| 20-02 | Firmware updates | Quarterly check, manual install |
-| 20-03 | Scheduled inspections | Spring + fall walk-through |
-| 20-04 | Coax replacement | Triggered by symptoms; preventive every 7-15 years |
+| §16-01 | Battery maintenance | Monthly check, annual capacity test |
+| §16-02 | Firmware updates | Quarterly check, manual install |
+| §16-03 | Scheduled inspections (high-level walk-through) | Monthly + spring/fall deep dives |
+| §16-04 | Coax replacement | Triggered by symptoms; preventive every 7-15 years |
+| §16-05 | Tower & mast inspection | Monthly visual + annual climb |
+| §16-06 | Guy lines, turnbuckles, thimbles, clamps | Annual climb; full audit every 5 years |
+| §16-07 | Ground system inspection | Quarterly + annual resistance test |
+| §16-08 | Coax inspection (distinct from replacement) | Quarterly visual + annual electrical |
+| §16-09 | Cable entry & water intrusion | Quarterly + annual sealant check |
 
 ## The maintenance mindset
 
@@ -56,16 +61,33 @@ For a typical home station with one or two HF antennas, a tower or wire support,
 - **Battery load tester** — for the deep-cycle batteries on emcomm/standby use.
 - **A station log** (paper or digital) — log each maintenance check with date, baseline numbers, and any items found.
 
+## Master inspection-frequency reference
+
+When in doubt, this is the cadence:
+
+| Frequency | Tasks |
+|-----------|-------|
+| **Weekly** | Glance at logs (rig, J-Hub, error counts); listen for changes in noise floor |
+| **Monthly** | Antenna SWR sweep vs baseline; battery voltage / float status; visual scan of tower from ground (binoculars); firmware notifications check |
+| **Quarterly** | Walk all coax runs (visual jacket + connector check); inspect station ground bus; tower base inspection; cable-entry exterior visual; lightning arrestor check |
+| **After every storm** (>40 mph wind, ice loading, lightning) | Tower + guys + cable-entry walk; arrestor reset/inspection; SWR sweep on affected antennas |
+| **Spring (annual)** | Climb inspection of tower + antennas; open and re-seal every outdoor connector; battery capacity test; ground-rod resistance test; SWR baseline refresh |
+| **Fall (annual)** | Spring repeat focused on winter prep; re-seal anything suspect; firmware backup; battery backup load test |
+| **Every 3-5 years** | Disassemble and re-build cable-entry seal; check guy hardware torque |
+| **Every 5 years** | Professional rigger tower inspection; full ground-system audit |
+| **Every 7-15 years** | Coax run replacement (preventive, per cable type and exposure) |
+| **Every 25-30 years** | Guy cable + turnbuckle replacement |
+
 ## What you will not learn here
 
-- **Tower climbing safety** — its own chapter (planned 31). Tower work has its own discipline beyond what's here.
-- **Lightning protection** — its own chapter (planned 29). Surge protection and grounding for storm season is detailed there.
-- **Electrical safety, circuit-breaker testing** — covered in the broader station-electrical chapter (planned 33).
-- **Computer-side maintenance** — backups, OS updates, etc., live in the station-software chapter (planned 32). This chapter is hardware/firmware-focused.
+- **Tower climbing safety details** — addressed at the level needed for inspection in §16-05; full climbing certification (ANSI Z359, NIA, NATE) requires hands-on training, not a written guide.
+- **Detailed lightning protection design** — surge arrestors, single-point grounding, and bonding are in §16-07 and §11-05; designing a complete NFPA 780 system at scale needs an engineer.
+- **Computer-side maintenance** — OS, backups, software updates live with each module. This chapter is the antenna/feedline/structural/hardware side.
 
 ## See also
 
 - §14 — Shack inventory (knowing what you have makes maintenance possible)
 - §10 — High-SWR troubleshooting (the symptom side of antenna problems)
 - §11 — Station troubleshooting
+- §11-05 — Grounding (the troubleshooting view of the ground system)
 - §18 — Coax & connectors reference (for coax-replacement decisions)

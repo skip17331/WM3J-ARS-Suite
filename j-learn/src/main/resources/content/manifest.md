@@ -233,6 +233,11 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 16-02 | Firmware Updates               | 16-maintenance/16-02-firmware-updates.md            | simple   |
 | 16-03 | Scheduled Inspections          | 16-maintenance/16-03-scheduled-inspections.md       | simple   |
 | 16-04 | Coax Replacement               | 16-maintenance/16-04-coax-replacement.md            | simple   |
+| 16-05 | Tower & Mast Inspection        | 16-maintenance/16-05-tower-inspection.md            | mixed    |
+| 16-06 | Guy Lines, Turnbuckles, Clamps | 16-maintenance/16-06-guy-hardware.md                | mixed    |
+| 16-07 | Ground System Inspection       | 16-maintenance/16-07-ground-system.md               | mixed    |
+| 16-08 | Coax Inspection                | 16-maintenance/16-08-coax-inspection.md             | simple   |
+| 16-09 | Cable Entry & Water Intrusion  | 16-maintenance/16-09-cable-entry.md                 | simple   |
 
 ### Part V — Reference Library
 
