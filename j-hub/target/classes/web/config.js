@@ -4290,29 +4290,605 @@ const AW_CALCS = {
       'Salt-marsh QTH: 4 radials may be enough. Sand or rocks: 32+ radials minimum for usable performance.',
     ],
   },
+
+  // ─── Fan dipole ────────────────────────────────────────────────
+  'fan-dipole': {
+    name: 'Fan Dipole',
+    section: '08-04',
+    inputs: [
+      { id: 'b1', label: 'Band 1 (MHz)', type: 'number', step: '0.01', default: 7.150 },
+      { id: 'b2', label: 'Band 2 (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'b3', label: 'Band 3 (MHz, optional)', type: 'number', step: '0.01', default: 21.200 },
+      { id: 'b4', label: 'Band 4 (MHz, optional)', type: 'number', step: '0.01', default: 28.500 },
+      { id: 'sep', label: 'End-to-end separation (in)', type: 'number', step: '0.5', default: 4,
+        hint: 'Gap between adjacent dipole tips. 4-6" is typical; closer = more interaction = more shortening.' },
+    ],
+    compute(v) {
+      const sep = parseFloat(v.sep) || 4;
+      // Coupling factor: ~3% shortening at 6" sep, ~5% at 4", ~8% at 2"
+      const couple = Math.max(0.92, Math.min(0.98, 0.97 - 0.012 * (6 - sep)));
+      const elements = [];
+      for (const k of ['b1', 'b2', 'b3', 'b4']) {
+        const f = parseFloat(v[k]);
+        if (!f || f < 1) continue;
+        const flatLen = 468 / f;
+        const corrected = flatLen * couple;
+        const half = corrected / 2;
+        elements.push([
+          `${f.toFixed(2)} MHz (${hamBandFor(f)})`,
+          `${corrected.toFixed(2)} ft total · ${half.toFixed(2)} ft each leg`
+        ]);
+      }
+      return { rows: [
+        ['Coupling correction',     `×${couple.toFixed(3)}  (~${((1-couple)*100).toFixed(1)}% shortening)`],
+        ['Tip separation',          `${sep.toFixed(1)} in between adjacent element tips`],
+        ['Feed point',              'All elements connected at one center insulator + 1:1 balun'],
+        ...elements,
+        ['Match',                   '50 Ω coax + 1:1 current balun'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">                       feed (1:1 balun)
+                              │
+                              │
+       ●─── 20m ─────────●─────────────── 20m ───●
+       ●─── 40m ────────────●───────────────── 40m ───●
+       ●─── 80m ────────────────●───────────────────── 80m ───●
+                              │
+                            coax to rig
+
+      All elements meet at one feedpoint. Tips ~4-6" apart.</pre>`;
+    },
+    notes: [
+      'Trim each band independently from longest to shortest — start with the lowest-frequency element.',
+      'Each band is resonant on its own; shorter elements look like high-impedance opens at lower bands.',
+      'Mutual coupling between elements means you must build all of them before final trim.',
+      'Wider tip-spacing reduces coupling but takes more lateral space. 4-6" is a good compromise.',
+    ],
+  },
+
+  // ─── Trapped dipole ─────────────────────────────────────────────
+  'trapped-dipole': {
+    name: 'Trapped Dipole',
+    section: '08-05',
+    inputs: [
+      { id: 'b1', label: 'Highest band (MHz)', type: 'number', step: '0.01', default: 14.150,
+        hint: 'Highest frequency the antenna covers — innermost element' },
+      { id: 'b2', label: 'Next band down (MHz)', type: 'number', step: '0.01', default: 7.150 },
+      { id: 'b3', label: 'Lowest band (MHz, optional)', type: 'number', step: '0.01', default: 3.700 },
+      { id: 'trapk', label: 'Trap effective length factor', type: 'number', step: '0.01', default: 0.92,
+        hint: 'Traps make the antenna electrically shorter than physical. 0.90-0.94 typical.' },
+    ],
+    compute(v) {
+      const k = parseFloat(v.trapk) || 0.92;
+      const f1 = parseFloat(v.b1) || 14.150;
+      const f2 = parseFloat(v.b2) || 7.150;
+      const f3 = parseFloat(v.b3);
+      // Inner segment: half-wave at highest band
+      const innerHalf = (468 / f1) / 2;
+      // Trap centered at highest band — see 'trap-design' calc
+      // Outer segment to next band: lengthen so antenna resonates at f2
+      // total length at f2 = 468/f2; inner already covers innerHalf*2
+      const totalAtF2 = (468 / f2) * k;
+      const outer1 = (totalAtF2 - innerHalf * 2) / 2;
+      const rows = [
+        [`Inner segment (each side, ${f1.toFixed(2)} MHz)`, `${innerHalf.toFixed(2)} ft`],
+        [`Trap 1 resonant at`, `${f1.toFixed(2)} MHz (see Trap Design calc)`],
+        [`Outer segment 1 (each side, to ${f2.toFixed(2)} MHz)`, `${outer1.toFixed(2)} ft`],
+      ];
+      if (f3 && f3 > 0 && f3 < f2) {
+        const totalAtF3 = (468 / f3) * k * k;   // double trap, ~2× shortening
+        const outer2 = (totalAtF3 - innerHalf * 2 - outer1 * 2) / 2;
+        rows.push([`Trap 2 resonant at`, `${f2.toFixed(2)} MHz`]);
+        rows.push([`Outer segment 2 (each side, to ${f3.toFixed(2)} MHz)`, `${outer2.toFixed(2)} ft`]);
+        rows.push(['Total wire length each side', `${(innerHalf + outer1 + outer2).toFixed(2)} ft`]);
+      } else {
+        rows.push(['Total wire length each side', `${(innerHalf + outer1).toFixed(2)} ft`]);
+      }
+      rows.push(['Match', '50 Ω coax + 1:1 current balun at center']);
+      return { rows };
+    },
+    diagram() {
+      return `<pre class="aw-diag">              feed (1:1 balun)
+                     │
+                     ▼
+   ●═══════════[Trap1]═══════════[Trap2]═══════════● outer end
+   ←─inner─→  ←──outer 1──→  ←─── outer 2 ────→
+    20m         opens at        opens at
+    leg         14 MHz          7 MHz
+
+   On 20m: traps look like high-Z opens, only inner radiates
+   On 40m: trap 2 opens; inner + outer-1 radiate
+   On 80m: both traps open; full antenna radiates</pre>`;
+    },
+    notes: [
+      'Trim from highest band to lowest. Inner segment first (with traps shorted out) then add outer segments.',
+      "Traps add ~3-8% electrical shortening per trap. The k factor accounts for this.",
+      'Use the Trap Design calculator (Components section) to compute L+C and the wire-on-coil-form recipe.',
+      'Trap voltage rating must exceed √(P × X_L) at full transmit power. 5 kV vacuum capacitors for legal limit.',
+    ],
+  },
+
+  // ─── OCF (Windom) ───────────────────────────────────────────────
+  'ocf-dipole': {
+    name: 'OCF Dipole (Windom)',
+    section: '08-06',
+    inputs: [
+      { id: 'freq', label: 'Lowest band (MHz)', type: 'number', step: '0.01', default: 7.150 },
+      { id: 'offset', label: 'Feed offset from center (%)', type: 'number', step: '1', default: 33,
+        hint: '33% gives ~200Ω feed → 4:1 balun. 25% gives ~300Ω → 6:1 balun. Classic Windom: 36%.' },
+      { id: 'balun', label: 'Balun ratio', type: 'select', default: '4',
+        choices: [['4', '4:1 — 200Ω target (standard OCF)'], ['6', '6:1 — 300Ω target (Carolina Windom)'], ['9', '9:1 — 450Ω target']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 7.150;
+      const offset = parseFloat(v.offset) || 33;
+      const totalLen = 468 / f;
+      const shortLeg = totalLen * (offset / 100);
+      const longLeg = totalLen - shortLeg;
+      const expectedZ = v.balun === '4' ? '~200 Ω' : v.balun === '6' ? '~300 Ω' : '~450 Ω';
+      const ratio = v.balun === '4' ? '4:1' : v.balun === '6' ? '6:1' : '9:1';
+      const harmonics = [];
+      for (const h of [1, 2, 4, 8]) {
+        const fh = f * h;
+        if (fh < 30) harmonics.push(`${fh.toFixed(2)} MHz → ${hamBandFor(fh)}`);
+      }
+      return { rows: [
+        ['Total length',       `${totalLen.toFixed(2)} ft  (${(totalLen*0.3048).toFixed(2)} m)`],
+        ['Short leg',          `${shortLeg.toFixed(2)} ft  (${offset}% from center)`],
+        ['Long leg',           `${longLeg.toFixed(2)} ft  (${(100-offset)}% from center)`],
+        ['Feed-point Z (target)', expectedZ],
+        ['Balun ratio',        `${ratio} current balun at the feedpoint`],
+        ['Bands covered (harmonics)', harmonics.join('; ')],
+        ['Common-mode choke',  'Add a 1:1 current choke at the rig end of the coax'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">  ●──── short leg ────●─────── long leg ───────●
+                       │
+                     [Balun 4:1]
+                       │
+                     coax to rig
+
+  Feed point is OFF-CENTER — typically 36% from one end (Carolina)
+  or 33% (classic Windom). The off-center feed presents a 200-300 Ω
+  impedance that's roughly band-independent across HF.</pre>`;
+    },
+    notes: [
+      "OCF dipoles are known harmonically — an 80m OCF feeds 80/40/20/15/10 with usable SWR.",
+      'The off-center feed picks an impedance plateau across the harmonic bands.',
+      'A 1:1 common-mode choke at the rig end is essential — OCF feedlines radiate without it.',
+      'WARC bands (30/17/12) typically need a tuner; harmonic plateau doesn\'t cover them.',
+      'Total length varies between vendors — measure and trim with an analyzer for best SWR.',
+    ],
+  },
+
+  // ─── EFHW trapped ───────────────────────────────────────────────
+  'efhw-trapped': {
+    name: 'EFHW (Trapped)',
+    section: '08-08',
+    inputs: [
+      { id: 'b1', label: 'Highest band (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'b2', label: 'Next band (MHz)',    type: 'number', step: '0.01', default: 7.150 },
+      { id: 'b3', label: 'Lowest band (MHz, optional)', type: 'number', step: '0.01', default: 3.700 },
+      { id: 'unun', label: 'Unun ratio', type: 'select', default: '49',
+        choices: [['49','49:1'], ['64','64:1']] },
+    ],
+    compute(v) {
+      const f1 = parseFloat(v.b1) || 14.150;
+      const f2 = parseFloat(v.b2) || 7.150;
+      const f3 = parseFloat(v.b3);
+      const seg1 = 478 / f1;
+      const seg2Total = 478 / f2;
+      const seg2Add = seg2Total - seg1;
+      const rows = [
+        [`Segment 1 (unun → trap 1, ${f1.toFixed(2)} MHz)`, `${seg1.toFixed(1)} ft`],
+        [`Trap 1 resonant`, `${f1.toFixed(2)} MHz (use Trap Design calc)`],
+        [`Segment 2 (trap 1 → trap 2 or end, ${f2.toFixed(2)} MHz)`, `${seg2Add.toFixed(1)} ft`],
+      ];
+      if (f3 && f3 > 0 && f3 < f2) {
+        const seg3Total = 478 / f3;
+        const seg3Add = seg3Total - seg2Total;
+        rows.push([`Trap 2 resonant`, `${f2.toFixed(2)} MHz`]);
+        rows.push([`Segment 3 (trap 2 → end, ${f3.toFixed(2)} MHz)`, `${seg3Add.toFixed(1)} ft`]);
+        rows.push(['Total wire length', `${seg3Total.toFixed(1)} ft`]);
+      } else {
+        rows.push(['Total wire length', `${seg2Total.toFixed(1)} ft`]);
+      }
+      rows.push(['Counterpoise', `~${(seg1 * 0.05).toFixed(1)} ft (5% of innermost segment)`]);
+      rows.push(['Unun', `${v.unun}:1 — primary 2 turns, secondary ${v.unun === '49' ? '14' : '16'} turns on FT240-43 toroid`]);
+      return { rows };
+    },
+    diagram() {
+      return `<pre class="aw-diag">  unun
+   │
+   ●═══ seg 1 ═══[Trap1]═══ seg 2 ═══[Trap2]═══ seg 3 ═══●
+   ↑    20m       opens     additional             additional
+ 5% c/p  half     14 MHz    for 40m                for 80m
+ tail    wave
+
+  On 20m: traps act as opens — only seg 1 radiates
+  On 40m: trap 2 opens — seg 1 + seg 2 radiate
+  On 80m: both traps open — full wire radiates</pre>`;
+    },
+    notes: [
+      'Same general construction as a non-trapped EFHW, but each band drops you to the next trap.',
+      'Trap voltage rating is critical at the unun-side of the wire — high impedance = high voltage.',
+      'Build & trim from the unun outward, one band at a time.',
+      'Excellent for portable/POTA: each band cuts the antenna shorter than a non-trapped EFHW.',
+    ],
+  },
+
+  // ─── Yagi-Uda ──────────────────────────────────────────────────
+  'yagi': {
+    name: 'Yagi-Uda',
+    section: '08-10',
+    inputs: [
+      { id: 'freq', label: 'Center frequency (MHz)', type: 'number', step: '0.01', default: 14.175 },
+      { id: 'elements', label: 'Total elements (incl. DE + reflector)', type: 'select', default: '3',
+        choices: [['2','2 (DE + reflector)'], ['3','3 (DE + R + 1 director)'], ['4','4 (DE + R + 2 directors)'],
+                  ['5','5 (DE + R + 3 directors)'], ['6','6 (DE + R + 4 directors)']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 14.175;
+      const n = parseInt(v.elements, 10) || 3;
+      const lambdaFt = 984 / f;
+      // Empirical element lengths (Rothammel / W2PV / NBS optimized averages)
+      const deLen = (468 / f) * 0.97;          // driven element ~3% shorter than 1/2-wave (gamma match etc.)
+      const reflLen = deLen * 1.05;            // reflector ~5% longer than DE
+      const dirShort = [0.95, 0.93, 0.92, 0.91]; // directors progressively shorter
+      const directors = [];
+      for (let i = 0; i < n - 2; i++) {
+        const len = deLen * dirShort[Math.min(i, dirShort.length - 1)];
+        directors.push([`Director ${i + 1} length`, `${len.toFixed(2)} ft  (${(len*12).toFixed(1)} in)`]);
+      }
+      // Spacing: reflector → DE = 0.15-0.2 λ; DE → D1 = 0.10-0.15 λ; subsequent ~0.20 λ
+      const spaceRefl = lambdaFt * 0.18;
+      const spaceD1   = lambdaFt * 0.12;
+      const spaceDir  = lambdaFt * 0.20;
+      const spacings = [];
+      spacings.push([`Reflector → DE spacing`, `${spaceRefl.toFixed(2)} ft`]);
+      if (n >= 3) spacings.push([`DE → Director 1 spacing`, `${spaceD1.toFixed(2)} ft`]);
+      for (let i = 2; i < n - 1; i++) {
+        spacings.push([`Director ${i-1} → Director ${i} spacing`, `${spaceDir.toFixed(2)} ft`]);
+      }
+      const boomLen = spaceRefl + (n >= 3 ? spaceD1 : 0) + (n - 3) * spaceDir;
+      // Approximate gain (dBi) and F/B (dB) for typical configurations
+      const gainTable = { 2: 5.5, 3: 7.5, 4: 9.0, 5: 10.5, 6: 11.5 };
+      const fbTable = { 2: 12, 3: 20, 4: 22, 5: 25, 6: 25 };
+      return { rows: [
+        ['Reflector length',       `${reflLen.toFixed(2)} ft  (${(reflLen*12).toFixed(1)} in)`],
+        ['Driven element length',  `${deLen.toFixed(2)} ft  (${(deLen*12).toFixed(1)} in)`],
+        ...directors,
+        ['Boom length (total)',    `${Math.max(0, boomLen).toFixed(2)} ft`],
+        ...spacings,
+        ['Expected forward gain',  `~${gainTable[n] || 12} dBi  (~${((gainTable[n] || 12) - 2.15).toFixed(1)} dBd)`],
+        ['Expected F/B ratio',     `~${fbTable[n] || 25} dB`],
+        ['Expected feed Z',        '~25-35 Ω (gamma match or hairpin to 50 Ω)'],
+        ['Match',                  'Gamma match, beta/hairpin match, or 4:1 transformer to 50 Ω coax'],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">    refl  DE     D1   D2   D3
+     │    │      │    │    │
+     │    │      │    │    │
+     │    │      │    │    │     →  forward direction (toward DX)
+     │    │      │    │    │
+     │    │      │    │    │
+     ●────●──────●────●────●  boom
+
+         feed
+          │
+        coax to rig
+
+  Reflector is the longest element; directors get progressively shorter.
+  Driven element is shortest of the three classic elements.</pre>`;
+    },
+    notes: [
+      'Element lengths are empirical — verify with NEC-2 / 4nec2 modeling for production builds.',
+      'Spacing affects gain, F/B, and feed Z — close-spaced gives narrow band but slightly more gain.',
+      'Driven-element length given includes ~3% shortening typical with a gamma match. Adjust for your match type.',
+      'Boom must be insulated from elements (or all-aluminum with elements through the boom — both OK).',
+      "Yagis typically need a balun (4:1 hairpin or matching transformer) to bring 25-35 Ω feed Z to 50 Ω.",
+    ],
+  },
+
+  // ─── Magnetic loop ─────────────────────────────────────────────
+  'mag-loop': {
+    name: 'Magnetic Loop',
+    section: '08-14',
+    inputs: [
+      { id: 'freq', label: 'Operating frequency (MHz)', type: 'number', step: '0.01', default: 14.175 },
+      { id: 'diam', label: 'Loop diameter (ft)', type: 'number', step: '0.1', default: 3.0,
+        hint: 'Larger loop = higher efficiency but lower Q. 0.05λ - 0.25λ is typical (50% range)' },
+      { id: 'cond', label: 'Conductor diameter (in)', type: 'number', step: '0.125', default: 0.5,
+        hint: '½" copper pipe is typical. Larger pipe = lower loss = higher efficiency.' },
+      { id: 'power', label: 'Transmit power (W)', type: 'number', step: '1', default: 25 },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 14.175;
+      const dFt = parseFloat(v.diam) || 3;
+      const condIn = parseFloat(v.cond) || 0.5;
+      const power = parseFloat(v.power) || 25;
+      const dM = dFt * 0.3048;
+      const condM = condIn * 0.0254;
+      // Loop circumference and area
+      const circumM = Math.PI * dM;
+      const areaM2 = Math.PI * (dM / 2) ** 2;
+      // Inductance (Wheeler approx for single-turn loop, conductor a, loop radius b)
+      const a = condM / 2;
+      const b = dM / 2;
+      const inductanceH = 4e-7 * Math.PI * b * (Math.log(8 * b / a) - 2);
+      const inductanceUH = inductanceH * 1e6;
+      // Required tuning capacitance: f = 1/(2π√LC) → C = 1/(4π² f² L)
+      const reqC_F = 1 / (4 * Math.PI * Math.PI * (f * 1e6) ** 2 * inductanceH);
+      const reqC_pF = reqC_F * 1e12;
+      // Q estimate (rough: Q ~ X_L / R_loss; R_loss dominated by conductor skin effect)
+      const X_L = 2 * Math.PI * f * 1e6 * inductanceH;
+      const skinR = 0.0826 * Math.sqrt(f) / (condIn / 0.039);   // empirical for copper, ohms/ft
+      const R_loss = skinR * (circumM / 0.3048);                 // total
+      const Q = Math.min(800, X_L / Math.max(R_loss, 0.01));
+      // Voltage at capacitor: V = √(P × Q × X_L)
+      const V_cap = Math.sqrt(power * Q * X_L);
+      // 3-dB bandwidth at resonance
+      const bw_kHz = (f * 1000) / Q;
+      // Circumference fraction of wavelength (efficiency indicator)
+      const lambdaM = 300 / f;
+      const cFrac = circumM / lambdaM;
+      const efficiency = cFrac < 0.1 ? 'poor' : cFrac < 0.2 ? 'good' : cFrac < 0.3 ? 'excellent' : 'over-size';
+      return { rows: [
+        ['Loop circumference',         `${circumM.toFixed(2)} m  (${(circumM/0.3048).toFixed(2)} ft)`],
+        ['Circumference / wavelength', `${cFrac.toFixed(3)}  (${efficiency})`],
+        ['Loop inductance',            `${inductanceUH.toFixed(2)} µH`],
+        ['Tuning capacitance needed',  `${reqC_pF.toFixed(1)} pF`],
+        ['Estimated Q',                `${Q.toFixed(0)}`],
+        ['3-dB bandwidth',             `${bw_kHz.toFixed(1)} kHz`],
+        ['Inductive reactance X_L',    `${X_L.toFixed(0)} Ω`],
+        ['Voltage across capacitor',   `${V_cap.toFixed(0)} V peak  (at ${power} W)`],
+        ['Capacitor voltage rating',   `≥ ${(V_cap * 1.5).toFixed(0)} V (safety margin) → vacuum cap recommended`],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">         ╭─────────────╮
+        ╱               ╲
+       ╱                 ╲
+      │                   │
+      │                   │
+      │     [tuning C]    │  ← high-V variable capacitor (vacuum)
+      │      ┌───┐        │
+       ╲    ─┤   ├─      ╱
+        ╲   ─┤   ├─     ╱
+         ╰───┴───┴─────╯
+              ↑
+         coupling loop
+         (~⅕ of main loop dia.)
+              │
+            coax to rig
+
+  Tune by varying the capacitor — each band needs a different C value.
+  Coupling loop adjusts feed Z to ~50 Ω.</pre>`;
+    },
+    notes: [
+      'Mag loops are extremely narrow-banded — Q of 200-500 means 3-dB BW around 30-70 kHz on 20m.',
+      'Voltages across the tuning cap exceed several kV at moderate power — vacuum capacitor required for >50 W.',
+      'Efficiency drops sharply below 0.1λ circumference; aim for 0.15-0.25λ for best results.',
+      'Coupling loop ~⅕ the main-loop diameter is a good starting point; trim for SWR.',
+      'Loop should be 6-10 ft above ground for cleanest pattern.',
+    ],
+  },
+
+  // ─── Trap design (component, not in AW_ANTENNAS) ───────────────
+  'trap-design': {
+    name: 'Trap Design',
+    section: '08-13',
+    component: true,
+    inputs: [
+      { id: 'freq', label: 'Trap resonant frequency (MHz)', type: 'number', step: '0.01', default: 14.150,
+        hint: 'Set this to the highest band the trap should isolate (e.g. 14 MHz for an 80/40/20 trap dipole).' },
+      { id: 'capPF', label: 'Capacitance choice (pF)', type: 'number', step: '1', default: 100,
+        hint: 'Pick a doorknob or vacuum cap on hand. 50-200 pF is typical. Smaller C → larger L (more turns).' },
+      { id: 'power', label: 'Operating power (W PEP)', type: 'number', step: '1', default: 100 },
+      { id: 'formIn', label: 'Coil form diameter (in)', type: 'number', step: '0.125', default: 1.0,
+        hint: 'Clear PVC pipe is common. 1" - 2" diameter, close-wound.' },
+      { id: 'wireGauge', label: 'Wire gauge (AWG)', type: 'select', default: '14',
+        choices: [['12','#12 (heavy, low loss)'], ['14','#14 (standard)'], ['16','#16 (lighter)']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 14.150;
+      const capPF = parseFloat(v.capPF) || 100;
+      const power = parseFloat(v.power) || 100;
+      const formIn = parseFloat(v.formIn) || 1.0;
+      const wireAwg = parseInt(v.wireGauge, 10) || 14;
+      // Required L from f = 1/(2π√LC)
+      const capF = capPF * 1e-12;
+      const inductanceH = 1 / (4 * Math.PI * Math.PI * (f * 1e6) ** 2 * capF);
+      const inductanceUH = inductanceH * 1e6;
+      // Reactance at resonance (for voltage estimate)
+      const X_L = 2 * Math.PI * f * 1e6 * inductanceH;
+      // Trap Q (typical antenna trap Q is 50-150)
+      const trapQ = 100;
+      // Voltage across capacitor at PEP
+      const V_cap = Math.sqrt(power * trapQ * X_L);
+      // Coil dimensions: Wheeler formula for single-layer air-core inductor
+      // L (µH) = (r² × N²) / (9r + 10ℓ)  where r = radius (in), ℓ = length (in)
+      // Solve for N given r, target L; then ℓ = N × wire diameter
+      const r = formIn / 2;
+      const wireDia = wireAwg === 12 ? 0.0808 : wireAwg === 14 ? 0.0641 : 0.0508;  // bare AWG diameter, in
+      // Iterate to find N (since ℓ depends on N)
+      let N = 5, prevN = 0;
+      for (let iter = 0; iter < 30 && Math.abs(N - prevN) > 0.01; iter++) {
+        prevN = N;
+        const ell = N * wireDia;
+        N = Math.sqrt(inductanceUH * (9 * r + 10 * ell) / (r * r));
+      }
+      const turns = Math.ceil(N * 10) / 10;
+      const coilLength = turns * wireDia;
+      const wireLengthFt = (turns * Math.PI * formIn) / 12;
+      return { rows: [
+        ['Required inductance', `${inductanceUH.toFixed(2)} µH`],
+        ['Reactance at resonance (X_L = X_C)', `${X_L.toFixed(0)} Ω`],
+        ['Capacitor voltage rating needed', `≥ ${(V_cap * 1.5).toFixed(0)} V peak  (at ${power} W PEP, Q≈${trapQ})`],
+        ['Capacitor type recommendation', V_cap > 2000 ? 'Vacuum or doorknob ceramic (5 kV+)' : V_cap > 500 ? 'Doorknob ceramic (3 kV+)' : 'Mica or ceramic disc (1 kV)'],
+        ['Coil turns', `${turns.toFixed(1)} turns of #${wireAwg} on ${formIn}" form`],
+        ['Coil length', `${coilLength.toFixed(2)} in close-wound`],
+        ['Wire length', `${wireLengthFt.toFixed(1)} ft  (plus 6" leads)`],
+        ['Trap Q (typical)', `~${trapQ}`],
+      ]};
+    },
+    diagram() {
+      return `<pre class="aw-diag">          C (capacitor)
+            ┌─┤├─┐
+            │    │
+            │    │
+            │    │
+   wire ────┴────┴──── wire
+                │
+              L (coil)
+
+   Schematic — at resonance (f₀ = 1/(2π√LC)) the trap is a high-Z open.
+   Above f₀, looks capacitive (X_C dominates).
+   Below f₀, looks inductive (X_L dominates).</pre>`;
+    },
+    notes: [
+      'Pick a capacitor first (high voltage rating matters more than precision); compute coil to match.',
+      'For legal-limit operation, capacitor voltage can exceed 5 kV — use vacuum capacitors.',
+      'Wind the coil close-wound (turns touching) for predictable inductance from the formula.',
+      'Trap loss (typically 0.3-1 dB per trap) reduces antenna efficiency — count traps in your loss budget.',
+      'Verify trap resonance with a NanoVNA or dip meter BEFORE installing — much easier on the bench.',
+    ],
+  },
+
+  // ─── Loading coil for shortened antennas (component) ────────────
+  'loading-coil': {
+    name: 'Loading Coil',
+    section: '08-12',
+    component: true,
+    inputs: [
+      { id: 'freq', label: 'Operating frequency (MHz)', type: 'number', step: '0.01', default: 7.150 },
+      { id: 'physLen', label: 'Antenna physical length (ft)', type: 'number', step: '0.5', default: 33,
+        hint: 'Length of the (shortened) antenna. For a dipole, this is total tip-to-tip; for a vertical, full length.' },
+      { id: 'antType', label: 'Antenna type', type: 'select', default: 'dipole',
+        choices: [['dipole','Dipole (half-wave)'], ['vertical','Vertical (quarter-wave)']] },
+      { id: 'position', label: 'Coil position', type: 'select', default: 'center',
+        choices: [['base','Base loaded (lossiest, easiest)'],
+                  ['center','Center loaded (best efficiency)'],
+                  ['top','Top loaded (highest efficiency, hardest physically)']] },
+    ],
+    compute(v) {
+      const f = parseFloat(v.freq) || 7.150;
+      const physFt = parseFloat(v.physLen) || 33;
+      const isDipole = v.antType === 'dipole';
+      const fullFt = isDipole ? 468 / f : 234 / f;
+      const shortenFrac = physFt / fullFt;
+      if (shortenFrac >= 0.97) {
+        return { rows: [['Result', `Antenna is ${(shortenFrac*100).toFixed(0)}% of full length — no significant loading needed.`]] };
+      }
+      // Reactance to add — depends on position
+      // Simplified model: for center-loaded shortened dipole, missing X = -j Z₀ × cot(π×physFt/fullFt × π/2) approximately
+      // For quick estimate, use: X_load ≈ Z_0 × tan((π/2) × (1 - shortenFrac))
+      // Position factor: base ~3×, center ~1× (best), top ~0.5× (least L needed but high stress)
+      const Z0 = isDipole ? 50 : 36;  // approx feed impedance reference
+      const xRatio = Math.tan((Math.PI / 2) * (1 - shortenFrac));
+      let positionFactor = 1.0;
+      let efficiency = 'good';
+      let loss = '~1 dB';
+      if (v.position === 'base') { positionFactor = 3.0; efficiency = 'poor'; loss = '~3-5 dB'; }
+      if (v.position === 'top')  { positionFactor = 0.5; efficiency = 'excellent'; loss = '<0.5 dB'; }
+      const X_required = Z0 * xRatio * positionFactor;
+      const inductanceH = X_required / (2 * Math.PI * f * 1e6);
+      const inductanceUH = inductanceH * 1e6;
+      // Per-side (dipole has 2; vertical has 1)
+      const perSide = isDipole ? inductanceUH / 2 : inductanceUH;
+      // Suggested coil dimensions: 2" form, #14 wire, close-wound
+      const formIn = 2;
+      const wireDia = 0.0641;
+      const r = formIn / 2;
+      let N = 10, prevN = 0;
+      for (let iter = 0; iter < 30 && Math.abs(N - prevN) > 0.01; iter++) {
+        prevN = N;
+        const ell = N * wireDia;
+        N = Math.sqrt(perSide * (9 * r + 10 * ell) / (r * r));
+      }
+      const turns = Math.ceil(N * 10) / 10;
+      const coilLength = turns * wireDia;
+      return { rows: [
+        ['Full-size length (no loading)', `${fullFt.toFixed(1)} ft`],
+        ['Physical length (input)',       `${physFt.toFixed(1)} ft  (${(shortenFrac*100).toFixed(0)}%)`],
+        ['Reactance to add',              `${X_required.toFixed(0)} Ω total`],
+        ['Total loading inductance',      `${inductanceUH.toFixed(2)} µH`],
+        ['Inductance per side',           `${perSide.toFixed(2)} µH ${isDipole ? '(× 2 — one in each leg)' : '(single coil)'}`],
+        ['Suggested coil',                `${turns.toFixed(1)} turns of #14 on 2" form, close-wound (~${coilLength.toFixed(2)}" long)`],
+        ['Position',                      `${v.position} loaded — efficiency: ${efficiency}, est. loss: ${loss}`],
+        ['Practical Q',                   v.position === 'base' ? '50-100 (lossy in mobile mounts)' : '150-300 (air-core)'],
+      ]};
+    },
+    diagram() {
+      const isDipole = false;  // hard-coded diagram for vertical case
+      return `<pre class="aw-diag">  Center-loaded vertical:                    Base-loaded vertical:
+
+       │                                    │
+       │  ← upper element                   │  ← full element
+       │                                    │
+       ●  ← loading coil                    │
+       │                                    │
+       │  ← lower element                   ●  ← loading coil at base
+       │                                    │
+   ────●────────                         ───●────────
+   ground                                 ground
+
+  Center loading is more efficient (more current flows in the
+  full upper section before the loading coil reduces it).
+  Base loading is easier mechanically but lossier.</pre>`;
+    },
+    notes: [
+      'Loading restores resonance by adding reactance equal to what was lost from shortening.',
+      'Position trade-off: base = simple but lossy; center = best efficiency; top = best efficiency, mechanical challenge.',
+      'For a dipole, put a coil in EACH leg (half the inductance per side, both sides).',
+      'Loading coil Q matters — air-core ~150-300 vs. iron core ~50-100. Higher Q = less loss.',
+      'Bandwidth narrows in proportion to shortening — a 50% shortened antenna has ~1/4 the bandwidth.',
+    ],
+  },
 };
 
 function awCalcRenderList() {
   const wrap = document.getElementById('aw-calc-list-items');
-  const implemented = Object.keys(AW_CALCS);
-  const all = AW_ANTENNAS.map(a => a.id);
-  const remaining = all.filter(id => !implemented.includes(id));
+  const calcKeys = Object.keys(AW_CALCS);
+  const antennaIds = AW_ANTENNAS.map(a => a.id);
 
-  wrap.innerHTML =
-    implemented.map(id => `
+  // Antenna calcs follow the AW_ANTENNAS order so the list reads in the
+  // same sequence as the chapter sections.
+  const antennaCalcs = antennaIds.filter(id => calcKeys.includes(id));
+  const remaining    = antennaIds.filter(id => !calcKeys.includes(id));
+  const componentCalcs = calcKeys.filter(id => AW_CALCS[id].component);
+
+  let html = `<div class="aw-calc-list-divider">Antennas</div>` +
+    antennaCalcs.map(id => `
       <div class="aw-calc-list-item" onclick="awCalcOpen('${id}')">
         <div class="aw-calc-list-name">${escHtml(AW_CALCS[id].name)}</div>
         <div class="aw-calc-list-section">§${AW_CALCS[id].section}</div>
-      </div>`).join('') +
-    `<div class="aw-calc-list-divider">Coming soon (Phase 2b)</div>` +
-    remaining.map(id => {
-      const ant = AW_ANTENNAS.find(a => a.id === id);
-      return `<div class="aw-calc-list-item disabled">
-        <div class="aw-calc-list-name">${escHtml(ant.name)}</div>
-        <div class="aw-calc-list-section">§${ant.section}</div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
 
+  if (componentCalcs.length) {
+    html += `<div class="aw-calc-list-divider">Components</div>` +
+      componentCalcs.map(id => `
+        <div class="aw-calc-list-item" onclick="awCalcOpen('${id}')">
+          <div class="aw-calc-list-name">${escHtml(AW_CALCS[id].name)}</div>
+          <div class="aw-calc-list-section">§${AW_CALCS[id].section}</div>
+        </div>`).join('');
+  }
+
+  if (remaining.length) {
+    html += `<div class="aw-calc-list-divider">Coming soon</div>` +
+      remaining.map(id => {
+        const ant = AW_ANTENNAS.find(a => a.id === id);
+        return `<div class="aw-calc-list-item disabled">
+          <div class="aw-calc-list-name">${escHtml(ant.name)}</div>
+          <div class="aw-calc-list-section">§${ant.section}</div>
+        </div>`;
+      }).join('');
+  }
+
+  wrap.innerHTML = html;
   aw.calc.listRendered = true;
 }
 
