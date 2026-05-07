@@ -20,15 +20,15 @@ J-Learn is the **in-app reference library** for the WM3J ARS Suite. It's not a t
 - **A returning ham** who hasn't operated in years and needs the modern context (FT8, FCC §97 changes, modern band plans, current digital modes, RF-safety rules from 2021 forward).
 - **A homebrewer** who wants the math (§21), the antenna designs (§08), and the construction recipes in one place.
 
-J-Learn assumes **you have a license**. It's not a Technician / General / Extra study guide — that's §04 (Exam Prep), and even that is built around drilling rather than initial learning.
+J-Learn assumes **you have a license**. It's not a Technician / General / Extra study guide — there are excellent free question-pool drill sites (HamStudy.org, ExamCram, QRZ practice exams) for that. J-Learn picks up after the test, when you start operating.
 
 ## What's in it
 
-Twenty-six chapters organized into four loose clusters:
+Twenty-five chapters organized into four loose clusters:
 
 | Cluster | Chapters | What it covers |
 |---------|---------|----------------|
-| **Operating fundamentals** | 01 Propagation · 02 Repeaters & Bandplans · 03 Morse · 04 Exam Prep · 24 Band Plans · 25 Digital Modes · 26 Emergency Comms | The day-to-day "how to operate" cluster. Where signals go, where to put yours, how to send / decode each mode, regulations |
+| **Operating fundamentals** | 01 Propagation · 02 Repeaters & Bandplans · 03 Morse · 24 Band Plans · 25 Digital Modes · 26 Emergency Comms | The day-to-day "how to operate" cluster. Where signals go, where to put yours, how to send / decode each mode, regulations |
 | **Antennas & RF** | 05 Antennas · 06 Satellites · 07 RF Safety · 08 Antenna Workshop · 09 Feedline & SWR · 11 Power Budget · 22 Coax & Connectors | Antenna theory, antenna designs and calculators, feedline behavior, RF exposure |
 | **Troubleshooting** | 13 High SWR · 14 Station Troubleshooting · 15 RFI · 16 Noise Sources · 17 Power-Line Noise · 20 Maintenance | When things break, why, and what to do about it |
 | **Station management & reference** | 18 Shack Inventory · 19 Estate / SK · 21 Formula Appendix · 23 Q-Codes & Prosigns | Tracking your station, planning for transition, the math behind everything |
@@ -67,7 +67,7 @@ Cross-references between sections are written as `§NN-NN` (e.g., §21-06 for th
 
 ## Status
 
-Every section's front matter has a **status** field: `stub` (placeholder, no real content) or `draft` (written, may be refined). As of late 2026, most chapters are at `draft`; one chapter (04 Exam Prep) is intentionally still stub — it'll be tackled last.
+Every section's front matter has a **status** field: `stub` (placeholder, no real content) or `draft` (written, may be refined). As of late 2026 every chapter is at `draft` and the library is content-complete. Refinement and corrections are ongoing.
 
 J-Learn ships with the suite. To see what's been written, open the J-Learn tab in J-Hub and use the search box at the top of the left-side index. §00-01 covers how to navigate effectively.
 

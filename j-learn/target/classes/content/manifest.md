@@ -93,14 +93,6 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 03-07 | Speed Tracking                                     | 03-morse/03-07-speed-tracking.md                                | simple   |
 | 03-08 | Mini Tests                                         | 03-morse/03-08-mini-tests.md                                    | simple   |
 | 03-09 | Hardware Keyer Builds                              | 03-morse/03-09-hardware-keyer-builds.md                         | simple   |
-| 04-00 | Exam Prep — Overview                               | 04-exam-prep/04-00-overview.md                                  | simple   |
-| 04-01 | Question Pools                                     | 04-exam-prep/04-01-question-pools.md                            | mixed    |
-| 04-02 | Flashcards                                         | 04-exam-prep/04-02-flashcards.md                                | simple   |
-| 04-03 | Mini Quizzes                                       | 04-exam-prep/04-03-mini-quizzes.md                              | simple   |
-| 04-04 | Answer Explanations                                | 04-exam-prep/04-04-answer-explanations.md                       | mixed    |
-| 04-05 | Topic Drills                                       | 04-exam-prep/04-05-topic-drills.md                              | simple   |
-| 04-06 | Visual Aids (Circuits, Smith Charts, Block Diagrams) | 04-exam-prep/04-06-visual-aids.md                            | mixed    |
-| 04-07 | Weak-Area Analytics                                | 04-exam-prep/04-07-weak-area-analytics.md                       | simple   |
 | 05-00 | Antennas — Overview                                | 05-antennas/05-00-overview.md                                   | simple   |
 | 05-01 | Dipoles                                            | 05-antennas/05-01-dipoles.md                                    | mixed    |
 | 05-02 | Inverted V                                         | 05-antennas/05-02-inverted-v.md                                 | mixed    |
