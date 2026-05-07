@@ -1380,7 +1380,8 @@ function renderLearnContent(md) {
 
 // Per-chapter banner shown above the rendered markdown. Used by:
 //   §03 (Morse code)        → launches the standalone trainer JavaFX app
-//   §08 (Antenna Workshop)  → opens the matching calculator panel in J-Hub
+//   §07 (Antenna Workshop)  → opens the matching calculator panel in J-Hub
+//   §17 (Formulas)          → opens the matching per-formula calculator
 function renderLearnBanner(id) {
   if (!id) return '';
   if (id.startsWith('03-')) {
@@ -1395,23 +1396,23 @@ function renderLearnBanner(id) {
          + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
          + '</div>';
   }
-  if (id.startsWith('18-')) {
+  if (id.startsWith('17-')) {
     // Map J-Learn formula card id → AW_CALCS key
     const calcId = ({
-      '18-01': 'ohms-law',
-      '18-02': 'power-law',
-      '18-03': 'reactance',
-      '18-04': 'impedance',
-      '18-05': 'resonance',
-      '18-06': 'wavelength',
-      '18-07': 'swr',
-      '18-08': 'erp',
-      '18-09': 'feedline-loss',
-      '18-10': 'decibels',
-      '18-11': 'q-factor',
-      '18-12': 'bandwidth',
-      '18-13': 'smith-chart',
-      '18-14': 'rf-exposure',
+      '17-01': 'ohms-law',
+      '17-02': 'power-law',
+      '17-03': 'reactance',
+      '17-04': 'impedance',
+      '17-05': 'resonance',
+      '17-06': 'wavelength',
+      '17-07': 'swr',
+      '17-08': 'erp',
+      '17-09': 'feedline-loss',
+      '17-10': 'decibels',
+      '17-11': 'q-factor',
+      '17-12': 'bandwidth',
+      '17-13': 'smith-chart',
+      '17-14': 'rf-exposure',
     })[id];
     const buttonHtml = calcId
       ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
@@ -4948,7 +4949,7 @@ const AW_CALCS = {
 
   'ohms-law': {
     name: "Ohm's Law",
-    section: '18-01',
+    section: '17-01',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Solve for', type: 'select', default: 'V',
@@ -4978,13 +4979,13 @@ const AW_CALCS = {
     notes: [
       "Use this with all three forms: V=IR, I=V/R, R=V/I. Power forms (P=VI=I²R=V²/R) are shown as cross-checks.",
       "Voltage drop in mobile DC cables is the classic ham use — pick I and R, solve for V_drop.",
-      "For AC with reactance, use Impedance (§18-04) instead.",
+      "For AC with reactance, use Impedance (§17-04) instead.",
     ],
   },
 
   'power-law': {
     name: 'Power Law',
-    section: '18-02',
+    section: '17-02',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Solve for', type: 'select', default: 'P_VI',
@@ -5025,7 +5026,7 @@ const AW_CALCS = {
 
   'reactance': {
     name: 'Reactance (X_L, X_C)',
-    section: '18-03',
+    section: '17-03',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Type', type: 'select', default: 'L',
@@ -5053,13 +5054,13 @@ const AW_CALCS = {
     notes: [
       'Convert MHz → Hz, µH → H, pF → F before plugging in. Calculator handles this for you.',
       'Reactance does NOT dissipate power — only resistance does.',
-      'When X_L = X_C the circuit is resonant (see §18-05).',
+      'When X_L = X_C the circuit is resonant (see §17-05).',
     ],
   },
 
   'impedance': {
     name: 'Impedance |Z| / phase',
-    section: '18-04',
+    section: '17-04',
     formula: true,
     inputs: [
       { id: 'R',  label: 'Resistance R (Ω)',  type: 'number', step: '0.1', default: 65 },
@@ -5090,13 +5091,13 @@ const AW_CALCS = {
     notes: [
       'X is signed: + for inductive, − for capacitive. The display tells you which.',
       "Pure resistance (X=0) gives SWR = R/Z₀ when R > Z₀, or Z₀/R when R < Z₀.",
-      'See §18-13 for the Smith chart calc using these same Γ values.',
+      'See §17-13 for the Smith chart calc using these same Γ values.',
     ],
   },
 
   'resonance': {
     name: 'Resonant Frequency',
-    section: '18-05',
+    section: '17-05',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Solve for', type: 'select', default: 'f',
@@ -5131,14 +5132,14 @@ const AW_CALCS = {
     },
     notes: [
       'At resonance X_L = X_C — they cancel and the circuit is purely resistive.',
-      'High Q narrows the resonance peak; low Q broadens it (see §18-11).',
+      'High Q narrows the resonance peak; low Q broadens it (see §17-11).',
       'Use this to size traps (§07-13) and tank circuits.',
     ],
   },
 
   'wavelength': {
     name: 'Wavelength',
-    section: '18-06',
+    section: '17-06',
     formula: true,
     inputs: [
       { id: 'f', label: 'Frequency f (MHz)', type: 'number', step: '0.001', default: 14.150 },
@@ -5169,7 +5170,7 @@ const AW_CALCS = {
 
   'swr': {
     name: 'SWR',
-    section: '18-07',
+    section: '17-07',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Compute from', type: 'select', default: 'pwr',
@@ -5217,7 +5218,7 @@ const AW_CALCS = {
 
   'erp': {
     name: 'ERP / EIRP',
-    section: '18-08',
+    section: '17-08',
     formula: true,
     inputs: [
       { id: 'P_TX',  label: 'Transmitter power P_TX (W)', type: 'number', step: '1',   default: 100 },
@@ -5249,14 +5250,14 @@ const AW_CALCS = {
     },
     notes: [
       'EIRP uses dBi (isotropic) reference; ERP uses dBd (dipole). Differ by 2.15 dB.',
-      'For RF-safety / FCC compliance use EIRP — see §18-14 RF Exposure.',
+      'For RF-safety / FCC compliance use EIRP — see §17-14 RF Exposure.',
       "PEP is the peak; for averaged exposure (FCC), use average power ≈ PEP × duty cycle × mode factor.",
     ],
   },
 
   'feedline-loss': {
     name: 'Feedline Loss',
-    section: '18-09',
+    section: '17-09',
     formula: true,
     inputs: [
       { id: 'cable', label: 'Cable type', type: 'select', default: 'lmr400',
@@ -5318,14 +5319,14 @@ const AW_CALCS = {
     },
     notes: [
       'Loss roughly doubles when frequency quadruples — VHF needs better cable than HF.',
-      "Mismatch on a lossy line ADDS to matched loss; see §18-07 SWR for the penalty calc.",
+      "Mismatch on a lossy line ADDS to matched loss; see §17-07 SWR for the penalty calc.",
       'Cable specs vary slightly by manufacturer; this calculator uses canonical values.',
     ],
   },
 
   'decibels': {
     name: 'Decibels',
-    section: '18-10',
+    section: '17-10',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Convert', type: 'select', default: 'lin2db',
@@ -5361,7 +5362,7 @@ const AW_CALCS = {
 
   'q-factor': {
     name: 'Q Factor',
-    section: '18-11',
+    section: '17-11',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Compute from', type: 'select', default: 'XR',
@@ -5398,7 +5399,7 @@ const AW_CALCS = {
 
   'bandwidth': {
     name: 'Bandwidth',
-    section: '18-12',
+    section: '17-12',
     formula: true,
     inputs: [
       { id: 'f',  label: 'Center frequency f (MHz)', type: 'number', step: '0.01', default: 14.150 },
@@ -5424,7 +5425,7 @@ const AW_CALCS = {
 
   'smith-chart': {
     name: 'Smith Chart (Γ ↔ Z)',
-    section: '18-13',
+    section: '17-13',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Direction', type: 'select', default: 'z2g',
@@ -5486,7 +5487,7 @@ const AW_CALCS = {
 
   'rf-exposure': {
     name: 'RF Exposure',
-    section: '18-14',
+    section: '17-14',
     formula: true,
     inputs: [
       { id: 'P_PEP', label: 'Transmitter PEP (W)', type: 'number', step: '1', default: 100 },

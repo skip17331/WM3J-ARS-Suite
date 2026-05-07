@@ -109,4 +109,4 @@ These don't replace true antenna diversity but achieve similar end-results for t
 - §01 — Propagation (multipath fading mechanism)
 - §04-15 — Radiation Patterns (pattern shaping, the basis for some diversity schemes)
 - §04-16 — Polarization (the basis for polarization diversity)
-- §22 — Digital modes (FT8, JS8Call use time/coding diversity in software)
+- §21 — Digital modes (FT8, JS8Call use time/coding diversity in software)

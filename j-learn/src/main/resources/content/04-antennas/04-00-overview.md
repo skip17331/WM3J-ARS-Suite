@@ -63,4 +63,4 @@ What this chapter will *not* do is give you a single recommendation. What it wil
 - **J-Hub Antenna Tab** — builds dipole and EFHW length tables for your QTH (frequency in, length out, accounting for the 0.95 velocity factor of bare wire).
 - **§07 (Antenna Calculator)** — interactive calculator referenced by this chapter.
 - **§08 (Feedline & SWR)** — works hand-in-glove with §04-10 and §04-11.
-- **§19 (Coax & Connectors)** — the reference appendix when picking a feedline.
+- **§18 (Coax & Connectors)** — the reference appendix when picking a feedline.

@@ -130,4 +130,4 @@ A radio shows a "1:1 match" because the rig sees 50 Ω. That tells you nothing a
 - §04-12 — Baluns and chokes (specific transformer types)
 - §04-10 — Feedline effects (length affects observed Z)
 - §04-04 — EFHW (the canonical unun-matched antenna)
-- §18 — Formula appendix
+- §17 — Formula appendix

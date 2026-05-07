@@ -106,5 +106,5 @@ This is one of the most useful sweep checks in antenna debugging: do the measure
 - §04-11 — Impedance transformation (when transformation is desired)
 - §04-12 — Baluns and chokes
 - §08-05 — Feedline mismatch and SWR
-- §19 — Coax and connectors (loss and types reference)
+- §18 — Coax and connectors (loss and types reference)
 - §10 — High-SWR troubleshooting

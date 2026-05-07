@@ -93,4 +93,4 @@ The local club, an Elmer, or a manufacturer's authorized repair shop are all rea
 
 - §10 — high SWR (sometimes mistaken for station problems)
 - §12 — RFI (often comorbid with station grounding issues)
-- §13, §14 — noise sources that look like station problems
+- §13, §13 — noise sources that look like station problems

@@ -95,4 +95,4 @@ A real Carolina Windom commercial antenna (MyAntennas EFHW-8010 / OCF) is typica
 - §07-02 — Flat Dipole (center-fed comparison)
 - §07-04 — Fan Dipole (alternative multi-band approach)
 - §07-15 — NanoVNA Trim Workflow
-- §18-04 — Impedance (where the off-center math comes from)
+- §17-04 — Impedance (where the off-center math comes from)

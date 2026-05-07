@@ -126,4 +126,4 @@ If your inverter caused RFI and you complained at installation:
 
 - §13-01 — switching power supplies (the underlying noise mechanism)
 - §12-04 — ferrite selection
-- §14 — power-line noise (sometimes confused with solar)
+- §13 — power-line noise (sometimes confused with solar)

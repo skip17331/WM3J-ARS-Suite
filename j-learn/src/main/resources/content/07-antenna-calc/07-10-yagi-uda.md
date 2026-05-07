@@ -111,5 +111,5 @@ Beyond 6 elements gain increases ~0.5–1 dB per added director, with diminishin
 - §04 — Antennas (theory chapter for parasitic elements)
 - §07-00 — Antenna Workshop overview
 - §07-15 — NanoVNA Trim Workflow
-- §18-04 — Impedance (gamma / hairpin matching math)
-- §18-08 — ERP (Yagi gain into the budget)
+- §17-04 — Impedance (gamma / hairpin matching math)
+- §17-08 — ERP (Yagi gain into the budget)

@@ -151,6 +151,6 @@ These are starting points; specific situations may differ.
 - §08-02 — SWR and reflected power
 - §08-03 — Mismatch loss (the SWR penalty)
 - §08-04 — Power delivered vs lost
-- §19 — Coax & connectors (full reference)
+- §18 — Coax & connectors (full reference)
 - §04-10 — Feedline effects on antenna behavior
 - §10-01 — Coax issues troubleshooting

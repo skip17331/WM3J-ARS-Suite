@@ -149,4 +149,4 @@ Older rigs (vacuum-tube finals, no protection) could be damaged by sustained hig
 - §04-10 — Feedline effects (impedance transformation hides true SWR)
 - §10 — High-SWR troubleshooting
 - §04-09 — Smith charts (Γ in complex plane)
-- §19 — Coax & connectors
+- §18 — Coax & connectors

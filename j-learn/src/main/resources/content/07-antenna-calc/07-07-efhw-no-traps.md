@@ -93,5 +93,5 @@ Each harmonic resonance is slightly off-center within its band, but SWR ≤ 2:1 
 - §07-00 — Antenna Workshop overview
 - §07-08 — EFHW (Trapped) — the multi-band variant with traps
 - §07-15 — NanoVNA Trim Workflow
-- §18-04 — Impedance (where the high end-Z comes from)
-- §19 — Coax & Connectors (for the coax run)
+- §17-04 — Impedance (where the high end-Z comes from)
+- §18 — Coax & Connectors (for the coax run)

@@ -120,4 +120,4 @@ A 30-minute annual inspection catches problems before they become "the radio isn
 - §10-01 — coax issues (water often shows up as coax problems)
 - §10-02 — connectors (water enters via connectors)
 - §10-05 — baluns (water in the balun enclosure)
-- §17-04 — coax replacement schedule
+- §16-04 — coax replacement schedule

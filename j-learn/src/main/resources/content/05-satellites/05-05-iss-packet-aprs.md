@@ -139,4 +139,4 @@ Combined with **APRS-IS gateways**, the ISS's beacon is forwarded to the global 
 - §05-02 — Doppler shift
 - §05-04 — Tracking strategies
 - §05-07 — Pass prediction
-- §22-05 — APRS (the protocol)
+- §21-05 — APRS (the protocol)

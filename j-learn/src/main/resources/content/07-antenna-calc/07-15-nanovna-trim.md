@@ -65,7 +65,7 @@ Save the final sweep as a **baseline** for future comparison. Six months from no
 - **SWR worsened across-band** → connector or balun problem
 - **Resonance disappeared** → element or feedline failure
 
-Per §15 (Shack Inventory), store sweeps in `/shack-data/sweeps/A-001-2026-04.csv` (or wherever you organize them).
+Per §14 (Shack Inventory), store sweeps in `/shack-data/sweeps/A-001-2026-04.csv` (or wherever you organize them).
 
 ## Reading the sweep
 
@@ -127,7 +127,7 @@ For a dipole at 20m, **1 cm of wire (per side) shifts resonance ~10 kHz**. This 
 - §04-09 — Smith Charts (for matching-network analysis)
 - §07-00 — Antenna Workshop overview
 - §10 — High-SWR Troubleshooting (when the sweep is unexpected)
-- §15-02 — Antennas (where to store baseline sweeps in inventory)
-- §18-04 — Impedance (the math behind R + jX readings)
-- §18-07 — SWR (the math behind SWR readings)
-- §18-13 — Smith Chart Basics (interpreting the chart)
+- §14-02 — Antennas (where to store baseline sweeps in inventory)
+- §17-04 — Impedance (the math behind R + jX readings)
+- §17-07 — SWR (the math behind SWR readings)
+- §17-13 — Smith Chart Basics (interpreting the chart)

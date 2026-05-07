@@ -13,7 +13,7 @@ status: draft
 
 The feedline component of the power budget is the cable run between transmitter and antenna. It has two contributions: **matched-line loss** (always present, set by cable type and frequency) and **mismatch-induced extra loss** (depends on antenna SWR). Both turn watts into heat in the cable.
 
-This section is the budget-perspective treatment — how to compute the loss and apply it to the budget. The conceptual treatment is in §08 (Feedline & SWR) and the per-cable reference values are in §19-02.
+This section is the budget-perspective treatment — how to compute the loss and apply it to the budget. The conceptual treatment is in §08 (Feedline & SWR) and the per-cable reference values are in §18-02.
 
 ## The two contributions
 
@@ -23,7 +23,7 @@ For a cable run of length L feet at frequency f, with antenna SWR S:
 
 | Term | What it is | Source |
 |------|-----------|--------|
-| Matched-line loss | Loss when SWR = 1:1; pure conductor + dielectric heating | §19-02 (per-cable table) × L/100 |
+| Matched-line loss | Loss when SWR = 1:1; pure conductor + dielectric heating | §18-02 (per-cable table) × L/100 |
 | Mismatch loss | Extra loss from reflected wave bouncing through lossy line | §08-03 (table by matched-loss × SWR) |
 
 For typical amateur installs (SWR ≤ 2:1, modern cable, length ≤ 100 ft), mismatch loss is small (~5-15% of matched-line loss). For high-SWR antennas with long lossy cable, mismatch loss can exceed the matched-line loss itself.
@@ -162,7 +162,7 @@ For VHF/UHF, similar exercise — but the matched losses are higher, so meeting 
 - §09-00 — Chapter overview
 - §09-01 — TX power
 - §09-04 — ERP / EIRP output (where the feedline loss feeds into the radiated power)
-- §19-02 — Coax loss tables (full reference)
+- §18-02 — Coax loss tables (full reference)
 - §08-01 — Coax loss by frequency (the conceptual treatment)
 - §08-03 — Mismatch loss (the SWR penalty)
 - §08-04 — Power delivered vs. lost

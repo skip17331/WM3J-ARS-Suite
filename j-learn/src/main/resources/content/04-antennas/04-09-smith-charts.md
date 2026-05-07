@@ -111,4 +111,4 @@ For most amateur antenna work, the **SWR vs frequency trace** alone gives you ev
 - §04-10 — Feedline effects (Smith chart shows them as rotations)
 - §04-11 — Impedance transformation (Smith chart designs the network)
 - §10 — High-SWR troubleshooting (Smith chart traces help diagnose)
-- §18-13 — Smith chart formulas (the math, in the formula appendix)
+- §17-13 — Smith chart formulas (the math, in the formula appendix)

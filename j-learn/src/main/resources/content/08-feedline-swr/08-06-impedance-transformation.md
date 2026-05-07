@@ -149,4 +149,4 @@ Practical operators rarely need to solve the equation by hand:
 - §04-09 — Smith charts (visualizing transformation)
 - §04-10 — Feedline effects (the broader picture)
 - §04-11 — Impedance transformation (matching-network view)
-- §19-03 — Velocity factor reference
+- §18-03 — Velocity factor reference

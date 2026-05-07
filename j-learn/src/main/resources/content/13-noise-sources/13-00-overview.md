@@ -11,33 +11,43 @@ status: draft
 
 > **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-This chapter is a per-category guide to the most common noise sources in modern households. Each section covers what the source looks like in operation, what it sounds like on the air, and the specific filtering or replacement strategies that work for that category.
+This chapter is a per-category guide to the most common noise sources you'll meet on the air. Each section covers what the source looks like in operation, what it sounds like, and the specific filtering or replacement strategies that work for that category.
 
-For the higher-level workflow of how to find a noise source, see chapter 15. This chapter assumes you've already identified what kind of device you're dealing with and are looking for fix specifics.
+For the higher-level workflow of how to *find* a noise source, see chapter 12 (RFI). This chapter assumes you've already identified what kind of device or infrastructure you're dealing with and are looking for fix specifics.
 
-## How this chapter is organized
+## Two subsections
 
-| § | Source category | Common in |
-|---|-----------------|-----------|
-| 16-01 | Switching power supplies | Phone chargers, laptop bricks, every wall wart |
-| 16-02 | LED lights | Modern bulbs, especially dimmed |
-| 16-03 | Solar inverters | Roof-mounted PV systems |
-| 16-04 | Ethernet over power | Powerline networking adapters |
-| 16-05 | HVAC | Furnace blowers, AC compressors, heat pumps |
-| 16-06 | Battery chargers | Power tool, e-bike, vehicle |
-| 16-07 | Motor brushes | Drills, mixers, ceiling fans, vacuum cleaners |
+The chapter is organized in two halves:
+
+**§13-01 through §13-07 — household sources.** Things inside your home (or your neighbor's) that you can usually fix yourself with ferrites, replacement, or relocation.
+
+**§13-08 through §13-15 — power-line noise.** Utility infrastructure problems — bad insulators, transformers, hardware. You can't fix these with a ferrite. The fix involves the utility company, and the procedure is different.
+
+## Section index
+
+| § | Source category | Subsection |
+|---|-----------------|------------|
+| §13-01 | Switching power supplies | Household |
+| §13-02 | LED lights | Household |
+| §13-03 | Solar inverters | Household |
+| §13-04 | Ethernet over power | Household |
+| §13-05 | HVAC | Household |
+| §13-06 | Battery chargers | Household |
+| §13-07 | Motor brushes | Household |
+| §13-08 | Power-line noise — overview | Power-line |
+| §13-09 | Arcing insulators | Power-line |
+| §13-10 | Bad transformers | Power-line |
+| §13-11 | Loose hardware | Power-line |
+| §13-12 | Corona discharge | Power-line |
+| §13-13 | AM radio identification | Power-line |
+| §13-14 | SDR identification | Power-line |
+| §13-15 | Utility documentation | Power-line |
 
 Read whichever section matches what you've identified.
 
-## Why these sources specifically
-
-These categories produce the noise that most amateur operators encounter. They aren't the only sources — there are dozens more — but together they account for the majority of noise complaints reported by hams.
-
-Notably absent from this chapter: power-line noise, which has its own chapter (17) because diagnosing and fixing it involves the utility company.
-
 ## A general principle: source vs receptor
 
-Some sources can be made quieter (replace, filter at the device). Others are immune to fixing — a powerline adapter is *designed* to use the HF spectrum and can't be made quiet without abandoning it.
+Some sources can be made quieter (replace, filter at the device). Others are immune to fixing — a powerline-Ethernet adapter is *designed* to use the HF spectrum and can't be made quiet without abandoning it. Power-line noise is similar: you can't fix it from inside your house at all.
 
 For sources you can't fix, the next move is to harden the receptor — your radio. That means:
 
@@ -46,7 +56,7 @@ For sources you can't fix, the next move is to harden the receptor — your radi
 - **Operating during quiet hours** when offending devices aren't on.
 - **Operating from a different physical location** (mobile, portable, away from the noisy environment).
 
-Each per-category section discusses what's possible at the source and what's not.
+Each per-category section discusses what's possible at the source and what isn't.
 
 ## What's "normal" noise
 
@@ -69,5 +79,5 @@ If you're at S7+ all the time and you live somewhere that should be quieter, thi
 ## See also
 
 - §12 — RFI workflow (read this first if you haven't isolated a source yet)
-- §14 — power-line noise (different chapter, different procedure)
 - §10-06 — feedline routing (related — common-mode current matters here too)
+- §13-08 — power-line noise overview (start of the second half of this chapter)
