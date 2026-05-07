@@ -23,7 +23,7 @@ Antenna tuners — manual, automatic, in-rig, external, and remote-base — are 
 | Date acquired | Original purchase or transfer date |
 | Purchase price | What you paid |
 | Estimated value | Used market value — many older tuners hold value moderately well |
-| Disposition | Working / Not working / Parts only |
+| Disposition | Working / Repairable / Not Repairable |
 
 Tuner-specific extra fields:
 
@@ -140,8 +140,8 @@ For estate planning, vintage tuners may be more valuable to collectors than mode
 ### Disposition for tuners
 
 - **Working**: tunes properly, all bands, hands a 1:1 SWR to the rig with normal-range antennas.
-- **Not working**: a specific failure (capacitor arc, switch failure, motor in auto-tuner failed). Repair cost may exceed replacement.
-- **Parts only**: chassis, knobs, capacitors as donor for repairs of similar tuners.
+- **Repairable**: a specific failure (capacitor arc, switch failure, motor in auto-tuner failed) where the fix is feasible. Compare repair cost to replacement.
+- **Not Repairable**: chassis, knobs, capacitors as donor for repairs of similar tuners.
 
 ## Tuner accessories
 

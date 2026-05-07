@@ -32,6 +32,7 @@
       <button class="nav-btn" data-tab="jdigi"><span class="nav-icon">〰</span>J-Digi</button>
       <button class="nav-btn" data-tab="jbridge"><span class="nav-icon">⇄</span>J-Bridge</button>
       <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
+      <button class="nav-btn" data-tab="inventory"><span class="nav-icon">📦</span>Inventory</button>
       <button class="nav-btn" data-tab="learn"><span class="nav-icon">📖</span>J-Learn</button>
       <button class="nav-btn" data-tab="weather"><span class="nav-icon">☁</span>Weather</button>
       <button class="nav-btn" data-tab="callsign"><span class="nav-icon">⊛</span>Callsign</button>
@@ -709,6 +710,141 @@
         <div class="btn-row">
           <button class="btn btn-primary" onclick="saveMacros()">Save Macros</button>
           <span id="macros-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Tab: Inventory ──────────────────────────────── -->
+    <section id="tab-inventory" class="tab-panel">
+      <div class="panel-header">Shack Inventory</div>
+      <div class="panel-sub">Track radios, antennas, accessories, and more. Backed by SQLite at <code>~/.j-hub/inventory.db</code>. The data here feeds the estate handoff document (J-Learn §19).</div>
+
+      <!-- Equipment items card -->
+      <div class="card">
+        <div class="card-title">Equipment</div>
+        <div style="display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap">
+          <input type="text" id="inv-search" placeholder="Filter (manufacturer, model, serial, notes)…" oninput="renderInventoryTable()" style="flex:1;min-width:200px;padding:5px 8px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:13px">
+          <select id="inv-type-filter" onchange="renderInventoryTable()" style="padding:5px 8px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:13px">
+            <option value="">All Types</option>
+          </select>
+          <select id="inv-disposition-filter" onchange="renderInventoryTable()" style="padding:5px 8px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:13px">
+            <option value="">All Dispositions</option>
+            <option value="working">Working</option>
+            <option value="repairable">Repairable</option>
+            <option value="not_repairable">Not Repairable</option>
+          </select>
+          <select id="inv-install-filter" onchange="renderInventoryTable()" style="padding:5px 8px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:13px">
+            <option value="">Installed + Storage</option>
+            <option value="installed">Installed only</option>
+            <option value="storage">Storage only</option>
+          </select>
+          <button class="action-btn" onclick="openItemModal()">+ Add Item</button>
+          <button class="action-btn" onclick="exportInventoryCsv()">Export CSV</button>
+        </div>
+        <div id="inv-stats" class="inv-stats"></div>
+        <div style="overflow:auto;max-height:55vh">
+          <table class="inv-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Manufacturer</th>
+                <th>Model</th>
+                <th>Serial</th>
+                <th>Date Acq</th>
+                <th style="text-align:right">Value</th>
+                <th>Disposition</th>
+                <th>Install</th>
+                <th>Location</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="inv-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- First-call contacts card -->
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">First-Call Contacts</div>
+        <div style="font-size:12px;color:var(--subtext0);margin:6px 0">Friends, club leaders, dealers — listed in priority order (lower priority number = called first). This is the list your family will follow in the estate handoff.</div>
+        <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+          <span style="flex:1"></span>
+          <button class="action-btn" onclick="openContactModal()">+ Add Contact</button>
+        </div>
+        <div style="overflow:auto">
+          <table class="inv-table">
+            <thead>
+              <tr>
+                <th style="width:50px">Pri</th>
+                <th>Name</th>
+                <th>Callsign</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Relationship</th>
+                <th>Items Wanted</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="inv-contacts-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Item modal -->
+      <div id="inv-item-modal" class="inv-modal-backdrop" style="display:none">
+        <div class="inv-modal">
+          <h3 id="inv-item-modal-title" style="margin:0 0 12px 0">Add Item</h3>
+          <form id="inv-item-form" onsubmit="saveItem(event)">
+            <input type="hidden" id="inv-item-id">
+            <div class="inv-form-grid">
+              <label>Type *<select id="inv-item-type" required></select></label>
+              <label>Disposition<select id="inv-item-disposition">
+                <option value="working">Working</option>
+                <option value="repairable">Repairable</option>
+                <option value="not_repairable">Not Repairable</option>
+              </select></label>
+              <label>Manufacturer<input id="inv-item-manufacturer" placeholder="Icom, Yaesu, DX Engineering, …"></label>
+              <label>Model<input id="inv-item-model" placeholder="IC-7610, FT-991A, MBVE-5, …"></label>
+              <label>Serial #<input id="inv-item-serial" placeholder="(critical for high-value items)"></label>
+              <label>Date Acquired<input type="date" id="inv-item-date"></label>
+              <label>Purchase Price ($)<input type="number" step="0.01" id="inv-item-price"></label>
+              <label>Estimated Value ($)<input type="number" step="0.01" id="inv-item-value"></label>
+              <label>Install Status<select id="inv-item-install" onchange="toggleStorageLocation()">
+                <option value="installed">Installed</option>
+                <option value="storage">Boxed in Storage</option>
+              </select></label>
+              <label id="inv-item-storage-row">Storage Location<input id="inv-item-storage" placeholder="e.g., basement shelf 3"></label>
+            </div>
+            <label style="display:block;margin-top:10px">Notes<textarea id="inv-item-notes" rows="3" style="width:100%;resize:vertical" placeholder="Where it's used, accessories included, history, anything else…"></textarea></label>
+            <div class="inv-form-buttons">
+              <button type="button" class="action-btn" onclick="closeItemModal()">Cancel</button>
+              <button type="submit" class="action-btn primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Contact modal -->
+      <div id="inv-contact-modal" class="inv-modal-backdrop" style="display:none">
+        <div class="inv-modal">
+          <h3 id="inv-contact-modal-title" style="margin:0 0 12px 0">Add Contact</h3>
+          <form id="inv-contact-form" onsubmit="saveContact(event)">
+            <input type="hidden" id="inv-contact-id">
+            <div class="inv-form-grid">
+              <label>Name *<input id="inv-contact-name" required></label>
+              <label>Callsign<input id="inv-contact-callsign"></label>
+              <label>Phone<input id="inv-contact-phone"></label>
+              <label>Email<input id="inv-contact-email" type="email"></label>
+              <label>Relationship<input id="inv-contact-relationship" placeholder="friend, club president, dealer, family"></label>
+              <label>Priority<input type="number" id="inv-contact-priority" value="100" min="1" placeholder="Lower = called first"></label>
+            </div>
+            <label style="display:block;margin-top:10px">Items they wanted<textarea id="inv-contact-items" rows="2" style="width:100%;resize:vertical" placeholder="Specific items the friend mentioned. E.g., 'Asked about my SB-220 last year — said he'd be interested if I sold it.'"></textarea></label>
+            <label style="display:block;margin-top:10px">Notes<textarea id="inv-contact-notes" rows="2" style="width:100%;resize:vertical"></textarea></label>
+            <div class="inv-form-buttons">
+              <button type="button" class="action-btn" onclick="closeContactModal()">Cancel</button>
+              <button type="submit" class="action-btn primary">Save</button>
+            </div>
+          </form>
         </div>
       </div>
     </section>

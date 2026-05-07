@@ -185,7 +185,7 @@ For estate planning (§19):
 - **Recent purchase + good condition** = high resale value.
 - **Old purchase + good condition** = collector value (potentially higher than replacement value).
 - **Recent purchase + poor condition** = low resale (something's wrong).
-- **Old purchase + poor condition** = parts only.
+- **Old purchase + poor condition** = not repairable / parts donor.
 
 The date tells the story.
 

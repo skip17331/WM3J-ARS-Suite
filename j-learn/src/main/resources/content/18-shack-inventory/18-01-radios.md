@@ -25,7 +25,7 @@ The seven core fields from §18-00, plus radio-specific extras:
 | Date acquired | When you got it — first-purchase date, not first-use |
 | Purchase price | What you paid; note new vs. used acquisition |
 | Estimated value | Current resale value; **update annually** for radios — depreciation is significant |
-| Disposition | Working / Not working / Parts only |
+| Disposition | Working / Repairable / Not Repairable |
 
 Radio-specific extra fields:
 
@@ -109,7 +109,7 @@ Serial Number: 2-3456
 Date Acquired: 2008-12-01
 Purchase Price: 800.00 (used)
 Estimated Value: 600.00 (vintage market)
-Disposition: Not working
+Disposition: Repairable
 Notes: One 3-500Z tube has gas; replacement tube on order. Will be Working again ~Q2 2026.
 PA Condition: One tube needs replacement.
 ```
@@ -162,10 +162,10 @@ Also: many manufacturers maintain a "stolen radio" registry; report to them afte
 ### Disposition values for radios specifically
 
 - **Working**: powers up, transmits and receives correctly on all rated bands and modes; PA delivers rated power into 50 Ω; no known menu/firmware bugs that prevent normal use.
-- **Not working**: a specific component failure (PA, audio chain, control board, display, etc.). May be repairable; estimate cost and weigh against replacement.
-- **Parts only**: not economically repairable; chassis, knobs, controls, transformer, etc., useful as parts donor for other radios.
+- **Repairable**: a specific component failure (PA, audio chain, control board, display, etc.) where the fix is known and feasible. Estimate cost and weigh against replacement value.
+- **Not Repairable**: not economically repairable; chassis, knobs, controls, transformer, etc., useful as parts donor for other radios.
 
-A rig at "Not working" with a $200 fix that would restore $400 of value is worth fixing. A rig at "Not working" with a $500 fix to restore $300 of value should be moved to "Parts only" or sold as-is.
+A rig marked "Repairable" with a $200 fix that would restore $400 of value is worth fixing. A rig marked "Repairable" with a $500 fix to restore $300 of value should be re-classified as "Not Repairable" or sold as-is.
 
 ## Tracking radio accessories
 

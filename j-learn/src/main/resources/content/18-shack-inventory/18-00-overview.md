@@ -29,15 +29,19 @@ Every item in the inventory uses the same core fields:
 
 | Field | Description |
 |-------|-------------|
+| **Type** | Equipment category (Radio, Antenna, Tuner, Coax Run, Power Supply, etc.) — references the equipment_types table |
 | **Manufacturer** | The maker (e.g., Icom, Yaesu, Kenwood, Diamond, MFJ) |
 | **Model** | The specific product designation (IC-7610, FT-991A, MA-5B, etc.) |
 | **Serial number** | The unique identifier on the unit (essential for insurance, theft recovery) |
 | **Date acquired** | When the item came into your possession (yyyy-mm-dd) |
 | **Purchase price** | What you paid for it, in original currency |
 | **Estimated value** | Current market value (what it would sell for today on eBay or QRZ classifieds) |
-| **Disposition** | Working / Not working / Parts only |
+| **Disposition** | Working / Repairable / Not Repairable |
+| **Install status** | Installed (in service) / Storage (boxed up, not currently in use) |
+| **Storage location** | Where it's stored if boxed (e.g., "basement shelf 3"; only used when install_status = Storage) |
+| **Notes** | Free-form text — context, history, accessories included, anything else |
 
-Some categories add a few extra fields (firmware version on radios, installed length on coax runs, last-swept date on antennas), but the seven above are the constant baseline.
+Some categories add a few extra fields (firmware version on radios, installed length on coax runs, last-swept date on antennas), but the fields above are the constant baseline.
 
 ## The disposition values
 
@@ -46,10 +50,28 @@ Three values, deliberately limited:
 | Disposition | Meaning |
 |-------------|---------|
 | **Working** | Functions to spec; ready to use today; no known issues |
-| **Not working** | Doesn't function as intended; needs repair before use; not currently usable |
-| **Parts only** | Cannot be repaired economically; useful as a source of parts for repairs of other equipment |
+| **Repairable** | Doesn't currently work, but the fix is known/feasible — needs a tube, a cap, a connector, etc. Worth keeping or selling at "needs work" pricing |
+| **Not Repairable** | Cannot be economically repaired. Either parts donor for similar equipment, or scrap |
 
-Three buckets are enough. Fine-grained categories ("partially working," "intermittent," "almost dead") tend to drift over time and confuse the inventory. **If it works, it's "working"; if it doesn't, you have to decide between "not working" (worth fixing or selling broken) and "parts only" (donor for other repairs).**
+Three buckets are enough. Fine-grained categories ("partially working," "intermittent," "almost dead") tend to drift over time and confuse the inventory. **If it works, it's "working"; if it doesn't, you have to decide between "repairable" (worth fixing or selling as a fixer-upper) and "not repairable" (parts donor or scrap).**
+
+## Install status & storage location
+
+Two related fields that track *where the item physically is*:
+
+| Install status | Meaning |
+|----------------|---------|
+| **Installed** | Currently in service — connected to the station, on the tower, in the vehicle, etc. |
+| **Storage** | Boxed up, off the air. Not currently being used. |
+
+When install_status is **Storage**, the **storage_location** field captures *where* the item is — "basement shelf 3," "garage cabinet," "shack closet," "rental storage unit B-204," etc.
+
+This matters for two reasons:
+
+1. **Inventory verification**: when you do an annual review (§20-03), you can find each item physically. Without a storage location, "I have a spare 2 m radio somewhere" doesn't help.
+2. **Estate planning**: when your family disposes of the station (§19), the printable handoff lists *where* each item physically is. Otherwise they spend hours hunting through boxes.
+
+Update the storage location whenever you move things — moving a radio from the operating desk to the closet means flipping it to "Storage" and adding the location.
 
 ## How the chapter is organized
 
@@ -97,10 +119,10 @@ Antenna  | (homebrew)   | 80m EFHW    | n/a    | 2020-03-15  | 80.00         | 8
 Coax     | DX Engineering | LMR-400 | n/a       | 2018-06-01  | 110.00        | 50.00           | Working   | 100ft run to vertical
 Tuner    | LDG          | AT-100PROII | 1234567 | 2015-11-30  | 250.00        | 175.00          | Working   | Inline with HF rig
 Battery  | Bioenno      | BLF-1220A   | BL12345 | 2021-09-15  | 200.00        | 150.00          | Working   | Emcomm battery
-Amp      | Heathkit     | SB-220      | 2-3456  | 2008-12-01  | 800.00        | 600.00          | Not working | Tube needs replacement; project
+Amp      | Heathkit     | SB-220      | 2-3456  | 2008-12-01  | 800.00        | 600.00          | Repairable | Tube needs replacement; project
 PS       | Astron       | RS-50A      | 50A-9876 | 2009-01-15 | 220.00        | 130.00          | Working   | Main HF supply
 HT       | Yaesu        | FT-3DR      | (none)   | 2023-02-10 | 280.00        | 220.00          | Working   | Daily HT
-HT       | BaoFeng      | UV-5R       | (none)   | 2018-05-01 | 35.00         | 20.00           | Parts only | Backup; LCD damaged
+HT       | BaoFeng      | UV-5R       | (none)   | 2018-05-01 | 35.00         | 20.00           | Not Repairable | Backup; LCD damaged
 ```
 
 The "Category" column is what links each row to its chapter section in this guide. Filter by category and you get the radios subset, the antennas subset, etc.

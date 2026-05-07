@@ -25,7 +25,7 @@ This section applies the unified inventory schema (§18-00) to antennas, with an
 | Date acquired | When the antenna components arrived (not necessarily install date) |
 | Purchase price | Total spent on the antenna parts/kit |
 | Estimated value | Resale value if disassembled — wire antennas have negligible resale |
-| Disposition | Working / Not working / Parts only |
+| Disposition | Working / Repairable / Not Repairable |
 
 Antenna-specific extra fields:
 
@@ -190,15 +190,16 @@ Antenna resale follows different patterns than radios:
 
 For estate planning, the antenna's resale value is often less than the labor cost of removing it. Many estate sales include "antennas in place — buyer to remove." This affects the estate strategy in §19.
 
-### Antennas that are "Not working"
+### Antennas marked "Repairable" or "Not Repairable"
 
 Antenna failure modes:
-- Visible damage (broken element, fallen insulator, water in balun) → repairable.
-- High SWR with no obvious cause → diagnosis needed; could be coax, balun, or antenna proper.
-- Off-resonance → length adjustment.
-- Interaction with new structures (gutter, tree growth) → environmental change.
+- Visible damage (broken element, fallen insulator, water in balun) → typically Repairable.
+- High SWR with no obvious cause → Repairable; diagnosis needed (could be coax, balun, or antenna proper).
+- Off-resonance → Repairable; length adjustment.
+- Interaction with new structures (gutter, tree growth) → Repairable via re-tune or relocation.
+- Element corroded through, balun cracked open, structural failure → Not Repairable.
 
-A "Not working" antenna may be repairable easily or expensive. Document the failure mode in notes.
+Document the failure mode in notes regardless of which disposition you pick.
 
 ### Weatherproofing inspection log
 

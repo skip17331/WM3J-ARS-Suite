@@ -25,7 +25,7 @@ This is the inventory category most-overlooked by operators new to inventorying.
 | Date acquired | When the coax was purchased (from spool) |
 | Purchase price | Cost of the cable + connectors at time of install |
 | Estimated value | Salvage value (low for old, weathered cable; near-original for unused new spool) |
-| Disposition | Working / Not working / Parts only |
+| Disposition | Working / Repairable / Not Repairable |
 
 Coax-run-specific extra fields:
 
@@ -159,20 +159,20 @@ Routing affects life expectancy:
 
 The routing notes inform the maintenance scheduling.
 
-### When to mark "Not working"
+### When to mark "Repairable" or "Not Repairable"
 
-Coax runs hit "Not working" when:
+Coax runs hit a non-Working disposition when:
 
 - **Visible damage**: kinked, cut jacket, water in dielectric, animal damage.
 - **Measured loss exceeds spec by 30%+**: aging has degraded the cable.
 - **Physical disconnect at a connector**: connector pulled off, water has destroyed contact.
 - **Sustained high SWR with no antenna change**: usually feedline (often connector) failure.
 
-A failed coax run is essentially "needs replacement" — it cannot be effectively repaired in service. Mark it "Not working" and plan replacement (§20-04).
+For coax, the practical disposition is usually **Not Repairable** — a failed coax run is essentially "needs replacement," and you can't effectively splice or patch a damaged run while keeping its electrical characteristics. Mark it Not Repairable and plan replacement (§20-04). The exception: a connector failure on an otherwise-good cable is **Repairable** — re-terminate the bad end.
 
-### "Parts only" for coax
+### "Not Repairable" for coax = parts donor
 
-Old coax can be "Parts only" status:
+Old coax can have value as a parts donor:
 
 - Cut into short patches for bench-test cables.
 - Strip for connector recovery (PL-259, N, BNC bodies).
@@ -212,7 +212,7 @@ Photos taken at install + photos taken at annual inspection let you compare chan
 - **Forgetting to record install date.** Without it, you don't know when to plan replacement.
 - **Skipping connector type documentation.** Replacement cables need connector consistency; record what's at each end.
 - **No baseline sweep.** Without it, future deviations aren't detectable.
-- **Treating salvage cable as "Parts only" prematurely.** A run pulled because it looked old may still test fine; sweep before assuming.
+- **Treating salvage cable as "Not Repairable" prematurely.** A run pulled because it looked old may still test fine; sweep before assuming.
 
 ## Connecting to estate planning
 

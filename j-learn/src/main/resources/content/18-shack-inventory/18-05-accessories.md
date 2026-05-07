@@ -178,8 +178,8 @@ Notes: License tied to FLEX-6500 rig; transferable on rig sale.
 For software, "Disposition" is more about whether the license is currently usable than whether it works:
 
 - **Working**: license is active and you can use the software.
-- **Not working**: license expired, key lost, or not currently authorized.
-- **Parts only**: legacy software no longer supported by the manufacturer; might still be installable but support is gone.
+- **Repairable**: license expired or key lost — recoverable by contacting the vendor or repurchasing.
+- **Not Repairable**: legacy software no longer supported by the manufacturer; might still be installable but support is gone.
 
 ## Test equipment
 

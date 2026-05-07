@@ -3037,3 +3037,296 @@ function renderDeps(d) {
 
   box.innerHTML = rows.join('');
 }
+
+// ───── Inventory tab ────────────────────────────────────────
+state.inventory = { items: [], types: [], contacts: [] };
+
+function loadInventoryAll() {
+  Promise.all([
+    fetch('/api/inventory/types').then(r => r.json()),
+    fetch('/api/inventory/items').then(r => r.json()),
+    fetch('/api/inventory/contacts').then(r => r.json()),
+  ]).then(([types, items, contacts]) => {
+    state.inventory.types = types || [];
+    state.inventory.items = items || [];
+    state.inventory.contacts = contacts || [];
+    populateTypeSelectors();
+    renderInventoryTable();
+    renderContactsTable();
+  }).catch(err => console.error('inventory load failed', err));
+}
+
+function populateTypeSelectors() {
+  const typeFilter = document.getElementById('inv-type-filter');
+  const typeForm   = document.getElementById('inv-item-type');
+  if (!typeFilter || !typeForm) return;
+  // Filter dropdown (preserves the "All Types" first option).
+  const cur = typeFilter.value;
+  typeFilter.innerHTML = '<option value="">All Types</option>'
+    + state.inventory.types.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+  typeFilter.value = cur;
+  // Form dropdown.
+  typeForm.innerHTML = state.inventory.types.map(t =>
+    `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+}
+
+function renderInventoryTable() {
+  const tbody = document.getElementById('inv-tbody');
+  if (!tbody) return;
+  const search    = (document.getElementById('inv-search')?.value || '').toLowerCase();
+  const typeFilter = document.getElementById('inv-type-filter')?.value || '';
+  const dispFilter = document.getElementById('inv-disposition-filter')?.value || '';
+  const instFilter = document.getElementById('inv-install-filter')?.value || '';
+
+  const items = state.inventory.items.filter(it => {
+    if (typeFilter && String(it.type_id) !== typeFilter) return false;
+    if (dispFilter && it.disposition !== dispFilter) return false;
+    if (instFilter && it.install_status !== instFilter) return false;
+    if (search) {
+      const hay = [it.manufacturer, it.model, it.serial_number, it.notes,
+                   it.storage_location, it.type_name].filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  // Stats
+  const stats = document.getElementById('inv-stats');
+  if (stats) {
+    const totalValue = items.reduce((sum, it) =>
+      sum + (Number(it.estimated_value) || 0), 0);
+    const totalCost  = items.reduce((sum, it) =>
+      sum + (Number(it.purchase_price)  || 0), 0);
+    stats.textContent = `${items.length} item${items.length === 1 ? '' : 's'} `
+      + ` ·  Estimated value: $${totalValue.toFixed(2)}`
+      + ` ·  Original cost: $${totalCost.toFixed(2)}`;
+  }
+
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--subtext0);padding:20px">'
+      + (state.inventory.items.length === 0
+         ? 'No items yet. Click <b>+ Add Item</b> to start your inventory.'
+         : 'No items match the current filters.')
+      + '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items.map(it => {
+    const valueText = it.estimated_value != null
+      ? '$' + Number(it.estimated_value).toFixed(2) : '—';
+    const dispLabel = ({
+      working:        'Working',
+      repairable:     'Repairable',
+      not_repairable: 'Not Repairable',
+    })[it.disposition] || it.disposition || '';
+    const installLabel = it.install_status === 'storage' ? 'Storage' : 'Installed';
+    return `<tr>
+      <td>${escHtml(it.type_name || '')}</td>
+      <td>${escHtml(it.manufacturer || '')}</td>
+      <td>${escHtml(it.model || '')}</td>
+      <td><code style="font-size:11px">${escHtml(it.serial_number || '')}</code></td>
+      <td>${escHtml(it.date_acquired || '')}</td>
+      <td style="text-align:right">${valueText}</td>
+      <td><span class="inv-disp-${it.disposition || ''}">${escHtml(dispLabel)}</span></td>
+      <td>${escHtml(installLabel)}</td>
+      <td>${escHtml(it.storage_location || '')}</td>
+      <td class="inv-actions">
+        <button onclick="openItemModal(${it.id})">Edit</button>
+        <button class="del" onclick="deleteItem(${it.id})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderContactsTable() {
+  const tbody = document.getElementById('inv-contacts-tbody');
+  if (!tbody) return;
+  if (state.inventory.contacts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--subtext0);padding:20px">'
+      + 'No contacts yet. Click <b>+ Add Contact</b> to add a friend, club leader, or dealer.'
+      + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.inventory.contacts.map(c => `<tr>
+    <td>${c.priority || ''}</td>
+    <td>${escHtml(c.name || '')}</td>
+    <td>${escHtml(c.callsign || '')}</td>
+    <td>${escHtml(c.phone || '')}</td>
+    <td>${escHtml(c.email || '')}</td>
+    <td>${escHtml(c.relationship || '')}</td>
+    <td style="max-width:300px;white-space:normal">${escHtml(c.items_wanted || '')}</td>
+    <td class="inv-actions">
+      <button onclick="openContactModal(${c.id})">Edit</button>
+      <button class="del" onclick="deleteContact(${c.id})">Del</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ----- Item modal -----
+function openItemModal(id) {
+  const modal = document.getElementById('inv-item-modal');
+  const title = document.getElementById('inv-item-modal-title');
+  document.getElementById('inv-item-form').reset();
+  document.getElementById('inv-item-id').value = '';
+  if (id) {
+    const it = state.inventory.items.find(x => x.id === id);
+    if (!it) return;
+    title.textContent = 'Edit Item — ' + (it.manufacturer || '') + ' ' + (it.model || '');
+    document.getElementById('inv-item-id').value          = it.id;
+    document.getElementById('inv-item-type').value        = it.type_id;
+    document.getElementById('inv-item-manufacturer').value= it.manufacturer || '';
+    document.getElementById('inv-item-model').value       = it.model || '';
+    document.getElementById('inv-item-serial').value      = it.serial_number || '';
+    document.getElementById('inv-item-date').value        = it.date_acquired || '';
+    document.getElementById('inv-item-price').value       = it.purchase_price != null ? it.purchase_price : '';
+    document.getElementById('inv-item-value').value       = it.estimated_value != null ? it.estimated_value : '';
+    document.getElementById('inv-item-disposition').value = it.disposition || 'working';
+    document.getElementById('inv-item-install').value     = it.install_status || 'installed';
+    document.getElementById('inv-item-storage').value     = it.storage_location || '';
+    document.getElementById('inv-item-notes').value       = it.notes || '';
+  } else {
+    title.textContent = 'Add Item';
+    // Default to "today" for the date field if blank.
+    const d = new Date();
+    document.getElementById('inv-item-date').value =
+      d.toISOString().slice(0, 10);
+  }
+  toggleStorageLocation();
+  modal.style.display = 'flex';
+}
+
+function closeItemModal() {
+  document.getElementById('inv-item-modal').style.display = 'none';
+}
+
+function toggleStorageLocation() {
+  const inst = document.getElementById('inv-item-install')?.value;
+  const row = document.getElementById('inv-item-storage-row');
+  if (row) row.style.display = inst === 'storage' ? '' : 'none';
+}
+
+function saveItem(ev) {
+  ev.preventDefault();
+  const id = document.getElementById('inv-item-id').value;
+  const body = {
+    type_id:          parseInt(document.getElementById('inv-item-type').value, 10),
+    manufacturer:     document.getElementById('inv-item-manufacturer').value,
+    model:            document.getElementById('inv-item-model').value,
+    serial_number:    document.getElementById('inv-item-serial').value,
+    date_acquired:    document.getElementById('inv-item-date').value,
+    purchase_price:   document.getElementById('inv-item-price').value,
+    estimated_value:  document.getElementById('inv-item-value').value,
+    disposition:      document.getElementById('inv-item-disposition').value,
+    install_status:   document.getElementById('inv-item-install').value,
+    storage_location: document.getElementById('inv-item-storage').value,
+    notes:            document.getElementById('inv-item-notes').value,
+  };
+  const url    = id ? '/api/inventory/items/' + id : '/api/inventory/items';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then(r => r.json())
+    .then(data => {
+      if (data.error) { alert('Save failed: ' + data.error); return; }
+      closeItemModal();
+      loadInventoryAll();
+    })
+    .catch(err => alert('Save failed: ' + err));
+}
+
+function deleteItem(id) {
+  const it = state.inventory.items.find(x => x.id === id);
+  if (!it) return;
+  const label = (it.manufacturer || '') + ' ' + (it.model || '');
+  if (!confirm('Delete "' + label.trim() + '"? This cannot be undone.')) return;
+  fetch('/api/inventory/items/' + id, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(() => loadInventoryAll())
+    .catch(err => alert('Delete failed: ' + err));
+}
+
+function exportInventoryCsv() {
+  window.location.href = '/api/inventory/export.csv';
+}
+
+// ----- Contact modal -----
+function openContactModal(id) {
+  const modal = document.getElementById('inv-contact-modal');
+  const title = document.getElementById('inv-contact-modal-title');
+  document.getElementById('inv-contact-form').reset();
+  document.getElementById('inv-contact-id').value = '';
+  if (id) {
+    const c = state.inventory.contacts.find(x => x.id === id);
+    if (!c) return;
+    title.textContent = 'Edit Contact — ' + (c.name || '');
+    document.getElementById('inv-contact-id').value           = c.id;
+    document.getElementById('inv-contact-name').value         = c.name || '';
+    document.getElementById('inv-contact-callsign').value     = c.callsign || '';
+    document.getElementById('inv-contact-phone').value        = c.phone || '';
+    document.getElementById('inv-contact-email').value        = c.email || '';
+    document.getElementById('inv-contact-relationship').value = c.relationship || '';
+    document.getElementById('inv-contact-priority').value     = c.priority != null ? c.priority : 100;
+    document.getElementById('inv-contact-items').value        = c.items_wanted || '';
+    document.getElementById('inv-contact-notes').value        = c.notes || '';
+  } else {
+    title.textContent = 'Add Contact';
+    document.getElementById('inv-contact-priority').value = 100;
+  }
+  modal.style.display = 'flex';
+}
+
+function closeContactModal() {
+  document.getElementById('inv-contact-modal').style.display = 'none';
+}
+
+function saveContact(ev) {
+  ev.preventDefault();
+  const id = document.getElementById('inv-contact-id').value;
+  const body = {
+    name:         document.getElementById('inv-contact-name').value,
+    callsign:     document.getElementById('inv-contact-callsign').value,
+    phone:        document.getElementById('inv-contact-phone').value,
+    email:        document.getElementById('inv-contact-email').value,
+    relationship: document.getElementById('inv-contact-relationship').value,
+    priority:     parseInt(document.getElementById('inv-contact-priority').value, 10) || 100,
+    items_wanted: document.getElementById('inv-contact-items').value,
+    notes:        document.getElementById('inv-contact-notes').value,
+  };
+  const url    = id ? '/api/inventory/contacts/' + id : '/api/inventory/contacts';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then(r => r.json())
+    .then(data => {
+      if (data.error) { alert('Save failed: ' + data.error); return; }
+      closeContactModal();
+      loadInventoryAll();
+    })
+    .catch(err => alert('Save failed: ' + err));
+}
+
+function deleteContact(id) {
+  const c = state.inventory.contacts.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm('Delete contact "' + (c.name || '') + '"?')) return;
+  fetch('/api/inventory/contacts/' + id, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(() => loadInventoryAll())
+    .catch(err => alert('Delete failed: ' + err));
+}
+
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+loadInventoryAll();

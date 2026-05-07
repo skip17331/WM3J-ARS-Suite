@@ -83,6 +83,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
         ctx.addServlet(new ServletHolder(new JLearnApiServlet()),    "/api/jlearn/*");
+        ctx.addServlet(new ServletHolder(new InventoryApiServlet()), "/api/inventory/*");
         ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
         ctx.addServlet(new ServletHolder(new UploadersApiServlet()), "/api/uploaders/*");
         ctx.addServlet(new ServletHolder(new CredentialsApiServlet()), "/api/credentials/*");
@@ -1792,6 +1793,176 @@ public class WebConfigServer {
 
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/inventory — CRUD for shack inventory + first-call contacts.
+    // Routes:
+    //   GET    /api/inventory/types               list equipment types
+    //   POST   /api/inventory/types               create type   {name, display_order}
+    //   DELETE /api/inventory/types/:id           delete type
+    //   GET    /api/inventory/items               list items
+    //   GET    /api/inventory/items/:id           get one item
+    //   POST   /api/inventory/items               create item
+    //   PUT    /api/inventory/items/:id           update item
+    //   DELETE /api/inventory/items/:id           delete item
+    //   GET    /api/inventory/export.csv          CSV export
+    //   GET    /api/inventory/contacts            list first-call contacts
+    //   GET    /api/inventory/contacts/:id        get one contact
+    //   POST   /api/inventory/contacts            create contact
+    //   PUT    /api/inventory/contacts/:id        update contact
+    //   DELETE /api/inventory/contacts/:id        delete contact
+    // ---------------------------------------------------------------
+
+    private static class InventoryApiServlet extends HttpServlet {
+
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            InventoryDao dao = InventoryDao.getInstance();
+
+            if ("/types".equals(path))    { json(res, dao.listTypes().toString());    return; }
+            if ("/items".equals(path))    { json(res, dao.listItems().toString());    return; }
+            if ("/contacts".equals(path)) { json(res, dao.listContacts().toString()); return; }
+            if ("/export.csv".equals(path)) {
+                res.setContentType("text/csv; charset=utf-8");
+                res.setHeader("Access-Control-Allow-Origin", "*");
+                res.setHeader("Content-Disposition", "attachment; filename=\"shack-inventory.csv\"");
+                try (PrintWriter w = res.getWriter()) { w.write(dao.exportCsv()); }
+                return;
+            }
+
+            Integer id = parseTrailingId(path, "/items/");
+            if (id != null) {
+                JsonObject item = dao.getItem(id);
+                if (item == null) { res.setStatus(HttpServletResponse.SC_NOT_FOUND); json(res, "{\"error\":\"item not found\"}"); return; }
+                json(res, item.toString());
+                return;
+            }
+            id = parseTrailingId(path, "/contacts/");
+            if (id != null) {
+                JsonObject c = dao.getContact(id);
+                if (c == null) { res.setStatus(HttpServletResponse.SC_NOT_FOUND); json(res, "{\"error\":\"contact not found\"}"); return; }
+                json(res, c.toString());
+                return;
+            }
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            json(res, "{\"error\":\"unknown inventory endpoint: " + path + "\"}");
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            InventoryDao dao = InventoryDao.getInstance();
+            try {
+                JsonObject body = readJson(req);
+
+                if ("/types".equals(path)) {
+                    String name = body.has("name") ? body.get("name").getAsString() : null;
+                    if (name == null || name.isBlank()) {
+                        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        json(res, "{\"error\":\"name required\"}");
+                        return;
+                    }
+                    int order = body.has("display_order") ? body.get("display_order").getAsInt() : 500;
+                    JsonObject created = dao.createType(name, order);
+                    if (created == null) {
+                        res.setStatus(HttpServletResponse.SC_CONFLICT);
+                        json(res, "{\"error\":\"could not create type (duplicate name?)\"}");
+                        return;
+                    }
+                    json(res, created.toString());
+                    return;
+                }
+                if ("/items".equals(path)) {
+                    JsonObject created = dao.createItem(body);
+                    if (created == null) {
+                        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        json(res, "{\"error\":\"could not create item\"}");
+                        return;
+                    }
+                    json(res, created.toString());
+                    return;
+                }
+                if ("/contacts".equals(path)) {
+                    JsonObject created = dao.createContact(body);
+                    if (created == null) {
+                        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        json(res, "{\"error\":\"could not create contact (name required?)\"}");
+                        return;
+                    }
+                    json(res, created.toString());
+                    return;
+                }
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown POST endpoint: " + path + "\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doPut(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            InventoryDao dao = InventoryDao.getInstance();
+            try {
+                JsonObject body = readJson(req);
+
+                Integer id = parseTrailingId(path, "/items/");
+                if (id != null) {
+                    JsonObject updated = dao.updateItem(id, body);
+                    if (updated == null) { res.setStatus(HttpServletResponse.SC_NOT_FOUND); json(res, "{\"error\":\"item not found\"}"); return; }
+                    json(res, updated.toString());
+                    return;
+                }
+                id = parseTrailingId(path, "/contacts/");
+                if (id != null) {
+                    JsonObject updated = dao.updateContact(id, body);
+                    if (updated == null) { res.setStatus(HttpServletResponse.SC_NOT_FOUND); json(res, "{\"error\":\"contact not found\"}"); return; }
+                    json(res, updated.toString());
+                    return;
+                }
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown PUT endpoint: " + path + "\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            InventoryDao dao = InventoryDao.getInstance();
+
+            Integer id = parseTrailingId(path, "/types/");
+            if (id != null) { json(res, "{\"deleted\":" + dao.deleteType(id) + "}"); return; }
+            id = parseTrailingId(path, "/items/");
+            if (id != null) { json(res, "{\"deleted\":" + dao.deleteItem(id) + "}"); return; }
+            id = parseTrailingId(path, "/contacts/");
+            if (id != null) { json(res, "{\"deleted\":" + dao.deleteContact(id) + "}"); return; }
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            json(res, "{\"error\":\"unknown DELETE endpoint: " + path + "\"}");
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            res.setHeader("Access-Control-Allow-Origin",  "*");
+            res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+
+        private static JsonObject readJson(HttpServletRequest req) throws IOException {
+            String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            if (body.isBlank()) return new JsonObject();
+            return ConfigManager.gson().fromJson(body, JsonObject.class);
+        }
+
+        /** Returns the int after {@code prefix} in {@code path}, or null if no match. */
+        private static Integer parseTrailingId(String path, String prefix) {
+            if (path == null || !path.startsWith(prefix)) return null;
+            String tail = path.substring(prefix.length());
+            if (tail.isEmpty() || tail.contains("/")) return null;
+            try { return Integer.parseInt(tail); }
+            catch (NumberFormatException e) { return null; }
         }
     }
 
