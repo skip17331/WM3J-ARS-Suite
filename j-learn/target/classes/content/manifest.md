@@ -92,6 +92,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 03-06 | Send Practice                                      | 03-morse/03-06-send-practice.md                                 | simple   |
 | 03-07 | Speed Tracking                                     | 03-morse/03-07-speed-tracking.md                                | simple   |
 | 03-08 | Mini Tests                                         | 03-morse/03-08-mini-tests.md                                    | simple   |
+| 03-09 | Hardware Keyer Builds                              | 03-morse/03-09-hardware-keyer-builds.md                         | simple   |
 | 04-00 | Exam Prep — Overview                               | 04-exam-prep/04-00-overview.md                                  | simple   |
 | 04-01 | Question Pools                                     | 04-exam-prep/04-01-question-pools.md                            | mixed    |
 | 04-02 | Flashcards                                         | 04-exam-prep/04-02-flashcards.md                                | simple   |
@@ -282,9 +283,9 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 25-04 | JS8Call                                  | 25-digital-modes/25-04-js8call.md                   | simple   |
 | 25-05 | APRS                                     | 25-digital-modes/25-05-aprs.md                      | simple   |
 | 25-06 | Packet                                   | 25-digital-modes/25-06-packet.md                    | mixed    |
-| 26-00 | EmComm — Overview                        | 26-emcomm/26-00-overview.md                         | simple   |
-| 26-01 | NTS                                      | 26-emcomm/26-01-nts.md                              | simple   |
-| 26-02 | ICS Basics                               | 26-emcomm/26-02-ics-basics.md                       | simple   |
-| 26-03 | Emergency Frequencies                    | 26-emcomm/26-03-emergency-frequencies.md            | simple   |
+| 26-00 | Emergency & Public Service Comms — Overview | 26-emcomm/26-00-overview.md                      | simple   |
+| 26-01 | NTS — National Traffic System            | 26-emcomm/26-01-nts.md                              | simple   |
+| 26-02 | ICS Basics for Amateur Operators         | 26-emcomm/26-02-ics-basics.md                       | simple   |
+| 26-03 | Emergency Frequencies & Major Nets       | 26-emcomm/26-03-emergency-frequencies.md            | simple   |
 | 26-04 | Message Forms                            | 26-emcomm/26-04-message-forms.md                    | simple   |
 | 26-05 | Operating Procedures                     | 26-emcomm/26-05-operating-procedures.md             | simple   |

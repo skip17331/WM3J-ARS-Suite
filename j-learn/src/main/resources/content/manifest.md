@@ -92,6 +92,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 03-06 | Send Practice                                      | 03-morse/03-06-send-practice.md                                 | simple   |
 | 03-07 | Speed Tracking                                     | 03-morse/03-07-speed-tracking.md                                | simple   |
 | 03-08 | Mini Tests                                         | 03-morse/03-08-mini-tests.md                                    | simple   |
+| 03-09 | Hardware Keyer Builds                              | 03-morse/03-09-hardware-keyer-builds.md                         | simple   |
 | 04-00 | Exam Prep — Overview                               | 04-exam-prep/04-00-overview.md                                  | simple   |
 | 04-01 | Question Pools                                     | 04-exam-prep/04-01-question-pools.md                            | mixed    |
 | 04-02 | Flashcards                                         | 04-exam-prep/04-02-flashcards.md                                | simple   |

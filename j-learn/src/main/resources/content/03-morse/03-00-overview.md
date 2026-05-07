@@ -42,6 +42,7 @@ The first three weeks are the hardest. After that, your brain switches from "dec
 | 03-06 | Send practice | Learning to transmit, paddle vs straight key, sending well |
 | 03-07 | Speed tracking | How to measure progress and when to bump the speed |
 | 03-08 | Mini tests | Self-administered tests you can use to check yourself |
+| 03-09 | Hardware keyer builds | Three reference DIY keyer designs (Arduino USB serial / HID, Pi Zero wireless) |
 
 ## What gear do I need?
 
