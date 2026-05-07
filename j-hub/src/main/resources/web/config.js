@@ -3285,6 +3285,549 @@ function renderInventoryHealth() {
   el.innerHTML = pills.join('');
 }
 
+// ───── Estate handoff document wizard ────────────────────────
+function openEstateModal() {
+  const modal = document.getElementById('inv-estate-modal');
+  if (!modal) return;
+  // Pre-fill from station config.
+  const st = (state.config && state.config.station) || {};
+  const callField = document.getElementById('inv-estate-callsign');
+  const nameField = document.getElementById('inv-estate-name');
+  const dateField = document.getElementById('inv-estate-date');
+  if (callField && !callField.value) callField.value = st.callsign || '';
+  if (nameField && !nameField.value) nameField.value = st.name || st.fullName || '';
+  if (dateField && !dateField.value) {
+    dateField.value = new Date().toISOString().slice(0, 10);
+  }
+  modal.style.display = 'flex';
+}
+function closeEstateModal() {
+  document.getElementById('inv-estate-modal').style.display = 'none';
+}
+
+function generateEstateDocument(ev) {
+  if (ev) ev.preventDefault();
+  const opts = {
+    name: (document.getElementById('inv-estate-name').value || '').trim(),
+    callsign: (document.getElementById('inv-estate-callsign').value || '').trim(),
+    date: document.getElementById('inv-estate-date').value || new Date().toISOString().slice(0, 10),
+    note: (document.getElementById('inv-estate-note').value || '').trim(),
+    disposition: document.getElementById('inv-estate-disposition').value,
+    sections: {
+      contacts: document.getElementById('inv-estate-sec-contacts').checked,
+      inventory: document.getElementById('inv-estate-sec-inventory').checked,
+      summary: document.getElementById('inv-estate-sec-summary').checked,
+      sale: document.getElementById('inv-estate-sec-sale').checked,
+      steps: document.getElementById('inv-estate-sec-steps').checked,
+      glossary: document.getElementById('inv-estate-sec-glossary').checked,
+    },
+  };
+
+  // Filter items by disposition selection.
+  let items = state.inventory.items.slice();
+  if (opts.disposition === 'working') {
+    items = items.filter(it => it.disposition === 'working');
+  } else if (opts.disposition === 'sellable') {
+    items = items.filter(it => it.disposition === 'working' || it.disposition === 'repairable');
+  }
+  const contacts = (state.inventory.contacts || []).slice()
+    .sort((a, b) => (a.priority || 999) - (b.priority || 999));
+
+  const html = buildEstateHtml(opts, items, contacts);
+
+  // Open in a new tab. Browsers may pop-up-block; if so, fall back to data: URL.
+  const w = window.open('', '_blank');
+  if (w) {
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    closeEstateModal();
+  } else {
+    alert('Pop-up blocked. Allow pop-ups for J-Hub to generate the estate document.');
+  }
+}
+
+function estateEsc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function estateMoney(n) {
+  if (n == null || n === '') return '—';
+  const v = Number(n);
+  if (isNaN(v)) return '—';
+  return '$' + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function buildEstateHtml(opts, items, contacts) {
+  const dispLabel = ({
+    working: 'Working',
+    repairable: 'Repairable',
+    not_repairable: 'Not Repairable',
+  });
+  const installLabel = (v) => v === 'storage' ? 'Storage' : 'Installed';
+
+  // Group inventory by type for the printout.
+  const byType = {};
+  for (const it of items) {
+    const k = it.type_name || 'Other';
+    if (!byType[k]) byType[k] = [];
+    byType[k].push(it);
+  }
+  const typeOrder = Object.keys(byType).sort();
+
+  // Compute summary stats.
+  const totalValue = items.reduce((s, it) => s + (Number(it.estimated_value) || 0), 0);
+  const totalCost  = items.reduce((s, it) => s + (Number(it.purchase_price)  || 0), 0);
+  const dispCounts = items.reduce((acc, it) => {
+    const k = it.disposition || 'unknown';
+    acc[k] = (acc[k] || 0) + 1; return acc;
+  }, {});
+  // "Headline" items: top 5 by estimated value.
+  const headline = items
+    .filter(it => it.estimated_value != null && it.estimated_value !== '')
+    .sort((a, b) => (Number(b.estimated_value) || 0) - (Number(a.estimated_value) || 0))
+    .slice(0, 5);
+
+  const css = ESTATE_CSS;
+  const pageBreak = '<div class="page-break"></div>';
+
+  const parts = [];
+
+  // Cover page
+  parts.push(`<section class="cover">
+    <div class="cover-title">Amateur Radio Station<br>Estate Handoff</div>
+    <div class="cover-callsign">${estateEsc(opts.callsign || '')}</div>
+    <div class="cover-name">${estateEsc(opts.name || '')}</div>
+    <div class="cover-date">Document date: ${estateEsc(opts.date)}</div>
+    ${opts.note ? `<div class="cover-note">${estateEsc(opts.note).replace(/\n/g, '<br>')}</div>` : ''}
+    <div class="cover-footer">
+      Prepared with WM3J ARS Suite — J-Hub Inventory · For background, see J-Learn §15 Estate / SK
+    </div>
+  </section>`);
+
+  // What this document is — short orientation page (always included after cover)
+  parts.push(`${pageBreak}<section>
+    <h1>What this document is</h1>
+    <p>This is a record of the amateur radio station belonging to <b>${estateEsc(opts.name || opts.callsign || 'the operator')}</b>.
+    It exists so that, if the operator can no longer manage the station, family members can:</p>
+    <ul>
+      <li>Identify the equipment and roughly what each piece is worth.</li>
+      <li>Reach trusted friends in the amateur-radio community who can help.</li>
+      <li>Make informed decisions about selling, donating, or keeping items.</li>
+      <li>Avoid common scams that target estate sales of technical equipment.</li>
+    </ul>
+    <p><b>You don't need to know anything about radio</b> to use this document. The
+    instructions in the back of the booklet walk through each step in plain language.
+    The first-call list near the front contains people who can help — start with the
+    name listed as priority 1.</p>
+    <p>Take your time. Nothing here is urgent. Most operators have built this
+    collection over many years; there's no rush in deciding what to do with it.</p>
+  </section>`);
+
+  // First-call contacts
+  if (opts.sections.contacts) {
+    parts.push(`${pageBreak}<section>
+      <h1>First-call contacts</h1>
+      <p>Phone the people on this list in priority order (lowest number first).
+      They've agreed in advance to help — or are friends and club leaders who
+      will know the operator and the equipment.</p>
+      ${contacts.length === 0
+        ? '<p><i>No contacts have been added to the inventory yet.</i></p>'
+        : `<table class="estate-table">
+            <thead><tr>
+              <th style="width:50px">Pri</th>
+              <th>Name</th>
+              <th>Callsign</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Relationship</th>
+              <th>Items they wanted</th>
+            </tr></thead>
+            <tbody>
+              ${contacts.map(c => `<tr>
+                <td>${estateEsc(c.priority)}</td>
+                <td>${estateEsc(c.name)}</td>
+                <td>${estateEsc(c.callsign)}</td>
+                <td>${estateEsc(c.phone)}</td>
+                <td>${estateEsc(c.email)}</td>
+                <td>${estateEsc(c.relationship)}</td>
+                <td>${estateEsc(c.items_wanted)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`}
+    </section>`);
+  }
+
+  // Value summary
+  if (opts.sections.summary && items.length > 0) {
+    parts.push(`${pageBreak}<section>
+      <h1>Value summary</h1>
+      <table class="estate-summary-table">
+        <tr><th>Total items</th><td>${items.length}</td></tr>
+        <tr><th>Total estimated value</th><td>${estateMoney(totalValue)}</td></tr>
+        <tr><th>Original purchase total</th><td>${estateMoney(totalCost)}</td></tr>
+        ${Object.keys(dispCounts).map(k => `<tr><th>${estateEsc(dispLabel[k] || k)}</th><td>${dispCounts[k]} items</td></tr>`).join('')}
+      </table>
+      ${headline.length > 0 ? `
+        <h2>Highest-value items</h2>
+        <p>These are the items most worth careful handling. Get a second opinion
+        from someone on the first-call list before selling these.</p>
+        <table class="estate-table">
+          <thead><tr><th>Item</th><th>Manufacturer</th><th>Model</th><th>Serial</th><th>Value</th></tr></thead>
+          <tbody>
+            ${headline.map(it => `<tr>
+              <td>${estateEsc(it.type_name)}</td>
+              <td>${estateEsc(it.manufacturer)}</td>
+              <td>${estateEsc(it.model)}</td>
+              <td>${estateEsc(it.serial_number)}</td>
+              <td>${estateMoney(it.estimated_value)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : ''}
+    </section>`);
+  }
+
+  // Inventory by type
+  if (opts.sections.inventory && items.length > 0) {
+    parts.push(`${pageBreak}<section>
+      <h1>Equipment inventory</h1>
+      <p>All items in the station, grouped by type. Serial numbers are the
+      most important field for insurance claims and recall checks. Estimated
+      values are the operator's best guess and may be high or low — verify
+      with a knowledgeable friend before pricing.</p>
+      ${typeOrder.map(t => {
+        const list = byType[t];
+        return `<h2>${estateEsc(t)} <span class="type-count">(${list.length})</span></h2>
+        <table class="estate-table">
+          <thead><tr>
+            <th>Manufacturer</th><th>Model</th><th>Serial</th>
+            <th>Date Acq</th><th>Value</th><th>Disposition</th>
+            <th>Location</th><th>Notes</th>
+          </tr></thead>
+          <tbody>
+            ${list.map(it => `<tr>
+              <td>${estateEsc(it.manufacturer)}</td>
+              <td>${estateEsc(it.model)}</td>
+              <td>${estateEsc(it.serial_number)}</td>
+              <td>${estateEsc(it.date_acquired)}</td>
+              <td>${estateMoney(it.estimated_value)}</td>
+              <td>${estateEsc(dispLabel[it.disposition] || it.disposition || '')}</td>
+              <td>${estateEsc(it.install_status === 'storage' ? (it.storage_location || 'Storage') : 'Installed')}</td>
+              <td class="notes-cell">${estateEsc(it.notes)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+      }).join('')}
+    </section>`);
+  } else if (opts.sections.inventory) {
+    parts.push(`${pageBreak}<section>
+      <h1>Equipment inventory</h1>
+      <p><i>No items match the selected filter. The operator may not have added items yet,
+      or the disposition filter may be excluding everything.</i></p>
+    </section>`);
+  }
+
+  // Sale recommendations
+  if (opts.sections.sale) {
+    parts.push(`${pageBreak}<section>
+      <h1>Where to sell</h1>
+      <p>The amateur-radio market has a small number of well-known dealers and
+      online communities where used equipment trades regularly. None of these
+      are "the best" — get quotes from two or three before committing.</p>
+
+      <h2>Major US dealers</h2>
+      <table class="estate-table">
+        <thead><tr><th>Dealer</th><th>Strength</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><b>Ham Radio Outlet (HRO)</b></td>
+              <td>Largest US dealer; trade-ins on most modern gear</td>
+              <td>Will quote a trade-in value; usually 50–70% of "blue book" retail. Several store locations + online (hamradio.com).</td></tr>
+          <tr><td><b>DX Engineering</b></td>
+              <td>Antennas, accessories, kits</td>
+              <td>Less frequent on used radios; will sometimes buy estate antennas (dxengineering.com).</td></tr>
+          <tr><td><b>R&amp;L Electronics</b></td>
+              <td>Mid-sized full-service dealer</td>
+              <td>Hamilton, Ohio. Will travel for large estates (randl.com).</td></tr>
+          <tr><td><b>Universal Radio</b></td>
+              <td>Vintage-friendly; specialty receivers</td>
+              <td>Reynoldsburg, OH. Especially good for older Collins, Drake, Heath, Hallicrafters (universal-radio.com).</td></tr>
+          <tr><td><b>GigaParts</b></td>
+              <td>Modern transceivers, antennas</td>
+              <td>Will buy from estates; often-fair quotes (gigaparts.com).</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Online communities &amp; classified sites</h2>
+      <ul>
+        <li><b>QRZ.com classifieds</b> — large amateur swap board; free with QRZ account.</li>
+        <li><b>eHam classifieds</b> — second-largest amateur swap site (eham.net).</li>
+        <li><b>QTH.com classifieds</b> — long-running, trusted, free.</li>
+        <li><b>eBay</b> — broadest reach but more scams; use established sellers' methods (returns enabled, escrow).</li>
+        <li><b>Local club hamfests</b> — see "Step-by-step instructions" for how to find them.</li>
+      </ul>
+
+      <h2>What to expect</h2>
+      <ul>
+        <li><b>Modern transceivers (last 5–10 years)</b>: typically sell for 50–70% of new retail.</li>
+        <li><b>Older transceivers (10–20 years)</b>: 30–50% of new retail; less if cosmetically worn.</li>
+        <li><b>Antennas and towers</b>: hard to sell remotely; usually local pickup. Towers especially — buyer brings the climbing crew.</li>
+        <li><b>Vintage gear (40+ years)</b>: collector market; values can be surprising — high or low. <b>Get an expert opinion before pricing.</b></li>
+        <li><b>Coax and consumables</b>: very low resale; most estates donate these to clubs.</li>
+      </ul>
+
+      <h2>Watch out for</h2>
+      <ul>
+        <li><b>Lowball "I'll take everything for $500" offers.</b> Polite but unequivocal "no thank you" until you have at least one second opinion.</li>
+        <li><b>Wire transfers or gift cards.</b> No legitimate dealer pays in gift cards. Treat any such request as a scam.</li>
+        <li><b>"Shipping fee" buyers.</b> Buyer says they'll send a check that includes shipping; you forward the shipping to a third party. The check bounces; you're out the shipping money.</li>
+      </ul>
+    </section>`);
+  }
+
+  // Step-by-step instructions
+  if (opts.sections.steps) {
+    parts.push(`${pageBreak}<section>
+      <h1>Step-by-step instructions</h1>
+      <p>If you're reading this and wondering "what now?" — this is the order to do things.
+      None are urgent. Most can take days or weeks.</p>
+
+      <ol class="estate-steps">
+        <li><b>Don't touch the antennas or tower yet.</b> Outdoor structures need professional removal if they're going down. The radios indoors are stable; nothing will degrade in the short term.</li>
+        <li><b>Phone the priority-1 contact</b> from the first-call list. They'll know how to help.</li>
+        <li><b>Decide whether to keep, sell, or donate.</b> The first-call contact can help you think this through. Some families keep one radio as a memento; some sell everything; some donate to a local club.</li>
+        <li><b>If selling:</b> get quotes from two or three places. The dealer list above is a good starting point; the first-call contact may know better local options.</li>
+        <li><b>If donating:</b> local amateur-radio clubs often accept estate equipment. ARRL (arrl.org) lists clubs by state; a quick web search for "[your city] amateur radio club" finds the active local clubs.</li>
+        <li><b>If keeping:</b> the priority-1 contact can recommend storage. Outdoor antennas should come down within a few months to avoid neighbor complaints and weather damage.</li>
+        <li><b>For the tower (if any):</b> hire a professional tower-removal service. Don't attempt removal without the right equipment. The first-call contact can recommend someone local.</li>
+        <li><b>For the callsign:</b> the FCC license is in the operator's name. It can be retired by filing form 605 (license cancellation), or transferred to a family member who holds an amateur license. The first-call contact can help with the paperwork.</li>
+        <li><b>Insurance and warranty:</b> serial numbers are listed in the inventory. If items were covered under a homeowner's policy, the inventory + serial numbers + this document are your claim packet. Photograph any visible damage.</li>
+        <li><b>Logbook and personal records:</b> the operator may have decades of QSO logs (records of conversations). These often have sentimental value to the amateur community; check with the first-call contact about ARRL's logbook archive program before discarding.</li>
+        <li><b>Take photographs</b> of the station as it is, before any disassembly. Good for insurance and good for preserving a record.</li>
+      </ol>
+    </section>`);
+  }
+
+  // Glossary
+  if (opts.sections.glossary) {
+    parts.push(`${pageBreak}<section>
+      <h1>Glossary for non-hams</h1>
+      <p>Plain-language definitions of terms used in this document.</p>
+      <dl class="estate-glossary">
+        <dt>Amateur radio (ham radio)</dt>
+        <dd>A licensed hobby in which people use radio equipment to communicate worldwide. Regulated by the FCC in the US.</dd>
+
+        <dt>Callsign</dt>
+        <dd>A unique identifier issued by the FCC, like a license plate for the operator. Examples: WM3J, K1ABC. The operator's callsign is on the cover of this document.</dd>
+
+        <dt>Transceiver / radio</dt>
+        <dd>The main radio that transmits and receives. The most valuable single item in most stations.</dd>
+
+        <dt>Antenna</dt>
+        <dd>A wire, rod, or beam structure that connects to the radio and converts electrical signals into radio waves (and back). Often outdoors and visible.</dd>
+
+        <dt>Coax (coaxial cable)</dt>
+        <dd>The thick black cable that connects the radio to the antenna. Looks like TV cable but heavier.</dd>
+
+        <dt>Tower</dt>
+        <dd>A vertical metal structure (usually 30–80 feet) that supports antennas. Self-supporting or guyed (held up by wires).</dd>
+
+        <dt>Tuner</dt>
+        <dd>A box that adjusts the radio's connection to the antenna. About the size of a desktop radio.</dd>
+
+        <dt>Amplifier</dt>
+        <dd>A box that increases the radio's transmit power. Often heavy and uses a lot of electricity. Vacuum-tube amplifiers can be valuable.</dd>
+
+        <dt>Repeater</dt>
+        <dd>A relay station that extends the range of small radios. Not in a typical home station; mentioned in case the operator's records reference a "club repeater."</dd>
+
+        <dt>HF / VHF / UHF</dt>
+        <dd>Different ranges of radio frequencies. HF reaches around the world; VHF/UHF is local. Different antennas are used for each.</dd>
+
+        <dt>QSL card</dt>
+        <dd>A postcard confirming a radio contact. Some operators have shoeboxes of these going back decades. Sentimental value, modest collector market for unusual ones.</dd>
+
+        <dt>Logbook</dt>
+        <dd>A paper or electronic record of every contact made. Historical / sentimental value; ARRL archives complete logbooks.</dd>
+
+        <dt>ARRL</dt>
+        <dd>American Radio Relay League — the national amateur-radio organization. Membership-based; provides licensing assistance, magazines, and ham-related services. arrl.org.</dd>
+
+        <dt>FCC</dt>
+        <dd>Federal Communications Commission — issues amateur licenses. Has a form (605) to cancel a license.</dd>
+
+        <dt>Hamfest</dt>
+        <dd>An amateur-radio swap meet, usually one weekend per year per region. ARRL.org lists upcoming hamfests by date.</dd>
+
+        <dt>Silent Key (SK)</dt>
+        <dd>The amateur-radio community's term for a deceased operator. The expression "now SK" appears on QSL cards, social media, and club newsletters.</dd>
+      </dl>
+    </section>`);
+  }
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Estate Handoff — ${estateEsc(opts.callsign || opts.name || 'Amateur Radio Station')}</title>
+<style>${css}</style>
+</head>
+<body>
+${parts.join('\n')}
+<script>
+  // Auto-open print dialog after the document settles.
+  setTimeout(function() { window.focus(); }, 50);
+</script>
+</body>
+</html>`;
+}
+
+const ESTATE_CSS = `
+@page { size: letter; margin: 0.75in 0.75in 0.85in 0.75in; }
+* { box-sizing: border-box; }
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #222;
+  background: #fff;
+  margin: 0;
+}
+section { padding: 12pt 0; }
+h1 {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 18pt;
+  margin: 0 0 14pt 0;
+  border-bottom: 2pt solid #555;
+  padding-bottom: 4pt;
+}
+h2 {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 13pt;
+  margin: 16pt 0 8pt 0;
+  color: #333;
+}
+h2 .type-count { color: #888; font-size: 11pt; font-weight: normal; }
+p, ul, ol, dl { margin: 0 0 10pt 0; }
+ul, ol { padding-left: 22pt; }
+li { margin: 4pt 0; }
+.page-break { page-break-after: always; height: 0; }
+section { page-break-inside: avoid; }
+table { page-break-inside: auto; }
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; page-break-after: auto; }
+
+.cover {
+  height: 9.5in;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 0.5in;
+}
+.cover-title {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 30pt;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24pt;
+  line-height: 1.2;
+}
+.cover-callsign {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 56pt;
+  letter-spacing: 4pt;
+  font-weight: 700;
+  margin-bottom: 12pt;
+  color: #444;
+}
+.cover-name {
+  font-size: 18pt;
+  font-style: italic;
+  margin-bottom: 18pt;
+  color: #555;
+}
+.cover-date {
+  font-size: 11pt;
+  color: #777;
+  margin-bottom: 28pt;
+}
+.cover-note {
+  margin-top: 20pt;
+  padding: 14pt 22pt;
+  border-left: 3pt solid #888;
+  background: #f7f7f7;
+  text-align: left;
+  font-size: 11pt;
+  max-width: 5in;
+  line-height: 1.55;
+}
+.cover-footer {
+  position: absolute;
+  bottom: 0.6in;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 9pt;
+  color: #999;
+}
+
+.estate-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 9.5pt;
+  margin-bottom: 12pt;
+}
+.estate-table th, .estate-table td {
+  border: 1pt solid #bbb;
+  padding: 4pt 6pt;
+  text-align: left;
+  vertical-align: top;
+}
+.estate-table th {
+  background: #eee;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  font-size: 9pt;
+}
+.estate-table tbody tr:nth-child(even) td { background: #f9f9f9; }
+.estate-table .notes-cell {
+  font-size: 8.5pt;
+  font-style: italic;
+  color: #555;
+  max-width: 2in;
+}
+
+.estate-summary-table {
+  border-collapse: collapse;
+  margin-bottom: 14pt;
+}
+.estate-summary-table th, .estate-summary-table td {
+  border: 1pt solid #bbb;
+  padding: 5pt 12pt;
+  text-align: left;
+}
+.estate-summary-table th {
+  background: #eee;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  width: 200pt;
+}
+
+.estate-steps li { margin: 8pt 0; }
+.estate-glossary dt {
+  font-weight: 600;
+  font-family: Helvetica, Arial, sans-serif;
+  margin-top: 10pt;
+}
+.estate-glossary dd {
+  margin: 2pt 0 0 22pt;
+}
+`;
+
 function loadInventoryAll() {
   Promise.all([
     fetch('/api/inventory/types').then(r => r.json()),

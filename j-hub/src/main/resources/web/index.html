@@ -783,6 +783,7 @@
           </select>
           <button class="action-btn" onclick="openItemModal()">+ Add Item</button>
           <button class="action-btn" onclick="exportInventoryCsv()">Export CSV</button>
+          <button class="action-btn" onclick="openEstateModal()">📄 Estate Document…</button>
         </div>
         <div id="inv-stats" class="inv-stats"></div>
         <div id="inv-health" class="inv-health"></div>
@@ -907,6 +908,56 @@
             <div class="inv-form-buttons">
               <button type="button" class="action-btn" onclick="closeContactModal()">Cancel</button>
               <button type="submit" class="action-btn primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Estate document wizard modal -->
+      <div id="inv-estate-modal" class="inv-modal-backdrop" style="display:none">
+        <div class="inv-modal" style="max-width:640px">
+          <h3 style="margin:0 0 6px 0">Estate Handoff Document</h3>
+          <div style="font-size:12px;color:var(--subtext0);margin-bottom:14px;line-height:1.45">
+            Builds a print-ready document you can save as PDF (browser <kbd>Ctrl+P</kbd> → "Save as PDF") or print and tuck into a folder with your other estate paperwork. See J-Learn §15-03 for what this is and §15-04 for how your family will use it.
+          </div>
+          <form id="inv-estate-form" onsubmit="generateEstateDocument(event)">
+            <div class="inv-form-grid">
+              <label>Operator name<input id="inv-estate-name" placeholder="Your full name">
+                <span class="help">Whose station this is. Defaults to your callsign holder.</span></label>
+              <label>Callsign<input id="inv-estate-callsign" placeholder="WM3J">
+                <span class="help">Pulled from station config; edit if different.</span></label>
+              <label>Document date<input type="date" id="inv-estate-date">
+                <span class="help">Today by default. Print the date on the cover.</span></label>
+              <label>Disposition filter<select id="inv-estate-disposition">
+                <option value="all">Include all items</option>
+                <option value="working">Working only</option>
+                <option value="sellable">Working + Repairable (sellable)</option>
+              </select>
+                <span class="help">"Working only" hides items that need work or are donor pieces.</span></label>
+            </div>
+            <label style="display:block;margin-top:10px">Personal note (optional)
+              <textarea id="inv-estate-note" rows="4" style="width:100%;resize:vertical" placeholder="A note to whoever reads this. Often a short paragraph: who to thank, why some items matter, what to do with the call sign, etc."></textarea>
+              <span class="help">Appears on the cover page, after the title block. Plain text; line breaks are preserved.</span></label>
+
+            <div style="margin-top:14px;font-weight:600;color:var(--text);font-size:13px">Sections to include</div>
+            <div class="inv-estate-sections">
+              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-contacts" checked>
+                <span><b>First-call contacts</b><br><span class="help inline">Friends and dealers in priority order — the first thing your family should reach for.</span></span></label>
+              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-inventory" checked>
+                <span><b>Equipment inventory</b><br><span class="help inline">Full table grouped by type, with serial #, value, location.</span></span></label>
+              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-summary" checked>
+                <span><b>Value summary</b><br><span class="help inline">Total estimated value, count by disposition, "headline" items.</span></span></label>
+              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-sale" checked>
+                <span><b>Sale recommendations</b><br><span class="help inline">Where to sell (HRO, DXE, R&amp;L, GigaParts, Universal); rough timing; what to expect.</span></span></label>
+              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-steps" checked>
+                <span><b>Step-by-step instructions</b><br><span class="help inline">Numbered checklist your family can follow without amateur-radio knowledge.</span></span></label>
+              <label class="inv-estate-check"><input type="checkbox" id="inv-estate-sec-glossary" checked>
+                <span><b>Glossary for non-hams</b><br><span class="help inline">Plain-language definitions: callsign, antenna, coax, repeater, etc.</span></span></label>
+            </div>
+
+            <div class="inv-form-buttons">
+              <button type="button" class="action-btn" onclick="closeEstateModal()">Cancel</button>
+              <button type="submit" class="action-btn primary">Generate &amp; Open</button>
             </div>
           </form>
         </div>

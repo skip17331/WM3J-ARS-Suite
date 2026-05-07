@@ -994,6 +994,44 @@ body.light .rig-conn-badge.off  { background: #f0f0f0; color: #888; border: none
   margin-right: 4px;
 }
 
+/* Estate-modal section checkboxes */
+.inv-estate-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.inv-estate-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  background: var(--surface0);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: normal;
+}
+.inv-estate-check:hover { background: var(--surface1); }
+.inv-estate-check input[type=checkbox] {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+.inv-estate-check .help.inline {
+  display: block;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--subtext0);
+  margin-top: 2px;
+  font-weight: normal;
+}
+@media (max-width: 720px) {
+  .inv-estate-sections { grid-template-columns: 1fr; }
+}
+
 /* ──────────────────────────────────────────────────────────
  * Antenna Workshop
  * ──────────────────────────────────────────────────────── */
