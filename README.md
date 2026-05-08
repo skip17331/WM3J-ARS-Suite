@@ -144,9 +144,10 @@ Everything else is a tab.
 **Full step‑by‑step instructions are in [INSTALL.md](INSTALL.md).**
 The 30‑second version:
 
-### Linux (Debian/Ubuntu)
+### Linux — Debian family (Debian / Ubuntu / Mint / Pop!_OS / Raspberry Pi OS)
 
 ```bash
+sudo apt update
 sudo apt install -y git openjdk-21-jdk maven
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
 cd ~/ARS_Suite
@@ -160,7 +161,25 @@ done
 ./j-hub/start.sh   # then open http://localhost:8081/
 ```
 
-Apps appear in your system menu under **Network / HamRadio**.
+### Linux — Fedora family (Fedora / RHEL / Rocky / AlmaLinux / CentOS Stream)
+
+```bash
+sudo dnf install -y git java-21-openjdk-devel maven
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+mvn -q -DskipTests -f j-log-engine/pom.xml install
+mvn -q -DskipTests -f j-learn/pom.xml install
+mvn -q -DskipTests -f j-vault/pom.xml install
+for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+    mvn -q -DskipTests -f "$m/pom.xml" package
+done
+./install.sh
+./j-hub/start.sh   # then open http://localhost:8081/
+```
+
+In both cases, apps appear in your system menu under **Network / HamRadio**.
+Arch / openSUSE / other distros — same flow, see [INSTALL.md](INSTALL.md)
+for the package-manager line.
 
 ### Windows
 
