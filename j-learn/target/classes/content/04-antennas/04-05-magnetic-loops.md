@@ -107,5 +107,5 @@ The vertical-loop figure-8 pattern is sharp — typical front-to-side ratio is 2
 
 - §04-15 — Pattern (the figure-8 of a vertical mag loop)
 - §06-07 — RF burns (mag loop voltages are no joke)
-- §14 — Noise sources (loops null directionally)
+- §13 — Noise sources (loops null directionally)
 - §04-14 — Modeling (NEC loops are tricky; prefer specialized loop calculators)

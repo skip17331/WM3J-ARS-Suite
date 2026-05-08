@@ -63,12 +63,12 @@ For more serious satellite work (linear transponders, weak-signal modes, EME):
 
 - **J-Sat module** — the satellite-tracking and pass-prediction tool in the suite. Shows currently-visible satellites, computes Doppler shift in real time, and provides cross-band radio control for radios that support it.
 - **§02-08** — repeater band-plan coverage of satellite sub-bands.
-- **§21-04** — satellite sub-band reference (frequencies reserved for satellite uplinks/downlinks).
+- **§18-04** — satellite sub-band reference (frequencies reserved for satellite uplinks/downlinks).
 
 ## See also
 
 - §05-01 — FM vs. linear (the two satellite categories)
 - §05-02 — Doppler shift (the most-counterintuitive part of satellite ops)
-- §21-04 — Satellite sub-bands (frequencies)
+- §18-04 — Satellite sub-bands (frequencies)
 - §02 — Repeaters & bandplans
 - §04-15 — Radiation patterns (relevant for satellite antenna gain)

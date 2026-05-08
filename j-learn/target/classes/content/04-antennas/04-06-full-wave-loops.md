@@ -116,5 +116,5 @@ Both effects are real but not dramatic — typical loops are **1–3 dB quieter*
 - §04-01 — Dipoles (loops compared to)
 - §04-12 — Baluns (the matching system)
 - §04-15 — Pattern (loops have non-trivial elevation patterns)
-- §14 — Noise (loops vs. other antennas)
+- §13 — Noise (loops vs. other antennas)
 - §04-13 — Height effects matter for loops too

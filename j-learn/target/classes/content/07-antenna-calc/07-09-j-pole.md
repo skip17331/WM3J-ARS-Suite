@@ -87,5 +87,5 @@ A typical build uses **1/2" Type-M copper pipe**, **two 90° elbows** to form th
 - §02 — Repeaters & Bandplans (where J-poles do their work)
 - §07-00 — Antenna Workshop overview
 - §07-15 — NanoVNA Trim Workflow
-- §18-06 — Wavelength (1/2-wave and 1/4-wave math)
-- §18-13 — Smith Chart Basics (for understanding the matching stub's impedance transformation)
+- §15-06 — Wavelength (1/2-wave and 1/4-wave math)
+- §15-13 — Smith Chart Basics (for understanding the matching stub's impedance transformation)

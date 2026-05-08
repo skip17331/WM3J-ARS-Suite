@@ -73,4 +73,4 @@ If a neighbor reports interference *from* your station:
 
 - §10 — high SWR (sometimes related)
 - §13 — specific noise sources by category
-- §14 — power-line noise specifically
+- §13 — power-line noise specifically

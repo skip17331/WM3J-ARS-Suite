@@ -123,4 +123,4 @@ In practice: the FCC won't intervene in most amateur-vs-neighbor interference di
 - §12-02 — household RFI sources you might be making
 - §12-03 — sound-based identification
 - §12-05 — isolation workflow
-- §13, §14 — specific source categories
+- §13, §13 — specific source categories

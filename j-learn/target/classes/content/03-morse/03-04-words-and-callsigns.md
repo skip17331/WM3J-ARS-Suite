@@ -130,4 +130,4 @@ Slow your trainer down for new material; speed it back up for material you've ma
 - §03-03 — character order so you know what's coming when
 - §03-05 — full QSO script with timing notes
 - §03-08 — self-administered tests using common words and callsigns
-- §20 — Q-codes and prosigns reference
+- §17 — Q-codes and prosigns reference

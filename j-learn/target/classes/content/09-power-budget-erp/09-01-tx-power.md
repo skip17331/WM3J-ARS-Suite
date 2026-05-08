@@ -132,4 +132,4 @@ Plan budgets for typical operating conditions, not for theoretical peak.
 - §09-04 — ERP / EIRP output
 - §06-04 — Duty cycle (the time-averaging factor)
 - §08-02 — SWR & reflected power (fold-back trigger)
-- §17-01 — Battery maintenance (for portable power supply)
+- §14-01 — Battery maintenance (for portable power supply)

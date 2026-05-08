@@ -171,4 +171,4 @@ Realistic expectation: you can typically reduce in-house noise by 6–10 dB thro
 - §12-05 — isolation workflow (how to systematically test)
 - §12-06 — step-by-step elimination (the practical procedure)
 - §13 — specific noise source categories with detail
-- §14 — power line noise specifically (different beast — utility issue)
+- §13 — power line noise specifically (different beast — utility issue)

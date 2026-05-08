@@ -13,7 +13,7 @@ status: draft
 
 The feedline is the cable between your radio and your antenna. It looks passive — just a wire — but it's the single piece of your station most likely to silently steal performance. A great antenna with a poor feedline is mediocre. A mediocre antenna with a great feedline is mediocre. The whole *system* matters; getting the feedline right is half of the problem.
 
-This chapter covers the relationship between SWR (Standing Wave Ratio), feedline loss, and what actually arrives at your antenna. The math here is the foundation of antenna-system design and is referenced by §04-10 (feedline effects on antenna behavior), §09 (power budget), §10 (high-SWR troubleshooting), and §19 (coax & connectors reference).
+This chapter covers the relationship between SWR (Standing Wave Ratio), feedline loss, and what actually arrives at your antenna. The math here is the foundation of antenna-system design and is referenced by §04-10 (feedline effects on antenna behavior), §09 (power budget), §10 (high-SWR troubleshooting), and §16 (coax & connectors reference).
 
 ## How the chapter is organized
 
@@ -39,7 +39,7 @@ For a "perfect" system: matched-line loss is the only loss, SWR = 1:1, power del
 
 ## A motivating example
 
-You have a 100 W transmitter, 100 ft of RG-8X feeding a 20 m dipole. Look up matched-line loss in §19-02: RG-8X at 14 MHz is 1.0 dB/100 ft. So the dipole sees about 100 W − 1.0 dB = 79 W in the perfect case (1:1 SWR).
+You have a 100 W transmitter, 100 ft of RG-8X feeding a 20 m dipole. Look up matched-line loss in §16-02: RG-8X at 14 MHz is 1.0 dB/100 ft. So the dipole sees about 100 W − 1.0 dB = 79 W in the perfect case (1:1 SWR).
 
 Now suppose the antenna is mismatched, presenting 3:1 SWR. Looking up §08-03's mismatch loss table: an additional ~0.5 dB. Total loss is 1.5 dB. The dipole sees 100 W − 1.5 dB = 71 W.
 
@@ -51,9 +51,9 @@ The chapter unpacks this: where the loss goes, how to measure it, and what to do
 
 ## What's not in this chapter
 
-- **Per-cable specs (loss/100 ft, VF, dimensions)** — see §19 for the complete reference table.
-- **Connector types and how to install them** — see §19-04.
-- **Baluns and chokes** — see §04-12 (full discussion) and §19-05 (reference).
+- **Per-cable specs (loss/100 ft, VF, dimensions)** — see §16 for the complete reference table.
+- **Connector types and how to install them** — see §16-04.
+- **Baluns and chokes** — see §04-12 (full discussion) and §16-05 (reference).
 - **Specific feedline failure modes** — see §10-01 (coax issues) and §10-07 (water ingress).
 - **Antenna behavior** — see §04.
 
@@ -69,4 +69,4 @@ The chapter unpacks this: where the loss goes, how to measure it, and what to do
 - §04-11 — Impedance transformation (companion to §08-06)
 - §09 — Power budget and ERP (uses these numbers in system-level context)
 - §10 — High-SWR troubleshooting (when something goes wrong)
-- §19 — Coax & connectors reference
+- §16 — Coax & connectors reference

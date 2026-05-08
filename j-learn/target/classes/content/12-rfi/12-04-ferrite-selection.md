@@ -153,4 +153,4 @@ Total: about $80, enough for years of choke building.
 
 - §10-05 — baluns (use the same ferrite mixes)
 - §10-06 — feedline routing (where chokes belong)
-- §19-05 — baluns and chokes reference
+- §16-05 — baluns and chokes reference

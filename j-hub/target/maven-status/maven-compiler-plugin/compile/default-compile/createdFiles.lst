@@ -74,7 +74,6 @@ com/hamradio/jhub/model/JHubConfig$AntennaSection.class
 com/hamradio/jhub/callsign/QrzXmlProvider.class
 com/hamradio/jhub/WebConfigServer$JLogRestartServlet.class
 com/hamradio/jhub/LogUploaderRegistry$ClublogUploader.class
-com/hamradio/jhub/WebConfigServer$InventoryApiServlet.class
 com/hamradio/jhub/WebConfigServer$AntennaApiServlet.class
 com/hamradio/jhub/model/JHubConfig$NormalLog.class
 com/hamradio/jhub/model/JHubConfig$ClusterFilters.class
@@ -128,5 +127,4 @@ com/hamradio/jhub/PskReporterService.class
 com/hamradio/jhub/SolarFluxService.class
 com/hamradio/jhub/model/JHubConfig$AppsSection.class
 com/hamradio/jhub/SpotEnricher$DxccEntry.class
-com/hamradio/jhub/InventoryDao.class
 com/hamradio/jhub/WebConfigServer$VoiceFileServlet.class

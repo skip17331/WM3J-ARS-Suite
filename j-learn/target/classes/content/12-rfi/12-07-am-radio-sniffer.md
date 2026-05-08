@@ -135,4 +135,4 @@ For 95% of household RFI cases, the AM radio finds it.
 
 - §12-05 — isolation workflow (where the AM radio fits into the larger flow)
 - §12-08 — SDR waterfall for visual diagnosis
-- §14 — power-line noise (different hunting techniques apply)
+- §13 — power-line noise (different hunting techniques apply)

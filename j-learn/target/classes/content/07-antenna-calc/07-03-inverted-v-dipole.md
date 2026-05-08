@@ -92,4 +92,4 @@ Expected feed Z is ~50 Ω at 30° droop — direct match to 50 Ω coax through a
 - §07-00 — Antenna Workshop overview
 - §07-02 — Flat Dipole (the no-droop version)
 - §07-15 — NanoVNA Trim Workflow
-- §18-06 — Wavelength
+- §15-06 — Wavelength

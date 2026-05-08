@@ -74,5 +74,5 @@ If you're staring at a high-SWR situation:
 
 ## See also
 
-- §19 (Coax & Connectors reference) — coax types and connector specs
+- §16 (Coax & Connectors reference) — coax types and connector specs
 - §10-01 onward — work the cause-by-cause sections in order

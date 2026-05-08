@@ -178,4 +178,4 @@ This single test has saved many operators from chasing nonexistent local sources
 
 - §12-07 — AM radio sniffer (the directional companion to the SDR's spectral view)
 - §12-03 — sound-based identification (links to waterfall patterns above)
-- §14 — power-line noise (waterfall patterns are diagnostic)
+- §13 — power-line noise (waterfall patterns are diagnostic)

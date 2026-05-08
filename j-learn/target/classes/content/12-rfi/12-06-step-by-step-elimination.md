@@ -158,4 +158,4 @@ This is a real example pattern. Most operators get 12–18 dB of improvement fro
 
 - §12-04 — ferrite selection
 - §12-05 — isolation workflow (the higher-level approach)
-- §13, §14 — specific source categories
+- §13, §13 — specific source categories

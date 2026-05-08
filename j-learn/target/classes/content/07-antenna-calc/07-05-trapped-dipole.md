@@ -95,5 +95,5 @@ The full trapped dipole is **~107 ft tip-to-tip** — vs. ~127 ft for a full-len
 - §07-13 — Trap Design (component values, coil winding)
 - §07-04 — Fan Dipole (alternative approach to multi-band)
 - §07-15 — NanoVNA Trim Workflow
-- §18-05 — Resonant Frequency
-- §18-11 — Q Factor (relevant to trap loss)
+- §15-05 — Resonant Frequency
+- §15-11 — Q Factor (relevant to trap loss)

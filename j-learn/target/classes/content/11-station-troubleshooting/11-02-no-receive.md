@@ -106,5 +106,5 @@ Document the conditions when it fails (weather, time, what you were doing) — p
 
 - §11-01 — no transmit (related diagnostic flow)
 - §11-04 — RF feedback (sometimes shows up as receiver weirdness)
-- §13, §14 — noise sources (cause of "I hear noise but no signals")
+- §13, §13 — noise sources (cause of "I hear noise but no signals")
 - §10 — high SWR (the antenna problem you might have been blaming)

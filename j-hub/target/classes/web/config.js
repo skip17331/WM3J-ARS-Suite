@@ -1380,7 +1380,8 @@ function renderLearnContent(md) {
 
 // Per-chapter banner shown above the rendered markdown. Used by:
 //   §03 (Morse code)        → launches the standalone trainer JavaFX app
-//   §08 (Antenna Workshop)  → opens the matching calculator panel in J-Hub
+//   §07 (Antenna Workshop)  → opens the matching calculator panel in J-Hub
+//   §15 (Formulas)          → opens the matching per-formula calculator
 function renderLearnBanner(id) {
   if (!id) return '';
   if (id.startsWith('03-')) {
@@ -1395,23 +1396,23 @@ function renderLearnBanner(id) {
          + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
          + '</div>';
   }
-  if (id.startsWith('18-')) {
+  if (id.startsWith('15-')) {
     // Map J-Learn formula card id → AW_CALCS key
     const calcId = ({
-      '18-01': 'ohms-law',
-      '18-02': 'power-law',
-      '18-03': 'reactance',
-      '18-04': 'impedance',
-      '18-05': 'resonance',
-      '18-06': 'wavelength',
-      '18-07': 'swr',
-      '18-08': 'erp',
-      '18-09': 'feedline-loss',
-      '18-10': 'decibels',
-      '18-11': 'q-factor',
-      '18-12': 'bandwidth',
-      '18-13': 'smith-chart',
-      '18-14': 'rf-exposure',
+      '15-01': 'ohms-law',
+      '15-02': 'power-law',
+      '15-03': 'reactance',
+      '15-04': 'impedance',
+      '15-05': 'resonance',
+      '15-06': 'wavelength',
+      '15-07': 'swr',
+      '15-08': 'erp',
+      '15-09': 'feedline-loss',
+      '15-10': 'decibels',
+      '15-11': 'q-factor',
+      '15-12': 'bandwidth',
+      '15-13': 'smith-chart',
+      '15-14': 'rf-exposure',
     })[id];
     const buttonHtml = calcId
       ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
@@ -3170,286 +3171,6 @@ function renderDeps(d) {
   box.innerHTML = rows.join('');
 }
 
-// ───── Inventory tab ────────────────────────────────────────
-state.inventory = { items: [], types: [], contacts: [] };
-
-function loadInventoryAll() {
-  Promise.all([
-    fetch('/api/inventory/types').then(r => r.json()),
-    fetch('/api/inventory/items').then(r => r.json()),
-    fetch('/api/inventory/contacts').then(r => r.json()),
-  ]).then(([types, items, contacts]) => {
-    state.inventory.types = types || [];
-    state.inventory.items = items || [];
-    state.inventory.contacts = contacts || [];
-    populateTypeSelectors();
-    renderInventoryTable();
-    renderContactsTable();
-  }).catch(err => console.error('inventory load failed', err));
-}
-
-function populateTypeSelectors() {
-  const typeFilter = document.getElementById('inv-type-filter');
-  const typeForm   = document.getElementById('inv-item-type');
-  if (!typeFilter || !typeForm) return;
-  // Filter dropdown (preserves the "All Types" first option).
-  const cur = typeFilter.value;
-  typeFilter.innerHTML = '<option value="">All Types</option>'
-    + state.inventory.types.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
-  typeFilter.value = cur;
-  // Form dropdown.
-  typeForm.innerHTML = state.inventory.types.map(t =>
-    `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
-}
-
-function renderInventoryTable() {
-  const tbody = document.getElementById('inv-tbody');
-  if (!tbody) return;
-  const search    = (document.getElementById('inv-search')?.value || '').toLowerCase();
-  const typeFilter = document.getElementById('inv-type-filter')?.value || '';
-  const dispFilter = document.getElementById('inv-disposition-filter')?.value || '';
-  const instFilter = document.getElementById('inv-install-filter')?.value || '';
-
-  const items = state.inventory.items.filter(it => {
-    if (typeFilter && String(it.type_id) !== typeFilter) return false;
-    if (dispFilter && it.disposition !== dispFilter) return false;
-    if (instFilter && it.install_status !== instFilter) return false;
-    if (search) {
-      const hay = [it.manufacturer, it.model, it.serial_number, it.notes,
-                   it.storage_location, it.type_name].filter(Boolean).join(' ').toLowerCase();
-      if (!hay.includes(search)) return false;
-    }
-    return true;
-  });
-
-  // Stats
-  const stats = document.getElementById('inv-stats');
-  if (stats) {
-    const totalValue = items.reduce((sum, it) =>
-      sum + (Number(it.estimated_value) || 0), 0);
-    const totalCost  = items.reduce((sum, it) =>
-      sum + (Number(it.purchase_price)  || 0), 0);
-    stats.textContent = `${items.length} item${items.length === 1 ? '' : 's'} `
-      + ` ·  Estimated value: $${totalValue.toFixed(2)}`
-      + ` ·  Original cost: $${totalCost.toFixed(2)}`;
-  }
-
-  if (items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--subtext0);padding:20px">'
-      + (state.inventory.items.length === 0
-         ? 'No items yet. Click <b>+ Add Item</b> to start your inventory.'
-         : 'No items match the current filters.')
-      + '</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = items.map(it => {
-    const valueText = it.estimated_value != null
-      ? '$' + Number(it.estimated_value).toFixed(2) : '—';
-    const dispLabel = ({
-      working:        'Working',
-      repairable:     'Repairable',
-      not_repairable: 'Not Repairable',
-    })[it.disposition] || it.disposition || '';
-    const installLabel = it.install_status === 'storage' ? 'Storage' : 'Installed';
-    return `<tr>
-      <td>${escHtml(it.type_name || '')}</td>
-      <td>${escHtml(it.manufacturer || '')}</td>
-      <td>${escHtml(it.model || '')}</td>
-      <td><code style="font-size:11px">${escHtml(it.serial_number || '')}</code></td>
-      <td>${escHtml(it.date_acquired || '')}</td>
-      <td style="text-align:right">${valueText}</td>
-      <td><span class="inv-disp-${it.disposition || ''}">${escHtml(dispLabel)}</span></td>
-      <td>${escHtml(installLabel)}</td>
-      <td>${escHtml(it.storage_location || '')}</td>
-      <td class="inv-actions">
-        <button onclick="openItemModal(${it.id})">Edit</button>
-        <button class="del" onclick="deleteItem(${it.id})">Del</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function renderContactsTable() {
-  const tbody = document.getElementById('inv-contacts-tbody');
-  if (!tbody) return;
-  if (state.inventory.contacts.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--subtext0);padding:20px">'
-      + 'No contacts yet. Click <b>+ Add Contact</b> to add a friend, club leader, or dealer.'
-      + '</td></tr>';
-    return;
-  }
-  tbody.innerHTML = state.inventory.contacts.map(c => `<tr>
-    <td>${c.priority || ''}</td>
-    <td>${escHtml(c.name || '')}</td>
-    <td>${escHtml(c.callsign || '')}</td>
-    <td>${escHtml(c.phone || '')}</td>
-    <td>${escHtml(c.email || '')}</td>
-    <td>${escHtml(c.relationship || '')}</td>
-    <td style="max-width:300px;white-space:normal">${escHtml(c.items_wanted || '')}</td>
-    <td class="inv-actions">
-      <button onclick="openContactModal(${c.id})">Edit</button>
-      <button class="del" onclick="deleteContact(${c.id})">Del</button>
-    </td>
-  </tr>`).join('');
-}
-
-// ----- Item modal -----
-function openItemModal(id) {
-  const modal = document.getElementById('inv-item-modal');
-  const title = document.getElementById('inv-item-modal-title');
-  document.getElementById('inv-item-form').reset();
-  document.getElementById('inv-item-id').value = '';
-  if (id) {
-    const it = state.inventory.items.find(x => x.id === id);
-    if (!it) return;
-    title.textContent = 'Edit Item — ' + (it.manufacturer || '') + ' ' + (it.model || '');
-    document.getElementById('inv-item-id').value          = it.id;
-    document.getElementById('inv-item-type').value        = it.type_id;
-    document.getElementById('inv-item-manufacturer').value= it.manufacturer || '';
-    document.getElementById('inv-item-model').value       = it.model || '';
-    document.getElementById('inv-item-serial').value      = it.serial_number || '';
-    document.getElementById('inv-item-date').value        = it.date_acquired || '';
-    document.getElementById('inv-item-price').value       = it.purchase_price != null ? it.purchase_price : '';
-    document.getElementById('inv-item-value').value       = it.estimated_value != null ? it.estimated_value : '';
-    document.getElementById('inv-item-disposition').value = it.disposition || 'working';
-    document.getElementById('inv-item-install').value     = it.install_status || 'installed';
-    document.getElementById('inv-item-storage').value     = it.storage_location || '';
-    document.getElementById('inv-item-notes').value       = it.notes || '';
-  } else {
-    title.textContent = 'Add Item';
-    // Default to "today" for the date field if blank.
-    const d = new Date();
-    document.getElementById('inv-item-date').value =
-      d.toISOString().slice(0, 10);
-  }
-  toggleStorageLocation();
-  modal.style.display = 'flex';
-}
-
-function closeItemModal() {
-  document.getElementById('inv-item-modal').style.display = 'none';
-}
-
-function toggleStorageLocation() {
-  const inst = document.getElementById('inv-item-install')?.value;
-  const row = document.getElementById('inv-item-storage-row');
-  if (row) row.style.display = inst === 'storage' ? '' : 'none';
-}
-
-function saveItem(ev) {
-  ev.preventDefault();
-  const id = document.getElementById('inv-item-id').value;
-  const body = {
-    type_id:          parseInt(document.getElementById('inv-item-type').value, 10),
-    manufacturer:     document.getElementById('inv-item-manufacturer').value,
-    model:            document.getElementById('inv-item-model').value,
-    serial_number:    document.getElementById('inv-item-serial').value,
-    date_acquired:    document.getElementById('inv-item-date').value,
-    purchase_price:   document.getElementById('inv-item-price').value,
-    estimated_value:  document.getElementById('inv-item-value').value,
-    disposition:      document.getElementById('inv-item-disposition').value,
-    install_status:   document.getElementById('inv-item-install').value,
-    storage_location: document.getElementById('inv-item-storage').value,
-    notes:            document.getElementById('inv-item-notes').value,
-  };
-  const url    = id ? '/api/inventory/items/' + id : '/api/inventory/items';
-  const method = id ? 'PUT' : 'POST';
-  fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }).then(r => r.json())
-    .then(data => {
-      if (data.error) { alert('Save failed: ' + data.error); return; }
-      closeItemModal();
-      loadInventoryAll();
-    })
-    .catch(err => alert('Save failed: ' + err));
-}
-
-function deleteItem(id) {
-  const it = state.inventory.items.find(x => x.id === id);
-  if (!it) return;
-  const label = (it.manufacturer || '') + ' ' + (it.model || '');
-  if (!confirm('Delete "' + label.trim() + '"? This cannot be undone.')) return;
-  fetch('/api/inventory/items/' + id, { method: 'DELETE' })
-    .then(r => r.json())
-    .then(() => loadInventoryAll())
-    .catch(err => alert('Delete failed: ' + err));
-}
-
-function exportInventoryCsv() {
-  window.location.href = '/api/inventory/export.csv';
-}
-
-// ----- Contact modal -----
-function openContactModal(id) {
-  const modal = document.getElementById('inv-contact-modal');
-  const title = document.getElementById('inv-contact-modal-title');
-  document.getElementById('inv-contact-form').reset();
-  document.getElementById('inv-contact-id').value = '';
-  if (id) {
-    const c = state.inventory.contacts.find(x => x.id === id);
-    if (!c) return;
-    title.textContent = 'Edit Contact — ' + (c.name || '');
-    document.getElementById('inv-contact-id').value           = c.id;
-    document.getElementById('inv-contact-name').value         = c.name || '';
-    document.getElementById('inv-contact-callsign').value     = c.callsign || '';
-    document.getElementById('inv-contact-phone').value        = c.phone || '';
-    document.getElementById('inv-contact-email').value        = c.email || '';
-    document.getElementById('inv-contact-relationship').value = c.relationship || '';
-    document.getElementById('inv-contact-priority').value     = c.priority != null ? c.priority : 100;
-    document.getElementById('inv-contact-items').value        = c.items_wanted || '';
-    document.getElementById('inv-contact-notes').value        = c.notes || '';
-  } else {
-    title.textContent = 'Add Contact';
-    document.getElementById('inv-contact-priority').value = 100;
-  }
-  modal.style.display = 'flex';
-}
-
-function closeContactModal() {
-  document.getElementById('inv-contact-modal').style.display = 'none';
-}
-
-function saveContact(ev) {
-  ev.preventDefault();
-  const id = document.getElementById('inv-contact-id').value;
-  const body = {
-    name:         document.getElementById('inv-contact-name').value,
-    callsign:     document.getElementById('inv-contact-callsign').value,
-    phone:        document.getElementById('inv-contact-phone').value,
-    email:        document.getElementById('inv-contact-email').value,
-    relationship: document.getElementById('inv-contact-relationship').value,
-    priority:     parseInt(document.getElementById('inv-contact-priority').value, 10) || 100,
-    items_wanted: document.getElementById('inv-contact-items').value,
-    notes:        document.getElementById('inv-contact-notes').value,
-  };
-  const url    = id ? '/api/inventory/contacts/' + id : '/api/inventory/contacts';
-  const method = id ? 'PUT' : 'POST';
-  fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }).then(r => r.json())
-    .then(data => {
-      if (data.error) { alert('Save failed: ' + data.error); return; }
-      closeContactModal();
-      loadInventoryAll();
-    })
-    .catch(err => alert('Save failed: ' + err));
-}
-
-function deleteContact(id) {
-  const c = state.inventory.contacts.find(x => x.id === id);
-  if (!c) return;
-  if (!confirm('Delete contact "' + (c.name || '') + '"?')) return;
-  fetch('/api/inventory/contacts/' + id, { method: 'DELETE' })
-    .then(r => r.json())
-    .then(() => loadInventoryAll())
-    .catch(err => alert('Delete failed: ' + err));
-}
 
 function escHtml(s) {
   if (s == null) return '';
@@ -3461,7 +3182,6 @@ function escHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
-loadInventoryAll();
 
 // ═══════════════════════════════════════════════════════════════════════
 // Antenna Workshop — recommender + calculators
@@ -4948,7 +4668,7 @@ const AW_CALCS = {
 
   'ohms-law': {
     name: "Ohm's Law",
-    section: '18-01',
+    section: '15-01',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Solve for', type: 'select', default: 'V',
@@ -4978,13 +4698,13 @@ const AW_CALCS = {
     notes: [
       "Use this with all three forms: V=IR, I=V/R, R=V/I. Power forms (P=VI=I²R=V²/R) are shown as cross-checks.",
       "Voltage drop in mobile DC cables is the classic ham use — pick I and R, solve for V_drop.",
-      "For AC with reactance, use Impedance (§18-04) instead.",
+      "For AC with reactance, use Impedance (§15-04) instead.",
     ],
   },
 
   'power-law': {
     name: 'Power Law',
-    section: '18-02',
+    section: '15-02',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Solve for', type: 'select', default: 'P_VI',
@@ -5025,7 +4745,7 @@ const AW_CALCS = {
 
   'reactance': {
     name: 'Reactance (X_L, X_C)',
-    section: '18-03',
+    section: '15-03',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Type', type: 'select', default: 'L',
@@ -5053,13 +4773,13 @@ const AW_CALCS = {
     notes: [
       'Convert MHz → Hz, µH → H, pF → F before plugging in. Calculator handles this for you.',
       'Reactance does NOT dissipate power — only resistance does.',
-      'When X_L = X_C the circuit is resonant (see §18-05).',
+      'When X_L = X_C the circuit is resonant (see §15-05).',
     ],
   },
 
   'impedance': {
     name: 'Impedance |Z| / phase',
-    section: '18-04',
+    section: '15-04',
     formula: true,
     inputs: [
       { id: 'R',  label: 'Resistance R (Ω)',  type: 'number', step: '0.1', default: 65 },
@@ -5090,13 +4810,13 @@ const AW_CALCS = {
     notes: [
       'X is signed: + for inductive, − for capacitive. The display tells you which.',
       "Pure resistance (X=0) gives SWR = R/Z₀ when R > Z₀, or Z₀/R when R < Z₀.",
-      'See §18-13 for the Smith chart calc using these same Γ values.',
+      'See §15-13 for the Smith chart calc using these same Γ values.',
     ],
   },
 
   'resonance': {
     name: 'Resonant Frequency',
-    section: '18-05',
+    section: '15-05',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Solve for', type: 'select', default: 'f',
@@ -5131,14 +4851,14 @@ const AW_CALCS = {
     },
     notes: [
       'At resonance X_L = X_C — they cancel and the circuit is purely resistive.',
-      'High Q narrows the resonance peak; low Q broadens it (see §18-11).',
+      'High Q narrows the resonance peak; low Q broadens it (see §15-11).',
       'Use this to size traps (§07-13) and tank circuits.',
     ],
   },
 
   'wavelength': {
     name: 'Wavelength',
-    section: '18-06',
+    section: '15-06',
     formula: true,
     inputs: [
       { id: 'f', label: 'Frequency f (MHz)', type: 'number', step: '0.001', default: 14.150 },
@@ -5169,7 +4889,7 @@ const AW_CALCS = {
 
   'swr': {
     name: 'SWR',
-    section: '18-07',
+    section: '15-07',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Compute from', type: 'select', default: 'pwr',
@@ -5217,7 +4937,7 @@ const AW_CALCS = {
 
   'erp': {
     name: 'ERP / EIRP',
-    section: '18-08',
+    section: '15-08',
     formula: true,
     inputs: [
       { id: 'P_TX',  label: 'Transmitter power P_TX (W)', type: 'number', step: '1',   default: 100 },
@@ -5249,14 +4969,14 @@ const AW_CALCS = {
     },
     notes: [
       'EIRP uses dBi (isotropic) reference; ERP uses dBd (dipole). Differ by 2.15 dB.',
-      'For RF-safety / FCC compliance use EIRP — see §18-14 RF Exposure.',
+      'For RF-safety / FCC compliance use EIRP — see §15-14 RF Exposure.',
       "PEP is the peak; for averaged exposure (FCC), use average power ≈ PEP × duty cycle × mode factor.",
     ],
   },
 
   'feedline-loss': {
     name: 'Feedline Loss',
-    section: '18-09',
+    section: '15-09',
     formula: true,
     inputs: [
       { id: 'cable', label: 'Cable type', type: 'select', default: 'lmr400',
@@ -5318,14 +5038,14 @@ const AW_CALCS = {
     },
     notes: [
       'Loss roughly doubles when frequency quadruples — VHF needs better cable than HF.',
-      "Mismatch on a lossy line ADDS to matched loss; see §18-07 SWR for the penalty calc.",
+      "Mismatch on a lossy line ADDS to matched loss; see §15-07 SWR for the penalty calc.",
       'Cable specs vary slightly by manufacturer; this calculator uses canonical values.',
     ],
   },
 
   'decibels': {
     name: 'Decibels',
-    section: '18-10',
+    section: '15-10',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Convert', type: 'select', default: 'lin2db',
@@ -5361,7 +5081,7 @@ const AW_CALCS = {
 
   'q-factor': {
     name: 'Q Factor',
-    section: '18-11',
+    section: '15-11',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Compute from', type: 'select', default: 'XR',
@@ -5398,7 +5118,7 @@ const AW_CALCS = {
 
   'bandwidth': {
     name: 'Bandwidth',
-    section: '18-12',
+    section: '15-12',
     formula: true,
     inputs: [
       { id: 'f',  label: 'Center frequency f (MHz)', type: 'number', step: '0.01', default: 14.150 },
@@ -5424,7 +5144,7 @@ const AW_CALCS = {
 
   'smith-chart': {
     name: 'Smith Chart (Γ ↔ Z)',
-    section: '18-13',
+    section: '15-13',
     formula: true,
     inputs: [
       { id: 'mode', label: 'Direction', type: 'select', default: 'z2g',
@@ -5486,7 +5206,7 @@ const AW_CALCS = {
 
   'rf-exposure': {
     name: 'RF Exposure',
-    section: '18-14',
+    section: '15-14',
     formula: true,
     inputs: [
       { id: 'P_PEP', label: 'Transmitter PEP (W)', type: 'number', step: '1', default: 100 },

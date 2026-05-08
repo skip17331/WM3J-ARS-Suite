@@ -1,0 +1,5 @@
+2026-05-07 19:50:37.455 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
+2026-05-07 19:50:37.481 INFO  com.jvault.InventoryDao — Migrated inventory DB from /home/mike/.j-hub/inventory.db -> /home/mike/.j-vault/inventory.db
+2026-05-07 19:51:06.354 INFO  com.jvault.JVaultMain — Shutting down J-Vault.
+2026-05-07 19:58:56.961 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
+2026-05-07 19:59:35.513 INFO  com.jvault.JVaultMain — Shutting down J-Vault.

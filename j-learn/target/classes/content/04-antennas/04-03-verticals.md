@@ -104,7 +104,7 @@ Be aware: ground losses *flatten* the pattern in unhelpful ways at low angles. A
 - You don't have space for radials. A vertical without a ground system is a heating element.
 - Dry, rocky, or sandy soil. Conductivity matters more for verticals than horizontal antennas, and you cannot fully fix it with radials alone.
 - You operate mostly short-skip / NVIS / regional. A horizontal dipole is better.
-- High-noise environment. Verticals pick up vertically-polarized man-made noise (power lines, switching supplies) more readily than horizontals do. See §14.
+- High-noise environment. Verticals pick up vertically-polarized man-made noise (power lines, switching supplies) more readily than horizontals do. See §13.
 
 ## Common mistakes
 
@@ -118,5 +118,5 @@ Be aware: ground losses *flatten* the pattern in unhelpful ways at low angles. A
 - §04-13 — Ground effects (verticals depend on ground more than any other antenna)
 - §04-15 — Reading the elevation pattern of a vertical
 - §04-12 — Baluns and chokes (you still want one)
-- §14 — Noise sources (verticals pick up noise differently)
+- §13 — Noise sources (verticals pick up noise differently)
 - §07 — Antenna calculator

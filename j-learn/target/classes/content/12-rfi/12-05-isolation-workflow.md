@@ -75,7 +75,7 @@ If your house tested clean, the source is somewhere else. Two methods:
 Walk around your property with a portable receiver tuned to the noise. Note where the signal is strongest. Most likely directions:
 
 - Toward your antenna — the source might be on a path that's literally on your antenna's beam.
-- Toward a power line — utility issue (chapter 17).
+- Toward a power line — utility issue (§13-08 onwards).
 - Toward a neighbor's house — their problem device.
 
 ### Direction by null
@@ -108,7 +108,7 @@ This is delicate. Suggested approach:
 
 ### If it's the utility
 
-A power-line problem is the utility's problem, but they only act on it if you formally report and follow up. See §14-07 for the documentation procedure.
+A power-line problem is the utility's problem, but they only act on it if you formally report and follow up. See §13-15 for the documentation procedure.
 
 ## Step 6 — Verify the fix
 
@@ -152,4 +152,4 @@ Sometimes the source is genuinely hard to pin down:
 - §12-03 — sound-based identification (do this first)
 - §12-06 — step-by-step elimination (the practical detail)
 - §12-07 — AM radio sniffer
-- §14-07 — utility documentation for power-line cases
+- §13-15 — utility documentation for power-line cases

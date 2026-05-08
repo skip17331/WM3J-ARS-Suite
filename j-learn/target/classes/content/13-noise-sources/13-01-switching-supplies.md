@@ -124,7 +124,7 @@ Filtering these is difficult and expensive (industrial line filters, often $200+
 ## What you can't fix
 
 - **A neighbor's noisy charger.** They're under no obligation to fix it. Approach diplomatically; many will swap out a $5 cable for a $20 one if it stops their TV from buzzing too.
-- **Powerline noise from outside your property.** That's chapter 17 territory; it's the utility's problem.
+- **Powerline noise from outside your property.** That's §13-08 territory; it's the utility's problem.
 - **Pure broadband sources (plasma TVs, solar inverters).** Filtering helps somewhat; replacement is often the only real fix.
 
 ## A typical cleanup result

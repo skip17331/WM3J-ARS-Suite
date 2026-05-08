@@ -28,7 +28,7 @@ length(ft) = 468 / freq(MHz)
 length(m)  = 142.5 / freq(MHz)
 ```
 
-The "468" embeds the 5% end-effect correction for thin wire well above ground (see §18-06). For thick aluminum tubing or wire near other conductors, the constant shifts to 460–475.
+The "468" embeds the 5% end-effect correction for thin wire well above ground (see §15-06). For thick aluminum tubing or wire near other conductors, the constant shifts to 460–475.
 
 Feed impedance at resonance is about **73 Ω in free space**, dropping toward 50 Ω as the antenna is mounted closer to ground. At λ/2 height, expect ~70 Ω; at λ/4 height, ~50 Ω; below λ/8 height, drops sharply.
 
@@ -84,5 +84,5 @@ For a clean 50 Ω match, mount at least 33 ft (1 wavelength) above ground. For a
 - §04 — Antennas (theory chapter for dipole physics)
 - §07-00 — Antenna Workshop overview (what a calculator is)
 - §07-15 — NanoVNA Trim Workflow (the systematic build-and-trim procedure)
-- §18-06 — Wavelength (where 468 / 234 come from)
-- §18-04 — Impedance (feed-Z math)
+- §15-06 — Wavelength (where 468 / 234 come from)
+- §15-04 — Impedance (feed-Z math)
