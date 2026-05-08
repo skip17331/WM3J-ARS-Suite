@@ -62,18 +62,18 @@ The UI is browser-side JavaScript — calculations run instantly with no server 
 
 ## Underlying math
 
-All formulas live in the chapter cards and reference back to **§17 Formula Appendix** for the foundational math:
+All formulas live in the chapter cards and reference back to **§15 Formula Appendix** for the foundational math:
 
 | When you need... | Look at... |
 |------------------|-----------|
-| Half-wave length, quarter-wave length | §17-06 Wavelength |
-| Resonant L-C for traps | §17-05 Resonant Frequency |
-| Reactance of loading coils | §17-03 Reactance |
-| Smith chart math for matching networks | §17-13 Smith Chart Basics |
-| Q calculation for traps and mag loops | §17-11 Q Factor |
-| Loss budget through feedline | §17-09 Feedline Loss |
+| Half-wave length, quarter-wave length | §15-06 Wavelength |
+| Resonant L-C for traps | §15-05 Resonant Frequency |
+| Reactance of loading coils | §15-03 Reactance |
+| Smith chart math for matching networks | §15-13 Smith Chart Basics |
+| Q calculation for traps and mag loops | §15-11 Q Factor |
+| Loss budget through feedline | §15-09 Feedline Loss |
 
-The §17 cards have the full derivations; §07 cards have the *applied* math (with end-effect corrections, height factors, etc.) for each antenna type.
+The §15 cards have the full derivations; §07 cards have the *applied* math (with end-effect corrections, height factors, etc.) for each antenna type.
 
 ## How accurate are these calculations?
 
@@ -93,5 +93,5 @@ Plan to **trim** every antenna after installation. The calculators give you a st
 
 - §04 — Antennas (theory chapter, deep dives on each antenna family)
 - §10 — High-SWR troubleshooting (when the trim sweep doesn't match the calculator)
-- §17 — Formula Appendix (foundational math)
-- §18 — Coax & Connectors (feedline choice — affects what your antenna sees)
+- §15 — Formula Appendix (foundational math)
+- §16 — Coax & Connectors (feedline choice — affects what your antenna sees)

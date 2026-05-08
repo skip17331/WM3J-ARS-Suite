@@ -18,20 +18,22 @@ J-Learn is the **in-app reference library** for the WM3J ARS Suite. It's not a t
 - **A licensee who wants to actually operate** rather than chase another textbook chapter on the math.
 - **An experienced ham** who needs to look up a specific calculation, regulation, or procedure without grepping through stacks of saved PDFs.
 - **A returning ham** who hasn't operated in years and needs the modern context (FT8, FCC §97 changes, modern band plans, current digital modes, RF-safety rules from 2021 forward).
-- **A homebrewer** who wants the math (§17), the antenna designs (§07), and the construction recipes in one place.
+- **A homebrewer** who wants the math (§15), the antenna designs (§07), and the construction recipes in one place.
 
 J-Learn assumes **you have a license**. It's not a Technician / General / Extra study guide — there are excellent free question-pool drill sites (HamStudy.org, ExamCram, QRZ practice exams) for that. J-Learn picks up after the test, when you start operating.
 
 ## What's in it
 
-Twenty-four chapters organized into four loose clusters:
+Twenty-two chapters organized into four loose clusters:
 
 | Cluster | Chapters | What it covers |
 |---------|---------|----------------|
-| **Operating fundamentals** | 01 Propagation · 02 Repeaters & Bandplans · 03 Morse · 20 Band Plans · 21 Digital Modes · 22 Emergency Comms · 23 Operating Practice | The day-to-day "how to operate" cluster. Where signals go, where to put yours, how to send / decode each mode, regulations, on-air etiquette |
-| **Antennas & RF** | 04 Antennas · 05 Satellites · 06 RF Safety · 07 Antenna Workshop · 08 Feedline & SWR · 09 Power Budget · 18 Coax & Connectors | Antenna theory, antenna designs and calculators, feedline behavior, RF exposure |
-| **Troubleshooting** | 10 High SWR · 11 Station Troubleshooting · 12 RFI · 13 Noise Sources (household + power-line) · 16 Maintenance | When things break, why, and what to do about it |
-| **Station management & reference** | 14 Shack Inventory · 15 Estate / SK · 17 Formulas · 19 Q-Codes & Prosigns | Tracking your station, planning for transition, the math behind everything |
+| **Operating fundamentals** | 01 Propagation · 02 Repeaters & Bandplans · 03 Morse · 18 Band Plans · 19 Digital Modes · 20 Emergency Comms · 21 Operating Practice | The day-to-day "how to operate" cluster. Where signals go, where to put yours, how to send / decode each mode, regulations, on-air etiquette |
+| **Antennas & RF** | 04 Antennas · 05 Satellites · 06 RF Safety · 07 Antenna Workshop · 08 Feedline & SWR · 09 Power Budget · 16 Coax & Connectors | Antenna theory, antenna designs and calculators, feedline behavior, RF exposure |
+| **Troubleshooting** | 10 High SWR · 11 Station Troubleshooting · 12 RFI · 13 Noise Sources (household + power-line) · 14 Maintenance | When things break, why, and what to do about it |
+| **Reference** | 15 Formulas · 17 Q-Codes & Prosigns | The math behind everything; vocabulary |
+
+Shack inventory and estate-handoff features have moved out of J-Learn into a dedicated **J-Vault** module — it owns the SQLite-backed inventory database, the first-call contacts, and the Estate PDF wizard. Launch J-Vault from J-Hub's Module Connections panel.
 
 ## How it's structured
 
@@ -60,11 +62,11 @@ Two J-Hub features deep-link into J-Learn chapters and back:
 
 - **Chapter 03 (Morse)** has a "▶ Launch Trainer" button at the top of every section that opens the bundled Morse Code Trainer app.
 - **Chapter 07 (Antenna Workshop)** has a "▶ Open in Workshop" button that opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab.
-- **Chapter 17 (Formulas)** has the same "▶ Open in Workshop" pattern, mapping each formula card to a per-formula calculator (Ohm's, Power, Reactance, Impedance, Resonance, Wavelength, SWR, ERP, Feedline Loss, Decibels, Q, Bandwidth, RF Exposure).
+- **Chapter 15 (Formulas)** has the same "▶ Open in Workshop" pattern, mapping each formula card to a per-formula calculator (Ohm's, Power, Reactance, Impedance, Resonance, Wavelength, SWR, ERP, Feedline Loss, Decibels, Q, Bandwidth, RF Exposure).
 
 The recommender in §07-01 also walks the operator backward from goals → chapter sections that might apply.
 
-Cross-references between sections are written as `§NN-NN` (e.g., §17-06 for the Wavelength formula card). Click a chapter or section in the left-side TOC to navigate.
+Cross-references between sections are written as `§NN-NN` (e.g., §15-06 for the Wavelength formula card). Click a chapter or section in the left-side TOC to navigate.
 
 ## Status
 

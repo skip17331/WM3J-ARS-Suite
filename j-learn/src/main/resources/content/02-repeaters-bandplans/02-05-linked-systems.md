@@ -141,4 +141,4 @@ Many local clubs only support one. Find out which **before** you buy gear.
 
 - §02-01 — what plain-old repeaters do (linked systems are repeaters with more software)
 - §12 — RFI (hotspots can interact with RFI in entertaining ways)
-- §21 — Digital Modes (FT8, RTTY, etc.)
+- §19 — Digital Modes (FT8, RTTY, etc.)

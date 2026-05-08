@@ -110,7 +110,7 @@ The CW community has agreed (over decades) on a small vocabulary that covers 95%
 | WID | With |
 | OP | Operator |
 
-The Q-codes are covered fully in §19-01. Most QSOs use only the dozen or so above.
+The Q-codes are covered fully in §17-01. Most QSOs use only the dozen or so above.
 
 ## Practice scripts at three speeds
 
@@ -177,4 +177,4 @@ The CW community is unusually patient. People will slow down for you, repeat any
 
 - §03-04 — common words and operator vocabulary
 - §03-06 — sending CW (paddle, straight key, electronic keyer)
-- §19 — Q-codes and prosigns full reference
+- §17 — Q-codes and prosigns full reference

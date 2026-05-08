@@ -116,5 +116,5 @@ Plan to retune any used duplexer to **your** repeater's exact frequencies.
 ## See also
 
 - §02-01 — the repeater the duplexer enables
-- §18 (Coax & Connectors) — connectors used at the duplexer ports
-- §17-formula-appendix — Q factor and resonance math
+- §16 (Coax & Connectors) — connectors used at the duplexer ports
+- §15-formula-appendix — Q factor and resonance math

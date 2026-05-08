@@ -104,4 +104,4 @@ For a 4-band trap vertical, the **40 m operation passes through three traps each
 - §04-03 — Verticals (trap verticals are common)
 - §04-12 — Baluns (trap antennas still need them)
 - §10-05 — Faulty balun (and faulty traps; the symptoms can look similar)
-- §18 — Coax & Connectors (W3DZZ-style traps are made of coax)
+- §16 — Coax & Connectors (W3DZZ-style traps are made of coax)

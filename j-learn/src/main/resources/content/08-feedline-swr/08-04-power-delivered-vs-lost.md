@@ -161,5 +161,5 @@ This is why for marginal stations, **better feedline pays double**. Replacing a 
 - §09 — Power budget & ERP (the system-level extension of this)
 - §04-13 — Ground-plane effects (antenna efficiency)
 - §10 — High-SWR troubleshooting
-- §18 — Coax & connectors reference (when picking a cable for this calc)
-- §18-02 — Cable loss specifications
+- §16 — Coax & connectors reference (when picking a cable for this calc)
+- §16-02 — Cable loss specifications

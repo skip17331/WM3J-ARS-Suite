@@ -214,86 +214,72 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 
 | id    | title                          | path                                                | level    |
 |-------|--------------------------------|-----------------------------------------------------|----------|
-| 14-00 | Shack Inventory — Overview     | 14-shack-inventory/14-00-overview.md                | simple   |
-| 14-01 | Radios                         | 14-shack-inventory/14-01-radios.md                  | simple   |
-| 14-02 | Antennas                       | 14-shack-inventory/14-02-antennas.md                | simple   |
-| 14-03 | Tuners                         | 14-shack-inventory/14-03-tuners.md                  | simple   |
-| 14-04 | Coax Runs                      | 14-shack-inventory/14-04-coax-runs.md               | simple   |
-| 14-05 | Accessories                    | 14-shack-inventory/14-05-accessories.md             | simple   |
-| 14-06 | Serial Numbers                 | 14-shack-inventory/14-06-serial-numbers.md          | simple   |
-| 14-07 | Purchase Dates                 | 14-shack-inventory/14-07-purchase-dates.md          | simple   |
-| 14-08 | Firmware Versions              | 14-shack-inventory/14-08-firmware-versions.md       | simple   |
-| 15-00 | Estate / SK — Overview         | 15-estate-sk/15-00-overview.md                      | simple   |
-| 15-01 | Resale Value                   | 15-estate-sk/15-01-resale-value.md                  | simple   |
-| 15-02 | Rare Collectible               | 15-estate-sk/15-02-rare-collectible.md              | simple   |
-| 15-03 | Printable Export               | 15-estate-sk/15-03-printable-export.md              | simple   |
-| 15-04 | Family Guidance                | 15-estate-sk/15-04-family-guidance.md               | simple   |
-| 16-00 | Maintenance — Overview         | 16-maintenance/16-00-overview.md                    | simple   |
-| 16-01 | Battery Maintenance            | 16-maintenance/16-01-battery-maintenance.md         | simple   |
-| 16-02 | Firmware Updates               | 16-maintenance/16-02-firmware-updates.md            | simple   |
-| 16-03 | Scheduled Inspections          | 16-maintenance/16-03-scheduled-inspections.md       | simple   |
-| 16-04 | Coax Replacement               | 16-maintenance/16-04-coax-replacement.md            | simple   |
-| 16-05 | Tower & Mast Inspection        | 16-maintenance/16-05-tower-inspection.md            | mixed    |
-| 16-06 | Guy Lines, Turnbuckles, Clamps | 16-maintenance/16-06-guy-hardware.md                | mixed    |
-| 16-07 | Ground System Inspection       | 16-maintenance/16-07-ground-system.md               | mixed    |
-| 16-08 | Coax Inspection                | 16-maintenance/16-08-coax-inspection.md             | simple   |
-| 16-09 | Cable Entry & Water Intrusion  | 16-maintenance/16-09-cable-entry.md                 | simple   |
+| 14-00 | Maintenance — Overview         | 14-maintenance/14-00-overview.md                    | simple   |
+| 14-01 | Battery Maintenance            | 14-maintenance/14-01-battery-maintenance.md         | simple   |
+| 14-02 | Firmware Updates               | 14-maintenance/14-02-firmware-updates.md            | simple   |
+| 14-03 | Scheduled Inspections          | 14-maintenance/14-03-scheduled-inspections.md       | simple   |
+| 14-04 | Coax Replacement               | 14-maintenance/14-04-coax-replacement.md            | simple   |
+| 14-05 | Tower & Mast Inspection        | 14-maintenance/14-05-tower-inspection.md            | mixed    |
+| 14-06 | Guy Lines, Turnbuckles, Clamps | 14-maintenance/14-06-guy-hardware.md                | mixed    |
+| 14-07 | Ground System Inspection       | 14-maintenance/14-07-ground-system.md               | mixed    |
+| 14-08 | Coax Inspection                | 14-maintenance/14-08-coax-inspection.md             | simple   |
+| 14-09 | Cable Entry & Water Intrusion  | 14-maintenance/14-09-cable-entry.md                 | simple   |
 
 ### Part V — Reference Library
 
 | id    | title                                    | path                                                | level    |
 |-------|------------------------------------------|-----------------------------------------------------|----------|
-| 17-00 | Formulas — Overview              | 17-formulas/17-00-overview.md               | simple   |
-| 17-01 | Ohms Law                                 | 17-formulas/17-01-ohms-law.md               | simple   |
-| 17-02 | Power Law                                | 17-formulas/17-02-power-law.md              | simple   |
-| 17-03 | Reactance (Capacitive & Inductive)       | 17-formulas/17-03-reactance.md              | mixed    |
-| 17-04 | Impedance                                | 17-formulas/17-04-impedance.md              | mixed    |
-| 17-05 | Resonant Frequency                       | 17-formulas/17-05-resonant-frequency.md     | mixed    |
-| 17-06 | Wavelength                               | 17-formulas/17-06-wavelength.md             | simple   |
-| 17-07 | SWR                                      | 17-formulas/17-07-swr.md                    | mixed    |
-| 17-08 | ERP                                      | 17-formulas/17-08-erp.md                    | mixed    |
-| 17-09 | Feedline Loss                            | 17-formulas/17-09-feedline-loss.md          | mixed    |
-| 17-10 | Decibels                                 | 17-formulas/17-10-decibels.md               | simple   |
-| 17-11 | Q Factor                                 | 17-formulas/17-11-q-factor.md               | advanced |
-| 17-12 | Bandwidth                                | 17-formulas/17-12-bandwidth.md              | mixed    |
-| 17-13 | Smith Chart Basics                       | 17-formulas/17-13-smith-chart-basics.md     | advanced |
-| 17-14 | RF Exposure         | 17-formulas/17-14-rf-exposure.md     | mixed    |
-| 17-15 | Cheat Sheet         | 17-formulas/17-15-cheat-sheet.md     | simple   |
-| 18-00 | Coax & Connectors — Overview             | 18-coax-connectors/18-00-overview.md                | simple   |
-| 18-01 | Coax Types                               | 18-coax-connectors/18-01-coax-types.md              | simple   |
-| 18-02 | Loss Tables                              | 18-coax-connectors/18-02-loss-tables.md             | mixed    |
-| 18-03 | Velocity Factor                          | 18-coax-connectors/18-03-velocity-factor.md         | mixed    |
-| 18-04 | Connectors                               | 18-coax-connectors/18-04-connectors.md              | simple   |
-| 18-05 | Baluns & Chokes                          | 18-coax-connectors/18-05-baluns-chokes.md           | mixed    |
-| 19-00 | Q-Codes & Prosigns — Overview            | 19-qcodes-prosigns/19-00-overview.md                | simple   |
-| 19-01 | Q-Codes                                  | 19-qcodes-prosigns/19-01-q-codes.md                 | simple   |
-| 19-02 | CW Prosigns                              | 19-qcodes-prosigns/19-02-cw-prosigns.md             | simple   |
-| 19-03 | Abbreviations                            | 19-qcodes-prosigns/19-03-abbreviations.md           | simple   |
-| 19-04 | Phonetic Alphabet                        | 19-qcodes-prosigns/19-04-phonetic-alphabet.md       | simple   |
-| 20-00 | Band Plans — Overview                    | 20-band-plans/20-00-overview.md                     | simple   |
-| 20-01 | HF                                       | 20-band-plans/20-01-hf.md                           | mixed    |
-| 20-02 | VHF                                      | 20-band-plans/20-02-vhf.md                          | simple   |
-| 20-03 | UHF                                      | 20-band-plans/20-03-uhf.md                          | simple   |
-| 20-04 | Satellite                                | 20-band-plans/20-04-satellite.md                    | simple   |
-| 20-05 | Regional Variations                      | 20-band-plans/20-05-regional-variations.md          | mixed    |
-| 21-00 | Digital Modes — Overview                 | 21-digital-modes/21-00-overview.md                  | simple   |
-| 21-01 | FT8 / FT4                                | 21-digital-modes/21-01-ft8-ft4.md                   | mixed    |
-| 21-02 | RTTY                                     | 21-digital-modes/21-02-rtty.md                      | mixed    |
-| 21-03 | PSK31                                    | 21-digital-modes/21-03-psk31.md                     | mixed    |
-| 21-04 | JS8Call                                  | 21-digital-modes/21-04-js8call.md                   | simple   |
-| 21-05 | APRS                                     | 21-digital-modes/21-05-aprs.md                      | simple   |
-| 21-06 | Packet                                   | 21-digital-modes/21-06-packet.md                    | mixed    |
-| 22-00 | Emergency & Public Service Comms — Overview | 22-emcomm/22-00-overview.md                      | simple   |
-| 22-01 | NTS — National Traffic System            | 22-emcomm/22-01-nts.md                              | simple   |
-| 22-02 | ICS Basics for Amateur Operators         | 22-emcomm/22-02-ics-basics.md                       | simple   |
-| 22-03 | Emergency Frequencies & Major Nets       | 22-emcomm/22-03-emergency-frequencies.md            | simple   |
-| 22-04 | Message Forms                            | 22-emcomm/22-04-message-forms.md                    | simple   |
-| 22-05 | Operating Procedures                     | 22-emcomm/22-05-operating-procedures.md             | simple   |
-| 23-00 | Operating Practice — Overview            | 23-operating-practice/23-00-overview.md             | simple   |
-| 23-01 | Is the Frequency in Use?                 | 23-operating-practice/23-01-frequency-in-use.md     | simple   |
-| 23-02 | Tune-up Etiquette                        | 23-operating-practice/23-02-tune-up-etiquette.md    | simple   |
-| 23-03 | Identifying — 10-Min Rule and §97.119    | 23-operating-practice/23-03-identifying.md          | simple   |
-| 23-04 | Calling CQ and the Standard QSO Flow     | 23-operating-practice/23-04-calling-cq.md           | simple   |
-| 23-05 | Pile-up Etiquette                        | 23-operating-practice/23-05-pile-up-etiquette.md    | simple   |
-| 23-06 | Power Minimum and Polite Operating       | 23-operating-practice/23-06-power-minimum.md        | simple   |
-| 23-07 | Common Operating Mistakes                | 23-operating-practice/23-07-common-mistakes.md      | simple   |
+| 15-00 | Formulas — Overview              | 15-formulas/15-00-overview.md               | simple   |
+| 15-01 | Ohms Law                                 | 15-formulas/15-01-ohms-law.md               | simple   |
+| 15-02 | Power Law                                | 15-formulas/15-02-power-law.md              | simple   |
+| 15-03 | Reactance (Capacitive & Inductive)       | 15-formulas/15-03-reactance.md              | mixed    |
+| 15-04 | Impedance                                | 15-formulas/15-04-impedance.md              | mixed    |
+| 15-05 | Resonant Frequency                       | 15-formulas/15-05-resonant-frequency.md     | mixed    |
+| 15-06 | Wavelength                               | 15-formulas/15-06-wavelength.md             | simple   |
+| 15-07 | SWR                                      | 15-formulas/15-07-swr.md                    | mixed    |
+| 15-08 | ERP                                      | 15-formulas/15-08-erp.md                    | mixed    |
+| 15-09 | Feedline Loss                            | 15-formulas/15-09-feedline-loss.md          | mixed    |
+| 15-10 | Decibels                                 | 15-formulas/15-10-decibels.md               | simple   |
+| 15-11 | Q Factor                                 | 15-formulas/15-11-q-factor.md               | advanced |
+| 15-12 | Bandwidth                                | 15-formulas/15-12-bandwidth.md              | mixed    |
+| 15-13 | Smith Chart Basics                       | 15-formulas/15-13-smith-chart-basics.md     | advanced |
+| 15-14 | RF Exposure         | 15-formulas/15-14-rf-exposure.md     | mixed    |
+| 15-15 | Cheat Sheet         | 15-formulas/15-15-cheat-sheet.md     | simple   |
+| 16-00 | Coax & Connectors — Overview             | 16-coax-connectors/16-00-overview.md                | simple   |
+| 16-01 | Coax Types                               | 16-coax-connectors/16-01-coax-types.md              | simple   |
+| 16-02 | Loss Tables                              | 16-coax-connectors/16-02-loss-tables.md             | mixed    |
+| 16-03 | Velocity Factor                          | 16-coax-connectors/16-03-velocity-factor.md         | mixed    |
+| 16-04 | Connectors                               | 16-coax-connectors/16-04-connectors.md              | simple   |
+| 16-05 | Baluns & Chokes                          | 16-coax-connectors/16-05-baluns-chokes.md           | mixed    |
+| 17-00 | Q-Codes & Prosigns — Overview            | 17-qcodes-prosigns/17-00-overview.md                | simple   |
+| 17-01 | Q-Codes                                  | 17-qcodes-prosigns/17-01-q-codes.md                 | simple   |
+| 17-02 | CW Prosigns                              | 17-qcodes-prosigns/17-02-cw-prosigns.md             | simple   |
+| 17-03 | Abbreviations                            | 17-qcodes-prosigns/17-03-abbreviations.md           | simple   |
+| 17-04 | Phonetic Alphabet                        | 17-qcodes-prosigns/17-04-phonetic-alphabet.md       | simple   |
+| 18-00 | Band Plans — Overview                    | 18-band-plans/18-00-overview.md                     | simple   |
+| 18-01 | HF                                       | 18-band-plans/18-01-hf.md                           | mixed    |
+| 18-02 | VHF                                      | 18-band-plans/18-02-vhf.md                          | simple   |
+| 18-03 | UHF                                      | 18-band-plans/18-03-uhf.md                          | simple   |
+| 18-04 | Satellite                                | 18-band-plans/18-04-satellite.md                    | simple   |
+| 18-05 | Regional Variations                      | 18-band-plans/18-05-regional-variations.md          | mixed    |
+| 19-00 | Digital Modes — Overview                 | 19-digital-modes/19-00-overview.md                  | simple   |
+| 19-01 | FT8 / FT4                                | 19-digital-modes/19-01-ft8-ft4.md                   | mixed    |
+| 19-02 | RTTY                                     | 19-digital-modes/19-02-rtty.md                      | mixed    |
+| 19-03 | PSK31                                    | 19-digital-modes/19-03-psk31.md                     | mixed    |
+| 19-04 | JS8Call                                  | 19-digital-modes/19-04-js8call.md                   | simple   |
+| 19-05 | APRS                                     | 19-digital-modes/19-05-aprs.md                      | simple   |
+| 19-06 | Packet                                   | 19-digital-modes/19-06-packet.md                    | mixed    |
+| 20-00 | Emergency & Public Service Comms — Overview | 20-emcomm/20-00-overview.md                      | simple   |
+| 20-01 | NTS — National Traffic System            | 20-emcomm/20-01-nts.md                              | simple   |
+| 20-02 | ICS Basics for Amateur Operators         | 20-emcomm/20-02-ics-basics.md                       | simple   |
+| 20-03 | Emergency Frequencies & Major Nets       | 20-emcomm/20-03-emergency-frequencies.md            | simple   |
+| 20-04 | Message Forms                            | 20-emcomm/20-04-message-forms.md                    | simple   |
+| 20-05 | Operating Procedures                     | 20-emcomm/20-05-operating-procedures.md             | simple   |
+| 21-00 | Operating Practice — Overview            | 21-operating-practice/21-00-overview.md             | simple   |
+| 21-01 | Is the Frequency in Use?                 | 21-operating-practice/21-01-frequency-in-use.md     | simple   |
+| 21-02 | Tune-up Etiquette                        | 21-operating-practice/21-02-tune-up-etiquette.md    | simple   |
+| 21-03 | Identifying — 10-Min Rule and §97.119    | 21-operating-practice/21-03-identifying.md          | simple   |
+| 21-04 | Calling CQ and the Standard QSO Flow     | 21-operating-practice/21-04-calling-cq.md           | simple   |
+| 21-05 | Pile-up Etiquette                        | 21-operating-practice/21-05-pile-up-etiquette.md    | simple   |
+| 21-06 | Power Minimum and Polite Operating       | 21-operating-practice/21-06-power-minimum.md        | simple   |
+| 21-07 | Common Operating Mistakes                | 21-operating-practice/21-07-common-mistakes.md      | simple   |

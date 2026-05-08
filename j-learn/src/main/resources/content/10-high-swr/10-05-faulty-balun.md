@@ -105,5 +105,5 @@ If you do build:
 ## See also
 
 - §04-12 — baluns and chokes (theory, in chapter 5)
-- §18-05 — baluns and chokes (reference)
+- §16-05 — baluns and chokes (reference)
 - §10-06 — feedline routing (related — common-mode current is a feedline issue too)

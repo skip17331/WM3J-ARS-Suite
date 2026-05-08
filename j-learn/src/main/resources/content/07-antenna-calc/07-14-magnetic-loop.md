@@ -120,7 +120,7 @@ A 3-ft mag loop with a vacuum capacitor and a 5-inch coupling loop is a complete
 
 - §04-05 — Magnetic Loops (theory chapter)
 - §07-00 — Antenna Workshop overview
-- §17-03 — Reactance
-- §17-05 — Resonant Frequency
-- §17-11 — Q Factor
-- §17-12 — Bandwidth
+- §15-03 — Reactance
+- §15-05 — Resonant Frequency
+- §15-11 — Q Factor
+- §15-12 — Bandwidth

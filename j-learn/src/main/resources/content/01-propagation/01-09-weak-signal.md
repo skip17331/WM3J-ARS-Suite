@@ -206,5 +206,5 @@ A station built for tropo and meteor scatter on 2 m can serve all four with the 
 - §04-15 — Radiation Patterns (low takeoff angle for tropo, high gain for EME)
 - §04-17 — Diversity (sometimes useful for weak-signal recovery)
 - §05 — Satellites (Doppler, polarization — share concerns with EME)
-- §17-08 — ERP (link budget for EME)
-- §21-01 — FT8 / FT4 / Q65 / MSK144 (the digital modes used here)
+- §15-08 — ERP (link budget for EME)
+- §19-01 — FT8 / FT4 / Q65 / MSK144 (the digital modes used here)

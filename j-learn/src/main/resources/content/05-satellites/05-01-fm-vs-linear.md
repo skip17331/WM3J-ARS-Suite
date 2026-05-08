@@ -164,4 +164,4 @@ Most amateurs start with FM and graduate to linear as their interest deepens.
 - §05-02 — Doppler shift (the math behind the frequency tuning)
 - §05-04 — Tracking strategies (manual and automated)
 - §05-07 — Pass prediction
-- §20-04 — Satellite sub-bands
+- §18-04 — Satellite sub-bands

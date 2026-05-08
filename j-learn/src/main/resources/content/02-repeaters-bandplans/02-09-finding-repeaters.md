@@ -151,4 +151,4 @@ When you arrive in a new area:
 - §02-04 — Simplex calling frequencies (when no repeater is appropriate)
 - §02-05 — Linked systems (DMR, Fusion, D-STAR, AllStar networks)
 - §02-07 — Frequency coordination (who maintains the lists)
-- §22-04 — Message forms (NTS / ARES use repeater nets)
+- §20-04 — Message forms (NTS / ARES use repeater nets)

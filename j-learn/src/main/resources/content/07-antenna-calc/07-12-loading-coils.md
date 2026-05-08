@@ -118,5 +118,5 @@ The actual reactance scales nonlinearly with shortening — a 50% shortened ante
 - §04 — Antennas (theory)
 - §07-00 — Antenna Workshop overview
 - §07-13 — Trap Design (uses similar coil techniques)
-- §17-03 — Reactance (where the coil's X_L comes from)
-- §17-11 — Q Factor (why coil Q matters)
+- §15-03 — Reactance (where the coil's X_L comes from)
+- §15-11 — Q Factor (why coil Q matters)

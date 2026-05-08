@@ -107,7 +107,7 @@ Most trainers stop at the 41 characters above. If you want to be a complete oper
 | `=` | `–···–` | The "BT" prosign (paragraph break) |
 | `~` (or `SK`) | `···–·–` | "Silent key" prosign — end of QSO |
 
-Prosigns (signal-procedure characters) are covered in §19-02.
+Prosigns (signal-procedure characters) are covered in §17-02.
 
 ## Drill suggestions for individual characters
 
@@ -123,4 +123,4 @@ When a character is giving you trouble:
 - §03-01 — Koch method overview
 - §03-02 — Farnsworth spacing for the gaps
 - §03-04 — once you have all characters, moving to words and callsigns
-- §19-02 — prosigns (procedural characters used in operating)
+- §17-02 — prosigns (procedural characters used in operating)

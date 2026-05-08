@@ -118,4 +118,4 @@ If you can do this in under 10 minutes per connector with no failures, you're a 
 
 - §10-01 — coax issues
 - §10-07 — water ingress (also a connector concern)
-- §18-04 — connector reference (full table of types)
+- §16-04 — connector reference (full table of types)

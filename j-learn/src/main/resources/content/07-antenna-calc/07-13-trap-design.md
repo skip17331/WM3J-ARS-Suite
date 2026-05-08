@@ -25,7 +25,7 @@ A parallel L-C circuit at its resonant frequency:
 f_r = 1 / (2π · √(L · C))
 ```
 
-(See §17-05.) At f_r, the inductor and capacitor's reactances cancel — the parallel combination presents a very high impedance. Above f_r the trap looks capacitive; below f_r it looks inductive (and adds physical-length-shortening loading inductance to the antenna).
+(See §15-05.) At f_r, the inductor and capacitor's reactances cancel — the parallel combination presents a very high impedance. Above f_r the trap looks capacitive; below f_r it looks inductive (and adds physical-length-shortening loading inductance to the antenna).
 
 Three parameters define a trap:
 
@@ -155,6 +155,6 @@ For a typical 14 MHz, 100 W trap:
 - §07-00 — Antenna Workshop overview
 - §07-05 — Trapped Dipole (uses these traps)
 - §07-08 — EFHW (Trapped) (also uses these traps)
-- §17-05 — Resonant Frequency
-- §17-11 — Q Factor
-- §17-03 — Reactance
+- §15-05 — Resonant Frequency
+- §15-11 — Q Factor
+- §15-03 — Reactance

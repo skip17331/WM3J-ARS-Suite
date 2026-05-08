@@ -107,4 +107,4 @@ For outdoor coax runs:
 
 - §10-02 — connectors specifically (often the actual problem)
 - §10-07 — water ingress (overlaps with this section)
-- §18 — coax types reference
+- §16 — coax types reference

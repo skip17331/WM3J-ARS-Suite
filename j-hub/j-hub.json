@@ -166,6 +166,11 @@
       "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-sat/j-sat.sh",
       "ip": "localhost"
+    },
+    "jVault": {
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-vault/j-vault.sh",
+      "ip": "localhost"
     }
   },
   "macros": {

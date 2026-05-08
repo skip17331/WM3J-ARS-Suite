@@ -13,7 +13,7 @@ status: draft
 
 The wave inside a coax travels at a fraction of the speed of light. The fraction is the **velocity factor (VF)**, determined by the dielectric between conductors. Solid polyethylene gives VF ≈ 0.66; foam dielectrics give VF in the 0.78–0.88 range. This affects the *electrical* length of any feedline-based device — quarter-wave matching sections, half-wave repeater sections, phasing harnesses, and stubs.
 
-The full VF table and computation method are in §18-03. This section focuses on the SWR-and-feedline implications: how VF interacts with line-impedance transformation, where electrical length matters, and common pitfalls.
+The full VF table and computation method are in §16-03. This section focuses on the SWR-and-feedline implications: how VF interacts with line-impedance transformation, where electrical length matters, and common pitfalls.
 
 ## VF basics
 
@@ -117,7 +117,7 @@ This propagation delay is normally small but matters for:
 | 450 Ω window line | Mostly air | 0.91 |
 | 600 Ω open wire | Air | 0.95 |
 
-(Full table in §18-03.)
+(Full table in §16-03.)
 
 ## Common VF mistakes
 
@@ -134,7 +134,7 @@ This propagation delay is normally small but matters for:
 - §08-00 — Chapter overview
 - §08-01 — Coax loss by frequency
 - §08-06 — Impedance transformation (where VF determines electrical length)
-- §18-03 — Velocity factor (full reference table)
+- §16-03 — Velocity factor (full reference table)
 - §04-10 — Feedline effects
 - §04-11 — Impedance transformation (Smith chart context)
 - §07 — Antenna calculator (auto-computes lengths)

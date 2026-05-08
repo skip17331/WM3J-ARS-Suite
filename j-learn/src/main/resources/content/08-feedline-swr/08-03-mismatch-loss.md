@@ -151,5 +151,5 @@ The exception: a **tuner at the antenna feedpoint** does change SWR on the feedl
 - §08-04 — Power delivered vs lost
 - §04-10 — Feedline effects (impedance transformation context)
 - §10 — High-SWR troubleshooting
-- §18 — Coax & connectors reference (cable specs, dB/100 ft, connector ratings)
-- §18-02 — Loss tables (matched-line baseline values used in this calc)
+- §16 — Coax & connectors reference (cable specs, dB/100 ft, connector ratings)
+- §16-02 — Loss tables (matched-line baseline values used in this calc)
