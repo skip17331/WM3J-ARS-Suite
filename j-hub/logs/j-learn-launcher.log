@@ -1,54 +1,58 @@
-12:00:25.517 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — === j-Hub starting  [WM3j ARS Suite] ===
-12:00:25.590 [34mINFO [0;39m [36mc.hamradio.jhub.ConfigManager[0;39m — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
-12:00:25.591 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Config loaded — WS port 8080, web port 8081
-12:00:25.617 [34mINFO [0;39m [36mc.hamradio.jhub.SpotEnricher[0;39m — DXCC prefix table loaded: 452 entries
-12:00:25.622 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — WebSocket server listening on port 8080
-12:00:25.630 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — JHubServer WebSocket listener started
-12:00:25.745 [34mINFO [0;39m [36mc.h.jhub.WebConfigServer[0;39m — Web config server started on port 8081
-12:00:25.746 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Web config UI at http://localhost:8081
-12:00:25.747 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Cluster autoConnect disabled — use Web Config UI to connect
-12:00:25.749 [34mINFO [0;39m [36mcom.hamradio.jhub.RbnClient[0;39m — RBN feed disabled in config — not starting
-12:00:25.752 [34mINFO [0;39m [36mc.hamradio.jhub.JHubDiscovery[0;39m — J-Hub discovery beacon started on UDP port 9999
-12:00:25.754 [34mINFO [0;39m [36mc.h.jhub.SolarFluxService[0;39m — Solar flux broadcaster scheduled (from WeatherService cache)
-12:00:26.065 [34mINFO [0;39m [36mc.h.jhub.PskReporterService[0;39m — PSK Reporter polling scheduled (every 5 min)
-12:00:26.068 [34mINFO [0;39m [36mc.h.jhub.WsprReporterService[0;39m — WSPR polling scheduled (every 10 min)
-12:00:26.069 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Rig backend is 'NONE' — Hamlib rig controller not started
-12:00:26.071 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Rotor backend is 'NONE' — Hamlib rotor controller not started
-12:00:26.073 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Amp backend is 'NONE' — Hamlib amp controller not started
-12:00:26.074 [34mINFO [0;39m [36mc.h.jhub.AntennaController[0;39m — AntennaController disabled — not opening port
-12:00:26.074 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Antenna switching disabled in config
-12:00:26.081 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
-12:00:26.084 [34mINFO [0;39m [36mc.h.jhub.CloudBackupService[0;39m — Cloud backup disabled or scheduleHours=0 — periodic backups not started
-12:00:26.085 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — === j-Hub ready ===
-12:00:26.660 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — New connection from /[0:0:0:0:0:0:0:1]:51112
-12:00:26.703 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — App registered: webconfig v1.0.0
-12:00:26.712 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
-12:00:26.731 [39mDEBUG[0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — State replayed to 'webconfig'
-12:00:27.119 [34mINFO [0;39m [36mc.h.jhub.CredentialStore[0;39m — CredentialStore loaded (1 services)
-12:00:27.206 [31mWARN [0;39m [36mc.hamradio.jhub.InventoryDao[0;39m — listContacts failed: [SQLITE_CONSTRAINT_UNIQUE] A UNIQUE constraint failed (UNIQUE constraint failed: equipment_types.name)
-12:00:27.209 [31mWARN [0;39m [36mc.hamradio.jhub.InventoryDao[0;39m — listTypes failed: [SQLITE_CONSTRAINT_UNIQUE] A UNIQUE constraint failed (UNIQUE constraint failed: equipment_types.name)
-12:00:28.245 [39mDEBUG[0;39m [36mc.hamradio.jhub.WeatherService[0;39m — Proton fetch: HTTP 404
-12:00:28.245 [39mDEBUG[0;39m [36mc.hamradio.jhub.WeatherService[0;39m — Weather data refreshed
-12:00:35.755 [39mDEBUG[0;39m [36mc.h.jhub.SolarFluxService[0;39m — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"155","k":"0.7","sn":"79.3","xray":"C8.3","solarwind":"396","geomag":"Quiet","fetchedAt":"2026-05-07T16:00:35.755239600Z","source":"NOAA SWPC"}
-12:00:47.179 [31mWARN [0;39m [36mc.h.jhub.PskReporterService[0;39m — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
-12:00:48.679 [31mWARN [0;39m [36mc.hamradio.jhub.InventoryDao[0;39m — getItem(1) failed: no such column: 'type_id'
-12:00:48.777 [31mWARN [0;39m [36mc.hamradio.jhub.InventoryDao[0;39m — listItems failed: no such column: 'type_id'
-12:00:56.081 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService: starting fetch cycle
-12:00:56.564 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — Updated cty.dat (102002 bytes)
-12:00:57.038 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — Updated MASTER.SCP (359572 bytes)
-12:00:57.039 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService: cycle done — cty=true scp=true
-12:00:57.041 [39mDEBUG[0;39m [36mc.hamradio.jhub.MessageRouter[0;39m — DATA_UPDATE_STATUS published — cty=102002B scp=359572B
-12:01:04.964 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
-12:01:18.315 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — App 'webconfig' disconnected (code=1001, reason=)
-12:01:18.315 [34mINFO [0;39m [36mc.hamradio.jhub.MessageRouter[0;39m — Routing: app 'webconfig' removed
-12:01:21.440 [34mINFO [0;39m [36mc.h.jhub.ui.JHubStatusWindow[0;39m — Closing DX telnet session before exit
-12:01:21.443 [34mINFO [0;39m [36mc.hamradio.jhub.ClusterManager[0;39m — ClusterManager disconnected and stopped
-12:01:21.447 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Shutdown initiated ...
-12:01:21.447 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
-12:01:22.198 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService stopped
-12:01:22.200 [34mINFO [0;39m [36mc.h.jhub.AntennaController[0;39m — AntennaController stopped
-12:01:22.201 [34mINFO [0;39m [36mc.h.jhub.HamlibAmpController[0;39m — HamlibAmpController stopped
-12:01:22.202 [34mINFO [0;39m [36mc.h.jhub.HamlibRotorController[0;39m — HamlibRotorController stopped
-12:01:22.203 [34mINFO [0;39m [36mc.h.jhub.HamlibRigController[0;39m — HamlibRigController stopped
-12:01:22.204 [34mINFO [0;39m [36mc.hamradio.jhub.ClusterManager[0;39m — ClusterManager disconnected and stopped
-12:01:22.237 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — J-Hub stopped.
+07:28:42.092 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — === j-Hub starting  [WM3j ARS Suite] ===
+07:28:42.144 [34mINFO [0;39m [36mc.hamradio.jhub.ConfigManager[0;39m — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+07:28:42.145 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Config loaded — WS port 8080, web port 8081
+07:28:42.167 [34mINFO [0;39m [36mc.hamradio.jhub.SpotEnricher[0;39m — DXCC prefix table loaded: 452 entries
+07:28:42.172 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — WebSocket server listening on port 8080
+07:28:42.180 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — JHubServer WebSocket listener started
+07:28:42.315 [34mINFO [0;39m [36mc.h.jhub.WebConfigServer[0;39m — Web config server started on port 8081
+07:28:42.316 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Web config UI at http://localhost:8081
+07:28:42.318 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Cluster autoConnect disabled — use Web Config UI to connect
+07:28:42.320 [34mINFO [0;39m [36mcom.hamradio.jhub.RbnClient[0;39m — RBN feed disabled in config — not starting
+07:28:42.325 [34mINFO [0;39m [36mc.hamradio.jhub.JHubDiscovery[0;39m — J-Hub discovery beacon started on UDP port 9999
+07:28:42.328 [34mINFO [0;39m [36mc.h.jhub.SolarFluxService[0;39m — Solar flux broadcaster scheduled (from WeatherService cache)
+07:28:42.557 [34mINFO [0;39m [36mc.h.jhub.PskReporterService[0;39m — PSK Reporter polling scheduled (every 5 min)
+07:28:42.565 [34mINFO [0;39m [36mc.h.jhub.WsprReporterService[0;39m — WSPR polling scheduled (every 10 min)
+07:28:42.566 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Rig backend is 'NONE' — Hamlib rig controller not started
+07:28:42.567 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Rotor backend is 'NONE' — Hamlib rotor controller not started
+07:28:42.568 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Amp backend is 'NONE' — Hamlib amp controller not started
+07:28:42.569 [34mINFO [0;39m [36mc.h.jhub.AntennaController[0;39m — AntennaController disabled — not opening port
+07:28:42.569 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — Antenna switching disabled in config
+07:28:42.574 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+07:28:42.575 [34mINFO [0;39m [36mc.h.jhub.CloudBackupService[0;39m — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+07:28:42.576 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubMain[0;39m — === j-Hub ready ===
+07:28:44.259 [39mDEBUG[0;39m [36mc.hamradio.jhub.WeatherService[0;39m — Proton fetch: HTTP 404
+07:28:44.267 [39mDEBUG[0;39m [36mc.hamradio.jhub.WeatherService[0;39m — Weather data refreshed
+07:28:44.383 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — New connection from /[0:0:0:0:0:0:0:1]:55276
+07:28:44.418 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — App registered: webconfig v1.0.0
+07:28:44.437 [39mDEBUG[0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — State replayed to 'webconfig'
+07:28:44.472 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
+07:28:44.814 [34mINFO [0;39m [36mc.h.jhub.CredentialStore[0;39m — CredentialStore loaded (1 services)
+07:28:52.356 [39mDEBUG[0;39m [36mc.h.jhub.SolarFluxService[0;39m — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"162","k":"2","sn":"79.3","xray":"B6.4","solarwind":"555.2","geomag":"Unsettled","fetchedAt":"2026-05-08T11:28:52.355982054Z","source":"NOAA SWPC"}
+07:29:03.399 [31mWARN [0;39m [36mc.h.jhub.PskReporterService[0;39m — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+07:29:12.574 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService: starting fetch cycle
+07:29:12.999 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — Updated cty.dat (102002 bytes)
+07:29:13.699 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — Updated MASTER.SCP (359603 bytes)
+07:29:13.700 [34mINFO [0;39m [36mc.h.jhub.DataUpdateService[0;39m — DataUpdateService: cycle done — cty=true scp=true
+07:29:13.704 [39mDEBUG[0;39m [36mc.hamradio.jhub.MessageRouter[0;39m — DATA_UPDATE_STATUS published — cty=102002B scp=359603B
+07:29:15.786 [34mINFO [0;39m [36mc.hamradio.jhub.ConfigManager[0;39m — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+07:29:15.787 [34mINFO [0;39m [36mc.hamradio.jhub.ClusterManager[0;39m — Cluster disconnected (executors kept alive — reconnect available)
+07:29:20.891 [34mINFO [0;39m [36mc.hamradio.jhub.ConfigManager[0;39m — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+07:29:20.892 [34mINFO [0;39m [36mc.hamradio.jhub.ClusterManager[0;39m — Cluster disconnected (executors kept alive — reconnect available)
+07:29:24.362 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — App 'webconfig' disconnected (code=1001, reason=)
+07:29:24.363 [34mINFO [0;39m [36mc.hamradio.jhub.MessageRouter[0;39m — Routing: app 'webconfig' removed
+
+(java:89661): Gdk-WARNING **: 07:29:27.123: XSetErrorHandler() called with a GDK error trap pushed. Don't do that.
+07:29:27.800 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — New connection from /[0:0:0:0:0:0:0:1]:51328
+07:29:27.849 [34mINFO [0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — App registered: webconfig v1.0.0
+07:29:27.850 [39mDEBUG[0;39m [36mcom.hamradio.jhub.JHubServer[0;39m — State replayed to 'webconfig'
+07:29:27.851 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
+07:29:52.328 [39mDEBUG[0;39m [36mc.h.jhub.SolarFluxService[0;39m — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"162","k":"2","sn":"79.3","xray":"B6.4","solarwind":"555.2","geomag":"Unsettled","fetchedAt":"2026-05-08T11:29:52.328019937Z","source":"NOAA SWPC"}
+07:30:27.780 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
+07:30:52.328 [39mDEBUG[0;39m [36mc.h.jhub.SolarFluxService[0;39m — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"162","k":"2","sn":"79.3","xray":"B6.4","solarwind":"555.2","geomag":"Unsettled","fetchedAt":"2026-05-08T11:30:52.327838206Z","source":"NOAA SWPC"}
+07:31:27.784 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
+07:31:52.328 [39mDEBUG[0;39m [36mc.h.jhub.SolarFluxService[0;39m — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"162","k":"2","sn":"79.3","xray":"B6.4","solarwind":"555.2","geomag":"Unsettled","fetchedAt":"2026-05-08T11:31:52.327889998Z","source":"NOAA SWPC"}
+07:32:27.777 [39mDEBUG[0;39m [36mc.h.jhub.WebConfigServer[0;39m — J-Sat TLE API unreachable on port 4540: Connection refused
+07:32:36.798 [34mINFO [0;39m [36mc.hamradio.jhub.ConfigManager[0;39m — Configuration saved to /home/mike/ARS_Suite/j-hub/j-hub.json
+07:32:36.798 [34mINFO [0;39m [36mc.hamradio.jhub.ClusterManager[0;39m — Cluster disconnected (executors kept alive — reconnect available)
+07:32:52.328 [39mDEBUG[0;39m [36mc.h.jhub.SolarFluxService[0;39m — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"162","k":"2","sn":"79.3","xray":"B6.4","solarwind":"555.2","geomag":"Unsettled","fetchedAt":"2026-05-08T11:32:52.327996755Z","source":"NOAA SWPC"}
+./start.sh: line 11: 89661 Killed                  java --module-path "$SCRIPT_DIR/lib/javafx" --add-modules javafx.controls,javafx.fxml -Dfile.encoding=UTF-8 -jar "$SCRIPT_DIR/target/j-hub-1.0.0.jar" "$@"
