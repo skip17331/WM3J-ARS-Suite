@@ -374,6 +374,17 @@ public class JHubStatusWindow {
             showInlineError("Failed to launch " + name + ": " + err);
         } else {
             log.info("Launched {} from status window", name);
+            // J-Learn is a pure web app — pop the default browser to the
+            // standalone URL so the launch button is actually useful from
+            // the mini UI. Wait briefly so Jetty has time to bind the port.
+            if ("j-learn".equals(name)) {
+                String url = "http://localhost:"
+                    + Integer.getInteger("jlearn.port", 8082) + "/";
+                new Thread(() -> {
+                    try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+                    openBrowser(url);
+                }, "jlearn-open-browser").start();
+            }
         }
     }
 
@@ -434,7 +445,10 @@ public class JHubStatusWindow {
 
     private void openBrowser() {
         var cfg = ConfigManager.getInstance().getJHub();
-        String url = "http://localhost:" + cfg.webConfigPort;
+        openBrowser("http://localhost:" + cfg.webConfigPort);
+    }
+
+    private void openBrowser(String url) {
         try {
             if (Desktop.isDesktopSupported() &&
                 Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
