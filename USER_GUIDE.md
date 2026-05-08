@@ -32,24 +32,27 @@ See [README.md](README.md) for the project's purpose and license.
 
 ## 1. Overview
 
-The suite is **seven JavaFX applications plus one broker** (J-Hub), with an
-in-app reference library (**J-Learn**) bundled inside the broker:
+The suite is **six JavaFX applications, one broker** (J-Hub), and **two
+standalone web apps** (J-Vault, J-Learn) that J-Hub iframes for a single-pane
+experience:
 
 | Name        | What it does                                                          | Default ports                |
 |-------------|-----------------------------------------------------------------------|------------------------------|
-| `j-hub`     | Central WebSocket broker + web control surface + service manager. Bundles **J-Learn** (in-app reference library) and the **Antenna Workshop** (recommender + 27 calculators). | 8080 (WS), 8081 (HTTP)       |
+| `j-hub`     | Central WebSocket broker + web control surface + service manager. Hosts the **Antenna Workshop** (recommender + 27 calculators); iframes J-Vault and J-Learn for a unified UI. | 8080 (WS), 8081 (HTTP)       |
 | `j-log`     | QSO logger: casual (Normal) + contest (68+ plugins) + awards          | none (connects to j-hub)     |
 | `j-map`     | DX map, grayline, propagation model, satellite/lunar/aurora overlays  | none                         |
 | `j-digi`    | Native digital modem — CW, RTTY, PSK31/63/125, Olivia, MFSK, Feld Hell | none (uses audio devices)   |
 | `j-bridge`  | Bridges WSJT-X to the suite via UDP 2237                              | 2237 (WSJT-X UDP)            |
 | `j-sat`     | Satellite pass tracker, rig/rotor auto-tune during passes             | 4540 (TLE API)               |
 | `j-vault`   | Shack inventory + first-call contacts + Estate Handoff PDF wizard. Standalone JavaFX app with its own embedded Jetty + SQLite. | 8083 (HTTP) |
+| `j-learn`   | Amateur-radio reference library web app. Pure Jetty + HTML; markdown content seeds to `~/.j-learn/content/` so users can edit without rebuilding. | 8082 (HTTP) |
 
-**J-Learn** is *not* a separate process — it lives inside J-Hub. Open it
-via the **J-Learn tab** in the J-Hub web UI. ~200 sections covering
-propagation, antennas, RF safety, troubleshooting, formulas, operating
-practice, and emcomm; with click-through deep-links to the matching
-calculators in the Antenna Workshop.
+**J-Learn** is its own process. The J-Hub web UI iframes it as the J-Learn
+tab, but you can also visit `http://localhost:8082/` directly from any
+browser on the LAN — phone, tablet, the shack laptop. ~200 sections
+covering propagation, antennas, RF safety, troubleshooting, formulas,
+operating practice, and emcomm; with click-through deep-links to the
+matching calculators in J-Hub's Antenna Workshop.
 
 **Traffic flow:** every app opens a WebSocket to `j-hub` on port 8080, sends
 `APP_CONNECTED`, and joins a shared event stream. When a spot arrives, a
@@ -101,8 +104,8 @@ The suite has dependencies between modules. Build in this order:
 
 ```
 j-log-engine  (shared library — install first)
-j-learn       (content jar — bundled into j-hub at package time)
-j-vault       (so its jar is available when J-Hub launches it)
+j-learn       (standalone web app — install so J-Hub can launch it)
+j-vault       (standalone web app — install so J-Hub can launch it)
 j-hub, j-log, j-map, j-digi, j-bridge, j-sat   (any order)
 ```
 
@@ -244,8 +247,9 @@ Live cockpit. Shows:
 - **Rig Status**: current frequency, mode, power, source (CI-V / Hamlib / WSJT-X).
 - **Rotor / Antenna**: azimuth, target, connection state.
 - **Module Connections**: J-Log, J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, and
-  J-Learn each with a status dot and Launch / Stop buttons. J-Learn shows a
-  green dot ("in-app") with an Open button that switches to the Learn tab.
+  J-Learn each with a status dot and Launch / Stop buttons. J-Vault and
+  J-Learn also have an Open button that switches to their tab (which iframes
+  the standalone process).
 - **Quick Actions**: reconnect rig, restart cluster, reload config, restart WS.
 - **Connected Apps**: each registered WebSocket client with `up` / `msg` / `hb`
   age counters. Red dot = stale (no traffic in ~60 s and no heartbeat in ~45 s).
@@ -303,28 +307,32 @@ Handoff PDF wizard) lives inside the iframe — see [§5 Per-app notes](#5-per-a
 
 ### J-Learn
 
-In-app reference library — ~200 sections across 22 chapters covering
-propagation, antennas, RF safety, troubleshooting, formulas, operating
-practice, and emcomm. Layout:
+Iframes the standalone J-Learn web app at `http://localhost:8082/`. Lazy-
+loaded — the iframe is created the first time the tab opens, so no network
+hit if J-Learn isn't running. Top of tab:
 
-- **Left:** TOC tree with search filter and an **Advanced** checkbox that
-  toggles `> ⚙️ Advanced —` callouts.
-- **Right:** rendered markdown viewer.
-- **Top:** text-size slider (80-180%) with Reset button. Persists per browser.
+- **Launch / Reload / Open in Browser** — same lifecycle controls as J-Vault.
+- Status text shows whether `:8082/api/health` answered.
 
-Some chapters surface a banner that deep-links into the Antenna Workshop:
+The actual UI lives inside the iframe (the same one you'd get visiting
+`http://localhost:8082/` directly): TOC sidebar with filter + Advanced
+toggle, rendered markdown viewer, and a text-size slider.
+
+Some chapters surface a banner that deep-links into J-Hub features. When
+the iframe is embedded inside J-Hub, clicking the button posts a message
+to the parent which then dispatches the action; standalone, the buttons
+fall back to opening the corresponding J-Hub URL in a new tab.
 
 | Chapter | Banner | Action |
 |---------|--------|--------|
-| §03 Morse | 🎧 Morse Code Trainer | Launches the bundled JavaFX trainer app |
+| §03 Morse | 🎧 Morse Code Trainer | Launches the standalone JavaFX trainer app |
 | §07 Antenna Workshop | 📡 Antenna Workshop | Opens the matching antenna calculator |
 | §15 Formulas | 📐 Formula Calculator | Opens the matching per-formula calculator |
 
 ### Modules
 
 Launch configuration for each managed app — J-Log, J-Digi, J-Bridge, J-Map,
-J-Sat, J-Vault. Plus a static J-Learn card linking to the J-Learn tab. Per
-app:
+J-Sat, J-Vault, J-Learn. Per app:
 
 - **Launch Command** — shell command that launches the app (platform-specific).
 - **IP** — reserved for future remote-launch support; leave `localhost`.
@@ -506,14 +514,23 @@ Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
 
 ### J-Learn
 
-- **Bundled inside J-Hub** — no separate launch. Click the J-Learn tab.
+- **Standalone web app** on port 8082. J-Hub iframes it as the J-Learn
+  tab; the same URL works directly in any browser on the LAN.
+- **Editable content** — on first run, the bundled markdown is seeded to
+  `~/.j-learn/content/`. Edit a file there, hit Reload in the J-Learn tab,
+  and the change shows up immediately. No rebuild required.
+- **Settings** — `~/.j-learn/settings.json` lets you change the listen
+  port. Override per-launch with `-Djlearn.port=NNNN`.
 - **Search box** filters the TOC by title or section ID. Typing `15-`
   narrows to chapter 15 (Formulas); typing `emcomm` jumps to chapter 20.
 - **Advanced toggle** above the TOC shows / hides
   `> ⚙️ **Advanced —**` callouts (Extra-class / engineering-depth
   paragraphs). Default is hidden.
-- **Text-size slider** at the top of the tab scales the rendered viewer
+- **Text-size slider** at the top of the page scales the rendered viewer
   between 80-180%. Persists per browser via `localStorage`.
+- **Direct deep-links** — `http://localhost:8082/?section=04-03` opens
+  J-Learn straight to that section. Used by the iframe inside J-Hub for
+  cross-module navigation.
 - **Cross-references** look like `§NN-NN` in prose. Most chapters end
   with a "See also" section linking to related sections.
 - **Per-chapter banners** (§03 Morse, §07 Antenna Workshop, §15 Formulas)
@@ -563,15 +580,27 @@ The J-Hub web UI's J-Vault tab is just an iframe to `http://localhost:8083/`.
 4. Port conflict on 8083? `ss -tlnp | grep 8083` — kill anything else
    bound there, or change `webPort` in `~/.j-vault/settings.json`.
 
-### J-Learn tab is empty or "No content found"
+### J-Learn tab shows "connection refused" or empty content
 
-J-Learn content is bundled into j-hub's shaded jar at package time. If you
-edited j-learn content but it isn't showing up:
+J-Learn is a separate process on port 8082. The J-Hub web UI's J-Learn tab
+is just an iframe to `http://localhost:8082/`.
 
-1. `mvn -DskipTests -f j-learn/pom.xml install` (re-installs the artifact).
-2. `mvn clean -DskipTests -f j-hub/pom.xml package` — the **clean** matters;
-   without it the shaded jar caches the old j-learn classpath.
-3. Restart j-hub. Hard-refresh the browser (Ctrl-Shift-R).
+1. Click **Launch** at the top of the tab (or run `./j-learn/start.sh`),
+   wait 3-5 seconds for Jetty to come up.
+2. Click **Reload** on the embedded view.
+3. If Launch does nothing, check that `j-learn/target/j-learn-1.1.0.jar`
+   exists. If not, build it:
+   `mvn -DskipTests -f j-learn/pom.xml install`.
+4. Port conflict on 8082? `ss -tlnp | grep 8082` — kill anything else
+   bound there, or change `port` in `~/.j-learn/settings.json`.
+
+### J-Learn isn't picking up edited content
+
+Markdown lives at `~/.j-learn/content/`. Edits show up on Reload — but
+remember J-Learn falls back to the bundled jar copy *only* for files
+missing from disk. If you renamed something on disk and it still shows
+the old version, you're seeing the jar fallback; restore the file or
+update the manifest.
 
 ### Awards Dashboard errors
 
@@ -621,31 +650,30 @@ Copy the stack trace into the bug report along with the diagnostics zip.
                           │  ├─ SpotEnricher       │──(https)──▶ HamQTH / QRZ
                           │  ├─ WeatherService     │──(https)──▶ NOAA SWPC
                           │  ├─ AppLauncher        │──(https)──▶ hamqsl.com
-                          │  ├─ J-Learn (bundled)  │
                           │  └─ AntennaWorkshop    │
                           │                        │
-                          └─┬──┬──┬──┬──┬──┬──┬──┬─┘
-                            │  │  │  │  │  │  │  │
-              ┌─────────────┘  │  │  │  │  │  │  └─────iframe─────┐
-              │     ┌──────────┘  │  │  │  │  └───iframe──┐       │
-              ▼     ▼             ▼  ▼  ▼  ▼              │       │
-        ┌─────────┐ ┌─────────┐ ┌─────┐ ┌──────┐ ┌──────┐ │  ┌────▼─────┐
-        │  j-log  │ │  j-map  │ │j-digi│ │j-bridge│ │j-sat│  │ j-vault  │
-        │         │ │         │ │      │ │       │ │      │  │          │
-        │ ┌─────┐ │ │ world   │ │ DSP  │ │ UDP   │ │ TLE  │  │ Inventory│
-        │ │ DAO │ │ │ map +   │ │ +    │ │ :2237 │ │ pass │  │   DB     │
-        │ │     │ │ │ overlays│ │ wave │ │  ↓    │ │ pred │  │ + Estate │
-        │ └──┬──┘ │ │         │ │      │ │ WSJT-X│ │      │  │   PDF    │
-        └────┼────┘ └─────────┘ └──┬───┘ └───────┘ └──┬───┘  │          │
-             │                     │                  │      │ HTTP:8083│
-             │   ┌──────────────┐  │                  │      └────┬─────┘
-             └──▶│ j-log-engine │◀─┘                  │           │
-                 │   (shared)   │                     │           ▼
-                 │ SQLite DAO + │                     │     ┌──────────┐
-                 │ ContestPlugin│                     │     │ ~/.j-vault│
-                 │ HubEngine WS │                     │     │ /inv.db  │
-                 └──────┬───────┘                     │     └──────────┘
-                        │                             │
+                          └─┬──┬──┬──┬──┬─┬──────┬───────┬──────┘
+                            │  │  │  │  │ │      │       │
+                            │  │  │  │  │ │      │  iframe
+              ┌─────────────┘  │  │  │  │ │      │       │
+              │     ┌──────────┘  │  │  │ │      │       └──────┐
+              ▼     ▼             ▼  ▼  ▼ ▼      ▼              ▼
+        ┌─────────┐ ┌─────────┐ ┌─────┐ ┌──────┐ ┌──────┐ ┌──────────┐ ┌──────────┐
+        │  j-log  │ │  j-map  │ │j-digi│ │j-bridge│ │j-sat│ │ j-vault  │ │ j-learn  │
+        │         │ │         │ │      │ │       │ │      │ │          │ │          │
+        │ ┌─────┐ │ │ world   │ │ DSP  │ │ UDP   │ │ TLE  │ │ Inventory│ │ Markdown │
+        │ │ DAO │ │ │ map +   │ │ +    │ │ :2237 │ │ pass │ │   DB     │ │ + manif. │
+        │ │     │ │ │ overlays│ │ wave │ │  ↓    │ │ pred │ │ + Estate │ │ Pure web │
+        │ └──┬──┘ │ │         │ │      │ │ WSJT-X│ │      │ │   PDF    │ │ (Jetty)  │
+        └────┼────┘ └─────────┘ └──┬───┘ └───────┘ └──┬───┘ │          │ │          │
+             │                     │                  │     │ HTTP:8083│ │ HTTP:8082│
+             │   ┌──────────────┐  │                  │     └────┬─────┘ └────┬─────┘
+             └──▶│ j-log-engine │◀─┘                  │          │            │
+                 │   (shared)   │                     │          ▼            ▼
+                 │ SQLite DAO + │                     │    ┌──────────┐ ┌──────────┐
+                 │ ContestPlugin│                     │    │~/.j-vault│ │~/.j-learn│
+                 │ HubEngine WS │                     │    │ /inv.db  │ │ /content │
+                 └──────┬───────┘                     │    └──────────┘ └──────────┘
                         ▼                             ▼
                   ┌──────────┐               ┌────────────────────┐
                   │ ~/.j-log │               │  Rig / Rotor       │
@@ -663,13 +691,16 @@ Copy the stack trace into the bug report along with the diagnostics zip.
   `SHUTDOWN`, etc. Human-readable JSON with a `"type"` field.
 - **HTTP (j-hub:8081)** — web config UI + REST: `/api/config`, `/api/status`,
   `/api/sessions`, `/api/deps`, `/api/diagnostics/bundle`, `/api/jlog`,
-  `/api/jmap`, `/api/jdigi`, `/api/jbridge`, `/api/jsat`, `/api/jvault`,
-  `/api/jlearn/*`, `/api/db/*`, `/api/apps/*`, `/api/weather`,
-  `/api/callsign/*`, `/api/antenna/*`.
+  `/api/jmap`, `/api/jdigi`, `/api/jbridge`, `/api/jsat`, `/api/db/*`,
+  `/api/apps/*`, `/api/weather`, `/api/callsign/*`, `/api/antenna/*`.
 - **HTTP (j-vault:8083)** — standalone Jetty for inventory CRUD, photo
   upload, and the Estate-Handoff PDF generator. The J-Hub web UI's
   **J-Vault** tab is just an iframe pointing here; J-Vault is otherwise
   decoupled from the broker.
+- **HTTP (j-learn:8082)** — standalone Jetty serving the markdown reference
+  library at `/` plus `/api/jlearn/manifest` and `/api/jlearn/content?id=`.
+  The J-Hub web UI's **J-Learn** tab iframes it; cross-module banners
+  (Workshop / Morse / Formulas) postMessage actions back to the parent.
 - **UDP 2237 (WSJT-X ↔ j-bridge)** — WSJT-X's reporting protocol. j-bridge
   listens; WSJT-X broadcasts heartbeat, status, decode, QSO-logged packets.
 - **Telnet (ClusterManager ↔ DX cluster)** — one connection per j-hub
@@ -680,9 +711,9 @@ Copy the stack trace into the bug report along with the diagnostics zip.
   substitution layer, and the `HubEngine` WebSocket client. This is why
   j-digi can log RTTY contest QSOs directly to the shared DB without
   routing through j-log.
-- **j-learn** — Maven artifact built before j-hub and bundled into j-hub's
-  shaded jar. Ships ~200 markdown sections served at `/api/jlearn/*`. No
-  network of its own.
+- **j-learn** — standalone web app on port 8082. Ships ~200 markdown
+  sections, seeded to `~/.j-learn/content/` on first run. Decoupled from
+  the broker; J-Hub launches it as a child process and iframes the UI.
 - **SQLite databases** — log/contest data lives under `~/.j-log/`
   (`j-log.db`, `contest.db`, `config.db`, plus any user-created DBs).
   Inventory and estate data live under `~/.j-vault/inventory.db`. J-Hub
@@ -699,19 +730,17 @@ j-log-engine  (shared library — no deps within suite)
     ├── j-log
     └── j-digi
 
-j-learn       (content artifact — bundled into j-hub at package time)
-    └── j-hub
+j-learn       (standalone web app — installed so j-hub can launch it)
+j-vault       (standalone web app — installed so j-hub can launch it)
 
-j-vault       (standalone, but installed to .m2 so j-hub can launch it)
-
+j-hub         (no Maven dep on j-learn or j-vault — discovers them at run-time)
 j-map         (standalone)
 j-bridge      (standalone)
 j-sat         (standalone)
 ```
 
-Build order: `j-log-engine` first (mvn install), then `j-learn` (mvn
-install), then `j-vault` (mvn install), then any order for the rest with
-`mvn package`.
+Build order: `j-log-engine` first (mvn install), then `j-learn` and
+`j-vault` (mvn install), then any order for the rest with `mvn package`.
 
 ---
 

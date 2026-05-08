@@ -36,18 +36,18 @@ names, and common gotchas.
 
 ## What's in the box
 
-Eight Maven modules. Built once, work together.
+Nine Maven modules. Built once, work together.
 
 | Module | What it does |
 |---|---|
-| **🎛 J‑Hub** | Central broker + browser‑based control surface (port 8081). Dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop, J‑Learn — all in one web UI. |
+| **🎛 J‑Hub** | Central broker + browser‑based control surface (port 8081). Dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop — all in one web UI. Embeds J‑Vault and J‑Learn as iframed tabs. |
 | **📋 J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
 | **🗺 J‑Map** | Real‑time DX map with grayline, propagation overlays, weather, aurora, and great‑circle paths to spotted DX. |
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
 | **🛰 J‑Sat** | Satellite tracker with Doppler correction and rotor control through J‑Hub. |
-| **📦 J‑Vault** *(new)* | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed; runs in its own window on port 8083. |
-| **📖 J‑Learn** *(new, bundled inside J‑Hub)* | An in‑app reference library: ~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; per‑chapter "Open in Workshop" deep‑links to the matching calculators. |
+| **📦 J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed; runs as its own web app on port 8083. |
+| **📖 J‑Learn** | Standalone amateur‑radio reference library web app on port 8082. ~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; per‑chapter "Open in Workshop" deep‑links to the matching calculators. Markdown source seeds to `~/.j-learn/content/` so users can edit content without rebuilding. |
 
 A shared **j‑log‑engine** library underpins logging across J‑Log, J‑Digi,
 and J‑Bridge so everything writes to one set of databases under `~/.j‑log/`.

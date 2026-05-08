@@ -195,8 +195,7 @@ public class JHubStatusWindow {
         lblJDigi   = styledValue("○ j-digi");
         lblJSat    = styledValue("○ j-sat");
         lblJVault  = styledValue("○ j-vault");
-        lblJLearn  = styledValue("● j-learn (in-app)");
-        lblJLearn.setTextFill(Color.web(C_GREEN));
+        lblJLearn  = styledValue("○ j-learn");
 
         btnJMap    = launchButton("jMap");
         btnJLog    = launchButton("j-log");
@@ -204,7 +203,7 @@ public class JHubStatusWindow {
         btnJDigi   = launchButton("j-digi");
         btnJSat    = launchButton("j-sat");
         btnJVault  = launchButton("jVault");
-        btnJLearn  = openLearnButton();
+        btnJLearn  = launchButton("j-learn");
 
         VBox managedBox = new VBox(6,
             appRow(lblJMap,    btnJMap),
@@ -299,7 +298,7 @@ public class JHubStatusWindow {
         refreshAppRow("j-digi",   al.isRunning("j-digi"),   lblJDigi,   btnJDigi);
         refreshAppRow("j-sat",    al.isRunning("j-sat"),    lblJSat,    btnJSat);
         refreshAppRow("jVault",   al.isRunning("jVault"),   lblJVault,  btnJVault);
-        // J-Learn is in-process (bundled inside J-Hub); no managed process to track.
+        refreshAppRow("j-learn",  al.isRunning("j-learn"),  lblJLearn,  btnJLearn);
     }
 
     // ---------------------------------------------------------------
@@ -354,6 +353,9 @@ public class JHubStatusWindow {
         } else if ("jVault".equals(name)) {
             entry = apps != null ? apps.jVault : null;
             passHubFlag = false;
+        } else if ("j-learn".equals(name)) {
+            entry = apps != null ? apps.jLearn : null;
+            passHubFlag = false;
         } else {
             entry = null;
             passHubFlag = false;
@@ -385,18 +387,6 @@ public class JHubStatusWindow {
         Button btn = new Button("Launch");
         btn.setStyle("-fx-background-color: " + C_SURF0 + "; -fx-text-fill: " + C_TEXT + ";");
         btn.setPrefWidth(70);
-        return btn;
-    }
-
-    /**
-     * J-Learn is bundled inside J-Hub (not a managed external process).
-     * The button opens J-Hub's web UI on the J-Learn tab.
-     */
-    private Button openLearnButton() {
-        Button btn = new Button("Open");
-        btn.setStyle("-fx-background-color: " + C_SURF0 + "; -fx-text-fill: " + C_TEXT + ";");
-        btn.setPrefWidth(70);
-        btn.setOnAction(e -> openBrowser());  // /index.html — user clicks J-Learn tab
         return btn;
     }
 

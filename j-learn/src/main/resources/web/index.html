@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>J-Learn — WM3J ARS Suite</title>
+  <link rel="stylesheet" href="jlearn.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-icon">📖</span>
+      <span class="brand-name">J-Learn</span>
+      <span class="brand-sub">Amateur Radio Reference Library</span>
+    </div>
+    <div class="topbar-controls">
+      <label class="text-size">
+        Text size:
+        <input type="range" id="jl-text-size" min="80" max="180" step="5" value="100"
+               oninput="applyJLearnTextSize(this.value)">
+        <span id="jl-text-size-val">100</span>%
+      </label>
+      <button class="btn-ghost" onclick="resetJLearnTextSize()">Reset</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-controls">
+        <input type="text" id="jl-search" placeholder="Filter chapters…" oninput="filterLearnToc()">
+        <label class="adv-toggle">
+          <input type="checkbox" id="jl-advanced" onchange="renderLearnContent()">
+          Advanced
+        </label>
+      </div>
+      <div id="jl-toc"></div>
+    </aside>
+
+    <main class="viewer" id="jl-viewer">
+      <div class="placeholder">
+        Pick a chapter on the left to start reading. J-Learn remembers your last-opened
+        section automatically. You can also link directly:
+        <code>?section=04-03</code>
+      </div>
+    </main>
+  </div>
+
+  <script src="jlearn.js"></script>
+</body>
+</html>

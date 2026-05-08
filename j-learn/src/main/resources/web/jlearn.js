@@ -1,0 +1,291 @@
+// J-Learn standalone web app.
+//
+// Runs unmodified in two contexts:
+//   1. Direct browser visit to http://localhost:8082/  — fully standalone.
+//   2. Inside a J-Hub iframe — parent posts {type:'jlearn-open', id:'NN-NN'}
+//      to navigate; cross-module banner buttons postMessage back to parent.
+
+const state = {
+  manifest: [],
+  byId: {},
+  currentId: null,
+};
+
+const inIframe = window.parent && window.parent !== window;
+
+// ---------- text size ---------------------------------------------------
+
+function applyJLearnTextSize(pct) {
+  let v = parseInt(pct, 10);
+  if (!isFinite(v) || v < 80 || v > 180) v = 100;
+  document.getElementById('jl-viewer').style.fontSize = v + '%';
+  document.getElementById('jl-text-size').value = v;
+  document.getElementById('jl-text-size-val').textContent = v;
+  try { localStorage.setItem('jhub.jlearn.textSize', String(v)); } catch (e) {}
+}
+
+function resetJLearnTextSize() { applyJLearnTextSize(100); }
+
+function applyJLearnTextSizePref() {
+  let v = 100;
+  try { v = parseInt(localStorage.getItem('jhub.jlearn.textSize') || '100', 10); }
+  catch (e) {}
+  applyJLearnTextSize(v);
+}
+
+// ---------- manifest + sidebar ------------------------------------------
+
+function loadLearn() {
+  fetch('/api/jlearn/manifest').then(r => r.json()).then(list => {
+    state.manifest = list || [];
+    state.byId = {};
+    for (const e of state.manifest) state.byId[e.id] = e;
+    renderLearnToc();
+
+    // Resolve initial section: ?section= URL > postMessage from parent > localStorage > nothing.
+    const fromUrl = new URLSearchParams(location.search).get('section');
+    if (fromUrl && state.byId[fromUrl]) { openLearnSection(fromUrl); return; }
+    const last = localStorage.getItem('jl-last');
+    if (last && state.byId[last]) openLearnSection(last);
+  }).catch(err => {
+    document.getElementById('jl-viewer').innerHTML =
+      '<div style="color:var(--red);padding:24px">Failed to load manifest: ' + esc(err.message) + '</div>';
+  });
+}
+
+function renderLearnToc() {
+  const wrap = document.getElementById('jl-toc');
+  if (!wrap) return;
+  const filter   = (document.getElementById('jl-search')?.value || '').toLowerCase();
+  const advanced = document.getElementById('jl-advanced')?.checked;
+
+  const visible = state.manifest.filter(e => {
+    if (!advanced && e.level === 'advanced') return false;
+    if (!filter) return true;
+    return e.title.toLowerCase().includes(filter) || e.id.includes(filter);
+  });
+
+  const byChapter = {};
+  for (const e of visible) {
+    (byChapter[e.chapter] = byChapter[e.chapter] || []).push(e);
+  }
+  const chapters = Object.keys(byChapter).sort();
+  wrap.innerHTML = chapters.map(ch => {
+    const overview = byChapter[ch].find(e => e.section === '00');
+    const sections = byChapter[ch].filter(e => e.section !== '00');
+    const chapterTitle = overview ? overview.title.replace(/ — Overview$/, '') : 'Chapter ' + ch;
+    const head = `<div class="chapter-title" data-id="${overview ? overview.id : (sections[0] && sections[0].id) || ''}">${ch} · ${esc(chapterTitle)}</div>`;
+    const items = sections.map(s =>
+      `<div class="section-link" data-id="${s.id}">${s.section} · ${esc(s.title)}` +
+      (s.level === 'advanced' ? ' <span class="adv-marker">⚙️</span>' : '') +
+      '</div>'
+    ).join('');
+    return `<div class="chapter">${head}${items}</div>`;
+  }).join('');
+
+  wrap.querySelectorAll('[data-id]').forEach(el => {
+    el.addEventListener('click', () => openLearnSection(el.dataset.id));
+  });
+}
+
+function filterLearnToc() { renderLearnToc(); }
+
+// ---------- content load + render ---------------------------------------
+
+function openLearnSection(id) {
+  if (!id) return;
+  state.currentId = id;
+  try { localStorage.setItem('jl-last', id); } catch (e) {}
+  fetch('/api/jlearn/content?id=' + encodeURIComponent(id))
+    .then(r => r.text())
+    .then(md => renderLearnContent(md))
+    .catch(err => {
+      document.getElementById('jl-viewer').innerHTML =
+        '<div style="color:var(--red)">Failed to load section: ' + esc(err.message) + '</div>';
+    });
+}
+
+function renderLearnContent(md) {
+  if (md == null) {
+    if (state.currentId) openLearnSection(state.currentId);
+    return;
+  }
+  const advanced = document.getElementById('jl-advanced')?.checked;
+  const banner = renderLearnBanner(state.currentId);
+  document.getElementById('jl-viewer').innerHTML = banner + mdToHtml(stripFrontMatter(md), advanced);
+  document.getElementById('jl-viewer').scrollTop = 0;
+}
+
+function renderLearnBanner(id) {
+  if (!id) return '';
+  if (id.startsWith('03-')) {
+    return banner('🎧', 'Morse Code Trainer',
+      'Standalone JavaFX practice app: letter / group / QSO drills, real-time decoder, optional Arduino or Pi Zero keyer.',
+      '▶ Launch Trainer',
+      'launch-morse');
+  }
+  if (id.startsWith('15-')) {
+    const calcId = ({
+      '15-01': 'ohms-law',     '15-02': 'power-law',     '15-03': 'reactance',
+      '15-04': 'impedance',    '15-05': 'resonance',     '15-06': 'wavelength',
+      '15-07': 'swr',          '15-08': 'erp',           '15-09': 'feedline-loss',
+      '15-10': 'decibels',     '15-11': 'q-factor',      '15-12': 'bandwidth',
+      '15-13': 'smith-chart',  '15-14': 'rf-exposure',
+    })[id];
+    return banner('📐', 'Formula Calculator',
+      calcId
+        ? "Run this formula's calculator with live inputs and outputs in the J-Hub Antenna Workshop tab."
+        : "Pick a formula calculator from the Workshop's Formulas section.",
+      calcId ? '▶ Open in Workshop' : '▶ Open Workshop',
+      calcId ? ('open-calc:' + calcId) : 'open-workshop');
+  }
+  if (id.startsWith('07-')) {
+    const calcId = ({
+      '07-02': 'flat-dipole',     '07-03': 'inverted-v',     '07-04': 'fan-dipole',
+      '07-05': 'trapped-dipole',  '07-06': 'ocf-dipole',     '07-07': 'efhw-no-traps',
+      '07-08': 'efhw-trapped',    '07-09': 'j-pole',         '07-10': 'yagi',
+      '07-11': 'vertical',        '07-12': 'loading-coil',   '07-13': 'trap-design',
+      '07-14': 'mag-loop',
+    })[id];
+    return banner('📡', 'Antenna Workshop',
+      calcId
+        ? "Run this antenna's calculator with live inputs and outputs in the J-Hub Antenna Workshop tab."
+        : 'Pick an antenna or component calculator, or run the recommender wizard to find what fits your QTH.',
+      calcId ? '▶ Open in Workshop' : '▶ Open Workshop',
+      calcId ? ('open-calc:' + calcId) : 'open-workshop');
+  }
+  return '';
+}
+
+function banner(icon, title, sub, btnText, action) {
+  const id = 'b' + Math.random().toString(36).slice(2, 8);
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => bannerAction(action));
+  }, 0);
+  return `<div class="cross-banner">
+    <span class="ico">${icon}</span>
+    <div class="body">
+      <div class="title">${esc(title)}</div>
+      <div class="sub">${esc(sub)}</div>
+    </div>
+    <button id="${id}">${esc(btnText)}</button>
+  </div>`;
+}
+
+// Cross-module action dispatch.
+//
+// Inside the J-Hub iframe → postMessage to parent.
+// Standalone (direct browser) → fall back to opening the j-hub URL,
+//   which only works if the user is also running j-hub. We hint that.
+function bannerAction(action) {
+  if (inIframe) {
+    window.parent.postMessage({ type: 'jlearn-action', action }, '*');
+    return;
+  }
+  // Standalone fallback.
+  if (action === 'launch-morse') {
+    window.open('http://localhost:8081/api/morsetrainer/launch', '_blank');
+    return;
+  }
+  if (action === 'open-workshop' || action.startsWith('open-calc:')) {
+    const calcId = action.startsWith('open-calc:') ? action.substring(10) : '';
+    const url = 'http://localhost:8081/#antworkshop' + (calcId ? '?calc=' + encodeURIComponent(calcId) : '');
+    window.open(url, '_blank');
+  }
+}
+
+// Parent-driven navigation when embedded as an iframe inside J-Hub.
+window.addEventListener('message', ev => {
+  const m = ev.data || {};
+  if (m.type === 'jlearn-open' && m.id) openLearnSection(m.id);
+});
+
+// ---------- markdown rendering ------------------------------------------
+
+function stripFrontMatter(md) {
+  if (!md.startsWith('---')) return md;
+  const end = md.indexOf('\n---', 3);
+  if (end < 0) return md;
+  return md.substring(end + 4).replace(/^\s*\n/, '');
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function mdToHtml(md, includeAdvanced) {
+  const lines = md.split(/\r?\n/);
+  const out = [];
+  let i = 0;
+  const inline = s => esc(s)
+    .replace(/`([^`]+)`/g,                '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,          '<strong>$1</strong>')
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,  '<a href="$2" target="_blank">$1</a>');
+
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith('```')) {
+      const buf = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) { buf.push(esc(lines[i])); i++; }
+      i++;
+      out.push('<pre><code>' + buf.join('\n') + '</code></pre>');
+      continue;
+    }
+    let m;
+    if ((m = line.match(/^(#{1,4})\s+(.*)$/))) {
+      const level = m[1].length;
+      out.push('<h' + level + '>' + inline(m[2]) + '</h' + level + '>');
+      i++; continue;
+    }
+    if (line.startsWith('>')) {
+      const buf = [];
+      while (i < lines.length && lines[i].startsWith('>')) {
+        buf.push(lines[i].replace(/^>\s?/, ''));
+        i++;
+      }
+      const text = buf.join(' ');
+      const isAdvanced = /^⚙️\s+\*\*Advanced\s*—/.test(text.trim());
+      if (isAdvanced && !includeAdvanced) continue;
+      out.push('<blockquote' + (isAdvanced ? ' class="advanced"' : '') + '>' + inline(text) + '</blockquote>');
+      continue;
+    }
+    if (/^\s*[-*]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+        items.push('<li>' + inline(lines[i].replace(/^\s*[-*]\s+/, '')) + '</li>');
+        i++;
+      }
+      out.push('<ul>' + items.join('') + '</ul>');
+      continue;
+    }
+    if (line.trim() === '') { i++; continue; }
+    const para = [];
+    while (i < lines.length && lines[i].trim() !== ''
+        && !lines[i].startsWith('#')
+        && !lines[i].startsWith('>')
+        && !lines[i].startsWith('```')
+        && !/^\s*[-*]\s+/.test(lines[i])) {
+      para.push(lines[i]);
+      i++;
+    }
+    if (para.length) {
+      let html = inline(para.join(' '));
+      html = html.replace(/&lt;!--\s*TODO:?\s*content\s*--&gt;/g,
+        '<span style="font-style:italic;color:var(--overlay0);font-size:12px">(content not yet written)</span>');
+      out.push('<p>' + html + '</p>');
+    }
+  }
+  return out.join('\n');
+}
+
+// ---------- bootstrap ---------------------------------------------------
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyJLearnTextSizePref();
+  loadLearn();
+});

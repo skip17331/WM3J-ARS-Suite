@@ -165,6 +165,8 @@ public class JHubMain extends Application {
             autoLaunch(launcher, "j-bridge", apps.jBridge, true);
             autoLaunch(launcher, "j-digi",   apps.jDigi,   true);
             autoLaunch(launcher, "j-sat",    apps.jSat,    true);
+            autoLaunch(launcher, "jVault",   apps.jVault,  true);
+            autoLaunch(launcher, "j-learn",  apps.jLearn,  true);
         }
 
         // 10. Hamlib rig controller (only when backend = HAMLIB)

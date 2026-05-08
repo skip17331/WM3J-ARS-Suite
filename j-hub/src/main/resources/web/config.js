@@ -28,7 +28,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'jvault')   ensureJVaultIframe();
-    if (btn.dataset.tab === 'learn')    applyJLearnTextSizePref();
+    if (btn.dataset.tab === 'learn')    ensureJLearnIframe();
   });
 });
 
@@ -70,29 +70,73 @@ function openJVaultExternal() {
   window.open('http://localhost:8083/', '_blank');
 }
 
-// ── J-Learn text-size control ──────────────────────────────
-function applyJLearnTextSize(pct) {
-  const v = parseInt(pct, 10) || 100;
-  const viewer = document.getElementById('jl-viewer');
-  const lbl    = document.getElementById('jl-text-size-val');
-  if (lbl)    lbl.textContent = v;
-  if (viewer) viewer.style.fontSize = v + '%';
-  try { localStorage.setItem('jhub.jlearn.textSize', String(v)); } catch (e) {}
+// ── J-Learn embedded iframe ────────────────────────────────
+//
+// J-Learn moved out of j-hub in v1.1 — it's a separate process on port 8082.
+// We iframe it here so the in-hub experience is preserved, but the iframe
+// is also fully self-contained: visiting http://localhost:8082/ in a fresh
+// browser tab works identically.
+function ensureJLearnIframe() {
+  const wrap = document.getElementById('jl-iframe-wrap');
+  if (!wrap) return;
+  if (wrap.querySelector('iframe')) return;
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'jl-frame';
+  iframe.src = 'http://localhost:8082/';
+  iframe.style.cssText = 'width:100%;height:100%;border:0;background:transparent';
+  iframe.setAttribute('allow', 'fullscreen');
+  wrap.appendChild(iframe);
+
+  // Surface "is j-learn even running?" once the iframe is up.
+  const status = document.getElementById('jl-status');
+  if (status) {
+    fetch('http://localhost:8082/api/health')
+      .then(r => r.ok ? 'running on :8082' : 'not responding')
+      .catch(() => 'not running — click Launch')
+      .then(text => { status.textContent = text; });
+  }
 }
-function resetJLearnTextSize() {
-  const slider = document.getElementById('jl-text-size');
-  if (slider) slider.value = 100;
-  applyJLearnTextSize(100);
+
+function reloadJLearnIframe() {
+  const f = document.getElementById('jl-frame');
+  if (f) f.src = 'http://localhost:8082/?t=' + Date.now();
+  else ensureJLearnIframe();
 }
-function applyJLearnTextSizePref() {
-  let v;
-  try { v = localStorage.getItem('jhub.jlearn.textSize'); } catch (e) {}
-  v = parseInt(v, 10);
-  if (!v) return;
-  const slider = document.getElementById('jl-text-size');
-  if (slider) slider.value = v;
-  applyJLearnTextSize(v);
+
+// Drive the iframe to a particular section. Used by Antenna Workshop /
+// Formulas calculator cards' "Read about this in J-Learn" links.
+function openLearnSection(id) {
+  if (!id) return;
+  const tabBtn = document.querySelector('[data-tab=learn]');
+  if (tabBtn) tabBtn.click();
+  ensureJLearnIframe();
+  const f = document.getElementById('jl-frame');
+  if (!f) return;
+  // If iframe is brand new, wait for load before posting; otherwise send now.
+  const post = () => f.contentWindow.postMessage({ type: 'jlearn-open', id }, '*');
+  if (f.dataset.ready === '1') { post(); return; }
+  // Reset src with the section query param so deep-links work even if the
+  // iframe hasn't finished loading yet (postMessage might race).
+  const targetSrc = 'http://localhost:8082/?section=' + encodeURIComponent(id);
+  if (f.src.indexOf('?section=') < 0 && f.src.indexOf('localhost:8082/') >= 0) {
+    f.src = targetSrc;
+  } else {
+    f.addEventListener('load', () => { f.dataset.ready = '1'; post(); }, { once: true });
+  }
 }
+
+// Receive cross-module action requests from the j-learn iframe (e.g. the
+// "Open in Workshop" buttons on §07 / §15 sections) and dispatch into
+// j-hub's local handlers.
+window.addEventListener('message', ev => {
+  const m = ev.data || {};
+  if (m.type !== 'jlearn-action') return;
+  const action = m.action || '';
+  if (action === 'launch-morse')         launchMorseTrainer(null);
+  else if (action === 'open-workshop')   openAntennaWorkshop();
+  else if (action.startsWith('open-calc:')) openAntennaCalc(action.substring(10));
+});
 
 // ── WebSocket (live telemetry) ─────────────────────────────
 let ws = null;
@@ -908,6 +952,7 @@ function buildModuleCards(appsSection) {
     { key: 'jMap',    id: 'jMap',     label: 'J-Map',    desc: 'Real-time grayline + DX map' },
     { key: 'jSat',    id: 'j-sat',    label: 'J-Sat',    desc: 'Satellite tracking and Doppler control' },
     { key: 'jVault',  id: 'jVault',   label: 'J-Vault',  desc: 'Shack inventory + estate handoff PDF (port 8083)' },
+    { key: 'jLearn',  id: 'j-learn',  label: 'J-Learn',  desc: 'Reference library web app (port 8082)' },
   ];
 
   const container = document.getElementById('module-cards');
@@ -1428,174 +1473,7 @@ function pollAntennaStatus() {
   }).catch(() => {});
 }
 
-// ── J-Learn ───────────────────────────────────────────────
-state.jlearn = { manifest: [], byId: {}, currentId: null };
-
-function loadLearn() {
-  fetch('/api/jlearn/manifest').then(r => r.json()).then(list => {
-    state.jlearn.manifest = list || [];
-    state.jlearn.byId = {};
-    for (const e of state.jlearn.manifest) state.jlearn.byId[e.id] = e;
-    renderLearnToc();
-    // Restore last-opened section if any.
-    const last = localStorage.getItem('jl-last');
-    if (last && state.jlearn.byId[last]) openLearnSection(last);
-  }).catch(() => {});
-}
-
-function renderLearnToc() {
-  const wrap = document.getElementById('jl-toc');
-  if (!wrap) return;
-  const filter   = (document.getElementById('jl-search')?.value || '').toLowerCase();
-  const advanced = document.getElementById('jl-advanced')?.checked;
-
-  const visible = state.jlearn.manifest.filter(e => {
-    if (!advanced && e.level === 'advanced') return false;
-    if (!filter) return true;
-    return e.title.toLowerCase().includes(filter) || e.id.includes(filter);
-  });
-
-  // Group by chapter for the rendered tree.
-  const byChapter = {};
-  for (const e of visible) {
-    (byChapter[e.chapter] = byChapter[e.chapter] || []).push(e);
-  }
-  const chapters = Object.keys(byChapter).sort();
-  wrap.innerHTML = chapters.map(ch => {
-    const overview = byChapter[ch].find(e => e.section === '00');
-    const sections = byChapter[ch].filter(e => e.section !== '00');
-    const chapterTitle = overview ? overview.title.replace(/ — Overview$/, '') : 'Chapter ' + ch;
-    return `<div style="margin-bottom:8px">
-      <div onclick="openLearnSection('${overview ? overview.id : (sections[0] && sections[0].id) || ''}')"
-           style="font-weight:600;font-size:13px;cursor:pointer;padding:3px 4px;border-radius:3px"
-           onmouseover="this.style.background='var(--surface1)'"
-           onmouseout="this.style.background=''">${ch} · ${esc(chapterTitle)}</div>
-      ${sections.map(s => `<div onclick="openLearnSection('${s.id}')"
-        style="cursor:pointer;font-size:12px;padding:2px 4px 2px 16px;border-radius:3px;color:var(--subtext0)"
-        onmouseover="this.style.background='var(--surface1)';this.style.color='var(--text)'"
-        onmouseout="this.style.background='';this.style.color='var(--subtext0)'">
-        ${s.section} · ${esc(s.title)}${s.level === 'advanced' ? ' <span style="font-size:10px;color:var(--peach)">⚙️</span>' : ''}</div>`).join('')}
-    </div>`;
-  }).join('');
-}
-
-function filterLearnToc() { renderLearnToc(); }
-
-function openLearnSection(id) {
-  if (!id) return;
-  state.jlearn.currentId = id;
-  localStorage.setItem('jl-last', id);
-  fetch('/api/jlearn/content?id=' + encodeURIComponent(id))
-    .then(r => r.text())
-    .then(md => renderLearnContent(md))
-    .catch(e => {
-      document.getElementById('jl-viewer').innerHTML =
-        '<div style="color:var(--red)">Failed to load section: ' + esc(e.message) + '</div>';
-    });
-}
-
-function renderLearnContent(md) {
-  // Re-fetch when called from the Advanced toggle (no md argument).
-  if (md == null) {
-    if (state.jlearn.currentId) openLearnSection(state.jlearn.currentId);
-    return;
-  }
-  const advanced = document.getElementById('jl-advanced')?.checked;
-  const banner = renderLearnBanner(state.jlearn.currentId);
-  document.getElementById('jl-viewer').innerHTML = banner + mdToHtml(stripFrontMatter(md), advanced);
-  document.getElementById('jl-viewer').scrollTop = 0;
-}
-
-// Per-chapter banner shown above the rendered markdown. Used by:
-//   §03 (Morse code)        → launches the standalone trainer JavaFX app
-//   §07 (Antenna Workshop)  → opens the matching calculator panel in J-Hub
-//   §15 (Formulas)          → opens the matching per-formula calculator
-function renderLearnBanner(id) {
-  if (!id) return '';
-  if (id.startsWith('03-')) {
-    return '<div style="margin:0 0 14px 0;padding:10px 14px;border-left:3px solid var(--mauve);'
-         + 'background:rgba(203,166,247,0.08);border-radius:4px;display:flex;align-items:center;'
-         + 'gap:12px;font-size:13px">'
-         + '<span style="font-size:18px">🎧</span>'
-         + '<div style="flex:1">'
-         + '<div style="font-weight:600;color:var(--text)">Morse Code Trainer</div>'
-         + '<div style="color:var(--subtext0);font-size:12px">Standalone JavaFX practice app: letter/group/QSO drills, real-time decoder, optional Arduino or Pi Zero keyer.</div>'
-         + '</div>'
-         + '<button class="action-btn primary" onclick="launchMorseTrainer(this)">▶ Launch Trainer</button>'
-         + '</div>';
-  }
-  if (id.startsWith('15-')) {
-    // Map J-Learn formula card id → AW_CALCS key
-    const calcId = ({
-      '15-01': 'ohms-law',
-      '15-02': 'power-law',
-      '15-03': 'reactance',
-      '15-04': 'impedance',
-      '15-05': 'resonance',
-      '15-06': 'wavelength',
-      '15-07': 'swr',
-      '15-08': 'erp',
-      '15-09': 'feedline-loss',
-      '15-10': 'decibels',
-      '15-11': 'q-factor',
-      '15-12': 'bandwidth',
-      '15-13': 'smith-chart',
-      '15-14': 'rf-exposure',
-    })[id];
-    const buttonHtml = calcId
-      ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
-      : '<button class="action-btn primary" onclick="openAntennaWorkshop()">▶ Open Workshop</button>';
-    return '<div style="margin:0 0 14px 0;padding:10px 14px;border-left:3px solid var(--mauve);'
-         + 'background:rgba(203,166,247,0.08);border-radius:4px;display:flex;align-items:center;'
-         + 'gap:12px;font-size:13px">'
-         + '<span style="font-size:18px">📐</span>'
-         + '<div style="flex:1">'
-         + '<div style="font-weight:600;color:var(--text)">Formula Calculator</div>'
-         + '<div style="color:var(--subtext0);font-size:12px">' + (calcId
-            ? "Run this formula's calculator with live inputs and outputs in the Antenna Workshop tab."
-            : 'Pick a formula calculator from the Workshop\'s Formulas section.')
-         + '</div>'
-         + '</div>'
-         + buttonHtml
-         + '</div>';
-  }
-  if (id.startsWith('07-')) {
-    // Map J-Learn section id → Antenna Workshop calc id (must match keys in AW_CALCS)
-    const calcId = ({
-      '07-02': 'flat-dipole',
-      '07-03': 'inverted-v',
-      '07-04': 'fan-dipole',
-      '07-05': 'trapped-dipole',
-      '07-06': 'ocf-dipole',
-      '07-07': 'efhw-no-traps',
-      '07-08': 'efhw-trapped',
-      '07-09': 'j-pole',
-      '07-10': 'yagi',
-      '07-11': 'vertical',
-      '07-12': 'loading-coil',
-      '07-13': 'trap-design',
-      '07-14': 'mag-loop',
-    })[id];
-    const buttonHtml = calcId
-      ? '<button class="action-btn primary" onclick="openAntennaCalc(\'' + calcId + '\')">▶ Open in Workshop</button>'
-      : '<button class="action-btn primary" onclick="openAntennaWorkshop()">▶ Open Workshop</button>';
-    return '<div style="margin:0 0 14px 0;padding:10px 14px;border-left:3px solid var(--mauve);'
-         + 'background:rgba(203,166,247,0.08);border-radius:4px;display:flex;align-items:center;'
-         + 'gap:12px;font-size:13px">'
-         + '<span style="font-size:18px">📡</span>'
-         + '<div style="flex:1">'
-         + '<div style="font-weight:600;color:var(--text)">Antenna Workshop</div>'
-         + '<div style="color:var(--subtext0);font-size:12px">' + (calcId
-            ? 'Run this antenna\'s calculator with live inputs and outputs in the J-Hub Antenna Workshop tab.'
-            : 'Pick an antenna or component calculator, or run the recommender wizard to find what fits your QTH.')
-         + '</div>'
-         + '</div>'
-         + buttonHtml
-         + '</div>';
-  }
-  return '';
-}
-
+// ── Antenna Workshop tab navigation (used by openLearnSection iframe handler) ───
 function openAntennaWorkshop() {
   const btn = document.querySelector('[data-tab=antworkshop]');
   if (btn) btn.click();
@@ -1636,97 +1514,6 @@ function launchMorseTrainer(btn) {
         setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 2500);
       }
     });
-}
-
-function stripFrontMatter(md) {
-  // Drop a leading YAML block delimited by --- on its own lines.
-  if (!md.startsWith('---')) return md;
-  const end = md.indexOf('\n---', 3);
-  if (end < 0) return md;
-  return md.substring(end + 4).replace(/^\s*\n/, '');
-}
-
-// Tiny markdown renderer — covers what J-Learn actually uses:
-// headings, paragraphs, lists, blockquotes (with the Advanced callout
-// marker recognised), code blocks, inline code, bold, italic, links.
-// Deliberately no third-party dep — keeps the suite offline-clean.
-function mdToHtml(md, includeAdvanced) {
-  const lines = md.split(/\r?\n/);
-  const out = [];
-  let i = 0;
-  const escapeHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const inline = s => escapeHtml(s)
-    .replace(/`([^`]+)`/g,           '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g,     '<strong>$1</strong>')
-    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-  while (i < lines.length) {
-    const line = lines[i];
-    // Code fence
-    if (line.startsWith('```')) {
-      const buf = [];
-      i++;
-      while (i < lines.length && !lines[i].startsWith('```')) { buf.push(escapeHtml(lines[i])); i++; }
-      i++;
-      out.push('<pre style="background:var(--mantle);padding:10px;border-radius:6px;overflow-x:auto;font-family:Consolas,monospace;font-size:12px"><code>' + buf.join('\n') + '</code></pre>');
-      continue;
-    }
-    // Headings
-    let m;
-    if ((m = line.match(/^(#{1,4})\s+(.*)$/))) {
-      const level = m[1].length;
-      const sizes = { 1: '22px', 2: '18px', 3: '15px', 4: '13px' };
-      out.push(`<h${level} style="font-size:${sizes[level]};margin:14px 0 6px 0;color:var(--text)">${inline(m[2])}</h${level}>`);
-      i++; continue;
-    }
-    // Blockquote (with Advanced callout detection)
-    if (line.startsWith('>')) {
-      const buf = [];
-      while (i < lines.length && lines[i].startsWith('>')) {
-        buf.push(lines[i].replace(/^>\s?/, ''));
-        i++;
-      }
-      const text = buf.join(' ');
-      const isAdvanced = /^⚙️\s+\*\*Advanced\s*—/.test(text.trim());
-      if (isAdvanced && !includeAdvanced) continue;  // hide in simple mode
-      const style = isAdvanced
-        ? 'border-left:3px solid var(--peach);background:rgba(250,179,135,0.06);padding:10px 14px;margin:10px 0;font-size:13px'
-        : 'border-left:3px solid var(--blue);background:rgba(137,180,250,0.06);padding:10px 14px;margin:10px 0;font-size:13px';
-      out.push('<blockquote style="' + style + '">' + inline(text) + '</blockquote>');
-      continue;
-    }
-    // Unordered list
-    if (/^\s*[-*]\s+/.test(line)) {
-      const items = [];
-      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
-        items.push('<li style="margin:2px 0">' + inline(lines[i].replace(/^\s*[-*]\s+/, '')) + '</li>');
-        i++;
-      }
-      out.push('<ul style="padding-left:22px;margin:8px 0">' + items.join('') + '</ul>');
-      continue;
-    }
-    // Blank line
-    if (line.trim() === '') { i++; continue; }
-    // Paragraph (gather consecutive non-special lines)
-    const para = [];
-    while (i < lines.length && lines[i].trim() !== ''
-        && !lines[i].startsWith('#')
-        && !lines[i].startsWith('>')
-        && !lines[i].startsWith('```')
-        && !/^\s*[-*]\s+/.test(lines[i])) {
-      para.push(lines[i]);
-      i++;
-    }
-    if (para.length) {
-      // TODO markers come through as plain HTML comments — show them as a placeholder.
-      let html = inline(para.join(' '));
-      html = html.replace(/&lt;!--\s*TODO:?\s*content\s*--&gt;/g,
-        '<span style="font-style:italic;color:var(--overlay0);font-size:12px">(content not yet written)</span>');
-      out.push('<p style="margin:8px 0;line-height:1.5;font-size:14px">' + html + '</p>');
-    }
-  }
-  return out.join('\n');
 }
 
 // ── Cloud backup ──────────────────────────────────────────
@@ -3174,7 +2961,7 @@ loadAntenna();
 loadRbn();
 loadBackup();
 loadUploaders();
-loadLearn();
+// J-Learn loads itself when its tab is first opened (lazy iframe).
 setInterval(loadRbn, 10000);
 setInterval(loadBackup, 30000);
 loadJMapSettings();

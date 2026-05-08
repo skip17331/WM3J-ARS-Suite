@@ -1,10 +1,10 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "modules": [
     {
       "name": "j-hub",
       "title": "WM3J J-Hub",
-      "comment": "ARS Suite — central broker and web configurator (incl. J-Learn)",
+      "comment": "ARS Suite — central broker and web configurator",
       "launch": "j-hub/start.sh",
       "jar":    "j-hub/target/j-hub-1.0.0.jar",
       "icon":   "j-hub/src/main/resources/icons/icon.png",
@@ -64,6 +64,15 @@
       "jar":    "j-vault/target/j-vault-1.0.0.jar",
       "icon":   "j-vault/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Office;"
+    },
+    {
+      "name": "j-learn",
+      "title": "WM3J J-Learn",
+      "comment": "ARS Suite — amateur radio reference library (port 8082)",
+      "launch": "j-learn/j-learn.sh",
+      "jar":    "j-learn/target/j-learn-1.1.0.jar",
+      "icon":   "j-hub/src/main/resources/icons/icon.png",
+      "categories": "HamRadio;Education;"
     }
   ]
 }

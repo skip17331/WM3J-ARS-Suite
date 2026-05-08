@@ -187,10 +187,12 @@
             </div>
           </div>
           <div class="module-row">
-            <span class="dot green" id="dot-jlearn"></span>
+            <span class="dot gray" id="dot-jlearn"></span>
             <span class="module-name">J-Learn</span>
-            <span class="module-meta" id="meta-jlearn">In-app reference library</span>
+            <span class="module-meta" id="meta-jlearn">Reference library (port 8082)</span>
             <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="launchApp('j-learn')">Launch</button>
+              <button class="btn btn-sm btn-red"   onclick="killApp('j-learn')">Stop</button>
               <button class="btn btn-sm btn-ghost" onclick="document.querySelector('[data-tab=learn]').click()">Open</button>
             </div>
           </div>
@@ -825,34 +827,26 @@
       </div>
     </section>
 
-    <!-- ─── Tab: J-Learn ────────────────────────────────── -->
+    <!-- ─── Tab: J-Learn ─── iframes the standalone j-learn server (:8082).
+         Lazy-rendered: the iframe is created the first time this tab opens,
+         which means no network hit if J-Learn is down or you never visit it. -->
     <section id="tab-learn" class="tab-panel">
-      <div class="panel-header">J-Learn — In-App Reference Library</div>
-      <div class="panel-sub">~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, and operating practice.</div>
-
-      <div style="display:flex;align-items:center;gap:14px;margin:6px 0 10px 0;font-size:12px;color:var(--subtext0)">
-        <label style="display:flex;align-items:center;gap:6px">
-          Text size:
-          <input type="range" id="jl-text-size" min="80" max="180" step="5" value="100" style="width:140px"
-                 oninput="applyJLearnTextSize(this.value)">
-          <span id="jl-text-size-val">100</span>%
-        </label>
-        <button class="btn btn-ghost btn-sm" onclick="resetJLearnTextSize()">Reset</button>
+      <div class="panel-header">J-Learn — Amateur Radio Reference Library</div>
+      <div class="panel-sub">
+        ~200 chapters on propagation, antennas, RF safety, troubleshooting, formulas, operating practice.
+        Runs as a separate process on port 8082 — also accessible standalone at
+        <a href="http://localhost:8082/" target="_blank" rel="noopener">http://localhost:8082/</a>.
       </div>
 
-      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 260px);min-height:500px">
-        <div class="card" style="overflow:auto;padding:8px">
-          <div style="display:flex;gap:6px;margin-bottom:8px">
-            <input type="text" id="jl-search" placeholder="Filter…" style="flex:1;padding:4px 6px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:12px" oninput="filterLearnToc()">
-            <label style="font-size:11px;display:flex;align-items:center;gap:4px;color:var(--subtext0)">
-              <input type="checkbox" id="jl-advanced" onchange="renderLearnContent()"> Advanced
-            </label>
-          </div>
-          <div id="jl-toc"></div>
-        </div>
-        <div class="card" style="overflow:auto;padding:18px" id="jl-viewer">
-          <div style="color:var(--subtext0);font-size:13px">Pick a chapter on the left to start reading. J-Learn remembers your last-opened section automatically.</div>
-        </div>
+      <div style="display:flex;gap:8px;margin:8px 0 10px 0;align-items:center">
+        <button class="btn btn-green btn-sm" onclick="launchApp('j-learn')">Launch</button>
+        <button class="btn btn-ghost btn-sm" onclick="reloadJLearnIframe()">Reload</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.open('http://localhost:8082/', '_blank')">Open in Browser</button>
+        <span id="jl-status" style="font-size:12px;color:var(--subtext0)"></span>
+      </div>
+
+      <div id="jl-iframe-wrap" style="height:calc(100vh - 220px);min-height:500px;border:1px solid var(--surface0);border-radius:6px;overflow:hidden;background:var(--mantle)">
+        <!-- iframe injected by ensureJLearnIframe() on first tab activation -->
       </div>
     </section>
 
@@ -2393,7 +2387,7 @@
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jmap"></span> J-Map</span><span class="intel-v" id="i-jmap">—</span></div>
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jsat"></span> J-Sat</span><span class="intel-v" id="i-jsat">—</span></div>
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jvault"></span> J-Vault</span><span class="intel-v" id="i-jvault">—</span></div>
-      <div class="intel-row"><span class="intel-k"><span class="dot green" id="i-dot-jlearn"></span> J-Learn</span><span class="intel-v" id="i-jlearn">in-app</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jlearn"></span> J-Learn</span><span class="intel-v" id="i-jlearn">port 8082</span></div>
     </div>
 
     <!-- Alerts -->

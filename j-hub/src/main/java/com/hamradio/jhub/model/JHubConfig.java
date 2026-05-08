@@ -264,6 +264,7 @@ public class JHubConfig {
         public AppLaunchEntry jDigi   = new AppLaunchEntry();
         public AppLaunchEntry jSat    = new AppLaunchEntry();
         public AppLaunchEntry jVault  = new AppLaunchEntry();
+        public AppLaunchEntry jLearn  = new AppLaunchEntry();
     }
 
     public static class AppLaunchEntry {

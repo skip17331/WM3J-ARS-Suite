@@ -39,7 +39,7 @@ J-Hub is the **central message broker** for the WM3J ARS Suite of ham radio desk
 
 `j-hub.json` is created at first run. Key sections: `jHub` (ports), `station` (callsign, lat/lon, grid), `cluster` (server, port, loginCallsign, filters), `logger`, `infoScreen`. Edit directly or use the web UI at `http://localhost:8081`.
 
-**J-Hub is the sole configuration UI for the entire ARS Suite.** Port 8082 (old J-Map setup server) is permanently removed. J-Map configuration lives in the J-Map tab at port 8081 and is delivered to J-Map via `JMAP_CONFIG` WebSocket messages.
+**J-Hub is the configuration UI for the JavaFX modules.** Port 8082 was once the old J-Map setup server (long retired) and is now used by the standalone J-Learn web app. J-Hub iframes J-Learn (8082) and J-Vault (8083) as tabs but doesn't own their UI. J-Map configuration lives in the J-Map tab at port 8081 and is delivered to J-Map via `JMAP_CONFIG` WebSocket messages.
 
 ## WebSocket Protocol
 

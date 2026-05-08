@@ -11,7 +11,7 @@ platform below and run the commands top-to-bottom. Should take about
 
 ## What you'll end up with
 
-Eight Maven modules, one installer:
+Nine Maven modules, one installer:
 
 | Module      | What it is                                             | Port  |
 |-------------|--------------------------------------------------------|-------|
@@ -23,9 +23,11 @@ Eight Maven modules, one installer:
 | **j-bridge**    | WSJT-X / FT8 integration                              | —     |
 | **j-sat**       | Satellite tracker                                     | —     |
 | **j-vault**     | Shack inventory + estate-handoff PDF wizard           | 8083  |
+| **j-learn**     | Amateur-radio reference library (web app)             | 8082  |
 
-J-Learn (the in-app reference library) is **bundled inside J-Hub** — no
-separate install. Open the J-Learn tab in J-Hub.
+J-Hub iframes J-Learn so it shows up as a tab inside the main UI; you can
+also open it directly at <http://localhost:8082/> from any browser on the
+LAN.
 
 ---
 
@@ -90,17 +92,15 @@ cd ARS_Suite
 ### 3. Build the suite
 
 J-Log-Engine is a shared library — install it first so the others can
-depend on it. Then install J-Learn (so J-Hub can bundle the content),
-J-Vault, and finally package everything else.
+depend on it. J-Learn and J-Vault are standalone modules but get
+`mvn install`-ed so J-Hub can launch them by name.
 
 ```bash
-# Shared engine first — must be installed (mvn install) so other modules find it
+# Shared engine first — must be installed so log/digi can find it
 mvn -q -DskipTests -f j-log-engine/pom.xml install
 
-# Install j-learn (its content is bundled into j-hub)
+# Standalone web apps J-Hub launches — install for the .m2 cache
 mvn -q -DskipTests -f j-learn/pom.xml install
-
-# Install j-vault (so j-hub can launch it)
 mvn -q -DskipTests -f j-vault/pom.xml install
 
 # Package the apps
@@ -121,8 +121,8 @@ to re-run any time; never touches your config or databases.
 ./install.sh
 ```
 
-You should see seven entries installed (j-hub, j-log, j-map, j-digi,
-j-bridge, j-sat, j-vault).
+You should see eight entries installed (j-hub, j-log, j-map, j-digi,
+j-bridge, j-sat, j-vault, j-learn).
 
 ### 5. Launch J-Hub
 
@@ -135,8 +135,9 @@ terminal:
 
 Open <http://localhost:8081/> in your browser. That's the main UI.
 
-To launch J-Vault separately, search for **WM3J J-Vault** in the menu,
-or from J-Hub's left nav click **J-Vault → Launch**.
+J-Vault and J-Learn are separate processes (ports 8083 and 8082). They
+have their own Start-Menu / app-menu entries, and J-Hub's left nav has a
+**Launch** button on each tab so you can start them from the UI.
 
 ---
 
@@ -210,6 +211,9 @@ work on Windows. Each module needs its own Windows JavaFX libs:
    }
    ```
 
+   J-Learn is a pure web app and doesn't use JavaFX, so it isn't in the
+   list above.
+
 This step is one-time. The Linux flow doesn't need it because the
 symlinks point at a working SDK already.
 
@@ -219,10 +223,8 @@ symlinks point at a working SDK already.
 # Shared engine first
 mvn -q -DskipTests -f j-log-engine\pom.xml install
 
-# J-Learn content (bundled into j-hub)
+# Standalone web apps J-Hub launches — install for the .m2 cache
 mvn -q -DskipTests -f j-learn\pom.xml install
-
-# J-Vault (so j-hub can launch it)
 mvn -q -DskipTests -f j-vault\pom.xml install
 
 # Package the apps
@@ -242,7 +244,7 @@ This generates per-module `.bat` launchers (when missing) and creates
 .\install.bat
 ```
 
-You should see seven entries installed.
+You should see eight entries installed.
 
 ### 6. Launch J-Hub
 
@@ -255,8 +257,9 @@ PowerShell:
 
 Open <http://localhost:8081/> in your browser.
 
-J-Vault has its own Start-Menu entry (**WM3J J-Vault**); from inside
-J-Hub you can also launch it via **J-Vault tab → Launch**.
+J-Vault and J-Learn each have their own Start-Menu entries
+(**WM3J J-Vault**, **WM3J J-Learn**); from inside J-Hub you can also
+launch them via the corresponding tab's **Launch** button.
 
 ---
 
@@ -300,6 +303,8 @@ databases are never touched by the installer or by `git pull`.
 | `~/ARS_Suite/`             | Source + built jars |
 | `~/.j-hub/`                | J-Hub config (`j-hub.json`), credentials, logs |
 | `~/.j-vault/inventory.db`  | J-Vault inventory database |
+| `~/.j-learn/content/`      | J-Learn markdown (seeded on first run, editable) |
+| `~/.j-learn/settings.json` | J-Learn port override |
 | `~/.j-log/`                | J-Log databases (normal log + contests) + macros |
 | `~/.j-map/`                | J-Map cached map images, settings |
 | `~/.j-sat/`                | J-Sat TLE cache + settings |
@@ -319,16 +324,17 @@ Open a *new* PowerShell window. winget updates PATH but only for new sessions.
 on Windows** — You skipped step 3 (Windows JavaFX SDK). The Linux symlinks
 in `lib/javafx` don't work on Windows.
 
-**Maven build fails on j-hub with `Could not resolve … j-learn` / `j-log-engine`** —
-You forgot to `mvn install` (not just `mvn package`) the engine and j-learn first.
-The build order matters: `j-log-engine → j-learn → j-vault → others`.
+**Maven build fails with `Could not resolve … j-log-engine`** —
+You forgot to `mvn install` (not just `mvn package`) the engine first.
+J-Hub no longer depends on j-learn at build time; the standalone web apps
+(j-learn, j-vault) just need to be installed so J-Hub can launch them.
 
 **Installer prints "skipped (missing build: …)"** — That module didn't build.
 Re-run its specific `mvn package` line and look for the actual error.
 
-**J-Vault launches but the J-Hub J-Vault tab shows "connection refused"** —
-J-Vault is a separate process on port 8083. Click **J-Vault → Launch** in
-J-Hub's left nav, wait 3-5 seconds for Jetty to start, then click **Reload**
-on the embedded view.
+**J-Vault / J-Learn launches but the J-Hub tab shows "connection refused"** —
+J-Vault and J-Learn are separate processes on ports 8083 and 8082. Click
+**Launch** at the top of the corresponding tab in J-Hub, wait 3-5 seconds
+for Jetty to start, then click **Reload** on the embedded view.
 
 For deeper troubleshooting, see **[USER_GUIDE.md § Troubleshooting](USER_GUIDE.md#6-troubleshooting)**.
