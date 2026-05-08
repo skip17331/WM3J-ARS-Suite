@@ -314,15 +314,20 @@ function applyStationIntel(st) {
   setVal('st-cqzone',    st.cqZone      || '');
   setVal('st-arrl',      st.arrlSection || '');
   setVal('st-ituzone',   st.ituZone     || '');
-  setVal('st-rig-alias', st.rigAlias    || '');
+  setVal('st-rig-model',    st.rigModel    || '');
+  setVal('st-rig-alias',    st.rigAlias    || '');
   setVal('st-rig-operator', st.rigOperator || '');
 
-  // Show rig alias in intel pane, dashboard, and rig control header
+  // Rig and Alias are independent: Rig = model (e.g. "IC-746pro"),
+  // Alias = friendly nickname (e.g. "Backup"). Show both separately.
+  const model = (st.rigModel || '').trim();
+  const alias = (st.rigAlias || '').trim();
   const aliasRow = document.getElementById('i-rig-alias-row');
-  const alias = st.rigAlias || '';
   if (aliasRow) aliasRow.style.display = alias ? '' : 'none';
   setText('i-rig-alias',     alias || '—');
-  setText('i-rig-model',     alias || (st.callsign ? st.callsign + ' Rig' : '—'));
+  setText('i-rig-model',     model || (st.callsign ? st.callsign + ' Rig' : '—'));
+  // Dashboard / rig-control header still surface the alias since that's
+  // the short label most users prefer to see at a glance.
   setText('d-rig-alias',     alias);
   setText('rig-header-alias', alias ? '— ' + alias : '');
 
@@ -1204,6 +1209,7 @@ function saveStation() {
       cqZone:      parseInt(document.getElementById('st-cqzone').value)||0,
       arrlSection: (document.getElementById('st-arrl').value||'').toUpperCase().trim(),
       ituZone:     parseInt(document.getElementById('st-ituzone').value)||0,
+      rigModel:    document.getElementById('st-rig-model').value.trim(),
       rigAlias:    document.getElementById('st-rig-alias').value.trim(),
       rigOperator: document.getElementById('st-rig-operator').value.trim(),
     }

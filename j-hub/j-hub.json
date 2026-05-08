@@ -16,7 +16,9 @@
     "cqZone": 5,
     "arrlSection": "EPA",
     "ituZone": 0,
-    "rigAlias": "Icom 746pro"
+    "rigModel": "IC-746pro",
+    "rigAlias": "Backup",
+    "rigOperator": ""
   },
   "rig": {
     "backend": "NONE",

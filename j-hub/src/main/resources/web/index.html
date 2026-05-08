@@ -257,10 +257,17 @@
         </div>
         <div class="field-row cols-2" style="margin-top:6px">
           <div class="field">
-            <input type="text" id="st-rig-alias" placeholder="Icom IC-7300 (Main)">
-            <label>Rig Alias / Friendly Name</label>
-            <span class="hint">Displayed in all modules wherever the rig name appears</span>
+            <input type="text" id="st-rig-model" placeholder="IC-746pro, FT-991A, FTDX-10, …">
+            <label>Rig (Model)</label>
+            <span class="hint">Actual transceiver model. Independent of the friendly nickname.</span>
           </div>
+          <div class="field">
+            <input type="text" id="st-rig-alias" placeholder="Main, Backup, Mobile, …">
+            <label>Alias / Friendly Name</label>
+            <span class="hint">Short nickname shown wherever the rig is referenced (e.g. "Main" or "Backup").</span>
+          </div>
+        </div>
+        <div class="field-row cols-2" style="margin-top:6px">
           <div class="field">
             <input type="text" id="st-rig-operator" placeholder="(defaults to operator name)">
             <label>Rig Operator</label>

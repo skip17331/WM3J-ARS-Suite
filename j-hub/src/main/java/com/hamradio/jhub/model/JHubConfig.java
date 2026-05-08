@@ -62,7 +62,8 @@ public class JHubConfig {
         public int    cqZone      = 0;
         public String arrlSection = "";
         public int    ituZone     = 0;
-        public String rigAlias    = "";   // friendly name displayed in all module UIs
+        public String rigModel    = "";   // actual model (e.g. "IC-746pro", "FT-991A")
+        public String rigAlias    = "";   // friendly nickname (e.g. "Main", "Backup")
         public String rigOperator = "";   // operator at this rig (override; defaults to "name")
     }
 
