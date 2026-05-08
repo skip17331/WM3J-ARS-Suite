@@ -11,9 +11,11 @@ WM3J‑ARS‑Suite is a modular, operator‑centric amateur radio software ecosy
 
 ---
 
-**New here?** See **[USER_GUIDE.md](USER_GUIDE.md)** for installation
-instructions (Linux / macOS / Windows), a web UI walkthrough, per-app setup
-notes, troubleshooting, and an architecture map.
+**Just want to install it?** See **[INSTALL.md](INSTALL.md)** — focused
+step-by-step setup for Linux and Windows (git, Java, Maven, build, run).
+
+**Already installed?** See **[USER_GUIDE.md](USER_GUIDE.md)** for the web UI
+walkthrough, per-app setup notes, troubleshooting, and an architecture map.
 
 **Wiring your radio, rotator, amp, or antenna switch?** See
 **[docs/HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md)** — a beginner-friendly,
