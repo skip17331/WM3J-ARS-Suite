@@ -16,10 +16,12 @@ See [README.md](README.md) for the project's purpose and license.
 1. [Overview](#1-overview)
 2. [Installation](#2-installation)
    - [All platforms — prerequisites](#21-all-platforms--prerequisites)
-   - [Linux](#22-linux)
-   - [macOS](#23-macos)
-   - [Windows](#24-windows)
-   - [Optional dependencies — Hamlib and WSJT-X](#25-optional-dependencies--hamlib-and-wsjt-x)
+   - [Build order matters](#22-build-order-matters)
+   - [Linux quick build](#23-linux-quick-build)
+   - [Install to a non-default location](#24-install-to-a-non-default-location)
+   - [Windows JavaFX](#25-windows-javafx)
+   - [macOS](#26-macos)
+   - [Optional dependencies — Hamlib and WSJT-X](#27-optional-dependencies--hamlib-and-wsjt-x)
 3. [First-run setup](#3-first-run-setup)
 4. [Web UI walkthrough](#4-web-ui-walkthrough)
 5. [Per-app notes](#5-per-app-notes)
@@ -30,40 +32,61 @@ See [README.md](README.md) for the project's purpose and license.
 
 ## 1. Overview
 
-The suite is six JavaFX applications plus one broker:
+The suite is **seven JavaFX applications plus one broker** (J-Hub), with an
+in-app reference library (**J-Learn**) bundled inside the broker:
 
-| Name       | What it does                                                           | Default ports                    |
-|------------|------------------------------------------------------------------------|----------------------------------|
-| `j-hub`    | Central WebSocket broker + web config UI + service manager             | 8080 (WS), 8081 (HTTP)           |
-| `j-log`    | QSO logger: casual (Normal) + contest (68+ plugins) + awards           | none (connects to j-hub)         |
-| `j-map`    | DX map, grayline, propagation model, satellite/lunar overlays          | none                             |
-| `j-digi`   | Native digital modem — CW, RTTY, PSK31/63/125, FT8/4, Olivia, MFSK     | none (uses audio devices)        |
-| `j-bridge` | Bridges WSJT-X to the suite via UDP 2237                               | 2237 (WSJT-X UDP)                |
-| `j-sat`    | Satellite pass tracker, rig/rotor auto-tune during passes              | 4540 (TLE API)                   |
+| Name        | What it does                                                          | Default ports                |
+|-------------|-----------------------------------------------------------------------|------------------------------|
+| `j-hub`     | Central WebSocket broker + web control surface + service manager. Bundles **J-Learn** (in-app reference library) and the **Antenna Workshop** (recommender + 27 calculators). | 8080 (WS), 8081 (HTTP)       |
+| `j-log`     | QSO logger: casual (Normal) + contest (68+ plugins) + awards          | none (connects to j-hub)     |
+| `j-map`     | DX map, grayline, propagation model, satellite/lunar/aurora overlays  | none                         |
+| `j-digi`    | Native digital modem — CW, RTTY, PSK31/63/125, Olivia, MFSK, Feld Hell | none (uses audio devices)   |
+| `j-bridge`  | Bridges WSJT-X to the suite via UDP 2237                              | 2237 (WSJT-X UDP)            |
+| `j-sat`     | Satellite pass tracker, rig/rotor auto-tune during passes             | 4540 (TLE API)               |
+| `j-vault`   | Shack inventory + first-call contacts + Estate Handoff PDF wizard. Standalone JavaFX app with its own embedded Jetty + SQLite. | 8083 (HTTP) |
+
+**J-Learn** is *not* a separate process — it lives inside J-Hub. Open it
+via the **J-Learn tab** in the J-Hub web UI. ~200 sections covering
+propagation, antennas, RF safety, troubleshooting, formulas, operating
+practice, and emcomm; with click-through deep-links to the matching
+calculators in the Antenna Workshop.
 
 **Traffic flow:** every app opens a WebSocket to `j-hub` on port 8080, sends
 `APP_CONNECTED`, and joins a shared event stream. When a spot arrives, a
 callsign is looked up, or the rig changes frequency, every connected app
-sees it.
+sees it. J-Vault is the exception — it's a self-contained service that
+keeps its own state in `~/.j-vault/inventory.db` and serves its own UI
+on port 8083; J-Hub launches it as a child process and embeds its UI in
+the J-Vault tab via iframe.
 
-**Config lives in one place:** `~/ARS_Suite/j-hub/j-hub.json`. Edit via the
-web UI at `http://localhost:8081` — or by hand if you prefer.
+**Config lives in one place:** `~/.j-hub/j-hub.json`. Edit via the
+web UI at `http://localhost:8081` — or by hand if you prefer. J-Vault
+keeps a separate, isolated database under `~/.j-vault/` since estate /
+inventory data is sensitive enough to warrant its own file.
 
 ---
 
 ## 2. Installation
 
+> **The canonical install guide is [INSTALL.md](INSTALL.md)** — focused
+> step-by-step setup for Linux and Windows with distro-specific package
+> manager lines, the Windows JavaFX SDK swap, and an updating section.
+> What follows here is a brief recap and the cross-platform notes that
+> apply once you're past the basic install.
+
 ### 2.1 All platforms — prerequisites
 
 - **Java 21 or newer.** Any JDK works (Temurin / OpenJDK / Zulu / Oracle
-  / Microsoft Build of OpenJDK). JavaFX is bundled into each module's
-  shaded JAR, so you do **not** need a separate JavaFX install.
-- **Disk:** ~250 MB for the installed suite, plus ~50 MB per active
-  log database.
-- **RAM:** 512 MB for j-hub alone; ~1 GB if all modules are running.
+  / Microsoft Build of OpenJDK).
+- **Maven 3.8+** for building from source.
+- **Git** for cloning the repository.
+- **Disk:** ~500 MB for source + built jars; plus ~50 MB per active
+  log database and per-app data dirs (`~/.j-hub/`, `~/.j-vault/`,
+  `~/.j-log/`, `~/.j-map/`, `~/.j-sat/`).
+- **RAM:** 512 MB for J-Hub alone; ~1.5 GB if all modules are running.
 - **Optional:**
-  - **Hamlib** (`rigctl` / `rotctld`) — for rig or rotor control.
-  - **WSJT-X** — only if you run FT8/FT4/MSK144 through the integration.
+  - **Hamlib** (`rigctl` / `rotctld` / `ampctld`) — rig / rotor / amp control.
+  - **WSJT-X** — only if you run FT8/FT4/MSK144 through the J-Bridge integration.
 
 Check Java is installed:
 
@@ -72,126 +95,66 @@ java --version
 # Expected: openjdk 21.x.x ...   or similar
 ```
 
-### 2.2 Linux
+### 2.2 Build order matters
 
-Debian/Ubuntu:
+The suite has dependencies between modules. Build in this order:
 
-```bash
-sudo apt install openjdk-21-jdk
+```
+j-log-engine  (shared library — install first)
+j-learn       (content jar — bundled into j-hub at package time)
+j-vault       (so its jar is available when J-Hub launches it)
+j-hub, j-log, j-map, j-digi, j-bridge, j-sat   (any order)
 ```
 
-Fedora/RHEL:
+The `j-log-engine`, `j-learn`, and `j-vault` modules need `mvn install`
+(not just `package`) so their jars land in your local `.m2` cache. The
+others just need `mvn package`.
+
+### 2.3 Linux quick build
 
 ```bash
-sudo dnf install java-21-openjdk-devel
-```
-
-Arch:
-
-```bash
-sudo pacman -S jdk21-openjdk
-```
-
-Install the suite — pick **A** (release bundle) or **B** (build from source):
-
-**A. Release bundle:**
-
-```bash
-mkdir -p ~/ARS_Suite
-tar -xzf ars-suite-<version>.tar.gz -C ~/ARS_Suite --strip-components=1
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
 cd ~/ARS_Suite
-./install.sh      # writes .desktop entries + icons under ~/.local/share/
-./j-hub/start.sh  # launch j-hub
-```
-
-**B. Build from source (requires Maven 3.8+):**
-
-```bash
-sudo apt install maven       # or dnf/pacman equivalent
-git clone https://github.com/YOUR-USERNAME/ARS_Suite.git ~/ARS_Suite
-cd ~/ARS_Suite
-
-# j-log-engine is the shared library — install to local .m2 first
-mvn -DskipTests -f j-log-engine/pom.xml install
-
-# Build each module
+mvn -q -DskipTests -f j-log-engine/pom.xml install
+mvn -q -DskipTests -f j-learn/pom.xml install
+mvn -q -DskipTests -f j-vault/pom.xml install
 for m in j-hub j-log j-map j-digi j-bridge j-sat; do
-  mvn -DskipTests -f "$m/pom.xml" package
+  mvn -q -DskipTests -f "$m/pom.xml" package
 done
-
-./install.sh       # writes menu entries
-./j-hub/start.sh   # launch j-hub
+./install.sh
+./j-hub/start.sh
 ```
 
-**Install to a non-default location?** Set the env var:
+### 2.4 Install to a non-default location?
 
 ```bash
-export ARS_SUITE_HOME=/opt/ars-suite   # or wherever you put it
+export ARS_SUITE_HOME=/opt/ars-suite   # Linux/macOS
+setx ARS_SUITE_HOME C:\opt\ars-suite   # Windows (System Properties → Env Vars)
 ```
 
-All apps honor this — it's the reference root when j-log / j-map / j-digi /
-j-bridge / j-sat need to find j-hub's `start.sh`.
+All apps honor this when launched from a child process by J-Hub.
 
-### 2.3 macOS
+### 2.5 Windows JavaFX
 
-Install Java 21 via Homebrew:
+The repo's `lib/javafx` symlinks point at a Linux SDK. On Windows, copy
+the Windows JavaFX 21 SDK into each module's `lib\javafx\` after cloning.
+Step-by-step PowerShell loop in **[INSTALL.md § Step 3](INSTALL.md)**.
+
+### 2.6 macOS
 
 ```bash
 brew install --cask temurin21
+brew install maven git
+# then the same source/build flow as Linux
 ```
 
-Then the release-bundle or source flow is the same as Linux:
-
-```bash
-mkdir -p ~/ARS_Suite
-tar -xzf ars-suite-<version>.tar.gz -C ~/ARS_Suite --strip-components=1
-cd ~/ARS_Suite/j-hub
-./start.sh
-```
-
-If Gatekeeper complains about an unsigned JAR, run once with:
+If Gatekeeper complains about an unsigned JAR, run once:
 
 ```bash
 xattr -dr com.apple.quarantine ~/ARS_Suite
 ```
 
-### 2.4 Windows
-
-1. **Install Java 21.** Download Temurin from
-   <https://adoptium.net/temurin/releases/?version=21>. Pick the `.msi`
-   installer, tick "Set JAVA_HOME" and "Add to PATH" during setup.
-2. **Unzip the release bundle** to `C:\ARS_Suite` (or any path you like;
-   set `ARS_SUITE_HOME` if it's not `%USERPROFILE%\ARS_Suite\`).
-3. **Build the modules** (if you cloned from source — release bundles skip
-   this). Each module also has a convenience `.bat` in its root:
-   ```cmd
-   cd C:\ARS_Suite
-   mvn -DskipTests -f j-log-engine\pom.xml install
-   for %m in (j-hub j-log j-map j-digi j-bridge j-sat) do mvn -DskipTests -f %m\pom.xml package
-   ```
-4. **Run the installer** — creates Start-Menu shortcuts under
-   `%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\`:
-   ```cmd
-   cd C:\ARS_Suite
-   install.bat
-   ```
-5. **Launch j-hub** from the Start Menu, or directly:
-   ```cmd
-   C:\ARS_Suite\j-hub\start.bat
-   ```
-
-> **Note on paths:** apps default to looking for j-hub at
-> `%USERPROFILE%\ARS_Suite\j-hub`. For any other location set the
-> `ARS_SUITE_HOME` system environment variable (System Properties →
-> Environment Variables) to the install root.
-
-> **JavaFX on Windows:** each module expects a `lib\javafx\` folder next
-> to its `target\` folder with the Windows JavaFX 21 JARs. If the release
-> bundle didn't include them, download the Windows SDK zip from
-> <https://gluonhq.com/products/javafx/>, extract the JARs into each
-> module's `lib\javafx\`, and you're set.
-
-### 2.5 Optional dependencies — Hamlib and WSJT-X
+### 2.7 Optional dependencies — Hamlib and WSJT-X
 
 The suite does not auto-install these. Open j-hub's web UI after startup —
 the Dashboard has a **System Dependencies** card that detects both and shows
@@ -223,34 +186,56 @@ button re-probes after you install them.
 ## 3. First-run setup
 
 1. Launch `j-hub` (`./start.sh` on Linux/macOS, `start.bat` on Windows).
-   A small status window opens showing uptime, ports, connected apps, and
-   external dependency status. Click **Open Web Config UI** to launch the
-   browser-based configurator.
-2. In the web UI, go to the **Station** tab and enter your callsign,
-   name, QTH, grid square, latitude/longitude, timezone, and language.
+   A small status window (the **Mini UI**) opens showing uptime, ports,
+   connected apps, and Launch/Stop buttons for every managed module.
+   Click **Open Web Config UI** to launch the browser-based configurator.
+2. In the web UI, go to the **Station** tab and fill in:
+   - **Callsign** and **Operator Name** (top row)
+   - **Rig (Model)** and **Alias / Friendly Name** — these are independent.
+     Model is the actual transceiver (e.g. `IC-746pro`); alias is the short
+     nickname shown wherever a rig label appears (e.g. `Main`, `Backup`).
+   - **Rig Operator** — leave blank to default to the operator name above;
+     override for shared / club / multi-op stations.
+   - **QTH**, **Grid Square**, **lat/lon**, **timezone**, **language**.
    Save.
 3. Go to the **Modules** tab. For each app you want to auto-launch when
-   j-hub starts, paste the launch command and tick **Auto-launch**. Example
+   J-Hub starts, paste the launch command and tick **Auto-launch**. Example
    commands (Linux, default layout):
-   - `j-log`: `bash /home/$USER/ARS_Suite/j-log/j-log.sh`
-   - `j-map`: `cd /home/$USER/ARS_Suite/j-map && mvn javafx:run -q`
+   - `j-log`:    `bash /home/$USER/ARS_Suite/j-log/j-log.sh`
+   - `j-map`:    `bash /home/$USER/ARS_Suite/j-map/j-map.sh`
    - `j-bridge`: `bash /home/$USER/ARS_Suite/j-bridge/j-bridge.sh`
-   - `j-digi`: `bash /home/$USER/ARS_Suite/j-digi/j-digi.sh`
-   - `j-sat`: `bash /home/$USER/ARS_Suite/j-sat/j-sat.sh --launched-by-hub`
+   - `j-digi`:   `bash /home/$USER/ARS_Suite/j-digi/j-digi.sh`
+   - `j-sat`:    `bash /home/$USER/ARS_Suite/j-sat/j-sat.sh --launched-by-hub`
+   - `j-vault`:  `bash /home/$USER/ARS_Suite/j-vault/j-vault.sh`
+
+   J-Vault is launched the same way as the others but lives on its own port
+   (8083) and keeps its own data directory. It does **not** join the
+   broker WebSocket; J-Hub just spawns the process and embeds its UI in
+   the J-Vault tab.
 4. Optional but recommended: under **Rig Control**, configure either CI-V
    (serial port, baud, hex address) or Hamlib (rigctld host/port). Under
-   **Rotor Control** do the same if you run a rotator.
-5. Under **DX Cluster**, pick a network (e.g. `dxc.ve7cc.net:7300`), enter
+   **Rotor Control** do the same if you run a rotator. Under **Amp Control**
+   if you run an amplifier with `ampctld`.
+5. Under **DX Cluster**, pick a network (e.g. `dx.middlebrook.ca:8000`), enter
    your login callsign, tick **Auto-connect**, save.
-6. Restart j-hub. Auto-launched modules come up, register on the hub, and
-   start sharing state.
+6. Restart J-Hub. Auto-launched modules come up, register on the hub, and
+   start sharing state. J-Vault appears in its own window on first launch
+   (it's a JavaFX status window with an "Open in Browser" button).
 
 ---
 
 ## 4. Web UI walkthrough
 
 The web UI lives at `http://localhost:8081`. Navigation is a left sidebar
-with tabs; each tab saves independently via its own **Save** button.
+with tabs in this order:
+
+```
+Dashboard · Station · Callsign · J-Log · J-Map · J-Digi · J-Bridge · J-Sat ·
+J-Vault · J-Learn · Modules · Logging & Data · Macros · Rig Control ·
+Rotor Control · Amp Control · Antenna Switch · DX Cluster · Antenna Workshop · Weather
+```
+
+Each tab saves independently via its own **Save** button.
 
 ### Dashboard
 
@@ -258,6 +243,9 @@ Live cockpit. Shows:
 
 - **Rig Status**: current frequency, mode, power, source (CI-V / Hamlib / WSJT-X).
 - **Rotor / Antenna**: azimuth, target, connection state.
+- **Module Connections**: J-Log, J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, and
+  J-Learn each with a status dot and Launch / Stop buttons. J-Learn shows a
+  green dot ("in-app") with an Open button that switches to the Learn tab.
 - **Quick Actions**: reconnect rig, restart cluster, reload config, restart WS.
 - **Connected Apps**: each registered WebSocket client with `up` / `msg` / `hb`
   age counters. Red dot = stale (no traffic in ~60 s and no heartbeat in ~45 s).
@@ -266,73 +254,167 @@ Live cockpit. Shows:
 
 ### Station
 
-Operator identity: callsign, name, QTH, grid, lat/lon, timezone, ARRL section,
-CQ/ITU zones, display language (en / de / es / fr / it). These propagate to
-every module — change them once, everyone picks up the update on next start
-(or live if the module supports it).
+Operator identity. Two rows:
 
-### Rig Control / Rotor Control
+- **Callsign** + **Operator Name**.
+- **Rig (Model)** (e.g. `IC-746pro`) + **Alias / Friendly Name**
+  (e.g. `Backup`) — independent fields, both can be set freely.
+- **Rig Operator** — overrides operator name for this rig (shared / club /
+  multi-op stations); leave blank to default to operator name.
 
-Choose a backend (`CI_V`, `HAMLIB`, or `NONE`) and configure the relevant
-parameters. Supports hot-swap: change the backend and save; j-hub reconnects
-without a full restart.
-
-### DX Cluster
-
-Pick from a list of networks or add your own, set filters (bands, modes),
-auto-connect toggle. Raw telnet stream and parsed spots both flow to every
-connected app — j-log shows them in the DX Spotting pane, j-map plots them
-on the world map.
-
-### Logging & Data
-
-Database management for j-log:
-
-- **Database selection** — switch between multiple `.db` files stored in
-  `~/.j-log/`. Useful for multiple contest entries or keeping a personal
-  log separate from club operations.
-- **Add / Set Active / Delete** — create and manage databases without
-  touching j-log.
-- **Import / Export** — ADIF import (routes through a running j-log), ADIF
-  and CSV export.
-- **Backup** — `Backup Active DB` writes a timestamped copy next to the
-  original in `~/.j-log/`.
-
-### Modules
-
-Launch configuration for each managed app. Per app:
-
-- **Auto-launch** toggle — start when j-hub starts.
-- **Command** — shell command that launches the app (platform-specific).
-- **IP** — reserved for future remote-launch support; leave `localhost`.
-
-### J-Log
-
-J-Log-specific settings:
-
-- **Display** — show/hide the Space Weather pane.
-- **Global Base Font** — baseline UI font size.
-- **Per-Pane Font Sizes** — individual overrides for status bar, data entry,
-  QSO log table, info/bearing pane, DX + Heard-By panes. `0 = inherit`.
-- **Save J-Log Settings** / **Save Data & Restart J-Log** — the latter flushes
-  + restarts j-log so pane overrides take effect.
-
-### J-Map / J-Digi / J-Bridge / J-Sat
-
-Same pattern as the J-Log tab — each has font controls and a **Save Data &
-Restart** button. J-Map adds API keys (NOAA, OpenWeatherMap) and map-image
-uploads. J-Sat adds satellite selection, elevation thresholds, TLE source.
-
-### Weather
-
-Live Space Weather tiles (Kp, X-ray flux, IMF Bz, solar wind, proton flux)
-plus local weather when an OpenWeatherMap key is configured in J-Map.
+Plus QTH, grid, lat/lon, timezone, ARRL section, CQ/ITU zones, display
+language (en / de / es / fr / it). All of these propagate to every module
+on next start (or live if the module supports it).
 
 ### Callsign
 
 Configure callsign lookup providers: QRZ.com XML, HamQTH, HamDB, Callook,
 local FCC ULS database. Set a priority chain (`auto`) or pin to a single
 provider. Import the FCC ULS data locally for offline lookups.
+
+### J-Log / J-Map / J-Digi / J-Bridge / J-Sat
+
+Per-app font / display settings, plus app-specific extras:
+
+- **J-Log** — global base font + per-pane overrides (status bar, data entry,
+  QSO log table, info/bearing pane, DX + Heard-By panes). `0 = inherit`.
+- **J-Map** — API keys (NOAA, OpenWeatherMap), map-image uploads
+  (custom equirectangular world map, custom great-circle map).
+- **J-Digi** — font sizes for waterfall, decode pane, status.
+- **J-Bridge** — font sizes; restart-on-save flushes WSJT-X UDP listener.
+- **J-Sat** — satellite selection, elevation thresholds, TLE source URL +
+  staleness threshold.
+
+Each tab has **Save** and **Save Data & Restart** buttons. The latter
+flushes + restarts the app so pane overrides take effect.
+
+### J-Vault
+
+Embedded view of the J-Vault web UI (loaded from `http://localhost:8083/`
+in an iframe). Two cards:
+
+- **J-Vault Process** — Launch / Stop / Open in Browser. Launch first if
+  the iframe shows a connection error.
+- **Embedded J-Vault** — text-size slider (80-160%) zooms the iframe;
+  Reload button refetches.
+
+The full J-Vault feature set (inventory CRUD, first-call contacts, Estate
+Handoff PDF wizard) lives inside the iframe — see [§5 Per-app notes](#5-per-app-notes).
+
+### J-Learn
+
+In-app reference library — ~200 sections across 22 chapters covering
+propagation, antennas, RF safety, troubleshooting, formulas, operating
+practice, and emcomm. Layout:
+
+- **Left:** TOC tree with search filter and an **Advanced** checkbox that
+  toggles `> ⚙️ Advanced —` callouts.
+- **Right:** rendered markdown viewer.
+- **Top:** text-size slider (80-180%) with Reset button. Persists per browser.
+
+Some chapters surface a banner that deep-links into the Antenna Workshop:
+
+| Chapter | Banner | Action |
+|---------|--------|--------|
+| §03 Morse | 🎧 Morse Code Trainer | Launches the bundled JavaFX trainer app |
+| §07 Antenna Workshop | 📡 Antenna Workshop | Opens the matching antenna calculator |
+| §15 Formulas | 📐 Formula Calculator | Opens the matching per-formula calculator |
+
+### Modules
+
+Launch configuration for each managed app — J-Log, J-Digi, J-Bridge, J-Map,
+J-Sat, J-Vault. Plus a static J-Learn card linking to the J-Learn tab. Per
+app:
+
+- **Launch Command** — shell command that launches the app (platform-specific).
+- **IP** — reserved for future remote-launch support; leave `localhost`.
+- **Auto-Launch** toggle — start automatically when J-Hub starts.
+- **Launch / Stop / Save** buttons + a status message.
+
+### Logging & Data
+
+Three things in one tab:
+
+- **Log Uploaders** — push QSOs from `~/.j-log/j-log.db` to **eQSL.cc**,
+  **Club Log**, **QRZ Logbook**, and **HRDLog**. Credentials encrypted
+  on disk in `~/.j-hub/credentials.enc` (AES-GCM, key tied to this
+  machine). Already-uploaded QSOs tracked in an `upload_state` table so
+  subsequent runs only push new ones.
+- **Log Database** — switch between multiple `.db` files in `~/.j-log/`,
+  add / set active / delete, ADIF import + ADIF/CSV export, **Backup
+  Active DB** for a timestamped sidecar copy.
+- **Configuration Backup & Export** — back up `~/.j-hub/`, `~/.j-log/`,
+  `~/.j-map/`, `~/.j-sat/`, `~/.j-digi/`, `~/.j-bridge/` as a folder or
+  to a WebDAV target, with rotation. Plus **Export Diagnostics** which
+  bundles every app's logs + config + dep-check results into a zip.
+
+### Macros
+
+Two-mode (Digital/CW vs Voice) macro editor with a **Macro Variables
+Reference** card listing every `{VAR}` placeholder supported by the
+shared `MacroVariableEngine`:
+
+| Placeholder | Source       | Description |
+|-------------|--------------|-------------|
+| `{MYCALL}`  | Station config | Operator's own callsign |
+| `{CALL}`    | QSO entry    | DX (worked) callsign |
+| `{RST}`, `{RST_S}`, `{RST_R}` | QSO entry | Sent / received signal report |
+| `{NAME}`    | QSO entry    | DX operator name |
+| `{EXCH}`    | QSO entry    | Contest exchange / notes |
+| `{SERIAL}` / `{NR}` | Logger | Zero-padded / bare serial number |
+| `{FREQ}`    | Live rig     | Rig frequency in MHz, three decimals |
+| `{BAND}`    | Derived      | Band tag derived from `{FREQ}` |
+| `{MODE}`    | Live rig     | Current operating mode |
+
+Voice macros store **WAV recordings** alongside text macros — record
+once, replay during a contest exchange. Unknown placeholders pass
+through untouched so future variables don't break old macros.
+
+### Rig Control / Rotor Control / Amp Control
+
+Choose a backend (`CI_V`, `HAMLIB`, or `NONE`) and configure the relevant
+parameters (serial port + baud + CI-V address; or rigctld/rotctld/ampctld
+host + port). Supports hot-swap: change the backend and save; J-Hub
+reconnects without a full restart.
+
+### Antenna Switch
+
+Configure a serial-controlled antenna switch with a per-switch command
+template. Optional **lockout on PTT** prevents switching while
+transmitting. Rules let you tie specific bands or rigs to specific
+antennas automatically.
+
+### DX Cluster
+
+Pick from a list of networks or add your own, set filters (bands, modes),
+auto-connect toggle. Plus an opt-in **Reverse Beacon Network** feed on
+parallel telnet that streams skimmer-decoded spots into the same broadcast
+(tagged `source:"RBN"` for distinct rendering downstream). Raw telnet
+stream and parsed spots both flow to every connected app — J-Log shows
+them in the DX Spotting pane, J-Map plots them on the world map.
+
+### Antenna Workshop
+
+Two sub-tabs:
+
+- **Calculators** (default) — 13 antenna calculators (flat dipole,
+  inverted-V, fan dipole, trapped dipole, OCF/Windom, EFHW with/without
+  traps, J-pole, Yagi-Uda, vertical, loading coils, trap design,
+  magnetic loop, NanoVNA trim workflow) plus 14 per-formula calculators
+  for J-Learn's Formulas chapter (Ohm's law, power, reactance,
+  impedance, resonance, wavelength, SWR, ERP, feedline loss, decibels,
+  Q factor, bandwidth, Smith chart, RF exposure).
+- **Recommender** — questionnaire-driven antenna picker. Doesn't render
+  until you click the Recommender sub-tab (saves a few hundred ms on
+  page load). Asks a handful of questions about your QTH, HOA status,
+  bands, height, stealth needs, and budget, then ranks antennas that
+  actually fit.
+
+### Weather
+
+Live Space Weather tiles (Kp, X-ray flux, IMF Bz, solar wind, proton flux)
+plus local weather when an OpenWeatherMap key is configured in the J-Map
+tab.
 
 ---
 
@@ -398,6 +480,46 @@ Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
 - Select active satellites on the J-Sat tab's satellite list; only selected
   birds appear in the upcoming-passes list.
 
+### J-Vault
+
+- **Standalone process on port 8083.** Launch from J-Hub's Modules panel
+  or the Mini UI, or directly via `bash j-vault/j-vault.sh`. Opens its
+  own JavaFX status window with **Open in Browser** / **Hide** / **Quit**
+  buttons.
+- **Data lives in `~/.j-vault/inventory.db`** (separate from `~/.j-hub/`).
+  On first launch, J-Vault checks for a legacy `~/.j-hub/inventory.db`
+  (from before the J-Vault split) and copies it forward — no data lost.
+- **Estate Handoff PDF wizard** — click **📄 Estate Document…** in the
+  Inventory toolbar. Pick which sections to include via Include/Exclude
+  radio pairs (first-call contacts, equipment inventory, value summary,
+  sale recommendations, step-by-step instructions, glossary). Click
+  **Download PDF** — produces a real `.pdf` file in your browser's
+  Downloads folder via bundled jsPDF + jspdf-autotable. No print
+  dialog, no copy-paste.
+- **Filter by disposition** in the wizard — All / Working only /
+  Working + Repairable (sellable).
+- **Personal note** field on the wizard prints on the cover page.
+- **Type-specific hints** in the Add Item modal change as you switch
+  the Type dropdown — radios get hints about firmware versions, coax
+  runs get hints about model = type+length, towers get hints about
+  guy material, etc.
+
+### J-Learn
+
+- **Bundled inside J-Hub** — no separate launch. Click the J-Learn tab.
+- **Search box** filters the TOC by title or section ID. Typing `15-`
+  narrows to chapter 15 (Formulas); typing `emcomm` jumps to chapter 20.
+- **Advanced toggle** above the TOC shows / hides
+  `> ⚙️ **Advanced —**` callouts (Extra-class / engineering-depth
+  paragraphs). Default is hidden.
+- **Text-size slider** at the top of the tab scales the rendered viewer
+  between 80-180%. Persists per browser via `localStorage`.
+- **Cross-references** look like `§NN-NN` in prose. Most chapters end
+  with a "See also" section linking to related sections.
+- **Per-chapter banners** (§03 Morse, §07 Antenna Workshop, §15 Formulas)
+  inject a Launch / Open button at the top of every section in that
+  chapter — see the table in the Web UI walkthrough.
+
 ---
 
 ## 6. Troubleshooting
@@ -423,10 +545,33 @@ Full diagnostic in the [README](README.md) — but the typical issues:
 ### Hamlib commands fail
 
 Run `rigctl --version` at the command line. If it's missing, install per the
-table in [section 2.5](#25-optional-dependencies--hamlib-and-wsjt-x). If it
+table in [section 2.7](#27-optional-dependencies--hamlib-and-wsjt-x). If it
 runs but j-hub still can't talk to the rig, verify the serial port is
 readable (`ls -l /dev/ttyUSB*`) and your user is in the `dialout` group on
 Linux.
+
+### J-Vault tab shows "connection refused" / blank iframe
+
+J-Vault is a separate process listening on **port 8083**, not part of j-hub.
+The J-Hub web UI's J-Vault tab is just an iframe to `http://localhost:8083/`.
+
+1. Click **J-Vault → Launch** in J-Hub's left nav (or run `./j-vault/start.sh`
+   directly), wait 3–5 seconds for Jetty to come up.
+2. Click **Reload** on the embedded view (top-right of the J-Vault tab).
+3. If Launch does nothing, check that `j-vault/target/j-vault-1.0.0.jar`
+   exists. If not, build it: `mvn -DskipTests -f j-vault/pom.xml install`.
+4. Port conflict on 8083? `ss -tlnp | grep 8083` — kill anything else
+   bound there, or change `webPort` in `~/.j-vault/settings.json`.
+
+### J-Learn tab is empty or "No content found"
+
+J-Learn content is bundled into j-hub's shaded jar at package time. If you
+edited j-learn content but it isn't showing up:
+
+1. `mvn -DskipTests -f j-learn/pom.xml install` (re-installs the artifact).
+2. `mvn clean -DskipTests -f j-hub/pom.xml package` — the **clean** matters;
+   without it the shaded jar caches the old j-learn classpath.
+3. Restart j-hub. Hard-refresh the browser (Ctrl-Shift-R).
 
 ### Awards Dashboard errors
 
@@ -464,76 +609,85 @@ Copy the stack trace into the bug report along with the diagnostics zip.
 ## 7. Appendix: interconnection map
 
 ```
-                         ┌──────────────────────┐
-                         │    j-hub  (broker)   │
-                         │                      │
-                         │  WS :8080   HTTP :8081 │
-                         │                      │
-                         │  ├─ MessageRouter    │
-                         │  ├─ ConfigManager    │
-                         │  ├─ ClusterManager   │──(telnet)──▶ DX Cluster
-                         │  ├─ StateCache       │               (VE7CC / AR / etc.)
-                         │  ├─ WeatherService   │──(https)──▶ NOAA SWPC
-                         │  └─ AppLauncher      │──(https)──▶ hamqsl.com
-                         │                      │
-                         └──┬────┬────┬────┬────┘
-                            │    │    │    │
-               ┌────────────┘    │    │    └────────────────┐
-               │                 │    │                      │
-               ▼                 ▼    ▼                      ▼
-         ┌─────────┐      ┌──────────┐   ┌──────────┐   ┌──────────┐
-         │  j-log  │      │  j-map   │   │ j-digi   │   │ j-bridge │   ┌─────────┐
-         │         │      │          │   │          │   │          │   │  j-sat  │
-         │ ┌─────┐ │      │  world   │   │  DSP     │   │  UDP     │   │  TLE    │
-         │ │ DAO │ │      │  map +   │   │  decoder │   │  :2237 ──┼──▶│  pass   │
-         │ │     │ │      │  overlays│   │  + wave- │   │    │     │   │  predict│
-         │ └──┬──┘ │      │          │   │  form    │   │    ▼     │   │         │
-         └────┼────┘      └──────────┘   └────┬─────┘   │  WSJT-X  │   └────┬────┘
-              │                               │         └──────────┘        │
-              │     ┌──────────────────────┐  │                             │
-              └────▶│ j-log-engine (lib)   │◀─┘                             │
-                    │  shared SQLite DAO,  │                                │
-                    │  ContestPlugin +     │                                │
-                    │  HubEngine client    │                                │
-                    └──────────┬───────────┘                                │
-                               │                                            │
-                               ▼                                            │
-                         ┌──────────┐                                       │
-                         │ ~/.j-log │                                       │
-                         │   /*.db  │                                       │
-                         └──────────┘                                       │
-                                                                            ▼
-                                                               ┌────────────────────┐
-                                                               │  Rig / Rotor       │
-                                                               │  (Hamlib rigctld / │
-                                                               │   CI-V serial)     │
-                                                               └────────────────────┘
+                          ┌────────────────────────┐
+                          │     j-hub  (broker)    │
+                          │                        │
+                          │  WS :8080   HTTP :8081 │
+                          │                        │
+                          │  ├─ MessageRouter      │
+                          │  ├─ ConfigManager      │
+                          │  ├─ ClusterManager     │──(telnet)──▶ DX Cluster
+                          │  ├─ StateCache         │               (VE7CC / AR / etc.)
+                          │  ├─ SpotEnricher       │──(https)──▶ HamQTH / QRZ
+                          │  ├─ WeatherService     │──(https)──▶ NOAA SWPC
+                          │  ├─ AppLauncher        │──(https)──▶ hamqsl.com
+                          │  ├─ J-Learn (bundled)  │
+                          │  └─ AntennaWorkshop    │
+                          │                        │
+                          └─┬──┬──┬──┬──┬──┬──┬──┬─┘
+                            │  │  │  │  │  │  │  │
+              ┌─────────────┘  │  │  │  │  │  │  └─────iframe─────┐
+              │     ┌──────────┘  │  │  │  │  └───iframe──┐       │
+              ▼     ▼             ▼  ▼  ▼  ▼              │       │
+        ┌─────────┐ ┌─────────┐ ┌─────┐ ┌──────┐ ┌──────┐ │  ┌────▼─────┐
+        │  j-log  │ │  j-map  │ │j-digi│ │j-bridge│ │j-sat│  │ j-vault  │
+        │         │ │         │ │      │ │       │ │      │  │          │
+        │ ┌─────┐ │ │ world   │ │ DSP  │ │ UDP   │ │ TLE  │  │ Inventory│
+        │ │ DAO │ │ │ map +   │ │ +    │ │ :2237 │ │ pass │  │   DB     │
+        │ │     │ │ │ overlays│ │ wave │ │  ↓    │ │ pred │  │ + Estate │
+        │ └──┬──┘ │ │         │ │      │ │ WSJT-X│ │      │  │   PDF    │
+        └────┼────┘ └─────────┘ └──┬───┘ └───────┘ └──┬───┘  │          │
+             │                     │                  │      │ HTTP:8083│
+             │   ┌──────────────┐  │                  │      └────┬─────┘
+             └──▶│ j-log-engine │◀─┘                  │           │
+                 │   (shared)   │                     │           ▼
+                 │ SQLite DAO + │                     │     ┌──────────┐
+                 │ ContestPlugin│                     │     │ ~/.j-vault│
+                 │ HubEngine WS │                     │     │ /inv.db  │
+                 └──────┬───────┘                     │     └──────────┘
+                        │                             │
+                        ▼                             ▼
+                  ┌──────────┐               ┌────────────────────┐
+                  │ ~/.j-log │               │  Rig / Rotor       │
+                  │   /*.db  │               │  (Hamlib rigctld / │
+                  └──────────┘               │   CI-V serial)     │
+                                             └────────────────────┘
 ```
 
 **Key wires:**
 
-- **WebSocket (j-hub:8080)** — every module's primary link. Carries
+- **WebSocket (j-hub:8080)** — every JavaFX module's primary link. Carries
   `APP_CONNECTED`, `JHUB_WELCOME`, `RIG_STATUS`, `SPOT`, `LOGGER_SESSION`,
   `CONTEST_ACTIVE`, `SOLAR_FLUX`, `HEARD_BY_SPOT`, `QSO_SAVED`,
   `IMPORT_ADIF`, `MODEM_DECODE`, `MODEM_TX`, `CONFIG_UPDATE`, `HEARTBEAT`,
   `SHUTDOWN`, etc. Human-readable JSON with a `"type"` field.
 - **HTTP (j-hub:8081)** — web config UI + REST: `/api/config`, `/api/status`,
   `/api/sessions`, `/api/deps`, `/api/diagnostics/bundle`, `/api/jlog`,
-  `/api/jmap`, `/api/jdigi`, `/api/jbridge`, `/api/jsat`, `/api/db/*`,
-  `/api/apps/*`, `/api/weather`, `/api/callsign/*`.
+  `/api/jmap`, `/api/jdigi`, `/api/jbridge`, `/api/jsat`, `/api/jvault`,
+  `/api/jlearn/*`, `/api/db/*`, `/api/apps/*`, `/api/weather`,
+  `/api/callsign/*`, `/api/antenna/*`.
+- **HTTP (j-vault:8083)** — standalone Jetty for inventory CRUD, photo
+  upload, and the Estate-Handoff PDF generator. The J-Hub web UI's
+  **J-Vault** tab is just an iframe pointing here; J-Vault is otherwise
+  decoupled from the broker.
 - **UDP 2237 (WSJT-X ↔ j-bridge)** — WSJT-X's reporting protocol. j-bridge
   listens; WSJT-X broadcasts heartbeat, status, decode, QSO-logged packets.
 - **Telnet (ClusterManager ↔ DX cluster)** — one connection per j-hub
-  instance. Parsed spots flow to all modules via WebSocket.
-- **j-log-engine** — Maven artifact embedded in j-log, j-digi, j-wae. Holds
-  the shared SQLite DAO (`QsoDao`, `ContestQsoDao`, `QtcDao`, `MacroDao`),
-  contest/award plugin loaders, and the `HubEngine` WebSocket client. This
-  is why j-digi can log RTTY contest QSOs directly to the shared DB without
+  instance. Parsed and enriched spots flow to all modules via WebSocket.
+- **j-log-engine** — Maven artifact embedded in j-log and j-digi. Holds the
+  shared SQLite DAO (`QsoDao`, `ContestQsoDao`, `QtcDao`, `MacroDao`),
+  contest/award plugin loaders, the `MacroVariableEngine` placeholder
+  substitution layer, and the `HubEngine` WebSocket client. This is why
+  j-digi can log RTTY contest QSOs directly to the shared DB without
   routing through j-log.
-- **SQLite databases** — all under `~/.j-log/`: `j-log.db` (default normal
-  log), `contest.db` (contest QSOs), `config.db` (preferences), and any
-  user-created databases. Read-only cross-process access is fine; j-hub's
-  DB Browser uses it.
+- **j-learn** — Maven artifact built before j-hub and bundled into j-hub's
+  shaded jar. Ships ~200 markdown sections served at `/api/jlearn/*`. No
+  network of its own.
+- **SQLite databases** — log/contest data lives under `~/.j-log/`
+  (`j-log.db`, `contest.db`, `config.db`, plus any user-created DBs).
+  Inventory and estate data live under `~/.j-vault/inventory.db`. J-Hub
+  config is a JSON file at `~/.j-hub/j-hub.json`. Read-only cross-process
+  access is fine; j-hub's DB Browser uses it.
 - **Rig control** — either CI-V serial (jSerialComm) or Hamlib (`rigctld`
   over TCP). j-hub's `HamlibRigController` polls and broadcasts `RIG_STATUS`
   every ~500 ms.
@@ -543,17 +697,21 @@ Copy the stack trace into the bug report along with the diagnostics zip.
 ```
 j-log-engine  (shared library — no deps within suite)
     ├── j-log
-    ├── j-digi
-    └── j-wae
+    └── j-digi
 
-j-hub         (standalone — does not depend on j-log-engine)
+j-learn       (content artifact — bundled into j-hub at package time)
+    └── j-hub
+
+j-vault       (standalone, but installed to .m2 so j-hub can launch it)
+
 j-map         (standalone)
 j-bridge      (standalone)
 j-sat         (standalone)
 ```
 
-Build `j-log-engine` first and `mvn install` it to your local `.m2` cache,
-then any order works for the others.
+Build order: `j-log-engine` first (mvn install), then `j-learn` (mvn
+install), then `j-vault` (mvn install), then any order for the rest with
+`mvn package`.
 
 ---
 
