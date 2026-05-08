@@ -18,24 +18,24 @@
     <div class="nav-items">
       <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">⬡</span>Dashboard</button>
       <button class="nav-btn" data-tab="station"><span class="nav-icon">⊙</span>Station</button>
-      <button class="nav-btn" data-tab="rig"><span class="nav-icon">📻</span>Rig Control</button>
-      <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor Control</button>
-      <button class="nav-btn" data-tab="amp"><span class="nav-icon">⚡</span>Amp Control</button>
-      <button class="nav-btn" data-tab="antenna"><span class="nav-icon">⇆</span>Antenna Switch</button>
-      <button class="nav-btn" data-tab="macros"><span class="nav-icon">⌨</span>Macros</button>
-      <button class="nav-btn" data-tab="uploaders"><span class="nav-icon">↑</span>Log Uploaders</button>
-      <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
-      <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
-      <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
+      <button class="nav-btn" data-tab="callsign"><span class="nav-icon">⊛</span>Callsign</button>
       <button class="nav-btn" data-tab="jlog"><span class="nav-icon">◩</span>J-Log</button>
       <button class="nav-btn" data-tab="jmap"><span class="nav-icon">◫</span>J-Map</button>
       <button class="nav-btn" data-tab="jdigi"><span class="nav-icon">〰</span>J-Digi</button>
       <button class="nav-btn" data-tab="jbridge"><span class="nav-icon">⇄</span>J-Bridge</button>
+      <button class="nav-btn" data-tab="jvault"><span class="nav-icon">📦</span>J-Vault</button>
+      <button class="nav-btn" data-tab="learn"><span class="nav-icon">📖</span>J-Learn</button>
+      <button class="nav-btn" data-tab="modules"><span class="nav-icon">⊞</span>Modules</button>
+      <button class="nav-btn" data-tab="logging"><span class="nav-icon">⬙</span>Logging &amp; Data</button>
+      <button class="nav-btn" data-tab="macros"><span class="nav-icon">⌨</span>Macros</button>
+      <button class="nav-btn" data-tab="rig"><span class="nav-icon">📻</span>Rig Control</button>
+      <button class="nav-btn" data-tab="rotor"><span class="nav-icon">◎</span>Rotor Control</button>
+      <button class="nav-btn" data-tab="amp"><span class="nav-icon">⚡</span>Amp Control</button>
+      <button class="nav-btn" data-tab="antenna"><span class="nav-icon">⇆</span>Antenna Switch</button>
+      <button class="nav-btn" data-tab="cluster"><span class="nav-icon">≋</span>DX Cluster</button>
       <button class="nav-btn" data-tab="jsat"><span class="nav-icon">🛰</span>J-Sat</button>
       <button class="nav-btn" data-tab="antworkshop"><span class="nav-icon">📡</span>Antenna Workshop</button>
-      <button class="nav-btn" data-tab="learn"><span class="nav-icon">📖</span>J-Learn</button>
       <button class="nav-btn" data-tab="weather"><span class="nav-icon">☁</span>Weather</button>
-      <button class="nav-btn" data-tab="callsign"><span class="nav-icon">⊛</span>Callsign</button>
     </div>
     <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
       <span id="nav-ws">WebSocket: <span id="nav-ws-state">—</span></span>
@@ -186,6 +186,14 @@
               <button class="btn btn-sm btn-red" onclick="killApp('jVault')">Stop</button>
             </div>
           </div>
+          <div class="module-row">
+            <span class="dot green" id="dot-jlearn"></span>
+            <span class="module-name">J-Learn</span>
+            <span class="module-meta" id="meta-jlearn">In-app reference library</span>
+            <div class="module-acts">
+              <button class="btn btn-sm btn-ghost" onclick="document.querySelector('[data-tab=learn]').click()">Open</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -252,6 +260,11 @@
             <input type="text" id="st-rig-alias" placeholder="Icom IC-7300 (Main)">
             <label>Rig Alias / Friendly Name</label>
             <span class="hint">Displayed in all modules wherever the rig name appears</span>
+          </div>
+          <div class="field">
+            <input type="text" id="st-rig-operator" placeholder="(defaults to operator name)">
+            <label>Rig Operator</label>
+            <span class="hint">Person actually using this rig. Defaults to the operator name above; override for shared / club / multi-op stations.</span>
           </div>
         </div>
       </div>
@@ -712,13 +725,49 @@
       <div class="card">
         <div class="card-title" id="macro-kind-title">Digital / CW Macros</div>
         <div style="font-size:12px;color:var(--subtext0);margin-bottom:8px" id="macro-kind-help">
-          Substitutions: <code>{MYCALL} {CALL} {RST} {NAME} {BAND} {FREQ} {MODE}</code>
+          Substitutions: <code>{MYCALL} {CALL} {RST} {NAME} {BAND} {FREQ} {MODE}</code> — see the
+          full reference card below.
         </div>
         <div id="macros-list"></div>
         <button class="btn btn-ghost" onclick="addMacro()">+ Add Macro</button>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="saveMacros()">Save Macros</button>
           <span id="macros-save-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Macro Variables Reference</div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:10px">
+          These placeholders are expanded by the shared <code>MacroVariableEngine</code> at QSO time.
+          Their values come from the live rig + the QSO entry pane in J-Log/J-Digi — not from
+          editable J-Hub fields. The variable list is part of the suite contract; see
+          <code>j-log-engine/MacroVariableEngine.java</code> for the implementation.
+        </div>
+        <table class="macro-table" style="width:100%">
+          <thead>
+            <tr><th style="width:120px">Placeholder</th><th>Source</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>{MYCALL}</code></td><td>Station config</td><td>Operator's own callsign (Station tab → Callsign).</td></tr>
+            <tr><td><code>{CALL}</code></td><td>QSO entry</td><td>DX (worked) callsign currently in the entry pane.</td></tr>
+            <tr><td><code>{RST}</code></td><td>QSO entry</td><td>RST sent (legacy alias for <code>{RST_S}</code>). Defaults to <code>599</code>.</td></tr>
+            <tr><td><code>{RST_S}</code></td><td>QSO entry</td><td>RST sent. Defaults to <code>599</code> when blank.</td></tr>
+            <tr><td><code>{RST_R}</code></td><td>QSO entry</td><td>RST received. Defaults to <code>599</code> when blank.</td></tr>
+            <tr><td><code>{NAME}</code></td><td>QSO entry</td><td>DX operator name. Defaults to <code>OM</code> when blank.</td></tr>
+            <tr><td><code>{EXCH}</code></td><td>QSO entry</td><td>Contest exchange / notes field.</td></tr>
+            <tr><td><code>{SERIAL}</code></td><td>Logger</td><td>Zero-padded serial number, three digits (<code>007</code>).</td></tr>
+            <tr><td><code>{NR}</code></td><td>Logger</td><td>Bare serial number (<code>7</code>, no padding).</td></tr>
+            <tr><td><code>{FREQ}</code></td><td>Live rig</td><td>Rig frequency in MHz, three decimals (<code>14.225</code>). <code>--</code> if no rig.</td></tr>
+            <tr><td><code>{BAND}</code></td><td>Derived</td><td>Band tag derived from <code>{FREQ}</code> (e.g. <code>20m</code>).</td></tr>
+            <tr><td><code>{MODE}</code></td><td>Live rig</td><td>Current operating mode (e.g. <code>USB</code>, <code>CW</code>, <code>FT8</code>).</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:12px;color:var(--subtext0);margin-top:10px">
+          Unknown placeholders are left untouched in the output, so future variables won't break
+          existing macros. To add a new variable, edit
+          <code>j-log-engine/src/main/java/com/jlog/util/MacroVariableEngine.java</code> and rebuild
+          the engine + every consumer (j-log, j-digi, j-bridge).
         </div>
       </div>
     </section>
@@ -731,15 +780,15 @@
       <div class="panel-sub">Questionnaire-driven recommender + calculators for flat / inverted-V / fan / trapped / OCF dipoles, EFHW (with and without traps), J-pole, Yagi-Uda, verticals, loading coils, and trap manufacturing. See §08 in J-Learn for the math.</div>
 
       <div class="aw-subnav">
-        <button class="aw-tab active" onclick="awSwitch('recommender', this)">Recommender</button>
-        <button class="aw-tab" onclick="awSwitch('calculators', this)">Calculators</button>
+        <button class="aw-tab active" onclick="awSwitch('calculators', this)">Calculators</button>
+        <button class="aw-tab" onclick="awSwitch('recommender', this)">Recommender</button>
       </div>
 
       <!-- ━━━ Recommender wizard ━━━ -->
-      <div id="aw-recommender" class="aw-pane">
+      <div id="aw-recommender" class="aw-pane" style="display:none">
         <div class="card aw-card">
           <div id="aw-rec-steps">
-            <!-- step content rendered by JS -->
+            <!-- step content rendered by JS only when the user clicks Recommender -->
           </div>
           <div class="aw-rec-nav">
             <button class="action-btn" id="aw-rec-back" onclick="awRecBack()">← Back</button>
@@ -757,7 +806,7 @@
       </div>
 
       <!-- ━━━ Calculators ━━━ -->
-      <div id="aw-calculators" class="aw-pane" style="display:none">
+      <div id="aw-calculators" class="aw-pane">
         <div class="aw-calc-layout">
           <div class="card aw-calc-list">
             <div id="aw-calc-list-items"></div>
@@ -772,9 +821,19 @@
     <!-- ─── Tab: J-Learn ────────────────────────────────── -->
     <section id="tab-learn" class="tab-panel">
       <div class="panel-header">J-Learn — In-App Reference Library</div>
-      <div class="panel-sub">~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, and exam prep. Most sections are still stubs while the content is written.</div>
+      <div class="panel-sub">~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, and operating practice.</div>
 
-      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 220px);min-height:500px">
+      <div style="display:flex;align-items:center;gap:14px;margin:6px 0 10px 0;font-size:12px;color:var(--subtext0)">
+        <label style="display:flex;align-items:center;gap:6px">
+          Text size:
+          <input type="range" id="jl-text-size" min="80" max="180" step="5" value="100" style="width:140px"
+                 oninput="applyJLearnTextSize(this.value)">
+          <span id="jl-text-size-val">100</span>%
+        </label>
+        <button class="btn btn-ghost btn-sm" onclick="resetJLearnTextSize()">Reset</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;height:calc(100vh - 260px);min-height:500px">
         <div class="card" style="overflow:auto;padding:8px">
           <div style="display:flex;gap:6px;margin-bottom:8px">
             <input type="text" id="jl-search" placeholder="Filter…" style="flex:1;padding:4px 6px;background:var(--base);border:1px solid var(--surface1);border-radius:4px;color:var(--text);font-size:12px" oninput="filterLearnToc()">
@@ -791,21 +850,6 @@
     </section>
 
     <!-- ─── Tab: Log Uploaders ──────────────────────────── -->
-    <section id="tab-uploaders" class="tab-panel">
-      <div class="panel-header">Log Uploaders</div>
-      <div class="panel-sub">Push QSOs from <code>~/.j-log/j-log.db</code> to eQSL.cc, Club Log, QRZ Logbook, and HRDLog</div>
-
-      <div class="card">
-        <div style="font-size:12px;color:var(--subtext0)">
-          Credentials are encrypted on disk in <code>~/.j-hub/credentials.enc</code> (AES-GCM, key tied
-          to this machine's identity). Already-uploaded QSOs are tracked in a small
-          <code>upload_state</code> table inside <code>j-log.db</code>; subsequent runs
-          skip them. Click <b>Upload pending</b> to push everything new for a service.
-        </div>
-        <div id="uploaders-list" style="margin-top:10px"></div>
-      </div>
-    </section>
-
     <!-- ─── Tab: DX Cluster ─────────────────────────────── -->
     <section id="tab-cluster" class="tab-panel">
       <div class="panel-header">DX Cluster</div>
@@ -967,7 +1011,19 @@
     <!-- ─── Tab: Logging & Data ──────────────────────────── -->
     <section id="tab-logging" class="tab-panel">
       <div class="panel-header">Logging &amp; Data</div>
-      <div class="panel-sub">Log storage, spot routing, and configuration backup</div>
+      <div class="panel-sub">Log storage, log uploaders, spot routing, and configuration backup</div>
+
+      <div class="card">
+        <div class="card-title">Log Uploaders</div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:8px">
+          Push QSOs from <code>~/.j-log/j-log.db</code> to eQSL.cc, Club Log, QRZ Logbook, and HRDLog.
+          Credentials are encrypted on disk in <code>~/.j-hub/credentials.enc</code> (AES-GCM, key tied
+          to this machine's identity). Already-uploaded QSOs are tracked in a small
+          <code>upload_state</code> table inside <code>j-log.db</code>; subsequent runs skip them.
+          Click <b>Upload pending</b> to push everything new for a service.
+        </div>
+        <div id="uploaders-list" style="margin-top:6px"></div>
+      </div>
 
       <div class="card">
         <div class="card-title">Log Database</div>
@@ -1726,6 +1782,46 @@
       </div>
     </section>
 
+    <!-- ─── Tab: J-Vault ────────────────────────────────── -->
+    <section id="tab-jvault" class="tab-panel">
+      <div class="panel-header">J-Vault</div>
+      <div class="panel-sub">Shack inventory + Estate handoff PDF wizard. Standalone module on port 8083.</div>
+
+      <div class="card">
+        <div class="card-title">J-Vault Process</div>
+        <div class="module-row">
+          <span class="dot gray" id="jvault-conn-dot"></span>
+          <span class="module-name">J-Vault</span>
+          <span class="module-meta" id="jvault-conn-meta">Inventory + Estate (port 8083)</span>
+          <div class="module-acts">
+            <button class="btn btn-sm btn-ghost" onclick="launchApp('jVault')">Launch</button>
+            <button class="btn btn-sm btn-red"   onclick="killApp('jVault')">Stop</button>
+            <button class="btn btn-sm btn-primary" onclick="openJVaultExternal()">Open in Browser</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Embedded J-Vault</div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:8px">
+          Loaded from <code>http://localhost:8083/</code>. Launch J-Vault first if the iframe shows a connection error.
+        </div>
+        <div class="field-row cols-2" style="margin-bottom:8px">
+          <div class="field">
+            <input type="range" id="jvault-text-size" min="80" max="160" step="5" value="100"
+                   oninput="applyJVaultZoom(this.value)">
+            <label>Text Size: <span id="jvault-text-size-val">100</span>%</label>
+            <span class="hint">Browser-side zoom of the embedded view</span>
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="reloadJVaultIframe()">Reload</button>
+          </div>
+        </div>
+        <iframe id="jvault-frame" src="about:blank" loading="lazy"
+                style="width:100%;height:calc(100vh - 360px);min-height:480px;border:1px solid var(--surface1);border-radius:6px;background:var(--mantle);transform-origin:0 0;"></iframe>
+      </div>
+    </section>
+
     <!-- ─── Tab: J-Sat ──────────────────────────────────── -->
     <section id="tab-jsat" class="tab-panel">
       <div class="panel-header">J-Sat</div>
@@ -2228,6 +2324,10 @@
         <span class="intel-k">Alias</span>
         <span class="intel-v" id="i-rig-alias" style="color:var(--subtext0);font-size:11px">—</span>
       </div>
+      <div class="intel-row" id="i-rig-operator-row">
+        <span class="intel-k">Operator</span>
+        <span class="intel-v" id="i-rig-operator" style="font-size:12px;cursor:pointer" onclick="editRigOperatorInline()" title="Click to edit">—</span>
+      </div>
     </div>
 
     <!-- Live rig -->
@@ -2285,6 +2385,8 @@
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jbridge"></span> J-Bridge</span><span class="intel-v" id="i-jbridge">—</span></div>
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jmap"></span> J-Map</span><span class="intel-v" id="i-jmap">—</span></div>
       <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jsat"></span> J-Sat</span><span class="intel-v" id="i-jsat">—</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot gray" id="i-dot-jvault"></span> J-Vault</span><span class="intel-v" id="i-jvault">—</span></div>
+      <div class="intel-row"><span class="intel-k"><span class="dot green" id="i-dot-jlearn"></span> J-Learn</span><span class="intel-v" id="i-jlearn">in-app</span></div>
     </div>
 
     <!-- Alerts -->

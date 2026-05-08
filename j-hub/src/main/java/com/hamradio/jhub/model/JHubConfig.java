@@ -63,6 +63,7 @@ public class JHubConfig {
         public String arrlSection = "";
         public int    ituZone     = 0;
         public String rigAlias    = "";   // friendly name displayed in all module UIs
+        public String rigOperator = "";   // operator at this rig (override; defaults to "name")
     }
 
     // ---------------------------------------------------------------
@@ -261,6 +262,7 @@ public class JHubConfig {
         public AppLaunchEntry jBridge = new AppLaunchEntry();
         public AppLaunchEntry jDigi   = new AppLaunchEntry();
         public AppLaunchEntry jSat    = new AppLaunchEntry();
+        public AppLaunchEntry jVault  = new AppLaunchEntry();
     }
 
     public static class AppLaunchEntry {

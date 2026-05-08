@@ -66,11 +66,15 @@ public class JHubStatusWindow {
     private Label  lblJBridge;
     private Label  lblJDigi;
     private Label  lblJSat;
+    private Label  lblJVault;
+    private Label  lblJLearn;
     private Button btnJMap;
     private Button btnJLog;
     private Button btnJBridge;
     private Button btnJDigi;
     private Button btnJSat;
+    private Button btnJVault;
+    private Button btnJLearn;
 
     private static final DateTimeFormatter TIME_FMT =
         DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
@@ -190,19 +194,26 @@ public class JHubStatusWindow {
         lblJBridge = styledValue("○ j-bridge");
         lblJDigi   = styledValue("○ j-digi");
         lblJSat    = styledValue("○ j-sat");
+        lblJVault  = styledValue("○ j-vault");
+        lblJLearn  = styledValue("● j-learn (in-app)");
+        lblJLearn.setTextFill(Color.web(C_GREEN));
 
         btnJMap    = launchButton("jMap");
         btnJLog    = launchButton("j-log");
         btnJBridge = launchButton("j-bridge");
         btnJDigi   = launchButton("j-digi");
         btnJSat    = launchButton("j-sat");
+        btnJVault  = launchButton("jVault");
+        btnJLearn  = openLearnButton();
 
         VBox managedBox = new VBox(6,
             appRow(lblJMap,    btnJMap),
             appRow(lblJLog,    btnJLog),
             appRow(lblJBridge, btnJBridge),
             appRow(lblJDigi,   btnJDigi),
-            appRow(lblJSat,    btnJSat));
+            appRow(lblJSat,    btnJSat),
+            appRow(lblJVault,  btnJVault),
+            appRow(lblJLearn,  btnJLearn));
         managedBox.setPadding(new Insets(4, 0, 0, 0));
 
         Button btnDbBrowser = new Button("DB Browser…");
@@ -287,6 +298,8 @@ public class JHubStatusWindow {
         refreshAppRow("j-bridge", al.isRunning("j-bridge"), lblJBridge, btnJBridge);
         refreshAppRow("j-digi",   al.isRunning("j-digi"),   lblJDigi,   btnJDigi);
         refreshAppRow("j-sat",    al.isRunning("j-sat"),    lblJSat,    btnJSat);
+        refreshAppRow("jVault",   al.isRunning("jVault"),   lblJVault,  btnJVault);
+        // J-Learn is in-process (bundled inside J-Hub); no managed process to track.
     }
 
     // ---------------------------------------------------------------
@@ -338,6 +351,9 @@ public class JHubStatusWindow {
         } else if ("j-sat".equals(name)) {
             entry = apps != null ? apps.jSat : null;
             passHubFlag = true;
+        } else if ("jVault".equals(name)) {
+            entry = apps != null ? apps.jVault : null;
+            passHubFlag = false;
         } else {
             entry = null;
             passHubFlag = false;
@@ -369,6 +385,18 @@ public class JHubStatusWindow {
         Button btn = new Button("Launch");
         btn.setStyle("-fx-background-color: " + C_SURF0 + "; -fx-text-fill: " + C_TEXT + ";");
         btn.setPrefWidth(70);
+        return btn;
+    }
+
+    /**
+     * J-Learn is bundled inside J-Hub (not a managed external process).
+     * The button opens J-Hub's web UI on the J-Learn tab.
+     */
+    private Button openLearnButton() {
+        Button btn = new Button("Open");
+        btn.setStyle("-fx-background-color: " + C_SURF0 + "; -fx-text-fill: " + C_TEXT + ";");
+        btn.setPrefWidth(70);
+        btn.setOnAction(e -> openBrowser());  // /index.html — user clicks J-Learn tab
         return btn;
     }
 

@@ -27,8 +27,72 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'jvault')   ensureJVaultIframe();
+    if (btn.dataset.tab === 'learn')    applyJLearnTextSizePref();
   });
 });
+
+// ── J-Vault embedded iframe + zoom ─────────────────────────
+function ensureJVaultIframe() {
+  const f = document.getElementById('jvault-frame');
+  if (!f) return;
+  if (f.src === 'about:blank' || f.src === '') {
+    f.src = 'http://localhost:8083/';
+  }
+  // Apply persisted zoom on first show.
+  let z;
+  try { z = localStorage.getItem('jhub.jvault.zoom'); } catch (e) {}
+  if (z) {
+    const slider = document.getElementById('jvault-text-size');
+    if (slider) slider.value = z;
+    applyJVaultZoom(z);
+  }
+}
+function applyJVaultZoom(pct) {
+  const f = document.getElementById('jvault-frame');
+  const lbl = document.getElementById('jvault-text-size-val');
+  if (!f) return;
+  const v = parseInt(pct, 10) || 100;
+  if (lbl) lbl.textContent = v;
+  // CSS transform scales the iframe; expand width inversely so it fills the row.
+  const scale = v / 100;
+  f.style.transform = 'scale(' + scale + ')';
+  f.style.width = (100 / scale) + '%';
+  f.style.transformOrigin = '0 0';
+  try { localStorage.setItem('jhub.jvault.zoom', String(v)); } catch (e) {}
+}
+function reloadJVaultIframe() {
+  const f = document.getElementById('jvault-frame');
+  if (!f) return;
+  f.src = 'http://localhost:8083/?t=' + Date.now();
+}
+function openJVaultExternal() {
+  window.open('http://localhost:8083/', '_blank');
+}
+
+// ── J-Learn text-size control ──────────────────────────────
+function applyJLearnTextSize(pct) {
+  const v = parseInt(pct, 10) || 100;
+  const viewer = document.getElementById('jl-viewer');
+  const lbl    = document.getElementById('jl-text-size-val');
+  if (lbl)    lbl.textContent = v;
+  if (viewer) viewer.style.fontSize = v + '%';
+  try { localStorage.setItem('jhub.jlearn.textSize', String(v)); } catch (e) {}
+}
+function resetJLearnTextSize() {
+  const slider = document.getElementById('jl-text-size');
+  if (slider) slider.value = 100;
+  applyJLearnTextSize(100);
+}
+function applyJLearnTextSizePref() {
+  let v;
+  try { v = localStorage.getItem('jhub.jlearn.textSize'); } catch (e) {}
+  v = parseInt(v, 10);
+  if (!v) return;
+  const slider = document.getElementById('jl-text-size');
+  if (slider) slider.value = v;
+  applyJLearnTextSize(v);
+}
 
 // ── WebSocket (live telemetry) ─────────────────────────────
 let ws = null;
@@ -251,6 +315,7 @@ function applyStationIntel(st) {
   setVal('st-arrl',      st.arrlSection || '');
   setVal('st-ituzone',   st.ituZone     || '');
   setVal('st-rig-alias', st.rigAlias    || '');
+  setVal('st-rig-operator', st.rigOperator || '');
 
   // Show rig alias in intel pane, dashboard, and rig control header
   const aliasRow = document.getElementById('i-rig-alias-row');
@@ -260,6 +325,51 @@ function applyStationIntel(st) {
   setText('i-rig-model',     alias || (st.callsign ? st.callsign + ' Rig' : '—'));
   setText('d-rig-alias',     alias);
   setText('rig-header-alias', alias ? '— ' + alias : '');
+
+  // Rig operator: show explicit override if set, else fall back to operator name
+  const rigOp = (st.rigOperator || '').trim() || (st.name || '').trim();
+  setText('i-rig-operator', rigOp || '—');
+}
+
+// Inline edit for the Operator field in the right intel pane.
+function editRigOperatorInline() {
+  const span = document.getElementById('i-rig-operator');
+  if (!span) return;
+  const current = (span.textContent === '—') ? '' : span.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = current;
+  input.style.cssText = 'width:100%;background:var(--surface0);border:1px solid var(--mauve);border-radius:3px;color:var(--text);padding:2px 4px;font-size:12px';
+  const commit = () => {
+    const v = input.value.trim();
+    span.textContent = v || '—';
+    saveRigOperator(v);
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); span.textContent = current || '—'; }
+  });
+  span.textContent = '';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+}
+
+function saveRigOperator(value) {
+  fetch('/api/config').then(r => r.json()).then(cfg => {
+    cfg.station = cfg.station || {};
+    cfg.station.rigOperator = value;
+    return fetch('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(cfg),
+    });
+  }).then(() => {
+    if (state && state.config && state.config.station) {
+      state.config.station.rigOperator = value;
+    }
+  }).catch(err => console.error('saveRigOperator failed', err));
 }
 
 function updateIntelPane(status) {
@@ -792,6 +902,7 @@ function buildModuleCards(appsSection) {
     { key: 'jBridge', id: 'j-bridge', label: 'J-Bridge', desc: 'WSJT-X / FT8 integration bridge' },
     { key: 'jMap',    id: 'jMap',     label: 'J-Map',    desc: 'Real-time grayline + DX map' },
     { key: 'jSat',    id: 'j-sat',    label: 'J-Sat',    desc: 'Satellite tracking and Doppler control' },
+    { key: 'jVault',  id: 'jVault',   label: 'J-Vault',  desc: 'Shack inventory + estate handoff PDF (port 8083)' },
   ];
 
   const container = document.getElementById('module-cards');
@@ -830,7 +941,17 @@ function buildModuleCards(appsSection) {
         <span id="mod-msg-${m.key}" style="font-size:11px;color:var(--overlay0)"></span>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `
+    <div class="card">
+      <div class="card-title">J-Learn</div>
+      <div style="font-size:11px;color:var(--overlay0);margin-bottom:10px">In-app reference library — ~200 chapters bundled inside J-Hub. Not a separate process.</div>
+      <div style="font-size:12px;color:var(--subtext0);margin-bottom:10px">
+        Open the J-Learn tab from the left nav, or click below.
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn btn-green btn-sm" onclick="document.querySelector('[data-tab=learn]').click()">Open J-Learn Tab</button>
+      </div>
+    </div>`;
 }
 
 // ── Filter chips ───────────────────────────────────────────
@@ -1084,6 +1205,7 @@ function saveStation() {
       arrlSection: (document.getElementById('st-arrl').value||'').toUpperCase().trim(),
       ituZone:     parseInt(document.getElementById('st-ituzone').value)||0,
       rigAlias:    document.getElementById('st-rig-alias').value.trim(),
+      rigOperator: document.getElementById('st-rig-operator').value.trim(),
     }
   };
   postPartialConfig(body, 'st-msg', 'Station saved');
@@ -3208,6 +3330,11 @@ function awSwitch(which, btn) {
   document.getElementById('aw-recommender').style.display  = which === 'recommender'  ? '' : 'none';
   document.getElementById('aw-calculators').style.display  = which === 'calculators'  ? '' : 'none';
   if (which === 'calculators' && !aw.calc.listRendered) awCalcRenderList();
+  // Only initialize the recommender wizard when the user explicitly clicks it.
+  if (which === 'recommender' && !aw.rec.initialized) {
+    aw.rec.initialized = true;
+    awRecRender();
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -5422,5 +5549,5 @@ function awCalcSet(field, val) {
   awCalcRenderPanel();
 }
 
-// Initialize wizard on load
-awRecRender();
+// Recommender wizard initializes lazily — only when user clicks the
+// Recommender subnav button (see awSwitch). Don't auto-render on load.
