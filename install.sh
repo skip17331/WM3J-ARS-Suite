@@ -5,7 +5,14 @@
 # Assumes:
 #   - Java 21 is installed          (java --version)
 #   - Maven is installed            (mvn --version)
-#   - All six modules have been built (mvn package each)
+#   - All seven modules have been built (mvn package each):
+#       j-hub  (with bundled J-Learn content)
+#       j-log
+#       j-map
+#       j-digi
+#       j-bridge
+#       j-sat
+#       j-vault   (shack inventory + estate handoff)
 #
 # What this script does:
 #   1. Builds the installer jar if it isn't present.

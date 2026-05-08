@@ -6,7 +6,10 @@ rem  Prerequisites:
 rem    - Java 21 on PATH    (java --version)
 rem    - Maven on PATH      (mvn --version) - only if the installer
 rem                           jar isn't built yet
-rem    - The six modules have been built:  mvn package each
+rem    - The seven modules have been built:  mvn package each
+rem        j-hub  (bundles J-Learn content)
+rem        j-log, j-map, j-digi, j-bridge, j-sat
+rem        j-vault   (shack inventory + estate handoff)
 rem
 rem  What this script does:
 rem    1. Builds the installer jar if not present.
