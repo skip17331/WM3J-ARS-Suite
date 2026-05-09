@@ -36,7 +36,7 @@ names, and common gotchas.
 
 ## What's in the box
 
-Nine Maven modules. Built once, work together.
+Ten Maven modules. Built once, work together.
 
 | Module | What it does |
 |---|---|
@@ -48,6 +48,7 @@ Nine Maven modules. Built once, work together.
 | **🛰 J‑Sat** | Satellite tracker with Doppler correction and rotor control through J‑Hub. |
 | **📦 J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed; runs as its own web app on port 8083. |
 | **📖 J‑Learn** | Standalone amateur‑radio reference library web app on port 8082. ~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; per‑chapter "Open in Workshop" deep‑links to the matching calculators. Markdown source seeds to `~/.j-learn/content/` so users can edit content without rebuilding. |
+| **🔑 Morse Trainer** | Standalone JavaFX app for learning and practicing CW. Letter trainer (Koch‑method progression), letter‑group trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. Launchable from J‑Hub. |
 
 A shared **j‑log‑engine** library underpins logging across J‑Log, J‑Digi,
 and J‑Bridge so everything writes to one set of databases under `~/.j‑log/`.

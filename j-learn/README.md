@@ -96,7 +96,7 @@ mvn package -DskipTests
 mvn install
 ```
 
-The repo has no parent POM — each module is built independently. Java 21 is required (matches the newer modules: j-sat, j-wae, j-map).
+The repo has no parent POM — each module is built independently. Java 21 is required (matches the newer modules: j-sat, j-vault, j-map).
 
 ## Roadmap
 

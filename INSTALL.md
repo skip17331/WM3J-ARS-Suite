@@ -11,7 +11,7 @@ platform below and run the commands top-to-bottom. Should take about
 
 ## What you'll end up with
 
-Nine Maven modules, one installer:
+Ten Maven modules, one installer:
 
 | Module      | What it is                                             | Port  |
 |-------------|--------------------------------------------------------|-------|
@@ -24,6 +24,7 @@ Nine Maven modules, one installer:
 | **j-sat**       | Satellite tracker                                     | —     |
 | **j-vault**     | Shack inventory + estate-handoff PDF wizard           | 8083  |
 | **j-learn**     | Amateur-radio reference library (web app)             | 8082  |
+| **morse-trainer** | Morse code learning + sending practice + analytics  | —     |
 
 J-Hub iframes J-Learn so it shows up as a tab inside the main UI; you can
 also open it directly at <http://localhost:8082/> from any browser on the
@@ -104,7 +105,7 @@ mvn -q -DskipTests -f j-learn/pom.xml install
 mvn -q -DskipTests -f j-vault/pom.xml install
 
 # Package the apps
-for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
   mvn -q -DskipTests -f "$m/pom.xml" package
 done
 ```
@@ -121,8 +122,8 @@ to re-run any time; never touches your config or databases.
 ./install.sh
 ```
 
-You should see eight entries installed (j-hub, j-log, j-map, j-digi,
-j-bridge, j-sat, j-vault, j-learn).
+You should see nine entries installed (j-hub, j-log, j-map, j-digi,
+j-bridge, j-sat, j-vault, j-learn, morse-trainer).
 
 ### 5. Launch J-Hub
 
@@ -212,7 +213,8 @@ work on Windows. Each module needs its own Windows JavaFX libs:
    ```
 
    J-Learn is a pure web app and doesn't use JavaFX, so it isn't in the
-   list above.
+   list above. Morse-trainer pulls JavaFX directly from Maven Central, so
+   it doesn't need the SDK swap either.
 
 This step is one-time. The Linux flow doesn't need it because the
 symlinks point at a working SDK already.
@@ -228,7 +230,7 @@ mvn -q -DskipTests -f j-learn\pom.xml install
 mvn -q -DskipTests -f j-vault\pom.xml install
 
 # Package the apps
-foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat') {
+foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-trainer') {
     mvn -q -DskipTests -f "$m\pom.xml" package
 }
 ```
@@ -244,7 +246,7 @@ This generates per-module `.bat` launchers (when missing) and creates
 .\install.bat
 ```
 
-You should see eight entries installed.
+You should see nine entries installed.
 
 ### 6. Launch J-Hub
 
@@ -272,7 +274,7 @@ git pull
 mvn -q -DskipTests -f j-log-engine/pom.xml install
 mvn -q -DskipTests -f j-learn/pom.xml install
 mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
   mvn -q -DskipTests -f "$m/pom.xml" package
 done
 ./install.sh
@@ -285,7 +287,7 @@ git pull
 mvn -q -DskipTests -f j-log-engine\pom.xml install
 mvn -q -DskipTests -f j-learn\pom.xml install
 mvn -q -DskipTests -f j-vault\pom.xml install
-foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat') {
+foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-trainer') {
     mvn -q -DskipTests -f "$m\pom.xml" package
 }
 .\install.bat

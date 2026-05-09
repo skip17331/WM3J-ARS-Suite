@@ -1,4 +1,0 @@
---patch-module
-com.jlog.app=_
---add-reads
-com.jlog.app=ALL-UNNAMED

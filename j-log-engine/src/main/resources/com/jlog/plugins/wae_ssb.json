@@ -3,7 +3,7 @@
   "contestName": "Worked All Europe DX Contest (SSB)",
   "version":     "1.0.0",
 
-  "exchangeFormat": "RST + serial (e.g. 599 001). EU works DX only. QTC traffic handled by j-wae app.",
+  "exchangeFormat": "RST + serial (e.g. 599 001). EU works DX only.",
 
   "lockedMode":         "SSB",
   "autoFillDxccPrefix": true,

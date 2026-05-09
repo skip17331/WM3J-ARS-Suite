@@ -73,6 +73,15 @@
       "jar":    "j-learn/target/j-learn-1.1.0.jar",
       "icon":   "j-hub/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Education;"
+    },
+    {
+      "name": "morse-trainer",
+      "title": "WM3J Morse Trainer",
+      "comment": "ARS Suite — Morse code learning, sending practice, and analytics",
+      "launch": "morse-trainer/run.sh",
+      "jar":    "morse-trainer/target/morse-trainer-1.0.0.jar",
+      "icon":   "j-hub/src/main/resources/icons/icon.png",
+      "categories": "HamRadio;Education;"
     }
   ]
 }

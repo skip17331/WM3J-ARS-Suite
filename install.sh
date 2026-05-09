@@ -5,14 +5,17 @@
 # Assumes:
 #   - Java 21 is installed          (java --version)
 #   - Maven is installed            (mvn --version)
-#   - All seven modules have been built (mvn package each):
-#       j-hub  (with bundled J-Learn content)
+#   - j-log-engine has been installed first (mvn install) — shared library
+#   - All nine user-facing modules have been built (mvn package each):
+#       j-hub
 #       j-log
 #       j-map
 #       j-digi
 #       j-bridge
 #       j-sat
-#       j-vault   (shack inventory + estate handoff)
+#       j-vault         (shack inventory + estate handoff PDF)
+#       j-learn         (standalone reference library web app, port 8082)
+#       morse-trainer   (Morse code learning + sending practice)
 #
 # What this script does:
 #   1. Builds the installer jar if it isn't present.

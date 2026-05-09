@@ -1,0 +1,20 @@
+# Maven build outputs
+target/
+*.class
+dependency-reduced-pom.xml
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Java crash dumps
+hs_err_pid*.log
+replay_pid*.log

@@ -32,7 +32,7 @@ See [README.md](README.md) for the project's purpose and license.
 
 ## 1. Overview
 
-The suite is **six JavaFX applications, one broker** (J-Hub), and **two
+The suite is **seven JavaFX applications, one broker** (J-Hub), and **two
 standalone web apps** (J-Vault, J-Learn) that J-Hub iframes for a single-pane
 experience:
 
@@ -46,6 +46,7 @@ experience:
 | `j-sat`     | Satellite pass tracker, rig/rotor auto-tune during passes             | 4540 (TLE API)               |
 | `j-vault`   | Shack inventory + first-call contacts + Estate Handoff PDF wizard. Standalone JavaFX app with its own embedded Jetty + SQLite. | 8083 (HTTP) |
 | `j-learn`   | Amateur-radio reference library web app. Pure Jetty + HTML; markdown content seeds to `~/.j-learn/content/` so users can edit without rebuilding. | 8082 (HTTP) |
+| `morse-trainer` | Standalone JavaFX Morse code trainer — letter / group / QSO simulator + sending practice with real-time decoding. Launchable from J-Hub or directly. | none                  |
 
 **J-Learn** is its own process. The J-Hub web UI iframes it as the J-Learn
 tab, but you can also visit `http://localhost:8082/` directly from any
@@ -103,10 +104,10 @@ java --version
 The suite has dependencies between modules. Build in this order:
 
 ```
-j-log-engine  (shared library — install first)
-j-learn       (standalone web app — install so J-Hub can launch it)
-j-vault       (standalone web app — install so J-Hub can launch it)
-j-hub, j-log, j-map, j-digi, j-bridge, j-sat   (any order)
+j-log-engine    (shared library — install first)
+j-learn         (standalone web app — install so J-Hub can launch it)
+j-vault         (standalone web app — install so J-Hub can launch it)
+j-hub, j-log, j-map, j-digi, j-bridge, j-sat, morse-trainer   (any order)
 ```
 
 The `j-log-engine`, `j-learn`, and `j-vault` modules need `mvn install`
@@ -706,7 +707,7 @@ Copy the stack trace into the bug report along with the diagnostics zip.
 - **Telnet (ClusterManager ↔ DX cluster)** — one connection per j-hub
   instance. Parsed and enriched spots flow to all modules via WebSocket.
 - **j-log-engine** — Maven artifact embedded in j-log and j-digi. Holds the
-  shared SQLite DAO (`QsoDao`, `ContestQsoDao`, `QtcDao`, `MacroDao`),
+  shared SQLite DAO (`QsoDao`, `ContestQsoDao`, `MacroDao`),
   contest/award plugin loaders, the `MacroVariableEngine` placeholder
   substitution layer, and the `HubEngine` WebSocket client. This is why
   j-digi can log RTTY contest QSOs directly to the shared DB without

@@ -138,26 +138,6 @@ public class DatabaseManager {
                 """);
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_call ON contest_qso(callsign)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
-
-            // QTCs (Worked-All-Europe "Quick Traffic Copy" messages). A QTC
-            // is a passed QSO — EU<->DX stations exchange up to 10 QTCs per
-            // contact, each referencing an earlier QSO (time, call, serial).
-            st.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS qtc (
-                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                    contest_id      TEXT    NOT NULL,
-                    direction       TEXT    NOT NULL,     -- 'SENT' | 'RCVD'
-                    peer_call       TEXT    NOT NULL,     -- station on the other end
-                    qtc_time_utc    TEXT,                 -- time of the referenced QSO
-                    qtc_call        TEXT    NOT NULL,     -- callsign referenced
-                    qtc_serial      TEXT,                 -- serial of the referenced QSO
-                    qso_id          INTEGER,              -- parent QSO row (optional)
-                    created_at      TEXT DEFAULT (datetime('now'))
-                )
-                """);
-            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_qtc_cid   ON qtc(contest_id)");
-            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_qtc_peer  ON qtc(peer_call)");
-            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_qtc_qso   ON qtc(qso_id)");
         }
     }
 

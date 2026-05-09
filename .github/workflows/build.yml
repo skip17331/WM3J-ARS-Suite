@@ -37,13 +37,13 @@ jobs:
       - name: Build j-log-engine (shared library)
         run: mvn -B -DskipTests -f j-log-engine/pom.xml install
 
-      # Loop over the six user-facing modules plus the installer. -B =
+      # Loop over the user-facing modules plus the installer. -B =
       # batch mode (no color, cleaner log output).
       - name: Build all modules
         shell: bash
         run: |
           set -e
-          for module in j-hub j-log j-map j-digi j-bridge j-sat installer; do
+          for module in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer installer; do
             echo "::group::Building $module"
             mvn -B -DskipTests -f "$module/pom.xml" package
             echo "::endgroup::"
@@ -64,5 +64,6 @@ jobs:
             j-digi/target/j-digi-*-jar-with-dependencies.jar
             j-bridge/target/j-bridge-*.jar
             j-sat/target/j-sat-*.jar
+            morse-trainer/target/morse-trainer-*.jar
             installer/target/j-installer-*.jar
             !**/original-*.jar

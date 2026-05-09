@@ -1065,7 +1065,7 @@ public class WebConfigServer {
                     new java.util.zip.ZipOutputStream(res.getOutputStream())) {
 
                 // 1. Logs from each module
-                String[] modules = { "j-hub", "j-log", "j-map", "j-digi", "j-bridge", "j-sat", "j-wae" };
+                String[] modules = { "j-hub", "j-log", "j-map", "j-digi", "j-bridge", "j-sat" };
                 for (String m : modules) {
                     java.nio.file.Path logs = arsRoot.resolve(m).resolve("logs");
                     if (!java.nio.file.Files.isDirectory(logs)) continue;
