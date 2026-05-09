@@ -173,6 +173,11 @@
       "autoLaunch": false,
       "command": "bash /home/mike/ARS_Suite/j-vault/j-vault.sh",
       "ip": "localhost"
+    },
+    "jLearn": {
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-learn/start.sh",
+      "ip": "localhost"
     }
   },
   "macros": {
