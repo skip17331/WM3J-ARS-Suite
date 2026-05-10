@@ -59,7 +59,7 @@ public class SplashScreen {
 
         splashStage = new Stage(StageStyle.TRANSPARENT);
 
-        InputStream iconStream = getClass().getResourceAsStream("/com/jlog/icons/icon.png");
+        InputStream iconStream = getClass().getResourceAsStream("/com/jlog/icons/splash.png");
         if (iconStream == null) {
             javafx.application.Platform.runLater(this::showModeChooser);
             return;

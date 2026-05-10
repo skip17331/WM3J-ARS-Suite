@@ -38,7 +38,7 @@ public class SplashScreen {
 
         splashStage = new Stage(StageStyle.TRANSPARENT);
 
-        InputStream iconStream = getClass().getResourceAsStream("/com/hamradio/modem/icons/icon.png");
+        InputStream iconStream = getClass().getResourceAsStream("/com/hamradio/modem/icons/splash.png");
         if (iconStream == null) {
             Platform.runLater(this::launchMainWindow);
             return;

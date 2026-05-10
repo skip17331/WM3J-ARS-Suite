@@ -25,7 +25,7 @@ public class SplashScreen {
     public void show() {
         splashStage = new Stage(StageStyle.TRANSPARENT);
 
-        InputStream iconStream = getClass().getResourceAsStream("/icons/icon.png");
+        InputStream iconStream = getClass().getResourceAsStream("/icons/splash.png");
         if (iconStream == null) {
             if (onComplete != null) onComplete.run();
             return;
