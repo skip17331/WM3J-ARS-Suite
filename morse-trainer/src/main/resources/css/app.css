@@ -22,7 +22,7 @@
 }
 
 .button:focused {
-    -fx-border-color: #6366f1;
+    -fx-border-color: #4fc3f7;
 }
 
 .mode-card {
@@ -36,8 +36,8 @@
 }
 
 .mode-card:hover {
-    -fx-border-color: #6366f1;
-    -fx-effect: dropshadow(gaussian, rgba(99,102,241,0.15), 16, 0, 0, 4);
+    -fx-border-color: #4fc3f7;
+    -fx-effect: dropshadow(gaussian, rgba(79,195,247,0.15), 16, 0, 0, 4);
 }
 
 .text-field, .text-area, .spinner, .combo-box {
@@ -48,5 +48,5 @@
 }
 
 .text-field:focused, .text-area:focused, .combo-box:focused {
-    -fx-border-color: #6366f1;
+    -fx-border-color: #4fc3f7;
 }

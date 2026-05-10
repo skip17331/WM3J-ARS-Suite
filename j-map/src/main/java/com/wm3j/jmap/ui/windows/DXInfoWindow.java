@@ -56,7 +56,7 @@ public class DXInfoWindow extends FloatingWindow {
         localTimeLabel = styled("", "1.12em", "#00cc66", false);
         latLonLabel    = styled("", "1.06em", "#ccd6f6", false);
         zonesLabel     = styled("", "1.06em", "#ccd6f6", false);
-        gridLabel      = styled("", "1.21em", "#2a7fff", true);
+        gridLabel      = styled("", "1.21em", "#4fc3f7", true);
         spotterLabel   = styled("", "0.97em", "#4a5580", false);
 
         contentBox.getChildren().add(noSpotLabel);

@@ -37,7 +37,7 @@ public class SatTrackCanvas extends Pane {
 
     // Satellite colors by index
     private static final Color[] SAT_COLORS = {
-        Color.web("#00e5ff"), Color.web("#ff4081"), Color.web("#69f0ae"),
+        Color.web("#4fc3f7"), Color.web("#ff4081"), Color.web("#69f0ae"),
         Color.web("#ffea00"), Color.web("#ff6d00"), Color.web("#d500f9"),
         Color.web("#76ff03"), Color.web("#f50057")
     };

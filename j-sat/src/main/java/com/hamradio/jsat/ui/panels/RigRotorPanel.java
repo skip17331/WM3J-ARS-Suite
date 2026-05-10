@@ -143,7 +143,7 @@ public class RigRotorPanel extends HBox {
         drawPointer(gc, cx, cy, r - 10, curAz, Color.web("#ccd6f6"), 2.5);
 
         if (satAz >= 0) {
-            drawPointer(gc, cx, cy, r - 4, satAz, Color.web("#00e5ff"), 1.5);
+            drawPointer(gc, cx, cy, r - 4, satAz, Color.web("#4fc3f7"), 1.5);
         }
 
         double elFrac = Math.max(0, Math.min(curEl, 90)) / 90.0;

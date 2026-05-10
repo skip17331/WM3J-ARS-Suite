@@ -52,7 +52,7 @@ public class DashboardLayout {
 
         // ── Top bar ────────────────────────────────────────────────────────────
         int topFz = s.effective(s.topBarFontSize);
-        Label title = styled("J-SAT", "#00e5ff", true, Math.round(topFz * 1.23f));
+        Label title = styled("J-SAT", "#4fc3f7", true, Math.round(topFz * 1.23f));
         Label callsign = styled(s.callsign, "#aabbdd", true, Math.round(topFz * 1.08f));
         utcClock = styled("--:--:-- Z", "#88bbff", false, topFz);
         locClock = styled("--:--:--",   "#6688aa", false, topFz);

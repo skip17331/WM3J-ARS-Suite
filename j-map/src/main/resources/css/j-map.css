@@ -7,9 +7,9 @@
     -fx-base:             #0a0a0f;
     -fx-background:       #0a0a0f;
     -fx-control-inner-background: #0d1020;
-    -fx-accent:           #2a7fff;
-    -fx-focus-color:      #2a7fff;
-    -fx-faint-focus-color: rgba(42,127,255,0.15);
+    -fx-accent:           #4fc3f7;
+    -fx-focus-color:      #4fc3f7;
+    -fx-faint-focus-color: rgba(79,195,247,0.15);
     -fx-text-fill:        #ccd6f6;
     -fx-font-family:      "Liberation Mono";
 }

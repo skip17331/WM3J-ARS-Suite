@@ -56,7 +56,7 @@ public class LivePassPanel extends VBox {
         satNameLabel = styledLabel("— NO SATELLITE SELECTED —", "#aabbdd", true, fz + 1);
 
         // ── Big AZ / EL display ──────────────────────────────────────────────
-        azBigLabel   = styledLabel("---", "#00e5ff", true, fz + 13);
+        azBigLabel   = styledLabel("---", "#4fc3f7", true, fz + 13);
         elBigLabel   = styledLabel("---", "#69f0ae", true, fz + 13);
         azUnitLabel  = styledLabel("AZ", "#445566", false, fz - 3);
         elUnitLabel  = styledLabel("EL", "#445566", false, fz - 3);
@@ -84,7 +84,7 @@ public class LivePassPanel extends VBox {
         passPredictionPane.setMaxWidth(Double.MAX_VALUE);
 
         // ── Range / Rate (bottom-bar pane) ───────────────────────────────────
-        rangeLabel = styledLabel("---", "#00e5ff", true, fz + 3);
+        rangeLabel = styledLabel("---", "#4fc3f7", true, fz + 3);
         rateLabel  = styledLabel("---", "#69f0ae", true, fz + 3);
         Label rrHeader   = styledLabel("RANGE / RATE",   "#334466", false, fz - 3);
         Label rangeKey   = styledLabel("Range",  "#556688", false, fz - 3);
@@ -244,7 +244,7 @@ public class LivePassPanel extends VBox {
         double w = POLAR_SIZE, h = 14;
         if (el > 0) {
             double fillW = Math.min(el, 90) / 90.0 * (w - 2);
-            String color = el > 45 ? "#00e5ff" : el > 15 ? "#69f0ae" : "#ffdd00";
+            String color = el > 45 ? "#4fc3f7" : el > 15 ? "#69f0ae" : "#ffdd00";
             gc.setFill(Color.web(color, 0.7));
             gc.fillRect(1, 1, fillW, h - 2);
         }
@@ -301,7 +301,7 @@ public class LivePassPanel extends VBox {
         gc.fillOval(px - 7, py - 7, 14, 14);
 
         Color dotColor = state.elevationDeg > 0
-            ? Color.web("#00e5ff") : Color.web("#445566");
+            ? Color.web("#4fc3f7") : Color.web("#445566");
         gc.setFill(dotColor);
         gc.fillOval(px - 6, py - 6, 12, 12);
         gc.setStroke(Color.web("#ffffff", 0.7));

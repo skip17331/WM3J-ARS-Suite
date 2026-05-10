@@ -33,8 +33,8 @@ import java.time.format.DateTimeFormatter;
  * Managed Apps section shows j-map, j-log, j-bridge, and j-digi.
  * Each managed app row shows a coloured running/stopped indicator,
  * a Launch button (when stopped) and a Stop button (when running).
- * j-bridge uses Catppuccin Mauve (#cba6f7) to distinguish it
- * from the green "connected" colour used for WebSocket registrations.
+ * j-bridge uses the suite accent blue to distinguish it from the
+ * green "connected" colour used for WebSocket registrations.
  *
  * When J-Hub launches j-log or j-bridge it passes --launched-by-hub
  * so those apps suppress their own splash screens.
@@ -82,7 +82,7 @@ public class JHubStatusWindow {
     // Catppuccin Mocha palette
     private static final String C_GREEN  = "#a6e3a1";
     private static final String C_RED    = "#f38ba8";
-    private static final String C_MAUVE  = "#cba6f7";
+    private static final String C_MAUVE  = "#4fc3f7";
     private static final String C_BLUE   = "#89b4fa";
     private static final String C_TEXT   = "#cdd6f4";
     private static final String C_SUBTLE = "#6c7086";

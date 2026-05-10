@@ -71,7 +71,7 @@ public class ContestListWindow extends FloatingWindow {
         time.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #4a5580;");
 
         Label info = new Label(c.getModes() + "  " + c.getBands());
-        info.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #2a7fff;");
+        info.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #4fc3f7;");
 
         row.getChildren().addAll(name, time, info);
         return row;

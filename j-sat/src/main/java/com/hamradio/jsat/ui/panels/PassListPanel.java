@@ -74,7 +74,7 @@ public class PassListPanel extends VBox {
             String line2 = String.format("MaxEl %4.1f°  AOS Az %3.0f°  %s",
                 pass.maxElDeg, pass.aosAzDeg, countdown);
 
-            String color = active ? "#00e5ff" : (secs < 300 ? "#ffdd00" : "#ccd6f6");
+            String color = active ? "#4fc3f7" : (secs < 300 ? "#ffdd00" : "#ccd6f6");
             String bg    = active ? "#001830" : "#0d1020";
 
             // Build stale badge for this satellite's TLE

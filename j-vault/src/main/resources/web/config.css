@@ -22,7 +22,7 @@
   --yellow:   #f9e2af;
   --peach:    #fab387;
   --red:      #f38ba8;
-  --mauve:    #cba6f7;
+  --mauve:    #4fc3f7;
 }
 
 /* Light theme: Catppuccin Latte. Sister palette to Mocha. */
@@ -44,7 +44,7 @@
   --yellow:   #df8e1d;
   --peach:    #fe640b;
   --red:      #d20f39;
-  --mauve:    #8839ef;
+  --mauve:    #1565c0;
 }
 
 body {

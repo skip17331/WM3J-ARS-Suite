@@ -7,9 +7,9 @@
     -fx-base:             #0a0a0f;
     -fx-background:       #0a0a0f;
     -fx-control-inner-background: #0d1020;
-    -fx-accent:           #00e5ff;
-    -fx-focus-color:      #00e5ff;
-    -fx-faint-focus-color: rgba(0,229,255,0.12);
+    -fx-accent:           #4fc3f7;
+    -fx-focus-color:      #4fc3f7;
+    -fx-faint-focus-color: rgba(79,195,247,0.12);
     -fx-text-fill:        #ccd6f6;
     -fx-font-family:      "Liberation Mono";
 }
@@ -81,7 +81,7 @@
     -fx-prompt-text-fill: #334455;
 }
 .text-field:focused {
-    -fx-border-color: #00e5ff;
+    -fx-border-color: #4fc3f7;
 }
 
 /* ── CheckBox ── */
@@ -91,7 +91,7 @@
     -fx-border-radius: 2;
 }
 .check-box:selected .box { -fx-background-color: #004466; }
-.check-box .mark { -fx-background-color: #00e5ff; }
+.check-box .mark { -fx-background-color: #4fc3f7; }
 .check-box .text { -fx-text-fill: #ccd6f6; -fx-font-family: "Liberation Mono"; }
 
 /* ── TabPane ── */
@@ -103,7 +103,7 @@
 }
 .tab:selected { -fx-background-color: #0d1a30; }
 .tab .tab-label { -fx-text-fill: #7a8aaa; -fx-font-family: "Liberation Mono"; -fx-font-size: 12px; }
-.tab:selected .tab-label { -fx-text-fill: #00e5ff; }
+.tab:selected .tab-label { -fx-text-fill: #4fc3f7; }
 
 /* ── Separator ── */
 .separator .line { -fx-border-color: #1a2a4a; -fx-border-width: 1 0 0 0; }
