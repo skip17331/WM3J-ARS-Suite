@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * AppLauncher — launches and tracks external ARS Suite applications
@@ -38,7 +40,8 @@ public class AppLauncher {
         if (command == null || command.isBlank()) {
             return "No command configured for '" + name + "'";
         }
-        kill(name); // stop stale instance if any
+        kill(name); // stop stale instance if any (tracked in our process map)
+        killOrphansMatching(command); // catch survivors from a previous j-hub run
         try {
             // Run via bash so the command can use shell features (cd, &&, pipes, etc.)
             ProcessBuilder pb = new ProcessBuilder("bash", "-c", command);
@@ -74,6 +77,46 @@ public class AppLauncher {
     public boolean isRunning(String name) {
         Process p = processes.get(name);
         return p != null && p.isAlive();
+    }
+
+    // ---------------------------------------------------------------
+    // Orphan sweep — survivors from a previous j-hub session get
+    // re-parented to init/cinnamon and become invisible to our process
+    // map. Without this sweep, the next Launch fails on port-busy.
+    // ---------------------------------------------------------------
+
+    private static final Pattern SCRIPT_LAUNCH =
+        Pattern.compile("(/\\S+?)/(?:start\\.sh|run\\.sh|j-\\S+?\\.sh)\\b");
+    private static final Pattern JAR_LAUNCH =
+        Pattern.compile("(/\\S+/target/)\\S+\\.jar\\b");
+    private static final Pattern MVN_LAUNCH =
+        Pattern.compile("cd\\s+(/\\S+?)\\s+&&\\s+mvn\\b");
+
+    /**
+     * Derive a unique substring of the target jar path from a launch command
+     * so we can find a re-parented previous instance running the same jar.
+     * Returns null if no usable signature can be extracted.
+     */
+    static String orphanMarker(String command) {
+        Matcher m;
+        if ((m = JAR_LAUNCH.matcher(command)).find())    return m.group(1);
+        if ((m = SCRIPT_LAUNCH.matcher(command)).find()) return m.group(1) + "/target/";
+        if ((m = MVN_LAUNCH.matcher(command)).find())    return m.group(1) + "/target/";
+        return null;
+    }
+
+    private void killOrphansMatching(String command) {
+        String marker = orphanMarker(command);
+        if (marker == null) return;
+        long myPid = ProcessHandle.current().pid();
+        ProcessHandle.allProcesses()
+            .filter(ph -> ph.pid() != myPid)
+            .filter(ph -> ph.info().commandLine().map(c -> c.contains(marker)).orElse(false))
+            .forEach(ph -> {
+                log.info("Killing orphan process pid={} matching {}", ph.pid(), marker);
+                ph.descendants().forEach(ProcessHandle::destroyForcibly);
+                ph.destroyForcibly();
+            });
     }
 
     /** Kill all managed processes (called from shutdown hook). */

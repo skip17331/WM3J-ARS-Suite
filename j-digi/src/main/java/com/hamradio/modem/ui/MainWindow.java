@@ -579,9 +579,9 @@ public class MainWindow {
             waterfallPane.update(snap);
             spectrumPane.setPeakFrequencyHz(snap.getPeakFrequencyHz());
         });
-        service.setDecodeListener(this::onDecodeReceived);
-        service.setStatusListener(this::onStatusUpdate);
-        service.setRotorListener(this::onRotorUpdate);
+        service.setDecodeListener(line  -> Platform.runLater(() -> onDecodeReceived(line)));
+        service.setStatusListener(st    -> Platform.runLater(() -> onStatusUpdate(st)));
+        service.setRotorListener(rotor  -> Platform.runLater(() -> onRotorUpdate(rotor)));
 
         service.setStationListener(parts -> Platform.runLater(() -> {
             String call = parts.length > 0 ? parts[0] : "NOCALL";
