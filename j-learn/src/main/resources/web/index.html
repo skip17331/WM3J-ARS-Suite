@@ -20,7 +20,14 @@
                oninput="applyJLearnTextSize(this.value)">
         <span id="jl-text-size-val">100</span>%
       </label>
-      <button class="btn-ghost" onclick="resetJLearnTextSize()">Reset</button>
+      <label class="theme-pick" title="Switch between dark and light color themes.">
+        Theme:
+        <select id="jl-theme" onchange="applyJLearnTheme(this.value)">
+          <option value="mocha">Dark</option>
+          <option value="latte">Light</option>
+        </select>
+      </label>
+      <button class="btn-ghost" onclick="resetJLearnPrefs()">Reset</button>
     </div>
   </div>
 
@@ -28,10 +35,6 @@
     <aside class="sidebar">
       <div class="sidebar-controls">
         <input type="text" id="jl-search" placeholder="Filter chapters…" oninput="filterLearnToc()">
-        <label class="adv-toggle">
-          <input type="checkbox" id="jl-advanced" onchange="renderLearnContent()">
-          Advanced
-        </label>
       </div>
       <div id="jl-toc"></div>
     </aside>

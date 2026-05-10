@@ -97,6 +97,8 @@ depend on it. J-Learn and J-Vault are standalone modules but get
 `mvn install`-ed so J-Hub can launch them by name.
 
 ```bash
+cd ~/ARS_Suite
+
 # Shared engine first — must be installed so log/digi can find it
 mvn -q -DskipTests -f j-log-engine/pom.xml install
 
@@ -222,6 +224,8 @@ symlinks point at a working SDK already.
 ### 4. Build the suite
 
 ```powershell
+cd $HOME\ARS_Suite
+
 # Shared engine first
 mvn -q -DskipTests -f j-log-engine\pom.xml install
 

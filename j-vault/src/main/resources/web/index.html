@@ -21,6 +21,22 @@
       <input type="text" id="station-callsign" placeholder="Callsign"
              oninput="saveStation()" title="Saved locally; printed on the estate document cover.">
     </div>
+    <div class="hdr-prefs">
+      <label title="Scale the entire UI.">
+        Text size:
+        <input type="range" id="jv-scale" min="80" max="150" step="5" value="100"
+               oninput="applyVaultScale(this.value)">
+        <span id="jv-scale-val">100</span>%
+      </label>
+      <label title="Switch between dark and light color themes.">
+        Theme:
+        <select id="jv-theme" onchange="applyVaultTheme(this.value)">
+          <option value="mocha">Dark</option>
+          <option value="latte">Light</option>
+        </select>
+      </label>
+      <button class="reset-btn" onclick="resetVaultPrefs()" title="Reset to defaults.">Reset</button>
+    </div>
   </header>
 
   <main class="main">

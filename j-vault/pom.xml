@@ -16,7 +16,6 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>17.0.2</javafx.version>
         <jetty.version>11.0.15</jetty.version>
     </properties>
 
@@ -47,13 +46,6 @@
             <version>3.46.0.0</version>
         </dependency>
 
-        <!-- JavaFX for the small status window -->
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
-
         <!-- SLF4J + Logback -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -76,15 +68,6 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <configuration>
-                    <mainClass>com.jvault.JVaultMain</mainClass>
                 </configuration>
             </plugin>
 

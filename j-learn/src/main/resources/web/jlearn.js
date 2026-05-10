@@ -18,7 +18,12 @@ const inIframe = window.parent && window.parent !== window;
 function applyJLearnTextSize(pct) {
   let v = parseInt(pct, 10);
   if (!isFinite(v) || v < 80 || v > 180) v = 100;
-  document.getElementById('jl-viewer').style.fontSize = v + '%';
+  // Scale both the reading area and the sidebar TOC. Topbar (chrome) is
+  // intentionally excluded so the slider/dropdown stay a stable size.
+  const viewer  = document.getElementById('jl-viewer');
+  const sidebar = document.querySelector('.sidebar');
+  if (viewer)  viewer.style.fontSize  = v + '%';
+  if (sidebar) sidebar.style.fontSize = v + '%';
   document.getElementById('jl-text-size').value = v;
   document.getElementById('jl-text-size-val').textContent = v;
   try { localStorage.setItem('jhub.jlearn.textSize', String(v)); } catch (e) {}
@@ -31,6 +36,28 @@ function applyJLearnTextSizePref() {
   try { v = parseInt(localStorage.getItem('jhub.jlearn.textSize') || '100', 10); }
   catch (e) {}
   applyJLearnTextSize(v);
+}
+
+// ---------- theme ------------------------------------------------------
+
+function applyJLearnTheme(name) {
+  const theme = (name === 'latte') ? 'latte' : 'mocha';
+  document.documentElement.setAttribute('data-theme', theme);
+  const sel = document.getElementById('jl-theme');
+  if (sel) sel.value = theme;
+  try { localStorage.setItem('jhub.jlearn.theme', theme); } catch (e) {}
+}
+
+function applyJLearnThemePref() {
+  let theme = 'mocha';
+  try { theme = localStorage.getItem('jhub.jlearn.theme') || 'mocha'; }
+  catch (e) {}
+  applyJLearnTheme(theme);
+}
+
+function resetJLearnPrefs() {
+  applyJLearnTextSize(100);
+  applyJLearnTheme('mocha');
 }
 
 // ---------- manifest + sidebar ------------------------------------------
@@ -56,11 +83,9 @@ function loadLearn() {
 function renderLearnToc() {
   const wrap = document.getElementById('jl-toc');
   if (!wrap) return;
-  const filter   = (document.getElementById('jl-search')?.value || '').toLowerCase();
-  const advanced = document.getElementById('jl-advanced')?.checked;
+  const filter = (document.getElementById('jl-search')?.value || '').toLowerCase();
 
   const visible = state.manifest.filter(e => {
-    if (!advanced && e.level === 'advanced') return false;
     if (!filter) return true;
     return e.title.toLowerCase().includes(filter) || e.id.includes(filter);
   });
@@ -110,9 +135,8 @@ function renderLearnContent(md) {
     if (state.currentId) openLearnSection(state.currentId);
     return;
   }
-  const advanced = document.getElementById('jl-advanced')?.checked;
   const banner = renderLearnBanner(state.currentId);
-  document.getElementById('jl-viewer').innerHTML = banner + mdToHtml(stripFrontMatter(md), advanced);
+  document.getElementById('jl-viewer').innerHTML = banner + mdToHtml(stripFrontMatter(md));
   document.getElementById('jl-viewer').scrollTop = 0;
 }
 
@@ -216,7 +240,7 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
-function mdToHtml(md, includeAdvanced) {
+function mdToHtml(md) {
   const lines = md.split(/\r?\n/);
   const out = [];
   let i = 0;
@@ -249,8 +273,10 @@ function mdToHtml(md, includeAdvanced) {
         i++;
       }
       const text = buf.join(' ');
+      // The "Advanced — …" callout still gets the .advanced class so it
+      // renders distinctly (peach accent), but it is no longer hidden —
+      // readers can skip or skim it as they choose.
       const isAdvanced = /^⚙️\s+\*\*Advanced\s*—/.test(text.trim());
-      if (isAdvanced && !includeAdvanced) continue;
       out.push('<blockquote' + (isAdvanced ? ' class="advanced"' : '') + '>' + inline(text) + '</blockquote>');
       continue;
     }
@@ -287,5 +313,6 @@ function mdToHtml(md, includeAdvanced) {
 
 document.addEventListener('DOMContentLoaded', () => {
   applyJLearnTextSizePref();
+  applyJLearnThemePref();
   loadLearn();
 });

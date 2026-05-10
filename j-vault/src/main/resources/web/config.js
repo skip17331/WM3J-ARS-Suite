@@ -939,8 +939,49 @@ function escHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
+// ===== UI prefs (theme + text size) =====
+//
+// Persisted in localStorage so the choice survives across reloads. The slider
+// drives a CSS `zoom` on #app via the --vault-scale variable; the dropdown
+// flips :root[data-theme] between mocha (dark) and latte (light).
+
+function applyVaultScale(pct) {
+  let v = parseInt(pct, 10);
+  if (!isFinite(v) || v < 80 || v > 150) v = 100;
+  document.documentElement.style.setProperty('--vault-scale', (v / 100).toString());
+  const slider = document.getElementById('jv-scale');
+  const label  = document.getElementById('jv-scale-val');
+  if (slider) slider.value = v;
+  if (label)  label.textContent = v;
+  try { localStorage.setItem('jvault.ui.scale', String(v)); } catch (e) {}
+}
+
+function applyVaultTheme(name) {
+  const theme = (name === 'latte') ? 'latte' : 'mocha';
+  document.documentElement.setAttribute('data-theme', theme);
+  const sel = document.getElementById('jv-theme');
+  if (sel) sel.value = theme;
+  try { localStorage.setItem('jvault.ui.theme', theme); } catch (e) {}
+}
+
+function resetVaultPrefs() {
+  applyVaultScale(100);
+  applyVaultTheme('mocha');
+}
+
+function loadVaultPrefs() {
+  let scale = 100, theme = 'mocha';
+  try {
+    scale = parseInt(localStorage.getItem('jvault.ui.scale') || '100', 10);
+    theme = localStorage.getItem('jvault.ui.theme') || 'mocha';
+  } catch (e) {}
+  applyVaultScale(scale);
+  applyVaultTheme(theme);
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
+  loadVaultPrefs();
   loadStation();
   loadInventoryAll();
 });

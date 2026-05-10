@@ -3,3 +3,6 @@
 2026-05-07 19:51:06.354 INFO  com.jvault.JVaultMain — Shutting down J-Vault.
 2026-05-07 19:58:56.961 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
 2026-05-07 19:59:35.513 INFO  com.jvault.JVaultMain — Shutting down J-Vault.
+2026-05-10 08:33:58.887 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:18083
+2026-05-10 08:33:59.033 INFO  com.jvault.JVaultMain — J-Vault running on http://localhost:18083/
+2026-05-10 08:34:02.442 INFO  com.jvault.JVaultMain — Shutting down J-Vault

@@ -1,5 +1,6 @@
-/* J-Learn standalone — Catppuccin Mocha palette to match the rest of the suite. */
-:root {
+/* J-Learn standalone — Catppuccin Mocha (dark) by default. */
+:root,
+:root[data-theme="mocha"] {
   --base:     #1e1e2e;
   --mantle:   #181825;
   --surface0: #313244;
@@ -12,6 +13,22 @@
   --peach:    #fab387;
   --green:    #a6e3a1;
   --red:      #f38ba8;
+}
+
+/* Light theme: Catppuccin Latte. Sister palette to Mocha. */
+:root[data-theme="latte"] {
+  --base:     #eff1f5;
+  --mantle:   #e6e9ef;
+  --surface0: #ccd0da;
+  --surface1: #bcc0cc;
+  --overlay0: #9ca0b0;
+  --subtext0: #6c6f85;
+  --text:     #4c4f69;
+  --mauve:    #8839ef;
+  --blue:     #1e66f5;
+  --peach:    #fe640b;
+  --green:    #40a02b;
+  --red:      #d20f39;
 }
 
 * { box-sizing: border-box; }
@@ -53,7 +70,14 @@ html, body {
   color: var(--subtext0);
 }
 .text-size { display: flex; align-items: center; gap: 6px; }
-.text-size input[type=range] { width: 140px; }
+.text-size input[type=range] { width: 140px; accent-color: var(--mauve); }
+.theme-pick { display: flex; align-items: center; gap: 6px; }
+.theme-pick select {
+  background: var(--surface0); color: var(--text);
+  border: 1px solid var(--surface1); border-radius: 4px;
+  padding: 3px 6px; font-size: 12px;
+}
+.theme-pick select:focus { outline: none; border-color: var(--mauve); }
 
 .btn-ghost {
   background: transparent;
@@ -84,6 +108,8 @@ html, body {
   gap: 6px;
   margin-bottom: 10px;
 }
+/* Sidebar children use em so they scale with the topbar's text-size slider,
+ * which sets a percentage font-size on .sidebar itself. */
 .sidebar-controls input[type=text] {
   flex: 1;
   background: var(--base);
@@ -91,22 +117,14 @@ html, body {
   border-radius: 4px;
   color: var(--text);
   padding: 5px 8px;
-  font-size: 12px;
+  font-size: 0.86em;
 }
-.adv-toggle {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--subtext0);
-}
-
 .chapter {
   margin-bottom: 8px;
 }
 .chapter-title {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.93em;
   cursor: pointer;
   padding: 3px 4px;
   border-radius: 3px;
@@ -116,7 +134,7 @@ html, body {
 
 .section-link {
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.86em;
   padding: 2px 4px 2px 16px;
   border-radius: 3px;
   color: var(--subtext0);
@@ -126,7 +144,7 @@ html, body {
   background: var(--surface0);
   color: var(--text);
 }
-.section-link .adv-marker { color: var(--peach); font-size: 10px; }
+.section-link .adv-marker { color: var(--peach); font-size: 0.71em; }
 
 .viewer {
   overflow: auto;
@@ -135,7 +153,7 @@ html, body {
 }
 .placeholder {
   color: var(--subtext0);
-  font-size: 14px;
+  font-size: 1em;
   padding: 24px;
 }
 .placeholder code {
@@ -143,33 +161,35 @@ html, body {
   padding: 1px 6px;
   border-radius: 3px;
   font-family: Consolas, monospace;
-  font-size: 12px;
+  font-size: 0.86em;
 }
 
-/* Markdown render styles. */
+/* Markdown render styles.
+ * Sizes are in em so they inherit from #jl-viewer's font-size, which the
+ * topbar slider drives (e.g. 180% on #jl-viewer scales every child below). */
 .viewer h1, .viewer h2, .viewer h3, .viewer h4 { color: var(--text); margin: 14px 0 6px; }
-.viewer h1 { font-size: 22px; }
-.viewer h2 { font-size: 18px; }
-.viewer h3 { font-size: 15px; }
-.viewer h4 { font-size: 13px; }
-.viewer p  { margin: 8px 0; line-height: 1.5; font-size: 14px; }
+.viewer h1 { font-size: 1.57em; }
+.viewer h2 { font-size: 1.29em; }
+.viewer h3 { font-size: 1.07em; }
+.viewer h4 { font-size: 0.93em; }
+.viewer p  { margin: 8px 0; line-height: 1.5; font-size: 1em; }
 .viewer ul, .viewer ol { padding-left: 22px; margin: 8px 0; }
 .viewer li { margin: 2px 0; }
-.viewer code { background: var(--mantle); padding: 1px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 12px; }
+.viewer code { background: var(--mantle); padding: 1px 5px; border-radius: 3px; font-family: Consolas, monospace; font-size: 0.86em; }
 .viewer pre {
   background: var(--mantle);
   padding: 10px;
   border-radius: 6px;
   overflow-x: auto;
   font-family: Consolas, monospace;
-  font-size: 12px;
+  font-size: 0.86em;
 }
 .viewer blockquote {
   border-left: 3px solid var(--blue);
   background: rgba(137, 180, 250, 0.06);
   padding: 10px 14px;
   margin: 10px 0;
-  font-size: 13px;
+  font-size: 0.93em;
 }
 .viewer blockquote.advanced {
   border-left-color: var(--peach);
@@ -186,12 +206,12 @@ html, body {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: 0.93em;
 }
-.cross-banner .ico { font-size: 18px; }
+.cross-banner .ico { font-size: 1.29em; }
 .cross-banner .body { flex: 1; }
 .cross-banner .title { font-weight: 600; color: var(--text); }
-.cross-banner .sub   { color: var(--subtext0); font-size: 12px; }
+.cross-banner .sub   { color: var(--subtext0); font-size: 0.86em; }
 .cross-banner button {
   background: var(--mauve);
   color: var(--base);

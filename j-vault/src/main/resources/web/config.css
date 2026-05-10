@@ -2,7 +2,9 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
+/* Default theme: Catppuccin Mocha (dark). */
+:root,
+:root[data-theme="mocha"] {
   --base:     #1e1e2e;
   --mantle:   #181825;
   --crust:    #11111b;
@@ -23,6 +25,28 @@
   --mauve:    #cba6f7;
 }
 
+/* Light theme: Catppuccin Latte. Sister palette to Mocha. */
+:root[data-theme="latte"] {
+  --base:     #eff1f5;
+  --mantle:   #e6e9ef;
+  --crust:    #dce0e8;
+  --surface0: #ccd0da;
+  --surface1: #bcc0cc;
+  --surface2: #acb0be;
+  --overlay0: #9ca0b0;
+  --overlay1: #8c8fa1;
+  --subtext0: #6c6f85;
+  --subtext1: #5c5f77;
+  --text:     #4c4f69;
+  --blue:     #1e66f5;
+  --teal:     #179299;
+  --green:    #40a02b;
+  --yellow:   #df8e1d;
+  --peach:    #fe640b;
+  --red:      #d20f39;
+  --mauve:    #8839ef;
+}
+
 body {
   background: var(--base);
   color: var(--text);
@@ -32,7 +56,13 @@ body {
   min-height: 100vh;
 }
 
-#app { display: flex; flex-direction: column; min-height: 100vh; }
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* UI-wide zoom controlled by the text-size slider in the header. */
+  zoom: var(--vault-scale, 1);
+}
 
 /* ── Header ────────────────────────────────────────────── */
 .hdr {
@@ -54,6 +84,26 @@ body {
   padding: 5px 10px; font-size: 12px; width: 160px;
 }
 .hdr-station input:focus { outline: none; border-color: var(--mauve); }
+
+/* Header preferences (text size + theme). Compact group on the right side. */
+.hdr-prefs {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; color: var(--subtext0);
+}
+.hdr-prefs label { display: flex; align-items: center; gap: 4px; }
+.hdr-prefs input[type=range] { width: 110px; accent-color: var(--mauve); }
+.hdr-prefs select {
+  background: var(--surface0); color: var(--text);
+  border: 1px solid var(--surface1); border-radius: 4px;
+  padding: 3px 6px; font-size: 11px;
+}
+.hdr-prefs select:focus { outline: none; border-color: var(--mauve); }
+.hdr-prefs .reset-btn {
+  background: transparent; border: 1px solid var(--surface1);
+  color: var(--subtext0); padding: 3px 8px; border-radius: 3px;
+  font-size: 11px; cursor: pointer;
+}
+.hdr-prefs .reset-btn:hover { color: var(--mauve); border-color: var(--mauve); }
 
 /* ── Main layout ───────────────────────────────────────── */
 .main { padding: 18px 22px 30px 22px; max-width: 1400px; width: 100%; margin: 0 auto; }
