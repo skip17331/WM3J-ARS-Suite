@@ -42,6 +42,14 @@ public class DxClusterClient {
     private volatile String statusMessage = "Disconnected";
     private volatile String hubUrl = DEFAULT_URL;
     private volatile Instant sessionStartTime = Instant.now();
+    /** When the connection last dropped (or {@code null} if currently up
+     *  or never connected). UI uses this to render "Disconnected (Ns)". */
+    private volatile Instant disconnectedSince = Instant.now();
+    /** Exponential reconnect backoff in seconds. Doubles on each failure,
+     *  resets to {@code MIN_BACKOFF_SEC} on a successful connect. */
+    private static final int MIN_BACKOFF_SEC = 2;
+    private static final int MAX_BACKOFF_SEC = 60;
+    private volatile int backoffSec = MIN_BACKOFF_SEC;
 
     private final List<DxSpot>   clusterSpots = new CopyOnWriteArrayList<>();
     private final LinkedList<String> lineBuffer = new LinkedList<>();
@@ -165,6 +173,8 @@ public class DxClusterClient {
                 @Override public void onOpen(ServerHandshake h) {
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-map\",\"version\":\"1.0.0\"}");
                     connected = true;
+                    disconnectedSince = null;
+                    backoffSec = MIN_BACKOFF_SEC;   // reset backoff on success
                     sessionStartTime = Instant.now();
                     clusterSpots.clear();
                     statusMessage = "Connected to " + url;
@@ -186,11 +196,13 @@ public class DxClusterClient {
 
                 @Override public void onClose(int code, String reason, boolean remote) {
                     connected = false;
+                    if (disconnectedSince == null) disconnectedSince = Instant.now();
                     if (heartbeatFuture != null) { heartbeatFuture.cancel(false); heartbeatFuture = null; }
-                    statusMessage = "Disconnected";
+                    int retry = nextBackoff();
+                    statusMessage = "Disconnected — retrying in " + retry + "s";
                     addLine(">>> Hub disconnected");
-                    log.info("Hub disconnected ({})", reason);
-                    scheduleConnect(10);
+                    log.info("Hub disconnected ({}) — retrying in {}s", reason, retry);
+                    scheduleConnect(retry);
                 }
 
                 @Override public void onError(Exception ex) {
@@ -199,9 +211,24 @@ public class DxClusterClient {
             };
             ws.connectBlocking(5, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.warn("Hub connect failed: {} — retrying in 15s", e.getMessage());
-            scheduleConnect(15);
+            int retry = nextBackoff();
+            statusMessage = "Disconnected — retrying in " + retry + "s";
+            log.warn("Hub connect failed: {} — retrying in {}s", e.getMessage(), retry);
+            scheduleConnect(retry);
         }
+    }
+
+    /** Advance the exponential backoff and return the next retry delay
+     *  (capped at {@link #MAX_BACKOFF_SEC}). Adds small jitter so a fleet
+     *  of remote displays doesn't reconnect in lockstep. */
+    private int nextBackoff() {
+        int current = backoffSec;
+        int next = Math.min(current * 2, MAX_BACKOFF_SEC);
+        backoffSec = next;
+        // ±20% jitter on the *current* delay (not next), so the first retry
+        // doesn't all hit the LAN at the same instant.
+        int jitter = (int) (current * 0.2 * (Math.random() - 0.5) * 2);
+        return Math.max(MIN_BACKOFF_SEC, current + jitter);
     }
 
     private void handleMessage(String json) {
@@ -333,6 +360,17 @@ public class DxClusterClient {
     public boolean isConnected() { return connected; }
 
     public String getStatusMessage() { return statusMessage; }
+
+    /** The hub URL most-recently connected to (or being attempted). Null-safe. */
+    public String getHubUrl() { return hubUrl; }
+
+    /** Seconds since the connection last dropped, or {@code -1} if currently
+     *  connected (or stopped). Used by the UI to render "Disconnected (Ns)". */
+    public long getDisconnectedSeconds() {
+        Instant since = disconnectedSince;
+        if (since == null || connected || !running.get()) return -1;
+        return Math.max(0, java.time.Duration.between(since, Instant.now()).getSeconds());
+    }
 
     public synchronized List<String> getRecentLines() {
         return new ArrayList<>(lineBuffer);

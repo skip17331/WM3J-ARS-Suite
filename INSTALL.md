@@ -269,6 +269,100 @@ launch them via the corresponding tab's **Launch** button.
 
 ---
 
+## Pi Display Mode (j-map only, second-machine setup)
+
+Use case: a Raspberry Pi 4/5 wired to a large monitor in the shack, showing
+J-Map full-screen so you can see propagation / spots / grayline at a glance
+from across the room. The Pi is *just a display* — no logging, no rig
+control, no inputs. The real station PC runs the full suite and is the
+single source of truth.
+
+### How it works
+
+J-Map runs on the Pi and connects over the LAN to the J-Hub WebSocket on
+your main station PC. J-Hub binds to all interfaces by default
+(`0.0.0.0:8080` / `:8081`), so any host on the same LAN can subscribe.
+Spots, station info, and config changes are pushed to J-Map automatically.
+If the link drops the Pi shows a red "Disconnected from j-hub" banner at
+the bottom of the map and reconnects with exponential backoff (2s → 60s).
+
+There is **no second J-Hub** on the Pi — that would be a second broker
+with no sync to the main one. One J-Hub, many displays.
+
+### On the main station PC (already done if the suite is running)
+
+Verify J-Hub is reachable from the LAN:
+
+```bash
+# From any other machine on the same network:
+nc -zv <main-pc-ip> 8080  # WebSocket
+nc -zv <main-pc-ip> 8081  # web config (optional, only for /api/jmap fetch)
+```
+
+If those fail, open ports 8080 (and optionally 8081) on the main PC's
+firewall. Ubuntu/Debian:
+
+```bash
+sudo ufw allow from 192.168.0.0/16 to any port 8080
+sudo ufw allow from 192.168.0.0/16 to any port 8081
+```
+
+### On the Pi
+
+```bash
+sudo apt update
+sudo apt install -y git openjdk-21-jdk maven
+
+cd ~
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ARS_Suite
+cd ARS_Suite
+
+# Build *only* j-map — no engine, no other modules.
+mvn -q -DskipTests -f j-map/pom.xml package
+
+# Run, pointing at the main station's IP. Replace with yours.
+./j-map/run.sh --hub 192.168.1.42
+```
+
+Useful flags (j-map):
+
+| Flag                     | What it does                                                |
+|--------------------------|-------------------------------------------------------------|
+| `--hub <host>`           | IP / hostname of the main station's J-Hub                   |
+| `--hub-ws-port <NNNN>`   | Override 8080 if J-Hub is configured to a different port    |
+| `--hub-web-port <NNNN>`  | Override 8081 for the HTTP config endpoint                  |
+| `--launched-by-hub`      | Skip the splash; intended for when J-Hub itself launches it |
+
+### Auto-start on boot (optional)
+
+Drop a systemd user unit so j-map relaunches after reboots and crashes:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/j-map.service <<'EOF'
+[Unit]
+Description=J-Map remote display
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=%h/ARS_Suite/j-map/run.sh --hub 192.168.1.42
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+
+systemctl --user enable --now j-map
+sudo loginctl enable-linger $USER   # so the unit runs without an active login
+```
+
+Edit the `--hub` IP to match your station. Update with `git pull && mvn -q
+-DskipTests -f j-map/pom.xml package && systemctl --user restart j-map`.
+
+---
+
 ## Updating
 
 ```bash

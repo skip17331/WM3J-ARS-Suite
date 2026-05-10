@@ -47,6 +47,7 @@ public class DashboardLayout {
     private BandConditionsPanel bandPanel;
     private RotorMapPane rotorMap;
     private SetupHintBar setupHint;
+    private HubStatusBar hubStatusBar;
     private com.wm3j.jmap.ui.panels.DxScrollerBar dxScroller;
 
     // Floating windows
@@ -187,12 +188,15 @@ public class DashboardLayout {
 
         mapStack.getChildren().addAll(worldMap, rotorMap, mapOverlayPane);
 
-        // ── DX scroller + hint bar ─────────────────────────────────────────
+        // ── DX scroller + hint bar + hub status banner ────────────────────
         setupHint = new SetupHintBar(services.getJHubHost(), 8081);
         dxScroller = new com.wm3j.jmap.ui.panels.DxScrollerBar(services);
+        hubStatusBar = new HubStatusBar(services.dxClusterClient);
 
         VBox bottomBar = new VBox(0);
-        bottomBar.getChildren().addAll(dxScroller, setupHint);
+        // hubStatusBar collapses (managed=false) when connected, so it only
+        // takes vertical space while the link is actually down.
+        bottomBar.getChildren().addAll(hubStatusBar, dxScroller, setupHint);
 
         // ── Root layout ────────────────────────────────────────────────────
         BorderPane root = new BorderPane();
@@ -246,6 +250,7 @@ public class DashboardLayout {
         if (propagationModelWindow != null && propagationModelWindow.isVisible()) propagationModelWindow.update();
         if (lunarWindow != null && lunarWindow.isVisible()) lunarWindow.update();
         if (dxScroller  != null) dxScroller.update();
+        if (hubStatusBar != null) hubStatusBar.update();
     }
 
     public void updateRotor() {
