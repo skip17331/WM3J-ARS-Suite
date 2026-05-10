@@ -197,6 +197,26 @@ html, body {
 }
 .viewer a { color: var(--blue); }
 
+.viewer table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 0.93em;
+  width: auto;
+  max-width: 100%;
+}
+.viewer th, .viewer td {
+  border: 1px solid var(--surface1);
+  padding: 6px 10px;
+  vertical-align: top;
+  text-align: left;
+}
+.viewer th {
+  background: var(--surface0);
+  color: var(--text);
+  font-weight: 600;
+}
+.viewer tbody tr:nth-child(even) td { background: rgba(127, 127, 127, 0.05); }
+
 .cross-banner {
   margin: 0 0 14px 0;
   padding: 10px 14px;

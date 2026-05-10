@@ -240,6 +240,29 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+// Split a table row on unescaped pipes. `\|` inside a cell is preserved
+// (used in content like `\|Γ\|` for absolute-value notation).
+function parseTableRow(line) {
+  const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return trimmed
+    .replace(/\\\|/g, '\x00')
+    .split('|')
+    .map(c => c.replace(/\x00/g, '|').trim());
+}
+
+// GFM-style alignment from the `---` separator row: `:---` left, `---:` right,
+// `:---:` center. Returns '' for cells with no explicit alignment.
+function parseTableAlign(sep, count) {
+  const cells = sep.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(s => s.trim());
+  const out = [];
+  for (let k = 0; k < count; k++) {
+    const c = cells[k] || '';
+    const left = c.startsWith(':'), right = c.endsWith(':');
+    out.push(left && right ? 'center' : right ? 'right' : left ? 'left' : '');
+  }
+  return out;
+}
+
 function mdToHtml(md) {
   const lines = md.split(/\r?\n/);
   const out = [];
@@ -289,13 +312,35 @@ function mdToHtml(md) {
       out.push('<ul>' + items.join('') + '</ul>');
       continue;
     }
+    // GFM table: header row (starts with |), then separator row of dashes/colons.
+    if (line.trim().startsWith('|') && i + 1 < lines.length
+        && /^\s*\|?[\s\-:|]+\|?\s*$/.test(lines[i + 1])
+        && /-{3,}/.test(lines[i + 1])) {
+      const headers = parseTableRow(line);
+      const aligns  = parseTableAlign(lines[i + 1], headers.length);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        rows.push(parseTableRow(lines[i]));
+        i++;
+      }
+      const styleFor = idx => aligns[idx] ? ' style="text-align:' + aligns[idx] + '"' : '';
+      const thead = '<thead><tr>' + headers.map((h, idx) =>
+        '<th' + styleFor(idx) + '>' + inline(h) + '</th>').join('') + '</tr></thead>';
+      const tbody = '<tbody>' + rows.map(r =>
+        '<tr>' + r.map((c, idx) =>
+          '<td' + styleFor(idx) + '>' + inline(c) + '</td>').join('') + '</tr>').join('') + '</tbody>';
+      out.push('<table>' + thead + tbody + '</table>');
+      continue;
+    }
     if (line.trim() === '') { i++; continue; }
     const para = [];
     while (i < lines.length && lines[i].trim() !== ''
         && !lines[i].startsWith('#')
         && !lines[i].startsWith('>')
         && !lines[i].startsWith('```')
-        && !/^\s*[-*]\s+/.test(lines[i])) {
+        && !/^\s*[-*]\s+/.test(lines[i])
+        && !lines[i].trim().startsWith('|')) {
       para.push(lines[i]);
       i++;
     }
