@@ -1284,3 +1284,251 @@ Caused by: java.lang.ClassNotFoundException: ch.qos.logback.classic.spi.Throwabl
 2026-05-10 16:17:42.774 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
 2026-05-10 16:17:42.776 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
 2026-05-10 16:17:42.806 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-10 18:40:42.627 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-10 18:40:42.687 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-hub/j-hub.json
+2026-05-10 18:40:42.688 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-10 18:40:42.708 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-10 18:40:42.714 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-10 18:40:42.721 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-10 18:40:42.828 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-10 18:40:42.829 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-10 18:40:42.830 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-10 18:40:42.831 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-10 18:40:42.835 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-10 18:40:42.836 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-10 18:40:43.052 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-10 18:40:43.054 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-10 18:40:43.056 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-10 18:40:43.057 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-10 18:40:43.058 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-10 18:40:43.059 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-10 18:40:43.059 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-10 18:40:43.063 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-10 18:40:43.064 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-10 18:40:43.065 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-10 18:40:43.831 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 18:40:43.836 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 18:40:52.838 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.4","solarwind":"418.3","geomag":"Quiet","fetchedAt":"2026-05-10T22:40:52.837826651Z","source":"NOAA SWPC"}
+2026-05-10 18:41:03.695 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 18:41:13.063 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-10 18:41:13.390 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102022 bytes)
+2026-05-10 18:41:13.675 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (359603 bytes)
+2026-05-10 18:41:13.675 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-10 18:41:13.678 DEBUG com.hamradio.jhub.MessageRouter — DATA_UPDATE_STATUS published — cty=102022B scp=359603B
+2026-05-10 18:41:28.761 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:46802
+2026-05-10 18:41:28.770 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:41:28.817 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-05-10 18:41:28.824 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-05-10 18:41:29.027 INFO  com.hamradio.jhub.CredentialStore — CredentialStore loaded (1 services)
+2026-05-10 18:41:52.837 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.4","solarwind":"418.3","geomag":"Quiet","fetchedAt":"2026-05-10T22:41:52.837199326Z","source":"NOAA SWPC"}
+2026-05-10 18:42:29.198 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:42:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.4","solarwind":"418.3","geomag":"Quiet","fetchedAt":"2026-05-10T22:42:53.450267183Z","source":"NOAA SWPC"}
+2026-05-10 18:43:29.800 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:43:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.4","solarwind":"418.3","geomag":"Quiet","fetchedAt":"2026-05-10T22:43:53.450244440Z","source":"NOAA SWPC"}
+2026-05-10 18:44:29.799 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:44:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.4","solarwind":"418.3","geomag":"Quiet","fetchedAt":"2026-05-10T22:44:53.450217880Z","source":"NOAA SWPC"}
+2026-05-10 18:45:29.268 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:45:44.424 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 18:45:44.425 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 18:45:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.1","solarwind":"398.5","geomag":"Quiet","fetchedAt":"2026-05-10T22:45:53.450244146Z","source":"NOAA SWPC"}
+2026-05-10 18:46:04.337 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 18:46:29.827 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:46:53.451 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.1","solarwind":"398.5","geomag":"Quiet","fetchedAt":"2026-05-10T22:46:53.450948432Z","source":"NOAA SWPC"}
+2026-05-10 18:47:29.801 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:47:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.1","solarwind":"398.5","geomag":"Quiet","fetchedAt":"2026-05-10T22:47:53.450153751Z","source":"NOAA SWPC"}
+2026-05-10 18:48:20.868 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 23001) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-05-10 18:48:20.869 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Launched j-log from status window
+2026-05-10 18:48:30.817 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:48:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.1","solarwind":"398.5","geomag":"Quiet","fetchedAt":"2026-05-10T22:48:53.450099905Z","source":"NOAA SWPC"}
+2026-05-10 18:48:56.515 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:52808
+2026-05-10 18:48:56.518 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-10 18:48:56.519 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-10 18:48:57.102 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:52820
+2026-05-10 18:48:57.104 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-10 18:48:57.105 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-10 18:49:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:49:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.1","solarwind":"398.5","geomag":"Quiet","fetchedAt":"2026-05-10T22:49:53.450096240Z","source":"NOAA SWPC"}
+2026-05-10 18:50:23.726 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-10 18:50:23.727 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-10 18:50:23.729 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-05-10 18:50:23.730 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-10 18:50:27.046 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 24772) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-05-10 18:50:27.046 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Launched j-log from status window
+2026-05-10 18:50:30.828 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:50:44.043 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 18:50:44.043 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 18:50:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.5","solarwind":"413.7","geomag":"Quiet","fetchedAt":"2026-05-10T22:50:53.450039584Z","source":"NOAA SWPC"}
+2026-05-10 18:51:04.471 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 18:51:08.856 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:59960
+2026-05-10 18:51:08.860 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-10 18:51:08.861 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-10 18:51:08.896 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-10 18:51:08.897 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_SS_SSB (now 1 stations)
+2026-05-10 18:51:09.375 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:59974
+2026-05-10 18:51:09.377 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-10 18:51:09.379 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-10 18:51:30.830 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:51:47.675 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_SS_SSB (now 0 stations)
+2026-05-10 18:51:47.677 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-10 18:51:47.680 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-10 18:51:47.681 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-10 18:51:47.681 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1006, reason=)
+2026-05-10 18:51:47.682 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-10 18:51:51.848 INFO  com.hamradio.jhub.AppLauncher — Launched 'j-log' (pid 25321) — bash /home/mike/ARS_Suite/j-log/j-log.sh --launched-by-hub
+2026-05-10 18:51:51.848 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Launched j-log from status window
+2026-05-10 18:51:53.449 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.5","solarwind":"413.7","geomag":"Quiet","fetchedAt":"2026-05-10T22:51:53.449678759Z","source":"NOAA SWPC"}
+2026-05-10 18:52:08.976 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:40930
+2026-05-10 18:52:08.979 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-10 18:52:08.980 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-10 18:52:09.522 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:40936
+2026-05-10 18:52:09.524 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-10 18:52:09.525 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-10 18:52:30.809 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:52:34.164 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-10 18:52:34.164 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-10 18:52:34.166 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-05-10 18:52:34.167 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-10 18:52:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.5","solarwind":"413.7","geomag":"Quiet","fetchedAt":"2026-05-10T22:52:53.450088798Z","source":"NOAA SWPC"}
+2026-05-10 18:53:29.828 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:53:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.5","solarwind":"413.7","geomag":"Quiet","fetchedAt":"2026-05-10T22:53:53.450188868Z","source":"NOAA SWPC"}
+2026-05-10 18:54:30.834 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:54:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.5","solarwind":"413.7","geomag":"Quiet","fetchedAt":"2026-05-10T22:54:53.450101665Z","source":"NOAA SWPC"}
+2026-05-10 18:55:30.818 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:55:44.514 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 18:55:44.514 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 18:55:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"412","geomag":"Quiet","fetchedAt":"2026-05-10T22:55:53.450116819Z","source":"NOAA SWPC"}
+2026-05-10 18:56:04.337 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 18:56:30.829 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:56:53.449 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"412","geomag":"Quiet","fetchedAt":"2026-05-10T22:56:53.449645060Z","source":"NOAA SWPC"}
+2026-05-10 18:57:30.817 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:57:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"412","geomag":"Quiet","fetchedAt":"2026-05-10T22:57:53.450107007Z","source":"NOAA SWPC"}
+2026-05-10 18:58:30.833 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:58:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"412","geomag":"Quiet","fetchedAt":"2026-05-10T22:58:53.449908491Z","source":"NOAA SWPC"}
+2026-05-10 18:59:30.813 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 18:59:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"412","geomag":"Quiet","fetchedAt":"2026-05-10T22:59:53.450134852Z","source":"NOAA SWPC"}
+2026-05-10 19:00:30.831 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:00:44.353 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:00:44.354 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:00:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.0","solarwind":"381.2","geomag":"Quiet","fetchedAt":"2026-05-10T23:00:53.449971979Z","source":"NOAA SWPC"}
+2026-05-10 19:01:04.447 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:01:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:01:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.0","solarwind":"381.2","geomag":"Quiet","fetchedAt":"2026-05-10T23:01:53.449862763Z","source":"NOAA SWPC"}
+2026-05-10 19:02:30.838 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:02:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.0","solarwind":"381.2","geomag":"Quiet","fetchedAt":"2026-05-10T23:02:53.449882527Z","source":"NOAA SWPC"}
+2026-05-10 19:03:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:03:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.0","solarwind":"381.2","geomag":"Quiet","fetchedAt":"2026-05-10T23:03:53.449910100Z","source":"NOAA SWPC"}
+2026-05-10 19:04:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:04:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.0","solarwind":"381.2","geomag":"Quiet","fetchedAt":"2026-05-10T23:04:53.449958484Z","source":"NOAA SWPC"}
+2026-05-10 19:05:30.813 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:05:44.051 DEBUG com.hamradio.jhub.WeatherService — Solar wind mag: java.io.EOFException: End of input at line 1 column 104554 path $[1417]
+2026-05-10 19:05:44.267 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:05:44.268 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:05:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.6","solarwind":"381.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:05:53.450000159Z","source":"NOAA SWPC"}
+2026-05-10 19:06:04.322 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:06:30.809 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:06:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.6","solarwind":"381.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:06:53.449910359Z","source":"NOAA SWPC"}
+2026-05-10 19:07:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:07:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.6","solarwind":"381.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:07:53.450137088Z","source":"NOAA SWPC"}
+2026-05-10 19:08:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:08:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.6","solarwind":"381.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:08:53.450017360Z","source":"NOAA SWPC"}
+2026-05-10 19:09:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:09:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.6","solarwind":"381.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:09:53.449964515Z","source":"NOAA SWPC"}
+2026-05-10 19:10:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:10:44.232 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:10:44.233 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:10:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.3","solarwind":"380.1","geomag":"Quiet","fetchedAt":"2026-05-10T23:10:53.449970756Z","source":"NOAA SWPC"}
+2026-05-10 19:11:04.381 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:11:30.808 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:11:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.3","solarwind":"380.1","geomag":"Quiet","fetchedAt":"2026-05-10T23:11:53.450054246Z","source":"NOAA SWPC"}
+2026-05-10 19:12:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:12:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.3","solarwind":"380.1","geomag":"Quiet","fetchedAt":"2026-05-10T23:12:53.449999946Z","source":"NOAA SWPC"}
+2026-05-10 19:13:30.809 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:13:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.3","solarwind":"380.1","geomag":"Quiet","fetchedAt":"2026-05-10T23:13:53.450035781Z","source":"NOAA SWPC"}
+2026-05-10 19:14:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:14:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.3","solarwind":"380.1","geomag":"Quiet","fetchedAt":"2026-05-10T23:14:53.449967405Z","source":"NOAA SWPC"}
+2026-05-10 19:15:30.809 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:15:44.232 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:15:44.232 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:15:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.5","solarwind":"380.4","geomag":"Quiet","fetchedAt":"2026-05-10T23:15:53.450027660Z","source":"NOAA SWPC"}
+2026-05-10 19:16:04.239 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:16:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:16:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.5","solarwind":"380.4","geomag":"Quiet","fetchedAt":"2026-05-10T23:16:53.450218479Z","source":"NOAA SWPC"}
+2026-05-10 19:17:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:17:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.5","solarwind":"380.4","geomag":"Quiet","fetchedAt":"2026-05-10T23:17:53.449878816Z","source":"NOAA SWPC"}
+2026-05-10 19:18:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:18:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.5","solarwind":"380.4","geomag":"Quiet","fetchedAt":"2026-05-10T23:18:53.449880229Z","source":"NOAA SWPC"}
+2026-05-10 19:19:30.814 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:19:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B7.5","solarwind":"380.4","geomag":"Quiet","fetchedAt":"2026-05-10T23:19:53.449997565Z","source":"NOAA SWPC"}
+2026-05-10 19:20:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:20:44.171 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:20:44.171 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:20:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.2","solarwind":"378.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:20:53.449878696Z","source":"NOAA SWPC"}
+2026-05-10 19:21:04.238 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:21:30.832 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:21:53.449 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.2","solarwind":"378.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:21:53.449745083Z","source":"NOAA SWPC"}
+2026-05-10 19:22:30.811 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:22:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.2","solarwind":"378.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:22:53.450018103Z","source":"NOAA SWPC"}
+2026-05-10 19:23:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:23:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.2","solarwind":"378.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:23:53.450161537Z","source":"NOAA SWPC"}
+2026-05-10 19:24:30.836 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:24:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.2","solarwind":"378.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:24:53.450029537Z","source":"NOAA SWPC"}
+2026-05-10 19:25:30.836 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:25:44.236 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:25:44.236 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:25:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.1","solarwind":"378.3","geomag":"Quiet","fetchedAt":"2026-05-10T23:25:53.449866636Z","source":"NOAA SWPC"}
+2026-05-10 19:26:04.246 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:26:30.822 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:26:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.1","solarwind":"378.3","geomag":"Quiet","fetchedAt":"2026-05-10T23:26:53.449920153Z","source":"NOAA SWPC"}
+2026-05-10 19:27:30.835 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:27:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.1","solarwind":"378.3","geomag":"Quiet","fetchedAt":"2026-05-10T23:27:53.449878542Z","source":"NOAA SWPC"}
+2026-05-10 19:28:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:28:53.449 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.1","solarwind":"378.3","geomag":"Quiet","fetchedAt":"2026-05-10T23:28:53.449689680Z","source":"NOAA SWPC"}
+2026-05-10 19:29:30.836 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:29:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"C1.1","solarwind":"378.3","geomag":"Quiet","fetchedAt":"2026-05-10T23:29:53.449981691Z","source":"NOAA SWPC"}
+2026-05-10 19:30:30.829 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:30:44.313 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:30:44.314 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:30:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B9.0","solarwind":"379.9","geomag":"Quiet","fetchedAt":"2026-05-10T23:30:53.449916120Z","source":"NOAA SWPC"}
+2026-05-10 19:31:04.236 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:31:30.810 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:31:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B9.0","solarwind":"379.9","geomag":"Quiet","fetchedAt":"2026-05-10T23:31:53.449889403Z","source":"NOAA SWPC"}
+2026-05-10 19:32:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:32:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B9.0","solarwind":"379.9","geomag":"Quiet","fetchedAt":"2026-05-10T23:32:53.449994243Z","source":"NOAA SWPC"}
+2026-05-10 19:33:30.835 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:33:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B9.0","solarwind":"379.9","geomag":"Quiet","fetchedAt":"2026-05-10T23:33:53.449910720Z","source":"NOAA SWPC"}
+2026-05-10 19:34:30.818 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:34:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B9.0","solarwind":"379.9","geomag":"Quiet","fetchedAt":"2026-05-10T23:34:53.450020449Z","source":"NOAA SWPC"}
+2026-05-10 19:35:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:35:44.229 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:35:44.230 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:35:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"388.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:35:53.450154319Z","source":"NOAA SWPC"}
+2026-05-10 19:36:08.266 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:36:30.809 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:36:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"388.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:36:53.449900740Z","source":"NOAA SWPC"}
+2026-05-10 19:37:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:37:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"388.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:37:53.449829031Z","source":"NOAA SWPC"}
+2026-05-10 19:38:30.808 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:38:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"388.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:38:53.449913356Z","source":"NOAA SWPC"}
+2026-05-10 19:39:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:39:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"388.7","geomag":"Quiet","fetchedAt":"2026-05-10T23:39:53.449876011Z","source":"NOAA SWPC"}
+2026-05-10 19:40:30.812 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:40:44.315 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-10 19:40:44.315 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-10 19:40:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"395.6","geomag":"Quiet","fetchedAt":"2026-05-10T23:40:53.449917624Z","source":"NOAA SWPC"}
+2026-05-10 19:41:04.302 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-10 19:41:30.834 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:41:53.450 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"151","k":"1.7","sn":"79.3","xray":"B8.3","solarwind":"395.6","geomag":"Quiet","fetchedAt":"2026-05-10T23:41:53.449869036Z","source":"NOAA SWPC"}
+2026-05-10 19:42:30.829 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-10 19:42:35.617 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
+2026-05-10 19:42:35.617 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-05-10 19:42:40.699 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-10 19:42:40.700 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-10 19:42:40.702 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-10 19:42:40.702 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-10 19:42:41.453 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-10 19:42:41.455 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-10 19:42:41.457 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-10 19:42:41.458 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-10 19:42:41.460 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-10 19:42:41.461 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-10 19:42:41.503 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
