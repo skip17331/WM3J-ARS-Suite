@@ -32,9 +32,14 @@ public class Psk31Mode implements DigitalMode {
     private static final double DEFAULT_CARRIER = 1000.0;
 
     // ── AFC ───────────────────────────────────────────────────────────
-    private static final double AFC_MIN_HZ      = 500.0;
-    private static final double AFC_MAX_HZ      = 2500.0;
-    private static final double AFC_MAX_JUMP_HZ = 100.0;  // reject implausibly large steps
+    private static final double AFC_MIN_HZ        = 500.0;
+    private static final double AFC_MAX_HZ        = 2500.0;
+    /** Wide AFC window before lock — must allow a fresh QSO at a different
+     *  audio offset to be captured. */
+    private static final double AFC_WIDE_JUMP_HZ  = 800.0;
+    /** Narrow AFC window once we've locked, so spurious FFT bins during
+     *  data symbols don't drag us off the carrier. */
+    private static final double AFC_LOCKED_JUMP_HZ = 50.0;
 
     // ── Signal thresholds ─────────────────────────────────────────────
     private static final double MIN_RMS         = 0.003;
@@ -197,6 +202,9 @@ public class Psk31Mode implements DigitalMode {
         havePrev   = false;
         qualSum    = 0.0;    qualCount = 0;  badCount = 0;
         bits.setLength(0);
+        // Don't clear pending here — the next emitPending() call sees
+        // locked==false and flushes any trailing chars (e.g. "Z K" at
+        // end of "CQ CQ CQ DE W3XYZ K") that didn't reach MIN_EMIT_CHARS.
         // Keep nextCenter — if signal returns at same frequency, re-acquisition
         // is faster because the buffer still contains recent samples.
     }
@@ -214,7 +222,10 @@ public class Psk31Mode implements DigitalMode {
         if (peakHz < AFC_MIN_HZ || peakHz > AFC_MAX_HZ) return;
         double jump = Math.abs(peakHz - carrierHz);
         if (jump < 3.0)                return;   // within FFT quantisation noise
-        if (jump > AFC_MAX_JUMP_HZ)    return;   // implausibly large — ignore
+        // Allowed jump is wide when we're hunting, narrow once locked so that
+        // FFT-peak jitter during data symbols can't tug us off carrier.
+        double maxJump = locked ? AFC_LOCKED_JUMP_HZ : AFC_WIDE_JUMP_HZ;
+        if (jump > maxJump)            return;
 
         debug(String.format("AFC %.1f → %.1f Hz (Δ%.1f)", carrierHz, peakHz, jump));
 
@@ -448,7 +459,12 @@ public class Psk31Mode implements DigitalMode {
         boolean hasNewline = pending.indexOf("\n") >= 0
                           || pending.indexOf("\r") >= 0;
 
-        if (!hasNewline && pending.length() < MIN_EMIT_CHARS) return Optional.empty();
+        // Normally we batch into chunks of MIN_EMIT_CHARS to avoid emitting
+        // a stream of single-char DecodeMessages. But once we've unlocked
+        // (end of transmission), flush whatever's left so trailing chars
+        // like "Z K" don't sit in the buffer until the NEXT QSO appends to them.
+        if (locked && !hasNewline && pending.length() < MIN_EMIT_CHARS)
+            return Optional.empty();
 
         String text = pending.toString();
         pending.setLength(0);

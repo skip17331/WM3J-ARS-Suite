@@ -22,7 +22,7 @@ public class LogEntryPane extends VBox {
     private final TextField        tfName     = new TextField();
     private final TextField        tfFreq     = new TextField();
     private final TextField        tfBand     = new TextField();
-    private final ComboBox<String> cbMode     = new ComboBox<>();
+    private final Label            lblMode    = new Label("—");
     private final TextField        tfRstSent  = new TextField("599");
     private final TextField        tfRstRcvd  = new TextField("599");
     private final TextArea         taNotes    = new TextArea();
@@ -43,12 +43,7 @@ public class LogEntryPane extends VBox {
             dbReady = true;
         } catch (Exception ignored) {}
 
-        cbMode.getItems().addAll(
-            "RTTY", "PSK31", "PSK63", "PSK125",
-            "OLIVIA", "MFSK16", "DOMINOEX", "CW",
-            "SSB", "FT8", "FT4", "JS8", "AM", "FM"
-        );
-        cbMode.setValue("RTTY");
+        lblMode.getStyleClass().add("entry-mode-mirror");
 
         tfFreq.setEditable(false);
         tfFreq.setPrefWidth(130);
@@ -64,10 +59,8 @@ public class LogEntryPane extends VBox {
                     tfFreq.setText("%.3f".formatted(hz / 1_000_000.0));
                     tfBand.setText(bandFromHz(hz));
                 }
-                String rigMode = st.getRigMode();
-                if (rigMode != null && !rigMode.isBlank()
-                        && !cbMode.getItems().contains(cbMode.getValue())) {
-                    cbMode.setValue(rigMode);
+                if (st.getMode() != null) {
+                    lblMode.setText(st.getMode().name());
                 }
             }));
 
@@ -78,7 +71,7 @@ public class LogEntryPane extends VBox {
         int r = 0;
         addRow(grid, r++, "Callsign", tfCallsign);
         addRow(grid, r++, "Name",     tfName);
-        addRow(grid, r++, "Mode",     cbMode);
+        addRow(grid, r++, "Mode",     lblMode);
         addRow(grid, r++, "RST Sent", tfRstSent);
         addRow(grid, r++, "RST Rcvd", tfRstRcvd);
         HBox fb = new HBox(6, tfFreq, tfBand);
@@ -127,7 +120,7 @@ public class LogEntryPane extends VBox {
         if (spot == null) return;
         if (spot.spotted != null) tfCallsign.setText(spot.spotted.toUpperCase());
         if (spot.band    != null) tfBand.setText(spot.band);
-        if (spot.mode    != null && !spot.mode.isBlank()) cbMode.setValue(spot.mode);
+        // Mode is mirrored from the toolbar — spot's mode is informational only.
         if (spot.frequency > 0)
             tfFreq.setText("%.3f".formatted(spot.frequency / 1_000_000.0));
     }
@@ -165,7 +158,7 @@ public class LogEntryPane extends VBox {
             q.setCallsign(call);
             q.setDateTimeUtc(LocalDateTime.now());
             q.setBand(tfBand.getText().trim());
-            q.setMode(cbMode.getValue());
+            q.setMode(lblMode.getText());
             q.setRstSent(tfRstSent.getText().trim());
             q.setRstReceived(tfRstRcvd.getText().trim());
             q.setNotes(taNotes.getText().trim());
@@ -181,7 +174,7 @@ public class LogEntryPane extends VBox {
         long hz = service.getStatus().getRigFrequencyHz();
         service.sendLogDraft(
             getCallsign(),
-            cbMode.getValue(),
+            lblMode.getText(),
             tfBand.getText().trim(),
             hz,
             tfRstSent.getText().trim(),

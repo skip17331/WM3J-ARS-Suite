@@ -21,3 +21,11 @@ replay_pid*.log
 
 # Claude Code local state
 .claude/
+
+# Python bytecode (test-suite generators)
+__pycache__/
+*.pyc
+
+# Runtime logs / state
+j-digi/logs/
+j-digi/j-hub.json

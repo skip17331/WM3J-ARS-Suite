@@ -53,12 +53,27 @@ public class DominoExMode implements DigitalMode {
     private static final int    NUM_TONES    = 18;
     /** Maximum valid data nibble (0–15); values 16–17 are sync markers. */
     private static final int    MAX_NIBBLE   = 15;
+    /** Nominal centre frequency the tone grid is built around. */
+    private static final double DEFAULT_CENTRE = 1500.0;
 
     // ── Thresholds ────────────────────────────────────────────────────
     private static final double MIN_RMS      = 0.003;
-    private static final double LOCK_RATIO   = 2.3;   // peakness to acquire lock
+    /** Peakness needed to acquire symbol timing. Legitimate locks hit 16+;
+     *  Goertzel leakage from an off-centre signal scores 2–4, so 6.0 cleanly
+     *  separates real signals from leakage. */
+    private static final double LOCK_ACQUIRE = 6.0;
+    /** Per-symbol peakness needed to trust an individual decoded nibble. */
+    private static final double LOCK_RATIO   = 2.3;
     private static final double CONF_GATE    = 0.70;  // max(second/best) to trust symbol
     private static final int    MIN_GOOD     = 4;     // good symbols before emitting
+
+    // ── AFC parameters ────────────────────────────────────────────────
+    /** Search range around DEFAULT_CENTRE for AFC (Hz). */
+    private static final double AFC_SEARCH_HZ  = 400.0;
+    /** Min process() frames of accumulated spectrum before AFC may fire. */
+    private static final int    AFC_MIN_FRAMES = 20;
+    /** Cap on a single AFC jump (Hz). */
+    private static final double AFC_MAX_JUMP   = 600.0;
 
     private static final boolean DEBUG       = false;
 
@@ -74,7 +89,16 @@ public class DominoExMode implements DigitalMode {
     private boolean initialized = false;
     private double  sampleRate  = 8000.0;
     private int     spS;           // samples per symbol
+    /** First FFT bin index for the 18 tones; lowest tone freq = firstBin × binWidth. */
+    private int     firstBin    = 0;
+    private double  centreHz    = DEFAULT_CENTRE;
     private double[] toneFreqs;    // 18 tone frequencies
+
+    // ── AFC peak-hold spectrum ────────────────────────────────────────
+    private double[] afcFreqs;
+    private double[] afcSpectrum;
+    private int      afcFrames    = 0;
+    private int      afcSettle    = 0;
 
     // ── Sample buffer ─────────────────────────────────────────────────
     private float[] rawBuf  = new float[32768];
@@ -86,7 +110,12 @@ public class DominoExMode implements DigitalMode {
     private float[] symBuf;
 
     // ── IFK+ ──────────────────────────────────────────────────────────
-    private int  prevTone  = -1;
+    /** Previous received tone. Initialised to 0 to match the encoder's
+     *  starting state — the very first received tone (typically tone 1 from
+     *  the first preamble nibble) then yields nibble 0 directly instead of
+     *  being thrown away. Skipping the first tone shifts the nibble stream
+     *  by 1 and breaks high/low byte alignment. */
+    private int  prevTone  = 0;
 
     // ── Nibble assembly ───────────────────────────────────────────────
     private boolean haveHigh  = false;
@@ -134,8 +163,14 @@ public class DominoExMode implements DigitalMode {
 
         appendRaw(snap.getSamples());
 
-        if (!symLocked) tryAcquire();
-        if  (symLocked) drainSymbols();
+        if (!symLocked) {
+            updateAfcSpectrum();
+            maybeRetune();
+            if (afcFrames >= 2 * AFC_MIN_FRAMES) {
+                tryAcquire();
+            }
+        }
+        if (symLocked) drainSymbols();
 
         return emitPending(rigHz);
     }
@@ -149,30 +184,44 @@ public class DominoExMode implements DigitalMode {
         sampleRate = sr;
         // Use the nearest integer spS to the nominal rate
         spS       = Math.max(1, (int) Math.round(sr / nominalRate));
-        toneFreqs = buildToneFreqs(sr, spS);
+        firstBin  = defaultFirstBin(sr, spS);
+        toneFreqs = buildToneFreqs(sr, spS, firstBin);
+        centreHz  = (firstBin + 8.5) * (sr / spS);
         symBuf    = new float[spS];
+        afcFreqs  = buildAfcFreqs(sr, spS);
+        afcSpectrum = new double[afcFreqs.length];
         resetDecodeState();
         initialized = true;
-        debug(String.format("init %s sr=%.0f spS=%d tone[0]=%.3f Hz tone[17]=%.3f Hz",
-                variant, sr, spS, toneFreqs[0], toneFreqs[17]));
+        debug(String.format("init %s sr=%.0f spS=%d firstBin=%d centre=%.1f tone[0]=%.3f tone[17]=%.3f",
+                variant, sr, spS, firstBin, centreHz, toneFreqs[0], toneFreqs[17]));
     }
 
-    /**
-     * Build 18 tone frequencies aligned to exact FFT bins of width (sr/spS).
-     * The first bin is chosen so that the 18 tones straddle 1500 Hz.
-     */
-    private static double[] buildToneFreqs(double sr, int spS) {
+    private static int defaultFirstBin(double sr, int spS) {
         double binWidth = sr / spS;
-        // Center of 18 tones at ~1500 Hz: firstBin = round(1500/binWidth) - 9 + 1
-        // (9 tones below centre + tone 9 above = symmetric around the gap between tones 8 and 9)
-        int firstBin = (int) Math.round(1500.0 / binWidth) - 8;
+        return (int) Math.round(DEFAULT_CENTRE / binWidth) - 8;
+    }
+
+    /** Build 18 tone frequencies starting at firstBin × binWidth. */
+    private static double[] buildToneFreqs(double sr, int spS, int firstBin) {
+        double binWidth = sr / spS;
         double[] f = new double[NUM_TONES];
         for (int i = 0; i < NUM_TONES; i++) f[i] = (firstBin + i) * binWidth;
         return f;
     }
 
+    /** Build AFC scan frequencies: bin-aligned across DEFAULT_CENTRE ± AFC_SEARCH_HZ. */
+    private static double[] buildAfcFreqs(double sr, int spS) {
+        double binWidth = sr / spS;
+        int firstBin = (int) Math.round((DEFAULT_CENTRE - AFC_SEARCH_HZ) / binWidth);
+        int lastBin  = (int) Math.round((DEFAULT_CENTRE + AFC_SEARCH_HZ) / binWidth);
+        int n = lastBin - firstBin + 1;
+        double[] f = new double[n];
+        for (int i = 0; i < n; i++) f[i] = (firstBin + i) * binWidth;
+        return f;
+    }
+
     private void resetDecodeState() {
-        prevTone     = -1;
+        prevTone     = 0;
         haveHigh     = false;
         highNibble   = 0;
         goodSymCount = 0;
@@ -182,6 +231,14 @@ public class DominoExMode implements DigitalMode {
         pending.setLength(0);
         lastSnr  = 0.0;
         lastConf = 0.0;
+        if (afcSpectrum != null) Arrays.fill(afcSpectrum, 0.0);
+        afcFrames = 0;
+        afcSettle = 0;
+        if (initialized) {
+            firstBin  = defaultFirstBin(sampleRate, spS);
+            toneFreqs = buildToneFreqs(sampleRate, spS, firstBin);
+            centreHz  = (firstBin + 8.5) * (sampleRate / spS);
+        }
     }
 
     // =================================================================
@@ -202,6 +259,74 @@ public class DominoExMode implements DigitalMode {
         }
         System.arraycopy(samples, 0, rawBuf, nRaw, samples.length);
         nRaw += samples.length;
+    }
+
+    // =================================================================
+    // AFC: integrated spectrum + span-based retune
+    // =================================================================
+
+    private void updateAfcSpectrum() {
+        if (nRaw < spS) return;
+        int start = nRaw - spS;
+        for (int i = 0; i < afcFreqs.length; i++) {
+            double p = Goertzel.power(rawBuf, start, spS, (float) sampleRate, afcFreqs[i]);
+            afcSpectrum[i] = Math.max(p, afcSpectrum[i] * 0.998);
+        }
+        afcFrames++;
+        afcSettle++;
+    }
+
+    /**
+     * Retune to the centre of the active band once exactly NUM_TONES
+     * bins are "lit" (≥ 50 % of peak). Span = NUM_TONES means the chirping
+     * preamble has visited every tone, so the band is fully delineated.
+     */
+    private void maybeRetune() {
+        if (afcFrames < AFC_MIN_FRAMES) return;
+        if (afcSettle < AFC_MIN_FRAMES) return;
+        int n = afcSpectrum.length;
+        if (n < NUM_TONES) return;
+
+        double maxP = 0.0;
+        for (double p : afcSpectrum) if (p > maxP) maxP = p;
+        if (maxP <= 0.0) return;
+
+        double thresh = maxP * 0.5;
+        int firstLit = -1, lastLit = -1;
+        for (int i = 0; i < n; i++) {
+            if (afcSpectrum[i] >= thresh) {
+                if (firstLit < 0) firstLit = i;
+                lastLit = i;
+            }
+        }
+        if (firstLit < 0) return;
+        if (lastLit - firstLit + 1 != NUM_TONES) return;  // wait for full chirp
+
+        // afcFreqs[firstLit] is bin-aligned (built that way); recover its bin.
+        double binWidth = sampleRate / spS;
+        int newFirstBin = (int) Math.round(afcFreqs[firstLit] / binWidth);
+        if (newFirstBin == firstBin) return;
+        int deltaBins = newFirstBin - firstBin;
+        int maxJumpBins = (int) Math.floor(AFC_MAX_JUMP / binWidth);
+        if (deltaBins >  maxJumpBins) deltaBins =  maxJumpBins;
+        if (deltaBins < -maxJumpBins) deltaBins = -maxJumpBins;
+        if (deltaBins == 0) return;
+        retune(firstBin + deltaBins);
+        debug(String.format("AFC retune firstBin %d → %d centre %.1f (span=%d, frames=%d)",
+                firstBin - deltaBins, firstBin, centreHz, NUM_TONES, afcFrames));
+    }
+
+    private void retune(int newFirstBin) {
+        firstBin  = newFirstBin;
+        toneFreqs = buildToneFreqs(sampleRate, spS, firstBin);
+        centreHz  = (firstBin + 8.5) * (sampleRate / spS);
+        symLocked    = false;
+        symOffset    = 0;
+        prevTone     = 0;
+        haveHigh     = false;
+        goodSymCount = 0;
+        afcSettle    = 0;
+        if (afcSpectrum != null) Arrays.fill(afcSpectrum, 0.0);
     }
 
     // =================================================================
@@ -231,21 +356,21 @@ public class DominoExMode implements DigitalMode {
             }
         }
 
-        if (bestScore >= LOCK_RATIO) {
+        if (bestScore >= LOCK_ACQUIRE) {
             symLocked    = true;
             symOffset    = bestOff;
-            prevTone     = -1;
+            prevTone     = 0;
             haveHigh     = false;
             goodSymCount = 0;
-            debug(String.format("SYM LOCK off=%d score=%.2f", bestOff, bestScore));
+            debug(String.format("SYM LOCK off=%d score=%.2f centre=%.1f",
+                    bestOff, bestScore, centreHz));
         }
     }
 
     private double peaknessAt(int start) {
-        System.arraycopy(rawBuf, start, symBuf, 0, spS);
         double max = 0.0, sum = 0.0;
         for (double f : toneFreqs) {
-            double p = Goertzel.power(symBuf, (float) sampleRate, f);
+            double p = Goertzel.power(rawBuf, start, spS, (float) sampleRate, f);
             sum += p;
             if (p > max) max = p;
         }
@@ -287,25 +412,23 @@ public class DominoExMode implements DigitalMode {
         }
 
         double peakness = (sumP > 1e-12) ? maxP / sumP * NUM_TONES : 0.0;
-        double conf     = (secondP > 1e-12) ? maxP / (maxP + secondP) : 0.5;
+        // secondP near zero means one tone has all the energy — that's a
+        // PERFECT signal, not a confused one. Treat as max confidence.
+        double conf     = (secondP > 1e-12) ? maxP / (maxP + secondP) : 1.0;
 
         lastSnr  = (sumP > 1e-12) ? 10.0 * Math.log10(maxP / (sumP / NUM_TONES)) : 0.0;
         lastConf = conf;
 
-        boolean good = peakness >= LOCK_RATIO && conf < CONF_GATE;
+        // Quality gate: peakness high AND one tone dominates (conf > gate).
+        boolean good = peakness >= LOCK_RATIO && conf > CONF_GATE;
         if (!good) {
             goodSymCount = 0;
-            if (prevTone >= 0) prevTone = bestT;
+            prevTone = bestT;  // keep tracking but don't decode this nibble
             return;
         }
         goodSymCount++;
 
-        // IFK+ decode
-        if (prevTone < 0) {
-            prevTone = bestT;
-            return;
-        }
-
+        // IFK+ decode against prevTone, which starts at 0 (matches encoder).
         int nibble = (bestT - prevTone - 1 + NUM_TONES) % NUM_TONES;
         prevTone = bestT;
 
@@ -352,12 +475,10 @@ public class DominoExMode implements DigitalMode {
 
         String text = pending.toString();
         pending.setLength(0);
-        if (text.isBlank()) return Optional.empty();
 
-        debug("EMIT '" + text.trim() + "'");
+        debug("EMIT '" + text + "'");
         return Optional.of(new DecodeMessage(
-                ModeType.DOMINOEX, text, rigHz,
-                toneFreqs[NUM_TONES / 2], lastSnr, lastConf));
+                ModeType.DOMINOEX, text, rigHz, centreHz, lastSnr, lastConf));
     }
 
     private static void debug(String msg) {

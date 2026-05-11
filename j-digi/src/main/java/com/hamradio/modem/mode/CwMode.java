@@ -37,19 +37,34 @@ public class CwMode implements DigitalMode {
     // ── AFC ───────────────────────────────────────────────────────────
     private static final double AFC_MIN_HZ          = 300.0;
     private static final double AFC_MAX_HZ          = 1500.0;
-    private static final double AFC_MAX_JUMP_HZ     = 150.0;
+    private static final double AFC_WIDE_JUMP_HZ    = 500.0;  // cold-start / post-reset
+    private static final double AFC_LOCKED_JUMP_HZ  = 60.0;   // once carrier locked
+
+    // ── Adaptive-state reset ─────────────────────────────────────────
+    /** After this much continuous silence, treat the next carrier as a
+     *  fresh transmission: snap speed back to default so a different
+     *  operator/WPM doesn't inherit the previous QSO's adaptive state. */
+    private static final int    QUIET_RESET_SAMPLES = 8000;   // 1 second at 8 kHz
 
     // ── Envelope follower ─────────────────────────────────────────────
     private static final double ENV_ATTACK          = 0.30;   // fast attack  (per sample)
-    private static final double ENV_DECAY           = 0.003;  // slow decay   (per sample)
+    private static final double ENV_DECAY           = 0.020;  // ~6 ms — must clear within an inter-element gap (60 ms @ 20 WPM)
     /** Adaptive peak tracker — very slow decay keeps threshold stable across QSB. */
     private static final double PEAK_DECAY          = 0.0002; // per sample
+    /** How fast peakEnv tracks env upward. Must be slow enough that peakEnv
+     *  doesn't latch onto a bandpass transient at mark onset (which would
+     *  push OFF threshold above env and cause a phantom mid-mark split),
+     *  but fast enough that peakEnv settles within a single dit. */
+    private static final double PEAK_ATTACK         = 0.05;   // per sample (~60-sample settle)
 
     // ── Slicer thresholds (fraction of adaptive peak) ─────────────────
-    private static final double ON_FRAC             = 0.45;
-    private static final double OFF_FRAC            = 0.25;
-    private static final double MIN_ON_THRESHOLD    = 0.018;  // absolute floor
-    private static final double MIN_OFF_THRESHOLD   = 0.010;
+    // ON/OFF gap needs to be wide enough that mid-mark envelope wobble
+    // doesn't trip a phantom falling edge. 0.55 / 0.30 gives a 0.25
+    // hysteresis margin — empirically clean through the test suite.
+    private static final double ON_FRAC             = 0.55;
+    private static final double OFF_FRAC            = 0.30;
+    private static final double MIN_ON_THRESHOLD    = 0.025;  // absolute floor
+    private static final double MIN_OFF_THRESHOLD   = 0.015;
 
     // ── Speed adaptation ──────────────────────────────────────────────
     private static final double SPEED_ALPHA         = 0.15;   // EMA coefficient
@@ -57,9 +72,12 @@ public class CwMode implements DigitalMode {
     private static final double MAX_WPM             = 55.0;
 
     // ── Element classification (multiples of estimated dot duration) ──
-    private static final double DOT_DASH_RATIO      = 2.5;   // mark ≥ this → dah
-    private static final double CHAR_SPACE_RATIO    = 2.2;   // space ≥ this → inter-char
-    private static final double WORD_SPACE_RATIO    = 5.5;   // space ≥ this → inter-word
+    // 2.0 is the natural geometric mean of 1× dit and 3× dah, so initial
+    // classification works for any speed within ~½× to 2× of the current
+    // dotSamples estimate (15–40 WPM from the 20 WPM default).
+    private static final double DOT_DASH_RATIO      = 2.0;   // mark ≥ this → dah
+    private static final double CHAR_SPACE_RATIO    = 2.0;   // space ≥ this → inter-char (geom mean of 1× and 3×)
+    private static final double WORD_SPACE_RATIO    = 5.0;   // space ≥ this → inter-word
 
     // ── Decoder / output ─────────────────────────────────────────────
     private static final int    MAX_ELEMENT_DITS    = 8;     // sanity cap on dots/dahs per char
@@ -107,6 +125,14 @@ public class CwMode implements DigitalMode {
      */
     private boolean wordSpaceEmitted = false;
 
+    /** Set after a quiet-period reset has fired; cleared by the next
+     *  rising edge so the reset can fire again on the next quiet period. */
+    private boolean adaptiveReset = false;
+
+    /** Current AFC max-jump window. Starts wide so a new QSO at a different
+     *  audio offset is captured, narrows once a carrier locks. */
+    private double afcMaxJumpHz = AFC_WIDE_JUMP_HZ;
+
     // ── Text output ───────────────────────────────────────────────────
     private final StringBuilder pending = new StringBuilder();
 
@@ -131,8 +157,36 @@ public class CwMode implements DigitalMode {
         initIfNeeded(snap.getSampleRate());
 
         if (snap.getRms() < MIN_RMS) {
-            // Signal gone — flush any pending character
-            if (element.length() > 0) emitCharacter();
+            // Carrier-quiet frame: synthesize a falling edge if we were
+            // keyed, then advance the run-length counter by the frame
+            // size so word-space timeouts can fire while audio is silent.
+            if (keyed) {
+                onTransition(true, runSamples);
+                keyed = false;
+                prevKeyed = false;
+                runSamples = 0;
+            }
+            // Zero the envelope and biquad state so a stale (high) env
+            // from before the silence doesn't trip the slicer the instant
+            // audio resumes — that was producing a phantom 35-sample dit
+            // at the start of each post-silence mark.
+            env = 0.0;
+            bpX1 = bpX2 = bpY1 = bpY2 = 0.0;
+            // Decay peakEnv each silent frame too, so by the time audio
+            // resumes the OFF threshold is low and the slicer stays keyed
+            // through the bandpass filter's settling transient.
+            peakEnv *= 0.85;
+
+            runSamples += snap.getSamples().length;
+            checkTimeouts();
+            // After a long quiet stretch, treat the next signal as a fresh
+            // transmission — reset speed adaptation and partial state so a
+            // different operator/WPM doesn't inherit the previous QSO.
+            // Only fire once per quiet period; rearm on the next rising edge.
+            if (!adaptiveReset && runSamples > QUIET_RESET_SAMPLES) {
+                resetAdaptiveState();
+                adaptiveReset = true;
+            }
             return emitPending(rigHz);
         }
 
@@ -192,6 +246,18 @@ public class CwMode implements DigitalMode {
         lastConf = 0.0;
     }
 
+    /** Reset only the adaptive parts: speed estimate, partial element,
+     *  envelope tracker. Keep the carrier lock and any pending output. */
+    private void resetAdaptiveState() {
+        dotSamples = sampleRate * PARIS_MS_PER_WPM / (1000.0 * DEFAULT_WPM);
+        element.setLength(0);
+        env     = 0.0;
+        peakEnv = 0.0;
+        afcMaxJumpHz = AFC_WIDE_JUMP_HZ;   // re-widen AFC for a possible new QSO
+        debug(String.format("RESET adaptive state — dotSamp=%.1f (back to %.0f WPM default)",
+                dotSamples, DEFAULT_WPM));
+    }
+
     // =================================================================
     // AFC — snap carrier to FFT peak
     // =================================================================
@@ -199,12 +265,17 @@ public class CwMode implements DigitalMode {
     private void afcUpdate(double peakHz) {
         if (peakHz < AFC_MIN_HZ || peakHz > AFC_MAX_HZ) return;
         double jump = Math.abs(peakHz - carrierHz);
-        if (jump < 5.0 || jump > AFC_MAX_JUMP_HZ) return;
+        // Deadband must exceed one FFT bin (~7.8 Hz at 8 kHz / 1024) so
+        // we don't chase bin-to-bin jitter between adjacent buckets.
+        if (jump < 25.0 || jump > afcMaxJumpHz) return;
         debug(String.format("AFC %.1f → %.1f Hz", carrierHz, peakHz));
         carrierHz = peakHz;
         buildBandpass(peakHz);
-        // Reset envelope/slicer so the new frequency settles cleanly
-        env = 0.0;  bpX1 = bpX2 = bpY1 = bpY2 = 0.0;
+        // Narrow the window once we've locked, so spurious FFT bins during
+        // intra-element gaps can't drag us away.
+        afcMaxJumpHz = AFC_LOCKED_JUMP_HZ;
+        // Note: do NOT reset envelope here. Zeroing env mid-mark creates
+        // a phantom falling edge → false dits.
     }
 
     // =================================================================
@@ -273,8 +344,10 @@ public class CwMode implements DigitalMode {
 
     /** Falling edge: classify mark duration as dit or dah and append to element. */
     private void onMarkEnd(int markSamples) {
-        // Starting a fresh unkeyed run — clear the word-space latch
+        // Starting a fresh unkeyed run — clear the word-space latch and
+        // rearm the quiet-period reset for the next silence after this run.
         wordSpaceEmitted = false;
+        adaptiveReset = false;
 
         if (element.length() >= MAX_ELEMENT_DITS) {
             // Element string too long — almost certainly noise; discard
@@ -373,17 +446,26 @@ public class CwMode implements DigitalMode {
     // =================================================================
 
     private Optional<DecodeMessage> emitPending(long rigHz) {
-        // Trim trailing spaces before emitting
-        while (pending.length() > 0 && pending.charAt(pending.length() - 1) == ' ')
-            pending.deleteCharAt(pending.length() - 1);
-
         if (pending.length() == 0) return Optional.empty();
 
-        // Emit on word boundary (contains space) or when buffer is large enough
-        boolean hasSpace = pending.indexOf(" ") >= 0;
-        if (!hasSpace && pending.length() < MIN_EMIT_CHARS) return Optional.empty();
+        // Defer if the buffer is still only whitespace — a word-space
+        // was queued but no character has arrived yet. Don't strip it,
+        // it has to live in the buffer until a real char follows.
+        int nonSpaceLen = pending.length();
+        while (nonSpaceLen > 0 && pending.charAt(nonSpaceLen - 1) == ' ') nonSpaceLen--;
+        if (nonSpaceLen == 0) return Optional.empty();
 
-        String text = pending.toString();
+        // Emit on word boundary (current run ends in a space, i.e. a word
+        // just finished) or when we've buffered at least MIN_EMIT_CHARS.
+        boolean endsWithSpace = pending.charAt(pending.length() - 1) == ' ';
+        if (!endsWithSpace && pending.length() < MIN_EMIT_CHARS) return Optional.empty();
+
+        // Strip any leading word-space — it would render as a leading
+        // blank in the RX pane.
+        int start = 0;
+        while (start < pending.length() && pending.charAt(start) == ' ') start++;
+        String text = pending.substring(start);
+
         pending.setLength(0);
         debug("EMIT '" + text + "'");
 

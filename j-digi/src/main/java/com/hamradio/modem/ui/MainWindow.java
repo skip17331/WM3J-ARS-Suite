@@ -103,7 +103,8 @@ public class MainWindow {
     private final Label txCharCount  = new Label("0 ch");
 
     // ── Main text areas ──────────────────────────────────────────────
-    private final TextArea rxArea = new TextArea();
+    private final TextArea rxText = new TextArea();   // clean rolling text
+    private final TextArea rxArea = new TextArea();   // per-emit detail log
     private final TextArea txArea = new TextArea();
 
     // ── Status-bar labels ────────────────────────────────────────────
@@ -300,11 +301,21 @@ public class MainWindow {
         modeBox.setItems(FXCollections.observableArrayList(ModeType.values()));
         modeBox.setValue(ModeType.RTTY);
         modeBox.setPrefWidth(108);
+        // AX.25 decoder is a placeholder (tone-detect only) — show it but
+        // disable selection until a real packet decoder lands.
+        modeBox.setCellFactory(lv -> new ListCell<ModeType>() {
+            @Override protected void updateItem(ModeType item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setDisable(false); return; }
+                setText(item.name());
+                boolean unavailable = (item == ModeType.AX25);
+                setDisable(unavailable);
+                setStyle(unavailable ? "-fx-opacity: 0.45;" : "");
+            }
+        });
         modeTag.getStyleClass().add("jd-mode-tag");
-        Label modeLbl = instLabel("MODE");
-        VBox modeVBox = new VBox(2, modeLbl, new HBox(4, modeBox, modeTag));
-        ((HBox) modeVBox.getChildren().get(1)).setAlignment(Pos.CENTER_LEFT);
-        modeVBox.setAlignment(Pos.CENTER_LEFT);
+        HBox modeRow = new HBox(4, modeBox, modeTag);
+        modeRow.setAlignment(Pos.CENTER_LEFT);
 
         // ── AFC / SQL toggles ────────────────────────────────────────
         afcBtn.setPrefSize(50, 22);
@@ -366,10 +377,15 @@ public class MainWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        VBox panelBtns = new VBox(4, logBtn, spotsBtn);
+        panelBtns.setAlignment(Pos.CENTER);
+        logBtn.setMaxWidth(Double.MAX_VALUE);
+        spotsBtn.setMaxWidth(Double.MAX_VALUE);
+
         HBox bar = new HBox(6,
             bezel("STATION",  stationBox),   tbSep(),
             bezel("FREQUENCY", freqContent), tbSep(),
-            bezel("MODE",     modeVBox),     tbSep(),
+            bezel("MODE",     modeRow),      tbSep(),
             bezel("GUARD SW", guardContent), tbSep(),
             bezel("CONTROL",  xmitContent),  tbSep(),
             bezel("AUX",      new HBox(4, saveTxWavBtn, themeBtn)), tbSep(),
@@ -377,7 +393,7 @@ public class MainWindow {
             bezel("ROTOR",    rotorContent), tbSep(),
             bezel("STATUS",   dotsContent),
             spacer,
-            logBtn, spotsBtn
+            panelBtns
         );
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(5, 8, 5, 8));
@@ -470,6 +486,11 @@ public class MainWindow {
     // ── RX pane ──────────────────────────────────────────────────────
 
     private VBox buildRxPane() {
+        rxText.setEditable(false);
+        rxText.setWrapText(true);
+        rxText.getStyleClass().add("rx-text");
+        rxText.setStyle("-fx-font-family: 'monospace'; -fx-font-size: 18px;");
+
         rxArea.setEditable(false);
         rxArea.setWrapText(false);
         rxArea.getStyleClass().add("rx-area");
@@ -481,7 +502,11 @@ public class MainWindow {
 
         clearRxBtn.getStyleClass().add("tb-btn");
         sendToLogBtn.getStyleClass().add("secondary-button");
-        clearRxBtn.setOnAction(e  -> { rxArea.clear(); lastDecodeLine = ""; });
+        clearRxBtn.setOnAction(e  -> {
+            rxText.clear();
+            rxArea.clear();
+            lastDecodeLine = "";
+        });
         sendToLogBtn.setOnAction(e -> sendToLog());
 
         Region sp = new Region();
@@ -497,8 +522,12 @@ public class MainWindow {
         header.setPadding(new Insets(4, 8, 4, 8));
         header.getStyleClass().add("jd-rx-header");
 
-        VBox pane = new VBox(0, header, rxArea);
-        VBox.setVgrow(rxArea, Priority.ALWAYS);
+        SplitPane vsplit = new SplitPane(rxText, rxArea);
+        vsplit.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        vsplit.setDividerPositions(0.40);
+
+        VBox pane = new VBox(0, header, vsplit);
+        VBox.setVgrow(vsplit, Priority.ALWAYS);
         return pane;
     }
 
@@ -615,6 +644,16 @@ public class MainWindow {
         if (sqlBtn.isSelected() && !line.contains(callsignLabel.getText())) return;
         rxArea.appendText(line + System.lineSeparator());
         lastDecodeLine = line;
+
+        // If the line matches the structured decode format ("MODE | TEXT | freq | SNR | conf"),
+        // also append the text fragment to the rolling reading pane.
+        String[] parts = line.split(" \\| ");
+        if (parts.length == 5) {
+            rxText.appendText(parts[1]);
+            if (autoScrollBox.isSelected())
+                rxText.positionCaret(rxText.getText().length());
+        }
+
         if (autoScrollBox.isSelected())
             rxArea.positionCaret(rxArea.getText().length());
     }
