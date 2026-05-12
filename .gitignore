@@ -30,8 +30,7 @@ __pycache__/
 .venv/
 venv/
 
-# Bulk geographic data (downloaded inputs; outputs regenerate from scripts)
-tools/arrl-map/data/
+# Bulk geographic data (shapefile inputs, if any are pulled locally)
 *.shp
 *.shx
 *.dbf
