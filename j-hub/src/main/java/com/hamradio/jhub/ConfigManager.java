@@ -60,7 +60,30 @@ public class ConfigManager {
                 }
             }
         }
+
+        // Pre-fill any empty module launch commands with sibling-relative
+        // defaults so users don't have to type the same paths on first run.
+        // Walks up from user.dir looking for the ARS Suite root (the dir
+        // that contains both j-log and j-map as siblings of j-hub).
+        Path arsRoot = findArsRoot();
+        if (arsRoot != null && config.apps != null
+                && config.apps.applyDefaults(arsRoot)) {
+            log.info("Populated default module launch commands under {}", arsRoot);
+            save();
+        }
+
         log.info("Configuration loaded from {}", path.toAbsolutePath());
+    }
+
+    private static Path findArsRoot() {
+        Path here = Paths.get(System.getProperty("user.dir"));
+        for (int i = 0; i < 4 && here != null; i++, here = here.getParent()) {
+            if (Files.isDirectory(here.resolve("j-log"))
+                    && Files.isDirectory(here.resolve("j-map"))) {
+                return here;
+            }
+        }
+        return null;
     }
 
     /**

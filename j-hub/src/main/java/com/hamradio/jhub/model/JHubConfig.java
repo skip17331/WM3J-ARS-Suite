@@ -265,6 +265,48 @@ public class JHubConfig {
         public AppLaunchEntry jSat    = new AppLaunchEntry();
         public AppLaunchEntry jVault  = new AppLaunchEntry();
         public AppLaunchEntry jLearn  = new AppLaunchEntry();
+
+        /**
+         * Populate empty {@code command} fields with sensible defaults using
+         * sibling-directory layout under the given ARS Suite root. Existing
+         * (non-empty) commands are left alone. Returns true if anything
+         * changed — caller should re-save the config.
+         */
+        public boolean applyDefaults(java.nio.file.Path arsRoot) {
+            if (arsRoot == null) return false;
+            String r = arsRoot.toString();
+            String[][] defaults = {
+                {"jMap",    "bash " + r + "/j-map/j-map.sh"},
+                {"jLog",    "bash " + r + "/j-log/j-log.sh"},
+                {"jBridge", "bash " + r + "/j-bridge/j-bridge.sh"},
+                {"jDigi",   "bash " + r + "/j-digi/j-digi.sh"},
+                {"jSat",    "bash " + r + "/j-sat/j-sat.sh --launched-by-hub"},
+                {"jVault",  "bash " + r + "/j-vault/j-vault.sh"},
+                {"jLearn",  "bash " + r + "/j-learn/j-learn.sh"},
+            };
+            boolean changed = false;
+            for (String[] d : defaults) {
+                AppLaunchEntry e = entryByName(d[0]);
+                if (e != null && (e.command == null || e.command.isBlank())) {
+                    e.command = d[1];
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        private AppLaunchEntry entryByName(String n) {
+            switch (n) {
+                case "jMap":    return jMap;
+                case "jLog":    return jLog;
+                case "jBridge": return jBridge;
+                case "jDigi":   return jDigi;
+                case "jSat":    return jSat;
+                case "jVault":  return jVault;
+                case "jLearn":  return jLearn;
+                default:        return null;
+            }
+        }
     }
 
     public static class AppLaunchEntry {
