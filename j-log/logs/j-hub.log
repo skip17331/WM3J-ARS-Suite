@@ -1005,3 +1005,9 @@
 2026-05-12 18:50:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.0","solarwind":"335","geomag":"Quiet","fetchedAt":"2026-05-12T22:50:36.894299346Z","source":"NOAA SWPC"}
 2026-05-12 18:51:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.0","solarwind":"335","geomag":"Quiet","fetchedAt":"2026-05-12T22:51:36.894108750Z","source":"NOAA SWPC"}
 2026-05-12 18:52:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.0","solarwind":"335","geomag":"Quiet","fetchedAt":"2026-05-12T22:52:36.894005783Z","source":"NOAA SWPC"}
+2026-05-12 18:53:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.0","solarwind":"335","geomag":"Quiet","fetchedAt":"2026-05-12T22:53:36.894114438Z","source":"NOAA SWPC"}
+2026-05-12 18:54:28.084 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 18:54:28.085 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 18:54:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B8.4","solarwind":"359.3","geomag":"Quiet","fetchedAt":"2026-05-12T22:54:36.894049073Z","source":"NOAA SWPC"}
+2026-05-12 18:54:47.728 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 18:55:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B8.4","solarwind":"359.3","geomag":"Quiet","fetchedAt":"2026-05-12T22:55:36.894112171Z","source":"NOAA SWPC"}
