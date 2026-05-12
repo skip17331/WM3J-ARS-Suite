@@ -268,3 +268,92 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 22-06   | Power Minimum and Polite Operating                   | 22-operating-practice/22-06-power-minimum.md                      | simple     |
 | 22-07   | Common Operating Mistakes                            | 22-operating-practice/22-07-common-mistakes.md                    | simple     |
 | 22-08   | Split-Frequency Operation                            | 22-operating-practice/22-08-split-frequency.md                    | mixed      |
+| 23-00   | HF Operating Techniques — Overview                   | 23-hf-operating/23-00-overview.md                                 | simple     |
+| 23-01   | DXing                                                | 23-hf-operating/23-01-dxing.md                                    | mixed      |
+| 23-02   | Contesting Basics                                    | 23-hf-operating/23-02-contesting-basics.md                        | simple     |
+| 23-03   | Run vs. Search-and-Pounce                            | 23-hf-operating/23-03-run-vs-sp.md                                | mixed      |
+| 23-04   | Tail-ending                                          | 23-hf-operating/23-04-tail-ending.md                              | simple     |
+| 23-05   | Working Rare DX                                      | 23-hf-operating/23-05-working-rare-dx.md                          | mixed      |
+| 23-06   | Timing                                               | 23-hf-operating/23-06-timing.md                                   | mixed      |
+| 23-07   | Grayline Exploitation                                | 23-hf-operating/23-07-grayline-exploitation.md                    | mixed      |
+| 23-08   | Regional Propagation Quirks                          | 23-hf-operating/23-08-regional-propagation-quirks.md              | mixed      |
+| 23-09   | Pile-up Strategy                                     | 23-hf-operating/23-09-pile-up-strategy.md                         | mixed      |
+| 23-10   | Split Tactics                                        | 23-hf-operating/23-10-split-tactics.md                            | mixed      |
+| 23-11   | HF Mobile                                            | 23-hf-operating/23-11-hf-mobile.md                                | mixed      |
+| 23-12   | HF Portable                                          | 23-hf-operating/23-12-hf-portable.md                              | mixed      |
+| 24-00   | Digital Voice & Hotspot Systems — Overview           | 24-digital-voice-hotspots/24-00-overview.md                       | simple     |
+| 24-01   | DMR Overview                                         | 24-digital-voice-hotspots/24-01-dmr-overview.md                   | mixed      |
+| 24-02   | DMR Talkgroups                                       | 24-digital-voice-hotspots/24-02-dmr-talkgroups.md                 | mixed      |
+| 24-03   | BrandMeister vs IPSC2                                | 24-digital-voice-hotspots/24-03-brandmeister-vs-ipsc2.md          | mixed      |
+| 24-04   | D-STAR                                               | 24-digital-voice-hotspots/24-04-dstar.md                          | mixed      |
+| 24-05   | D-STAR Routing — Reflectors and Callsign Routing     | 24-digital-voice-hotspots/24-05-dstar-routing.md                  | mixed      |
+| 24-06   | Yaesu System Fusion / WIRES-X                        | 24-digital-voice-hotspots/24-06-fusion-wires-x.md                 | mixed      |
+| 24-07   | Pi-Star Hotspot Setup                                | 24-digital-voice-hotspots/24-07-hotspot-pistar.md                 | mixed      |
+| 24-08   | OpenSpot Hotspots                                    | 24-digital-voice-hotspots/24-08-hotspot-openspot.md               | mixed      |
+| 24-09   | Duplex vs Simplex Hotspots                           | 24-digital-voice-hotspots/24-09-duplex-vs-simplex-hotspots.md     | mixed      |
+| 24-10   | BER (Bit Error Rate) Explained                       | 24-digital-voice-hotspots/24-10-ber-explained.md                  | mixed      |
+| 24-11   | Cross-Mode Linking                                   | 24-digital-voice-hotspots/24-11-cross-mode-linking.md             | mixed      |
+| 25-00   | Test Equipment & Measurement — Overview              | 25-test-equipment/25-00-overview.md                               | mixed      |
+| 25-01   | NanoVNA — Advanced Techniques                        | 25-test-equipment/25-01-nanovna-advanced.md                       | advanced   |
+| 25-02   | Oscilloscopes for RF Work                            | 25-test-equipment/25-02-oscilloscopes-for-rf.md                   | mixed      |
+| 25-03   | Spectrum Analyzers                                   | 25-test-equipment/25-03-spectrum-analyzers.md                     | mixed      |
+| 25-04   | Tracking Generators                                  | 25-test-equipment/25-04-tracking-generators.md                    | mixed      |
+| 25-05   | Field Strength Meters                                | 25-test-equipment/25-05-field-strength-meters.md                  | mixed      |
+| 25-06   | Power & SWR Meters                                   | 25-test-equipment/25-06-power-swr-meters.md                       | mixed      |
+| 25-07   | TDR — Time-Domain Reflectometry                      | 25-test-equipment/25-07-tdr.md                                    | advanced   |
+| 25-08   | Measuring Station Noise Floor                        | 25-test-equipment/25-08-noise-floor-measurement.md                | mixed      |
+| 25-09   | Calibration Workflows                                | 25-test-equipment/25-09-calibration-workflows.md                  | mixed      |
+| 26-00   | Homebrewing & RF Construction — Overview             | 26-homebrewing/26-00-overview.md                                  | simple     |
+| 26-01   | RF Amplifier Topologies                              | 26-homebrewing/26-01-rf-amplifier-topologies.md                   | advanced   |
+| 26-02   | Low-Pass Filters for Harmonic Suppression            | 26-homebrewing/26-02-low-pass-filters.md                          | mixed      |
+| 26-03   | High-Pass Filters                                    | 26-homebrewing/26-03-high-pass-filters.md                         | mixed      |
+| 26-04   | Bandpass & Notch Filters                             | 26-homebrewing/26-04-bandpass-notch-filters.md                    | mixed      |
+| 26-05   | Toroid Selection (Powdered Iron)                     | 26-homebrewing/26-05-toroid-selection.md                          | mixed      |
+| 26-06   | Ferrite Mix Selection                                | 26-homebrewing/26-06-ferrite-mix-selection.md                     | mixed      |
+| 26-07   | Linear vs Switching Power Supplies                   | 26-homebrewing/26-07-linear-vs-switching-supplies.md              | mixed      |
+| 26-08   | Enclosures & Shielding                               | 26-homebrewing/26-08-enclosures-shielding.md                      | mixed      |
+| 26-09   | Grounding for Homebrew                               | 26-homebrewing/26-09-grounding-for-homebrew.md                    | mixed      |
+| 26-10   | PCB Layout Basics for RF                             | 26-homebrewing/26-10-pcb-layout-basics.md                         | mixed      |
+| 26-11   | RF Safety in Homebrew                                | 26-homebrewing/26-11-rf-safety-in-homebrew.md                     | mixed      |
+| 27-00   | Overview — Station Engineering & Grounding           | 27-station-engineering/27-00-overview.md                          | mixed      |
+| 27-01   | Single-Point Grounding                               | 27-station-engineering/27-01-single-point-grounding.md            | mixed      |
+| 27-02   | RF Bonding                                           | 27-station-engineering/27-02-rf-bonding.md                        | mixed      |
+| 27-03   | Lightning Protection                                 | 27-station-engineering/27-03-lightning-protection.md              | mixed      |
+| 27-04   | Station Layout                                       | 27-station-engineering/27-04-station-layout.md                    | simple     |
+| 27-05   | Ferrite Deployment Strategy                          | 27-station-engineering/27-05-ferrite-deployment-strategy.md       | mixed      |
+| 27-06   | Power Distribution                                   | 27-station-engineering/27-06-power-distribution.md                | mixed      |
+| 27-07   | Portable Power — LiFePO4                             | 27-station-engineering/27-07-portable-power-lifepo4.md            | mixed      |
+| 27-08   | Portable Power — Solar                               | 27-station-engineering/27-08-portable-power-solar.md              | mixed      |
+| 27-09   | Noise Mitigation at the Power Supply                 | 27-station-engineering/27-09-noise-mitigation-at-power-supply.md  | mixed      |
+| 28-00   | Overview — Additional Digital Modes                  | 28-additional-digital-modes/28-00-overview.md                     | simple     |
+| 28-01   | Winlink                                              | 28-additional-digital-modes/28-01-winlink.md                      | mixed      |
+| 28-02   | VARA HF                                              | 28-additional-digital-modes/28-02-vara-hf.md                      | mixed      |
+| 28-03   | VARA FM                                              | 28-additional-digital-modes/28-03-vara-fm.md                      | simple     |
+| 28-04   | Olivia                                               | 28-additional-digital-modes/28-04-olivia.md                       | mixed      |
+| 28-05   | MFSK16 and MFSK32                                    | 28-additional-digital-modes/28-05-mfsk.md                         | mixed      |
+| 28-06   | Hellschreiber                                        | 28-additional-digital-modes/28-06-hellschreiber.md                | mixed      |
+| 28-07   | Pactor                                               | 28-additional-digital-modes/28-07-pactor.md                       | advanced   |
+| 28-08   | FSQ — Fast Simple QSO                                | 28-additional-digital-modes/28-08-fsq.md                          | mixed      |
+| 28-09   | Robust Packet                                        | 28-additional-digital-modes/28-09-robust-packet.md                | mixed      |
+| 28-10   | Digital Messaging Workflows                          | 28-additional-digital-modes/28-10-digital-messaging-workflows.md  | mixed      |
+| 29-00   | Satellite Advanced Topics                            | 29-satellite-advanced/29-00-overview.md                           | mixed      |
+| 29-01   | Full-Duplex Operation                                | 29-satellite-advanced/29-01-full-duplex.md                        | mixed      |
+| 29-02   | Linear Transponder Etiquette                         | 29-satellite-advanced/29-02-transponder-etiquette.md              | mixed      |
+| 29-03   | Arrow Handheld Yagi                                  | 29-satellite-advanced/29-03-antennas-arrow.md                     | mixed      |
+| 29-04   | Eggbeater Omnidirectional Antennas                   | 29-satellite-advanced/29-04-antennas-eggbeater-omni.md            | mixed      |
+| 29-05   | Helical Antennas                                     | 29-satellite-advanced/29-05-antennas-helical.md                   | mixed      |
+| 29-06   | Polarization Switching                               | 29-satellite-advanced/29-06-polarization-switching.md             | advanced   |
+| 29-07   | Mast-Mounted Preamps                                 | 29-satellite-advanced/29-07-preamps-lna-placement.md              | mixed      |
+| 29-08   | Doppler Automation                                   | 29-satellite-advanced/29-08-doppler-automation.md                 | advanced   |
+| 29-09   | Linear Transponder Strategy                          | 29-satellite-advanced/29-09-linear-transponder-strategy.md        | advanced   |
+| 29-10   | Mode Identification (V/U, U/V, L/U, etc.)            | 29-satellite-advanced/29-10-mode-identification.md                | mixed      |
+| 30-00   | Overview — Operating Specialties                     | 30-operating-specialties/30-00-overview.md                        | mixed      |
+| 30-01   | NVIS — Near-Vertical-Incidence Skywave               | 30-operating-specialties/30-01-nvis.md                            | mixed      |
+| 30-02   | Meteor Scatter Operating                             | 30-operating-specialties/30-02-meteor-scatter.md                  | advanced   |
+| 30-03   | EME — Earth-Moon-Earth Basics                        | 30-operating-specialties/30-03-eme-basics.md                      | advanced   |
+| 30-04   | Tropospheric Ducting                                 | 30-operating-specialties/30-04-tropo-ducting.md                   | mixed      |
+| 30-05   | Aircraft Scatter                                     | 30-operating-specialties/30-05-aircraft-scatter.md                | mixed      |
+| 30-06   | Maritime Mobile Operating                            | 30-operating-specialties/30-06-maritime-mobile.md                 | mixed      |
+| 30-07   | Aeronautical Mobile Operation                        | 30-operating-specialties/30-07-aeronautical-mobile.md             | advanced   |
+| 30-08   | SOTA — Summits On The Air                            | 30-operating-specialties/30-08-sota.md                            | simple     |
+| 30-09   | POTA — Parks On The Air                              | 30-operating-specialties/30-09-pota.md                            | simple     |
