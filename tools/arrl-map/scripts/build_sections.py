@@ -93,13 +93,13 @@ SPECIAL_INSETS = {
 # the left side, the right-side polygon(s) light up. 1-to-many entries
 # (e.g. FL → NFL/SFL/WCF) light every member.
 SECTION_ALIASES = {
-    # Old SS standard plugin uses "ON" — that's now our primary. Alt
-    # plugins use post-2023 RAC names which resolve back to ON since we
-    # don't have CD-level Ontario boundaries yet.
-    "ONN": ["ON"],
-    "ONE": ["ON"],
-    "ONS": ["ON"],
-    "GH":  ["ON"],
+    # Standard SS plugin uses "ON" for all of Ontario. The map renders the
+    # four post-2023 RAC sub-sections (ONN/ONE/GH/ONS) separately via
+    # approximate lat/lon cuts (see split_ontario). When a plugin records
+    # "ON", light all four polygons.
+    "ON":  ["ONN", "ONE", "GH", "ONS"],
+    # Pre-2023 RAC name for what's now GH (Golden Horseshoe).
+    "GTA": ["GH"],
     # Some FD/alt plugins use "HI" rather than the canonical "PAC".
     "HI":  ["PAC"],
     # Territories — alt/FD plugins list individually; map shows aggregate.
@@ -127,10 +127,10 @@ CA_SECTION_PROVINCES = {
     # from the rendered polygon (the section still exists in the DB; clicks
     # on YT/NT still register as TER).
     "TER": ["Yukon", "Northwest Territories"],
-    # V1: Ontario as a single polygon, labelled "ON" (matches the standard
-    # ARRL SS plugin). Alt plugins use ONN/ONE/ONS/GH — those resolve to
-    # this polygon via SECTION_ALIASES below.
-    "ON":  ["Ontario"],
+    # Ontario is intentionally NOT in this dict — it gets split into four
+    # sub-sections (ONN/ONE/GH/ONS) by split_ontario() instead. Standard
+    # "ON" worked-set entries resolve to all four polygons via the
+    # SECTION_ALIASES table.
     # Legacy aggregate section still used in the standard SS plugins.
     # Geometry is the union of NB+NS+PE — placed via SPECIAL_INSETS so it
     # sits as its own clickable shape rather than overlapping the three
@@ -250,7 +250,47 @@ def build_ca_sections(provinces: gpd.GeoDataFrame) -> dict[str, dict]:
             continue
         geom = unary_union(df.geometry.values)
         sections[sec_id] = {"geometry": geom, "country": "CA"}
+    sections.update(split_ontario(provinces))
     return sections
+
+
+def split_ontario(provinces: gpd.GeoDataFrame) -> dict[str, dict]:
+    """
+    Approximate the four post-2023 RAC Ontario sub-sections by clipping
+    the single Natural Earth Ontario polygon with lat/lon boxes. This is
+    a visual approximation, not a Census Division-accurate split —
+    boundaries follow lines of latitude/longitude rather than census
+    boundaries, but the four regions are recognisable on the map.
+
+    Boundaries used:
+      - ONN  (north):  lat ≥ 46° N
+      - GH   (Golden Horseshoe): lat 42.8–44.4° N, lon -80.0 to -78.5° W
+      - ONE  (east):   lat < 46° N, lon ≥ -78.5° W
+      - ONS  (south/southwest): everything else south of 46° N
+    """
+    on_row = provinces[provinces["name"] == "Ontario"]
+    if on_row.empty:
+        print("WARNING: Ontario polygon not found; ONN/ONE/GH/ONS skipped")
+        return {}
+    on = on_row.iloc[0].geometry
+
+    north  = box(-180, 46.0, 180,  90.0)
+    south  = box(-180,  0.0, 180,  46.0)
+    east   = box(-78.5, 0.0, 180,  46.0)
+    gh_box = box(-80.0, 42.8, -78.5, 44.4)
+
+    onn = on.intersection(north)
+    gh  = on.intersection(gh_box)
+    one = on.intersection(east)
+    ons = on.intersection(south).difference(one).difference(gh)
+
+    out = {}
+    for sid, g in (("ONN", onn), ("ONE", one), ("GH", gh), ("ONS", ons)):
+        if g.is_empty:
+            print(f"WARNING: Ontario sub-section {sid} produced empty geometry")
+            continue
+        out[sid] = {"geometry": g, "country": "CA"}
+    return out
 
 
 # ----------------------------------------------------------------------------
