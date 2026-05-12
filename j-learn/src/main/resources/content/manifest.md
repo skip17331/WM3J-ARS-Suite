@@ -283,3 +283,8 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 21-05 | Pile-up Etiquette                        | 21-operating-practice/21-05-pile-up-etiquette.md    | simple   |
 | 21-06 | Power Minimum and Polite Operating       | 21-operating-practice/21-06-power-minimum.md        | simple   |
 | 21-07 | Common Operating Mistakes                | 21-operating-practice/21-07-common-mistakes.md      | simple   |
+| 21-08 | Split-Frequency Operation                | 21-operating-practice/21-08-split-frequency.md      | mixed    |
+| 22-00 | Voice Modes — Overview                   | 22-voice-modes/22-00-overview.md                    | simple   |
+| 22-01 | AM — Amplitude Modulation                | 22-voice-modes/22-01-am.md                          | mixed    |
+| 22-02 | FM — Frequency Modulation                | 22-voice-modes/22-02-fm.md                          | mixed    |
+| 22-03 | SSB — Single Sideband                    | 22-voice-modes/22-03-ssb.md                         | mixed    |

@@ -26,6 +26,7 @@ This is **not** the regulations chapter. The FCC rules (§97) tell you what's le
 | §21-05 | Pile-up etiquette — DX, contests, special events |
 | §21-06 | Power minimum and polite operating — §97.313, courtesy QRP |
 | §21-07 | Common operating mistakes |
+| §21-08 | Split-frequency operation — what it is, rig setup, the protocol |
 
 ## The big idea
 
