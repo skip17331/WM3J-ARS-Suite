@@ -199,6 +199,17 @@ body {
 .field input.invalid { border-color: var(--red); }
 .field input.valid   { border-color: var(--green); }
 
+/* Hide native number-input spinner arrows across the app — direct keyboard entry only. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* label is second child — appears below the input */
 .field label {
   font-size: 10px;

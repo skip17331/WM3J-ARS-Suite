@@ -29,80 +29,81 @@ Compared to the non-trapped EFHW (which uses harmonics), the trapped EFHW gives 
 
 ## Calculator inputs and outputs
 
-The Antenna Workshop calculator (`EFHW (Trapped)`) takes:
+The Antenna Workshop calculator (`EFHW (Trapped)`) is **length-driven**: specify available wire length and the design fits within it.
 
-- **Highest band frequency** (MHz) — innermost segment
-- **Next band down** (MHz)
-- **Optional 3rd band** (MHz, even lower)
-- **Shorten beyond standard (%)** — 0 = standard; 10–50% = shorty variant (see below)
-- **Standard trap capacitor (pF)** — typically 100 pF
-- **Power (W PEP)** — drives trap-capacitor voltage rating (EFHW traps see 2–3× more voltage than dipole traps)
-- **Unun ratio** — 49:1 or 64:1
+Inputs:
 
-And returns:
+- **Number of bands** (2, 3, or 4)
+- **Band frequencies** (MHz, one per band)
+- **Available total wire length** (ft) — `0` means no constraint, build full-size
+- **Trap capacitor** (pF)
+- **Power** (W PEP)
+- **Unun ratio** (49:1 or 64:1)
 
-- Length of each segment (unun → trap 1, trap 1 → trap 2 or end, etc.)
-- For each trap: design frequency, L (µH), C (pF), capacitor peak voltage with type recommendation
-- Counterpoise length and unun spec
-- For shorty mode: an inline seg-1 loading coil (when seg 1 is shortened more than 10%) and efficiency/bandwidth estimates
+The calculator returns the same 9-section structured output as the trapped dipole — Overview, Segment Lengths, Loading Components, Placement, Feedpoint/Matching, SWR, Bandwidth, Performance Opinion, Warnings — adapted for the EFHW topology (single wire, unun feed, counterpoise).
 
-## Shorty trapped EFHW
+## Shortened trapped EFHW design
 
-A trapped EFHW already fits more bands into less wire than the harmonic-only version (§07-07). A **shorty** trapped EFHW shrinks it further by moving traps inward and re-spec'ing them with higher L / lower C — same f_r, more inductive loading on bands below resonance.
+A trapped EFHW already fits more bands into less wire than the harmonic-only version (§07-07). A shortened design shrinks it further by re-specing the traps with higher L / lower C (same f_r) and adding an inline seg-1 loading coil when needed.
 
-### How it works
+### Mechanism
 
-Same physics as the trapped dipole (§07-05). The trap's below-resonance reactance is:
+Same physics as the shortened trapped dipole (§07-05): the trap's below-resonance reactance is
 
 ```
 X_trap(f) = (2π · f · L) / (1 − (f/f_r)²)
 ```
 
-Increasing L (and decreasing C to preserve f_r) increases X at every lower band — that extra inductive reactance "fills in" the missing physical length.
+and we keep f_r fixed while increasing L (and decreasing C) to raise X on every band below.
 
-For the EFHW specifically, the **first trap sees the most voltage**, because it sits closer to the high-impedance end of the wire (which is just inside the 49:1 unun). Trap voltage in an EFHW is roughly 2.5× the voltage in the equivalent trapped dipole, because the EFHW's end-fed feed presents ~2500 Ω there. **This is the dominant constraint on EFHW shorty design.**
+For the EFHW specifically, the **first trap sees the most voltage** — it sits closer to the high-impedance end of the wire (just inside the unun). The calculator applies a ~2.5× voltage multiplier on top of the dipole-equivalent V_peak, which is what drives the brutal capacitor-type recommendations on shortened EFHW designs.
 
-### Worked example — 30% shorty 40/20/15 (POTA-friendly)
+If seg 1 is shortened by more than ~10%, an inline loading coil is required inside seg 1 (placed roughly ⅓ to ½ along its length). Its inductance is computed from the missing physical length the same way as the trap loading.
+
+### Bandwidth model
+
+Same loaded-antenna BW formula as the dipole, but Rr is based on the EFHW characteristic input resistance (~36 Ω at full size at the unun input) rather than 73 Ω:
 
 ```
-band 1: 21.200 MHz    band 2: 14.150 MHz    band 3: 7.150 MHz
-shorten = 30%         standard cap = 100 pF    power = 100 W   unun = 49:1
-
-Standard trapped 40/20/15: total wire ~67 ft.
-30% shorty: total wire ~47 ft.
-
-Segment lengths:
-  Seg 1 (unun → trap 1):  15.8 ft (was 22.5)
-  Seg 2 (trap 1 → trap 2): 7.9 ft (was 11.2)
-  Seg 3 (trap 2 → end):   23.1 ft (was 33.1)
-  Total wire:             46.8 ft
-
-Inline loading coil in seg 1: ~5.9 µH (placed midway)
-
-Trap 1 (21.2 MHz):
-  L:  1.74 µH
-  C:  32 pF
-  V_cap peak at 100 W: ~3800 V → vacuum capacitor
-
-Trap 2 (14.15 MHz):
-  L:  6.11 µH
-  C:  21 pF
-  V_cap peak at 100 W: ~5800 V → vacuum capacitor
-
-Est. efficiency penalty (40m): ~1.4 dB
-Est. 2:1 SWR bandwidth (40m): ~49% of standard
+Rr ≈ 36 · (built/ideal)²
+BW ≈ f · (Rr + X_load / Q) / X_load            Q ≈ 100 (traps), 200 (coils)
 ```
 
-47 ft of wire that covers 40/20/15 fits in a small SOTA pack and deploys with one tree. The voltage budget is brutal even at 100 W — **at full power, both traps want vacuum capacitors**. At 25 W (typical SOTA), voltages halve to ~1900 V / ~2900 V which lets you use big doorknob caps. At QRP (5 W), they drop to ~850 V / ~1300 V and high-grade mica works.
+capped at f / 15.
 
-### Tradeoffs
+### Worked example — 40/20/15 in 47 ft
 
-| Shortening | Wire length | Efficiency | Trap V @ 100W | Trap V @ 25W (SOTA) | Cap type @ 25W |
-|-----------|------------|------------|---------------|----------------------|----------------|
-| 0% (std)  | 67 ft      | reference  | ~900 V        | ~450 V              | mica         |
-| 15%       | 57 ft      | -1.0 dB    | ~2100 V       | ~1050 V             | doorknob     |
-| 30%       | 47 ft      | -1.4 dB    | ~3800 V       | ~1900 V             | doorknob     |
-| 40%       | 40 ft      | -1.8 dB    | ~5500 V       | ~2750 V             | doorknob/vacuum |
+```
+Bands: 21.200 / 14.150 / 7.150 MHz
+Available length: 47 ft (full = 66.85 ft, s = 70%)
+Trap cap: 100 pF    Power: 100 W    Unun: 49:1
+
+Segments:
+  Seg 1 (unun → trap 1, ideal 22.5 ft):  15.8 ft  ← shortened
+  Seg 2 (trap 1 → trap 2, ideal 11.2 ft): 7.9 ft  ← shortened
+  Seg 3 (trap 2 → end, ideal 33.1 ft):   23.2 ft  ← shortened
+  Total wire: 46.9 ft
+
+Seg-1 inline coil: ~5.9 µH (placed midway along seg 1)
+
+Trap 1 (21.2 MHz):  L ≈ 1.74 µH,  C ≈ 32 pF,  V_cap ≈ 3800 V → vacuum cap
+Trap 2 (14.15 MHz): L ≈ 6.11 µH,  C ≈ 21 pF,  V_cap ≈ 5800 V → vacuum cap
+
+Rr ≈ 18 Ω on every band (vs 36 Ω full-size)
+Est. 2:1 BW:  15m ≈ 600 kHz,  20m ≈ 400 kHz,  40m ≈ 150 kHz
+```
+
+The voltage budget is brutal even at 100 W — at full power, both traps want vacuum capacitors. **At 25 W (typical SOTA) voltages halve** (V_peak scales with √P), so trap 1 drops to ~1900 V (doorknob territory) and trap 2 to ~2900 V (still doorknob with margin). **At QRP (5 W)** voltages drop to ~850 V / ~1300 V where high-grade mica works.
+
+### Tradeoff guide
+
+| L_avail / L_full | Wire length (40/20/15) | Verdict | Trap V @ 100W | Cap class @ 100W |
+|------------------|------------------------|---------|----------------|------------------|
+| 100%             | 67 ft                  | full size — best        | ~900 V  | mica             |
+| 85%              | 57 ft                  | mild — practical        | ~2100 V | doorknob         |
+| 70%              | 47 ft                  | moderate — SOTA-grade   | ~3800 V | vacuum           |
+| 60%              | 40 ft                  | heavy — marginal        | ~5500 V | vacuum           |
+| < 40%            | < 27 ft                | infeasible              | —       | —                |
 
 > ⚙️ **Advanced —** EFHW trap voltage at full power exceeds the dipole equivalent because the trap nearest the unun sits in the high-Z region of the wire. For legal-limit (1500 W) shorty EFHW operation, **all** traps need vacuum capacitors. The cost stack ($150–600 in caps alone) means full-length EFHW + tuner is almost always the right call at high power.
 
