@@ -11,45 +11,81 @@ status: draft
 
 > **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-## What "split" means
+## The problem split solves
 
-In normal operating you transmit and receive on the **same** frequency. The station you're talking to does too, and you take turns listening to each other on that one frequency. That's **simplex**.
+Picture a rare DX station — say, a DXpedition to a Pacific atoll that's active for one week every four years. The instant they call CQ on, say, 14.205 MHz, **two to three hundred stations** worldwide want to be the one they pick. Without split, here's what each side experiences:
 
-**Split-frequency** operation (usually just "split") means the two stations are on **different** frequencies:
+**The DX operator's experience (simplex):** They call "QRZ" and instantly hear a *wall of overlapping voices* on 14.205 — 200 callsigns shouted simultaneously into the same 3 kHz of audio. To human ears it's an undifferentiated roar. They can't pull a single complete callsign out of it. They guess at fragments ("Whiskey... was that Whiskey One? Whiskey One Alpha somebody?") and the QSO rate collapses.
 
-- One station **transmits on frequency A** and **listens on frequency B**.
-- The other station **transmits on B** and **listens on A**.
+**Your experience as a caller (simplex):** You key up the moment they say "QRZ" — but so does everyone else, and your 100 W signal is competing with 199 others all transmitting on the exact same kHz. The DX will probably never hear you specifically; you'll hear them work somebody else and have to start over.
 
-The pair is still a normal two-way QSO; only the frequencies differ.
+The wall-of-noise problem isn't the band's fault; it's geometric. Two hundred signals on the same frequency overlap in time and cancel each other in the DX's receiver. The fix is to **spread the callers out across a range of frequencies** so the DX only hears one or two at a time. That's split.
+
+## How split fixes it
+
+The DX transmits on one frequency (their TX) and *listens on a different range* — usually 5 to 15 kHz higher. Callers transmit somewhere in that range, not on the DX's TX freq. Now:
+
+**The DX's experience:** They tune across the listen range and hear individual stations cleanly — one caller at 5 kHz up, another at 7 kHz up, another at 12 kHz up. Each is alone on its own kHz, so each is intelligible. The DX can pick a single callsign and work it. The next caller is on a different kHz, so picking them out is just a tuning adjustment.
+
+**Your experience as a caller:** You're on a specific kHz in the listen range — say 14.210 MHz. Maybe four or five other people picked the same kHz, but most of the pileup is spread across the 5-to-15-up range. You can hear the DX cleanly on 14.205 and you transmit on 14.210. When the DX names a callsign, you hear it on their TX frequency.
+
+Visually, on a panadapter/waterfall, it looks like this:
+
+```
+       DX (single signal)         |---- pileup spread across 10 kHz ----|
+       ▼                          ▼  ▼   ▼     ▼   ▼  ▼  ▼    ▼   ▼     ▼
+       ████                       █  █   █     █   ██ █  █    █   █     █
+       ────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────
+      14.205                   14.210                              14.215
+       ←──── 5 kHz gap ────→
+```
+
+The DX's TX frequency is empty of caller signals (because nobody is supposed to transmit there). The pileup is a cluster of signals 5 to 15 kHz higher.
+
+## What "split" actually is, technically
+
+**Split-frequency operation** means a station transmits on one frequency and receives on a different one. Each side still has a single radio with a single antenna — what differs is the rig's TX and RX VFOs.
+
+- The DX station: **TX on A, RX on B**
+- A caller: **TX on B, RX on A**
+
+The pair is still a normal two-way QSO; only the frequency pairing differs. There's nothing inherently exotic about it — every FM repeater on every band uses split (the repeater transmits on one frequency and listens on another). The HF DX case is just split done manually with two VFOs instead of automatically with a repeater memory.
 
 Split is a *technique*, not a mode. You can run split on CW, SSB, RTTY, even some FT8 contesting — anywhere the rig supports two VFOs.
 
-## Why split exists
+## Three contexts where split shows up
 
-Three reasons hams run split:
+1. **DXing — managing a pile-up.** This is the dominant amateur use of split and the focus of the rest of this section. Heavy traffic, rare entity, hundreds of callers, DX runs split to keep the QSO rate up.
+2. **Cross-band repeaters and satellites.** A 2 m FM repeater transmits on 146.94 MHz and listens on 146.34 MHz (a 600 kHz offset); the rig handles this automatically when you select the repeater from memory. Working a linear satellite is the same idea on a bigger scale — uplink on 70 cm, downlink on 2 m, with Doppler shift continuously adjusted by tracking software.
+3. **Avoiding QRM.** Two stations agree to TX on different frequencies to dodge interference on one of them. Rare in modern amateur practice but it happens, especially on net frequencies that get covered by sudden contest activity.
 
-1. **DXing — managing a pile-up.** This is by far the most common reason. A rare DX station calls CQ once, then "runs" — taking one contact after another with a steady cadence. Dozens or hundreds of stations want to call. If everyone calls on the DX's transmit frequency, it's a wall of noise and the DX can't pick out anyone. By listening on a different range (typically 5–15 kHz higher than their TX), the DX hears one or two callers at a time, cleanly.
+The rest of this section is about case #1.
 
-2. **Cross-band repeaters and satellites.** A repeater transmits on one frequency and listens on another (e.g. a 2 m repeater might TX on 146.940 MHz and RX on 146.340 MHz, a 600 kHz offset). Working a linear satellite is also a form of split — uplink on 70 cm, downlink on 2 m.
+## Recognizing split is happening
 
-3. **Avoiding QRM on a busy band.** Two stations agree to TX on different frequencies to dodge interference on one of them. Rare, but it happens.
+If you tune across the band and find a rare callsign that you can hear clearly but **nobody seems to be calling them on their frequency**, that's the telltale sign: the DX is running split, and the callers are bunched up on a different frequency. Three giveaways:
 
-For amateur HF voice/CW work, **#1 is what you'll deal with most**. The rest of this section is about DX-pile-up split.
+1. **You hear the DX, but not the responses.** A normal QSO has both sides on the same frequency, so you hear both. Split means you only hear the DX (because the callers are 5–15 kHz away).
+2. **The DX announces "up" or "QSX" before going back into "QRZ".** Listen for 30 seconds — they'll repeat the announcement every few contacts.
+3. **A cluster spot or the panadapter shows the split.** DX cluster comments include the listen range (`14205.0  KH1/KH7Z   UP 5-15`). On a panadapter, the pileup cluster of signals is visible above the DX's TX frequency.
+
+If you hear the DX work a caller but the caller's audio never came through your speaker, you've just had a split-mode encounter — the caller was on a different kHz.
 
 ## How the DX announces split
 
-The DX station tells you where they're listening, in one of several shorthand forms. Listen for ten or fifteen seconds and you'll catch it.
+The DX station tells you where they're listening, in one of several shorthand forms.
 
 | What the DX says | What it means |
 |------------------|----------------|
 | `"5 up"` or `"up 5"` | Listening 5 kHz higher than my TX |
 | `"5 to 15 up"` or `"5-15 up"` | Listening across the range 5–15 kHz higher |
-| `"listening 14210"` | Listening on 14.210 MHz specifically |
+| `"down 2"` or `"2 down"` | Listening 2 kHz **lower** (rare but common on 40 m where the lowest end of the phone segment is popular DX territory and "up" would put callers outside the phone band) |
+| `"listening 14210"` | Listening on 14.210 MHz specifically (a single kHz, not a range) |
 | `"QSX 14210"` (CW) | Same: listening on 14.210 MHz (`QSX` = "I am listening on…") |
 | `"QSX 5 up"` (CW) | Listening 5 kHz up from my TX |
-| `"split"` (alone) | Telling you to enable split; check the cluster or listen for their range |
+| `"split"` (alone) | Telling you to enable split; check the cluster, listen for the range, or look at the panadapter |
 
-If you hear the DX work a caller but never heard the caller, **the DX is running split** — you're hearing only one side of the conversation because the callers are on a different frequency. Tune up 5–15 kHz from the DX's TX and you'll hear the pileup.
+"Up" is dominant on 20 m / 15 m / 10 m / 17 m. "Down" appears on 40 m and 80 m where the DX may be transmitting at the upper edge of their band's DX window and listens lower. Read what the DX says — don't assume "always up."
 
 ## Setting up split on your rig
 
