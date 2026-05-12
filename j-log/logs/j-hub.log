@@ -1044,3 +1044,16 @@
 2026-05-12 19:14:47.871 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
 2026-05-12 19:15:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.5","solarwind":"355.3","geomag":"Quiet","fetchedAt":"2026-05-12T23:15:36.893933955Z","source":"NOAA SWPC"}
 2026-05-12 19:16:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.5","solarwind":"355.3","geomag":"Quiet","fetchedAt":"2026-05-12T23:16:36.894022969Z","source":"NOAA SWPC"}
+2026-05-12 19:17:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.5","solarwind":"355.3","geomag":"Quiet","fetchedAt":"2026-05-12T23:17:36.893901647Z","source":"NOAA SWPC"}
+2026-05-12 19:18:36.894 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.5","solarwind":"355.3","geomag":"Quiet","fetchedAt":"2026-05-12T23:18:36.893937127Z","source":"NOAA SWPC"}
+2026-05-12 19:19:22.953 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-12 19:19:22.954 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 19:19:22.955 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-12 19:19:22.955 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-12 19:19:23.706 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 19:19:23.708 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-12 19:19:23.710 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-12 19:19:23.711 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-12 19:19:23.713 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-12 19:19:23.715 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 19:19:23.754 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
