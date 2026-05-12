@@ -37,9 +37,14 @@
       <button class="nav-btn" data-tab="antworkshop"><span class="nav-icon">📡</span>Antenna Workshop</button>
       <button class="nav-btn" data-tab="weather"><span class="nav-icon">☁</span>Weather</button>
     </div>
-    <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between">
-      <span id="nav-ws">WebSocket: <span id="nav-ws-state">—</span></span>
-      <button class="theme-btn" id="theme-toggle-btn" onclick="toggleThemeBtn()" title="Toggle light/dark">☾</button>
+    <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+      <span id="nav-ws">WS: <span id="nav-ws-state">—</span></span>
+      <div style="display:flex;gap:3px;align-items:center">
+        <button class="theme-btn" onclick="jhubZoomDelta(-0.05)" title="Decrease font size">A−</button>
+        <button class="theme-btn" onclick="jhubZoomReset()" title="Reset font size">1×</button>
+        <button class="theme-btn" onclick="jhubZoomDelta(0.05)" title="Increase font size">A+</button>
+        <button class="theme-btn" id="theme-toggle-btn" onclick="toggleThemeBtn()" title="Toggle light/dark">☾</button>
+      </div>
     </div>
   </nav>
 

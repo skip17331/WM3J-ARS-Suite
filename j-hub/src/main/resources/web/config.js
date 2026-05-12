@@ -2945,12 +2945,29 @@ function compassDir(deg) {
 
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+// ── Font-size zoom (per-machine, persisted) ─────────────────
+function jhubZoomGet() {
+  const v = parseFloat(localStorage.getItem('jhub-zoom'));
+  return isFinite(v) && v >= 0.7 && v <= 1.6 ? v : 1.0;
+}
+function jhubZoomApply(v) {
+  document.body.style.zoom = String(v);
+  try { localStorage.setItem('jhub-zoom', String(v)); } catch (e) {}
+}
+function jhubZoomDelta(d) {
+  let v = jhubZoomGet() + d;
+  v = Math.max(0.7, Math.min(1.6, Math.round(v * 20) / 20));
+  jhubZoomApply(v);
+}
+function jhubZoomReset() { jhubZoomApply(1.0); }
+
 // ── Boot ────────────────────────────────────────────────────
-// Restore theme before first paint to avoid flash
+// Restore theme and zoom before first paint to avoid flash
 (function () {
   const saved = localStorage.getItem('jhub-theme') || 'dark';
   applyTheme(saved);
   state.appearance.theme = saved;
+  jhubZoomApply(jhubZoomGet());
 })();
 
 populateTimezones();
@@ -4083,134 +4100,309 @@ const AW_CALCS = {
     name: 'Trapped Dipole',
     section: '07-05',
     inputs: [
-      { id: 'b1', label: 'Highest band (MHz)', type: 'number', step: '0.01', default: 14.150,
-        hint: 'Highest frequency the antenna covers — innermost element' },
-      { id: 'b2', label: 'Next band down (MHz)', type: 'number', step: '0.01', default: 7.150 },
-      { id: 'b3', label: 'Lowest band (MHz, optional)', type: 'number', step: '0.01', default: 3.700 },
-      { id: 'shorten', label: 'Shorten beyond standard (%)', type: 'number', step: '1', default: 0,
-        hint: '0 = standard trapped dipole (~k=0.92). 10-50% gives a "shorty" with bigger traps, lower efficiency, narrower bandwidth.' },
-      { id: 'cap_pf', label: 'Standard trap capacitor (pF)', type: 'select', default: '100',
-        choices: [['50','50 pF'],['75','75 pF'],['100','100 pF (typical)'],['150','150 pF'],['220','220 pF'],['330','330 pF']] },
-      { id: 'power', label: 'Power (W PEP)', type: 'number', step: '50', default: 100,
-        hint: 'For trap-capacitor voltage rating. 100 W typical, 1500 W = legal limit (needs vacuum caps).' },
-      { id: 'shorten_inner', label: 'Shorten inner segment too', type: 'select', default: 'no',
-        choices: [['no','No — keep inner at full λ/2 (recommended)'], ['yes','Yes — adds center loading coils per side']] },
+      { id: 'nbands', label: 'Number of bands', type: 'select', default: '3',
+        choices: [['2','2'],['3','3'],['4','4']] },
+      { id: 'b1', label: 'Band 1 — highest (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'b2', label: 'Band 2 (MHz)',           type: 'number', step: '0.01', default: 7.150 },
+      { id: 'b3', label: 'Band 3 (MHz)',           type: 'number', step: '0.01', default: 3.700 },
+      { id: 'b4', label: 'Band 4 (MHz, if 4-band)', type: 'number', step: '0.01', default: 1.900 },
+      { id: 'L_avail', label: 'Available total length (ft, tip-to-tip)', type: 'number', step: '1', default: 0,
+        hint: '0 = no constraint (full-size design). Otherwise the design will be shortened to fit.' },
+      { id: 'cap_pf', label: 'Trap capacitor (pF)', type: 'select', default: '100',
+        choices: [['50','50'],['75','75'],['100','100'],['150','150'],['220','220'],['330','330']] },
+      { id: 'power', label: 'Power (W PEP)', type: 'number', step: '50', default: 100 },
     ],
     compute(v) {
-      const f1 = parseFloat(v.b1) || 14.150;
-      const f2 = parseFloat(v.b2) || 7.150;
-      const f3 = parseFloat(v.b3);
-      const p  = Math.max(0, Math.min(50, parseFloat(v.shorten) || 0));   // % shorter than standard, capped 0-50
-      const s  = 1 - p / 100;                                              // shrink factor
-      const C  = parseFloat(v.cap_pf) || 100;                              // standard-trap C in pF
-      const P  = parseFloat(v.power) || 100;
-      const shortenInner = (v.shorten_inner === 'yes');
-      const Q  = 100;     // typical air-core trap Q
-      const Z0 = 600;     // approximate wire characteristic Z over earth — for loading-coil reactance calc
-      const kStd = 0.92;  // natural trap shortening built into the standard design
-
-      // ── Helper: trap design at resonant frequency fr, presenting X(f) below resonance ──
-      // X_trap(f) = 2π·f·L / (1 − (f/fr)²)
-      // For required X at f, with f_r fixed: L = X · (1 − (f/fr)²) / (2π·f)
-      // C = 1 / (4π² · fr² · L)
-      function trapForX(fr_MHz, f_MHz, Xohms) {
-        const fr = fr_MHz * 1e6, f = f_MHz * 1e6;
-        const Lh  = Xohms * (1 - (f/fr)**2) / (2*Math.PI*f);
-        const Cf  = 1 / (4*Math.PI*Math.PI * fr*fr * Lh);
-        const XLr = 2*Math.PI*fr*Lh;
-        const Vpk = Math.sqrt(P * Q * XLr);
-        return { L_uH: Lh*1e6, C_pF: Cf*1e12, XL_at_fr: XLr, V_peak: Vpk };
+      // ── Inputs ──
+      const n = parseInt(v.nbands, 10) || 3;
+      const f = [];
+      for (let i = 1; i <= n; i++) {
+        const fi = parseFloat(v['b'+i]);
+        if (fi && fi > 0) f.push(fi);
       }
-      // Standard trap at f_r resonant, using user-picked C:
+      if (f.length !== n) {
+        return { rows: [['Error', `Need ${n} valid band frequencies (got ${f.length}).`]] };
+      }
+      f.sort((a, b) => b - a);   // descending: highest first
+      const L_avail = parseFloat(v.L_avail) || 0;
+      const C       = parseFloat(v.cap_pf) || 100;
+      const P       = parseFloat(v.power) || 100;
+      const Z0      = 600;       // approximate wire characteristic impedance for loading calc
+      const Qtrap   = 100;       // typical air-core trap Q
+      const Qcoil   = 200;       // typical air-core loading-coil Q
+
+      // ── Helpers ──
       function trapForC(fr_MHz, C_pF) {
         const fr = fr_MHz * 1e6;
-        const Lh = 1 / (4*Math.PI*Math.PI * fr*fr * C_pF*1e-12);
-        const XLr = 2*Math.PI*fr*Lh;
-        const Vpk = Math.sqrt(P * Q * XLr);
-        return { L_uH: Lh*1e6, C_pF: C_pF, XL_at_fr: XLr, V_peak: Vpk };
+        const Lh = 1 / (4 * Math.PI * Math.PI * fr * fr * C_pF * 1e-12);
+        const XLr = 2 * Math.PI * fr * Lh;
+        const Vpk = Math.sqrt(P * Qtrap * XLr);
+        return { L_uH: Lh * 1e6, C_pF: C_pF, XL_fr: XLr, V_peak: Vpk };
+      }
+      function trapForX(fr_MHz, f_MHz, Xohms) {
+        const fr = fr_MHz * 1e6, fa = f_MHz * 1e6;
+        const Lh = Xohms * (1 - (fa / fr) ** 2) / (2 * Math.PI * fa);
+        const Cf = 1 / (4 * Math.PI * Math.PI * fr * fr * Lh);
+        const XLr = 2 * Math.PI * fr * Lh;
+        const Vpk = Math.sqrt(P * Qtrap * XLr);
+        return { L_uH: Lh * 1e6, C_pF: Cf * 1e12, XL_fr: XLr, V_peak: Vpk };
       }
       function capClass(V) {
-        if (V < 700)  return 'silvered mica / NPO ceramic ($1-5)';
-        if (V < 2000) return 'doorknob ceramic ($10-30)';
-        if (V < 6000) return 'vacuum capacitor 5 kV ($50-200)';
-        return 'vacuum capacitor 10 kV+ ($200+)';
+        if (V < 700)  return 'silvered mica / NPO ceramic';
+        if (V < 2000) return 'doorknob ceramic 1–3 kV';
+        if (V < 6000) return 'vacuum capacitor 5 kV+';
+        return 'vacuum capacitor 10 kV+';
       }
 
-      // ── Standard (k=0.92) lengths per side ──
-      const innerStd  = (468 / f1) / 2;                        // half-wave each side at f1
-      const outer1Std = ((468 / f2) * kStd - innerStd * 2) / 2;
-      // Shorty target lengths:
-      const inner    = shortenInner ? innerStd * s : innerStd;
-      const outer1   = outer1Std * s;
-      // Extra reactance needed for shortened outer-1 (beyond what std trap already gives):
-      // Standard trap at f1 has C from input → L_std; its X at f2 is part of the kStd already.
-      // For the SHORTY we compute required X to make up the EXTRA shortening (outer1Std − outer1) per side.
-      // δ per side = outer1Std − outer1 = outer1Std · (1 − s)
-      const lambda2 = 984 / f2;
-      const dOuter1 = outer1Std - outer1;
-      const Xstd1   = trapForC(f1, C).XL_at_fr * 1; // standard trap X at f1 (= XL_at_fr)
-      // X provided BY std trap AT f2 (below resonance):
-      const Lstd1_h = 1 / (4*Math.PI*Math.PI*(f1*1e6)**2 * C*1e-12);
-      const Xstd1_at_f2 = 2*Math.PI*(f2*1e6)*Lstd1_h / (1 - (f2/f1)**2);
-      // Extra X required from a re-spec'd trap at f2:
-      const Xextra1 = Z0 * Math.tan(2*Math.PI * dOuter1 / lambda2);
-      const Xtotal1 = Xstd1_at_f2 + Math.max(0, Xextra1);
-      const trap1   = (p > 0) ? trapForX(f1, f2, Xtotal1) : trapForC(f1, C);
+      // ── Full-size segment lengths (per side) ──
+      // Dipole full size: 468 / f(MHz). Inner = λ/2 at highest band, divided by 2 for per-side.
+      // Each outer extends total per-side length to λ/2 of the next-lower band.
+      const segFull = [];
+      let cumFull = 0;
+      for (let i = 0; i < n; i++) {
+        const fullPerSide = (468 / f[i]) / 2;
+        const seg = fullPerSide - cumFull;
+        segFull.push(seg);
+        cumFull = fullPerSide;
+      }
+      const fullTipToTip = 2 * cumFull;
 
-      // Inner-segment loading coil per side (if shortenInner):
-      let innerCoil_uH = 0;
-      if (shortenInner) {
-        const lambda1 = 984 / f1;
-        const dInner  = innerStd - inner;                          // per side
-        const Xinner  = Z0 * Math.tan(2*Math.PI * dInner / lambda1);
-        innerCoil_uH  = Xinner / (2*Math.PI*(f1*1e6)) * 1e6;
+      // ── Determine shortening ──
+      let s = 1.0;
+      let shortened = false;
+      if (L_avail > 0 && L_avail < fullTipToTip) {
+        s = L_avail / fullTipToTip;
+        shortened = true;
+      }
+      // Built segments (uniform shortening factor applied to all segments per side):
+      const seg = segFull.map(x => x * s);
+
+      // ── Per-band loading & trap calculations ──
+      // For band i (i >= 1), trap_(i-1) is resonant at f[i-1] and acts inductive at f[i].
+      // The required extra X at f[i] equals what the missing segment-i physical length would have provided.
+      // δ per side = segFull[i] − seg[i]
+      const traps = [];
+      const Xtotal_arr = [0];  // X_loaded per band (band 0 set below; bands 1..n-1 use trap X)
+      for (let i = 1; i < n; i++) {
+        const lambdaB = 984 / f[i];
+        const dSeg = segFull[i] - seg[i];
+        const fr = f[i - 1];
+        // Standard trap (resonant at fr, using user's C) already provides some loading at f[i]:
+        const Lstd_h = 1 / (4 * Math.PI * Math.PI * (fr * 1e6) ** 2 * C * 1e-12);
+        const Xstd_at_fi = 2 * Math.PI * (f[i] * 1e6) * Lstd_h / (1 - (f[i] / fr) ** 2);
+        let trap;
+        let Xtotal;
+        if (shortened && dSeg > 0.05) {
+          const Xextra = Z0 * Math.tan(2 * Math.PI * dSeg / lambdaB);
+          Xtotal = Xstd_at_fi + Math.max(0, Xextra);
+          trap = trapForX(fr, f[i], Xtotal);
+        } else {
+          Xtotal = Xstd_at_fi;
+          trap = trapForC(fr, C);
+        }
+        traps.push({ ...trap, X_at_fi: Xtotal, fr_MHz: fr, fi_MHz: f[i] });
+        Xtotal_arr.push(Xtotal);
       }
 
+      // ── Inner-segment center loading coil (if inner shortened) ──
+      let innerCoil_uH = 0, innerCoil_X = 0;
+      if (shortened && segFull[0] - seg[0] > 0.05) {
+        const lambda1 = 984 / f[0];
+        const dInner = segFull[0] - seg[0];
+        innerCoil_X = Z0 * Math.tan(2 * Math.PI * dInner / lambda1);
+        innerCoil_uH = innerCoil_X / (2 * Math.PI * (f[0] * 1e6)) * 1e6;
+        Xtotal_arr[0] = innerCoil_X;
+      } else {
+        Xtotal_arr[0] = 30;   // small effective antenna reactance for full-size
+      }
+
+      // ── Radiation resistance per band (rough: 73 · (effective_length / full_λ/2)²) ──
+      const Rr = [];
+      for (let i = 0; i < n; i++) {
+        const fullAtBand = (468 / f[i]) / 2;        // per side
+        const builtAtBand = seg.slice(0, i + 1).reduce((a, b) => a + b, 0);
+        const ratio = Math.min(1, builtAtBand / fullAtBand);
+        Rr.push(Math.max(2, 73 * ratio * ratio));
+      }
+
+      // ── Bandwidth per band ──
+      // Practical loaded-antenna formula: BW(Hz) ≈ f · (Rr + X/Q) / X
+      // where X = loading reactance on this band, Q = element Q (~100 for traps, ~200 for air-core coils).
+      // Capped at f / Q_natural (≈ 15) — the natural Q of a thin-wire half-wave element.
+      const BW_kHz = [];
+      for (let i = 0; i < n; i++) {
+        const X = Math.max(10, Xtotal_arr[i]);
+        const Qe = (i === 0 && innerCoil_uH > 0.1) ? Qcoil : Qtrap;
+        const bwHz = (f[i] * 1e6) * (Rr[i] + X / Qe) / X;
+        const bwCap_kHz = (f[i] * 1000) / 15;
+        BW_kHz.push(Math.min(bwHz / 1000, bwCap_kHz));
+      }
+
+      // ── Total built length ──
+      const totalPerSide = seg.reduce((a, b) => a + b, 0);
+
+      // ── Build output rows ──
       const rows = [];
-      rows.push([`Inner segment (each side, ${f1.toFixed(2)} MHz)`, `${inner.toFixed(2)} ft${shortenInner ? '  ← shortened' : ''}`]);
-      if (shortenInner) {
-        rows.push(['Center loading coil per side', `${innerCoil_uH.toFixed(2)} µH (at feedpoint, both legs)`]);
-      }
-      rows.push([`Trap 1 resonant at`, `${f1.toFixed(2)} MHz`]);
-      rows.push([`Trap 1 — L`, `${trap1.L_uH.toFixed(2)} µH`]);
-      rows.push([`Trap 1 — C`, `${trap1.C_pF.toFixed(0)} pF`]);
-      rows.push([`Trap 1 — cap peak voltage at ${P} W`, `${trap1.V_peak.toFixed(0)} V  → ${capClass(trap1.V_peak)}`]);
-      rows.push([`Outer segment 1 (each side, to ${f2.toFixed(2)} MHz)`, `${outer1.toFixed(2)} ft${p>0 ? '  ← shortened' : ''}`]);
 
-      let totalEach = inner + outer1;
-      if (f3 && f3 > 0 && f3 < f2) {
-        const outer2Std = ((468 / f3) * kStd * kStd - innerStd * 2 - outer1Std * 2) / 2;
-        const outer2    = outer2Std * s;
-        const lambda3   = 984 / f3;
-        const dOuter2   = outer2Std - outer2;
-        const Lstd2_h   = 1 / (4*Math.PI*Math.PI*(f2*1e6)**2 * C*1e-12);
-        const Xstd2_at_f3 = 2*Math.PI*(f3*1e6)*Lstd2_h / (1 - (f3/f2)**2);
-        const Xextra2 = Z0 * Math.tan(2*Math.PI * dOuter2 / lambda3);
-        const Xtotal2 = Xstd2_at_f3 + Math.max(0, Xextra2);
-        const trap2   = (p > 0) ? trapForX(f2, f3, Xtotal2) : trapForC(f2, C);
-        rows.push([`Trap 2 resonant at`, `${f2.toFixed(2)} MHz`]);
-        rows.push([`Trap 2 — L`, `${trap2.L_uH.toFixed(2)} µH`]);
-        rows.push([`Trap 2 — C`, `${trap2.C_pF.toFixed(0)} pF`]);
-        rows.push([`Trap 2 — cap peak voltage at ${P} W`, `${trap2.V_peak.toFixed(0)} V  → ${capClass(trap2.V_peak)}`]);
-        rows.push([`Outer segment 2 (each side, to ${f3.toFixed(2)} MHz)`, `${outer2.toFixed(2)} ft${p>0 ? '  ← shortened' : ''}`]);
-        totalEach += outer2;
+      // 1. Overview
+      rows.push(['── 1. Antenna Overview ──', '']);
+      rows.push(['Design type', shortened ? 'Shortened trapped dipole' : 'Full-size trapped dipole']);
+      rows.push(['Bands', `${n} bands: ${f.map(x => x.toFixed(3) + ' MHz').join(', ')}`]);
+      if (shortened) {
+        rows.push(['Why shortened',
+          `Available length ${L_avail.toFixed(1)} ft is less than the full-size requirement of ${fullTipToTip.toFixed(1)} ft. ` +
+          `Applying uniform shortening factor s = ${(s * 100).toFixed(1)}% to all segments and re-specing traps to provide the missing inductive loading.`]);
+      } else if (L_avail > 0) {
+        rows.push(['Note', `Available length ${L_avail.toFixed(1)} ft meets/exceeds full-size requirement ${fullTipToTip.toFixed(1)} ft; building full size.`]);
+      } else {
+        rows.push(['Note', 'No length constraint specified — designing at full size.']);
       }
-      rows.push(['Total wire length each side', `${totalEach.toFixed(2)} ft`]);
-      rows.push(['Tip-to-tip span', `${(2*totalEach).toFixed(2)} ft`]);
 
-      // ── Performance estimates ──
-      if (p > 0) {
-        const loss_dB = 0.5 + 5 * (p/100) * (p/100);          // rough: 0.5 dB baseline + nonlinear penalty
-        const bwFrac  = s * s;                                 // bandwidth narrows roughly as s²
-        rows.push(['Est. efficiency penalty (lowest band)', `~${loss_dB.toFixed(1)} dB vs standard trapped`]);
-        rows.push(['Est. 2:1 SWR bandwidth (lowest band)', `~${(bwFrac * 100).toFixed(0)}% of standard trapped`]);
+      // 2. Segment Length Plan
+      rows.push(['', '']);
+      rows.push(['── 2. Segment Length Plan ──', '']);
+      rows.push(['BUILT tip-to-tip', `${(2 * totalPerSide).toFixed(2)} ft  (${totalPerSide.toFixed(2)} ft per side)`]);
+      if (shortened) {
+        rows.push(['Shortening applied', `s = ${(s * 100).toFixed(1)}% of full-size  (full-size would be ${fullTipToTip.toFixed(2)} ft)`]);
+      } else {
+        rows.push(['Shortening applied', `none — full-size design (no length constraint, or constraint exceeds full-size)`]);
       }
-      rows.push(['Match', '50 Ω coax + 1:1 current balun at center']);
+      rows.push([`Inner segment, each side (λ/2 at ${f[0].toFixed(2)} MHz)`,
+        `${seg[0].toFixed(2)} ft` +
+        (shortened && segFull[0] - seg[0] > 0.05 ? `  (ideal ${segFull[0].toFixed(2)} ft  ← shortened)` : `  (full-size)`)]);
+      for (let i = 1; i < n; i++) {
+        rows.push([`Outer ${i}, each side (extends to ${f[i].toFixed(2)} MHz)`,
+          `${seg[i].toFixed(2)} ft` +
+          (shortened && segFull[i] - seg[i] > 0.05 ? `  (ideal ${segFull[i].toFixed(2)} ft  ← shortened)` : `  (full-size)`)]);
+      }
 
+      // 3. Loading Components
+      rows.push(['', '']);
+      rows.push(['── 3. Loading Components ──', '']);
+      if (!shortened) {
+        rows.push(['Loading needed', 'None beyond the natural inductive loading provided by the standard traps below their resonant frequency.']);
+      }
+      for (let i = 0; i < traps.length; i++) {
+        const t = traps[i];
+        rows.push([`Trap ${i + 1} — resonant at ${t.fr_MHz.toFixed(2)} MHz`,
+          `L = ${t.L_uH.toFixed(2)} µH  ·  C = ${t.C_pF.toFixed(0)} pF`]);
+        rows.push([`  Effect`,
+          `Open-Z (isolates ${t.fr_MHz.toFixed(2)} MHz);  ~${t.X_at_fi.toFixed(0)} Ω inductive at ${t.fi_MHz.toFixed(2)} MHz (loads the shortened outer segment).`]);
+        rows.push([`  Cap voltage @ ${P} W`, `${t.V_peak.toFixed(0)} V peak  →  ${capClass(t.V_peak)}`]);
+      }
+      if (innerCoil_uH > 0.1) {
+        rows.push(['Center loading coil per leg',
+          `${innerCoil_uH.toFixed(2)} µH (one in each leg at the feedpoint) — replaces missing inner-segment length on ${f[0].toFixed(2)} MHz.`]);
+      }
+      rows.push(['Capacitive hats',
+        shortened && s < 0.55
+          ? 'Recommended at wire tips to reduce required coil/trap reactance and lift radiation resistance. Each hat adds the equivalent of ~5–10% of physical length per side.'
+          : 'Not required for this design; can be added at tips to slightly broaden bandwidth.']);
+
+      // 4. Placement
+      rows.push(['', '']);
+      rows.push(['── 4. Trap / Coil Placement ──', '']);
+      rows.push(['Rule', 'Higher-frequency trap closest to feed; each lower-frequency trap farther out. Traps mirror across the feedpoint (one set per leg).']);
+      let layout = `feed`;
+      if (innerCoil_uH > 0.1) layout += ` → [${innerCoil_uH.toFixed(1)} µH coil]`;
+      layout += ` → ${seg[0].toFixed(1)} ft wire`;
+      for (let i = 1; i < n; i++) {
+        layout += `  → [Trap ${i}: ${f[i - 1].toFixed(2)} MHz]  → ${seg[i].toFixed(1)} ft wire`;
+      }
+      rows.push(['Per-side layout (feed → tip)', layout]);
+
+      // 5. Feedpoint Impedance & Matching
+      rows.push(['', '']);
+      rows.push(['── 5. Feedpoint Impedance & Matching ──', '']);
+      for (let i = 0; i < n; i++) {
+        rows.push([`Estimated Z on ${f[i].toFixed(2)} MHz`,
+          `~${Rr[i].toFixed(0)} Ω (full-size dipole = 73 Ω; loaded antennas drop with shortening)`]);
+      }
+      rows.push(['Recommended match',
+        shortened
+          ? '50 Ω coax + 1:1 current balun. Use an antenna tuner at the rig for SWR > 2:1 outside band centers.'
+          : '50 Ω coax + 1:1 current balun directly. Tuner needed only at band edges.']);
+
+      // 6. SWR Behavior
+      rows.push(['', '']);
+      rows.push(['── 6. Expected SWR Behavior ──', '']);
+      if (shortened && s < 0.55) {
+        rows.push(['Curve shape', 'Very sharp V-shaped minima at each band center — narrow tuning window, steep edges.']);
+      } else if (shortened && s < 0.75) {
+        rows.push(['Curve shape', 'Pronounced V-shaped minima; SWR < 2:1 over a smaller fraction of each band than a full-size trapped dipole.']);
+      } else if (shortened) {
+        rows.push(['Curve shape', 'Standard trapped-dipole V shape, slightly steeper sides than full size.']);
+      } else {
+        rows.push(['Curve shape', 'Typical trapped-dipole behavior: SWR ≈ 1.5:1 at center, rising to ~2:1 at band edges.']);
+      }
+      rows.push(['Narrowest band', `${f[n - 1].toFixed(2)} MHz (lowest band) — highest loading reactance = sharpest tuning`]);
+
+      // 7. Bandwidth per band
+      rows.push(['', '']);
+      rows.push(['── 7. Expected 2:1 SWR Bandwidth ──', '']);
+      rows.push(['Formula used', 'BW ≈ f · (Rr + X_load/Q) / X_load (loaded-antenna approximation; Q ≈ 100 for traps, 200 for air-core coils)']);
+      for (let i = 0; i < n; i++) {
+        const X = Math.max(10, Xtotal_arr[i]);
+        const tag = (i === 0 && innerCoil_uH > 0.1) ? 'coil-loaded' :
+                    (i === 0) ? 'unloaded' : 'trap-loaded';
+        const bwStr = BW_kHz[i] < 10 ? BW_kHz[i].toFixed(1) : BW_kHz[i].toFixed(0);
+        rows.push([`${f[i].toFixed(2)} MHz  (${tag})`,
+          `BW ≈ ${bwStr} kHz    [Rr ≈ ${Rr[i].toFixed(0)} Ω,  X_load ≈ ${X.toFixed(0)} Ω]`]);
+      }
+      for (let i = 0; i < n; i++) {
+        if (BW_kHz[i] < 20 && f[i] < 5) {
+          rows.push(['  ⚠ ' + f[i].toFixed(2) + ' MHz BW',
+            'extremely narrow — operating practical only within ±' + (BW_kHz[i] / 2).toFixed(1) + ' kHz of design frequency.']);
+        }
+      }
+
+      // 8. Performance & Efficiency Opinion
+      rows.push(['', '']);
+      rows.push(['── 8. Performance & Efficiency Opinion ──', '']);
+      let verdict;
+      if (!shortened) {
+        verdict = 'Full-size trapped dipole. Expect ~0.5–1.0 dB total trap loss across bands; otherwise a strong performer.';
+      } else if (s >= 0.85) {
+        verdict = 'Mild shortening (≤15%). Practical, near-full performance. Slight bandwidth narrowing; trap voltage manageable.';
+      } else if (s >= 0.70) {
+        verdict = 'Moderate shortening (15–30%). Real-world good — popular space-saving QTH antenna. Plan on doorknob caps and noticeably narrower lowest-band BW.';
+      } else if (s >= 0.55) {
+        verdict = 'Heavy shortening (30–45%). Marginal: efficiency suffers (~1.5–2.5 dB), bandwidth tight. Doorknob or vacuum caps required.';
+      } else if (s >= 0.40) {
+        verdict = 'Extreme shortening (45–60%). Poor efficiency, very narrow BW. Build only if no alternative; expect to retune frequently within bands.';
+      } else {
+        verdict = 'Below 40% — not recommended as a trapped dipole; the loading reactance is so dominant that radiation resistance becomes < 5 Ω. Pick a different topology.';
+      }
+      rows.push(['Verdict', verdict]);
+      rows.push(['Radiation resistance trend',
+        `Rr drops from ${Rr[0].toFixed(0)} Ω on ${f[0].toFixed(2)} MHz to ${Rr[n - 1].toFixed(0)} Ω on ${f[n - 1].toFixed(2)} MHz.`]);
+      rows.push(['Trap insertion loss',
+        `${traps.length} trap${traps.length > 1 ? 's' : ''} × ~0.5–1 dB each on the bands below their resonance. Cumulative on the lowest band: ~${(traps.length * 0.75).toFixed(1)} dB.`]);
+
+      // 9. Warnings & Practical Notes
+      rows.push(['', '']);
+      rows.push(['── 9. Warnings & Practical Notes ──', '']);
       const warnings = [];
-      if (p >= 25)  warnings.push(`⚠ ${p}% shorty — efficiency hit significant; check voltage rating on traps`);
-      if (trap1.V_peak > 2000 && P < 500) warnings.push('⚠ Trap 1 needs doorknob/vacuum caps even at modest power');
-      if (warnings.length) rows.unshift(['', warnings.join('  •  ')]);
+      if (L_avail > 0 && L_avail < segFull[0] * 2 * 0.4) {
+        warnings.push(`⚠ Available length ${L_avail.toFixed(1)} ft is well below the highest-band ideal ${(segFull[0] * 2).toFixed(1)} ft — design infeasible as a dipole.`);
+      }
+      if (shortened && s < 0.5) {
+        warnings.push(`⚠ At s = ${(s * 100).toFixed(0)}% the antenna is severely shortened. Alternatives to consider:`);
+        warnings.push(`   • Loaded vertical with elevated radials (uses ~30 ft of vertical real estate, similar efficiency)`);
+        warnings.push(`   • Magnetic loop antenna (5–10 ft diameter, very narrow BW but efficient on ${f[n - 1].toFixed(1)} MHz)`);
+        warnings.push(`   • Drop the lowest band (${f[n - 1].toFixed(2)} MHz) and build a fuller-size design for the higher bands`);
+        warnings.push(`   • Add capacitive hats at the tips to reduce required loading reactance`);
+      }
+      for (let i = 0; i < traps.length; i++) {
+        if (traps[i].V_peak > 2000 && P < 500) {
+          warnings.push(`⚠ Trap ${i + 1} needs doorknob/vacuum caps even at ${P} W power level`);
+        }
+      }
+      if (BW_kHz[n - 1] < 20 && f[n - 1] < 5) {
+        warnings.push(`⚠ Lowest-band BW < 20 kHz — you may not cover the whole CW or phone segment without retuning.`);
+      }
+      if (warnings.length === 0) warnings.push('No specific warnings — sound design within practical limits.');
+      warnings.forEach(w => rows.push(['', w]));
 
       return { rows };
     },
@@ -4233,11 +4425,12 @@ const AW_CALCS = {
    reactance does more loading work. Same f_r, bigger coil, smaller cap.</pre>`;
     },
     notes: [
-      'Trim from highest band to lowest. Inner segment first (with traps shorted out) then add outer segments.',
-      'Shorty mode increases trap L and decreases C while keeping f_r the same — bigger coil form, smaller cap, but HIGHER voltage rating needed.',
-      'A 30% shorty drops 80/40/20 from ~107 ft tip-to-tip to ~75 ft, at the cost of ~1.5 dB efficiency and roughly half the bandwidth on 80m.',
-      'Bench-verify trap resonance with a NanoVNA before installing. Shorty traps drift more with temperature due to larger reactive components.',
-      'Use the Trap Design calculator (07-13) to wind the coil — feed it the L and C values shown here.',
+      'Length-driven design: set Available Length to your space limit (tip-to-tip) and the calc fits a shortened design; leave it at 0 for full-size.',
+      'Trim from highest band to lowest. Inner segment first (traps shorted), then add each outer band one at a time.',
+      'Higher-frequency traps go closest to the feedpoint; lower-frequency traps farther out (one set per leg, mirrored).',
+      'When the antenna is shortened, traps are re-spec\'d with higher L and lower C (same f_r) so their below-resonance reactance does more loading work.',
+      'Real bandwidth on the lowest band is typically 60–80% of the calculated estimate due to trap and coil losses; widen capacitive-hat additions if you need more.',
+      'Feed via 50 Ω coax with a 1:1 current balun; a rig-end tuner helps on shortened designs.',
     ],
   },
 
@@ -4300,125 +4493,304 @@ const AW_CALCS = {
     name: 'EFHW (Trapped)',
     section: '07-08',
     inputs: [
-      { id: 'b1', label: 'Highest band (MHz)', type: 'number', step: '0.01', default: 14.150 },
-      { id: 'b2', label: 'Next band (MHz)',    type: 'number', step: '0.01', default: 7.150 },
-      { id: 'b3', label: 'Lowest band (MHz, optional)', type: 'number', step: '0.01', default: 3.700 },
-      { id: 'shorten', label: 'Shorten beyond standard (%)', type: 'number', step: '1', default: 0,
-        hint: '0 = standard trapped EFHW. 10-50% shortens segments and re-specs traps. EFHWs see HIGHER voltage than dipole traps.' },
-      { id: 'cap_pf', label: 'Standard trap capacitor (pF)', type: 'select', default: '100',
-        choices: [['50','50 pF'],['75','75 pF'],['100','100 pF (typical)'],['150','150 pF'],['220','220 pF'],['330','330 pF']] },
-      { id: 'power', label: 'Power (W PEP)', type: 'number', step: '50', default: 100,
-        hint: 'EFHW traps see 2-3× more voltage than dipole traps for the same power.' },
+      { id: 'nbands', label: 'Number of bands', type: 'select', default: '3',
+        choices: [['2','2'],['3','3'],['4','4']] },
+      { id: 'b1', label: 'Band 1 — highest (MHz)', type: 'number', step: '0.01', default: 14.150 },
+      { id: 'b2', label: 'Band 2 (MHz)',           type: 'number', step: '0.01', default: 7.150 },
+      { id: 'b3', label: 'Band 3 (MHz)',           type: 'number', step: '0.01', default: 3.700 },
+      { id: 'b4', label: 'Band 4 (MHz, if 4-band)', type: 'number', step: '0.01', default: 1.900 },
+      { id: 'L_avail', label: 'Available total wire length (ft)', type: 'number', step: '1', default: 0,
+        hint: '0 = no constraint (full-size). Otherwise the wire will be shortened to fit.' },
+      { id: 'cap_pf', label: 'Trap capacitor (pF)', type: 'select', default: '100',
+        choices: [['50','50'],['75','75'],['100','100'],['150','150'],['220','220'],['330','330']] },
+      { id: 'power', label: 'Power (W PEP)', type: 'number', step: '50', default: 100 },
       { id: 'unun', label: 'Unun ratio', type: 'select', default: '49',
         choices: [['49','49:1'], ['64','64:1']] },
     ],
     compute(v) {
-      const f1 = parseFloat(v.b1) || 14.150;
-      const f2 = parseFloat(v.b2) || 7.150;
-      const f3 = parseFloat(v.b3);
-      const p  = Math.max(0, Math.min(50, parseFloat(v.shorten) || 0));
-      const s  = 1 - p / 100;
-      const C  = parseFloat(v.cap_pf) || 100;
-      const P  = parseFloat(v.power) || 100;
-      const Q  = 100;
-      const Z0 = 600;
-      const efhwVfactor = 2.5;   // EFHW traps see roughly 2.5× the voltage of dipole traps (high-Z end)
-
-      function trapForX(fr_MHz, f_MHz, Xohms) {
-        const fr = fr_MHz * 1e6, f = f_MHz * 1e6;
-        const Lh  = Xohms * (1 - (f/fr)**2) / (2*Math.PI*f);
-        const Cf  = 1 / (4*Math.PI*Math.PI * fr*fr * Lh);
-        const XLr = 2*Math.PI*fr*Lh;
-        const Vpk = Math.sqrt(P * Q * XLr) * efhwVfactor;
-        return { L_uH: Lh*1e6, C_pF: Cf*1e12, V_peak: Vpk };
+      // ── Inputs ──
+      const n = parseInt(v.nbands, 10) || 3;
+      const f = [];
+      for (let i = 1; i <= n; i++) {
+        const fi = parseFloat(v['b'+i]);
+        if (fi && fi > 0) f.push(fi);
       }
+      if (f.length !== n) {
+        return { rows: [['Error', `Need ${n} valid band frequencies (got ${f.length}).`]] };
+      }
+      f.sort((a, b) => b - a);
+      const L_avail = parseFloat(v.L_avail) || 0;
+      const C       = parseFloat(v.cap_pf) || 100;
+      const P       = parseFloat(v.power) || 100;
+      const Z0      = 600;
+      const Qtrap   = 100;
+      const Qcoil   = 200;
+      // EFHW traps sit close to the high-impedance end of the wire; voltage is roughly 2.5× the dipole-equivalent.
+      const efhwV   = 2.5;
+
+      // ── Helpers ──
       function trapForC(fr_MHz, C_pF) {
         const fr = fr_MHz * 1e6;
-        const Lh = 1 / (4*Math.PI*Math.PI * fr*fr * C_pF*1e-12);
-        const XLr = 2*Math.PI*fr*Lh;
-        const Vpk = Math.sqrt(P * Q * XLr) * efhwVfactor;
-        return { L_uH: Lh*1e6, C_pF: C_pF, V_peak: Vpk };
+        const Lh = 1 / (4 * Math.PI * Math.PI * fr * fr * C_pF * 1e-12);
+        const XLr = 2 * Math.PI * fr * Lh;
+        const Vpk = Math.sqrt(P * Qtrap * XLr) * efhwV;
+        return { L_uH: Lh * 1e6, C_pF: C_pF, XL_fr: XLr, V_peak: Vpk };
+      }
+      function trapForX(fr_MHz, f_MHz, Xohms) {
+        const fr = fr_MHz * 1e6, fa = f_MHz * 1e6;
+        const Lh = Xohms * (1 - (fa / fr) ** 2) / (2 * Math.PI * fa);
+        const Cf = 1 / (4 * Math.PI * Math.PI * fr * fr * Lh);
+        const XLr = 2 * Math.PI * fr * Lh;
+        const Vpk = Math.sqrt(P * Qtrap * XLr) * efhwV;
+        return { L_uH: Lh * 1e6, C_pF: Cf * 1e12, XL_fr: XLr, V_peak: Vpk };
       }
       function capClass(V) {
-        if (V < 1000) return 'silvered mica 1 kV ($2-8)';
-        if (V < 3000) return 'doorknob ceramic 3 kV ($15-40)';
-        if (V < 7000) return 'vacuum capacitor 5-10 kV ($75-300)';
-        return 'vacuum capacitor 10 kV+ ($300+)';
+        if (V < 1000) return 'silvered mica 1 kV';
+        if (V < 3000) return 'doorknob ceramic 3 kV';
+        if (V < 7000) return 'vacuum capacitor 5–10 kV';
+        return 'vacuum capacitor 10 kV+';
       }
 
-      // Standard segment lengths
-      const seg1Std    = 478 / f1;
-      const seg2Tot    = 478 / f2;
-      const seg2Std    = seg2Tot - seg1Std;
-      // Shorty target lengths
-      const seg1 = seg1Std * s;
-      const seg2 = seg2Std * s;
-      // Loading needed to make up shortening on f2.
-      // Trap 1 handles ONLY seg-2 shortening; seg-1's shortening is handled by the inline seg-1 coil
-      // (or is small enough to ignore at p < 10%).
-      const lambda2 = 984 / f2;
-      const dSeg = seg2Std - seg2;
-      const Lstd1_h     = 1 / (4*Math.PI*Math.PI*(f1*1e6)**2 * C*1e-12);
-      const Xstd1_at_f2 = 2*Math.PI*(f2*1e6)*Lstd1_h / (1 - (f2/f1)**2);
-      const Xextra1     = Z0 * Math.tan(2*Math.PI * dSeg / lambda2);
-      const Xtotal1     = Xstd1_at_f2 + Math.max(0, Xextra1);
-      const trap1       = (p > 0) ? trapForX(f1, f2, Xtotal1) : trapForC(f1, C);
+      // ── Full-size segment lengths ──
+      // EFHW is end-fed half-wave: full wire = 478/f(MHz) ft (with end-fed correction).
+      // Each outer segment extends the wire to reach 478/f for the next-lower band.
+      const segFull = [];
+      let cumFull = 0;
+      for (let i = 0; i < n; i++) {
+        const fullForBand = 478 / f[i];
+        const seg = fullForBand - cumFull;
+        segFull.push(seg);
+        cumFull = fullForBand;
+      }
+      const fullTotal = cumFull;
 
-      // Optional loading coil at seg1 base if seg1 shortened significantly (heuristic: > 10% short)
-      // EFHW seg1 by itself wants to be λ/2 on band 1; shortening it requires loading inline.
-      let seg1Coil_uH = 0;
-      if (p > 10) {
-        const lambda1 = 984 / f1;
-        const dSeg1   = seg1Std - seg1;
-        const Xseg1   = Z0 * Math.tan(2*Math.PI * dSeg1 / lambda1);
-        seg1Coil_uH   = Xseg1 / (2*Math.PI*(f1*1e6)) * 1e6;
+      // ── Shortening ──
+      let s = 1.0;
+      let shortened = false;
+      if (L_avail > 0 && L_avail < fullTotal) {
+        s = L_avail / fullTotal;
+        shortened = true;
+      }
+      const seg = segFull.map(x => x * s);
+
+      // ── Per-band loading & trap calc ──
+      const traps = [];
+      const Xtotal_arr = [0];
+      for (let i = 1; i < n; i++) {
+        const lambdaB = 984 / f[i];
+        const dSeg = segFull[i] - seg[i];
+        const fr = f[i - 1];
+        const Lstd_h = 1 / (4 * Math.PI * Math.PI * (fr * 1e6) ** 2 * C * 1e-12);
+        const Xstd_at_fi = 2 * Math.PI * (f[i] * 1e6) * Lstd_h / (1 - (f[i] / fr) ** 2);
+        let trap, Xtotal;
+        if (shortened && dSeg > 0.05) {
+          const Xextra = Z0 * Math.tan(2 * Math.PI * dSeg / lambdaB);
+          Xtotal = Xstd_at_fi + Math.max(0, Xextra);
+          trap = trapForX(fr, f[i], Xtotal);
+        } else {
+          Xtotal = Xstd_at_fi;
+          trap = trapForC(fr, C);
+        }
+        traps.push({ ...trap, X_at_fi: Xtotal, fr_MHz: fr, fi_MHz: f[i] });
+        Xtotal_arr.push(Xtotal);
       }
 
+      // ── Seg-1 inline coil if seg 1 shortened more than ~10% ──
+      let seg1Coil_uH = 0, seg1Coil_X = 0;
+      if (shortened && segFull[0] - seg[0] > Math.max(0.05, segFull[0] * 0.10)) {
+        const lambda1 = 984 / f[0];
+        const dSeg1 = segFull[0] - seg[0];
+        seg1Coil_X = Z0 * Math.tan(2 * Math.PI * dSeg1 / lambda1);
+        seg1Coil_uH = seg1Coil_X / (2 * Math.PI * (f[0] * 1e6)) * 1e6;
+        Xtotal_arr[0] = seg1Coil_X;
+      } else {
+        Xtotal_arr[0] = 50;
+      }
+
+      // ── Rr per band (rough): 36 · (built / 478/f)² (EFHW radiation res ~36 Ω at full size at the input through unun) ──
+      const Rr = [];
+      for (let i = 0; i < n; i++) {
+        const fullAtBand = 478 / f[i];
+        const builtAtBand = seg.slice(0, i + 1).reduce((a, b) => a + b, 0);
+        const ratio = Math.min(1, builtAtBand / fullAtBand);
+        Rr.push(Math.max(2, 36 * ratio * ratio));
+      }
+
+      // ── BW per band ──
+      const BW_kHz = [];
+      for (let i = 0; i < n; i++) {
+        const X = Math.max(10, Xtotal_arr[i]);
+        const Qe = (i === 0 && seg1Coil_uH > 0.1) ? Qcoil : Qtrap;
+        const bwHz = (f[i] * 1e6) * (Rr[i] + X / Qe) / X;
+        BW_kHz.push(bwHz / 1000);
+      }
+
+      const totalLen = seg.reduce((a, b) => a + b, 0);
+
+      // ── Output rows ──
       const rows = [];
-      rows.push([`Segment 1 (unun → trap 1, ${f1.toFixed(2)} MHz)`, `${seg1.toFixed(1)} ft${p>0 ? '  ← shortened' : ''}`]);
+
+      // 1. Overview
+      rows.push(['── 1. Antenna Overview ──', '']);
+      rows.push(['Design type', shortened ? 'Shortened trapped EFHW' : 'Full-size trapped EFHW']);
+      rows.push(['Bands', `${n} bands: ${f.map(x => x.toFixed(3) + ' MHz').join(', ')}`]);
+      if (shortened) {
+        rows.push(['Why shortened',
+          `Available wire length ${L_avail.toFixed(1)} ft is less than the full-size requirement of ${fullTotal.toFixed(1)} ft. ` +
+          `Applying uniform shortening s = ${(s * 100).toFixed(1)}% to all segments and re-specing traps to provide extra inductive loading.`]);
+      } else if (L_avail > 0) {
+        rows.push(['Note', `Available length ${L_avail.toFixed(1)} ft ≥ full-size requirement ${fullTotal.toFixed(1)} ft; building full size.`]);
+      } else {
+        rows.push(['Note', 'No length constraint specified — designing at full size.']);
+      }
+
+      // 2. Segment Length Plan
+      rows.push(['', '']);
+      rows.push(['── 2. Segment Length Plan ──', '']);
+      rows.push(['BUILT total wire length', `${totalLen.toFixed(2)} ft`]);
+      if (shortened) {
+        rows.push(['Shortening applied', `s = ${(s * 100).toFixed(1)}% of full-size  (full-size would be ${fullTotal.toFixed(2)} ft)`]);
+      } else {
+        rows.push(['Shortening applied', `none — full-size design`]);
+      }
+      rows.push([`Seg 1 (unun → trap 1, λ/2 at ${f[0].toFixed(2)} MHz)`,
+        `${seg[0].toFixed(2)} ft` +
+        (shortened && segFull[0] - seg[0] > 0.05 ? `  (ideal ${segFull[0].toFixed(2)} ft  ← shortened)` : `  (full-size)`)]);
+      for (let i = 1; i < n; i++) {
+        const tail = (i === n - 1) ? 'end' : `trap ${i + 1}`;
+        rows.push([`Seg ${i + 1} (trap ${i} → ${tail}, extends to ${f[i].toFixed(2)} MHz)`,
+          `${seg[i].toFixed(2)} ft` +
+          (shortened && segFull[i] - seg[i] > 0.05 ? `  (ideal ${segFull[i].toFixed(2)} ft  ← shortened)` : `  (full-size)`)]);
+      }
+
+      // 3. Loading Components
+      rows.push(['', '']);
+      rows.push(['── 3. Loading Components ──', '']);
+      if (!shortened) {
+        rows.push(['Loading needed', 'None beyond natural trap inductance below resonance.']);
+      }
+      for (let i = 0; i < traps.length; i++) {
+        const t = traps[i];
+        rows.push([`Trap ${i + 1} — resonant at ${t.fr_MHz.toFixed(2)} MHz`,
+          `L = ${t.L_uH.toFixed(2)} µH  ·  C = ${t.C_pF.toFixed(0)} pF`]);
+        rows.push([`  Effect`,
+          `Open-Z at ${t.fr_MHz.toFixed(2)} MHz;  ~${t.X_at_fi.toFixed(0)} Ω inductive at ${t.fi_MHz.toFixed(2)} MHz (loads the shortened next segment).`]);
+        rows.push([`  Cap voltage @ ${P} W (EFHW × ${efhwV})`, `${t.V_peak.toFixed(0)} V peak  →  ${capClass(t.V_peak)}`]);
+      }
       if (seg1Coil_uH > 0.1) {
-        rows.push(['Loading coil inline with segment 1', `${seg1Coil_uH.toFixed(2)} µH (placed ~½ way along seg 1)`]);
+        rows.push(['Seg-1 inline loading coil',
+          `${seg1Coil_uH.toFixed(2)} µH placed ~⅓ to ½ along seg 1 — replaces missing length on ${f[0].toFixed(2)} MHz.`]);
       }
-      rows.push([`Trap 1 resonant at`, `${f1.toFixed(2)} MHz`]);
-      rows.push([`Trap 1 — L`, `${trap1.L_uH.toFixed(2)} µH`]);
-      rows.push([`Trap 1 — C`, `${trap1.C_pF.toFixed(0)} pF`]);
-      rows.push([`Trap 1 — cap peak voltage at ${P} W`, `${trap1.V_peak.toFixed(0)} V  → ${capClass(trap1.V_peak)}`]);
-      rows.push([`Segment 2 (trap 1 → trap 2 or end, ${f2.toFixed(2)} MHz)`, `${seg2.toFixed(1)} ft${p>0 ? '  ← shortened' : ''}`]);
+      rows.push(['Capacitive hats',
+        shortened && s < 0.55
+          ? 'Recommended at the wire end to broaden lowest-band BW and reduce required trap reactance.'
+          : 'Optional; can be added at the wire end to slightly broaden bandwidth.']);
 
-      let total = seg1 + seg2;
-      if (f3 && f3 > 0 && f3 < f2) {
-        const seg3Tot   = 478 / f3;
-        const seg3Std   = seg3Tot - seg2Tot;
-        const seg3      = seg3Std * s;
-        const lambda3   = 984 / f3;
-        const dSeg23    = seg3Std - seg3;   // trap 2 handles only seg-3 shortening
-        const Lstd2_h   = 1 / (4*Math.PI*Math.PI*(f2*1e6)**2 * C*1e-12);
-        const Xstd2_at_f3 = 2*Math.PI*(f3*1e6)*Lstd2_h / (1 - (f3/f2)**2);
-        const Xextra2 = Z0 * Math.tan(2*Math.PI * dSeg23 / lambda3);
-        const Xtotal2 = Xstd2_at_f3 + Math.max(0, Xextra2);
-        const trap2   = (p > 0) ? trapForX(f2, f3, Xtotal2) : trapForC(f2, C);
-        rows.push([`Trap 2 resonant at`, `${f2.toFixed(2)} MHz`]);
-        rows.push([`Trap 2 — L`, `${trap2.L_uH.toFixed(2)} µH`]);
-        rows.push([`Trap 2 — C`, `${trap2.C_pF.toFixed(0)} pF`]);
-        rows.push([`Trap 2 — cap peak voltage at ${P} W`, `${trap2.V_peak.toFixed(0)} V  → ${capClass(trap2.V_peak)}`]);
-        rows.push([`Segment 3 (trap 2 → end, ${f3.toFixed(2)} MHz)`, `${seg3.toFixed(1)} ft${p>0 ? '  ← shortened' : ''}`]);
-        total += seg3;
+      // 4. Placement
+      rows.push(['', '']);
+      rows.push(['── 4. Trap / Coil Placement ──', '']);
+      rows.push(['Rule', 'Higher-frequency trap closest to the unun; each lower-frequency trap farther out (single wire, one trap per band boundary).']);
+      let layout = `unun ⇒ ${seg[0].toFixed(1)} ft`;
+      if (seg1Coil_uH > 0.1) layout += ` (incl. ${seg1Coil_uH.toFixed(1)} µH inline coil)`;
+      for (let i = 1; i < n; i++) {
+        const lbl = (i === n - 1) ? 'end' : '';
+        layout += `  → [Trap ${i}: ${f[i - 1].toFixed(2)} MHz]  → ${seg[i].toFixed(1)} ft${lbl ? ' ⇒ ' + lbl : ''}`;
       }
-      rows.push(['Total wire length', `${total.toFixed(1)} ft`]);
-      rows.push(['Counterpoise', `~${(seg1Std * 0.05).toFixed(1)} ft (5% of innermost segment, full-length basis)`]);
-      rows.push(['Unun', `${v.unun}:1 — primary 2 turns, secondary ${v.unun === '49' ? '14' : '16'} turns on FT240-43 toroid`]);
+      rows.push(['Layout (unun → end)', layout]);
 
-      if (p > 0) {
-        const loss_dB = 0.8 + 6 * (p/100) * (p/100);    // EFHW shorty has slightly higher loss than dipole shorty
-        const bwFrac  = s * s;
-        rows.push(['Est. efficiency penalty (lowest band)', `~${loss_dB.toFixed(1)} dB vs standard trapped EFHW`]);
-        rows.push(['Est. 2:1 SWR bandwidth (lowest band)', `~${(bwFrac * 100).toFixed(0)}% of standard trapped EFHW`]);
+      // 5. Feedpoint Impedance & Matching
+      rows.push(['', '']);
+      rows.push(['── 5. Feedpoint Impedance & Matching ──', '']);
+      for (let i = 0; i < n; i++) {
+        const Zend = Rr[i] * (v.unun === '49' ? 49 : 64);
+        rows.push([`Estimated end Z on ${f[i].toFixed(2)} MHz`,
+          `~${Rr[i].toFixed(0)} Ω at the input of the unun (full = 36 Ω);  ~${Zend.toFixed(0)} Ω at unun output`]);
+      }
+      rows.push(['Recommended match',
+        `${v.unun}:1 unun (primary 2 turns, secondary ${v.unun === '49' ? '14' : '16'} turns on FT240-43 toroid). ` +
+        (shortened ? 'Add a 1:1 common-mode choke at the rig end of the coax; tuner recommended on shortened designs.' : 'A 1:1 common-mode choke at the rig end is essential.')]);
+      rows.push(['Counterpoise', `~${(segFull[0] * 0.05).toFixed(1)} ft (5% of full-size seg 1) — connect to unun ground side`]);
+
+      // 6. SWR Behavior
+      rows.push(['', '']);
+      rows.push(['── 6. Expected SWR Behavior ──', '']);
+      if (shortened && s < 0.55) {
+        rows.push(['Curve shape', 'Very sharp V-shaped minima — narrow operating window, steep edges, may require tuner for full band coverage.']);
+      } else if (shortened && s < 0.75) {
+        rows.push(['Curve shape', 'Sharper minima than full-size; usable < 2:1 over ~50–70% of each band center.']);
+      } else if (shortened) {
+        rows.push(['Curve shape', 'Mild narrowing relative to full-size trapped EFHW; SWR < 2:1 across most of each band.']);
+      } else {
+        rows.push(['Curve shape', 'Standard trapped EFHW: SWR ≈ 1.5–2:1 across each band, broader than a trapped dipole.']);
+      }
+      rows.push(['Narrowest band', `${f[n - 1].toFixed(2)} MHz (lowest band) — highest loading reactance and lowest Rr`]);
+
+      // 7. Bandwidth per band
+      rows.push(['', '']);
+      rows.push(['── 7. Expected 2:1 SWR Bandwidth ──', '']);
+      rows.push(['Formula used', 'BW ≈ f · (Rr + X_load/Q) / X_load (loaded-antenna approximation; Q ≈ 100 traps, 200 air-core coils)']);
+      for (let i = 0; i < n; i++) {
+        const X = Math.max(10, Xtotal_arr[i]);
+        const tag = (i === 0 && seg1Coil_uH > 0.1) ? 'coil-loaded' :
+                    (i === 0) ? 'unloaded' : 'trap-loaded';
+        const bwStr = BW_kHz[i] < 10 ? BW_kHz[i].toFixed(1) : BW_kHz[i].toFixed(0);
+        rows.push([`${f[i].toFixed(2)} MHz  (${tag})`,
+          `BW ≈ ${bwStr} kHz    [Rr ≈ ${Rr[i].toFixed(0)} Ω,  X_load ≈ ${X.toFixed(0)} Ω]`]);
+      }
+      for (let i = 0; i < n; i++) {
+        if (BW_kHz[i] < 20 && f[i] < 5) {
+          rows.push(['  ⚠ ' + f[i].toFixed(2) + ' MHz BW',
+            'extremely narrow — practical only within ±' + (BW_kHz[i] / 2).toFixed(1) + ' kHz of design frequency.']);
+        }
       }
 
+      // 8. Performance & Efficiency Opinion
+      rows.push(['', '']);
+      rows.push(['── 8. Performance & Efficiency Opinion ──', '']);
+      let verdict;
+      if (!shortened) {
+        verdict = 'Full-size trapped EFHW. Solid performer; expect ~0.5–1.5 dB total trap loss across bands. Excellent for portable / fixed multi-band.';
+      } else if (s >= 0.85) {
+        verdict = 'Mild shortening (≤15%). Practical, near-full performance. Reasonable trap voltages.';
+      } else if (s >= 0.70) {
+        verdict = 'Moderate shortening (15–30%). Practical for SOTA/POTA — wire bag drops by 1/3. Plan on doorknob+ caps for the innermost trap.';
+      } else if (s >= 0.55) {
+        verdict = 'Heavy shortening (30–45%). Marginal: efficiency suffers (~1.5–3 dB on lowest band), tight BW, vacuum caps likely required at full power.';
+      } else if (s >= 0.40) {
+        verdict = 'Extreme shortening (45–60%). Poor — very narrow BW, vacuum caps required, traps approach physical limits.';
+      } else {
+        verdict = 'Below 40% — not viable as an EFHW. Consider a different topology (vertical, loop, etc.).';
+      }
+      rows.push(['Verdict', verdict]);
+      rows.push(['Trap insertion loss',
+        `${traps.length} trap${traps.length > 1 ? 's' : ''} × ~0.5–1.5 dB each on the bands below their resonance. Cumulative on lowest band: ~${(traps.length * 1.0).toFixed(1)} dB.`]);
+      rows.push(['Voltage warning',
+        `EFHW traps see ~${efhwV}× the voltage of dipole traps at the same power. Plan capacitor type accordingly.`]);
+
+      // 9. Warnings & Practical Notes
+      rows.push(['', '']);
+      rows.push(['── 9. Warnings & Practical Notes ──', '']);
       const warnings = [];
-      if (p >= 25)  warnings.push(`⚠ ${p}% shorty EFHW — efficiency hit notable, high trap voltage`);
-      if (trap1.V_peak > 3000 && P < 500) warnings.push('⚠ Trap 1 needs vacuum capacitor even at modest power');
-      if (warnings.length) rows.unshift(['', warnings.join('  •  ')]);
+      if (L_avail > 0 && L_avail < segFull[0] * 0.4) {
+        warnings.push(`⚠ Available length ${L_avail.toFixed(1)} ft is well below the highest-band ideal ${segFull[0].toFixed(1)} ft — design infeasible as an EFHW.`);
+      }
+      if (shortened && s < 0.5) {
+        warnings.push(`⚠ At s = ${(s * 100).toFixed(0)}% the wire is severely shortened. Alternatives:`);
+        warnings.push(`   • Half-size loaded vertical with elevated radials`);
+        warnings.push(`   • Magnetic loop antenna (very narrow BW but efficient)`);
+        warnings.push(`   • Drop the lowest band; design for higher bands at fuller size`);
+        warnings.push(`   • Add capacitive end-hat to reduce required trap reactance`);
+      }
+      for (let i = 0; i < traps.length; i++) {
+        if (traps[i].V_peak > 3000 && P < 500) {
+          warnings.push(`⚠ Trap ${i + 1} needs vacuum capacitor at ${P} W (EFHW voltage is severe)`);
+        }
+      }
+      if (BW_kHz[n - 1] < 20 && f[n - 1] < 5) {
+        warnings.push(`⚠ Lowest-band BW < 20 kHz — practical operation limited to a narrow window.`);
+      }
+      if (warnings.length === 0) warnings.push('No specific warnings — design is within practical limits.');
+      warnings.forEach(w => rows.push(['', w]));
 
       return { rows };
     },
@@ -4440,11 +4812,12 @@ const AW_CALCS = {
    At seg-1 shortening > 10% an inline coil is added inside seg 1.</pre>`;
     },
     notes: [
-      'Same general construction as a non-trapped EFHW, but each band drops you to the next trap.',
-      'Trap voltage rating is critical at the unun-side of the wire — high impedance = high voltage. EFHW traps see 2-3× the voltage of dipole traps at the same power.',
-      'Build & trim from the unun outward, one band at a time.',
-      'Shorty mode is excellent for SOTA/POTA: a 30% shorty 40/20/15 fits in ~47 ft instead of 67 ft.',
-      'For a serious shorty EFHW at 100 W+, plan on vacuum caps for the innermost trap. Mica won\'t survive.',
+      'Length-driven design: set Available Length to your wire-length budget; leave it at 0 for full-size.',
+      'Build & trim from the unun outward, one band at a time. Higher-frequency traps live closer to the unun.',
+      'When shortened, traps get re-spec\'d (higher L, lower C, same f_r) and a seg-1 inline coil may be added.',
+      'Trap voltage rating is the dominant constraint — EFHW traps see roughly 2.5× the voltage of dipole traps at the same power. Vacuum caps are common for shorty designs > 100 W.',
+      'Counterpoise tail (~5% of innermost segment) on the unun ground side is essential. A 1:1 common-mode choke at the rig end is mandatory.',
+      'For shortened designs, expect to use a tuner at the rig for full-band SWR coverage.',
     ],
   },
 
@@ -5497,11 +5870,6 @@ function awCalcRenderPanel() {
     </div>`;
   }).join('');
 
-  const result = calc.compute(v);
-  const outputsHtml = result.rows.map(([k, val]) =>
-    `<tr><td class="aw-calc-out-key">${escHtml(k)}</td>
-         <td class="aw-calc-out-val">${escHtml(val)}</td></tr>`).join('');
-
   document.getElementById('aw-calc-panel').innerHTML = `
     <div class="aw-calc-header">
       <div>
@@ -5520,7 +5888,7 @@ function awCalcRenderPanel() {
       </div>
       <div>
         <div class="aw-calc-subhead">Outputs</div>
-        <table class="aw-calc-out"><tbody>${outputsHtml}</tbody></table>
+        <table class="aw-calc-out"><tbody id="aw-calc-out-body"></tbody></table>
       </div>
     </div>
     ${calc.diagram ? `<div class="aw-calc-subhead">Diagram</div>${calc.diagram()}` : ''}
@@ -5530,6 +5898,22 @@ function awCalcRenderPanel() {
         ${calc.notes.map(n => `<li>${escHtml(n)}</li>`).join('')}
       </ul>` : ''}
   `;
+  // Populate the output table without rebuilding the inputs (which would steal focus).
+  awCalcRenderOutput();
+}
+
+// Recompute and update only the output table — leaves input DOM intact so typing focus is preserved.
+function awCalcRenderOutput() {
+  const id = aw.calc.current;
+  const calc = AW_CALCS[id];
+  if (!calc) return;
+  const tbody = document.getElementById('aw-calc-out-body');
+  if (!tbody) return;
+  const v = aw.calc[id];
+  const result = calc.compute(v);
+  tbody.innerHTML = result.rows.map(([k, val]) =>
+    `<tr><td class="aw-calc-out-key">${escHtml(k)}</td>
+         <td class="aw-calc-out-val">${escHtml(val)}</td></tr>`).join('');
 }
 
 function awCalcSet(field, val) {
@@ -5537,7 +5921,7 @@ function awCalcSet(field, val) {
   if (!id) return;
   if (!aw.calc[id]) aw.calc[id] = {};
   aw.calc[id][field] = val;
-  awCalcRenderPanel();
+  awCalcRenderOutput();
 }
 
 // Recommender wizard initializes lazily — only when user clicks the
