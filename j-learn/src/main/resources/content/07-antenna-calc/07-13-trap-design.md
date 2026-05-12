@@ -131,6 +131,43 @@ Typical values:
 
 > ⚙️ **Advanced —** Coaxial-cable traps (using a section of coax wound on a form) are a specialized variant where the inner conductor is the L and the inter-conductor capacitance is the C. Ratings are more predictable than discrete L+C, but the design space is more constrained. RG-58 has ~30 pF/ft of capacitance — that drives the design.
 
+## Designing traps for shorty antennas
+
+A "shorty" trapped dipole (§07-05) or trapped EFHW (§07-08) uses a trap with **higher inductance and lower capacitance** than the conventional design, while keeping the **resonant frequency unchanged**. The extra inductance gives the trap more loading reactance on bands below resonance, which compensates for the physically shorter outer segments.
+
+The Trapped Dipole and Trapped EFHW calculators compute the needed L and C directly. Plug those into this calculator (or skip straight to the construction recipe — L and C are already specified for you).
+
+### What changes for a shorty trap
+
+| Parameter        | Standard 14 MHz trap | 30% shorty 14 MHz trap |
+|------------------|----------------------|------------------------|
+| L                | 1.27 µH              | 2.2–2.5 µH             |
+| C                | 100 pF               | 50–60 pF               |
+| X_L at f_r       | 113 Ω                | 200–220 Ω              |
+| V_cap @ 100 W    | ~340 V               | ~1100 V (dipole), ~2200 V (EFHW) |
+| Coil form        | 1" × 6 turns         | 1.5" × ~10 turns       |
+| Cap type         | silvered mica        | doorknob or vacuum     |
+| Q sensitivity    | moderate             | **high** — Q losses scale with X_L |
+
+### Three things to watch on shorty traps
+
+1. **Capacitor voltage rating.** A shorty trap's reactance at resonance is 1.7–2× higher than a conventional trap. V_cap_peak = √(P · Q · X_L), so a 30% shorty trap sees roughly 2× the voltage. Don't reuse the dipole cap inventory for a shorty EFHW — the voltage budget is fundamentally different.
+
+2. **Q matters more.** A shorty trap is carrying more reactive energy. Trap loss is proportional to X_L / Q. A standard trap with Q=100 loses ~0.5 dB on the lower band; a shorty trap with the same Q loses ~1 dB. To keep losses down, **wind on a larger-diameter form** (boosts Q) and use thicker wire (#12 instead of #14).
+
+3. **Thermal drift is worse.** Larger coils on larger forms have more thermal mass but also more temperature-sensitive geometry. A shorty trap can drift ±0.5% across a season vs. ±0.1% for a conventional trap. Re-check resonance after the first few weeks outdoors.
+
+### Recommended coil form sizes for shorty traps
+
+| Trap f_r | L (µH) | Form Ø | Wire | Approx turns |
+|----------|--------|--------|------|--------------|
+| 21 MHz   | ~1.5   | 1.0"   | #14  | 7            |
+| 14 MHz   | ~2.5   | 1.5"   | #14  | 10           |
+| 7 MHz    | ~6.5   | 2.0"   | #12  | 14           |
+| 3.5 MHz  | ~22    | 3.0"   | #12  | 25           |
+
+The Wheeler formula (above) gives the starting point; final tune on a NanoVNA.
+
 ## Construction recipe
 
 For a typical 14 MHz, 100 W trap:

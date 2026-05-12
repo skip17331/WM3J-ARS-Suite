@@ -34,19 +34,103 @@ The trap acting as loading inductance below resonance is why the antenna is **sh
 The Antenna Workshop calculator (`Trapped Dipole`) takes:
 
 - **Up to 3 band frequencies** (MHz, in descending order — innermost band first)
-- **Trap effective length factor** (k) — accounts for the antenna's electrical shortening below trap resonance (typical 0.90–0.94)
+- **Shorten beyond standard (%)** — 0 = conventional trapped dipole; 10–50% = shorty variant (see below)
+- **Standard trap capacitor (pF)** — what you have on the bench; common choice is 100 pF
+- **Power (W PEP)** — for capacitor voltage rating
+- **Shorten inner segment too** — adds a center loading coil per side (off by default)
 
 And returns:
 
-- Inner segment length (each side, resonant on highest band alone)
-- Trap 1 design frequency
-- Outer segment 1 length
-- Trap 2 design frequency (if 3rd band specified)
-- Outer segment 2 length
-- Total wire length per side
+- Inner segment length (each side)
+- For each trap: design frequency, L (µH), C (pF), and required capacitor peak voltage with type recommendation
+- Outer segment length(s)
+- Total wire length per side, tip-to-tip span
+- For shorty mode: estimated efficiency penalty and bandwidth narrowing
 - Match recommendation (50 Ω coax, 1:1 balun)
 
-The actual trap component values come from **§07-13 Trap Design** — the calculator's outputs feed directly into that.
+The calculator's L and C values feed directly into **§07-13 Trap Design** for the build recipe.
+
+## Shorty trapped dipole (non-ideal trap positions)
+
+A **shorty trapped dipole** moves the trap inward from its natural resonant position so the antenna fits in less space. Because the trap below its resonant frequency already looks inductive (acting as a loading coil), making the trap *more inductive* (bigger L, smaller C, same f_r) lets it do more loading work — compensating for the now-too-short outer segment.
+
+### How it works
+
+The trap's reactance at any frequency f below its resonant f_r is:
+
+```
+X_trap(f) = (2π · f · L) / (1 − (f/f_r)²)
+```
+
+Keep f_r fixed (so the trap still isolates band 1), but **increase L and decrease C in lockstep**. The product L × C stays the same (f_r is preserved), but X_trap at every lower band scales up — providing the extra inductive loading needed for the shortened outer segment.
+
+The needed extra reactance per side, for a missing physical length δ:
+
+```
+X_required ≈ Z₀ · tan(2π · δ / λ_band)
+```
+
+where Z₀ ≈ 600 Ω (rough characteristic impedance of wire over earth). Then:
+
+```
+L_required = X_required · (1 − (f/f_r)²) / (2π · f)
+C_required = 1 / (4π² · f_r² · L_required)
+```
+
+### Worked example — 30% shorty 80/40/20
+
+```
+band 1: 14.150 MHz    band 2: 7.150 MHz    band 3: 3.700 MHz
+shorten = 30%         standard cap = 100 pF    power = 100 W
+shorten inner: no
+
+Standard trapped 80/40/20: tip-to-tip ~107 ft, traps 1.27 µH / 100 pF.
+30% shorty: tip-to-tip ~85 ft (outer segments shortened, inner kept full).
+
+Per-side lengths:
+  Inner segment (full λ/2 at 20m): 16.54 ft
+  Outer 1 (was 13.57 ft):           9.50 ft
+  Outer 2 (was 23.42 ft):          16.39 ft
+  Total per side:                  42.43 ft  → tip-to-tip 84.86 ft
+
+Trap 1 (14 MHz):
+  L:  3.14 µH (vs 1.27 µH standard)
+  C:  40 pF (vs 100 pF standard)
+  V_cap peak at 100 W: ~1670 V → doorknob ceramic
+
+Trap 2 (7 MHz):
+  L:  8.12 µH
+  C:  61 pF
+  V_cap peak at 100 W: ~1910 V → doorknob ceramic
+
+Est. efficiency penalty (80m): ~0.95 dB
+Est. 2:1 SWR bandwidth (80m): ~49% of standard trapped (≈ 25 kHz)
+```
+
+If you enable **shorten inner segment too**, the inner drops to 11.6 ft each side and a center loading coil (~1.8 µH per leg) goes at the feedpoint. Total tip-to-tip falls to ~75 ft, but you take an additional efficiency hit on 20m and the coil at the feedpoint complicates the balun mounting.
+
+### Tradeoffs
+
+| Shortening | Tip-to-tip | Bandwidth | Efficiency | Trap cap voltage @ 100W | Cap type |
+|------------|-----------|-----------|------------|--------------------------|----------|
+| 0% (std)   | 107 ft    | 100%      | reference  | ~340 V                   | silvered mica |
+| 15%        | 96 ft     | ~72%      | -0.6 dB    | ~900 V                   | mica or doorknob |
+| 30%        | 85 ft     | ~49%      | -0.95 dB   | ~1700 V                  | doorknob |
+| 45%        | 74 ft     | ~30%      | -1.5 dB    | ~2700 V                  | doorknob or vacuum |
+
+Don't push past ~40% unless you're QRP and have very limited space — the bandwidth penalty makes operating on AM/SSB awkward (you may not cover the whole phone segment of a band).
+
+### When to use a shorty
+
+- Backyard too small for a full-length 80m trapped dipole (need < 90 ft)
+- Apartment / HOA constrained installation
+- Portable use where wire bag size matters
+
+### When NOT to use a shorty
+
+- Legal-limit (1500 W) operation — trap capacitor voltage gets brutal
+- DX contesting — bandwidth narrowing hurts band-edge operation
+- Educational/first-antenna build — start with full-length; the math and trim procedure are simpler
 
 ## Worked example — 80 / 40 / 20 m trap dipole
 
