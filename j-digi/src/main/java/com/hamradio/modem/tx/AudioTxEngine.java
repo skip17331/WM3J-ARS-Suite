@@ -28,7 +28,7 @@ public class AudioTxEngine {
     private static final int BUFFER_SAMPLES = 1024;
     private static final int BYTES_PER_SAMPLE = 2;
 
-    private final RigControl rigControl;
+    private volatile RigControl rigControl;
 
     private volatile boolean transmitting;
     private volatile boolean cancelRequested;
@@ -44,6 +44,22 @@ public class AudioTxEngine {
 
     public AudioTxEngine(RigControl rigControl) {
         this.rigControl = Objects.requireNonNull(rigControl, "rigControl");
+    }
+
+    /** Replace the PTT-keying implementation at runtime. Cannot be
+     *  called while a transmit is in progress — call {@link #cancel()}
+     *  first if you need to swap mid-flight. {@code null} reverts to
+     *  the {@link NoOpRigControl}. */
+    public synchronized void setRigControl(RigControl rigControl) {
+        if (transmitting) {
+            throw new IllegalStateException("cannot swap RigControl while transmitting");
+        }
+        this.rigControl = rigControl != null ? rigControl : new NoOpRigControl();
+    }
+
+    /** Current PTT implementation (for diagnostics / settings UI). */
+    public RigControl getRigControl() {
+        return rigControl;
     }
 
     public boolean isTransmitting() {

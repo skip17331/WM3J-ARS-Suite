@@ -18,7 +18,7 @@ JavaFX 21 must be on the module path at `./lib/javafx`. Java 17+ at runtime.
 
 ## Status
 
-**Version 0.1.0 — early phase.** Decode side is implemented and audio-loopback validated across all bundled modes. Transmit side is wired into the UI but `NoOpRigControl` is a deliberate stub — PTT/CW keying to a real rig still needs a Hamlib bridge. Do not promote to 1.0 until TX lands.
+**Version 0.1.0 — early phase.** Decode side is implemented and audio-loopback validated across all bundled modes. Transmit side has a real PTT path now (see "PTT / rig keying" below); operator selects the method via Java Preferences.
 
 ## Architecture
 
@@ -34,6 +34,26 @@ JavaFX desktop app, single window. `ModemService` is the central singleton; it o
 | `HubClient` | WebSocket to J-Hub on 8080; sends `WSJTX_DECODE`/equivalent messages, receives `RIG_STATUS` |
 
 Decoders run on the audio thread; the UI receives decoded text on the JavaFX Application Thread via `Platform.runLater`.
+
+## PTT / rig keying
+
+`AudioTxEngine` accepts any `RigControl` implementation. Three ship:
+
+| Implementation | Use when |
+|---|---|
+| `NoOpRigControl` (default) | You only want to drive audio for monitoring/tuning; no real rig is keyed |
+| `HamlibRigControl` | Any rig — connects to `rigctld` on a configurable host/port (default `localhost:4532`). Reconnects per PTT toggle so a daemon restart doesn't sticky-fail |
+| `CivRigControl` | Icom rigs — direct, no `rigctld`. Wraps the shared `CivEngine` from `j-log-engine`. Not currently wired into `ModemService` (j-digi doesn't spin up its own CivEngine yet) |
+
+Configured via Java `Preferences` under `com.hamradio.modem.ModemService`:
+
+| Pref | Values | Default |
+|---|---|---|
+| `ptt.method` | `NONE` / `HAMLIB` | `NONE` |
+| `ptt.hamlib.host` | hostname / IP | `127.0.0.1` |
+| `ptt.hamlib.port` | TCP port | `4532` |
+
+Wire protocol uses the plain rigctld command set — `T 1\n` / `T 0\n`, expecting `RPRT 0\n` on success. Any non-zero `RPRT` is surfaced as an `IOException` that bubbles up through `AudioTxEngine`'s `onError` callback.
 
 ## Mode selection
 

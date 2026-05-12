@@ -20,9 +20,12 @@ import com.hamradio.modem.tx.AudioTxEngine;
 import com.hamradio.modem.tx.CwTransmitter;
 import com.hamradio.modem.tx.DigitalTransmitter;
 import com.hamradio.modem.tx.DominoExTransmitter;
+import com.hamradio.modem.tx.HamlibRigControl;
 import com.hamradio.modem.tx.Mfsk16Transmitter;
+import com.hamradio.modem.tx.NoOpRigControl;
 import com.hamradio.modem.tx.OliviaTransmitter;
 import com.hamradio.modem.tx.Psk31Transmitter;
+import com.hamradio.modem.tx.RigControl;
 import com.hamradio.modem.tx.RttyTransmitter;
 import com.hamradio.modem.tx.TxState;
 import com.hamradio.modem.tx.WavFileWriter;
@@ -63,6 +66,9 @@ public class ModemService implements HubMessageListener {
     private static final String PREF_AUDIO_INPUT  = "audio.input.device";
     private static final String PREF_AUDIO_OUTPUT = "audio.output.device";
     private static final String PREF_MY_CALL      = "station.callsign";
+    private static final String PREF_PTT_METHOD   = "ptt.method";          // NONE | HAMLIB
+    private static final String PREF_PTT_HAMLIB_HOST = "ptt.hamlib.host";
+    private static final String PREF_PTT_HAMLIB_PORT = "ptt.hamlib.port";
 
     private final AudioEngine audioEngine = new AudioEngine();
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
@@ -129,6 +135,8 @@ public class ModemService implements HubMessageListener {
 
         String savedOutputId = PREFS.get(PREF_AUDIO_OUTPUT, AudioTxEngine.DEFAULT_DEVICE_ID);
         audioTxEngine.setPreferredOutputDeviceId(savedOutputId);
+
+        audioTxEngine.setRigControl(buildConfiguredRigControl());
 
         audioEngine.addListener(this::handleAudioFrame);
         // The classifier runs alongside the active mode decoder — it never
@@ -587,6 +595,32 @@ public class ModemService implements HubMessageListener {
             case DOMINOEX -> dominoExTransmitter;
             case AX25     -> null;
         };
+    }
+
+    /**
+     * Construct the {@link RigControl} the operator chose in Preferences.
+     * {@code NONE} (the default) keeps the historical Phase-1 no-op
+     * behaviour. {@code HAMLIB} opens TCP to {@code rigctld} (default
+     * {@code localhost:4532}).
+     *
+     * <p>The Icom-direct {@code CivRigControl} isn't wired here yet — it
+     * needs a live {@link com.jlog.civ.CivEngine} instance from j-log,
+     * which j-digi doesn't currently spin up on its own. Hamlib covers
+     * Icom rigs equally well via the {@code icom} backend.
+     */
+    private RigControl buildConfiguredRigControl() {
+        String method = PREFS.get(PREF_PTT_METHOD, "NONE").toUpperCase();
+        switch (method) {
+            case "HAMLIB":
+                String host = PREFS.get(PREF_PTT_HAMLIB_HOST, HamlibRigControl.DEFAULT_HOST);
+                int port = PREFS.getInt(PREF_PTT_HAMLIB_PORT, HamlibRigControl.DEFAULT_PORT);
+                log.info("PTT method = HAMLIB ({}:{})", host, port);
+                return new HamlibRigControl(host, port);
+            case "NONE":
+            default:
+                log.info("PTT method = NONE (no rig keying)");
+                return new NoOpRigControl();
+        }
     }
 
     private String loadSavedHubUrl() {
