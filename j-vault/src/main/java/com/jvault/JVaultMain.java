@@ -27,13 +27,15 @@ public class JVaultMain {
 
     public static void main(String[] args) throws Exception {
         boolean openBrowser = true;
+        boolean hubManaged  = false;
         for (String a : args) {
-            if ("--no-browser".equals(a) || "--launched-by-hub".equals(a)) openBrowser = false;
+            if ("--no-browser".equals(a)) openBrowser = false;
+            if ("--launched-by-hub".equals(a)) { openBrowser = false; hubManaged = true; }
         }
 
         int port = Integer.getInteger("jvault.port", 8083);
 
-        JVaultServer server = new JVaultServer(port);
+        JVaultServer server = new JVaultServer(port, hubManaged);
         try {
             server.start();
         } catch (Exception e) {
