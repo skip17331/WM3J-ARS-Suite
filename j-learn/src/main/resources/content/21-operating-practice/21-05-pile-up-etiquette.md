@@ -26,35 +26,9 @@ Most rare-DX activity is the second type. The DX station calls CQ once, then "ru
 
 ## Split-frequency operation
 
-The DX station transmits on one frequency (their TX) and listens on a different range (their RX, typically 5-15 kHz higher). This is **split**.
+Heavy DX pile-ups almost always run **split** — the DX transmits on one frequency and listens on a different range (typically 5–15 kHz higher) so they can hear individual callers instead of a wall of noise. The rest of this section assumes you know what split is and how to operate it. If you don't, read [§21-08 — Split-Frequency Operation](21-08-split-frequency.md) first; it covers the technique, rig setup, the announce shorthand ("5-up", "QSX", etc.), and the full call-and-response protocol.
 
-Why split? On the DX's TX frequency, dozens of stations would be calling all at once and the DX couldn't pick out individual callers. Listening on a different range, the DX hears one or two callers at a time clearly.
-
-The DX announces split:
-
-```
-"WM3J 5-up to 5-15."  
-        ^^^^
-   listening 5 to 15 kHz higher than TX
-```
-
-You then transmit **on a frequency in their listen range**, not on their TX frequency. Transmitting on the DX's TX frequency is called "transmitting in the pile" — it's strictly forbidden and gets you named publicly as a "lid" (incompetent operator).
-
-### The split protocol
-
-```
-DX (on 14.205): "QRZ 5-up to 5-15 from WM3J"
-You (on 14.210): "Whiskey One Alpha Bravo Charlie"
-                 [your call once, brief]
-DX (on 14.205):  "WM3J 5-9, 5-9, QRZ"
-                 [confirms your contact — pick your TX freq right]
-You (on 14.210): "5-9 thanks 73 W1ABC"
-                 [acknowledge + 73 + your call again]
-DX:              "5NN W1ABC, QRZ"
-                 [moves on to next caller]
-```
-
-Total per-contact time: 5-15 seconds. The DX has a steady cadence; you respect it.
+The pile-up "sins" below are about *discipline* once you understand split. The cardinal sin — transmitting on the DX's TX frequency — gets you publicly named as a "lid" (incompetent operator) and is universally hated.
 
 ## How to call in a pile-up
 
@@ -209,5 +183,6 @@ A few habits to develop:
 - §21-01 — "Is the frequency in use?" (skipped during pile-ups, but listen first)
 - §21-04 — Calling CQ and QSO flow
 - §21-06 — Power minimum and polite operating
+- §21-08 — Split-frequency operation (technique, rig setup, full protocol)
 - §15-08 — ERP (relevant to choosing power for DXing)
 - §01-08 — Band Choice Right Now (when DX is most likely)
