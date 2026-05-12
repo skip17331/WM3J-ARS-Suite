@@ -16,7 +16,11 @@ import com.jlog.ui.contest.WorkedBeforePane;
 import com.jlog.ui.contest.WorkedGridsPane;
 import com.jlog.ui.contest.WorkedMultsPane;
 import com.jlog.ui.map.ArrlSectionMap;
+import com.jlog.ui.map.CountyMap;
+import com.jlog.ui.map.CqZoneMap;
+import com.jlog.ui.map.DxccMap;
 import com.jlog.ui.map.RegionMapPane;
+import com.jlog.ui.map.StatesMap;
 import com.jlog.util.AppConfig;
 import com.jlog.util.BandPlan;
 import com.jlog.util.CallsignRegion;
@@ -104,6 +108,14 @@ public class ContestLogController implements Initializable {
     private WorkedGridsPane      gridsPane;
     private ArrlSectionMap       ssSectionMapPane;
     private Stage                sectionMapStage;
+    private DxccMap              dxccMapPane;
+    private Stage                dxccMapStage;
+    private StatesMap            statesMapPane;
+    private Stage                statesMapStage;
+    private CqZoneMap            cqZoneMapPane;
+    private Stage                cqZoneMapStage;
+    private CountyMap            countyMapPane;
+    private Stage                countyMapStage;
     private SweepProgressPane    sweepProgressPane;
     private WorkedMultsPane      workedMultsPane;
     // Column (field1..field5) holding the multiplier value for this plugin.
@@ -1608,6 +1620,9 @@ public class ContestLogController implements Initializable {
                     if (ssSectionMapPane  != null) ssSectionMapPane.setAllWorked(worked);
                     if (sweepProgressPane != null) sweepProgressPane.setWorked(mults);
                     if (workedMultsPane   != null) workedMultsPane.setWorked(worked);
+                    if (statesMapPane     != null) statesMapPane.setAllWorked(worked);
+                    if (dxccMapPane       != null) dxccMapPane.setAllWorked(worked);
+                    if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
                 });
             }
         } catch (Exception e) {
@@ -1619,9 +1634,13 @@ public class ContestLogController implements Initializable {
     private void refreshMapsWorked(Map<String, List<String>> workedByMode) {
         Set<String> allWorked = new HashSet<>();
         workedByMode.values().forEach(allWorked::addAll);
-        if (usMapPane != null) usMapPane.setAllWorked(allWorked);
-        if (caMapPane != null) caMapPane.setAllWorked(allWorked);
-        if (dxccPane  != null) dxccPane.setAllWorked(allWorked);
+        if (usMapPane     != null) usMapPane.setAllWorked(allWorked);
+        if (caMapPane     != null) caMapPane.setAllWorked(allWorked);
+        if (dxccPane      != null) dxccPane.setAllWorked(allWorked);
+        if (dxccMapPane   != null) dxccMapPane.setAllWorked(allWorked);
+        if (statesMapPane != null) statesMapPane.setAllWorked(allWorked);
+        if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(allWorked);
+        if (countyMapPane != null) countyMapPane.setAllWorked(allWorked);
     }
 
     private void refreshPerModeGrid(Map<String, List<String>> workedByMode) {
@@ -1692,6 +1711,227 @@ public class ContestLogController implements Initializable {
 
     @FXML private void menuContestSetup() {
         openContestSetup();
+    }
+
+    /** Open the per-state county map for the active state QSO party plugin. */
+    @FXML private void menuCountyMap() {
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Load a contest first — the county map needs a contest's worked set.").showAndWait();
+            return;
+        }
+        String state = CountyMap.stateFromMultiplierListPath(plugin.getMultiplierList());
+        if (state == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "County Map is only available for state QSO party plugins.").showAndWait();
+            return;
+        }
+        if (countyMapStage != null && countyMapStage.isShowing()) {
+            countyMapStage.toFront();
+            return;
+        }
+        CountyMap map = new CountyMap(state);
+        if (map.regionIds().isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "County map for " + state + " hasn't been built yet. "
+              + "Add it to tools/arrl-map/scripts/build_counties.py and run.").showAndWait();
+            return;
+        }
+        map.setTooltipProvider(code -> code);
+        map.setOnRegionClicked(code -> onMultiplierSelected(code, "US"));
+        countyMapPane = map;
+
+        ScrollPane sp = new ScrollPane(map);
+        sp.setFitToWidth(false);
+        sp.setFitToHeight(false);
+        BorderPane root = new BorderPane(sp);
+        root.setStyle("-fx-background-color: -primary-bg;");
+
+        Scene scene = new Scene(root, 940, 730);
+        JLogApp.applyTheme(scene);
+
+        Stage st = new Stage();
+        st.setTitle(state + " Counties — " + plugin.getContestName());
+        st.setScene(scene);
+        st.setOnHidden(ev -> {
+            countyMapStage = null;
+            countyMapPane  = null;
+        });
+        countyMapStage = st;
+        st.show();
+
+        try {
+            String multCol = this.multColumn;
+            List<String> worked = ContestQsoDao.getInstance()
+                .distinctFieldByColumn(plugin.getContestId(), multCol);
+            map.setAllWorked(worked);
+        } catch (Exception e) {
+            log.warn("Failed to seed county map worked-set: {}", e.getMessage());
+        }
+    }
+
+    /** Open the geographic CQ Zones map in its own window. */
+    @FXML private void menuCqZonesMap() {
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Load a contest first — the CQ Zones map needs a contest's worked set.").showAndWait();
+            return;
+        }
+        boolean tracksZones =
+            (plugin.getMultiplierModel() != null
+                && "cq_zone".equals(plugin.getMultiplierModel().getField()))
+            || (plugin.getEntryFields() != null
+                && plugin.getEntryFields().stream().anyMatch(f -> "cq_zone".equals(f.getId())));
+        if (!tracksZones) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "CQ Zones Map is only available for contests that track CQ Zones "
+                + "(CQ WW CW/SSB/RTTY/Digital).").showAndWait();
+            return;
+        }
+        if (cqZoneMapStage != null && cqZoneMapStage.isShowing()) {
+            cqZoneMapStage.toFront();
+            return;
+        }
+        CqZoneMap map = new CqZoneMap();
+        map.setTooltipProvider(zone -> "Zone " + zone);
+        map.setOnRegionClicked(zone -> onMultiplierSelected(zone, "DX"));
+        cqZoneMapPane = map;
+
+        ScrollPane sp = new ScrollPane(map);
+        sp.setFitToWidth(false);
+        sp.setFitToHeight(false);
+        BorderPane root = new BorderPane(sp);
+        root.setStyle("-fx-background-color: -primary-bg;");
+
+        Scene scene = new Scene(root, 1240, 700);
+        JLogApp.applyTheme(scene);
+
+        Stage st = new Stage();
+        st.setTitle("CQ Zones Map — " + plugin.getContestName());
+        st.setScene(scene);
+        st.setOnHidden(ev -> {
+            cqZoneMapStage = null;
+            cqZoneMapPane  = null;
+        });
+        cqZoneMapStage = st;
+        st.show();
+
+        try {
+            String multCol = this.multColumn;
+            List<String> worked = ContestQsoDao.getInstance()
+                .distinctFieldByColumn(plugin.getContestId(), multCol);
+            map.setAllWorked(worked);
+        } catch (Exception e) {
+            log.warn("Failed to seed CQ zones map worked-set: {}", e.getMessage());
+        }
+    }
+
+    /** Open the geographic states + provinces map in its own window. */
+    @FXML private void menuStatesMap() {
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Load a contest first — the states map needs a contest's worked set.").showAndWait();
+            return;
+        }
+        String mt = plugin.getScoringRules() != null
+                ? plugin.getScoringRules().getMultiplierType() : null;
+        if (!"states".equals(mt)) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "States/Provinces Map is only available for contests whose multiplier is "
+                + "US states + Canadian provinces (ARRL DX DX-side, ARRL RTTY Roundup).").showAndWait();
+            return;
+        }
+        if (statesMapStage != null && statesMapStage.isShowing()) {
+            statesMapStage.toFront();
+            return;
+        }
+        StatesMap map = new StatesMap();
+        map.setTooltipProvider(this::stateTooltip);
+        map.setOnRegionClicked(code -> onMultiplierSelected(code, "US"));
+        statesMapPane = map;
+
+        ScrollPane sp = new ScrollPane(map);
+        sp.setFitToWidth(false);
+        sp.setFitToHeight(false);
+        BorderPane root = new BorderPane(sp);
+        root.setStyle("-fx-background-color: -primary-bg;");
+
+        Scene scene = new Scene(root, 1240, 830);
+        JLogApp.applyTheme(scene);
+
+        Stage st = new Stage();
+        st.setTitle("States/Provinces Map — " + plugin.getContestName());
+        st.setScene(scene);
+        st.setOnHidden(ev -> {
+            statesMapStage = null;
+            statesMapPane  = null;
+        });
+        statesMapStage = st;
+        st.show();
+
+        try {
+            String multCol = this.multColumn;
+            List<String> worked = ContestQsoDao.getInstance()
+                .distinctFieldByColumn(plugin.getContestId(), multCol);
+            map.setAllWorked(worked);
+        } catch (Exception e) {
+            log.warn("Failed to seed states map worked-set: {}", e.getMessage());
+        }
+    }
+
+    /** Open the geographic DXCC world map in its own resizable window. */
+    @FXML private void menuWorldMap() {
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Load a contest first — the world map needs a contest's worked DXCC set.").showAndWait();
+            return;
+        }
+        String mt = plugin.getScoringRules() != null
+                ? plugin.getScoringRules().getMultiplierType() : null;
+        if (!"dxcc".equals(mt)) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "World Map is only available for contests whose multiplier is DXCC entities "
+                + "(CQ WW, ARRL DX W/VE, WAE, Oceania DX, Baltic, etc.).").showAndWait();
+            return;
+        }
+        if (dxccMapStage != null && dxccMapStage.isShowing()) {
+            dxccMapStage.toFront();
+            return;
+        }
+        DxccMap map = new DxccMap();
+        map.setTooltipProvider(entity -> entity);
+        map.setOnRegionClicked(entity -> onMultiplierSelected(entity, "DX"));
+        dxccMapPane = map;
+
+        ScrollPane sp = new ScrollPane(map);
+        sp.setFitToWidth(false);
+        sp.setFitToHeight(false);
+        BorderPane root = new BorderPane(sp);
+        root.setStyle("-fx-background-color: -primary-bg;");
+
+        Scene scene = new Scene(root, 1240, 700);
+        JLogApp.applyTheme(scene);
+
+        Stage st = new Stage();
+        st.setTitle("World Map — " + plugin.getContestName());
+        st.setScene(scene);
+        st.setOnHidden(ev -> {
+            dxccMapStage = null;
+            dxccMapPane  = null;
+        });
+        dxccMapStage = st;
+        st.show();
+
+        // Seed with current worked-entity set so the map reflects state
+        // immediately. updateStats() will refresh on every QSO save.
+        try {
+            String multCol = this.multColumn;
+            List<String> worked = ContestQsoDao.getInstance()
+                .distinctFieldByColumn(plugin.getContestId(), multCol);
+            map.setAllWorked(worked);
+        } catch (Exception e) {
+            log.warn("Failed to seed DXCC map worked-set: {}", e.getMessage());
+        }
     }
 
     /** Open the geographic ARRL section map in its own resizable window. */

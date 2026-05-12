@@ -80,8 +80,11 @@
 .region-tile-invalid   { -fx-fill: #ffcdd2; -fx-stroke: #c62828; -fx-stroke-width: 3; }
 .region-tile-label     { -fx-font-family: monospace; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #212121; }
 .region-tile-label-inset { -fx-font-family: monospace; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #212121; }
-.region-inset-frame    { -fx-fill: transparent; -fx-stroke: #9e9e9e; -fx-stroke-width: 1; -fx-stroke-dash-array: 4 3; }
+.region-inset-frame    { -fx-fill: transparent; -fx-stroke: transparent; }
 .region-inset-title    { -fx-font-family: sans-serif; -fx-font-size: 10px; -fx-font-style: italic; -fx-text-fill: #616161; }
+.dxcc-tile-label       { -fx-font-family: monospace; -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #424242; }
+.cq-zone-label         { -fx-font-family: sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #212121; }
+.county-tile-label     { -fx-font-family: monospace; -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #212121; }
 
 /* ---- Per-mode multiplier grid ---- */
 .mult-grid             { -fx-hgap: 4; -fx-vgap: 2; -fx-padding: 4; }

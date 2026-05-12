@@ -40,6 +40,10 @@
                             <MenuItem text="%menu.contest.setup"           onAction="#menuContestSetup"/>
                             <SeparatorMenuItem/>
                             <MenuItem text="Section Map…"                  onAction="#menuSectionMap"/>
+                            <MenuItem text="States/Provinces Map…"         onAction="#menuStatesMap"/>
+                            <MenuItem text="World Map (DXCC)…"             onAction="#menuWorldMap"/>
+                            <MenuItem text="CQ Zones Map…"                 onAction="#menuCqZonesMap"/>
+                            <MenuItem text="County Map…"                   onAction="#menuCountyMap"/>
                             <SeparatorMenuItem/>
                             <MenuItem text="%menu.contest.export.cabrillo" onAction="#menuExportCabrillo"/>
                         </items>

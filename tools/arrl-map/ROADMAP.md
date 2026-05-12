@@ -10,7 +10,11 @@ Tiers reflect engineering effort, not value.
 
 | Map | Resource | Wired into |
 |---|---|---|
-| **ARRL/RAC Sections** | `j-log/src/main/resources/com/jlog/maps/arrl-sections.json` (84 KB) | Menu item `menuSectionMap`; `ArrlSectionMap` class; refresh path in `ContestLogController.updateStats()` |
+| **ARRL/RAC Sections** | `j-log/src/main/resources/com/jlog/maps/arrl-sections.json` (~50 KB, 83 sections, NE inset) | Menu item `menuSectionMap`; `ArrlSectionMap` class; refresh in `ContestLogController.updateStats()`. Aliases: `ONN/ONE/ONS/GH→ON`, `HI→PAC`, `NT/NU/YT→TER`, `FL→NFL/SFL/WCF` |
+| **DXCC world map** | `j-log/src/main/resources/com/jlog/maps/dxcc-entities.json` (149 KB, 217 entities, 3096 prefix aliases) | Menu item `menuWorldMap`; `DxccMap` class; refresh in `ContestLogController.refreshMapsWorked()`. cty.dat-driven; ~130 remote-island entities + sub-country splits (AK/HI/Sardinia/UK regions/etc.) deferred to V2 |
+| **States + Provinces** | `j-log/src/main/resources/com/jlog/maps/us-states.json` (52 KB, 65 entities — 50 states + DC + PR + VI + 12 CA provinces) | Menu item `menuStatesMap`; `StatesMap` class; refresh in both per-mode-mults and section-tracker branches of `updateStats()`. NU dropped (Arctic islands). Covers ARRL DX DX-side CW/SSB + RTTY Roundup |
+| **CQ Zones** | `j-log/src/main/resources/com/jlog/maps/cq-zones.json` (31 KB, 40 zones, 9 numeric aliases) | Menu item `menuCqZonesMap`; `CqZoneMap` class. Parsed from MIT-licensed `go-cq-zone` Go source. Covers CQ WW CW/SSB/RTTY/Digital |
+| **County maps (per state)** | `j-log/src/main/resources/com/jlog/maps/county-<state>.json` | Generic `CountyMap` class + dynamic menu `menuCountyMap`. Framework supports any state by adding a `CODE_TABLES` entry in `build_counties.py`. Shipped: CA (58 counties, 23 KB). TODO: TX, WA, NC, FL, GA, MI, NY, OH, PA, BC, ON, QC |
 
 ## Tier 1 — free reuse (no new data)
 

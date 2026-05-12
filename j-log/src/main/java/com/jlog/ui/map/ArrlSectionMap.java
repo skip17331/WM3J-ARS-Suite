@@ -52,6 +52,11 @@ public class ArrlSectionMap extends Pane {
 
     /** Each section can have one OR two SVGPaths (main + inset). */
     private final Map<String, List<SVGPath>> shapes = new LinkedHashMap<>();
+    /**
+     * Maps legacy / granular section IDs that plugins use to one or more
+     * primary IDs we actually render. e.g. "ONN"→["ON"], "FL"→["NFL","SFL","WCF"].
+     */
+    private final Map<String, List<String>> aliasTargets = new LinkedHashMap<>();
     private final Set<String> worked = new HashSet<>();
     private String current;
     private String invalid;
@@ -75,6 +80,11 @@ public class ArrlSectionMap extends Pane {
         setPrefSize(viewW, viewH);
 
         renderInsetFrames(raw);
+
+        @SuppressWarnings("unchecked")
+        Map<String, List<String>> aliases =
+                (Map<String, List<String>>) raw.getOrDefault("aliasTargets", Map.of());
+        aliasTargets.putAll(aliases);
 
         @SuppressWarnings("unchecked")
         Map<String, Map<String, Object>> sections =
@@ -180,31 +190,55 @@ public class ArrlSectionMap extends Pane {
 
     public Set<String> regionIds() { return Collections.unmodifiableSet(shapes.keySet()); }
 
+    /**
+     * Resolve a plugin-supplied section ID to the one or more primary IDs
+     * that have rendered polygons. Returns a singleton of the input if no
+     * alias is defined and no polygon exists (caller can no-op).
+     */
+    private List<String> resolveTargets(String id) {
+        if (shapes.containsKey(id)) return List.of(id);
+        List<String> aliased = aliasTargets.get(id);
+        if (aliased != null && !aliased.isEmpty()) return aliased;
+        return List.of(id);
+    }
+
     public void setWorked(String id, boolean isWorked) {
-        if (!shapes.containsKey(id)) return;
-        if (isWorked) worked.add(id); else worked.remove(id);
-        restyle(id);
+        for (String target : resolveTargets(id)) {
+            if (!shapes.containsKey(target)) continue;
+            if (isWorked) worked.add(target); else worked.remove(target);
+            restyle(target);
+        }
     }
 
     public void setAllWorked(Collection<String> ids) {
-        Set<String> target = new HashSet<>(ids);
-        Set<String> union  = new HashSet<>(worked);
+        // Translate the plugin's worked set into the rendered primary IDs.
+        Set<String> target = new HashSet<>();
+        for (String id : ids) target.addAll(resolveTargets(id));
+        Set<String> union = new HashSet<>(worked);
         union.addAll(target);
-        for (String id : union) setWorked(id, target.contains(id));
+        for (String pid : union) {
+            boolean nowWorked = target.contains(pid);
+            if (nowWorked) worked.add(pid); else worked.remove(pid);
+            restyle(pid);
+        }
     }
 
     public void setCurrent(String id) {
         String prev = this.current;
-        this.current = id;
+        // For "current" we pick the first resolved primary; current is
+        // single-target (no 1-to-many semantics).
+        List<String> tgts = id == null ? List.of() : resolveTargets(id);
+        this.current = tgts.isEmpty() ? null : tgts.get(0);
         if (prev != null) restyle(prev);
-        if (id   != null && shapes.containsKey(id)) restyle(id);
+        if (this.current != null && shapes.containsKey(this.current)) restyle(this.current);
     }
 
     public void setInvalid(String id) {
         String prev = this.invalid;
-        this.invalid = id;
+        List<String> tgts = id == null ? List.of() : resolveTargets(id);
+        this.invalid = tgts.isEmpty() ? null : tgts.get(0);
         if (prev != null) restyle(prev);
-        if (id   != null && shapes.containsKey(id)) restyle(id);
+        if (this.invalid != null && shapes.containsKey(this.invalid)) restyle(this.invalid);
     }
 
     public void clearWorked() {

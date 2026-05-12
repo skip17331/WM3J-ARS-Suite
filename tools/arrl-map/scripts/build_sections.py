@@ -62,8 +62,53 @@ STATE_FIPS = {
     "WV":"54","WI":"55","WY":"56","PR":"72","VI":"78",
 }
 
-# Sections deferred to V2 (need inset composition).
-DEFER_V1 = {"AK", "PAC", "PR", "VI"}
+DEFER_V1: set[str] = set()
+
+# Sections that DO get rendered, but placed as insets instead of in their
+# real geographic position on the NA-LCC projection (which would put HI far
+# west, AK far north-west, and PR/VI off the southeast corner). The
+# (cx, cy, max_size) values are in viewBox-space pixels.
+SPECIAL_INSETS = {
+    # Alaska — top-left, north-west of BC where it actually sits.
+    # The corner (x<215, y<160) is empty after the 70°N clip.
+    "AK":  {"cx": 110, "cy": 130, "size": 170, "country": "US"},
+    # Hawaii — bottom-left, over the Pacific where it actually is relative
+    # to CONUS. The 8 islands fit comfortably at 130px.
+    "PAC": {"cx": 110, "cy": 720, "size": 130, "country": "US"},
+    # Puerto Rico — top-right corner. Geographically off SE Florida but
+    # there's no canvas room there; corner-placed for clarity.
+    "PR":  {"cx": 1090, "cy": 80, "size": 90, "country": "US"},
+    # US Virgin Islands — tiny dots, placed just east of PR with smaller
+    # size so the cluster reads as PR/VI.
+    "VI":  {"cx": 1160, "cy": 100, "size": 22, "country": "US"},
+    # MAR — legacy aggregate of NB/NS/PE used by older SS plugins. Placed
+    # just east of NS over the Atlantic so it reads as "the Maritimes" near
+    # its real geographic position, without overlapping the individual
+    # provinces that are also rendered.
+    "MAR": {"cx": 1010, "cy": 420, "size": 80, "country": "CA"},
+}
+
+# Aliases let plugins use legacy or granular section names without us having
+# to render duplicate polygons. When a worked-set update contains a key from
+# the left side, the right-side polygon(s) light up. 1-to-many entries
+# (e.g. FL → NFL/SFL/WCF) light every member.
+SECTION_ALIASES = {
+    # Old SS standard plugin uses "ON" — that's now our primary. Alt
+    # plugins use post-2023 RAC names which resolve back to ON since we
+    # don't have CD-level Ontario boundaries yet.
+    "ONN": ["ON"],
+    "ONE": ["ON"],
+    "ONS": ["ON"],
+    "GH":  ["ON"],
+    # Some FD/alt plugins use "HI" rather than the canonical "PAC".
+    "HI":  ["PAC"],
+    # Territories — alt/FD plugins list individually; map shows aggregate.
+    "NT":  ["TER"],
+    "NU":  ["TER"],
+    "YT":  ["TER"],
+    # FD plugin's legacy single "FL" — light up all three real FL sections.
+    "FL":  ["NFL", "SFL", "WCF"],
+}
 
 # RAC Canadian sections: which Natural Earth province name(s) compose each.
 CA_SECTION_PROVINCES = {
@@ -82,9 +127,15 @@ CA_SECTION_PROVINCES = {
     # from the rendered polygon (the section still exists in the DB; clicks
     # on YT/NT still register as TER).
     "TER": ["Yukon", "Northwest Territories"],
-    # V1: Ontario as single polygon, labelled "ONN". ONS/ONE/GH split needs
-    # Census Division data — deferred.
-    "ONN": ["Ontario"],
+    # V1: Ontario as a single polygon, labelled "ON" (matches the standard
+    # ARRL SS plugin). Alt plugins use ONN/ONE/ONS/GH — those resolve to
+    # this polygon via SECTION_ALIASES below.
+    "ON":  ["Ontario"],
+    # Legacy aggregate section still used in the standard SS plugins.
+    # Geometry is the union of NB+NS+PE — placed via SPECIAL_INSETS so it
+    # sits as its own clickable shape rather than overlapping the three
+    # individual sections.
+    "MAR": ["New Brunswick", "Nova Scotia", "Prince Edward Island"],
 }
 
 # Output canvas — chosen to give North America a comfortable aspect ratio.
@@ -114,13 +165,12 @@ NORTHERN_CLIP_LAT = 70.0
 # clip geometry on the inset and the duplicate SVGPath emission.
 NE_INSET_SECTIONS = {
     "DE", "MDC", "SNJ", "NNJ", "CT", "RI",
-    "WNY", "ENY", "WMA", "EMA", "VT", "NH",
+    "ENY", "WMA", "EMA", "VT", "NH",
 }
 # Inset viewBox on the main 1200×800 canvas (x, y, w, h).
-# Lower-right; sized larger so the small NE sections are easy to click. The
-# zoomed copies sit on top of where these same (tiny) sections render on the
-# main map — fine, since the inset is the readable rendition of them.
-NE_INSET_BOX = (600, 420, 580, 360)
+# Lower-right corner, right-anchored at x=1180 and bottom-anchored at y=780,
+# so it sits over the Atlantic and clears the main-map polygons of MA/CT/NY.
+NE_INSET_BOX = (716, 492, 464, 288)
 
 
 # ----------------------------------------------------------------------------
@@ -216,6 +266,31 @@ def project_and_simplify(sections: dict[str, dict]) -> gpd.GeoDataFrame:
     gdf = gdf.to_crs(NA_LCC)
     gdf["geometry"] = gdf.geometry.simplify(SIMPLIFY_TOL_M, preserve_topology=True)
     return gdf
+
+
+def place_in_box(geom_lcc, cx: float, cy: float, size: float):
+    """
+    Center+scale an LCC-projected geometry into a square of side `size`
+    centered at viewBox-space (cx, cy). Returns geometry in viewBox coords.
+    """
+    from shapely.ops import transform as shp_transform
+    minx, miny, maxx, maxy = geom_lcc.bounds
+    src_w = maxx - minx
+    src_h = maxy - miny
+    if src_w <= 0 or src_h <= 0:
+        return geom_lcc
+    scale = size / max(src_w, src_h)
+    cw = src_w * scale
+    ch = src_h * scale
+    ox = cx - cw / 2.0
+    # Bottom of the placed shape in viewBox-space (Y grows downward).
+    bottom_y = cy + ch / 2.0
+
+    def tx(x, y):
+        sx = (x - minx) * scale + ox
+        sy = bottom_y - (y - miny) * scale
+        return sx, sy
+    return shp_transform(lambda x, y, z=None: tx(x, y), geom_lcc)
 
 
 def compute_inset_geometries(gdf_lcc: gpd.GeoDataFrame, section_ids: set[str],
@@ -344,18 +419,31 @@ def main():
     print("Projecting + simplifying…")
     gdf_lcc = project_and_simplify(all_sec)
 
+    # Split off special-position sections (HI, PR, VI) so they don't pull the
+    # main map's bbox westward / southward and shrink everything else.
+    special_lcc = {row["id"]: row.geometry for _, row in gdf_lcc.iterrows()
+                   if row["id"] in SPECIAL_INSETS}
+    gdf_main_only = gdf_lcc[~gdf_lcc["id"].isin(SPECIAL_INSETS)].copy()
+
     print("Computing Northeast inset…")
-    inset_geoms = compute_inset_geometries(gdf_lcc, NE_INSET_SECTIONS, NE_INSET_BOX)
+    inset_geoms = compute_inset_geometries(gdf_main_only, NE_INSET_SECTIONS, NE_INSET_BOX)
     print(f"  inset covers {len(inset_geoms)} sections")
 
+    print(f"Placing special-position sections ({len(special_lcc)})…")
+    placed_specials = {}
+    for sec_id, geom in special_lcc.items():
+        cfg = SPECIAL_INSETS[sec_id]
+        placed_specials[sec_id] = place_in_box(geom, cfg["cx"], cfg["cy"], cfg["size"])
+
     print("Fitting main map to viewBox…")
-    gdf, _minx, _miny, _scale, _ox = fit_to_viewbox(gdf_lcc)
+    gdf, _minx, _miny, _scale, _ox = fit_to_viewbox(gdf_main_only)
 
     print("Emitting SVG paths…")
     out = {
-        "viewBox": [0, 0, VIEW_W, VIEW_H],
-        "insets":  [{"name": "Northeast", "viewBox": list(NE_INSET_BOX)}],
-        "sections": {},
+        "viewBox":      [0, 0, VIEW_W, VIEW_H],
+        "insets":       [{"name": "Northeast", "viewBox": list(NE_INSET_BOX)}],
+        "aliasTargets": SECTION_ALIASES,
+        "sections":     {},
     }
     for _, row in gdf.iterrows():
         path = polygon_to_svg(row.geometry)
@@ -386,12 +474,29 @@ def main():
                 }
         out["sections"][row["id"]] = sec
 
+    # Special-position sections: rendered as regular sections, but at
+    # pre-computed inset coords (no further fit_to_viewbox transform).
+    for sec_id, geom in placed_specials.items():
+        path = polygon_to_svg(geom)
+        if not path:
+            print(f"  empty geometry for {sec_id}, skipping")
+            continue
+        cx, cy = geom.representative_point().coords[0]
+        bx0, by0, bx1, by1 = geom.bounds
+        out["sections"][sec_id] = {
+            "svgPath": path,
+            "labelX":  round(cx, 1),
+            "labelY":  round(cy, 1),
+            "bbox":    [round(bx0, 1), round(by0, 1), round(bx1, 1), round(by1, 1)],
+            "country": SPECIAL_INSETS[sec_id]["country"],
+        }
+
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(out, separators=(",", ":")))
     size_kb = OUT_JSON.stat().st_size / 1024
     inset_count = sum(1 for s in out["sections"].values() if "inset" in s)
     print(f"Wrote {OUT_JSON} ({size_kb:.1f} KB, {len(out['sections'])} sections, "
-          f"{inset_count} with inset)")
+          f"{inset_count} with NE inset, {len(placed_specials)} special-position)")
 
 
 if __name__ == "__main__":
