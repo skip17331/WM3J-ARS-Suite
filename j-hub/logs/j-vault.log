@@ -1,2 +1,28 @@
 2026-05-12 17:27:10.575 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
 2026-05-12 17:27:11.688 INFO  com.jvault.JVaultMain — J-Vault running on http://localhost:8083/
+2026-05-12 17:49:31.420 ERROR com.jvault.JVaultMain — J-Vault failed to start web server: Failed to bind to 0.0.0.0/0.0.0.0:8083
+java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8083
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:304)
+	at org.eclipse.jetty.server.Server.lambda$doStart$0(Server.java:402)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at org.eclipse.jetty.server.Server.doStart(Server.java:398)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:93)
+	at com.jvault.JVaultServer.start(JVaultServer.java:82)
+	at com.jvault.JVaultMain.main(JVaultMain.java:40)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:577)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:344)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:301)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 16 common frames omitted

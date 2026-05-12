@@ -1,11 +1,5 @@
-2026-05-07 19:50:37.455 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
-2026-05-07 19:50:37.481 INFO  com.jvault.InventoryDao — Migrated inventory DB from /home/mike/.j-hub/inventory.db -> /home/mike/.j-vault/inventory.db
-2026-05-07 19:51:06.354 INFO  com.jvault.JVaultMain — Shutting down J-Vault.
-2026-05-07 19:58:56.961 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
-2026-05-07 19:59:35.513 INFO  com.jvault.JVaultMain — Shutting down J-Vault.
-2026-05-10 08:33:58.887 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:18083
-2026-05-10 08:33:59.033 INFO  com.jvault.JVaultMain — J-Vault running on http://localhost:18083/
-2026-05-10 08:34:02.442 INFO  com.jvault.JVaultMain — Shutting down J-Vault
-2026-05-10 09:22:14.738 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
-2026-05-10 09:22:14.987 INFO  com.jvault.JVaultMain — J-Vault running on http://localhost:8083/
-2026-05-10 14:04:02.137 INFO  com.jvault.JVaultMain — Shutting down J-Vault
+2026-05-12 17:49:07.839 INFO  com.jvault.JVaultServer — J-Vault web UI listening on http://localhost:8083
+2026-05-12 17:49:07.987 INFO  com.jvault.JVaultMain — J-Vault running on http://localhost:8083/
+2026-05-12 17:49:35.934 INFO  com.jvault.JVaultServer — Received /api/close from browser — shutting down J-Vault
+2026-05-12 17:49:35.977 INFO  com.jvault.JVaultServer — Received /api/close from browser — shutting down J-Vault
+2026-05-12 17:49:36.092 INFO  com.jvault.JVaultMain — Shutting down J-Vault
