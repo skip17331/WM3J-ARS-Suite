@@ -7,6 +7,9 @@ import com.jlog.award.AwardProgress;
 import com.jlog.award.AwardService;
 import com.jlog.ui.map.DxccMap;
 import com.jlog.ui.map.DxccTable;
+import com.jlog.ui.map.StatesMap;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -167,9 +170,33 @@ public class AwardsWindow {
         return box;
     }
 
+    /** Award ids that get a map view instead of the default Worked/Missing tabs. */
+    private static final Map<String, String> COLONY_CALLSIGN_TO_STATE = Map.ofEntries(
+        Map.entry("K2A", "CT"), Map.entry("K2B", "DE"), Map.entry("K2C", "GA"),
+        Map.entry("K2D", "MD"), Map.entry("K2E", "MA"), Map.entry("K2F", "NH"),
+        Map.entry("K2G", "NJ"), Map.entry("K2H", "NY"), Map.entry("K2I", "NC"),
+        Map.entry("K2J", "PA"), Map.entry("K2K", "RI"), Map.entry("K2L", "SC"),
+        Map.entry("K2M", "VA")
+    );
+
     private void showDetails(AwardPlugin a, AwardProgress prog) {
         if ("DXCC".equalsIgnoreCase(a.getAwardId())) {
             showDxccMapDetails(a, prog);
+            return;
+        }
+        if ("WAS".equalsIgnoreCase(a.getAwardId())) {
+            showStateMapDetails(a, prog, prog.workedValues, /*highlightOnly*/ null);
+            return;
+        }
+        if ("13_COLONIES_2026".equalsIgnoreCase(a.getAwardId())) {
+            // Translate worked callsigns (K2A…K2M) to state codes (CT…VA).
+            java.util.Set<String> workedStates = new java.util.HashSet<>();
+            for (String call : prog.workedValues) {
+                String st = COLONY_CALLSIGN_TO_STATE.get(call);
+                if (st != null) workedStates.add(st);
+            }
+            showStateMapDetails(a, prog, workedStates,
+                new java.util.HashSet<>(COLONY_CALLSIGN_TO_STATE.values()));
             return;
         }
         Stage d = new Stage();
@@ -259,6 +286,117 @@ public class AwardsWindow {
         table.setAllWorked(prog.workedValues);
 
         d.show();
+    }
+
+    /**
+     * State-based map view used by WAS and the 13 Colonies awards.
+     *
+     * @param workedStates  set of 2-letter state codes the user has worked
+     * @param highlightOnly if non-null, restrict the map and table to only
+     *                      these state codes (used by the 13 Colonies award);
+     *                      pass null for the full 50-state view (WAS).
+     */
+    private void showStateMapDetails(AwardPlugin a, AwardProgress prog,
+                                     Set<String> workedStates,
+                                     Set<String> highlightOnly) {
+        Stage d = new Stage();
+        d.initOwner(dialog);
+        d.initModality(Modality.NONE);
+        d.setTitle(a.getAwardName());
+
+        StatesMap map = new StatesMap();
+        map.setTooltipProvider(code -> code);
+        map.setRenderScale(0.80);
+
+        // Build a (code → label) lookup from the award targets so the table
+        // can show state names alongside the codes.
+        Map<String, String> codeToLabel = new LinkedHashMap<>();
+        if (a.getTargets() != null) {
+            for (AwardPlugin.Target t : a.getTargets()) {
+                String id    = t.getId();
+                String label = t.getLabel() == null ? id : t.getLabel();
+                String stateCode = highlightOnly != null
+                    ? COLONY_CALLSIGN_TO_STATE.get(id)   // colonies: id is a callsign
+                    : id;                                 // WAS: id is already a state code
+                if (stateCode == null) continue;
+                if (highlightOnly != null && !highlightOnly.contains(stateCode)) continue;
+                codeToLabel.put(stateCode, label);
+            }
+        }
+
+        TableView<StateRow> table = buildStateTable(codeToLabel, workedStates);
+
+        ScrollPane mapScroll = new ScrollPane(map);
+        mapScroll.setFitToWidth(false);
+        mapScroll.setFitToHeight(false);
+
+        HBox split = new HBox(mapScroll, table);
+        HBox.setHgrow(mapScroll, Priority.ALWAYS);
+
+        Label header = new Label(String.format(
+                "Worked: %d / %d   Current tier: %s",
+                prog.count(), prog.totalRequired(),
+                prog.currentTier() == null ? "—" : prog.currentTier().getName()));
+        header.setStyle("-fx-font-weight: bold; -fx-padding: 6 10 6 10;");
+
+        BorderPane root = new BorderPane(split);
+        root.setTop(header);
+        root.setStyle("-fx-background-color: -fx-control-inner-background;");
+
+        Scene scene = new Scene(root, 1440, 720);
+        JLogApp.applyTheme(scene);
+        d.setScene(scene);
+
+        map.setAllWorked(workedStates);
+
+        d.show();
+    }
+
+    /** Three-column table (Code, State, Status) for the WAS / Colonies map view. */
+    private TableView<StateRow> buildStateTable(Map<String, String> codeToLabel,
+                                                Set<String> workedStates) {
+        TableView<StateRow> table = new TableView<>();
+        table.setPrefWidth(420);
+        table.getStyleClass().add("dxcc-table");   // reuse worked/current CSS
+
+        TableColumn<StateRow, String> cCode = new TableColumn<>("Code");
+        cCode.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().code));
+        cCode.setPrefWidth(70);
+
+        TableColumn<StateRow, String> cName = new TableColumn<>("State");
+        cName.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().name));
+        cName.setPrefWidth(220);
+
+        TableColumn<StateRow, String> cStatus = new TableColumn<>("Worked");
+        cStatus.setCellValueFactory(c ->
+            new SimpleStringProperty(c.getValue().worked ? "✔" : ""));
+        cStatus.setPrefWidth(90);
+
+        table.getColumns().addAll(cCode, cName, cStatus);
+
+        ObservableList<StateRow> rows = FXCollections.observableArrayList();
+        for (var e : codeToLabel.entrySet()) {
+            rows.add(new StateRow(e.getKey(), e.getValue(), workedStates.contains(e.getKey())));
+        }
+        table.setItems(rows);
+        table.setRowFactory(tv -> new TableRow<>() {
+            @Override protected void updateItem(StateRow item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeAll("dxcc-row-worked");
+                if (!empty && item != null && item.worked) {
+                    getStyleClass().add("dxcc-row-worked");
+                }
+            }
+        });
+        return table;
+    }
+
+    private static class StateRow {
+        final String code, name;
+        final boolean worked;
+        StateRow(String code, String name, boolean worked) {
+            this.code = code; this.name = name; this.worked = worked;
+        }
     }
 
     private Tab targetsTab(String title, List<AwardPlugin.Target> items, boolean worked) {

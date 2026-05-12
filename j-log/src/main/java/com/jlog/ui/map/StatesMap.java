@@ -125,6 +125,22 @@ public class StatesMap extends Pane {
 
     public Set<String> regionIds() { return Collections.unmodifiableSet(shapes.keySet()); }
 
+    /**
+     * Render the map at {@code factor}× its native viewBox size. Mirrors
+     * {@link DxccMap#setRenderScale(double)} — applies a Scale transform
+     * AND resizes min/pref/max so parent containers reserve the scaled
+     * footprint, otherwise ScrollPane/HBox keep allocating the native size.
+     */
+    public void setRenderScale(double factor) {
+        double w = getPrefWidth()  * factor;
+        double h = getPrefHeight() * factor;
+        getTransforms().clear();
+        getTransforms().add(new javafx.scene.transform.Scale(factor, factor, 0, 0));
+        setMinSize(w, h);
+        setPrefSize(w, h);
+        setMaxSize(w, h);
+    }
+
     private List<String> resolveTargets(String id) {
         if (shapes.containsKey(id)) return List.of(id);
         List<String> aliased = aliasTargets.get(id);
