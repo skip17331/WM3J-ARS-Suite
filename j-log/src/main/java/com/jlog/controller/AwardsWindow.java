@@ -5,6 +5,8 @@ import com.jlog.award.AwardLoader;
 import com.jlog.award.AwardPlugin;
 import com.jlog.award.AwardProgress;
 import com.jlog.award.AwardService;
+import com.jlog.ui.map.DxccMap;
+import com.jlog.ui.map.DxccTable;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -166,6 +168,10 @@ public class AwardsWindow {
     }
 
     private void showDetails(AwardPlugin a, AwardProgress prog) {
+        if ("DXCC".equalsIgnoreCase(a.getAwardId())) {
+            showDxccMapDetails(a, prog);
+            return;
+        }
         Stage d = new Stage();
         d.initOwner(dialog);
         d.initModality(Modality.APPLICATION_MODAL);
@@ -204,6 +210,54 @@ public class AwardsWindow {
         Scene scene = new Scene(root, 520, 520);
         JLogApp.applyTheme(scene);
         d.setScene(scene);
+        d.show();
+    }
+
+    /** DXCC-specific details view: world map under a continent-grouped table.
+     *  Worked-set is the lifetime distinct DXCC-prefix set (already computed by
+     *  {@link AwardService} into {@code prog.workedValues}). */
+    private void showDxccMapDetails(AwardPlugin a, AwardProgress prog) {
+        Stage d = new Stage();
+        d.initOwner(dialog);
+        d.initModality(Modality.NONE);
+        d.setTitle(a.getAwardName());
+
+        DxccMap map = new DxccMap();
+        map.setTooltipProvider(entity -> {
+            DxccMap.EntityInfo info = map.entityInfo().get(entity);
+            return info != null ? entity + " — " + info.name() : entity;
+        });
+        map.setOnRegionClicked(prefix -> { /* awards view: clicking does nothing */ });
+        map.setRenderScale(0.80);
+
+        DxccTable table = new DxccTable(map.entityInfo());
+        table.setOnRowHovered(map::setCurrent);
+        table.setPrefWidth(420);
+
+        ScrollPane mapScroll = new ScrollPane(map);
+        mapScroll.setFitToWidth(false);
+        mapScroll.setFitToHeight(false);
+
+        HBox split = new HBox(mapScroll, table);
+        HBox.setHgrow(mapScroll, Priority.ALWAYS);
+
+        Label header = new Label(String.format(
+                "Worked: %d / %d   Current tier: %s",
+                prog.count(), prog.totalRequired(),
+                prog.currentTier() == null ? "—" : prog.currentTier().getName()));
+        header.setStyle("-fx-font-weight: bold; -fx-padding: 6 10 6 10;");
+
+        BorderPane root = new BorderPane(split);
+        root.setTop(header);
+        root.setStyle("-fx-background-color: -fx-control-inner-background;");
+
+        Scene scene = new Scene(root, 1440, 720);
+        JLogApp.applyTheme(scene);
+        d.setScene(scene);
+
+        map.setAllWorked(prog.workedValues);
+        table.setAllWorked(prog.workedValues);
+
         d.show();
     }
 

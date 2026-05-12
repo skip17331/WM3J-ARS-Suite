@@ -83,6 +83,12 @@
 .region-inset-frame    { -fx-fill: transparent; -fx-stroke: transparent; }
 .region-inset-title    { -fx-font-family: sans-serif; -fx-font-size: 10px; -fx-font-style: italic; -fx-text-fill: #616161; }
 .dxcc-tile-label       { -fx-font-family: monospace; -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #424242; }
+
+/* DXCC table — side-by-side with the world map */
+.dxcc-row-worked        { -fx-background-color: #4caf50; -fx-text-fill: white; }
+.dxcc-row-worked .text  { -fx-fill: white; }
+.dxcc-row-current       { -fx-background-color: #64b5f6; -fx-text-fill: white; }
+.dxcc-row-current .text { -fx-fill: white; }
 .cq-zone-label         { -fx-font-family: sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #212121; }
 .county-tile-label     { -fx-font-family: monospace; -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #212121; }
 .grid-cell             { -fx-fill: transparent; -fx-stroke: #bdbdbd; -fx-stroke-width: 0.5; }

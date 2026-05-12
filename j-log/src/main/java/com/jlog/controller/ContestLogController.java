@@ -19,6 +19,7 @@ import com.jlog.ui.map.ArrlSectionMap;
 import com.jlog.ui.map.CountyMap;
 import com.jlog.ui.map.CqZoneMap;
 import com.jlog.ui.map.DxccMap;
+import com.jlog.ui.map.DxccTable;
 import com.jlog.ui.map.MaidenheadGridMap;
 import com.jlog.ui.map.RegionMapPane;
 import com.jlog.ui.map.StatesMap;
@@ -110,6 +111,7 @@ public class ContestLogController implements Initializable {
     private ArrlSectionMap       ssSectionMapPane;
     private Stage                sectionMapStage;
     private DxccMap              dxccMapPane;
+    private DxccTable            dxccTablePane;
     private Stage                dxccMapStage;
     private StatesMap            statesMapPane;
     private Stage                statesMapStage;
@@ -1625,6 +1627,7 @@ public class ContestLogController implements Initializable {
                     if (workedMultsPane   != null) workedMultsPane.setWorked(worked);
                     if (statesMapPane     != null) statesMapPane.setAllWorked(worked);
                     if (dxccMapPane       != null) dxccMapPane.setAllWorked(worked);
+                    if (dxccTablePane     != null) dxccTablePane.setAllWorked(worked);
                     if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
                     if (gridMapPane       != null) gridMapPane.setAllWorked(worked);
                 });
@@ -1642,6 +1645,7 @@ public class ContestLogController implements Initializable {
         if (caMapPane     != null) caMapPane.setAllWorked(allWorked);
         if (dxccPane      != null) dxccPane.setAllWorked(allWorked);
         if (dxccMapPane   != null) dxccMapPane.setAllWorked(allWorked);
+        if (dxccTablePane != null) dxccTablePane.setAllWorked(allWorked);
         if (statesMapPane != null) statesMapPane.setAllWorked(allWorked);
         if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(allWorked);
         if (countyMapPane != null) countyMapPane.setAllWorked(allWorked);
@@ -1794,8 +1798,8 @@ public class ContestLogController implements Initializable {
         CountyMap map = new CountyMap(state);
         if (map.regionIds().isEmpty()) {
             new Alert(Alert.AlertType.INFORMATION,
-                "County map for " + state + " hasn't been built yet. "
-              + "Add it to tools/arrl-map/scripts/build_counties.py and run.").showAndWait();
+                "County map for " + state + " hasn't been built yet — "
+              + "no county-" + state.toLowerCase() + ".json resource on the classpath.").showAndWait();
             return;
         }
         map.setTooltipProvider(code -> code);
@@ -1960,27 +1964,42 @@ public class ContestLogController implements Initializable {
             return;
         }
         DxccMap map = new DxccMap();
-        map.setTooltipProvider(entity -> entity);
+        map.setTooltipProvider(entity -> {
+            DxccMap.EntityInfo info = map.entityInfo().get(entity);
+            return info != null ? entity + " — " + info.name() : entity;
+        });
         map.setOnRegionClicked(entity -> onMultiplierSelected(entity, "DX"));
+        map.setRenderScale(0.80);
         dxccMapPane = map;
 
-        ScrollPane sp = new ScrollPane(map);
-        sp.setFitToWidth(false);
-        sp.setFitToHeight(false);
-        BorderPane root = new BorderPane(sp);
+        DxccTable table = new DxccTable(map.entityInfo());
+        table.setOnRowClicked(prefix -> onMultiplierSelected(prefix, "DX"));
+        table.setOnRowHovered(prefix -> map.setCurrent(prefix));
+        table.setPrefWidth(420);
+
+        ScrollPane mapScroll = new ScrollPane(map);
+        mapScroll.setFitToWidth(false);
+        mapScroll.setFitToHeight(false);
+
+        HBox split = new HBox(mapScroll, table);
+        HBox.setHgrow(mapScroll, Priority.ALWAYS);
+
+        BorderPane root = new BorderPane(split);
         root.setStyle("-fx-background-color: -primary-bg;");
 
-        Scene scene = new Scene(root, 1240, 700);
+        Scene scene = new Scene(root, 1440, 720);
         JLogApp.applyTheme(scene);
 
         Stage st = new Stage();
         st.setTitle("World Map — " + plugin.getContestName());
         st.setScene(scene);
         st.setOnHidden(ev -> {
-            dxccMapStage = null;
-            dxccMapPane  = null;
+            dxccMapStage  = null;
+            dxccMapPane   = null;
+            dxccTablePane = null;
         });
-        dxccMapStage = st;
+        dxccMapStage  = st;
+        dxccTablePane = table;
         st.show();
 
         // Seed with current worked-entity set so the map reflects state
@@ -1990,6 +2009,7 @@ public class ContestLogController implements Initializable {
             List<String> worked = ContestQsoDao.getInstance()
                 .distinctFieldByColumn(plugin.getContestId(), multCol);
             map.setAllWorked(worked);
+            table.setAllWorked(worked);
         } catch (Exception e) {
             log.warn("Failed to seed DXCC map worked-set: {}", e.getMessage());
         }

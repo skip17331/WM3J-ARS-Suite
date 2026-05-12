@@ -44,8 +44,12 @@ public class DxccMap extends Pane {
     private static final Logger log = LoggerFactory.getLogger(DxccMap.class);
     private static final String RESOURCE = "/com/jlog/maps/dxcc-entities.json";
 
+    /** Compact metadata exposed to consumers (e.g., the companion table view). */
+    public record EntityInfo(String prefix, String name, String continent) {}
+
     private final Map<String, List<SVGPath>>  shapes = new LinkedHashMap<>();
     private final Map<String, List<String>>   aliasTargets = new LinkedHashMap<>();
+    private final Map<String, EntityInfo>     entityInfo = new LinkedHashMap<>();
     private final Set<String> worked = new HashSet<>();
     private String current;
     private String invalid;
@@ -110,6 +114,10 @@ public class DxccMap extends Pane {
             ps.add(p);
             shapes.put(id, ps);
 
+            String name = (String) ent.getOrDefault("name", id);
+            String continent = (String) ent.getOrDefault("continent", "??");
+            entityInfo.put(id, new EntityInfo(id, name, continent));
+
             getChildren().add(p);
             getChildren().add(lbl);
         }
@@ -130,6 +138,32 @@ public class DxccMap extends Pane {
     }
 
     public Set<String> regionIds() { return Collections.unmodifiableSet(shapes.keySet()); }
+
+    /** Read-only view of entity metadata (prefix → name/continent). */
+    public Map<String, EntityInfo> entityInfo() { return Collections.unmodifiableMap(entityInfo); }
+
+    /**
+     * Render the map at {@code factor}× its native viewBox size. Applies a
+     * {@link javafx.scene.transform.Scale} (pivot at 0,0) AND resizes the
+     * Pane's own reported bounds so parent containers reserve only the
+     * scaled area — otherwise ScrollPane / HBox keep allocating the full
+     * native size and the visible shrink appears to do nothing.
+     */
+    public void setRenderScale(double factor) {
+        double w = getPrefWidth()  * factor;
+        double h = getPrefHeight() * factor;
+        getTransforms().clear();
+        getTransforms().add(new javafx.scene.transform.Scale(factor, factor, 0, 0));
+        setMinSize(w, h);
+        setPrefSize(w, h);
+        setMaxSize(w, h);
+    }
+
+    /** Whether a prefix has been worked, after alias resolution. */
+    public boolean isWorked(String id) {
+        for (String target : resolveTargets(id)) if (worked.contains(target)) return true;
+        return false;
+    }
 
     private List<String> resolveTargets(String id) {
         if (shapes.containsKey(id)) return List.of(id);
