@@ -19,6 +19,7 @@ import com.jlog.ui.map.ArrlSectionMap;
 import com.jlog.ui.map.CountyMap;
 import com.jlog.ui.map.CqZoneMap;
 import com.jlog.ui.map.DxccMap;
+import com.jlog.ui.map.MaidenheadGridMap;
 import com.jlog.ui.map.RegionMapPane;
 import com.jlog.ui.map.StatesMap;
 import com.jlog.util.AppConfig;
@@ -116,6 +117,8 @@ public class ContestLogController implements Initializable {
     private Stage                cqZoneMapStage;
     private CountyMap            countyMapPane;
     private Stage                countyMapStage;
+    private MaidenheadGridMap    gridMapPane;
+    private Stage                gridMapStage;
     private SweepProgressPane    sweepProgressPane;
     private WorkedMultsPane      workedMultsPane;
     // Column (field1..field5) holding the multiplier value for this plugin.
@@ -1623,6 +1626,7 @@ public class ContestLogController implements Initializable {
                     if (statesMapPane     != null) statesMapPane.setAllWorked(worked);
                     if (dxccMapPane       != null) dxccMapPane.setAllWorked(worked);
                     if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
+                    if (gridMapPane       != null) gridMapPane.setAllWorked(worked);
                 });
             }
         } catch (Exception e) {
@@ -1641,6 +1645,7 @@ public class ContestLogController implements Initializable {
         if (statesMapPane != null) statesMapPane.setAllWorked(allWorked);
         if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(allWorked);
         if (countyMapPane != null) countyMapPane.setAllWorked(allWorked);
+        if (gridMapPane   != null) gridMapPane.setAllWorked(allWorked);
     }
 
     private void refreshPerModeGrid(Map<String, List<String>> workedByMode) {
@@ -1711,6 +1716,62 @@ public class ContestLogController implements Initializable {
 
     @FXML private void menuContestSetup() {
         openContestSetup();
+    }
+
+    /** Open the Maidenhead grid square map (for VHF contests). */
+    @FXML private void menuGridMap() {
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Load a contest first — the grid map needs a contest's worked set.").showAndWait();
+            return;
+        }
+        boolean tracksGrid =
+            (plugin.getMultiplierModel() != null
+                && "grid_rcvd".equals(plugin.getMultiplierModel().getField()))
+            || (plugin.getEntryFields() != null
+                && plugin.getEntryFields().stream().anyMatch(f -> "grid_rcvd".equals(f.getId())));
+        if (!tracksGrid) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Grid Square Map is only available for contests that track Maidenhead grids "
+                + "(ARRL January/June/September VHF).").showAndWait();
+            return;
+        }
+        if (gridMapStage != null && gridMapStage.isShowing()) {
+            gridMapStage.toFront();
+            return;
+        }
+        MaidenheadGridMap map = new MaidenheadGridMap();
+        map.setTooltipProvider(grid -> grid);
+        map.setOnRegionClicked(grid -> onMultiplierSelected(grid, "DX"));
+        gridMapPane = map;
+
+        ScrollPane sp = new ScrollPane(map);
+        sp.setFitToWidth(false);
+        sp.setFitToHeight(false);
+        BorderPane root = new BorderPane(sp);
+        root.setStyle("-fx-background-color: -primary-bg;");
+
+        Scene scene = new Scene(root, 1240, 760);
+        JLogApp.applyTheme(scene);
+
+        Stage st = new Stage();
+        st.setTitle("Grid Square Map — " + plugin.getContestName());
+        st.setScene(scene);
+        st.setOnHidden(ev -> {
+            gridMapStage = null;
+            gridMapPane  = null;
+        });
+        gridMapStage = st;
+        st.show();
+
+        try {
+            String multCol = this.multColumn;
+            List<String> worked = ContestQsoDao.getInstance()
+                .distinctFieldByColumn(plugin.getContestId(), multCol);
+            map.setAllWorked(worked);
+        } catch (Exception e) {
+            log.warn("Failed to seed grid map worked-set: {}", e.getMessage());
+        }
     }
 
     /** Open the per-state county map for the active state QSO party plugin. */

@@ -15,6 +15,7 @@ Tiers reflect engineering effort, not value.
 | **States + Provinces** | `j-log/src/main/resources/com/jlog/maps/us-states.json` (52 KB, 65 entities — 50 states + DC + PR + VI + 12 CA provinces) | Menu item `menuStatesMap`; `StatesMap` class; refresh in both per-mode-mults and section-tracker branches of `updateStats()`. NU dropped (Arctic islands). Covers ARRL DX DX-side CW/SSB + RTTY Roundup |
 | **CQ Zones** | `j-log/src/main/resources/com/jlog/maps/cq-zones.json` (31 KB, 40 zones, 9 numeric aliases) | Menu item `menuCqZonesMap`; `CqZoneMap` class. Parsed from MIT-licensed `go-cq-zone` Go source. Covers CQ WW CW/SSB/RTTY/Digital |
 | **County maps (per state)** | `j-log/src/main/resources/com/jlog/maps/county-<state>.json` | Generic `CountyMap` class + dynamic menu `menuCountyMap`. Shipped: CA (58), TX (254), WA (39), NC (100), FL (67), GA (159), MI (83), NY (62), OH (88), PA (67). GA has a known misalignment (non-alphabetical codes — needs the official GA QSO Party code reference). Canadian (BC/ON/QC) deferred — needs StatCan CD data which the portal blocks |
+| **Maidenhead grid squares** | `j-log/src/main/resources/com/jlog/maps/maidenhead-grids.json` (221 KB, 1254 cells covering -130°W to -55°W, 22°N to 55°N) | Menu item `menuGridMap`; `MaidenheadGridMap` class. Procedurally generated cells + states/provinces outline background. Worked-set accepts 6-char subsquares (truncates to 4-char). Covers ARRL Jan/June/Sep VHF |
 
 ## Tier 1 — free reuse (no new data)
 
