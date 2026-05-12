@@ -5,6 +5,9 @@ import com.jlog.award.AwardLoader;
 import com.jlog.award.AwardPlugin;
 import com.jlog.award.AwardProgress;
 import com.jlog.award.AwardService;
+import com.jlog.db.QsoDao;
+import com.jlog.export.ColoniesLogSheetPdf;
+import com.jlog.model.QsoRecord;
 import com.jlog.ui.map.DxccMap;
 import com.jlog.ui.map.DxccTable;
 import com.jlog.ui.map.StatesMap;
@@ -170,13 +173,14 @@ public class AwardsWindow {
         return box;
     }
 
-    /** Award ids that get a map view instead of the default Worked/Missing tabs. */
+    /** Per the 2025 organizer sheet — K2x to state assignment changes year
+     *  to year, but this is the authoritative mapping for this build. */
     private static final Map<String, String> COLONY_CALLSIGN_TO_STATE = Map.ofEntries(
-        Map.entry("K2A", "CT"), Map.entry("K2B", "DE"), Map.entry("K2C", "GA"),
-        Map.entry("K2D", "MD"), Map.entry("K2E", "MA"), Map.entry("K2F", "NH"),
-        Map.entry("K2G", "NJ"), Map.entry("K2H", "NY"), Map.entry("K2I", "NC"),
-        Map.entry("K2J", "PA"), Map.entry("K2K", "RI"), Map.entry("K2L", "SC"),
-        Map.entry("K2M", "VA")
+        Map.entry("K2A", "NY"), Map.entry("K2B", "VA"), Map.entry("K2C", "RI"),
+        Map.entry("K2D", "CT"), Map.entry("K2E", "DE"), Map.entry("K2F", "MD"),
+        Map.entry("K2G", "GA"), Map.entry("K2H", "MA"), Map.entry("K2I", "NJ"),
+        Map.entry("K2J", "NC"), Map.entry("K2K", "NH"), Map.entry("K2L", "SC"),
+        Map.entry("K2M", "PA")
     );
 
     private void showDetails(AwardPlugin a, AwardProgress prog) {
@@ -333,11 +337,25 @@ public class AwardsWindow {
         HBox split = new HBox(mapScroll, table);
         HBox.setHgrow(mapScroll, Priority.ALWAYS);
 
-        Label header = new Label(String.format(
+        Label headerLabel = new Label(String.format(
                 "Worked: %d / %d   Current tier: %s",
                 prog.count(), prog.totalRequired(),
                 prog.currentTier() == null ? "—" : prog.currentTier().getName()));
-        header.setStyle("-fx-font-weight: bold; -fx-padding: 6 10 6 10;");
+        headerLabel.setStyle("-fx-font-weight: bold; -fx-padding: 6 10 6 10;");
+
+        HBox header = new HBox(10, headerLabel);
+        header.setAlignment(Pos.CENTER_LEFT);
+        // Spacer pushes any extras to the right.
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        header.getChildren().add(spacer);
+        if ("13_COLONIES_2026".equalsIgnoreCase(a.getAwardId())) {
+            Button pdfBtn = new Button("Log Sheet PDF…");
+            pdfBtn.getStyleClass().add("primary-button");
+            pdfBtn.setOnAction(ev -> exportColoniesPdf(d));
+            HBox.setMargin(pdfBtn, new Insets(4, 10, 4, 0));
+            header.getChildren().add(pdfBtn);
+        }
 
         BorderPane root = new BorderPane(split);
         root.setTop(header);
@@ -350,6 +368,46 @@ public class AwardsWindow {
         map.setAllWorked(workedStates);
 
         d.show();
+    }
+
+    /** "Log Sheet PDF…" handler — pulls the first QSO logged for each
+     *  Colony callsign and writes the certificate-request form. */
+    private void exportColoniesPdf(Stage owner) {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Save 13 Colonies Log Sheet");
+        fc.setInitialFileName("13-colonies-log-sheet.pdf");
+        fc.getExtensionFilters().add(
+            new javafx.stage.FileChooser.ExtensionFilter("PDF", "*.pdf"));
+        java.io.File out = fc.showSaveDialog(owner);
+        if (out == null) return;
+
+        Map<String, QsoRecord> firstPerCall = new LinkedHashMap<>();
+        try {
+            // All 16 callsigns we care about — 13 colonies + 3 bonus.
+            Set<String> targets = new HashSet<>(COLONY_CALLSIGN_TO_STATE.keySet());
+            targets.add("WM3PEN");
+            targets.add("GB13COL");
+            targets.add("TM13COL");
+
+            for (QsoRecord q : QsoDao.getInstance().fetchAll()) {
+                String call = q.getCallsign() == null ? "" : q.getCallsign().toUpperCase();
+                if (!targets.contains(call)) continue;
+                firstPerCall.putIfAbsent(call, q); // earliest QSO wins (fetchAll is ASC by time)
+            }
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.ERROR,
+                "Could not read QSOs: " + e.getMessage()).showAndWait();
+            return;
+        }
+
+        try {
+            ColoniesLogSheetPdf.write(out.toPath(), firstPerCall, /*operator*/ null);
+            new Alert(Alert.AlertType.INFORMATION,
+                "Saved log sheet to:\n" + out.getAbsolutePath()).showAndWait();
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.ERROR,
+                "PDF write failed: " + e.getMessage()).showAndWait();
+        }
     }
 
     /** Three-column table (Code, State, Status) for the WAS / Colonies map view. */

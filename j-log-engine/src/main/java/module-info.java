@@ -8,6 +8,7 @@ module com.jlog.engine {
     requires org.slf4j;
     requires ch.qos.logback.classic;
     requires ch.qos.logback.core;
+    requires org.apache.pdfbox;
 
     opens com.jlog.model  to com.fasterxml.jackson.databind;
     opens com.jlog.plugin to com.fasterxml.jackson.databind;

@@ -42,6 +42,13 @@
             <version>${jssc.version}</version>
         </dependency>
 
+        <!-- PDF generation (13 Colonies log sheet, future ADIF→PDF) -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
         <!-- Java-WebSocket (hub connection) -->
         <dependency>
             <groupId>org.java-websocket</groupId>

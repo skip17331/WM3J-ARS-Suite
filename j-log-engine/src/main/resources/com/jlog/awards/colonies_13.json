@@ -1,7 +1,7 @@
 {
   "awardId":     "13_COLONIES_2026",
-  "awardName":   "13 Colonies Special Event 2026",
-  "description": "Work each of the 13 Colony stations (K2A–K2M) during Independence Day week. Bonus stations WM3PHL (Philadelphia), GB13COL (UK), TM13COL (France).",
+  "awardName":   "13 Colonies Special Event",
+  "description": "Work each of the 13 Colony stations (K2A–K2M) during Independence Day week. Bonus stations: WM3PEN (Pennsylvania), GB13COL (UK), TM13COL (France). Annual K2x→state assignments come from the organizer; this build matches the 2025 sheet.",
   "matchOn":     "callsign",
   "targetLabel": "Colony stations",
 
@@ -11,23 +11,23 @@
   },
 
   "targets": [
-    {"id":"K2A","label":"Connecticut"},
-    {"id":"K2B","label":"Delaware"},
-    {"id":"K2C","label":"Georgia"},
-    {"id":"K2D","label":"Maryland"},
-    {"id":"K2E","label":"Massachusetts"},
-    {"id":"K2F","label":"New Hampshire"},
-    {"id":"K2G","label":"New Jersey"},
-    {"id":"K2H","label":"New York"},
-    {"id":"K2I","label":"North Carolina"},
-    {"id":"K2J","label":"Pennsylvania"},
-    {"id":"K2K","label":"Rhode Island"},
+    {"id":"K2A","label":"New York"},
+    {"id":"K2B","label":"Virginia"},
+    {"id":"K2C","label":"Rhode Island"},
+    {"id":"K2D","label":"Connecticut"},
+    {"id":"K2E","label":"Delaware"},
+    {"id":"K2F","label":"Maryland"},
+    {"id":"K2G","label":"Georgia"},
+    {"id":"K2H","label":"Massachusetts"},
+    {"id":"K2I","label":"New Jersey"},
+    {"id":"K2J","label":"North Carolina"},
+    {"id":"K2K","label":"New Hampshire"},
     {"id":"K2L","label":"South Carolina"},
-    {"id":"K2M","label":"Virginia"}
+    {"id":"K2M","label":"Pennsylvania"}
   ],
 
   "bonus": [
-    {"id":"WM3PHL",  "label":"Philadelphia"},
+    {"id":"WM3PEN",  "label":"Pennsylvania bonus"},
     {"id":"GB13COL", "label":"UK companion"},
     {"id":"TM13COL", "label":"France companion"}
   ],
