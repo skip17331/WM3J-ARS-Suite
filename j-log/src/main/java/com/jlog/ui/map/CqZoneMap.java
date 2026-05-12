@@ -26,8 +26,7 @@ import java.util.function.Function;
 
 /**
  * World CQ Zone map (40 zones). Loads polygons from
- * {@code /com/jlog/maps/cq-zones.json} (produced by
- * {@code tools/arrl-map/scripts/build_cq_zones.py} from MIT-licensed
+ * {@code /com/jlog/maps/cq-zones.json} (derived from MIT-licensed
  * go-cq-zone data, © Mark Beech 2015-2018).
  *
  * <p>Section IDs are zero-padded zone numbers ("01"…"40"). One-digit

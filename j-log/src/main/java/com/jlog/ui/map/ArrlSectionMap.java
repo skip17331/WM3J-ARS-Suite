@@ -27,8 +27,7 @@ import java.util.function.Function;
 
 /**
  * Real geographic ARRL / RAC section map. Loads pre-built section polygons
- * from {@code /com/jlog/maps/arrl-sections.json} (produced by
- * {@code tools/arrl-map/scripts/build_sections.py}) and renders each section
+ * from {@code /com/jlog/maps/arrl-sections.json} and renders each section
  * as an {@link SVGPath} with the same CSS state classes as
  * {@link RegionMapPane} so the existing refresh path in
  * {@code ContestLogController.updateStats()} Just Works.

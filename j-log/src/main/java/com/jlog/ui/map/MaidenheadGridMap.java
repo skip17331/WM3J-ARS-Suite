@@ -27,8 +27,7 @@ import java.util.function.Function;
 /**
  * Maidenhead 4-char grid square map for ARRL VHF contests (Jan/June/Sep).
  *
- * <p>Loads polygons from {@code /com/jlog/maps/maidenhead-grids.json}
- * (produced by {@code tools/arrl-map/scripts/build_grids.py}). Covers
+ * <p>Loads polygons from {@code /com/jlog/maps/maidenhead-grids.json}. Covers
  * continental North America (1254 squares at 2°×1° each) with a thin
  * states/provinces outline as background context.
  *

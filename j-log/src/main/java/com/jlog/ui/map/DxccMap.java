@@ -26,8 +26,7 @@ import java.util.function.Function;
 
 /**
  * World DXCC entity map. Loads pre-built entity polygons from
- * {@code /com/jlog/maps/dxcc-entities.json} (produced by
- * {@code tools/arrl-map/scripts/build_dxcc.py}) and renders each entity as
+ * {@code /com/jlog/maps/dxcc-entities.json} and renders each entity as
  * an {@link SVGPath} keyed by its primary DXCC prefix (K, JA, DL, F, …).
  *
  * <p>Worked / current / invalid / click / tooltip API mirrors

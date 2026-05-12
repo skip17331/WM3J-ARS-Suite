@@ -28,8 +28,7 @@ import java.util.function.Function;
  * Geographic US states + Canadian provinces map for contests whose
  * multiplier is states/provinces (ARRL DX DX-side, RTTY Roundup).
  *
- * <p>Loads polygons from {@code /com/jlog/maps/us-states.json} (produced by
- * {@code tools/arrl-map/scripts/build_states.py}). Section IDs are 2-letter
+ * <p>Loads polygons from {@code /com/jlog/maps/us-states.json}. Section IDs are 2-letter
  * postal codes (CT, NY, CA, ON, BC, …). AK / HI / PR / VI are rendered as
  * insets at fixed canvas positions, same convention as
  * {@link ArrlSectionMap}.
