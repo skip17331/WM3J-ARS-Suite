@@ -121,23 +121,21 @@ public class AdifImporter {
                 r.failures.add("Missing CALL in record");
                 return;
             }
-            boolean dupe = QsoDao.getInstance()
-                .isDuplicate(q.getCallsign(), q.getBand() == null ? "" : q.getBand(),
-                             q.getMode() == null ? "" : q.getMode());
+            String band = q.getBand() == null ? "" : q.getBand();
+            String mode = q.getMode() == null ? "" : q.getMode();
+            boolean dupe = QsoDao.getInstance().isDuplicate(q.getCallsign(), band, mode);
             if (dupe) {
-                switch (dupeMode) {
-                    case SKIP      -> { r.skipped++; return; }
-                    case OVERWRITE -> { /* find existing id and update */
-                        // Simplest: rely on unique (callsign,band,mode) being rare. Overwrite by
-                        // deleting all matches and re-inserting. Safer if operator expects clean
-                        // replacement. For now use update-via-fetch-and-edit.
-                        r.overwritten++;
-                        // TODO: track the existing id — current QsoDao doesn't expose a lookup by
-                        // (call,band,mode), so we insert as a fresh row. Dupe-check above
-                        // prevents accidental accumulation via SKIP mode, which is the safe default.
-                    }
-                    case APPEND    -> { /* fall through to insert */ }
+                if (dupeMode == DupeMode.SKIP) {
+                    r.skipped++;
+                    return;
                 }
+                if (dupeMode == DupeMode.OVERWRITE) {
+                    QsoDao.getInstance().deleteByKey(q.getCallsign(), band, mode);
+                    QsoDao.getInstance().insert(q);
+                    r.overwritten++;
+                    return;
+                }
+                // APPEND: fall through to the plain insert below.
             }
             QsoDao.getInstance().insert(q);
             r.imported++;

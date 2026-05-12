@@ -120,6 +120,19 @@ public class QsoDao {
         }
     }
 
+    /** Delete every row matching the (callsign, band, mode) dupe key.
+     *  Returns the number of rows removed — typically 0 or 1, but can be
+     *  greater if past APPEND imports accumulated duplicates. */
+    public int deleteByKey(String callsign, String band, String mode) throws SQLException {
+        String sql = "DELETE FROM qso WHERE callsign=? AND band=? AND mode=?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setString(1, callsign == null ? "" : callsign.toUpperCase());
+            ps.setString(2, band == null ? "" : band);
+            ps.setString(3, mode == null ? "" : mode);
+            return ps.executeUpdate();
+        }
+    }
+
     /** Check for duplicate (same callsign + band + mode). */
     public boolean isDuplicate(String callsign, String band, String mode) throws SQLException {
         String sql = "SELECT COUNT(*) FROM qso WHERE callsign=? AND band=? AND mode=?";
