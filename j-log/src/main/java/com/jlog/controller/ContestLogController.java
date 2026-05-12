@@ -15,6 +15,7 @@ import com.jlog.ui.contest.SweepProgressPane;
 import com.jlog.ui.contest.WorkedBeforePane;
 import com.jlog.ui.contest.WorkedGridsPane;
 import com.jlog.ui.contest.WorkedMultsPane;
+import com.jlog.ui.map.ArrlSectionMap;
 import com.jlog.ui.map.RegionMapPane;
 import com.jlog.util.AppConfig;
 import com.jlog.util.BandPlan;
@@ -101,7 +102,8 @@ public class ContestLogController implements Initializable {
     private PerModeMultGridPane  perModeGrid;
     private WorkedBeforePane     workedBeforePane;
     private WorkedGridsPane      gridsPane;
-    private RegionMapPane        ssSectionMapPane;
+    private ArrlSectionMap       ssSectionMapPane;
+    private Stage                sectionMapStage;
     private SweepProgressPane    sweepProgressPane;
     private WorkedMultsPane      workedMultsPane;
     // Column (field1..field5) holding the multiplier value for this plugin.
@@ -464,12 +466,12 @@ public class ContestLogController implements Initializable {
                     HBox.setHgrow(tp, Priority.ALWAYS);
                 }
                 case "ss_section_map" -> {
-                    ssSectionMapPane = RegionMapPane.ssSections();
+                    ssSectionMapPane = new ArrlSectionMap();
                     ssSectionMapPane.setTooltipProvider(this::stateTooltip);
                     ssSectionMapPane.setOnRegionClicked(sec -> onMultiplierSelected(sec, "US"));
                     ScrollPane sp = new ScrollPane(ssSectionMapPane);
                     sp.setFitToWidth(true);
-                    sp.setPrefHeight(320);
+                    sp.setPrefHeight(400);
                     tp.setContent(sp);
                     HBox.setHgrow(tp, Priority.ALWAYS);
                 }
@@ -883,7 +885,7 @@ public class ContestLogController implements Initializable {
     private void onMultiplierSelected(String value, String region) {
         // state_prov_rcvd for US / Canada, dxcc_rcvd for DX — controller tolerates either name.
         String target = switch (region) {
-            case "US", "CA" -> firstPresent("state_prov_rcvd", "state_rcvd", "section");
+            case "US", "CA" -> firstPresent("state_prov_rcvd", "state_rcvd", "section", "sect_rcvd");
             case "DX"       -> firstPresent("dxcc_rcvd", "country_rcvd");
             default          -> null;
         };
@@ -1690,6 +1692,63 @@ public class ContestLogController implements Initializable {
 
     @FXML private void menuContestSetup() {
         openContestSetup();
+    }
+
+    /** Open the geographic ARRL section map in its own resizable window. */
+    @FXML private void menuSectionMap() {
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Load a contest first — the section map needs a contest's worked set.").showAndWait();
+            return;
+        }
+        String mt = plugin.getScoringRules() != null
+                ? plugin.getScoringRules().getMultiplierType() : null;
+        if (!"sections".equals(mt)) {
+            new Alert(Alert.AlertType.INFORMATION,
+                "Section Map is only available for contests whose multiplier is ARRL sections "
+                + "(currently: Sweepstakes, Field Day, Rookie Roundup).").showAndWait();
+            return;
+        }
+        if (sectionMapStage != null && sectionMapStage.isShowing()) {
+            sectionMapStage.toFront();
+            return;
+        }
+        ArrlSectionMap map = new ArrlSectionMap();
+        map.setTooltipProvider(this::stateTooltip);
+        map.setOnRegionClicked(sec -> onMultiplierSelected(sec, "US"));
+
+        // Route the existing refresh path into this map.
+        ssSectionMapPane = map;
+
+        ScrollPane sp = new ScrollPane(map);
+        sp.setFitToWidth(false);
+        sp.setFitToHeight(false);
+        BorderPane root = new BorderPane(sp);
+        root.setStyle("-fx-background-color: -primary-bg;");
+
+        Scene scene = new Scene(root, 1240, 830);
+        JLogApp.applyTheme(scene);
+
+        Stage st = new Stage();
+        st.setTitle("Section Map — " + plugin.getContestName());
+        st.setScene(scene);
+        st.setOnHidden(ev -> {
+            sectionMapStage = null;
+            ssSectionMapPane = null;
+        });
+        sectionMapStage = st;
+        st.show();
+
+        // Seed with current worked set so the map reflects state immediately
+        // (the next QSO save will also refresh via updateStats()).
+        try {
+            String multCol = this.multColumn;
+            List<String> worked = ContestQsoDao.getInstance()
+                .distinctFieldByColumn(plugin.getContestId(), multCol);
+            map.setAllWorked(worked);
+        } catch (Exception e) {
+            log.warn("Failed to seed section map worked-set: {}", e.getMessage());
+        }
     }
 
     @FXML private void menuNewDatabase() {

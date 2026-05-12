@@ -1,67 +1,355 @@
-2026-04-20 09:16:21.788 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
-2026-04-20 09:16:21.842 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:16:21.843 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
-2026-04-20 09:16:21.872 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
-2026-04-20 09:16:21.881 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
-2026-04-20 09:16:21.893 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
-2026-04-20 09:16:22.018 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
-2026-04-20 09:16:22.019 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
-2026-04-20 09:16:22.021 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
-2026-04-20 09:16:22.025 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
-2026-04-20 09:16:22.026 WARN  com.hamradio.jhub.JHubMain — No j-log command configured — logging engine not started
-2026-04-20 09:16:22.027 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
-2026-04-20 09:16:22.027 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
-2026-04-20 09:16:22.028 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
-2026-04-20 09:16:27.323 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:59658
-2026-04-20 09:16:27.350 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
-2026-04-20 09:16:27.359 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
-2026-04-20 09:16:27.962 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:59662
-2026-04-20 09:16:27.964 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
-2026-04-20 09:16:27.969 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
-2026-04-20 09:16:37.037 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
-2026-04-20 09:16:37.038 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
-2026-04-20 09:16:37.041 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1006, reason=)
-2026-04-20 09:16:37.042 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
-2026-04-20 09:16:39.470 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:41476
-2026-04-20 09:16:39.500 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
-2026-04-20 09:16:39.502 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
-2026-04-20 09:17:09.643 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:17:09.645 INFO  com.hamradio.jhub.ClusterManager — Cluster disconnected (executors kept alive — reconnect available)
-2026-04-20 09:19:18.771 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:20:42.110 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:21:16.308 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:48056
-2026-04-20 09:21:16.316 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
-2026-04-20 09:21:16.317 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
-2026-04-20 09:21:16.858 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:48066
-2026-04-20 09:21:16.859 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
-2026-04-20 09:21:16.862 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
-2026-04-20 09:21:24.219 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:21:24.220 INFO  com.hamradio.jhub.ClusterManager — Connecting to DX cluster dxc.n7tr.com:7300 …
-2026-04-20 09:21:27.444 WARN  com.hamradio.jhub.ClusterManager — Cluster connection failed: No route to host — retrying in 5s
-2026-04-20 09:21:32.445 INFO  com.hamradio.jhub.ClusterManager — Connecting to DX cluster dxc.n7tr.com:7300 …
-2026-04-20 09:21:34.112 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:35356
-2026-04-20 09:21:34.116 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
-2026-04-20 09:21:34.122 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
-2026-04-20 09:21:35.572 WARN  com.hamradio.jhub.ClusterManager — Cluster connection failed: No route to host — retrying in 10s
-2026-04-20 09:21:45.573 INFO  com.hamradio.jhub.ClusterManager — Connecting to DX cluster dxc.n7tr.com:7300 …
-2026-04-20 09:21:48.719 WARN  com.hamradio.jhub.ClusterManager — Cluster connection failed: No route to host — retrying in 20s
-2026-04-20 09:21:49.815 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:21:50.816 INFO  com.hamradio.jhub.ClusterManager — Connecting to DX cluster 104.128.238.234:7300 …
-2026-04-20 09:21:53.698 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:22:05.086 INFO  com.hamradio.jhub.ConfigManager — Configuration saved to /home/mike/ARS_Suite/j-log/j-hub.json
-2026-04-20 09:22:23.521 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
-2026-04-20 09:22:23.521 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
-2026-04-20 09:22:27.013 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1006, reason=)
-2026-04-20 09:22:27.014 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
-2026-04-20 09:22:35.067 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
-2026-04-20 09:22:35.070 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
-2026-04-20 09:22:35.073 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
-2026-04-20 09:22:35.074 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
-2026-04-20 09:22:35.083 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
-2026-04-20 09:22:35.084 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
-2026-04-20 09:22:35.086 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
-2026-04-20 09:22:35.087 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
-2026-04-20 09:22:35.827 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
-2026-04-20 09:22:35.828 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
-2026-04-20 09:22:35.829 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
-2026-04-20 09:22:35.857 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-12 12:03:31.248 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-12 12:03:31.293 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-log/j-hub.json
+2026-05-12 12:03:31.294 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-12 12:03:31.319 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-12 12:03:31.325 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-12 12:03:31.332 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-12 12:03:31.450 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-12 12:03:31.450 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-12 12:03:31.451 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-12 12:03:31.453 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-12 12:03:31.456 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-12 12:03:31.457 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-12 12:03:31.652 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-12 12:03:31.654 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-12 12:03:31.656 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-12 12:03:31.657 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-12 12:03:31.658 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-12 12:03:31.659 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-12 12:03:31.659 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-12 12:03:31.664 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-12 12:03:31.665 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-12 12:03:31.665 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-12 12:03:33.143 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 12:03:33.150 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 12:03:41.458 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.4","solarwind":"348.4","geomag":"Quiet","fetchedAt":"2026-05-12T16:03:41.457959097Z","source":"NOAA SWPC"}
+2026-05-12 12:03:46.840 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:51738
+2026-05-12 12:03:46.846 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-12 12:03:46.851 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-12 12:03:46.976 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-12 12:03:47.017 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_SS_SSB (now 1 stations)
+2026-05-12 12:03:47.529 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:51744
+2026-05-12 12:03:47.531 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-12 12:03:47.534 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-12 12:03:52.390 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 12:04:01.664 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 12:04:02.006 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102022 bytes)
+2026-05-12 12:04:02.291 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (359603 bytes)
+2026-05-12 12:04:02.291 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 12:04:02.294 DEBUG com.hamradio.jhub.MessageRouter — DATA_UPDATE_STATUS published — cty=102022B scp=359603B
+2026-05-12 12:04:29.282 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_SS_SSB (now 0 stations)
+2026-05-12 12:04:29.283 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-12 12:04:29.293 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-12 12:04:29.294 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-12 12:04:29.297 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-05-12 12:04:29.298 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-12 12:04:36.148 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-12 12:04:36.151 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 12:04:36.154 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-12 12:04:36.154 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-12 12:04:36.906 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 12:04:36.908 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-12 12:04:36.910 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-12 12:04:36.912 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-12 12:04:36.913 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-12 12:04:36.915 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 12:04:36.955 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-12 12:20:28.975 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-12 12:20:29.013 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-log/j-hub.json
+2026-05-12 12:20:29.014 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-12 12:20:29.040 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-12 12:20:29.045 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-12 12:20:29.053 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-12 12:20:29.168 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-12 12:20:29.168 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-12 12:20:29.170 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-12 12:20:29.171 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-12 12:20:29.175 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-12 12:20:29.176 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-12 12:20:29.366 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-12 12:20:29.368 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-12 12:20:29.370 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-12 12:20:29.371 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-12 12:20:29.372 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-12 12:20:29.374 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-12 12:20:29.374 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-12 12:20:29.378 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-12 12:20:29.379 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-12 12:20:29.380 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-12 12:20:30.337 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 12:20:30.341 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 12:20:39.178 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.3","solarwind":"349.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:20:39.177882498Z","source":"NOAA SWPC"}
+2026-05-12 12:20:49.751 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:33224
+2026-05-12 12:20:49.763 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-12 12:20:49.769 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-12 12:20:49.802 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-12 12:20:49.805 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_SS_SSB (now 1 stations)
+2026-05-12 12:20:49.938 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 12:20:50.420 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:33238
+2026-05-12 12:20:50.422 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-12 12:20:50.424 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-12 12:20:56.656 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_SS_SSB (now 0 stations)
+2026-05-12 12:20:56.659 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-12 12:20:56.665 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-12 12:20:56.666 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-12 12:20:56.672 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-05-12 12:20:56.673 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-12 12:20:59.378 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 12:20:59.748 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102022 bytes)
+2026-05-12 12:21:00.076 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (359603 bytes)
+2026-05-12 12:21:00.077 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 12:21:00.080 DEBUG com.hamradio.jhub.MessageRouter — DATA_UPDATE_STATUS published — cty=102022B scp=359603B
+2026-05-12 12:21:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.3","solarwind":"349.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:21:39.177260979Z","source":"NOAA SWPC"}
+2026-05-12 12:22:39.176 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.3","solarwind":"349.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:22:39.176650762Z","source":"NOAA SWPC"}
+2026-05-12 12:23:39.176 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.3","solarwind":"349.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:23:39.176571117Z","source":"NOAA SWPC"}
+2026-05-12 12:24:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.3","solarwind":"349.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:24:39.177017944Z","source":"NOAA SWPC"}
+2026-05-12 12:25:30.137 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 12:25:30.139 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 12:25:39.176 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"349.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:25:39.176629687Z","source":"NOAA SWPC"}
+2026-05-12 12:25:50.065 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 12:26:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"349.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:26:39.177102365Z","source":"NOAA SWPC"}
+2026-05-12 12:27:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"349.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:27:39.177092815Z","source":"NOAA SWPC"}
+2026-05-12 12:28:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"349.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:28:39.176902928Z","source":"NOAA SWPC"}
+2026-05-12 12:29:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"349.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:29:39.176905770Z","source":"NOAA SWPC"}
+2026-05-12 12:30:29.873 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 12:30:29.875 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 12:30:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.0","solarwind":"350.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:30:39.176851281Z","source":"NOAA SWPC"}
+2026-05-12 12:30:50.044 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 12:31:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.0","solarwind":"350.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:31:39.176868393Z","source":"NOAA SWPC"}
+2026-05-12 12:32:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.0","solarwind":"350.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:32:39.176905472Z","source":"NOAA SWPC"}
+2026-05-12 12:33:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.0","solarwind":"350.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:33:39.176872195Z","source":"NOAA SWPC"}
+2026-05-12 12:34:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.0","solarwind":"350.1","geomag":"Quiet","fetchedAt":"2026-05-12T16:34:39.176860669Z","source":"NOAA SWPC"}
+2026-05-12 12:35:29.992 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 12:35:29.993 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 12:35:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.1","solarwind":"350.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:35:39.176926953Z","source":"NOAA SWPC"}
+2026-05-12 12:35:50.025 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 12:36:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.1","solarwind":"350.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:36:39.176867472Z","source":"NOAA SWPC"}
+2026-05-12 12:37:39.177 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.1","solarwind":"350.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:37:39.176955029Z","source":"NOAA SWPC"}
+2026-05-12 12:38:39.176 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B9.1","solarwind":"350.3","geomag":"Quiet","fetchedAt":"2026-05-12T16:38:39.176537899Z","source":"NOAA SWPC"}
+2026-05-12 12:38:41.841 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-12 12:38:41.842 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 12:38:41.843 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-12 12:38:41.843 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-12 12:38:42.594 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 12:38:42.594 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-12 12:38:42.595 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-12 12:38:42.595 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-12 12:38:42.596 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-12 12:38:42.596 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 12:38:42.622 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-12 12:54:08.106 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-12 12:54:08.222 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-log/j-hub.json
+2026-05-12 12:54:08.226 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-12 12:54:08.295 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-12 12:54:08.311 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-12 12:54:08.326 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-12 12:54:08.728 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-12 12:54:08.729 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-12 12:54:08.733 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-12 12:54:08.738 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-12 12:54:08.747 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-12 12:54:08.750 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-12 12:54:09.417 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-12 12:54:09.425 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-12 12:54:09.433 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-12 12:54:09.436 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-12 12:54:09.442 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-12 12:54:09.446 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-12 12:54:09.446 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-12 12:54:09.464 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-12 12:54:09.468 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-12 12:54:09.470 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-12 12:54:12.031 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 12:54:12.055 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 12:54:18.762 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B8.7","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T16:54:18.761377681Z","source":"NOAA SWPC"}
+2026-05-12 12:54:22.209 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:54754
+2026-05-12 12:54:22.220 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-12 12:54:22.234 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-12 12:54:22.399 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-12 12:54:22.440 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_SS_SSB (now 1 stations)
+2026-05-12 12:54:23.464 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:54758
+2026-05-12 12:54:23.467 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-12 12:54:23.469 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-12 12:54:29.966 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 12:54:39.461 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 12:54:39.871 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102022 bytes)
+2026-05-12 12:54:40.128 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (359603 bytes)
+2026-05-12 12:54:40.129 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 12:54:40.133 DEBUG com.hamradio.jhub.MessageRouter — DATA_UPDATE_STATUS published — cty=102022B scp=359603B
+2026-05-12 12:55:18.751 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B8.7","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T16:55:18.750531535Z","source":"NOAA SWPC"}
+2026-05-12 12:55:54.025 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_SS_SSB (now 0 stations)
+2026-05-12 12:55:54.026 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-12 12:55:54.035 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-12 12:55:54.036 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-12 12:55:54.038 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1006, reason=)
+2026-05-12 12:55:54.040 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-12 12:55:57.998 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-12 12:55:58.001 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 12:55:58.005 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-12 12:55:58.006 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-12 12:55:58.757 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 12:55:58.759 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-12 12:55:58.761 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-12 12:55:58.762 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-12 12:55:58.764 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-12 12:55:58.765 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 12:55:58.804 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-12 13:06:13.965 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-12 13:06:14.004 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-log/j-hub.json
+2026-05-12 13:06:14.005 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-12 13:06:14.029 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-12 13:06:14.034 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-12 13:06:14.041 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-12 13:06:14.146 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-12 13:06:14.146 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-12 13:06:14.147 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-12 13:06:14.149 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-12 13:06:14.151 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-12 13:06:14.153 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-12 13:06:14.296 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-12 13:06:14.298 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-12 13:06:14.300 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-12 13:06:14.300 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-12 13:06:14.301 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-12 13:06:14.302 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-12 13:06:14.302 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-12 13:06:14.306 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-12 13:06:14.307 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-12 13:06:14.307 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-12 13:06:15.305 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 13:06:15.309 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 13:06:24.155 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.0","solarwind":"348.8","geomag":"Quiet","fetchedAt":"2026-05-12T17:06:24.154841106Z","source":"NOAA SWPC"}
+2026-05-12 13:06:25.152 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:54854
+2026-05-12 13:06:25.158 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-12 13:06:25.163 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-12 13:06:25.188 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-12 13:06:25.191 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_SS_SSB (now 1 stations)
+2026-05-12 13:06:25.722 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:54866
+2026-05-12 13:06:25.724 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-12 13:06:25.725 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-12 13:06:34.848 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 13:06:44.306 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 13:06:44.661 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102022 bytes)
+2026-05-12 13:06:44.931 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (359603 bytes)
+2026-05-12 13:06:44.932 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 13:06:44.940 DEBUG com.hamradio.jhub.MessageRouter — DATA_UPDATE_STATUS published — cty=102022B scp=359603B
+2026-05-12 13:06:57.241 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_SS_SSB (now 0 stations)
+2026-05-12 13:06:57.242 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-12 13:06:57.249 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-12 13:06:57.250 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-12 13:06:57.253 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-05-12 13:06:57.254 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-12 13:07:00.381 WARN  c.hamradio.jhub.ui.JHubStatusWindow — No command configured for 'j-log' — open Web Config UI to set it
+2026-05-12 13:07:18.495 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-12 13:07:18.497 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 13:07:18.504 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-12 13:07:18.505 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-12 13:07:19.256 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 13:07:19.258 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-12 13:07:19.260 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-12 13:07:19.262 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-12 13:07:19.263 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-12 13:07:19.264 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 13:07:19.291 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.
+2026-05-12 13:07:41.247 INFO  com.hamradio.jhub.JHubMain — === j-Hub starting  [WM3j ARS Suite] ===
+2026-05-12 13:07:41.285 INFO  com.hamradio.jhub.ConfigManager — Configuration loaded from /home/mike/ARS_Suite/j-log/j-hub.json
+2026-05-12 13:07:41.286 INFO  com.hamradio.jhub.JHubMain — Config loaded — WS port 8080, web port 8081
+2026-05-12 13:07:41.312 INFO  com.hamradio.jhub.SpotEnricher — DXCC prefix table loaded: 452 entries
+2026-05-12 13:07:41.317 INFO  com.hamradio.jhub.JHubMain — WebSocket server listening on port 8080
+2026-05-12 13:07:41.325 INFO  com.hamradio.jhub.JHubServer — JHubServer WebSocket listener started
+2026-05-12 13:07:41.437 INFO  com.hamradio.jhub.WebConfigServer — Web config server started on port 8081
+2026-05-12 13:07:41.437 INFO  com.hamradio.jhub.JHubMain — Web config UI at http://localhost:8081
+2026-05-12 13:07:41.438 INFO  com.hamradio.jhub.JHubMain — Cluster autoConnect disabled — use Web Config UI to connect
+2026-05-12 13:07:41.440 INFO  com.hamradio.jhub.RbnClient — RBN feed disabled in config — not starting
+2026-05-12 13:07:41.444 INFO  com.hamradio.jhub.JHubDiscovery — J-Hub discovery beacon started on UDP port 9999
+2026-05-12 13:07:41.445 INFO  com.hamradio.jhub.SolarFluxService — Solar flux broadcaster scheduled (from WeatherService cache)
+2026-05-12 13:07:41.611 INFO  c.hamradio.jhub.PskReporterService — PSK Reporter polling scheduled (every 5 min)
+2026-05-12 13:07:41.613 INFO  c.hamradio.jhub.WsprReporterService — WSPR polling scheduled (every 10 min)
+2026-05-12 13:07:41.614 INFO  com.hamradio.jhub.JHubMain — Rig backend is 'NONE' — Hamlib rig controller not started
+2026-05-12 13:07:41.615 INFO  com.hamradio.jhub.JHubMain — Rotor backend is 'NONE' — Hamlib rotor controller not started
+2026-05-12 13:07:41.616 INFO  com.hamradio.jhub.JHubMain — Amp backend is 'NONE' — Hamlib amp controller not started
+2026-05-12 13:07:41.617 INFO  com.hamradio.jhub.AntennaController — AntennaController disabled — not opening port
+2026-05-12 13:07:41.618 INFO  com.hamradio.jhub.JHubMain — Antenna switching disabled in config
+2026-05-12 13:07:41.622 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 7 day(s)
+2026-05-12 13:07:41.623 INFO  c.hamradio.jhub.CloudBackupService — Cloud backup disabled or scheduleHours=0 — periodic backups not started
+2026-05-12 13:07:41.623 INFO  com.hamradio.jhub.JHubMain — === j-Hub ready ===
+2026-05-12 13:07:43.171 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 13:07:43.179 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 13:07:51.447 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"348.3","geomag":"Quiet","fetchedAt":"2026-05-12T17:07:51.447034182Z","source":"NOAA SWPC"}
+2026-05-12 13:07:59.888 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:43816
+2026-05-12 13:07:59.894 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-12 13:07:59.898 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-12 13:07:59.918 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-12 13:07:59.920 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_FIELD_DAY (now 1 stations)
+2026-05-12 13:08:00.305 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:43832
+2026-05-12 13:08:00.307 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-12 13:08:00.308 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-12 13:08:02.130 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 13:08:11.622 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 13:08:11.920 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102022 bytes)
+2026-05-12 13:08:12.211 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (359603 bytes)
+2026-05-12 13:08:12.211 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 13:08:12.217 DEBUG com.hamradio.jhub.MessageRouter — DATA_UPDATE_STATUS published — cty=102022B scp=359603B
+2026-05-12 13:08:15.938 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_FIELD_DAY (now 0 stations)
+2026-05-12 13:08:15.939 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-12 13:08:15.949 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-12 13:08:15.950 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-12 13:08:15.956 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1000, reason=)
+2026-05-12 13:08:15.957 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-12 13:08:51.446 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"348.3","geomag":"Quiet","fetchedAt":"2026-05-12T17:08:51.445979960Z","source":"NOAA SWPC"}
+2026-05-12 13:09:00.578 INFO  com.hamradio.jhub.JHubServer — New connection from /[0:0:0:0:0:0:0:1]:44508
+2026-05-12 13:09:00.609 INFO  com.hamradio.jhub.JHubServer — App registered: webconfig v1.0.0
+2026-05-12 13:09:00.629 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'webconfig'
+2026-05-12 13:09:00.759 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:09:01.022 INFO  com.hamradio.jhub.CredentialStore — CredentialStore loaded (1 services)
+2026-05-12 13:09:51.445 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"348.3","geomag":"Quiet","fetchedAt":"2026-05-12T17:09:51.445781463Z","source":"NOAA SWPC"}
+2026-05-12 13:10:00.542 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:10:51.446 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"348.3","geomag":"Quiet","fetchedAt":"2026-05-12T17:10:51.446203375Z","source":"NOAA SWPC"}
+2026-05-12 13:11:00.554 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:11:51.447 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"C1.1","solarwind":"348.3","geomag":"Quiet","fetchedAt":"2026-05-12T17:11:51.446445355Z","source":"NOAA SWPC"}
+2026-05-12 13:12:00.566 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:12:42.321 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 13:12:42.322 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 13:12:51.445 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.6","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T17:12:51.445787156Z","source":"NOAA SWPC"}
+2026-05-12 13:13:00.555 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:13:03.705 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 13:13:05.855 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:53250
+2026-05-12 13:13:05.859 INFO  com.hamradio.jhub.JHubServer — App registered: logging-engine v1.0.0
+2026-05-12 13:13:05.861 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'logging-engine'
+2026-05-12 13:13:05.908 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_ACTIVE broadcast from 'logging-engine'
+2026-05-12 13:13:05.949 INFO  com.hamradio.jhub.MessageRouter — JOIN_CONTEST: station joined ARRL_SS_SSB (now 1 stations)
+2026-05-12 13:13:06.330 INFO  com.hamradio.jhub.JHubServer — New connection from /127.0.0.1:53254
+2026-05-12 13:13:06.332 INFO  com.hamradio.jhub.JHubServer — App registered: j-log v1.0.0
+2026-05-12 13:13:06.332 DEBUG com.hamradio.jhub.JHubServer — State replayed to 'j-log'
+2026-05-12 13:13:24.537 INFO  com.hamradio.jhub.MessageRouter — LEAVE_CONTEST: station left ARRL_SS_SSB (now 0 stations)
+2026-05-12 13:13:24.539 DEBUG com.hamradio.jhub.MessageRouter — CONTEST_INACTIVE broadcast from 'logging-engine'
+2026-05-12 13:13:24.546 INFO  com.hamradio.jhub.JHubServer — App 'j-log' disconnected (code=1000, reason=)
+2026-05-12 13:13:24.547 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'j-log' removed
+2026-05-12 13:13:24.553 INFO  com.hamradio.jhub.JHubServer — App 'logging-engine' disconnected (code=1006, reason=)
+2026-05-12 13:13:24.553 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'logging-engine' removed
+2026-05-12 13:13:51.446 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.6","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T17:13:51.446215867Z","source":"NOAA SWPC"}
+2026-05-12 13:14:00.553 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:14:51.446 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.6","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T17:14:51.446082577Z","source":"NOAA SWPC"}
+2026-05-12 13:15:00.551 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:15:51.445 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.6","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T17:15:51.445673841Z","source":"NOAA SWPC"}
+2026-05-12 13:16:00.542 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:16:51.446 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.6","solarwind":"347.4","geomag":"Quiet","fetchedAt":"2026-05-12T17:16:51.446280901Z","source":"NOAA SWPC"}
+2026-05-12 13:17:00.542 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:17:42.203 DEBUG com.hamradio.jhub.WeatherService — Proton fetch: HTTP 404
+2026-05-12 13:17:42.205 DEBUG com.hamradio.jhub.WeatherService — Weather data refreshed
+2026-05-12 13:17:51.445 DEBUG com.hamradio.jhub.SolarFluxService — Broadcast SOLAR_FLUX: {"type":"SOLAR_FLUX","sfi":"140","k":"1","sn":"79.3","xray":"B7.8","solarwind":"348.2","geomag":"Quiet","fetchedAt":"2026-05-12T17:17:51.445736335Z","source":"NOAA SWPC"}
+2026-05-12 13:18:00.555 DEBUG com.hamradio.jhub.WebConfigServer — J-Sat TLE API unreachable on port 4540: Connection refused
+2026-05-12 13:18:02.282 WARN  c.hamradio.jhub.PskReporterService — PSK Reporter fetch failed: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 8 path $
+2026-05-12 13:18:03.349 INFO  c.hamradio.jhub.ui.JHubStatusWindow — Closing DX telnet session before exit
+2026-05-12 13:18:03.353 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 13:18:03.356 INFO  com.hamradio.jhub.JHubMain — Shutdown initiated ...
+2026-05-12 13:18:03.357 INFO  com.hamradio.jhub.JHubMain — SHUTDOWN broadcast sent to all connected apps — waiting 750 ms
+2026-05-12 13:18:04.109 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 13:18:04.109 INFO  com.hamradio.jhub.AntennaController — AntennaController stopped
+2026-05-12 13:18:04.110 INFO  c.hamradio.jhub.HamlibAmpController — HamlibAmpController stopped
+2026-05-12 13:18:04.111 INFO  c.h.jhub.HamlibRotorController — HamlibRotorController stopped
+2026-05-12 13:18:04.112 INFO  c.hamradio.jhub.HamlibRigController — HamlibRigController stopped
+2026-05-12 13:18:04.113 INFO  com.hamradio.jhub.ClusterManager — ClusterManager disconnected and stopped
+2026-05-12 13:18:04.127 INFO  com.hamradio.jhub.JHubServer — App 'webconfig' disconnected (code=1001, reason=)
+2026-05-12 13:18:04.128 INFO  com.hamradio.jhub.MessageRouter — Routing: app 'webconfig' removed
+2026-05-12 13:18:04.129 INFO  com.hamradio.jhub.JHubMain — J-Hub stopped.

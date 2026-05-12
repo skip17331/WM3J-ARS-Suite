@@ -39,6 +39,8 @@
                         <items>
                             <MenuItem text="%menu.contest.setup"           onAction="#menuContestSetup"/>
                             <SeparatorMenuItem/>
+                            <MenuItem text="Section Map…"                  onAction="#menuSectionMap"/>
+                            <SeparatorMenuItem/>
                             <MenuItem text="%menu.contest.export.cabrillo" onAction="#menuExportCabrillo"/>
                         </items>
                     </Menu>

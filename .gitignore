@@ -26,6 +26,18 @@ replay_pid*.log
 __pycache__/
 *.pyc
 
+# Python virtualenvs (per-machine, rebuilt from requirements.txt)
+.venv/
+venv/
+
+# Bulk geographic data (downloaded inputs; outputs regenerate from scripts)
+tools/arrl-map/data/
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+
 # Runtime logs / state
 j-digi/logs/
 j-digi/j-hub.json

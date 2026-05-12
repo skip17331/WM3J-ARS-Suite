@@ -103,7 +103,6 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before",   "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "ss_section_map",  "title": "Sections (click to fill)", "config": {} },
     { "paneIndex": 3, "paneType": "sweep_progress",  "title": "Sweep Progress", "config": {} }
   ],
 

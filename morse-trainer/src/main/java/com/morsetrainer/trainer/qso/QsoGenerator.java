@@ -12,12 +12,14 @@ import java.util.stream.Collectors;
  * simulated DX station and the user. The Difficulty enum controls vocabulary
  * and exchange shape.
  *
- * Output is uppercase, with single-space word separators — ready to feed into
- * MorsePlayer (DX turns) or to display as a sending target (user turns).
+ * <p>Phrase fragments are sourced from {@link PhrasePool} (bundled JSON), so
+ * each turn template draws from a much larger vocabulary than a handful of
+ * fixed strings. With ~200 fragments across categories, hundreds of distinct
+ * QSO realisations are possible per difficulty.
  *
- * The legacy {@link #generate(Difficulty)} single-string method still works:
- * it concatenates all turns into one string for backward compatibility with
- * the receive-only QSO trainer mode and the existing test suite.
+ * <p>The legacy {@link #generate(Difficulty)} single-string method still works:
+ * it concatenates all turns into one string for backward compatibility with the
+ * receive-only QSO trainer mode and the existing test suite.
  */
 public class QsoGenerator {
 
@@ -41,28 +43,24 @@ public class QsoGenerator {
         }
     }
 
-    // --- Sample data (kept short; real users can extend via config later) ---
+    // --- Hardcoded fallbacks (used only if the JSON pool fails to load) -----
     private static final List<String> CALL_PREFIXES = List.of(
             "K", "W", "N", "AA", "KB", "KE", "WB", "VE", "G", "DL", "F", "JA", "VK", "ZL", "EA", "OH", "OZ", "SM"
     );
-    private static final List<String> NAMES = List.of(
-            "JOHN", "MIKE", "DAVE", "SARAH", "ANNA", "TOM", "BILL", "JIM", "ALEX", "CHRIS", "PAT", "LEE", "SAM"
-    );
-    private static final List<String> QTHS = List.of(
-            "DENVER CO", "AUSTIN TX", "SEATTLE WA", "MUNICH", "TOKYO", "MELBOURNE",
-            "TORONTO", "BERLIN", "PARIS", "LONDON", "STOCKHOLM", "HELSINKI"
-    );
-    private static final List<String> RIGS = List.of(
-            "FT-991", "K3", "IC-7300", "FT-857", "TS-590", "KX3", "FTDX10", "QCX MINI"
-    );
-    private static final List<String> WEATHER = List.of(
-            "SUNNY", "CLOUDY", "RAINY", "SNOWY", "FOGGY", "WINDY", "CLEAR", "WARM", "COLD"
-    );
+    private static final List<String> FALLBACK_NAMES   = List.of("JOHN", "MIKE", "DAVE");
+    private static final List<String> FALLBACK_QTHS    = List.of("DENVER CO", "TOKYO", "LONDON");
+    private static final List<String> FALLBACK_RIGS    = List.of("FT-991", "K3", "IC-7300");
+    private static final List<String> FALLBACK_WEATHER = List.of("SUNNY", "CLOUDY", "RAINY");
 
     private final Random random;
+    private final PhrasePool pool;
 
-    public QsoGenerator() { this(new Random()); }
-    public QsoGenerator(Random random) { this.random = random; }
+    public QsoGenerator() { this(new Random(), PhrasePool.loadDefault()); }
+    public QsoGenerator(Random random) { this(random, PhrasePool.loadDefault()); }
+    public QsoGenerator(Random random, PhrasePool pool) {
+        this.random = random;
+        this.pool = pool;
+    }
 
     // --- Legacy single-string API ----------------------------------------------
 
@@ -90,59 +88,74 @@ public class QsoGenerator {
 
     private List<Turn> trainingTurns(UserStation user) {
         String dx     = randomCallsign();
-        String dxName = pick(NAMES);
-        String dxQth  = pick(QTHS);
+        String dxName = pickName();
+        String dxQth  = pickQth();
         String you    = user.callsign();
 
+        String cq   = template(pickCq(), dx, you);
+        String back = template(pickCallback(), dx, you);
+
+        String dxBlock = joinSegments(
+                you + " DE " + dx,
+                pickGreeting(),
+                resolve(pickSignalReport()),
+                resolve(pickNameIntro(), dxName),
+                resolve(pickQthIntro(), dxQth),
+                pickHwCheck()
+        ) + " " + you + " DE " + dx + " K";
+
+        String userBlock = joinSegments(
+                dx + " DE " + you,
+                "R FB " + dxName + " UR RST 599",
+                "NAME " + user.name() + " QTH " + user.qth(),
+                pickSignoff() + " " + dx + " DE " + you + " SK"
+        );
+
         List<Turn> turns = new ArrayList<>(4);
-        turns.add(new Turn(Speaker.DX,
-                String.join(" ", "CQ CQ CQ DE", dx, dx, "K")));
-        turns.add(new Turn(Speaker.USER,
-                String.join(" ", dx, "DE", you, "K")));
-        turns.add(new Turn(Speaker.DX, String.join(" ",
-                you, "DE", dx, "=",
-                "GE OM TNX FER CALL UR RST 599 5NN =",
-                "NAME", dxName, "QTH", dxQth, "=",
-                "HW CPY?",
-                you, "DE", dx, "K")));
-        turns.add(new Turn(Speaker.USER, String.join(" ",
-                dx, "DE", you, "=",
-                "R FB", dxName, "UR RST 599 =",
-                "NAME", user.name(), "QTH", user.qth(), "=",
-                "TNX FER QSO 73 GL =",
-                dx, "DE", you, "SK")));
+        turns.add(new Turn(Speaker.DX,   cq));
+        turns.add(new Turn(Speaker.USER, back));
+        turns.add(new Turn(Speaker.DX,   dxBlock));
+        turns.add(new Turn(Speaker.USER, userBlock));
         return turns;
     }
 
     private List<Turn> casualTurns(UserStation user) {
         String dx     = randomCallsign();
-        String dxName = pick(NAMES);
-        String dxQth  = pick(QTHS);
-        String dxRig  = pick(RIGS);
-        String dxWx   = pick(WEATHER);
+        String dxName = pickName();
+        String dxQth  = pickQth();
+        String dxRig  = pickRig();
+        String dxAnt  = pickAntenna();
+        String dxWx   = pickWeather();
         int    dxTemp = random.nextInt(35) - 5;
         String you    = user.callsign();
 
+        String cq   = template(pickCq(), dx, you);
+        String back = template(pickCallback(), dx, you);
+
+        String dxBlock = joinSegments(
+                you + " DE " + dx,
+                pickGreeting(),
+                resolve(pickSignalReport()),
+                resolve(pickNameIntro(), dxName),
+                resolve(pickQthIntro(), dxQth),
+                resolve(pickRigIntro(), dxRig) + " " + dxAnt,
+                resolveWx(pickWxIntro(), dxWx) + " " + resolveTemp(pickTempIntro(), dxTemp),
+                pickHwCheck()
+        ) + " " + you + " DE " + dx + " KN";
+
+        String userBlock = joinSegments(
+                dx + " DE " + you,
+                "R FB " + dxName + " TNX FER NICE QSO UR RST 599",
+                "NAME HR " + user.name() + " QTH " + user.qth(),
+                "RIG IS IC-7300 ANT IS DIPOLE",
+                pickSignoff() + " " + dx + " DE " + you + " SK"
+        );
+
         List<Turn> turns = new ArrayList<>(4);
-        turns.add(new Turn(Speaker.DX,
-                String.join(" ", "CQ DE", dx, dx, "PSE K")));
-        turns.add(new Turn(Speaker.USER,
-                String.join(" ", dx, "DE", you, you, "K")));
-        turns.add(new Turn(Speaker.DX, String.join(" ",
-                you, "DE", dx, "=",
-                "GM DR OM TNX FER NICE CALL UR RST", randomRst(), "=",
-                "NAME HR", dxName, "QTH", dxQth, "=",
-                "RIG HR", dxRig, "ANT IS DIPOLE 40M =",
-                "WX HR", dxWx, "TEMP", String.valueOf(dxTemp), "C =",
-                "HW CPY?",
-                you, "DE", dx, "KN")));
-        turns.add(new Turn(Speaker.USER, String.join(" ",
-                dx, "DE", you, "=",
-                "R FB", dxName, "TNX FER NICE QSO UR RST 599 =",
-                "NAME HR", user.name(), "QTH", user.qth(), "=",
-                "RIG IS IC-7300 ANT IS DIPOLE =",
-                "73 GL ES TNX AGN =",
-                dx, "DE", you, "SK")));
+        turns.add(new Turn(Speaker.DX,   cq));
+        turns.add(new Turn(Speaker.USER, back));
+        turns.add(new Turn(Speaker.DX,   dxBlock));
+        turns.add(new Turn(Speaker.USER, userBlock));
         return turns;
     }
 
@@ -161,6 +174,63 @@ public class QsoGenerator {
                 "R 5NN " + String.format("%03d", youSerial)));
         turns.add(new Turn(Speaker.DX, "TU " + dx));
         return turns;
+    }
+
+    // --- pool lookups ---------------------------------------------------------
+
+    private String pickCq()        { return pool.pick("cq_openers",     random, "CQ CQ CQ DE {dx} {dx} K"); }
+    private String pickCallback()  { return pool.pick("callbacks",      random, "{dx} DE {you} K"); }
+    private String pickGreeting()  { return pool.pick("greetings",      random, "GE OM TNX FER CALL"); }
+    private String pickSignalReport(){ return pool.pick("signal_reports", random, "UR RST {rst}"); }
+    private String pickNameIntro() { return pool.pick("name_intros",    random, "NAME HR {name}"); }
+    private String pickQthIntro()  { return pool.pick("qth_intros",     random, "QTH HR {qth}"); }
+    private String pickRigIntro()  { return pool.pick("rig_intros",     random, "RIG HR {rig}"); }
+    private String pickAntenna()   { return pool.pick("antennas",       random, "ANT IS DIPOLE"); }
+    private String pickWxIntro()   { return pool.pick("weather_intros", random, "WX HR {wx}"); }
+    private String pickTempIntro() { return pool.pick("temp_intros",    random, "TEMP {temp} C"); }
+    private String pickHwCheck()   { return pool.pick("hw_checks",      random, "HW CPY?"); }
+    private String pickSignoff()   { return pool.pick("signoffs_73",    random, "73 GL"); }
+
+    private String pickName()      { return pool.has("names")    ? pool.pick("names",   random, "OP")       : pick(FALLBACK_NAMES); }
+    private String pickQth()       { return pool.has("qths")     ? pool.pick("qths",    random, "USA")      : pick(FALLBACK_QTHS); }
+    private String pickRig()       { return pool.has("rigs")     ? pool.pick("rigs",    random, "K3")       : pick(FALLBACK_RIGS); }
+    private String pickWeather()   { return pool.has("weather_adj") ? pool.pick("weather_adj", random, "CLEAR") : pick(FALLBACK_WEATHER); }
+
+    // --- template / token resolution ------------------------------------------
+
+    private String template(String tmpl, String dx, String you) {
+        return tmpl.replace("{dx}", dx).replace("{you}", you);
+    }
+
+    /** Resolve free tokens like {rst} for templates that need a random value. */
+    private String resolve(String tmpl) {
+        return tmpl.replace("{rst}", randomRst());
+    }
+
+    private String resolve(String tmpl, String value) {
+        // Generic single-value replacement — fills whichever token is present.
+        return tmpl
+                .replace("{name}", value)
+                .replace("{qth}",  value)
+                .replace("{rig}",  value);
+    }
+
+    private String resolveWx(String tmpl, String wx) {
+        return tmpl.replace("{wx}", wx);
+    }
+
+    private String resolveTemp(String tmpl, int temp) {
+        return tmpl.replace("{temp}", String.valueOf(temp));
+    }
+
+    /** Joins segments with the CW segment separator "=" (BT prosign in audio). */
+    private static String joinSegments(String... segments) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < segments.length; i++) {
+            if (i > 0) sb.append(" = ");
+            sb.append(segments[i]);
+        }
+        return sb.toString();
     }
 
     // --- helpers ---------------------------------------------------------------

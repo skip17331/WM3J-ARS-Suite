@@ -75,7 +75,6 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before",   "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "ss_section_map",  "title": "Sections / DXCC", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",      "title": "Statistics", "config": {} }
   ],
 

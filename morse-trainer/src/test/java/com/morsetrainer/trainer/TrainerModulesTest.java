@@ -3,11 +3,14 @@ package com.morsetrainer.trainer;
 import com.morsetrainer.core.AppConfig;
 import com.morsetrainer.trainer.groups.GroupSession;
 import com.morsetrainer.trainer.letters.LetterSession;
+import com.morsetrainer.trainer.qso.PhrasePool;
 import com.morsetrainer.trainer.qso.QsoGenerator;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -94,5 +97,39 @@ class TrainerModulesTest {
         String s = g.generate(QsoGenerator.Difficulty.CONTEST);
         assertNotNull(s);
         assertEquals(s.toUpperCase(), s);
+    }
+
+    @Test
+    void phrasePoolLoadsFromClasspath() {
+        PhrasePool pool = PhrasePool.loadDefault();
+        // Spot-check a few expected categories.
+        assertTrue(pool.has("cq_openers"),    "missing cq_openers");
+        assertTrue(pool.has("greetings"),     "missing greetings");
+        assertTrue(pool.has("signal_reports"),"missing signal_reports");
+        assertTrue(pool.has("names"),         "missing names");
+        assertTrue(pool.has("qths"),          "missing qths");
+        assertTrue(pool.has("rigs"),          "missing rigs");
+        // Total fragment count should be in the hundreds (target 100-200+).
+        assertTrue(pool.size() >= 100,
+                "phrase pool should provide >= 100 fragments, got " + pool.size());
+    }
+
+    @Test
+    void casualQsoVariesAcrossSeeds() {
+        QsoGenerator.UserStation user = new QsoGenerator.UserStation("WM3J", "MIKE", "FM19");
+        Set<String> distinct = new HashSet<>();
+        for (int seed = 0; seed < 50; seed++) {
+            QsoGenerator g = new QsoGenerator(new Random(seed));
+            // Concatenate just the DX turns — those are what the pool varies most.
+            String dxOnly = g.generateTurns(QsoGenerator.Difficulty.CASUAL, user).stream()
+                    .filter(t -> t.speaker() == QsoGenerator.Speaker.DX)
+                    .map(QsoGenerator.Turn::text)
+                    .reduce("", (a, b) -> a + " " + b);
+            distinct.add(dxOnly);
+        }
+        // With ~200 fragments mixed across multiple slots, 50 seeds should be
+        // unique or very nearly so.
+        assertTrue(distinct.size() >= 40,
+                "Expected high variety; got " + distinct.size() + " distinct of 50");
     }
 }
