@@ -113,13 +113,14 @@ NORTHERN_CLIP_LAT = 70.0
 # spare corner so they're clickable. Section IDs included drive both the
 # clip geometry on the inset and the duplicate SVGPath emission.
 NE_INSET_SECTIONS = {
-    "DE", "MDC", "EPA", "WPA",
-    "SNJ", "NNJ", "NLI", "ENY", "NNY", "WNY",
-    "CT", "RI", "EMA", "WMA", "NH", "VT", "ME",
+    "DE", "MDC", "SNJ", "NNJ", "CT", "RI",
+    "WNY", "ENY", "WMA", "EMA", "VT", "NH",
 }
 # Inset viewBox on the main 1200×800 canvas (x, y, w, h).
-# Bottom-right corner, over the Atlantic where no main polygons live.
-NE_INSET_BOX = (830, 540, 350, 240)
+# Lower-right; sized larger so the small NE sections are easy to click. The
+# zoomed copies sit on top of where these same (tiny) sections render on the
+# main map — fine, since the inset is the readable rendition of them.
+NE_INSET_BOX = (600, 420, 580, 360)
 
 
 # ----------------------------------------------------------------------------
