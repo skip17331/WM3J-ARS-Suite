@@ -3,3 +3,5 @@
 2026-05-12 17:49:35.934 INFO  com.jvault.JVaultServer — Received /api/close from browser — shutting down J-Vault
 2026-05-12 17:49:35.977 INFO  com.jvault.JVaultServer — Received /api/close from browser — shutting down J-Vault
 2026-05-12 17:49:36.092 INFO  com.jvault.JVaultMain — Shutting down J-Vault
+2026-05-12 19:30:35.383 WARN  com.jvault.InventoryDao — createType failed: [SQLITE_CONSTRAINT_UNIQUE] A UNIQUE constraint failed (UNIQUE constraint failed: equipment_types.name)
+2026-05-12 19:35:22.748 WARN  com.jvault.InventoryDao — createType failed: [SQLITE_CONSTRAINT_UNIQUE] A UNIQUE constraint failed (UNIQUE constraint failed: equipment_types.name)

@@ -435,3 +435,32 @@
 2026-05-12 19:22:24.167 DEBUG com.hamradio.jhub.CredentialStore — CredentialStore saved (69 bytes)
 2026-05-12 19:22:24.170 INFO  com.hamradio.jhub.CredentialStore — CredentialStore loaded (1 services)
 2026-05-12 19:22:24.174 DEBUG com.hamradio.jhub.CredentialStore — CredentialStore saved (90 bytes)
+2026-05-12 19:34:43.100 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+2026-05-12 19:34:43.105 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 19:34:43.246 WARN  com.hamradio.jhub.DataUpdateService — Fetch http://127.0.0.1:41143/cty.dat failed — HTTP 503
+2026-05-12 19:34:43.255 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (126000 bytes)
+2026-05-12 19:34:43.256 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=false scp=true
+2026-05-12 19:34:43.467 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 19:34:43.483 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+2026-05-12 19:34:43.484 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 19:34:43.492 WARN  com.hamradio.jhub.DataUpdateService — Fetch http://127.0.0.1:41283/cty.dat failed validation — size 5 bytes (need ≥ 50)
+2026-05-12 19:34:43.498 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (126000 bytes)
+2026-05-12 19:34:43.498 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=false scp=true
+2026-05-12 19:34:43.724 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 19:34:43.734 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+2026-05-12 19:34:43.735 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 19:34:43.742 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102 bytes)
+2026-05-12 19:34:43.748 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (126000 bytes)
+2026-05-12 19:34:43.748 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 19:34:43.775 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 19:34:43.783 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService scheduled — first run in 30s, then every 365 day(s)
+2026-05-12 19:34:43.784 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: starting fetch cycle
+2026-05-12 19:34:43.790 INFO  com.hamradio.jhub.DataUpdateService — Updated cty.dat (102 bytes)
+2026-05-12 19:34:43.798 INFO  com.hamradio.jhub.DataUpdateService — Updated MASTER.SCP (126000 bytes)
+2026-05-12 19:34:43.799 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService: cycle done — cty=true scp=true
+2026-05-12 19:34:43.827 INFO  com.hamradio.jhub.DataUpdateService — DataUpdateService stopped
+2026-05-12 19:34:44.221 DEBUG com.hamradio.jhub.CredentialStore — CredentialStore saved (52 bytes)
+2026-05-12 19:34:44.226 DEBUG com.hamradio.jhub.CredentialStore — CredentialStore saved (30 bytes)
+2026-05-12 19:34:44.238 DEBUG com.hamradio.jhub.CredentialStore — CredentialStore saved (69 bytes)
+2026-05-12 19:34:44.249 INFO  com.hamradio.jhub.CredentialStore — CredentialStore loaded (1 services)
+2026-05-12 19:34:44.260 DEBUG com.hamradio.jhub.CredentialStore — CredentialStore saved (90 bytes)
