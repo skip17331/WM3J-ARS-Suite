@@ -1,36 +1,62 @@
 package com.hamradio.jlearn.state;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * ReadingState — snapshot of where the user left off.
  *
  * <p>Three pieces of information matter when re-opening J-Learn:
- * <ol>
- *   <li><b>Last-opened section id</b> — the {@code NN-NN} pointer back into
- *       the manifest. Always set (the host should never persist a state
- *       record without one).</li>
- *   <li><b>Scroll fraction</b> — where in the section the user was, expressed
- *       as a fraction between 0.0 (top) and 1.0 (bottom). Stored as a
- *       fraction rather than pixel offset so it survives font-size changes
- *       and re-renders.</li>
- *   <li><b>Timestamp</b> — when the snapshot was written, so the UI can
- *       show "you left off here, 4 hours ago".</li>
- * </ol>
+ * the last-opened section id, a scroll fraction (0.0 = top, 1.0 = bottom),
+ * and the timestamp the snapshot was written.
  *
- * <h2>Status</h2>
- * Skeleton only — fields, accessors, builder, and serialization are
- * not yet implemented.
+ * <p>The scroll fraction is stored as a fraction rather than a pixel
+ * offset so it survives font-size changes and re-renders.
  */
 public final class ReadingState {
 
-    // TODO: declare fields (lastSectionId, scrollFraction, savedAt)
-    // TODO: constructor + validation (id non-blank, scrollFraction in [0,1])
-    // TODO: accessors and equals/hashCode
-    // TODO: factory method newSnapshot(String id, double scrollFraction) that
-    //       stamps savedAt = Instant.now()
+    private final String  lastSectionId;
+    private final double  scrollFraction;
+    private final Instant savedAt;
 
-    private ReadingState() {
-        throw new UnsupportedOperationException("not yet implemented");
+    public ReadingState(String lastSectionId, double scrollFraction, Instant savedAt) {
+        if (lastSectionId == null || lastSectionId.isBlank()) {
+            throw new IllegalArgumentException("lastSectionId must be non-blank");
+        }
+        if (scrollFraction < 0.0 || scrollFraction > 1.0 || Double.isNaN(scrollFraction)) {
+            throw new IllegalArgumentException(
+                "scrollFraction must be in [0.0, 1.0]: " + scrollFraction);
+        }
+        if (savedAt == null) {
+            throw new IllegalArgumentException("savedAt must not be null");
+        }
+        this.lastSectionId  = lastSectionId;
+        this.scrollFraction = scrollFraction;
+        this.savedAt        = savedAt;
+    }
+
+    /** Factory that stamps {@code savedAt = Instant.now()}. */
+    public static ReadingState newSnapshot(String lastSectionId, double scrollFraction) {
+        return new ReadingState(lastSectionId, scrollFraction, Instant.now());
+    }
+
+    public String  lastSectionId()  { return lastSectionId;  }
+    public double  scrollFraction() { return scrollFraction; }
+    public Instant savedAt()        { return savedAt;        }
+
+    @Override public boolean equals(Object o) {
+        if (!(o instanceof ReadingState)) return false;
+        ReadingState r = (ReadingState) o;
+        return lastSectionId.equals(r.lastSectionId)
+            && Double.compare(scrollFraction, r.scrollFraction) == 0
+            && savedAt.equals(r.savedAt);
+    }
+    @Override public int hashCode() {
+        return Objects.hash(lastSectionId, scrollFraction, savedAt);
+    }
+    @Override public String toString() {
+        return "ReadingState{" + lastSectionId
+             + " @" + String.format("%.2f", scrollFraction)
+             + " " + savedAt + "}";
     }
 }

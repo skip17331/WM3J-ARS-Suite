@@ -1,34 +1,98 @@
 package com.hamradio.jlearn.content;
 
+import java.util.Locale;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
 /**
  * ContentEntry — one row in the J-Learn manifest.
  *
- * <p>Immutable value object describing a single section: its id (the
- * stable {@code NN-NN} chapter-section pointer that survives across
- * releases), title, classpath-relative path to the markdown source,
- * chapter number, section number within the chapter, level
- * ({@code simple} / {@code advanced} / {@code mixed}), and lifecycle
- * status ({@code stub} / {@code draft} / {@code review} / {@code published}).
+ * <p>Immutable value object describing a single section: id ({@code NN-NN}),
+ * title, classpath-relative path, chapter and section numbers, level, and
+ * lifecycle status. Equality is keyed on id alone — the id is the only
+ * thing that survives across releases.
  *
- * <p>Used by {@link ContentManifest} to build the navigation tree and
- * by {@link ContentLoader} to find the markdown file when a section is
- * opened. The Java loader populates these from the section-index table
- * inside {@code content/manifest.md}.
- *
- * <h2>Status</h2>
- * Skeleton only — fields, accessors, and validation are not yet
- * implemented.
+ * <p>Constructed by {@link ContentManifest}; consumers should not call the
+ * constructor directly.
  */
 public final class ContentEntry {
 
-    // TODO: declare fields (id, title, path, chapter, section, level, status)
-    // TODO: constructor with validation (id matches NN-NN, level/status enums)
-    // TODO: accessors
-    // TODO: equals/hashCode keyed on id
-    // TODO: toString for debug logs
+    /** Lifecycle status from the markdown file's YAML front-matter. */
+    public enum Status {
+        STUB, DRAFT, REVIEW, PUBLISHED;
 
-    private ContentEntry() {
-        // Disallow instantiation until the real constructor lands.
-        throw new UnsupportedOperationException("not yet implemented");
+        /** Parse from front-matter value. Returns {@link #DRAFT} when blank or unknown. */
+        public static Status parse(String raw) {
+            if (raw == null) return DRAFT;
+            switch (raw.trim().toLowerCase(Locale.ROOT)) {
+                case "stub":      return STUB;
+                case "draft":     return DRAFT;
+                case "review":    return REVIEW;
+                case "published": return PUBLISHED;
+                default:          return DRAFT;
+            }
+        }
+    }
+
+    /** Reading-difficulty hint from the manifest level column. */
+    public enum Level {
+        SIMPLE, ADVANCED, MIXED;
+
+        public static Level parse(String raw) {
+            if (raw == null) return MIXED;
+            switch (raw.trim().toLowerCase(Locale.ROOT)) {
+                case "simple":   return SIMPLE;
+                case "advanced": return ADVANCED;
+                case "mixed":    return MIXED;
+                default:         return MIXED;
+            }
+        }
+    }
+
+    private static final Pattern ID_PATTERN = Pattern.compile("\\d{2}-\\d{2}");
+
+    private final String id;
+    private final String title;
+    private final String path;
+    private final String chapter;
+    private final String section;
+    private final Level  level;
+    private final Status status;
+
+    public ContentEntry(String id, String title, String path,
+                        Level level, Status status) {
+        if (id == null || !ID_PATTERN.matcher(id).matches()) {
+            throw new IllegalArgumentException("id must match NN-NN: " + id);
+        }
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("title must be non-blank");
+        }
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("path must be non-blank");
+        }
+        this.id      = id;
+        this.title   = title.trim();
+        this.path    = path.trim();
+        this.chapter = id.substring(0, 2);
+        this.section = id.substring(3, 5);
+        this.level   = level  != null ? level  : Level.MIXED;
+        this.status  = status != null ? status : Status.DRAFT;
+    }
+
+    public String id()      { return id;      }
+    public String title()   { return title;   }
+    public String path()    { return path;    }
+    public String chapter() { return chapter; }
+    public String section() { return section; }
+    public Level  level()   { return level;   }
+    public Status status()  { return status;  }
+
+    @Override public boolean equals(Object o) {
+        if (!(o instanceof ContentEntry)) return false;
+        return id.equals(((ContentEntry) o).id);
+    }
+    @Override public int hashCode() { return Objects.hash(id); }
+    @Override public String toString() {
+        return "ContentEntry{" + id + " " + title + " [" + level + "/" + status + "]}";
     }
 }
