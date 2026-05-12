@@ -24,7 +24,6 @@ are logged.
 |---|---|
 | Canadian QSO Party county maps (BC/ON/QC) | Blocked — Statistics Canada portal blocks direct downloads of Census Division shapefiles |
 | DXCC sub-country splits (AK/HI from USA, Scotland/Wales/NI from UK, Sardinia, Spanish overseas, etc.) | V2 — needs admin-1 boundaries + hand-curated `dxcc-overrides.json` |
-| ARRL Section sub-Ontario splits (ONN/ONE/GH/ONS as separate polygons) | V2 — needs StatCan CD data; currently all four alias to a single ON polygon |
 | 130 remote-island DXCC entities (Bouvet, Kerguelen, Spratly, etc.) | V2 — no NE country polygon exists |
 | Rookie Roundup cockpit-pane cleanup | Cosmetic — map menu already works; just an unused pane reference |
 | Russia oblast map, JIDX prefecture map | Out of scope — low traffic outside home regions |
