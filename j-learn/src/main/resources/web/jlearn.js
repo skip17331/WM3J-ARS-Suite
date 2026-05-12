@@ -142,19 +142,19 @@ function renderLearnContent(md) {
 
 function renderLearnBanner(id) {
   if (!id) return '';
-  if (id.startsWith('03-')) {
+  if (id.startsWith('05-')) {
     return banner('🎧', 'Morse Code Trainer',
       'Standalone JavaFX practice app: letter / group / QSO drills, real-time decoder, optional Arduino or Pi Zero keyer.',
       '▶ Launch Trainer',
       'launch-morse');
   }
-  if (id.startsWith('15-')) {
+  if (id.startsWith('17-')) {
     const calcId = ({
-      '15-01': 'ohms-law',     '15-02': 'power-law',     '15-03': 'reactance',
-      '15-04': 'impedance',    '15-05': 'resonance',     '15-06': 'wavelength',
-      '15-07': 'swr',          '15-08': 'erp',           '15-09': 'feedline-loss',
-      '15-10': 'decibels',     '15-11': 'q-factor',      '15-12': 'bandwidth',
-      '15-13': 'smith-chart',  '15-14': 'rf-exposure',
+      '17-01': 'ohms-law',     '17-02': 'power-law',     '17-03': 'reactance',
+      '17-04': 'impedance',    '17-05': 'resonance',     '17-06': 'wavelength',
+      '17-07': 'swr',          '17-08': 'erp',           '17-09': 'feedline-loss',
+      '17-10': 'decibels',     '17-11': 'q-factor',      '17-12': 'bandwidth',
+      '17-13': 'smith-chart',  '17-14': 'rf-exposure',
     })[id];
     return banner('📐', 'Formula Calculator',
       calcId
@@ -163,13 +163,13 @@ function renderLearnBanner(id) {
       calcId ? '▶ Open in Workshop' : '▶ Open Workshop',
       calcId ? ('open-calc:' + calcId) : 'open-workshop');
   }
-  if (id.startsWith('07-')) {
+  if (id.startsWith('09-')) {
     const calcId = ({
-      '07-02': 'flat-dipole',     '07-03': 'inverted-v',     '07-04': 'fan-dipole',
-      '07-05': 'trapped-dipole',  '07-06': 'ocf-dipole',     '07-07': 'efhw-no-traps',
-      '07-08': 'efhw-trapped',    '07-09': 'j-pole',         '07-10': 'yagi',
-      '07-11': 'vertical',        '07-12': 'loading-coil',   '07-13': 'trap-design',
-      '07-14': 'mag-loop',
+      '09-02': 'flat-dipole',     '09-03': 'inverted-v',     '09-04': 'fan-dipole',
+      '09-05': 'trapped-dipole',  '09-06': 'ocf-dipole',     '09-07': 'efhw-no-traps',
+      '09-08': 'efhw-trapped',    '09-09': 'j-pole',         '09-10': 'yagi',
+      '09-11': 'vertical',        '09-12': 'loading-coil',   '09-13': 'trap-design',
+      '09-14': 'mag-loop',
     })[id];
     return banner('📡', 'Antenna Workshop',
       calcId

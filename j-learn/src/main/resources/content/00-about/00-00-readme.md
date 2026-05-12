@@ -18,7 +18,7 @@ J-Learn is the **in-app reference library** for the WM3J ARS Suite. It's not a t
 - **A licensee who wants to actually operate** rather than chase another textbook chapter on the math.
 - **An experienced ham** who needs to look up a specific calculation, regulation, or procedure without grepping through stacks of saved PDFs.
 - **A returning ham** who hasn't operated in years and needs the modern context (FT8, FCC §97 changes, modern band plans, current digital modes, RF-safety rules from 2021 forward).
-- **A homebrewer** who wants the math (§15), the antenna designs (§07), and the construction recipes in one place.
+- **A homebrewer** who wants the math (§17), the antenna designs (§09), and the construction recipes in one place.
 
 J-Learn assumes **you have a license**. It's not a Technician / General / Extra study guide — there are excellent free question-pool drill sites (HamStudy.org, ExamCram, QRZ practice exams) for that. J-Learn picks up after the test, when you start operating.
 
@@ -64,9 +64,9 @@ Two J-Hub features deep-link into J-Learn chapters and back:
 - **Chapter 07 (Antenna Workshop)** has a "▶ Open in Workshop" button that opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab.
 - **Chapter 15 (Formulas)** has the same "▶ Open in Workshop" pattern, mapping each formula card to a per-formula calculator (Ohm's, Power, Reactance, Impedance, Resonance, Wavelength, SWR, ERP, Feedline Loss, Decibels, Q, Bandwidth, RF Exposure).
 
-The recommender in §07-01 also walks the operator backward from goals → chapter sections that might apply.
+The recommender in §09-01 also walks the operator backward from goals → chapter sections that might apply.
 
-Cross-references between sections are written as `§NN-NN` (e.g., §15-06 for the Wavelength formula card). Click a chapter or section in the left-side TOC to navigate.
+Cross-references between sections are written as `§NN-NN` (e.g., §17-06 for the Wavelength formula card). Click a chapter or section in the left-side TOC to navigate.
 
 ## Status
 
@@ -77,5 +77,5 @@ J-Learn ships with the suite. To see what's been written, open the J-Learn tab i
 ## See also
 
 - §00-01 — How to read this library (search, filter, the Advanced toggle, deep-links)
-- §07-00 — Antenna Workshop overview (the calculator's tab in J-Hub)
-- §03-00 — Morse Code overview (the bundled trainer app)
+- §09-00 — Antenna Workshop overview (the calculator's tab in J-Hub)
+- §05-00 — Morse Code overview (the bundled trainer app)
