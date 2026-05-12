@@ -41,8 +41,8 @@ Three controls on the left, one viewer on the right.
 
 The left-side **Table of Contents** is a hierarchical tree:
 
-- **Bold rows** are chapters (clickable to open the chapter overview, e.g. §06-00).
-- **Indented rows** are sections within a chapter (e.g. §06-02 MPE Limits).
+- **Bold rows** are chapters (clickable to open the chapter overview, e.g. §08-00).
+- **Indented rows** are sections within a chapter (e.g. §08-02 MPE Limits).
 
 Click any row to open it in the viewer. The library remembers the last-opened section between J-Hub restarts (stored in browser `localStorage`).
 
@@ -50,7 +50,7 @@ Click any row to open it in the viewer. The library remembers the last-opened se
 
 The text box at the top filters the TOC by title or section ID. Type:
 
-- **`balun`** to find every section mentioning balun in the title (§04-12, §16-05).
+- **`balun`** to find every section mentioning balun in the title (§06-12, §18-05).
 - **`15-`** to filter to chapter 15 (Formulas) only.
 - **`emcomm`** to find chapter 20.
 - **`21-`** to filter to chapter 21 (Operating Practice) only.
@@ -76,11 +76,11 @@ Some chapters surface integrated tools as a banner at the top of every section:
 
 | Chapter | Banner | Action |
 |---------|--------|--------|
-| **§03 Morse** | 🎧 Morse Code Trainer | Launches the bundled JavaFX trainer app |
-| **§07 Antenna Workshop** | 📡 Antenna Workshop | Opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab |
-| **§15 Formulas** | 📐 Formula Calculator | Opens the matching per-formula calculator in the same Antenna Workshop tab |
+| **§05 Morse** | 🎧 Morse Code Trainer | Launches the bundled JavaFX trainer app |
+| **§09 Antenna Workshop** | 📡 Antenna Workshop | Opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab |
+| **§17 Formulas** | 📐 Formula Calculator | Opens the matching per-formula calculator in the same Antenna Workshop tab |
 
-The banner appears for every section in the chapter, not just the overview. From §07-10 (Yagi-Uda) the banner button takes you straight to the Yagi calculator pre-filled with example values; from §15-08 (ERP) the banner opens the ERP calculator.
+The banner appears for every section in the chapter, not just the overview. From §09-10 (Yagi-Uda) the banner button takes you straight to the Yagi calculator pre-filled with example values; from §17-08 (ERP) the banner opens the ERP calculator.
 
 ## A recommended reading path for new arrivals
 
@@ -88,12 +88,12 @@ If you've just started using the suite and want a tour of what's here, in roughl
 
 1. **§00-00** — README (you're here / one-back)
 2. **§01-00** — Propagation overview (the most-asked-about topic)
-3. **§02-00** — Repeaters & Bandplans (where to put your signal)
-4. **§04-00** — Antennas overview (then jump to whatever interests you)
-5. **§06-00** — RF Safety (you're legally responsible for this — read once, refer back)
-6. **§10–13** — Troubleshooting cluster (skim; come back when something breaks)
+3. **§04-00** — Repeaters & Bandplans (where to put your signal)
+4. **§06-00** — Antennas overview (then jump to whatever interests you)
+5. **§08-00** — RF Safety (you're legally responsible for this — read once, refer back)
+6. **§12–13** — Troubleshooting cluster (skim; come back when something breaks)
 7. **J-Vault** — Shack Inventory (separate module — launch from J-Hub's Module Connections panel)
-8. **§18-00** — Band Plans (operating-frequency reference; bookmark)
+8. **§20-00** — Band Plans (operating-frequency reference; bookmark)
 
 Beyond that, J-Learn is fully reference. Search for what you need.
 
@@ -120,6 +120,6 @@ When chapters are revised, the section's front-matter `status` field reflects cu
 ## See also
 
 - §00-00 — README — what J-Learn is
-- §07-01 — Antenna Recommender (navigates antennas backward from your QTH)
-- §03-09 — Hardware Keyer Builds (cross-references the trainer's hardware module)
+- §09-01 — Antenna Recommender (navigates antennas backward from your QTH)
+- §05-09 — Hardware Keyer Builds (cross-references the trainer's hardware module)
 - **J-Vault** — Shack Inventory (where the suite stores your station record)
