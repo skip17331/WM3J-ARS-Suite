@@ -32,7 +32,7 @@ LAN.
 
 ---
 
-## Prerequisites (both platforms)
+## Prerequisites (all platforms)
 
 - **Java 21 or newer** (Temurin / OpenJDK / Zulu / Microsoft Build all fine)
 - **Maven 3.8 or newer**
@@ -272,6 +272,143 @@ Open <http://localhost:8081/> in your browser.
 J-Vault and J-Learn each have their own Start-Menu entries
 (**WM3J J-Vault**, **WM3J J-Learn**); from inside J-Hub you can also
 launch them via the corresponding tab's **Launch** button.
+
+---
+
+## macOS
+
+Tested on macOS 12 Monterey through 14 Sonoma, both Intel and
+Apple Silicon. Same source-build flow as Linux; the only macOS-
+specific step is dropping the macOS JavaFX SDK into each module's
+`lib/javafx/`.
+
+### 1. Install git, Java, and Maven
+
+Easiest with [Homebrew](https://brew.sh/):
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install --cask temurin@21
+brew install maven git
+```
+
+Verify:
+
+```bash
+git --version    # any 2.x is fine
+java --version   # must be 21 or newer
+mvn --version    # must be 3.8 or newer
+```
+
+### 2. Clone the repository
+
+```bash
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+```
+
+### 3. Install the JavaFX macOS runtime
+
+The repo's `lib/javafx/` directories ship Linux JavaFX jars. On macOS
+you need the macOS-native build (`aarch64` for Apple Silicon, `x86_64`
+for Intel Macs). Download once and copy into every JavaFX module:
+
+```bash
+# Apple Silicon (M1/M2/M3/M4):
+JFX_URL="https://download2.gluonhq.com/openjfx/21.0.5/openjfx-21.0.5_osx-aarch64_bin-sdk.zip"
+# Intel:
+# JFX_URL="https://download2.gluonhq.com/openjfx/21.0.5/openjfx-21.0.5_osx-x64_bin-sdk.zip"
+
+curl -fLo /tmp/javafx-mac.zip "$JFX_URL"
+unzip -q /tmp/javafx-mac.zip -d /tmp
+JFX_LIB="$(ls -d /tmp/javafx-sdk-*/lib | head -1)"
+
+for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+    mkdir -p "$m/lib/javafx"
+    cp -f "$JFX_LIB"/*.jar       "$m/lib/javafx/"
+    cp -f "$JFX_LIB"/*.dylib     "$m/lib/javafx/" 2>/dev/null || true
+done
+```
+
+J-Vault, J-Learn, and Morse Trainer don't depend on JavaFX (J-Vault and
+J-Learn are pure web apps; Morse Trainer uses Java Sound).
+
+### 4. Build the suite
+
+```bash
+# Shared engine first
+mvn -q -DskipTests -f j-log-engine/pom.xml install
+
+# Standalone web apps J-Hub launches — install for the .m2 cache
+mvn -q -DskipTests -f j-learn/pom.xml install
+mvn -q -DskipTests -f j-vault/pom.xml install
+
+# Package the apps
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
+    mvn -q -DskipTests -f "$m/pom.xml" package
+done
+```
+
+### 5. Run the installer
+
+```bash
+./install.sh
+```
+
+On macOS the installer writes `.app` bundles into `~/Applications/`
+(not `/Applications/`, which would require `sudo`). Each bundle is a
+thin wrapper that delegates to the module's `*.sh` script in the
+checkout, so future `git pull` + `mvn package` cycles need no
+re-install.
+
+Bundle layout:
+
+```
+~/Applications/
+├── WM3J J-Hub.app/
+├── WM3J J-Log.app/
+├── WM3J J-Map.app/
+├── WM3J J-Digi.app/
+├── WM3J J-Bridge.app/
+├── WM3J J-Sat.app/
+├── WM3J J-Vault.app/
+├── WM3J J-Learn.app/
+└── WM3J Morse Trainer.app/
+```
+
+Log output goes to `~/Library/Logs/ARS-Suite/<module>.log` — Finder
+swallows stdout from `.app` bundles, so the installer redirects there.
+
+### 6. Launch J-Hub
+
+```bash
+open ~/Applications/WM3J\ J-Hub.app
+```
+
+Or use Spotlight (`⌘-Space`, type "j-hub"). Open <http://localhost:8081/>
+in your browser.
+
+> **Gatekeeper note — first launch.** macOS will likely refuse to open
+> a freshly-installed `.app` from an "unidentified developer". Fix:
+>
+> 1. In Finder, navigate to `~/Applications/`.
+> 2. Right-click **WM3J J-Hub.app** → **Open**.
+> 3. Click **Open** in the dialog.
+>
+> After the first approval, double-clicking works forever. Repeat for
+> each module the first time you launch it. The bundles aren't signed
+> because ARS Suite is FOSS source-installed, not distributed through
+> the App Store — there's nothing to sign with.
+
+### Optional: Hamlib and WSJT-X
+
+```bash
+brew install hamlib
+brew install --cask wsjtx
+```
+
+Both are optional. The suite runs without them; J-Hub's Dashboard
+has a re-check button after you install them.
 
 ---
 

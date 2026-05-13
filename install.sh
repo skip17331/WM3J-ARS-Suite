@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# ARS Suite — Linux installer bootstrap.
+# ARS Suite — Linux / macOS installer bootstrap.
 #
 # Assumes:
 #   - Java 21 is installed          (java --version)
@@ -19,16 +19,19 @@
 #
 # What this script does:
 #   1. Builds the installer jar if it isn't present.
-#   2. Runs the installer, which writes .desktop entries for each built
-#      module to ~/.local/share/applications/ and copies icons to
-#      ~/.local/share/icons/.
+#   2. Runs the installer, which detects the platform and writes
+#      appropriate shortcuts:
+#        - Linux : .desktop entries in ~/.local/share/applications/
+#                  + icons in ~/.local/share/icons/
+#        - macOS : .app bundles in ~/Applications/
+#                  (log output goes to ~/Library/Logs/ARS-Suite/)
 #   3. Leaves all existing files (j-hub.json, logs, databases) untouched —
 #      safe to run any number of times as an upgrade.
 
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-INSTALLER_JAR="$SCRIPT_DIR/installer/target/j-installer-1.0.6.jar"
+INSTALLER_JAR="$SCRIPT_DIR/installer/target/j-installer-1.0.7.jar"
 
 command -v java >/dev/null 2>&1 || {
     echo "error: Java 21 is required but 'java' was not found on PATH."

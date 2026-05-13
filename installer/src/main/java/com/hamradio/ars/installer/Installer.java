@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * ARS Suite installer — Linux and Windows.
+ * ARS Suite installer — Linux, macOS, and Windows.
  *
  * Manifest-driven: reads {@code manifest.json} from inside the installer jar,
  * walks each module, and for every one that has a built jar it wires up
@@ -21,6 +21,10 @@ import java.util.concurrent.TimeUnit;
  *   <li><b>Linux</b> — writes {@code .desktop} entries to
  *       {@code ~/.local/share/applications/}, copies icons to
  *       {@code ~/.local/share/icons/}, chmods the launch scripts.</li>
+ *   <li><b>macOS</b> — generates a {@code .app} bundle for each module
+ *       under {@code ~/Applications/}. The bundle's {@code Contents/MacOS/}
+ *       wrapper script execs the module's existing {@code .sh} launcher,
+ *       so source-tree updates propagate without re-running the installer.</li>
  *   <li><b>Windows</b> — generates {@code .bat} launchers if missing,
  *       creates Start-Menu shortcuts under
  *       {@code %APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\}
@@ -33,8 +37,10 @@ import java.util.concurrent.TimeUnit;
 public final class Installer {
 
     private static final String MANIFEST_RESOURCE = "/manifest.json";
-    private static final boolean WINDOWS =
-        System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
+    private static final String OS_NAME =
+        System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+    private static final boolean WINDOWS = OS_NAME.contains("win");
+    private static final boolean MAC     = OS_NAME.contains("mac") || OS_NAME.contains("darwin");
 
     private Installer() {}
 
@@ -43,7 +49,7 @@ public final class Installer {
         Path home       = Paths.get(System.getProperty("user.home"));
 
         banner();
-        info("Platform:    " + (WINDOWS ? "Windows" : "Linux / macOS"));
+        info("Platform:    " + (WINDOWS ? "Windows" : MAC ? "macOS" : "Linux"));
         info("Source root: " + sourceRoot);
         info("User home:   " + home);
         System.out.println();
@@ -59,8 +65,9 @@ public final class Installer {
         List<String> installed = new ArrayList<>();
         List<String> skipped   = new ArrayList<>();
 
-        if (WINDOWS) installWindows(sourceRoot, modules, installed, skipped);
-        else         installLinux  (sourceRoot, home, modules, installed, skipped);
+        if      (WINDOWS) installWindows(sourceRoot, modules, installed, skipped);
+        else if (MAC)     installMac    (sourceRoot, home, modules, installed, skipped);
+        else              installLinux  (sourceRoot, home, modules, installed, skipped);
 
         System.out.println();
         info("Installed shortcuts:");
@@ -76,8 +83,14 @@ public final class Installer {
 
         System.out.println();
         info("Done. Launch via your system menu, or directly:");
-        System.out.println("    " + sourceRoot.resolve(WINDOWS ? "j-hub\\start.bat"
-                                                                : "j-hub/start.sh"));
+        if (WINDOWS) {
+            System.out.println("    " + sourceRoot.resolve("j-hub\\start.bat"));
+        } else if (MAC) {
+            System.out.println("    open ~/Applications/WM3J\\ J-Hub.app");
+            System.out.println("    " + sourceRoot.resolve("j-hub/start.sh"));
+        } else {
+            System.out.println("    " + sourceRoot.resolve("j-hub/start.sh"));
+        }
     }
 
     // -----------------------------------------------------------------
@@ -143,6 +156,138 @@ public final class Installer {
         Files.writeString(path, sb.toString(), StandardCharsets.UTF_8,
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         try { path.toFile().setExecutable(true, false); } catch (Exception ignored) {}
+    }
+
+    // -----------------------------------------------------------------
+    // macOS installer path
+    // -----------------------------------------------------------------
+    //
+    // We plant a .app bundle per module in ~/Applications/.  Each bundle's
+    // Contents/MacOS/<name> is a thin shell wrapper that execs the
+    // module's existing .sh launcher in the source checkout, so updates
+    // (git pull, mvn rebuild) propagate automatically — no re-install.
+
+    private static void installMac(Path sourceRoot, Path home,
+                                   JsonArray modules,
+                                   List<String> installed, List<String> skipped) throws Exception {
+        Path appsDir = home.resolve("Applications");
+        Files.createDirectories(appsDir);
+
+        for (var el : modules) {
+            JsonObject m = el.getAsJsonObject();
+            String name   = m.get("name").getAsString();
+            String title  = m.get("title").getAsString();
+            String launch = m.get("launch").getAsString();
+            String jar    = m.get("jar").getAsString();
+            String iconR  = m.has("icon")    ? m.get("icon").getAsString()    : null;
+            String cmt    = m.has("comment") ? m.get("comment").getAsString() : title;
+
+            Path jarPath    = sourceRoot.resolve(jar);
+            Path launchPath = sourceRoot.resolve(launch);
+            if (!Files.exists(jarPath))    { skipped.add(name + " (missing build: " + jar + ")");    continue; }
+            if (!Files.exists(launchPath)) { skipped.add(name + " (missing launch: " + launch + ")"); continue; }
+
+            try { launchPath.toFile().setExecutable(true, false); } catch (Exception ignored) {}
+
+            // Bundle layout:
+            //   ~/Applications/<Title>.app/
+            //       Contents/
+            //           Info.plist
+            //           MacOS/<name>            (executable shell wrapper)
+            //           Resources/icon.png      (PNG icon if available)
+            Path appBundle = appsDir.resolve(title + ".app");
+            Path contents  = appBundle.resolve("Contents");
+            Path macosDir  = contents.resolve("MacOS");
+            Path resDir    = contents.resolve("Resources");
+            Files.createDirectories(macosDir);
+            Files.createDirectories(resDir);
+
+            // Copy icon if present (macOS Finder displays PNG icons via
+            // CFBundleIconFile since 10.7).  Real .icns generation needs
+            // iconutil + macOS-only tooling; PNG is good enough for now.
+            String iconFile = null;
+            if (iconR != null) {
+                Path src = sourceRoot.resolve(iconR);
+                if (Files.exists(src)) {
+                    Path dst = resDir.resolve("icon.png");
+                    Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
+                    iconFile = "icon.png";
+                }
+            }
+
+            // Info.plist — minimal but valid LSUIElement=false bundle.
+            String bundleId = "com.hamradio.ars." + name.replace("-", "");
+            writePlist(contents.resolve("Info.plist"),
+                       name, title, cmt, bundleId, iconFile);
+
+            // Launcher script under Contents/MacOS/.  Must be executable
+            // and match CFBundleExecutable in Info.plist.
+            Path launcher = macosDir.resolve(name);
+            writeMacLauncher(launcher, launchPath);
+
+            installed.add(name + " → " + appBundle);
+        }
+    }
+
+    private static void writePlist(Path plistPath,
+                                   String executableName, String displayName,
+                                   String comment, String bundleId,
+                                   String iconFile) throws java.io.IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" ")
+          .append("\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n");
+        sb.append("<plist version=\"1.0\">\n");
+        sb.append("<dict>\n");
+        sb.append("  <key>CFBundleName</key><string>").append(escapeXml(displayName)).append("</string>\n");
+        sb.append("  <key>CFBundleDisplayName</key><string>").append(escapeXml(displayName)).append("</string>\n");
+        sb.append("  <key>CFBundleIdentifier</key><string>").append(escapeXml(bundleId)).append("</string>\n");
+        sb.append("  <key>CFBundleVersion</key><string>1.0</string>\n");
+        sb.append("  <key>CFBundleShortVersionString</key><string>1.0</string>\n");
+        sb.append("  <key>CFBundleExecutable</key><string>").append(escapeXml(executableName)).append("</string>\n");
+        sb.append("  <key>CFBundlePackageType</key><string>APPL</string>\n");
+        sb.append("  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>\n");
+        sb.append("  <key>NSHighResolutionCapable</key><true/>\n");
+        sb.append("  <key>LSMinimumSystemVersion</key><string>10.15</string>\n");
+        if (iconFile != null) {
+            sb.append("  <key>CFBundleIconFile</key><string>")
+              .append(escapeXml(iconFile)).append("</string>\n");
+        }
+        if (comment != null && !comment.isBlank()) {
+            sb.append("  <key>NSHumanReadableCopyright</key><string>")
+              .append(escapeXml(comment)).append("</string>\n");
+        }
+        sb.append("</dict>\n");
+        sb.append("</plist>\n");
+        Files.writeString(plistPath, sb.toString(), StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    private static void writeMacLauncher(Path launcherPath, Path moduleLaunchScript)
+            throws java.io.IOException {
+        // Launchd / Finder set CWD to /, so we always cd into the module
+        // directory before delegating.  Logs go to ~/Library/Logs/ARS-Suite/
+        // because Finder swallows stdout/stderr from .app bundles.
+        StringBuilder sb = new StringBuilder();
+        sb.append("#!/bin/bash\n");
+        sb.append("# Auto-generated by ARS Suite installer. Do not edit — re-run install.sh.\n");
+        sb.append("LOG_DIR=\"$HOME/Library/Logs/ARS-Suite\"\n");
+        sb.append("mkdir -p \"$LOG_DIR\"\n");
+        sb.append("LOG_FILE=\"$LOG_DIR/").append(launcherPath.getFileName()).append(".log\"\n");
+        sb.append("cd \"").append(moduleLaunchScript.getParent()).append("\" || exit 1\n");
+        sb.append("exec bash \"").append(moduleLaunchScript).append("\" \"$@\" ")
+          .append(">>\"$LOG_FILE\" 2>&1\n");
+        Files.writeString(launcherPath, sb.toString(), StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        try { launcherPath.toFile().setExecutable(true, false); } catch (Exception ignored) {}
+    }
+
+    private static String escapeXml(String s) {
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
     }
 
     // -----------------------------------------------------------------
@@ -277,13 +422,19 @@ public final class Installer {
         info("Checking optional external dependencies…");
         boolean hasRigctl = which(WINDOWS ? "rigctl.exe" : "rigctl");
         boolean hasRotctl = which(WINDOWS ? "rotctl.exe" : "rotctl");
-        boolean hasWsjtx  = which(WINDOWS ? "wsjtx.exe"  : "wsjtx");
+        boolean hasWsjtx  = which(WINDOWS ? "wsjtx.exe"  : MAC ? "wsjtx_cmd" : "wsjtx");
+        String hamlibHint = MAC     ? "brew install hamlib"
+                           : WINDOWS ? "download from hamlib.sourceforge.io"
+                           :           "install Hamlib";
+        String wsjtxHint  = MAC     ? "brew install --cask wsjtx"
+                           : WINDOWS ? "install from wsjt.sourceforge.io"
+                           :           "install from wsjt.sourceforge.io";
         System.out.println("  " + (hasRigctl ? "[OK] " : "[-- ] ") + "Hamlib / rigctl"
-            + (hasRigctl ? "" : "   — install Hamlib"));
+            + (hasRigctl ? "" : "   — " + hamlibHint));
         System.out.println("  " + (hasRotctl ? "[OK] " : "[-- ] ") + "Hamlib / rotctl"
             + (hasRotctl ? "" : "   — included with Hamlib"));
         System.out.println("  " + (hasWsjtx  ? "[OK] " : "[-- ] ") + "WSJT-X"
-            + (hasWsjtx ? "" : "   — install from wsjt.sourceforge.io"));
+            + (hasWsjtx ? "" : "   — " + wsjtxHint));
         System.out.println();
         System.out.println("  (optional — the suite runs without these; j-hub's Dashboard");
         System.out.println("   has a re-check button after you install them.)");

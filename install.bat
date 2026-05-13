@@ -26,7 +26,7 @@ rem ============================================================
 
 setlocal
 set "SCRIPT_DIR=%~dp0"
-set "INSTALLER_JAR=%SCRIPT_DIR%installer\target\j-installer-1.0.6.jar"
+set "INSTALLER_JAR=%SCRIPT_DIR%installer\target\j-installer-1.0.7.jar"
 
 where java >nul 2>&1
 if errorlevel 1 (
