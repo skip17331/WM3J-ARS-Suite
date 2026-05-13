@@ -2742,6 +2742,7 @@ function populateJDigiForm(s) {
   setSelectVal('jdigi-ptt-method', s.pttMethod || 'VOX');
   setSelectVal('jdigi-cw-keyer',   s.cwKeyer   || 'AUDIO');
   setVal('jdigi-cw-wpm',           s.cwWpm     || 20);
+  setChk('jdigi-skimmer-enabled', !!s.localSkimmerEnabled);
 
   const setFontSlider = (id, valId, v) => {
     const el  = document.getElementById(id);
@@ -2765,6 +2766,7 @@ function saveJDigiSettings() {
     pttMethod: document.getElementById('jdigi-ptt-method').value || 'VOX',
     cwKeyer:   document.getElementById('jdigi-cw-keyer').value   || 'AUDIO',
     cwWpm:     intOf('jdigi-cw-wpm') || 20,
+    localSkimmerEnabled: document.getElementById('jdigi-skimmer-enabled').checked,
     fonts: {
       rxTx:      intOf('jdigi-font-rxtx'),
       freq:      intOf('jdigi-font-freq'),

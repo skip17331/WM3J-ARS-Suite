@@ -75,11 +75,20 @@ public class ModemService implements HubMessageListener {
     private static final String PREF_CW_WPM       = "cw.wpm";
     private static final String PREF_BANDPLAN_REGION = "bandplan.region";  // IARU-R1 | IARU-R2 | IARU-R3
     private static final String PREF_BANDPLAN_COUNTRY = "bandplan.country"; // US | (none)
+    private static final String PREF_LOCAL_SKIMMER   = "skimmer.local.enabled";
 
     private final AudioEngine audioEngine = new AudioEngine();
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
     private final FftAnalyzer fftAnalyzer =
             new FftAnalyzer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
+    /** Multi-channel CW detector. Off by default; toggled by the
+     *  j-hub J-Digi tab → "Local CW Skimmer" card. */
+    private final com.hamradio.modem.dsp.LocalSkimmer localSkimmer =
+            new com.hamradio.modem.dsp.LocalSkimmer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
+    /** Rate-limit skimmer broadcasts — the audio frame rate is ~31 Hz
+     *  but downstream consumers don't need that. 1 Hz is plenty. */
+    private long lastSkimmerBroadcastMs = 0L;
+    private static final long SKIMMER_BROADCAST_INTERVAL_MS = 1000L;
     /** Click-to-identify classifier — buffers ~16 s of audio, classifies on demand. */
     private final com.hamradio.modem.dsp.SignalClassifier signalClassifier =
             new com.hamradio.modem.dsp.SignalClassifier(AudioEngine.SAMPLE_RATE, AudioEngine.FRAME_SIZE);
@@ -153,6 +162,46 @@ public class ModemService implements HubMessageListener {
         // demodulates, just buffers samples for on-demand mode identification
         // when the operator clicks a signal in the waterfall.
         audioEngine.addListener(signalClassifier);
+
+        // Honor the saved local-skimmer toggle so the operator's choice
+        // survives restarts.
+        localSkimmer.setEnabled(PREFS.getBoolean(PREF_LOCAL_SKIMMER, false));
+        localSkimmer.setListener(this::publishLocalSkimmer);
+    }
+
+    /**
+     * Forward a {@link com.hamradio.modem.dsp.LocalSkimmer.Snapshot} to
+     * j-hub as a {@code LOCAL_SKIMMER_ACTIVITY} WS message — rate-limited
+     * to once a second so downstream consumers (J-Map waterfall colouring,
+     * J-Log band-activity widgets) don't get overwhelmed.
+     */
+    private void publishLocalSkimmer(com.hamradio.modem.dsp.LocalSkimmer.Snapshot snap) {
+        long now = System.currentTimeMillis();
+        if (now - lastSkimmerBroadcastMs < SKIMMER_BROADCAST_INTERVAL_MS) return;
+        lastSkimmerBroadcastMs = now;
+        if (hubClient == null || !hubClient.isOpen()) return;
+
+        com.google.gson.JsonObject msg = new com.google.gson.JsonObject();
+        msg.addProperty("type", "LOCAL_SKIMMER_ACTIVITY");
+        msg.addProperty("timestamp", java.time.Instant.now().toString());
+        long rigHz = status.getRigFrequencyHz();
+        if (rigHz > 0) msg.addProperty("rigFrequencyHz", rigHz);
+
+        com.google.gson.JsonArray peaks = new com.google.gson.JsonArray();
+        for (com.hamradio.modem.dsp.LocalSkimmer.Peak p : snap.peaks) {
+            com.google.gson.JsonObject po = new com.google.gson.JsonObject();
+            po.addProperty("audioFreqHz", p.freqHz);
+            po.addProperty("snrDb",       Math.round(p.snrDb * 10.0) / 10.0);
+            po.addProperty("bandwidthHz", Math.round(p.bandwidthHz * 10.0) / 10.0);
+            if (rigHz > 0) {
+                // Best-effort conversion to absolute RF frequency assuming
+                // USB convention (rig dial = LSB carrier; audio freq adds).
+                po.addProperty("rfFrequencyHz", rigHz + Math.round(p.freqHz));
+            }
+            peaks.add(po);
+        }
+        msg.add("peaks", peaks);
+        hubClient.sendJson(msg);
     }
 
     /** Click-to-identify entry point: invoked by the UI when the operator
@@ -788,6 +837,9 @@ public class ModemService implements HubMessageListener {
         try {
             FftAnalyzer.SpectrumResult result = fftAnalyzer.analyze(samples);
 
+            // Hand the spectrum to the local skimmer (no-op when disabled)
+            localSkimmer.process(result.magnitudes());
+
             SignalSnapshot snapshot = new SignalSnapshot(
                     samples,
                     result.magnitudes(),
@@ -1046,6 +1098,11 @@ public class ModemService implements HubMessageListener {
                         String id = settings.get("audioOutputDeviceId").getAsString();
                         PREFS.put(PREF_AUDIO_OUTPUT, id);
                         audioTxEngine.setPreferredOutputDeviceId(id);
+                    }
+                    if (settings.has("localSkimmerEnabled")) {
+                        boolean on = settings.get("localSkimmerEnabled").getAsBoolean();
+                        PREFS.putBoolean(PREF_LOCAL_SKIMMER, on);
+                        localSkimmer.setEnabled(on);
                     }
                     // PTT / CW settings now live in j-hub; persist + apply live
                     boolean txDirty = false;

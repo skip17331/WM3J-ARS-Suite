@@ -76,6 +76,18 @@ public class HubClient extends WebSocketClient {
         log.error("Hub client error", ex);
     }
 
+    /**
+     * Send an arbitrary pre-built JSON message over the WebSocket. Used by
+     * the local CW skimmer to publish {@code LOCAL_SKIMMER_ACTIVITY}
+     * snapshots without requiring a typed wrapper for every message kind.
+     */
+    public void sendJson(JsonObject msg) {
+        if (msg == null) return;
+        if (isOpen()) {
+            send(msg.toString());
+        }
+    }
+
     public void sendDecode(String mode,
                            String text,
                            long frequency,

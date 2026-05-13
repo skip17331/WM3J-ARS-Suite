@@ -1782,6 +1782,22 @@
       </div>
 
       <div class="card">
+        <div class="card-title">Local CW Skimmer <span style="font-size:11px;color:var(--subtext0);font-weight:normal">(experimental)</span></div>
+        <div class="panel-sub">
+          When enabled, J-Digi runs a multi-channel CW detector across the
+          audio passband alongside the active decoder and publishes
+          <code>LOCAL_SKIMMER_ACTIVITY</code> snapshots (1 Hz) — useful as a
+          band-activity gauge during contests or to colour the J-Map
+          waterfall. Per-channel callsign decoding is a follow-up; this is
+          the detector tier of the embedded-skimmer feature.
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" id="jdigi-skimmer-enabled">
+          <span>Enable local CW skimmer in J-Digi</span>
+        </label>
+      </div>
+
+      <div class="card">
         <div class="card-title">Transmit &amp; CW</div>
         <div class="panel-sub">PTT keying method and CW transmission paths. Hamlib host/port come from <b>Rig Control</b>.</div>
         <div class="field-row cols-2">

@@ -44,9 +44,18 @@ don't sink time into directions the project has decided not to take.
 
 ## Phase 2 — Differentiators
 
-- Embedded CW skimmer in J-Digi (multi-channel CW decode across the audio
+- ~~Embedded CW skimmer in J-Digi (multi-channel CW decode across the audio
   passband; publish `SPOT` messages with `source:"LOCAL_SKIMMER"`; optional
-  outbound telnet so the operator becomes a public RBN node)
+  outbound telnet so the operator becomes a public RBN node)~~ ✅ detector
+  tier shipped 2026-05-12 — `LocalSkimmer` identifies up to 16
+  simultaneous CW carriers across the audio passband via spectrum
+  peak-picking (median smoothing + adaptive noise floor + parabolic
+  sub-bin interpolation + bandwidth rejection). Publishes
+  `LOCAL_SKIMMER_ACTIVITY` snapshots (1 Hz rate-limit). 8 tests cover
+  detection / dedupe / wideband rejection / scan-band limits / cap.
+  **Follow-up:** per-channel Goertzel band-pass + `CwMode` decoder + RBN
+  outbound — promoted to Phase 3 as it's a substantially bigger DSP lift
+  than the detector tier was.
 - ~~EME-lite in J-Sat (moon Doppler correction, libration prediction,
   moon-window calendar between QTH and DX grid, frequency handoff to
   WSJT-X via j-bridge)~~ ✅ shipped 2026-05-12 — `LunarMath` (Meeus
@@ -74,6 +83,11 @@ don't sink time into directions the project has decided not to take.
 
 ## Phase 3 — Bigger projects
 
+- Embedded skimmer per-channel decoder — Goertzel band-pass per detected
+  signal feeding a `CwMode` instance, then callsign extraction, then
+  outbound RBN node capability. Promoted from Phase 2 (detector tier
+  done) because per-channel decoding is a substantially bigger DSP
+  effort than the spectrum peak-picker.
 - Voice-control listener (`j-voice` — offline Vosk model parses commands
   like *"tune to twenty meters"* / *"call CQ"* / *"log this QSO"* into
   `RIG_CONTROL` / `MODEM_TX` / `QSO_SAVE` WebSocket messages)
