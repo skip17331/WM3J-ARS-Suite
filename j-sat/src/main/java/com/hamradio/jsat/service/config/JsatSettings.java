@@ -35,6 +35,14 @@ public class JsatSettings {
     // Space weather
     public boolean showSpaceWeather = true;
 
+    // EME (Moon-bounce) — Phase 2 of the suite roadmap. Optional panel
+    // because most operators don't run EME; off by default.
+    public boolean showEmePanel     = false;
+    /** Reference RX frequency for Doppler display, in Hz. Defaults to 1296 MHz. */
+    public long    emeFrequencyHz   = 1_296_000_000L;
+    /** DX QTH for the common-window calculation. Blank = no DX window. */
+    public String  emeDxGrid        = "";
+
     // Display
     public boolean showGroundTrack = true;
     public boolean showFootprint   = true;

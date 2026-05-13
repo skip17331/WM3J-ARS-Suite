@@ -40,6 +40,7 @@ public class DashboardLayout {
     private LivePassPanel  livePass;
     private SpaceWeatherPanel swPanel;
     private RigRotorPanel  rigRotor;
+    private EmePanel        emePanel;
     private Label          utcClock;
     private Label          locClock;
 
@@ -104,6 +105,12 @@ public class DashboardLayout {
             swPanel.setMaxWidth(Double.MAX_VALUE);
             bottomBar.getChildren().add(swPanel);
         }
+        if (s.showEmePanel) {
+            emePanel = new EmePanel(services);
+            HBox.setHgrow(emePanel, Priority.ALWAYS);
+            emePanel.setMaxWidth(Double.MAX_VALUE);
+            bottomBar.getChildren().add(emePanel);
+        }
         HBox.setHgrow(rigRotor, Priority.ALWAYS);
         rigRotor.setMaxWidth(Double.MAX_VALUE);
         bottomBar.getChildren().add(rigRotor);
@@ -139,6 +146,7 @@ public class DashboardLayout {
         livePass.update();
         swPanel.update();
         rigRotor.update();
+        if (emePanel != null) emePanel.update();
     }
 
     /** Called from animation loop every 10 seconds — refresh pass list. */

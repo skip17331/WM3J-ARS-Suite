@@ -47,9 +47,16 @@ don't sink time into directions the project has decided not to take.
 - Embedded CW skimmer in J-Digi (multi-channel CW decode across the audio
   passband; publish `SPOT` messages with `source:"LOCAL_SKIMMER"`; optional
   outbound telnet so the operator becomes a public RBN node)
-- EME-lite in J-Sat (moon Doppler correction, libration prediction,
+- ~~EME-lite in J-Sat (moon Doppler correction, libration prediction,
   moon-window calendar between QTH and DX grid, frequency handoff to
-  WSJT-X via j-bridge)
+  WSJT-X via j-bridge)~~ ✅ shipped 2026-05-12 — `LunarMath` (Meeus
+  ch. 47 truncated ELP-2000 + ch. 53 libration); EME panel docks in
+  the bottom bar when `showEmePanel` is enabled; 1 Hz tick refreshes
+  az/el/range/Doppler/libration; common-window finder traverses 24h
+  in 10-min steps. WSJT-X handoff covered already via the existing
+  j-bridge UDP fan-out — operator dials the offset reported by the
+  panel. Tests: 7 cases (distance bounds, Doppler scaling, libration
+  bounds, common-window edge cases, motion-over-time).
 - ~~Audio Setup Wizard in j-hub (probes audio interfaces, detects
   SignaLink/DigiRig/codec cards by name, suggests sample-rate + buffer
   defaults, runs a TX/RX loopback validation)~~ ✅ shipped 2026-05-12 —

@@ -2219,6 +2219,28 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-title">EME (Moon-bounce)</div>
+        <div class="panel-sub">
+          Enable a Moon-pointing dashboard tile with two-way Doppler, optical
+          libration, and a common-window calculator for skeds with a DX QTH.
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" id="jsat-eme-enabled">
+          <span>Enable EME panel in J-Sat</span>
+        </label>
+        <div class="field-row cols-2" style="margin-top:8px">
+          <div class="field">
+            <input type="number" id="jsat-eme-freq" min="50" max="10000" step="1" placeholder="1296">
+            <label>Reference RX frequency (MHz)<div class="toggle-desc">Doppler scales linearly with frequency; pick the band you're running EME on (50, 144, 222, 432, 1296, 2304, 3456, 5760, 10368).</div></label>
+          </div>
+          <div class="field">
+            <input type="text" id="jsat-eme-dx" placeholder="JO65 / FN42 …" maxlength="6">
+            <label>DX QTH grid (optional)<div class="toggle-desc">If set, J-Sat shows the next time both you and the DX station can see the Moon above the horizon — the practical sked window.</div></label>
+          </div>
+        </div>
+      </div>
+
       <div class="btn-row" style="margin-top:10px">
         <button class="btn btn-primary" onclick="saveJSatSettings()">Save J-Sat Settings</button>
         <button class="btn btn-ghost"   onclick="restartJSat()">Save Data &amp; Restart J-Sat</button>

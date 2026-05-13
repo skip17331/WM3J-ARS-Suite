@@ -607,6 +607,10 @@ function populateJSatTab(cfg) {
 
   setVal('jsat-tle-threshold', s.tleStaleThresholdHours != null ? s.tleStaleThresholdHours : 48);
   setVal('jsat-tle-port',      s.tleApiPort            != null ? s.tleApiPort             : 4540);
+
+  setChk('jsat-eme-enabled',   !!s.showEmePanel);
+  setVal('jsat-eme-freq',      s.emeFrequencyHz ? Math.round(s.emeFrequencyHz / 1_000_000) : 1296);
+  setVal('jsat-eme-dx',        s.emeDxGrid || '');
 }
 
 function saveJSatSettings() {
@@ -632,6 +636,9 @@ function saveJSatSettings() {
     enabledSatellites:    jsatGetCheckedNames(),
     tleStaleThresholdHours: parseInt(document.getElementById('jsat-tle-threshold').value) || 48,
     tleApiPort:             parseInt(document.getElementById('jsat-tle-port').value)      || 4540,
+    showEmePanel:           document.getElementById('jsat-eme-enabled').checked,
+    emeFrequencyHz:         (parseInt(document.getElementById('jsat-eme-freq').value) || 1296) * 1_000_000,
+    emeDxGrid:              document.getElementById('jsat-eme-dx').value.trim().toUpperCase(),
   };
 
   fetch('/api/jsat', {
