@@ -2235,7 +2235,7 @@ public class ContestLogController implements Initializable {
 
     @FXML private void menuReportIssue() {
         String log = System.getProperty("user.home", "") + "/.j-log/logs/j-log.log";
-        com.jlog.util.IssueReporter.openGitHubIssue("j-log (contest)", "1.0.50", log);
+        com.jlog.util.IssueReporter.openGitHubIssue("j-log (contest)", "1.0.51", log);
     }
 
     private UserTranslationWindow translatorUserWin;
