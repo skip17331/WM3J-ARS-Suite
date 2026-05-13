@@ -36,6 +36,10 @@ names, and common gotchas.
 phased plan of work in flight + features explicitly *not* on the
 roadmap, with reasons.
 
+**Want to write a contest or award plug-in?** →
+**[docs/PLUGINS.md](docs/PLUGINS.md)** — JSON schemas with worked
+examples for both surfaces. No code, no rebuild.
+
 ---
 
 ## What's in the box

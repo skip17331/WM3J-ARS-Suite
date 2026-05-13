@@ -272,20 +272,134 @@ CAT control turns knobs but does not move audio. For voice macros, FT8, RTTY, an
 
 If your radio shows up on the PC as both a serial port **and** a sound card, you are done. Pick that sound card in J-Digi or in WSJT-X and you are ready to transmit and receive audio.
 
-### 8.2 SignaLink USB / RIGblaster / microHAM USB Interface III
+Typical examples:
+- **Icom IC-7300 / IC-705 / IC-7610** — single USB cable carries CAT + audio in + audio out
+- **Yaesu FT-991A / FT-DX10 / FTDX-101D** — same
+- **Kenwood TS-590SG / TS-890** — built-in USB sound card
 
-These are external boxes that handle:
-- audio in (from the radio's headphone or "data out" jack to the PC's mic input),
-- audio out (from the PC's speaker output to the radio's mic or "data in" jack),
-- and sometimes PTT (a small wire that grounds the radio's PTT pin when the PC sends sound).
+Pick it in J-Digi's **Audio** menu (look for "USB Audio CODEC" or the rig's model name) and in WSJT-X's **Settings → Audio**.
 
-Plug one cable per side and one USB cable to the PC. The interface shows up as a sound card.
+### 8.2 SignaLink USB
 
-### 8.3 If you only need voice macros
+Tigertronics' SignaLink is the most common external audio interface in the hobby. It handles audio in, audio out, and PTT (via audio-sensing — no CAT cable needed for PTT).
+
+Plug it in. It shows up as **"USB Audio CODEC"** (yes, identical to a built-in USB radio — check the device count to tell them apart). One DIN-8 / DIN-13 / RJ-45 cable to the rig (model-specific). One USB cable to the PC. Done.
+
+**Settings:**
+- Set the SignaLink's **DLY** knob just past minimum so PTT releases promptly after each transmission.
+- Set **RX** and **TX** knobs to roughly 9 o'clock as a starting point; adjust by watching levels in J-Digi's spectrum/decoder.
+- PTT in J-Digi: leave at **VOX** (the default). The SignaLink keys the rig when it sees audio; you don't need Hamlib PTT.
+
+### 8.3 DigiRig Mobile / DigiRig Lite
+
+DigiRig is a newer, smaller alternative to SignaLink — a single USB-C device that exposes a serial port (for CAT) **and** a sound card (for audio), with hardware PTT triggered from the CAT side.
+
+After plugging in, you'll see:
+- A serial port (Linux: `/dev/ttyUSB0`, Windows: `COM3` etc.) — point Hamlib `rigctld` at this for CAT
+- A sound card called **"USB Audio CODEC"** — pick it in J-Digi / WSJT-X
+
+PTT options:
+- **VOX** (default in J-Digi) — DigiRig keys the rig when audio appears. Simplest.
+- **HAMLIB** — J-Digi sends `T 1` / `T 0` to `rigctld`, which keys DigiRig's PTT line. Required for pure CW since there's no audio for VOX to sense. Set in **J-Hub → J-Digi → Transmit & CW → PTT Method**.
+
+### 8.4 RIGblaster / microHAM USB Interface III
+
+Older external boxes; same audio idea as SignaLink. Single USB connection, PTT via audio sensing or via a separate keying line. Treat them like a SignaLink for purposes of this guide.
+
+### 8.5 Virtual audio cables — when you need them
+
+The default audio routing for a typical shack is:
+
+```
+   Radio audio out ───▶ [sound card]  ───▶  one digital app
+   one digital app ───▶ [sound card]  ───▶  Radio audio in
+```
+
+You hit a wall the moment you want **two digital apps to share the same audio simultaneously** — say, WSJT-X decoding FT8 while a logging spotter watches the same audio, or J-Digi monitoring RTTY while you also feed it to a recording app.
+
+The fix: **virtual audio cables**. These are software-only "wires" that look like a sound card to applications but route to/from another application instead of physical hardware. They cost nothing on Linux/macOS and very little on Windows.
+
+#### 8.5.1 Linux — PulseAudio / PipeWire loopback
+
+Linux ships with this built in. Create a loopback device that any number of applications can record from:
+
+```bash
+# PulseAudio (most distros pre-PipeWire):
+pactl load-module module-null-sink sink_name=jdigi_loop sink_properties=device.description=JDigiLoop
+
+# PipeWire (Fedora 35+, Ubuntu 22.10+, Arch):
+pactl load-module module-null-sink media.class=Audio/Sink sink_name=jdigi_loop
+```
+
+Then route your radio's audio into it via `pavucontrol` (or `qpwgraph` on PipeWire), and have J-Digi / WSJT-X / anything else read from `jdigi_loop.monitor`.
+
+This is the exact setup J-Digi uses for its loopback test suite — see the [J-Digi CLAUDE.md](../j-digi/CLAUDE.md) for the canonical recipe.
+
+To make it persistent across reboots, drop the `pactl` line into `~/.config/pulse/default.pa` (PulseAudio) or `~/.config/pipewire/pipewire.conf.d/` (PipeWire).
+
+#### 8.5.2 Windows — VB-Cable
+
+Windows has nothing built in. Free third-party options:
+
+- **VB-Audio Virtual Cable** — `https://vb-audio.com/Cable/` — one virtual cable, free, donationware. Most operators only need one cable.
+- **VB-Audio VoiceMeeter Banana** — same vendor; full mixer with multiple cables. Free, more complex. Use if you need three or more virtual channels.
+
+**Install VB-Cable:**
+
+1. Download the ZIP from vb-audio.com, extract it.
+2. Right-click `VBCABLE_Setup_x64.exe` (or `_Setup.exe` for 32-bit), select **Run as administrator**.
+3. Click **Install Driver**. Reboot when it asks.
+4. Open **Sound Settings** (right-click the speaker icon → Sound settings):
+   - You should now see **"CABLE Input"** in the playback list and **"CABLE Output"** in the recording list.
+
+**Wire your radio into VB-Cable:**
+
+5. Set the radio's sound card output as the recording source for VB-Cable using the **"Listen to this device"** trick:
+   - Recording → right-click your radio's USB Audio CODEC → **Properties → Listen tab → Listen to this device** → playback through "CABLE Input".
+6. Now anything that reads from **CABLE Output** sees the radio's audio.
+
+**Configure each app:**
+
+7. In **WSJT-X**: Settings → Audio → Input = **CABLE Output**; Output = your radio's USB Audio CODEC (direct).
+8. In **J-Digi**: Audio menu → Input = **CABLE Output**; Output = your radio's USB Audio CODEC.
+
+Both apps now decode the same audio in parallel. Transmit still goes direct to the radio (not through the cable) so you don't get double-routing.
+
+#### 8.5.3 macOS — BlackHole
+
+Apple removed Soundflower years ago; the modern free replacement is **BlackHole** from Existential Audio.
+
+1. Download from `https://existential.audio/blackhole/` (free, open source, no account needed). Pick the **2ch** edition unless you specifically need 16 channels.
+2. Open the `.pkg` installer, accept the prompts. No reboot needed.
+3. Open **Audio MIDI Setup** (Spotlight → "Audio MIDI Setup"):
+   - You should see **"BlackHole 2ch"** in the device list.
+4. Create a **Multi-Output Device** so the radio's audio reaches both your speakers (so you can hear it) and BlackHole:
+   - Click `+` (bottom-left) → **Create Multi-Output Device**.
+   - Tick both "Built-in Output" (your speakers/headphones) and "BlackHole 2ch".
+   - Rename it to "Radio + BlackHole".
+5. In **System Settings → Sound → Output**, set the system output to the Multi-Output Device when you want both speakers and apps to hear the radio. (Or leave default and pick per-app.)
+6. **In each digital-mode app**, set the audio input to **BlackHole 2ch**.
+
+**Paid alternative:** *Loopback* by Rogue Amoeba (~$99) — much friendlier UI, lets you build named virtual cables with a drag-and-drop graph. Worth it if you're running a complex setup; overkill for a single FT8 + J-Digi split.
+
+### 8.6 Levels, sample rate, and common pitfalls
+
+A few rules that save hours of confusion regardless of which interface you use:
+
+| Knob | Setting |
+|---|---|
+| **Sample rate** (PC + radio) | **48 000 Hz** — everything in the digital-mode world expects this. If the radio is set to 44.1 kHz the decoders will work but timing is slightly off. |
+| **RX audio level** | Aim for the decoder's "happy zone" — for WSJT-X that's ~30 dB on the meter; for J-Digi the waterfall should show clear signals without hot peaks. Too loud = ALC compresses + signals smear; too quiet = decoder misses weak ones. |
+| **TX audio level** | Set the rig so ALC just barely flickers on peaks. More than that means audio is over-driving the rig and your signal will splatter. |
+| **PC mic boost** | **Off**. The "boost" or "AGC" toggle on the PC's recording device wrecks dynamic range for digital modes. |
+| **PC monitor / echo cancellation** | **Off**. Same reason — anything that thinks it's "improving" voice audio destroys digital decoding. |
+| **CPU power profile** | "Performance" or "High" — power-save profiles cause USB-audio dropouts that show up as missed decodes. |
+
+### 8.7 If you only need voice macros
 
 The voice macros in J-Hub record from the PC's default microphone and play back through the PC's default speaker. If your radio has a mic input that accepts line-level sound, run a wire from the PC's headphone jack (or USB sound card output) to the radio's mic input. PTT goes through the CAT cable.
 
-A safer option is one of the boxes in 8.2 — they include the right resistors so you don't blow up the radio's mic preamp.
+A safer option is one of the boxes in 8.2 or 8.3 — they include the right resistors so you don't blow up the radio's mic preamp.
 
 ---
 
