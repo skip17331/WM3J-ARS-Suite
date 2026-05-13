@@ -1,8 +1,13 @@
 # WM3J ARS Suite — Install Guide
 
-A focused, step-by-step install for **Linux** and **Windows**. Pick your
-platform below and run the commands top-to-bottom. Should take about
-15-25 minutes (most of that is the first Maven build).
+A focused, step-by-step install for **Linux**, **macOS**, and
+**Windows**. Pick your platform below and run the commands top-to-bottom.
+Should take about 15–25 minutes (most of that is the first Maven build).
+
+> macOS users: there's a one-command bootstrap (`./bootstrap-mac.sh`)
+> that collapses arch detection, JavaFX SDK download, the build loop,
+> and Gatekeeper unblocking into a single script. See the **macOS**
+> section below.
 
 > Looking for the longer walk-through, web-UI tour, and per-app tips?
 > See **[USER_GUIDE.md](USER_GUIDE.md)**. This file is just the install.
@@ -117,8 +122,11 @@ line — earlier successes don't need to be redone.
 
 ### 4. Run the installer
 
-This writes `.desktop` entries and icons under `~/.local/share/`. Safe
-to re-run any time; never touches your config or databases.
+The same `./install.sh` works for both Linux and macOS — it detects
+the platform at runtime. On Linux it writes `.desktop` entries to
+`~/.local/share/applications/` and copies icons to
+`~/.local/share/icons/`. Safe to re-run any time; never touches your
+config or databases.
 
 ```bash
 ./install.sh
@@ -250,7 +258,9 @@ If any module fails, re-run just that line after fixing.
 ### 5. Run the installer
 
 This generates per-module `.bat` launchers (when missing) and creates
-**Start Menu shortcuts** under `ARS Suite`. Safe to re-run.
+**Start Menu shortcuts** under `ARS Suite` (in
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\`). Safe to
+re-run any time; never touches your config or databases.
 
 ```powershell
 .\install.bat
@@ -497,6 +507,13 @@ done
 ./install.sh
 ```
 
+```bash
+# macOS
+cd ~/ARS_Suite
+git pull
+./bootstrap-mac.sh         # re-runs the whole build + installer in one shot
+```
+
 ```powershell
 # Windows
 cd $HOME\ARS_Suite
@@ -513,6 +530,21 @@ foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-traine
 Your config (`~/.j-hub/`, `~/.j-vault/`, `~/.j-log/`, etc.) and
 databases are never touched by the installer or by `git pull`.
 
+### Optional follow-up: language packs
+
+English and Spanish ship embedded in every module. To activate
+**German, French, Italian, or Portuguese** suite-wide:
+
+```bash
+./install-lang-pack.sh de        # or fr / it / pt    (Linux, macOS)
+install-lang-pack.bat de         #                    (Windows)
+```
+
+That copies `i18n-packs/<module>/messages_<lang>.properties` into
+`~/.j-hub/lang/<module>/` for every module that has a pack. Then set
+**Language: de** (or whichever) in J-Hub → Station → Regional Settings.
+See `i18n-packs/README.md` for the full layout.
+
 ---
 
 ## Where everything lives after install
@@ -527,7 +559,10 @@ databases are never touched by the installer or by `git pull`.
 | `~/.j-log/`                | J-Log databases (normal log + contests) + macros |
 | `~/.j-map/`                | J-Map cached map images, settings |
 | `~/.j-sat/`                | J-Sat TLE cache + settings |
+| `~/.j-hub/lang/<module>/`  | Installed external language packs (DE / FR / IT / PT) |
 | `~/.local/share/applications/ars-*.desktop` | Linux menu entries |
+| `~/Applications/WM3J *.app/`                | macOS app bundles (per module) |
+| `~/Library/Logs/ARS-Suite/<module>.log`     | macOS module log output |
 | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\` | Windows shortcuts |
 
 ---
@@ -542,6 +577,20 @@ Open a *new* PowerShell window. winget updates PATH but only for new sessions.
 **"Could not find or load main class" or "JavaFX runtime components are missing"
 on Windows** — You skipped step 3 (Windows JavaFX SDK). The Linux symlinks
 in `lib/javafx` don't work on Windows.
+
+**"can't be opened because Apple cannot check it for malicious software"
+on macOS** — Gatekeeper quarantine. `bootstrap-mac.sh` clears this for
+you automatically, but if you ran `install.sh` directly without the
+bootstrap, fix all bundles at once:
+
+```bash
+xattr -dr com.apple.quarantine ~/Applications/WM3J\ *.app
+```
+
+**No app bundles in `~/Applications/` after `./install.sh` on macOS** —
+A module's jar wasn't built. The installer skips modules whose target
+jar is missing; re-read the installer's output for the "Skipped"
+lines, then re-run the matching `mvn package`.
 
 **Maven build fails with `Could not resolve … j-log-engine`** —
 You forgot to `mvn install` (not just `mvn package`) the engine first.
