@@ -76,4 +76,4 @@ When launched with `--launched-by-hub`, J-Hub owns the lifecycle, so the watchdo
 
 - No JavaFX.
 - No WebSocket to J-Hub — J-Vault is self-contained.
-- No tests yet — all behaviour is exercised through the browser today.
+- Tests live in `src/test/java/com/jvault/InventoryDaoTest.java` — 9 cases covering equipment-type CRUD, item CRUD with type-join, empty-string → SQL NULL handling, contact CRUD, default priority, and CSV export with quoting. Browser UI is exercised manually.
