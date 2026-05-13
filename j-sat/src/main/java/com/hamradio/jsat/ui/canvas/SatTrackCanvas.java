@@ -98,7 +98,7 @@ public class SatTrackCanvas extends Pane {
         drawSun(gc, w, h);
 
         // ── Observer crosshair ───────────────────────────────────────────────
-        drawObserver(gc, w, h, s.qthLat, s.qthLon);
+        drawObserver(gc, w, h, s.qthLat, s.qthLon, s.callsign);
     }
 
     // ── Drawing helpers ────────────────────────────────────────────────────────
@@ -169,22 +169,33 @@ public class SatTrackCanvas extends Pane {
         }
     }
 
-    private void drawObserver(GraphicsContext gc, double w, double h, double lat, double lon) {
+    /**
+     * Operator QTH marker — gold crosshair + small filled dot +
+     * callsign label. Same visual style as j-map's
+     * {@code WorldMapCanvas.drawQthMarker} so the same symbol means
+     * the same thing across both modules. The previous marker (a
+     * yellow disc with an orange ring + rays-ish crosshairs) was
+     * indistinguishable from the sub-solar point also rendered on
+     * this canvas; this design is intentionally lighter.
+     */
+    private void drawObserver(GraphicsContext gc, double w, double h,
+                              double lat, double lon, String callsign) {
         double px = lonToX(lon, w);
         double py = latToY(lat, h);
-        double r  = 6;
-        gc.setFill(Color.web("#ffdd00"));
-        gc.fillOval(px - r, py - r, r * 2, r * 2);
-        gc.setStroke(Color.web("#ff8800"));
-        gc.setLineWidth(2);
-        gc.strokeOval(px - r, py - r, r * 2, r * 2);
-        // Crosshairs
-        gc.setStroke(Color.web("#ffdd00", 0.6));
-        gc.setLineWidth(1);
-        gc.strokeLine(px - 14, py, px - r - 2, py);
-        gc.strokeLine(px + r + 2, py, px + 14, py);
-        gc.strokeLine(px, py - 14, px, py - r - 2);
-        gc.strokeLine(px, py + r + 2, px, py + 14);
+
+        gc.save();
+        gc.setStroke(Color.GOLD);
+        gc.setLineWidth(1.5);
+        gc.strokeLine(px - 6, py, px + 6, py);
+        gc.strokeLine(px, py - 6, px, py + 6);
+        gc.setFill(Color.GOLD);
+        gc.fillOval(px - 3, py - 3, 6, 6);
+        if (callsign != null && !callsign.isBlank()) {
+            gc.setFont(javafx.scene.text.Font.font("System",
+                javafx.scene.text.FontWeight.BOLD, 11));
+            gc.fillText(callsign, px + 7, py - 3);
+        }
+        gc.restore();
     }
 
     private void drawSun(GraphicsContext gc, double w, double h) {

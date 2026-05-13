@@ -52,7 +52,7 @@
       "title": "WM3J J-Sat",
       "comment": "ARS Suite — satellite tracker",
       "launch": "j-sat/j-sat.sh",
-      "jar":    "j-sat/target/j-sat-1.0.17.jar",
+      "jar":    "j-sat/target/j-sat-1.0.18.jar",
       "icon":   "j-sat/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Science;"
     },

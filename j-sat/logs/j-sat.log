@@ -1,21 +1,46 @@
-2026-05-12 17:27:47.969 [JavaFX-Launcher] INFO  com.hamradio.jsat.app.JSatApp - === J-Sat starting [WM3J ARS Suite] ===
-2026-05-12 17:27:49.768 [JavaFX-Launcher] INFO  c.h.j.s.config.JsatSettingsLoader - Settings loaded from J-Hub
-2026-05-12 17:27:49.853 [JavaFX-Launcher] INFO  c.h.j.s.registry.SatelliteRegistry - Loaded 44 satellite definitions from registry
-2026-05-12 17:27:49.872 [JavaFX-Launcher] INFO  c.hamradio.jsat.app.ServiceRegistry - Starting J-Sat services...
-2026-05-12 17:27:51.628 [JavaFX-Launcher] INFO  c.h.j.s.tle.CelestrakTleProvider - Loaded 122 TLEs from Celestrak/AMSAT
-2026-05-12 17:27:51.629 [JavaFX-Launcher] DEBUG c.h.j.s.tle.CelestrakTleProvider - Fetched CelestrakTleProvider at 2026-05-12T21:27:51.629736476Z
-2026-05-12 17:27:51.636 [JavaFX-Launcher] INFO  c.h.jsat.service.tle.TleManager - TLE update complete: 120 satellites indexed
-2026-05-12 17:27:51.692 [JavaFX-Launcher] INFO  c.hamradio.jsat.app.ServiceRegistry - J-Sat scheduler started
-2026-05-12 17:27:51.711 [WebSocketConnectReadThread-46] INFO  com.hamradio.jsat.hub.JHubClient - Connected to J-Hub at ws://localhost:8080
-2026-05-12 17:27:51.740 [JavaFX-Launcher] INFO  com.hamradio.jsat.api.JsatApiServer - J-Sat TLE API server started on port 4540
-2026-05-12 17:27:51.743 [JavaFX-Launcher] INFO  com.hamradio.jsat.app.JSatApp - Services started. Station: WM3J (39.745583, -76.959714)
-2026-05-12 17:27:51.768 [WebSocketConnectReadThread-46] INFO  com.hamradio.jsat.hub.JHubClient - J-Hub welcomed J-Sat
-2026-05-12 17:27:51.845 [jsat-pass-predict] DEBUG c.h.j.s.tracking.SatelliteTracker - Pass prediction complete for 8 satellites
-2026-05-12 17:27:53.636 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - J-Sat UI started
-2026-05-12 17:28:02.813 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Proton fetch error: HTTP 404
-2026-05-12 17:28:02.814 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Space weather updated: Kp=1.0 Bz=0.89 B6.9
-2026-05-12 17:28:21.749 [jsat-pass-predict] DEBUG c.h.j.s.tracking.SatelliteTracker - Pass prediction complete for 8 satellites
-2026-05-12 17:28:42.958 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - J-Sat shutting down...
-2026-05-12 17:28:43.010 [JavaFX Application Thread] INFO  c.hamradio.jsat.app.ServiceRegistry - Stopping J-Sat services...
-2026-05-12 17:28:43.013 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - Shutdown complete
-2026-05-12 17:28:43.015 [WebSocketConnectReadThread-46] INFO  com.hamradio.jsat.hub.JHubClient - J-Hub connection closed (code=1000 reason=)
+2026-05-13 10:11:37.592 [JavaFX-Launcher] INFO  com.hamradio.jsat.i18n.I18n - j-sat language bundle: en
+2026-05-13 10:11:37.607 [JavaFX-Launcher] INFO  com.hamradio.jsat.app.JSatApp - === J-Sat starting [WM3J ARS Suite] ===
+2026-05-13 10:11:37.941 [JavaFX-Launcher] INFO  c.h.j.s.config.JsatSettingsLoader - Settings loaded from J-Hub
+2026-05-13 10:11:37.958 [JavaFX-Launcher] INFO  c.h.j.s.registry.SatelliteRegistry - Loaded 44 satellite definitions from registry
+2026-05-13 10:11:37.965 [JavaFX-Launcher] INFO  c.hamradio.jsat.app.ServiceRegistry - Starting J-Sat services...
+2026-05-13 10:11:37.972 [JavaFX-Launcher] INFO  c.h.jsat.service.tle.TleManager - Loaded 122 TLEs from disk cache
+2026-05-13 10:11:37.985 [JavaFX-Launcher] INFO  c.hamradio.jsat.app.ServiceRegistry - J-Sat scheduler started
+2026-05-13 10:11:37.995 [JavaFX-Launcher] INFO  com.hamradio.jsat.api.JsatApiServer - J-Sat TLE API server started on port 4540
+2026-05-13 10:11:37.996 [JavaFX-Launcher] INFO  com.hamradio.jsat.app.JSatApp - Services started. Station: WM3J (39.745583, -76.959714)
+2026-05-13 10:11:38.008 [WebSocketConnectReadThread-41] INFO  com.hamradio.jsat.hub.JHubClient - Connected to J-Hub at ws://localhost:8080
+2026-05-13 10:11:38.039 [WebSocketConnectReadThread-41] INFO  com.hamradio.jsat.hub.JHubClient - J-Hub welcomed J-Sat
+2026-05-13 10:11:38.041 [WebSocketConnectReadThread-41] INFO  com.hamradio.jsat.i18n.I18n - j-sat language bundle: es
+2026-05-13 10:11:38.054 [jsat-pass-predict] DEBUG c.h.j.s.tracking.SatelliteTracker - Pass prediction complete for 8 satellites
+2026-05-13 10:11:38.764 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - J-Sat UI started
+2026-05-13 10:11:48.719 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Proton fetch error: HTTP 404
+2026-05-13 10:11:48.719 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Space weather updated: Kp=1.67 Bz=-6.3 B5.2
+2026-05-13 10:12:08.110 [jsat-pass-predict] DEBUG c.h.j.s.tracking.SatelliteTracker - Pass prediction complete for 8 satellites
+2026-05-13 10:12:38.623 [jsat-scheduler] INFO  c.h.j.s.tle.CelestrakTleProvider - Loaded 122 TLEs from Celestrak/AMSAT
+2026-05-13 10:12:38.624 [jsat-scheduler] DEBUG c.h.j.s.tle.CelestrakTleProvider - Fetched CelestrakTleProvider at 2026-05-13T14:12:38.624548901Z
+2026-05-13 10:12:38.631 [jsat-scheduler] INFO  c.h.jsat.service.tle.TleManager - TLE update complete: 120 satellites indexed
+2026-05-13 10:12:38.632 [jsat-scheduler] DEBUG c.h.j.s.tracking.SatelliteTracker - Propagators cleared for re-initialization
+2026-05-13 10:12:38.730 [jsat-pass-predict] DEBUG c.h.j.s.tracking.SatelliteTracker - Pass prediction complete for 8 satellites
+2026-05-13 10:16:48.908 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Proton fetch error: HTTP 404
+2026-05-13 10:16:48.909 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Space weather updated: Kp=1.67 Bz=2.31 B5.3
+2026-05-13 10:18:16.340 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - J-Sat shutting down...
+2026-05-13 10:18:16.381 [JavaFX Application Thread] INFO  c.hamradio.jsat.app.ServiceRegistry - Stopping J-Sat services...
+2026-05-13 10:18:16.382 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - Shutdown complete
+2026-05-13 10:22:55.530 [JavaFX-Launcher] INFO  com.hamradio.jsat.i18n.I18n - j-sat language bundle: en
+2026-05-13 10:22:55.531 [JavaFX-Launcher] INFO  com.hamradio.jsat.app.JSatApp - === J-Sat starting [WM3J ARS Suite] ===
+2026-05-13 10:22:55.942 [JavaFX-Launcher] INFO  c.h.j.s.config.JsatSettingsLoader - Settings loaded from J-Hub
+2026-05-13 10:22:55.960 [JavaFX-Launcher] INFO  c.h.j.s.registry.SatelliteRegistry - Loaded 44 satellite definitions from registry
+2026-05-13 10:22:55.967 [JavaFX-Launcher] INFO  c.hamradio.jsat.app.ServiceRegistry - Starting J-Sat services...
+2026-05-13 10:22:55.974 [JavaFX-Launcher] INFO  c.h.jsat.service.tle.TleManager - Loaded 122 TLEs from disk cache
+2026-05-13 10:22:55.988 [JavaFX-Launcher] INFO  c.hamradio.jsat.app.ServiceRegistry - J-Sat scheduler started
+2026-05-13 10:22:55.998 [JavaFX-Launcher] INFO  com.hamradio.jsat.api.JsatApiServer - J-Sat TLE API server started on port 4540
+2026-05-13 10:22:55.998 [JavaFX-Launcher] INFO  com.hamradio.jsat.app.JSatApp - Services started. Station: WM3J (39.745583, -76.959714)
+2026-05-13 10:22:56.011 [WebSocketConnectReadThread-36] INFO  com.hamradio.jsat.hub.JHubClient - Connected to J-Hub at ws://localhost:8080
+2026-05-13 10:22:56.031 [WebSocketConnectReadThread-36] INFO  com.hamradio.jsat.hub.JHubClient - J-Hub welcomed J-Sat
+2026-05-13 10:22:56.032 [WebSocketConnectReadThread-36] INFO  com.hamradio.jsat.i18n.I18n - j-sat language bundle: es
+2026-05-13 10:22:56.047 [jsat-pass-predict] DEBUG c.h.j.s.tracking.SatelliteTracker - Pass prediction complete for 8 satellites
+2026-05-13 10:22:56.809 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - J-Sat UI started
+2026-05-13 10:23:06.667 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Proton fetch error: HTTP 404
+2026-05-13 10:23:06.669 [jsat-scheduler] DEBUG c.h.j.s.s.SpaceWeatherService - Space weather updated: Kp=1.67 Bz=-3.95 B5.7
+2026-05-13 10:23:10.142 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - J-Sat shutting down...
+2026-05-13 10:23:10.175 [JavaFX Application Thread] INFO  c.hamradio.jsat.app.ServiceRegistry - Stopping J-Sat services...
+2026-05-13 10:23:10.177 [JavaFX Application Thread] INFO  com.hamradio.jsat.app.JSatApp - Shutdown complete
