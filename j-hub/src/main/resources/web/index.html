@@ -939,9 +939,9 @@
       </div>
 
       <div style="display:flex;gap:8px;margin:8px 0 10px 0;align-items:center">
-        <button class="btn btn-green btn-sm" onclick="launchApp('j-learn')">Launch</button>
-        <button class="btn btn-ghost btn-sm" onclick="reloadJLearnIframe()">Reload</button>
-        <button class="btn btn-ghost btn-sm" onclick="window.open('http://localhost:8082/', '_blank')">Open in Browser</button>
+        <button class="btn btn-green btn-sm" onclick="launchAndAttachJLearn()" title="Start the j-learn process (if not already running) and load it into the iframe below">Launch &amp; Attach</button>
+        <button class="btn btn-ghost btn-sm" onclick="reloadJLearnIframe()" title="Reload the embedded iframe — use after content edits or if the iframe is stuck">Reload</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.open('http://localhost:8082/', '_blank')" title="Open j-learn in a separate browser tab — useful for side-by-side reading">Open in New Tab</button>
         <span id="jl-status" style="font-size:12px;color:var(--subtext0)"></span>
       </div>
 
@@ -2030,9 +2030,9 @@
           <span class="module-name">J-Vault</span>
           <span class="module-meta" id="jvault-conn-meta">Inventory + Estate (port 8083)</span>
           <div class="module-acts">
-            <button class="btn btn-sm btn-ghost" onclick="launchApp('jVault')">Launch</button>
+            <button class="btn btn-sm btn-ghost" onclick="launchAndAttachJVault()" title="Start j-vault (if not already running) and load it into the iframe below">Launch &amp; Attach</button>
             <button class="btn btn-sm btn-red"   onclick="killApp('jVault')">Stop</button>
-            <button class="btn btn-sm btn-primary" onclick="openJVaultExternal()">Open in Browser</button>
+            <button class="btn btn-sm btn-primary" onclick="openJVaultExternal()" title="Open j-vault in a separate browser tab">Open in New Tab</button>
           </div>
         </div>
       </div>

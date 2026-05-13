@@ -47,9 +47,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 function ensureJVaultIframe() {
   const f = document.getElementById('jvault-frame');
   if (!f) return;
-  if (f.src === 'about:blank' || f.src === '') {
-    f.src = 'http://localhost:8083/';
-  }
   // Apply persisted zoom on first show.
   let z;
   try { z = localStorage.getItem('jhub.jvault.zoom'); } catch (e) {}
@@ -58,7 +55,34 @@ function ensureJVaultIframe() {
     if (slider) slider.value = z;
     applyJVaultZoom(z);
   }
+  // Probe health BEFORE pointing the iframe at j-vault. If the server isn't
+  // up, browsers latch onto the connection-refused page and the iframe stays
+  // broken even after j-vault starts — only a hard Reload fixes it.
+  if (f.src === 'about:blank' || f.src === '' || f.dataset.jvState === 'down') {
+    fetch('http://localhost:8083/api/health', { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error('bad health');
+        f.dataset.jvState = 'up';
+        f.src = 'http://localhost:8083/';
+      })
+      .catch(() => {
+        f.dataset.jvState = 'down';
+        f.src = JVAULT_NOT_RUNNING_PLACEHOLDER;
+      });
+  }
 }
+
+const JVAULT_NOT_RUNNING_PLACEHOLDER =
+  'data:text/html;charset=utf-8,'
+  + encodeURIComponent(
+      '<!doctype html><html><body style="margin:0;height:100vh;display:flex;'
+      + 'flex-direction:column;align-items:center;justify-content:center;gap:10px;'
+      + 'font:13px system-ui,-apple-system,Segoe UI,sans-serif;background:#1e1e2e;color:#9399b2;text-align:center;padding:20px">'
+      + '<div style="font-size:32px">🗂️</div>'
+      + '<div style="font-size:14px">J-Vault isn\'t running on port 8083.</div>'
+      + '<div>Click <strong style="color:#cdd6f4">Launch &amp; Attach</strong> above to start it and load it here, '
+      + 'or visit <a href="http://localhost:8083/" target="_blank" style="color:#89b4fa">localhost:8083</a> directly.</div>'
+      + '</body></html>');
 function applyJVaultZoom(pct) {
   const f = document.getElementById('jvault-frame');
   const lbl = document.getElementById('jvault-text-size-val');
@@ -75,10 +99,30 @@ function applyJVaultZoom(pct) {
 function reloadJVaultIframe() {
   const f = document.getElementById('jvault-frame');
   if (!f) return;
-  f.src = 'http://localhost:8083/?t=' + Date.now();
+  // Force a fresh health probe — if we're currently showing the "not running"
+  // placeholder and the user has since launched j-vault by hand, this picks up.
+  f.dataset.jvState = 'down';
+  f.src = 'about:blank';
+  ensureJVaultIframe();
 }
 function openJVaultExternal() {
   window.open('http://localhost:8083/', '_blank');
+}
+
+// Start j-vault if it isn't running, then poll /api/health until it comes up
+// and reload the embedded iframe. Replaces the bare launchApp('jVault') that
+// silently started the process without updating the iframe — leaving the user
+// staring at a connection-refused page until they hit Reload by hand.
+function launchAndAttachJVault() {
+  const meta = document.getElementById('jvault-conn-meta');
+  if (meta) meta.textContent = 'Starting…';
+  launchApp('jVault');
+  pollHealthAndReload({
+    url:        'http://localhost:8083/api/health',
+    timeoutMs:  15000,
+    onReady:    () => { reloadJVaultIframe(); if (meta) meta.textContent = 'Inventory + Estate (port 8083)'; },
+    onTimeout:  () => { if (meta) meta.textContent = 'Failed to start — check logs'; },
+  });
 }
 
 // ── J-Learn embedded iframe ────────────────────────────────
@@ -91,28 +135,90 @@ function ensureJLearnIframe() {
   const wrap = document.getElementById('jl-iframe-wrap');
   if (!wrap) return;
   if (wrap.querySelector('iframe')) return;
+  const status = document.getElementById('jl-status');
 
+  // Probe health BEFORE pointing the iframe at j-learn. If the server isn't
+  // up, browsers latch onto the connection-refused page and the iframe stays
+  // broken even after j-learn starts — only a hard Reload fixes it.
+  fetch('http://localhost:8082/api/health', { cache: 'no-store' })
+    .then(r => {
+      if (!r.ok) throw new Error('bad health');
+      attachJLearnIframe(wrap);
+      if (status) status.textContent = 'running on :8082';
+    })
+    .catch(() => {
+      renderJLearnNotRunning(wrap);
+      if (status) status.textContent = 'not running — click Launch & Attach';
+    });
+}
+
+function attachJLearnIframe(wrap) {
+  wrap.innerHTML = '';
   const iframe = document.createElement('iframe');
   iframe.id = 'jl-frame';
   iframe.src = 'http://localhost:8082/';
   iframe.style.cssText = 'width:100%;height:100%;border:0;background:transparent';
   iframe.setAttribute('allow', 'fullscreen');
   wrap.appendChild(iframe);
+}
 
-  // Surface "is j-learn even running?" once the iframe is up.
-  const status = document.getElementById('jl-status');
-  if (status) {
-    fetch('http://localhost:8082/api/health')
-      .then(r => r.ok ? 'running on :8082' : 'not responding')
-      .catch(() => 'not running — click Launch')
-      .then(text => { status.textContent = text; });
-  }
+function renderJLearnNotRunning(wrap) {
+  wrap.innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
+    + 'height:100%;color:var(--subtext0);gap:10px;text-align:center;padding:20px">'
+    + '<div style="font-size:32px">📖</div>'
+    + '<div style="font-size:14px">J-Learn isn\'t running on port 8082.</div>'
+    + '<div style="font-size:12px">Click <strong>Launch &amp; Attach</strong> above '
+    + 'to start it and load it here, or visit '
+    + '<a href="http://localhost:8082/" target="_blank" rel="noopener">localhost:8082</a> directly.</div>'
+    + '</div>';
 }
 
 function reloadJLearnIframe() {
-  const f = document.getElementById('jl-frame');
-  if (f) f.src = 'http://localhost:8082/?t=' + Date.now();
-  else ensureJLearnIframe();
+  const wrap = document.getElementById('jl-iframe-wrap');
+  if (!wrap) return;
+  // Drop any iframe AND any "not running" placeholder, then re-probe health.
+  // ensureJLearnIframe() guards against double-mount itself via the existing-
+  // iframe early return, so explicit clearing here is needed for reuse.
+  wrap.innerHTML = '';
+  ensureJLearnIframe();
+}
+
+// Start j-learn if it isn't running, then poll /api/health until it comes up
+// and reload the embedded iframe. The bare launchApp('j-learn') button used to
+// silently spawn the process and never tell the iframe — leaving the user
+// staring at "connection refused" forever.
+function launchAndAttachJLearn() {
+  const status = document.getElementById('jl-status');
+  if (status) status.textContent = 'starting…';
+  launchApp('j-learn');
+  pollHealthAndReload({
+    url:        'http://localhost:8082/api/health',
+    timeoutMs:  15000,
+    onReady:    () => { reloadJLearnIframe(); if (status) status.textContent = 'running on :8082'; },
+    onTimeout:  () => { if (status) status.textContent = 'failed to start — check logs'; },
+  });
+}
+
+// Generic helper: poll an /api/health endpoint until it responds OK or until
+// timeoutMs elapses. Runs the matching callback exactly once. Used by both
+// J-Learn and J-Vault launch buttons to bridge between "process spawned" and
+// "iframe can attach". 400 ms cadence keeps the typical ~2 s startup tight.
+function pollHealthAndReload({ url, timeoutMs, onReady, onTimeout }) {
+  const start = Date.now();
+  const tick = () => {
+    fetch(url, { cache: 'no-store' })
+      .then(r => {
+        if (r.ok) { onReady(); return; }
+        if (Date.now() - start > timeoutMs) { onTimeout(); return; }
+        setTimeout(tick, 400);
+      })
+      .catch(() => {
+        if (Date.now() - start > timeoutMs) { onTimeout(); return; }
+        setTimeout(tick, 400);
+      });
+  };
+  tick();
 }
 
 // Drive the iframe to a particular section. Used by Antenna Workshop /
