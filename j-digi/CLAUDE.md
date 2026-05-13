@@ -75,7 +75,16 @@ Completion timing for the CAT path is estimated from PARIS formula (`length × 1
 
 ## Bandplan caption
 
-When J-Hub sends a `RIG_STATUS` or `SPOT_SELECTED` message with a frequency, `ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-engine) and writes a "20m / CW — CW (US)" style string into `ModemStatus.bandplanCaption`. The UI status bar can bind to that field directly — no per-mode wiring needed. Source IDs are `IARU-R2` for the regional fallback and `US` for the FCC overlay where it applies (CW-only HF subbands).
+When J-Hub sends a `RIG_STATUS` or `SPOT_SELECTED` message with a frequency, `ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-engine) and writes a "20m / CW — CW (US)" style string into `ModemStatus.bandplanCaption`. The UI status bar can bind to that field directly — no per-mode wiring needed.
+
+**Region/country prefs**:
+
+| Pref | Values | Default |
+|---|---|---|
+| `bandplan.region`  | `IARU-R1` / `IARU-R2` / `IARU-R3` | `IARU-R2` |
+| `bandplan.country` | country code with an overlay (today: `US`) or blank | `US` |
+
+Operators outside R2 should set `bandplan.region` so the caption picks the right band edges (R1 stops at 7.200 on 40m, etc.).
 
 ## Mode selection
 
