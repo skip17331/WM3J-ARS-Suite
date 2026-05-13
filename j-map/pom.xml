@@ -6,7 +6,7 @@
 
     <groupId>com.wm3j.jmap</groupId>
     <artifactId>j-map</artifactId>
-    <version>1.0.26</version>
+    <version>1.0.27</version>
     <packaging>jar</packaging>
     <name>j-Map</name>
     <description>WM3j ARS Suite — operator dashboard and world map</description>
@@ -117,26 +117,43 @@
         </dependency>
     </dependencies>
 
-    <!-- Select JavaFX native classifier based on OS -->
+    <!-- Select JavaFX native classifier based on OS family + CPU arch.
+         Profiles activate on os.arch so a Raspberry Pi (aarch64) gets
+         linux-aarch64 jars instead of the x86_64 linux jars, and Apple
+         Silicon picks mac-aarch64 instead of the Intel mac jars. -->
     <profiles>
         <profile>
-            <id>linux</id>
+            <id>linux-aarch64</id>
             <activation>
-                <os><family>unix</family></os>
+                <os><family>unix</family><name>linux</name><arch>aarch64</arch></os>
+            </activation>
+            <properties><javafx.platform>linux-aarch64</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>linux-x64</id>
+            <activation>
+                <os><family>unix</family><name>linux</name><arch>amd64</arch></os>
             </activation>
             <properties><javafx.platform>linux</javafx.platform></properties>
         </profile>
         <profile>
-            <id>windows</id>
+            <id>windows-x64</id>
             <activation>
                 <os><family>windows</family></os>
             </activation>
             <properties><javafx.platform>win</javafx.platform></properties>
         </profile>
         <profile>
-            <id>mac</id>
+            <id>mac-aarch64</id>
             <activation>
-                <os><family>mac</family></os>
+                <os><family>mac</family><arch>aarch64</arch></os>
+            </activation>
+            <properties><javafx.platform>mac-aarch64</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac-x64</id>
+            <activation>
+                <os><family>mac</family><arch>x86_64</arch></os>
             </activation>
             <properties><javafx.platform>mac</javafx.platform></properties>
         </profile>

@@ -398,84 +398,137 @@ does in pieces:
 
 ---
 
-## Pi Display Mode (j-map only, second-machine setup)
+## Standalone J-Map (second-machine display)
 
-Use case: a Raspberry Pi 4/5 wired to a large monitor in the shack, showing
-J-Map full-screen so you can see propagation / spots / grayline at a glance
-from across the room. The Pi is *just a display* — no logging, no rig
-control, no inputs. The real station PC runs the full suite and is the
-single source of truth.
+J-Map is the one module worth dedicating a second machine to. It's a
+read-only DX dashboard — grayline, propagation overlays, live spots,
+rig position, EME panel — and the WebSocket protocol is push-only
+from the broker side. That makes it the natural "shack display":
+hang a monitor on the wall, point a cheap box at your station's
+J-Hub, and walk away.
 
-### How it works
+### Shape of the setup
 
-J-Map runs on the Pi and connects over the LAN to the J-Hub WebSocket on
-your main station PC. J-Hub binds to all interfaces by default
-(`0.0.0.0:8080` / `:8081`), so any host on the same LAN can subscribe.
-Spots, station info, and config changes are pushed to J-Map automatically.
-If the link drops the Pi shows a red "Disconnected from j-hub" banner at
-the bottom of the map and reconnects with exponential backoff (2s → 60s).
-
-There is **no second J-Hub** on the Pi — that would be a second broker
-with no sync to the main one. One J-Hub, many displays.
-
-### On the main station PC (already done if the suite is running)
-
-Verify J-Hub is reachable from the LAN:
-
-```bash
-# From any other machine on the same network:
-nc -zv <main-pc-ip> 8080  # WebSocket
-nc -zv <main-pc-ip> 8081  # web config (optional, only for /api/jmap fetch)
+```
+   ┌─────────────────────────┐     WebSocket push      ┌─────────────────┐
+   │  Station PC             │  ────────────────────►  │  Display box    │
+   │  J-Hub + J-Log + …      │  ws://station:8080      │  J-Map only     │
+   │  source of truth        │                         │                 │
+   └─────────────────────────┘                         └─────────────────┘
 ```
 
-If those fail, open ports 8080 (and optionally 8081) on the main PC's
-firewall. Ubuntu/Debian:
+There is **no second J-Hub** on the display box — two brokers would
+have no sync between them. Spots, station identity, rig frequency,
+and live config edits all originate on the station PC and ride out
+to the display via the broker. If the link drops, J-Map shows a red
+banner at the bottom and reconnects with exponential backoff (2 s →
+60 s); no manual intervention needed.
+
+The display box can also send a few things *back* — clicking a spot
+on the map publishes a `SPOT_SELECTED` that the station's J-Log /
+J-Digi consume to dial the rig. So "read-only" is mostly accurate
+but not strictly true.
+
+### Picking the display box
+
+Any machine that can run Java 21 + JavaFX 21 with a graphics stack
+works. Common picks:
+
+| Box | Notes |
+|---|---|
+| Raspberry Pi 4 / 5 (4 GB+) | Most popular. Use 64-bit Pi OS. J-Map's `pom.xml` auto-detects `aarch64` and pulls the matching JavaFX classifier — no SDK swap needed. |
+| Mac mini / spare Mac laptop | Same auto-detect handles Apple Silicon and Intel. |
+| Generic x86 Linux SBC (Intel NUC, mini-PC) | Same as Linux above; no extra steps. |
+| Windows mini-PC | Needs the Windows JavaFX SDK (same swap as the **Windows** section above). |
+
+### Recipe: from blank Pi to live dashboard
 
 ```bash
-sudo ufw allow from 192.168.0.0/16 to any port 8080
-sudo ufw allow from 192.168.0.0/16 to any port 8081
-```
-
-### On the Pi
-
-```bash
+# 1. Prereqs (Pi OS / Debian / Ubuntu).
 sudo apt update
 sudo apt install -y git openjdk-21-jdk maven
 
-cd ~
-git clone https://github.com/skip17331/WM3J-ARS-Suite.git ARS_Suite
-cd ARS_Suite
+# 2. Clone.
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
 
-# Build *only* j-map — no engine, no other modules.
+# 3. Build. J-Map depends on the shared logging engine for its
+#    bandplan caption, so the engine has to land in your local
+#    ~/.m2 first; then build j-map itself.
+mvn -q -DskipTests -f j-log-engine/pom.xml install
 mvn -q -DskipTests -f j-map/pom.xml package
 
-# Run, pointing at the main station's IP. Replace with yours.
-./j-map/run.sh --hub 192.168.1.42
+# 4. Launch, pointing at your station's IP.
+./j-map/j-map.sh --hub 192.168.1.42
 ```
 
-Useful flags (j-map):
+That recipe also works on macOS (`brew install --cask temurin@21
+maven git` instead of apt) and on a non-Pi Linux box (no apt
+variation needed). On Windows, same flow plus the Windows JavaFX
+SDK swap from step 3 of the main Windows section.
 
-| Flag                     | What it does                                                |
-|--------------------------|-------------------------------------------------------------|
-| `--hub <host>`           | IP / hostname of the main station's J-Hub                   |
-| `--hub-ws-port <NNNN>`   | Override 8080 if J-Hub is configured to a different port    |
-| `--hub-web-port <NNNN>`  | Override 8081 for the HTTP config endpoint                  |
-| `--launched-by-hub`      | Skip the splash; intended for when J-Hub itself launches it |
+### Hub-side: open the firewall
 
-### Auto-start on boot (optional)
+J-Hub binds to all interfaces by default, but a host firewall on
+your station PC may block external clients. From the display box:
 
-Drop a systemd user unit so j-map relaunches after reboots and crashes:
+```bash
+nc -zv <station-ip> 8080    # WebSocket — required
+nc -zv <station-ip> 8081    # HTTP — only for first-time settings fetch
+```
+
+If those refuse, open the ports on the station. Ubuntu/Debian with
+ufw, restricting to your LAN:
+
+```bash
+sudo ufw allow from 192.168.0.0/24 to any port 8080
+sudo ufw allow from 192.168.0.0/24 to any port 8081
+```
+
+Adjust the CIDR to match your network.
+
+### Useful launch flags
+
+| Flag | Effect |
+|---|---|
+| `--hub <host>` | IP or hostname of the station's J-Hub. Overrides `~/.j-map/settings.json`. |
+| `--hub-ws-port N` | Override 8080 if your station runs J-Hub on a non-default port. |
+| `--hub-web-port N` | Override 8081 likewise (used once at startup to fetch `/api/jmap`). |
+| `--launched-by-hub` | Skip the splash; meant for when J-Hub itself spawns J-Map as a child process. |
+
+### Making it a real shack display
+
+The defaults already get you most of the way: F11 toggles fullscreen,
+the cursor auto-hides over the map, and the splash overlay shows the
+keybinds. To make it boot-and-forget:
+
+- **Autologin to the desktop.** `sudo raspi-config` → System Options
+  → Boot/Auto Login → Desktop Autologin.
+- **Auto-launch J-Map at login.** Drop a `.desktop` file in
+  `~/.config/autostart/` that runs `j-map.sh --hub <ip>`. Or use the
+  systemd user unit below if you want crash-recovery too.
+- **Disable screen blanking.** `sudo raspi-config` → Display Options →
+  Screen Blanking → No. Or in `.xprofile`:
+  `xset s off; xset -dpms; xset s noblank`.
+- **Rotate the display** (vertical-mount shack screens are common):
+  add `display_rotate=1` (90° CW) or `display_rotate=3` (90° CCW) to
+  `/boot/firmware/config.txt`.
+
+### Auto-start with crash recovery (optional)
+
+If you want J-Map to relaunch after a crash or reboot, drop a
+systemd user unit:
 
 ```bash
 mkdir -p ~/.config/systemd/user
 cat > ~/.config/systemd/user/j-map.service <<'EOF'
 [Unit]
-Description=J-Map remote display
+Description=J-Map shack display
 After=graphical-session.target
 PartOf=graphical-session.target
 
 [Service]
-ExecStart=%h/ARS_Suite/j-map/run.sh --hub 192.168.1.42
+ExecStart=%h/ARS_Suite/j-map/j-map.sh --hub 192.168.1.42
 Restart=on-failure
 RestartSec=10
 
@@ -484,11 +537,17 @@ WantedBy=graphical-session.target
 EOF
 
 systemctl --user enable --now j-map
-sudo loginctl enable-linger $USER   # so the unit runs without an active login
+sudo loginctl enable-linger $USER   # run without an active login session
 ```
 
-Edit the `--hub` IP to match your station. Update with `git pull && mvn -q
--DskipTests -f j-map/pom.xml package && systemctl --user restart j-map`.
+Replace the IP. Upgrade path:
+
+```bash
+cd ~/ARS_Suite && git pull
+mvn -q -DskipTests -f j-log-engine/pom.xml install
+mvn -q -DskipTests -f j-map/pom.xml package
+systemctl --user restart j-map
+```
 
 ---
 
