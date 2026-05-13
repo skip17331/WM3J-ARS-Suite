@@ -54,6 +54,16 @@
             <classifier>${javafx.platform}</classifier>
         </dependency>
 
+        <!-- Shared engine — currently consumed only for the bandplan lookup
+             (com.jlog.bandplan). Pulls in transitive Jackson + SQLite + JSSC
+             but the unused parts are dropped from the fat jar at shade time
+             via the existing shade plugin filters in this pom. -->
+        <dependency>
+            <groupId>com.jlog</groupId>
+            <artifactId>j-log-engine</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -137,7 +137,12 @@ public class DXInfoWindow extends FloatingWindow {
         }
         countryLabel.setText(locationLine);
 
-        bandLabel.setText(s.getBand() + "  " + String.format("%.1f kHz", s.getFrequencyKhz()));
+        long hz = Math.round(s.getFrequencyKhz() * 1000.0);
+        com.jlog.bandplan.BandplanLoader.Description bp =
+            com.jlog.bandplan.BandplanLoader.getInstance().describe(hz);
+        String bandTxt = String.format("%s  %.1f kHz", s.getBand(), s.getFrequencyKhz());
+        if (bp != null) bandTxt += "   " + bp.activity + " — " + bp.label;
+        bandLabel.setText(bandTxt);
         String mode = s.getMode();
         modeLabel.setText("⬤  " + mode);
         modeLabel.setStyle("-fx-font-size: 1.06em; -fx-font-weight: bold; -fx-text-fill: " + s.getModeColor() + ";");

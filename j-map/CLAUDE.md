@@ -48,6 +48,10 @@ Java 21 and Maven 3.8+ required. JavaFX is bundled via Maven — no separate ins
 
 **Astronomy:** `SolarPositionService` implements the NOAA SPA algorithm (pure math, no external calls). `GraylineService` uses it to produce a `NightMask` pixel array. `SunriseSunsetService` derives rise/set times for the QTH.
 
+## Bandplan caption on DX spots
+
+`DXInfoWindow` consults `com.jlog.bandplan.BandplanLoader` (j-log-engine) and appends a segment caption (e.g. `20m  14074.0 kHz   DATA — Digimodes / FT8 14074`) so the operator can see what activity belongs at the spot's frequency without consulting an external chart. j-log-engine is the only ARS-Suite dependency j-map carries — the shade plugin filters drop its unused transitive parts (SQLite, JSSC, civ) from the fat jar.
+
 ## Adding a New Data Source
 
 1. Create a data record (e.g., `MyData.java`) in the appropriate `service/` subpackage.
