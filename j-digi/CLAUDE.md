@@ -58,6 +58,21 @@ The legacy value `NONE` (from earlier builds) is still accepted as a synonym for
 
 Wire protocol for HAMLIB uses the plain rigctld command set — `T 1\n` / `T 0\n`, expecting `RPRT 0\n` on success. Any non-zero `RPRT` is surfaced as an `IOException` that bubbles up through `AudioTxEngine`'s `onError` callback.
 
+## CW keyer — audio vs CAT
+
+For CW specifically there's a separate choice: should j-digi generate the dots and dashes as audio, or hand the text to the rig's built-in keyer over CAT?
+
+| Pref | What happens | Use when |
+|---|---|---|
+| `cw.keyer = AUDIO` (default) | `CwTransmitter` synthesises sidetone audio with raised-cosine keying; goes through `AudioTxEngine` with PTT toggled per the `ptt.method` setting | Most setups — works without CAT, gives you full control over sidetone frequency and key-click filtering. Required if you're using VOX |
+| `cw.keyer = HAMLIB` | `HamlibCwKeyer` sends `b <text>\n` to `rigctld`; the rig's own keyer plays the Morse at its configured WPM. No audio path used | Cleanest timing — rig handles keying internally with no soundcard routing. Required if you have no audio path to the rig but do have CAT |
+
+Additional pref `cw.wpm` sets the WPM for the CAT-keyer path (default 20). The audio path's WPM lives in `CwTransmitter`'s constructor for now.
+
+Cancel works on both paths — audio cancels the `SourceDataLine`, CAT sends `\stop_morse\n`. Both fire the same `onCancelled` callback shape.
+
+Completion timing for the CAT path is estimated from PARIS formula (`length × 10 × 1200/wpm` ms + 200 ms baseline) since `rigctld` returns `RPRT 0` as soon as it queues the command — the rig is still keying. A future polish could poll `\get_ptt` for real end-of-transmission detection.
+
 ## Mode selection
 
 Persisted via Java `Preferences` (typically `~/.java/.userPrefs/com/hamradio/modem`) — **not** a file in `~/.j-digi/`. `ModemService` reads `PREF_MODE` on init and writes it on every mode switch.

@@ -20,6 +20,7 @@ import com.hamradio.modem.tx.AudioTxEngine;
 import com.hamradio.modem.tx.CwTransmitter;
 import com.hamradio.modem.tx.DigitalTransmitter;
 import com.hamradio.modem.tx.DominoExTransmitter;
+import com.hamradio.modem.tx.HamlibCwKeyer;
 import com.hamradio.modem.tx.HamlibRigControl;
 import com.hamradio.modem.tx.Mfsk16Transmitter;
 import com.hamradio.modem.tx.NoOpRigControl;
@@ -69,6 +70,8 @@ public class ModemService implements HubMessageListener {
     private static final String PREF_PTT_METHOD   = "ptt.method";          // VOX | HAMLIB
     private static final String PREF_PTT_HAMLIB_HOST = "ptt.hamlib.host";
     private static final String PREF_PTT_HAMLIB_PORT = "ptt.hamlib.port";
+    private static final String PREF_CW_KEYER     = "cw.keyer";            // AUDIO | HAMLIB
+    private static final String PREF_CW_WPM       = "cw.wpm";
 
     private final AudioEngine audioEngine = new AudioEngine();
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
@@ -432,37 +435,47 @@ public class ModemService implements HubMessageListener {
         status.setTransmitting(true);
         fireStatus();
 
+        Runnable             onStarted   = () -> Platform.runLater(() -> {
+            status.setTxState(TxState.TRANSMITTING);
+            status.setTxStatusText(txMode + " TX active");
+            fireStatus();
+            postDecodeLine("TX started: " + txMode);
+        });
+        Runnable             onCompleted = () -> Platform.runLater(() -> {
+            status.setTxState(TxState.COMPLETE);
+            status.setTxStatusText("TX complete");
+            status.setTransmitting(false);
+            fireStatus();
+            postDecodeLine("TX complete: " + txMode);
+        });
+        Runnable             onCancelled = () -> Platform.runLater(() -> {
+            status.setTxState(TxState.CANCELLED);
+            status.setTxStatusText("TX cancelled");
+            status.setTransmitting(false);
+            fireStatus();
+            postDecodeLine("TX cancelled");
+        });
+        java.util.function.Consumer<String> onError = err -> Platform.runLater(() -> {
+            status.setTxState(TxState.ERROR);
+            status.setTxStatusText("TX error: " + err);
+            status.setTransmitting(false);
+            fireStatus();
+            postDecodeLine("TX error: " + err);
+        });
+
         try {
-            audioTxEngine.transmit(
-                    transmitter.createSampleSource(text),
-                    () -> Platform.runLater(() -> {
-                        status.setTxState(TxState.TRANSMITTING);
-                        status.setTxStatusText(txMode + " TX active");
-                        fireStatus();
-                        postDecodeLine("TX started: " + txMode);
-                    }),
-                    () -> Platform.runLater(() -> {
-                        status.setTxState(TxState.COMPLETE);
-                        status.setTxStatusText("TX complete");
-                        status.setTransmitting(false);
-                        fireStatus();
-                        postDecodeLine("TX complete: " + txMode);
-                    }),
-                    () -> Platform.runLater(() -> {
-                        status.setTxState(TxState.CANCELLED);
-                        status.setTxStatusText("TX cancelled");
-                        status.setTransmitting(false);
-                        fireStatus();
-                        postDecodeLine("TX cancelled");
-                    }),
-                    error -> Platform.runLater(() -> {
-                        status.setTxState(TxState.ERROR);
-                        status.setTxStatusText("TX error: " + error);
-                        status.setTransmitting(false);
-                        fireStatus();
-                        postDecodeLine("TX error: " + error);
-                    })
-            );
+            if (txMode == ModeType.CW && "HAMLIB".equalsIgnoreCase(PREFS.get(PREF_CW_KEYER, "AUDIO"))) {
+                // CW via the rig's built-in keyer (CAT). No audio path used.
+                HamlibCwKeyer keyer = new HamlibCwKeyer(
+                        PREFS.get(PREF_PTT_HAMLIB_HOST, HamlibRigControl.DEFAULT_HOST),
+                        PREFS.getInt(PREF_PTT_HAMLIB_PORT, HamlibRigControl.DEFAULT_PORT),
+                        PREFS.getInt(PREF_CW_WPM, HamlibCwKeyer.DEFAULT_WPM));
+                keyer.transmit(text, onStarted, onCompleted, onCancelled, onError);
+            } else {
+                audioTxEngine.transmit(
+                        transmitter.createSampleSource(text),
+                        onStarted, onCompleted, onCancelled, onError);
+            }
         } catch (Exception e) {
             status.setTxState(TxState.ERROR);
             status.setTxStatusText("TX error: " + e.getMessage());
