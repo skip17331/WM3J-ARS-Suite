@@ -46,13 +46,13 @@ Two keying methods ship out of the box; pick one in Preferences.
 
 A third option, `CivRigControl`, is built (direct CI-V to Icom via `CivEngine` from j-log-engine) but not wired into `ModemService` — Hamlib's `icom` backend covers Icom rigs without a second serial allocation. The class is there if a future demand justifies plumbing it in.
 
-Java Preferences under `com.hamradio.modem.ModemService`:
+**Where the settings live**: j-hub's web UI (J-Digi tab → Transmit & CW card) owns `ptt.method` and the CW prefs. j-digi receives them via `CONFIG_UPDATE` and persists the chosen values to local Java Preferences (`com.hamradio.modem.ModemService`) as a fallback for stand-alone use before a hub connection is established. The Hamlib host/port for `HAMLIB` mode come from the station-level **Rig Control** tab in j-hub — delivered to j-digi inside `JHUB_WELCOME` / `STATION_CONFIG` as `rigHamlibHost` / `rigHamlibPort` — so j-digi reuses the station's `rigctld` endpoint instead of carrying duplicate prefs.
 
-| Pref | Values | Default |
-|---|---|---|
-| `ptt.method` | `VOX` / `HAMLIB` | `VOX` |
-| `ptt.hamlib.host` | hostname / IP | `127.0.0.1` |
-| `ptt.hamlib.port` | TCP port | `4532` |
+| Pref | Values | Default | Source of truth |
+|---|---|---|---|
+| `ptt.method` | `VOX` / `HAMLIB` | `VOX` | j-hub J-Digi tab |
+| `ptt.hamlib.host` | hostname / IP | `127.0.0.1` | j-hub Rig Control tab (mirrored locally) |
+| `ptt.hamlib.port` | TCP port | `4532` | j-hub Rig Control tab (mirrored locally) |
 
 The legacy value `NONE` (from earlier builds) is still accepted as a synonym for `VOX`.
 
@@ -67,7 +67,7 @@ For CW specifically there's a separate choice: should j-digi generate the dots a
 | `cw.keyer = AUDIO` (default) | `CwTransmitter` synthesises sidetone audio with raised-cosine keying; goes through `AudioTxEngine` with PTT toggled per the `ptt.method` setting | Most setups — works without CAT, gives you full control over sidetone frequency and key-click filtering. Required if you're using VOX |
 | `cw.keyer = HAMLIB` | `HamlibCwKeyer` sends `b <text>\n` to `rigctld`; the rig's own keyer plays the Morse at its configured WPM. No audio path used | Cleanest timing — rig handles keying internally with no soundcard routing. Required if you have no audio path to the rig but do have CAT |
 
-Additional pref `cw.wpm` (default 20) sets the WPM for **both** paths. The audio transmitter is rebuilt from the pref on every CW transmit, so a change takes effect on the next TX with no restart needed.
+Additional pref `cw.wpm` (default 20) sets the WPM for **both** paths. The audio transmitter is rebuilt from the pref on every CW transmit, so a change takes effect on the next TX with no restart needed. Both `cw.keyer` and `cw.wpm` are edited in j-hub's J-Digi tab and delivered via `CONFIG_UPDATE`; the Java Preferences are a fallback cache.
 
 Cancel works on both paths — audio cancels the `SourceDataLine`, CAT sends `\stop_morse\n`. Both fire the same `onCancelled` callback shape.
 

@@ -338,6 +338,23 @@
             <label>Language</label>
           </div>
         </div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <select id="st-iaru-region">
+              <option value="IARU-R1">IARU Region 1 — Europe / Africa / Middle East</option>
+              <option value="IARU-R2">IARU Region 2 — Americas</option>
+              <option value="IARU-R3">IARU Region 3 — Asia / Oceania</option>
+            </select>
+            <label>IARU Region<div class="toggle-desc">Controls band-edge / segment captions shown on rig frequency and DX spots</div></label>
+          </div>
+          <div class="field">
+            <select id="st-country">
+              <option value="">(region only — no national overlay)</option>
+              <option value="US">United States (FCC §97.301)</option>
+            </select>
+            <label>Country Overlay<div class="toggle-desc">National sub-band overlay on top of the IARU region — currently only US</div></label>
+          </div>
+        </div>
         <div class="btn-row" style="margin-top:10px">
           <button class="btn btn-primary" onclick="saveStation()">Save Station</button>
           <span id="st-msg" style="font-size:12px;color:var(--overlay0)"></span>
@@ -1663,7 +1680,34 @@
     <!-- ─── Tab: J-Digi ─────────────────────────────────── -->
     <section id="tab-jdigi" class="tab-panel">
       <div class="panel-header">J-Digi Settings</div>
-      <div class="panel-sub">Digital modem / RTTY / PSK — font size and display preferences</div>
+      <div class="panel-sub">Digital modem / RTTY / PSK — keying, CW, and display preferences</div>
+
+      <div class="card">
+        <div class="card-title">Transmit &amp; CW</div>
+        <div class="panel-sub">PTT keying method and CW transmission paths. Hamlib host/port come from <b>Rig Control</b>.</div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <select id="jdigi-ptt-method">
+              <option value="VOX">VOX — audio-sensing (rig/interface keys itself)</option>
+              <option value="HAMLIB">HAMLIB — rigctld T 1 / T 0</option>
+            </select>
+            <label>PTT Method<div class="toggle-desc">VOX needs no CAT cable. HAMLIB uses the station's rigctld endpoint and works for CW where there's no audio to sense.</div></label>
+          </div>
+          <div class="field">
+            <select id="jdigi-cw-keyer">
+              <option value="AUDIO">AUDIO — J-Digi synthesises Morse audio</option>
+              <option value="HAMLIB">HAMLIB — rig's built-in keyer (b &lt;text&gt;)</option>
+            </select>
+            <label>CW Keyer<div class="toggle-desc">AUDIO works without CAT; HAMLIB hands the text to rigctld so the rig keys itself at its configured WPM.</div></label>
+          </div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field">
+            <input type="number" id="jdigi-cw-wpm" min="5" max="60" value="20">
+            <label>CW WPM<div class="toggle-desc">Applies to both AUDIO and HAMLIB keying paths. Takes effect on next CW transmit.</div></label>
+          </div>
+        </div>
+      </div>
 
       <div class="card">
         <div class="card-title">Global Base Font</div>

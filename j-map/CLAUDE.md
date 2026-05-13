@@ -52,7 +52,7 @@ Java 21 and Maven 3.8+ required. JavaFX is bundled via Maven — no separate ins
 
 `DXInfoWindow` consults `com.jlog.bandplan.BandplanLoader` (j-log-engine) and appends a segment caption (e.g. `20m  14074.0 kHz   DATA — Digimodes / FT8 14074`) so the operator can see what activity belongs at the spot's frequency without consulting an external chart. j-log-engine is the only ARS-Suite dependency j-map carries — the shade plugin filters drop its unused transitive parts (SQLite, JSSC, civ) from the fat jar.
 
-Region/country pulled from the `Settings` fields `bandplanRegion` (default `IARU-R2`) and `bandplanCountry` (default `US`). Override in `~/.j-map/settings.json` or via J-Hub's config UI.
+Region/country come from j-hub's Station settings (Regional Settings card) — delivered via `JHUB_WELCOME` / `STATION_CONFIG` and mirrored into the `Settings` fields `bandplanRegion` (default `IARU-R2`) and `bandplanCountry` (default `US`). Stand-alone overrides still possible in `~/.j-map/settings.json`.
 
 ## Adding a New Data Source
 

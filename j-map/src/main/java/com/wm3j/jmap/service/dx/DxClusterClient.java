@@ -242,7 +242,7 @@ public class DxClusterClient {
                 javafx.application.Platform.runLater(javafx.application.Platform::exit);
                 return;
 
-            } else if ("JHUB_WELCOME".equals(type)) {
+            } else if ("JHUB_WELCOME".equals(type) || "STATION_CONFIG".equals(type)) {
                 JsonNode st = node.path("station");
                 if (!st.isMissingNode() && stationListener != null) {
                     stationListener.accept(st);

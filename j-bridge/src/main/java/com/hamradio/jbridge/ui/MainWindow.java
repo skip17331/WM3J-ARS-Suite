@@ -308,10 +308,35 @@ public class MainWindow {
                 }
                 case "WSJTX_DECODE"  -> { /* hub rebroadcast — future enrichment hook */ }
                 case "HUB_WELCOME"   -> log.info("Hub welcome received");
+                case "JHUB_WELCOME", "STATION_CONFIG" -> applyStationConfigFromHub(json);
                 case "APP_LIST"      -> log.debug("APP_LIST: {}", json);
                 default              -> log.debug("Hub msg '{}' not handled", type);
             }
         });
+    }
+
+    /**
+     * Pull operator IARU region + country from j-hub's station config so the
+     * bandplan caption follows the station's authoritative settings. Fires on
+     * connect (JHUB_WELCOME) and on every live edit (STATION_CONFIG).
+     */
+    private void applyStationConfigFromHub(com.google.gson.JsonObject json) {
+        if (!json.has("station") || !json.get("station").isJsonObject()) return;
+        com.google.gson.JsonObject st = json.getAsJsonObject("station");
+        boolean changed = false;
+        if (st.has("iaruRegion")) {
+            String r = st.get("iaruRegion").getAsString();
+            if (!r.equals(cfg.getOperatorRegion())) { cfg.setOperatorRegion(r); changed = true; }
+        }
+        if (st.has("country")) {
+            String c = st.get("country").getAsString();
+            if (!c.equals(cfg.getOperatorCountry())) { cfg.setOperatorCountry(c); changed = true; }
+        }
+        if (changed) {
+            cfg.save();
+            log.info("Operator bandplan updated from j-hub: region={}, country={}",
+                    cfg.getOperatorRegion(), cfg.getOperatorCountry());
+        }
     }
 
     // ── Counter refresh ───────────────────────────────────────────────────────

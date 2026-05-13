@@ -140,10 +140,16 @@ public class JHubServer extends WebSocketServer {
         ack.addProperty("type", "JHUB_WELCOME");
         ack.addProperty("jHubVersion", "1.0.0");
         ack.addProperty("timestamp", Instant.now().toString());
-        com.hamradio.jhub.model.JHubConfig.StationSection st =
-                ConfigManager.getInstance().getConfig().station;
-        if (st != null) {
-            ack.add("station", ConfigManager.gson().toJsonTree(st));
+        com.hamradio.jhub.model.JHubConfig cfg = ConfigManager.getInstance().getConfig();
+        if (cfg.station != null) {
+            ack.add("station", ConfigManager.gson().toJsonTree(cfg.station));
+        }
+        // Include rig Hamlib host/port so apps that key the rig (e.g. j-digi
+        // PTT, j-digi CW keyer) reuse the station-level rigctld endpoint
+        // instead of carrying their own duplicate prefs.
+        if (cfg.rig != null) {
+            ack.addProperty("rigHamlibHost", cfg.rig.hamlibHost);
+            ack.addProperty("rigHamlibPort", cfg.rig.hamlibPort);
         }
         sendTo(session.socket, ack.toString());
 

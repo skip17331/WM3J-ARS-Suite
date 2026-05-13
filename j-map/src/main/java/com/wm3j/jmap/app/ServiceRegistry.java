@@ -175,6 +175,15 @@ public class ServiceRegistry {
             if (stationNode.has("ituZone") && stationNode.path("ituZone").asInt(0) != 0) {
                 settings.setItuZone(stationNode.path("ituZone").asInt()); changed = true;
             }
+            if (stationNode.has("iaruRegion") && !stationNode.path("iaruRegion").asText().isBlank()) {
+                settings.setBandplanRegion(stationNode.path("iaruRegion").asText()); changed = true;
+            }
+            if (stationNode.has("country")) {
+                String c = stationNode.path("country").asText();
+                if (!c.equals(settings.getBandplanCountry())) {
+                    settings.setBandplanCountry(c); changed = true;
+                }
+            }
             if (changed) onSettingsChanged(settings);
         });
         dxClusterClient.start(); // connect to Hub for spot delivery

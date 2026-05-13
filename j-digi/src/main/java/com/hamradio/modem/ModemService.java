@@ -668,6 +668,10 @@ public class ModemService implements HubMessageListener {
         String method = PREFS.get(PREF_PTT_METHOD, "VOX").toUpperCase();
         switch (method) {
             case "HAMLIB":
+                // Reuse j-hub's station-level rigctld endpoint (delivered via
+                // JHUB_WELCOME / STATION_CONFIG). The legacy ptt.hamlib.host /
+                // .port prefs survive as a fallback for stand-alone use before
+                // a hub connection is established.
                 String host = PREFS.get(PREF_PTT_HAMLIB_HOST, HamlibRigControl.DEFAULT_HOST);
                 int port = PREFS.getInt(PREF_PTT_HAMLIB_PORT, HamlibRigControl.DEFAULT_PORT);
                 log.info("PTT method = HAMLIB ({}:{})", host, port);
@@ -678,6 +682,43 @@ public class ModemService implements HubMessageListener {
                 log.info("PTT method = VOX (audio-sensing — rig/interface keys itself)");
                 return new NoOpRigControl();
         }
+    }
+
+    /**
+     * Apply a station snapshot from j-hub (either JHUB_WELCOME on connect or a
+     * live STATION_CONFIG broadcast after the operator saves settings in the
+     * j-hub web UI). The values land in Java Preferences so they survive
+     * disconnects — j-hub is the source of truth, but j-digi can still run
+     * stand-alone with the last-known config.
+     */
+    private void applyStationFromHub(com.google.gson.JsonObject msg) {
+        if (msg.has("station") && msg.get("station").isJsonObject()) {
+            com.google.gson.JsonObject st = msg.getAsJsonObject("station");
+            if (st.has("callsign")) {
+                String call = st.get("callsign").getAsString().trim().toUpperCase();
+                if (!call.isBlank()) hubCallsign = call;
+            }
+            if (st.has("gridSquare")) {
+                hubGridSquare = st.get("gridSquare").getAsString().trim().toUpperCase();
+            }
+            if (st.has("iaruRegion")) {
+                PREFS.put(PREF_BANDPLAN_REGION, st.get("iaruRegion").getAsString());
+            }
+            if (st.has("country")) {
+                PREFS.put(PREF_BANDPLAN_COUNTRY, st.get("country").getAsString());
+            }
+            String tz = st.has("timezone") ? st.get("timezone").getAsString() : "UTC";
+            stationListener.accept(new String[]{ getMyCall(), getMyGrid(), tz });
+        }
+        // Station-level Hamlib endpoint (set in j-hub Rig Control) — j-digi
+        // mirrors it locally so PTT works even after the hub disconnects.
+        if (msg.has("rigHamlibHost")) {
+            PREFS.put(PREF_PTT_HAMLIB_HOST, msg.get("rigHamlibHost").getAsString());
+        }
+        if (msg.has("rigHamlibPort")) {
+            PREFS.putInt(PREF_PTT_HAMLIB_PORT, msg.get("rigHamlibPort").getAsInt());
+        }
+        flushPrefsQuietly("j-hub station config");
     }
 
     private String loadSavedHubUrl() {
@@ -901,18 +942,17 @@ public class ModemService implements HubMessageListener {
         switch (type) {
             case "JHUB_WELCOME" -> {
                 // Extract global station config from j-hub so we don't need our own copy
-                if (msg.has("station")) {
-                    com.google.gson.JsonObject st = msg.getAsJsonObject("station");
-                    if (st.has("callsign")) {
-                        String call = st.get("callsign").getAsString().trim().toUpperCase();
-                        if (!call.isBlank()) hubCallsign = call;
-                    }
-                    if (st.has("gridSquare"))
-                        hubGridSquare = st.get("gridSquare").getAsString().trim().toUpperCase();
-                    String tz = st.has("timezone") ? st.get("timezone").getAsString() : "UTC";
-                    stationListener.accept(new String[]{ getMyCall(), getMyGrid(), tz });
-                }
+                applyStationFromHub(msg);
                 decodeListener.accept("Connected to J-Hub — station: " + getMyCall());
+            }
+
+            case "STATION_CONFIG" -> {
+                // Live update — operator changed station or rig settings in j-hub UI
+                applyStationFromHub(msg);
+                // Re-apply rig control + refresh caption against the new bandplan region
+                audioTxEngine.setRigControl(buildConfiguredRigControl());
+                status.setBandplanCaption(captionFor(status.getRigFrequencyHz()));
+                fireStatus();
             }
 
             case "RIG_STATUS" -> {
@@ -988,6 +1028,22 @@ public class ModemService implements HubMessageListener {
                     if (settings.has("fonts") && settings.get("fonts").isJsonObject()) {
                         fontsListener.accept(settings.getAsJsonObject("fonts"));
                     }
+                    // PTT / CW settings now live in j-hub; persist + apply live
+                    boolean txDirty = false;
+                    if (settings.has("pttMethod")) {
+                        PREFS.put(PREF_PTT_METHOD, settings.get("pttMethod").getAsString());
+                        txDirty = true;
+                    }
+                    if (settings.has("cwKeyer")) {
+                        PREFS.put(PREF_CW_KEYER, settings.get("cwKeyer").getAsString());
+                    }
+                    if (settings.has("cwWpm")) {
+                        PREFS.putInt(PREF_CW_WPM, settings.get("cwWpm").getAsInt());
+                    }
+                    if (txDirty) {
+                        audioTxEngine.setRigControl(buildConfiguredRigControl());
+                    }
+                    flushPrefsQuietly("j-hub CONFIG_UPDATE");
                 }
             }
 

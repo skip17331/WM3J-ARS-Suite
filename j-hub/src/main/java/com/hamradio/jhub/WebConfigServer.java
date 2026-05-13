@@ -138,6 +138,7 @@ public class WebConfigServer {
                 }
                 HamlibRigController.getInstance().restart(newCfg.rig);
                 HamlibRotorController.getInstance().restart(newCfg.rotor);
+                broadcastStationConfig();
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 log.error("Config save failed", e);
@@ -544,9 +545,10 @@ public class WebConfigServer {
                 ConfigManager cm = ConfigManager.getInstance();
                 cm.getConfig().jDigiSettings = settings;
                 cm.save();
-                // Push CONFIG_UPDATE to j-digi via WebSocket
+                // Push CONFIG_UPDATE to j-digi via WebSocket — covers font
+                // sizing AND PTT / CW settings (ptt.method, cw.keyer, cw.wpm)
                 JHubServer server = router.getJHubServer();
-                if (server != null && settings.has("fontSize")) {
+                if (server != null) {
                     com.google.gson.JsonObject upd = new com.google.gson.JsonObject();
                     upd.addProperty("type", "CONFIG_UPDATE");
                     upd.add("settings", settings);
@@ -774,6 +776,8 @@ public class WebConfigServer {
                 ConfigManager.getInstance().save();
                 // Apply immediately — restart controller if backend changed
                 HamlibRigController.getInstance().restart(rig);
+                // Push the new Hamlib endpoint to apps that key the rig (j-digi PTT/CW)
+                broadcastStationConfig();
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -2034,5 +2038,30 @@ public class WebConfigServer {
         res.setHeader("Access-Control-Allow-Origin",  "*");
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    }
+
+    /**
+     * Push a STATION_CONFIG message to every connected app. Carries the full
+     * station section (callsign, grid, iaruRegion, country, …) plus the rig's
+     * Hamlib endpoint so apps that key the rig (j-digi PTT/CW) reuse the
+     * station's rigctld config instead of carrying duplicate prefs.
+     *
+     * Fires whenever /api/config or /api/rig is saved — keeps connected
+     * modules in sync with the j-hub UI without requiring a restart.
+     */
+    private static void broadcastStationConfig() {
+        JHubServer server = MessageRouter.getInstance().getJHubServer();
+        if (server == null) return;
+        JHubConfig cfg = ConfigManager.getInstance().getConfig();
+        JsonObject msg = new JsonObject();
+        msg.addProperty("type", "STATION_CONFIG");
+        if (cfg.station != null) {
+            msg.add("station", ConfigManager.gson().toJsonTree(cfg.station));
+        }
+        if (cfg.rig != null) {
+            msg.addProperty("rigHamlibHost", cfg.rig.hamlibHost);
+            msg.addProperty("rigHamlibPort", cfg.rig.hamlibPort);
+        }
+        server.broadcastToAll(msg.toString());
     }
 }

@@ -43,7 +43,9 @@ J-Hub is the **central message broker** for the WM3J ARS Suite of ham radio desk
 
 ## WebSocket Protocol
 
-All messages are JSON with a `type` field. First message from any client must be `APP_CONNECTED`. Handled types: `APP_CONNECTED`, `JHUB_WELCOME`, `APP_LIST`, `RIG_STATUS`, `LOGGER_SESSION`, `SPOT_SELECTED`, `SPOT`, `WSJTX_DECODE`.
+All messages are JSON with a `type` field. First message from any client must be `APP_CONNECTED`. Handled types: `APP_CONNECTED`, `JHUB_WELCOME`, `STATION_CONFIG`, `APP_LIST`, `RIG_STATUS`, `LOGGER_SESSION`, `SPOT_SELECTED`, `SPOT`, `WSJTX_DECODE`.
+
+`JHUB_WELCOME` (sent on connect) and `STATION_CONFIG` (broadcast on `/api/config` or `/api/rig` save) both carry the full station section — including operator IARU region + country overlay used for bandplan captions — plus the rig's `rigHamlibHost` / `rigHamlibPort` so modules that key the rig (e.g. j-digi PTT/CW) reuse the station-level `rigctld` endpoint rather than holding duplicate prefs.
 
 ## Module Connections
 

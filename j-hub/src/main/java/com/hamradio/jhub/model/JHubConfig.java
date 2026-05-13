@@ -59,6 +59,8 @@ public class JHubConfig {
         public String gridSquare  = "";
         public String timezone    = "UTC";
         public String language    = "en";
+        public String iaruRegion  = "IARU-R2";   // IARU-R1 | IARU-R2 | IARU-R3 — band edges + segment layout
+        public String country     = "US";        // ISO-3166 alpha-2 country overlay for the bandplan (empty = region only)
         public int    cqZone      = 0;
         public String arrlSection = "";
         public int    ituZone     = 0;

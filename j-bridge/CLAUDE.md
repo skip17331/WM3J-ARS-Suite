@@ -73,10 +73,11 @@ j-log's HubDiscoveryListener.
 `com.jlog.bandplan.BandplanLoader` and appends the segment description
 (e.g. `14.074 MHz   DATA — Digimodes / FT8 14074 (IARU-R2)`) so the
 operator immediately sees what kind of activity belongs at that
-frequency. Shared library lives in j-log-engine. Region/country are
-operator preferences in `j-bridge-config.json` under
-`"operator": {"region": "IARU-R1", "country": "DE"}` (defaults are
-`IARU-R2` + `US`).
+frequency. Shared library lives in j-log-engine. Region/country come
+from j-hub's Station settings (Regional Settings card) — delivered via
+`JHUB_WELCOME` and live `STATION_CONFIG` broadcasts, then mirrored into
+`j-bridge-config.json` under `"operator": {"region", "country"}` for
+stand-alone use. Defaults are `IARU-R2` + `US`.
 
 **Registration** — sends `{"type":"APP_CONNECTED","appName":"jBridge","version":"1.0.0"}`
 immediately on WebSocket open. Required by HubServer.handleRegistration().

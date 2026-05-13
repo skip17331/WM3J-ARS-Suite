@@ -818,8 +818,10 @@ function populateForms(cfg) {
   setVal('st-cqzone',  st.cqZone      || '');
   setVal('st-arrl',    st.arrlSection || '');
   setVal('st-ituzone', st.ituZone     || '');
-  setSelectVal('st-tz',   st.timezone || 'UTC');
-  setSelectVal('st-lang', st.language || 'en');
+  setSelectVal('st-tz',           st.timezone   || 'UTC');
+  setSelectVal('st-lang',         st.language   || 'en');
+  setSelectVal('st-iaru-region',  st.iaruRegion || 'IARU-R2');
+  setSelectVal('st-country',      st.country == null ? 'US' : st.country);
   applyStationIntel(st);
 
   // J-Hub ports + IP
@@ -1251,6 +1253,8 @@ function saveStation() {
       lon:         parseFloat(document.getElementById('st-lon').value)||0,
       timezone:    document.getElementById('st-tz').value || 'UTC',
       language:    document.getElementById('st-lang').value || 'en',
+      iaruRegion:  document.getElementById('st-iaru-region').value || 'IARU-R2',
+      country:     document.getElementById('st-country').value,
       cqZone:      parseInt(document.getElementById('st-cqzone').value)||0,
       arrlSection: (document.getElementById('st-arrl').value||'').toUpperCase().trim(),
       ituZone:     parseInt(document.getElementById('st-ituzone').value)||0,
@@ -2419,6 +2423,10 @@ function populateJDigiForm(s) {
   if (fsEl)  fsEl.value = s.fontSize || 13;
   if (fsLbl) fsLbl.textContent = s.fontSize || 13;
 
+  setSelectVal('jdigi-ptt-method', s.pttMethod || 'VOX');
+  setSelectVal('jdigi-cw-keyer',   s.cwKeyer   || 'AUDIO');
+  setVal('jdigi-cw-wpm',           s.cwWpm     || 20);
+
   const setFontSlider = (id, valId, v) => {
     const el  = document.getElementById(id);
     const lbl = document.getElementById(valId);
@@ -2438,6 +2446,9 @@ function saveJDigiSettings() {
   const intOf = id => parseInt(document.getElementById(id).value, 10) || 0;
   const payload = {
     fontSize: intOf('jdigi-font-size') || 13,
+    pttMethod: document.getElementById('jdigi-ptt-method').value || 'VOX',
+    cwKeyer:   document.getElementById('jdigi-cw-keyer').value   || 'AUDIO',
+    cwWpm:     intOf('jdigi-cw-wpm') || 20,
     fonts: {
       rxTx:      intOf('jdigi-font-rxtx'),
       freq:      intOf('jdigi-font-freq'),
