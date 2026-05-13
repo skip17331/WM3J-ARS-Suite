@@ -4,7 +4,7 @@
   <groupId>com.hamradio</groupId>
   <artifactId>j-hub</artifactId>
   <name>j-Hub</name>
-  <version>1.0.97</version>
+  <version>1.0.98</version>
   <description>WM3j ARS Suite — central WebSocket j-hub</description>
   <build>
     <plugins>

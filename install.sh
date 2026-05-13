@@ -31,7 +31,7 @@
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-INSTALLER_JAR="$SCRIPT_DIR/installer/target/j-installer-1.0.7.jar"
+INSTALLER_JAR="$SCRIPT_DIR/installer/target/j-installer-1.0.8.jar"
 
 command -v java >/dev/null 2>&1 || {
     echo "error: Java 21 is required but 'java' was not found on PATH."

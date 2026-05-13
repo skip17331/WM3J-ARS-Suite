@@ -7,7 +7,7 @@
 
     <groupId>com.jlog</groupId>
     <artifactId>j-log</artifactId>
-    <version>1.0.50</version>
+    <version>1.0.51</version>
     <packaging>jar</packaging>
     <name>j-Log</name>
 
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-engine</artifactId>
-            <version>1.0.40</version>
+            <version>1.0.42</version>
         </dependency>
 
         <!-- JavaFX -->

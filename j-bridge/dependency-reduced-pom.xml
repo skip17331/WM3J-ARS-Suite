@@ -4,7 +4,7 @@
   <groupId>com.hamradio</groupId>
   <artifactId>j-bridge</artifactId>
   <name>J-Bridge</name>
-  <version>1.0.15</version>
+  <version>1.0.17</version>
   <description>WSJT-X ↔ j-Hub bridge — WM3j ARS Suite</description>
   <build>
     <plugins>

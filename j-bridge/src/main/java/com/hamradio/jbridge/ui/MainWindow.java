@@ -190,7 +190,7 @@ public class MainWindow {
         Button reportBtn = toolBtn("🐛 Report Issue");
         reportBtn.setTooltip(new Tooltip(I18n.get("tooltip.report")));
         reportBtn.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
-            "j-bridge", "1.0.15",
+            "j-bridge", "1.0.17",
             System.getProperty("user.home", "") + "/.hamlog/logs/j-bridge.log"));
 
         HBox toolbar = new HBox(12, titleBox, spacer,

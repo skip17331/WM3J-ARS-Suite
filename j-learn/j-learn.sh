@@ -4,7 +4,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-JAR="$SCRIPT_DIR/target/j-learn-1.0.43.jar"
+JAR="$SCRIPT_DIR/target/j-learn-1.0.44.jar"
 
 if [ ! -f "$JAR" ]; then
   echo "Error: j-learn jar not found at $JAR" >&2

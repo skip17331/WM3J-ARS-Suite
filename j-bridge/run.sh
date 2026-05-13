@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-JAR="$SCRIPT_DIR/target/j-bridge-1.0.15-shaded.jar"
+JAR="$SCRIPT_DIR/target/j-bridge-1.0.17-shaded.jar"
 
 if [ ! -f "$JAR" ]; then
     echo "JAR not found — building J-Bridge..."
