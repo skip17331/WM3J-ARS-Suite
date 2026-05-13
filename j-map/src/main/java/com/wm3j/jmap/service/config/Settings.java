@@ -20,6 +20,12 @@ public class Settings {
     private int    cqZone     = 0;
     private int    ituZone    = 0;
 
+    // Bandplan region/country — DX-spot frequency captions consult
+    // com.jlog.bandplan.BandplanLoader using these. Override in
+    // ~/.j-map/settings.json or via J-Hub's config UI.
+    private String bandplanRegion  = "IARU-R2";
+    private String bandplanCountry = "US";
+
     // Data source flags
     private boolean useMockData = true;
     private String noaaApiKey = "";
@@ -164,6 +170,11 @@ public class Settings {
 
     public String getQthGrid() { return qthGrid; }
     public void setQthGrid(String qthGrid) { this.qthGrid = qthGrid; }
+
+    public String getBandplanRegion()  { return bandplanRegion;  }
+    public void   setBandplanRegion(String v)  { this.bandplanRegion  = v == null || v.isBlank() ? "IARU-R2" : v.trim(); }
+    public String getBandplanCountry() { return bandplanCountry; }
+    public void   setBandplanCountry(String v) { this.bandplanCountry = v == null ? "" : v.trim(); }
 
     public String getTimezone() { return timezone; }
     public void setTimezone(String timezone) { this.timezone = timezone; }

@@ -138,8 +138,12 @@ public class DXInfoWindow extends FloatingWindow {
         countryLabel.setText(locationLine);
 
         long hz = Math.round(s.getFrequencyKhz() * 1000.0);
+        com.wm3j.jmap.service.config.Settings st = services.getSettings();
         com.jlog.bandplan.BandplanLoader.Description bp =
-            com.jlog.bandplan.BandplanLoader.getInstance().describe(hz);
+            com.jlog.bandplan.BandplanLoader.getInstance().describe(
+                hz,
+                st != null ? st.getBandplanRegion()  : null,
+                st != null ? st.getBandplanCountry() : null);
         String bandTxt = String.format("%s  %.1f kHz", s.getBand(), s.getFrequencyKhz());
         if (bp != null) bandTxt += "   " + bp.activity + " — " + bp.label;
         bandLabel.setText(bandTxt);

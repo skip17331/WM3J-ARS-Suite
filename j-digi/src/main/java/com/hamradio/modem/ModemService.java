@@ -73,6 +73,8 @@ public class ModemService implements HubMessageListener {
     private static final String PREF_PTT_HAMLIB_PORT = "ptt.hamlib.port";
     private static final String PREF_CW_KEYER     = "cw.keyer";            // AUDIO | HAMLIB
     private static final String PREF_CW_WPM       = "cw.wpm";
+    private static final String PREF_BANDPLAN_REGION = "bandplan.region";  // IARU-R1 | IARU-R2 | IARU-R3
+    private static final String PREF_BANDPLAN_COUNTRY = "bandplan.country"; // US | (none)
 
     private final AudioEngine audioEngine = new AudioEngine();
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
@@ -616,10 +618,14 @@ public class ModemService implements HubMessageListener {
 
     /** "20m / CW — CW (US)" style caption for the current rig frequency.
      *  Empty when the rig is on a non-amateur frequency or hasn't reported
-     *  one yet — UI binds this directly to a status-bar label. */
+     *  one yet — UI binds this directly to a status-bar label. Region /
+     *  country come from prefs so operators outside R2 see the correct
+     *  band edges. */
     private static String captionFor(long hz) {
         if (hz <= 0) return "";
-        BandplanLoader.Description d = BandplanLoader.getInstance().describe(hz);
+        String region  = PREFS.get(PREF_BANDPLAN_REGION,  BandplanLoader.DEFAULT_REGION);
+        String country = PREFS.get(PREF_BANDPLAN_COUNTRY, BandplanLoader.DEFAULT_COUNTRY);
+        BandplanLoader.Description d = BandplanLoader.getInstance().describe(hz, region, country);
         return d == null ? "" : d.toString();
     }
 

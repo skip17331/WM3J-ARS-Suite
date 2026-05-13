@@ -1,5 +1,6 @@
 package com.hamradio.jbridge.ui;
 
+import com.hamradio.jbridge.ConfigManager;
 import com.hamradio.jbridge.model.BandActivity;
 import com.jlog.bandplan.BandplanLoader;
 import javafx.geometry.Insets;
@@ -147,7 +148,9 @@ class WsjtxStatusPanel extends VBox {
 
     void setFrequency(long hz) {
         if (hz > 0) {
-            BandplanLoader.Description d = BandplanLoader.getInstance().describe(hz);
+            ConfigManager cfg = ConfigManager.getInstance();
+            BandplanLoader.Description d = BandplanLoader.getInstance()
+                .describe(hz, cfg.getOperatorRegion(), cfg.getOperatorCountry());
             String suffix = d == null ? "" : "   " + d;
             freqLbl.setText(String.format("%.3f MHz%s", hz / 1_000_000.0, suffix));
         } else {

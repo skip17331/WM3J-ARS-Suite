@@ -46,6 +46,12 @@ public class ConfigManager {
     private int      minimumSnr          = -20;
     private String[] bandFilters         = {"160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"};
 
+    // Operator location — drives the bandplan caption region/country.
+    // Default IARU-R2 + US matches the WM3J build origin; override in
+    // j-bridge-config.json under "operator": {"region":"IARU-R1","country":"DE"} etc.
+    private String operatorRegion  = "IARU-R2";
+    private String operatorCountry = "US";
+
     // ── Load / Save ────────────────────────────────────────────────────────────
 
     public synchronized void load() {
@@ -76,6 +82,11 @@ public class ConfigManager {
                 if (d.has("minimumSnr"))          minimumSnr          = d.get("minimumSnr").getAsInt();
                 if (d.has("bandFilters"))         bandFilters         = PRETTY_GSON.fromJson(d.get("bandFilters"), String[].class);
             }
+            if (root.has("operator")) {
+                JsonObject op = root.getAsJsonObject("operator");
+                if (op.has("region"))  operatorRegion  = op.get("region").getAsString();
+                if (op.has("country")) operatorCountry = op.get("country").getAsString();
+            }
             log.info("Config loaded from {}", path.toAbsolutePath());
         } catch (Exception e) {
             log.warn("Failed to read config, using defaults: {}", e.getMessage());
@@ -103,6 +114,11 @@ public class ConfigManager {
             d.addProperty("minimumSnr",          minimumSnr);
             d.add("bandFilters", PRETTY_GSON.toJsonTree(bandFilters));
             root.add("display", d);
+
+            JsonObject op = new JsonObject();
+            op.addProperty("region",  operatorRegion);
+            op.addProperty("country", operatorCountry);
+            root.add("operator", op);
 
             Path path = Paths.get(CONFIG_FILE);
             Files.writeString(path, PRETTY_GSON.toJson(root), StandardCharsets.UTF_8);
@@ -140,6 +156,10 @@ public class ConfigManager {
 
     public synchronized String[] getBandFilters()         { return bandFilters; }
     public synchronized void     setBandFilters(String[] v){ bandFilters = v; }
+    public synchronized String   getOperatorRegion()      { return operatorRegion;  }
+    public synchronized void     setOperatorRegion(String v) { operatorRegion  = v; }
+    public synchronized String   getOperatorCountry()     { return operatorCountry; }
+    public synchronized void     setOperatorCountry(String v){ operatorCountry = v; }
 
     /** Full WebSocket URI for j-hub, e.g. "ws://localhost:8080" */
     public synchronized String getHubUri() {
