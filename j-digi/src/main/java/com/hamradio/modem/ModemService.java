@@ -66,7 +66,7 @@ public class ModemService implements HubMessageListener {
     private static final String PREF_AUDIO_INPUT  = "audio.input.device";
     private static final String PREF_AUDIO_OUTPUT = "audio.output.device";
     private static final String PREF_MY_CALL      = "station.callsign";
-    private static final String PREF_PTT_METHOD   = "ptt.method";          // NONE | HAMLIB
+    private static final String PREF_PTT_METHOD   = "ptt.method";          // VOX | HAMLIB
     private static final String PREF_PTT_HAMLIB_HOST = "ptt.hamlib.host";
     private static final String PREF_PTT_HAMLIB_PORT = "ptt.hamlib.port";
 
@@ -599,26 +599,42 @@ public class ModemService implements HubMessageListener {
 
     /**
      * Construct the {@link RigControl} the operator chose in Preferences.
-     * {@code NONE} (the default) keeps the historical Phase-1 no-op
-     * behaviour. {@code HAMLIB} opens TCP to {@code rigctld} (default
-     * {@code localhost:4532}).
      *
-     * <p>The Icom-direct {@code CivRigControl} isn't wired here yet — it
-     * needs a live {@link com.jlog.civ.CivEngine} instance from j-log,
-     * which j-digi doesn't currently spin up on its own. Hamlib covers
-     * Icom rigs equally well via the {@code icom} backend.
+     * <p>Two modes ship:
+     * <ul>
+     *   <li>{@code VOX} — audio-sensing keying. j-digi outputs audio with
+     *       no PTT command; whatever sits between j-digi and the antenna
+     *       (the rig's built-in VOX, or an interface like SignaLink /
+     *       DigiRig that does audio-sense PTT on its own board) does the
+     *       keying. This is the default — it's the simplest setup and
+     *       works without any CAT cable.</li>
+     *   <li>{@code HAMLIB} — remote keying via Hamlib's {@code rigctld}
+     *       (default {@code localhost:4532}). Universal — works with
+     *       every rig Hamlib supports including Icom (via its {@code icom}
+     *       backend). The operator configures rigctld's PTT method
+     *       separately: CAT, DTR, RTS, etc.</li>
+     * </ul>
+     *
+     * <p>The Icom-direct {@code CivRigControl} class exists too but isn't
+     * wired here — it would need j-digi to spin up its own CivEngine,
+     * and Hamlib's {@code icom} backend covers the same case without a
+     * second serial-port allocation.
+     *
+     * <p>Backward compat: the value {@code NONE} from older builds is
+     * accepted as a synonym for {@code VOX}.
      */
     private RigControl buildConfiguredRigControl() {
-        String method = PREFS.get(PREF_PTT_METHOD, "NONE").toUpperCase();
+        String method = PREFS.get(PREF_PTT_METHOD, "VOX").toUpperCase();
         switch (method) {
             case "HAMLIB":
                 String host = PREFS.get(PREF_PTT_HAMLIB_HOST, HamlibRigControl.DEFAULT_HOST);
                 int port = PREFS.getInt(PREF_PTT_HAMLIB_PORT, HamlibRigControl.DEFAULT_PORT);
                 log.info("PTT method = HAMLIB ({}:{})", host, port);
                 return new HamlibRigControl(host, port);
-            case "NONE":
+            case "VOX":
+            case "NONE":   // legacy alias
             default:
-                log.info("PTT method = NONE (no rig keying)");
+                log.info("PTT method = VOX (audio-sensing — rig/interface keys itself)");
                 return new NoOpRigControl();
         }
     }

@@ -37,23 +37,26 @@ Decoders run on the audio thread; the UI receives decoded text on the JavaFX App
 
 ## PTT / rig keying
 
-`AudioTxEngine` accepts any `RigControl` implementation. Three ship:
+Two keying methods ship out of the box; pick one in Preferences.
 
-| Implementation | Use when |
-|---|---|
-| `NoOpRigControl` (default) | You only want to drive audio for monitoring/tuning; no real rig is keyed |
-| `HamlibRigControl` | Any rig — connects to `rigctld` on a configurable host/port (default `localhost:4532`). Reconnects per PTT toggle so a daemon restart doesn't sticky-fail |
-| `CivRigControl` | Icom rigs — direct, no `rigctld`. Wraps the shared `CivEngine` from `j-log-engine`. Not currently wired into `ModemService` (j-digi doesn't spin up its own CivEngine yet) |
+| Method | What happens | Use when |
+|---|---|---|
+| **VOX** (default) | j-digi outputs audio with no key command. The rig's VOX, or an audio-sense interface like SignaLink / DigiRig, handles PTT itself | Simplest setup, no CAT cable required. Works for any digital mode that puts audio out at a reasonable level |
+| **HAMLIB** | j-digi opens a TCP socket to `rigctld` and sends `T 1\n` / `T 0\n` for PTT. Reconnects each toggle so a daemon restart isn't sticky | Any rig Hamlib supports (Yaesu, Kenwood, Elecraft, Icom, etc.). Required for pure CW where there's no audio for VOX to sense |
 
-Configured via Java `Preferences` under `com.hamradio.modem.ModemService`:
+A third option, `CivRigControl`, is built (direct CI-V to Icom via `CivEngine` from j-log-engine) but not wired into `ModemService` — Hamlib's `icom` backend covers Icom rigs without a second serial allocation. The class is there if a future demand justifies plumbing it in.
+
+Java Preferences under `com.hamradio.modem.ModemService`:
 
 | Pref | Values | Default |
 |---|---|---|
-| `ptt.method` | `NONE` / `HAMLIB` | `NONE` |
+| `ptt.method` | `VOX` / `HAMLIB` | `VOX` |
 | `ptt.hamlib.host` | hostname / IP | `127.0.0.1` |
 | `ptt.hamlib.port` | TCP port | `4532` |
 
-Wire protocol uses the plain rigctld command set — `T 1\n` / `T 0\n`, expecting `RPRT 0\n` on success. Any non-zero `RPRT` is surfaced as an `IOException` that bubbles up through `AudioTxEngine`'s `onError` callback.
+The legacy value `NONE` (from earlier builds) is still accepted as a synonym for `VOX`.
+
+Wire protocol for HAMLIB uses the plain rigctld command set — `T 1\n` / `T 0\n`, expecting `RPRT 0\n` on success. Any non-zero `RPRT` is surfaced as an `IOException` that bubbles up through `AudioTxEngine`'s `onError` callback.
 
 ## Mode selection
 
