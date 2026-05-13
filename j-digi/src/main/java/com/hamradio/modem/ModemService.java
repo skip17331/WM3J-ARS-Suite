@@ -86,8 +86,9 @@ public class ModemService implements HubMessageListener {
     private final com.hamradio.modem.dsp.LocalSkimmer localSkimmer =
             new com.hamradio.modem.dsp.LocalSkimmer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
     /** Phase A multi-channel CW decoder — runs one {@code CwMode} per
-     *  skimmer-detected carrier. Phase B/C will add callsign extraction
-     *  and SPOT emission on top. */
+     *  skimmer-detected carrier. Phase B added callsign scoring;
+     *  Phase C wires those promotions to the SPOT publisher (instantiated
+     *  further down once {@code status} is available). */
     private final com.hamradio.modem.dsp.MultiCarrierDecoder multiCarrierDecoder =
             new com.hamradio.modem.dsp.MultiCarrierDecoder(AudioEngine.SAMPLE_RATE);
     /** Latest skimmer snapshot, refreshed every audio frame so the
@@ -102,6 +103,15 @@ public class ModemService implements HubMessageListener {
             new com.hamradio.modem.dsp.SignalClassifier(AudioEngine.SAMPLE_RATE, AudioEngine.FRAME_SIZE);
     private final ModeManager modeManager = new ModeManager();
     private final ModemStatus status = new ModemStatus();
+    /** Phase C: turns scored-callsign promotions into broker SPOT
+     *  messages, with a 5-minute per-(callsign, kHz) dedup window.
+     *  Declared after {@code status} so the rig-frequency supplier
+     *  lambda doesn't trip a forward-reference compile error. */
+    private final com.hamradio.modem.dsp.SkimmerSpotPublisher skimmerSpotPublisher =
+            new com.hamradio.modem.dsp.SkimmerSpotPublisher(
+                this::publishSpotJson,
+                () -> status.getRigFrequencyHz(),
+                this::getMyCall);
     private final Deque<String> decodeHistory = new ArrayDeque<>();
 
     private final DigitalTransmitter rttyTransmitter   = new RttyTransmitter();
@@ -183,6 +193,9 @@ public class ModemService implements HubMessageListener {
             lastSkimmerSnapshot = snap;         // freshest snapshot, every frame
             publishLocalSkimmer(snap);          // rate-limited WS broadcast
         });
+        // Phase C wiring — every scored callsign goes through the
+        // publisher's dedup before reaching the broker.
+        multiCarrierDecoder.setCallsignListener(skimmerSpotPublisher::onScoredCallsign);
     }
 
     /**
@@ -217,6 +230,19 @@ public class ModemService implements HubMessageListener {
             peaks.add(po);
         }
         msg.add("peaks", peaks);
+        hubClient.sendJson(msg);
+    }
+
+    /**
+     * Send a pre-built SPOT JsonObject to j-hub. Used by the Phase C
+     * SkimmerSpotPublisher; it has already built the wire-shape message
+     * and applied dedup, so we just need to forward when the socket is
+     * open. A no-op when the broker isn't reachable — skimmer spots
+     * aren't worth retrying since the operator's session resumes
+     * naturally once the hub comes back.
+     */
+    private void publishSpotJson(com.google.gson.JsonObject msg) {
+        if (hubClient == null || !hubClient.isOpen()) return;
         hubClient.sendJson(msg);
     }
 
@@ -383,7 +409,7 @@ public class ModemService implements HubMessageListener {
         fireStatus();
 
         connectLatch = new CountDownLatch(1);
-        hubClient = new HubClient(new URI(trimmed), "j-digi", "1.0.40", this);
+        hubClient = new HubClient(new URI(trimmed), "j-digi", "1.0.41", this);
         hubClient.connect();
 
         boolean connected = connectLatch.await(CONNECT_TIMEOUT_MS, TimeUnit.MILLISECONDS);

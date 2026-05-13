@@ -12,7 +12,9 @@
     "lon": -76.959714,
     "gridSquare": "FM19MR",
     "timezone": "America/New_York",
-    "language": "en",
+    "language": "es",
+    "iaruRegion": "IARU-R2",
+    "country": "US",
     "cqZone": 5,
     "arrlSection": "EPA",
     "ituZone": 0,
@@ -94,6 +96,32 @@
     "enabled": false,
     "server": "telnet.reversebeacon.net",
     "port": 7000,
+    "loginCallsign": "",
+    "bands": [
+      "30m",
+      "40m",
+      "160m",
+      "80m",
+      "17m",
+      "6m",
+      "15m",
+      "12m",
+      "10m",
+      "20m"
+    ],
+    "modes": [
+      "RTTY",
+      "CW",
+      "FT4",
+      "PSK31",
+      "FT8"
+    ],
+    "minSnrDb": 5
+  },
+  "skimmer": {
+    "enabled": false,
+    "server": "127.0.0.1",
+    "port": 7300,
     "loginCallsign": "",
     "bands": [
       "30m",
@@ -251,7 +279,8 @@
     "theme": "light",
     "fontSize": 17,
     "waterfallColor": "viridis",
-    "mapTheme": "satellite"
+    "mapTheme": "satellite",
+    "density": "comfortable"
   },
   "callsignLookup": {
     "enabled": true,
@@ -328,7 +357,7 @@
     "callsign": "WM3J",
     "qthLat": 39.745583,
     "qthLon": -76.959714,
-    "qthAltKm": 0.0,
+    "qthAltKm": 0,
     "enabledSatellites": [
       "AO-92",
       "AO-109",
@@ -345,7 +374,7 @@
       "FO-99",
       "XW-2C"
     ],
-    "minPassElevationDeg": 5.0,
+    "minPassElevationDeg": 5,
     "passLookAheadHours": 24,
     "rigControlEnabled": false,
     "rotorControlEnabled": false,

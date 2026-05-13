@@ -6,7 +6,7 @@
       "title": "WM3J J-Hub",
       "comment": "ARS Suite — central broker and web configurator",
       "launch": "j-hub/start.sh",
-      "jar":    "j-hub/target/j-hub-1.0.98.jar",
+      "jar":    "j-hub/target/j-hub-1.0.99.jar",
       "icon":   "j-hub/src/main/resources/icons/icon.png",
       "primary": true,
       "categories": "Network;HamRadio;"
@@ -34,7 +34,7 @@
       "title": "WM3J J-Digi",
       "comment": "ARS Suite — digital modem",
       "launch": "j-digi/j-digi.sh",
-      "jar":    "j-digi/target/j-digi-1.0.40-jar-with-dependencies.jar",
+      "jar":    "j-digi/target/j-digi-1.0.41-jar-with-dependencies.jar",
       "icon":   "j-digi/src/main/resources/com/hamradio/modem/icons/icon.png",
       "categories": "HamRadio;AudioVideo;"
     },

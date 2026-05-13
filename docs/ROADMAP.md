@@ -24,33 +24,27 @@ deliberately chosen not to build, and the polish that runs forever.
 These have shipped detector-tier groundwork or partial scope and are
 clearly defined; they're waiting for a contributor with time.
 
-- **Embedded skimmer per-channel decoder.** Phase 2 shipped the
-  detector tier — `LocalSkimmer` peak-picks up to 16 simultaneous
-  CW carriers across the audio passband and publishes
-  `LOCAL_SKIMMER_ACTIVITY` snapshots at 1 Hz. **Phase A landed
-  2026-05-13:** `MultiCarrierDecoder` spawns one AFC-locked
-  `CwMode` per detected carrier, runs them all against every
-  audio frame, accumulates per-channel text, and reaps idle
-  channels after 5 seconds. `CwMode.setLockedCarrier(double)`
-  was added so each per-channel instance stays on its own
-  carrier instead of fighting the others. **Phase B landed
-  2026-05-13:** `CallsignScorer` extracts ITU callsign patterns
-  from per-channel rolling text (handles US/EU/JA + special
-  digit-led prefixes like 2E0/9A1/3D2, portable suffixes like
-  /P, /M, /4, /MM) and scores by repetition + CQ/DE/TU context
-  + end-of-tx tokens. Q-signals are excluded by the regex
-  (no district digit). Promotions clearing 0.65 confidence
-  fire `MultiCarrierDecoder.ScoredCallsign` events with a
-  per-channel "already emitted" guard so the same call doesn't
-  get re-promoted on every subsequent decode chunk. 11 scorer
-  tests + 9 decoder tests covering wiring (text listener fires
-  for non-callsign text, callsign listener stays silent;
-  scorer integration through the decoder is regression-tested
-  via the existing synthetic CW pipeline). **Remaining
-  (Phase C + D):** wire `ScoredCallsign` to a `SPOT` JSON with
-  `source:"LOCAL_SKIMMER"`, 5-minute dedup window, publish to
-  j-hub. Phase D is the optional outbound RBN telnet that
-  makes the operator a public node.
+- **Embedded skimmer outbound RBN telnet.** The decode chain
+  shipped Phase A → C over 2026-05-13: `LocalSkimmer` detects up
+  to 16 CW carriers per audio frame; `MultiCarrierDecoder`
+  spawns one AFC-locked `CwMode` per detected carrier and reaps
+  idle channels after 5 seconds (`CwMode.setLockedCarrier`
+  added); `CallsignScorer` extracts ITU callsign patterns with
+  repetition / context / EOT scoring; `SkimmerSpotPublisher`
+  promotes scored callsigns clearing 0.65 confidence into
+  broker-format `SPOT` JSON with `source:"LOCAL_SKIMMER"` and a
+  5-minute per-(callsign, kHz) dedup window. j-hub's
+  `MessageRouter.handleInboundSpot` now runs unenriched app
+  SPOTs through `SpotEnricher` so DXCC, bearing, distance, and
+  local-time fields land the same way they do for cluster
+  spots. 68 tests in j-digi (11 scorer + 9 decoder + 10
+  publisher + the existing 38). **Remaining (Phase D):** a tiny
+  TCP server on a configurable port that publishes the same
+  spot stream to telnet clients in the standard RBN wire
+  format, so other apps + the public RBN networks can subscribe
+  to this station's skimmer. Useful for contesters who want to
+  contribute spots; revisit when an operator wants to drive the
+  work.
 
 - **Voice-control listener (`j-voice`).** Offline Vosk model to
   parse phrases like *"tune to twenty meters"*, *"call CQ"*, or

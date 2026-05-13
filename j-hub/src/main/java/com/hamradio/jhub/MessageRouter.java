@@ -393,6 +393,17 @@ public class MessageRouter {
         try {
             Spot spot = ConfigManager.gson().fromJson(msg, Spot.class);
             if (spot.timestamp == null) spot.timestamp = Instant.now().toString();
+            // App-originated spots (j-digi's LOCAL_SKIMMER today, future
+            // sources later) typically arrive with only callsign +
+            // frequency + mode + source filled in. Run them through
+            // SpotEnricher so the UI gets DXCC, bearing, distance, and
+            // local-time fields populated, matching the shape of
+            // cluster spots. We only enrich when country is empty so
+            // a sender that pre-enriched doesn't get its fields
+            // overwritten.
+            if (spot.country == null || spot.country.isEmpty()) {
+                SpotEnricher.getInstance().enrich(spot);
+            }
             StateCache.getInstance().addSpot(spot);
             server.broadcastToAll(ConfigManager.gson().toJson(spot));
         } catch (Exception e) {
