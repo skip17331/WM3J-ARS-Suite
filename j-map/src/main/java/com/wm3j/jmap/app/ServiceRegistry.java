@@ -88,6 +88,11 @@ public class ServiceRegistry {
 
     // Data providers (swappable: mock vs real)
     public volatile SolarDataProvider          solarDataProvider;
+    /** NASA SDO HMI Continuum — real visible-light sun image (shows
+     *  actual sunspots). Refreshed on the same cadence as
+     *  {@link #solarDataProvider}. Not swapped between mock/real:
+     *  there's no useful mock for an image. */
+    public volatile com.wm3j.jmap.service.solar.SunImageProvider sunImageProvider;
     public volatile PropagationDataProvider    propagationDataProvider;
     public volatile AuroraProvider             auroraProvider;
     public volatile GeomagneticAlertProvider   geomagneticAlertProvider;
@@ -299,6 +304,14 @@ public class ServiceRegistry {
         solarDataProvider = mock
             ? new MockSolarDataProvider() : new NoaaSolarDataProvider();
 
+        // Real visible-light sun image (NASA SDO HMI Continuum). Lives
+        // on the same 15-min refresh cadence as the rest of the solar
+        // panel. No mock variant — if mock mode is on or the network
+        // is offline, the panel falls back to its procedural drawing.
+        if (sunImageProvider == null) {
+            sunImageProvider = new com.wm3j.jmap.service.solar.SunImageProvider();
+        }
+
         // HamQSL endpoint times out in most environments; always use mock propagation data
         propagationDataProvider = new MockPropagationProvider();
 
@@ -356,6 +369,12 @@ public class ServiceRegistry {
     private void refreshSolar() {
         try { solarDataProvider.fetch(); }
         catch (Exception e) { log.warn("Solar refresh failed: {}", e.getMessage()); }
+        // Sun image rides the same cadence — small payload (~50 KB)
+        // and the SDO pipeline only updates every ~15 min anyway, so
+        // hitting it on each solar refresh is fine. Cache + warm-start
+        // make repeated misses cheap.
+        try { sunImageProvider.fetch(); }
+        catch (Exception e) { log.debug("Sun image refresh failed: {}", e.getMessage()); }
     }
 
     private void refreshGeomagAlerts() {

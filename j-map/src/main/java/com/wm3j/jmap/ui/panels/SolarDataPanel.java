@@ -254,6 +254,24 @@ public class SolarDataPanel extends VBox {
         gc.setFill(Color.web("#070710"));
         gc.fillRect(0, 0, w, h);
 
+        // Prefer a real SDO/HMI continuum image when the provider has
+        // one cached (or read off disk on warm start). Falls back to
+        // the procedural cartoon if the image isn't loaded yet, the
+        // network fetch is failing, or the image decoded with errors.
+        com.wm3j.jmap.service.solar.SunImage sun =
+            (services.sunImageProvider != null)
+                ? services.sunImageProvider.getCached()
+                : null;
+        if (sun == null && services.sunImageProvider != null) {
+            sun = services.sunImageProvider.getWarmStart();
+        }
+        if (sun != null && sun.image != null && !sun.image.isError()) {
+            drawSunImage(gc, sun, w, h);
+            drawSunspotOverlay(gc, ssn, sun, w, h);
+            return;
+        }
+
+        // Fallback: procedural cartoon (the original Phase-1 graphic).
         double cx = w / 2, cy = h / 2;
         double r = Math.min(w, h) * 0.4;
 
@@ -281,6 +299,46 @@ public class SolarDataPanel extends VBox {
         gc.setFill(Color.web("#ffffff", 0.7));
         gc.setFont(Font.font("Liberation Mono", fs * 0.7));
         gc.fillText("SSN " + ssn, 4, h - 4);
+    }
+
+    /** Draw the real sun image centered + scaled to fit the canvas. */
+    private void drawSunImage(GraphicsContext gc,
+                              com.wm3j.jmap.service.solar.SunImage sun,
+                              double w, double h) {
+        double imgW = sun.image.getWidth();
+        double imgH = sun.image.getHeight();
+        if (imgW <= 0 || imgH <= 0) return;
+        // Fit-by-height; SDO frames are square so the image will be
+        // pillarboxed in our short canvas. That's intentional — the
+        // remaining horizontal space carries the SSN + credit overlay.
+        double scale  = h / imgH;
+        double drawW  = imgW * scale;
+        double drawX  = (w - drawW) / 2.0;
+        gc.drawImage(sun.image, drawX, 0, drawW, h);
+    }
+
+    /** SSN + SDO credit overlay drawn on top of the real image so the
+     *  panel still shows the operator-relevant number at a glance. */
+    private void drawSunspotOverlay(GraphicsContext gc, int ssn,
+                                    com.wm3j.jmap.service.solar.SunImage sun,
+                                    double w, double h) {
+        int fs = services.getSettings().getFontSize();
+        gc.setFont(Font.font("Liberation Mono", fs * 0.7));
+
+        // SSN bottom-left with a small dark backing for legibility.
+        String ssnText = "SSN " + ssn;
+        gc.setFill(Color.web("#000000", 0.5));
+        gc.fillRect(2, h - fs * 0.95 - 2, fs * 0.55 * ssnText.length() + 6, fs * 0.95);
+        gc.setFill(Color.web("#ffffff", 0.95));
+        gc.fillText(ssnText, 5, h - 4);
+
+        // Credit top-right, tiny, low-key.
+        gc.setFont(Font.font("Liberation Mono", fs * 0.6));
+        gc.setFill(Color.web("#ffffff", 0.6));
+        String credit = sun.credit;
+        // Right-align: estimate width = chars * 0.55 * font size (mono).
+        double creditW = credit.length() * fs * 0.45;
+        gc.fillText(credit, w - creditW - 4, fs * 0.85);
     }
 
     // ── Color helpers ───────────────────────────────────────────
