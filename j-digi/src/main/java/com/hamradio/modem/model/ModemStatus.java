@@ -12,6 +12,10 @@ public class ModemStatus {
     private String hubUrl = "";
     private long rigFrequencyHz;
     private String rigMode = "";
+    /** Cached bandplan caption for the current rig frequency
+     *  (e.g. "20m / CW — CW segment (US)"). Empty when the rig is on a
+     *  non-amateur frequency or no frequency has arrived yet. */
+    private String bandplanCaption = "";
 
     private double rms;
     private double peakFrequencyHz;
@@ -76,6 +80,14 @@ public class ModemStatus {
 
     public void setRigMode(String rigMode) {
         this.rigMode = rigMode;
+    }
+
+    public String getBandplanCaption() {
+        return bandplanCaption;
+    }
+
+    public void setBandplanCaption(String bandplanCaption) {
+        this.bandplanCaption = bandplanCaption == null ? "" : bandplanCaption;
     }
 
     public double getRms() {

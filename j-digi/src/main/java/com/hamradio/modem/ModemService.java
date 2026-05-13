@@ -21,6 +21,7 @@ import com.hamradio.modem.tx.CwTransmitter;
 import com.hamradio.modem.tx.DigitalTransmitter;
 import com.hamradio.modem.tx.DominoExTransmitter;
 import com.hamradio.modem.tx.HamlibCwKeyer;
+import com.jlog.bandplan.BandplanLoader;
 import com.hamradio.modem.tx.HamlibRigControl;
 import com.hamradio.modem.tx.Mfsk16Transmitter;
 import com.hamradio.modem.tx.NoOpRigControl;
@@ -613,6 +614,15 @@ public class ModemService implements HubMessageListener {
         };
     }
 
+    /** "20m / CW — CW (US)" style caption for the current rig frequency.
+     *  Empty when the rig is on a non-amateur frequency or hasn't reported
+     *  one yet — UI binds this directly to a status-bar label. */
+    private static String captionFor(long hz) {
+        if (hz <= 0) return "";
+        BandplanLoader.Description d = BandplanLoader.getInstance().describe(hz);
+        return d == null ? "" : d.toString();
+    }
+
     private DigitalTransmitter buildCwTransmitterFromPrefs() {
         int wpm = PREFS.getInt(PREF_CW_WPM, HamlibCwKeyer.DEFAULT_WPM);
         return new CwTransmitter(
@@ -903,6 +913,7 @@ public class ModemService implements HubMessageListener {
                 HubRigStatus rig = GSON.fromJson(msg, HubRigStatus.class);
                 status.setRigFrequencyHz(rig.frequency);
                 status.setRigMode(rig.mode != null ? rig.mode : "");
+                status.setBandplanCaption(captionFor(rig.frequency));
                 fireStatus();
             }
 
@@ -916,7 +927,9 @@ public class ModemService implements HubMessageListener {
             case "SPOT_SELECTED" -> {
                 HubSpot spot = GSON.fromJson(msg, HubSpot.class);
                 if (msg.has("frequency")) {
-                    status.setRigFrequencyHz(msg.get("frequency").getAsLong());
+                    long hz = msg.get("frequency").getAsLong();
+                    status.setRigFrequencyHz(hz);
+                    status.setBandplanCaption(captionFor(hz));
                 }
                 if (msg.has("mode")) {
                     status.setRigMode(msg.get("mode").getAsString());

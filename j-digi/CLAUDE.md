@@ -73,6 +73,10 @@ Cancel works on both paths — audio cancels the `SourceDataLine`, CAT sends `\s
 
 Completion timing for the CAT path is estimated from PARIS formula (`length × 10 × 1200/wpm` ms + 200 ms baseline) since `rigctld` returns `RPRT 0` as soon as it queues the command — the rig is still keying. A future polish could poll `\get_ptt` for real end-of-transmission detection.
 
+## Bandplan caption
+
+When J-Hub sends a `RIG_STATUS` or `SPOT_SELECTED` message with a frequency, `ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-engine) and writes a "20m / CW — CW (US)" style string into `ModemStatus.bandplanCaption`. The UI status bar can bind to that field directly — no per-mode wiring needed. Source IDs are `IARU-R2` for the regional fallback and `US` for the FCC overlay where it applies (CW-only HF subbands).
+
 ## Mode selection
 
 Persisted via Java `Preferences` (typically `~/.java/.userPrefs/com/hamradio/modem`) — **not** a file in `~/.j-digi/`. `ModemService` reads `PREF_MODE` on init and writes it on every mode switch.

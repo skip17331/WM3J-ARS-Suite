@@ -1,0 +1,189 @@
+{
+  "_comment": "Frequencies in Hz. activity ∈ {CW, DATA, PHONE, IMAGE, BEACON, SAT, MIXED}. IARU R2 follows the IARU Region 2 (Americas) band plan; US country overlay follows FCC §97.301-307 with a 'best segment usage' label that summarises the recommended usage rather than the strict license-class boundary (since the same MHz often serves multiple classes).",
+
+  "regions": {
+    "IARU-R2": {
+      "name": "IARU Region 2 (Americas)",
+      "bands": [
+        {
+          "name": "160m", "lower": 1800000, "upper": 2000000,
+          "segments": [
+            { "lower": 1800000, "upper": 1810000, "activity": "DATA",   "label": "Digimodes" },
+            { "lower": 1810000, "upper": 1840000, "activity": "CW",     "label": "CW" },
+            { "lower": 1840000, "upper": 1843000, "activity": "DATA",   "label": "FT8/Digital" },
+            { "lower": 1843000, "upper": 2000000, "activity": "PHONE",  "label": "SSB/AM/voice" }
+          ]
+        },
+        {
+          "name": "80m", "lower": 3500000, "upper": 4000000,
+          "segments": [
+            { "lower": 3500000, "upper": 3570000, "activity": "CW",     "label": "CW" },
+            { "lower": 3570000, "upper": 3600000, "activity": "DATA",   "label": "Digimodes / FT8 3573" },
+            { "lower": 3600000, "upper": 4000000, "activity": "PHONE",  "label": "SSB/AM" }
+          ]
+        },
+        {
+          "name": "60m", "lower": 5330500, "upper": 5406400,
+          "segments": [
+            { "lower": 5330500, "upper": 5406400, "activity": "MIXED",  "label": "5 channels — USB/CW/DATA, max 100 W ERP" }
+          ]
+        },
+        {
+          "name": "40m", "lower": 7000000, "upper": 7300000,
+          "segments": [
+            { "lower": 7000000, "upper": 7070000, "activity": "CW",     "label": "CW" },
+            { "lower": 7070000, "upper": 7125000, "activity": "DATA",   "label": "Digimodes / FT8 7074" },
+            { "lower": 7125000, "upper": 7300000, "activity": "PHONE",  "label": "SSB/AM" }
+          ]
+        },
+        {
+          "name": "30m", "lower": 10100000, "upper": 10150000,
+          "segments": [
+            { "lower": 10100000, "upper": 10130000, "activity": "CW",   "label": "CW" },
+            { "lower": 10130000, "upper": 10150000, "activity": "DATA", "label": "Digimodes / FT8 10136" }
+          ]
+        },
+        {
+          "name": "20m", "lower": 14000000, "upper": 14350000,
+          "segments": [
+            { "lower": 14000000, "upper": 14070000, "activity": "CW",     "label": "CW" },
+            { "lower": 14070000, "upper": 14099500, "activity": "DATA",   "label": "Digimodes / FT8 14074 / FT4 14080" },
+            { "lower": 14099500, "upper": 14100500, "activity": "BEACON", "label": "NCDXF/IBP at 14100" },
+            { "lower": 14100500, "upper": 14112000, "activity": "DATA",   "label": "Wider digimodes" },
+            { "lower": 14112000, "upper": 14350000, "activity": "PHONE",  "label": "SSB / all modes" }
+          ]
+        },
+        {
+          "name": "17m", "lower": 18068000, "upper": 18168000,
+          "segments": [
+            { "lower": 18068000, "upper": 18095000, "activity": "CW",     "label": "CW" },
+            { "lower": 18095000, "upper": 18105000, "activity": "DATA",   "label": "Digimodes / FT8 18100" },
+            { "lower": 18109500, "upper": 18110500, "activity": "BEACON", "label": "NCDXF/IBP at 18110" },
+            { "lower": 18110000, "upper": 18168000, "activity": "PHONE",  "label": "SSB / all modes" }
+          ]
+        },
+        {
+          "name": "15m", "lower": 21000000, "upper": 21450000,
+          "segments": [
+            { "lower": 21000000, "upper": 21070000, "activity": "CW",     "label": "CW" },
+            { "lower": 21070000, "upper": 21110000, "activity": "DATA",   "label": "Digimodes / FT8 21074 / FT4 21140" },
+            { "lower": 21149500, "upper": 21150500, "activity": "BEACON", "label": "NCDXF/IBP at 21150" },
+            { "lower": 21150000, "upper": 21450000, "activity": "PHONE",  "label": "SSB / all modes" }
+          ]
+        },
+        {
+          "name": "12m", "lower": 24890000, "upper": 24990000,
+          "segments": [
+            { "lower": 24890000, "upper": 24915000, "activity": "CW",     "label": "CW" },
+            { "lower": 24915000, "upper": 24930000, "activity": "DATA",   "label": "Digimodes / FT8 24915" },
+            { "lower": 24929500, "upper": 24930500, "activity": "BEACON", "label": "NCDXF/IBP at 24930" },
+            { "lower": 24930000, "upper": 24990000, "activity": "PHONE",  "label": "SSB / all modes" }
+          ]
+        },
+        {
+          "name": "10m", "lower": 28000000, "upper": 29700000,
+          "segments": [
+            { "lower": 28000000, "upper": 28070000, "activity": "CW",     "label": "CW" },
+            { "lower": 28070000, "upper": 28190000, "activity": "DATA",   "label": "Digimodes / FT8 28074" },
+            { "lower": 28190000, "upper": 28300000, "activity": "BEACON", "label": "Beacon segment / NCDXF 28200" },
+            { "lower": 28300000, "upper": 29200000, "activity": "PHONE",  "label": "SSB / AM 29000-29200" },
+            { "lower": 29200000, "upper": 29300000, "activity": "DATA",   "label": "Packet / digital" },
+            { "lower": 29300000, "upper": 29510000, "activity": "SAT",    "label": "Satellite downlink" },
+            { "lower": 29510000, "upper": 29700000, "activity": "PHONE",  "label": "FM voice" }
+          ]
+        },
+        {
+          "name": "6m", "lower": 50000000, "upper": 54000000,
+          "segments": [
+            { "lower": 50000000, "upper": 50100000, "activity": "BEACON", "label": "Beacons (50000-50080)" },
+            { "lower": 50100000, "upper": 50300000, "activity": "PHONE",  "label": "DX SSB calling 50125" },
+            { "lower": 50300000, "upper": 50600000, "activity": "DATA",   "label": "FT8 50313 / digimodes" },
+            { "lower": 50600000, "upper": 51000000, "activity": "MIXED",  "label": "Mixed-mode" },
+            { "lower": 51000000, "upper": 52000000, "activity": "PHONE",  "label": "Repeater outputs" },
+            { "lower": 52000000, "upper": 53000000, "activity": "PHONE",  "label": "FM simplex 52525" },
+            { "lower": 53000000, "upper": 54000000, "activity": "PHONE",  "label": "Repeater inputs / FM" }
+          ]
+        },
+        {
+          "name": "2m", "lower": 144000000, "upper": 148000000,
+          "segments": [
+            { "lower": 144000000, "upper": 144050000, "activity": "CW",     "label": "EME / weak-signal CW" },
+            { "lower": 144050000, "upper": 144100000, "activity": "CW",     "label": "CW" },
+            { "lower": 144100000, "upper": 144200000, "activity": "DATA",   "label": "Digimodes / FT8 144174" },
+            { "lower": 144200000, "upper": 144275000, "activity": "PHONE",  "label": "SSB calling 144.200" },
+            { "lower": 144275000, "upper": 144300000, "activity": "BEACON", "label": "Beacon subband" },
+            { "lower": 144300000, "upper": 144500000, "activity": "MIXED",  "label": "OSCAR / experimental" },
+            { "lower": 144500000, "upper": 145100000, "activity": "PHONE",  "label": "FM repeater inputs" },
+            { "lower": 145100000, "upper": 145500000, "activity": "PHONE",  "label": "Repeater outputs" },
+            { "lower": 145500000, "upper": 145800000, "activity": "PHONE",  "label": "FM simplex 146.520" },
+            { "lower": 145800000, "upper": 146000000, "activity": "SAT",    "label": "Satellite subband" },
+            { "lower": 146000000, "upper": 148000000, "activity": "PHONE",  "label": "FM repeaters / simplex" }
+          ]
+        },
+        {
+          "name": "70cm", "lower": 420000000, "upper": 450000000,
+          "segments": [
+            { "lower": 420000000, "upper": 430000000, "activity": "MIXED",  "label": "ATV / experimental (regional)" },
+            { "lower": 430000000, "upper": 432000000, "activity": "PHONE",  "label": "FM links / repeaters" },
+            { "lower": 432000000, "upper": 432100000, "activity": "CW",     "label": "EME / weak-signal CW" },
+            { "lower": 432100000, "upper": 432300000, "activity": "DATA",   "label": "Digimodes / FT8 432174" },
+            { "lower": 432300000, "upper": 433000000, "activity": "PHONE",  "label": "SSB calling 432.100" },
+            { "lower": 433000000, "upper": 435000000, "activity": "MIXED",  "label": "Mixed-mode / experimental" },
+            { "lower": 435000000, "upper": 438000000, "activity": "SAT",    "label": "Satellite subband" },
+            { "lower": 438000000, "upper": 450000000, "activity": "PHONE",  "label": "FM repeaters / simplex" }
+          ]
+        }
+      ]
+    }
+  },
+
+  "countries": {
+    "US": {
+      "name": "United States — FCC Part 97",
+      "_note": "Subbands here flag the strict CW-only segments where phone is prohibited regardless of license class, plus a few notable US-specific allocations. License-class boundaries (General vs Extra) aren't enumerated — the IARU R2 view above is the practical answer.",
+      "bands": [
+        {
+          "name": "80m", "lower": 3500000, "upper": 4000000,
+          "segments": [
+            { "lower": 3500000, "upper": 3600000, "activity": "CW",     "label": "CW / data only (Extra)" },
+            { "lower": 3600000, "upper": 3700000, "activity": "MIXED",  "label": "CW / data / phone (Adv/Extra)" },
+            { "lower": 3700000, "upper": 3800000, "activity": "PHONE",  "label": "Phone (Adv/Extra)" },
+            { "lower": 3800000, "upper": 3900000, "activity": "PHONE",  "label": "Phone (General+)" },
+            { "lower": 3900000, "upper": 4000000, "activity": "PHONE",  "label": "Phone (General+, day)" }
+          ]
+        },
+        {
+          "name": "40m", "lower": 7000000, "upper": 7300000,
+          "segments": [
+            { "lower": 7000000, "upper": 7125000, "activity": "CW",     "label": "CW / data only" },
+            { "lower": 7125000, "upper": 7300000, "activity": "PHONE",  "label": "Phone (General+)" }
+          ]
+        },
+        {
+          "name": "20m", "lower": 14000000, "upper": 14350000,
+          "segments": [
+            { "lower": 14000000, "upper": 14150000, "activity": "CW",     "label": "CW / data only" },
+            { "lower": 14150000, "upper": 14225000, "activity": "PHONE",  "label": "Phone (Advanced+)" },
+            { "lower": 14225000, "upper": 14350000, "activity": "PHONE",  "label": "Phone (General+)" }
+          ]
+        },
+        {
+          "name": "15m", "lower": 21000000, "upper": 21450000,
+          "segments": [
+            { "lower": 21000000, "upper": 21200000, "activity": "CW",     "label": "CW / data only" },
+            { "lower": 21200000, "upper": 21275000, "activity": "PHONE",  "label": "Phone (Advanced+)" },
+            { "lower": 21275000, "upper": 21450000, "activity": "PHONE",  "label": "Phone (General+)" }
+          ]
+        },
+        {
+          "name": "10m", "lower": 28000000, "upper": 29700000,
+          "segments": [
+            { "lower": 28000000, "upper": 28300000, "activity": "CW",     "label": "CW / data only" },
+            { "lower": 28300000, "upper": 28500000, "activity": "PHONE",  "label": "Phone (Tech+ 200 W)" },
+            { "lower": 28500000, "upper": 29700000, "activity": "PHONE",  "label": "Phone (General+)" }
+          ]
+        }
+      ]
+    }
+  }
+}

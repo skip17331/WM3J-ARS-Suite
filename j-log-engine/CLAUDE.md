@@ -21,7 +21,8 @@ This installs `j-log-engine-1.0.0.jar` to the local Maven repo. **Must be built 
 | `com.jlog.cluster` | HubEngine, HubDiscoveryListener — WebSocket client to j-hub |
 | `com.jlog.model` | DxSpot, QsoRecord, Macro, StationInfo — shared data objects |
 | `com.jlog.plugin` | PluginLoader, ContestPlugin — JSON contest definitions |
-| `com.jlog.export` | AdifExporter, CabrilloExporter |
+| `com.jlog.bandplan` | Bandplan, BandRange, BandSegment, Activity, BandplanLoader — shared IARU R1/R2/R3 + per-country overlay lookup (j-digi/j-bridge/j-map consumers) |
+| `com.jlog.export` | AdifExporter, CabrilloExporter, AdifImporter, ColoniesLogSheetPdf |
 | `com.jlog.util` | LoggingConfigurator, AppConfig, QrzLookup |
 | `com.jlog.i18n` | I18n — resource bundle loader |
 
