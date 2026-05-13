@@ -86,7 +86,8 @@ public class ModemService implements HubMessageListener {
 
     private final DigitalTransmitter rttyTransmitter   = new RttyTransmitter();
     private final DigitalTransmitter psk31Transmitter  = new Psk31Transmitter();
-    private final DigitalTransmitter cwTransmitter     = new CwTransmitter();
+    // CW transmitter is built per-transmit from the cw.wpm pref —
+    // see buildCwTransmitterFromPrefs() below.
     private final DigitalTransmitter oliviaTransmitter = new OliviaTransmitter();
     private final DigitalTransmitter mfsk16Transmitter   = new Mfsk16Transmitter();
     private final DigitalTransmitter dominoExTransmitter = new DominoExTransmitter();
@@ -602,12 +603,23 @@ public class ModemService implements HubMessageListener {
         return switch (mode) {
             case RTTY   -> rttyTransmitter;
             case PSK31  -> psk31Transmitter;
-            case CW     -> cwTransmitter;
+            // CW rebuilds per-transmit so the cw.wpm pref applies without
+            // a restart. Other modes don't have a comparable speed knob.
+            case CW     -> buildCwTransmitterFromPrefs();
             case OLIVIA -> oliviaTransmitter;
             case MFSK16   -> mfsk16Transmitter;
             case DOMINOEX -> dominoExTransmitter;
             case AX25     -> null;
         };
+    }
+
+    private DigitalTransmitter buildCwTransmitterFromPrefs() {
+        int wpm = PREFS.getInt(PREF_CW_WPM, HamlibCwKeyer.DEFAULT_WPM);
+        return new CwTransmitter(
+                com.hamradio.modem.audio.AudioEngine.SAMPLE_RATE,
+                wpm,
+                /*carrierHz=*/700.0,
+                /*amplitude=*/0.50);
     }
 
     /**

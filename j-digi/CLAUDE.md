@@ -67,7 +67,7 @@ For CW specifically there's a separate choice: should j-digi generate the dots a
 | `cw.keyer = AUDIO` (default) | `CwTransmitter` synthesises sidetone audio with raised-cosine keying; goes through `AudioTxEngine` with PTT toggled per the `ptt.method` setting | Most setups — works without CAT, gives you full control over sidetone frequency and key-click filtering. Required if you're using VOX |
 | `cw.keyer = HAMLIB` | `HamlibCwKeyer` sends `b <text>\n` to `rigctld`; the rig's own keyer plays the Morse at its configured WPM. No audio path used | Cleanest timing — rig handles keying internally with no soundcard routing. Required if you have no audio path to the rig but do have CAT |
 
-Additional pref `cw.wpm` sets the WPM for the CAT-keyer path (default 20). The audio path's WPM lives in `CwTransmitter`'s constructor for now.
+Additional pref `cw.wpm` (default 20) sets the WPM for **both** paths. The audio transmitter is rebuilt from the pref on every CW transmit, so a change takes effect on the next TX with no restart needed.
 
 Cancel works on both paths — audio cancels the `SourceDataLine`, CAT sends `\stop_morse\n`. Both fire the same `onCancelled` callback shape.
 
