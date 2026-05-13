@@ -25,8 +25,8 @@ don't sink time into directions the project has decided not to take.
 
 - ~~Audio routing docs (Windows VB-Cable, macOS BlackHole, SignaLink, DigiRig
   walkthroughs in `HARDWARE_GUIDE.md`)~~ ✅ shipped 2026-05-12
-- CW Skimmer Server telnet ingest (second `ClusterManager` endpoint; tag
-  spots `source:"SKIMMER"` so J-Map can colour them distinctly)
+- ~~CW Skimmer Server telnet ingest (second `ClusterManager` endpoint; tag
+  spots `source:"SKIMMER"` so J-Map can colour them distinctly)~~ ✅ shipped 2026-05-12
 - ~~Plug-in development guide (`docs/PLUGINS.md` — contest + award JSON
   schemas with worked examples)~~ ✅ shipped 2026-05-12
 - `Help → Report Issue` button in each module (auto-attaches diagnostics

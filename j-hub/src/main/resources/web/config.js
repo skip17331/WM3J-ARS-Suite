@@ -1725,6 +1725,46 @@ function saveRbn() {
     .catch(() => flashMsg('rbn-msg', 'Error', true));
 }
 
+function loadSkimmer() {
+  fetch('/api/skimmer').then(r => r.json()).then(d => {
+    const cfg = d.config || {};
+    setChk('skimmer-enabled', !!cfg.enabled);
+    setVal('skimmer-server',  cfg.server || '127.0.0.1');
+    setVal('skimmer-port',    cfg.port   || 7300);
+    setVal('skimmer-login',   cfg.loginCallsign || '');
+    setVal('skimmer-snr',     cfg.minSnrDb != null ? cfg.minSnrDb : 5);
+    buildFilterChips('skimmer-band-filters',
+      ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'],
+      Array.from(cfg.bands || []));
+    buildFilterChips('skimmer-mode-filters',
+      ['CW','SSB','FT8','FT4','RTTY','PSK31','JS8'],
+      Array.from(cfg.modes || []));
+    const dot = document.getElementById('skimmer-dot');
+    const txt = document.getElementById('skimmer-status-txt');
+    if (dot) dot.className = 'dot ' + (d.connected ? 'green' : (d.running ? 'yellow' : 'gray'));
+    if (txt) txt.textContent = d.connected ? 'connected'
+                            : d.running   ? 'reconnecting…'
+                            :               (cfg.enabled ? 'enabled, not connected' : 'disabled');
+  }).catch(() => {});
+}
+
+function saveSkimmer() {
+  const body = {
+    enabled:       document.getElementById('skimmer-enabled').checked,
+    server:        document.getElementById('skimmer-server').value.trim() || '127.0.0.1',
+    port:          parseInt(document.getElementById('skimmer-port').value) || 7300,
+    loginCallsign: document.getElementById('skimmer-login').value.toUpperCase().trim(),
+    minSnrDb:      parseInt(document.getElementById('skimmer-snr').value),
+    bands:         getCheckedChips('skimmer-band-filters'),
+    modes:         getCheckedChips('skimmer-mode-filters'),
+  };
+  if (isNaN(body.minSnrDb)) body.minSnrDb = 5;
+  fetch('/api/skimmer', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(() => { flashMsg('skimmer-msg', 'Saved'); setTimeout(loadSkimmer, 1500); })
+    .catch(() => flashMsg('skimmer-msg', 'Error', true));
+}
+
 function saveCluster() {
   const host  = document.getElementById('cl-host').value.trim();
   const port  = parseInt(document.getElementById('cl-port').value)||7373;
@@ -2987,10 +3027,12 @@ loadMacros();
 loadAmp();
 loadAntenna();
 loadRbn();
+loadSkimmer();
 loadBackup();
 loadUploaders();
 // J-Learn loads itself when its tab is first opened (lazy iframe).
 setInterval(loadRbn, 10000);
+setInterval(loadSkimmer, 10000);
 setInterval(loadBackup, 30000);
 loadJMapSettings();
 loadJLogSettings();

@@ -82,6 +82,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new AppsApiServlet()),      "/api/apps/*");
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
+        ctx.addServlet(new ServletHolder(new SkimmerApiServlet()),   "/api/skimmer");
         // J-Learn now runs in its own process on port 8082 — the web UI iframes it.
         ctx.addServlet(new ServletHolder(new MorseTrainerLaunchServlet()), "/api/morsetrainer/*");
         ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
@@ -1727,6 +1728,37 @@ public class WebConfigServer {
                 ConfigManager.getInstance().getConfig().rbn = rbn;
                 ConfigManager.getInstance().save();
                 RbnClient.getInstance().restart();
+                json(res, "{\"status\":\"saved\"}");
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/skimmer — local CW Skimmer Server ingest; same shape as /api/rbn
+    // ---------------------------------------------------------------
+
+    private static class SkimmerApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            com.google.gson.JsonObject body = new com.google.gson.JsonObject();
+            JHubConfig.SkimmerSection cfg = ConfigManager.getInstance().getConfig().skimmer;
+            body.add("config", ConfigManager.gson().toJsonTree(cfg));
+            body.addProperty("connected", SkimmerClient.getInstance().isConnected());
+            body.addProperty("running",   SkimmerClient.getInstance().isRunning());
+            json(res, body.toString());
+        }
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                JHubConfig.SkimmerSection skimmer = ConfigManager.gson().fromJson(body, JHubConfig.SkimmerSection.class);
+                ConfigManager.getInstance().getConfig().skimmer = skimmer;
+                ConfigManager.getInstance().save();
+                SkimmerClient.getInstance().restart();
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);

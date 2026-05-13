@@ -999,6 +999,40 @@
       </div>
 
       <div class="card">
+        <div class="card-title">Local CW Skimmer Server <span style="font-size:12px;color:var(--subtext0);font-weight:normal">(your own SDR-fed skimmer)</span></div>
+        <div style="font-size:12px;color:var(--subtext0);margin-bottom:10px">
+          Ingest spots from a CW Skimmer Server (or any AR-Cluster-format source)
+          running on your LAN. Same wire format as RBN — typically
+          <code>127.0.0.1:7300</code> for CW Skimmer Server's default. Spots flow
+          through the same SPOT broadcast tagged <code>source:"SKIMMER"</code> so J-Map
+          and J-Log can render them distinctly from upstream RBN.
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" id="skimmer-enabled">
+          <span>Enable local skimmer feed</span>
+        </label>
+        <div class="field-row cols-2" style="margin-top:8px">
+          <div class="field"><input type="text"   id="skimmer-server" placeholder="127.0.0.1"><label>Server</label></div>
+          <div class="field"><input type="number" id="skimmer-port"   placeholder="7300"><label>Port</label></div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field"><input type="text"   id="skimmer-login" placeholder="(falls back to station call)"><label>Login Callsign</label></div>
+          <div class="field"><input type="number" id="skimmer-snr"   placeholder="5" min="-10" max="50"><label>Min SNR (dB)</label></div>
+        </div>
+        <div class="section-title">Bands</div>
+        <div class="filter-grid" id="skimmer-band-filters"></div>
+        <div class="section-title" style="margin-top:8px">Modes</div>
+        <div class="filter-grid" id="skimmer-mode-filters"></div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" onclick="saveSkimmer()">Save &amp; Restart Skimmer</button>
+          <span style="font-size:12px;color:var(--overlay0);margin-left:8px">
+            Status: <span class="dot gray" id="skimmer-dot"></span> <span id="skimmer-status-txt">disabled</span>
+          </span>
+          <span id="skimmer-msg" style="font-size:12px;color:var(--overlay0)"></span>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Recent Spots</div>
         <div class="spot-preview-wrap">
           <table class="spot-table">

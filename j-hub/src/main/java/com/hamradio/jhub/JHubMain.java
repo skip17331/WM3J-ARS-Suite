@@ -143,6 +143,13 @@ public class JHubMain extends Application {
         rbn.setRouter(router);
         rbn.start();
 
+        // 7c. Local CW Skimmer Server — operator-run SDR-fed skimmer on the
+        // LAN. Same AR-cluster line format as RBN; tagged source="SKIMMER"
+        // so the UI can distinguish local vs upstream spots.
+        SkimmerClient skimmer = SkimmerClient.getInstance();
+        skimmer.setRouter(router);
+        skimmer.start();
+
         // 8. UDP discovery beacon so apps can auto-connect
         jHubDiscovery = new JHubDiscovery();
         jHubDiscovery.start();

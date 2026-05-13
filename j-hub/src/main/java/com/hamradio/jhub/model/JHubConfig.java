@@ -22,6 +22,7 @@ public class JHubConfig {
     public AntennaSection     antenna         = new AntennaSection();
     public ClusterSection     cluster         = new ClusterSection();
     public RbnSection         rbn             = new RbnSection();
+    public SkimmerSection     skimmer         = new SkimmerSection();
     public BackupSection      backup          = new BackupSection();
     public LoggerSection      logger          = new LoggerSection();
     public InfoScreenSection  infoScreen      = new InfoScreenSection();
@@ -227,6 +228,26 @@ public class JHubConfig {
         public Set<String> bands     = new HashSet<>(Arrays.asList("160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"));
         public Set<String> modes     = new HashSet<>(Arrays.asList("CW","FT8","FT4","RTTY","PSK31"));
         public int     minSnrDb      = 5;        // drop weak skimmer reports below this
+    }
+
+    // ---------------------------------------------------------------
+    // Local CW Skimmer Server feed (or similar Skimmer-compatible source)
+    //
+    // VE7CC's CW Skimmer Server, RTTY Skimmer Server, and AR-Cluster-format
+    // sources all speak the same line protocol the RBN backbone uses. This
+    // lets an operator ingest spots from their own SDR-fed skimmer running
+    // on the LAN at minimal extra code cost — same parser, different source
+    // tag ("SKIMMER").
+    // ---------------------------------------------------------------
+
+    public static class SkimmerSection {
+        public boolean enabled       = false;
+        public String  server        = "127.0.0.1"; // default: local skimmer on the same shack PC
+        public int     port          = 7300;        // CW Skimmer Server's default telnet port
+        public String  loginCallsign = "";          // falls back to station callsign if blank
+        public Set<String> bands     = new HashSet<>(Arrays.asList("160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"));
+        public Set<String> modes     = new HashSet<>(Arrays.asList("CW","FT8","FT4","RTTY","PSK31"));
+        public int     minSnrDb      = 5;
     }
 
     // ---------------------------------------------------------------
