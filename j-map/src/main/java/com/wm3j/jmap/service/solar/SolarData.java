@@ -36,6 +36,18 @@ public class SolarData {
     /** Solar wind density (particles/cm³) from DSCOVR */
     private double solarWindDensity;
 
+    /** UTC instant the latest valid plasma row was observed. DSCOVR
+     *  publishes 1-minute samples, so anything older than a few
+     *  minutes means a real data gap — the UI uses this to flag
+     *  stale values rather than silently showing them as fresh.
+     *  Null when no fetch has succeeded yet. */
+    private Instant solarWindObservedAt;
+
+    /** UTC instant the latest valid IMF magnetic-field row was
+     *  observed. Same purpose as {@link #solarWindObservedAt} but
+     *  for the {@code mag-1-day.json} feed (Bz, Bt). */
+    private Instant imfObservedAt;
+
     /** IMF total field magnitude Bt (nT) from DSCOVR */
     private double btField;
 
@@ -112,6 +124,12 @@ public class SolarData {
 
     public double getSolarWindDensity() { return solarWindDensity; }
     public void setSolarWindDensity(double solarWindDensity) { this.solarWindDensity = solarWindDensity; }
+
+    public Instant getSolarWindObservedAt() { return solarWindObservedAt; }
+    public void setSolarWindObservedAt(Instant t) { this.solarWindObservedAt = t; }
+
+    public Instant getImfObservedAt() { return imfObservedAt; }
+    public void setImfObservedAt(Instant t) { this.imfObservedAt = t; }
 
     public double getBtField() { return btField; }
     public void setBtField(double btField) { this.btField = btField; }

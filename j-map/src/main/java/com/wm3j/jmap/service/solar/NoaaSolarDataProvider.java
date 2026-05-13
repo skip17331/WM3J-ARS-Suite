@@ -85,6 +85,20 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
             if (data.getSolarWindSpeed() <= 0 && prev.getSolarWindSpeed() > 0) {
                 data.setSolarWindSpeed(prev.getSolarWindSpeed());
                 data.setSolarWindDensity(prev.getSolarWindDensity());
+                // Carry the prior observation time forward so the UI
+                // can flag "this value is N minutes old", instead of
+                // silently presenting a stale value as fresh.
+                data.setSolarWindObservedAt(prev.getSolarWindObservedAt());
+                log.warn("Solar wind sub-fetch produced no value; preserving prior {} km/s",
+                         (int)prev.getSolarWindSpeed());
+            }
+            if (data.getImfObservedAt() == null && prev.getImfObservedAt() != null
+                    && data.getBzField() == 0 && prev.getBzField() != 0) {
+                data.setBzField(prev.getBzField());
+                data.setBtField(prev.getBtField());
+                data.setImfObservedAt(prev.getImfObservedAt());
+                log.warn("IMF sub-fetch produced no value; preserving prior Bz={} nT",
+                         prev.getBzField());
             }
             if (data.getXrayClass() == null && prev.getXrayClass() != null) {
                 data.setXrayFlux(prev.getXrayFlux());
@@ -120,7 +134,15 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
     }
 
     // ── Solar wind plasma ──────────────────────────────────────
-    // Array of arrays.  Row 0 = headers.  Columns: [time_tag, density, speed, temperature]
+    // Array of arrays. Row 0 is column headers; subsequent rows are
+    // 1-minute samples in time order. Columns:
+    //   [time_tag, density, speed, temperature]
+    //
+    // DSCOVR has gaps. We walk from newest backward and take the
+    // first row whose speed parses as a positive number, then also
+    // grab that row's density and time_tag — so the UI can see how
+    // fresh the value really is (gap of 90 minutes looks different
+    // from gap of 30 seconds).
     private void fetchSolarWindPlasma(SolarData data) {
         try {
             JsonNode root = get(PLASMA_URL);
@@ -132,16 +154,20 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
                     data.setSolarWindSpeed(speed);
                     double dens = parseCell(row.get(1));
                     data.setSolarWindDensity(Double.isNaN(dens) ? 0 : dens);
-                    break;
+                    data.setSolarWindObservedAt(parseSwpcTimeTag(row.get(0)));
+                    return;
                 }
             }
+            log.warn("Solar wind plasma feed had no valid speed in {} rows — DSCOVR gap?",
+                     root.size() - 1);
         } catch (Exception e) {
             log.warn("Solar wind plasma fetch failed: {}", e.getMessage());
         }
     }
 
     // ── Solar wind mag (IMF) ───────────────────────────────────
-    // Array of arrays.  Row 0 = headers.  Columns: [time_tag, bx_gsm, by_gsm, bz_gsm, lon_gsm, lat_gsm, bt]
+    // Array of arrays. Row 0 = headers. Columns:
+    //   [time_tag, bx_gsm, by_gsm, bz_gsm, lon_gsm, lat_gsm, bt]
     private void fetchSolarWindMag(SolarData data) {
         try {
             JsonNode root = get(MAG_URL);
@@ -153,11 +179,31 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
                     data.setBzField(bz);
                     double bt = parseCell(row.get(6));
                     data.setBtField(Double.isNaN(bt) ? 0 : bt);
-                    break;
+                    data.setImfObservedAt(parseSwpcTimeTag(row.get(0)));
+                    return;
                 }
             }
+            log.warn("Solar wind mag feed had no valid Bz in {} rows — DSCOVR gap?",
+                     root.size() - 1);
         } catch (Exception e) {
             log.warn("Solar wind mag fetch failed: {}", e.getMessage());
+        }
+    }
+
+    /** Parse SWPC's time-tag format ("YYYY-MM-DD HH:MM:SS.SSS" with a
+     *  space separator, no timezone suffix — all NOAA times are UTC).
+     *  Returns null on any parse failure so the caller can treat it
+     *  as "we don't know how old this is". */
+    private static Instant parseSwpcTimeTag(JsonNode cell) {
+        if (cell == null || cell.isNull()) return null;
+        String s = cell.asText("").trim();
+        if (s.isEmpty()) return null;
+        try {
+            // Normalise to ISO-8601 (replace space with T, append Z).
+            String iso = s.replace(' ', 'T') + "Z";
+            return Instant.parse(iso);
+        } catch (Exception e) {
+            return null;
         }
     }
 

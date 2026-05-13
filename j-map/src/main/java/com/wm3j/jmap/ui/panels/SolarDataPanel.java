@@ -168,22 +168,38 @@ public class SolarDataPanel extends VBox {
             xrayLabel.setStyle("-fx-font-size: 0.77em; -fx-text-fill: " + xrayColor(xray) + ";");
         }
 
-        // Solar wind
+        // Solar wind — DSCOVR publishes 1-minute samples, so a row
+        // older than a few minutes means real data gap. Append "(Xm)"
+        // suffix and grey the value when the underlying observation is
+        // > 10 minutes old so the operator sees stale-but-preserved
+        // data clearly differently from fresh data.
+        boolean swStale = isStale(data.getSolarWindObservedAt(), 10);
         if (data.getSolarWindSpeed() > 0) {
-            swSpeedLabel.setText(String.format("%.0f", data.getSolarWindSpeed()));
+            String swText = String.format("%.0f", data.getSolarWindSpeed());
+            if (swStale) swText += "  (" + staleAgeMinutes(data.getSolarWindObservedAt()) + "m)";
+            swSpeedLabel.setText(swText);
+            String swFill = swStale ? "#888899" : swSpeedColor(data.getSolarWindSpeed());
             swSpeedLabel.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: "
-                + swSpeedColor(data.getSolarWindSpeed()) + ";");
+                + swFill + ";");
         }
         if (data.getSolarWindDensity() > 0) {
             swDensLabel.setText(String.format("%.1f", data.getSolarWindDensity()));
+            swDensLabel.setStyle(swStale
+                ? "-fx-font-size: 1.08em; -fx-text-fill: #888899;"
+                : "-fx-font-size: 1.08em; -fx-text-fill: #ccd6f6;");
         }
 
-        // IMF Bz
+        // IMF Bz — same staleness treatment as the plasma data.
+        boolean imfStale = isStale(data.getImfObservedAt(), 10);
         double bz = data.getBzField();
-        bzValueLabel.setText(String.format("%+.1f nT", bz));
-        bzValueLabel.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: " + data.getBzColor() + ";");
-        bzLabel.setText(data.getBzLabel());
-        bzLabel.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: " + data.getBzColor() + ";");
+        String bzText = String.format("%+.1f nT", bz);
+        if (imfStale) bzText += "  (" + staleAgeMinutes(data.getImfObservedAt()) + "m)";
+        bzValueLabel.setText(bzText);
+        bzValueLabel.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: "
+            + (imfStale ? "#888899" : data.getBzColor()) + ";");
+        bzLabel.setText(imfStale ? "STALE" : data.getBzLabel());
+        bzLabel.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: "
+            + (imfStale ? "#888899" : data.getBzColor()) + ";");
 
         // Proton flux
         double pf = data.getProtonFlux();
@@ -350,6 +366,22 @@ public class SolarDataPanel extends VBox {
         // Right-align: estimate width = chars * 0.55 * font size (mono).
         double creditW = credit.length() * fs * 0.45;
         gc.fillText(credit, w - creditW - 4, fs * 0.85);
+    }
+
+    // ── Freshness helpers ───────────────────────────────────────
+
+    /** True if the given observation time is null or older than
+     *  {@code maxAgeMinutes} from now. Null is treated as stale
+     *  rather than fresh — if we don't know how old it is, we don't
+     *  get to render it as current. */
+    private static boolean isStale(Instant observedAt, long maxAgeMinutes) {
+        if (observedAt == null) return true;
+        return Duration.between(observedAt, Instant.now()).toMinutes() >= maxAgeMinutes;
+    }
+
+    private static long staleAgeMinutes(Instant observedAt) {
+        if (observedAt == null) return -1;
+        return Math.max(0, Duration.between(observedAt, Instant.now()).toMinutes());
     }
 
     // ── Color helpers ───────────────────────────────────────────
