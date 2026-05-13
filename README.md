@@ -236,30 +236,27 @@ brew install --cask temurin@21
 brew install maven git
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
 cd ~/ARS_Suite
-# Pull the macOS JavaFX 21 SDK and drop it into each module's lib/javafx
-# (one-time — see INSTALL.md for the curl one-liner).
-mvn -q -DskipTests -f j-log-engine/pom.xml install
-mvn -q -DskipTests -f j-learn/pom.xml install
-mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
-    mvn -q -DskipTests -f "$m/pom.xml" package
-done
-./install.sh
+./bootstrap-mac.sh
 open ~/Applications/WM3J\ J-Hub.app
 ```
 
-`./install.sh` detects macOS and plants `.app` bundles in
-`~/Applications/` — they appear in Spotlight as **WM3J J-Hub**,
-**WM3J J-Log**, etc. Log output from each module goes to
-`~/Library/Logs/ARS-Suite/<module>.log` (Finder swallows stdout
-from `.app` bundles, so we redirect there).
+`bootstrap-mac.sh` is the macOS equivalent of `install.sh` — one
+command that:
 
-> **Gatekeeper note.** The first time you launch a freshly-installed
-> `.app`, macOS may complain that it's from an unidentified developer.
-> Right-click the bundle in Finder and choose **Open** once; after
-> that double-click works normally. (The bundles aren't signed because
-> ARS Suite is FOSS source-installed, not distributed through the
-> App Store.)
+1. Detects Apple Silicon vs Intel.
+2. Downloads the matching macOS JavaFX 21 SDK (cached under
+   `~/.cache/ars-suite/` so re-runs are fast).
+3. Drops it into every module's `lib/javafx/`.
+4. Builds the engine, the web apps, and packages every module.
+5. Runs `install.sh`, which plants `.app` bundles in
+   `~/Applications/`.
+6. Clears the Gatekeeper quarantine bit on every bundle so first
+   double-click just works — no per-module right-click dance.
+
+Re-run `./bootstrap-mac.sh` after any `git pull` to refresh everything
+in one shot. Log output from each module goes to
+`~/Library/Logs/ARS-Suite/<module>.log` (Finder swallows stdout from
+`.app` bundles).
 
 ---
 
