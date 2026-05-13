@@ -17,8 +17,10 @@ import java.util.Locale;
  * Args:
  *   --no-browser        skip the browser-open (used when J-Hub embeds the
  *                       UI in an iframe so the user doesn't get a redundant
- *                       tab); {@code --launched-by-hub} is accepted as a
- *                       synonym for consistency with the rest of the suite.
+ *                       tab).
+ *   --launched-by-hub   J-Hub owns the lifecycle; skip the browser-open
+ *                       AND skip the heartbeat watchdog so J-Hub's
+ *                       shutdown signals are authoritative.
  *
  * System properties:
  *   -Djlearn.port=NNNN  override the default port (8082); also set via
@@ -32,8 +34,10 @@ public final class JLearnMain {
 
     public static void main(String[] args) throws Exception {
         boolean openBrowser = true;
+        boolean hubManaged  = false;
         for (String a : args) {
-            if ("--no-browser".equals(a) || "--launched-by-hub".equals(a)) openBrowser = false;
+            if ("--no-browser".equals(a)) openBrowser = false;
+            if ("--launched-by-hub".equals(a)) { openBrowser = false; hubManaged = true; }
         }
 
         Settings settings = Settings.load();
@@ -42,7 +46,7 @@ public final class JLearnMain {
         ContentResolver content = new ContentResolver();
         content.seedIfEmpty();
 
-        JLearnServer server = new JLearnServer(port, content);
+        JLearnServer server = new JLearnServer(port, content, hubManaged);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             log.info("Shutting down J-Learn.");
             server.stop();

@@ -778,30 +778,101 @@
         <div class="card-title">Macro Variables Reference</div>
         <div style="font-size:12px;color:var(--subtext0);margin-bottom:10px">
           These placeholders are expanded by the shared <code>MacroVariableEngine</code> at QSO time.
-          Their values come from the live rig + the QSO entry pane in J-Log/J-Digi — not from
-          editable J-Hub fields. The variable list is part of the suite contract; see
-          <code>j-log-engine/MacroVariableEngine.java</code> for the implementation.
+          The <em>Current</em> column shows the live value J-Hub sees right now; <em>Set in</em>
+          links jump to the tab that owns the value (or names the external app when J-Hub
+          can't change it).
         </div>
         <table class="macro-table" style="width:100%">
           <thead>
-            <tr><th style="width:120px">Placeholder</th><th>Source</th><th>Description</th></tr>
+            <tr>
+              <th style="width:110px">Placeholder</th>
+              <th style="width:170px">Current value</th>
+              <th style="width:170px">Set in</th>
+              <th>Description</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td><code>{MYCALL}</code></td><td>Station config</td><td>Operator's own callsign (Station tab → Callsign).</td></tr>
-            <tr><td><code>{CALL}</code></td><td>QSO entry</td><td>DX (worked) callsign currently in the entry pane.</td></tr>
-            <tr><td><code>{RST}</code></td><td>QSO entry</td><td>RST sent (legacy alias for <code>{RST_S}</code>). Defaults to <code>599</code>.</td></tr>
-            <tr><td><code>{RST_S}</code></td><td>QSO entry</td><td>RST sent. Defaults to <code>599</code> when blank.</td></tr>
-            <tr><td><code>{RST_R}</code></td><td>QSO entry</td><td>RST received. Defaults to <code>599</code> when blank.</td></tr>
-            <tr><td><code>{NAME}</code></td><td>QSO entry</td><td>DX operator name. Defaults to <code>OM</code> when blank.</td></tr>
-            <tr><td><code>{EXCH}</code></td><td>QSO entry</td><td>Contest exchange / notes field.</td></tr>
-            <tr><td><code>{SERIAL}</code></td><td>Logger</td><td>Zero-padded serial number, three digits (<code>007</code>).</td></tr>
-            <tr><td><code>{NR}</code></td><td>Logger</td><td>Bare serial number (<code>7</code>, no padding).</td></tr>
-            <tr><td><code>{FREQ}</code></td><td>Live rig</td><td>Rig frequency in MHz, three decimals (<code>14.225</code>). <code>--</code> if no rig.</td></tr>
-            <tr><td><code>{BAND}</code></td><td>Derived</td><td>Band tag derived from <code>{FREQ}</code> (e.g. <code>20m</code>).</td></tr>
-            <tr><td><code>{MODE}</code></td><td>Live rig</td><td>Current operating mode (e.g. <code>USB</code>, <code>CW</code>, <code>FT8</code>).</td></tr>
+            <tr>
+              <td><code>{MYCALL}</code></td>
+              <td><span id="mv-mycall" class="mv-val">—</span></td>
+              <td><a href="#" onclick="document.querySelector('[data-tab=station]').click(); return false">Station tab → Callsign</a></td>
+              <td>Operator's own callsign.</td>
+            </tr>
+            <tr>
+              <td><code>{CALL}</code></td>
+              <td><span class="mv-val mv-external">(entry pane)</span></td>
+              <td>J-Log / J-Digi entry pane</td>
+              <td>DX (worked) callsign currently in the entry pane.</td>
+            </tr>
+            <tr>
+              <td><code>{RST}</code></td>
+              <td><span class="mv-val mv-external">(entry pane)</span></td>
+              <td>J-Log / J-Digi entry pane</td>
+              <td>RST sent (legacy alias for <code>{RST_S}</code>). Defaults to <code>599</code>.</td>
+            </tr>
+            <tr>
+              <td><code>{RST_S}</code></td>
+              <td><span class="mv-val mv-external">(entry pane)</span></td>
+              <td>J-Log / J-Digi entry pane</td>
+              <td>RST sent. Defaults to <code>599</code> when blank.</td>
+            </tr>
+            <tr>
+              <td><code>{RST_R}</code></td>
+              <td><span class="mv-val mv-external">(entry pane)</span></td>
+              <td>J-Log / J-Digi entry pane</td>
+              <td>RST received. Defaults to <code>599</code> when blank.</td>
+            </tr>
+            <tr>
+              <td><code>{NAME}</code></td>
+              <td><span class="mv-val mv-external">(entry pane)</span></td>
+              <td>J-Log / J-Digi entry pane</td>
+              <td>DX operator name. Defaults to <code>OM</code> when blank.</td>
+            </tr>
+            <tr>
+              <td><code>{EXCH}</code></td>
+              <td><span class="mv-val mv-external">(entry pane)</span></td>
+              <td>J-Log / J-Digi entry pane</td>
+              <td>Contest exchange / notes field.</td>
+            </tr>
+            <tr>
+              <td><code>{SERIAL}</code></td>
+              <td><span class="mv-val mv-external">(logger)</span></td>
+              <td>J-Log contest module</td>
+              <td>Zero-padded serial number, three digits (<code>007</code>).</td>
+            </tr>
+            <tr>
+              <td><code>{NR}</code></td>
+              <td><span class="mv-val mv-external">(logger)</span></td>
+              <td>J-Log contest module</td>
+              <td>Bare serial number (<code>7</code>, no padding).</td>
+            </tr>
+            <tr>
+              <td><code>{FREQ}</code></td>
+              <td><span id="mv-freq" class="mv-val">—</span></td>
+              <td><a href="#" onclick="document.querySelector('[data-tab=rig]').click(); return false">Rig Control tab</a> <span style="color:var(--subtext0)">(or rig CAT)</span></td>
+              <td>Rig frequency in MHz, three decimals (<code>14.225</code>). <code>--</code> if no rig.</td>
+            </tr>
+            <tr>
+              <td><code>{BAND}</code></td>
+              <td><span id="mv-band" class="mv-val">—</span></td>
+              <td>Derived from <code>{FREQ}</code></td>
+              <td>Band tag (e.g. <code>20m</code>).</td>
+            </tr>
+            <tr>
+              <td><code>{MODE}</code></td>
+              <td><span id="mv-mode" class="mv-val">—</span></td>
+              <td><a href="#" onclick="document.querySelector('[data-tab=rig]').click(); return false">Rig Control tab</a> <span style="color:var(--subtext0)">(or rig CAT)</span></td>
+              <td>Current operating mode (e.g. <code>USB</code>, <code>CW</code>, <code>FT8</code>).</td>
+            </tr>
           </tbody>
         </table>
         <div style="font-size:12px;color:var(--subtext0);margin-top:10px">
+          <strong>Why some values show <code>(entry pane)</code> / <code>(logger)</code>:</strong>
+          those placeholders are filled by the per-QSO entry pane in J-Log or J-Digi at the
+          moment a macro is sent — J-Hub never holds a "current" value because each app
+          has its own entry state. Open the relevant app to inspect or change them.
+        </div>
+        <div style="font-size:12px;color:var(--subtext0);margin-top:6px">
           Unknown placeholders are left untouched in the output, so future variables won't break
           existing macros. To add a new variable, edit
           <code>j-log-engine/src/main/java/com/jlog/util/MacroVariableEngine.java</code> and rebuild

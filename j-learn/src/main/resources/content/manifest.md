@@ -303,6 +303,8 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 25-07   | TDR — Time-Domain Reflectometry                      | 25-test-equipment/25-07-tdr.md                                    | advanced   |
 | 25-08   | Measuring Station Noise Floor                        | 25-test-equipment/25-08-noise-floor-measurement.md                | mixed      |
 | 25-09   | Calibration Workflows                                | 25-test-equipment/25-09-calibration-workflows.md                  | mixed      |
+| 25-10   | Antenna Analyzers                                    | 25-test-equipment/25-10-antenna-analyzers.md                      | mixed      |
+| 25-11   | Dip Meters                                           | 25-test-equipment/25-11-dip-meters.md                             | mixed      |
 | 26-00   | Homebrewing & RF Construction — Overview             | 26-homebrewing/26-00-overview.md                                  | simple     |
 | 26-01   | RF Amplifier Topologies                              | 26-homebrewing/26-01-rf-amplifier-topologies.md                   | advanced   |
 | 26-02   | Low-Pass Filters for Harmonic Suppression            | 26-homebrewing/26-02-low-pass-filters.md                          | mixed      |

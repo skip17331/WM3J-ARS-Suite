@@ -467,6 +467,10 @@ input[type="number"] {
   color: var(--text); padding: 4px 8px; font-size: 12px; font-family: 'Consolas', monospace; width: 100%;
 }
 .macro-table input[type="text"]:focus { outline: none; border-color: var(--mauve); }
+.macro-table .mv-val { font-family: 'Consolas', monospace; color: var(--text); }
+.macro-table .mv-val.mv-external { font-family: inherit; color: var(--overlay1); font-style: italic; }
+.macro-table a { color: var(--mauve); text-decoration: none; }
+.macro-table a:hover { text-decoration: underline; }
 .badge-fixed { background: var(--blue);  color: var(--crust); border-radius: 10px; padding: 2px 7px; font-size: 10px; font-weight: 700; }
 .badge-prog  { background: var(--mauve); color: var(--crust); border-radius: 10px; padding: 2px 7px; font-size: 10px; font-weight: 700; }
 

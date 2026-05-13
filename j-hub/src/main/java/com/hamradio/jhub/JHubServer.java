@@ -138,7 +138,7 @@ public class JHubServer extends WebSocketServer {
         // Acknowledge registration — include station config so apps need not store it locally
         JsonObject ack = new JsonObject();
         ack.addProperty("type", "JHUB_WELCOME");
-        ack.addProperty("jHubVersion", "1.0.99");
+        ack.addProperty("jHubVersion", "1.0.100");
         ack.addProperty("timestamp", Instant.now().toString());
         com.hamradio.jhub.model.JHubConfig cfg = ConfigManager.getInstance().getConfig();
         if (cfg.station != null) {

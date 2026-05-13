@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,11 +42,20 @@ public final class JLearnServer {
 
     private final int port;
     private final ContentResolver content;
+    /** True when launched by J-Hub — in that case J-Hub owns our lifecycle
+     *  and we skip the browser-driven auto-shutdown. */
+    private final boolean hubManaged;
     private Server server;
+    private HeartbeatWatchdog watchdog;
 
     public JLearnServer(int port, ContentResolver content) {
+        this(port, content, false);
+    }
+
+    public JLearnServer(int port, ContentResolver content, boolean hubManaged) {
         this.port = port;
         this.content = content;
+        this.hubManaged = hubManaged;
     }
 
     public void start() throws Exception {
@@ -55,11 +65,23 @@ public final class JLearnServer {
 
         ctx.addServlet(new ServletHolder(new JLearnApiServlet(content)), "/api/jlearn/*");
         ctx.addServlet(new ServletHolder(new HealthServlet()),           "/api/health");
+
+        // Browser-presence tracking: heartbeat pings keep the JVM alive when
+        // launched standalone; explicit /api/close beacon shuts it down on
+        // tab close. Disabled when J-Hub is managing our lifecycle.
+        if (!hubManaged) {
+            watchdog = new HeartbeatWatchdog();
+            ctx.addServlet(new ServletHolder(new HeartbeatServlet(watchdog)), "/api/heartbeat");
+            ctx.addServlet(new ServletHolder(new CloseServlet()),             "/api/close");
+        }
+
         ctx.addServlet(new ServletHolder(new StaticServlet()),           "/*");
 
         server.setHandler(ctx);
         server.start();
         log.info("J-Learn web UI listening on http://localhost:{}", port);
+
+        if (watchdog != null) watchdog.start();
     }
 
     public void stop() {
@@ -192,6 +214,78 @@ public final class JLearnServer {
     // For tests / parent-process control.
     @SuppressWarnings("unused")
     int port() { return port; }
+
+    // ----- Browser-presence watchdog -------------------------------------
+    //
+    // The web UI POSTs /api/heartbeat every few seconds while it's open
+    // and POSTs /api/close as a sendBeacon when the tab/window closes.
+    // If we go STALE_MS without a ping (after the first one has been
+    // received), assume the browser is gone and exit the JVM.
+    //
+    // Initial grace: the watchdog waits for the first ping before it starts
+    // policing — that way the JVM stays alive in the gap between server
+    // start and the user actually opening the browser.
+
+    private static class HeartbeatWatchdog {
+        // Tunings: ping every ~4s from the browser, give up after ~12s.
+        private static final long STALE_MS = 12_000L;
+
+        private final AtomicLong lastPing = new AtomicLong(0L);
+
+        void heartbeat() {
+            lastPing.set(System.currentTimeMillis());
+        }
+
+        void start() {
+            Thread t = new Thread(this::loop, "jlearn-heartbeat-watchdog");
+            t.setDaemon(true);
+            t.start();
+        }
+
+        private void loop() {
+            try {
+                while (true) {
+                    Thread.sleep(2_000L);
+                    long last = lastPing.get();
+                    if (last == 0L) continue; // haven't seen the browser yet
+                    long age = System.currentTimeMillis() - last;
+                    if (age > STALE_MS) {
+                        log.info("Browser heartbeat stale ({} ms) — shutting down J-Learn", age);
+                        System.exit(0);
+                    }
+                }
+            } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        }
+    }
+
+    private static class HeartbeatServlet extends HttpServlet {
+        private final HeartbeatWatchdog watchdog;
+        HeartbeatServlet(HeartbeatWatchdog w) { this.watchdog = w; }
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            watchdog.heartbeat();
+            json(res, "{\"ok\":true}");
+        }
+        // Allow GET too — easier to test, and sendBeacon falls back to POST anyway.
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            watchdog.heartbeat();
+            json(res, "{\"ok\":true}");
+        }
+    }
+
+    private static class CloseServlet extends HttpServlet {
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) {
+            log.info("Received /api/close from browser — shutting down J-Learn");
+            // Send the response on a separate thread so the browser sees a
+            // clean shutdown rather than a hang/ECONNRESET.
+            new Thread(() -> {
+                try { Thread.sleep(150L); } catch (InterruptedException ignored) {}
+                System.exit(0);
+            }, "jlearn-close-exit").start();
+            try {
+                res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            } catch (Exception ignored) {}
+        }
+    }
 
     static {
         // Suppress noisy charset detection.

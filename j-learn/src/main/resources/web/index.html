@@ -51,5 +51,36 @@
 
   <script src="i18n.js"></script>
   <script src="jlearn.js"></script>
+  <script>
+    // Browser-presence beacon. Pings every 4 s so the server knows the UI is
+    // still open; when the tab/window closes, sendBeacon nudges the server
+    // to shut down. When J-Learn runs inside the J-Hub iframe these endpoints
+    // aren't mounted (J-Hub manages the lifecycle), so the calls 404 harmlessly.
+    (function () {
+      var HEARTBEAT_MS = 4000;
+      function ping() {
+        try {
+          fetch('/api/heartbeat', { method: 'POST', keepalive: true })
+            .catch(function () {});
+        } catch (e) {}
+      }
+      ping();
+      setInterval(ping, HEARTBEAT_MS);
+
+      function closeBeacon() {
+        try {
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon('/api/close', '');
+          } else {
+            fetch('/api/close', { method: 'POST', keepalive: true })
+              .catch(function () {});
+          }
+        } catch (e) {}
+      }
+      // pagehide fires more reliably than beforeunload on mobile + Safari.
+      window.addEventListener('pagehide',     closeBeacon);
+      window.addEventListener('beforeunload', closeBeacon);
+    })();
+  </script>
 </body>
 </html>

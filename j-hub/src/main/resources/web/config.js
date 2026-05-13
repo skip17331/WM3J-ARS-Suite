@@ -27,8 +27,19 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    if (btn.dataset.tab === 'jvault')   ensureJVaultIframe();
-    if (btn.dataset.tab === 'learn')    ensureJLearnIframe();
+    if (btn.dataset.tab === 'jvault')      ensureJVaultIframe();
+    if (btn.dataset.tab === 'learn')       ensureJLearnIframe();
+    // Workshop opens on the Calculators sub-tab by default, but the list
+    // column is JS-rendered — populate it on tab activation so the user
+    // doesn't see an empty column until they click Calculators again.
+    if (btn.dataset.tab === 'antworkshop'
+        && typeof awCalcRenderList === 'function'
+        && !aw.calc.listRendered) awCalcRenderList();
+    // Refresh live values in the Macro Variables Reference table whenever
+    // the user opens the Macros tab — covers the case where MYCALL came in
+    // before the user navigated here and the rig has since updated.
+    if (btn.dataset.tab === 'macros'
+        && typeof updateMacroLiveValues === 'function') updateMacroLiveValues();
   });
 });
 
@@ -274,6 +285,23 @@ function updateRigUI(rig) {
   setText('i-mode', mode);
   setText('i-band', band !== '' ? band : '—');
   setText('i-pwr',  pwr);
+
+  updateMacroLiveValues();
+}
+
+// Populate the "Current value" column in the Macros → Macro Variables Reference
+// table. Pulls from state.config.station + state.rig; cells stay "—" when the
+// source hasn't reported yet (no welcome, no RIG_STATUS).
+function updateMacroLiveValues() {
+  const st  = (state.config && state.config.station) || {};
+  const rig = state.rig || {};
+  const hz  = rig.frequency || rig.rigFrequencyHz || 0;
+  const mhz = hz > 0 ? (hz / 1e6).toFixed(3) + ' MHz' : '—';
+
+  setText('mv-mycall', st.callsign || '—');
+  setText('mv-freq',   mhz);
+  setText('mv-band',   rig.band || '—');
+  setText('mv-mode',   rig.mode || '—');
 }
 
 // ── Rotor UI ───────────────────────────────────────────────
@@ -378,6 +406,8 @@ function applyStationIntel(st) {
   // Rig operator: show explicit override if set, else fall back to operator name
   const rigOp = (st.rigOperator || '').trim() || (st.name || '').trim();
   setText('i-rig-operator', rigOp || '—');
+
+  updateMacroLiveValues();
 }
 
 // Inline edit for the Operator field in the right intel pane.

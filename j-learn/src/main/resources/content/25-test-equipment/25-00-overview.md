@@ -36,7 +36,8 @@ A reasonable "shack instrument set" for a working HF/VHF station looks like this
 | **Field strength meter** | Relative radiated field at a point | $20 (diode-detector kit) | §25-05 |
 | **Power / SWR meter** | Forward & reflected power | $50 (Daiwa CN-801) | §25-06 |
 | **TDR** | Cable length, fault location | NanoVNA does this | §25-07 |
-| **Dummy load** | 50 Ω termination for tests | $40 (100 W); $300+ (1 kW) | §25-10 |
+| **Antenna analyzer** | SWR / R / X at the antenna feedpoint | $130 (RigExpert AA-35) | §25-10 |
+| **Dip meter** | Resonant frequency of any LC tank (incl. sealed traps) | $30 (kit) – $80 (used) | §25-11 |
 | **Multimeter** | DC volts/amps/ohms | $30 (Fluke 101); $100+ (Fluke 117) | covered in §13 |
 
 A NanoVNA + a TinySA + a Daiwa cross-needle + a 100 W dummy load + a decent multimeter covers 90% of amateur measurement work for under $400 total.
@@ -89,6 +90,8 @@ A rough decision tree for "which instrument do I reach for?"
 | What's my station noise floor on 40 m? | The rig itself + a dummy load (§25-08) |
 | Where is this RFI coming from? | Field strength meter + directional antenna |
 | Is my power supply ripple bad? | Oscilloscope |
+| Is this sealed antenna trap still on frequency? | Dip meter |
+| Is my hand-wound coil really the inductance I designed for? | Dip meter (with a known capacitor) |
 
 This chapter walks each instrument in detail.
 
@@ -106,7 +109,8 @@ This chapter walks each instrument in detail.
 | §25-07 | TDR — Time-Domain Reflectometry | advanced |
 | §25-08 | Measuring Station Noise Floor | mixed |
 | §25-09 | Calibration Workflows | mixed |
-| §25-10 | Dummy Loads & Power Sensors | simple |
+| §25-10 | Antenna Analyzers | mixed |
+| §25-11 | Dip Meters | mixed |
 
 ## See also
 

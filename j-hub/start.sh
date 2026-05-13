@@ -7,5 +7,5 @@ java \
     --module-path "$SCRIPT_DIR/lib/javafx" \
     --add-modules javafx.controls,javafx.fxml \
     -Dfile.encoding=UTF-8 \
-    -jar "$SCRIPT_DIR/target/j-hub-1.0.99.jar" \
+    -jar "$SCRIPT_DIR/target/j-hub-1.0.100.jar" \
     "$@"
