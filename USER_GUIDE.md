@@ -1,7 +1,8 @@
 # WM3J ARS Suite — User Guide
 
 A practical guide for installing, configuring, and operating the suite.
-See [README.md](README.md) for the project's purpose and license.
+See [README.md](README.md) for the project's purpose and license, and
+[docs/ROADMAP.md](docs/ROADMAP.md) for what's planned next.
 
 > **Wiring up actual radio gear?** Read [docs/HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md)
 > first — it's a beginner-friendly walk-through of cables, USB-to-serial

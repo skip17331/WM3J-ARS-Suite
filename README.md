@@ -32,6 +32,10 @@ walkthrough, per‑app setup notes, troubleshooting, and an architecture map.
 guide to USB‑to‑serial adapters, Hamlib daemons, USB hubs, stable port
 names, and common gotchas.
 
+**Curious what's coming next?** → **[docs/ROADMAP.md](docs/ROADMAP.md)** —
+phased plan of work in flight + features explicitly *not* on the
+roadmap, with reasons.
+
 ---
 
 ## What's in the box
@@ -285,7 +289,8 @@ documentation tweaks are all welcome. The codebase is intentionally
 modular: pick a module, build it, hack on it independently. See
 [CodeOfConduct.md](CodeOfConduct.md).
 
-For broader context on what's planned next and what's in flight, the
-roadmap lives in [USER_GUIDE.md § Architecture](USER_GUIDE.md#7-appendix-interconnection-map).
+For broader context on what's planned next and what's in flight, see
+**[docs/ROADMAP.md](docs/ROADMAP.md)** — and the architecture appendix
+in [USER_GUIDE.md § Interconnection Map](USER_GUIDE.md#7-appendix-interconnection-map).
 
 73 — **WM3J**
