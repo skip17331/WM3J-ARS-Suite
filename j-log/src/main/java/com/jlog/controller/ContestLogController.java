@@ -2238,6 +2238,25 @@ public class ContestLogController implements Initializable {
         com.jlog.util.IssueReporter.openGitHubIssue("j-log (contest)", "1.0.0", log);
     }
 
+    private UserTranslationWindow translatorUserWin;
+    private DxccTranslationWindow translatorDxccWin;
+
+    @FXML private void openTranslatorUser() {
+        if (translatorUserWin == null) translatorUserWin = new UserTranslationWindow();
+        translatorUserWin.show();
+    }
+
+    @FXML private void openTranslatorDxcc() {
+        if (translatorDxccWin == null) translatorDxccWin = new DxccTranslationWindow();
+        translatorDxccWin.show();
+    }
+
+    private PriorityCallsignWindow priorityWin;
+    @FXML private void openPriorityCallsigns() {
+        if (priorityWin == null) priorityWin = new PriorityCallsignWindow();
+        priorityWin.show();
+    }
+
     private void openJHubSetupAt(String tab) {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081#" + tab).start(); }
         catch (Exception e) { setStatus("Could not open browser: " + e.getMessage()); }

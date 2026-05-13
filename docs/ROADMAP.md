@@ -88,17 +88,31 @@ don't sink time into directions the project has decided not to take.
   outbound RBN node capability. Promoted from Phase 2 (detector tier
   done) because per-channel decoding is a substantially bigger DSP
   effort than the spectrum peak-picker.
-- Voice-control listener (`j-voice` — offline Vosk model parses commands
-  like *"tune to twenty meters"* / *"call CQ"* / *"log this QSO"* into
-  `RIG_CONTROL` / `MODEM_TX` / `QSO_SAVE` WebSocket messages)
-- LAN web control panel (touch UI on tablet/phone built on top of the
-  existing j-hub web UI; live waterfall WS stream from J-Digi; macro
-  buttons; tap-to-tune from spot list. **LAN only — no internet exposure,
-  no audio streaming.**)
-- SO2R schema groundwork — `RigSection` → `List<RigSection>` with `id`
-  fields; `RIG_STATUS` carries `rigId`; per-rig PTT routing in
-  `HamlibRigController`. Stops the suite from painting itself into a
-  one-rig corner; does **not** include the SO2R contest cockpit itself.
+- ~~Priority-callsign spot alerts in J-Log~~ ✅ shipped 2026-05-12 —
+  operator-curated watch list (POTA targets, friends, missing-DXCC
+  needs) stored in `config.db.priority_callsigns`; inbound DX spots
+  matched against the list fire a fading top-banner toast over the
+  main log plus an in-process two-tone audible alert (800 → 600 Hz,
+  350 ms, cosine-ramped); per-entry **muted / audible / banner**
+  toggles + free-form note column; suffix-aware so W1AW/P, W1AW/M,
+  W1AW/QRP all match W1AW; 60-second per-callsign debounce so a
+  repeatedly-spotted target doesn't continuously re-alert. Tools →
+  **Priority Callsigns…** opens the management window.
+- ~~Dual-mode QSO phrase translator in J-Log~~ ✅ shipped 2026-05-12
+  — `~/.j-log/translations.db` holds the phrase book (English /
+  Spanish / German / Portuguese plus phonetic + category); seeded
+  with 25 starter phrases on first run. Two viewers via Tools menu:
+  **User Selected** (operator-picked checkboxes) and **DXCC Driven**
+  (auto-picks columns from `DxccLanguageMap` based on the active
+  callsign's DXCC entity, fallback to English-only). Both viewers
+  share editable rows that persist immediately + a pin-to-top
+  toggle; columns auto-hide when every cell is empty so partial
+  translations stay tidy.
+- Voice-control listener (`j-voice`) — **parked.** Offline Vosk model
+  to parse *"tune to twenty meters"* / *"call CQ"* / *"log this QSO"*
+  into `RIG_CONTROL` / `MODEM_TX` / `QSO_SAVE` WebSocket messages.
+  Compelling differentiator but niche audience; revisit if a
+  contributor wants to own it.
 
 ## Phase 4 — Off the list
 

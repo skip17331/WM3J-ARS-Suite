@@ -49,6 +49,14 @@
                             <MenuItem text="%menu.contest.export.cabrillo" onAction="#menuExportCabrillo"/>
                         </items>
                     </Menu>
+                    <Menu text="Tools">
+                        <items>
+                            <MenuItem text="Translator — User Selected…" onAction="#openTranslatorUser"/>
+                            <MenuItem text="Translator — DXCC Driven…"   onAction="#openTranslatorDxcc"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Priority Callsigns…"         onAction="#openPriorityCallsigns"/>
+                        </items>
+                    </Menu>
                     <Menu text="Help">
                         <items>
                             <MenuItem text="Report an Issue…" onAction="#menuReportIssue"/>

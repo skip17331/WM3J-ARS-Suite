@@ -40,6 +40,11 @@
                             <SeparatorMenuItem/>
                             <MenuItem text="Override Antenna…"      onAction="#doAntennaOverride"/>
                             <MenuItem text="Clear Antenna Override" onAction="#doAntennaOverrideClear"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Translator — User Selected…" onAction="#openTranslatorUser"/>
+                            <MenuItem text="Translator — DXCC Driven…"   onAction="#openTranslatorDxcc"/>
+                            <SeparatorMenuItem/>
+                            <MenuItem text="Priority Callsigns…"         onAction="#openPriorityCallsigns"/>
                         </items>
                     </Menu>
                     <Menu text="%menu.setup">

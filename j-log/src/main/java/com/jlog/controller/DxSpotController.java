@@ -99,10 +99,20 @@ public class DxSpotController implements Initializable {
     private void initHubEngine() {
         HubEngine engine = HubEngine.getInstance();
 
-        engine.setSpotListener(spot -> Platform.runLater(() -> {
-            if (spots.size() >= MAX_SPOTS) spots.remove(spots.size() - 1);
-            spots.add(0, spot);
-        }));
+        // Prime the priority watch list once at controller init so the
+        // alert service has a populated set before the first spot lands.
+        PrioritySpotAlertService.getInstance().reload();
+
+        engine.setSpotListener(spot -> {
+            // Fire priority-callsign alerts off the FX thread (the audible
+            // tone allocates a SourceDataLine; banner listeners marshal
+            // onto FX themselves).
+            PrioritySpotAlertService.getInstance().onSpot(spot);
+            Platform.runLater(() -> {
+                if (spots.size() >= MAX_SPOTS) spots.remove(spots.size() - 1);
+                spots.add(0, spot);
+            });
+        });
 
         engine.setConfigUpdateListener(newSize -> Platform.runLater(() -> {
             com.jlog.util.AppConfig.getInstance().setFontSize(newSize);

@@ -142,6 +142,9 @@ public class SplashScreen {
                 I18n.getBundle());
             Scene scene = new Scene(loader.load());
             JLogApp.applyTheme(scene);
+            // Wrap the scene root so priority-callsign alerts can render
+            // a floating banner on top of the main log.
+            com.jlog.controller.PriorityBanner.attach(scene);
             restoreWindow(primaryStage, scene, "NormalLog");
             primaryStage.setTitle(activationMode
                 ? "j-Log — POTA / SOTA Activation Log"

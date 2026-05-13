@@ -170,6 +170,7 @@ public class ContestChooser {
                 I18n.getBundle());
             Scene scene = new Scene(loader.load());
             JLogApp.applyTheme(scene);
+            com.jlog.controller.PriorityBanner.attach(scene);
 
             ContestLogController ctrl = loader.getController();
             ctrl.initPlugin(plugin);

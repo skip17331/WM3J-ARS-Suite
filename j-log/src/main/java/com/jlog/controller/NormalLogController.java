@@ -1166,6 +1166,32 @@ public class NormalLogController implements Initializable {
         setStatus("Opening GitHub Issues in your browser…");
     }
 
+    /** Two translator viewers. Kept as singletons so the operator can pin
+     *  one and reopen via the menu without losing state. */
+    private UserTranslationWindow translatorUserWin;
+    private DxccTranslationWindow translatorDxccWin;
+
+    @FXML private void openTranslatorUser() {
+        if (translatorUserWin == null) translatorUserWin = new UserTranslationWindow();
+        translatorUserWin.show();
+    }
+
+    @FXML private void openTranslatorDxcc() {
+        if (translatorDxccWin == null) translatorDxccWin = new DxccTranslationWindow();
+        translatorDxccWin.show();
+        // If the operator has a row selected, drive the entity from it
+        var sel = qsoTable.getSelectionModel().getSelectedItem();
+        if (sel != null && sel.getCountry() != null && !sel.getCountry().isBlank()) {
+            translatorDxccWin.applyEntity(sel.getCountry());
+        }
+    }
+
+    private PriorityCallsignWindow priorityWin;
+    @FXML private void openPriorityCallsigns() {
+        if (priorityWin == null) priorityWin = new PriorityCallsignWindow();
+        priorityWin.show();
+    }
+
     private void openJHubSetupAt(String tab) {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081#" + tab).start(); }
         catch (Exception e) { setStatus("Could not open browser: " + e.getMessage()); }
