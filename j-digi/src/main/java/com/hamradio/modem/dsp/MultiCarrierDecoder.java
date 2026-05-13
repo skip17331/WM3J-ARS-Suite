@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -60,11 +62,20 @@ public class MultiCarrierDecoder {
     /** Per-channel rolling text buffer cap. */
     private static final int TEXT_BUFFER_LIMIT = 256;
 
+    /** Phase B: confidence threshold for a scored callsign to be
+     *  promoted to a {@link ScoredCallsign} listener event. Bare
+     *  matches with no repetition or context score 0.40, so 0.65
+     *  keeps the bar at "needs at least repetition OR context". */
+    static final double SCORE_EMIT_THRESHOLD = 0.65;
+
     private final double sampleRate;
     private final List<ActiveChannel> channels = new ArrayList<>();
 
     /** Optional listener fired on every decoded text fragment. */
     private volatile Consumer<DecodedFragment> listener = f -> {};
+    /** Phase B listener — fires when a scored callsign clears the
+     *  threshold and hasn't been emitted on this channel before. */
+    private volatile Consumer<ScoredCallsign> callsignListener = c -> {};
 
     public MultiCarrierDecoder(double sampleRate) {
         this.sampleRate = sampleRate;
@@ -74,6 +85,13 @@ public class MultiCarrierDecoder {
      *  the j-hub bridge (Phase C) or the j-digi UI debug pane. */
     public void setListener(Consumer<DecodedFragment> l) {
         this.listener = (l != null) ? l : f -> {};
+    }
+
+    /** Register an optional consumer for scored callsign promotions.
+     *  Phase C wires this to a SPOT-publishing path with 5-minute
+     *  dedup; until then it's null-safe. */
+    public void setCallsignListener(Consumer<ScoredCallsign> l) {
+        this.callsignListener = (l != null) ? l : c -> {};
     }
 
     /** Snapshot of currently-tracked channels (for tests / UI). */
@@ -132,6 +150,7 @@ public class MultiCarrierDecoder {
                     appendTextCapped(ch.recentText, text);
                     log.info("Skimmer ch={}Hz: {}", Math.round(ch.centerHz), text.trim());
                     listener.accept(new DecodedFragment(ch.centerHz, ch.lastSnrDb, text, now));
+                    scoreAndEmit(ch, now);
                 }
             }
         }
@@ -145,6 +164,26 @@ public class MultiCarrierDecoder {
                           Math.round(ch.centerHz), now - ch.lastSeenMs);
                 it.remove();
             }
+        }
+    }
+
+    /** Phase B: run the scorer over a channel's rolling text and
+     *  promote any candidate clearing {@link #SCORE_EMIT_THRESHOLD}
+     *  that we haven't already emitted on this channel. */
+    private void scoreAndEmit(ActiveChannel ch, long now) {
+        List<CallsignScorer.Candidate> candidates =
+            CallsignScorer.score(ch.recentText.toString());
+        for (CallsignScorer.Candidate cand : candidates) {
+            if (cand.confidence < SCORE_EMIT_THRESHOLD) continue;
+            if (!ch.emittedCalls.add(cand.callsign)) continue;
+            log.info("Skimmer scored {} @ {} Hz conf={} ctx={} reps={}",
+                     cand.callsign, Math.round(ch.centerHz),
+                     String.format("%.2f", cand.confidence),
+                     cand.context, cand.repetitions);
+            callsignListener.accept(new ScoredCallsign(
+                ch.centerHz, ch.lastSnrDb,
+                cand.callsign, cand.confidence,
+                cand.context, cand.repetitions, now));
         }
     }
 
@@ -182,6 +221,11 @@ public class MultiCarrierDecoder {
         long   lastSeenMs;
         double lastSnrDb;
         final StringBuilder recentText = new StringBuilder();
+        /** Callsigns this channel has already promoted via the
+         *  callsignListener. Prevents the scorer from re-emitting on
+         *  every subsequent decode chunk that keeps the same call in
+         *  the rolling text buffer. */
+        final Set<String> emittedCalls = new HashSet<>();
 
         ActiveChannel(double centerHz, double snrDb, long now) {
             this.centerHz   = centerHz;
@@ -211,7 +255,8 @@ public class MultiCarrierDecoder {
     }
 
     /** Emitted to the optional listener every time a channel decodes
-     *  one or more characters. Phase B / C will consume these. */
+     *  one or more characters. Phase C will consume these via the
+     *  callsign listener instead — this one stays for debug panes. */
     public static final class DecodedFragment {
         public final double centerHz;
         public final double snrDb;
@@ -221,6 +266,38 @@ public class MultiCarrierDecoder {
             this.centerHz    = centerHz;
             this.snrDb       = snrDb;
             this.text        = text;
+            this.timestampMs = timestampMs;
+        }
+    }
+
+    /**
+     * Phase B promotion event — a callsign was extracted from a
+     * channel's decoded text and scored above the emit threshold.
+     * Phase C will subscribe to this and translate each one into a
+     * {@code SPOT} message published to j-hub with {@code
+     * source:"LOCAL_SKIMMER"} (with a time-based dedup window so the
+     * same call doesn't get spotted twice in five minutes).
+     */
+    public static final class ScoredCallsign {
+        public final double centerHz;
+        public final double snrDb;
+        public final String callsign;
+        public final double confidence;
+        /** Why the scorer promoted: "CQ", "DE", "TU", "RST", "QRZ",
+         *  "RPT" (repeated), or "BARE" (only when threshold tolerates it). */
+        public final String context;
+        public final int    repetitions;
+        public final long   timestampMs;
+
+        public ScoredCallsign(double centerHz, double snrDb,
+                              String callsign, double confidence,
+                              String context, int repetitions, long timestampMs) {
+            this.centerHz    = centerHz;
+            this.snrDb       = snrDb;
+            this.callsign    = callsign;
+            this.confidence  = confidence;
+            this.context     = context;
+            this.repetitions = repetitions;
             this.timestampMs = timestampMs;
         }
     }

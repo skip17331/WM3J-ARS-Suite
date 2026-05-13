@@ -33,15 +33,24 @@ clearly defined; they're waiting for a contributor with time.
   audio frame, accumulates per-channel text, and reaps idle
   channels after 5 seconds. `CwMode.setLockedCarrier(double)`
   was added so each per-channel instance stays on its own
-  carrier instead of fighting the others. 8 new tests cover
-  spawn / merge / reap / cap / null-snapshot / end-to-end
-  synthesised-CW decode. **Remaining (Phase B + C + D):**
-  callsign extraction + confidence scoring over rolling text,
-  real `SPOT` emission with `source:"LOCAL_SKIMMER"` and 5-min
-  dedup, optional outbound RBN telnet so the operator becomes a
-  public node. Tackle when an operator wants to drive the work
-  or when Phase A's per-channel decodes accumulate real-world
-  data we can score against.
+  carrier instead of fighting the others. **Phase B landed
+  2026-05-13:** `CallsignScorer` extracts ITU callsign patterns
+  from per-channel rolling text (handles US/EU/JA + special
+  digit-led prefixes like 2E0/9A1/3D2, portable suffixes like
+  /P, /M, /4, /MM) and scores by repetition + CQ/DE/TU context
+  + end-of-tx tokens. Q-signals are excluded by the regex
+  (no district digit). Promotions clearing 0.65 confidence
+  fire `MultiCarrierDecoder.ScoredCallsign` events with a
+  per-channel "already emitted" guard so the same call doesn't
+  get re-promoted on every subsequent decode chunk. 11 scorer
+  tests + 9 decoder tests covering wiring (text listener fires
+  for non-callsign text, callsign listener stays silent;
+  scorer integration through the decoder is regression-tested
+  via the existing synthetic CW pipeline). **Remaining
+  (Phase C + D):** wire `ScoredCallsign` to a `SPOT` JSON with
+  `source:"LOCAL_SKIMMER"`, 5-minute dedup window, publish to
+  j-hub. Phase D is the optional outbound RBN telnet that
+  makes the operator a public node.
 
 - **Voice-control listener (`j-voice`).** Offline Vosk model to
   parse phrases like *"tune to twenty meters"*, *"call CQ"*, or

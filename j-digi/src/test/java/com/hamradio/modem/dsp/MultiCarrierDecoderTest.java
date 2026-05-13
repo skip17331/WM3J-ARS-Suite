@@ -103,6 +103,31 @@ class MultiCarrierDecoderTest {
     }
 
     @Test
+    void callsignListenerStaysSilentForNonCallsignText() {
+        // Synthesise a single "T" character at 700 Hz. The text
+        // listener should fire; the callsign listener should NOT —
+        // "T" isn't a valid callsign and the scorer should reject
+        // it via the regex (no district digit).
+        MultiCarrierDecoder d = new MultiCarrierDecoder(SAMPLE_RATE);
+        AtomicReference<String> textSeen = new AtomicReference<>("");
+        AtomicReference<String> callSeen = new AtomicReference<>("");
+        d.setListener(f -> textSeen.updateAndGet(prev -> prev + f.text));
+        d.setCallsignListener(c -> callSeen.set(c.callsign));
+
+        d.processFrame(SILENCE, snapOnePeak(700.0, 0), 0);
+        int wpm = 20;
+        int dit = (int) Math.round(SAMPLE_RATE * 1200.0 / 1000.0 / wpm);
+        float[] morseT = synthesizeMarkSpace(
+            700.0, new int[]{3 * dit}, new int[]{8 * dit});
+        feedInFrames(d, morseT, 700.0);
+
+        assertTrue(textSeen.get().contains("T"),
+            "text listener should still see decoded 'T'");
+        assertEquals("", callSeen.get(),
+            "callsign listener should not fire for a bare 'T' — scorer rejects it");
+    }
+
+    @Test
     void listenerFiresOnDecodedText() {
         // Feed a synthetic CW "T" (one dah) at 700 Hz; the per-channel
         // CwMode should slice it, decode it, and the decoder fleet's
