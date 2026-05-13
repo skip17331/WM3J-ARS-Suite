@@ -39,9 +39,9 @@ public final class HomeView {
 
         VBox header = new VBox(6);
         header.setAlignment(Pos.CENTER);
-        Label title = new Label("Morse Code Trainer");
+        Label title = new Label(com.morsetrainer.i18n.I18n.get("brand.title"));
         title.setFont(Font.font("System", FontWeight.BOLD, 28));
-        Label subtitle = new Label("Audio · Decoder · Analytics — pick a mode below.");
+        Label subtitle = new Label(com.morsetrainer.i18n.I18n.get("brand.sub"));
         subtitle.setStyle("-fx-text-fill: #6b7280;");
         header.getChildren().addAll(title, subtitle);
         root.setTop(header);
@@ -52,25 +52,25 @@ public final class HomeView {
         grid.setAlignment(Pos.CENTER);
         grid.setPadding(new Insets(24));
 
-        grid.add(card("Letter Trainer",
-                "Random characters at your WPM. Koch progression supported.",
+        grid.add(card(com.morsetrainer.i18n.I18n.get("card.letter.title"),
+                com.morsetrainer.i18n.I18n.get("card.letter.sub"),
                 () -> new LetterTrainerView(stage, sharedPlayer, sharedTone).show()), 0, 0);
-        grid.add(card("Group Trainer",
-                "Random 2–5 character groups. Track per-character accuracy.",
+        grid.add(card(com.morsetrainer.i18n.I18n.get("card.group.title"),
+                com.morsetrainer.i18n.I18n.get("card.group.sub"),
                 () -> new GroupTrainerView(stage, sharedPlayer, sharedTone).show()), 1, 0);
-        grid.add(card("QSO Simulator",
-                "Realistic CW QSOs from training pace through contest tempo.",
+        grid.add(card(com.morsetrainer.i18n.I18n.get("card.qso.title"),
+                com.morsetrainer.i18n.I18n.get("card.qso.sub"),
                 () -> new QsoTrainerView(stage, sharedPlayer, sharedTone).show()), 0, 1);
-        grid.add(card("Sending Practice",
-                "Send via keyboard, Arduino, or Pi Zero. Get timing diagnostics.",
+        grid.add(card(com.morsetrainer.i18n.I18n.get("card.send.title"),
+                com.morsetrainer.i18n.I18n.get("card.send.sub"),
                 () -> new SendingTrainerView(stage, sharedTone).show()), 1, 1);
-        Button settings = card("Settings",
-                "WPM, Farnsworth, audio, hardware ports.",
+        Button settings = card(com.morsetrainer.i18n.I18n.get("card.settings.title"),
+                com.morsetrainer.i18n.I18n.get("card.settings.sub"),
                 () -> new SettingsView(stage).show());
         grid.add(settings, 0, 2);
 
-        Button report = card("🐛 Report Issue",
-                "Found a bug? Open a pre-filled GitHub issue.",
+        Button report = card(com.morsetrainer.i18n.I18n.get("card.report.title"),
+                com.morsetrainer.i18n.I18n.get("card.report.sub"),
                 HomeView::openIssueReporter);
         grid.add(report, 1, 2);
 
@@ -80,7 +80,7 @@ public final class HomeView {
         var css = HomeView.class.getResource("/css/app.css");
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
-        stage.setTitle("Morse Code Trainer");
+        stage.setTitle(com.morsetrainer.i18n.I18n.get("window.title"));
     }
 
     /**

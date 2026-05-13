@@ -1,6 +1,7 @@
 package com.hamradio.modem.ui;
 
 import com.hamradio.modem.ModemService;
+import com.hamradio.modem.i18n.I18n;
 import com.hamradio.modem.model.ModeType;
 import com.hamradio.modem.model.ModemStatus;
 import com.hamradio.modem.model.RotorStatus;
@@ -89,21 +90,21 @@ public class MainWindow {
     private final ComboBox<ModeType> modeBox      = new ComboBox<>();
     private final ToggleButton       afcBtn       = new ToggleButton("AFC");
     private final ToggleButton       sqlBtn       = new ToggleButton("SQL");
-    private final Button             transmitBtn  = new Button("▶  Transmit");
-    private final Button             cancelBtn    = new Button("■  Cancel");
-    private final Button             saveTxWavBtn = new Button("WAV");
+    private final Button             transmitBtn  = new Button(I18n.get("button.transmit"));
+    private final Button             cancelBtn    = new Button(I18n.get("button.cancel"));
+    private final Button             saveTxWavBtn = new Button(I18n.get("button.wav"));
     private final Button             themeBtn     = new Button();   // ☀ / ☾
 
     // ── RX pane controls ─────────────────────────────────────────────
     private final Label    rx_snr        = new Label("SNR: —");
     private final Label    rx_peak       = new Label("Peak: —");
     private final Label    rx_afc        = new Label("AFC");
-    private final CheckBox autoScrollBox = new CheckBox("Auto");
-    private final Button   clearRxBtn   = new Button("Clear");
-    private final Button   sendToLogBtn = new Button("→ Log");
+    private final CheckBox autoScrollBox = new CheckBox(I18n.get("button.auto"));
+    private final Button   clearRxBtn   = new Button(I18n.get("button.clear"));
+    private final Button   sendToLogBtn = new Button(I18n.get("button.send.to.log"));
 
     // ── TX pane controls ─────────────────────────────────────────────
-    private final Label txStateLabel = new Label("IDLE");
+    private final Label txStateLabel = new Label(I18n.get("status.idle"));
     private final Label txCharCount  = new Label("0 ch");
 
     // ── Main text areas ──────────────────────────────────────────────
@@ -172,7 +173,7 @@ public class MainWindow {
         // Per-pane font-size overrides from j-hub.json (if any)
         JDigiFontScaler.apply(scene);
 
-        stage.setTitle("J-Digi");
+        stage.setTitle(I18n.get("window.title"));
         stage.setScene(scene);
         stage.setMinWidth(1024);
         stage.setMinHeight(720);
@@ -258,24 +259,24 @@ public class MainWindow {
     }
 
     private MenuBar buildMenuBar(Stage stage) {
-        Menu fileMenu = new Menu("File");
-        MenuItem setupItem = new MenuItem("Setup…");
+        Menu fileMenu = new Menu(I18n.get("menu.file"));
+        MenuItem setupItem = new MenuItem(I18n.get("menu.file.setup"));
         setupItem.setOnAction(e -> showSetupDialog());
-        MenuItem exitItem = new MenuItem("Exit");
+        MenuItem exitItem = new MenuItem(I18n.get("menu.file.exit"));
         exitItem.setOnAction(e -> stage.close());
         fileMenu.getItems().addAll(setupItem, new SeparatorMenuItem(), exitItem);
 
-        Menu viewMenu = new Menu("View");
-        MenuItem toggleLog   = new MenuItem("Toggle Log Panel");
-        MenuItem toggleSpots = new MenuItem("Toggle Spots Panel");
+        Menu viewMenu = new Menu(I18n.get("menu.view"));
+        MenuItem toggleLog   = new MenuItem(I18n.get("menu.view.toggle.log"));
+        MenuItem toggleSpots = new MenuItem(I18n.get("menu.view.toggle.spots"));
         toggleLog.setOnAction(e   -> toggleRightPanel());
         toggleSpots.setOnAction(e -> { showRightPanel(); rightPanel.showSpotsTab(); });
         viewMenu.getItems().addAll(toggleLog, toggleSpots);
 
-        Menu helpMenu = new Menu("Help");
-        MenuItem learnItem = new MenuItem("J-Learn…");
+        Menu helpMenu = new Menu(I18n.get("menu.help"));
+        MenuItem learnItem = new MenuItem(I18n.get("menu.help.learn"));
         learnItem.setOnAction(e -> openJLearn());
-        MenuItem reportItem = new MenuItem("Report an Issue…");
+        MenuItem reportItem = new MenuItem(I18n.get("menu.help.report"));
         reportItem.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
             "j-digi", "1.0.36",
             System.getProperty("user.home", "") + "/ARS_Suite/j-digi/logs/j-digi.log"));
@@ -352,7 +353,7 @@ public class MainWindow {
         saveTxWavBtn.getStyleClass().add("tb-btn");
         saveTxWavBtn.setOnAction(e -> saveTxWav((Stage) txArea.getScene().getWindow()));
         themeBtn.getStyleClass().add("tb-btn");
-        themeBtn.setTooltip(new Tooltip("Toggle light / dark theme"));
+        themeBtn.setTooltip(new Tooltip(I18n.get("tooltip.theme")));
         themeBtn.setOnAction(e -> toggleTheme());
 
         // ── SNR VU meter ──────────────────────────────────────────────
@@ -376,8 +377,8 @@ public class MainWindow {
         dotsContent.setAlignment(Pos.CENTER);
 
         // ── Panel toggle buttons ──────────────────────────────────────
-        Button logBtn   = new Button("Log");
-        Button spotsBtn = new Button("Spots");
+        Button logBtn   = new Button(I18n.get("button.log"));
+        Button spotsBtn = new Button(I18n.get("button.spots"));
         logBtn.getStyleClass().add("tb-btn");
         spotsBtn.getStyleClass().add("tb-btn");
         logBtn.setOnAction(e   -> { showRightPanel(); rightPanel.showLogTab();   });
@@ -544,7 +545,7 @@ public class MainWindow {
 
     private VBox buildTxPane() {
         txArea.setWrapText(true);
-        txArea.setPromptText("Enter text to transmit…");
+        txArea.setPromptText(I18n.get("prompt.tx"));
         txArea.getStyleClass().add("tx-area");
         txArea.textProperty().addListener((obs, o, n) ->
             txCharCount.setText(n.length() + " ch"));
@@ -775,7 +776,7 @@ public class MainWindow {
 
     private void updateTxPrompt(ModeType mode) {
         if (mode == null) return;
-        txArea.setPromptText("Enter text to transmit as " + mode.name() + "…");
+        txArea.setPromptText(I18n.get("prompt.tx.mode", mode.name()));
     }
 
     // ================================================================
@@ -805,7 +806,7 @@ public class MainWindow {
         String text = txArea.getText();
         if (text == null || text.isBlank()) return;
         FileChooser fc = new FileChooser();
-        fc.setTitle("Save TX WAV");
+        fc.setTitle(I18n.get("filechooser.save.wav"));
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("WAV (*.wav)", "*.wav"));
         fc.setInitialFileName(modeBox.getValue().name().toLowerCase() + "_tx.wav");
         File f = fc.showSaveDialog(stage);
@@ -862,10 +863,10 @@ public class MainWindow {
 
     private void showSetupDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("J-Digi Setup");
+        dialog.setTitle(I18n.get("setup.title"));
         dialog.setHeaderText(null);
 
-        ButtonType saveType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType saveType = new ButtonType(I18n.get("button.save"), ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveType, ButtonType.CANCEL);
 
         TextField hubField = new TextField(service.getHubUrl());
@@ -895,15 +896,15 @@ public class MainWindow {
         grid.setHgap(10); grid.setVgap(10);
         grid.setPadding(new Insets(10));
         int r = 0;
-        grid.add(new Label("Hub WebSocket URL:"), 0, r); grid.add(hubField,       1, r++);
-        grid.add(new Label("Audio Input:"),       0, r); grid.add(inputBox,       1, r++);
-        grid.add(new Label("Audio Output:"),      0, r); grid.add(outputBox,      1, r++);
-        grid.add(new Label("Font Size (px):"),    0, r); grid.add(fontSizeSpinner,1, r);
+        grid.add(new Label(I18n.get("setup.hub.url")),     0, r); grid.add(hubField,       1, r++);
+        grid.add(new Label(I18n.get("setup.audio.input")), 0, r); grid.add(inputBox,       1, r++);
+        grid.add(new Label(I18n.get("setup.audio.output")),0, r); grid.add(outputBox,      1, r++);
+        grid.add(new Label(I18n.get("setup.font.size")),   0, r); grid.add(fontSizeSpinner,1, r);
         hubField.setPrefWidth(360);
         inputBox.setPrefWidth(360);
         outputBox.setPrefWidth(360);
 
-        Label hint = new Label("Callsign and macros are managed in J-Hub → http://hub:8081");
+        Label hint = new Label(I18n.get("setup.hint"));
         hint.setStyle("-fx-font-style: italic; -fx-font-size: 0.85em;");
         hint.getStyleClass().add("jd-rx-sub");
 

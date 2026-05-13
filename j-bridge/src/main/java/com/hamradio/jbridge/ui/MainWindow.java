@@ -1,6 +1,7 @@
 package com.hamradio.jbridge.ui;
 
 import com.hamradio.jbridge.*;
+import com.hamradio.jbridge.i18n.I18n;
 import com.hamradio.jbridge.model.BandActivity;
 import com.hamradio.jbridge.model.WsjtxDecode;
 import com.hamradio.jbridge.model.WsjtxQsoLogged;
@@ -102,7 +103,7 @@ public class MainWindow {
     // ── Show ──────────────────────────────────────────────────────────────────
 
     public void show() {
-        primaryStage.setTitle("J-Bridge  |  ARS Suite");
+        primaryStage.setTitle(I18n.get("window.title"));
         scene = buildScene();
         scene.getRoot().getStyleClass().add(isDark ? "dark" : "light");
         // Apply font preferences from j-hub.json (global baseline + per-pane overrides)
@@ -139,9 +140,9 @@ public class MainWindow {
     private Scene buildScene() {
 
         // ── Toolbar ───────────────────────────────────────────────────────────
-        Label titleLbl = new Label("J-Bridge");
+        Label titleLbl = new Label(I18n.get("brand.title"));
         titleLbl.getStyleClass().add("jb-title");
-        Label subLbl = new Label("WSJT-X  ↔  j-Hub");
+        Label subLbl = new Label(I18n.get("brand.sub"));
         subLbl.getStyleClass().add("jb-sub");
         VBox titleBox = new VBox(1, titleLbl, subLbl);
 
@@ -174,20 +175,20 @@ public class MainWindow {
 
         themeBtn.getStyleClass().addAll("tb-btn");
         themeBtn.setText(isDark ? "☀" : "☾");
-        themeBtn.setTooltip(new Tooltip("Toggle light / dark theme"));
+        themeBtn.setTooltip(new Tooltip(I18n.get("tooltip.theme")));
         themeBtn.setOnAction(e -> toggleTheme());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button learnBtn = new Button("J-Learn");
+        Button learnBtn = new Button(I18n.get("button.learn"));
         learnBtn.setOnAction(e -> {
             try { new ProcessBuilder("xdg-open", "http://localhost:8081#learn").start(); }
             catch (Exception ex) { /* best-effort */ }
         });
 
         Button reportBtn = toolBtn("🐛 Report Issue");
-        reportBtn.setTooltip(new Tooltip("Open a pre-filled bug report on GitHub"));
+        reportBtn.setTooltip(new Tooltip(I18n.get("tooltip.report")));
         reportBtn.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
             "j-bridge", "1.0.15",
             System.getProperty("user.home", "") + "/.hamlog/logs/j-bridge.log"));
@@ -337,6 +338,9 @@ public class MainWindow {
         if (st.has("country")) {
             String c = st.get("country").getAsString();
             if (!c.equals(cfg.getOperatorCountry())) { cfg.setOperatorCountry(c); changed = true; }
+        }
+        if (st.has("language")) {
+            I18n.load(st.get("language").getAsString());
         }
         if (changed) {
             cfg.save();

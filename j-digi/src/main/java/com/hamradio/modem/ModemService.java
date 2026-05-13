@@ -121,6 +121,9 @@ public class ModemService implements HubMessageListener {
     private Consumer<String>        densityListener      = d -> {};
     /** Fires with the CONTEST_ACTIVE JsonObject when a j-log contest is loaded, or null for CONTEST_INACTIVE. */
     private Consumer<com.google.gson.JsonObject> contestListener = c -> {};
+    /** Fires with the language code ("en","es","de","fr","it","pt") whenever
+     *  j-hub delivers a station language — so the UI can re-render labels. */
+    private Consumer<String>        languageListener     = l -> {};
 
     private final List<HubMacro> macros = new ArrayList<>();
     private final List<HubSpot>  spots  = new ArrayList<>();
@@ -139,6 +142,8 @@ public class ModemService implements HubMessageListener {
     private volatile CountDownLatch connectLatch;
 
     public ModemService() {
+        // Start with English so any UI built before JHUB_WELCOME has labels.
+        com.hamradio.modem.i18n.I18n.load("en");
         status.setHubUrl(loadSavedHubUrl());
         status.setMode(loadSavedMode());
         status.setTxMode(status.getMode());
@@ -262,6 +267,7 @@ public class ModemService implements HubMessageListener {
     public void setFontsListener(Consumer<com.google.gson.JsonObject> l) { this.fontsListener = l != null ? l : f -> {}; }
     public void setDensityListener(Consumer<String> l)          { this.densityListener      = l != null ? l : d -> {}; }
     public void setContestListener(Consumer<com.google.gson.JsonObject> l) { this.contestListener = l != null ? l : c -> {}; }
+    public void setLanguageListener(Consumer<String> l)         { this.languageListener     = l != null ? l : x -> {}; }
 
     public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
     public List<HubSpot>  getSpots()     { return Collections.unmodifiableList(spots);  }
@@ -760,6 +766,11 @@ public class ModemService implements HubMessageListener {
             if (st.has("country")) {
                 PREFS.put(PREF_BANDPLAN_COUNTRY, st.get("country").getAsString());
             }
+            if (st.has("language")) {
+                String lang = st.get("language").getAsString();
+                com.hamradio.modem.i18n.I18n.load(lang);
+                languageListener.accept(lang);
+            }
             String tz = st.has("timezone") ? st.get("timezone").getAsString() : "UTC";
             stationListener.accept(new String[]{ getMyCall(), getMyGrid(), tz });
         }
@@ -999,7 +1010,7 @@ public class ModemService implements HubMessageListener {
             case "JHUB_WELCOME" -> {
                 // Extract global station config from j-hub so we don't need our own copy
                 applyStationFromHub(msg);
-                decodeListener.accept("Connected to J-Hub — station: " + getMyCall());
+                decodeListener.accept(com.hamradio.modem.i18n.I18n.get("status.connected", getMyCall()));
             }
 
             case "STATION_CONFIG" -> {

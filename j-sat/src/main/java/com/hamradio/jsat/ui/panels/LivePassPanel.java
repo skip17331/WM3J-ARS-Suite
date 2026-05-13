@@ -77,7 +77,7 @@ public class LivePassPanel extends VBox {
         countdownLabel = styledLabel("—",  "#445566", true,  fz + 3);
         passLine1Label = styledLabel("",   "#7799bb", false, fz - 1);
         passLine2Label = styledLabel("",   "#7799bb", false, fz - 1);
-        Label passHeader = styledLabel("PASS PREDICTION", "#334466", false, fz - 3);
+        Label passHeader = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.pass.prediction"), "#334466", false, fz - 3);
         passPredictionPane = new VBox(2, passHeader, countdownLabel, passLine1Label, passLine2Label);
         passPredictionPane.setStyle(cardStyle());
         passPredictionPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -86,7 +86,7 @@ public class LivePassPanel extends VBox {
         // ── Range / Rate (bottom-bar pane) ───────────────────────────────────
         rangeLabel = styledLabel("---", "#4fc3f7", true, fz + 3);
         rateLabel  = styledLabel("---", "#69f0ae", true, fz + 3);
-        Label rrHeader   = styledLabel("RANGE / RATE",   "#334466", false, fz - 3);
+        Label rrHeader   = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.range.rate"),   "#334466", false, fz - 3);
         Label rangeKey   = styledLabel("Range",  "#556688", false, fz - 3);
         Label rateKey    = styledLabel("Rate",   "#556688", false, fz - 3);
         VBox  rangeBlock = new VBox(1, rangeKey, rangeLabel);
@@ -139,7 +139,7 @@ public class LivePassPanel extends VBox {
 
     /** Returns the polar plot wrapped in a styled card that floats over the world map. */
     public VBox buildPolarCard(int fz) {
-        Label header = styledLabel("POLAR PLOT", "#334466", false, fz - 3);
+        Label header = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.polar.plot"), "#334466", false, fz - 3);
         VBox card = new VBox(4, header, polarCanvas);
         card.setAlignment(javafx.geometry.Pos.CENTER);
         card.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -320,9 +320,9 @@ public class LivePassPanel extends VBox {
     private void updateCountdown(SatelliteState state) {
         List<SatellitePass> passes = services.tracker.getPassesFor(state.name);
         if (passes == null || passes.isEmpty()) {
-            countdownLabel.setText("No pass data");
+            countdownLabel.setText(com.hamradio.jsat.i18n.I18n.get("pass.no.data"));
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
-            passLine1Label.setText("Prediction pending…");
+            passLine1Label.setText(com.hamradio.jsat.i18n.I18n.get("pass.prediction.pending"));
             passLine2Label.setText("");
             return;
         }
@@ -339,7 +339,7 @@ public class LivePassPanel extends VBox {
 
         if (active != null) {
             long secsLeft = active.los.getEpochSecond() - now.getEpochSecond();
-            countdownLabel.setText("LOS  " + formatCountdown(secsLeft));
+            countdownLabel.setText(com.hamradio.jsat.i18n.I18n.get("pass.los", formatCountdown(secsLeft)));
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 secsLeft < 60 ? "-fx-text-fill: #ff4444;" : "-fx-text-fill: #ff8844;"));
             passLine1Label.setText(String.format("Max El  %.0f°", active.maxElDeg));
@@ -347,14 +347,14 @@ public class LivePassPanel extends VBox {
                 active.aosAzDeg, active.losAzDeg));
         } else if (next != null) {
             long secsUntil = next.aos.getEpochSecond() - now.getEpochSecond();
-            countdownLabel.setText("AOS  " + formatCountdown(secsUntil));
+            countdownLabel.setText(com.hamradio.jsat.i18n.I18n.get("pass.aos", formatCountdown(secsUntil)));
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 secsUntil < 300 ? "-fx-text-fill: #69f0ae;" : "-fx-text-fill: #00b0ff;"));
             passLine1Label.setText(String.format("Max El  %.0f°", next.maxElDeg));
             passLine2Label.setText(String.format("AOS Az  %.0f°   Dur  %s",
                 next.aosAzDeg, formatCountdown(next.durationSeconds())));
         } else {
-            countdownLabel.setText("No upcoming pass");
+            countdownLabel.setText(com.hamradio.jsat.i18n.I18n.get("pass.none"));
             countdownLabel.setStyle(countdownLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;", "-fx-text-fill: #445566;"));
             passLine1Label.setText("");
             passLine2Label.setText("");

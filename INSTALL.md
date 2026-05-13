@@ -32,7 +32,7 @@ LAN.
 
 ---
 
-## Prerequisites (both platforms)
+## Prerequisites (all platforms)
 
 - **Java 21 or newer** (Temurin / OpenJDK / Zulu / Microsoft Build all fine)
 - **Maven 3.8 or newer**
@@ -272,6 +272,119 @@ Open <http://localhost:8081/> in your browser.
 J-Vault and J-Learn each have their own Start-Menu entries
 (**WM3J J-Vault**, **WM3J J-Learn**); from inside J-Hub you can also
 launch them via the corresponding tab's **Launch** button.
+
+---
+
+## macOS
+
+Tested on macOS 12 Monterey through 14 Sonoma, both Intel and
+Apple Silicon. There's a one-command bootstrap that handles the
+macOS-specific bits — JavaFX SDK download, arch detection, build,
+installer, Gatekeeper quarantine clearing — so the headline flow
+is short.
+
+### Quick path (recommended)
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"  # Homebrew, if needed
+brew install --cask temurin@21
+brew install maven git
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+./bootstrap-mac.sh
+open ~/Applications/WM3J\ J-Hub.app
+```
+
+Then open <http://localhost:8081/> in your browser.
+
+### What `bootstrap-mac.sh` does
+
+Six steps, all idempotent — re-running after a `git pull` is the
+upgrade path.
+
+1. **Prerequisites check.** Verifies `java` (≥ 21), `mvn`, `git`,
+   `curl`, `unzip` are on PATH. Tells you the brew command to
+   install whichever is missing.
+2. **Architecture detection + JavaFX SDK.** `uname -m` picks
+   `osx-aarch64` (Apple Silicon) or `osx-x64` (Intel). Downloads
+   the matching Gluon JavaFX 21.0.5 SDK to `~/.cache/ars-suite/`
+   (so subsequent runs skip the download), then copies its `lib/`
+   into every module that hard-codes `--module-path lib/javafx`
+   in its launcher: j-hub, j-log, j-map, j-digi, j-bridge, j-sat.
+3. **Engine + web-app install** to your local `~/.m2/` repo —
+   j-log-engine first, then j-learn and j-vault (which j-hub
+   launches as child processes).
+4. **Module package.** Builds j-hub, j-log, j-map, j-digi,
+   j-bridge, j-sat, morse-trainer with `mvn package -DskipTests`.
+5. **Installer.** Calls `./install.sh`, which detects macOS and
+   writes a `.app` bundle per module into `~/Applications/` (not
+   `/Applications/`, which needs `sudo`). Each bundle's
+   `Contents/MacOS/<name>` shell wrapper just `exec`s the
+   module's existing `*.sh` launcher, so future `git pull`
+   updates need no re-install.
+6. **Gatekeeper quarantine clear.** Runs `xattr -dr com.apple.quarantine`
+   on every installed bundle so first-time double-click works
+   without the right-click → Open dance.
+
+Bundle layout when it's done:
+
+```
+~/Applications/
+├── WM3J J-Hub.app/
+├── WM3J J-Log.app/
+├── WM3J J-Map.app/
+├── WM3J J-Digi.app/
+├── WM3J J-Bridge.app/
+├── WM3J J-Sat.app/
+├── WM3J J-Vault.app/
+├── WM3J J-Learn.app/
+└── WM3J Morse Trainer.app/
+```
+
+Per-module log output: `~/Library/Logs/ARS-Suite/<name>.log`. (Finder
+swallows stdout from `.app` bundles, so the launcher redirects there.)
+
+### Updating
+
+```bash
+cd ~/ARS_Suite
+git pull
+./bootstrap-mac.sh
+```
+
+The JavaFX SDK is cached so the second run is just build + install
+(faster). The installer is safe to re-run — it overwrites the bundle
+contents and leaves config, logs, and databases alone.
+
+### Optional: Hamlib and WSJT-X
+
+```bash
+brew install hamlib
+brew install --cask wsjtx
+```
+
+Both are optional. The suite runs without them; J-Hub's Dashboard
+has a re-check button after you install them.
+
+### Doing it by hand
+
+If `bootstrap-mac.sh` doesn't fit your needs (corporate proxy, mirror
+of Gluon, custom JDK location), the manual path is what the script
+does in pieces:
+
+1. `brew install --cask temurin@21 && brew install maven git`
+2. Download `openjfx-21.0.5_osx-aarch64_bin-sdk.zip` (Apple Silicon)
+   or `…_osx-x64_bin-sdk.zip` (Intel) from
+   <https://gluonhq.com/products/javafx/>; unzip and copy its `lib/`
+   into `j-hub/lib/javafx/`, `j-log/lib/javafx/`, `j-map/lib/javafx/`,
+   `j-digi/lib/javafx/`, `j-bridge/lib/javafx/`, `j-sat/lib/javafx/`.
+3. `mvn -DskipTests -f j-log-engine/pom.xml install`
+4. `mvn -DskipTests -f j-learn/pom.xml install`
+5. `mvn -DskipTests -f j-vault/pom.xml install`
+6. `mvn -DskipTests package` in each of the seven user-facing modules.
+7. `./install.sh`
+8. `xattr -dr com.apple.quarantine ~/Applications/WM3J\ *.app` to skip
+   the per-module Gatekeeper prompt on first launch.
 
 ---
 

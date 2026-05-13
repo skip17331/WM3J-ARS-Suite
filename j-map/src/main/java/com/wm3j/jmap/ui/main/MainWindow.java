@@ -62,7 +62,7 @@ public class MainWindow {
         });
 
         // Configure stage
-        stage.setTitle("j-Map — " + settings.getCallsign());
+        stage.setTitle(com.wm3j.jmap.i18n.I18n.get("window.title", settings.getCallsign()));
         stage.setScene(scene);
         stage.setFullScreenExitHint("F / F11: full screen  |  F1: J-Learn  |  Configure via J-Hub: http://" + services.getJHubHost() + ":8081");
 

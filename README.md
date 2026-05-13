@@ -109,6 +109,14 @@ connected module live — no restart, no per‑app duplicate config files.
 Modules cache the last‑known values locally so they can still run
 stand‑alone after a hub disconnect.
 
+### 🌐 Six languages, suite-wide
+
+UI strings across every module are translatable — English, Spanish,
+German, French, Italian, Portuguese. EN + ES ship embedded; the
+other four ride as drop-in `.properties` packs under `i18n-packs/`
+so native speakers can polish translations without rebuilding Java.
+See `i18n-packs/README.md` for details.
+
 ### 🎙 Macros that share state
 
 Every app uses the same macro engine. `{MYCALL}`, `{CALL}`, `{RST_S}`,
@@ -221,9 +229,34 @@ foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-traine
 
 Shortcuts land in the Start Menu under **ARS Suite**.
 
-> **macOS:** `brew install --cask temurin21 && brew install maven git`,
-> then the same source/build flow as Linux. See INSTALL.md for the
-> Gatekeeper note.
+### macOS
+
+```bash
+brew install --cask temurin@21
+brew install maven git
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+./bootstrap-mac.sh
+open ~/Applications/WM3J\ J-Hub.app
+```
+
+`bootstrap-mac.sh` is the macOS equivalent of `install.sh` — one
+command that:
+
+1. Detects Apple Silicon vs Intel.
+2. Downloads the matching macOS JavaFX 21 SDK (cached under
+   `~/.cache/ars-suite/` so re-runs are fast).
+3. Drops it into every module's `lib/javafx/`.
+4. Builds the engine, the web apps, and packages every module.
+5. Runs `install.sh`, which plants `.app` bundles in
+   `~/Applications/`.
+6. Clears the Gatekeeper quarantine bit on every bundle so first
+   double-click just works — no per-module right-click dance.
+
+Re-run `./bootstrap-mac.sh` after any `git pull` to refresh everything
+in one shot. Log output from each module goes to
+`~/Library/Logs/ARS-Suite/<module>.log` (Finder swallows stdout from
+`.app` bundles).
 
 ---
 

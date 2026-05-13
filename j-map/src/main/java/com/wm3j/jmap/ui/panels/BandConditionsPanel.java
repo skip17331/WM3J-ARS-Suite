@@ -35,7 +35,7 @@ public class BandConditionsPanel extends VBox {
         setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; " +
                  "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = new Label("📻  BAND CONDITIONS");
+        Label title = new Label(com.wm3j.jmap.i18n.I18n.get("panel.band.conditions"));
         title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #aabbdd; -fx-padding: 0 0 4 0;");
         getChildren().add(title);
 

@@ -46,13 +46,13 @@ public class TimePanel extends HBox {
         setPrefHeight(-1);
 
         // ── ID timer block (left) ──────────────────────────────────────────
-        Label timerIdLabel = new Label("ID TIMER");
+        Label timerIdLabel = new Label(com.wm3j.jmap.i18n.I18n.get("time.timer.id"));
         timerIdLabel.setStyle("-fx-font-size: 0.85em; -fx-font-weight: bold; -fx-text-fill: #888899;");
 
         timerTimeLabel = new Label("10:00");
         timerTimeLabel.setStyle("-fx-font-size: 2.15em; -fx-font-weight: bold; -fx-text-fill: #00cc66;");
 
-        timerStatusLabel = new Label("RUNNING");
+        timerStatusLabel = new Label(com.wm3j.jmap.i18n.I18n.get("time.timer.running"));
         timerStatusLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #666677;");
 
         timerBlock = new VBox(1);

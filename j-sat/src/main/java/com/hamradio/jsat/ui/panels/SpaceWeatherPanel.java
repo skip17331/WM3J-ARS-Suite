@@ -52,7 +52,7 @@ public class SpaceWeatherPanel extends HBox {
         swSpeedLabel = styledLabel("--- km/s",  "#ccd6f6", false, fz - 1);
         swDensLabel  = styledLabel("--- n/cm³", "#ccd6f6", false, fz - 1);
         bzLabel      = styledLabel("---",       "#ccd6f6", true,  fz - 1);
-        Label windHead = styledLabel("SOLAR WIND", "#556688", false, fz - 3);
+        Label windHead = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.solar.wind"), "#556688", false, fz - 3);
         VBox col2 = col(windHead,
             row("Speed",   swSpeedLabel, fz),
             row("Density", swDensLabel,  fz),
@@ -62,7 +62,7 @@ public class SpaceWeatherPanel extends HBox {
         xrayLabel    = styledLabel("---",     "#44cc44", true,  fz - 1);
         protonLabel  = styledLabel("--- pfu", "#ccd6f6", false, fz - 1);
         updatedLabel = styledLabel("",        "#445566", false, fz - 3);
-        Label actHead = styledLabel("ACTIVITY", "#556688", false, fz - 3);
+        Label actHead = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.activity"), "#556688", false, fz - 3);
         VBox col3 = col(actHead,
             row("X-Ray",   xrayLabel,   fz),
             row("Protons", protonLabel, fz),

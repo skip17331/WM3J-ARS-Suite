@@ -244,8 +244,12 @@ public class DxClusterClient {
 
             } else if ("JHUB_WELCOME".equals(type) || "STATION_CONFIG".equals(type)) {
                 JsonNode st = node.path("station");
-                if (!st.isMissingNode() && stationListener != null) {
-                    stationListener.accept(st);
+                if (!st.isMissingNode()) {
+                    JsonNode lang = st.path("language");
+                    if (!lang.isMissingNode() && !lang.asText("").isBlank()) {
+                        com.wm3j.jmap.i18n.I18n.load(lang.asText());
+                    }
+                    if (stationListener != null) stationListener.accept(st);
                 }
 
             } else if ("JMAP_CONFIG".equals(type)) {

@@ -141,14 +141,16 @@ settled.
 
 ## Active in Phase 3
 
-- **Per-module UI i18n** — j-log already has 6-language coverage
-  (en/de/es/fr/it/pt) and j-learn's chrome was localised 2026-05-12,
-  but J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, and Morse Trainer
-  still ship English-only UI. The work is mechanical (extract
-  strings, bundle them, swap labels for `I18n.get(...)` calls) but
-  spans every module. Highest-leverage targets first: J-Digi
-  (operator-facing during QSOs) and J-Map (operator-facing
-  during DX chasing).
+- ~~**Per-module UI i18n**~~ ✅ shipped 2026-05-12 — every module now
+  reads the operator's chosen language. **EN + ES embedded** in each
+  jar; **DE / FR / IT / PT** ship as drop-in `.properties` packs at
+  `i18n-packs/<module>/` in the repo (copy to
+  `~/.j-hub/lang/<module>/` to activate). Per-module `I18n.java`
+  helper, hot-swap on `JHUB_WELCOME` / `STATION_CONFIG`. j-vault is
+  web-only and uses an `i18n.js` clone of the j-learn pattern. This
+  pack-based approach keeps the jars small (~50 keys per language)
+  while letting native speakers contribute corrections by editing
+  one `.properties` file — no rebuild required.
 
 ## Continuous (no phase, runs forever)
 

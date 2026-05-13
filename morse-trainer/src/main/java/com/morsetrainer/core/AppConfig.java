@@ -54,6 +54,9 @@ public class AppConfig {
     public String sessionLogDir = "logs";
     public boolean autoExportSessions = true;
 
+    // --- Localisation ---
+    public String language = "en";  // en | es | de | fr | it | pt
+
     // ------------------------------------------------------------------
 
     private static AppConfig instance;

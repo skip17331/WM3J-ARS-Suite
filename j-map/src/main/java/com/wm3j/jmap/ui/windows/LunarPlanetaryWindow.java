@@ -36,7 +36,7 @@ public class LunarPlanetaryWindow extends FloatingWindow {
         this.services = services;
 
         // Moon section header
-        Label moonHeader = new Label("MOON");
+        Label moonHeader = new Label(com.wm3j.jmap.i18n.I18n.get("lunar.moon"));
         moonHeader.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #ffd700; "
                           + "-fx-padding: 0 0 2 0;");
         contentBox.getChildren().add(moonHeader);
@@ -54,7 +54,7 @@ public class LunarPlanetaryWindow extends FloatingWindow {
         contentBox.getChildren().add(moonAzAltLabel);
 
         // Planets section header
-        Label planetsHeader = new Label("PLANETS");
+        Label planetsHeader = new Label(com.wm3j.jmap.i18n.I18n.get("lunar.planets"));
         planetsHeader.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #ffd700; "
                              + "-fx-padding: 4 0 2 0;");
         contentBox.getChildren().add(planetsHeader);

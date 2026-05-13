@@ -54,7 +54,7 @@ public class SolarDataPanel extends VBox {
         setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
                + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = new Label("☀  SOLAR & SPACE WEATHER");
+        Label title = new Label(com.wm3j.jmap.i18n.I18n.get("panel.solar"));
         title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #aabbdd; -fx-padding: 0 0 4 0;");
         getChildren().add(title);
 
@@ -85,7 +85,7 @@ public class SolarDataPanel extends VBox {
         getChildren().add(grid);
 
         // ── Solar wind section ─────────────────────────────────
-        Label swTitle = new Label("SOLAR WIND  (DSCOVR)");
+        Label swTitle = new Label(com.wm3j.jmap.i18n.I18n.get("panel.solar.wind"));
         swTitle.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #556688; -fx-padding: 4 0 1 0;");
         getChildren().add(swTitle);
 
@@ -114,7 +114,7 @@ public class SolarDataPanel extends VBox {
         protonGrid.setPadding(new Insets(4, 0, 2, 0));
 
         protonLabel = dataValue("---");
-        Label protonEvent = new Label("NOMINAL");
+        Label protonEvent = new Label(com.wm3j.jmap.i18n.I18n.get("dx.proton.nominal"));
         protonEvent.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #44cc44;");
 
         protonGrid.add(dataKey("Proton"), 0, 0); protonGrid.add(protonLabel, 1, 0);
@@ -123,7 +123,7 @@ public class SolarDataPanel extends VBox {
 
         // ── Sunspot graphic ────────────────────────────────────
         if (services.getSettings().isShowSunspotGraphic()) {
-            Label ssTitle2 = new Label("SUNSPOT ACTIVITY");
+            Label ssTitle2 = new Label(com.wm3j.jmap.i18n.I18n.get("panel.sunspots"));
             ssTitle2.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #556688; -fx-padding: 4 0 1 0;");
             sunspotCanvas = new Canvas(SUNSPOT_W, SUNSPOT_H);
             getChildren().addAll(ssTitle2, sunspotCanvas);
@@ -131,7 +131,7 @@ public class SolarDataPanel extends VBox {
             sunspotCanvas = new Canvas(0, 0);
         }
 
-        lastUpdatedLabel = new Label("last update: --");
+        lastUpdatedLabel = new Label(com.wm3j.jmap.i18n.I18n.get("dx.last.updated"));
         lastUpdatedLabel.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #444466;");
         getChildren().add(lastUpdatedLabel);
 

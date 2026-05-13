@@ -61,6 +61,7 @@ public class JBridgeMain extends Application {
         ConfigManager cfg = ConfigManager.getInstance();
         LoggingConfigurator.configure(false); // start INFO; user can enable debug later
         cfg.load();
+        com.hamradio.jbridge.i18n.I18n.load("en"); // base; JHUB_WELCOME may swap
         launchedByHub = getParameters().getRaw().contains("--launched-by-hub");
         log.info("=== J-Bridge v1.0.0 starting  [WM3j ARS Suite] ===");
         if (launchedByHub) {

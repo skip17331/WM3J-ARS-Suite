@@ -50,6 +50,7 @@ public class JSatApp extends Application {
     @Override
     public void init() throws Exception {
         CrashHandler.install("J-Sat");
+        com.hamradio.jsat.i18n.I18n.load("en"); // JHUB_WELCOME may swap
         log.info("=== J-Sat starting [WM3J ARS Suite] ===");
 
         List<String> raw = getParameters().getRaw();
