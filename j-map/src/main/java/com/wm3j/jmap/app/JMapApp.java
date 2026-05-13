@@ -49,6 +49,7 @@ public class JMapApp extends Application {
     @Override
     public void init() throws Exception {
         CrashHandler.install("J-Map");
+        com.wm3j.jmap.i18n.I18n.load("en"); // base; JMAP_CONFIG / station.language may swap
         log.info("=== J-Map starting [WM3J ARS Suite] — headless mode ===");
 
         List<String> raw = getParameters().getRaw();

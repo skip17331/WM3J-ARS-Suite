@@ -44,7 +44,7 @@ public class HubStatusBar extends HBox {
         dot = new Label("●");
         dot.setStyle("-fx-text-fill: #ff4455; -fx-font-size: 11px;");
 
-        text = new Label("Disconnected from j-hub");
+        text = new Label(com.wm3j.jmap.i18n.I18n.get("hub.disconnected"));
         text.setStyle("-fx-text-fill: #ffd0d4; -fx-font-size: 12px; -fx-font-weight: 600;");
 
         getChildren().addAll(dot, text);
@@ -64,7 +64,8 @@ public class HubStatusBar extends HBox {
             String human = secs < 60
                 ? secs + "s"
                 : (secs / 60) + "m " + (secs % 60) + "s";
-            text.setText("Disconnected from j-hub" + (url != null ? " (" + url + ")" : "")
+            text.setText(com.wm3j.jmap.i18n.I18n.get("hub.disconnected")
+                       + (url != null ? " (" + url + ")" : "")
                        + " — " + human);
         }
         if (isVisible() != down) {

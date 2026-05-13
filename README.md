@@ -109,6 +109,14 @@ connected module live — no restart, no per‑app duplicate config files.
 Modules cache the last‑known values locally so they can still run
 stand‑alone after a hub disconnect.
 
+### 🌐 Six languages, suite-wide
+
+UI strings across every module are translatable — English, Spanish,
+German, French, Italian, Portuguese. EN + ES ship embedded; the
+other four ride as drop-in `.properties` packs under `i18n-packs/`
+so native speakers can polish translations without rebuilding Java.
+See `i18n-packs/README.md` for details.
+
 ### 🎙 Macros that share state
 
 Every app uses the same macro engine. `{MYCALL}`, `{CALL}`, `{RST_S}`,

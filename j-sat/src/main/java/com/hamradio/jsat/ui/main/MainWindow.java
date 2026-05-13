@@ -46,7 +46,7 @@ public class MainWindow {
         });
 
         String cs = services.getSettings().callsign;
-        stage.setTitle("J-Sat — " + cs + " — Amateur Satellite Tracking");
+        stage.setTitle(com.hamradio.jsat.i18n.I18n.get("window.title", cs));
         stage.setScene(scene);
         stage.setFullScreenExitHint("F / F11: toggle fullscreen  |  F1: J-Learn  |  F2: Report Issue  |  Configure via J-Hub");
 

@@ -60,31 +60,31 @@ public class RigRotorPanel extends HBox {
 
         // ── Rig ──────────────────────────────────────────────────────────────
         if (!services.getSettings().rigControlEnabled) {
-            rigStatusLabel.setText("Doppler: DISABLED");
+            rigStatusLabel.setText(com.hamradio.jsat.i18n.I18n.get("rig.doppler.disabled"));
             rigStatusLabel.setStyle(rigStatusLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 "-fx-text-fill: #445566;"));
             rigFreqLabel.setText("---");
         } else {
             String rigSt = hubConn ? "● Via J-Hub" : "○ J-Hub offline";
-            rigStatusLabel.setText("Doppler: " + rigSt);
+            rigStatusLabel.setText(com.hamradio.jsat.i18n.I18n.get("rig.doppler", rigSt));
             rigStatusLabel.setStyle(rigStatusLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 "-fx-text-fill: " + (hubConn ? "#44cc44" : "#ff8844") + ";"));
             long hz = services.hubRigFreqHz;
             rigFreqLabel.setText(hz > 0
                 ? String.format("%.3f MHz", hz / 1e6)
-                : "Awaiting rig data");
+                : com.hamradio.jsat.i18n.I18n.get("rig.awaiting"));
         }
 
         // ── Rotor ─────────────────────────────────────────────────────────────
         if (!services.getSettings().rotorControlEnabled) {
-            rotorStatusLabel.setText("Rotor: DISABLED");
+            rotorStatusLabel.setText(com.hamradio.jsat.i18n.I18n.get("rotor.disabled"));
             rotorStatusLabel.setStyle(rotorStatusLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 "-fx-text-fill: #445566;"));
             rotorPosLabel.setText("---");
             rotorTargetLabel.setText("---");
         } else {
             String rotSt = hubConn ? "● Via J-Hub" : "○ J-Hub offline";
-            rotorStatusLabel.setText("Rotor: " + rotSt);
+            rotorStatusLabel.setText(com.hamradio.jsat.i18n.I18n.get("rotor.label", rotSt));
             rotorStatusLabel.setStyle(rotorStatusLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
                 "-fx-text-fill: " + (hubConn ? "#44cc44" : "#ff8844") + ";"));
             rotorPosLabel.setText(String.format("AZ %.0f°  EL %.0f°",
@@ -98,7 +98,7 @@ public class RigRotorPanel extends HBox {
                     services.hubRotorAz, services.hubRotorEl,
                     sel.azimuthDeg, sel.elevationDeg);
             } else {
-                rotorTargetLabel.setText("No satellite visible");
+                rotorTargetLabel.setText(com.hamradio.jsat.i18n.I18n.get("rotor.no.satellite"));
                 drawCompassWithPointer(compassCanvas.getGraphicsContext2D(),
                     services.hubRotorAz, services.hubRotorEl, -1, -1);
             }

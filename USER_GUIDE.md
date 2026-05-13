@@ -284,15 +284,34 @@ Plus QTH, grid, lat/lon, timezone, ARRL section, CQ/ITU zones, display
 language (en / de / es / fr / it / pt). All of these propagate to every
 module on next start (or live if the module supports it).
 
-> **What "Language" covers today.** J-Log honors the choice fully — every
-> menu, label, button, and status string is translated through the bundle
-> at `j-log-engine/src/main/resources/com/jlog/i18n/messages_<lang>.properties`.
-> J-Learn's UI chrome (search box, theme picker, top-bar buttons) is
-> translated; the ~200 chapters of body content remain English-only —
-> translating that is a content-team effort, not a code task. The other
-> JavaFX modules (J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, Morse Trainer)
-> do not have UI i18n infrastructure yet and display English regardless
-> of the chosen language — see the roadmap for the planned rollout.
+> **What "Language" covers today.**
+>
+> - **English + Spanish ship embedded** in every module's jar (or
+>   `i18n.js` for web modules). Selecting `en` or `es` works out of
+>   the box on a fresh install.
+> - **German, French, Italian, Portuguese** ship as drop-in language
+>   packs at `i18n-packs/<module>/messages_<lang>.properties` in the
+>   repo. Activate by copying the relevant pack to
+>   `~/.j-hub/lang/<module>/` (e.g. `~/.j-hub/lang/j-digi/messages_de.properties`).
+>   The module will pick it up on the next launch — or live if it's
+>   listening for `JHUB_WELCOME` / `STATION_CONFIG`.
+> - **J-Log** has the deepest coverage (every menu, label, button, and
+>   status string — 6 bundles, ~163 keys each).
+> - **J-Digi, J-Bridge, J-Map, J-Sat, Morse Trainer** translate the
+>   top-level UI surfaces (menus, buttons, panel headings, status
+>   messages, dialog titles). Strings deep inside dialogs may still
+>   appear in English until reported and added to the bundles.
+> - **J-Learn** translates its UI chrome (search box, theme picker,
+>   top-bar buttons); the ~200 chapters of body content remain
+>   English-only — translating that is a content-team effort.
+> - **J-Vault** translates its top header, equipment-card heading,
+>   and filter dropdowns via `web/i18n.js`. Operator-written equipment
+>   names and notes stay in whatever language they were typed in.
+>
+> All translations except English are machine-translated and would
+> benefit from a native-speaker pass. Corrections only require editing
+> the relevant `.properties` file — no Java rebuild needed for the
+> external packs.
 
 Under **Regional Settings**, set your **IARU Region** (R1 Europe/Africa,
 R2 Americas, R3 Asia/Oceania) and optionally a **Country Overlay** (US

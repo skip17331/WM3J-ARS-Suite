@@ -218,8 +218,13 @@ public class JHubClient {
                         case "JHUB_WELCOME"  -> {
                             log.info("J-Hub welcomed J-Sat");
                             JsonNode st = msg.path("station");
-                            if (!st.isMissingNode() && onStationUpdate != null)
-                                onStationUpdate.accept(st);
+                            if (!st.isMissingNode()) {
+                                JsonNode lang = st.path("language");
+                                if (!lang.isMissingNode() && !lang.asText("").isBlank()) {
+                                    com.hamradio.jsat.i18n.I18n.load(lang.asText());
+                                }
+                                if (onStationUpdate != null) onStationUpdate.accept(st);
+                            }
                         }
                         default -> {}
                     }

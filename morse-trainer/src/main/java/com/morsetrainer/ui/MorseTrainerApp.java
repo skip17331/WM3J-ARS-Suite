@@ -16,6 +16,7 @@ public class MorseTrainerApp extends Application {
     @Override
     public void start(Stage stage) {
         AppConfig cfg = AppConfig.get();
+        com.morsetrainer.i18n.I18n.load(cfg.language);
         Logger.setLevel(Logger.Level.INFO);
         tone = new ToneGenerator(cfg);
         player = new MorsePlayer(tone, cfg);

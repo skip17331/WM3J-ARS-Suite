@@ -102,13 +102,13 @@ public class EmePanel extends VBox {
                     now, Duration.ofHours(24), s.minPassElevationDeg);
                 if (w != null) {
                     long mins = w.duration().toMinutes();
-                    windowLbl.setText(String.format("Next window with %s:  %s – %s UTC  (%dh %02dm)",
+                    windowLbl.setText(com.hamradio.jsat.i18n.I18n.get("eme.window.next",
                         dxGrid.toUpperCase(),
                         HMS_UTC.format(w.startUtc),
                         HMS_UTC.format(w.endUtc),
                         mins / 60, mins % 60));
                 } else {
-                    windowLbl.setText("No common window with " + dxGrid.toUpperCase() + " in next 24h");
+                    windowLbl.setText(com.hamradio.jsat.i18n.I18n.get("eme.window.none", dxGrid.toUpperCase()));
                 }
             } else {
                 windowLbl.setText("");
@@ -117,9 +117,9 @@ public class EmePanel extends VBox {
             // Moon below the horizon — show next moonrise
             Instant rise = nextMoonriseFromNow(s.qthLat, s.qthLon, now, s.minPassElevationDeg);
             if (rise != null) {
-                windowLbl.setText("Moon below horizon — next rise " + HMS_UTC.format(rise) + " UTC");
+                windowLbl.setText(com.hamradio.jsat.i18n.I18n.get("eme.moon.below.rise", HMS_UTC.format(rise)));
             } else {
-                windowLbl.setText("Moon below horizon");
+                windowLbl.setText(com.hamradio.jsat.i18n.I18n.get("eme.moon.below"));
             }
         } else {
             windowLbl.setText("");
