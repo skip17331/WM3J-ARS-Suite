@@ -13,5 +13,5 @@ java \
     --module-path "$SCRIPT_DIR/lib/javafx" \
     --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.media,javafx.web \
     -Dfile.encoding=UTF-8 \
-    -jar "$SCRIPT_DIR/target/j-map-1.0.27-fat.jar" \
+    -jar "$SCRIPT_DIR/target/j-map-1.0.28-fat.jar" \
     "$@"

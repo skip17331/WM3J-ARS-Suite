@@ -140,6 +140,21 @@ public class ServiceRegistry {
                 updated.setArrlSection(this.settings.getArrlSection());
                 updated.setCqZone(this.settings.getCqZone());
                 updated.setItuZone(this.settings.getItuZone());
+                // Preserve local UI state: floating-window positions are
+                // operator-owned and j-hub doesn't manage them. Without
+                // this, the user's hand-placed windows snap back to
+                // defaults every time j-hub broadcasts a JMAP_CONFIG
+                // (which happens on every connect + any web-UI save).
+                updated.setDxWindowX(this.settings.getDxWindowX());
+                updated.setDxWindowY(this.settings.getDxWindowY());
+                updated.setDeWindowX(this.settings.getDeWindowX());
+                updated.setDeWindowY(this.settings.getDeWindowY());
+                updated.setLunarWindowX(this.settings.getLunarWindowX());
+                updated.setLunarWindowY(this.settings.getLunarWindowY());
+                updated.setPropagationModelWindowX(this.settings.getPropagationModelWindowX());
+                updated.setPropagationModelWindowY(this.settings.getPropagationModelWindowY());
+                updated.setContestListX(this.settings.getContestListX());
+                updated.setContestListY(this.settings.getContestListY());
                 String prevMapStyle = this.settings.getMapStyle();
                 this.settings = updated;
                 onSettingsChanged(updated);
