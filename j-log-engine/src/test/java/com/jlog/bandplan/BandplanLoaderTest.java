@@ -14,14 +14,57 @@ class BandplanLoaderTest {
 
     @Test
     void regionAndCountryBothPopulated() {
+        Bandplan r1 = BandplanLoader.getInstance().region("IARU-R1");
         Bandplan r2 = BandplanLoader.getInstance().region("IARU-R2");
+        Bandplan r3 = BandplanLoader.getInstance().region("IARU-R3");
         Bandplan us = BandplanLoader.getInstance().country("US");
+        assertNotNull(r1);
         assertNotNull(r2);
+        assertNotNull(r3);
         assertNotNull(us);
-        assertTrue(r2.bands().size() >= 13,
-            "IARU R2 plan should cover all HF + V/UHF bands: " + r2.bands().size());
+        for (Bandplan p : new Bandplan[]{r1, r2, r3}) {
+            assertTrue(p.bands().size() >= 11,
+                p.id() + " should cover at least 11 amateur bands: " + p.bands().size());
+        }
+        assertEquals(3, BandplanLoader.getInstance().regionIds().size());
         assertTrue(us.bands().size() >= 5,
             "US overlay should cover at least the main HF subbands: " + us.bands().size());
+    }
+
+    @Test
+    void r1FortyEndsAt7200() {
+        Bandplan r1 = BandplanLoader.getInstance().region("IARU-R1");
+        BandRange forty = r1.band("40m");
+        assertNotNull(forty);
+        assertEquals(7_200_000L, forty.upperHz(),
+            "R1 40m allocation is 7.0-7.2 MHz, not 7.3");
+        // 7.250 should be out of band in R1.
+        assertNull(r1.segmentAt(7_250_000L));
+        // ...but in band in R2/R3.
+        assertNotNull(BandplanLoader.getInstance().region("IARU-R2").segmentAt(7_250_000L));
+        assertNotNull(BandplanLoader.getInstance().region("IARU-R3").segmentAt(7_250_000L));
+    }
+
+    @Test
+    void r1TwoMeterEndsAt146() {
+        Bandplan r1 = BandplanLoader.getInstance().region("IARU-R1");
+        // R1 2m is 144-146 MHz; 147.000 is out of band.
+        assertNull(r1.segmentAt(147_000_000L));
+        // R2 / R3 2m goes to 148 MHz.
+        assertNotNull(BandplanLoader.getInstance().region("IARU-R2").segmentAt(147_000_000L));
+        assertNotNull(BandplanLoader.getInstance().region("IARU-R3").segmentAt(147_000_000L));
+    }
+
+    @Test
+    void ft8DialIsDataInEveryRegion() {
+        // 14.074 MHz is the global FT8 dial — should land in a DATA segment
+        // regardless of region.
+        for (String id : new String[]{"IARU-R1", "IARU-R2", "IARU-R3"}) {
+            BandSegment s = BandplanLoader.getInstance().region(id).segmentAt(14_074_000L);
+            assertNotNull(s, id + " is missing a 14.074 segment");
+            assertEquals(Activity.DATA, s.activity(),
+                id + " should classify 14.074 as DATA, got " + s);
+        }
     }
 
     @Test
