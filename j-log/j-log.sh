@@ -12,5 +12,5 @@ java \
     --module-path "$SCRIPT_DIR/lib/javafx" \
     --add-modules javafx.controls,javafx.fxml,javafx.media \
     -Dfile.encoding=UTF-8 \
-    -jar "$SCRIPT_DIR/target/j-log-1.0.0-shaded.jar" \
+    -jar "$SCRIPT_DIR/target/j-log-1.0.50-shaded.jar" \
     "$@"

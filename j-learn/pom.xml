@@ -6,7 +6,7 @@
 
     <groupId>com.hamradio.jlearn</groupId>
     <artifactId>j-learn</artifactId>
-    <version>1.1.0</version>
+    <version>1.0.43</version>
     <packaging>jar</packaging>
     <name>J-Learn</name>
     <description>WM3J ARS Suite — standalone amateur radio learning and reference library</description>
@@ -76,7 +76,7 @@
                 <version>3.2.5</version>
             </plugin>
 
-            <!-- Shaded jar for `java -jar j-learn-1.1.0.jar` standalone use. -->
+            <!-- Shaded jar for `java -jar j-learn-1.0.43.jar` standalone use. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

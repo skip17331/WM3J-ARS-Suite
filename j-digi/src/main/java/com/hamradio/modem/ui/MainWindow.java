@@ -277,7 +277,7 @@ public class MainWindow {
         learnItem.setOnAction(e -> openJLearn());
         MenuItem reportItem = new MenuItem("Report an Issue…");
         reportItem.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
-            "j-digi", "0.2.0",
+            "j-digi", "1.0.36",
             System.getProperty("user.home", "") + "/ARS_Suite/j-digi/logs/j-digi.log"));
         helpMenu.getItems().addAll(learnItem, new SeparatorMenuItem(), reportItem);
 

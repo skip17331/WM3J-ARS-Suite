@@ -80,7 +80,7 @@ public class AdifExporter {
             pw.println("j-Log ADIF Export");
             adifField(pw, "ADIF_VER",      "3.1.0"); pw.println();
             adifField(pw, "PROGRAMID",     "j-Log"); pw.println();
-            adifField(pw, "PROGRAMVERSION","1.0.0"); pw.println();
+            adifField(pw, "PROGRAMVERSION","1.0.40"); pw.println();
             pw.println("<EOH>");
             pw.println();
 

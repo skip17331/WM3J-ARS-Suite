@@ -116,7 +116,7 @@ public class HubClient {
                     JsonObject reg = new JsonObject();
                     reg.addProperty("type",    "APP_CONNECTED");
                     reg.addProperty("appName", "jBridge");
-                    reg.addProperty("version", "1.0.0");
+                    reg.addProperty("version", "1.0.15");
                     send(reg.toString());
                     startHeartbeat();
                     if (onConnectionChange != null) onConnectionChange.accept(true, connectingTo);

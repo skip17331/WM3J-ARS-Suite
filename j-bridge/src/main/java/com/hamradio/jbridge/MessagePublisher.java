@@ -49,7 +49,7 @@ public class MessagePublisher {
         JsonObject msg = new JsonObject();
         msg.addProperty("type",    "APP_CONNECTED");
         msg.addProperty("appName", "jBridge");
-        msg.addProperty("version", "1.0.0");
+        msg.addProperty("version", "1.0.15");
         send(msg);
     }
 

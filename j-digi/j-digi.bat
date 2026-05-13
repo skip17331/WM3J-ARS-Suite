@@ -2,5 +2,5 @@
 setlocal
 set "SCRIPT_DIR=%~dp0"
 set "JAVAFX=%SCRIPT_DIR%lib\javafx"
-java --module-path "%JAVAFX%" --add-modules javafx.controls,javafx.fxml -Dfile.encoding=UTF-8 -jar "%SCRIPT_DIR%target\j-digi-0.2.0-jar-with-dependencies.jar" %*
+java --module-path "%JAVAFX%" --add-modules javafx.controls,javafx.fxml -Dfile.encoding=UTF-8 -jar "%SCRIPT_DIR%target\j-digi-1.0.36-jar-with-dependencies.jar" %*
 endlocal

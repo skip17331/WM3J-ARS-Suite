@@ -4,7 +4,7 @@
   <groupId>com.jlog</groupId>
   <artifactId>j-log</artifactId>
   <name>j-Log</name>
-  <version>1.0.0</version>
+  <version>1.0.50</version>
   <build>
     <plugins>
       <plugin>
