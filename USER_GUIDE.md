@@ -281,8 +281,18 @@ Operator identity. Two rows:
   multi-op stations); leave blank to default to operator name.
 
 Plus QTH, grid, lat/lon, timezone, ARRL section, CQ/ITU zones, display
-language (en / de / es / fr / it). All of these propagate to every module
-on next start (or live if the module supports it).
+language (en / de / es / fr / it / pt). All of these propagate to every
+module on next start (or live if the module supports it).
+
+> **What "Language" covers today.** J-Log honors the choice fully — every
+> menu, label, button, and status string is translated through the bundle
+> at `j-log-engine/src/main/resources/com/jlog/i18n/messages_<lang>.properties`.
+> J-Learn's UI chrome (search box, theme picker, top-bar buttons) is
+> translated; the ~200 chapters of body content remain English-only —
+> translating that is a content-team effort, not a code task. The other
+> JavaFX modules (J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, Morse Trainer)
+> do not have UI i18n infrastructure yet and display English regardless
+> of the chosen language — see the roadmap for the planned rollout.
 
 Under **Regional Settings**, set your **IARU Region** (R1 Europe/Africa,
 R2 Americas, R3 Asia/Oceania) and optionally a **Country Overlay** (US

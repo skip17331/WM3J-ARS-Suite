@@ -139,6 +139,17 @@ settled.
   the ~80% of EME-curious operators who want Doppler + moon windows but
   aren't building a polarisation tracker.
 
+## Active in Phase 3
+
+- **Per-module UI i18n** — j-log already has 6-language coverage
+  (en/de/es/fr/it/pt) and j-learn's chrome was localised 2026-05-12,
+  but J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, and Morse Trainer
+  still ship English-only UI. The work is mechanical (extract
+  strings, bundle them, swap labels for `I18n.get(...)` calls) but
+  spans every module. Highest-leverage targets first: J-Digi
+  (operator-facing during QSOs) and J-Map (operator-facing
+  during DX chasing).
+
 ## Continuous (no phase, runs forever)
 
 - **Per-release UI polish.** Each release picks one module and does a
