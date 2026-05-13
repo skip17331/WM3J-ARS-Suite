@@ -85,6 +85,14 @@ public class ModemService implements HubMessageListener {
      *  j-hub J-Digi tab → "Local CW Skimmer" card. */
     private final com.hamradio.modem.dsp.LocalSkimmer localSkimmer =
             new com.hamradio.modem.dsp.LocalSkimmer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
+    /** Phase A multi-channel CW decoder — runs one {@code CwMode} per
+     *  skimmer-detected carrier. Phase B/C will add callsign extraction
+     *  and SPOT emission on top. */
+    private final com.hamradio.modem.dsp.MultiCarrierDecoder multiCarrierDecoder =
+            new com.hamradio.modem.dsp.MultiCarrierDecoder(AudioEngine.SAMPLE_RATE);
+    /** Latest skimmer snapshot, refreshed every audio frame so the
+     *  multi-channel decoder can drive its lifecycle off it. */
+    private volatile com.hamradio.modem.dsp.LocalSkimmer.Snapshot lastSkimmerSnapshot;
     /** Rate-limit skimmer broadcasts — the audio frame rate is ~31 Hz
      *  but downstream consumers don't need that. 1 Hz is plenty. */
     private long lastSkimmerBroadcastMs = 0L;
@@ -171,7 +179,10 @@ public class ModemService implements HubMessageListener {
         // Honor the saved local-skimmer toggle so the operator's choice
         // survives restarts.
         localSkimmer.setEnabled(PREFS.getBoolean(PREF_LOCAL_SKIMMER, false));
-        localSkimmer.setListener(this::publishLocalSkimmer);
+        localSkimmer.setListener(snap -> {
+            lastSkimmerSnapshot = snap;         // freshest snapshot, every frame
+            publishLocalSkimmer(snap);          // rate-limited WS broadcast
+        });
     }
 
     /**
@@ -372,7 +383,7 @@ public class ModemService implements HubMessageListener {
         fireStatus();
 
         connectLatch = new CountDownLatch(1);
-        hubClient = new HubClient(new URI(trimmed), "j-digi", "1.0.38", this);
+        hubClient = new HubClient(new URI(trimmed), "j-digi", "1.0.39", this);
         hubClient.connect();
 
         boolean connected = connectLatch.await(CONNECT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -850,6 +861,15 @@ public class ModemService implements HubMessageListener {
 
             // Hand the spectrum to the local skimmer (no-op when disabled)
             localSkimmer.process(result.magnitudes());
+
+            // Phase A multi-channel CW decode: feed every active channel
+            // this audio frame. Cheap (one biquad per channel × 256 samples
+            // per frame) and a no-op if the skimmer is disabled or there
+            // aren't any detected peaks yet.
+            if (localSkimmer.isEnabled()) {
+                multiCarrierDecoder.processFrame(samples, lastSkimmerSnapshot,
+                                                 status.getRigFrequencyHz());
+            }
 
             SignalSnapshot snapshot = new SignalSnapshot(
                     samples,

@@ -133,6 +133,12 @@ public class CwMode implements DigitalMode {
      *  audio offset is captured, narrows once a carrier locks. */
     private double afcMaxJumpHz = AFC_WIDE_JUMP_HZ;
 
+    /** When true, {@link #afcUpdate(double)} is a no-op and the carrier
+     *  stays where {@link #setLockedCarrier(double)} put it. Used by
+     *  {@code MultiCarrierDecoder} to run one CwMode per skimmer-detected
+     *  channel without each decoder fighting the others for the spectrum. */
+    private boolean afcLocked = false;
+
     // ── Text output ───────────────────────────────────────────────────
     private final StringBuilder pending = new StringBuilder();
 
@@ -147,6 +153,30 @@ public class CwMode implements DigitalMode {
     @Override
     public String getName() {
         return "CW";
+    }
+
+    /**
+     * Pin this decoder to a specific carrier frequency and disable AFC.
+     *
+     * Used by {@code MultiCarrierDecoder} so each per-channel CwMode
+     * stays on its own carrier instead of all of them snapping to the
+     * spectrum's strongest signal. Safe to call before the first
+     * {@link #process(SignalSnapshot, long)} call — the locked carrier
+     * is honored at init time.
+     *
+     * Caller can re-pin to a different frequency at any time;
+     * the bandpass coefficients are rebuilt immediately.
+     */
+    public void setLockedCarrier(double hz) {
+        this.carrierHz  = hz;
+        this.afcLocked  = true;
+        if (initialized) buildBandpass(hz);
+    }
+
+    /** Re-enables AFC. Intended for tests; production callers either
+     *  use AFC (default) or pin a carrier — not both in sequence. */
+    public void unlockCarrier() {
+        this.afcLocked = false;
     }
 
     @Override
@@ -210,7 +240,9 @@ public class CwMode implements DigitalMode {
         if (initialized && Math.abs(sr - sampleRate) < 0.5) return;
         sampleRate = sr;
         dotSamples = sr * PARIS_MS_PER_WPM / (1000.0 * DEFAULT_WPM);
-        buildBandpass(DEFAULT_CARRIER_HZ);
+        // Honor a pre-init setLockedCarrier() call: build the BPF at the
+        // operator-supplied carrier rather than the default 700 Hz.
+        buildBandpass(afcLocked ? carrierHz : DEFAULT_CARRIER_HZ);
         resetState();
         initialized = true;
         debug(String.format("init sr=%.0f dotSamples=%.1f (%.0f WPM)",
@@ -263,6 +295,7 @@ public class CwMode implements DigitalMode {
     // =================================================================
 
     private void afcUpdate(double peakHz) {
+        if (afcLocked) return;
         if (peakHz < AFC_MIN_HZ || peakHz > AFC_MAX_HZ) return;
         double jump = Math.abs(peakHz - carrierHz);
         // Deadband must exceed one FFT bin (~7.8 Hz at 8 kHz / 1024) so

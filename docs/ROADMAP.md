@@ -27,14 +27,21 @@ clearly defined; they're waiting for a contributor with time.
 - **Embedded skimmer per-channel decoder.** Phase 2 shipped the
   detector tier — `LocalSkimmer` peak-picks up to 16 simultaneous
   CW carriers across the audio passband and publishes
-  `LOCAL_SKIMMER_ACTIVITY` snapshots at 1 Hz. The remaining lift
-  is the per-channel decode: Goertzel band-pass per detected
-  signal feeding a `CwMode` instance, callsign confidence
-  scoring, real `SPOT` emission with `source:"LOCAL_SKIMMER"`,
-  and the optional outbound telnet so the operator becomes a
-  public RBN node. Estimated 2–3 weeks of DSP work; revisit
-  when an operator wants to drive it or when the detector tier
-  accumulates real-world signal data to decode against.
+  `LOCAL_SKIMMER_ACTIVITY` snapshots at 1 Hz. **Phase A landed
+  2026-05-13:** `MultiCarrierDecoder` spawns one AFC-locked
+  `CwMode` per detected carrier, runs them all against every
+  audio frame, accumulates per-channel text, and reaps idle
+  channels after 5 seconds. `CwMode.setLockedCarrier(double)`
+  was added so each per-channel instance stays on its own
+  carrier instead of fighting the others. 8 new tests cover
+  spawn / merge / reap / cap / null-snapshot / end-to-end
+  synthesised-CW decode. **Remaining (Phase B + C + D):**
+  callsign extraction + confidence scoring over rolling text,
+  real `SPOT` emission with `source:"LOCAL_SKIMMER"` and 5-min
+  dedup, optional outbound RBN telnet so the operator becomes a
+  public node. Tackle when an operator wants to drive the work
+  or when Phase A's per-channel decodes accumulate real-world
+  data we can score against.
 
 - **Voice-control listener (`j-voice`).** Offline Vosk model to
   parse phrases like *"tune to twenty meters"*, *"call CQ"*, or

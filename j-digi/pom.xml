@@ -5,7 +5,7 @@
 
     <groupId>com.hamradio</groupId>
     <artifactId>j-digi</artifactId>
-    <version>1.0.38</version>
+    <version>1.0.39</version>
     <name>J-Digi</name>
 
     <properties>
