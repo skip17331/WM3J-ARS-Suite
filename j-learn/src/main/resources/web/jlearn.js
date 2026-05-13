@@ -237,7 +237,22 @@ function bannerAction(action) {
   }
   // Standalone fallback.
   if (action === 'launch-morse') {
-    window.open('http://localhost:8081/api/morsetrainer/launch', '_blank');
+    // /api/morsetrainer/launch is POST-only — window.open issues a GET and
+    // gets a 405. Use fetch + POST and surface the result; the morse-trainer
+    // is a desktop JavaFX app so there's nothing useful to open in a new tab
+    // anyway.
+    fetch('http://localhost:8081/api/morsetrainer/launch', { method: 'POST' })
+      .then(r => r.json().catch(() => ({})).then(body => ({ ok: r.ok, body })))
+      .then(({ ok, body }) => {
+        if (ok) return;
+        const msg = (body && body.error) ? body.error : 'launch failed';
+        alert('Could not launch Morse Trainer: ' + msg
+              + '\n\nIs J-Hub running on port 8081?');
+      })
+      .catch(() => {
+        alert('Could not reach J-Hub on port 8081.'
+              + '\n\nMorse Trainer is launched by J-Hub — start J-Hub first.');
+      });
     return;
   }
   if (action === 'open-workshop' || action.startsWith('open-calc:')) {
