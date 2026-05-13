@@ -11,16 +11,40 @@ files** in this directory so:
 
 ## Install a pack
 
-Copy the relevant `.properties` file into `~/.j-hub/lang/<module>/`.
-Example, installing German into J-Digi:
+From the ARS Suite checkout, run the bundled helper script:
+
+```bash
+# Linux / macOS — install one language for every module
+./install-lang-pack.sh de
+
+# Windows
+install-lang-pack.bat de
+
+# Or just one module
+./install-lang-pack.sh fr j-digi
+```
+
+Then set **Language: de** (or whichever) in J-Hub → Station →
+Regional Settings. Modules pick it up on next launch — or live for
+modules that listen for `STATION_CONFIG`.
+
+**English and Spanish are already inside every jar** — no install
+step needed for those two. The script will tell you that if you
+try `./install-lang-pack.sh en`.
+
+### What the script actually does
+
+Copies the `.properties` file from `i18n-packs/<module>/` into
+`~/.j-hub/lang/<module>/`. That's it. Re-running is safe; it
+overwrites the previous file so you can pull a `git pull` and run
+the script again to refresh.
+
+If you'd rather do it by hand:
 
 ```bash
 mkdir -p ~/.j-hub/lang/j-digi
 cp i18n-packs/j-digi/messages_de.properties ~/.j-hub/lang/j-digi/
 ```
-
-Then set **Language: de** in J-Hub's Station card and relaunch (or
-just save — modules with hot-reload pick it up immediately).
 
 ## Layout
 

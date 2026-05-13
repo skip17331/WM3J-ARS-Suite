@@ -291,10 +291,21 @@ module on next start (or live if the module supports it).
 >   the box on a fresh install.
 > - **German, French, Italian, Portuguese** ship as drop-in language
 >   packs at `i18n-packs/<module>/messages_<lang>.properties` in the
->   repo. Activate by copying the relevant pack to
->   `~/.j-hub/lang/<module>/` (e.g. `~/.j-hub/lang/j-digi/messages_de.properties`).
->   The module will pick it up on the next launch — or live if it's
->   listening for `JHUB_WELCOME` / `STATION_CONFIG`.
+>   repo. The helper script installs them in one command:
+>
+>     ```bash
+>     # Linux / macOS
+>     ./install-lang-pack.sh de
+>
+>     # Windows
+>     install-lang-pack.bat de
+>     ```
+>
+>   That copies the files into `~/.j-hub/lang/<module>/`. After
+>   that, choose **Language: de** (or whichever) in **J-Hub →
+>   Station → Regional Settings**. Modules pick it up on the next
+>   launch — or live if they listen for `JHUB_WELCOME` /
+>   `STATION_CONFIG`.
 > - **J-Log** has the deepest coverage (every menu, label, button, and
 >   status string — 6 bundles, ~163 keys each).
 > - **J-Digi, J-Bridge, J-Map, J-Sat, Morse Trainer** translate the
