@@ -2233,6 +2233,11 @@ public class ContestLogController implements Initializable {
     @FXML private void menuBackup()    { openJHubSetupAt("logging");   }  // backup card lives on Logging tab
     @FXML private void menuLearn()     { openJHubSetupAt("learn");     }
 
+    @FXML private void menuReportIssue() {
+        String log = System.getProperty("user.home", "") + "/.j-log/logs/j-log.log";
+        com.jlog.util.IssueReporter.openGitHubIssue("j-log (contest)", "1.0.0", log);
+    }
+
     private void openJHubSetupAt(String tab) {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081#" + tab).start(); }
         catch (Exception e) { setStatus("Could not open browser: " + e.getMessage()); }

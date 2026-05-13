@@ -41,12 +41,14 @@ public class MainWindow {
                 stage.setFullScreen(!stage.isFullScreen());
             else if (e.getCode() == KeyCode.F1)
                 openJLearn();
+            else if (e.getCode() == KeyCode.F2)
+                openIssueReporter();
         });
 
         String cs = services.getSettings().callsign;
         stage.setTitle("J-Sat — " + cs + " — Amateur Satellite Tracking");
         stage.setScene(scene);
-        stage.setFullScreenExitHint("F / F11: toggle fullscreen  |  F1: open J-Learn  |  Configure via J-Hub");
+        stage.setFullScreenExitHint("F / F11: toggle fullscreen  |  F1: J-Learn  |  F2: Report Issue  |  Configure via J-Hub");
 
         javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
         stage.setWidth(screen.getWidth());
@@ -97,5 +99,34 @@ public class MainWindow {
     private void openJLearn() {
         try { new ProcessBuilder("xdg-open", "http://localhost:8081#learn").start(); }
         catch (Exception ignored) {}
+    }
+
+    /**
+     * Open a pre-filled GitHub issue. J-Sat is standalone (no dep on
+     * j-log-engine), so the URL is built inline. Triggered by F2.
+     */
+    private void openIssueReporter() {
+        try {
+            String title = "[j-sat v1.0.0] <one-line summary>";
+            String body =
+                "### Module\n- Name: j-sat\n- Version: 1.0.0\n\n" +
+                "### Environment\n" +
+                "- OS: " + System.getProperty("os.name", "") + " " +
+                          System.getProperty("os.version", "") + "\n" +
+                "- Java: " + System.getProperty("java.version", "") + "\n\n" +
+                "### What I expected to happen\n\n\n" +
+                "### What actually happened\n\n\n" +
+                "### Steps to reproduce\n1. \n2. \n3. \n";
+            String url = "https://github.com/skip17331/WM3J-ARS-Suite/issues/new"
+                + "?labels=bug"
+                + "&title=" + java.net.URLEncoder.encode(title, java.nio.charset.StandardCharsets.UTF_8)
+                + "&body="  + java.net.URLEncoder.encode(body,  java.nio.charset.StandardCharsets.UTF_8);
+            if (java.awt.Desktop.isDesktopSupported()
+                && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
+            } else {
+                new ProcessBuilder("xdg-open", url).start();
+            }
+        } catch (Exception ignored) {}
     }
 }

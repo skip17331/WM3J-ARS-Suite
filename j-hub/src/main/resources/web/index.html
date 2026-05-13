@@ -1207,10 +1207,13 @@
           <button class="btn btn-blue"  onclick="exportConfig()">Export Config (JSON)</button>
           <button class="btn btn-ghost" onclick="importConfig()">Import Config</button>
           <button class="btn btn-yellow" onclick="exportDiag()">Export Diagnostics</button>
+          <button class="btn btn-red" onclick="reportIssue()" title="Opens a pre-filled GitHub issue. Use Export Diagnostics first if the bug spans multiple modules.">🐛 Report an Issue…</button>
         </div>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
         <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
           Exports include all j-hub settings. Diagnostics include logs and status snapshot.
+          When filing a bug, click <b>Export Diagnostics</b> first, then <b>Report an Issue</b> and drag the
+          downloaded zip into the GitHub issue.
         </div>
       </div>
 

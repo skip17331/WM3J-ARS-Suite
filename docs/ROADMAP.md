@@ -29,8 +29,11 @@ don't sink time into directions the project has decided not to take.
   spots `source:"SKIMMER"` so J-Map can colour them distinctly)~~ ✅ shipped 2026-05-12
 - ~~Plug-in development guide (`docs/PLUGINS.md` — contest + award JSON
   schemas with worked examples)~~ ✅ shipped 2026-05-12
-- `Help → Report Issue` button in each module (auto-attaches diagnostics
-  bundle to a pre-filled GitHub issue)
+- ~~`Help → Report Issue` button in each module (auto-attaches diagnostics
+  bundle to a pre-filled GitHub issue)~~ ✅ shipped 2026-05-12 — wired in
+  j-log, j-digi, j-bridge, j-sat, j-vault, j-learn, morse-trainer, and
+  the j-hub web UI (Dashboard → Configuration Backup & Export). j-map
+  defers to the j-hub button since its UI is wallboard-style.
 - Live UI density preset (compact / comfortable / spacious) propagated
   over `CONFIG_UPDATE`
 

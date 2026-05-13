@@ -186,8 +186,14 @@ public class MainWindow {
             catch (Exception ex) { /* best-effort */ }
         });
 
+        Button reportBtn = toolBtn("🐛 Report Issue");
+        reportBtn.setTooltip(new Tooltip("Open a pre-filled bug report on GitHub"));
+        reportBtn.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
+            "j-bridge", "1.0.0",
+            System.getProperty("user.home", "") + "/.hamlog/logs/j-bridge.log"));
+
         HBox toolbar = new HBox(12, titleBox, spacer,
-                autoScrollChk, cqOnlyChk, clearBtn, learnBtn, settingsBtn, themeBtn);
+                autoScrollChk, cqOnlyChk, clearBtn, learnBtn, reportBtn, settingsBtn, themeBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.getStyleClass().add("jb-toolbar");
 

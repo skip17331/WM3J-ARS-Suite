@@ -1,6 +1,7 @@
 module com.jlog.engine {
     requires transitive java.sql;
     requires java.prefs;
+    requires java.desktop;
     requires org.xerial.sqlitejdbc;
     requires transitive com.fasterxml.jackson.databind;
     requires jssc;

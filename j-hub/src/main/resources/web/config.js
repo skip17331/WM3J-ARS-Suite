@@ -2115,6 +2115,55 @@ function exportDiag() {
     .catch(() => alert('Diagnostics bundle failed — check j-hub logs'));
 }
 
+function reportIssue() {
+  // Open a pre-filled GitHub issue. Pulls the live status snapshot so the
+  // body comes pre-populated with versions, OS, and connected modules.
+  // The diagnostics zip itself must be attached manually — GitHub's URL API
+  // doesn't accept file uploads.
+  fetch('/api/status').then(r => r.json()).then(s => {
+    const env = s.environment || {};
+    const apps = (s.connectedApps || []).map(a => `- ${a.appName} v${a.version || '?'}`).join('\n')
+                 || '- (none connected)';
+    const title = `[j-hub v1.0.0] <one-line summary>`;
+    const body =
+`### Reporting from
+- Module: J-Hub web UI
+- J-Hub uptime: ${s.uptimeSeconds || '?'} s
+
+### Connected modules at time of report
+${apps}
+
+### Environment
+- OS: ${env.osName || ''} ${env.osVersion || ''}
+- Arch: ${env.osArch || ''}
+- Java: ${env.javaVersion || ''} (${env.javaVendor || ''})
+
+### What I expected to happen
+
+
+### What actually happened
+
+
+### Steps to reproduce
+1.
+2.
+3.
+
+### Diagnostics bundle
+Click **Export Diagnostics** (above) first, then drag the downloaded
+ars-diag-*.zip into this issue.
+`;
+    const url = 'https://github.com/skip17331/WM3J-ARS-Suite/issues/new'
+      + '?labels=bug'
+      + '&title=' + encodeURIComponent(title)
+      + '&body='  + encodeURIComponent(body);
+    window.open(url, '_blank', 'noopener');
+  }).catch(() => {
+    // Fall back to an empty pre-fill if /api/status fails
+    window.open('https://github.com/skip17331/WM3J-ARS-Suite/issues/new?labels=bug', '_blank', 'noopener');
+  });
+}
+
 // ── Utilities ──────────────────────────────────────────────
 function setText(id, val) {
   const el = document.getElementById(id);

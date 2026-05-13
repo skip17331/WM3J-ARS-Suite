@@ -969,6 +969,32 @@ function resetVaultPrefs() {
   applyVaultTheme('mocha');
 }
 
+function reportVaultIssue() {
+  const title = '[j-vault v1.0.0] <one-line summary>';
+  const body =
+`### Module
+- Name: j-vault
+- Version: 1.0.0
+- Browser: ${navigator.userAgent}
+
+### What I expected to happen
+
+
+### What actually happened
+
+
+### Steps to reproduce
+1.
+2.
+3.
+`;
+  const url = 'https://github.com/skip17331/WM3J-ARS-Suite/issues/new'
+    + '?labels=bug'
+    + '&title=' + encodeURIComponent(title)
+    + '&body='  + encodeURIComponent(body);
+  window.open(url, '_blank', 'noopener');
+}
+
 function loadVaultPrefs() {
   let scale = 100, theme = 'mocha';
   try {

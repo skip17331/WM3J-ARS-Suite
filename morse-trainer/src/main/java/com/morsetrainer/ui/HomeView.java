@@ -67,7 +67,12 @@ public final class HomeView {
         Button settings = card("Settings",
                 "WPM, Farnsworth, audio, hardware ports.",
                 () -> new SettingsView(stage).show());
-        grid.add(settings, 0, 2, 2, 1);
+        grid.add(settings, 0, 2);
+
+        Button report = card("🐛 Report Issue",
+                "Found a bug? Open a pre-filled GitHub issue.",
+                HomeView::openIssueReporter);
+        grid.add(report, 1, 2);
 
         root.setCenter(grid);
 
@@ -76,6 +81,36 @@ public final class HomeView {
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
         stage.setTitle("Morse Code Trainer");
+    }
+
+    /**
+     * Build a pre-filled GitHub issue URL and open it in the default
+     * browser. Inlined here because morse-trainer is standalone and
+     * doesn't depend on j-log-engine where the shared IssueReporter lives.
+     */
+    private static void openIssueReporter() {
+        try {
+            String title = "[morse-trainer v1.0.0] <one-line summary>";
+            String body =
+                "### Module\n- Name: morse-trainer\n- Version: 1.0.0\n\n" +
+                "### Environment\n" +
+                "- OS: " + System.getProperty("os.name", "") + " " +
+                          System.getProperty("os.version", "") + "\n" +
+                "- Java: " + System.getProperty("java.version", "") + "\n\n" +
+                "### What I expected to happen\n\n\n" +
+                "### What actually happened\n\n\n" +
+                "### Steps to reproduce\n1. \n2. \n3. \n";
+            String url = "https://github.com/skip17331/WM3J-ARS-Suite/issues/new"
+                + "?labels=bug"
+                + "&title=" + java.net.URLEncoder.encode(title, java.nio.charset.StandardCharsets.UTF_8)
+                + "&body="  + java.net.URLEncoder.encode(body,  java.nio.charset.StandardCharsets.UTF_8);
+            if (java.awt.Desktop.isDesktopSupported()
+                && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                java.awt.Desktop.getDesktop().browse(java.net.URI.create(url));
+            } else {
+                new ProcessBuilder("xdg-open", url).start();
+            }
+        } catch (Exception ignored) { /* best effort */ }
     }
 
     private static Button card(String title, String subtitle, Runnable onClick) {

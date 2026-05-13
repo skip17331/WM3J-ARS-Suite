@@ -49,6 +49,11 @@
                             <MenuItem text="%menu.contest.export.cabrillo" onAction="#menuExportCabrillo"/>
                         </items>
                     </Menu>
+                    <Menu text="Help">
+                        <items>
+                            <MenuItem text="Report an Issue…" onAction="#menuReportIssue"/>
+                        </items>
+                    </Menu>
                 </menus>
             </MenuBar>
 

@@ -60,6 +60,34 @@ function resetJLearnPrefs() {
   applyJLearnTheme('mocha');
 }
 
+function reportJLearnIssue() {
+  const sectionId = (state && state.current) ? state.current : '(none)';
+  const title = '[j-learn v1.0.0] <one-line summary>';
+  const body =
+`### Module
+- Name: j-learn
+- Version: 1.0.0
+- Current section: ${sectionId}
+- Browser: ${navigator.userAgent}
+
+### What I expected to happen
+
+
+### What actually happened
+
+
+### Steps to reproduce
+1.
+2.
+3.
+`;
+  const url = 'https://github.com/skip17331/WM3J-ARS-Suite/issues/new'
+    + '?labels=bug'
+    + '&title=' + encodeURIComponent(title)
+    + '&body='  + encodeURIComponent(body);
+  window.open(url, '_blank', 'noopener');
+}
+
 // ---------- manifest + sidebar ------------------------------------------
 
 function loadLearn() {

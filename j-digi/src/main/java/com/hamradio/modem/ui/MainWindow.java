@@ -270,7 +270,11 @@ public class MainWindow {
         Menu helpMenu = new Menu("Help");
         MenuItem learnItem = new MenuItem("J-Learn…");
         learnItem.setOnAction(e -> openJLearn());
-        helpMenu.getItems().add(learnItem);
+        MenuItem reportItem = new MenuItem("Report an Issue…");
+        reportItem.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
+            "j-digi", "0.2.0",
+            System.getProperty("user.home", "") + "/ARS_Suite/j-digi/logs/j-digi.log"));
+        helpMenu.getItems().addAll(learnItem, new SeparatorMenuItem(), reportItem);
 
         return new MenuBar(fileMenu, viewMenu, helpMenu);
     }

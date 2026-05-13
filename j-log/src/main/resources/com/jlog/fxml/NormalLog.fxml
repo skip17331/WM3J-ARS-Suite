@@ -53,6 +53,11 @@
                             <MenuItem text="J-Learn…"        onAction="#menuLearn"/>
                         </items>
                     </Menu>
+                    <Menu text="Help">
+                        <items>
+                            <MenuItem text="Report an Issue…" onAction="#menuReportIssue"/>
+                        </items>
+                    </Menu>
                 </menus>
             </MenuBar>
 
