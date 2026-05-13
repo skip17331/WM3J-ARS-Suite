@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "updated": "2026-05-12",
+  "schemaUrl": "https://github.com/skip17331/WM3J-ARS-Suite/blob/main/docs/PLUGINS.md",
+  "notes": "Community plug-in registry for J-Log. Each entry points at a JSON file the j-hub web UI can fetch and drop into ~/.j-log/contests/ or ~/.j-log/awards/ with one click. Submissions: open a PR adding your plug-in to this file. Plug-ins must follow the schemas documented in docs/PLUGINS.md.",
+  "contests": [
+    {
+      "id": "ARRL_DX_CW_US_DEMO",
+      "name": "ARRL International DX (CW) — W/VE side (registry demo)",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Same as the bundled ARRL_DX_CW_US — included here only as a demonstration of how a registry entry looks. Real third-party contests will be added as operators contribute them.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/arrl_dx_cw_us.json",
+      "homepage": "https://contests.arrl.org/contestcalendar.php",
+      "license": "GPL-3.0"
+    }
+  ],
+  "awards": [
+    {
+      "id": "WAS_DEMO",
+      "name": "Worked All States (registry demo)",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Mirrors the bundled WAS award — demonstration entry for the registry. Substitute your own award JSON when contributing.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/awards/was.json",
+      "homepage": "https://www.arrl.org/was",
+      "license": "GPL-3.0"
+    }
+  ]
+}

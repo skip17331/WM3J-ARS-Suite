@@ -56,9 +56,14 @@ don't sink time into directions the project has decided not to take.
   card on the J-Digi tab; `/api/audio/{devices,loopback-test,save}`
   endpoints; Goertzel-based SNR detection; saves to j-digi via
   `CONFIG_UPDATE` and surfaces matching WSJT-X device hints.
-- Community plug-in registry (GitHub-hosted JSON manifest at
+- ~~Community plug-in registry (GitHub-hosted JSON manifest at
   `wm3j.github.io/ars-plugins/index.json`; in-app browser in j-hub with
-  one-click install into `~/.j-log/{contests,awards}/`)
+  one-click install into `~/.j-log/{contests,awards}/`)~~ ✅ shipped
+  2026-05-12 — manifest at `docs/plugin-registry.json` (override via
+  `-Djhub.plugin.registry=…`); 1-hour cache; in-app browser on the
+  J-Log tab; install validates `contestId`/`awardId` and writes to
+  `~/.j-log/{plugins,awards}/`. Override URL lets contributors stand
+  up their own registry mirror.
 
 ## Phase 3 — Bigger projects
 

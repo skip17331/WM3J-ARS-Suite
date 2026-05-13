@@ -1346,6 +1346,21 @@
         <button class="btn btn-ghost"   onclick="restartJLog()">Save Data &amp; Restart J-Log</button>
         <span id="jlog-msg" style="font-size:12px;color:var(--overlay0)"></span>
       </div>
+
+      <div class="card">
+        <div class="card-title">Community Plug-in Registry</div>
+        <div class="panel-sub">
+          Browse contest and award plug-ins contributed by other operators.
+          One click installs the JSON into <code>~/.j-log/plugins/</code> or
+          <code>~/.j-log/awards/</code>. Schema reference: <a href="https://github.com/skip17331/WM3J-ARS-Suite/blob/main/docs/PLUGINS.md" target="_blank">PLUGINS.md</a>.
+        </div>
+        <div class="btn-row" style="margin-bottom:10px">
+          <button class="btn btn-primary" onclick="loadPluginRegistry()">🔄 Refresh Registry</button>
+          <span id="plugins-msg" style="font-size:12px;color:var(--overlay0);margin-left:8px"></span>
+        </div>
+        <div id="plugins-contest-list" style="margin-bottom:14px"></div>
+        <div id="plugins-award-list"></div>
+      </div>
     </section>
 
     <!-- ─── Tab: J-Map ────────────────────────────────────── -->

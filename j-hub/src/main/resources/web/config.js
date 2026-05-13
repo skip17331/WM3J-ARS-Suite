@@ -2141,6 +2141,77 @@ function exportDiag() {
     .catch(() => alert('Diagnostics bundle failed — check j-hub logs'));
 }
 
+// ── Community plug-in registry ───────────────────────────────
+// Fetches the manifest, renders contests + awards as cards with
+// Install buttons. Install POSTs to /api/plugins/install which
+// downloads the JSON and drops it in ~/.j-log/{plugins,awards}/.
+
+function loadPluginRegistry() {
+  flashMsg('plugins-msg', 'Loading registry…');
+  fetch('/api/plugins/registry').then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(reg => {
+    renderPluginList('plugins-contest-list', 'Contests', reg.contests || [], 'contest');
+    renderPluginList('plugins-award-list',   'Awards',   reg.awards   || [], 'award');
+    const updated = reg.updated ? ' (updated ' + reg.updated + ')' : '';
+    flashMsg('plugins-msg', `Registry v${reg.version || '?'}${updated}`);
+  }).catch(e => flashMsg('plugins-msg', 'Failed: ' + e.message + ' — check network', true));
+}
+
+function renderPluginList(elementId, label, entries, type) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  if (!entries.length) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--overlay0)">No ${label.toLowerCase()} in the registry yet.</div>`;
+    return;
+  }
+  const rows = entries.map(e => `
+    <div style="border:1px solid var(--surface1);border-radius:4px;padding:10px;margin:6px 0">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600">${escapeHtml(e.name)} <span style="color:var(--overlay0);font-size:11px;font-weight:normal">v${escapeHtml(e.version || '?')}</span></div>
+          <div style="font-size:12px;color:var(--subtext0);margin-top:2px">by ${escapeHtml(e.author || 'unknown')}${e.license ? ' · ' + escapeHtml(e.license) : ''}</div>
+          <div style="font-size:12px;color:var(--subtext1);margin-top:4px">${escapeHtml(e.description || '')}</div>
+          ${e.homepage ? `<div style="font-size:11px;margin-top:4px"><a href="${escapeAttr(e.homepage)}" target="_blank">${escapeHtml(e.homepage)}</a></div>` : ''}
+        </div>
+        <button class="btn btn-primary btn-sm" onclick='installPlugin(${JSON.stringify(type)}, ${JSON.stringify(e.downloadUrl)}, ${JSON.stringify(e.id)})'>Install</button>
+      </div>
+      <div id="plugin-msg-${escapeAttr(type)}-${escapeAttr(e.id)}" style="font-size:11px;color:var(--overlay0);margin-top:4px;min-height:14px"></div>
+    </div>
+  `).join('');
+  el.innerHTML = `<div style="font-weight:600;margin-top:4px;margin-bottom:4px">${label}</div>${rows}`;
+}
+
+function installPlugin(type, downloadUrl, id) {
+  const msgId = `plugin-msg-${type}-${id}`;
+  const msgEl = document.getElementById(msgId);
+  if (msgEl) { msgEl.textContent = 'Installing…'; msgEl.style.color = 'var(--overlay0)'; }
+  fetch('/api/plugins/install', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ type, downloadUrl, filename: id })
+  }).then(r => r.json()).then(r => {
+    if (!msgEl) return;
+    if (r.error) {
+      msgEl.textContent = '✗ ' + r.error;
+      msgEl.style.color = '#f38ba8';
+    } else {
+      msgEl.textContent = `✓ Installed → ${r.path}`;
+      msgEl.style.color = '#a6e3a1';
+    }
+  }).catch(e => {
+    if (msgEl) { msgEl.textContent = '✗ ' + e.message; msgEl.style.color = '#f38ba8'; }
+  });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
 // ── Audio Setup Wizard ────────────────────────────────────────
 // Probes audio devices via /api/audio/devices, runs a loopback test,
 // saves the chosen pair to j-digi's settings. Shipped in Phase 2 of the

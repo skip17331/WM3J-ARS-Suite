@@ -84,6 +84,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
         ctx.addServlet(new ServletHolder(new SkimmerApiServlet()),   "/api/skimmer");
         ctx.addServlet(new ServletHolder(new AudioApiServlet()),     "/api/audio/*");
+        ctx.addServlet(new ServletHolder(new PluginsApiServlet()),   "/api/plugins/*");
         // J-Learn now runs in its own process on port 8082 — the web UI iframes it.
         ctx.addServlet(new ServletHolder(new MorseTrainerLaunchServlet()), "/api/morsetrainer/*");
         ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
@@ -1751,6 +1752,134 @@ public class WebConfigServer {
         }
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/plugins — community plug-in registry browser + installer
+    //
+    //   GET  /api/plugins/registry
+    //         → upstream JSON manifest (1-hour in-memory cache)
+    //   POST /api/plugins/install
+    //         body { type:"contest"|"award", downloadUrl, filename }
+    //         → fetches the JSON and writes it to
+    //           ~/.j-log/{contests,awards}/<filename>.json
+    // ---------------------------------------------------------------
+
+    /** Override at runtime with -Djhub.plugin.registry=... for local testing. */
+    private static final String PLUGIN_REGISTRY_URL = System.getProperty(
+        "jhub.plugin.registry",
+        "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/docs/plugin-registry.json");
+
+    /** 1-hour cache so the registry isn't hammered on every UI refresh. */
+    private static volatile String  pluginRegistryCache;
+    private static volatile long    pluginRegistryCachedAt;
+    private static final long       PLUGIN_REGISTRY_TTL_MS = 60L * 60L * 1000L;
+
+    private static class PluginsApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if (!"/registry".equals(path)) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown path\"}");
+                return;
+            }
+            long now = System.currentTimeMillis();
+            if (pluginRegistryCache != null && now - pluginRegistryCachedAt < PLUGIN_REGISTRY_TTL_MS) {
+                json(res, pluginRegistryCache);
+                return;
+            }
+            try {
+                pluginRegistryCache    = fetchUrl(PLUGIN_REGISTRY_URL);
+                pluginRegistryCachedAt = now;
+                json(res, pluginRegistryCache);
+            } catch (Exception e) {
+                // If the network is down but we have a stale cache, serve it
+                if (pluginRegistryCache != null) {
+                    json(res, pluginRegistryCache);
+                } else {
+                    res.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+                    json(res, "{\"error\":\"registry unreachable: " + e.getMessage() + "\"}");
+                }
+            }
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if (!"/install".equals(path)) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown path\"}");
+                return;
+            }
+            try {
+                String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                com.google.gson.JsonObject j = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                String type     = j.has("type")        ? j.get("type").getAsString().toLowerCase() : "";
+                String url      = j.has("downloadUrl") ? j.get("downloadUrl").getAsString()        : "";
+                String filename = j.has("filename")    ? j.get("filename").getAsString()          : "";
+                if (!("contest".equals(type) || "award".equals(type))) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"type must be 'contest' or 'award'\"}");
+                    return;
+                }
+                if (url.isBlank() || !url.startsWith("https://")) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"downloadUrl must be https://\"}");
+                    return;
+                }
+                // Sanitise filename — no path traversal, no spaces
+                if (filename.isBlank()) filename = url.substring(url.lastIndexOf('/') + 1);
+                filename = filename.replaceAll("[^A-Za-z0-9._-]", "_");
+                if (!filename.endsWith(".json")) filename = filename + ".json";
+
+                String pluginBody = fetchUrl(url);
+                // Validate it parses as JSON and has the required ID field
+                com.google.gson.JsonObject parsed =
+                    com.google.gson.JsonParser.parseString(pluginBody).getAsJsonObject();
+                String idField = "contest".equals(type) ? "contestId" : "awardId";
+                if (!parsed.has(idField) || parsed.get(idField).getAsString().isBlank()) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    json(res, "{\"error\":\"plug-in JSON missing required '" + idField + "' field\"}");
+                    return;
+                }
+
+                java.nio.file.Path dir = java.nio.file.Paths.get(
+                    System.getProperty("user.home"), ".j-log",
+                    "contest".equals(type) ? "plugins" : "awards");
+                java.nio.file.Files.createDirectories(dir);
+                java.nio.file.Path target = dir.resolve(filename);
+                java.nio.file.Files.writeString(target, pluginBody,
+                    StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+
+                com.google.gson.JsonObject ok = new com.google.gson.JsonObject();
+                ok.addProperty("status", "installed");
+                ok.addProperty("path",   target.toString());
+                ok.addProperty("id",     parsed.get(idField).getAsString());
+                json(res, ok.toString());
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                json(res, "{\"error\":\"" + e.getMessage() + "\"}");
+            }
+        }
+
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    /** Tiny HTTPS GET helper — used by /api/plugins for the registry +
+     *  individual plug-in downloads. 10-second timeout, no redirects to
+     *  surfaces other than the original host. */
+    private static String fetchUrl(String url) throws IOException {
+        java.net.URL u = java.net.URI.create(url).toURL();
+        java.net.HttpURLConnection c = (java.net.HttpURLConnection) u.openConnection();
+        c.setConnectTimeout(10_000);
+        c.setReadTimeout(10_000);
+        c.setRequestProperty("User-Agent", "j-hub-plugin-installer/1.0");
+        try (java.io.InputStream in = c.getInputStream()) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
