@@ -192,7 +192,7 @@ public class AwardsWindow {
             showStateMapDetails(a, prog, prog.workedValues, /*highlightOnly*/ null);
             return;
         }
-        if ("13_COLONIES_2026".equalsIgnoreCase(a.getAwardId())) {
+        if ("13_COLONIES".equalsIgnoreCase(a.getAwardId())) {
             // Translate worked callsigns (K2A…K2M) to state codes (CT…VA).
             java.util.Set<String> workedStates = new java.util.HashSet<>();
             for (String call : prog.workedValues) {
@@ -349,7 +349,7 @@ public class AwardsWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         header.getChildren().add(spacer);
-        if ("13_COLONIES_2026".equalsIgnoreCase(a.getAwardId())) {
+        if ("13_COLONIES".equalsIgnoreCase(a.getAwardId())) {
             Button pdfBtn = new Button("Log Sheet PDF…");
             pdfBtn.getStyleClass().add("primary-button");
             pdfBtn.setOnAction(ev -> exportColoniesPdf(d));

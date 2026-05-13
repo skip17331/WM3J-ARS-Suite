@@ -11,14 +11,14 @@ mvn clean install -f pom.xml
 java --module-path ./lib/javafx \
      --add-modules javafx.controls,javafx.graphics \
      -Dfile.encoding=UTF-8 \
-     -jar target/j-digi-0.1.0-jar-with-dependencies.jar
+     -jar target/j-digi-0.2.0-jar-with-dependencies.jar
 ```
 
 JavaFX 21 must be on the module path at `./lib/javafx`. Java 17+ at runtime.
 
 ## Status
 
-**Version 0.1.0 — early phase.** Decode side is implemented and audio-loopback validated across all bundled modes. Transmit side has a real PTT path now (see "PTT / rig keying" below); operator selects the method via Java Preferences.
+**Version 0.2.0 — pre-1.0 but no longer "Phase 1".** Decode side is implemented and audio-loopback validated across all bundled modes. Transmit side is real with three selectable keying paths (see "PTT / rig keying" below). Bump to 1.0 gates on on-air QSO testing of the per-mode decoders against real signals.
 
 ## Architecture
 

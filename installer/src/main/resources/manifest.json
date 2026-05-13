@@ -34,7 +34,7 @@
       "title": "WM3J J-Digi",
       "comment": "ARS Suite — digital modem",
       "launch": "j-digi/j-digi.sh",
-      "jar":    "j-digi/target/j-digi-0.1.0-jar-with-dependencies.jar",
+      "jar":    "j-digi/target/j-digi-0.2.0-jar-with-dependencies.jar",
       "icon":   "j-digi/src/main/resources/com/hamradio/modem/icons/icon.png",
       "categories": "HamRadio;AudioVideo;"
     },

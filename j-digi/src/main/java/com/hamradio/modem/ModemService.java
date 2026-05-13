@@ -310,7 +310,7 @@ public class ModemService implements HubMessageListener {
         fireStatus();
 
         connectLatch = new CountDownLatch(1);
-        hubClient = new HubClient(new URI(trimmed), "j-digi", "0.1.0", this);
+        hubClient = new HubClient(new URI(trimmed), "j-digi", "0.2.0", this);
         hubClient.connect();
 
         boolean connected = connectLatch.await(CONNECT_TIMEOUT_MS, TimeUnit.MILLISECONDS);

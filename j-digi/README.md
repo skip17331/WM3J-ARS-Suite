@@ -29,7 +29,7 @@ mvn javafx:run
 Or build a fat jar:
 ```bash
 mvn package
-java -jar target/j-digi-0.1.0-jar-with-dependencies.jar
+java -jar target/j-digi-0.2.0-jar-with-dependencies.jar
 ```
 
 ## Default hub endpoint
@@ -38,7 +38,7 @@ java -jar target/j-digi-0.1.0-jar-with-dependencies.jar
 ## Hub integration
 On connect the app sends:
 ```json
-{"type":"APP_CONNECTED","appName":"j-digi","version":"0.1.0"}
+{"type":"APP_CONNECTED","appName":"j-digi","version":"0.2.0"}
 ```
 
 The app currently emits `MODEM_DECODE` messages with:
