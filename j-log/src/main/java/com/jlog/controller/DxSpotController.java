@@ -110,6 +110,12 @@ public class DxSpotController implements Initializable {
             if (s != null) com.jlog.app.JLogApp.applyTheme(s);
         }));
 
+        engine.setDensityListener(newDensity -> Platform.runLater(() -> {
+            com.jlog.util.AppConfig.getInstance().setDensity(newDensity);
+            javafx.scene.Scene s = spotTable.getScene();
+            if (s != null) com.jlog.app.JLogApp.applyTheme(s);
+        }));
+
         engine.setOnShutdown(() -> Platform.runLater(Platform::exit));
         engine.setOnConnected(() -> Platform.runLater(this::loadNetworkList));
     }

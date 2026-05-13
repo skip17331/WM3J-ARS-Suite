@@ -53,6 +53,7 @@ public class HubEngine {
     private Consumer<JsonNode> logEntryDraftListener;
     private Consumer<JsonNode> callsignResultListener;
     private Consumer<Integer>  configUpdateListener;
+    private Consumer<String>   densityListener;
     // Contest multi-op sync
     private Consumer<JsonNode> contestQsoSavedListener;
     private Consumer<JsonNode> contestQsoDeletedListener;
@@ -207,6 +208,9 @@ public class HubEngine {
                 int size = settings.path("fontSize").asInt(0);
                 if (size > 0 && configUpdateListener != null)
                     configUpdateListener.accept(size);
+                String dens = settings.path("density").asText("");
+                if (!dens.isBlank() && densityListener != null)
+                    densityListener.accept(dens);
 
             } else if ("SHUTDOWN".equals(type)) {
                 log.info("SHUTDOWN command received from j-hub");
@@ -334,6 +338,7 @@ public class HubEngine {
     public void setHeardBySpotListener           (Consumer<JsonNode> l) { this.heardBySpotListener            = l; }
     public void setAdifImportListener            (Consumer<JsonNode> l) { this.adifImportListener             = l; }
     public void setConfigUpdateListener     (Consumer<Integer> l)  { this.configUpdateListener     = l; }
+    public void setDensityListener          (Consumer<String>  l)  { this.densityListener          = l; }
     /** Fires once (per (re)connect) when j-hub reports the rig doesn't support Hamlib CW. */
     public void setCwUnsupportedListener    (Consumer<String>  l)  { this.cwUnsupportedListener    = l; }
 

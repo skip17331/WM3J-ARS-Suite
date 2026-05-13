@@ -34,8 +34,13 @@ don't sink time into directions the project has decided not to take.
   j-log, j-digi, j-bridge, j-sat, j-vault, j-learn, morse-trainer, and
   the j-hub web UI (Dashboard → Configuration Backup & Export). j-map
   defers to the j-hub button since its UI is wallboard-style.
-- Live UI density preset (compact / comfortable / spacious) propagated
-  over `CONFIG_UPDATE`
+- ~~Live UI density preset (compact / comfortable / spacious) propagated
+  over `CONFIG_UPDATE`~~ ✅ shipped 2026-05-12 — selector lives in
+  j-hub's left-nav footer; broadcasts via `CONFIG_UPDATE`; j-hub web UI,
+  j-log, and j-digi honor it live (multiplies root font size: compact
+  0.92×, comfortable 1.0×, spacious 1.12×). j-bridge/j-map/j-sat/j-vault/
+  j-learn/morse-trainer are follow-ups (their existing per-app sliders
+  cover the same need today).
 
 ## Phase 2 — Differentiators
 

@@ -106,6 +106,19 @@ public class AppConfig {
         prefs.putInt("fontSize", size);
     }
 
+    /**
+     * UI density preset driven by j-hub's appearance config. One of
+     * {@code "compact"}, {@code "comfortable"} (default), or
+     * {@code "spacious"}. Combines multiplicatively with {@link #getFontSize()}
+     * when {@code JLogApp.applyTheme} sets the scene's root font-size.
+     */
+    public String getDensity() {
+        return prefs.get("ui.density", "comfortable");
+    }
+    public void setDensity(String density) {
+        prefs.put("ui.density", density);
+    }
+
     // ---------------------------------------------------------------
     // Current mode (NORMAL / CONTEST)
     // ---------------------------------------------------------------

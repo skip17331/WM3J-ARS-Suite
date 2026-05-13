@@ -63,6 +63,10 @@ public class MainWindow {
     // ── Runtime theme state ───────────────────────────────────────────
     private boolean darkTheme;
     private int     fontSize;
+    /** UI density preset — "compact" | "comfortable" | "spacious". Driven by
+     *  j-hub's CONFIG_UPDATE; persisted as a Java pref so it survives
+     *  disconnects. */
+    private String  density;
     private Scene   scene;
     private static final Preferences PREFS =
             Preferences.userNodeForPackage(MainWindow.class);
@@ -143,6 +147,7 @@ public class MainWindow {
     public void show(Stage stage) {
         darkTheme = PREFS.getBoolean("darkTheme", false);   // default: light
         fontSize  = PREFS.getInt("fontSize", 13);
+        density   = PREFS.get("ui.density", "comfortable");
         rightPanel = new RightPanel(service);
 
         String prefsCall = service.getMyCall();
@@ -163,7 +168,7 @@ public class MainWindow {
         scene.getStylesheets().add(buildCombinedStylesheet());
         // Class-based theming: root carries .dark or .light
         scene.getRoot().getStyleClass().add(darkTheme ? "dark" : "light");
-        scene.getRoot().setStyle("-fx-font-size: " + fontSize + "px;");
+        applyRootFontStyle();
         // Per-pane font-size overrides from j-hub.json (if any)
         JDigiFontScaler.apply(scene);
 
@@ -630,10 +635,31 @@ public class MainWindow {
         service.setFontSizeListener(newSize -> Platform.runLater(() -> {
             fontSize = newSize;
             PREFS.putInt("fontSize", newSize);
-            scene.getRoot().setStyle("-fx-font-size: " + newSize + "px;");
+            applyRootFontStyle();
         }));
 
         service.setFontsListener(fonts -> JDigiFontScaler.apply(scene, fonts));
+
+        service.setDensityListener(newDensity -> Platform.runLater(() -> {
+            density = newDensity;
+            PREFS.put("ui.density", newDensity);
+            applyRootFontStyle();
+        }));
+    }
+
+    /**
+     * Combined root style — multiplies the user's base font size by the
+     * density preset so a single style refresh covers both knobs.
+     * Compact = 0.92×, comfortable = 1.0× (default), spacious = 1.12×.
+     */
+    private void applyRootFontStyle() {
+        double scale = switch (density == null ? "comfortable" : density) {
+            case "compact"  -> 0.92;
+            case "spacious" -> 1.12;
+            default          -> 1.0;
+        };
+        double px = Math.round(fontSize * scale);
+        scene.getRoot().setStyle("-fx-font-size: " + (int) px + "px;");
     }
 
     private void wireToggleButtons() {

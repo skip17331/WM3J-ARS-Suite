@@ -1035,3 +1035,18 @@ body.light .rig-conn-badge.off  { background: #f0f0f0; color: #888; border: none
   color: var(--subtext1);
 }
 .aw-calc-notes li { margin: 4px 0; }
+
+/* ─── UI density preset (compact / comfortable / spacious) ────────────
+   Lives on <body>; flips card padding and field spacing globally.
+   Comfortable is the unstyled default (matches existing layout). */
+body.density-compact .card        { padding: 10px 12px; }
+body.density-compact .field-row   { gap: 8px; margin-bottom: 8px; }
+body.density-compact .panel-header{ margin-bottom: 2px; }
+body.density-compact .panel-sub   { margin-bottom: 10px; }
+body.density-compact .btn-row     { gap: 6px; }
+
+body.density-spacious .card        { padding: 22px 26px; }
+body.density-spacious .field-row   { gap: 18px; margin-bottom: 18px; }
+body.density-spacious .panel-header{ margin-bottom: 8px; }
+body.density-spacious .panel-sub   { margin-bottom: 28px; }
+body.density-spacious .btn-row     { gap: 14px; }

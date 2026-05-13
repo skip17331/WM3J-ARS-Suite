@@ -939,6 +939,20 @@ public class WebConfigServer {
                 JHubConfig.AppearanceSection ap = ConfigManager.gson().fromJson(body, JHubConfig.AppearanceSection.class);
                 ConfigManager.getInstance().getConfig().appearance = ap;
                 ConfigManager.getInstance().save();
+
+                // Live propagation: send CONFIG_UPDATE to every registered app
+                // carrying the appearance fields they care about (today: density;
+                // theme + font sizes flow through per-module endpoints already).
+                JHubServer server = MessageRouter.getInstance().getJHubServer();
+                if (server != null) {
+                    com.google.gson.JsonObject settings = new com.google.gson.JsonObject();
+                    settings.addProperty("density", ap.density);
+                    com.google.gson.JsonObject upd = new com.google.gson.JsonObject();
+                    upd.addProperty("type", "CONFIG_UPDATE");
+                    upd.add("settings", settings);
+                    server.broadcastToAll(upd.toString());
+                }
+
                 json(res, "{\"status\":\"saved\"}");
             } catch (Exception e) {
                 res.setStatus(HttpServletResponse.SC_BAD_REQUEST);

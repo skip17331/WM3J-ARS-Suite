@@ -878,6 +878,11 @@ function populateForms(cfg) {
   const theme = ap.theme || localStorage.getItem('jhub-theme') || 'dark';
   applyTheme(theme);
   state.appearance.theme = theme;
+  const density = ap.density || localStorage.getItem('jhub-density') || 'comfortable';
+  applyDensity(density);
+  state.appearance.density = density;
+  const densitySel = document.getElementById('density-select');
+  if (densitySel) densitySel.value = density;
 
   // Module cards
   buildModuleCards(cfg.apps || {});
@@ -931,6 +936,27 @@ function setRotorBackendUI(val) {
 }
 
 // ── Theme ─────────────────────────────────────────────────
+function applyDensity(val) {
+  const allowed = ['compact','comfortable','spacious'];
+  if (!allowed.includes(val)) val = 'comfortable';
+  document.body.classList.remove('density-compact','density-comfortable','density-spacious');
+  document.body.classList.add('density-' + val);
+  localStorage.setItem('jhub-density', val);
+}
+
+function saveDensity(val) {
+  applyDensity(val);
+  state.appearance = state.appearance || {};
+  state.appearance.density = val;
+  // POST the full appearance section so j-hub broadcasts CONFIG_UPDATE to every
+  // connected module. Spread state.appearance so theme/fontSize aren't reset.
+  fetch('/api/appearance', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(state.appearance)
+  }).catch(() => {});
+}
+
 function applyTheme(val) {
   document.body.classList.toggle('light', val === 'light');
   const btn = document.getElementById('theme-toggle-btn');

@@ -40,6 +40,13 @@
     <div class="nav-footer" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
       <span id="nav-ws">WS: <span id="nav-ws-state">—</span></span>
       <div style="display:flex;gap:3px;align-items:center">
+        <select id="density-select" class="theme-btn" style="padding:2px 4px;font-size:11px"
+                onchange="saveDensity(this.value)"
+                title="UI density — applies live across all connected modules">
+          <option value="compact">Compact</option>
+          <option value="comfortable" selected>Comfortable</option>
+          <option value="spacious">Spacious</option>
+        </select>
         <button class="theme-btn" onclick="jhubZoomDelta(-0.05)" title="Decrease font size">A−</button>
         <button class="theme-btn" onclick="jhubZoomReset()" title="Reset font size">1×</button>
         <button class="theme-btn" onclick="jhubZoomDelta(0.05)" title="Increase font size">A+</button>

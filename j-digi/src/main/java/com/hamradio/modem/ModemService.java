@@ -107,6 +107,9 @@ public class ModemService implements HubMessageListener {
     private Consumer<Integer>       fontSizeListener     = s -> {};
     /** Per-pane font-size updates delivered as the raw jDigiSettings.fonts JsonObject. */
     private Consumer<com.google.gson.JsonObject> fontsListener = f -> {};
+    /** UI density preset — fires on CONFIG_UPDATE.settings.density. Values:
+     *  "compact" | "comfortable" | "spacious". */
+    private Consumer<String>        densityListener      = d -> {};
     /** Fires with the CONTEST_ACTIVE JsonObject when a j-log contest is loaded, or null for CONTEST_INACTIVE. */
     private Consumer<com.google.gson.JsonObject> contestListener = c -> {};
 
@@ -208,6 +211,7 @@ public class ModemService implements HubMessageListener {
     public void setStationListener(Consumer<String[]> l)        { this.stationListener      = l != null ? l : a -> {}; }
     public void setFontSizeListener(Consumer<Integer> l)        { this.fontSizeListener     = l != null ? l : s -> {}; }
     public void setFontsListener(Consumer<com.google.gson.JsonObject> l) { this.fontsListener = l != null ? l : f -> {}; }
+    public void setDensityListener(Consumer<String> l)          { this.densityListener      = l != null ? l : d -> {}; }
     public void setContestListener(Consumer<com.google.gson.JsonObject> l) { this.contestListener = l != null ? l : c -> {}; }
 
     public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
@@ -1027,6 +1031,9 @@ public class ModemService implements HubMessageListener {
                     }
                     if (settings.has("fonts") && settings.get("fonts").isJsonObject()) {
                         fontsListener.accept(settings.getAsJsonObject("fonts"));
+                    }
+                    if (settings.has("density")) {
+                        densityListener.accept(settings.get("density").getAsString());
                     }
                     // PTT / CW settings now live in j-hub; persist + apply live
                     boolean txDirty = false;

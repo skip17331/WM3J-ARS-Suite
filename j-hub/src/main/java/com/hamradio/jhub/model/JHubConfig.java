@@ -170,6 +170,7 @@ public class JHubConfig {
         public int    fontSize       = 13;
         public String waterfallColor = "viridis";   // viridis | plasma | inferno | grayscale
         public String mapTheme       = "dark";      // dark | light | terrain | satellite
+        public String density        = "comfortable"; // compact | comfortable | spacious — UI breathing room
     }
 
     // ---------------------------------------------------------------

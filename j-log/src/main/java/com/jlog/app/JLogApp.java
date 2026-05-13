@@ -132,7 +132,15 @@ public class JLogApp extends Application {
         scene.getStylesheets().add(base);
         if (themeFile != null) scene.getStylesheets().add(themeFile.toExternalForm());
         FontScaler.apply(scene);
-        scene.getRoot().setStyle("-fx-font-size: " + cfg.getFontSize() + "px;");
+        // Density preset (compact / comfortable / spacious) multiplies the
+        // user's base font size before it lands on the scene root.
+        double scale = switch (cfg.getDensity()) {
+            case "compact"  -> 0.92;
+            case "spacious" -> 1.12;
+            default          -> 1.0;
+        };
+        int px = (int) Math.round(cfg.getFontSize() * scale);
+        scene.getRoot().setStyle("-fx-font-size: " + px + "px;");
     }
 
     // ── j-Hub auto-start ─────────────────────────────────────────────────────
