@@ -32,9 +32,9 @@ See [README.md](README.md) for the project's purpose and license.
 
 ## 1. Overview
 
-The suite is **seven JavaFX applications, one broker** (J-Hub), and **two
-standalone web apps** (J-Vault, J-Learn) that J-Hub iframes for a single-pane
-experience:
+The suite is **one broker** (J-Hub), **six JavaFX desktop apps** (J-Log,
+J-Map, J-Digi, J-Bridge, J-Sat, Morse Trainer), and **two web apps**
+(J-Vault, J-Learn) that J-Hub iframes for a single-pane experience:
 
 | Name        | What it does                                                          | Default ports                |
 |-------------|-----------------------------------------------------------------------|------------------------------|
@@ -67,6 +67,15 @@ the J-Vault tab via iframe.
 web UI at `http://localhost:8081` — or by hand if you prefer. J-Vault
 keeps a separate, isolated database under `~/.j-vault/` since estate /
 inventory data is sensitive enough to warrant its own file.
+
+**One settings surface.** J-Hub's web UI is the source of truth for
+every operator preference that affects the broader suite — callsign +
+grid, IARU region + country (used for bandplan captions across modules),
+Hamlib endpoint, PTT method + CW keyer for J-Digi, DX cluster, log
+uploaders, macros. Changes propagate live over the broker via
+`STATION_CONFIG` / `CONFIG_UPDATE` messages — no per-app restart, no
+duplicate JSON files to keep in sync. Modules cache the last-known
+values so they can still run stand-alone after a hub disconnect.
 
 ---
 
@@ -122,7 +131,7 @@ cd ~/ARS_Suite
 mvn -q -DskipTests -f j-log-engine/pom.xml install
 mvn -q -DskipTests -f j-learn/pom.xml install
 mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
   mvn -q -DskipTests -f "$m/pom.xml" package
 done
 ./install.sh
@@ -201,6 +210,9 @@ button re-probes after you install them.
    - **Rig Operator** — leave blank to default to the operator name above;
      override for shared / club / multi-op stations.
    - **QTH**, **Grid Square**, **lat/lon**, **timezone**, **language**.
+   - **IARU Region** (R1 / R2 / R3) and **Country Overlay** (default
+     US FCC; leave blank for region-only). Drives the bandplan caption
+     shown in J-Digi, J-Bridge, and J-Map's DX Info window.
    Save.
 3. Go to the **Modules** tab. For each app you want to auto-launch when
    J-Hub starts, paste the launch command and tick **Auto-launch**. Example
@@ -271,6 +283,13 @@ Plus QTH, grid, lat/lon, timezone, ARRL section, CQ/ITU zones, display
 language (en / de / es / fr / it). All of these propagate to every module
 on next start (or live if the module supports it).
 
+Under **Regional Settings**, set your **IARU Region** (R1 Europe/Africa,
+R2 Americas, R3 Asia/Oceania) and optionally a **Country Overlay** (US
+FCC sub-bands today; other countries can be added later). These drive
+the bandplan caption shown in J-Digi (rig status bar), J-Bridge (status
+panel) and J-Map (DX info window) — e.g. `20m   14074 kHz   DATA —
+Digimodes / FT8`. Defaults are `IARU-R2` + `US`.
+
 ### Callsign
 
 Configure callsign lookup providers: QRZ.com XML, HamQTH, HamDB, Callook,
@@ -285,7 +304,13 @@ Per-app font / display settings, plus app-specific extras:
   QSO log table, info/bearing pane, DX + Heard-By panes). `0 = inherit`.
 - **J-Map** — API keys (NOAA, OpenWeatherMap), map-image uploads
   (custom equirectangular world map, custom great-circle map).
-- **J-Digi** — font sizes for waterfall, decode pane, status.
+- **J-Digi** — **Transmit & CW** card (PTT method `VOX` / `HAMLIB`,
+  CW keyer `AUDIO` / `HAMLIB`, CW WPM) plus font sizes for waterfall,
+  decode pane, status. Hamlib host/port come from the **Rig Control**
+  tab — no duplicate field here. When `cw.keyer = HAMLIB`, J-Digi hands
+  the text to `rigctld` (`b <text>`) so the rig's own keyer plays the
+  Morse at its configured WPM. Changes apply live on the next transmit;
+  no J-Digi restart needed.
 - **J-Bridge** — font sizes; restart-on-save flushes WSJT-X UDP listener.
 - **J-Sat** — satellite selection, elevation thresholds, TLE source URL +
   staleness threshold.
@@ -386,6 +411,11 @@ parameters (serial port + baud + CI-V address; or rigctld/rotctld/ampctld
 host + port). Supports hot-swap: change the backend and save; J-Hub
 reconnects without a full restart.
 
+The **Rig Control → Hamlib** host/port set here is the single
+station-level `rigctld` endpoint. When J-Digi's PTT method or CW keyer
+is set to `HAMLIB`, J-Digi reuses *this* endpoint — no duplicate config
+in the J-Digi tab.
+
 ### Antenna Switch
 
 Configure a serial-controlled antenna switch with a per-switch command
@@ -457,6 +487,9 @@ Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
   under **J-Map → Map Images** to replace it.
 - Floating windows (DX Info, Contest List, Countdown, Propagation, Lunar)
   can be dragged, toggled individually, and their positions persist.
+- **DX Info bandplan caption** (`14074 kHz   DATA — Digimodes / FT8`)
+  follows the **IARU Region + Country Overlay** set under J-Hub's
+  Station → Regional Settings. Updates live without a J-Map restart.
 
 ### J-Digi
 
@@ -464,6 +497,18 @@ Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
 - Doesn't interface with WSJT-X — use j-bridge for that. J-Digi is for
   keyboard-to-keyboard and legacy digital modes (RTTY, PSK31, Olivia,
   MFSK, Feld Hell).
+- **Transmit & PTT** — pick **VOX** (audio-sensing — works without CAT,
+  required if you use SignaLink/DigiRig audio-PTT) or **HAMLIB** (J-Digi
+  sends `T 1`/`T 0` to the station's `rigctld`). HAMLIB is required for
+  pure CW since there's no audio for VOX to sense. Set in **J-Hub →
+  J-Digi → Transmit & CW**.
+- **CW keying paths** — set `cw.keyer = AUDIO` (default) for synthesized
+  sidetone through the soundcard, or `cw.keyer = HAMLIB` to hand the
+  text to the rig's built-in keyer over CAT (`b <text>`). Both paths
+  share the **CW WPM** setting on the same card. AUDIO works with VOX;
+  HAMLIB is cleanest if you have CAT but no audio path to the rig.
+- **Bandplan caption** in the status bar follows the **IARU Region** +
+  **Country** set on J-Hub's Station tab.
 - **Contest mode** — when j-log enters a contest, j-digi gets a
   `CONTEST_ACTIVE` message and rebuilds its entry form to match the
   contest's exchange schema. QSOs logged from j-digi go directly to the
@@ -479,6 +524,8 @@ Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
 - The WSJT-X sidebar panel in j-bridge shows connection status (green dot +
   version string when connected). If WSJT-X was already running before
   j-bridge started, click the **Reconnect** button in that panel.
+- **Frequency bandplan caption** in the status panel follows the
+  **IARU Region + Country Overlay** set under J-Hub's Station tab.
 
 ### J-Sat
 
@@ -686,10 +733,15 @@ Copy the stack trace into the bug report along with the diagnostics zip.
 **Key wires:**
 
 - **WebSocket (j-hub:8080)** — every JavaFX module's primary link. Carries
-  `APP_CONNECTED`, `JHUB_WELCOME`, `RIG_STATUS`, `SPOT`, `LOGGER_SESSION`,
-  `CONTEST_ACTIVE`, `SOLAR_FLUX`, `HEARD_BY_SPOT`, `QSO_SAVED`,
-  `IMPORT_ADIF`, `MODEM_DECODE`, `MODEM_TX`, `CONFIG_UPDATE`, `HEARTBEAT`,
-  `SHUTDOWN`, etc. Human-readable JSON with a `"type"` field.
+  `APP_CONNECTED`, `JHUB_WELCOME`, `STATION_CONFIG`, `RIG_STATUS`, `SPOT`,
+  `LOGGER_SESSION`, `CONTEST_ACTIVE`, `SOLAR_FLUX`, `HEARD_BY_SPOT`,
+  `QSO_SAVED`, `IMPORT_ADIF`, `MODEM_DECODE`, `MODEM_TX`, `CONFIG_UPDATE`,
+  `HEARTBEAT`, `SHUTDOWN`, etc. Human-readable JSON with a `"type"`
+  field. `JHUB_WELCOME` (sent on connect) and `STATION_CONFIG`
+  (broadcast on save) carry the full station section — IARU region,
+  country, callsign, grid, timezone, ARRL section, CQ/ITU zones — plus
+  the station's Hamlib `rigctld` endpoint so modules that key the rig
+  (J-Digi PTT / CW) reuse it rather than holding duplicate prefs.
 - **HTTP (j-hub:8081)** — web config UI + REST: `/api/config`, `/api/status`,
   `/api/sessions`, `/api/deps`, `/api/diagnostics/bundle`, `/api/jlog`,
   `/api/jmap`, `/api/jdigi`, `/api/jbridge`, `/api/jsat`, `/api/db/*`,

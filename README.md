@@ -9,8 +9,8 @@
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20%7C%20macOS-success.svg)](#)
 
 > **A modern, modular, operator‑first amateur radio suite.**
-> Eight purpose‑built apps that share one config, one cluster connection,
-> and one set of operator credentials — so your shack stops being seven
+> Nine purpose‑built apps that share one config, one cluster connection,
+> and one set of operator credentials — so your shack stops being nine
 > programs glued together with sticky tape.
 
 WM3J‑ARS‑Suite is a complete, integrated software ecosystem for the modern
@@ -91,6 +91,16 @@ have their license. Searchable, with an Advanced toggle for engineering
 depth. Cross‑references jump straight to the calculator or sub‑section
 you need. Bundled into J‑Hub — no separate install, no internet required.
 
+### 🎚 One settings surface
+
+Every operator preference lives in **J‑Hub's web UI** — callsign, grid,
+rig backend, Hamlib host/port, IARU region + country (for bandplan
+captions), PTT method, CW WPM, DX cluster, log uploaders, macros.
+When you save a setting, the change rides over the broker to every
+connected module live — no restart, no per‑app duplicate config files.
+Modules cache the last‑known values locally so they can still run
+stand‑alone after a hub disconnect.
+
 ### 🎙 Macros that share state
 
 Every app uses the same macro engine. `{MYCALL}`, `{CALL}`, `{RST_S}`,
@@ -155,7 +165,7 @@ cd ~/ARS_Suite
 mvn -q -DskipTests -f j-log-engine/pom.xml install
 mvn -q -DskipTests -f j-learn/pom.xml install
 mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
     mvn -q -DskipTests -f "$m/pom.xml" package
 done
 ./install.sh
@@ -171,7 +181,7 @@ cd ~/ARS_Suite
 mvn -q -DskipTests -f j-log-engine/pom.xml install
 mvn -q -DskipTests -f j-learn/pom.xml install
 mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat; do
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
     mvn -q -DskipTests -f "$m/pom.xml" package
 done
 ./install.sh
@@ -194,7 +204,7 @@ cd $HOME\ARS_Suite
 mvn -q -DskipTests -f j-log-engine\pom.xml install
 mvn -q -DskipTests -f j-learn\pom.xml install
 mvn -q -DskipTests -f j-vault\pom.xml install
-foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat') {
+foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-trainer') {
     mvn -q -DskipTests -f "$m\pom.xml" package
 }
 .\install.bat

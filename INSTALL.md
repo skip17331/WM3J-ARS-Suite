@@ -142,6 +142,12 @@ J-Vault and J-Learn are separate processes (ports 8083 and 8082). They
 have their own Start-Menu / app-menu entries, and J-Hub's left nav has a
 **Launch** button on each tab so you can start them from the UI.
 
+> **One settings surface.** Operator-level preferences — callsign, grid,
+> IARU region + country, Hamlib endpoint, J-Digi PTT/CW path — all live
+> in J-Hub's web UI and ride to the modules over the broker. You should
+> not need to hand-edit Java Preferences or per-module JSON config files
+> for normal operation. Edit in the browser, save, done.
+
 ---
 
 ## Windows
