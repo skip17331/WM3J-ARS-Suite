@@ -24,28 +24,6 @@ deliberately chosen not to build, and the polish that runs forever.
 These have shipped detector-tier groundwork or partial scope and are
 clearly defined; they're waiting for a contributor with time.
 
-- **Embedded skimmer outbound RBN telnet.** The decode chain
-  shipped Phase A → C over 2026-05-13: `LocalSkimmer` detects up
-  to 16 CW carriers per audio frame; `MultiCarrierDecoder`
-  spawns one AFC-locked `CwMode` per detected carrier and reaps
-  idle channels after 5 seconds (`CwMode.setLockedCarrier`
-  added); `CallsignScorer` extracts ITU callsign patterns with
-  repetition / context / EOT scoring; `SkimmerSpotPublisher`
-  promotes scored callsigns clearing 0.65 confidence into
-  broker-format `SPOT` JSON with `source:"LOCAL_SKIMMER"` and a
-  5-minute per-(callsign, kHz) dedup window. j-hub's
-  `MessageRouter.handleInboundSpot` now runs unenriched app
-  SPOTs through `SpotEnricher` so DXCC, bearing, distance, and
-  local-time fields land the same way they do for cluster
-  spots. 68 tests in j-digi (11 scorer + 9 decoder + 10
-  publisher + the existing 38). **Remaining (Phase D):** a tiny
-  TCP server on a configurable port that publishes the same
-  spot stream to telnet clients in the standard RBN wire
-  format, so other apps + the public RBN networks can subscribe
-  to this station's skimmer. Useful for contesters who want to
-  contribute spots; revisit when an operator wants to drive the
-  work.
-
 - **Voice-control listener (`j-voice`).** Offline Vosk model to
   parse phrases like *"tune to twenty meters"*, *"call CQ"*, or
   *"log this QSO"* into `RIG_CONTROL` / `MODEM_TX` / `QSO_SAVE`
@@ -79,6 +57,21 @@ opening a feature request.
   maps; let the contest software run the cockpit; bridge them via
   the existing UDP broadcasts — the same model we already use to
   defer to WSJT-X for FT8.
+
+- **Outbound RBN telnet from the local skimmer.** The
+  in-suite skimmer chain shipped 2026-05-13 (`LocalSkimmer` +
+  `MultiCarrierDecoder` + `CallsignScorer` +
+  `SkimmerSpotPublisher`) emits scored callsigns as broker
+  `SPOT`s with `source:"LOCAL_SKIMMER"`, enriched by
+  `SpotEnricher` the same way cluster spots are. That's
+  enough for the operator's own station — J-Map / J-Log /
+  J-Vault render skimmer spots alongside cluster spots out of
+  the box. A separate telnet server that re-publishes those
+  spots in the standard RBN wire format would let contest
+  software (and the public RBN aggregators) subscribe, but
+  contesters in that workflow are already on N1MM+ / WriteLog
+  / Win-Test driving real CW Skimmer Server installations —
+  same deferral logic as the SO2R cockpit above.
 
 - **MAP65 / polarisation EME.** Niche within a niche; operators
   who need polarisation tracking are already running WSJT-X +
