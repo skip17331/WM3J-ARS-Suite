@@ -6,7 +6,7 @@
 
     <groupId>com.wm3j.jmap</groupId>
     <artifactId>j-map</artifactId>
-    <version>1.0.29</version>
+    <version>1.0.30</version>
     <packaging>jar</packaging>
     <name>j-Map</name>
     <description>WM3j ARS Suite — operator dashboard and world map</description>

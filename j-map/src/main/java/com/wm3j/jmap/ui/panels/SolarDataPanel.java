@@ -298,7 +298,12 @@ public class SolarDataPanel extends VBox {
         int fs = services.getSettings().getFontSize();
         gc.setFill(Color.web("#ffffff", 0.7));
         gc.setFont(Font.font("Liberation Mono", fs * 0.7));
-        gc.fillText("SSN " + ssn, 4, h - 4);
+        SolarData sd = services.solarDataProvider.getCached();
+        String month = (sd != null) ? sd.getSunspotNumberMonth() : "";
+        String ssnText = (ssn > 0 || !month.isEmpty())
+            ? "SSN " + ssn + (month.isEmpty() ? "" : "  ·  " + month)
+            : "SSN —";
+        gc.fillText(ssnText, 4, h - 4);
     }
 
     /** Draw the real sun image centered + scaled to fit the canvas. */
@@ -317,16 +322,22 @@ public class SolarDataPanel extends VBox {
         gc.drawImage(sun.image, drawX, 0, drawW, h);
     }
 
-    /** SSN + SDO credit overlay drawn on top of the real image so the
-     *  panel still shows the operator-relevant number at a glance. */
+    /** SSN + SDO credit overlay drawn on top of the real image. NOAA
+     *  publishes SSN as monthly aggregates, so when we know which
+     *  month the value represents we append "· YYYY-MM" — operator
+     *  can tell at a glance whether it's last month's number or stale
+     *  cached data. "SSN —" when no fetch has succeeded yet. */
     private void drawSunspotOverlay(GraphicsContext gc, int ssn,
                                     com.wm3j.jmap.service.solar.SunImage sun,
                                     double w, double h) {
         int fs = services.getSettings().getFontSize();
         gc.setFont(Font.font("Liberation Mono", fs * 0.7));
 
-        // SSN bottom-left with a small dark backing for legibility.
-        String ssnText = "SSN " + ssn;
+        SolarData sd = services.solarDataProvider.getCached();
+        String month = (sd != null) ? sd.getSunspotNumberMonth() : "";
+        String ssnText = (ssn > 0 || !month.isEmpty())
+            ? "SSN " + ssn + (month.isEmpty() ? "" : "  ·  " + month)
+            : "SSN —";
         gc.setFill(Color.web("#000000", 0.5));
         gc.fillRect(2, h - fs * 0.95 - 2, fs * 0.55 * ssnText.length() + 6, fs * 0.95);
         gc.setFill(Color.web("#ffffff", 0.95));

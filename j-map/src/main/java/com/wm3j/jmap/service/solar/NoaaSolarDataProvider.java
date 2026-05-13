@@ -33,6 +33,13 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
     private static final String MAG_URL     = PRODUCTS + "solar-wind/mag-1-day.json";
     private static final String XRAY_URL    = BASE + "goes/primary/xrays-1-day.json";
     private static final String PROTON_URL  = BASE + "goes/primary/protons-1-day.json";
+    /** NOAA daily F10.7 (10.7 cm solar flux index). Single-element
+     *  array of {flux, time_tag}; refreshed three times per day. */
+    private static final String SFI_URL     = PRODUCTS + "summary/10cm-flux.json";
+    /** NOAA observed solar-cycle indices — monthly SSN (international
+     *  Wolf number from SIDC/SILSO + the SWPC-corrected variant).
+     *  Array of monthly objects going back to 1749. */
+    private static final String SSN_URL     = BASE + "solar-cycle/observed-solar-cycle-indices.json";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient   HTTP   = HttpClient.newBuilder()
@@ -42,12 +49,47 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
     @Override
     protected SolarData doFetch() throws DataProviderException {
         SolarData data = new SolarData();
+        SolarData prev = getCached();   // for per-field last-known fallback
 
         fetchKp(data);
         fetchSolarWindPlasma(data);
         fetchSolarWindMag(data);
         fetchXray(data);
         fetchProtons(data);
+        fetchSfi(data);
+        fetchSsn(data);
+
+        // Per-field preservation: if a sub-fetch failed (left the
+        // field at its primitive default of 0 / 0.0 / null) AND we
+        // have a previous successful value, keep showing it instead
+        // of regressing to "0". Better stale-but-recognisable than
+        // suddenly-zero — and the data we're stand-in-ing for
+        // (especially SSN, which is a monthly aggregate) does not
+        // change on the timescale of a single failed poll anyway.
+        if (prev != null) {
+            if (data.getSfi() <= 0 && prev.getSfi() > 0) {
+                data.setSfi(prev.getSfi());
+                data.setSfiObservedAt(prev.getSfiObservedAt());
+                log.warn("SFI sub-fetch produced no value; preserving prior {} sfu", (int)prev.getSfi());
+            }
+            if (data.getSunspotNumber() == 0 && prev.getSunspotNumber() > 0) {
+                data.setSunspotNumber(prev.getSunspotNumber());
+                data.setSunspotNumberMonth(prev.getSunspotNumberMonth());
+                log.warn("SSN sub-fetch produced no value; preserving prior {} ({})",
+                         prev.getSunspotNumber(), prev.getSunspotNumberMonth());
+            }
+            if (data.getKp() <= 0 && prev.getKp() > 0) {
+                data.setKp(prev.getKp());
+                data.setAIndex(prev.getAIndex());
+            }
+            if (data.getSolarWindSpeed() <= 0 && prev.getSolarWindSpeed() > 0) {
+                data.setSolarWindSpeed(prev.getSolarWindSpeed());
+                data.setSolarWindDensity(prev.getSolarWindDensity());
+            }
+            if (data.getXrayClass() == null && prev.getXrayClass() != null) {
+                data.setXrayFlux(prev.getXrayFlux());
+            }
+        }
 
         data.setObservationTime(Instant.now());
         data.setFresh(true);
@@ -164,6 +206,60 @@ public class NoaaSolarDataProvider extends AbstractDataProvider<SolarData>
             }
         } catch (Exception e) {
             log.warn("Proton fetch failed: {}", e.getMessage());
+        }
+    }
+
+    // ── F10.7 solar flux index ─────────────────────────────────
+    // Endpoint: products/summary/10cm-flux.json
+    // Shape:    [{ "flux": 111, "time_tag": "2026-05-12T20:00:00" }]
+    // NOAA publishes three observations per day (morning / noon /
+    // afternoon UTC).
+    private void fetchSfi(SolarData data) {
+        try {
+            JsonNode root = get(SFI_URL);
+            if (!root.isArray() || root.size() == 0) return;
+            JsonNode latest = root.get(0);
+            double flux = latest.path("flux").asDouble(-1);
+            if (flux > 0) {
+                data.setSfi(flux);
+                String t = latest.path("time_tag").asText("");
+                if (!t.isEmpty()) {
+                    try { data.setSfiObservedAt(Instant.parse(t + "Z")); }
+                    catch (Exception ignored) {
+                        // NOAA omits the trailing Z on this feed; tolerate either form
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("SFI fetch failed: {}", e.getMessage());
+        }
+    }
+
+    // ── International sunspot number (Wolf number) ─────────────
+    // Endpoint: json/solar-cycle/observed-solar-cycle-indices.json
+    // Shape:    array of monthly objects, oldest → newest:
+    //   { "time-tag": "2026-04", "ssn": 79.3, "smoothed_ssn": -1.0,
+    //     "observed_swpc_ssn": 91.6, "f10.7": 120.01, ... }
+    // We use the "ssn" field (canonical SIDC/SILSO Wolf number), walk
+    // backwards through the array for the most recent populated value,
+    // and remember which month it represents so the UI can show the
+    // freshness explicitly ("SSN 79 · 2026-04").
+    private void fetchSsn(SolarData data) {
+        try {
+            JsonNode root = get(SSN_URL);
+            if (!root.isArray() || root.size() == 0) return;
+            for (int i = root.size() - 1; i >= 0; i--) {
+                JsonNode entry = root.get(i);
+                double ssn = entry.path("ssn").asDouble(-1);
+                if (ssn >= 0) {
+                    data.setSunspotNumber((int) Math.round(ssn));
+                    data.setSunspotNumberMonth(entry.path("time-tag").asText(""));
+                    return;
+                }
+            }
+            log.warn("SSN fetch returned no valid 'ssn' entry in {} rows", root.size());
+        } catch (Exception e) {
+            log.warn("SSN fetch failed: {}", e.getMessage());
         }
     }
 

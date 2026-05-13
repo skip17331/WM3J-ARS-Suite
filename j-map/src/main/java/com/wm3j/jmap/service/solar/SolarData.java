@@ -16,8 +16,19 @@ public class SolarData {
     /** A-index (geomagnetic activity, 0-400) */
     private int aIndex;
 
-    /** Sunspot number (Wolf number) */
+    /** Sunspot number (international Wolf number; SIDC/SILSO via NOAA). */
     private int sunspotNumber;
+
+    /** Calendar month the {@link #sunspotNumber} represents, e.g.
+     *  "2026-04". NOAA publishes SSN as monthly aggregates; empty
+     *  when no fetch has succeeded yet so the UI can distinguish
+     *  "we haven't loaded data" from "the real value is zero". */
+    private String sunspotNumberMonth = "";
+
+    /** UTC instant the {@link #sfi} value was reported (NOAA F10.7
+     *  is published three times a day). Null when no fetch has
+     *  succeeded. */
+    private Instant sfiObservedAt;
 
     /** Solar wind speed (km/s) from DSCOVR */
     private double solarWindSpeed;
@@ -89,6 +100,12 @@ public class SolarData {
 
     public int getSunspotNumber() { return sunspotNumber; }
     public void setSunspotNumber(int sunspotNumber) { this.sunspotNumber = sunspotNumber; }
+
+    public String getSunspotNumberMonth() { return sunspotNumberMonth != null ? sunspotNumberMonth : ""; }
+    public void setSunspotNumberMonth(String m) { this.sunspotNumberMonth = m != null ? m : ""; }
+
+    public Instant getSfiObservedAt() { return sfiObservedAt; }
+    public void setSfiObservedAt(Instant t) { this.sfiObservedAt = t; }
 
     public double getSolarWindSpeed() { return solarWindSpeed; }
     public void setSolarWindSpeed(double solarWindSpeed) { this.solarWindSpeed = solarWindSpeed; }
