@@ -83,11 +83,16 @@ don't sink time into directions the project has decided not to take.
 
 ## Phase 3 — Bigger projects
 
-- Embedded skimmer per-channel decoder — Goertzel band-pass per detected
-  signal feeding a `CwMode` instance, then callsign extraction, then
-  outbound RBN node capability. Promoted from Phase 2 (detector tier
-  done) because per-channel decoding is a substantially bigger DSP
-  effort than the spectrum peak-picker.
+- Embedded skimmer per-channel decoder — **parked 2026-05-12.**
+  Detector tier shipped in Phase 2 (`LocalSkimmer` peak-picker +
+  `LOCAL_SKIMMER_ACTIVITY` broadcasts); the per-channel decoder
+  (Goertzel band-pass per detected signal feeding a `CwMode`
+  instance, callsign confidence scoring, real `SPOT` emission with
+  `source:"LOCAL_SKIMMER"`, optional outbound RBN node) is a 2–3
+  week DSP lift. Useful but not the highest-leverage next step;
+  revisit when an operator wants to drive the work or when the
+  detector tier accumulates real-world signal data we can decode
+  against.
 - ~~Priority-callsign spot alerts in J-Log~~ ✅ shipped 2026-05-12 —
   operator-curated watch list (POTA targets, friends, missing-DXCC
   needs) stored in `config.db.priority_callsigns`; inbound DX spots
