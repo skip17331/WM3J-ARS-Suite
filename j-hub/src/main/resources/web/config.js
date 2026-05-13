@@ -2141,6 +2141,129 @@ function exportDiag() {
     .catch(() => alert('Diagnostics bundle failed — check j-hub logs'));
 }
 
+// ── Audio Setup Wizard ────────────────────────────────────────
+// Probes audio devices via /api/audio/devices, runs a loopback test,
+// saves the chosen pair to j-digi's settings. Shipped in Phase 2 of the
+// roadmap because audio routing is the #1 setup friction for new
+// operators.
+
+function audioProbe() {
+  flashMsg('audio-msg', 'Probing…');
+  fetch('/api/audio/devices').then(r => r.json()).then(data => {
+    const ins  = data.inputs  || [];
+    const outs = data.outputs || [];
+    fillAudioSelect('audio-input',  ins,  pickRigDefault(ins));
+    fillAudioSelect('audio-output', outs, pickRigDefault(outs));
+    document.getElementById('audio-wizard').style.display = '';
+    flashMsg('audio-msg', `Found ${ins.length} input(s), ${outs.length} output(s)`);
+  }).catch(() => flashMsg('audio-msg', 'Probe failed — check j-hub logs', true));
+}
+
+function fillAudioSelect(id, devices, preferredId) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  sel.innerHTML = '';
+  // Group by category so the rig audio device is obvious to pick
+  const groups = { 'rig-builtin': [], 'rig-signalink': [], 'rig-digirig': [],
+                   'rig-rigblaster': [], 'rig-microham': [],
+                   virtual: [], pc: [], other: [] };
+  for (const d of devices) (groups[d.category] || groups.other).push(d);
+  const ordered = [
+    ['Rig audio (probable)', ['rig-signalink','rig-digirig','rig-rigblaster','rig-microham','rig-builtin']],
+    ['Virtual cables',       ['virtual']],
+    ['PC built-in',          ['pc']],
+    ['Other',                ['other']],
+  ];
+  for (const [label, cats] of ordered) {
+    const flat = cats.flatMap(c => groups[c] || []);
+    if (!flat.length) continue;
+    const og = document.createElement('optgroup');
+    og.label = label;
+    for (const d of flat) {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.name + (d.description && d.description !== d.name ? '  —  ' + d.description : '');
+      og.appendChild(opt);
+    }
+    sel.appendChild(og);
+  }
+  if (preferredId) sel.value = preferredId;
+}
+
+function pickRigDefault(devices) {
+  // Prefer SignaLink → DigiRig → rig-builtin → first device. Lets the
+  // wizard pre-select what most operators will actually choose.
+  const priority = ['rig-signalink','rig-digirig','rig-rigblaster','rig-microham','rig-builtin'];
+  for (const cat of priority) {
+    const hit = devices.find(d => d.category === cat);
+    if (hit) return hit.id;
+  }
+  return devices.length ? devices[0].id : null;
+}
+
+function audioLoopbackTest() {
+  const inEl  = document.getElementById('audio-input');
+  const outEl = document.getElementById('audio-output');
+  const resultEl = document.getElementById('audio-test-result');
+  if (!inEl.value || !outEl.value) {
+    resultEl.textContent = 'Pick input + output first.';
+    resultEl.style.color = '#fab387';
+    return;
+  }
+  resultEl.textContent = 'Testing…';
+  resultEl.style.color = 'var(--overlay0)';
+  fetch('/api/audio/loopback-test', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      outputId:    outEl.value,
+      inputId:     inEl.value,
+      durationMs:  1000,
+      freqHz:      700
+    })
+  }).then(r => r.json()).then(r => {
+    if (r.error) {
+      resultEl.textContent = '✗ ' + r.error;
+      resultEl.style.color = '#f38ba8';
+      return;
+    }
+    const peak = r.peakDb.toFixed(1);
+    const snr  = r.snrDb.toFixed(1);
+    if (r.detected) {
+      resultEl.textContent = `✓ Detected — peak ${peak} dB, SNR ${snr} dB`;
+      resultEl.style.color = '#a6e3a1';
+    } else {
+      resultEl.textContent = `✗ No tone (peak ${peak} dB, SNR ${snr} dB) — check wiring`;
+      resultEl.style.color = '#f38ba8';
+    }
+  }).catch(() => {
+    resultEl.textContent = '✗ Test failed (check j-hub logs)';
+    resultEl.style.color = '#f38ba8';
+  });
+}
+
+function audioSaveDevices() {
+  const inEl  = document.getElementById('audio-input');
+  const outEl = document.getElementById('audio-output');
+  if (!inEl.value || !outEl.value) {
+    flashMsg('audio-msg', 'Pick input + output first', true);
+    return;
+  }
+  fetch('/api/audio/save', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ inputId: inEl.value, outputId: outEl.value })
+  }).then(r => r.json()).then(() => {
+    flashMsg('audio-msg', '✓ Saved — J-Digi will pick it up on next audio engine restart');
+    // Surface a matching WSJT-X hint with the human-readable device names
+    const inText  = inEl.options[inEl.selectedIndex].textContent.split('  —  ')[0];
+    const outText = outEl.options[outEl.selectedIndex].textContent.split('  —  ')[0];
+    document.getElementById('audio-wsjtx-in').textContent  = inText;
+    document.getElementById('audio-wsjtx-out').textContent = outText;
+    document.getElementById('audio-wsjtx-hint').style.display = '';
+  }).catch(() => flashMsg('audio-msg', 'Save failed', true));
+}
+
 function reportIssue() {
   // Open a pre-filled GitHub issue. Pulls the live status snapshot so the
   // body comes pre-populated with versions, OS, and connected modules.

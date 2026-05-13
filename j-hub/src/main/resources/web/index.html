@@ -1727,6 +1727,46 @@
       <div class="panel-sub">Digital modem / RTTY / PSK — keying, CW, and display preferences</div>
 
       <div class="card">
+        <div class="card-title">Audio Setup Wizard</div>
+        <div class="panel-sub">
+          Probe the sound cards on this machine, run a TX/RX loopback test,
+          and save the chosen devices to J-Digi. WSJT-X picks the same names
+          in <i>Settings → Audio</i>.
+        </div>
+        <div class="btn-row" style="margin-bottom:8px">
+          <button class="btn btn-primary" onclick="audioProbe()">🔍 Probe Audio Devices</button>
+          <span id="audio-msg" style="font-size:12px;color:var(--overlay0);margin-left:8px"></span>
+        </div>
+        <div id="audio-wizard" style="display:none">
+          <div class="field-row cols-2">
+            <div class="field">
+              <select id="audio-input"></select>
+              <label>Input (RX — radio → PC)</label>
+            </div>
+            <div class="field">
+              <select id="audio-output"></select>
+              <label>Output (TX — PC → radio)</label>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:6px">
+            <button class="btn btn-yellow" onclick="audioLoopbackTest()">🔁 Run Loopback Test</button>
+            <button class="btn btn-primary" onclick="audioSaveDevices()">💾 Save to J-Digi</button>
+            <span id="audio-test-result" style="font-size:12px;margin-left:8px"></span>
+          </div>
+          <div style="font-size:11px;color:var(--overlay0);margin-top:8px">
+            <b>Tip:</b> Plug your audio loop (e.g. SignaLink looped back to itself, or
+            a virtual cable bridging output → input) before running the test. A
+            detected tone with SNR &gt; 6 dB means the path is wired correctly.
+          </div>
+          <div id="audio-wsjtx-hint" style="font-size:11px;color:var(--overlay0);margin-top:6px;display:none">
+            For WSJT-X, open <code>Settings → Audio</code> and pick
+            <b id="audio-wsjtx-in"></b> for input and
+            <b id="audio-wsjtx-out"></b> for output.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Transmit &amp; CW</div>
         <div class="panel-sub">PTT keying method and CW transmission paths. Hamlib host/port come from <b>Rig Control</b>.</div>
         <div class="field-row cols-2">

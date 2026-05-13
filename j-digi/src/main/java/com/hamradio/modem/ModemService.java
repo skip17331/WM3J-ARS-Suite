@@ -1035,6 +1035,18 @@ public class ModemService implements HubMessageListener {
                     if (settings.has("density")) {
                         densityListener.accept(settings.get("density").getAsString());
                     }
+                    // Audio device IDs from the j-hub Audio Setup Wizard — persist
+                    // and apply on the next audio engine restart.
+                    if (settings.has("audioInputDeviceId")) {
+                        String id = settings.get("audioInputDeviceId").getAsString();
+                        PREFS.put(PREF_AUDIO_INPUT, id);
+                        audioEngine.setPreferredInputDeviceId(id);
+                    }
+                    if (settings.has("audioOutputDeviceId")) {
+                        String id = settings.get("audioOutputDeviceId").getAsString();
+                        PREFS.put(PREF_AUDIO_OUTPUT, id);
+                        audioTxEngine.setPreferredOutputDeviceId(id);
+                    }
                     // PTT / CW settings now live in j-hub; persist + apply live
                     boolean txDirty = false;
                     if (settings.has("pttMethod")) {

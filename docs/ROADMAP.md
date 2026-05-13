@@ -50,9 +50,12 @@ don't sink time into directions the project has decided not to take.
 - EME-lite in J-Sat (moon Doppler correction, libration prediction,
   moon-window calendar between QTH and DX grid, frequency handoff to
   WSJT-X via j-bridge)
-- Audio Setup Wizard in j-hub (probes audio interfaces, detects
+- ~~Audio Setup Wizard in j-hub (probes audio interfaces, detects
   SignaLink/DigiRig/codec cards by name, suggests sample-rate + buffer
-  defaults, runs a TX/RX loopback validation)
+  defaults, runs a TX/RX loopback validation)~~ ✅ shipped 2026-05-12 —
+  card on the J-Digi tab; `/api/audio/{devices,loopback-test,save}`
+  endpoints; Goertzel-based SNR detection; saves to j-digi via
+  `CONFIG_UPDATE` and surfaces matching WSJT-X device hints.
 - Community plug-in registry (GitHub-hosted JSON manifest at
   `wm3j.github.io/ars-plugins/index.json`; in-app browser in j-hub with
   one-click install into `~/.j-log/{contests,awards}/`)

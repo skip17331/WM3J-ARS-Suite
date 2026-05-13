@@ -83,6 +83,7 @@ public class WebConfigServer {
         ctx.addServlet(new ServletHolder(new MacrosApiServlet()),    "/api/macros");
         ctx.addServlet(new ServletHolder(new RbnApiServlet()),       "/api/rbn");
         ctx.addServlet(new ServletHolder(new SkimmerApiServlet()),   "/api/skimmer");
+        ctx.addServlet(new ServletHolder(new AudioApiServlet()),     "/api/audio/*");
         // J-Learn now runs in its own process on port 8082 — the web UI iframes it.
         ctx.addServlet(new ServletHolder(new MorseTrainerLaunchServlet()), "/api/morsetrainer/*");
         ctx.addServlet(new ServletHolder(new BackupApiServlet()),    "/api/backup/*");
@@ -1748,6 +1749,86 @@ public class WebConfigServer {
                 json(res, "{\"error\":\"" + e.getMessage() + "\"}");
             }
         }
+        @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
+            cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // /api/audio — Audio Setup Wizard backend
+    //   GET  /api/audio/devices
+    //         → { inputs:[…], outputs:[…] } with category hints
+    //   POST /api/audio/loopback-test
+    //         body { outputId, inputId, durationMs, freqHz }
+    //         → { detected, peakDb, snrDb, sampleRate, error? }
+    //   POST /api/audio/save
+    //         body { inputId, outputId }
+    //         → broadcasts CONFIG_UPDATE to j-digi
+    // ---------------------------------------------------------------
+
+    private static class AudioApiServlet extends HttpServlet {
+        @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            if (!"/devices".equals(path)) {
+                res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                json(res, "{\"error\":\"unknown path\"}");
+                return;
+            }
+            com.google.gson.JsonObject body = new com.google.gson.JsonObject();
+            body.add("inputs",  ConfigManager.gson().toJsonTree(
+                com.hamradio.jhub.audio.AudioProbe.enumerateInputs()));
+            body.add("outputs", ConfigManager.gson().toJsonTree(
+                com.hamradio.jhub.audio.AudioProbe.enumerateOutputs()));
+            json(res, body.toString());
+        }
+
+        @Override protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            String path = req.getPathInfo() == null ? "" : req.getPathInfo();
+            String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            com.google.gson.JsonObject j = com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+
+            if ("/loopback-test".equals(path)) {
+                String outId = j.has("outputId") ? j.get("outputId").getAsString() : "";
+                String inId  = j.has("inputId")  ? j.get("inputId").getAsString()  : "";
+                int    dur   = j.has("durationMs") ? j.get("durationMs").getAsInt() : 1000;
+                double freq  = j.has("freqHz")     ? j.get("freqHz").getAsDouble() : 700.0;
+                com.hamradio.jhub.audio.AudioProbe.LoopbackResult r =
+                    com.hamradio.jhub.audio.AudioProbe.loopbackTest(outId, inId, dur, freq);
+                json(res, ConfigManager.gson().toJson(r));
+                return;
+            }
+
+            if ("/save".equals(path)) {
+                String inId  = j.has("inputId")  ? j.get("inputId").getAsString()  : "";
+                String outId = j.has("outputId") ? j.get("outputId").getAsString() : "";
+                // Persist into the jDigi settings blob so it survives restart
+                // and so /api/jdigi reflects the new state on next GET.
+                ConfigManager cm = ConfigManager.getInstance();
+                com.google.gson.JsonObject jd = cm.getConfig().jDigiSettings;
+                if (jd == null) jd = new com.google.gson.JsonObject();
+                if (!inId.isBlank())  jd.addProperty("audioInputDeviceId",  inId);
+                if (!outId.isBlank()) jd.addProperty("audioOutputDeviceId", outId);
+                cm.getConfig().jDigiSettings = jd;
+                cm.save();
+                // Push the new device IDs to j-digi via CONFIG_UPDATE
+                JHubServer server = MessageRouter.getInstance().getJHubServer();
+                if (server != null) {
+                    com.google.gson.JsonObject upd = new com.google.gson.JsonObject();
+                    upd.addProperty("type", "CONFIG_UPDATE");
+                    com.google.gson.JsonObject settings = new com.google.gson.JsonObject();
+                    if (!inId.isBlank())  settings.addProperty("audioInputDeviceId",  inId);
+                    if (!outId.isBlank()) settings.addProperty("audioOutputDeviceId", outId);
+                    upd.add("settings", settings);
+                    server.broadcastToAppName("j-digi", upd.toString());
+                }
+                json(res, "{\"status\":\"saved\"}");
+                return;
+            }
+
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            json(res, "{\"error\":\"unknown path\"}");
+        }
+
         @Override protected void doOptions(HttpServletRequest req, HttpServletResponse res) {
             cors(res); res.setStatus(HttpServletResponse.SC_NO_CONTENT);
         }
