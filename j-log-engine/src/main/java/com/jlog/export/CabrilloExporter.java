@@ -1,7 +1,9 @@
 package com.jlog.export;
 
 import com.jlog.db.ContestQsoDao;
+import com.jlog.db.ContestQtcDao;
 import com.jlog.model.QsoRecord;
+import com.jlog.model.QtcRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.util.AppConfig;
 import org.slf4j.Logger;
@@ -73,8 +75,29 @@ public class CabrilloExporter {
                     freq, mode, date, time, myCall, sentEx, dxCall, rcvdEx);
             }
 
+            // WAE-DC QTC traffic (Rule §7) — emitted after the QSO lines.
+            // Syntax: QTC: QRG MODE DATE TIME CALL-RX QTC-GRP CALL-TX
+            //              TIME-QSO CALL-QSO NR-QSO
+            List<QtcRecord> qtcs = ContestQtcDao.getInstance().fetchByContest(plugin.getContestId());
+            String myCall = nullSafe(cfg.getStationCallsign());
+            for (QtcRecord r : qtcs) {
+                boolean rx = "RX".equalsIgnoreCase(r.getDirection());
+                String callRx = rx ? myCall : r.getPartnerCall();
+                String callTx = rx ? r.getPartnerCall() : myCall;
+                String qDate = r.getQtcDateTimeUtc() != null
+                        ? r.getQtcDateTimeUtc().format(CAB_DATE) : "0000-00-00";
+                String qTime = r.getQtcDateTimeUtc() != null
+                        ? r.getQtcDateTimeUtc().format(CAB_TIME) : "0000";
+                pw.printf("QTC: %5s %-2s %s %s %-13s %5s %-13s %4s %-13s %s%n",
+                    r.getQtcQrg() != null && !r.getQtcQrg().isBlank() ? r.getQtcQrg() : "14000",
+                    cabMode(r.getQtcMode()), qDate, qTime,
+                    callRx, r.getSeriesNo() + "/" + r.getSeriesSize(), callTx,
+                    nullSafe(r.getQsoTime()), nullSafe(r.getQsoCall()), nullSafe(r.getQsoSerial()));
+            }
+
             pw.println("END-OF-LOG:");
-            log.info("Cabrillo export: {} QSOs to {}", qsos.size(), destination);
+            log.info("Cabrillo export: {} QSOs, {} QTCs to {}",
+                    qsos.size(), qtcs.size(), destination);
         }
     }
 
@@ -86,10 +109,18 @@ public class CabrilloExporter {
         try {
             ContestQsoDao dao = ContestQsoDao.getInstance();
             String contestId  = plugin.getContestId();
-            int totalPoints   = dao.totalPointsByContest(contestId);
+            // QTC traffic counts one point each (WAE Rule §7). No-op for every
+            // other contest (no contest_qtc rows → 0).
+            int totalPoints   = dao.totalPointsByContest(contestId)
+                    + ContestQtcDao.getInstance().totalQtcPointsByContest(contestId);
 
             ContestPlugin.ScoringRules rules = plugin.getScoringRules();
             if (rules != null && rules.isScoreIsPointsOnly()) return totalPoints;
+            // NOTE: for multiplierType "wae" the band-weighted multiplier needs
+            // the j-log WaeMultiplier resolver, which the engine layer cannot
+            // reference. The header CLAIMED-SCORE multiplier is therefore
+            // approximate for WAE; the in-app cockpit shows the correct running
+            // score and the WAEDC committee re-adjudicates from QSO/QTC lines.
 
             String multColumn = plugin.computeMultiplierDbColumn();
             int mults;

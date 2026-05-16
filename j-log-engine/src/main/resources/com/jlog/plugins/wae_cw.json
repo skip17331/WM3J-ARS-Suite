@@ -1,51 +1,41 @@
 {
   "contestId":   "WAE_CW",
   "contestName": "Worked All Europe DX Contest (CW)",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "RST + serial (e.g. 599 001). EU works DX only.",
+  "exchangeFormat": "EU ↔ non-EU only (§5). RST + serial from 001 (log 000 if none). QTCs via the QTC pane.",
 
-  "lockedMode":         "CW",
-  "autoFillDxccPrefix": true,
+  "lockedMode": "CW",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
     {
       "id": "band", "label": "Band", "type": "text",
-      "width": 70, "required": true, "entryRow": 0,
-      "persistent": true,
+      "width": 70, "required": true, "entryRow": 0, "persistent": true,
       "options": ["80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
-      "width": 60, "required": true, "entryRow": 0,
-      "persistent": true,
+      "width": 60, "required": true, "entryRow": 0, "persistent": true,
       "options": ["CW"]
     },
-    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true,  "entryRow": 0, "validator": "numeric" },
-    { "id": "state_prov_rcvd", "label": "DXCC", "type": "text", "width": 70, "required": false, "entryRow": 0 },
-    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 }
+    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true, "entryRow": 0, "validator": "numeric" },
+    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 }
   ],
 
   "scoringRules": {
     "pointsPerQso":  1,
-    "modePoints":    {},
-    "pointsByBand":  { "80m": 4, "40m": 3, "20m": 2, "15m": 2, "10m": 2 },
-    "multiplierType": "dxcc",
-    "scoreFormula":  "qsoPoints * multipliers",
+    "multiplierType": "wae",
+    "scoreFormula":  "(Σ QSOs[1pt] + Σ QTCs[1pt]) × Σband(distinct WAE mult × bandWeight); weight 80m×4 40m×3 20/15/10m×2 (§6/§8). Claimed/running — WAEDC re-adjudicates.",
     "allowDupes":    false
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": true,
-    "validValues": []
-  },
+  "multiplierModel": { "field": "callsign", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "DXCC",          "config": {} },
+    { "paneIndex": 2, "paneType": "qtc",           "title": "QTC Traffic",   "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
@@ -54,8 +44,9 @@
   "cabrilloMapping": {
     "callsign":    "rcvd_callsign",
     "rst_sent":    "sent_rst",
+    "serial_sent": "sent_serial",
     "rst_rcvd":    "rcvd_rst",
-    "serial_rcvd": "rcvd_exchange"
+    "serial_rcvd": "rcvd_serial"
   },
 
   "sections": []

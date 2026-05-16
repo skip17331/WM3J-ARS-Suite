@@ -5,14 +5,17 @@ import com.jlog.app.JLogApp;
 import com.jlog.civ.CivEngine;
 import com.jlog.cluster.HubEngine;
 import com.jlog.db.ContestQsoDao;
+import com.jlog.db.ContestQtcDao;
 import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
+import com.jlog.scoring.WaeMultiplier;
 import com.jlog.ui.contest.DxccListPane;
 import com.jlog.ui.contest.PerModeMultGridPane;
 import com.jlog.ui.contest.SweepProgressPane;
+import com.jlog.ui.contest.QtcPane;
 import com.jlog.ui.contest.WorkedBeforePane;
 import com.jlog.ui.contest.WorkedGridsPane;
 import com.jlog.ui.contest.WorkedMultsPane;
@@ -108,6 +111,7 @@ public class ContestLogController implements Initializable {
     private DxccListPane         dxccPane;
     private PerModeMultGridPane  perModeGrid;
     private WorkedBeforePane     workedBeforePane;
+    private QtcPane              qtcPane;
     private WorkedGridsPane      gridsPane;
     private ArrlSectionMap       ssSectionMapPane;
     private Stage                sectionMapStage;
@@ -544,6 +548,12 @@ public class ContestLogController implements Initializable {
                 case "grid_map" -> {
                     gridsPane = new WorkedGridsPane(contestBands());
                     tp.setContent(gridsPane);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
+                case "qtc" -> {
+                    qtcPane = new QtcPane(plugin.getContestId());
+                    tp.setContent(qtcPane);
+                    tp.setMaxWidth(360);
                     HBox.setHgrow(tp, Priority.ALWAYS);
                 }
                 case "ss_section_map" -> {
@@ -1889,6 +1899,39 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = totalMults;
                 final int score = total * mults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "wae".equals(plugin.getScoringRules().getMultiplierType())) {
+                // WAE-DC (Rule §6/§8): per-band distinct WAE multiplier token,
+                // each band's count band-WEIGHTED (80m×4, 40m×3, 20/15/10m×2),
+                // summed. Score = (Σ QSO pts [1 each] + Σ QTC pts [1 each]) ×
+                // weighted multiplier sum. Token is callsign-derived
+                // (WaeMultiplier): WAE country for EU, DXCC / call-area split
+                // for non-EU.
+                Map<String, Set<String>> tokByBand = new LinkedHashMap<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (WaeMultiplier.bandWeight(b) == 0) continue;
+                    String tok = WaeMultiplier.token(q.getCallsign());
+                    if (tok != null)
+                        tokByBand.computeIfAbsent(b, k -> new HashSet<>()).add(tok);
+                }
+                int weighted = 0;
+                for (var e : tokByBand.entrySet())
+                    weighted += e.getValue().size() * WaeMultiplier.bandWeight(e.getKey());
+                int qsoPts = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                int qtcPts = ContestQtcDao.getInstance()
+                        .totalQtcPointsByContest(plugin.getContestId());
+                final int mults = weighted;
+                final int score = (qsoPts + qtcPts) * weighted;
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));

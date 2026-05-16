@@ -143,6 +143,27 @@ public class DatabaseManager {
                 """);
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_call ON contest_qso(callsign)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
+
+            // WAE-DC QTC traffic (Rule §7). One row = one transferred QTC.
+            st.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS contest_qtc (
+                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                    contest_id    TEXT NOT NULL,
+                    partner_call  TEXT NOT NULL,
+                    direction     TEXT,
+                    series_no     INTEGER,
+                    series_size   INTEGER,
+                    qtc_qrg       TEXT,
+                    qtc_band      TEXT,
+                    qtc_mode      TEXT,
+                    qtc_datetime  TEXT,
+                    qso_time      TEXT,
+                    qso_call      TEXT,
+                    qso_serial    TEXT,
+                    created_at    TEXT DEFAULT (datetime('now'))
+                )
+                """);
+            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqtc_cid ON contest_qtc(contest_id)");
         }
     }
 
