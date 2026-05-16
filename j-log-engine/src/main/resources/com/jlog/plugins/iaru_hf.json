@@ -1,11 +1,9 @@
 {
   "contestId":   "IARU_HF",
   "contestName": "IARU HF World Championship",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "RST + ITU zone (1-90) or HQ society abbrev  (e.g. 599 08, 599 ARRL)",
-
-  "autoFillDxccPrefix": true,
+  "exchangeFormat": "RST + ITU zone (1-90) or HQ society abbrev or IARU official (AC/R1/R2/R3)  (e.g. 599 08, 599 ARRL, 599 R2)",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -21,9 +19,9 @@
       "persistent": true,
       "options": ["CW","SSB","USB","LSB"]
     },
-    { "id": "rst_rcvd",    "label": "RST R",    "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "rst_rcvd",    "label": "RST R",    "type": "text", "width": 50, "required": true,  "entryRow": 0 },
     { "id": "zone_hq_rcvd","label": "Zone/HQ R","type": "text", "width": 80, "required": true,  "entryRow": 0 },
-    { "id": "rst_sent",    "label": "RST S",    "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "rst_sent",    "label": "RST S",    "type": "text", "width": 50, "required": true,  "entryRow": 1 },
     { "id": "zone_hq_sent","label": "Zone/HQ S","type": "text", "width": 80, "required": false, "entryRow": 1, "persistent": true }
   ],
 
