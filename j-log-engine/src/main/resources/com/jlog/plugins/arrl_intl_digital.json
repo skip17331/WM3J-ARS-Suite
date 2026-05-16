@@ -1,9 +1,11 @@
 {
   "contestId":   "ARRL_INTL_DIGITAL",
   "contestName": "ARRL International Digital Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
   "exchangeFormat": "Both stations send 4-char grid (e.g. FN10, IO91)",
+
+  "roverAwareDupe": true,
 
   "entryFields": [
     {
@@ -14,13 +16,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","70cm"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["FT8","FT4","RTTY","PSK31","PSK63","Digital"]
+      "options": ["FT8","FT4","PSK31","PSK63","Digital"]
     },
     {
       "id": "rst_rcvd", "label": "RST R", "type": "text",
@@ -46,9 +48,9 @@
   "scoringRules": {
     "pointsPerQso":  1,
     "modePoints":    {},
-    "pointsByBandClass": { "HF": 1, "VHF": 2 },
     "multiplierType": "custom",
-    "scoreFormula":  "qsoPoints * multipliers",
+    "scoreFormula":  "sum(qsoPoints); per-QSO = 1 + 1 per 500 km grid-center distance (rounded up, min 1), ARRL-adjudicated; no multipliers",
+    "scoreIsPointsOnly": true,
     "allowDupes":    false
   },
 
