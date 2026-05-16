@@ -11,6 +11,7 @@ import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
+import com.jlog.scoring.AriDx;
 import com.jlog.scoring.AsianEntities;
 import com.jlog.scoring.RussianDx;
 import com.jlog.scoring.Scandinavian;
@@ -1443,6 +1444,9 @@ public class ContestLogController implements Initializable {
         if (rules != null && "sac".equals(rules.getMultiplierType())) {
             return sacPoints(q);
         }
+        if (rules != null && "ari_dx".equals(rules.getMultiplierType())) {
+            return ariDxPoints(q);
+        }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
         }
@@ -1672,6 +1676,26 @@ public class ContestLogController implements Initializable {
         if (me != null && "EU".equals(me.continent())) return 1;  // European entrant: 1/band
         String band = q.getBand() == null ? "" : q.getBand();
         return (band.equals("80m") || band.equals("40m")) ? 3 : 1; // DX: low-band bonus
+    }
+
+    /** ARI International DX Contest QSO points. Own DXCC entity = 0 (still
+     *  good for a multiplier); any Italian station (I id 248 / IS0 id
+     *  225) = 10; otherwise own continent = 1, different continent = 3.
+     *  Own-country is checked first, so an Italian working another
+     *  Italian of the same DXCC scores 0 while I↔IS0 (different DXCC)
+     *  scores the Italian 10. Claimed/running — the ARI committee
+     *  re-adjudicates; an unresolvable side falls back to 1. */
+    private int ariDxPoints(QsoRecord q) {
+        String them = q.getCallsign();
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        DxccResolver R = DxccResolver.getInstance();
+        DxccResolver.Entity meE   = R.resolve(myCall);
+        DxccResolver.Entity themE = R.resolve(them);
+        if (meE != null && themE != null && meE.id().equals(themE.id())) return 0; // own country
+        if (AriDx.isItalian(them)) return 10;                                       // any Italian
+        if (meE == null || themE == null) return 1;                                 // best-effort
+        return meE.continent().equals(themE.continent()) ? 1 : 3;                    // cont rel
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -2075,6 +2099,47 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = scMults;
                 final int score = scTotal * scMults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "ari_dx".equals(plugin.getScoringRules().getMultiplierType())) {
+                // ARI DX (Multipliers/Final score): one combined per-band
+                // multiplier set = Italian province (the 2-letter code the
+                // Italian station logged, field1) + DXCC entity for every
+                // non-Italian station. I (248) and IS0 (225) are NEVER a
+                // country multiplier — only their province counts. Each
+                // value once per band; the same station re-worked in
+                // another mode adds no new key (set-dedup = "only the
+                // first QSO is good for multiplier credit"). Score = Σ QSO
+                // pts (all bands) × Σ mults (all bands). Claimed — the ARI
+                // committee re-adjudicates.
+                DxccResolver dxr = DxccResolver.getInstance();
+                Set<String> arMult = new HashSet<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String call = q.getCallsign();
+                    if (AriDx.isItalian(call)) {
+                        String pr = q.getContestField1();
+                        pr = pr == null ? "" : pr.trim().toUpperCase();
+                        if (!pr.isBlank()) arMult.add(b + "|P|" + pr); // province
+                    } else {
+                        String e = dxr.entityOf(call);
+                        if (e == null) continue;
+                        if (AriDx.ITALY.equals(e) || AriDx.SARDINIA.equals(e)) continue;
+                        arMult.add(b + "|C|" + e);                     // DXCC country
+                    }
+                }
+                int arTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = arMult.size();
+                final int score = arTotal * arMult.size();
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));

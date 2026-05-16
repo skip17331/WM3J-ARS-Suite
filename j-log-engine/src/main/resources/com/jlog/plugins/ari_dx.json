@@ -1,12 +1,11 @@
 {
   "contestId":   "ARI_DX",
   "contestName": "ARI International DX Contest (Italy)",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "I: RST + province code (e.g. 599 MI)   DX: RST + serial (e.g. 599 001)",
+  "exchangeFormat": "Italian stations: RST + 2-letter province (e.g. 599 MI). Others: RST + serial from 001, NOT restarting per band/mode (continuous). CW/SSB/RTTY, 160-10m no WARC (RTTY: 80-10m).",
 
-  "stationClassifier":  "callsignRegion",
-  "autoFillDxccPrefix": true,
+  "stationClassifier": "callsignRegion",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -20,12 +19,12 @@
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
+      "options": ["CW","SSB","USB","LSB","RTTY"]
     },
-    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     {
-      "id": "state_prov_rcvd", "label": "Prov/DXCC", "type": "text",
-      "width": 85, "required": true, "entryRow": 0,
+      "id": "state_prov_rcvd", "label": "Prov", "type": "text",
+      "width": 70, "required": false, "entryRow": 0,
       "options": [
         "AG","AL","AN","AO","AP","AQ","AR","AT","AV",
         "BA","BG","BI","BL","BN","BO","BR","BS","BT","BZ",
@@ -37,16 +36,16 @@
         "MB","MC","ME","MI","MN","MO","MS","MT",
         "NA","NO","NU",
         "OG","OR","OT",
-        "PA","PC","PD","PE","PG","PI","PN","PO","PR","PT","PU","PV","PZ",
+        "PA","PC","PD","PE","PG","PI","PN","PO","PR","PS","PT","PU","PV","PZ",
         "RA","RC","RE","RG","RI","RM","RN","RO",
-        "SA","SI","SO","SP","SR","SS","SU","SV",
+        "SA","SI","SO","SP","SR","SS","SV",
         "TA","TE","TN","TO","TP","TR","TS","TV",
         "UD","VA","VB","VC","VE","VI","VR","VS","VT","VV"
       ]
     },
     { "id": "serial_rcvd", "label": "# R", "type": "text", "width": 60, "required": false, "entryRow": 0, "validator": "numeric" },
-    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
-    { "id": "state_prov_sent", "label": "Prov S", "type": "text", "width": 85, "required": false, "entryRow": 1, "persistent": true }
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "Prov S", "type": "text", "width": 70, "required": false, "entryRow": 1, "persistent": true }
   ],
 
   "conditionalFields": [
@@ -54,23 +53,17 @@
   ],
 
   "scoringRules": {
-    "pointsPerQso": 3,
-    "modePoints":   {},
-    "multiplierType": "custom",
-    "scoreFormula": "qsoPoints * multipliers",
-    "allowDupes":   false
+    "pointsPerQso": 1,
+    "multiplierType": "ari_dx",
+    "scoreFormula": "Σ QSO pts × Σ mults, both summed over all bands. Pts: own DXCC 0 (still a mult) / any Italian station (I & IS0) 10 / own continent 1 / different continent 3. Mult: each Italian province + each DXCC country EXCEPT I & IS0, counted once per band; only the first QSO with a given mult/band credits it. Claimed — the ARI committee re-adjudicates.",
+    "allowDupes": false
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": true,
-    "validValues": []
-  },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "Provinces / DXCC", "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -80,6 +73,7 @@
     "rst_sent":        "sent_rst",
     "rst_rcvd":        "rcvd_rst",
     "state_prov_sent": "sent_exchange",
+    "serial_sent":     "sent_exchange",
     "state_prov_rcvd": "rcvd_exchange",
     "serial_rcvd":     "rcvd_exchange"
   },
