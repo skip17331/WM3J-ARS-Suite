@@ -40,3 +40,13 @@ venv/
 # Runtime logs / state
 j-digi/logs/
 j-digi/j-hub.json
+j-bridge/logs/
+j-hub/logs/
+j-learn/logs/
+j-log/logs/
+j-log-engine/logs/
+j-map/logs/
+j-sat/logs/
+j-vault/logs/
+morse-trainer/logs/
+git-sync.log
