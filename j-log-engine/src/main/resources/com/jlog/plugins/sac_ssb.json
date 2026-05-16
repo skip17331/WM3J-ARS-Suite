@@ -1,12 +1,11 @@
 {
   "contestId":   "SAC_SSB",
   "contestName": "Scandinavian Activity Contest (SSB)",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "RST + serial  (e.g. 599 001). Work Scandinavians only.",
+  "exchangeFormat": "RST + serial from 001 (§6). SSB only, 80/40/20/15/10m (no 160m/WARC). Scandinavians work the world; everyone else works Scandinavians only (§3/§7).",
 
-  "lockedMode":         "SSB",
-  "autoFillDxccPrefix": true,
+  "lockedMode": "SSB",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -14,7 +13,7 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m"]
+      "options": ["80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
@@ -22,37 +21,23 @@
       "persistent": true,
       "options": ["SSB","USB","LSB"]
     },
-    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true,  "entryRow": 0, "validator": "numeric" },
-    {
-      "id": "state_prov_rcvd", "label": "Scand Pfx", "type": "text",
-      "width": 70, "required": false, "entryRow": 0,
-      "options": ["OH","OH0","OJ0","LA","JW","JX","OZ","OX","OY","SM","TF"]
-    },
-    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 }
+    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true, "entryRow": 0, "validator": "numeric" },
+    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 }
   ],
 
   "scoringRules": {
     "pointsPerQso": 1,
-    "modePoints":   {},
-    "pointsByBand": { "160m": 3, "80m": 3, "40m": 1, "20m": 1, "15m": 1, "10m": 3 },
-    "multiplierType": "custom",
-    "scoreFormula": "qsoPoints * multipliers",
-    "allowDupes":   false
+    "multiplierType": "sac",
+    "scoreFormula": "Σ QSO pts × Σ (DXCC/district) mults per band (§7/§8). Pts §7: Scandinavian entrant — intra-Scand 0, vs EU non-Scand 2, vs DX 3; non-Scandinavian entrant — Scand QSOs only, EU entrant 1/band, DX entrant 3 on 80/40m else 1. Mult §8: Scand entrant = DXCC entities per band; non-Scand entrant = Scandinavian districts (entity + call-area digit) per band. Claimed — the SAC committee re-adjudicates.",
+    "allowDupes": false
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": true,
-    "validValues": [
-      "OH","OH0","OJ0","LA","JW","JX","OZ","OX","OY","SM","TF"
-    ]
-  },
+  "multiplierModel": { "field": "", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "Scandinavian Prefixes", "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -60,8 +45,9 @@
   "cabrilloMapping": {
     "callsign":    "rcvd_callsign",
     "rst_sent":    "sent_rst",
+    "serial_sent": "sent_serial",
     "rst_rcvd":    "rcvd_rst",
-    "serial_rcvd": "rcvd_exchange"
+    "serial_rcvd": "rcvd_serial"
   },
 
   "sections": []

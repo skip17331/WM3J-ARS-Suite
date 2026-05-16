@@ -12,6 +12,8 @@ import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
 import com.jlog.scoring.AsianEntities;
+import com.jlog.scoring.RussianDx;
+import com.jlog.scoring.Scandinavian;
 import com.jlog.scoring.WaeMultiplier;
 import com.jlog.ui.contest.DxccListPane;
 import com.jlog.ui.contest.PerModeMultGridPane;
@@ -1435,6 +1437,12 @@ public class ContestLogController implements Initializable {
         if (rules != null && "all_asian".equals(rules.getMultiplierType())) {
             return allAsianPoints(q);
         }
+        if (rules != null && "russian_dx".equals(rules.getMultiplierType())) {
+            return russianDxPoints(q);
+        }
+        if (rules != null && "sac".equals(rules.getMultiplierType())) {
+            return sacPoints(q);
+        }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
         }
@@ -1606,6 +1614,64 @@ public class ContestLogController implements Initializable {
             return themAsian ? aPts : naPts;
         }
         return themAsian ? aPts : 0;                         // non-Asian entrant: Asian only
+    }
+
+    /** Russian DX Contest QSO points (Rule §7). MM = 5 for all (§7.4).
+     *  Russian entrant: vs Russia same-continent 2 / other-continent 5;
+     *  vs other country same-continent 3 / other-continent 5. Non-Russian
+     *  entrant: vs Russian 10; own country 2; same-continent diff-country
+     *  3; other continent 5. Claimed/running — RDXC re-adjudicates;
+     *  unresolved continent defaults to "other continent" (5). */
+    private int russianDxPoints(QsoRecord q) {
+        String them = q.getCallsign();
+        if (DxccResolver.isMaritimeOrAir(them)) return 5;        // §7.4
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        DxccResolver R = DxccResolver.getInstance();
+        boolean meRu   = RussianDx.isRussian(myCall);
+        boolean themRu = RussianDx.isRussian(them);
+        DxccResolver.Entity meE   = R.resolve(myCall);
+        DxccResolver.Entity themE = R.resolve(them);
+        String meCont   = meRu   ? RussianDx.russianContinent(myCall)
+                                 : (meE   != null ? meE.continent()   : null);
+        String themCont = themRu ? RussianDx.russianContinent(them)
+                                 : (themE != null ? themE.continent() : null);
+        boolean sameCont = meCont != null && meCont.equals(themCont);
+        if (meRu) {
+            if (themRu) return sameCont ? 2 : 5;                 // own country (Russia)
+            return sameCont ? 3 : 5;                             // different country
+        }
+        if (themRu) return 10;                                   // non-Russian works Russian
+        if (meE != null && themE != null && meE.id().equals(themE.id())) return 2; // own country
+        return sameCont ? 3 : 5;
+    }
+
+    /** Scandinavian Activity Contest QSO points (Rule §7). Asymmetric by
+     *  entrant. Scandinavian entrant: intra-Scandinavian = 0; vs European
+     *  (non-Scandinavian) = 2; vs DX (non-European) = 3. Non-Scandinavian
+     *  entrant: only Scandinavian stations count — a European entrant
+     *  scores 1 on every band, a DX entrant 3 on 80/40m and 1 on
+     *  20/15/10m (the low-band bonus). Continent resolved from the
+     *  callsign; Greenland/Svalbard/etc. classify Scandinavian first so
+     *  their geographic continent never bites. Claimed/running value —
+     *  the SAC committee re-adjudicates; unresolved continent → non-EU. */
+    private int sacPoints(QsoRecord q) {
+        String them   = q.getCallsign();
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        boolean meScand   = Scandinavian.isScandinavian(myCall);
+        boolean themScand = Scandinavian.isScandinavian(them);
+        DxccResolver R = DxccResolver.getInstance();
+        if (meScand) {
+            if (themScand) return 0;                              // intra-Scandinavian
+            DxccResolver.Entity te = R.resolve(them);
+            return (te != null && "EU".equals(te.continent())) ? 2 : 3;
+        }
+        if (!themScand) return 0;                                 // non-Scand entrant: Scand only
+        DxccResolver.Entity me = R.resolve(myCall);
+        if (me != null && "EU".equals(me.continent())) return 1;  // European entrant: 1/band
+        String band = q.getBand() == null ? "" : q.getBand();
+        return (band.equals("80m") || band.equals("40m")) ? 3 : 1; // DX: low-band bonus
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -1924,6 +1990,91 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = aaMults;
                 final int score = aaTotal * aaMults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "russian_dx".equals(plugin.getScoringRules().getMultiplierType())) {
+                // Russian DX (Rule §9/§10): dual per-band multiplier =
+                // distinct oblast + distinct DXCC/WAE country. Oblast comes
+                // from the logged exchange field (field1) for Russian
+                // stations; UA2F/RI1FJ/RI1AN count as a separate country AND
+                // a separate oblast (§7.3 double mult). Country is resolved
+                // from the callsign. MM = no mult (§7.4). Score = Σ pts ×
+                // (Σ oblast mults + Σ country mults).
+                Set<String> rdMult = new HashSet<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String call = q.getCallsign();
+                    if (DxccResolver.isMaritimeOrAir(call)) continue;     // §7.4 no mult
+                    rdMult.add(b + "|C|" + RussianDx.countryToken(call)); // country/band
+                    if (RussianDx.isRussian(call)) {
+                        String ct = RussianDx.countryToken(call);
+                        String ob;
+                        if ("RI1FJ".equals(ct) || "RI1AN".equals(ct) || "UA2F".equals(ct))
+                            ob = ct;                                       // §7.3 separate oblast
+                        else {
+                            String f1 = q.getContestField1();
+                            ob = f1 == null ? "" : f1.trim().toUpperCase();
+                        }
+                        if (!ob.isBlank()) rdMult.add(b + "|O|" + ob);     // oblast/band
+                    }
+                }
+                int rdTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = rdMult.size();
+                final int score = rdTotal * rdMult.size();
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "sac".equals(plugin.getScoringRules().getMultiplierType())) {
+                // Scandinavian Activity Contest (Rule §8): per-band
+                // multiplier is asymmetric by entrant. Scandinavian entrant
+                // → distinct DXCC entities per band over every station
+                // worked. Non-Scandinavian entrant → distinct Scandinavian
+                // district tokens (entity + call-area digit, §8.2) per
+                // band, only Scandinavian stations counting. Score = Σ QSO
+                // pts (all bands) × Σ mults (all bands). Callsign-derived;
+                // no logged multiplier field. Claimed/running — the SAC
+                // committee re-adjudicates.
+                String scCall = AppConfig.getInstance().getStationCallsign();
+                if (scCall == null || scCall.isBlank())
+                    scCall = AppConfig.getInstance().getSsCallsign();
+                boolean meScand = Scandinavian.isScandinavian(scCall);
+                DxccResolver dxr = DxccResolver.getInstance();
+                Map<String, Set<String>> scByBand = new LinkedHashMap<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String call = q.getCallsign();
+                    String tok;
+                    if (meScand) {
+                        DxccResolver.Entity e = dxr.resolve(call);
+                        if (e == null) continue;
+                        tok = e.id();
+                    } else {
+                        tok = Scandinavian.multToken(call);     // null if not Scandinavian
+                        if (tok == null) continue;
+                    }
+                    scByBand.computeIfAbsent(b, k -> new HashSet<>()).add(tok);
+                }
+                int scMults = scByBand.values().stream().mapToInt(Set::size).sum();
+                int scTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = scMults;
+                final int score = scTotal * scMults;
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));

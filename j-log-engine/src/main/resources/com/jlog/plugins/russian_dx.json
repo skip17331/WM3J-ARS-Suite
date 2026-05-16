@@ -1,12 +1,11 @@
 {
   "contestId":   "RUSSIAN_DX",
   "contestName": "Russian DX Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "R/UA: RST + oblast code (e.g. 599 MO)   DX: RST + serial (e.g. 599 001)",
+  "exchangeFormat": "Russian: RST + oblast code (e.g. 599 MO). Non-Russian: RST + serial from 001 (§6). Mixed CW+SSB (workable twice/band, §5.6).",
 
   "stationClassifier":  "callsignRegion",
-  "autoFillDxccPrefix": true,
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -22,34 +21,14 @@
       "persistent": true,
       "options": ["CW","SSB","USB","LSB"]
     },
-    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     {
-      "id": "state_prov_rcvd", "label": "Oblast/DXCC", "type": "text",
-      "width": 85, "required": true, "entryRow": 0,
-      "options": [
-        "AB","AD","AL","AN","AO","AR","AS",
-        "BA","BE","BR","BU",
-        "CB","CH","CK","CN","CT",
-        "DA",
-        "HA","HK","HM",
-        "IN","IR","IV",
-        "KA","KB","KC","KE","KG","KI","KK","KL","KM","KN","KO","KR","KS","KU","KY",
-        "LO","LP",
-        "MA","MD","MO","MR",
-        "NN","NO","NV",
-        "OM","OR",
-        "PE","PK","PM","PS",
-        "RA","RO","RY",
-        "SA","SL","SM","SO","SP","SR","ST","SV",
-        "TA","TB","TN","TO","TU","TV","TY",
-        "UD","UL",
-        "VG","VL","VO","VR",
-        "YA","YN"
-      ]
+      "id": "state_prov_rcvd", "label": "Oblast", "type": "text",
+      "width": 70, "required": false, "entryRow": 0
     },
     { "id": "serial_rcvd", "label": "# R", "type": "text", "width": 60, "required": false, "entryRow": 0, "validator": "numeric" },
-    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
-    { "id": "state_prov_sent", "label": "Oblast S", "type": "text", "width": 85, "required": false, "entryRow": 1, "persistent": true }
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Obl/#", "type": "text", "width": 70, "required": false, "entryRow": 1, "persistent": true }
   ],
 
   "conditionalFields": [
@@ -57,23 +36,17 @@
   ],
 
   "scoringRules": {
-    "pointsPerQso": 3,
-    "modePoints":   {},
-    "multiplierType": "custom",
-    "scoreFormula": "qsoPoints * multipliers",
-    "allowDupes":   false
+    "pointsPerQso": 1,
+    "multiplierType": "russian_dx",
+    "scoreFormula": "Σ QSO pts × Σ (oblast + country) mults per band (§9/§10). Pts §7: RU entrant — vs RU same-cont 2 / other 5, vs other-cty same-cont 3 / other 5; non-RU — vs RU 10, own-cty 2, same-cont 3, other 5; MM 5 (§7.4). UA2F/RI1FJ/RI1AN = separate country + oblast (§7.3). Claimed — RDXC re-adjudicates.",
+    "allowDupes": false
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": true,
-    "validValues": []
-  },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "Oblasts / DXCC", "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -81,10 +54,10 @@
   "cabrilloMapping": {
     "callsign":        "rcvd_callsign",
     "rst_sent":        "sent_rst",
+    "state_prov_sent": "sent_serial",
     "rst_rcvd":        "rcvd_rst",
-    "state_prov_sent": "sent_exchange",
-    "state_prov_rcvd": "rcvd_exchange",
-    "serial_rcvd":     "rcvd_exchange"
+    "state_prov_rcvd": "rcvd_serial",
+    "serial_rcvd":     "rcvd_serial"
   },
 
   "sections": []
