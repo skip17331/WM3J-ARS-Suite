@@ -11,6 +11,7 @@ import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
+import com.jlog.scoring.AsianEntities;
 import com.jlog.scoring.WaeMultiplier;
 import com.jlog.ui.contest.DxccListPane;
 import com.jlog.ui.contest.PerModeMultGridPane;
@@ -1431,6 +1432,9 @@ public class ContestLogController implements Initializable {
         if (rules != null && "state_prov_country".equals(rules.getMultiplierType())) {
             return cq160Points(q);
         }
+        if (rules != null && "all_asian".equals(rules.getMultiplierType())) {
+            return allAsianPoints(q);
+        }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
         }
@@ -1575,6 +1579,33 @@ public class ContestLogController implements Initializable {
         if (me.id().equals(them.id()))                return 2;  // own country
         if (!me.continent().equals(them.continent())) return 10; // different continent
         return 5;                                                // same continent, diff country
+    }
+
+    /** JARL All Asian DX QSO points (Rule §7). Asymmetric by entrant:
+     *  Asian entrant — same-entity = 0; Asian QSO = 3/2/2/1 by band
+     *  (160 / 80,10 / 80,10 / other); non-Asian QSO = 9/6/6/3. Non-Asian
+     *  entrant — only Asian stations count, 3/2/2/1; non-Asian worked = 0.
+     *  Maritime mobile scored as an Asian station. Claimed/running value
+     *  (JARL re-adjudicates); unresolvable entrant defaults to non-Asian. */
+    private int allAsianPoints(QsoRecord q) {
+        String band = q.getBand() != null ? q.getBand() : "";
+        int aPts  = switch (band) { case "160m" -> 3; case "80m","10m" -> 2; default -> 1; };
+        int naPts = switch (band) { case "160m" -> 9; case "80m","10m" -> 6; default -> 3; };
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        boolean meAsian   = AsianEntities.isAsian(myCall);
+        String  them      = q.getCallsign();
+        boolean themMM    = DxccResolver.isMaritimeOrAir(them);
+        boolean themAsian = themMM || AsianEntities.isAsian(them);
+        if (meAsian) {
+            if (!themMM) {                                  // same entity = 0 (Rule §7(1))
+                String me = DxccResolver.getInstance().entityOf(myCall);
+                String te = DxccResolver.getInstance().entityOf(them);
+                if (me != null && me.equals(te)) return 0;
+            }
+            return themAsian ? aPts : naPts;
+        }
+        return themAsian ? aPts : 0;                         // non-Asian entrant: Asian only
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -1848,6 +1879,51 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = mset.size();
                 final int score = total * mults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "all_asian".equals(plugin.getScoringRules().getMultiplierType())) {
+                // JARL All Asian DX (Rule §7/§8): per-band multiplier is
+                // asymmetric by entrant. Asian entrant → distinct DXCC
+                // entities per band (same-entity & MM excluded). Non-Asian
+                // entrant → distinct Asian WPX prefixes per band (only Asian
+                // stations count). Score = Σ pts (all bands) × Σ mults (all
+                // bands). Callsign-derived; no logged mult field.
+                String aaCall = AppConfig.getInstance().getStationCallsign();
+                if (aaCall == null || aaCall.isBlank())
+                    aaCall = AppConfig.getInstance().getSsCallsign();
+                boolean meAsian = AsianEntities.isAsian(aaCall);
+                String meEnt = DxccResolver.getInstance().entityOf(aaCall);
+                Map<String, Set<String>> aaByBand = new LinkedHashMap<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String call = q.getCallsign();
+                    if (DxccResolver.isMaritimeOrAir(call)) continue;   // MM = no mult
+                    String tok;
+                    if (meAsian) {
+                        String e = DxccResolver.getInstance().entityOf(call);
+                        if (e == null) continue;
+                        if (meEnt != null && meEnt.equals(e)) continue; // same entity = no mult
+                        tok = e;
+                    } else {
+                        if (!AsianEntities.isAsian(call)) continue;     // only Asian count
+                        tok = CallsignRegion.wpxPrefix(call);
+                        if (tok == null || tok.isBlank()) continue;
+                    }
+                    aaByBand.computeIfAbsent(b, k -> new HashSet<>()).add(tok);
+                }
+                int aaMults = aaByBand.values().stream().mapToInt(Set::size).sum();
+                int aaTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = aaMults;
+                final int score = aaTotal * aaMults;
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));
