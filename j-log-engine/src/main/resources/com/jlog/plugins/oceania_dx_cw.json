@@ -1,12 +1,11 @@
 {
   "contestId":   "OCEANIA_DX_CW",
   "contestName": "Oceania DX Contest (CW)",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "RST + serial  (e.g. 599 001)",
+  "exchangeFormat": "RST + serial from 001 (Rule 8; log 001 if none received). CW only, 160-10m no WARC. Oceania works the world; non-Oceania works Oceania only (Rule 4).",
 
-  "lockedMode":         "CW",
-  "autoFillDxccPrefix": true,
+  "lockedMode": "CW",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -22,31 +21,23 @@
       "persistent": true,
       "options": ["CW"]
     },
-    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true,  "entryRow": 0, "validator": "numeric" },
-    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
-    { "id": "state_prov_rcvd", "label": "DXCC", "type": "text", "width": 70, "required": false, "entryRow": 0 }
+    { "id": "rst_rcvd",    "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "serial_rcvd", "label": "# R",   "type": "text", "width": 60, "required": true, "entryRow": 0, "validator": "numeric" },
+    { "id": "rst_sent",    "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 }
   ],
 
   "scoringRules": {
-    "pointsPerQso":  1,
-    "modePoints":    {},
-    "pointsByBand":  { "160m": 20, "80m": 10, "40m": 5, "20m": 1, "15m": 3, "10m": 5 },
-    "multiplierType": "dxcc",
-    "scoreFormula":  "qsoPoints * multipliers",
-    "allowDupes":    false
+    "pointsPerQso": 1,
+    "multiplierType": "oceania_dx",
+    "scoreFormula": "Σ contact pts × Σ prefix mults (Rule 10/11). Pts by band: 160=20, 80=10, 40=5, 20=1, 15=2, 10=3 — Oceania entrant scores every QSO, non-Oceania entrant only QSOs with Oceania stations (non-Oc↔non-Oc = 0, Rule 4b). Mult = distinct WPX prefixes, once per band; non-Oceania entrant counts Oceania prefixes only. Claimed — the OCDX committee re-adjudicates.",
+    "allowDupes": false
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": true,
-    "validValues": []
-  },
+  "multiplierModel": { "field": "", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "DXCC", "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -54,8 +45,9 @@
   "cabrilloMapping": {
     "callsign":    "rcvd_callsign",
     "rst_sent":    "sent_rst",
+    "serial_sent": "sent_serial",
     "rst_rcvd":    "rcvd_rst",
-    "serial_rcvd": "rcvd_exchange"
+    "serial_rcvd": "rcvd_serial"
   },
 
   "sections": []

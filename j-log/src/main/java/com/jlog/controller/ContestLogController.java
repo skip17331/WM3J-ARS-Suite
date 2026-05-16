@@ -13,6 +13,7 @@ import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
 import com.jlog.scoring.AriDx;
 import com.jlog.scoring.AsianEntities;
+import com.jlog.scoring.OceaniaDx;
 import com.jlog.scoring.RussianDx;
 import com.jlog.scoring.Scandinavian;
 import com.jlog.scoring.Wag;
@@ -1451,6 +1452,9 @@ public class ContestLogController implements Initializable {
         if (rules != null && "wag".equals(rules.getMultiplierType())) {
             return wagPoints(q);
         }
+        if (rules != null && "oceania_dx".equals(rules.getMultiplierType())) {
+            return oceaniaDxPoints(q);
+        }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
         }
@@ -1720,6 +1724,21 @@ public class ContestLogController implements Initializable {
         DxccResolver.Entity themE = DxccResolver.getInstance().resolve(them);
         if (themE == null) return 3;                          // best-effort European
         return "EU".equals(themE.continent()) ? 3 : 5;        // European 3 / DX 5
+    }
+
+    /** Oceania DX Contest QSO points (Rule 10 + Object 4b). Band table
+     *  160=20 / 80=10 / 40=5 / 20=1 / 15=2 / 10=3. An Oceania entrant
+     *  scores every QSO; a non-Oceania entrant scores only QSOs with
+     *  Oceania stations (a non-Oceania↔non-Oceania contact earns no
+     *  points or multiplier, Rule 4b). Claimed/running — the OCDX
+     *  committee re-adjudicates. */
+    private int oceaniaDxPoints(QsoRecord q) {
+        int bp = OceaniaDx.bandPoints(q.getBand());
+        if (bp == 0) return 0;
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        if (OceaniaDx.isOceania(myCall)) return bp;            // Oceania works everyone
+        return OceaniaDx.isOceania(q.getCallsign()) ? bp : 0;  // non-Oc: Oceania only
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -2164,6 +2183,42 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = arMult.size();
                 final int score = arTotal * arMult.size();
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "oceania_dx".equals(plugin.getScoringRules().getMultiplierType())) {
+                // Oceania DX (Rule 9/11): multiplier = distinct WPX
+                // prefixes, the same prefix counting once PER BAND. An
+                // Oceania entrant counts every station's prefix; a non-
+                // Oceania entrant counts only Oceania stations' prefixes
+                // (non-Oceania↔non-Oceania = no mult, Rule 4b). Prefix is
+                // callsign-derived (CallsignRegion.wpxPrefix — the shared
+                // WPX helper, same coarse spots as CQ WPX). Score = Σ QSO
+                // pts (all bands) × Σ prefixes (all bands).
+                String ocCall = AppConfig.getInstance().getStationCallsign();
+                if (ocCall == null || ocCall.isBlank())
+                    ocCall = AppConfig.getInstance().getSsCallsign();
+                boolean meOc = OceaniaDx.isOceania(ocCall);
+                Set<String> ocMult = new HashSet<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String call = q.getCallsign();
+                    if (!meOc && !OceaniaDx.isOceania(call)) continue; // Rule 4b
+                    String pfx = CallsignRegion.wpxPrefix(call);
+                    if (pfx == null || pfx.isBlank()) continue;
+                    ocMult.add(b + "|" + pfx);
+                }
+                int ocTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = ocMult.size();
+                final int score = ocTotal * ocMult.size();
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));
