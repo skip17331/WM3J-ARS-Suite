@@ -1,0 +1,66 @@
+{
+  "contestId":   "ARRL_222_UP",
+  "contestName": "ARRL 222 MHz and Up Distance Contest",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "Both stations send 6-char grid (e.g. EN41vr). Signal report optional. Rovers re-workable per 4-char grid — add /R to callsign. Score = Σ km between grid centers × band factor (ARRL-adjudicated; no in-suite distance scorer).",
+
+  "roverAwareDupe": true,
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["1.25m","70cm","33cm","23cm","13cm","9cm","6cm","3cm","1cm"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","FM","FT8","FT4","MSK144","RTTY","PSK31","Digital"]
+    },
+    {
+      "id": "grid_rcvd", "label": "Grid R", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "validator": "maidenhead6"
+    },
+    {
+      "id": "grid_sent", "label": "Grid S", "type": "text",
+      "width": 80, "required": true, "entryRow": 1,
+      "persistent": true,
+      "validator": "maidenhead6"
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso":  0,
+    "modePoints":    {},
+    "multiplierType": "custom",
+    "scoreFormula":  "sum(distance_km(gridCenters) * bandFactor); 1 km if same grid; bandFactor 222=2 432=1 902=4 1296=2 2.3G=6 3.4G/5.7G=10 10G=6 24G+=20; no multipliers; ARRL-adjudicated, NOT computed in-suite (no great-circle scorer)",
+    "scoreIsPointsOnly": true,
+    "allowDupes":    false
+  },
+
+  "multiplierModel": {
+    "field":   "grid_rcvd",
+    "perBand": true,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before / Rover", "config": {} },
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":   "rcvd_callsign",
+    "grid_sent":  "sent_exchange",
+    "grid_rcvd":  "rcvd_exchange"
+  },
+
+  "sections": []
+}

@@ -354,6 +354,9 @@ public class ContestLogController implements Initializable {
         switch (validator) {
             case "maidenhead" -> tf.textProperty().addListener((obs, o, n) ->
                 applyValidStyle(tf, n == null || n.isBlank() || Maidenhead.isValid(n)));
+            // Strict 6-char grid (ARRL 222 MHz & Up Distance, Rule 4.1).
+            case "maidenhead6" -> tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, n == null || n.isBlank() || Maidenhead.isValid6(n)));
             case "numeric"    -> tf.textProperty().addListener((obs, o, n) ->
                 applyValidStyle(tf, n == null || n.isBlank() || n.trim().matches("[0-9]+")));
             // Field Day station class: transmitter count + category (e.g. 2A).
@@ -431,6 +434,9 @@ public class ContestLogController implements Initializable {
             String v = fd.getValidator();
             if ("maidenhead".equals(v) && !Maidenhead.isValid(value))
                 return "Invalid grid: '" + value + "'";
+            if ("maidenhead6".equals(v) && !Maidenhead.isValid6(value))
+                return "Field " + fd.getLabel()
+                    + " must be a 6-character Maidenhead grid, e.g. EN41vr";
             if ("numeric".equals(v) && !value.trim().matches("[0-9]+"))
                 return "Field " + fd.getLabel() + " must be numeric";
             if ("fd_class".equals(v) && !value.trim().toUpperCase().matches(FD_CLASS_RE))
