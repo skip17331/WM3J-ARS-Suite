@@ -56,8 +56,9 @@
 .dx-toolbar { -fx-padding: 4 6 4 6; }
 .conn-status { -fx-font-style: italic; }
 
-/* ---- Exchange hint ---- */
-.exchange-hint { -fx-font-style: italic; -fx-font-size: 11px; }
+/* ---- Entry grid scroller (horizontal scroll on narrow windows) ---- */
+.entry-scroll, .entry-scroll > .viewport { -fx-background-color: transparent; }
+.entry-scroll { -fx-padding: 0; -fx-background-insets: 0; }
 
 /* ---- Contest help line (its own wrapped row under the Sent row) ---- */
 .exchange-help { -fx-font-style: italic; -fx-font-size: 11px; -fx-opacity: 0.7;

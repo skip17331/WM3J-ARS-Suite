@@ -296,7 +296,6 @@ public class ContestLogController implements Initializable {
             lbl.setMinWidth(Region.USE_PREF_SIZE);
             Control ctrl = buildFieldControl(fd);
             ctrl.setId(fd.getId());
-            clampWidth(ctrl);
             entryFields.put(fd.getId(), ctrl);
             entryLabels.put(fd.getId(), lbl);
             grid.add(lbl,  slot * 2 + 1, 0);
@@ -309,7 +308,6 @@ public class ContestLogController implements Initializable {
         lblOp.setMinWidth(Region.USE_PREF_SIZE);
         tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
         tfOperator.setPrefWidth(90);
-        clampWidth(tfOperator);
         forceUpperCase(tfOperator, false);   // operator is logged to the DB
         grid.add(lblOp,      opSlot * 2 + 1, 0);
         grid.add(tfOperator, opSlot * 2 + 2, 0);
@@ -341,7 +339,6 @@ public class ContestLogController implements Initializable {
             lbl.setMinWidth(Region.USE_PREF_SIZE);
             Control ctrl = buildFieldControl(fd);
             ctrl.setId(fd.getId());
-            clampWidth(ctrl);
             entryFields.put(fd.getId(), ctrl);
             entryLabels.put(fd.getId(), lbl);
             // The Sent row's callsign and serial slots belong to the synthetic
@@ -364,8 +361,16 @@ public class ContestLogController implements Initializable {
         btnBox.setAlignment(Pos.CENTER_LEFT);
         grid.add(btnBox, order.size() * 2 + 1, 0);
 
+        // ---- Entry grid in a horizontal scroller: boxes keep their natural
+        // size; a narrow window scrolls instead of squeezing them. ----
+        ScrollPane gridScroll = new ScrollPane(grid);
+        gridScroll.setFitToHeight(true);
+        gridScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        gridScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        gridScroll.getStyleClass().add("entry-scroll");
+        entryBar.getChildren().add(gridScroll);
+
         // ---- Contest help text: its own wrapped line under the Sent row ----
-        entryBar.getChildren().add(grid);
         String fmt = plugin.getExchangeFormat();
         if (fmt != null && !fmt.isBlank()) {
             Label help = new Label(fmt);
@@ -390,13 +395,6 @@ public class ContestLogController implements Initializable {
         if (id.endsWith("_rcvd") || id.endsWith("_sent"))
             return id.substring(0, id.length() - 5);
         return id;
-    }
-
-    /** Stop a control from being squeezed below its preferred width so the
-     *  entry boxes stay usable when the window is narrow. */
-    private static void clampWidth(Control c) {
-        double w = c.getPrefWidth();
-        if (w > 0) c.setMinWidth(w);
     }
 
     private Control buildFieldControl(ContestPlugin.FieldDef fd) {
