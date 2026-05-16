@@ -1,8 +1,8 @@
 {
-  "version": 1,
-  "updated": "2026-05-12",
+  "version": 2,
+  "updated": "2026-05-16",
   "schemaUrl": "https://github.com/skip17331/WM3J-ARS-Suite/blob/main/docs/PLUGINS.md",
-  "notes": "Community plug-in registry for J-Log. Each entry points at a JSON file the j-hub web UI can fetch and drop into ~/.j-log/contests/ or ~/.j-log/awards/ with one click. Submissions: open a PR adding your plug-in to this file. Plug-ins must follow the schemas documented in docs/PLUGINS.md.",
+  "notes": "Community plug-in registry for J-Log. Each entry points at a JSON file the j-hub web UI can fetch and drop into ~/.j-log/plugins/ (contests) or ~/.j-log/awards/ with one click. v2 (2026-05-16): added the full bundled QSO-party suite — 46 US/Canada state, provincial, multi-state and club QSO parties built/validated against the sponsors' official rules over 2026-05-15..16 (engine commits b324f79..ffd5104). Each is also bundled inside j-log-engine.jar; the registry entry provides discoverability and lets users pull updates. Submissions: open a PR adding your plug-in to this file. Plug-ins must follow the schemas documented in docs/PLUGINS.md.",
   "contests": [
     {
       "id": "ARRL_DX_CW_US_DEMO",
@@ -12,6 +12,466 @@
       "description": "Same as the bundled ARRL_DX_CW_US — included here only as a demonstration of how a registry entry looks. Real third-party contests will be added as operators contribute them.",
       "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/arrl_dx_cw_us.json",
       "homepage": "https://contests.arrl.org/contestcalendar.php",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "ACQP_QSO_PARTY",
+      "name": "Atlantic Canada QSO Party (ACQP)",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/acqp_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "AL_QSO_PARTY",
+      "name": "Alabama QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/al_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "AR_QSO_PARTY",
+      "name": "Arkansas QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ar_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "ARC_QSO_PARTY",
+      "name": "Amateur Radio Club QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/arc_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "AZ_QSO_PARTY",
+      "name": "Arizona QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/az_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "BC_QSO_PARTY",
+      "name": "British Columbia QSO Party",
+      "author": "WM3J",
+      "version": "1.1.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/bc_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "CA_QSO_PARTY",
+      "name": "California QSO Party (CQP)",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ca_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "CO_QSO_PARTY",
+      "name": "Colorado QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/co_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "CPQP_QSO_PARTY",
+      "name": "Canadian Prairies QSO Party (CPQP)",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/cpqp_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "DE_QSO_PARTY",
+      "name": "Delaware QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/de_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "FL_QSO_PARTY",
+      "name": "Florida QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/fl_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "GA_QSO_PARTY",
+      "name": "Georgia QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ga_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "HI_QSO_PARTY",
+      "name": "Hawai'i QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/hi_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "IA_QSO_PARTY",
+      "name": "Iowa QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ia_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "ID_QSO_PARTY",
+      "name": "Idaho QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/id_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "IL_QSO_PARTY",
+      "name": "Illinois QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in. STANDARD/CLAIMED: built from the long-running ILQP format (no official rules PDF was available) — verify against the official WIARC ILQP rules; the committee re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/il_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "KS_QSO_PARTY",
+      "name": "Kansas QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ks_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "KY_QSO_PARTY",
+      "name": "Kentucky QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ky_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "LA_QSO_PARTY",
+      "name": "Louisiana QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/la_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "MDC_QSO_PARTY",
+      "name": "Maryland-DC QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/mdc_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "ME_QSO_PARTY",
+      "name": "Maine QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/me_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "MI_QSO_PARTY",
+      "name": "Michigan QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/mi_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "MN_QSO_PARTY",
+      "name": "Minnesota QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/mn_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "MO_QSO_PARTY",
+      "name": "Missouri QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/mo_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "MS_QSO_PARTY",
+      "name": "Mississippi QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ms_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NC_QSO_PARTY",
+      "name": "North Carolina QSO Party",
+      "author": "WM3J",
+      "version": "1.1.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/nc_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NE_QSO_PARTY",
+      "name": "Nebraska QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ne_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NEW_ENGLAND_QSO_PARTY",
+      "name": "New England QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/new_england_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NH_QSO_PARTY",
+      "name": "New Hampshire QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/nh_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NM_QSO_PARTY",
+      "name": "New Mexico QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/nm_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NS_QSO_PARTY",
+      "name": "Nova Scotia (NSARA) QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ns_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "NY_QSO_PARTY",
+      "name": "New York QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ny_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "OH_QSO_PARTY",
+      "name": "Ohio QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/oh_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "OK_QSO_PARTY",
+      "name": "Oklahoma QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/ok_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "ON_QSO_PARTY",
+      "name": "Ontario QSO Party",
+      "author": "WM3J",
+      "version": "1.1.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/on_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "PA_QSO_PARTY",
+      "name": "Pennsylvania QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/pa_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "QC_QSO_PARTY",
+      "name": "Quebec QSO Party",
+      "author": "WM3J",
+      "version": "1.1.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/qc_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "SC_QSO_PARTY",
+      "name": "South Carolina QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/sc_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "SD_QSO_PARTY",
+      "name": "South Dakota QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/sd_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "SEVENTH_QSO_PARTY",
+      "name": "7th Call Area QSO Party (7QP)",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/seven_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "TN_QSO_PARTY",
+      "name": "Tennessee QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/tn_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "TX_QSO_PARTY",
+      "name": "Texas QSO Party",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/tx_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "VT_QSO_PARTY",
+      "name": "Vermont QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/vt_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "WA_QSO_PARTY",
+      "name": "Washington Salmon Run (WA QSO Party)",
+      "author": "WM3J",
+      "version": "1.2.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/wa_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "WI_QSO_PARTY",
+      "name": "Wisconsin QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/wi_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
+      "license": "GPL-3.0"
+    },
+    {
+      "id": "WV_QSO_PARTY",
+      "name": "West Virginia QSO Party",
+      "author": "WM3J",
+      "version": "1.0.0",
+      "description": "Bundled J-Log QSO-party plug-in, validated to the sponsor's official rules and verified by isolated-DB integration tests on both entrant sides. Claimed/running score — the sponsor's log checker re-adjudicates.",
+      "downloadUrl": "https://raw.githubusercontent.com/skip17331/WM3J-ARS-Suite/main/j-log-engine/src/main/resources/com/jlog/plugins/wv_qso_party.json",
+      "homepage": "https://github.com/skip17331/WM3J-ARS-Suite",
       "license": "GPL-3.0"
     }
   ],
