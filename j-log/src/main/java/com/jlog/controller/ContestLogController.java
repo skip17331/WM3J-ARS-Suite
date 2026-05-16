@@ -1322,6 +1322,16 @@ public class ContestLogController implements Initializable {
                 dupe = ContestQsoDao.getInstance().isDuplicatePerBand(
                     plugin.getContestId(), q.getCallsign(),
                     q.getBand() != null ? q.getBand() : "");
+            } else if (plugin.isPerBandGridDupe()) {
+                // ARRL 10 GHz & Up: once per band from each specific location.
+                // Any station re-worked from a new grid is a new QSO (Rule 2.4
+                // / 6.3) — keyed (callsign, band, grid), no /R suffix needed.
+                String grid = getFieldValue(firstPresent("grid_rcvd", "gridsquare_rcvd"));
+                dupe = ContestQsoDao.getInstance().isDuplicateBandGrid(
+                    plugin.getContestId(), q.getCallsign(),
+                    q.getBand() != null ? q.getBand() : "",
+                    multColumn,
+                    grid != null ? grid : "");
             } else if (plugin.isPerModeMultipliers()) {
                 // Dupe rule is mode-specific, band-independent (e.g. ARRL 10M).
                 dupe = ContestQsoDao.getInstance().isDuplicatePerMode(

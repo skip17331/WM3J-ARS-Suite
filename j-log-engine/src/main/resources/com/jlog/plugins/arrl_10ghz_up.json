@@ -1,0 +1,76 @@
+{
+  "contestId":   "ARRL_10G_UP",
+  "contestName": "ARRL 10 GHz and Up Contest",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "Both stations send 6-char grid (e.g. EM48jw). Signal report optional. Re-workable per band from each new location/grid. Score = Σ round(km between grid centers) × band factor + 100 per unique call/band (QSO-point part ARRL-adjudicated).",
+
+  "perBandGridDupe": true,
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["3cm","1cm","47G","75G","122G","134G","241G","Light"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","FM","FT8","FT4","MSK144","Digital"]
+    },
+    {
+      "id": "grid_rcvd", "label": "Grid R", "type": "text",
+      "width": 80, "required": true, "entryRow": 0,
+      "validator": "maidenhead6"
+    },
+    {
+      "id": "grid_sent", "label": "Grid S", "type": "text",
+      "width": 80, "required": true, "entryRow": 1,
+      "persistent": true,
+      "validator": "maidenhead6"
+    }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso":  0,
+    "modePoints":    {},
+    "multiplierType": "custom",
+    "scoreFormula":  "Σ round(km between 6-char grid centers) × bandFactor (10G=1,24G=2,47G=3,75G=4,122G+=5). PLUS 100 per unique callsign per band (Rule 5.3) — that QSO-point component is NOT summed in-suite (needs unique-call/band dedup), ARRL-adjudicated. Claimed/running distance-points score only.",
+    "scoreIsPointsOnly": true,
+    "distanceScoring": {
+      "theirGridField": "grid_rcvd",
+      "ownGridField":   "grid_sent",
+      "formula":        "km_x_bandfactor",
+      "minKm":          1,
+      "bandFactor": {
+        "3cm": 1, "1cm": 2, "47G": 3, "75G": 4,
+        "122G": 5, "134G": 5, "241G": 5, "Light": 5
+      }
+    },
+    "allowDupes":    false
+  },
+
+  "multiplierModel": {
+    "field":   "grid_rcvd",
+    "perBand": true,
+    "validValues": []
+  },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before / New Location", "config": {} },
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":   "rcvd_callsign",
+    "grid_sent":  "sent_exchange",
+    "grid_rcvd":  "rcvd_exchange"
+  },
+
+  "sections": []
+}

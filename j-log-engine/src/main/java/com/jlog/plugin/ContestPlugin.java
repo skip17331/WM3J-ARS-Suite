@@ -60,6 +60,10 @@ public class ContestPlugin {
     // they change grid. Dupe check keys on callsign+band+grid instead of
     // callsign+band. Used by ARRL June VHF and similar VHF+ contests.
     private boolean roverAwareDupe;
+    // If true, EVERY callsign is a dupe only per (callsign, band, grid) —
+    // a station re-worked from a new grid/location is a new QSO regardless
+    // of any /R suffix. ARRL 10 GHz & Up ("once per band from each location").
+    private boolean perBandGridDupe;
 
     // ---------------------------------------------------------------
     // Inner classes
@@ -292,6 +296,9 @@ public class ContestPlugin {
 
     public boolean isRoverAwareDupe()         { return roverAwareDupe; }
     public void   setRoverAwareDupe(boolean v){ this.roverAwareDupe = v; }
+
+    public boolean isPerBandGridDupe()        { return perBandGridDupe; }
+    public void   setPerBandGridDupe(boolean v){ this.perBandGridDupe = v; }
 
     public String getStationClassifier()      { return stationClassifier; }
     public void   setStationClassifier(String v){ this.stationClassifier = v; }
