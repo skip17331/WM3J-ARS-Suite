@@ -1,0 +1,71 @@
+{
+  "contestId":   "CO_QSO_PARTY",
+  "contestName": "Colorado QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "CO: RST + 3-char CO county. Non-CO: RST + 2-char state/province/territory or 'DX'. Bands 80-10m + 6m + 2m. CW/Phone only (SSB/AM/FM — NO digital). A QSO must include a CO station.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m","40m","20m","15m","10m","6m","2m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","FM","AM"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 2,
+    "multiplierType": "qso_party",
+    "scoreFormula": "(Σ QSO pts × Σ mults, mults counted PER MODE not per band) + bonuses. 2 pts per valid QSO (a QSO must include a CO station). CO entrant mult/mode = each CO county + each US state + each Canadian province/territory + 1 DX (if any DX worked) = 128/mode max. Non-CO entrant mult/mode = each CO county (64/mode max). CO works everyone; non-CO scores CO contacts only. AK/HI = state mults only; DC→MD; USA/Canada are not DX. Mixed = CW & Phone QSOs/mults computed separately then summed (per_mode). County-line = 2 logged QSOs. Claimed/running — the GMCC COQP committee re-adjudicates. NOT applied (off-log/self/category): CO mobile/portable +500 per county activated with ≥15 QSOs (entrant-self); power/operator categories.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Colorado",
+      "stateAbbr": "CO",
+      "countyByExclusion": true,
+      "pointsByModeClass": { "PH": 2, "CW": 2 },
+      "multScope": "per_mode",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": false,
+      "inStateNoDxMult": false,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "CO Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

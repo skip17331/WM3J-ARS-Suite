@@ -1,0 +1,73 @@
+{
+  "contestId":   "KS_QSO_PARTY",
+  "contestName": "Kansas QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "KS: RST + 3-char KS county. Non-KS: RST + 2-char state/province, or 'DX'. (KS abbreviation never used.) Bands 80-10m + 6m. Phone/CW/RTTY (worked once each per band). KS works everyone; non-KS works KS only. FT4/8 is a SEPARATE entry/log (not scored here).",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m","40m","20m","15m","10m","6m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "(Σ QSO pts × Σ mults) + bonus. Pts: Phone 2, CW 3, RTTY 3. Each station workable once per Phone / CW / RTTY per band. Mults counted ONCE (not per band, not per mode). KS entrant mult = each US state (50, incl KS via inStateSelfStateMult — 'first KS county logged counts as the KS multiplier') + each Canadian province (13) + 1 DX = 64; KS counties are NOT per-county mults for a KS entrant. Non-KS entrant mult = each KS county (105). KS works everyone; non-KS scores KS contacts only. KS mobile/rover/portable county-change = new QSO + new county; county-line = separate QSO per county. KS0KS = one-time +100 bonus (all stations, also QSO credit). Claimed/running — the KSQP coordinator re-adjudicates. NOT scored here (separate entry/off-log): the FT4/8 grid-square competition (separate log, no multipliers); 1x1 spelling/stamp & Worked-All-KS/Sunflower/Rookie awards.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Kansas",
+      "stateAbbr": "KS",
+      "countyByExclusion": true,
+      "pointsByModeClass": { "PH": 2, "CW": 3, "RY": 3 },
+      "multScope": "once",
+      "inStateCountsCounties": false,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": true,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": false,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": false,
+      "bonusStationsOnce": { "KS0KS": 100 },
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "KS Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

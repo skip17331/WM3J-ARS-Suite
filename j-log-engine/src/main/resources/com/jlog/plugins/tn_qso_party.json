@@ -1,0 +1,74 @@
+{
+  "contestId":   "TN_QSO_PARTY",
+  "contestName": "Tennessee QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "TN: RST + 4-char TN county (e.g. KNOX). Non-TN US: RST + state (DC→MD). Canada: RST + province. DX: RST + DXCC entity. Bands 160-10m + 6m + 2m (no 60/30/17/12m). CW/Phone/Digital (all digital = one class, CW separate). TN works everyone; non-TN works TN only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","FM","RTTY","PSK31","FT8","FT4","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "multiplierList": "/com/jlog/counties/tn.json",
+
+  "scoringRules": {
+    "pointsPerQso": 3,
+    "multiplierType": "qso_party",
+    "scoreFormula": "(Σ QSO pts × Σ mults, mults counted PER BAND) + bonuses. 3 pts/QSO regardless of mode. Each station workable once per Phone / CW / Digital per band (all voice = phone, all non-CW digital = one class). TN entrant mult/band = TN counties (95) + US states (49, NOT TN, DC→MD) + Canadian provinces (13) + DXCC entities (less USA/Canada/AK/HI; AK/HI=states). Non-TN entrant mult/band = TN counties (95). TN works everyone; non-TN scores TN contacts only. TN mobile/rover county-change = new QSO + new county; county-line = 2 logged QSOs. Bonus station K4TCG = +100 per QSO (once per band & mode, post-multiply). Claimed/running — the TCG TNQP committee re-adjudicates. NOT applied (off-log/self/category): TN-mobile/rover +500 per county with ≥10 QSOs AND its claim-1-extra-county multiplier (entrant-self); power/operator categories.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Tennessee",
+      "stateAbbr": "TN",
+      "countyByExclusion": true,
+      "multScope": "per_band",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "bonusStations": { "K4TCG": 100 },
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "TN Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}
