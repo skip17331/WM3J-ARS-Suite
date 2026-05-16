@@ -1,7 +1,7 @@
 {
   "contestId":   "ARRL_VHF_SEP",
   "contestName": "ARRL September VHF Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
   "exchangeFormat": "Both stations send 4-char grid (e.g. FN10). Rovers: add /R to callsign.",
 
@@ -44,9 +44,9 @@
       "6m":    1, "2m":    1,
       "1.25m": 2, "70cm":  2,
       "33cm":  3, "23cm":  3,
-      "13cm":  3, "9cm":   3,
-      "6cm":   3, "3cm":   3,
-      "1cm":   3
+      "13cm":  4, "9cm":   4,
+      "6cm":   4, "3cm":   4,
+      "1cm":   4
     },
     "multiplierType": "custom",
     "scoreFormula":  "qsoPoints * multipliers",

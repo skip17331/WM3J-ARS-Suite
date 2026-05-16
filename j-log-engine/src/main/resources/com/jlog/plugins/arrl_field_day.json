@@ -3,7 +3,7 @@
   "contestName": "ARRL Field Day",
   "version":     "1.0.0",
 
-  "exchangeFormat": "Both stations send CLASS + SECTION (e.g. 2A EPA, 1D STX, 3E NC)",
+  "exchangeFormat": "Both stations send CLASS + SECTION (e.g. 2A EPA, 1D STX, 3E NC); DX stations send class + DX (e.g. 2A DX)",
 
   "entryFields": [
     {
@@ -14,7 +14,7 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","70cm"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","1.25m","70cm","33cm","23cm","SAT"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
@@ -34,15 +34,15 @@
         "CT","EMA","ME","NH","RI","VT","WMA",
         "ENY","NLI","NNJ","SNJ","WNY",
         "DE","EPA","MDC","WPA",
-        "AL","FL","GA","KY","NC","SC","TN","VA",
+        "AL","NFL","SFL","WCF","GA","KY","NC","SC","TN","VA",
         "AR","LA","MS","NM","NTX","OK","STX","WTX",
-        "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV",
+        "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV","SV",
         "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA",
         "MI","OH","WV",
         "IL","IN","WI",
         "CO","IA","KS","MO","NE","ND","SD","WY",
         "AB","BC","MB","NB","NL","NT","NS","NU","ONN","ONE","ONS","QC","SK","YT","MAR",
-        "HI","PR","VI"
+        "HI","PR","VI","DX"
       ]
     },
     {
@@ -92,14 +92,14 @@
     "CT","EMA","ME","NH","RI","VT","WMA",
     "ENY","NLI","NNJ","SNJ","WNY",
     "DE","EPA","MDC","WPA",
-    "AL","FL","GA","KY","NC","SC","TN","VA",
+    "AL","NFL","SFL","WCF","GA","KY","NC","SC","TN","VA",
     "AR","LA","MS","NM","NTX","OK","STX","WTX",
-    "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV",
+    "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV","SV",
     "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA",
     "MI","OH","WV",
     "IL","IN","WI",
     "CO","IA","KS","MO","NE","ND","SD","WY",
     "AB","BC","MB","NB","NL","NT","NS","NU","ONN","ONE","ONS","QC","SK","YT","MAR",
-    "HI","PR","VI"
+    "HI","PR","VI","DX"
   ]
 }

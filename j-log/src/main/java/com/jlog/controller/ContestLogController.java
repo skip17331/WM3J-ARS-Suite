@@ -157,6 +157,17 @@ public class ContestLogController implements Initializable {
     private static final Set<String>  VALID_MODES = Set.of(
         "CW","USB","LSB","AM","FM","RTTY","FT8","FT4","PSK31","OLIVIA","DV","JS8");
 
+    // ARRL Field Day station class (Rules 4 & 5): transmitter count (>= 1,
+    // Rule 4) followed by a category designator. AB? -> Class A / A-Battery,
+    // BB? -> Class B / B-Battery, C/D/E/F per Rules 4.5-4.8. There is no
+    // Class "I"; a bare letter with no count is not a valid class.
+    private static final String FD_CLASS_RE = "[0-9]{1,2}(AB?|BB?|C|D|E|F)";
+
+    // ARRL November Sweepstakes "check" (Rule 4.4.1): the last two digits of
+    // the year the operator/station was first licensed — always exactly two
+    // digits (e.g. 79, 03, 24). Shared by the live and save-time validators.
+    private static final String SS_CHECK_RE = "[0-9]{2}";
+
     // Divider position captured when DX pane was last expanded; restored on re-expand
     private double dxExpandedDividerPos = 0.5;
 
@@ -262,6 +273,7 @@ public class ContestLogController implements Initializable {
         lblOp.getStyleClass().add("entry-label");
         tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
         tfOperator.setPrefWidth(80);
+        forceUpperCase(tfOperator, false);   // operator is logged to the DB
         rcvdRow.getChildren().addAll(lblOp, tfOperator);
 
         Button btnSave  = new Button(I18n.get("button.save"));
@@ -303,18 +315,19 @@ public class ContestLogController implements Initializable {
             tf.setEditable(false);
             tf.getStyleClass().add("auto-field");
         }
-        if ("callsign".equals(fd.getId()) || "text".equals(fd.getType())) {
-            tf.textProperty().addListener((obs, ov, nv) -> {
-                if (nv != null && nv.contains(" "))
-                    tf.setText(nv.replace(" ", "").toUpperCase());
-            });
-        }
+        // Every entry field is written to the contest DB → force ham-convention
+        // uppercase, caret-safe. Callsigns additionally drop embedded spaces so a
+        // pasted "W1 AW" lands as "W1AW".
+        forceUpperCase(tf, "callsign".equals(fd.getId()));
+
         // Unified options-based validation: any text field whose plugin FieldDef
         // declares options (or is a band/mode with a generic fallback) gets its
-        // value validated against that list — red ring on mismatch.
+        // value validated against that list — red ring on mismatch. The band
+        // field also accepts a bare metre number ("15" ≡ "15m").
         Collection<String> allowed = effectiveOptions(fd);
         if (allowed != null && !allowed.isEmpty()) {
-            tf.textProperty().addListener((obs, o, n) -> applyValidStyle(tf, isAllowed(allowed, n)));
+            final ContestPlugin.FieldDef ffd = fd;
+            tf.textProperty().addListener((obs, o, n) -> applyValidStyle(tf, isFieldValueAllowed(ffd, allowed, n)));
         }
         applyFieldValidator(tf, fd.getValidator());
         if ("callsign".equals(fd.getId())) tfCallsign = tf;
@@ -343,10 +356,14 @@ public class ContestLogController implements Initializable {
                 applyValidStyle(tf, n == null || n.isBlank() || Maidenhead.isValid(n)));
             case "numeric"    -> tf.textProperty().addListener((obs, o, n) ->
                 applyValidStyle(tf, n == null || n.isBlank() || n.trim().matches("[0-9]+")));
-            // Field Day station class: digits followed by A/B/C/D/E/F/I.
+            // Field Day station class: transmitter count + category (e.g. 2A).
             case "fd_class"   -> tf.textProperty().addListener((obs, o, n) ->
                 applyValidStyle(tf, n == null || n.isBlank()
-                    || n.trim().toUpperCase().matches("[0-9]{1,2}[A-FI]")));
+                    || n.trim().toUpperCase().matches(FD_CLASS_RE)));
+            // ARRL Sweepstakes check: exactly two digits (year first licensed).
+            case "ss_check"   -> tf.textProperty().addListener((obs, o, n) ->
+                applyValidStyle(tf, n == null || n.isBlank()
+                    || n.trim().matches(SS_CHECK_RE)));
             default -> { /* unknown validator — ignore */ }
         }
     }
@@ -357,6 +374,42 @@ public class ContestLogController implements Initializable {
         // removeAll clears any accumulated duplicates; one atomic state change.
         tf.getStyleClass().removeAll("field-invalid");
         if (invalid) tf.getStyleClass().add("field-invalid");
+    }
+
+    /** Caret-safe live uppercase for DB-bound entry fields; optionally also
+     *  strips embedded spaces (callsigns never contain them). */
+    private static void forceUpperCase(TextField tf, boolean stripSpaces) {
+        tf.textProperty().addListener((obs, o, n) -> {
+            if (n == null) return;
+            String up = stripSpaces ? n.replace(" ", "").toUpperCase() : n.toUpperCase();
+            if (!up.equals(n)) {
+                int caret = tf.getCaretPosition();
+                tf.setText(up);
+                tf.positionCaret(Math.min(caret, up.length()));
+            }
+        });
+    }
+
+    /** Options check that, for the band field, also accepts a bare metre
+     *  number ("15" ≡ "15m") the way operators actually enter it. */
+    private static boolean isFieldValueAllowed(ContestPlugin.FieldDef fd,
+                                               Collection<String> allowed, String value) {
+        if (isAllowed(allowed, value)) return true;
+        return "band".equals(fd.getId()) && value != null
+            && isAllowed(allowed, value.trim() + "m");
+    }
+
+    /** Band canonicalisation: a bare metre number ("15", "20") maps to its
+     *  metre-band option; result is uppercased (DB convention). Unrecognised
+     *  input is returned untouched so validation can still flag it. */
+    private static String canonicalBand(ContestPlugin.FieldDef fd, String raw) {
+        Collection<String> opts = effectiveOptions(fd);
+        String v = raw == null ? "" : raw.trim();
+        if (opts == null || v.isEmpty()) return v;
+        if (isAllowed(opts, v)) return v.toUpperCase();
+        String withM = v + "m";
+        for (String o : opts) if (o.equalsIgnoreCase(withM)) return o.toUpperCase();
+        return v;
     }
 
     /** Returns null if every required field is non-empty and every field with
@@ -373,15 +426,19 @@ public class ContestLogController implements Initializable {
                 return "Missing required field: " + fd.getLabel();
             if (value == null || value.isBlank()) continue;
             Collection<String> allowed = effectiveOptions(fd);
-            if (allowed != null && !isAllowed(allowed, value))
+            if (allowed != null && !isFieldValueAllowed(fd, allowed, value))
                 return "Invalid " + fd.getLabel() + ": '" + value + "'";
             String v = fd.getValidator();
             if ("maidenhead".equals(v) && !Maidenhead.isValid(value))
                 return "Invalid grid: '" + value + "'";
             if ("numeric".equals(v) && !value.trim().matches("[0-9]+"))
                 return "Field " + fd.getLabel() + " must be numeric";
-            if ("fd_class".equals(v) && !value.trim().toUpperCase().matches("[0-9]{1,2}[A-FI]"))
-                return "Field " + fd.getLabel() + " must be a Field Day class (e.g. 2A, 1D)";
+            if ("fd_class".equals(v) && !value.trim().toUpperCase().matches(FD_CLASS_RE))
+                return "Field " + fd.getLabel()
+                    + " must be a Field Day class — transmitter count + category, e.g. 1A, 2B, 1D, 3F";
+            if ("ss_check".equals(v) && !value.trim().matches(SS_CHECK_RE))
+                return "Field " + fd.getLabel()
+                    + " must be the 2-digit year first licensed, e.g. 79, 03, 24";
         }
         return null;
     }
@@ -1290,6 +1347,7 @@ public class ContestLogController implements Initializable {
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             Control ctrl = entryFields.get(fd.getId());
             String val = getControlValue(ctrl);
+            if ("band".equals(fd.getId())) val = canonicalBand(fd, val);
             switch (fd.getId()) {
                 case "callsign", "prec_sent", "check_sent", "sect_sent", "serial_sent" -> {}
                 case "serial_rcvd" -> q.setSerialReceived(val);
