@@ -1,33 +1,48 @@
 {
   "contestId":   "CQ_WW_RTTY",
   "contestName": "CQ World Wide RTTY DX Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
   "lockedMode":  "RTTY",
 
-  "exchangeFormat": "RST ZONE + State/Prov for W/VE  (e.g. 599 05 PA)",
+  "exchangeFormat": "RST + CQ Zone (+ State/Prov for W/VE)  (e.g. 599 05, or 599 05 PA)",
 
   "entryFields": [
-    { "id": "callsign",  "label": "Callsign",  "type": "text",   "width": 130, "required": true  },
-    { "id": "rst_sent",  "label": "RST S",      "type": "text",   "width":  50, "required": false },
-    { "id": "rst_rcvd",  "label": "RST R",      "type": "text",   "width":  50, "required": false },
-    { "id": "cq_zone",   "label": "CQ Zone",    "type": "number", "width":  60, "required": true  },
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 130, "required": true, "entryRow": 0 },
     {
-      "id": "mode", "label": "Mode", "type": "text", "width": 70,
-      "entryRow": 0, "persistent": true,
-      "options": ["RTTY","PSK31","PSK63","Digital"]
+      "id": "band", "label": "Band", "type": "combo", "width": 80,
+      "required": true, "entryRow": 0, "persistent": true,
+      "options": ["80m","40m","20m","15m","10m"]
     },
     {
-      "id": "band", "label": "Band", "type": "text", "width": 80,
-      "options": ["160m","80m","40m","20m","15m","10m"]
+      "id": "mode", "label": "Mode", "type": "text", "width": 70,
+      "required": true, "entryRow": 0, "persistent": true,
+      "options": ["RTTY"]
+    },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0, "persistent": true },
+    {
+      "id": "cq_zone", "label": "Zone R", "type": "number", "width": 60,
+      "required": true, "entryRow": 0, "validator": "numeric"
+    },
+    {
+      "id": "zone_sent", "label": "My Zone", "type": "number", "width": 60,
+      "required": true, "entryRow": 1, "persistent": true, "validator": "numeric"
+    },
+    {
+      "id": "state_rcvd", "label": "St/Pv R", "type": "text", "width": 65,
+      "required": false, "entryRow": 0
+    },
+    {
+      "id": "state_sent", "label": "My St/Pv", "type": "text", "width": 65,
+      "required": false, "entryRow": 1, "persistent": true
     }
   ],
 
   "scoringRules": {
     "pointsPerQso": 1,
-    "modePoints": { "RTTY": 2, "PSK31": 2, "Digital": 2 },
-    "multiplierType": "dxcc",
-    "scoreFormula": "qsoPoints * (dxccMults + zoneMults)",
+    "multiplierType": "zone_country_state",
+    "scoreFormula": "totalQsoPoints * (zoneMults + countryMults + usVeStateMults), all per band; QSO pts: same-cty 1, diff-cty same-cont 2, diff-cont 3",
     "allowDupes": false
   },
 
@@ -49,13 +64,16 @@
     { "paneIndex": 4, "paneType": "statistics",    "title": "Statistics",   "config": {} }
   ],
 
-  "statistics": ["qso_count","total_score","multipliers","qso_per_hour","dxcc_count","zone_count"],
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour","zone_count","dxcc_count"],
 
   "cabrilloMapping": {
-    "callsign":  "rcvd_callsign",
-    "rst_sent":  "sent_rst",
-    "cq_zone":   "sent_zone",
-    "rst_rcvd":  "rcvd_rst"
+    "callsign":   "rcvd_callsign",
+    "rst_sent":   "sent_rst",
+    "zone_sent":  "sent_zone",
+    "state_sent": "sent_state",
+    "rst_rcvd":   "rcvd_rst",
+    "cq_zone":    "rcvd_zone",
+    "state_rcvd": "rcvd_state"
   },
 
   "sections": []

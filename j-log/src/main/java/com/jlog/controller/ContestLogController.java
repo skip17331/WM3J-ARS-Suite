@@ -9,6 +9,7 @@ import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
+import com.jlog.scoring.DxccResolver;
 import com.jlog.ui.contest.DxccListPane;
 import com.jlog.ui.contest.PerModeMultGridPane;
 import com.jlog.ui.contest.SweepProgressPane;
@@ -1390,6 +1391,15 @@ public class ContestLogController implements Initializable {
         String mode = q.getMode() != null ? q.getMode() : "";
         String band = q.getBand() != null ? q.getBand() : "";
         var rules = plugin.getScoringRules();
+        if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
+            return cqWpxPoints(q);
+        }
+        if (rules != null && "zone_country_state".equals(rules.getMultiplierType())) {
+            return cqWwRttyPoints(q);
+        }
+        if (rules != null && "zone_country".equals(rules.getMultiplierType())) {
+            return cqWwPoints(q);
+        }
         if (rules != null && rules.isRookieRoundupScoring()) {
             // Received 2-digit "year first licensed" vs current 2-digit year.
             // Rookie (Rules 3.1.1.1 / 4.1) = first licensed in the current OR any
@@ -1446,6 +1456,61 @@ public class ContestLogController implements Initializable {
             return plugin.pointsForBand(band, mode);
         }
         return plugin.pointsForMode(mode);
+    }
+
+    /** CQ WW DX Rule IV.B QSO points from the my-station ↔ worked
+     *  entity/continent relationship: same DXCC entity = 0, same continent
+     *  (non-NA) different country = 1, different country within North
+     *  America = 2, different continents = 3. Claimed/running value — the
+     *  CQ WW Committee re-adjudicates from submitted logs. If either side
+     *  is unresolvable (MM/AM, unconfigured station call) it falls back to
+     *  1 so the running tally stays non-zero. */
+    private int cqWwPoints(QsoRecord q) {
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        DxccResolver r = DxccResolver.getInstance();
+        DxccResolver.Entity me   = r.resolve(myCall);
+        DxccResolver.Entity them = r.resolve(q.getCallsign());
+        if (me == null || them == null)            return 1;   // best-effort default
+        if (me.id().equals(them.id()))             return 0;   // same DXCC entity
+        if (!me.continent().equals(them.continent())) return 3; // different continents
+        return "NA".equals(me.continent()) ? 2 : 1;            // same continent (NA = 2)
+    }
+
+    /** CQ WW RTTY QSO points — differs from CW/SSB: same-country = 1 (not 0),
+     *  and ANY different-country same-continent contact = 2 (not just NA);
+     *  different continents = 3. Claimed/running value; unresolvable → 1. */
+    private int cqWwRttyPoints(QsoRecord q) {
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        DxccResolver r = DxccResolver.getInstance();
+        DxccResolver.Entity me   = r.resolve(myCall);
+        DxccResolver.Entity them = r.resolve(q.getCallsign());
+        if (me == null || them == null)               return 1; // best-effort default
+        if (me.id().equals(them.id()))                return 1; // same country = 1
+        if (!me.continent().equals(them.continent())) return 3; // different continents
+        return 2;                                               // diff country, same continent
+    }
+
+    /** CQ WPX QSO points (Rule V.B) — continent relationship × band group.
+     *  LF = 7/3.5/1.8 MHz (40/80/160m) doubles the HF (28/21/14 = 10/15/20m)
+     *  value: diff-continent 3/6; same-continent diff-country 1/2, but NA↔NA
+     *  2/4; same-country = 1 regardless of band. Claimed/running value;
+     *  unresolvable → same-continent-diff-country baseline. */
+    private int cqWpxPoints(QsoRecord q) {
+        String band = q.getBand() == null ? "" : q.getBand();
+        boolean lf = band.equals("40m") || band.equals("80m") || band.equals("160m");
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        DxccResolver r = DxccResolver.getInstance();
+        DxccResolver.Entity me   = r.resolve(myCall);
+        DxccResolver.Entity them = r.resolve(q.getCallsign());
+        if (me == null || them == null)        return lf ? 2 : 1;  // best-effort default
+        if (me.id().equals(them.id()))         return 1;            // same country = 1
+        if (!me.continent().equals(them.continent())) return lf ? 6 : 3; // diff continent
+        if ("NA".equals(me.continent()) && "NA".equals(them.continent()))
+            return lf ? 4 : 2;                                      // NA↔NA exception
+        return lf ? 2 : 1;                                          // same continent, diff country
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -1686,6 +1751,55 @@ public class ContestLogController implements Initializable {
                     if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
                     refreshMapsWorked(workedByMode);
                     refreshPerModeGrid(workedByMode);
+                });
+            } else if (plugin.getScoringRules() != null
+                    && plugin.getScoringRules().getMultiplierType() != null
+                    && plugin.getScoringRules().getMultiplierType().startsWith("zone_country")) {
+                // CQ WW dual/triple multiplier (Rule IV.C), each counted once
+                // PER BAND. Zone = received-zone field (slot field1 = multColumn);
+                // country resolved from the worked callsign (no DB column);
+                // MM/AM resolve to no entity (zone mult only). CQ WW RTTY adds a
+                // THIRD multiplier — US states + VE provinces — logged in the
+                // state_rcvd field (slot field3), blank for non-W/VE.
+                boolean withState = "zone_country_state"
+                        .equals(plugin.getScoringRules().getMultiplierType());
+                DxccResolver dxr = DxccResolver.getInstance();
+                Map<String, Set<String>> zonesByBand = new LinkedHashMap<>();
+                Map<String, Set<String>> ctrysByBand = new LinkedHashMap<>();
+                Map<String, Set<String>> stateByBand = new LinkedHashMap<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String zone = q.getContestField1();
+                    if (zone != null && !zone.isBlank())
+                        zonesByBand.computeIfAbsent(b, k -> new HashSet<>()).add(zone.trim());
+                    String ent = dxr.entityOf(q.getCallsign());
+                    if (ent != null)
+                        ctrysByBand.computeIfAbsent(b, k -> new HashSet<>()).add(ent);
+                    if (withState) {
+                        String st = q.getContestField3();
+                        if (st != null && !st.isBlank())
+                            stateByBand.computeIfAbsent(b, k -> new HashSet<>())
+                                    .add(st.trim().toUpperCase());
+                    }
+                }
+                int zoneMults  = zonesByBand.values().stream().mapToInt(Set::size).sum();
+                int ctryMults  = ctrysByBand.values().stream().mapToInt(Set::size).sum();
+                int stateMults = stateByBand.values().stream().mapToInt(Set::size).sum();
+                int total  = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = zoneMults + ctryMults + stateMults;
+                final int score = total * mults;
+                final List<String> zonesWorked = zonesByBand.values().stream()
+                        .flatMap(Set::stream).distinct().toList();
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                    if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(zonesWorked);
                 });
             } else if (plugin.getMultiplierModel() != null
                     && plugin.getMultiplierModel().isPerBand()) {

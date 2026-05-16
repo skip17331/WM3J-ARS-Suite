@@ -1,9 +1,9 @@
 {
   "contestId":   "CQ_WPX_SSB",
   "contestName": "CQ Worked All Prefixes (SSB)",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "RST + serial (e.g. 599 123). Mult = WPX prefix of worked call.",
+  "exchangeFormat": "RS + serial (e.g. 59 001). Mult = distinct WPX prefixes (contest-wide); QSO pts by continent × band group.",
 
   "lockedMode":         "SSB",
   "autoFillWpxPrefix":  true,
@@ -26,8 +26,8 @@
       "options": ["SSB","USB","LSB"]
     },
     {
-      "id": "rst_rcvd", "label": "RST R", "type": "text",
-      "width": 50, "required": false, "entryRow": 0
+      "id": "rst_rcvd", "label": "RS R", "type": "text",
+      "width": 50, "required": true, "entryRow": 0
     },
     {
       "id": "serial_rcvd", "label": "# R", "type": "text",
@@ -39,16 +39,15 @@
       "width": 70, "required": true, "entryRow": 0
     },
     {
-      "id": "rst_sent", "label": "RST S", "type": "text",
-      "width": 50, "required": false, "entryRow": 1
+      "id": "rst_sent", "label": "RS S", "type": "text",
+      "width": 50, "required": true, "entryRow": 1
     }
   ],
 
   "scoringRules": {
     "pointsPerQso":  1,
-    "modePoints":    {},
-    "multiplierType": "custom",
-    "scoreFormula":  "qsoPoints * multipliers",
+    "multiplierType": "wpx_prefix",
+    "scoreFormula":  "totalQsoPoints * distinctPrefixes (contest-wide); QSO pts Rule V.B: diff-cont 3/6, same-cont diff-cty 1/2 (NA-NA 2/4), same-cty 1; LF=40/80/160m doubles",
     "allowDupes":    false
   },
 
@@ -68,6 +67,7 @@
   "cabrilloMapping": {
     "callsign":     "rcvd_callsign",
     "rst_sent":     "sent_rst",
+    "serial_sent":  "sent_serial",
     "rst_rcvd":     "rcvd_rst",
     "serial_rcvd":  "rcvd_serial"
   },

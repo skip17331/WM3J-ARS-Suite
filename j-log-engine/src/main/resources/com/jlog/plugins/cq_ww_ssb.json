@@ -1,25 +1,38 @@
 {
   "contestId":   "CQ_WW_SSB",
   "contestName": "CQ World Wide DX Contest (SSB)",
-  "version":     "1.0.0",
-  "exchangeFormat": "RST ZONE  (e.g. 59 05)",
+  "version":     "1.1.0",
+
+  "exchangeFormat": "RS + CQ Zone  (send 59 <your-zone>, rcv 59 <their-zone>, e.g. 59 05)",
+
   "entryFields": [
-    { "id": "callsign", "label": "Callsign", "type": "text",   "width": 130, "required": true  },
-    { "id": "rst_sent", "label": "RST S",    "type": "text",   "width":  50, "required": false },
-    { "id": "rst_rcvd", "label": "RST R",    "type": "text",   "width":  50, "required": false },
-    { "id": "cq_zone",  "label": "CQ Zone",  "type": "number", "width":  60, "required": true  },
+    { "id": "callsign",  "label": "Callsign", "type": "text",   "width": 130, "required": true,  "entryRow": 0 },
     {
       "id": "band", "label": "Band", "type": "combo", "width": 80,
+      "required": true, "entryRow": 0, "persistent": true,
       "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    { "id": "rst_sent",  "label": "RS S",     "type": "text",   "width": 50, "required": true, "entryRow": 1 },
+    { "id": "rst_rcvd",  "label": "RS R",     "type": "text",   "width": 50, "required": true, "entryRow": 0, "persistent": true },
+    {
+      "id": "cq_zone", "label": "Zone R", "type": "number", "width": 60,
+      "required": true, "entryRow": 0,
+      "validator": "numeric"
+    },
+    {
+      "id": "zone_sent", "label": "My Zone", "type": "number", "width": 60,
+      "required": true, "entryRow": 1, "persistent": true,
+      "validator": "numeric"
     }
   ],
+
   "scoringRules": {
     "pointsPerQso": 1,
-    "modePoints": { "USB": 1, "LSB": 1, "FM": 1 },
-    "multiplierType": "dxcc",
-    "scoreFormula": "qsoPoints * (dxccMults + zoneMults)",
+    "multiplierType": "zone_country",
+    "scoreFormula": "totalQsoPoints * (zoneMults + countryMults), both per band; QSO pts by continent/country per Rule IV.B",
     "allowDupes": false
   },
+
   "multiplierModel": {
     "field": "cq_zone",
     "perBand": true,
@@ -30,13 +43,23 @@
       "31","32","33","34","35","36","37","38","39","40"
     ]
   },
+
   "row2Panes": [
     { "paneIndex": 1, "paneType": "dupe_checker", "title": "Dupe Checker", "config": {} },
     { "paneIndex": 2, "paneType": "custom",        "title": "Zone Map",     "config": {} },
     { "paneIndex": 3, "paneType": "custom",        "title": "Band Summary", "config": {} },
     { "paneIndex": 4, "paneType": "statistics",    "title": "Statistics",   "config": {} }
   ],
-  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
-  "cabrilloMapping": { "callsign": "rcvd_callsign", "rst_sent": "sent_rst", "cq_zone": "sent_zone" },
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour","zone_count","dxcc_count"],
+
+  "cabrilloMapping": {
+    "callsign":  "rcvd_callsign",
+    "rst_sent":  "sent_rst",
+    "zone_sent": "sent_zone",
+    "rst_rcvd":  "rcvd_rst",
+    "cq_zone":   "rcvd_zone"
+  },
+
   "sections": []
 }
