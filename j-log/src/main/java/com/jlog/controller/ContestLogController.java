@@ -14,6 +14,7 @@ import com.jlog.scoring.DxccResolver;
 import com.jlog.scoring.AriDx;
 import com.jlog.scoring.AsianEntities;
 import com.jlog.scoring.OceaniaDx;
+import com.jlog.scoring.QsoParty;
 import com.jlog.scoring.RussianDx;
 import com.jlog.scoring.Scandinavian;
 import com.jlog.scoring.Wag;
@@ -1381,6 +1382,29 @@ public class ContestLogController implements Initializable {
                     .anyMatch(r -> !r.isDupe()
                         && fdBand.equals(r.getBand() != null ? r.getBand() : "")
                         && fdCls.equals(fdModeClass(r.getMode())));
+            } else if (plugin.getScoringRules() != null
+                    && "qso_party".equals(plugin.getScoringRules().getMultiplierType())) {
+                // QSO party: workable once per band per MODE-CLASS from
+                // each county/QTH. Mode class (PH/CW/RY/DG, RY→DG when
+                // mergeRttyDigital) is compared in Java so USB/LSB, and
+                // FT8/FT4/RTTY where merged, collapse correctly; a
+                // mobile/rover that moves and sends a new county is a new
+                // QSO (MNQP county line, VTQP straddling, SCQP mobiles).
+                var qpc = plugin.getScoringRules().getQsoParty();
+                final boolean qpMerge = qpc != null && qpc.isMergeRttyDigital();
+                final boolean qpMrgCw = qpc != null && qpc.isMergeCwDigital();
+                final String qpCls  = QsoParty.modeClass(q.getMode(), qpMerge, qpMrgCw);
+                final String qpBand = q.getBand() != null ? q.getBand() : "";
+                final String qpQth  = getFieldValue("state_prov_rcvd");
+                final String qpQthN = qpQth == null ? "" : qpQth.trim().toUpperCase();
+                dupe = ContestQsoDao.getInstance()
+                    .findByCallsign(plugin.getContestId(), q.getCallsign())
+                    .stream()
+                    .anyMatch(r -> !r.isDupe()
+                        && qpBand.equals(r.getBand() != null ? r.getBand() : "")
+                        && qpCls.equals(QsoParty.modeClass(r.getMode(), qpMerge, qpMrgCw))
+                        && qpQthN.equals(r.getContestField1() == null ? ""
+                                : r.getContestField1().trim().toUpperCase()));
             } else {
                 dupe = ContestQsoDao.getInstance().isDuplicate(
                     plugin.getContestId(), q.getCallsign(),
@@ -1454,6 +1478,9 @@ public class ContestLogController implements Initializable {
         }
         if (rules != null && "oceania_dx".equals(rules.getMultiplierType())) {
             return oceaniaDxPoints(q);
+        }
+        if (rules != null && "qso_party".equals(rules.getMultiplierType())) {
+            return qsoPartyPoints(q);
         }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
@@ -1739,6 +1766,144 @@ public class ContestLogController implements Initializable {
         if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
         if (OceaniaDx.isOceania(myCall)) return bp;            // Oceania works everyone
         return OceaniaDx.isOceania(q.getCallsign()) ? bp : 0;  // non-Oc: Oceania only
+    }
+
+    // ---- QSO-party engine (multiplierType:"qso_party") ----------------
+
+    private ContestPlugin.QsoPartyConfig qpCfg() {
+        return plugin.getScoringRules() == null ? null
+             : plugin.getScoringRules().getQsoParty();
+    }
+
+    private Set<String> qpUpper(List<String> in) {
+        Set<String> s = new HashSet<>();
+        if (in != null) for (String v : in) if (v != null) s.add(v.trim().toUpperCase());
+        return s;
+    }
+
+    /** In-state county universe — explicit config list, else the
+     *  declared multiplierList resource (the worked_mults universe). */
+    private Set<String> qpCounties(ContestPlugin.QsoPartyConfig c) {
+        if (c != null && c.getInStateCounties() != null && !c.getInStateCounties().isEmpty())
+            return qpUpper(c.getInStateCounties());
+        return qpUpper(com.jlog.plugin.MultiplierLists.load(plugin.getMultiplierList()));
+    }
+
+    /** Field-slot column ("field1".."field5") for an entry-field id,
+     *  using the same special-skip rule as computeMultiplierColumn. */
+    private String qpColumnFor(String id) {
+        int slot = 0;
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            switch (fd.getId()) {
+                case "callsign", "serial_sent", "serial_rcvd", "band", "mode",
+                     "rst_sent", "rst_rcvd", "prec_sent", "check_sent", "sect_sent" -> {}
+                default -> {
+                    if (fd.getId().equals(id)) return "field" + (slot + 1);
+                    slot++;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Operator's own sent QTH (live entry field, else the stored
+     *  state_prov_sent column resolved to its real slot). */
+    private String qpMyQth() {
+        String s = getFieldValue("state_prov_sent");
+        if (s != null && !s.isBlank()) return s.trim().toUpperCase();
+        String col = qpColumnFor("state_prov_sent");
+        if (col == null) return "";
+        try {
+            for (QsoRecord r : ContestQsoDao.getInstance().fetchByContest(plugin.getContestId())) {
+                String f = switch (col) {
+                    case "field1" -> r.getContestField1();
+                    case "field2" -> r.getContestField2();
+                    case "field3" -> r.getContestField3();
+                    case "field4" -> r.getContestField4();
+                    case "field5" -> r.getContestField5();
+                    default -> null;
+                };
+                if (f != null && !f.isBlank()) return f.trim().toUpperCase();
+            }
+        } catch (Exception e) {
+            log.warn("qpMyQth fetch failed", e);
+        }
+        return "";
+    }
+
+    /** Is the worked station in-state? County match, or (digital) an
+     *  in-state grid, or a known club/in-state special call. */
+    private boolean qpWorkedInState(QsoRecord q, ContestPlugin.QsoPartyConfig c,
+                                    Set<String> counties, Set<String> grids,
+                                    Set<String> clubs) {
+        if (QsoParty.callIn(q.getCallsign(), clubs)) return true;
+        String mc = QsoParty.modeClass(q.getMode());
+        String r  = q.getContestField1();
+        if ("DG".equals(mc) && c != null && c.getFt8GridDivisor() > 0) {
+            String g = QsoParty.grid4(r);
+            return g != null && grids.contains(g);
+        }
+        return QsoParty.isCounty(r, counties, c == null ? 0 : c.getCountyCodeLen(),
+                c != null && c.isCountyByExclusion());
+    }
+
+    /** QSO-party QSO points. Per-mode-class table (fallback pointsPerQso);
+     *  an out-of-state entrant only scores QSOs with in-state stations
+     *  (Rule "outside X can only work X"); bonus calls add points for the
+     *  out-of-state side. Claimed/running — sponsor re-adjudicates. */
+    private int qsoPartyPoints(QsoRecord q) {
+        ContestPlugin.QsoPartyConfig c = qpCfg();
+        var rules = plugin.getScoringRules();
+        boolean merge = c != null && c.isMergeRttyDigital();
+        String mc = QsoParty.modeClass(q.getMode(), merge,
+                c != null && c.isMergeCwDigital());
+        int base = rules.getPointsPerQso() > 0 ? rules.getPointsPerQso() : 1;
+        if (c != null && c.getPointsByModeClass() != null
+                && c.getPointsByModeClass().containsKey(mc))
+            base = c.getPointsByModeClass().get(mc);
+        Set<String> counties = qpCounties(c);
+        Set<String> grids = c == null ? Set.of() : qpUpper(c.getInStateGrids());
+        Set<String> clubs = c == null ? Set.of() : qpUpper(c.getClubMultCalls());
+        boolean meIn = QsoParty.isCounty(qpMyQth(), counties,
+                c == null ? 0 : c.getCountyCodeLen(),
+                c != null && c.isCountyByExclusion());
+        boolean themIn = qpWorkedInState(q, c, counties, grids, clubs);
+        boolean allQ = c != null && c.isPointsAllQsos();
+        if (!allQ && !meIn && !themIn) return 0;        // out-of-state works in-state only
+        // Entrant-asymmetric per-mode points: an out-of-state entrant
+        // uses pointsByModeClassOut when present (DEQP: in-DE PH1/CW2,
+        // out-DE PH10/CW20). In-state side keeps pointsByModeClass.
+        if (!meIn && c != null && c.getPointsByModeClassOut() != null
+                && c.getPointsByModeClassOut().containsKey(mc))
+            base = c.getPointsByModeClassOut().get(mc);
+        // Relationship point model (SCQP): same-side / cross-side values
+        // override the per-mode table when configured.
+        if (c != null && (c.getPtsInToIn() != 0 || c.getPtsInToOut() != 0
+                || c.getPtsOutToIn() != 0)) {
+            base = meIn ? (themIn ? c.getPtsInToIn() : c.getPtsInToOut())
+                        : c.getPtsOutToIn();            // !meIn&&!themIn already returned 0
+        }
+        // Fixed per-QSO points for specific club/bonus calls, ALL entrants
+        // (e.g. OQP/QCQP CCO/RAC stations = 10 pts). Overrides the table.
+        if (c != null && c.getQsoPointCalls() != null) {
+            Integer fp = c.getQsoPointCalls().get(QsoParty.baseCall(q.getCallsign()));
+            if (fp != null) base = fp;
+        }
+        if (!meIn && c != null && c.getBonusPointCalls() != null) {
+            String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
+            Integer b = c.getBonusPointCalls().get(call);
+            if (b != null) base += b;                   // e.g. VTQP W1AW/1 = +2
+        }
+        // "Rarest" county QSO-point multiplier (NCQP §Bonus QSO Points):
+        // a QSO with a designated rare county scores ×N, applied to the
+        // mode points BEFORE the multiplier multiply.
+        if (c != null && c.getRareQsoMultiplier() > 1 && c.getRareCounties() != null) {
+            String rc = q.getContestField1() == null ? ""
+                    : q.getContestField1().trim().toUpperCase();
+            if (qpUpper(c.getRareCounties()).contains(rc))
+                base *= c.getRareQsoMultiplier();
+        }
+        return base;
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -2219,6 +2384,141 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = ocMult.size();
                 final int score = ocTotal * ocMult.size();
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "qso_party".equals(plugin.getScoringRules().getMultiplierType())) {
+                // Reusable QSO-party engine. Multiplier scope per_mode /
+                // per_band / once. In-state entrant counts own counties +
+                // (config) W/VE states & provinces + DXCC (each or one) +
+                // club calls; an out-of-state entrant counts ONLY in-state
+                // counties + club calls. Digital (FT8/WSJT) when a grid
+                // divisor is configured contributes grid mults instead of
+                // QTH: in-state = floor(Σ distinct grids / divisor),
+                // out-of-state = min(distinct in-state grids, cap). The
+                // power multiplier (a station category, not log-derivable)
+                // is intentionally NOT applied. Claimed/running — the
+                // sponsor's checker re-adjudicates.
+                ContestPlugin.QsoPartyConfig c = qpCfg();
+                Set<String> counties = qpCounties(c);
+                Set<String> grids = c == null ? Set.of() : qpUpper(c.getInStateGrids());
+                Set<String> clubs = c == null ? Set.of() : qpUpper(c.getClubMultCalls());
+                String scope = c != null && c.getMultScope() != null
+                        ? c.getMultScope() : "once";
+                boolean inCounties = c == null || c.isInStateCountsCounties();
+                boolean ownState   = c != null && c.isInStateOwnStateMult();
+                boolean inStates   = c != null && c.isInStateCountsStates();
+                boolean dxEach     = c != null && c.isInStateCountsDxccEach();
+                boolean noDx       = c != null && c.isInStateNoDxMult();
+                boolean selfState  = c != null && c.isInStateSelfStateMult();
+                boolean merge      = c != null && c.isMergeRttyDigital();
+                boolean mergeCw    = c != null && c.isMergeCwDigital();
+                boolean gridCeil   = c != null && c.isGridDivisorCeil();
+                boolean gridUncap  = c != null && c.isOutStateGridUncapped();
+                int divisor = c == null ? 0 : c.getFt8GridDivisor();
+                int outCap  = c == null ? 0 : c.getOutStateGridCap();
+                String stateAbbr = c == null || c.getStateAbbr() == null
+                        ? "" : c.getStateAbbr().toUpperCase();
+                int countyLen = c == null ? 0 : c.getCountyCodeLen();
+                boolean byExcl = c != null && c.isCountyByExclusion();
+                int areaPfx = c == null ? 0 : c.getAreaStatePrefixLen();
+                Map<String,Integer> bonusMap = c == null || c.getBonusStations() == null
+                        ? Map.of() : c.getBonusStations();
+                Map<String,Integer> bonusOnce = c == null || c.getBonusStationsOnce() == null
+                        ? Map.of() : c.getBonusStationsOnce();
+                boolean meIn = QsoParty.isCounty(qpMyQth(), counties, countyLen, byExcl);
+                Set<String> mset = new HashSet<>();
+                Set<String> allDg = new HashSet<>();
+                Set<String> inDg  = new HashSet<>();
+                Set<String> bonusSeen = new HashSet<>();   // baseCall|band|mc credited once
+                Set<String> bonusOnceSeen = new HashSet<>(); // baseCall credited once total
+                int bonusPts = 0;
+                Set<String> rareSet  = c == null ? Set.of() : qpUpper(c.getRareCounties());
+                Set<String> rareSeen = new HashSet<>();     // distinct rare counties (sweep)
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b  = q.getBand() == null ? "" : q.getBand();
+                    String mc = QsoParty.modeClass(q.getMode(), merge, mergeCw);
+                    String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
+                    String R  = q.getContestField1() == null ? ""
+                            : q.getContestField1().trim().toUpperCase();
+                    String sk = "per_mode".equals(scope) ? mc + "|"
+                              : "per_band".equals(scope) ? b + "|"
+                              : "per_band_mode".equals(scope) ? b + "|" + mc + "|" : "";
+                    // post-multiply bonus station (base-call, once per band+mode)
+                    if (!bonusMap.isEmpty()) {
+                        String bc = QsoParty.baseCall(call);
+                        Integer bp = bonusMap.get(bc);
+                        if (bp != null && bonusSeen.add(bc + "|" + b + "|" + mc))
+                            bonusPts += bp;
+                    }
+                    // once-total bonus station (whole log, e.g. N5LCC / W1AW/5)
+                    if (!bonusOnce.isEmpty()) {
+                        String bc = QsoParty.baseCall(call);
+                        Integer bp = bonusOnce.get(bc);
+                        if (bp != null && bonusOnceSeen.add(bc))
+                            bonusPts += bp;
+                    }
+                    if (rareSet.contains(R)) rareSeen.add(R);   // sweep tracking
+                    boolean club = QsoParty.callIn(call, clubs);
+                    if ("DG".equals(mc) && divisor > 0) {           // digital → grid only
+                        String g = QsoParty.grid4(R);
+                        if (g != null) {
+                            if (meIn) allDg.add(g);
+                            else if (grids.contains(g)) inDg.add(g);
+                        }
+                        if (club) mset.add(sk + "K|" + call);
+                        continue;
+                    }
+                    boolean isDx  = "DX".equals(regionTag(call)) || "DX".equals(R);
+                    // A callsign-classified DX station never counts as an
+                    // in-state county even if its sent token (a DXCC
+                    // prefix, OKQP) coincides with a county code length.
+                    boolean isCty = !isDx && QsoParty.isCounty(R, counties, countyLen, byExcl);
+                    if (meIn) {
+                        if (isCty) {
+                            if (areaPfx > 0 && R.length() >= areaPfx)
+                                mset.add(sk + "S|" + R.substring(0, areaPfx)); // 7QP: in-area code's state token
+                            else if (ownState) mset.add(sk + "S|" + stateAbbr); // in-state stn = state mult
+                            else if (inCounties) mset.add(sk + "C|" + R);
+                        } else if (isDx) {
+                            if (!noDx) {
+                                String e = DxccResolver.getInstance().entityOf(call);
+                                mset.add(sk + "X|" + (dxEach ? (e == null ? "DX" : e) : "DX"));
+                            }
+                        } else if (inStates && !R.isBlank() && !R.equals(stateAbbr)) {
+                            mset.add(sk + "S|" + R);
+                        }
+                        if (selfState) mset.add(sk + "S|" + stateAbbr); // WVQP: own state counts among the 50
+                        if (club) mset.add(sk + "K|" + call);
+                    } else {
+                        if (isCty) mset.add(sk + "C|" + R);
+                        if (club) mset.add(sk + "K|" + call);
+                    }
+                }
+                if (c != null && c.getSweepBonusThreshold() > 0
+                        && rareSeen.size() >= c.getSweepBonusThreshold())
+                    bonusPts += c.getSweepBonusPoints();        // post-multiply sweep
+                else if (c != null && c.getSweepBonusThreshold2() > 0
+                        && rareSeen.size() >= c.getSweepBonusThreshold2())
+                    bonusPts += c.getSweepBonusPoints2();        // lower fallback tier (MDC 13→250)
+                int qpMults = mset.size();
+                if (meIn && divisor > 0)
+                    qpMults += gridCeil
+                        ? (int) Math.ceil(allDg.size() / (double) divisor)
+                        : allDg.size() / divisor;
+                if (!meIn && (outCap > 0 || gridUncap))
+                    qpMults += gridUncap ? inDg.size()
+                                         : Math.min(inDg.size(), outCap);
+                int qpTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = qpMults;
+                final int score = qpTotal * qpMults + bonusPts;   // bonus added post-multiply
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));

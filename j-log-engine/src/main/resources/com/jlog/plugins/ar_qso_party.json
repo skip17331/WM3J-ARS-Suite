@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "AR_QSO_PARTY",
+  "contestName": "Arkansas QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "AR: RST + 3-letter AR county. Non-AR US: RST + state. Canada: RST + province. DX: RST + 'DX'. Bands 160-10m + 6m + 2m. CW/Phone/Digital. AR works everyone; non-AR works AR only (non-AR↔non-AR no credit).",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","FM","RTTY","PSK31","FT8","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,24 +27,23 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ga.json",
-
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) + bonuses. 1 pt/QSO any band/mode (Mobile/Portable/Rover claim 2/QSO — off-log category). AR entrant mult = AR counties (75) + US states except AR (49) + Canadian provinces (13) + ONE DX mult. Non-AR entrant mult = AR counties (75). AR works everyone; non-AR scores AR contacts only (non-AR↔non-AR no credit). Mobile/Portable/Rover county-change = new QSO + new county. Bonus station WR5P = +200 per valid QSO, once per band & mode (post-multiply). Claimed/running — the ARQP committee re-adjudicates. NOT applied (off-log/self/category): Mobile/Portable/Rover 2-pt rate (default 1); Rover/Portable +200 per activated AR county (entrant-self); live-stream +500 (proof-based).",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
+      "stateName": "Arkansas",
+      "stateAbbr": "AR",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
-      "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
-      "inStateNoDxMult": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "bonusStations": { "WR5P": 200 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +53,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "AR Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

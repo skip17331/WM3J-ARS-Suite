@@ -1,0 +1,68 @@
+{
+  "contestId":   "MN_QSO_PARTY",
+  "contestName": "Minnesota QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "MN: name + county (3-letter, e.g. MOW). W/VE: name + state/province (2-letter). DX: name only, log QTH as DX. No RST. CW + Phone, 160-10m no WARC. MN works everyone; W/VE & DX work MN only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","FM","AM"]
+    },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 80, "required": true, "entryRow": 0 },
+    { "id": "name_rcvd", "label": "Name R", "type": "text", "width": 90, "required": false, "entryRow": 0 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 80, "required": false, "entryRow": 1, "persistent": true },
+    { "id": "name_sent", "label": "My Name", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 2,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts (2 each, Phone & CW) × Σ mults, mults counted ONCE OVERALL (not per band/mode). MN entrant: 87 MN counties + 49 states (excl MN) + DC + 10 CA prov + 3 CA terr + 1 DX = 151 max. W/VE & DX entrant: MN counties only (87 max). MN works everyone; outside-MN works MN only. Claimed — MNQP committee re-adjudicates.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Minnesota",
+      "stateAbbr": "MN",
+      "countyCodeLen": 3,
+      "pointsByModeClass": { "PH": 2, "CW": 2, "RY": 2, "DG": 2 },
+      "multScope": "once",
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": false,
+      "inStateCountsCounties": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "MN Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "name_sent":       "sent_exchange",
+    "state_prov_sent": "sent_exchange",
+    "name_rcvd":       "rcvd_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

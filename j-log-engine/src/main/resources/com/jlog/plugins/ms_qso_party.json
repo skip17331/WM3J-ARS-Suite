@@ -1,0 +1,73 @@
+{
+  "contestId":   "MS_QSO_PARTY",
+  "contestName": "Mississippi QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "MS: RS(T) + county (3-letter). W/VE: state/province. DX: country. ALL FT4/8: grid square (the 9 MS grids EM41-44/EM50-54). 160-10m + 6/2m. MS works everyone; non-MS works MS only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","FT8","FT4"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St/Grid", "type": "text", "width": 95, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (once, any band/mode). Pts: SSB 1, CW/RTTY/FT4-8 2. MS entrant = MS counties + 49 states + CA prov + DXCC (SSB/CW/RTTY) + (Σ distinct FT8/4 grids ÷4, round UP); non-MS entrant = MS counties (SSB/CW/RTTY) + count of distinct MS grids (EM41-44/EM50-54) in FT8/4. Mobile/portable score summed per county = off-log/claimed. Claimed — Vicksburg ARC re-adjudicates.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Mississippi",
+      "stateAbbr": "MS",
+      "countyCodeLen": 3,
+      "inStateGrids": ["EM41","EM42","EM43","EM44","EM50","EM51","EM52","EM53","EM54"],
+      "pointsByModeClass": { "PH": 1, "CW": 2, "RY": 2, "DG": 2 },
+      "multScope": "once",
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateCountsCounties": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": false,
+      "ft8GridDivisor": 4,
+      "gridDivisorCeil": true,
+      "outStateGridUncapped": true,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "MS Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

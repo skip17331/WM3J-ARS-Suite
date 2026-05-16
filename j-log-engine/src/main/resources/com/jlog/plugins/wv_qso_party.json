@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "WV_QSO_PARTY",
+  "contestName": "West Virginia QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "WV: RST + WV county. Non-WV US: RST + state (DC→MD). Canada: RST + province. DX: RST + DXCC country prefix. Bands 80-10m (no WARC). CW/SSB/Digital (digital non-CW = one class). WV works everyone; non-WV works WV only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","FT8","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,24 +27,25 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ga.json",
-
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) + bonuses. Pts: Phone 1, CW & Digital 2 (all non-CW digital = one class). WV entrant mult = WV counties (55, from WV stations) + each US state (50, WV counts as a state, DC→MD) + Canadian provinces (13) + each DXCC entity (USA/AK/HI/Canada excluded). Non-WV entrant mult = WV counties (55). WV works everyone; non-WV scores WV contacts only. Mobiles county-change = new QSO + new county; county-line = 2 QSO/2 mult. Bonus station W8WVA = +100 once per band & mode (post-multiply). Claimed/running — the WVQP committee re-adjudicates. NOT applied (off-log/self): WV-mobile +100 per WV county activated (entrant-self).",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
+      "stateName": "West Virginia",
+      "stateAbbr": "WV",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
+      "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": true,
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
-      "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
-      "inStateNoDxMult": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "bonusStations": { "W8WVA": 100 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +55,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "WV Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

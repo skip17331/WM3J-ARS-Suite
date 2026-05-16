@@ -1,0 +1,73 @@
+{
+  "contestId":   "VT_QSO_PARTY",
+  "contestName": "Vermont QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "VT: RS(T) + VT county (e.g. 59 CHI). W/VE: RS(T) + state/province. DX: RS(T) only. FT8/FT4/WSJT: report(dB) + 4-digit grid (e.g. FN34). No serial. VT works the world; outside VT works VT only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","30m","20m","17m","15m","12m","10m","6m","2m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","FT8","FT4","JS8","MFSK","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St/Grid R", "type": "text", "width": 95, "required": false, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 80, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "multiplierList": "/com/jlog/counties/vt.json",
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (power multiplier — a station category — applied off-log by the sponsor). Pts/mode: PH 1, CW 3, RTTY 2, Digital 2; out-of-VT works VT only; W1AW/1 +2 to out-of-VT. Mults ONCE PER MODE: VT entrant = 50 states + 13 VE prov/terr + DXCC (excl US/CA/AK/HI) + 14 VT counties + W1NVT + Σdistinct-FT8-grids/3. Out-of-VT entrant = VT counties + W1NVT + min(distinct VT FT8 grids, 5). Claimed — VTQP committee re-adjudicates.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Vermont",
+      "stateAbbr": "VT",
+      "inStateCounties": ["ADD","BEN","CAL","CHI","ESS","FRA","GRA","LAM","ORA","ORL","RUT","WAS","WNH","WNS"],
+      "inStateGrids": ["FN34","FN33","FN32","FN44","FN35"],
+      "pointsByModeClass": { "PH": 1, "CW": 3, "RY": 2, "DG": 2 },
+      "multScope": "per_mode",
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateCountsCounties": true,
+      "ft8GridDivisor": 3,
+      "outStateGridCap": 5,
+      "bonusPointCalls": { "W1AW/1": 2 },
+      "clubMultCalls": ["W1NVT"]
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "VT Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

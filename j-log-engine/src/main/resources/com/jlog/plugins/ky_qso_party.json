@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "KY_QSO_PARTY",
+  "contestName": "Kentucky QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "KY: RST + KY county. Non-KY US: RST + state (incl DC). Canada: RST + province. DX: RST + 'DX'. Bands 80-10m + 6m + 2m. CW/Phone only (NO digital). KY works everyone; non-KY works KY only (non-KY↔non-KY no credit).",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["80m","40m","20m","15m","10m","6m","2m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","FM"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,24 +27,23 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ga.json",
-
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) [× Power Mult — off-log] + K4KCG bonus + e-log bonus. Pts: Phone 1, CW 2. KY entrant mult = each KY county (120, from KY stations) + each US state incl DC + each Canadian province; DX = QSO pts only (no mult). Non-KY entrant mult = KY counties. KY works everyone; non-KY scores KY contacts only (non-KY↔non-KY no credit). KY mobiles/expeditions county-change = new QSO + new county; KY fixed picks one county on a line. Bonus station K4KCG = +100 per QSO, once per band & mode (post-multiply). Claimed/running — the KYQP committee re-adjudicates. NOT applied (off-log): Power Multiplier (×3 ≤5W / ×2 ≤100W / ×1 >100W, default ×1); +100 electronic-submission bonus.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
+      "stateName": "Kentucky",
+      "stateAbbr": "KY",
       "countyByExclusion": true,
       "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
-      "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
       "inStateNoDxMult": true,
+      "bonusStations": { "K4KCG": 100 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +53,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "KY Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

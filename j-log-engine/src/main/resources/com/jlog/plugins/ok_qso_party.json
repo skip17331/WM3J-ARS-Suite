@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "OK_QSO_PARTY",
+  "contestName": "Oklahoma QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "OK: RS(T) + county (3-letter). W/VE incl KH6/KL7: RS(T) + state/province. DX incl KH2/KP4: RS(T) + DXCC prefix. 80-2m (no 160/WARC). No FT8/FT4. OK works everyone; non-OK works OK only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["80m","40m","20m","15m","10m","6m","2m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,24 +27,22 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ga.json",
-
   "scoringRules": {
-    "pointsPerQso": 1,
+    "pointsPerQso": 2,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Total = Σ QSO pts × Σ mults. Pts: Phone 2, CW 3, Digital 3 (no FT8/4); workable per band AND mode. OK entrant: works everyone; mults = 77 OK counties + 50 states (DC=MD) + 13 CA prov/terr + each DXCC (excl US/CA/KH6/KL7), counted ONCE across bands/modes. Non-OK entrant: works OK only; mult = 77 OK counties. Mobile county-change/county-line = new QSO per county. OK-mobile +500/county@≥10 QSOs = off-log/claimed (category-dependent). Claimed — OKQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
-      "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "stateName": "Oklahoma",
+      "stateAbbr": "OK",
+      "countyCodeLen": 3,
+      "pointsByModeClass": { "PH": 2, "CW": 3, "DG": 3 },
+      "multScope": "once",
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
-      "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
-      "inStateNoDxMult": true,
+      "inStateCountsDxccEach": true,
+      "inStateCountsCounties": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +52,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "OK Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

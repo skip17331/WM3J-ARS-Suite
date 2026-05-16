@@ -1,0 +1,77 @@
+{
+  "contestId":   "MDC_QSO_PARTY",
+  "contestName": "Maryland-DC QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "MDC: RST + county/city code (25, incl BAL=Baltimore City, WDC=Washington DC). Non-MDC US/Canada: RST + state/province. DX: RST + country. Bands 160-10m (no WARC/60m/VHF). CW/Phone only. MDC works everyone; non-MDC works MDC only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Contact pts × State-Mult [× Station-Category Mult × Power Mult — off-log] + bonuses. Pts: CW 3, Phone 1. MDC entrant State-Mult = each MD county/city incl BAL & WDC (25) + each US state less MD (49) + Canadian provinces (13) + each DXCC except USA/Canada/HI/AK. Non-MDC entrant State-Mult = the 25 MDC jurisdictions. MD itself is NOT a state mult. MDC works everyone; non-MDC scores MDC contacts only (non-MDC↔non-MDC no credit). Location-change (MDC entity, or US-state/prov/country) = new station. Bonuses: W3VPR +50 once (any mode); all-25 MDC jurisdictions +500 else 13+ jurisdictions +250. Claimed/running — the AARC MDC committee re-adjudicates. NOT applied (off-log/category): Station-Category Multiplier (Club1/Rover4/Portable3/Mobile2/Fixed1) and Power Multiplier (QRP3/Low2/High1) — both default ×1, committee applies from the entry category.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Maryland-DC",
+      "stateAbbr": "MDC",
+      "inStateCounties": ["ALY","ANA","BAL","BCT","CLV","CLN","CRL","CEC","CHS","DRC","FRD","GAR","HFD","HWD","KEN","MON","PGE","QAN","STM","SMR","TAL","WAS","WIC","WRC","WDC"],
+      "pointsByModeClass": { "CW": 3, "PH": 1 },
+      "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "bonusStationsOnce": { "W3VPR": 50 },
+      "rareCounties": ["ALY","ANA","BAL","BCT","CLV","CLN","CRL","CEC","CHS","DRC","FRD","GAR","HFD","HWD","KEN","MON","PGE","QAN","STM","SMR","TAL","WAS","WIC","WRC","WDC"],
+      "sweepBonusThreshold": 25,
+      "sweepBonusPoints": 500,
+      "sweepBonusThreshold2": 13,
+      "sweepBonusPoints2": 250,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "MDC Jurisdictions / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

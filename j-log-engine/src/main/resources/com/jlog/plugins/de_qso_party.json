@@ -1,9 +1,9 @@
 {
-  "contestId":   "FL_QSO_PARTY",
-  "contestName": "Florida QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "DE_QSO_PARTY",
+  "contestName": "Delaware QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "FL: RST + FL county. Non-FL US (incl KH6/KL7): RST + state. Canada: RST + province. DX (incl KP4): RST + DXCC prefix. Maritime mobile: RST + ITU region. Phone/CW only (NO digital), 40-10m only (no 160/80/WARC/VHF). FL works everyone; non-FL works FL only.",
+  "exchangeFormat": "DE: RST + DE county (NDE New Castle / KDE Kent / SDE Sussex). Outside DE: RST + state/province/'DX'. Bands 160-10m. CW/Phone/Digital (CW grouped with digital for points). DE works everyone; non-DE works DE only. (FT8/FT4 via WSJT Field-Day overlay: DE='nA DE' 1A/2A/3A=NDE/KDE/SDE, out='1A '+section/DX — logged county field governs scoring.)",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["40m","20m","15m","10m"]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","FT8","FT4","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,24 +27,24 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/fl.json",
-
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (each counted ONCE PER MODE, regardless of band) [× Power Multiplier — off-log]. Pts: Phone 1/band, CW 2/band. FL entrant mult = 50 states incl FL + DC + 13 Canadian provinces + each DXCC country (outside US/Canada); NO in-state county mult. Non-FL entrant mult = 67 FL counties. FL works everyone for pts; non-FL scores FL contacts only. FL mobiles/expeditions county-change = new QSO + new county credit. Claimed/running — the FCG re-adjudicates. NOT applied (category/self-report, off-log): Power Multiplier (x3 <=5W / x2 <100W / x1 >100W, default x1); Mobile/Expedition 'multipliers once overall' variant (category-dependent — standard per-mode mult is applied); Special 1x1 'no multiplier' variant; Maritime-Mobile ITU-Region (R1/R2/R3) multiplier (rare; resolved as a DXCC-each entity when the MM call classifies DX, else a claimed edge).",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) [× Power Mult — off-log] [+50 e-log — off-log]. Entrant-asymmetric pts: IN-DE Phone 1 / CW+Digital 2; OUT-DE Phone 10 / CW+Digital 20. DE entrant mult = each US state (DC→MD) + Canadian provinces + each DXCC country (not USA); a DE-to-DE QSO scores points only (no mult). Non-DE entrant mult = DE counties NDE/KDE/SDE. DE works everyone; non-DE scores DE contacts only. Mobiles county-change = new QSO + new county; county-line logged as 2 QSOs. Claimed/running — the DEQP committee re-adjudicates. NOT applied (off-log): Power Multiplier (×3 ≤5W / ×2 ≤100W / ×1 >100W, default ×1); +50 electronic-submission bonus; FT8/FT4 WSJT-FD-overlay county encoding (1A/2A/3A) — the logged county field governs.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Florida",
-      "stateAbbr": "FL",
-      "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "stateName": "Delaware",
+      "stateAbbr": "DE",
+      "inStateCounties": ["NDE","KDE","SDE"],
+      "pointsByModeClass":    { "PH": 1,  "CW": 2,  "DG": 2 },
+      "pointsByModeClassOut": { "PH": 10, "CW": 20, "DG": 20 },
+      "multScope": "once",
       "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
+      "inStateOwnStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": true,
       "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +54,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "FL Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "DE Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

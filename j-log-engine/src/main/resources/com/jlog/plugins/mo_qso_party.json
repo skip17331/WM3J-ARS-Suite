@@ -1,9 +1,9 @@
 {
-  "contestId":   "MI_QSO_PARTY",
-  "contestName": "Michigan QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "MO_QSO_PARTY",
+  "contestName": "Missouri QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "MI: RST + MI county. Non-MI W/VE (incl KH6/KL7): RST + state/province. Outside US/Canada (incl KP2/KP4): RST + 'DX'. CW/SSB only, 80-10m. MI works everyone; non-MI works MI only.",
+  "exchangeFormat": "MO: RS(T) + county (3-letter, Table 1). Non-MO: RS(T) + state/province. DX: RS(T) + 'DX'. 160-10m + 6/2/1.25m/70cm. No FT8/FT4. MO works everyone; non-MO works MO only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,39 +13,39 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["80m","40m","20m","15m","10m"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","1.25m","70cm"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Olivia","Digital"]
     },
-    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
-    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
-
-  "multiplierList": "/com/jlog/counties/mi.json",
 
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (working a mult on CW and SSB = 2). MI entrant: 83 MI counties + 49 states + DC + 13 CA prov + 'DX' (single, any non-W/VE). Non-MI entrant: 83 MI counties. County codes mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — MiQP (Mad River RC) re-adjudicates.",
+    "scoreFormula": "(Σ QSO pts × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: MO entrant = MO counties + 49 states + 13 CA prov + 1 (if ≥1 DX worked); non-MO entrant = MO counties only. W0MA & K0GQ = one-time +100 each (post-multiply). OFF-LOG/claimed (sponsor re-adjudicates): +100 e-log submission, +1/QSO 40-80m Sat/Sun 1400-2000Z window (cap +250), mobile/portable ≥50-QSO/county mult — not reliably log-derivable. Claimed — BEARS-St.Louis re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Michigan",
-      "stateAbbr": "MI",
-      "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "stateName": "Missouri",
+      "stateAbbr": "MO",
+      "countyCodeLen": 3,
+      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
+      "multScope": "once",
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
       "inStateCountsCounties": true,
       "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
       "ft8GridDivisor": 0,
-      "outStateGridCap": 0
+      "outStateGridCap": 0,
+      "bonusStationsOnce": { "W0MA": 100, "K0GQ": 100 }
     }
   },
 
@@ -53,7 +53,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "MI Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "MO Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

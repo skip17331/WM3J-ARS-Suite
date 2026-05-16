@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "ID_QSO_PARTY",
+  "contestName": "Idaho QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "ID: county (3-letter). W/VE incl KH6/KL7: state/province. DX incl KH2/KP4: DXCC prefix. RST not scored. 160-10m (no WARC). No FT8/FT4. ID works everyone; non-ID works ID only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,38 +13,37 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
     },
-    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
-    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
-
-  "multiplierList": "/com/jlog/counties/ga.json",
 
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults. Pts: Phone 1, CW 2, Digital 2 — ALL QRP QSOs = 5 (off-log/claimed: power is an entrant category, applied by the committee/logger). Mults counted ONCE PER MODE (regardless of band): ID entrant = each US state (Idaho counted as the single state mult, not per-county) + CA province + each DXCC country; non-ID entrant = ID counties (44). Mobile county-change/county-line = new QSO per county. Dormant-county +500/1000/1500 bonus = off-log/claimed (entrant/category & list-based). Claimed — IDQP committee re-adjudicates (rules themselves note loggers won't score correctly).",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
-      "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
+      "stateName": "Idaho",
+      "stateAbbr": "ID",
+      "countyCodeLen": 3,
+      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "per_mode",
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
+      "inStateCountsDxccEach": true,
       "inStateCountsCounties": false,
       "inStateOwnStateMult": true,
-      "inStateNoDxMult": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +53,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "ID Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

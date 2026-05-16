@@ -1,9 +1,9 @@
 {
-  "contestId":   "NC_QSO_PARTY",
-  "contestName": "North Carolina QSO Party",
-  "version":     "1.1.0",
+  "contestId":   "NM_QSO_PARTY",
+  "contestName": "New Mexico QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "NC: call + NC county (3-letter). Non-NC: call + state/province or 'DX'. Signal report optional. 80-2m (no 160/WARC). NC works everyone; non-NC works NC only. FT8/FT4 are a SEPARATE Weak Signal Showcase — not in this log.",
+  "exchangeFormat": "NM: RS(T) + NM county (3-letter). Non-NM: RS(T) + state/province/DXCC. AK/HI = state; DC = MD; US/Canada not DX. 160-10m + 6/2m. NM works everyone; non-NM works NM only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["80m","40m","20m","15m","10m","6m","2m"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB","AM","FM","RTTY","PSK31","Digital"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,30 +27,25 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/nc.json",
-
   "scoringRules": {
-    "pointsPerQso": 2,
+    "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Final = (Σ QSO pts + rare-county bonus QSO pts) × Σ mults, + sweep bonus after the multiply. Pts: Phone 2, CW 3, Digital 5 (FT8/4 excluded — separate Showcase). A QSO with a 'Rarest of NC' county scores ×10 (20/30/50). Mults counted ONCE across all bands/modes: NC entrant = 100 NC counties + 49 states + DC + 13 CA prov/terr + 1 DX (164); non-NC entrant = NC counties only. ≥1 QSO in 5 Rarest counties = +500 post-multiply (sweep). Mobile/county-line = new QSO per county. Claimed — NCQP committee re-adjudicates.",
+    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + W1AW/5 one-time +250 (post-multiply). Pts: Phone 1, CW/Digital 2. Mults counted ONCE (any mode/band): NM entrant = NM counties + states + CA prov + each DXCC; non-NM entrant = NM counties (33). Power ×5/×2/×1 (QRP/Low/High) and NM mobile +5000/county@≥15 are OFF-LOG/claimed (entrant category / self-report). Claimed — NMQP organizers re-adjudicate.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "North Carolina",
-      "stateAbbr": "NC",
-      "countyCodeLen": 3,
-      "pointsByModeClass": { "PH": 2, "CW": 3, "DG": 5 },
+      "stateName": "New Mexico",
+      "stateAbbr": "NM",
+      "inStateCounties": ["BER","CAT","CHA","CIB","COL","CUR","DEB","DON","EDD","GRA","GUA","HAR","HID","LEA","LIN","LOS","LUN","MCK","MOR","OTE","QUA","RIO","ROO","SJU","SMI","SAN","SFE","SIE","SOC","TAO","TOR","UNI","VAL"],
+      "pointsByModeClass": { "PH": 1, "CW": 2, "RY": 2, "DG": 2 },
       "multScope": "once",
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
+      "inStateCountsDxccEach": true,
       "inStateCountsCounties": true,
       "inStateNoDxMult": false,
       "mergeRttyDigital": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0,
-      "rareCounties": ["CAB","GRM","VAN","MAC","DAV","CUR","PAM","ALL","PER","CAS"],
-      "rareQsoMultiplier": 10,
-      "sweepBonusPoints": 500,
-      "sweepBonusThreshold": 5
+      "bonusStationsOnce": { "W1AW": 250 }
     }
   },
 
@@ -58,7 +53,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NC Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NM Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

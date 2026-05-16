@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "AL_QSO_PARTY",
+  "contestName": "Alabama QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "AL: RST + AL county. W/VE (incl KH6/KL7): RST + state/province (DC→MD). DX (incl KP2/KP4): RST + DXCC country prefix. Bands 80-10m (no WARC). CW/Phone only. AL works the world; non-AL works AL only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,7 +13,7 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
@@ -27,24 +27,22 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ga.json",
-
   "scoringRules": {
-    "pointsPerQso": 1,
+    "pointsPerQso": 2,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults (each counted ONCE PER MODE). Pts: CW and Phone both 2/QSO. AL entrant mult = AL counties (67, from AL stations) + each US state (50, AL counts as a state, DC→MD) + Canadian provinces (13) + each DXCC entity — 63/mode + 67 counties + DXCC. Non-AL entrant mult = AL counties (67/mode, 134 mixed). AL works the world; non-AL scores AL contacts only (non-AL↔non-AL no credit). Stations worked on multiple bands for QSO credit; mults once per mode. AL mobiles county-change = new QSO + new county (no county-line sitting). Claimed/running — the AQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
+      "stateName": "Alabama",
+      "stateAbbr": "AL",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
       "multScope": "per_mode",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": true,
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
-      "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
-      "inStateNoDxMult": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -54,7 +52,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "AL Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

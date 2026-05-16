@@ -1,0 +1,74 @@
+{
+  "contestId":   "ACQP_QSO_PARTY",
+  "contestName": "Atlantic Canada QSO Party (ACQP)",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "Atlantic Canada (NL/PE/NB/NS): RST + 5-letter province+county/division code (e.g. NSANP, NLASJ). Out-of-region VE/W: RST + province/state. Other: RST + 'DX'. Bands 80-10m. SSB/CW only (NO digital). Atlantic Canada works everyone; out-of-region works Atlantic Canada only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Pr+Co R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Pr+Co", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER BAND) + bonuses. 1 pt/QSO regardless of mode. In-region entrant mult = each Canadian province/territory (13) + each US state (50, DC→MD), per band; an in-region station's 5-letter province+county code contributes its leading-2-char PROVINCE token (including own province); DX = no mult. Out-of-region entrant mult = distinct Atlantic-Canada county/division codes per band (47: NS 18 / NB 15 / PE 3 / NL 11). Atlantic Canada works everyone; out-of-region scores Atlantic-Canada contacts only (non-region↔non-region no credit). Mobiles/portables county-line = separate QSO per division. Bonus stations (VE1RAC/VE9RAC/VY2RAC/VO1RAC/VO2RAC/VE0CNM/VE0MMA/VO1ACQ/VE9ACQ/VA1ACQ) = +5 once per band & mode. Claimed/running — the ACQP committee re-adjudicates. The 'and mode' nuance on the in-region provincial mult is treated as per-band (the stated 63/band cap); claimed.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Atlantic Canada",
+      "stateAbbr": "AC",
+      "countyByExclusion": true,
+      "areaStatePrefixLen": 2,
+      "multScope": "per_band",
+      "inStateCountsCounties": false,
+      "inStateOwnStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": false,
+      "inStateNoDxMult": true,
+      "bonusStations": {
+        "VE1RAC": 5, "VE9RAC": 5, "VY2RAC": 5, "VO1RAC": 5, "VO2RAC": 5,
+        "VE0CNM": 5, "VE0MMA": 5, "VO1ACQ": 5, "VE9ACQ": 5, "VA1ACQ": 5
+      },
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "ACQP Divisions / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

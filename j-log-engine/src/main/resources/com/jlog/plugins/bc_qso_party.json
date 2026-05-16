@@ -1,11 +1,11 @@
 {
   "contestId":   "BC_QSO_PARTY",
   "contestName": "British Columbia QSO Party",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "CA: serial + county (e.g. 001 ALAM)   Other: serial + state/prov/DX (e.g. 001 PA)",
+  "exchangeFormat": "BC: RS(T) + Electoral District (3-letter, e.g. NWB). Non-BC: RS(T) + state/province/territory or DX (HI/AK = state, not DX). CW + Phone, 160-10m no WARC. BC works the world; non-BC works BC only.",
 
-  "autoFillDxccPrefix": true,
+  "stationClassifier": "callsignRegion",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -13,40 +13,48 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB","FM","RTTY","PSK31","FT8","Digital"]
+      "options": ["CW","SSB","USB","LSB"]
     },
-    { "id": "rst_rcvd",    "label": "RST R",  "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "serial_rcvd", "label": "# R",    "type": "text", "width": 60, "required": true,  "entryRow": 0, "validator": "numeric" },
-    { "id": "state_prov_rcvd", "label": "QTH R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
-    { "id": "rst_sent",    "label": "RST S",  "type": "text", "width": 50, "required": false, "entryRow": 1 },
-    { "id": "state_prov_sent", "label": "QTH S", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Dist/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Dist/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
   "multiplierList": "/com/jlog/counties/bc.json",
 
   "scoringRules": {
-    "pointsPerQso":  1,
-    "modePoints":    { "CW": 2, "RTTY": 2, "PSK31": 2, "FT8": 2, "Digital": 2 },
-    "multiplierType": "custom",
-    "scoreFormula":  "qsoPoints * multipliers",
-    "allowDupes":    false
+    "pointsPerQso": 2,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Total = (Σ QSO pts × Σ location mults) + bonus station pts. Pts: Phone 2, CW 4. Mults counted ONCE PER BAND PER MODE. BC entrant: 43 BC districts + 13 CA prov/terr + US states (HI/AK incl, MD/DC as MD); non-BC entrant: BC districts only. DX = QSO points only, no multiplier. VA7ODX = +20 per band/mode, added after the multiply. Claimed — BCQP committee re-adjudicates.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "British Columbia",
+      "stateAbbr": "BC",
+      "countyCodeLen": 3,
+      "pointsByModeClass": { "PH": 2, "CW": 4 },
+      "multScope": "per_band_mode",
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": false,
+      "inStateCountsCounties": true,
+      "inStateNoDxMult": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0,
+      "bonusStations": { "VA7ODX": 20 }
+    }
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": false,
-    "validValues": []
-  },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "Worked Mults (counties/states)", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "BC Districts / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 
@@ -56,7 +64,6 @@
     "callsign":        "rcvd_callsign",
     "rst_sent":        "sent_rst",
     "rst_rcvd":        "rcvd_rst",
-    "serial_rcvd":     "rcvd_serial",
     "state_prov_sent": "sent_exchange",
     "state_prov_rcvd": "rcvd_exchange"
   },

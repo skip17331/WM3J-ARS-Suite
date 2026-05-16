@@ -132,9 +132,10 @@ public class ContestPlugin {
         // When present, per-QSO points are derived from the distance between
         // the worked and own grid-square centers — see DistanceScoring.
         private DistanceScoring distanceScoring;
-        private String multiplierType;       // "sections" | "dxcc" | "states" | "custom"
+        private String multiplierType;       // "sections" | "dxcc" | "states" | "custom" | "qso_party"
         private String scoreFormula;         // e.g. "qsoPoints * multipliers"
         private boolean allowDupes;
+        private QsoPartyConfig qsoParty;     // config for multiplierType:"qso_party"
 
         public int    getPointsPerQso()     { return pointsPerQso; }
         public void   setPointsPerQso(int v){ this.pointsPerQso = v; }
@@ -158,6 +159,158 @@ public class ContestPlugin {
         public void   setDistanceScoring(DistanceScoring v){ this.distanceScoring = v; }
         public boolean isAllowDupes()       { return allowDupes; }
         public void   setAllowDupes(boolean v){ this.allowDupes = v; }
+        public QsoPartyConfig getQsoParty() { return qsoParty; }
+        public void   setQsoParty(QsoPartyConfig v){ this.qsoParty = v; }
+    }
+
+    /**
+     * Configuration for the reusable {@code multiplierType:"qso_party"}
+     * scoring engine. Captures the structural variation across state/
+     * province QSO parties: which county codes mark a station in-state,
+     * per-mode-class point table, multiplier scope (per mode / per band /
+     * once overall), which multiplier dimensions each side (in-state vs
+     * out-of-state entrant) may count, the FT8/WSJT grid rule, and the
+     * bonus / club special callsigns. All claimed/running — the sponsor
+     * re-adjudicates.
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class QsoPartyConfig {
+        private String stateName;                       // "Vermont"
+        private String stateAbbr;                       // "VT" — own state, not a W/VE state-mult
+        private List<String> inStateCounties;           // county codes ⇒ station is in-state
+        private boolean countyByExclusion;               // county = not "DX" & length != 2
+                                                         //   (state/prov are 2-char) — for parties
+                                                         //   whose county codes are mixed length
+        private Map<String,Integer> qsoPointCalls;       // base-call → fixed per-QSO points
+                                                         //   (overrides mode table, all entrants)
+        private int countyCodeLen;                       // >0: any non-"DX" QTH of this length
+                                                         //     is an in-state county (used when
+                                                         //     the official code list isn't bundled)
+        private int areaStatePrefixLen;                  // >0: multi-state-area party (7QP). An
+                                                         //     in-area entrant working an in-area
+                                                         //     station counts the leading N chars
+                                                         //     of the received state+county code
+                                                         //     as the STATE mult (ORDES → "OR");
+                                                         //     a non-area entrant still counts the
+                                                         //     whole code as a distinct county.
+        private List<String> inStateGrids;              // 4-char grids inside the state (FT8)
+        private Map<String,Integer> pointsByModeClass;  // PH|CW|RY|DG → QSO points
+        private Map<String,Integer> pointsByModeClassOut;// same, but for an OUT-of-state
+                                                         //   entrant (entrant-asymmetric pts,
+                                                         //   e.g. DEQP in-DE PH1/CW2 vs
+                                                         //   out-DE PH10/CW20); null ⇒ both
+                                                         //   sides use pointsByModeClass
+        private String multScope;                       // "per_mode" | "per_band" | "once"
+        private boolean inStateCountsStates;            // in-state entrant: W/VE state/prov as mult
+        private boolean inStateCountsDxccEach;          // DX per-country (true) vs single "DX" (false)
+        private boolean inStateCountsCounties;          // in-state entrant: own counties as mult
+        private boolean inStateOwnStateMult;            // in-state entrant: an in-state (county-
+                                                        //   sending) station = ONE state mult
+                                                        //   (stateAbbr), not per-county (IDQP)
+        private boolean inStateSelfStateMult;           // true ⇒ in-state entrant ALSO gets one
+                                                        //   "own-state" state mult (their own state
+                                                        //   counts among the 50, even though local
+                                                        //   stations send a county) — WVQP
+        private boolean inStateNoDxMult;                // true ⇒ DX yields NO multiplier (BCQP/SCQP)
+        private boolean pointsAllQsos;                  // true ⇒ every QSO scores (no in/out gate, NSARA)
+        private boolean mergeRttyDigital;               // true ⇒ RTTY folds into the WSJT "DG" class
+        private boolean mergeCwDigital;                 // true ⇒ CW+RTTY+digital = one "CD" class (LAQP)
+        private boolean gridDivisorCeil;                // true ⇒ in-state FT8 grid mult rounds UP (MSQP)
+        private boolean outStateGridUncapped;           // true ⇒ out-of-state grid mult = ALL distinct
+                                                        //   in-state grids (no cap, MSQP)
+        private Map<String,Integer> bonusStations;      // base-call → flat post-multiply bonus pts,
+                                                        //   credited once per band+mode-class
+        private Map<String,Integer> bonusStationsOnce;  // base-call → flat post-multiply bonus pts,
+                                                        //   credited ONCE for the whole log (N5LCC/W1AW5)
+        private List<String> rareCounties;              // counties whose QSO pts are ×rareQsoMultiplier
+        private int rareQsoMultiplier;                  // per-QSO points multiplier for a rare county
+        private int sweepBonusPoints;                   // post-multiply bonus if the sweep threshold
+        private int sweepBonusThreshold;                //   distinct rare counties is reached
+        private int sweepBonusPoints2;                  // lower fallback tier (awarded only when the
+        private int sweepBonusThreshold2;               //   primary tier is NOT met) — MDC: 25→500
+                                                        //   else 13→250
+        private int ptsInToIn;                          // relationship points (0 = use modeClass table):
+        private int ptsInToOut;                         //   in-state↔in / in↔out / out↔in;
+        private int ptsOutToIn;                         //   out↔out is always 0 (gated)
+        private int ft8GridDivisor;                     // in-state DG mult = floor(#grids / divisor); 0=off
+        private int outStateGridCap;                    // out-of-state DG mult = min(#in-state grids, cap)
+        private Map<String,Integer> bonusPointCalls;    // out-of-state +pts for working these calls
+        private List<String> clubMultCalls;             // each counts as a multiplier (scope-applied)
+
+        public String getStateName(){ return stateName; }
+        public void setStateName(String v){ this.stateName = v; }
+        public String getStateAbbr(){ return stateAbbr; }
+        public void setStateAbbr(String v){ this.stateAbbr = v; }
+        public List<String> getInStateCounties(){ return inStateCounties; }
+        public void setInStateCounties(List<String> v){ this.inStateCounties = v; }
+        public int getCountyCodeLen(){ return countyCodeLen; }
+        public void setCountyCodeLen(int v){ this.countyCodeLen = v; }
+        public boolean isCountyByExclusion(){ return countyByExclusion; }
+        public void setCountyByExclusion(boolean v){ this.countyByExclusion = v; }
+        public int getAreaStatePrefixLen(){ return areaStatePrefixLen; }
+        public void setAreaStatePrefixLen(int v){ this.areaStatePrefixLen = v; }
+        public Map<String,Integer> getQsoPointCalls(){ return qsoPointCalls; }
+        public void setQsoPointCalls(Map<String,Integer> v){ this.qsoPointCalls = v; }
+        public List<String> getInStateGrids(){ return inStateGrids; }
+        public void setInStateGrids(List<String> v){ this.inStateGrids = v; }
+        public Map<String,Integer> getPointsByModeClass(){ return pointsByModeClass; }
+        public void setPointsByModeClass(Map<String,Integer> v){ this.pointsByModeClass = v; }
+        public Map<String,Integer> getPointsByModeClassOut(){ return pointsByModeClassOut; }
+        public void setPointsByModeClassOut(Map<String,Integer> v){ this.pointsByModeClassOut = v; }
+        public String getMultScope(){ return multScope; }
+        public void setMultScope(String v){ this.multScope = v; }
+        public boolean isInStateCountsStates(){ return inStateCountsStates; }
+        public void setInStateCountsStates(boolean v){ this.inStateCountsStates = v; }
+        public boolean isInStateCountsDxccEach(){ return inStateCountsDxccEach; }
+        public void setInStateCountsDxccEach(boolean v){ this.inStateCountsDxccEach = v; }
+        public boolean isInStateCountsCounties(){ return inStateCountsCounties; }
+        public void setInStateCountsCounties(boolean v){ this.inStateCountsCounties = v; }
+        public boolean isInStateOwnStateMult(){ return inStateOwnStateMult; }
+        public void setInStateOwnStateMult(boolean v){ this.inStateOwnStateMult = v; }
+        public int getFt8GridDivisor(){ return ft8GridDivisor; }
+        public void setFt8GridDivisor(int v){ this.ft8GridDivisor = v; }
+        public int getOutStateGridCap(){ return outStateGridCap; }
+        public void setOutStateGridCap(int v){ this.outStateGridCap = v; }
+        public Map<String,Integer> getBonusPointCalls(){ return bonusPointCalls; }
+        public void setBonusPointCalls(Map<String,Integer> v){ this.bonusPointCalls = v; }
+        public List<String> getClubMultCalls(){ return clubMultCalls; }
+        public void setClubMultCalls(List<String> v){ this.clubMultCalls = v; }
+        public boolean isInStateSelfStateMult(){ return inStateSelfStateMult; }
+        public void setInStateSelfStateMult(boolean v){ this.inStateSelfStateMult = v; }
+        public boolean isInStateNoDxMult(){ return inStateNoDxMult; }
+        public void setInStateNoDxMult(boolean v){ this.inStateNoDxMult = v; }
+        public boolean isPointsAllQsos(){ return pointsAllQsos; }
+        public void setPointsAllQsos(boolean v){ this.pointsAllQsos = v; }
+        public boolean isMergeRttyDigital(){ return mergeRttyDigital; }
+        public void setMergeRttyDigital(boolean v){ this.mergeRttyDigital = v; }
+        public boolean isMergeCwDigital(){ return mergeCwDigital; }
+        public void setMergeCwDigital(boolean v){ this.mergeCwDigital = v; }
+        public boolean isGridDivisorCeil(){ return gridDivisorCeil; }
+        public void setGridDivisorCeil(boolean v){ this.gridDivisorCeil = v; }
+        public boolean isOutStateGridUncapped(){ return outStateGridUncapped; }
+        public void setOutStateGridUncapped(boolean v){ this.outStateGridUncapped = v; }
+        public Map<String,Integer> getBonusStations(){ return bonusStations; }
+        public void setBonusStations(Map<String,Integer> v){ this.bonusStations = v; }
+        public Map<String,Integer> getBonusStationsOnce(){ return bonusStationsOnce; }
+        public void setBonusStationsOnce(Map<String,Integer> v){ this.bonusStationsOnce = v; }
+        public List<String> getRareCounties(){ return rareCounties; }
+        public void setRareCounties(List<String> v){ this.rareCounties = v; }
+        public int getRareQsoMultiplier(){ return rareQsoMultiplier; }
+        public void setRareQsoMultiplier(int v){ this.rareQsoMultiplier = v; }
+        public int getSweepBonusPoints(){ return sweepBonusPoints; }
+        public void setSweepBonusPoints(int v){ this.sweepBonusPoints = v; }
+        public int getSweepBonusThreshold(){ return sweepBonusThreshold; }
+        public void setSweepBonusThreshold(int v){ this.sweepBonusThreshold = v; }
+        public int getSweepBonusPoints2(){ return sweepBonusPoints2; }
+        public void setSweepBonusPoints2(int v){ this.sweepBonusPoints2 = v; }
+        public int getSweepBonusThreshold2(){ return sweepBonusThreshold2; }
+        public void setSweepBonusThreshold2(int v){ this.sweepBonusThreshold2 = v; }
+        public int getPtsInToIn(){ return ptsInToIn; }
+        public void setPtsInToIn(int v){ this.ptsInToIn = v; }
+        public int getPtsInToOut(){ return ptsInToOut; }
+        public void setPtsInToOut(int v){ this.ptsInToOut = v; }
+        public int getPtsOutToIn(){ return ptsOutToIn; }
+        public void setPtsOutToIn(int v){ this.ptsOutToIn = v; }
     }
 
     /**

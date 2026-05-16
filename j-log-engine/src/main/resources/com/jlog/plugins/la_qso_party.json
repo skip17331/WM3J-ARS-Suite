@@ -1,0 +1,71 @@
+{
+  "contestId":   "LA_QSO_PARTY",
+  "contestName": "Louisiana QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "LA: RS(T) + parish (3-letter). Non-LA: RS(T) + state/province/country. 160-10m + 6/2m (no WARC). No FT8 (exchange-incompatible). LA works everyone; non-LA works LA only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Par/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Par/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 2,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (+ N5LCC one-time +100, post-multiply). Pts: Phone 2, CW/Digital 4. Mults counted per band AND per mode-class where CW+Digital are ONE class and Phone separate (§9.1/§9.4). Non-LA entrant = LA parishes; LA entrant = parishes + states + provinces + DXCC. Rover +50/parish activated = off-log/claimed. Claimed — LaQP committee re-adjudicates.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Louisiana",
+      "stateAbbr": "LA",
+      "countyCodeLen": 3,
+      "pointsByModeClass": { "PH": 2, "CD": 4 },
+      "multScope": "per_band_mode",
+      "mergeCwDigital": true,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateCountsCounties": true,
+      "inStateNoDxMult": false,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0,
+      "bonusStationsOnce": { "N5LCC": 100 }
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "LA Parishes / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

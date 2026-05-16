@@ -1,0 +1,80 @@
+{
+  "contestId":   "NE_QSO_PARTY",
+  "contestName": "Nebraska QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "NE: RST(optional) + NE county. Non-NE US/Canada: RST + state/province. DX: RST + DXCC country. CW/Phone/Digital (RTTY/PSK; NOT FT8/FT4 — separate competition). All non-WARC HF + VHF/UHF. NE works everyone; non-NE works NE only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","1.25m","70cm"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","FM","AM","RTTY","PSK31","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/SPC R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/SPC", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ geo mults (counted ONCE PER CONTEST — not per band, not per mode) + station bonuses. Pts: Digital 1, Phone 2, CW 3 (RTTY=Digital). NE entrant geo mult = each NE county + each US state + each Canadian province + each DXCC country worked. Non-NE entrant geo mult = NE counties only (max 93). NE works everyone; non-NE scores NE contacts only. Mobile/portable county-change = new QSO + new county credit. Station bonuses (once each): KA0BOJ +100, K0SMM/K0RPT/K0NEB/NF0N/N0FER/KE0XQ +50 each. Claimed/running — Nebraska QSO Party committee re-adjudicates. NOT applied (category/self-report, off-log): Power Multiplier (×5 QRP / ×2 <100W / ×1 >100W, default ×1); RARE GRID activator bonus (DN91CE/DE/EE — entrant's own grid, not log-derivable); Satellite category (4 pts/QSO — declared overlay). The separate FT8/FT4 grid-square competition is a distinct entry/log and is intentionally NOT scored here.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Nebraska",
+      "stateAbbr": "NE",
+      "countyByExclusion": true,
+      "pointsByModeClass": { "DG": 1, "PH": 2, "CW": 3 },
+      "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateOwnStateMult": false,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "bonusStationsOnce": {
+        "KA0BOJ": 100,
+        "K0SMM": 50,
+        "K0RPT": 50,
+        "K0NEB": 50,
+        "NF0N": 50,
+        "N0FER": 50,
+        "KE0XQ": 50
+      },
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NE Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

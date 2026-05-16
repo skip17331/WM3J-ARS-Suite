@@ -1,0 +1,69 @@
+{
+  "contestId":   "CPQP_QSO_PARTY",
+  "contestName": "Canadian Prairies QSO Party (CPQP)",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "Prairies (VE/VA 4/5/6 = MB/SK/AB): RST + 3-letter federal-electoral-district code. Outside: RST + 2-letter state/province or 'DX'. Bands 40-20-15-10m. CW/Phone only. Prairie stations work everyone; outside works prairie only (non-prairie↔non-prairie no credit).",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Dist/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Dist/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults, mults counted ONCE PER BAND (4 bands). Pts: 1 per CW or Phone QSO. Prairie entrant mult = each US state (50) + each Canadian area (13) per band; non-prairie↔outside contacts give the worked station's 2-letter state/prov. Non-prairie entrant mult = distinct prairie districts per band (62). Prairie works everyone (incl DX = 1 pt, NO mult); non-prairie scores prairie contacts only (non-prairie↔non-prairie no credit). Rovers/district-line = new QSO + new district. Claimed/running — the CPQP committee re-adjudicates. CLAIMED APPROXIMATION: the official 62-district→province table is NOT in the published rules, so the prairie↔prairie per-province multiplier (the 3 prairie provinces among the 13 Canadian areas, 'including their own province') is approximated as ONE per-band 'PRAIRIE' area multiplier — under-counts by ≤2 areas/band vs the true MB/SK/AB split; the committee re-adjudicates from the official district list. NOT applied (off-log): power/category.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Canadian Prairies",
+      "stateAbbr": "PRAIRIE",
+      "countyByExclusion": true,
+      "multScope": "per_band",
+      "inStateCountsCounties": false,
+      "inStateOwnStateMult": true,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": false,
+      "inStateNoDxMult": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "Prairie Districts / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

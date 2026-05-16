@@ -1,0 +1,74 @@
+{
+  "contestId":   "NS_QSO_PARTY",
+  "contestName": "Nova Scotia (NSARA) QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "NS: RS(T) + county (18 NS counties). Non-NS: RS(T) + contact number (serial). 80m ONLY (RAC 80m band plan). Phone/CW/Digital. Anyone may take part; only NS counties are multipliers; every QSO scores 1 pt.",
+
+  "stationClassifier": "callsignRegion",
+  "lockedBand": "80m",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","FT8","FT4","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/Nr R", "type": "text", "width": 80, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/Nr", "type": "text", "width": 80, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "multiplierList": "/com/jlog/counties/ns.json",
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Total = (Σ QSO pts × Σ mults) + bonus. 1 pt per QSO (any mode), every QSO scores. Multiplier = the 18 NS counties ONLY, counted once per mode (Phone/CW/Digital). Non-NS stations send a serial (not a multiplier). Bonus (off-log/claimed — NSARA committee re-adjudicates): +10 per Rover/Field-Day station worked per mode, +100 per county a portable/rover entrant activates; not auto-applied (no reliable rover marker in the basic log / entrant self-report).",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Nova Scotia",
+      "stateAbbr": "NS",
+      "inStateCounties": ["ANN","ANT","CAB","COL","CUM","DIG","GUY","HFX","HAN","INV","KIN","LUN","PIC","QUE","RIC","SHE","VIC","YAR"],
+      "pointsByModeClass": { "PH": 1, "CW": 1, "DG": 1 },
+      "multScope": "per_mode",
+      "inStateCountsStates": false,
+      "inStateCountsDxccEach": false,
+      "inStateCountsCounties": true,
+      "inStateNoDxMult": true,
+      "mergeRttyDigital": true,
+      "pointsAllQsos": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NS Counties", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

@@ -1,9 +1,9 @@
 {
-  "contestId":   "GA_QSO_PARTY",
-  "contestName": "Georgia QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "SC_QSO_PARTY",
+  "contestName": "South Carolina QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "GA: RST + GA county. Non-GA US: RST + state. Canada: RST + province. DX: RST + 'DX'. CW/SSB only (NO digital), 160-10m + 6m. GA works everyone; non-GA works GA only.",
+  "exchangeFormat": "SC: RS(T) + county (3-4 letter, §14.1). USA: RS(T) + state (DC = mult; PR/VI/GU = DX). Canada: RS(T) + prov/terr. DX: RS(T) + 'DX'. Phone/CW/Digital, 160-10m+6/2m. SC works everyone; non-SC works SC only (§9.5).",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","FT8","FT4","JT65","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,26 +27,28 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ga.json",
+  "multiplierList": "/com/jlog/counties/sc.json",
 
   "scoringRules": {
-    "pointsPerQso": 1,
+    "pointsPerQso": 2,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 1, CW 2. Each mult counted ONCE PER MODE (not per band). GA entrant: each US state + DC including Georgia (51) + each Canadian province (13) — DX = QSO points only, NO country mult. Non-GA entrant: each GA county (159). County codes are mixed length (by-exclusion). Mobile/rover county-change = new QSO per county. Claimed — GQP (SECC/SEDXC) re-adjudicates.",
+    "scoreFormula": "Total = (Σ QSO pts × Σ mults) + bonus station pts. Pts (§9.1): SC↔SC 2, SC↔non-SC 4, non-SC↔SC 2, non-SC↔non-SC/DX 0 (§9.5). Mults ONCE PER BAND PER MODE (§9.2): SC entrant = SC counties + USA states (incl DC) + CA prov/terr (DX = no mult); non-SC entrant = SC counties only. RTTY/PSK/FT8/FT4/JT65 = one digital class. Bonus (§9.3, post-multiply, once per band+mode): W4CAE 350, WW4SF 250, K4YTZ 250. Mobiles/county-line = new QSO per county. Claimed — SCQP team re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Georgia",
-      "stateAbbr": "GA",
-      "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2 },
-      "multScope": "per_mode",
+      "stateName": "South Carolina",
+      "stateAbbr": "SC",
+      "multScope": "per_band_mode",
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
-      "inStateCountsCounties": false,
-      "inStateOwnStateMult": true,
+      "inStateCountsCounties": true,
       "inStateNoDxMult": true,
+      "mergeRttyDigital": true,
+      "ptsInToIn": 2,
+      "ptsInToOut": 4,
+      "ptsOutToIn": 2,
       "ft8GridDivisor": 0,
-      "outStateGridCap": 0
+      "outStateGridCap": 0,
+      "bonusStations": { "W4CAE": 350, "WW4SF": 250, "K4YTZ": 250 }
     }
   },
 
@@ -54,7 +56,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "GA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "SC Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

@@ -1,0 +1,72 @@
+{
+  "contestId":   "SEVENTH_QSO_PARTY",
+  "contestName": "7th Call Area QSO Party (7QP)",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "7th-area (WA/OR/ID/MT/WY/NV/UT/AZ): RST + 5-char state+county code (e.g. ORDES; county-line e.g. UTRIC/IDBEA or ORDES/JEF). Non-7th-area: RST + 2-char state/province/'DX'. Bands 160-10m. CW/Phone/Digital (NO WSJT/FT8 — exchange unsupported). 7th-area works everyone; others work 7th-area only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "ST+Co R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My ST+Co", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST). Pts: SSB 2, CW 3, Digital 4 (RTTY/PSK=Digital). 7th-area entrant mult = each US state (50) + each Canadian province (13) + each other DXCC entity worked; an in-area station's 5-char code contributes its leading 2-char STATE token (ORDES → OR). Non-7th-area entrant mult = distinct 7th-area county codes (259). 7th-area works everyone for pts; non-7th-area scores 7th-area contacts only. 7th-area mobiles / county-line entries = new QSO + new county per code. Workable once per band per mode-class (CW/Phone/Digital). Claimed/running — the 7QP committee re-adjudicates. NOT enforced (claimed): DXCC-entity 'maximum of 10' cap (each entity counted; over-count only if >10 distinct DX entities); county-line code logged as one slashed token vs separate per-county entries (rules permit either — committee re-adjudicates).",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "7th Call Area",
+      "stateAbbr": "7",
+      "countyByExclusion": true,
+      "areaStatePrefixLen": 2,
+      "pointsByModeClass": { "PH": 2, "CW": 3, "DG": 4 },
+      "multScope": "once",
+      "inStateCountsCounties": false,
+      "inStateOwnStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "7th-Area Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

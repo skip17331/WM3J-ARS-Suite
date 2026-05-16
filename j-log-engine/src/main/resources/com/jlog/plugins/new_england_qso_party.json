@@ -1,0 +1,72 @@
+{
+  "contestId":   "NEW_ENGLAND_QSO_PARTY",
+  "contestName": "New England QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "NE (CT/ME/MA/NH/RI/VT): RST + state+county code (e.g. MAWOR; CT uses Regional Councils of Government). Non-NE: RST + state/province; DX: RST + 'DX'. Bands 80-10m. Phone/CW (CW includes digital). NE works everyone; non-NE works NE only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "ST+Co R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My ST+Co", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST). Pts: Phone 1, CW 2 (CW includes digital). NE entrant mult = each US state (DC→MD) + each Canadian province (14; VO1/VO2 separate) + each DXCC country (not USA); an in-NE station's state+county code contributes its leading 2-char STATE token. Non-NE entrant mult = distinct NE county codes (68: CT 9 / MA 14 / ME 16 / NH 10 / RI 5 / VT 14). NE works everyone for pts; non-NE scores NE contacts only. Mobiles county-change = new QSO + new county; county-line = 2 QSOs. Claimed/running — the NEQP committee re-adjudicates. Assumes the logged NE token is <2-char state><county> (per the 'send state and county' exchange); CT Regional-Councils-of-Government codes and the Canadian-area '14' / DXCC counts are claimed (committee re-adjudicates).",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "New England",
+      "stateAbbr": "NE",
+      "countyByExclusion": true,
+      "areaStatePrefixLen": 2,
+      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
+      "multScope": "once",
+      "inStateCountsCounties": false,
+      "inStateOwnStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NE Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}
