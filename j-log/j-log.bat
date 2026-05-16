@@ -2,5 +2,5 @@
 setlocal
 set "SCRIPT_DIR=%~dp0"
 set "JAVAFX=%SCRIPT_DIR%lib\javafx"
-java --module-path "%JAVAFX%" --add-modules javafx.controls,javafx.fxml -Dfile.encoding=UTF-8 -jar "%SCRIPT_DIR%target\j-log-1.0.51.jar" %*
+java --module-path "%JAVAFX%" --add-modules javafx.controls,javafx.fxml -Dfile.encoding=UTF-8 -jar "%SCRIPT_DIR%target\j-log-1.0.52.jar" %*
 endlocal

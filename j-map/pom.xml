@@ -61,7 +61,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-engine</artifactId>
-            <version>1.0.42</version>
+            <version>1.0.43</version>
         </dependency>
 
         <!-- JSON -->

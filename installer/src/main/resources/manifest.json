@@ -16,7 +16,7 @@
       "title": "WM3J J-Log",
       "comment": "ARS Suite — QSO logger and contest module",
       "launch": "j-log/j-log.sh",
-      "jar":    "j-log/target/j-log-1.0.51.jar",
+      "jar":    "j-log/target/j-log-1.0.52.jar",
       "icon":   "j-log/src/main/resources/com/jlog/icons/icon.png",
       "categories": "HamRadio;Database;"
     },
