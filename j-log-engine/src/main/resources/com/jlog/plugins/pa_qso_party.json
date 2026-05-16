@@ -1,161 +1,74 @@
 {
-  "contestId": "PA_QSO_PARTY",
+  "contestId":   "PA_QSO_PARTY",
   "contestName": "Pennsylvania QSO Party",
-  "version": "1.1.0",
-  "exchangeFormat": "CA: serial + county (e.g. 001 ALAM)   Other: serial + state/prov/DX (e.g. 001 PA)",
-  "autoFillDxccPrefix": true,
+  "version":     "1.2.0",
+
+  "exchangeFormat": "Serial + PA county / ARRL section / Canadian section / 'DX'. Bands: all authorized except WARC (12/17/30/60m). CW/Phone (SSB/FM/AM = one Phone mode). PA works everyone; non-PA works PA only.",
+
+  "stationClassifier": "callsignRegion",
+
   "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
     {
-      "id": "callsign",
-      "label": "Callsign",
-      "type": "text",
-      "width": 140,
-      "required": true,
-      "entryRow": 0
-    },
-    {
-      "id": "band",
-      "label": "Band",
-      "type": "text",
-      "width": 70,
-      "required": true,
-      "entryRow": 0,
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": [
-        "160m",
-        "80m",
-        "40m",
-        "20m",
-        "15m",
-        "10m",
-        "6m",
-        "2m"
-      ]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
     },
     {
-      "id": "mode",
-      "label": "Mode",
-      "type": "text",
-      "width": 70,
-      "required": true,
-      "entryRow": 0,
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": [
-        "CW",
-        "SSB",
-        "USB",
-        "LSB",
-        "FM",
-        "RTTY",
-        "PSK31",
-        "FT8",
-        "Digital"
-      ]
+      "options": ["CW","SSB","USB","LSB","FM","AM"]
     },
-    {
-      "id": "rst_rcvd",
-      "label": "RST R",
-      "type": "text",
-      "width": 50,
-      "required": false,
-      "entryRow": 0
-    },
-    {
-      "id": "serial_rcvd",
-      "label": "# R",
-      "type": "text",
-      "width": 60,
-      "required": true,
-      "entryRow": 0,
-      "validator": "numeric"
-    },
-    {
-      "id": "state_prov_rcvd",
-      "label": "QTH R",
-      "type": "text",
-      "width": 90,
-      "required": true,
-      "entryRow": 0
-    },
-    {
-      "id": "rst_sent",
-      "label": "RST S",
-      "type": "text",
-      "width": 50,
-      "required": false,
-      "entryRow": 1
-    },
-    {
-      "id": "state_prov_sent",
-      "label": "QTH S",
-      "type": "text",
-      "width": 90,
-      "required": false,
-      "entryRow": 1,
-      "persistent": true
-    }
+    { "id": "serial_rcvd", "label": "# R", "type": "text", "width": 60, "required": false, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/Sec R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "serial_sent", "label": "# S", "type": "text", "width": 60, "required": false, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/Sec", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
+
   "multiplierList": "/com/jlog/counties/pa.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "\u03a3 QSO pts \u00d7 \u03a3 mults (once overall). In-state entrant: own counties + W/VE states/provinces + 1 DX; out-of-state entrant: in-state counties only. Mobile/rover re-worked from a new county = new QSO. Claimed/standard \u2014 sponsor re-adjudicates (per-contest official-rules pass still pending).",
+    "scoreFormula": "(Σ QSO pts × Σ mults, counted ONCE not per band) + bonus-station pts + bonuses. Pts: CW 2, Phone 1 (SSB/FM/AM = one mode). PA entrant mult = ARRL sections + Canadian sections + PA counties + 1 DX. Non-PA entrant mult = 67 PA counties. PA works everyone; non-PA scores PA contacts only. Work once per band/mode; Rovers/Mobiles re-worked on county change. Bonus station N3XF (Somerset Co, 2025) = 200 points per valid QSO (overrides QSO pts) + its normal county multiplier. PA-county detection uses the bundled pa.json (67 codes) so 3-letter ARRL/Canadian section tokens are NOT mis-read as PA counties; official paqso.org abbreviations govern — claimed, the PA QSO Party Association re-adjudicates & rescores. NOT applied (off-log/category): QRP ×2 QSO-point multiplier (QRP-division-dependent); PA Mobile/Rover +500 per county with ≥10 QSOs (entrant-self); power/operator/portable categories.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Pennsylvania",
       "stateAbbr": "PA",
-      "pointsByModeClass": {
-        "PH": 1,
-        "CW": 2,
-        "RY": 2,
-        "DG": 2
-      },
+      "countyByExclusion": false,
+      "pointsByModeClass": { "CW": 2, "PH": 1 },
       "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
-      "inStateCountsCounties": true,
+      "inStateNoDxMult": false,
+      "qsoPointCalls": { "N3XF": 200 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
   },
-  "multiplierModel": {
-    "field": "state_prov_rcvd",
-    "perBand": false,
-    "validValues": []
-  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
   "row2Panes": [
-    {
-      "paneIndex": 1,
-      "paneType": "worked_before",
-      "title": "Worked Before",
-      "config": {}
-    },
-    {
-      "paneIndex": 2,
-      "paneType": "worked_mults",
-      "title": "Worked Mults (counties/states)",
-      "config": {}
-    },
-    {
-      "paneIndex": 3,
-      "paneType": "statistics",
-      "title": "Statistics",
-      "config": {}
-    }
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "PA Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
-  "statistics": [
-    "qso_count",
-    "total_score",
-    "multipliers",
-    "qso_per_hour"
-  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
   "cabrilloMapping": {
-    "callsign": "rcvd_callsign",
-    "rst_sent": "sent_rst",
-    "rst_rcvd": "rcvd_rst",
-    "serial_rcvd": "rcvd_serial",
+    "callsign":        "rcvd_callsign",
+    "serial_sent":     "sent_serial",
+    "serial_rcvd":     "rcvd_serial",
     "state_prov_sent": "sent_exchange",
     "state_prov_rcvd": "rcvd_exchange"
   },
+
   "sections": []
 }

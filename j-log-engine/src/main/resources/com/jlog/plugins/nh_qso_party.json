@@ -1,9 +1,9 @@
 {
-  "contestId":   "NY_QSO_PARTY",
-  "contestName": "New York QSO Party",
-  "version":     "1.2.0",
+  "contestId":   "NH_QSO_PARTY",
+  "contestName": "New Hampshire QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "NY: RST + 3-letter NY county. Non-NY US: RST + state. Canada: RST + province. DX: RST + 'DX'. Bands: all FCC allocated except 30/17/12m. Phone/CW/RTTY-digital (all digital = one mode). NY works everyone; non-NY works NY only.",
+  "exchangeFormat": "NH: RST + NH county (BEL/CAR/CHE/COO/GRA/HIL/MER/ROC/STR/SUL). Non-NH W/VE: RST + state/province. DX: RST + 'DX'. Bands 80-10m (no WARC). CW/Phone/Digital. NH works everyone; non-NH works NH only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","1.25m","70cm"]
+      "options": ["80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB","FM","AM","RTTY","PSK31","Digital"]
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","FT8","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,25 +27,26 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/ny.json",
+  "multiplierList": "/com/jlog/counties/nh.json",
 
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE, not per band/mode). Pts: Phone 1/band, CW 2/band, RTTY/digital 3/band (all digital = one mode; once per band per mode = 3 max/station/band). NY entrant mult = 62 NY counties + each US state (incl NY via the first NY county logged) + 13 Canadian provinces = 125 max; DX = QSO points only (no mult). Non-NY entrant mult = 62 NY counties. NY works everyone; non-NY scores NY contacts only (non-NY↔non-NY no credit). NY mobile/portable county-change = new QSO + new county; county-line = 2 logged QSOs. Claimed/running — the NYQP committee re-adjudicates. NOT applied (category): power/operator/overlay (Rookie/Youth/YL/School) categories. Only digital modes natively supporting the NYQP exchange are valid (FT8/FT4 excluded).",
+    "scoreFormula": "Σ QSO pts × Σ mults. Pts: Phone 1, CW & Digital 2. NH entrant mult = each NH county + each US state + each Canadian province + up to 10 DXCC, counted ONCE (not per band/mode). Non-NH entrant mult = each NH county ONCE PER BAND (max 50 = 10 counties × 5 bands). NH works everyone; non-NH scores NH contacts only (non-NH↔non-NH no credit). Worked once per band per mode; mobile/portable county-change = new QSO + new county. Claimed/running — the Port City ARC committee re-adjudicates. NOT enforced (claimed): the DXCC 'up to 10' cap (each DXCC entity counted; over-count only if >10 distinct DX). NOT applied (category): power/operator/POTA categories.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "New York",
-      "stateAbbr": "NY",
+      "stateName": "New Hampshire",
+      "stateAbbr": "NH",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 3 },
+      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "once",
+      "multScopeOut": "per_band",
       "inStateCountsCounties": true,
       "inStateOwnStateMult": false,
-      "inStateSelfStateMult": true,
+      "inStateSelfStateMult": false,
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
-      "inStateNoDxMult": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
       "mergeRttyDigital": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
@@ -56,7 +57,7 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NY Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "NH Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

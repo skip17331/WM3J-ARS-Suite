@@ -1,161 +1,74 @@
 {
-  "contestId": "CA_QSO_PARTY",
-  "contestName": "California QSO Party",
-  "version": "1.1.0",
-  "exchangeFormat": "CA: serial + county (e.g. 001 ALAM)   Other: serial + state/prov/DX (e.g. 001 PA)",
-  "autoFillDxccPrefix": true,
+  "contestId":   "CA_QSO_PARTY",
+  "contestName": "California QSO Party (CQP)",
+  "version":     "1.2.0",
+
+  "exchangeFormat": "CA: serial + 4-letter CA county. Non-CA: serial + 2-letter state/Canadian province/territory or 'DX'. Bands 160-10m. CW/Phone only. CA works everyone; non-CA works CA only (non-CA↔non-CA no QSO credit).",
+
+  "stationClassifier": "callsignRegion",
+
   "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
     {
-      "id": "callsign",
-      "label": "Callsign",
-      "type": "text",
-      "width": 140,
-      "required": true,
-      "entryRow": 0
-    },
-    {
-      "id": "band",
-      "label": "Band",
-      "type": "text",
-      "width": 70,
-      "required": true,
-      "entryRow": 0,
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": [
-        "160m",
-        "80m",
-        "40m",
-        "20m",
-        "15m",
-        "10m",
-        "6m",
-        "2m"
-      ]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
-      "id": "mode",
-      "label": "Mode",
-      "type": "text",
-      "width": 70,
-      "required": true,
-      "entryRow": 0,
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": [
-        "CW",
-        "SSB",
-        "USB",
-        "LSB",
-        "FM",
-        "RTTY",
-        "PSK31",
-        "FT8",
-        "Digital"
-      ]
+      "options": ["CW","SSB","USB","LSB"]
     },
-    {
-      "id": "rst_rcvd",
-      "label": "RST R",
-      "type": "text",
-      "width": 50,
-      "required": false,
-      "entryRow": 0
-    },
-    {
-      "id": "serial_rcvd",
-      "label": "# R",
-      "type": "text",
-      "width": 60,
-      "required": true,
-      "entryRow": 0,
-      "validator": "numeric"
-    },
-    {
-      "id": "state_prov_rcvd",
-      "label": "QTH R",
-      "type": "text",
-      "width": 90,
-      "required": true,
-      "entryRow": 0
-    },
-    {
-      "id": "rst_sent",
-      "label": "RST S",
-      "type": "text",
-      "width": 50,
-      "required": false,
-      "entryRow": 1
-    },
-    {
-      "id": "state_prov_sent",
-      "label": "QTH S",
-      "type": "text",
-      "width": 90,
-      "required": false,
-      "entryRow": 1,
-      "persistent": true
-    }
+    { "id": "serial_rcvd", "label": "# R", "type": "text", "width": 60, "required": false, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "serial_sent", "label": "# S", "type": "text", "width": 60, "required": false, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
+
   "multiplierList": "/com/jlog/counties/ca.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "\u03a3 QSO pts \u00d7 \u03a3 mults (once overall). In-state entrant: own counties + W/VE states/provinces + 1 DX; out-of-state entrant: in-state counties only. Mobile/rover re-worked from a new county = new QSO. Claimed/standard \u2014 sponsor re-adjudicates (per-contest official-rules pass still pending).",
+    "scoreFormula": "Σ QSO pts × Σ SCORED mults (counted ONCE, not per band/mode; CAPPED at 58). Pts: Phone 2, CW 3. CA entrant mult = 49 other US states + CA itself (the first CA county QSO = the CA multiplier) + 13 Canadian provinces/territories = 63 possible, but only the top 58 are SCORED; DX = QSO credit only (no mult). Non-CA entrant mult = the 58 CA counties. CA works everyone; non-CA scores CA contacts only (non-CA↔non-CA no QSO credit). CA mobile county/state-change = new QSO + new mult. Claimed/running — the NCCC CQP committee re-adjudicates. NOT applied (category): power/operator/expedition categories.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "California",
       "stateAbbr": "CA",
-      "pointsByModeClass": {
-        "PH": 1,
-        "CW": 2,
-        "RY": 2,
-        "DG": 2
-      },
+      "countyByExclusion": true,
+      "pointsByModeClass": { "PH": 2, "CW": 3 },
       "multScope": "once",
+      "multCap": 58,
+      "inStateCountsCounties": false,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": true,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
-      "inStateCountsCounties": true,
+      "inStateNoDxMult": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
   },
-  "multiplierModel": {
-    "field": "state_prov_rcvd",
-    "perBand": false,
-    "validValues": []
-  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
   "row2Panes": [
-    {
-      "paneIndex": 1,
-      "paneType": "worked_before",
-      "title": "Worked Before",
-      "config": {}
-    },
-    {
-      "paneIndex": 2,
-      "paneType": "worked_mults",
-      "title": "Worked Mults (counties/states)",
-      "config": {}
-    },
-    {
-      "paneIndex": 3,
-      "paneType": "statistics",
-      "title": "Statistics",
-      "config": {}
-    }
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "CA Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
-  "statistics": [
-    "qso_count",
-    "total_score",
-    "multipliers",
-    "qso_per_hour"
-  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
   "cabrilloMapping": {
-    "callsign": "rcvd_callsign",
-    "rst_sent": "sent_rst",
-    "rst_rcvd": "rcvd_rst",
-    "serial_rcvd": "rcvd_serial",
+    "callsign":        "rcvd_callsign",
+    "serial_sent":     "sent_serial",
+    "serial_rcvd":     "rcvd_serial",
     "state_prov_sent": "sent_exchange",
     "state_prov_rcvd": "rcvd_exchange"
   },
+
   "sections": []
 }

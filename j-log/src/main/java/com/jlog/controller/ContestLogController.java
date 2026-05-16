@@ -1876,6 +1876,12 @@ public class ContestLogController implements Initializable {
         if (!meIn && c != null && c.getPointsByModeClassOut() != null
                 && c.getPointsByModeClassOut().containsKey(mc))
             base = c.getPointsByModeClassOut().get(mc);
+        // Entrant-symmetric points by the WORKED station's location
+        // (MEQP: a QSO with a Maine station = 2, any other = 1, the
+        // same for every entrant).
+        if (c != null && (c.getPtsWorkedInState() != 0
+                || c.getPtsWorkedOutState() != 0))
+            base = themIn ? c.getPtsWorkedInState() : c.getPtsWorkedOutState();
         // Relationship point model (SCQP): same-side / cross-side values
         // override the per-mode table when configured.
         if (c != null && (c.getPtsInToIn() != 0 || c.getPtsInToOut() != 0
@@ -2415,6 +2421,7 @@ public class ContestLogController implements Initializable {
                 boolean dxEach     = c != null && c.isInStateCountsDxccEach();
                 boolean noDx       = c != null && c.isInStateNoDxMult();
                 boolean selfState  = c != null && c.isInStateSelfStateMult();
+                boolean clubMemMult = c != null && c.isClubMemberMult();
                 boolean merge      = c != null && c.isMergeRttyDigital();
                 boolean mergeCw    = c != null && c.isMergeCwDigital();
                 boolean gridCeil   = c != null && c.isGridDivisorCeil();
@@ -2430,6 +2437,9 @@ public class ContestLogController implements Initializable {
                         ? Map.of() : c.getBonusStations();
                 Map<String,Integer> bonusOnce = c == null || c.getBonusStationsOnce() == null
                         ? Map.of() : c.getBonusStationsOnce();
+                Map<String,Integer> bonusPerMode = c == null || c.getBonusStationsPerMode() == null
+                        ? Map.of() : c.getBonusStationsPerMode();
+                boolean multsAll = c != null && c.isMultsAllEntrants();
                 boolean meIn = QsoParty.isCounty(qpMyQth(), counties, countyLen, byExcl);
                 // Entrant-asymmetric multiplier scope: an out-of-state
                 // entrant may count on a different scope than the in-state
@@ -2442,6 +2452,7 @@ public class ContestLogController implements Initializable {
                 Set<String> inDg  = new HashSet<>();
                 Set<String> bonusSeen = new HashSet<>();   // baseCall|band|mc credited once
                 Set<String> bonusOnceSeen = new HashSet<>(); // baseCall credited once total
+                Set<String> bonusPerModeSeen = new HashSet<>(); // baseCall|mc credited once
                 int bonusPts = 0;
                 Set<String> rareSet  = c == null ? Set.of() : qpUpper(c.getRareCounties());
                 Set<String> rareSeen = new HashSet<>();     // distinct rare counties (sweep)
@@ -2453,6 +2464,17 @@ public class ContestLogController implements Initializable {
                     String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
                     String R  = q.getContestField1() == null ? ""
                             : q.getContestField1().trim().toUpperCase();
+                    if (clubMemMult) {
+                        // ARC QSO Party: the multiplier is the count of
+                        // distinct club-member base callsigns. A club
+                        // member signs "call /###" so the received
+                        // exchange carries the club-age digits; a non-club
+                        // member sends only a name (no digit). Counted
+                        // once overall, not per band/mode.
+                        if (R.chars().anyMatch(Character::isDigit))
+                            mset.add("M|" + QsoParty.baseCall(call));
+                        continue;
+                    }
                     String sk = "per_mode".equals(scope) ? mc + "|"
                               : "per_band".equals(scope) ? b + "|"
                               : "per_band_mode".equals(scope) ? b + "|" + mc + "|" : "";
@@ -2468,6 +2490,14 @@ public class ContestLogController implements Initializable {
                         String bc = QsoParty.baseCall(call);
                         Integer bp = bonusOnce.get(bc);
                         if (bp != null && bonusOnceSeen.add(bc))
+                            bonusPts += bp;
+                    }
+                    // once-per-mode-class bonus station (WA Salmon Run W7DX
+                    // = +500 per mode, Phone+CW, max 1000 — not per band)
+                    if (!bonusPerMode.isEmpty()) {
+                        String bc = QsoParty.baseCall(call);
+                        Integer bp = bonusPerMode.get(bc);
+                        if (bp != null && bonusPerModeSeen.add(bc + "|" + mc))
                             bonusPts += bp;
                     }
                     if (rareSet.contains(R)) rareSeen.add(R);   // sweep tracking
@@ -2486,7 +2516,7 @@ public class ContestLogController implements Initializable {
                     // in-state county even if its sent token (a DXCC
                     // prefix, OKQP) coincides with a county code length.
                     boolean isCty = !isDx && QsoParty.isCounty(R, counties, countyLen, byExcl);
-                    if (meIn) {
+                    if (meIn || multsAll) {     // MEQP: every entrant counts the full mult set
                         if (isCty) {
                             if (areaPfx > 0 && R.length() >= areaPfx)
                                 mset.add(sk + "S|" + R.substring(0, areaPfx)); // 7QP: in-area code's state token
@@ -2521,6 +2551,8 @@ public class ContestLogController implements Initializable {
                 if (!meIn && (outCap > 0 || gridUncap))
                     qpMults += gridUncap ? inDg.size()
                                          : Math.min(inDg.size(), outCap);
+                if (c != null && c.getMultCap() > 0)
+                    qpMults = Math.min(qpMults, c.getMultCap()); // CQP: 58 scored of 63
                 int qpTotal = ContestQsoDao.getInstance()
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = qpMults;

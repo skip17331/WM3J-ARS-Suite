@@ -124,6 +124,12 @@ public class PluginLoader {
             "/com/jlog/plugins/ks_qso_party.json",
             "/com/jlog/plugins/tn_qso_party.json",
             "/com/jlog/plugins/co_qso_party.json",
+            "/com/jlog/plugins/arc_qso_party.json",
+            "/com/jlog/plugins/ia_qso_party.json",
+            "/com/jlog/plugins/nh_qso_party.json",
+            "/com/jlog/plugins/me_qso_party.json",
+            "/com/jlog/plugins/az_qso_party.json",
+            "/com/jlog/plugins/sd_qso_party.json",
             "/com/jlog/plugins/wae_cw.json",
             "/com/jlog/plugins/wae_ssb.json",
             "/com/jlog/plugins/wae_rtty.json"

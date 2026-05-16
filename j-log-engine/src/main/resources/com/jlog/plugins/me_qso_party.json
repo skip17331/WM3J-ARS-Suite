@@ -1,9 +1,9 @@
 {
-  "contestId":   "WA_QSO_PARTY",
-  "contestName": "Washington Salmon Run (WA QSO Party)",
-  "version":     "1.2.0",
+  "contestId":   "ME_QSO_PARTY",
+  "contestName": "Maine QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "WA: RS(T) + WA county. USA: RS(T) + state. Canada: RS(T) + Canadian multiplier. DX: RS(T) + DXCC entity prefix. Bands 160-10m + 6m (no WARC). CW/Phone only (no WSJT). WA works everyone; non-WA works WA only.",
+  "exchangeFormat": "ME: RST + ME county (16, e.g. CBL). Non-ME US/Canada: RST + state/province (DC→MD; NF & LB separate). DX: RST + 'DX'. Bands 160-10m (no WARC). CW/Phone (SSB/FM/AM). Everyone works everyone — all qualifying QSOs score.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,13 +13,13 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["CW","SSB","USB","LSB"]
+      "options": ["CW","SSB","USB","LSB","FM","AM"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
@@ -27,36 +27,38 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/wa.json",
+  "multiplierList": "/com/jlog/counties/me.json",
 
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × Σ mults, counted ONLY ONCE regardless of band/mode) + W7DX bonus. Pts: Phone 2, CW 3 (same station per band on Phone and CW). WA entrant mult = WA counties (39) + US states less WA (49, DC→MD, AK/HI=states) + VE (13) + up to 10 DXCC (US/VE not DX). Non-WA entrant mult = WA counties (39). WA works everyone; non-WA scores WA contacts only (non-WA↔non-WA no credit). County-change = new QSO + new county; mults counted once (not per activated county). Special bonus station W7DX = +500 per MODE (Phone & CW), max 1000, post-multiply; W7DX also gives its normal county mult + 2/3 QSO pts. Claimed/running — the WWDXC Salmon Run committee re-adjudicates. NOT enforced (claimed): DXCC 'up to 10' cap. NOT applied (category): power/operator/expedition categories.",
+    "scoreFormula": "Σ QSO pts × Σ mults. Every qualifying QSO scores (not just Maine contacts). Pts: a QSO with a Maine station = 2, any other = 1 (same rule for every entrant). Multipliers are the SAME for all participants = Maine counties (16) + US states (50, DC counted as MD) + Canadian provinces (14: NB NS QC ON MB SK AB BC NT NF LB YT PE NU — NF & LB separate) + each DXCC entity. Each multiplier counted once on EACH mode on EACH of the 6 bands (per band+mode). Worked once per mode per band; no cross-mode/band/repeater. Final = total QSO pts (all bands) × total mults (all bands/modes). Claimed/running — the WSSM Maine QSO Party committee re-adjudicates. NOT applied (category): power/operator/mobile categories.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Washington",
-      "stateAbbr": "WA",
+      "stateName": "Maine",
+      "stateAbbr": "ME",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 2, "CW": 3 },
-      "multScope": "once",
+      "ptsWorkedInState": 2,
+      "ptsWorkedOutState": 1,
+      "pointsAllQsos": true,
+      "multsAllEntrants": true,
+      "multScope": "per_band_mode",
       "inStateCountsCounties": true,
       "inStateOwnStateMult": false,
       "inStateSelfStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": true,
       "inStateNoDxMult": false,
-      "bonusStationsPerMode": { "W7DX": 500 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
   },
 
-  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "WA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "ME Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

@@ -1,9 +1,9 @@
 {
-  "contestId":   "WA_QSO_PARTY",
-  "contestName": "Washington Salmon Run (WA QSO Party)",
-  "version":     "1.2.0",
+  "contestId":   "AZ_QSO_PARTY",
+  "contestName": "Arizona QSO Party",
+  "version":     "1.0.0",
 
-  "exchangeFormat": "WA: RS(T) + WA county. USA: RS(T) + state. Canada: RS(T) + Canadian multiplier. DX: RS(T) + DXCC entity prefix. Bands 160-10m + 6m (no WARC). CW/Phone only (no WSJT). WA works everyone; non-WA works WA only.",
+  "exchangeFormat": "AZ: RST + 3-letter AZ county (15). Non-AZ US: RST + state. Canada: RST + province/territory. DX: RST + DXCC prefix. Bands 160-10m. CW/Phone only. AZ works everyone; non-AZ works AZ only.",
 
   "stationClassifier": "callsignRegion",
 
@@ -13,7 +13,7 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m"]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
@@ -27,36 +27,37 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
-  "multiplierList": "/com/jlog/counties/wa.json",
+  "multiplierList": "/com/jlog/counties/az.json",
 
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × Σ mults, counted ONLY ONCE regardless of band/mode) + W7DX bonus. Pts: Phone 2, CW 3 (same station per band on Phone and CW). WA entrant mult = WA counties (39) + US states less WA (49, DC→MD, AK/HI=states) + VE (13) + up to 10 DXCC (US/VE not DX). Non-WA entrant mult = WA counties (39). WA works everyone; non-WA scores WA contacts only (non-WA↔non-WA no credit). County-change = new QSO + new county; mults counted once (not per activated county). Special bonus station W7DX = +500 per MODE (Phone & CW), max 1000, post-multiply; W7DX also gives its normal county mult + 2/3 QSO pts. Claimed/running — the WWDXC Salmon Run committee re-adjudicates. NOT enforced (claimed): DXCC 'up to 10' cap. NOT applied (category): power/operator/expedition categories.",
+    "scoreFormula": "(Σ QSO pts × Σ mults) + bonus. Pts: CW 2, Phone 1. AZ entrant mult = each US state (50) + each Canadian province/territory (13) + each DXCC country, counted again PER MODE. Non-AZ entrant mult = the 15 AZ counties, counted again PER BAND and PER MODE (15×6×2=180 max). AZ works everyone; non-AZ scores AZ contacts only (non-AZ↔non-AZ no credit). Work once per band per mode per AZ county; AZ mobile county-change = new QSO + new mult. K7A one-time +100 bonus (any band/mode). Claimed/running — the AZQP committee re-adjudicates. NOT applied (category): power/operator categories.",
     "allowDupes": false,
     "qsoParty": {
-      "stateName": "Washington",
-      "stateAbbr": "WA",
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 2, "CW": 3 },
-      "multScope": "once",
-      "inStateCountsCounties": true,
+      "pointsByModeClass": { "CW": 2, "PH": 1 },
+      "multScope": "per_mode",
+      "multScopeOut": "per_band_mode",
+      "inStateCountsCounties": false,
       "inStateOwnStateMult": false,
       "inStateSelfStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": true,
       "inStateNoDxMult": false,
-      "bonusStationsPerMode": { "W7DX": 500 },
+      "bonusStationsOnce": { "K7A": 100 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
   },
 
-  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "WA Counties / Mults", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "AZ Counties / Mults", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 

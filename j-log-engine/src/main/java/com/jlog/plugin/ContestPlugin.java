@@ -216,6 +216,12 @@ public class ContestPlugin {
                                                         //   counts among the 50, even though local
                                                         //   stations send a county) — WVQP
         private boolean inStateNoDxMult;                // true ⇒ DX yields NO multiplier (BCQP/SCQP)
+        private boolean clubMemberMult;                 // true ⇒ NON-geographic: the multiplier is
+                                                        //   the count of distinct club-member base
+                                                        //   callsigns worked (a club member signs
+                                                        //   call /### so the received exchange
+                                                        //   carries a digit) — once overall, not
+                                                        //   per band/mode (ARC QSO Party / SJRA)
         private boolean pointsAllQsos;                  // true ⇒ every QSO scores (no in/out gate, NSARA)
         private boolean mergeRttyDigital;               // true ⇒ RTTY folds into the WSJT "DG" class
         private boolean mergeCwDigital;                 // true ⇒ CW+RTTY+digital = one "CD" class (LAQP)
@@ -226,6 +232,10 @@ public class ContestPlugin {
                                                         //   credited once per band+mode-class
         private Map<String,Integer> bonusStationsOnce;  // base-call → flat post-multiply bonus pts,
                                                         //   credited ONCE for the whole log (N5LCC/W1AW5)
+        private Map<String,Integer> bonusStationsPerMode;// base-call → flat post-multiply bonus pts,
+                                                        //   credited once per MODE-class (not per
+                                                        //   band) — WA Salmon Run W7DX +500/mode
+                                                        //   (Phone+CW, max 1000)
         private List<String> rareCounties;              // counties whose QSO pts are ×rareQsoMultiplier
         private int rareQsoMultiplier;                  // per-QSO points multiplier for a rare county
         private int sweepBonusPoints;                   // post-multiply bonus if the sweep threshold
@@ -236,8 +246,18 @@ public class ContestPlugin {
         private int ptsInToIn;                          // relationship points (0 = use modeClass table):
         private int ptsInToOut;                         //   in-state↔in / in↔out / out↔in;
         private int ptsOutToIn;                         //   out↔out is always 0 (gated)
+        private int ptsWorkedInState;                   // MEQP-style entrant-symmetric points by
+        private int ptsWorkedOutState;                  //   the WORKED station: in-state worked →
+                                                        //   ptsWorkedInState, else ptsWorkedOutState
+                                                        //   (regardless of the entrant's location)
+        private boolean multsAllEntrants;               // true ⇒ ALL entrants use the in-state
+                                                        //   multiplier branch (counties+states+
+                                                        //   prov+DXCC for everyone — MEQP, where
+                                                        //   "multipliers are the same for all")
         private int ft8GridDivisor;                     // in-state DG mult = floor(#grids / divisor); 0=off
         private int outStateGridCap;                    // out-of-state DG mult = min(#in-state grids, cap)
+        private int multCap;                            // >0 ⇒ total scored mults capped at this
+                                                        //   value (CQP: 58 scored of 63 possible)
         private Map<String,Integer> bonusPointCalls;    // out-of-state +pts for working these calls
         private List<String> clubMultCalls;             // each counts as a multiplier (scope-applied)
 
@@ -277,6 +297,8 @@ public class ContestPlugin {
         public void setFt8GridDivisor(int v){ this.ft8GridDivisor = v; }
         public int getOutStateGridCap(){ return outStateGridCap; }
         public void setOutStateGridCap(int v){ this.outStateGridCap = v; }
+        public int getMultCap(){ return multCap; }
+        public void setMultCap(int v){ this.multCap = v; }
         public Map<String,Integer> getBonusPointCalls(){ return bonusPointCalls; }
         public void setBonusPointCalls(Map<String,Integer> v){ this.bonusPointCalls = v; }
         public List<String> getClubMultCalls(){ return clubMultCalls; }
@@ -285,6 +307,8 @@ public class ContestPlugin {
         public void setInStateSelfStateMult(boolean v){ this.inStateSelfStateMult = v; }
         public boolean isInStateNoDxMult(){ return inStateNoDxMult; }
         public void setInStateNoDxMult(boolean v){ this.inStateNoDxMult = v; }
+        public boolean isClubMemberMult(){ return clubMemberMult; }
+        public void setClubMemberMult(boolean v){ this.clubMemberMult = v; }
         public boolean isPointsAllQsos(){ return pointsAllQsos; }
         public void setPointsAllQsos(boolean v){ this.pointsAllQsos = v; }
         public boolean isMergeRttyDigital(){ return mergeRttyDigital; }
@@ -299,6 +323,8 @@ public class ContestPlugin {
         public void setBonusStations(Map<String,Integer> v){ this.bonusStations = v; }
         public Map<String,Integer> getBonusStationsOnce(){ return bonusStationsOnce; }
         public void setBonusStationsOnce(Map<String,Integer> v){ this.bonusStationsOnce = v; }
+        public Map<String,Integer> getBonusStationsPerMode(){ return bonusStationsPerMode; }
+        public void setBonusStationsPerMode(Map<String,Integer> v){ this.bonusStationsPerMode = v; }
         public List<String> getRareCounties(){ return rareCounties; }
         public void setRareCounties(List<String> v){ this.rareCounties = v; }
         public int getRareQsoMultiplier(){ return rareQsoMultiplier; }
@@ -317,6 +343,12 @@ public class ContestPlugin {
         public void setPtsInToOut(int v){ this.ptsInToOut = v; }
         public int getPtsOutToIn(){ return ptsOutToIn; }
         public void setPtsOutToIn(int v){ this.ptsOutToIn = v; }
+        public int getPtsWorkedInState(){ return ptsWorkedInState; }
+        public void setPtsWorkedInState(int v){ this.ptsWorkedInState = v; }
+        public int getPtsWorkedOutState(){ return ptsWorkedOutState; }
+        public void setPtsWorkedOutState(int v){ this.ptsWorkedOutState = v; }
+        public boolean isMultsAllEntrants(){ return multsAllEntrants; }
+        public void setMultsAllEntrants(boolean v){ this.multsAllEntrants = v; }
     }
 
     /**
