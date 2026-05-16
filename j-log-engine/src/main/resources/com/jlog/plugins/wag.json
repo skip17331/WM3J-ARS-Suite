@@ -1,12 +1,11 @@
 {
   "contestId":   "WAG",
   "contestName": "Worked All Germany Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "DL: RST + DOK (e.g. 599 A01)   DX: RST + serial (e.g. 599 001)",
+  "exchangeFormat": "German stations: RS(T) + DOK (DARC/VFDB chapter, e.g. 599 B01; non-member = NM). Others: RS(T) + serial from 001. CW+SSB, 80/40/20/15/10m no WARC. Valid QSO: non-German↔German or German↔German only (§4).",
 
-  "stationClassifier":  "callsignRegion",
-  "autoFillDxccPrefix": true,
+  "stationClassifier": "callsignRegion",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -14,7 +13,7 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m"]
+      "options": ["80m","40m","20m","15m","10m"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
@@ -22,10 +21,10 @@
       "persistent": true,
       "options": ["CW","SSB","USB","LSB"]
     },
-    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "state_prov_rcvd", "label": "DOK/DXCC", "type": "text", "width": 80, "required": true, "entryRow": 0 },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "DOK", "type": "text", "width": 80, "required": false, "entryRow": 0 },
     { "id": "serial_rcvd", "label": "# R", "type": "text", "width": 60, "required": false, "entryRow": 0, "validator": "numeric" },
-    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
     { "id": "state_prov_sent", "label": "DOK S", "type": "text", "width": 80, "required": false, "entryRow": 1, "persistent": true }
   ],
 
@@ -34,23 +33,17 @@
   ],
 
   "scoringRules": {
-    "pointsPerQso": 3,
-    "modePoints":   {},
-    "multiplierType": "custom",
-    "scoreFormula": "qsoPoints * multipliers",
-    "allowDupes":   false
+    "pointsPerQso": 1,
+    "multiplierType": "wag",
+    "scoreFormula": "Σ QSO pts × Σ mults (all bands). Pts §6: non-German entrant 3 per QSO with a German station (non-Ger↔non-Ger not a valid QSO = 0); German entrant — vs German 1, vs European 3, vs DX 5. Mult §5: counted per band AND per mode-class (once CW / once SSB, 2024). German entrant = each DXCC/WAE area + IG9/IH9; non-German entrant = German district (first letter of DOK), NM excluded. Claimed — the WAG committee re-adjudicates.",
+    "allowDupes": false
   },
 
-  "multiplierModel": {
-    "field":   "state_prov_rcvd",
-    "perBand": true,
-    "validValues": []
-  },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": true, "validValues": [] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "DOKs / DXCC",   "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -60,6 +53,7 @@
     "rst_sent":        "sent_rst",
     "rst_rcvd":        "rcvd_rst",
     "state_prov_sent": "sent_exchange",
+    "serial_sent":     "sent_exchange",
     "state_prov_rcvd": "rcvd_exchange",
     "serial_rcvd":     "rcvd_exchange"
   },

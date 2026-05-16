@@ -15,6 +15,7 @@ import com.jlog.scoring.AriDx;
 import com.jlog.scoring.AsianEntities;
 import com.jlog.scoring.RussianDx;
 import com.jlog.scoring.Scandinavian;
+import com.jlog.scoring.Wag;
 import com.jlog.scoring.WaeMultiplier;
 import com.jlog.ui.contest.DxccListPane;
 import com.jlog.ui.contest.PerModeMultGridPane;
@@ -1447,6 +1448,9 @@ public class ContestLogController implements Initializable {
         if (rules != null && "ari_dx".equals(rules.getMultiplierType())) {
             return ariDxPoints(q);
         }
+        if (rules != null && "wag".equals(rules.getMultiplierType())) {
+            return wagPoints(q);
+        }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
         }
@@ -1696,6 +1700,26 @@ public class ContestLogController implements Initializable {
         if (AriDx.isItalian(them)) return 10;                                       // any Italian
         if (meE == null || themE == null) return 1;                                 // best-effort
         return meE.continent().equals(themE.continent()) ? 1 : 3;                    // cont rel
+    }
+
+    /** Worked All Germany QSO points (Rule §6). A valid contest QSO is
+     *  non-German↔German or German↔German only. Non-German entrant:
+     *  every QSO with a German station = 3 (a non-German↔non-German
+     *  contact is not a valid contest QSO → 0). German entrant: vs
+     *  German 1, vs European 3, vs DX (non-European) 5. "NM" affects the
+     *  multiplier only, never points. Claimed/running — the WAG
+     *  committee re-adjudicates; unresolved continent → European (3). */
+    private int wagPoints(QsoRecord q) {
+        String them = q.getCallsign();
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        boolean meGer   = Wag.isGerman(myCall);
+        boolean themGer = Wag.isGerman(them);
+        if (!meGer) return themGer ? 3 : 0;                  // non-German works German only
+        if (themGer) return 1;                                // German ↔ German
+        DxccResolver.Entity themE = DxccResolver.getInstance().resolve(them);
+        if (themE == null) return 3;                          // best-effort European
+        return "EU".equals(themE.continent()) ? 3 : 5;        // European 3 / DX 5
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -2140,6 +2164,48 @@ public class ContestLogController implements Initializable {
                         .totalPointsByContest(plugin.getContestId());
                 final int mults = arMult.size();
                 final int score = arTotal * arMult.size();
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "wag".equals(plugin.getScoringRules().getMultiplierType())) {
+                // Worked All Germany (Rule §5): multiplier counted per
+                // band AND per mode-class — "once in CW and once in SSB"
+                // (new 2024). German entrant → each DXCC/WAE area worked
+                // (WaeMultiplier token). Non-German entrant → German
+                // district = first letter of the worked German station's
+                // DOK (logged field1); "NM" / blank = no mult, and only
+                // German stations carry a district. Score = Σ QSO pts
+                // (all bands) × Σ mults (all bands/modes). Claimed — the
+                // WAG committee re-adjudicates.
+                String wgCall = AppConfig.getInstance().getStationCallsign();
+                if (wgCall == null || wgCall.isBlank())
+                    wgCall = AppConfig.getInstance().getSsCallsign();
+                boolean meGer = Wag.isGerman(wgCall);
+                Set<String> wgMult = new HashSet<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String mc = Wag.modeClass(q.getMode());
+                    String call = q.getCallsign();
+                    if (meGer) {
+                        String tok = WaeMultiplier.token(call);
+                        if (tok != null) wgMult.add(b + "|" + mc + "|" + tok);
+                    } else {
+                        if (!Wag.isGerman(call)) continue;          // district = German only
+                        String d = Wag.dokDistrict(q.getContestField1());
+                        if (d != null) wgMult.add(b + "|" + mc + "|D|" + d);
+                    }
+                }
+                int wgTotal = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = wgMult.size();
+                final int score = wgTotal * wgMult.size();
                 Platform.runLater(() -> {
                     if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
                     if (lblScore    != null) lblScore.setText(String.valueOf(score));
