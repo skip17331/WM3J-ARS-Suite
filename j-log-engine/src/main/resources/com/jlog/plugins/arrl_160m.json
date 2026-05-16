@@ -1,9 +1,9 @@
 {
   "contestId":   "ARRL_160M",
   "contestName": "ARRL 160-Meter Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "US/VE: RST + State/Prov   DX: RST + DX   (e.g. 599 PA, 599 ON, 599 DX)",
+  "exchangeFormat": "W/VE: RST + ARRL/RAC Section.  DX: RST only (DXCC entity auto-derived for the multiplier).  e.g. 599 EMA, 599 ONS, 599 (DX)",
 
   "lockedBand":  "160m",
   "lockedMode":  "CW",
@@ -33,7 +33,7 @@
       "width": 50, "required": true, "entryRow": 0
     },
     {
-      "id": "state_prov_rcvd", "label": "St/Pv/DX", "type": "text",
+      "id": "state_prov_rcvd", "label": "Sect/DX", "type": "text",
       "width": 70, "required": true, "entryRow": 0
     },
     {
@@ -41,7 +41,7 @@
       "width": 50, "required": true, "entryRow": 1
     },
     {
-      "id": "state_prov_sent", "label": "St/Pv/DX", "type": "text",
+      "id": "state_prov_sent", "label": "Sect S", "type": "text",
       "width": 70, "required": false, "entryRow": 1,
       "persistent": true
     }
@@ -56,7 +56,7 @@
       "DX_US": 5, "DX_CA": 5, "DX_DX": 2
     },
     "multiplierType": "custom",
-    "scoreFormula":  "qsoPoints * multipliers",
+    "scoreFormula":  "qsoPoints * multipliers (Rule 5: 2 pts W/VE-W/VE, 5 pts W/VE-DX; mults = ARRL/RAC sections + DXCC entities)",
     "allowDupes":    false
   },
 
@@ -64,32 +64,43 @@
     "field":  "state_prov_rcvd",
     "perBand": false,
     "validValues": [
-      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-      "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-      "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-      "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-      "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-      "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
+      "CT","EMA","ME","NH","RI","VT","WMA",
+      "ENY","NLI","NNJ","NNY","SNJ","WNY",
+      "DE","EPA","MDC","WPA",
+      "AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF","PR","VI",
+      "AR","LA","MS","NM","NTX","OK","STX","WTX",
+      "EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC",
+      "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA","WY",
+      "MI","OH","WV",
+      "IL","IN","WI",
+      "CO","IA","KS","MN","MO","NE","ND","SD",
+      "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER"
     ]
   },
 
-  "usStates": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-    "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-    "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-    "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
-  ],
-
-  "canadaProvinces": [
-    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
-  ],
-
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "us_state_map",  "title": "U.S. States",   "config": {} },
-    { "paneIndex": 3, "paneType": "canada_map",    "title": "Canada",        "config": {} },
-    { "paneIndex": 4, "paneType": "dxcc_list",     "title": "DXCC",          "config": {} }
+    {
+      "paneIndex": 2,
+      "paneType":  "section_tracker",
+      "title":     "Sections Worked",
+      "config": {
+        "zoneGroups": [
+          { "name": "W1", "sections": ["CT","EMA","ME","NH","RI","VT","WMA"] },
+          { "name": "W2", "sections": ["ENY","NLI","NNJ","NNY","SNJ","WNY"] },
+          { "name": "W3", "sections": ["DE","EPA","MDC","WPA"] },
+          { "name": "W4", "sections": ["AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF","PR","VI"] },
+          { "name": "W5", "sections": ["AR","LA","MS","NM","NTX","OK","STX","WTX"] },
+          { "name": "W6", "sections": ["EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC"] },
+          { "name": "W7", "sections": ["AK","AZ","EWA","ID","MT","NV","OR","UT","WWA","WY"] },
+          { "name": "W8", "sections": ["MI","OH","WV"] },
+          { "name": "W9", "sections": ["IL","IN","WI"] },
+          { "name": "W0", "sections": ["CO","IA","KS","MN","MO","NE","ND","SD"] },
+          { "name": "VE", "sections": ["AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER"] }
+        ]
+      }
+    },
+    { "paneIndex": 3, "paneType": "dxcc_list", "title": "DXCC Entities", "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -103,11 +114,16 @@
   },
 
   "sections": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-    "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-    "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-    "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
+    "CT","EMA","ME","NH","RI","VT","WMA",
+    "ENY","NLI","NNJ","NNY","SNJ","WNY",
+    "DE","EPA","MDC","WPA",
+    "AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF","PR","VI",
+    "AR","LA","MS","NM","NTX","OK","STX","WTX",
+    "EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC",
+    "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA","WY",
+    "MI","OH","WV",
+    "IL","IN","WI",
+    "CO","IA","KS","MN","MO","NE","ND","SD",
+    "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER"
   ]
 }
