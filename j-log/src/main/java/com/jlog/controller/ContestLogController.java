@@ -1391,6 +1391,9 @@ public class ContestLogController implements Initializable {
         String mode = q.getMode() != null ? q.getMode() : "";
         String band = q.getBand() != null ? q.getBand() : "";
         var rules = plugin.getScoringRules();
+        if (rules != null && "state_prov_country".equals(rules.getMultiplierType())) {
+            return cq160Points(q);
+        }
         if (rules != null && "wpx_prefix".equals(rules.getMultiplierType())) {
             return cqWpxPoints(q);
         }
@@ -1511,6 +1514,22 @@ public class ContestLogController implements Initializable {
         if ("NA".equals(me.continent()) && "NA".equals(them.continent()))
             return lf ? 4 : 2;                                      // NA↔NA exception
         return lf ? 2 : 1;                                          // same continent, diff country
+    }
+
+    /** CQ WW 160m QSO points (Rule VI): own country 2, other country same
+     *  continent 5, different continent 10; maritime mobile = 5 (no mult).
+     *  Claimed/running value; unresolvable → 5 (same-continent baseline). */
+    private int cq160Points(QsoRecord q) {
+        if (DxccResolver.isMaritimeOrAir(q.getCallsign())) return 5;
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        DxccResolver r = DxccResolver.getInstance();
+        DxccResolver.Entity me   = r.resolve(myCall);
+        DxccResolver.Entity them = r.resolve(q.getCallsign());
+        if (me == null || them == null)               return 5;  // best-effort default
+        if (me.id().equals(them.id()))                return 2;  // own country
+        if (!me.continent().equals(them.continent())) return 10; // different continent
+        return 5;                                                // same continent, diff country
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -1751,6 +1770,44 @@ public class ContestLogController implements Initializable {
                     if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
                     refreshMapsWorked(workedByMode);
                     refreshPerModeGrid(workedByMode);
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "state_prov_country".equals(plugin.getScoringRules().getMultiplierType())) {
+                // CQ WW 160m (Rule V/VII): one combined multiplier set =
+                // US state | VE province | DXCC country, contest-wide (single
+                // band). W/VE mult = the state/prov the op logged (field1);
+                // DX mult = DXCC entity resolved from the callsign (the zone
+                // they send is a location indicator only, NOT a multiplier).
+                // MM stations carry no multiplier (Rule VI). US=dxcc 291,
+                // Canada=dxcc 1; everything else = its own country.
+                DxccResolver dxr = DxccResolver.getInstance();
+                Set<String> mset = new HashSet<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String call = q.getCallsign();
+                    if (DxccResolver.isMaritimeOrAir(call)) continue;   // no mult
+                    DxccResolver.Entity e = dxr.resolve(call);
+                    if (e == null) continue;                            // unresolved
+                    String key;
+                    if ("291".equals(e.id()) || "1".equals(e.id())) {
+                        String sp = q.getContestField1();               // state/prov logged
+                        if (sp == null || sp.isBlank()) continue;
+                        key = e.id() + ":" + sp.trim().toUpperCase();
+                    } else {
+                        key = "DX:" + e.id();
+                    }
+                    mset.add(key);
+                }
+                int total  = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = mset.size();
+                final int score = total * mults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
                 });
             } else if (plugin.getScoringRules() != null
                     && plugin.getScoringRules().getMultiplierType() != null

@@ -1,15 +1,12 @@
 {
   "contestId":   "CQ_160M_CW",
   "contestName": "CQ 160-Meter Contest (CW)",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "US/VE: RST + State/Prov   DX: RST + DX   (e.g. 599 PA, 599 ON, 599 DX)",
+  "exchangeFormat": "RST + State (US) / Prov (VE) / CQ Zone (DX). Zone is a location indicator only, NOT a mult. e.g. 599 PA  /  599 ON  /  599 14",
 
   "lockedBand":  "160m",
   "lockedMode":  "CW",
-  "perModeMultipliers": false,
-  "stationClassifier":  "callsignRegion",
-  "autoFillDxccPrefix": true,
 
   "entryFields": [
     {
@@ -24,7 +21,7 @@
     },
     {
       "id": "band", "label": "Band", "type": "text",
-      "width": 70, "required": false, "entryRow": 0,
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
       "options": ["160m"]
     },
@@ -33,63 +30,36 @@
       "width": 50, "required": true, "entryRow": 0
     },
     {
-      "id": "state_prov_rcvd", "label": "St/Pv/DX", "type": "text",
-      "width": 70, "required": true, "entryRow": 0
+      "id": "state_prov_rcvd", "label": "St/Pv/Zn", "type": "text",
+      "width": 75, "required": true, "entryRow": 0
     },
     {
       "id": "rst_sent", "label": "RST S", "type": "text",
       "width": 50, "required": true, "entryRow": 1
     },
     {
-      "id": "state_prov_sent", "label": "St/Pv/DX", "type": "text",
-      "width": 70, "required": false, "entryRow": 1,
+      "id": "state_prov_sent", "label": "My St/Pv/Zn", "type": "text",
+      "width": 75, "required": false, "entryRow": 1,
       "persistent": true
     }
   ],
 
   "scoringRules": {
     "pointsPerQso":  2,
-    "modePoints":    {},
-    "pointsByRegionPair": {
-      "US_US": 2, "US_CA": 2, "US_DX": 5,
-      "CA_US": 2, "CA_CA": 2, "CA_DX": 5,
-      "DX_US": 5, "DX_CA": 5, "DX_DX": 2
-    },
-    "multiplierType": "custom",
-    "scoreFormula":  "qsoPoints * multipliers",
+    "multiplierType": "state_prov_country",
+    "scoreFormula":  "totalQsoPoints * distinctMults (US states + VE provinces + DXCC/WAE countries, contest-wide); QSO pts Rule VI: own-cty 2, same-cont 5, diff-cont 10, MM 5",
     "allowDupes":    false
   },
 
   "multiplierModel": {
-    "field":  "state_prov_rcvd",
+    "field":   "state_prov_rcvd",
     "perBand": false,
-    "validValues": [
-      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-      "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-      "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-      "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-      "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-      "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
-    ]
+    "validValues": []
   },
-
-  "usStates": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-    "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-    "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-    "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
-  ],
-
-  "canadaProvinces": [
-    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
-  ],
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "us_state_map",  "title": "U.S. States",   "config": {} },
-    { "paneIndex": 3, "paneType": "canada_map",    "title": "Canada",        "config": {} },
-    { "paneIndex": 4, "paneType": "dxcc_list",     "title": "DXCC",          "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
@@ -97,17 +67,10 @@
   "cabrilloMapping": {
     "callsign":         "rcvd_callsign",
     "rst_sent":         "sent_rst",
+    "state_prov_sent":  "sent_state",
     "rst_rcvd":         "rcvd_rst",
-    "state_prov_sent":  "sent_exchange",
-    "state_prov_rcvd":  "rcvd_exchange"
+    "state_prov_rcvd":  "rcvd_state"
   },
 
-  "sections": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
-    "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-    "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-    "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
-  ]
+  "sections": []
 }
