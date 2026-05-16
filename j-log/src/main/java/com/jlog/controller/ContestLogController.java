@@ -1452,6 +1452,14 @@ public class ContestLogController implements Initializable {
                 if (dist < ds.getMinDistancePoints()) dist = ds.getMinDistancePoints();
                 return ds.getBasePoints() + dist;
             }
+            if ("one_plus_floor_km_div".equals(f)) {
+                // WW Digi Rule IV.B: 1 pt + 1 pt per full `div` km between grid
+                // centers (FLOOR — e.g. 5541 km / 3000 = 1 ⇒ 2 pts).
+                double div = ds.getDivisorKm() > 0 ? ds.getDivisorKm() : 3000;
+                int dist = (int) Math.floor(km / div);
+                if (dist < ds.getMinDistancePoints()) dist = ds.getMinDistancePoints();
+                return ds.getBasePoints() + dist;
+            }
             return 0;                                   // unknown formula — flagged stub
         }
         if (rules != null && ((rules.getPointsByBand() != null && !rules.getPointsByBand().isEmpty())
@@ -1857,6 +1865,35 @@ public class ContestLogController implements Initializable {
                     if (lblMults    != null) lblMults.setText(String.valueOf(mults));
                     if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
                     if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(zonesWorked);
+                });
+            } else if (plugin.getScoringRules() != null
+                    && "grid_field".equals(plugin.getScoringRules().getMultiplierType())) {
+                // WW Digi (Rule IV.C): multiplier = distinct 2-char Maidenhead
+                // grid FIELD (first 2 chars of the 4-char grid) counted once
+                // PER BAND. Grid is the received-grid field (slot field1).
+                // Score = Σ QSO points (distance-scored, all bands) × Σ grid
+                // fields (per band).
+                Map<String, Set<String>> gfByBand = new LinkedHashMap<>();
+                for (QsoRecord q : ContestQsoDao.getInstance()
+                        .fetchByContest(plugin.getContestId())) {
+                    if (q.isDupe()) continue;
+                    String b = q.getBand() == null ? "" : q.getBand();
+                    if (b.isBlank()) continue;
+                    String g = q.getContestField1();
+                    if (g == null || g.trim().length() < 2) continue;
+                    gfByBand.computeIfAbsent(b, k -> new HashSet<>())
+                            .add(g.trim().substring(0, 2).toUpperCase());
+                }
+                int totalMults = gfByBand.values().stream().mapToInt(Set::size).sum();
+                int total = ContestQsoDao.getInstance()
+                        .totalPointsByContest(plugin.getContestId());
+                final int mults = totalMults;
+                final int score = total * mults;
+                Platform.runLater(() -> {
+                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
+                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
+                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
+                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
                 });
             } else if (plugin.getMultiplierModel() != null
                     && plugin.getMultiplierModel().isPerBand()) {
