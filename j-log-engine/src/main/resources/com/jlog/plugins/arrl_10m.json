@@ -1,9 +1,9 @@
 {
   "contestId":   "ARRL_10M",
   "contestName": "ARRL 10-Meter Contest",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "US/VE: RST + State/Prov   DX: RST + Serial   (e.g. 59 PA, 599 ON, 599 001)",
+  "exchangeFormat": "W/VE+MX: RST + State/Prov (D.C. = DC; AK/HI = US states)   DX: RST + Serial   MM: RST + ITU region (1-3)",
 
   "lockedBand": "10m",
   "perModeMultipliers": true,
@@ -35,7 +35,8 @@
     },
     {
       "id": "serial_rcvd", "label": "Serial", "type": "text",
-      "width": 70, "required": false, "entryRow": 0
+      "width": 70, "required": false, "entryRow": 0,
+      "validator": "numeric"
     },
     {
       "id": "rst_sent", "label": "RST S", "type": "text",
@@ -65,7 +66,7 @@
     "field":  "state_prov_rcvd",
     "perBand": false,
     "validValues": [
-      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+      "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA",
       "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
       "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
       "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
@@ -75,7 +76,7 @@
   },
 
   "usStates": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+    "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA",
     "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
     "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
     "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
@@ -105,7 +106,7 @@
   },
 
   "sections": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+    "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA",
     "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
     "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
     "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
