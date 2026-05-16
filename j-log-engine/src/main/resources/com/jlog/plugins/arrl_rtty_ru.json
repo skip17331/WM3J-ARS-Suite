@@ -1,9 +1,12 @@
 {
   "contestId":   "ARRL_RTTY_RU",
   "contestName": "ARRL RTTY Roundup",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "Send: 599 STATE  Rcv: 599 STATE/DX  (e.g. send 599 PA, DX stations rcv 599 DX)",
+  "exchangeFormat": "W/VE: RST + State/Prov.  DX: RST + Serial (DXCC entity auto-derived for the multiplier).  e.g. 599 PA, 599 ON, 599 428",
+
+  "stationClassifier":  "callsignRegion",
+  "autoFillDxccPrefix": true,
 
   "entryFields": [
     {
@@ -18,25 +21,25 @@
     },
     {
       "id": "mode", "label": "Mode", "type": "combo",
-      "width": 80, "required": false, "entryRow": 0,
+      "width": 80, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["RTTY","PSK31","PSK63","Digital"]
+      "options": ["RTTY"]
     },
     {
       "id": "rst_sent", "label": "RST S", "type": "text",
-      "width": 50, "required": false, "entryRow": 1
+      "width": 50, "required": true, "entryRow": 1
     },
     {
       "id": "rst_rcvd", "label": "RST R", "type": "text",
-      "width": 50, "required": false, "entryRow": 0,
+      "width": 50, "required": true, "entryRow": 0,
       "persistent": true
     },
     {
-      "id": "exch", "label": "St/Pv/DX", "type": "text",
+      "id": "state_prov_rcvd", "label": "St/Pv/DX", "type": "text",
       "width": 75, "required": true, "entryRow": 0
     },
     {
-      "id": "exch_sent", "label": "St/Pv S", "type": "text",
+      "id": "state_prov_sent", "label": "St/Pv S", "type": "text",
       "width": 65, "required": false, "entryRow": 1,
       "persistent": true
     }
@@ -45,22 +48,21 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "modePoints":   {},
-    "multiplierType": "states",
+    "multiplierType": "custom",
     "scoreFormula": "qsoPoints * multipliers",
     "allowDupes": false
   },
 
   "multiplierModel": {
-    "field":  "exch",
-    "perBand": true,
+    "field":  "state_prov_rcvd",
+    "perBand": false,
     "validValues": [
-      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+      "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA",
       "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
       "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
       "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
       "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-      "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT",
-      "DX"
+      "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
     ]
   },
 
@@ -75,7 +77,7 @@
         "zoneGroups": [
           { "name": "W1", "sections": ["CT","ME","MA","NH","RI","VT"] },
           { "name": "W2", "sections": ["NJ","NY"] },
-          { "name": "W3", "sections": ["DE","MD","PA"] },
+          { "name": "W3", "sections": ["DC","DE","MD","PA"] },
           { "name": "W4", "sections": ["AL","FL","GA","KY","NC","SC","TN","VA"] },
           { "name": "W5", "sections": ["AR","LA","MS","NM","OK","TX"] },
           { "name": "W6", "sections": ["CA"] },
@@ -100,12 +102,11 @@
   },
 
   "sections": [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+    "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA",
     "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
     "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
     "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
     "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
-    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT",
-    "DX"
+    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
   ]
 }
