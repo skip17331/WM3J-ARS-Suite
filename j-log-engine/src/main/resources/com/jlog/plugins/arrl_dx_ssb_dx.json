@@ -1,7 +1,7 @@
 {
   "contestId":   "ARRL_DX_SSB_DX",
   "contestName": "ARRL International DX (SSB) — DX",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
   "exchangeFormat": "Send 59 POWER | Rcv 59 STATE  (e.g. send: 59 100  rcv: 59 PA)",
 
@@ -12,17 +12,17 @@
     },
     {
       "id": "band", "label": "Band", "type": "combo",
-      "width": 80, "required": false, "entryRow": 0,
+      "width": 80, "required": true, "entryRow": 0,
       "persistent": true,
       "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
       "id": "rst_sent", "label": "RST S", "type": "text",
-      "width": 50, "required": false, "entryRow": 1
+      "width": 50, "required": true, "entryRow": 1
     },
     {
       "id": "rst_rcvd", "label": "RST R", "type": "text",
-      "width": 50, "required": false, "entryRow": 0,
+      "width": 50, "required": true, "entryRow": 0,
       "persistent": true
     },
     {
@@ -36,7 +36,7 @@
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
-      "width": 55, "required": false, "entryRow": 1,
+      "width": 55, "required": true, "entryRow": 1,
       "persistent": true,
       "options": ["SSB","USB","LSB"]
     }
@@ -64,8 +64,7 @@
       "MI","OH","WV",
       "IL","IN","WI",
       "CO","IA","KS","MN","MO","ND","NE","SD",
-      "AK","HI",
-      "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
+      "AB","BC","LB","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
     ]
   },
 
@@ -88,8 +87,7 @@
           { "name": "W8", "sections": ["MI","OH","WV"] },
           { "name": "W9", "sections": ["IL","IN","WI"] },
           { "name": "W0", "sections": ["CO","IA","KS","MN","MO","ND","NE","SD"] },
-          { "name": "AK/HI", "sections": ["AK","HI"] },
-          { "name": "VE",  "sections": ["AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"] }
+          { "name": "VE",  "sections": ["AB","BC","LB","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"] }
         ]
       }
     }
@@ -115,7 +113,6 @@
     "MI","OH","WV",
     "IL","IN","WI",
     "CO","IA","KS","MN","MO","ND","NE","SD",
-    "AK","HI",
-    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
+    "AB","BC","LB","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
   ]
 }
