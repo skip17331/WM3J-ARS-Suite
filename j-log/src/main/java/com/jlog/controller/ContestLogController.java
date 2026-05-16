@@ -250,43 +250,109 @@ public class ContestLogController implements Initializable {
         entryFields.clear();
         entryLabels.clear();
 
-        HBox rcvdRow = makeExchangeRow("Rcvd");
-        HBox sentRow = makeExchangeRow("Sent");
+        // Column plan: every logical exchange field gets a fixed slot so the
+        // Sent row lines up vertically under the Rcvd row — my call under the
+        // worked call, RST S under RST R, My Co/St under Co/St R, etc.
+        // Received fields define the column order; sent-only items (e.g. the
+        // serial counter) are slotted next to the sent field they follow.
+        List<String> order = new ArrayList<>();
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields())
+            if (fd.getEntryRow() != 1) addKey(order, baseKey(fd.getId()));
+        addKey(order, "operator");
 
+        List<String> sentSeq = new ArrayList<>();
+        sentSeq.add("callsign");          // my call shares the worked-call slot
+        sentSeq.add("serial");            // the running serial counter
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields())
+            if (fd.getEntryRow() == 1) sentSeq.add(baseKey(fd.getId()));
+        String prev = null;
+        for (String b : sentSeq) {
+            if (!order.contains(b)) {
+                int idx = (prev != null && order.contains(prev))
+                        ? order.indexOf(prev) + 1 : order.size();
+                order.add(idx, b);
+            }
+            prev = b;
+        }
+
+        GridPane grid = new GridPane();
+        grid.setHgap(6);
+        grid.setVgap(4);
+        grid.setAlignment(Pos.CENTER_LEFT);
+
+        Label rcvdTag = new Label("Rcvd:");
+        rcvdTag.getStyleClass().add("exchange-row-label");
+        Label sentTag = new Label("Sent:");
+        sentTag.getStyleClass().add("exchange-row-label");
+        grid.add(rcvdTag, 0, 0);
+        grid.add(sentTag, 0, 1);
+
+        // ---- Received row (gridRow 0) ----
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1) continue;
+            int slot = order.indexOf(baseKey(fd.getId()));
+            Label lbl = new Label(fd.getLabel() + ":");
+            lbl.getStyleClass().add("entry-label");
+            lbl.setMinWidth(Region.USE_PREF_SIZE);
+            Control ctrl = buildFieldControl(fd);
+            ctrl.setId(fd.getId());
+            clampWidth(ctrl);
+            entryFields.put(fd.getId(), ctrl);
+            entryLabels.put(fd.getId(), lbl);
+            grid.add(lbl,  slot * 2 + 1, 0);
+            grid.add(ctrl, slot * 2 + 2, 0);
+        }
+
+        int opSlot = order.indexOf("operator");
+        Label lblOp = new Label(I18n.get("label.operator") + ":");
+        lblOp.getStyleClass().add("entry-label");
+        lblOp.setMinWidth(Region.USE_PREF_SIZE);
+        tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
+        tfOperator.setPrefWidth(90);
+        clampWidth(tfOperator);
+        forceUpperCase(tfOperator, false);   // operator is logged to the DB
+        grid.add(lblOp,      opSlot * 2 + 1, 0);
+        grid.add(tfOperator, opSlot * 2 + 2, 0);
+
+        // ---- Sent row (gridRow 1), aligned column-for-column ----
+        int callSlot = order.indexOf("callsign");
         Label yourCall = new Label(AppConfig.getInstance().getSsCallsign());
         yourCall.setId("sentCallsign");
         yourCall.getStyleClass().add("sent-callsign");
-        yourCall.setPrefWidth(130);
-        sentRow.getChildren().add(yourCall);
+        yourCall.setMinWidth(Region.USE_PREF_SIZE);
+        grid.add(yourCall, callSlot * 2 + 2, 1);
 
+        int serSlot = order.indexOf("serial");
         Label lblSerial = new Label(I18n.get("label.serial") + ":");
         lblSerial.getStyleClass().add("entry-label");
+        lblSerial.setMinWidth(Region.USE_PREF_SIZE);
         Label serialDisplay = new Label(String.valueOf(serialCounter.get()));
         serialDisplay.getStyleClass().add("serial-display");
         serialDisplay.setId("serialDisplay");
-        sentRow.getChildren().addAll(lblSerial, serialDisplay);
+        serialDisplay.setMinWidth(Region.USE_PREF_SIZE);
+        grid.add(lblSerial,     serSlot * 2 + 1, 1);
+        grid.add(serialDisplay, serSlot * 2 + 2, 1);
 
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() != 1) continue;
+            int slot = order.indexOf(baseKey(fd.getId()));
             Label lbl = new Label(fd.getLabel() + ":");
             lbl.getStyleClass().add("entry-label");
+            lbl.setMinWidth(Region.USE_PREF_SIZE);
             Control ctrl = buildFieldControl(fd);
             ctrl.setId(fd.getId());
+            clampWidth(ctrl);
             entryFields.put(fd.getId(), ctrl);
             entryLabels.put(fd.getId(), lbl);
-
-            if (fd.getEntryRow() == 1) {
-                sentRow.getChildren().addAll(lbl, ctrl);
-            } else {
-                rcvdRow.getChildren().addAll(lbl, ctrl);
-            }
+            // The Sent row's callsign and serial slots belong to the synthetic
+            // my-call / running-serial widgets. A plugin field that maps here
+            // (e.g. the redundant serial_sent in ca/pa_qso_party) stays in the
+            // field maps for the data & Cabrillo paths but is not drawn, so it
+            // cannot overlap the synthetic widget in the same grid cell.
+            if (slot == callSlot || slot == serSlot) continue;
+            grid.add(lbl,  slot * 2 + 1, 1);
+            grid.add(ctrl, slot * 2 + 2, 1);
         }
-
-        Label lblOp = new Label(I18n.get("label.operator") + ":");
-        lblOp.getStyleClass().add("entry-label");
-        tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
-        tfOperator.setPrefWidth(80);
-        forceUpperCase(tfOperator, false);   // operator is logged to the DB
-        rcvdRow.getChildren().addAll(lblOp, tfOperator);
 
         Button btnSave  = new Button(I18n.get("button.save"));
         Button btnClear = new Button(I18n.get("button.clear"));
@@ -294,23 +360,43 @@ public class ContestLogController implements Initializable {
         btnClear.getStyleClass().add("secondary-button");
         btnSave .setOnAction(e -> doSave());
         btnClear.setOnAction(e -> doClear());
-        rcvdRow.getChildren().addAll(btnSave, btnClear);
+        HBox btnBox = new HBox(6, btnSave, btnClear);
+        btnBox.setAlignment(Pos.CENTER_LEFT);
+        grid.add(btnBox, order.size() * 2 + 1, 0);
 
-        Label hint = new Label("  " + plugin.getExchangeFormat());
-        hint.getStyleClass().add("exchange-hint");
-        rcvdRow.getChildren().add(hint);
+        // ---- Contest help text: its own wrapped line under the Sent row ----
+        entryBar.getChildren().add(grid);
+        String fmt = plugin.getExchangeFormat();
+        if (fmt != null && !fmt.isBlank()) {
+            Label help = new Label(fmt);
+            help.getStyleClass().add("exchange-help");
+            help.setWrapText(true);
+            help.maxWidthProperty().bind(entryBar.widthProperty().subtract(28));
+            entryBar.getChildren().add(help);
+        }
 
         prefillSentFields();
-        entryBar.getChildren().addAll(rcvdRow, sentRow);
     }
 
-    private HBox makeExchangeRow(String prefix) {
-        HBox row = new HBox(8);
-        row.setAlignment(Pos.CENTER_LEFT);
-        Label lbl = new Label(prefix + ":");
-        lbl.getStyleClass().add("exchange-row-label");
-        row.getChildren().add(lbl);
-        return row;
+    /** Append {@code key} to {@code order} unless already present. */
+    private static void addKey(List<String> order, String key) {
+        if (!order.contains(key)) order.add(key);
+    }
+
+    /** Logical slot key shared by a field's rcvd/sent variants
+     *  (rst_rcvd & rst_sent → "rst", serial_rcvd → "serial"). */
+    private static String baseKey(String id) {
+        if (id == null) return "";
+        if (id.endsWith("_rcvd") || id.endsWith("_sent"))
+            return id.substring(0, id.length() - 5);
+        return id;
+    }
+
+    /** Stop a control from being squeezed below its preferred width so the
+     *  entry boxes stay usable when the window is narrow. */
+    private static void clampWidth(Control c) {
+        double w = c.getPrefWidth();
+        if (w > 0) c.setMinWidth(w);
     }
 
     private Control buildFieldControl(ContestPlugin.FieldDef fd) {
