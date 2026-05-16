@@ -1,0 +1,73 @@
+{
+  "contestId":   "HI_QSO_PARTY",
+  "contestName": "Hawai'i QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "HI: RST + Hawai'i district multiplier. Non-HI US: RST + state (incl DC). Canada: RST + province. Non-US/Canada: RST + 'DX'. (4-char grid allowed if the mode can't send the QTH name — log checking resolves.) Bands 160-10m. CW/SSB/Digital (all digital = one class). HI works everyone; non-HI works HI only.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","RTTY","PSK31","FT8","FT4","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Mult/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Mult/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults. Pts: SSB 2, CW 3, Digital 3 (all digital — RTTY/PSK/FT-x/etc — = one class). Each station workable 3×/band (once each CW/SSB/digital). HI entrant mult = 14 HI districts + each US state (incl DC) + each Canadian province + each DXCC entity, counted ONCE (not per band). Non-HI entrant mult = 14 HI districts PER BAND (max 84 = 6 bands × 14). HI works everyone; non-HI scores HI contacts only (non-HI↔non-HI no credit). Claimed/running — the HQP committee re-adjudicates. Nuance (claimed): a 4-char grid sent in lieu of the district (e.g. FT8) is counted as its own multiplier token — HQP log-checking maps it to the most likely district. NOT applied (category): power/operator categories.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Hawaii",
+      "stateAbbr": "HI",
+      "countyByExclusion": true,
+      "pointsByModeClass": { "PH": 2, "CW": 3, "DG": 3 },
+      "multScope": "once",
+      "multScopeOut": "per_band",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "HI Districts / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}

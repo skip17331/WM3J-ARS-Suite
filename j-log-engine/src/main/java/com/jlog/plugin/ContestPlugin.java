@@ -201,6 +201,10 @@ public class ContestPlugin {
                                                          //   out-DE PH10/CW20); null ⇒ both
                                                          //   sides use pointsByModeClass
         private String multScope;                       // "per_mode" | "per_band" | "once"
+        private String multScopeOut;                    // optional OUT-of-state-entrant scope
+                                                        //   override (entrant-asymmetric scope —
+                                                        //   HQP: HI entrant once, non-HI per band);
+                                                        //   null/blank ⇒ both sides use multScope
         private boolean inStateCountsStates;            // in-state entrant: W/VE state/prov as mult
         private boolean inStateCountsDxccEach;          // DX per-country (true) vs single "DX" (false)
         private boolean inStateCountsCounties;          // in-state entrant: own counties as mult
@@ -259,6 +263,8 @@ public class ContestPlugin {
         public void setPointsByModeClassOut(Map<String,Integer> v){ this.pointsByModeClassOut = v; }
         public String getMultScope(){ return multScope; }
         public void setMultScope(String v){ this.multScope = v; }
+        public String getMultScopeOut(){ return multScopeOut; }
+        public void setMultScopeOut(String v){ this.multScopeOut = v; }
         public boolean isInStateCountsStates(){ return inStateCountsStates; }
         public void setInStateCountsStates(boolean v){ this.inStateCountsStates = v; }
         public boolean isInStateCountsDxccEach(){ return inStateCountsDxccEach; }

@@ -2431,6 +2431,12 @@ public class ContestLogController implements Initializable {
                 Map<String,Integer> bonusOnce = c == null || c.getBonusStationsOnce() == null
                         ? Map.of() : c.getBonusStationsOnce();
                 boolean meIn = QsoParty.isCounty(qpMyQth(), counties, countyLen, byExcl);
+                // Entrant-asymmetric multiplier scope: an out-of-state
+                // entrant may count on a different scope than the in-state
+                // entrant (HQP: in-HI once, non-HI per band).
+                if (!meIn && c != null && c.getMultScopeOut() != null
+                        && !c.getMultScopeOut().isBlank())
+                    scope = c.getMultScopeOut();
                 Set<String> mset = new HashSet<>();
                 Set<String> allDg = new HashSet<>();
                 Set<String> inDg  = new HashSet<>();

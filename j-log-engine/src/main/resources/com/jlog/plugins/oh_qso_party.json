@@ -1,161 +1,73 @@
 {
-  "contestId": "OH_QSO_PARTY",
+  "contestId":   "OH_QSO_PARTY",
   "contestName": "Ohio QSO Party",
-  "version": "1.1.0",
-  "exchangeFormat": "CA: serial + county (e.g. 001 ALAM)   Other: serial + state/prov/DX (e.g. 001 PA)",
-  "autoFillDxccPrefix": true,
+  "version":     "1.2.0",
+
+  "exchangeFormat": "OH: RST + OH county (official 4-letter code, e.g. CUYA). Non-OH W/VE (incl KH6/KL7): RST + state/province (2-letter; DC→MD). DX: RST + 'DX'. Bands 160-10m. CW/SSB only. OH works everyone; non-OH works OH only.",
+
+  "stationClassifier": "callsignRegion",
+
   "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
     {
-      "id": "callsign",
-      "label": "Callsign",
-      "type": "text",
-      "width": 140,
-      "required": true,
-      "entryRow": 0
-    },
-    {
-      "id": "band",
-      "label": "Band",
-      "type": "text",
-      "width": 70,
-      "required": true,
-      "entryRow": 0,
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": [
-        "160m",
-        "80m",
-        "40m",
-        "20m",
-        "15m",
-        "10m",
-        "6m",
-        "2m"
-      ]
+      "options": ["160m","80m","40m","20m","15m","10m"]
     },
     {
-      "id": "mode",
-      "label": "Mode",
-      "type": "text",
-      "width": 70,
-      "required": true,
-      "entryRow": 0,
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": [
-        "CW",
-        "SSB",
-        "USB",
-        "LSB",
-        "FM",
-        "RTTY",
-        "PSK31",
-        "FT8",
-        "Digital"
-      ]
+      "options": ["CW","SSB","USB","LSB"]
     },
-    {
-      "id": "rst_rcvd",
-      "label": "RST R",
-      "type": "text",
-      "width": 50,
-      "required": false,
-      "entryRow": 0
-    },
-    {
-      "id": "serial_rcvd",
-      "label": "# R",
-      "type": "text",
-      "width": 60,
-      "required": true,
-      "entryRow": 0,
-      "validator": "numeric"
-    },
-    {
-      "id": "state_prov_rcvd",
-      "label": "QTH R",
-      "type": "text",
-      "width": 90,
-      "required": true,
-      "entryRow": 0
-    },
-    {
-      "id": "rst_sent",
-      "label": "RST S",
-      "type": "text",
-      "width": 50,
-      "required": false,
-      "entryRow": 1
-    },
-    {
-      "id": "state_prov_sent",
-      "label": "QTH S",
-      "type": "text",
-      "width": 90,
-      "required": false,
-      "entryRow": 1,
-      "persistent": true
-    }
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
+
   "multiplierList": "/com/jlog/counties/oh.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "\u03a3 QSO pts \u00d7 \u03a3 mults (once overall). In-state entrant: own counties + W/VE states/provinces + 1 DX; out-of-state entrant: in-state counties only. Mobile/rover re-worked from a new county = new QSO. Claimed/standard \u2014 sponsor re-adjudicates (per-contest official-rules pass still pending).",
+    "scoreFormula": "Σ QSO pts × Σ mults (each counted ONCE PER MODE — same mult on CW and SSB = 2 mults). Pts: SSB 1, CW 2. OH entrant mult = 88 OH counties + 49 US states (excl OH, DC→MD) + 11 Canadian provinces + 1 DX (single, any non-W/VE) = 149/mode. Non-OH entrant mult = 88 OH counties (176 max, 88/mode). OH works everyone; non-OH scores OH contacts only. Mobile/rover county/area-change = new QSO + new multiplier; mobile/rover final = QSO pts × unique mults from all activated counties (= the normal mult union). Official OhQP 4-letter county codes bundled (oh.json) and enforced by-exclusion (state/prov are 2-letter, DX literal). Claimed/running — the Mad River RC OhQP committee re-adjudicates. NOT applied (category): power/operator categories. Note: NU/YT/NWT collapse to the official 'NT' token and DC→'MD' per the sender's official-abbreviation responsibility (logged token counted as-is).",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Ohio",
       "stateAbbr": "OH",
-      "pointsByModeClass": {
-        "PH": 1,
-        "CW": 2,
-        "RY": 2,
-        "DG": 2
-      },
-      "multScope": "once",
+      "countyByExclusion": true,
+      "pointsByModeClass": { "PH": 1, "CW": 2 },
+      "multScope": "per_mode",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
-      "inStateCountsCounties": true,
+      "inStateNoDxMult": false,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
   },
-  "multiplierModel": {
-    "field": "state_prov_rcvd",
-    "perBand": false,
-    "validValues": []
-  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
   "row2Panes": [
-    {
-      "paneIndex": 1,
-      "paneType": "worked_before",
-      "title": "Worked Before",
-      "config": {}
-    },
-    {
-      "paneIndex": 2,
-      "paneType": "worked_mults",
-      "title": "Worked Mults (counties/states)",
-      "config": {}
-    },
-    {
-      "paneIndex": 3,
-      "paneType": "statistics",
-      "title": "Statistics",
-      "config": {}
-    }
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "OH Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
-  "statistics": [
-    "qso_count",
-    "total_score",
-    "multipliers",
-    "qso_per_hour"
-  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
   "cabrilloMapping": {
-    "callsign": "rcvd_callsign",
-    "rst_sent": "sent_rst",
-    "rst_rcvd": "rcvd_rst",
-    "serial_rcvd": "rcvd_serial",
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
     "state_prov_sent": "sent_exchange",
     "state_prov_rcvd": "rcvd_exchange"
   },
+
   "sections": []
 }
