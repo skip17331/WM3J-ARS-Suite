@@ -58,8 +58,6 @@ public class PluginLoader {
             "/com/jlog/plugins/arrl_10m.json",
             "/com/jlog/plugins/arrl_160m.json",
             "/com/jlog/plugins/arrl_intl_digital.json",
-            "/com/jlog/plugins/arrl_sweepstakes_alt.json",
-            "/com/jlog/plugins/arrl_sweepstakes_alt_cw.json",
             "/com/jlog/plugins/arrl_vhf_june.json",
             "/com/jlog/plugins/arrl_vhf_jan.json",
             "/com/jlog/plugins/arrl_vhf_sep.json",

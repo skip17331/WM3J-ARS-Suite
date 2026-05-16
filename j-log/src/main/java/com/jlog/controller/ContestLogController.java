@@ -1392,14 +1392,17 @@ public class ContestLogController implements Initializable {
         var rules = plugin.getScoringRules();
         if (rules != null && rules.isRookieRoundupScoring()) {
             // Received 2-digit "year first licensed" vs current 2-digit year.
-            // Rookie = licensed within the last 3 calendar years (current + 2 prior).
+            // Rookie (Rules 3.1.1.1 / 4.1) = first licensed in the current OR any
+            // of the preceding THREE calendar years — i.e. the 2023 events accept
+            // checks 23/22/21/20 → delta 0..3 inclusive. RK↔RK = 2 pts, RK↔non-RK
+            // = 1 pt (Rule 5.1).
             String yearField = firstPresent("year_rcvd", "chk_rcvd", "check_rcvd");
             String yearStr   = yearField == null ? "" : getFieldValue(yearField);
             if (yearStr != null && yearStr.trim().matches("[0-9]{1,2}")) {
                 int yy    = Integer.parseInt(yearStr.trim());
                 int curYy = LocalDateTime.now(ZoneOffset.UTC).getYear() % 100;
                 int delta = ((curYy - yy) + 100) % 100;   // wraparound-safe
-                return delta <= 2 ? 2 : 1;
+                return delta <= 3 ? 2 : 1;
             }
             return 1;
         }
