@@ -1,11 +1,9 @@
 {
   "contestId":   "EU_HF_CHAMP",
   "contestName": "EU HF Championship",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "RST + 2-digit year first licensed  (e.g. 599 97)",
-
-  "autoFillDxccPrefix": true,
+  "exchangeFormat": "RS(T) + two-digit year of operator's first ever licence (§5; e.g. 599 82 = first licensed 1982, 17 = 2017). Mixed CW+SSB, 160-10m no WARC. European contacts only (§1).",
 
   "entryFields": [
     { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
@@ -21,31 +19,27 @@
       "persistent": true,
       "options": ["CW","SSB","USB","LSB"]
     },
-    { "id": "rst_rcvd",  "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "year_rcvd", "label": "Yr R",  "type": "text", "width": 45, "required": true,  "entryRow": 0, "validator": "numeric" },
-    { "id": "state_prov_rcvd", "label": "DXCC", "type": "text", "width": 70, "required": false, "entryRow": 0 },
-    { "id": "rst_sent",  "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
+    { "id": "rst_rcvd",  "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "year_rcvd", "label": "Yr R",  "type": "text", "width": 45, "required": true, "entryRow": 0, "validator": "numeric" },
+    { "id": "rst_sent",  "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
     { "id": "year_sent", "label": "Yr S",  "type": "text", "width": 45, "required": false, "entryRow": 1, "persistent": true, "validator": "numeric" }
   ],
 
   "scoringRules": {
     "pointsPerQso": 1,
-    "modePoints":   {},
-    "multiplierType": "dxcc",
-    "scoreFormula": "qsoPoints * multipliers",
-    "allowDupes":   false
+    "scoreFormula": "Total QSO points (1 each, §7) × total multipliers. Multiplier (§6) = distinct two-digit licence-year, counted once PER BAND regardless of mode. Same station workable once per band AND mode (§7). Claimed — EUHFC committee re-adjudicates.",
+    "allowDupes": false
   },
 
   "multiplierModel": {
-    "field":   "state_prov_rcvd",
+    "field":   "year_rcvd",
     "perBand": true,
     "validValues": []
   },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "dxcc_list",     "title": "DXCC",          "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics",    "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",    "title": "Statistics",    "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
