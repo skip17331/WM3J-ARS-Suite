@@ -65,6 +65,11 @@ public class ContestPlugin {
     // of any /R suffix. ARRL 10 GHz & Up ("once per band from each location").
     private boolean perBandGridDupe;
 
+    // ARRL Field Day (Rule 6.3/6.6/6.7): workable once per band per *mode
+    // category* — all voice modes equivalent, all non-CW digital equivalent,
+    // CW its own. Collapses the raw mode to CW/PH/DG for the dupe key.
+    private boolean fieldDayModeDupe;
+
     // ---------------------------------------------------------------
     // Inner classes
     // ---------------------------------------------------------------
@@ -299,6 +304,8 @@ public class ContestPlugin {
 
     public boolean isPerBandGridDupe()        { return perBandGridDupe; }
     public void   setPerBandGridDupe(boolean v){ this.perBandGridDupe = v; }
+    public boolean isFieldDayModeDupe()       { return fieldDayModeDupe; }
+    public void   setFieldDayModeDupe(boolean v){ this.fieldDayModeDupe = v; }
 
     public String getStationClassifier()      { return stationClassifier; }
     public void   setStationClassifier(String v){ this.stationClassifier = v; }

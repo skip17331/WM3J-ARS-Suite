@@ -934,6 +934,19 @@ public class ContestLogController implements Initializable {
         return c.endsWith("/R") || c.endsWith("/ROVER");
     }
 
+    /** ARRL Field Day mode category (Rule 6.6/6.7): CW is its own; all voice
+     *  modes are equivalent ("PH"); everything else (FT8/FT4/RTTY/PSK/…) is
+     *  one equivalent "DG" digital class. Used only for the FD dupe key. */
+    private static String fdModeClass(String mode) {
+        if (mode == null) return "DG";
+        String m = mode.trim().toUpperCase();
+        if (m.equals("CW")) return "CW";
+        if (m.equals("SSB") || m.equals("USB") || m.equals("LSB")
+                || m.equals("FM") || m.equals("AM") || m.equals("PHONE")
+                || m.equals("DV") || m.equals("VOICE")) return "PH";
+        return "DG";
+    }
+
     /** Callsign → "US" | "CA" | "DX" irrespective of plugin classifier setting.
      *  Used by scoring rules (region-pair points) which must always know the region. */
     private static String regionTag(String callsign) {
@@ -1348,6 +1361,20 @@ public class ContestLogController implements Initializable {
                 dupe = ContestQsoDao.getInstance().isDuplicatePerMode(
                     plugin.getContestId(), q.getCallsign(),
                     q.getMode() != null ? q.getMode() : "");
+            } else if (plugin.isFieldDayModeDupe()) {
+                // ARRL Field Day (Rule 6.3/6.6/6.7): once per band per mode
+                // CATEGORY — all voice equivalent, all non-CW digital
+                // equivalent, CW its own. The stored mode column is the raw
+                // mode, so collapse to CW/PH/DG and compare in Java against
+                // prior same-callsign QSOs.
+                final String fdCls = fdModeClass(q.getMode());
+                final String fdBand = q.getBand() != null ? q.getBand() : "";
+                dupe = ContestQsoDao.getInstance()
+                    .findByCallsign(plugin.getContestId(), q.getCallsign())
+                    .stream()
+                    .anyMatch(r -> !r.isDupe()
+                        && fdBand.equals(r.getBand() != null ? r.getBand() : "")
+                        && fdCls.equals(fdModeClass(r.getMode())));
             } else {
                 dupe = ContestQsoDao.getInstance().isDuplicate(
                     plugin.getContestId(), q.getCallsign(),

@@ -1,9 +1,11 @@
 {
   "contestId":   "ARRL_FIELD_DAY",
   "contestName": "ARRL Field Day",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
-  "exchangeFormat": "Both stations send CLASS + SECTION (e.g. 2A EPA, 1D STX, 3E NC); DX stations send class + DX (e.g. 2A DX)",
+  "exchangeFormat": "Both send CLASS + ARRL/RAC SECTION (e.g. 3A CT, 1D STX, 2F NLI); DX stations send class + DX (e.g. 2A DX)",
+
+  "fieldDayModeDupe": true,
 
   "entryFields": [
     {
@@ -14,7 +16,7 @@
       "id": "band", "label": "Band", "type": "text",
       "width": 70, "required": true, "entryRow": 0,
       "persistent": true,
-      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","1.25m","70cm","33cm","23cm","SAT"]
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m","1.25m","70cm","33cm","23cm","13cm","9cm","6cm","3cm","SAT"]
     },
     {
       "id": "mode", "label": "Mode", "type": "text",
@@ -32,17 +34,17 @@
       "width": 70, "required": true, "entryRow": 0,
       "options": [
         "CT","EMA","ME","NH","RI","VT","WMA",
-        "ENY","NLI","NNJ","SNJ","WNY",
+        "ENY","NLI","NNJ","NNY","SNJ","WNY",
         "DE","EPA","MDC","WPA",
-        "AL","NFL","SFL","WCF","GA","KY","NC","SC","TN","VA",
+        "AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF","PR","VI",
         "AR","LA","MS","NM","NTX","OK","STX","WTX",
-        "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV","SV",
-        "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA",
+        "EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC",
+        "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA","WY",
         "MI","OH","WV",
         "IL","IN","WI",
-        "CO","IA","KS","MO","NE","ND","SD","WY",
-        "AB","BC","MB","NB","NL","NT","NS","NU","ONN","ONE","ONS","QC","SK","YT","MAR",
-        "HI","PR","VI","DX"
+        "CO","IA","KS","MN","MO","NE","ND","SD",
+        "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER",
+        "DX"
       ]
     },
     {
@@ -62,7 +64,7 @@
     "pointsPerQso":  1,
     "modePoints":    { "CW": 2, "FT8": 2, "FT4": 2, "RTTY": 2, "PSK31": 2, "Digital": 2 },
     "multiplierType": "sections",
-    "scoreFormula":  "qsoPoints + bonusPoints",
+    "scoreFormula":  "Cockpit shows the Σ QSO-point subtotal (Phone 1, CW/Digital 2 — Rule 7.1). FINAL Field Day score = QSO pts × power-multiplier (1/2/5, Rule 7.2) + bonus points (Rule 7.3); the power multiplier and bonuses are operator-declared on the ARRL summary sheet and ARRL does NOT score from logs (Rule 8.6) — therefore not computed here (flagged off-log). Sections are an informational 'worked' tally, NOT a QSO multiplier.",
     "scoreIsPointsOnly": true,
     "allowDupes":    false
   },
@@ -90,16 +92,16 @@
 
   "sections": [
     "CT","EMA","ME","NH","RI","VT","WMA",
-    "ENY","NLI","NNJ","SNJ","WNY",
+    "ENY","NLI","NNJ","NNY","SNJ","WNY",
     "DE","EPA","MDC","WPA",
-    "AL","NFL","SFL","WCF","GA","KY","NC","SC","TN","VA",
+    "AL","GA","KY","NC","NFL","SC","SFL","TN","VA","WCF","PR","VI",
     "AR","LA","MS","NM","NTX","OK","STX","WTX",
-    "EB","LAX","ORG","PAC","SB","SCV","SDG","SF","SJV","SV",
-    "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA",
+    "EB","LAX","ORG","SB","SCV","SDG","SF","SJV","SV","PAC",
+    "AK","AZ","EWA","ID","MT","NV","OR","UT","WWA","WY",
     "MI","OH","WV",
     "IL","IN","WI",
-    "CO","IA","KS","MO","NE","ND","SD","WY",
-    "AB","BC","MB","NB","NL","NT","NS","NU","ONN","ONE","ONS","QC","SK","YT","MAR",
-    "HI","PR","VI","DX"
+    "CO","IA","KS","MN","MO","NE","ND","SD",
+    "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER",
+    "DX"
   ]
 }
