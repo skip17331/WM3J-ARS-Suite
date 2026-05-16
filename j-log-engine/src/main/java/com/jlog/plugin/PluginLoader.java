@@ -130,6 +130,7 @@ public class PluginLoader {
             "/com/jlog/plugins/me_qso_party.json",
             "/com/jlog/plugins/az_qso_party.json",
             "/com/jlog/plugins/sd_qso_party.json",
+            "/com/jlog/plugins/il_qso_party.json",
             "/com/jlog/plugins/wae_cw.json",
             "/com/jlog/plugins/wae_ssb.json",
             "/com/jlog/plugins/wae_rtty.json"

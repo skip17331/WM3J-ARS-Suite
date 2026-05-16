@@ -1,0 +1,72 @@
+{
+  "contestId":   "IL_QSO_PARTY",
+  "contestName": "Illinois QSO Party",
+  "version":     "1.0.0",
+
+  "exchangeFormat": "IL: RST + IL county. Non-IL US: RST + state. Canada: RST + province. DX: RST + 'DX'. Bands 160-10m + 6m/2m (no WARC). CW/Phone/Digital. IL works everyone; non-IL works IL only. STANDARD/CLAIMED ruleset — built from the long-running ILQP format (WIARC, Sunday of the 3rd full October weekend); the supplied document had no rules text. Verify against the official WIARC ILQP PDF; the committee re-adjudicates.",
+
+  "stationClassifier": "callsignRegion",
+
+  "entryFields": [
+    { "id": "callsign", "label": "Callsign", "type": "text", "width": 140, "required": true, "entryRow": 0 },
+    {
+      "id": "band", "label": "Band", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["160m","80m","40m","20m","15m","10m","6m","2m"]
+    },
+    {
+      "id": "mode", "label": "Mode", "type": "text",
+      "width": 70, "required": true, "entryRow": 0,
+      "persistent": true,
+      "options": ["CW","SSB","USB","LSB","FM","RTTY","PSK31","Digital"]
+    },
+    { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Co/St R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
+    { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": true, "entryRow": 1 },
+    { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
+  ],
+
+  "scoringRules": {
+    "pointsPerQso": 1,
+    "multiplierType": "qso_party",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE, not per band/mode). Pts: Phone 1, CW & Digital 2. IL entrant mult = IL counties + each US state + each Canadian province + each DXCC country. Non-IL entrant mult = IL counties. IL works everyone; non-IL scores IL contacts only (non-IL↔non-IL no credit). IL mobile/rover county-change = new QSO + new county. STANDARD/CLAIMED — built from the long-running ILQP format because the supplied document contained only WIARC website metadata (no rules body). Points/multiplier/bonus structure must be verified against the official WIARC ILQP rules PDF; the WIARC club station W9AWE may carry a sponsoring-club bonus in some years (NOT applied — off-log/claimed, not fabricated). IL county abbreviations are NOT bundled (by-exclusion, not invented). Power/operator categories not applied. The ILQP committee re-adjudicates.",
+    "allowDupes": false,
+    "qsoParty": {
+      "stateName": "Illinois",
+      "stateAbbr": "IL",
+      "countyByExclusion": true,
+      "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
+      "multScope": "once",
+      "inStateCountsCounties": true,
+      "inStateOwnStateMult": false,
+      "inStateSelfStateMult": false,
+      "inStateCountsStates": true,
+      "inStateCountsDxccEach": true,
+      "inStateNoDxMult": false,
+      "mergeRttyDigital": true,
+      "ft8GridDivisor": 0,
+      "outStateGridCap": 0
+    }
+  },
+
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+
+  "row2Panes": [
+    { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "IL Counties / Mults", "config": {} },
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+  ],
+
+  "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
+
+  "cabrilloMapping": {
+    "callsign":        "rcvd_callsign",
+    "rst_sent":        "sent_rst",
+    "rst_rcvd":        "rcvd_rst",
+    "state_prov_sent": "sent_exchange",
+    "state_prov_rcvd": "rcvd_exchange"
+  },
+
+  "sections": []
+}
