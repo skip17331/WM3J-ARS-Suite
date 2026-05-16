@@ -1,7 +1,8 @@
 {
   "jHub": {
     "websocketPort": 8080,
-    "webConfigPort": 8081
+    "webConfigPort": 8081,
+    "ip": "localhost"
   },
   "station": {
     "callsign": "WM3J",
@@ -10,7 +11,16 @@
     "lat": 39.745583,
     "lon": -76.959714,
     "gridSquare": "FM19MR",
-    "timezone": "America/New_York"
+    "timezone": "America/New_York",
+    "language": "en",
+    "iaruRegion": "IARU-R2",
+    "country": "US",
+    "cqZone": 0,
+    "arrlSection": "",
+    "ituZone": 0,
+    "rigModel": "",
+    "rigAlias": "",
+    "rigOperator": ""
   },
   "rig": {
     "backend": "NONE",
@@ -30,6 +40,26 @@
     "tcpPort": 4533,
     "shortPathOffset": 0.0,
     "customPreset": 0.0
+  },
+  "amp": {
+    "backend": "NONE",
+    "model": "",
+    "comPort": "",
+    "baud": 9600,
+    "tcpHost": "localhost",
+    "tcpPort": 4531,
+    "pollRateMs": 1000,
+    "bandFollow": true,
+    "faultAlert": true,
+    "swrFault": 3.0
+  },
+  "antenna": {
+    "enabled": false,
+    "comPort": "",
+    "baud": 9600,
+    "lockoutOnPtt": true,
+    "switches": [],
+    "rules": []
   },
   "cluster": {
     "autoConnect": false,
@@ -58,7 +88,74 @@
         "FT8",
         "JS8"
       ]
-    }
+    },
+    "networks": []
+  },
+  "rbn": {
+    "enabled": false,
+    "server": "telnet.reversebeacon.net",
+    "port": 7000,
+    "loginCallsign": "",
+    "bands": [
+      "30m",
+      "40m",
+      "160m",
+      "80m",
+      "17m",
+      "6m",
+      "15m",
+      "12m",
+      "10m",
+      "20m"
+    ],
+    "modes": [
+      "RTTY",
+      "CW",
+      "FT4",
+      "PSK31",
+      "FT8"
+    ],
+    "minSnrDb": 5
+  },
+  "skimmer": {
+    "enabled": false,
+    "server": "127.0.0.1",
+    "port": 7300,
+    "loginCallsign": "",
+    "bands": [
+      "30m",
+      "40m",
+      "160m",
+      "80m",
+      "17m",
+      "6m",
+      "15m",
+      "12m",
+      "10m",
+      "20m"
+    ],
+    "modes": [
+      "RTTY",
+      "CW",
+      "FT4",
+      "PSK31",
+      "FT8"
+    ],
+    "minSnrDb": 5
+  },
+  "backup": {
+    "enabled": false,
+    "mode": "FOLDER",
+    "folderPath": "",
+    "webdavUrl": "",
+    "scheduleHours": 24,
+    "retain": 14,
+    "includeJHub": true,
+    "includeJLog": true,
+    "includeJMap": true,
+    "includeJSat": true,
+    "includeJDigi": false,
+    "includeJBridge": false
   },
   "logger": {
     "mode": "normal",
@@ -76,19 +173,38 @@
   "apps": {
     "jMap": {
       "autoLaunch": false,
-      "command": ""
+      "command": "bash /home/mike/ARS_Suite/j-map/j-map.sh",
+      "ip": "localhost"
     },
     "jLog": {
       "autoLaunch": false,
-      "command": ""
+      "command": "bash /home/mike/ARS_Suite/j-log/j-log.sh",
+      "ip": "localhost"
     },
     "jBridge": {
       "autoLaunch": false,
-      "command": ""
+      "command": "bash /home/mike/ARS_Suite/j-bridge/j-bridge.sh",
+      "ip": "localhost"
     },
     "jDigi": {
       "autoLaunch": false,
-      "command": ""
+      "command": "bash /home/mike/ARS_Suite/j-digi/j-digi.sh",
+      "ip": "localhost"
+    },
+    "jSat": {
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-sat/j-sat.sh --launched-by-hub",
+      "ip": "localhost"
+    },
+    "jVault": {
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-vault/j-vault.sh",
+      "ip": "localhost"
+    },
+    "jLearn": {
+      "autoLaunch": false,
+      "command": "bash /home/mike/ARS_Suite/j-learn/j-learn.sh",
+      "ip": "localhost"
     }
   },
   "macros": {
@@ -97,55 +213,64 @@
         "key": "CQ",
         "label": "CQ",
         "text": "CQ CQ CQ DE {MYCALL} {MYCALL} {MYCALL} K",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "ANS_CQ",
         "label": "Ans CQ",
         "text": "{CALL} DE {MYCALL} {MYCALL} PSE K",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "QSO",
         "label": "QSO",
         "text": "{CALL} DE {MYCALL} UR RST {RST} {RST} NAME {NAME} QTH {BAND} 73 DE {MYCALL} K",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "SK",
         "label": "73 SK",
         "text": "{CALL} DE {MYCALL} QSL TNX QSO 73 SK",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "KN",
         "label": "KN",
         "text": "{CALL} DE {MYCALL} KN",
-        "type": "FIXED"
+        "type": "FIXED",
+        "kind": "CW"
       },
       {
         "key": "F1",
         "label": "F1",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       },
       {
         "key": "F2",
         "label": "F2",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       },
       {
         "key": "F3",
         "label": "F3",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       },
       {
         "key": "F4",
         "label": "F4",
         "text": "",
-        "type": "PROGRAMMABLE"
+        "type": "PROGRAMMABLE",
+        "kind": "CW"
       }
     ]
   },
@@ -153,6 +278,27 @@
     "theme": "dark",
     "fontSize": 13,
     "waterfallColor": "viridis",
-    "mapTheme": "dark"
+    "mapTheme": "dark",
+    "density": "comfortable"
+  },
+  "callsignLookup": {
+    "enabled": true,
+    "provider": "auto",
+    "localDbPath": "",
+    "qrzUsername": "",
+    "qrzPassword": "",
+    "hamqthUsername": "",
+    "hamqthPassword": "",
+    "cacheTtlHours": 24,
+    "fccUlsUrl": ""
+  },
+  "autoUpdate": {
+    "enabled": true,
+    "intervalDays": 7,
+    "ctyUrl": "https://www.country-files.com/cty/cty.dat",
+    "scpUrl": "https://supercheckpartial.com/MASTER.SCP",
+    "dataDir": "",
+    "minCtySize": 50000,
+    "minScpSize": 200000
   }
 }

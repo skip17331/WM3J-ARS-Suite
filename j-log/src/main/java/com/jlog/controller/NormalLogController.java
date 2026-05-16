@@ -424,13 +424,20 @@ public class NormalLogController implements Initializable {
             refreshSaveButton();
         });
 
-        // All-caps transform for ham-convention fields. Name/notes stay mixed.
+        // Every field that lands in the QSO database is forced to upper case
+        // (ham log convention). Numeric fields (RST/power/frequency) are left
+        // alone — uppercasing digits is a no-op. Connection/auth fields live in
+        // Setup and are intentionally not touched here.
         forceUpperCase(tfCallsign);
         forceUpperCase(tfBand);
         forceUpperCase(tfMode);
         forceUpperCase(tfState);
         forceUpperCase(tfCounty);
         forceUpperCase(tfCountry);
+        forceUpperCase(tfOperatorName);
+        forceUpperCase(tfNotes);
+        if (tfActivationSig != null)     forceUpperCase(tfActivationSig);
+        if (tfActivationSigInfo != null) forceUpperCase(tfActivationSigInfo);
 
         tfCallsign.textProperty().addListener((obs, o, n) -> refreshSaveButton());
     }
