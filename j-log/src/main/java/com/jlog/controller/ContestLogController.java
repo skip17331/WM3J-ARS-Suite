@@ -1399,6 +1399,35 @@ public class ContestLogController implements Initializable {
             if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
             return plugin.pointsFor(regionTag(myCall), regionTag(q.getCallsign()), mode);
         }
+        if (rules != null && rules.getDistanceScoring() != null) {
+            // Great-circle distance scoring (ARRL 222 & Up, ARRL Intl Digital).
+            // Claimed/running score — ARRL re-adjudicates from submitted grids.
+            var ds = rules.getDistanceScoring();
+            String theirId = ds.getTheirGridField() != null ? ds.getTheirGridField() : "grid_rcvd";
+            String theirGrid = getFieldValue(theirId);
+            String ownGrid = ds.getOwnGridField() != null ? getFieldValue(ds.getOwnGridField()) : null;
+            if (ownGrid == null || ownGrid.isBlank())
+                ownGrid = AppConfig.getInstance().getGridSquare();
+            double km = Maidenhead.distanceKm(ownGrid, theirGrid);
+            if (km < 0) return 0;                       // missing/invalid grid — cannot score
+            if (km < ds.getMinKm()) km = ds.getMinKm(); // same-grid / floor
+            String f = ds.getFormula() == null ? "" : ds.getFormula();
+            if ("km_x_bandfactor".equals(f)) {
+                int bf = 1;
+                if (ds.getBandFactor() != null) {
+                    for (var e : ds.getBandFactor().entrySet())
+                        if (e.getKey().equalsIgnoreCase(band)) { bf = e.getValue(); break; }
+                }
+                return (int) Math.round(km) * bf;
+            }
+            if ("one_plus_ceil_km_div".equals(f)) {
+                double div = ds.getDivisorKm() > 0 ? ds.getDivisorKm() : 500;
+                int dist = (int) Math.ceil(km / div);
+                if (dist < ds.getMinDistancePoints()) dist = ds.getMinDistancePoints();
+                return ds.getBasePoints() + dist;
+            }
+            return 0;                                   // unknown formula — flagged stub
+        }
         if (rules != null && ((rules.getPointsByBand() != null && !rules.getPointsByBand().isEmpty())
                 || (rules.getPointsByBandClass() != null && !rules.getPointsByBandClass().isEmpty()))) {
             return plugin.pointsForBand(band, mode);

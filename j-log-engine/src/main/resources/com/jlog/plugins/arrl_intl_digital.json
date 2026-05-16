@@ -49,8 +49,16 @@
     "pointsPerQso":  1,
     "modePoints":    {},
     "multiplierType": "custom",
-    "scoreFormula":  "sum(qsoPoints); per-QSO = 1 + 1 per 500 km grid-center distance (rounded up, min 1), ARRL-adjudicated; no multipliers",
+    "scoreFormula":  "Σ per-QSO = 1 + max(1, ceil(km/500)) between grid centers; no multipliers (Rule 5.1-5.3). Claimed/running score — ARRL re-adjudicates from submitted grids.",
     "scoreIsPointsOnly": true,
+    "distanceScoring": {
+      "theirGridField": "grid_rcvd",
+      "ownGridField":   "grid_sent",
+      "formula":        "one_plus_ceil_km_div",
+      "divisorKm":      500,
+      "basePoints":     1,
+      "minDistancePoints": 1
+    },
     "allowDupes":    false
   },
 

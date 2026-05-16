@@ -119,6 +119,10 @@ public class ContestPlugin {
         // If true, Rookie Roundup scoring applies: 2pts when the received
         // year-first-licensed field indicates a rookie (≤2 years), else 1pt.
         private boolean rookieRoundupScoring;
+        // Great-circle distance scoring (ARRL 222 & Up, ARRL Intl Digital).
+        // When present, per-QSO points are derived from the distance between
+        // the worked and own grid-square centers — see DistanceScoring.
+        private DistanceScoring distanceScoring;
         private String multiplierType;       // "sections" | "dxcc" | "states" | "custom"
         private String scoreFormula;         // e.g. "qsoPoints * multipliers"
         private boolean allowDupes;
@@ -141,8 +145,49 @@ public class ContestPlugin {
         public void   setMultiplierType(String v){ this.multiplierType = v; }
         public String getScoreFormula()     { return scoreFormula; }
         public void   setScoreFormula(String v){ this.scoreFormula = v; }
+        public DistanceScoring getDistanceScoring(){ return distanceScoring; }
+        public void   setDistanceScoring(DistanceScoring v){ this.distanceScoring = v; }
         public boolean isAllowDupes()       { return allowDupes; }
         public void   setAllowDupes(boolean v){ this.allowDupes = v; }
+    }
+
+    /**
+     * Distance-based per-QSO scoring. Two formulas are supported:
+     *  - "km_x_bandfactor"     (ARRL 222 & Up): round(distanceKm) × bandFactor[band],
+     *                          floored at minKm (same-grid = minKm).
+     *  - "one_plus_ceil_km_div" (ARRL Intl Digital): basePoints +
+     *                          max(minDistancePoints, ceil(distanceKm / divisorKm)).
+     * Distance is great-circle between the centers of theirGridField and
+     * ownGridField (ownGridField falls back to the station config grid).
+     * The result is a claimed/running score — ARRL re-adjudicates from logs.
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class DistanceScoring {
+        private String theirGridField;            // e.g. "grid_rcvd"
+        private String ownGridField;              // e.g. "grid_sent" (fallback: station grid)
+        private String formula;                   // "km_x_bandfactor" | "one_plus_ceil_km_div"
+        private double minKm;                     // same-grid / floor distance
+        private Map<String, Integer> bandFactor;  // km_x_bandfactor
+        private double divisorKm;                 // one_plus_ceil_km_div
+        private int basePoints;                   // one_plus_ceil_km_div base QSO point
+        private int minDistancePoints;            // one_plus_ceil_km_div min distance pts
+
+        public String getTheirGridField(){ return theirGridField; }
+        public void   setTheirGridField(String v){ this.theirGridField = v; }
+        public String getOwnGridField(){ return ownGridField; }
+        public void   setOwnGridField(String v){ this.ownGridField = v; }
+        public String getFormula(){ return formula; }
+        public void   setFormula(String v){ this.formula = v; }
+        public double getMinKm(){ return minKm; }
+        public void   setMinKm(double v){ this.minKm = v; }
+        public Map<String, Integer> getBandFactor(){ return bandFactor; }
+        public void   setBandFactor(Map<String, Integer> v){ this.bandFactor = v; }
+        public double getDivisorKm(){ return divisorKm; }
+        public void   setDivisorKm(double v){ this.divisorKm = v; }
+        public int    getBasePoints(){ return basePoints; }
+        public void   setBasePoints(int v){ this.basePoints = v; }
+        public int    getMinDistancePoints(){ return minDistancePoints; }
+        public void   setMinDistancePoints(int v){ this.minDistancePoints = v; }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

@@ -38,8 +38,18 @@
     "pointsPerQso":  0,
     "modePoints":    {},
     "multiplierType": "custom",
-    "scoreFormula":  "sum(distance_km(gridCenters) * bandFactor); 1 km if same grid; bandFactor 222=2 432=1 902=4 1296=2 2.3G=6 3.4G/5.7G=10 10G=6 24G+=20; no multipliers; ARRL-adjudicated, NOT computed in-suite (no great-circle scorer)",
+    "scoreFormula":  "Σ round(km between 6-char grid centers) × bandFactor; 1 km if same grid; no multipliers (Rule 5). Claimed/running score — ARRL re-adjudicates from submitted grids.",
     "scoreIsPointsOnly": true,
+    "distanceScoring": {
+      "theirGridField": "grid_rcvd",
+      "ownGridField":   "grid_sent",
+      "formula":        "km_x_bandfactor",
+      "minKm":          1,
+      "bandFactor": {
+        "1.25m": 2, "70cm": 1, "33cm": 4, "23cm": 2, "13cm": 6,
+        "9cm": 10, "6cm": 10, "3cm": 6, "1cm": 20
+      }
+    },
     "allowDupes":    false
   },
 
