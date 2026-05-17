@@ -67,12 +67,8 @@
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour","dxcc_count"],
 
-  "cabrilloMapping": {
-    "rst_sent":   "sent_1_rst",
-    "field3":     "sent_2_state",
-    "rst_rcvd":   "rcvd_1_rst",
-    "field2":     "rcvd_2_power"
-  },
+  "cabrilloSent": ["rst_sent", "field3"],
+  "cabrilloRcvd": ["rst_rcvd", "field2"],
 
   "sections": []
 }

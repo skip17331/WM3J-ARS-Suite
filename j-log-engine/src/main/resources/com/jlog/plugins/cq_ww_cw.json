@@ -53,13 +53,8 @@
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour","zone_count","dxcc_count"],
 
-  "cabrilloMapping": {
-    "callsign":  "rcvd_callsign",
-    "rst_sent":  "sent_rst",
-    "zone_sent": "sent_zone",
-    "rst_rcvd":  "rcvd_rst",
-    "cq_zone":   "rcvd_zone"
-  },
+  "cabrilloSent": ["rst_sent", "zone_sent"],
+  "cabrilloRcvd": ["rst_rcvd", "cq_zone"],
 
   "sections": []
 }

@@ -32,7 +32,9 @@ public class ContestPlugin {
     private MultiplierModel multiplierModel;
     private List<PaneDef> row2Panes;
     private List<String> statistics;
-    private Map<String, String> cabrilloMapping;
+    private Map<String, String> cabrilloMapping;   // legacy: id -> sent_/rcvd_ name
+    private List<String> cabrilloSent;             // ordered sent-exchange field ids
+    private List<String> cabrilloRcvd;             // ordered rcvd-exchange field ids
     private List<String> sections;
 
     // New (ARRL 10M / cockpit framework):
@@ -85,6 +87,9 @@ public class ContestPlugin {
         private List<String> options;  // for combo fields
         private int entryRow;       // 0 = received row (default), 1 = sent row
         private boolean persistent; // if true, value survives doClear()
+        private boolean constant;   // operator-constant sent exchange: not stored
+                                    // per QSO (no field slot) — persisted/restored
+                                    // and Cabrillo-resolved via station config
         private String  validator;  // optional extra validator: "maidenhead" | "numeric" | null
 
         public String getId()          { return id; }
@@ -105,6 +110,8 @@ public class ContestPlugin {
         public void setEntryRow(int v) { this.entryRow = v; }
         public boolean isPersistent()  { return persistent; }
         public void setPersistent(boolean v){ this.persistent = v; }
+        public boolean isConstant()    { return constant; }
+        public void setConstant(boolean v){ this.constant = v; }
         public String  getValidator()  { return validator; }
         public void setValidator(String v){ this.validator = v; }
     }
@@ -468,6 +475,10 @@ public class ContestPlugin {
 
     public Map<String, String> getCabrilloMapping(){ return cabrilloMapping; }
     public void   setCabrilloMapping(Map<String, String> v){ this.cabrilloMapping = v; }
+    public List<String> getCabrilloSent(){ return cabrilloSent; }
+    public void   setCabrilloSent(List<String> v){ this.cabrilloSent = v; }
+    public List<String> getCabrilloRcvd(){ return cabrilloRcvd; }
+    public void   setCabrilloRcvd(List<String> v){ this.cabrilloRcvd = v; }
 
     public List<String> getSections()   { return sections; }
     public void   setSections(List<String> v){ this.sections = v; }
@@ -545,6 +556,7 @@ public class ContestPlugin {
         if (entryFields == null || targetId == null) return null;
         int slot = 0;
         for (FieldDef fd : entryFields) {
+            if (fd.isConstant()) continue;          // constant: no per-QSO slot
             String id = fd.getId() != null ? fd.getId() : "";
             switch (id) {
                 case "callsign", "serial_sent", "serial_rcvd", "band", "mode",

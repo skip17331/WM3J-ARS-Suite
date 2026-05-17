@@ -94,12 +94,8 @@
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour","states_worked"],
 
-  "cabrilloMapping": {
-    "rst_sent":   "sent_1_rst",
-    "field2":     "sent_2_exch",
-    "rst_rcvd":   "rcvd_1_rst",
-    "field1":     "rcvd_2_exch"
-  },
+  "cabrilloSent": ["rst_sent", "field2"],
+  "cabrilloRcvd": ["rst_rcvd", "field1"],
 
   "sections": [
     "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA",

@@ -330,4 +330,13 @@ public class AppConfig {
 
     public String getSsSection()             { return getDb("ss.section", ""); }
     public void   setSsSection(String v)     { setDb("ss.section", v); }
+
+    /** Operator-constant sent-exchange value for a contest's constant field
+     *  (e.g. Rookie Roundup name/year/section). Keyed per contest + field. */
+    public String getContestConstant(String contestId, String fieldId) {
+        return getDb("const." + contestId + "." + fieldId, "");
+    }
+    public void setContestConstant(String contestId, String fieldId, String v) {
+        setDb("const." + contestId + "." + fieldId, v);
+    }
 }

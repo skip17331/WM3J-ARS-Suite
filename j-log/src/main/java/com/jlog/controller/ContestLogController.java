@@ -617,6 +617,12 @@ public class ContestLogController implements Initializable {
         setFieldValue("prec_sent",  cfg.getSsPrecedence());
         setFieldValue("check_sent", cfg.getSsCheck());
         setFieldValue("sect_sent",  cfg.getSsSection());
+        // Generic operator-constant sent fields (e.g. Rookie Roundup
+        // name/year/section): restore last-used value from station config.
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields())
+            if (fd.isConstant())
+                setFieldValue(fd.getId(),
+                    cfg.getContestConstant(plugin.getContestId(), fd.getId()));
         // Band and mode prefill from last saved value, but only if the value is
         // acceptable under the plugin's options — otherwise leave the field empty
         // rather than stuck in an invalid state (e.g. lastBand="30m" vs SS bands).
@@ -1480,6 +1486,14 @@ public class ContestLogController implements Initializable {
         String mode = getFieldValue("mode");
         if (band != null && !band.isBlank()) cfg.setLastBand(band.trim());
         if (mode != null && !mode.isBlank()) cfg.setLastMode(mode.trim());
+        // Persist operator-constant sent fields so they survive restarts and
+        // are available to the Cabrillo exporter (which has no UI access).
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            if (!fd.isConstant()) continue;
+            String v = getFieldValue(fd.getId());
+            if (v != null && !v.isBlank())
+                cfg.setContestConstant(plugin.getContestId(), fd.getId(), v.trim());
+        }
     }
 
     private QsoRecord buildRecord() {
@@ -1582,6 +1596,7 @@ public class ContestLogController implements Initializable {
 
         int slot = 0;
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            if (fd.isConstant()) continue;   // operator-constant: not stored per QSO
             Control ctrl = entryFields.get(fd.getId());
             String val = getControlValue(ctrl);
             if ("band".equals(fd.getId())) val = canonicalBand(fd, val);

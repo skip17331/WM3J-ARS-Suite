@@ -47,18 +47,18 @@
       ]
     },
     {
-      "id": "name_sent", "label": "Name S", "type": "text",
+      "id": "name_sent", "constant": true, "label": "Name S", "type": "text",
       "width": 90, "required": false, "entryRow": 1,
       "persistent": true
     },
     {
-      "id": "year_sent", "label": "Yr S", "type": "text",
+      "id": "year_sent", "constant": true, "label": "Yr S", "type": "text",
       "width": 45, "required": false, "entryRow": 1,
       "persistent": true,
       "validator": "ss_check"
     },
     {
-      "id": "state_prov_sent", "label": "St/Pv/DX", "type": "text",
+      "id": "state_prov_sent", "constant": true, "label": "St/Pv/DX", "type": "text",
       "width": 70, "required": false, "entryRow": 1,
       "persistent": true,
       "options": [
@@ -103,15 +103,8 @@
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
 
-  "cabrilloMapping": {
-    "callsign":         "rcvd_callsign",
-    "name_sent":        "sent_name",
-    "year_sent":        "sent_check",
-    "state_prov_sent":  "sent_section",
-    "name_rcvd":        "rcvd_name",
-    "year_rcvd":        "rcvd_check",
-    "state_prov_rcvd":  "rcvd_section"
-  },
+  "cabrilloSent": ["name_sent", "year_sent", "state_prov_sent"],
+  "cabrilloRcvd": ["name_rcvd", "year_rcvd", "state_prov_rcvd"],
 
   "sections": []
 }

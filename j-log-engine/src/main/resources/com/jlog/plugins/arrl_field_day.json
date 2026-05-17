@@ -48,13 +48,13 @@
       ]
     },
     {
-      "id": "class_sent", "label": "Class S", "type": "text",
+      "id": "class_sent", "constant": true, "label": "Class S", "type": "text",
       "width": 60, "required": false, "entryRow": 1,
       "persistent": true,
       "validator": "fd_class"
     },
     {
-      "id": "sect_sent", "label": "Sect S", "type": "text",
+      "id": "sect_sent", "constant": true, "label": "Sect S", "type": "text",
       "width": 70, "required": false, "entryRow": 1,
       "persistent": true
     }
@@ -82,13 +82,8 @@
 
   "statistics": ["qso_count","total_score","qso_per_hour","sections_worked"],
 
-  "cabrilloMapping": {
-    "callsign":   "rcvd_callsign",
-    "class_sent": "sent_class",
-    "sect_sent":  "sent_section",
-    "class_rcvd": "rcvd_class",
-    "sect_rcvd":  "rcvd_section"
-  },
+  "cabrilloSent": ["class_sent", "sect_sent"],
+  "cabrilloRcvd": ["class_rcvd", "sect_rcvd"],
 
   "sections": [
     "CT","EMA","ME","NH","RI","VT","WMA",

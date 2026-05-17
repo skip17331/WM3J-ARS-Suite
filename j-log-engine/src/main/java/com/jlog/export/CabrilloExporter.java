@@ -68,8 +68,16 @@ public class CabrilloExporter {
                 // Format: QSO: <freq> <mode> <date> <time> <mycall> <sent-exch> <dxcall> <rcvd-exch>
                 String myCall  = nullSafe(cfg.getStationCallsign());
                 String dxCall  = nullSafe(q.getCallsign());
-                String sentEx  = buildExchange(q, plugin, cfg, mapping, "sent");
-                String rcvdEx  = buildExchange(q, plugin, cfg, mapping, "rcvd");
+                // Prefer the explicit ordered spec (declared transmit order);
+                // fall back to the legacy mapping for un-migrated plugins.
+                boolean ordered = plugin.getCabrilloSent() != null
+                                  && !plugin.getCabrilloSent().isEmpty();
+                String sentEx  = ordered
+                    ? buildOrderedExchange(q, plugin, cfg, plugin.getCabrilloSent())
+                    : buildExchange(q, plugin, cfg, mapping, "sent");
+                String rcvdEx  = ordered
+                    ? buildOrderedExchange(q, plugin, cfg, plugin.getCabrilloRcvd())
+                    : buildExchange(q, plugin, cfg, mapping, "rcvd");
 
                 pw.printf("QSO: %5s %-2s %s %s %-13s %-20s %-13s %-20s%n",
                     freq, mode, date, time, myCall, sentEx, dxCall, rcvdEx);
@@ -149,6 +157,22 @@ public class CabrilloExporter {
         }
     }
 
+    /** Build an exchange string from an explicit ordered list of field-id
+     *  tokens (declared sponsor transmit order). */
+    private static String buildOrderedExchange(QsoRecord q, ContestPlugin plugin,
+                                                AppConfig cfg, List<String> tokens) {
+        if (tokens == null || tokens.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (String id : tokens) {
+            String v = resolveField(q, plugin, cfg, id);
+            if (v != null && !v.isBlank()) {
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(v);
+            }
+        }
+        return sb.toString();
+    }
+
     private static String buildExchange(QsoRecord q, ContestPlugin plugin, AppConfig cfg,
                                         Map<String, String> mapping, String direction) {
         if (mapping == null) return "";
@@ -180,12 +204,22 @@ public class CabrilloExporter {
      */
     private static String resolveField(QsoRecord q, ContestPlugin plugin,
                                         AppConfig cfg, String fieldId) {
+        // Operator-constant field (RR name/year/section, FD class/section…):
+        // not stored per QSO — resolve from station config. Checked first so a
+        // plugin that reuses an id the SS legacy cases below also use (e.g. FD
+        // "sect_sent") is not hijacked by SS's getSsSection().
+        if (plugin != null) {
+            ContestPlugin.FieldDef cfd = plugin.getField(fieldId);
+            if (cfd != null && cfd.isConstant())
+                return cfg.getContestConstant(plugin.getContestId(), fieldId);
+        }
         switch (fieldId) {
             case "callsign":    return q.getCallsign();
             case "serial_sent": return q.getSerialSent();
             case "serial_rcvd": return q.getSerialReceived();
             case "rst_sent":    return q.getRstSent();
             case "rst_rcvd":    return q.getRstReceived();
+            case "mycall":      return cfg.getStationCallsign();
             case "band":        return q.getBand();
             case "mode":        return q.getMode();
             case "field1":      return q.getContestField1();

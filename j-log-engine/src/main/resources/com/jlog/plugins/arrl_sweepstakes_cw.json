@@ -185,18 +185,8 @@
     "sections_remaining"
   ],
 
-  "cabrilloMapping": {
-    "callsign":    "rcvd_callsign",
-    "serial_sent": "sent_serial",
-    "prec_sent":   "sent_precedence",
-    "check_sent":  "sent_check",
-    "sect_sent":   "sent_section",
-    "serial_rcvd": "rcvd_serial",
-    "precedence":  "rcvd_precedence",
-    "check":       "rcvd_check",
-    "section":     "rcvd_section",
-    "rst_sent":    "sent_rst"
-  },
+  "cabrilloSent": ["serial_sent", "prec_sent", "mycall", "check_sent", "sect_sent"],
+  "cabrilloRcvd": ["serial_rcvd", "precedence", "callsign", "check", "section"],
 
   "sections": [
     "CT","EMA","ME","NH","RI","VT","WMA",
