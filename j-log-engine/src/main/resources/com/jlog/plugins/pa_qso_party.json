@@ -23,7 +23,6 @@
     },
     { "id": "serial_rcvd", "label": "# R", "type": "text", "width": 60, "required": false, "entryRow": 0 },
     { "id": "state_prov_rcvd", "label": "Co/Sec R", "type": "text", "width": 90, "required": true, "entryRow": 0 },
-    { "id": "serial_sent", "label": "# S", "type": "text", "width": 60, "required": false, "entryRow": 1 },
     { "id": "state_prov_sent", "label": "My Co/Sec", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
