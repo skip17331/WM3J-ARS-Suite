@@ -28,9 +28,9 @@ public class ContestQsoDao {
     public long insert(QsoRecord qso) throws SQLException {
         String sql = """
             INSERT INTO contest_qso(contest_id,callsign,datetime_utc,band,mode,frequency,
-                operator,serial_sent,serial_received,exchange,field1,field2,field3,field4,field5,
+                operator,serial_sent,serial_received,field1,field2,field3,field4,field5,
                 points,is_dupe,rst_sent,rst_received,notes)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """;
         try (PreparedStatement ps = conn().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1,  qso.getContestId());
@@ -42,17 +42,16 @@ public class ContestQsoDao {
             ps.setString(7,  qso.getOperator());
             ps.setString(8,  qso.getSerialSent());
             ps.setString(9,  qso.getSerialReceived());
-            ps.setString(10, qso.getExchange());
-            ps.setString(11, qso.getContestField1());
-            ps.setString(12, qso.getContestField2());
-            ps.setString(13, qso.getContestField3());
-            ps.setString(14, qso.getContestField4());
-            ps.setString(15, qso.getContestField5());
-            ps.setInt   (16, qso.getPoints());
-            ps.setInt   (17, qso.isDupe() ? 1 : 0);
-            ps.setString(18, qso.getRstSent());
-            ps.setString(19, qso.getRstReceived());
-            ps.setString(20, qso.getNotes());
+            ps.setString(10, qso.getContestField1());
+            ps.setString(11, qso.getContestField2());
+            ps.setString(12, qso.getContestField3());
+            ps.setString(13, qso.getContestField4());
+            ps.setString(14, qso.getContestField5());
+            ps.setInt   (15, qso.getPoints());
+            ps.setInt   (16, qso.isDupe() ? 1 : 0);
+            ps.setString(17, qso.getRstSent());
+            ps.setString(18, qso.getRstReceived());
+            ps.setString(19, qso.getNotes());
             ps.executeUpdate();
             ResultSet gk = ps.getGeneratedKeys();
             if (gk.next()) { long id = gk.getLong(1); qso.setId(id); return id; }
@@ -63,7 +62,7 @@ public class ContestQsoDao {
     public void update(QsoRecord qso) throws SQLException {
         String sql = """
             UPDATE contest_qso SET callsign=?,datetime_utc=?,band=?,mode=?,frequency=?,
-                operator=?,serial_sent=?,serial_received=?,exchange=?,
+                operator=?,serial_sent=?,serial_received=?,
                 field1=?,field2=?,field3=?,field4=?,field5=?,
                 points=?,is_dupe=?,rst_sent=?,rst_received=?,notes=?
             WHERE id=?
@@ -77,18 +76,17 @@ public class ContestQsoDao {
             ps.setString(6,  qso.getOperator());
             ps.setString(7,  qso.getSerialSent());
             ps.setString(8,  qso.getSerialReceived());
-            ps.setString(9,  qso.getExchange());
-            ps.setString(10, qso.getContestField1());
-            ps.setString(11, qso.getContestField2());
-            ps.setString(12, qso.getContestField3());
-            ps.setString(13, qso.getContestField4());
-            ps.setString(14, qso.getContestField5());
-            ps.setInt   (15, qso.getPoints());
-            ps.setInt   (16, qso.isDupe() ? 1 : 0);
-            ps.setString(17, qso.getRstSent());
-            ps.setString(18, qso.getRstReceived());
-            ps.setString(19, qso.getNotes());
-            ps.setLong  (20, qso.getId());
+            ps.setString(9,  qso.getContestField1());
+            ps.setString(10, qso.getContestField2());
+            ps.setString(11, qso.getContestField3());
+            ps.setString(12, qso.getContestField4());
+            ps.setString(13, qso.getContestField5());
+            ps.setInt   (14, qso.getPoints());
+            ps.setInt   (15, qso.isDupe() ? 1 : 0);
+            ps.setString(16, qso.getRstSent());
+            ps.setString(17, qso.getRstReceived());
+            ps.setString(18, qso.getNotes());
+            ps.setLong  (19, qso.getId());
             ps.executeUpdate();
         }
     }
@@ -421,7 +419,6 @@ public class ContestQsoDao {
         q.setOperator       (rs.getString("operator"));
         q.setSerialSent     (rs.getString("serial_sent"));
         q.setSerialReceived (rs.getString("serial_received"));
-        q.setExchange       (rs.getString("exchange"));
         q.setContestField1  (rs.getString("field1"));
         q.setContestField2  (rs.getString("field2"));
         q.setContestField3  (rs.getString("field3"));

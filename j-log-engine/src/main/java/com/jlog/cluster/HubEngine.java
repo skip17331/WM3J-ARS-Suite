@@ -665,7 +665,6 @@ public class HubEngine {
         n.put("operator",       q.getOperator());
         n.put("serialSent",     q.getSerialSent());
         n.put("serialReceived", q.getSerialReceived());
-        n.put("exchange",       q.getExchange());
         n.put("field1",         q.getContestField1());
         n.put("field2",         q.getContestField2());
         n.put("field3",         q.getContestField3());
@@ -695,7 +694,6 @@ public class HubEngine {
         q.setOperator      (n.path("operator").asText(null));
         q.setSerialSent    (n.path("serialSent").asText(null));
         q.setSerialReceived(n.path("serialReceived").asText(null));
-        q.setExchange      (n.path("exchange").asText(null));
         q.setContestField1 (n.path("field1").asText(null));
         q.setContestField2 (n.path("field2").asText(null));
         q.setContestField3 (n.path("field3").asText(null));

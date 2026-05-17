@@ -178,7 +178,6 @@ public class CabrilloExporter {
             case "field5"        -> q.getContestField5();
             case "rst_sent"      -> q.getRstSent();
             case "rst_rcvd"      -> q.getRstReceived();
-            case "exchange"      -> q.getExchange();
             default              -> null;
         };
     }

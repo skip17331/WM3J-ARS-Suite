@@ -165,7 +165,6 @@ public class HubClient extends WebSocketClient {
         qso.addProperty("operator",       safe(q.getOperator()));
         qso.addProperty("serialSent",     safe(q.getSerialSent()));
         qso.addProperty("serialReceived", safe(q.getSerialReceived()));
-        qso.addProperty("exchange",       safe(q.getExchange()));
         qso.addProperty("field1",         safe(q.getContestField1()));
         qso.addProperty("field2",         safe(q.getContestField2()));
         qso.addProperty("field3",         safe(q.getContestField3()));

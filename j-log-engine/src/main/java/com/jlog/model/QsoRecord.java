@@ -34,7 +34,6 @@ public class QsoRecord {
     private String operator;        // current op (contest multi-op)
     private String serialSent;
     private String serialReceived;
-    private String exchange;        // full exchange string
     private String contestField1;
     private String contestField2;
     private String contestField3;
@@ -111,9 +110,6 @@ public class QsoRecord {
 
     public String getSerialReceived() { return serialReceived; }
     public void setSerialReceived(String serialReceived) { this.serialReceived = serialReceived; }
-
-    public String getExchange() { return exchange; }
-    public void setExchange(String exchange) { this.exchange = exchange; }
 
     public String getContestField1() { return contestField1; }
     public void setContestField1(String v) { this.contestField1 = v; }

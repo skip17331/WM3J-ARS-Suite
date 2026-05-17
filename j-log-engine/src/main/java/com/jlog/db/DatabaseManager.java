@@ -113,6 +113,14 @@ public class DatabaseManager {
         }
     }
 
+    private boolean contestColumnExists(String column) throws SQLException {
+        try (Statement st = contestConn.createStatement();
+             ResultSet rs = st.executeQuery("PRAGMA table_info(contest_qso)")) {
+            while (rs.next()) if (column.equalsIgnoreCase(rs.getString("name"))) return true;
+        }
+        return false;
+    }
+
     private void applyContestSchema() throws SQLException {
         try (Statement st = contestConn.createStatement()) {
             st.executeUpdate("""
@@ -127,7 +135,6 @@ public class DatabaseManager {
                     operator        TEXT,
                     serial_sent     TEXT,
                     serial_received TEXT,
-                    exchange        TEXT,
                     field1          TEXT,
                     field2          TEXT,
                     field3          TEXT,
@@ -143,6 +150,53 @@ public class DatabaseManager {
                 """);
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_call ON contest_qso(callsign)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
+
+            // One-time migration: older contest_qso carried a redundant `exchange`
+            // blob (the structured field1..5 + rst/serial already hold the data,
+            // and it never fed Cabrillo). SQLite has no DROP COLUMN before 3.35,
+            // so rebuild the table without it.
+            if (contestColumnExists("exchange")) {
+                st.executeUpdate("""
+                    CREATE TABLE contest_qso__new (
+                        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                        contest_id      TEXT NOT NULL,
+                        callsign        TEXT NOT NULL,
+                        datetime_utc    TEXT NOT NULL,
+                        band            TEXT,
+                        mode            TEXT,
+                        frequency       TEXT,
+                        operator        TEXT,
+                        serial_sent     TEXT,
+                        serial_received TEXT,
+                        field1          TEXT,
+                        field2          TEXT,
+                        field3          TEXT,
+                        field4          TEXT,
+                        field5          TEXT,
+                        points          INTEGER DEFAULT 0,
+                        is_dupe         INTEGER DEFAULT 0,
+                        rst_sent        TEXT,
+                        rst_received    TEXT,
+                        notes           TEXT,
+                        created_at      TEXT DEFAULT (datetime('now'))
+                    )
+                    """);
+                st.executeUpdate("""
+                    INSERT INTO contest_qso__new
+                        (id,contest_id,callsign,datetime_utc,band,mode,frequency,operator,
+                         serial_sent,serial_received,field1,field2,field3,field4,field5,
+                         points,is_dupe,rst_sent,rst_received,notes,created_at)
+                    SELECT id,contest_id,callsign,datetime_utc,band,mode,frequency,operator,
+                         serial_sent,serial_received,field1,field2,field3,field4,field5,
+                         points,is_dupe,rst_sent,rst_received,notes,created_at
+                    FROM contest_qso
+                    """);
+                st.executeUpdate("DROP TABLE contest_qso");
+                st.executeUpdate("ALTER TABLE contest_qso__new RENAME TO contest_qso");
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_call ON contest_qso(callsign)");
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
+                log.info("Migrated contest_qso: dropped redundant `exchange` column");
+            }
 
             // WAE-DC QTC traffic (Rule §7). One row = one transferred QTC.
             st.executeUpdate("""

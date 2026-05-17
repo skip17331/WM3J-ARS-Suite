@@ -337,7 +337,6 @@ public class ContestEntryPane extends VBox {
         q.setOperator(com.jlog.util.AppConfig.getInstance().getStationCallsign());
         q.setRstSent("599");
         q.setRstReceived(rstRcvd);
-        q.setExchange(exch.toString());
 
         // Map rcvd fields to contestField1..5 by plugin schema order.
         for (int slot = 0; slot < dbColOrder.size() && slot < 5; slot++) {

@@ -28,7 +28,7 @@
 .plugin-pane-row { -fx-min-height: 180px; }
 .pane-content { -fx-padding: 6; }
 .section-grid { -fx-padding: 4; }
-.section-label { -fx-font-family: monospace; -fx-font-size: 14px; -fx-padding: 2 6 2 6; -fx-background-radius: 3; }
+.section-label { -fx-font-family: monospace; -fx-font-size: 13px; -fx-padding: 2 5 2 5; -fx-background-radius: 3; }
 
 /* ---- Info pane ---- */
 .info-value { -fx-font-weight: bold; }
@@ -67,11 +67,13 @@
 /* ---- Two-row entry bar ---- */
 .exchange-row-label { -fx-font-weight: bold; -fx-font-size: 11px; -fx-min-width: 40px; -fx-opacity: 0.7; }
 .sent-callsign { -fx-font-family: monospace; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 4 0 4; }
+/* Fixed (non-editable) band/mode value for single-band / single-mode contests */
+.fixed-field  { -fx-font-weight: bold; -fx-padding: 0 4 0 4; }
 
 /* ---- Section zone groups ---- */
-.section-zones { -fx-padding: 6; }
-.zone-column   { -fx-padding: 0 10 0 0; }
-.zone-header   { -fx-font-weight: bold; -fx-font-size: 14px; -fx-underline: true; -fx-padding: 0 4 4 4; }
+.section-zones { -fx-padding: 5; }
+.zone-column   { -fx-padding: 0 9 0 0; }
+.zone-header   { -fx-font-weight: bold; -fx-font-size: 13px; -fx-underline: true; -fx-padding: 0 3 3 3; }
 
 /* ---- Section worked ---- */
 .section-worked { -fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; }

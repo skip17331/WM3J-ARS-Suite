@@ -90,8 +90,9 @@ public class ContestLogController implements Initializable {
     @FXML private TableColumn<QsoRecord,String> colBand;
     @FXML private TableColumn<QsoRecord,String> colMode;
     @FXML private TableColumn<QsoRecord,String> colSentSerial;
+    @FXML private TableColumn<QsoRecord,String> colRstSent;
+    @FXML private TableColumn<QsoRecord,String> colRstRcvd;
     @FXML private TableColumn<QsoRecord,String> colExchange;
-    @FXML private TableColumn<QsoRecord,String> colPts;
     @FXML private TableColumn<QsoRecord,String> colOp;
 
     // ---- Stats labels ----
@@ -260,19 +261,49 @@ public class ContestLogController implements Initializable {
             if (fd.getEntryRow() != 1) addKey(order, baseKey(fd.getId()));
         addKey(order, "operator");
 
-        List<String> sentSeq = new ArrayList<>();
-        sentSeq.add("callsign");          // my call shares the worked-call slot
-        sentSeq.add("serial");            // the running serial counter
-        for (ContestPlugin.FieldDef fd : plugin.getEntryFields())
-            if (fd.getEntryRow() == 1) sentSeq.add(baseKey(fd.getId()));
-        String prev = null;
-        for (String b : sentSeq) {
-            if (!order.contains(b)) {
-                int idx = (prev != null && order.contains(prev))
-                        ? order.indexOf(prev) + 1 : order.size();
-                order.add(idx, b);
+        // A contest that doesn't exchange a serial number (e.g. CQ WW DX —
+        // RST + zone only) gets no running-serial box in the entry bar.
+        Map<String, String> cabMap = plugin.getCabrilloMapping();
+        boolean usesSerial =
+            plugin.getEntryFields().stream()
+                  .anyMatch(f -> "serial".equals(baseKey(f.getId())))
+            || (cabMap != null &&
+                cabMap.keySet().stream().anyMatch(k -> k.contains("serial")));
+
+        // Resolve every Sent field to a Rcvd column slot so the two rows stack:
+        //  • same base key as a Rcvd field → sit directly under that twin
+        //    (rst_sent↕rst_rcvd, and the SS/CQ pairs folded by baseKey());
+        //  • no twin → reuse the next still-unclaimed Rcvd exchange column so an
+        //    asymmetric exchange (ARRL DX: send state/power/mode, receive
+        //    dxcc/power) stays compact and aligned instead of staircasing into
+        //    empty cells;
+        //  • only once no Rcvd column is left over is a fresh column appended.
+        Set<String> structural = Set.of("callsign", "serial", "band", "mode", "operator");
+        Deque<String> freeExchange = new ArrayDeque<>();
+        for (String k : order) if (!structural.contains(k)) freeExchange.add(k);
+
+        if (usesSerial && !order.contains("serial")) {   // running serial counter
+            int ci = order.indexOf("callsign");
+            order.add(ci >= 0 ? ci + 1 : order.size(), "serial");
+        }
+
+        Map<String, String> sentSlotKey = new LinkedHashMap<>();
+        for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() != 1) continue;
+            String bk = baseKey(fd.getId());
+            String key;
+            if ("callsign".equals(bk) || "serial".equals(bk)) {
+                key = bk;                            // owned by a synthetic widget
+            } else if (order.contains(bk)) {
+                key = bk;                            // stacks under its Rcvd twin
+                freeExchange.remove(bk);
+            } else if (!freeExchange.isEmpty()) {
+                key = freeExchange.poll();           // reuse a free Rcvd column
+            } else {
+                key = bk;                            // genuine overflow → new column
+                order.add(bk);
             }
-            prev = b;
+            sentSlotKey.put(fd.getId(), key);
         }
 
         GridPane grid = new GridPane();
@@ -303,7 +334,7 @@ public class ContestLogController implements Initializable {
         }
 
         int opSlot = order.indexOf("operator");
-        Label lblOp = new Label(I18n.get("label.operator") + ":");
+        Label lblOp = new Label(I18n.get("label.operator"));   // i18n value already carries its colon
         lblOp.getStyleClass().add("entry-label");
         lblOp.setMinWidth(Region.USE_PREF_SIZE);
         tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
@@ -321,19 +352,21 @@ public class ContestLogController implements Initializable {
         grid.add(yourCall, callSlot * 2 + 2, 1);
 
         int serSlot = order.indexOf("serial");
-        Label lblSerial = new Label(I18n.get("label.serial") + ":");
-        lblSerial.getStyleClass().add("entry-label");
-        lblSerial.setMinWidth(Region.USE_PREF_SIZE);
-        Label serialDisplay = new Label(String.valueOf(serialCounter.get()));
-        serialDisplay.getStyleClass().add("serial-display");
-        serialDisplay.setId("serialDisplay");
-        serialDisplay.setMinWidth(Region.USE_PREF_SIZE);
-        grid.add(lblSerial,     serSlot * 2 + 1, 1);
-        grid.add(serialDisplay, serSlot * 2 + 2, 1);
+        if (usesSerial) {
+            Label lblSerial = new Label(I18n.get("label.serial") + ":");
+            lblSerial.getStyleClass().add("entry-label");
+            lblSerial.setMinWidth(Region.USE_PREF_SIZE);
+            Label serialDisplay = new Label(String.valueOf(serialCounter.get()));
+            serialDisplay.getStyleClass().add("serial-display");
+            serialDisplay.setId("serialDisplay");
+            serialDisplay.setMinWidth(Region.USE_PREF_SIZE);
+            grid.add(lblSerial,     serSlot * 2 + 1, 1);
+            grid.add(serialDisplay, serSlot * 2 + 2, 1);
+        }
 
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             if (fd.getEntryRow() != 1) continue;
-            int slot = order.indexOf(baseKey(fd.getId()));
+            int slot = order.indexOf(sentSlotKey.get(fd.getId()));
             Label lbl = new Label(fd.getLabel() + ":");
             lbl.getStyleClass().add("entry-label");
             lbl.setMinWidth(Region.USE_PREF_SIZE);
@@ -392,12 +425,46 @@ public class ContestLogController implements Initializable {
      *  (rst_rcvd & rst_sent → "rst", serial_rcvd → "serial"). */
     private static String baseKey(String id) {
         if (id == null) return "";
-        if (id.endsWith("_rcvd") || id.endsWith("_sent"))
-            return id.substring(0, id.length() - 5);
-        return id;
+        String b = id;
+        if (b.endsWith("_rcvd") || b.endsWith("_sent"))
+            b = b.substring(0, b.length() - 5);
+        // Canonicalise rcvd/sent spelling variants so a Sent field still lines
+        // up under its Rcvd counterpart when the plugin abbreviates one side
+        // (rcvd "precedence" vs sent "prec_sent", rcvd "section" vs sent
+        // "sect_sent", rcvd "cq_zone" vs sent "zone_sent"). Only these bundled
+        // variants are folded — genuinely asymmetric exchanges such as ARRL DX
+        // (sent state vs rcvd dxcc/power) keep their own distinct slots.
+        return switch (b) {
+            case "precedence" -> "prec";
+            case "section"    -> "sect";
+            case "cq_zone"    -> "zone";
+            default           -> b;
+        };
+    }
+
+    /** The pinned value for a band/mode field the contest constrains to a
+     *  single choice — plugin lockedBand/lockedMode, or a one-entry options
+     *  list (a CW-only contest's "CW", a 160m-only contest's "160m"). Else
+     *  null. Such a field is shown as fixed text, not a one-item dropdown. */
+    private String fixedBandModeValue(ContestPlugin.FieldDef fd) {
+        String id = fd.getId();
+        if (!"band".equals(id) && !"mode".equals(id)) return null;
+        String locked = "band".equals(id) ? plugin.getLockedBand()
+                                           : plugin.getLockedMode();
+        if (locked != null && !locked.isBlank()) return locked.trim();
+        List<String> opts = fd.getOptions();
+        if (opts != null && opts.size() == 1) return opts.get(0);
+        return null;
     }
 
     private Control buildFieldControl(ContestPlugin.FieldDef fd) {
+        String fixed = fixedBandModeValue(fd);
+        if (fixed != null) {                       // single-value band/mode
+            Label fx = new Label(fixed);
+            fx.getStyleClass().add("fixed-field");
+            fx.setMinWidth(Region.USE_PREF_SIZE);
+            return fx;
+        }
         if ("combo".equals(fd.getType()) && fd.getOptions() != null) {
             ComboBox<String> cb = new ComboBox<>();
             cb.setItems(FXCollections.observableArrayList(fd.getOptions()));
@@ -574,6 +641,7 @@ public class ContestLogController implements Initializable {
         Control ctrl = entryFields.get(id);
         if (ctrl instanceof TextField tf) return tf.getText();
         if (ctrl instanceof ComboBox<?> cb) return cb.getValue() != null ? cb.getValue().toString() : "";
+        if (ctrl instanceof Label l) return l.getText();   // fixed band/mode
         return "";
     }
 
@@ -1178,8 +1246,11 @@ public class ContestLogController implements Initializable {
         colBand      .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBand()));
         colMode      .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getMode()));
         colSentSerial.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getSerialSent()));
-        colExchange  .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getExchange()));
-        colPts       .setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getPoints())));
+        colRstSent   .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getRstSent()));
+        colRstRcvd   .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getRstReceived()));
+        // Received exchange = the structured field1..5 the plugin captured
+        // (replaces the old redundant concatenated `exchange` blob).
+        colExchange  .setCellValueFactory(c -> new SimpleStringProperty(rcvdExchange(c.getValue())));
         colOp        .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getOperator()));
         qsoTable.setItems(qsoData);
 
@@ -1510,8 +1581,6 @@ public class ContestLogController implements Initializable {
         q.setOperator(tfOperator != null ? tfOperator.getText() : "");
 
         int slot = 0;
-        StringBuilder exch = new StringBuilder();
-
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             Control ctrl = entryFields.get(fd.getId());
             String val = getControlValue(ctrl);
@@ -1527,13 +1596,22 @@ public class ContestLogController implements Initializable {
                     if (slot < 5) { setFieldSlot(q, slot, val); slot++; }
                 }
             }
-            if (val != null && !val.isBlank()) {
-                if (exch.length() > 0) exch.append(" ");
-                exch.append(val);
+        }
+        q.setPoints(computeQsoPoints(q));
+    }
+
+    /** Display string for the received exchange: the structured field1..5
+     *  values the plugin captured, space-joined, blanks skipped. */
+    private static String rcvdExchange(QsoRecord q) {
+        StringBuilder sb = new StringBuilder();
+        for (String v : new String[]{ q.getContestField1(), q.getContestField2(),
+                q.getContestField3(), q.getContestField4(), q.getContestField5() }) {
+            if (v != null && !v.isBlank()) {
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(v);
             }
         }
-        q.setExchange(exch.toString());
-        q.setPoints(computeQsoPoints(q));
+        return sb.toString();
     }
 
     /** Resolve QSO points honouring region-pair (ARRL 160M) / band-class (Intl
@@ -2077,6 +2155,7 @@ public class ContestLogController implements Initializable {
         if (ctrl == null) return "";
         if (ctrl instanceof TextField tf) return tf.getText();
         if (ctrl instanceof ComboBox<?> cb) return cb.getValue() != null ? cb.getValue().toString() : "";
+        if (ctrl instanceof Label l) return l.getText();   // fixed band/mode
         return "";
     }
 

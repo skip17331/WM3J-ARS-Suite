@@ -111,16 +111,13 @@ public class AdifExporter {
                     adifField(pw, "SIG",       q.getSig());
                     adifField(pw, "SIG_INFO",  q.getSigInfo());
                 } else {
-                    // Contest-specific: serial + exchange. Map common fields to ADIF tags.
+                    // Contest-specific: serials only. The free-form exchange
+                    // string was intentionally dropped — structured fields hold
+                    // the data and contest sponsors take Cabrillo, not ADIF.
                     adifField(pw, "CONTEST_ID",  q.getContestId());
                     adifField(pw, "STX",         q.getSerialSent());
                     adifField(pw, "SRX",         q.getSerialReceived());
-                    adifField(pw, "STX_STRING",  q.getExchange());
                     adifField(pw, "OPERATOR",    q.getOperator());
-                    // field1..5 → SRX_STRING / ARRL_SECT where possible. We default
-                    // field1 into SRX_STRING as the "received exchange" hook.
-                    if (q.getContestField1() != null && !q.getContestField1().isBlank())
-                        adifField(pw, "SRX_STRING", q.getContestField1());
                     if (q.getNotes() != null) adifField(pw, "COMMENT", q.getNotes());
                 }
 
