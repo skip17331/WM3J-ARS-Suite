@@ -56,13 +56,8 @@
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
 
-  "cabrilloMapping": {
-    "callsign":        "rcvd_callsign",
-    "name_sent":       "sent_exchange",
-    "state_prov_sent": "sent_exchange",
-    "name_rcvd":       "rcvd_exchange",
-    "state_prov_rcvd": "rcvd_exchange"
-  },
+  "cabrilloSent": ["name_sent", "state_prov_sent"],
+  "cabrilloRcvd": ["name_rcvd", "state_prov_rcvd"],
 
   "sections": []
 }

@@ -149,13 +149,7 @@
     "multipliers",
     "qso_per_hour"
   ],
-  "cabrilloMapping": {
-    "callsign": "rcvd_callsign",
-    "rst_sent": "sent_rst",
-    "rst_rcvd": "rcvd_rst",
-    "serial_rcvd": "rcvd_serial",
-    "state_prov_sent": "sent_exchange",
-    "state_prov_rcvd": "rcvd_exchange"
-  },
+  "cabrilloSent": ["rst_sent", "state_prov_sent"],
+  "cabrilloRcvd": ["rst_rcvd", "serial_rcvd", "state_prov_rcvd"],
   "sections": []
 }
