@@ -263,12 +263,11 @@ public class ContestLogController implements Initializable {
 
         // A contest that doesn't exchange a serial number (e.g. CQ WW DX —
         // RST + zone only) gets no running-serial box in the entry bar.
-        Map<String, String> cabMap = plugin.getCabrilloMapping();
         boolean usesSerial =
             plugin.getEntryFields().stream()
                   .anyMatch(f -> "serial".equals(baseKey(f.getId())))
-            || (cabMap != null &&
-                cabMap.keySet().stream().anyMatch(k -> k.contains("serial")));
+            || hasSerialToken(plugin.getCabrilloSent())
+            || hasSerialToken(plugin.getCabrilloRcvd());
 
         // Resolve every Sent field to a Rcvd column slot so the two rows stack:
         //  • same base key as a Rcvd field → sit directly under that twin
@@ -419,6 +418,12 @@ public class ContestLogController implements Initializable {
     /** Append {@code key} to {@code order} unless already present. */
     private static void addKey(List<String> order, String key) {
         if (!order.contains(key)) order.add(key);
+    }
+
+    /** True if a Cabrillo exchange spec references a serial token — covers a
+     *  contest that sends a serial without a serial_* entry field. */
+    private static boolean hasSerialToken(List<String> spec) {
+        return spec != null && spec.stream().anyMatch(t -> t.contains("serial"));
     }
 
     /** Logical slot key shared by a field's rcvd/sent variants

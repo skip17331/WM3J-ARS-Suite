@@ -13,10 +13,10 @@ import java.io.*;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Exports a contest log to Cabrillo format using the plugin's cabrilloMapping.
+ * Exports a contest log to Cabrillo using the plugin's ordered
+ * cabrilloSent / cabrilloRcvd exchange spec.
  */
 public class CabrilloExporter {
 
@@ -27,7 +27,6 @@ public class CabrilloExporter {
     public static void export(ContestPlugin plugin, Path destination) throws Exception {
         List<QsoRecord> qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId());
         AppConfig cfg = AppConfig.getInstance();
-        Map<String, String> mapping = plugin.getCabrilloMapping();
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(destination.toFile()))) {
             // Cabrillo 3.0 header — categories come from AppConfig (set via the
@@ -68,16 +67,9 @@ public class CabrilloExporter {
                 // Format: QSO: <freq> <mode> <date> <time> <mycall> <sent-exch> <dxcall> <rcvd-exch>
                 String myCall  = nullSafe(cfg.getStationCallsign());
                 String dxCall  = nullSafe(q.getCallsign());
-                // Prefer the explicit ordered spec (declared transmit order);
-                // fall back to the legacy mapping for un-migrated plugins.
-                boolean ordered = plugin.getCabrilloSent() != null
-                                  && !plugin.getCabrilloSent().isEmpty();
-                String sentEx  = ordered
-                    ? buildOrderedExchange(q, plugin, cfg, plugin.getCabrilloSent())
-                    : buildExchange(q, plugin, cfg, mapping, "sent");
-                String rcvdEx  = ordered
-                    ? buildOrderedExchange(q, plugin, cfg, plugin.getCabrilloRcvd())
-                    : buildExchange(q, plugin, cfg, mapping, "rcvd");
+                // Exchange emitted in the plugin's declared transmit order.
+                String sentEx  = buildOrderedExchange(q, plugin, cfg, plugin.getCabrilloSent());
+                String rcvdEx  = buildOrderedExchange(q, plugin, cfg, plugin.getCabrilloRcvd());
 
                 pw.printf("QSO: %5s %-2s %s %s %-13s %-20s %-13s %-20s%n",
                     freq, mode, date, time, myCall, sentEx, dxCall, rcvdEx);
@@ -173,27 +165,9 @@ public class CabrilloExporter {
         return sb.toString();
     }
 
-    private static String buildExchange(QsoRecord q, ContestPlugin plugin, AppConfig cfg,
-                                        Map<String, String> mapping, String direction) {
-        if (mapping == null) return "";
-        StringBuilder sb = new StringBuilder();
-        // Collect fields mapped to this direction (prefix "sent_" or "rcvd_")
-        mapping.entrySet().stream()
-            .filter(e -> e.getValue().startsWith(direction + "_"))
-            .sorted(Map.Entry.comparingByValue())
-            .forEach(e -> {
-                String val = resolveField(q, plugin, cfg, e.getKey());
-                if (val != null && !val.isBlank()) {
-                    if (sb.length() > 0) sb.append(" ");
-                    sb.append(val);
-                }
-            });
-        return sb.toString();
-    }
-
     /**
-     * Resolve a cabrilloMapping key (a plugin entry-field id, or a direct
-     * field1..5 / special name) to its QsoRecord value.
+     * Resolve a cabrilloSent/cabrilloRcvd token (a plugin entry-field id, a
+     * field1..5 slot, or a special name) to its QsoRecord value.
      *
      * Plugins map exchange columns by their semantic field id (e.g. SS
      * "precedence"/"section", CQ WW "cq_zone"/"zone_sent"), not field1..5.

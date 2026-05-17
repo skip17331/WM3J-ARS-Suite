@@ -17,7 +17,7 @@ import java.util.Map;
  *   multiplierModel  — MultiplierModel object
  *   row2Panes        — list of PaneDef for Row 2 (3 or 4 panes)
  *   statistics       — list of statistic IDs to compute
- *   cabrilloMapping  — map from field name to Cabrillo column
+ *   cabrilloSent/Rcvd — ordered exchange field ids (Cabrillo transmit order)
  *   sections         — optional list of valid section values (for SS etc.)
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,7 +32,6 @@ public class ContestPlugin {
     private MultiplierModel multiplierModel;
     private List<PaneDef> row2Panes;
     private List<String> statistics;
-    private Map<String, String> cabrilloMapping;   // legacy: id -> sent_/rcvd_ name
     private List<String> cabrilloSent;             // ordered sent-exchange field ids
     private List<String> cabrilloRcvd;             // ordered rcvd-exchange field ids
     private List<String> sections;
@@ -473,8 +472,6 @@ public class ContestPlugin {
     public List<String> getStatistics() { return statistics; }
     public void   setStatistics(List<String> v){ this.statistics = v; }
 
-    public Map<String, String> getCabrilloMapping(){ return cabrilloMapping; }
-    public void   setCabrilloMapping(Map<String, String> v){ this.cabrilloMapping = v; }
     public List<String> getCabrilloSent(){ return cabrilloSent; }
     public void   setCabrilloSent(List<String> v){ this.cabrilloSent = v; }
     public List<String> getCabrilloRcvd(){ return cabrilloRcvd; }
