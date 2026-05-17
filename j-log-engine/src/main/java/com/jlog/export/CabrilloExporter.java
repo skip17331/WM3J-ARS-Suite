@@ -68,8 +68,8 @@ public class CabrilloExporter {
                 // Format: QSO: <freq> <mode> <date> <time> <mycall> <sent-exch> <dxcall> <rcvd-exch>
                 String myCall  = nullSafe(cfg.getStationCallsign());
                 String dxCall  = nullSafe(q.getCallsign());
-                String sentEx  = buildExchange(q, mapping, "sent");
-                String rcvdEx  = buildExchange(q, mapping, "rcvd");
+                String sentEx  = buildExchange(q, plugin, cfg, mapping, "sent");
+                String rcvdEx  = buildExchange(q, plugin, cfg, mapping, "rcvd");
 
                 pw.printf("QSO: %5s %-2s %s %s %-13s %-20s %-13s %-20s%n",
                     freq, mode, date, time, myCall, sentEx, dxCall, rcvdEx);
@@ -149,7 +149,8 @@ public class CabrilloExporter {
         }
     }
 
-    private static String buildExchange(QsoRecord q, Map<String, String> mapping, String direction) {
+    private static String buildExchange(QsoRecord q, ContestPlugin plugin, AppConfig cfg,
+                                        Map<String, String> mapping, String direction) {
         if (mapping == null) return "";
         StringBuilder sb = new StringBuilder();
         // Collect fields mapped to this direction (prefix "sent_" or "rcvd_")
@@ -157,7 +158,7 @@ public class CabrilloExporter {
             .filter(e -> e.getValue().startsWith(direction + "_"))
             .sorted(Map.Entry.comparingByValue())
             .forEach(e -> {
-                String val = resolveField(q, e.getKey());
+                String val = resolveField(q, plugin, cfg, e.getKey());
                 if (val != null && !val.isBlank()) {
                     if (sb.length() > 0) sb.append(" ");
                     sb.append(val);
@@ -166,20 +167,47 @@ public class CabrilloExporter {
         return sb.toString();
     }
 
-    private static String resolveField(QsoRecord q, String fieldId) {
-        return switch (fieldId) {
-            case "callsign"      -> q.getCallsign();
-            case "serial_sent"   -> q.getSerialSent();
-            case "serial_rcvd"   -> q.getSerialReceived();
-            case "field1"        -> q.getContestField1();
-            case "field2"        -> q.getContestField2();
-            case "field3"        -> q.getContestField3();
-            case "field4"        -> q.getContestField4();
-            case "field5"        -> q.getContestField5();
-            case "rst_sent"      -> q.getRstSent();
-            case "rst_rcvd"      -> q.getRstReceived();
-            default              -> null;
-        };
+    /**
+     * Resolve a cabrilloMapping key (a plugin entry-field id, or a direct
+     * field1..5 / special name) to its QsoRecord value.
+     *
+     * Plugins map exchange columns by their semantic field id (e.g. SS
+     * "precedence"/"section", CQ WW "cq_zone"/"zone_sent"), not field1..5.
+     * Those used to fall through to null and were silently dropped from the
+     * QSO line; now they resolve to the field1..5 slot the controller stored
+     * them in. The SS sent constants (prec/check/sect_sent) aren't persisted
+     * per QSO — they come from station config.
+     */
+    private static String resolveField(QsoRecord q, ContestPlugin plugin,
+                                        AppConfig cfg, String fieldId) {
+        switch (fieldId) {
+            case "callsign":    return q.getCallsign();
+            case "serial_sent": return q.getSerialSent();
+            case "serial_rcvd": return q.getSerialReceived();
+            case "rst_sent":    return q.getRstSent();
+            case "rst_rcvd":    return q.getRstReceived();
+            case "band":        return q.getBand();
+            case "mode":        return q.getMode();
+            case "field1":      return q.getContestField1();
+            case "field2":      return q.getContestField2();
+            case "field3":      return q.getContestField3();
+            case "field4":      return q.getContestField4();
+            case "field5":      return q.getContestField5();
+            // SS own sent exchange — station constants, not stored per QSO.
+            case "prec_sent":   return cfg.getSsPrecedence();
+            case "check_sent":  return cfg.getSsCheck();
+            case "sect_sent":   return cfg.getSsSection();
+            default:
+                String col = plugin != null ? plugin.fieldSlotColumn(fieldId) : null;
+                return switch (col == null ? "" : col) {
+                    case "field1" -> q.getContestField1();
+                    case "field2" -> q.getContestField2();
+                    case "field3" -> q.getContestField3();
+                    case "field4" -> q.getContestField4();
+                    case "field5" -> q.getContestField5();
+                    default       -> null;
+                };
+        }
     }
 
     private static String cabBand(String band) {

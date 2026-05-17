@@ -528,20 +528,34 @@ public class ContestPlugin {
      */
     public String computeMultiplierDbColumn() {
         if (multiplierModel == null || multiplierModel.getField() == null) return "field1";
-        String targetId = multiplierModel.getField();
+        String col = fieldSlotColumn(multiplierModel.getField());
+        return col != null ? col : "field1";
+    }
+
+    /**
+     * DB column (field1–field5) that stores the entry field {@code targetId},
+     * using the exact positional rule the controller applies on save: the
+     * special non-slot ids (callsign, serial_*, rst_*, band, mode and the
+     * SS-only sent constants prec/check/sect_sent) consume no slot; every
+     * other entry field takes the next field1..5 in declaration order.
+     * Returns null if {@code targetId} is one of those special ids, isn't a
+     * declared entry field, or would land beyond field5.
+     */
+    public String fieldSlotColumn(String targetId) {
+        if (entryFields == null || targetId == null) return null;
         int slot = 0;
-        if (entryFields == null) return "field1";
         for (FieldDef fd : entryFields) {
-            switch (fd.getId() != null ? fd.getId() : "") {
+            String id = fd.getId() != null ? fd.getId() : "";
+            switch (id) {
                 case "callsign", "serial_sent", "serial_rcvd", "band", "mode",
                      "rst_sent", "rst_rcvd", "prec_sent", "check_sent", "sect_sent" -> {}
                 default -> {
-                    if (fd.getId().equals(targetId)) return "field" + (slot + 1);
+                    if (id.equals(targetId)) return slot < 5 ? "field" + (slot + 1) : null;
                     slot++;
                 }
             }
         }
-        return "field1";
+        return null;
     }
 
     /** Points per QSO, honouring mode override if present. */
