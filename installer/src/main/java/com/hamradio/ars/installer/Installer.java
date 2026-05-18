@@ -330,7 +330,7 @@ public final class Installer {
             // with the javafx module path in lib/javafx.
             Path shPath  = sourceRoot.resolve(launch);
             Path batPath = siblingBat(sourceRoot, shPath, jarPath);
-            if (!Files.exists(batPath)) writeBatLauncher(batPath, jarPath);
+            if (!Files.exists(batPath)) writeBatLauncher(batPath);
 
             // Generate a Windows .ico from the module's PNG icon (the repo
             // only ships PNGs; .lnk needs .ico). Best-effort: a bad/absent
@@ -367,9 +367,10 @@ public final class Installer {
         return shPath.resolveSibling(bat);
     }
 
-    private static void writeBatLauncher(Path batPath, Path jarPath) throws java.io.IOException {
-        Path moduleDir = batPath.getParent();
-        Path relJar    = moduleDir.relativize(jarPath);
+    private static void writeBatLauncher(Path batPath) throws java.io.IOException {
+        // Artifact id == module dir name for every suite module, so the jar
+        // is target\<mod>-<version>.jar.
+        String mod = batPath.getParent().getFileName().toString();
         StringBuilder sb = new StringBuilder();
         sb.append("@echo off\r\n");
         sb.append("setlocal\r\n");
@@ -377,8 +378,18 @@ public final class Installer {
         // JavaFX is bundled into every module's fat jar (OS-classifier Maven
         // deps + a non-Application Launcher Main-Class), so a plain
         // `java -jar` is all that is needed — no --module-path / lib/javafx.
-        sb.append("java -Dfile.encoding=UTF-8 ");
-        sb.append("-jar \"%SCRIPT_DIR%").append(relJar.toString().replace('/', '\\')).append("\" %*\r\n");
+        // Resolve the jar by glob (newest target\<mod>-*.jar, skipping
+        // sources/javadoc) so a version bump never breaks this launcher.
+        sb.append("set \"JAR=\"\r\n");
+        sb.append("for /f \"delims=\" %%F in ('dir /b /a-d /o-d \"%SCRIPT_DIR%target\\")
+          .append(mod)
+          .append("-*.jar\" 2^>nul ^| findstr /v /i \"sources javadoc shaded fat\"') do if not defined JAR set \"JAR=%SCRIPT_DIR%target\\%%F\"\r\n");
+        sb.append("if not defined JAR (\r\n");
+        sb.append("  echo Error: ").append(mod)
+          .append(" jar not found in \"%SCRIPT_DIR%target\" - build it:  mvn -DskipTests -f \"%SCRIPT_DIR%pom.xml\" package\r\n");
+        sb.append("  exit /b 1\r\n");
+        sb.append(")\r\n");
+        sb.append("java -Dfile.encoding=UTF-8 -jar \"%JAR%\" %*\r\n");
         sb.append("endlocal\r\n");
         Files.writeString(batPath, sb.toString(), StandardCharsets.UTF_8,
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);

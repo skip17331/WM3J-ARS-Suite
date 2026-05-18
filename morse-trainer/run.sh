@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-JAR="$SCRIPT_DIR/target/morse-trainer-1.0.10.jar"
-if [ ! -f "$JAR" ]; then
+# Resolve the jar by glob so a version bump never breaks this launcher.
+# Newest match wins; skip sources/javadoc side-artifacts.
+JAR="$(ls -t "$SCRIPT_DIR"/target/morse-trainer-*.jar 2>/dev/null | grep -Ev -- '-(sources|javadoc|shaded|fat)\.jar$' | head -n1)"
+if [ -z "$JAR" ]; then
     echo "morse-trainer jar missing; building..."
     (cd "$SCRIPT_DIR" && mvn -q clean package)
+    JAR="$(ls -t "$SCRIPT_DIR"/target/morse-trainer-*.jar 2>/dev/null | grep -Ev -- '-(sources|javadoc|shaded|fat)\.jar$' | head -n1)"
 fi
 exec java -Dfile.encoding=UTF-8 -jar "$JAR" "$@"
