@@ -210,29 +210,22 @@ for the package-manager line.
 
 ### Windows
 
-> **Run these in PowerShell, not Command Prompt (`cmd.exe`).** The block
-> below uses PowerShell syntax (`$HOME`, `foreach`) — pasting it into
-> `cmd.exe` fails with `'foreach' is not recognized`. A PowerShell prompt
-> shows `PS C:\>`; plain `cmd.exe` shows `C:\>`. JavaFX is bundled into
-> each module's jar automatically — no separate SDK download or setup.
+**One command.** Install Git if you don't have it, clone, then run —
+or just **double-click** — `install.bat`. It installs Java + Maven,
+builds every module, and adds Start-Menu shortcuts.
 
 ```powershell
-winget install --id Git.Git -e
-winget install --id EclipseAdoptium.Temurin.21.JDK -e
-winget install --id Apache.Maven -e
+winget install --id Git.Git -e        # skip if you already have Git
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git $HOME\ARS_Suite
 cd $HOME\ARS_Suite
-mvn -q -DskipTests -f j-log-engine\pom.xml install
-mvn -q -DskipTests -f j-learn\pom.xml install
-mvn -q -DskipTests -f j-vault\pom.xml install
-foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-trainer') {
-    mvn -q -DskipTests -f "$m\pom.xml" package
-}
-.\install.bat
-.\j-hub\start.bat
+.\install.bat                          # ~5–10 min first run; or double-click it
 ```
 
-Shortcuts land in the Start Menu under **ARS Suite**.
+Then press the Windows key, type **WM3J J-Hub**, Enter, and open
+<http://localhost:8081/>. Re-running `install.bat` after a `git pull`
+is the upgrade path. JavaFX is bundled into each jar automatically — no
+SDK download. If anything fails it writes `install-log.txt` — attach
+that to a GitHub issue. Full walkthrough in [INSTALL.md](INSTALL.md).
 
 ### macOS
 

@@ -50,6 +50,9 @@ venv/
 # install time, so .ico is always a build artifact, never committed.
 *.ico
 
+# Unified Windows installer transcript (per-machine, for bug reports)
+install-log.txt
+
 # Runtime logs / state
 j-digi/logs/
 j-digi/j-hub.json

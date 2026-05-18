@@ -49,15 +49,30 @@ All messages are JSON with a `type` field. First message from any client must be
 
 ## Module Connections
 
-J-Hub manages the following ARS Suite modules:
+J-Hub launches these modules as child processes via `AppLauncher`
+(`cmd /c` on Windows, `bash -c` elsewhere). Each module's launch
+command lives in `j-hub.json` at `apps.<key>.command` and is
+auto-populated by `JHubConfig.applyDefaults()` on first run — OS-aware,
+pointing at the module's native launcher under the detected ARS Suite
+root (`<root>`):
 
-| Key | Module | Default command |
-|---|---|---|
-| `jMap` | J-Map | `cd /home/mike/ARS_Suite/j-map && mvn javafx:run -q` |
-| `j-log` | J-Log | `bash /home/mike/ARS_Suite/j-log/run.sh` |
-| `j-bridge` | J-Bridge | `bash /home/mike/ARS_Suite/j-bridge/run.sh` |
-| `j-digi` | J-Digi | `bash /home/mike/ARS_Suite/j-digi/run.sh` |
-| `j-sat` | J-Sat | `bash /home/mike/ARS_Suite/j-sat/run.sh --launched-by-hub` |
+| `apps` key | Module | Windows default | Linux / macOS default |
+|---|---|---|---|
+| `jMap`    | J-Map    | `<root>\j-map\j-map.bat`                    | `bash <root>/j-map/j-map.sh` |
+| `jLog`    | J-Log    | `<root>\j-log\j-log.bat`                    | `bash <root>/j-log/j-log.sh` |
+| `jBridge` | J-Bridge | `<root>\j-bridge\j-bridge.bat`              | `bash <root>/j-bridge/j-bridge.sh` |
+| `jDigi`   | J-Digi   | `<root>\j-digi\j-digi.bat`                  | `bash <root>/j-digi/j-digi.sh` |
+| `jSat`    | J-Sat    | `<root>\j-sat\j-sat.bat --launched-by-hub`  | `bash <root>/j-sat/j-sat.sh --launched-by-hub` |
+| `jVault`  | J-Vault  | `<root>\j-vault\j-vault.bat`                | `bash <root>/j-vault/j-vault.sh` |
+| `jLearn`  | J-Learn  | `<root>\j-learn\j-learn.bat`                | `bash <root>/j-learn/j-learn.sh` |
+
+`applyDefaults()` fills blank commands **and normalizes** one carried
+from another OS (e.g. a `bash …/run.sh` left in a config now opened on
+Windows) to the correct per-OS launcher, leaving valid same-OS
+customizations alone. The unified Windows installer (`install.bat`,
+which runs `install.ps1`) generates the `.bat` wrappers and pre-empts
+this on a fresh install. (morse-trainer is launched separately via
+`WebConfigServer`, not from this table.)
 
 ## Adding a New Message Type
 

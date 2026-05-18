@@ -165,100 +165,97 @@ have their own Start-Menu / app-menu entries, and J-Hub's left nav has a
 
 ## Windows
 
-Tested on Windows 10 22H2 and Windows 11 23H2.
+Tested on Windows 10 22H2 and Windows 11 23H2. There is **one
+command** — no copy-pasting a list of steps.
 
-### 1. Install git, Java, and Maven
+### Install
 
-**Easiest (one command, requires winget — built into Windows 10/11):**
+1. If you don't already have Git, install it (one line in PowerShell):
 
-Open PowerShell as Administrator and run:
+   ```powershell
+   winget install --id Git.Git -e
+   ```
+
+2. Get the code and run the installer:
+
+   ```powershell
+   git clone https://github.com/skip17331/WM3J-ARS-Suite.git $HOME\ARS_Suite
+   cd $HOME\ARS_Suite
+   .\install.bat
+   ```
+
+   Prefer not to use a terminal at all? Open the `ARS_Suite` folder in
+   File Explorer and **double-click `install.bat`**.
+
+That's the whole install. `install.bat` installs Java and Maven for
+you if they're missing, builds everything, and adds the Start-Menu
+shortcuts. The first run takes about 5–10 minutes (it downloads
+dependencies) — you can leave it running. Running it again later just
+upgrades.
+
+When it finishes, press the Windows key, type **WM3J J-Hub**, press
+Enter, then open <http://localhost:8081/>.
+
+> **If something goes wrong:** the installer saves a full transcript to
+> **`install-log.txt`** in the `ARS_Suite` folder (and prints that
+> path). Open an issue at
+> <https://github.com/skip17331/WM3J-ARS-Suite/issues> and drag that
+> one file in — that's all we need to help. No need to copy text out of
+> the window.
+
+You should get nine shortcuts (j-hub, j-log, j-map, j-digi, j-bridge,
+j-sat, j-vault, j-learn, morse-trainer). J-Vault and J-Learn have their
+own entries too; inside J-Hub each tab also has a **Launch** button.
+
+> **One settings surface.** Operator preferences — callsign, grid, IARU
+> region + country, Hamlib endpoint, J-Digi PTT/CW path — all live in
+> J-Hub's web UI and ride to the modules over the broker. You should not
+> need to hand-edit any config files for normal operation.
+
+### What the one command does
+
+`install.bat` is a small launcher for the real script (`install.ps1`);
+it sets a PowerShell execution-policy bypass so a fresh machine needs
+zero setup, and pauses at the end if you double-clicked it so you can
+read the result. Both accept `-SkipDeps` (toolchain already present)
+and `-SkipBuild` (jars already built). In four idempotent stages it:
+
+1. **Toolchain** — ensures Git, Temurin 21 JDK, Maven via winget
+   (installs only what's missing; refreshes PATH in-process).
+2. **Build** — `mvn install` j-log-engine, j-learn, j-vault; then
+   `mvn package` j-hub, j-log, j-map, j-digi, j-bridge, j-sat,
+   morse-trainer.
+3. **Desktop integration** — runs the cross-platform installer, which
+   writes per-module `.bat` launchers, derives a `.ico` from each
+   module's icon, and creates Start-Menu shortcuts under
+   `%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\`.
+4. **Normalize config** — rewrites any stale Linux launch commands in
+   `j-hub.json` to the Windows `.bat` wrappers.
+
+### Doing it by hand
+
+Only if the one command doesn't fit (corporate proxy, custom JDK
+location, or you want to watch each step):
 
 ```powershell
 winget install --id Git.Git -e
 winget install --id EclipseAdoptium.Temurin.21.JDK -e
 winget install --id Apache.Maven -e
-```
-
-**Manual download** (use this if winget isn't available):
-
-1. **Git** — <https://git-scm.com/download/win>
-   Run the installer; accept defaults. (When asked about the default
-   editor, pick whatever you're comfortable with — it doesn't affect
-   the suite.)
-2. **Java 21 (Temurin)** — <https://adoptium.net/temurin/releases/?version=21>
-   Pick **Windows x64 → JDK → .msi**. During install, tick
-   "Set JAVA_HOME variable" and "Add to PATH".
-3. **Maven** — <https://maven.apache.org/download.cgi>
-   Download the **Binary zip archive** (e.g. `apache-maven-3.9.x-bin.zip`),
-   extract to `C:\Maven`, then add `C:\Maven\apache-maven-3.9.x\bin`
-   to your PATH (System Properties → Environment Variables).
-
-**Open a fresh PowerShell** (so PATH changes take effect) and verify:
-
-```powershell
-git --version
-java --version
-mvn --version
-```
-
-All three should print versions. If any "is not recognized," restart
-PowerShell or check PATH.
-
-### 2. Clone the repository
-
-```powershell
-cd $HOME
-git clone https://github.com/skip17331/WM3J-ARS-Suite.git ARS_Suite
-cd ARS_Suite
-```
-
-### 3. Build the suite
-
-```powershell
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git $HOME\ARS_Suite
 cd $HOME\ARS_Suite
-
-# Shared engine first
 mvn -q -DskipTests -f j-log-engine\pom.xml install
-
-# Standalone web apps J-Hub launches — install for the .m2 cache
 mvn -q -DskipTests -f j-learn\pom.xml install
 mvn -q -DskipTests -f j-vault\pom.xml install
-
-# Package the apps
 foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-trainer') {
     mvn -q -DskipTests -f "$m\pom.xml" package
 }
-```
-
-If any module fails, re-run just that line after fixing.
-
-### 4. Run the installer
-
-This generates per-module `.bat` launchers (when missing) and creates
-**Start Menu shortcuts** under `ARS Suite` (in
-`%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\`). Safe to
-re-run any time; never touches your config or databases.
-
-```powershell
-.\install.bat
-```
-
-You should see nine entries installed.
-
-### 5. Launch J-Hub
-
-Press the Windows key, type **WM3J J-Hub**, and press Enter. Or from
-PowerShell:
-
-```powershell
+.\install.bat -SkipDeps -SkipBuild
 .\j-hub\start.bat
 ```
 
-Open <http://localhost:8081/> in your browser.
-
-J-Vault and J-Learn each have their own Start-Menu entries
-(**WM3J J-Vault**, **WM3J J-Learn**); from inside J-Hub you can also
-launch them via the corresponding tab's **Launch** button.
+If a module fails, fix it and re-run just that line — earlier
+successes don't need redoing. Open <http://localhost:8081/> once J-Hub
+is up.
 
 ---
 
@@ -548,15 +545,9 @@ git pull
 ```
 
 ```powershell
-# Windows
+# Windows — re-runs build + installer in one shot
 cd $HOME\ARS_Suite
 git pull
-mvn -q -DskipTests -f j-log-engine\pom.xml install
-mvn -q -DskipTests -f j-learn\pom.xml install
-mvn -q -DskipTests -f j-vault\pom.xml install
-foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-trainer') {
-    mvn -q -DskipTests -f "$m\pom.xml" package
-}
 .\install.bat
 ```
 
