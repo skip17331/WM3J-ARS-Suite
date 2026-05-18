@@ -400,15 +400,31 @@ public final class Installer {
     // Common bits
     // -----------------------------------------------------------------
 
+    /**
+     * Strip wrapping/stray double quotes from a path argument. On Windows a
+     * trailing backslash before the closing quote — e.g. {@code --root
+     * "C:\dir\"} (and %~dp0 always ends in '\') — escapes the quote, so the
+     * JVM receives a literal trailing {@code "} and Paths.get throws
+     * InvalidPathException. Quotes are never valid in a Windows path, so it's
+     * safe to drop them.
+     */
+    private static String cleanPathArg(String s) {
+        if (s == null) return "";
+        s = s.trim();
+        while (s.startsWith("\"")) s = s.substring(1);
+        while (s.endsWith("\""))   s = s.substring(0, s.length() - 1);
+        return s.trim();
+    }
+
     private static Path resolveSourceRoot(String[] args) {
         for (int i = 0; i < args.length - 1; i++) {
             if ("--root".equals(args[i]) || "-r".equals(args[i])) {
-                return Paths.get(args[i + 1]).toAbsolutePath().normalize();
+                return Paths.get(cleanPathArg(args[i + 1])).toAbsolutePath().normalize();
             }
         }
         String env = System.getenv("ARS_SUITE_HOME");
         if (env != null && !env.isBlank()) {
-            return Paths.get(env).toAbsolutePath().normalize();
+            return Paths.get(cleanPathArg(env)).toAbsolutePath().normalize();
         }
         Path cwd = Paths.get("").toAbsolutePath().normalize();
         if (Files.exists(cwd.resolve("j-hub/pom.xml"))) return cwd;

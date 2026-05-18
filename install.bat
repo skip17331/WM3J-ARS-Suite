@@ -26,6 +26,10 @@ rem ============================================================
 
 setlocal
 set "SCRIPT_DIR=%~dp0"
+rem %~dp0 always ends with '\'; passing it as "...\" would escape the closing
+rem quote. Keep a separate, backslash-trimmed copy for the --root argument.
+set "ROOT_DIR=%SCRIPT_DIR%"
+if "%ROOT_DIR:~-1%"=="\" set "ROOT_DIR=%ROOT_DIR:~0,-1%"
 set "INSTALLER_JAR=%SCRIPT_DIR%installer\target\j-installer-1.0.8.jar"
 
 where java >nul 2>&1
@@ -49,5 +53,5 @@ if not exist "%INSTALLER_JAR%" (
     )
 )
 
-java -jar "%INSTALLER_JAR%" --root "%SCRIPT_DIR%" %*
+java -jar "%INSTALLER_JAR%" --root "%ROOT_DIR%" %*
 endlocal
