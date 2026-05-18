@@ -1,13 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+JAR="$SCRIPT_DIR/target/j-digi-1.0.41.jar"
 
-mvn clean install -f "$SCRIPT_DIR/pom.xml"
+if [ ! -f "$JAR" ]; then
+    echo "j-digi jar missing; building..."
+    (cd "$SCRIPT_DIR" && mvn -q clean package -DskipTests)
+fi
 
-java \
-    --module-path "$SCRIPT_DIR/lib/javafx" \
-    --add-modules javafx.controls,javafx.graphics \
-    -Dfile.encoding=UTF-8 \
-    -jar "$SCRIPT_DIR/target/j-digi-0.1.0-jar-with-dependencies.jar" \
-    "$@"
+exec java -Dfile.encoding=UTF-8 -jar "$JAR" "$@"

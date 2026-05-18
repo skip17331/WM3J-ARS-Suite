@@ -351,13 +351,10 @@ public final class Installer {
         sb.append("@echo off\r\n");
         sb.append("setlocal\r\n");
         sb.append("set \"SCRIPT_DIR=%~dp0\"\r\n");
-        // JavaFX native libs live in <module>\lib\javafx if a Windows JavaFX
-        // distribution was copied there. Use forward slashes in --module-path
-        // so java on Windows doesn't choke on backslashes in CLI args.
-        sb.append("set \"JAVAFX=%SCRIPT_DIR%lib\\javafx\"\r\n");
-        sb.append("java --module-path \"%JAVAFX%\" ");
-        sb.append("--add-modules javafx.controls,javafx.fxml ");
-        sb.append("-Dfile.encoding=UTF-8 ");
+        // JavaFX is bundled into every module's fat jar (OS-classifier Maven
+        // deps + a non-Application Launcher Main-Class), so a plain
+        // `java -jar` is all that is needed — no --module-path / lib/javafx.
+        sb.append("java -Dfile.encoding=UTF-8 ");
         sb.append("-jar \"%SCRIPT_DIR%").append(relJar.toString().replace('/', '\\')).append("\" %*\r\n");
         sb.append("endlocal\r\n");
         Files.writeString(batPath, sb.toString(), StandardCharsets.UTF_8,

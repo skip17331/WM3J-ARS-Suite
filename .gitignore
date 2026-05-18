@@ -37,6 +37,14 @@ venv/
 *.prj
 *.cpg
 
+# Obsolete per-module JavaFX vendoring — JavaFX is now bundled into each
+# module's fat jar via the OS-classifier Maven deps, so lib/javafx and
+# lib/bin are no longer used or shipped. Ignored so a stale script or an
+# old install can't reintroduce them into version control.
+*/lib/javafx/
+*/lib/bin/
+*/lib/
+
 # Runtime logs / state
 j-digi/logs/
 j-digi/j-hub.json

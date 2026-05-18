@@ -1,13 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+JAR="$SCRIPT_DIR/target/j-bridge-1.0.17.jar"
 
-mvn clean install
+if [ ! -f "$JAR" ]; then
+    echo "j-bridge jar missing; building..."
+    (cd "$SCRIPT_DIR" && mvn -q clean package -DskipTests)
+fi
 
-java \
-    --module-path "$SCRIPT_DIR/lib/javafx" \
-    --add-modules javafx.controls,javafx.fxml \
-    -Dfile.encoding=UTF-8 \
-    -jar "$SCRIPT_DIR/target/j-bridge-1.0.17-shaded.jar" \
-    "$@"
+exec java -Dfile.encoding=UTF-8 -jar "$JAR" "$@"

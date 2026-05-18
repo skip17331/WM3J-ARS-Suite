@@ -22,15 +22,25 @@
             <version>1.0.43</version>
         </dependency>
 
+        <!-- JavaFX — OS-specific classifier so the native runtime is
+             bundled into the assembled jar (no module-path needed) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
         <dependency>
             <groupId>org.java-websocket</groupId>
@@ -62,6 +72,48 @@
         </dependency>
     </dependencies>
 
+    <!-- Select JavaFX native classifier based on OS family + CPU arch.
+         Profiles activate on os.arch so a Raspberry Pi (aarch64) gets
+         linux-aarch64 jars instead of the x86_64 linux jars, and Apple
+         Silicon picks mac-aarch64 instead of the Intel mac jars. -->
+    <profiles>
+        <profile>
+            <id>linux-aarch64</id>
+            <activation>
+                <os><family>unix</family><name>linux</name><arch>aarch64</arch></os>
+            </activation>
+            <properties><javafx.platform>linux-aarch64</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>linux-x64</id>
+            <activation>
+                <os><family>unix</family><name>linux</name><arch>amd64</arch></os>
+            </activation>
+            <properties><javafx.platform>linux</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>windows-x64</id>
+            <activation>
+                <os><family>windows</family></os>
+            </activation>
+            <properties><javafx.platform>win</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac-aarch64</id>
+            <activation>
+                <os><family>mac</family><arch>aarch64</arch></os>
+            </activation>
+            <properties><javafx.platform>mac-aarch64</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac-x64</id>
+            <activation>
+                <os><family>mac</family><arch>x86_64</arch></os>
+            </activation>
+            <properties><javafx.platform>mac</javafx.platform></properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -90,9 +142,10 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.7.1</version>
                 <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>com.hamradio.modem.ModemMain</mainClass>
+                            <mainClass>com.hamradio.modem.Launcher</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

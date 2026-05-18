@@ -210,13 +210,18 @@ for the package-manager line.
 
 ### Windows
 
+> **Run these in PowerShell, not Command Prompt (`cmd.exe`).** The block
+> below uses PowerShell syntax (`$HOME`, `foreach`) — pasting it into
+> `cmd.exe` fails with `'foreach' is not recognized`. A PowerShell prompt
+> shows `PS C:\>`; plain `cmd.exe` shows `C:\>`. JavaFX is bundled into
+> each module's jar automatically — no separate SDK download or setup.
+
 ```powershell
 winget install --id Git.Git -e
 winget install --id EclipseAdoptium.Temurin.21.JDK -e
 winget install --id Apache.Maven -e
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git $HOME\ARS_Suite
 cd $HOME\ARS_Suite
-# (one-time: copy Windows JavaFX SDK into each module's lib\javafx — see INSTALL.md)
 mvn -q -DskipTests -f j-log-engine\pom.xml install
 mvn -q -DskipTests -f j-learn\pom.xml install
 mvn -q -DskipTests -f j-vault\pom.xml install
