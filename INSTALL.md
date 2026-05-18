@@ -5,8 +5,8 @@ A focused, step-by-step install for **Linux**, **macOS**, and
 Should take about 15–25 minutes (most of that is the first Maven build).
 
 > macOS users: there's a one-command bootstrap (`./bootstrap-mac.sh`)
-> that collapses arch detection, JavaFX SDK download, the build loop,
-> and Gatekeeper unblocking into a single script. See the **macOS**
+> that collapses arch detection, the build loop, and Gatekeeper
+> unblocking into a single script. See the **macOS**
 > section below.
 
 > Looking for the longer walk-through, web-UI tour, and per-app tips?
@@ -45,6 +45,11 @@ LAN.
 - **~500 MB free disk space**
 - **Optional:** Hamlib (`rigctl`/`rotctld`) for rig / rotor control;
   WSJT-X if you run FT8 / FT4 / MSK144 through the bridge.
+
+> **No JavaFX SDK needed.** The Maven build bundles the correct JavaFX
+> native runtime into each module's jar automatically — Linux, Windows,
+> and macOS, x64 and arm64. There is nothing extra to download or copy
+> on any platform.
 
 ---
 
@@ -207,35 +212,7 @@ git clone https://github.com/skip17331/WM3J-ARS-Suite.git ARS_Suite
 cd ARS_Suite
 ```
 
-### 3. Install the JavaFX Windows runtime
-
-The repo's `lib/javafx` symlinks point to a Linux SDK, which doesn't
-work on Windows. Each module needs its own Windows JavaFX libs:
-
-1. Download **JavaFX 21 SDK for Windows x64** from
-   <https://gluonhq.com/products/javafx/>
-   (look for "JavaFX Windows x64 SDK", e.g. `openjfx-21.0.x_windows-x64_bin-sdk.zip`).
-2. Extract to `C:\javafx-sdk-21`.
-3. For each module that has a `lib\javafx` link or directory, replace it
-   with a copy of the JavaFX `lib` folder. From PowerShell:
-
-   ```powershell
-   foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','j-vault') {
-       $dest = "$HOME\ARS_Suite\$m\lib\javafx"
-       if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
-       New-Item -ItemType Directory -Path $dest -Force | Out-Null
-       Copy-Item -Recurse "C:\javafx-sdk-21\lib\*" $dest
-   }
-   ```
-
-   J-Learn is a pure web app and doesn't use JavaFX, so it isn't in the
-   list above. Morse-trainer pulls JavaFX directly from Maven Central, so
-   it doesn't need the SDK swap either.
-
-This step is one-time. The Linux flow doesn't need it because the
-symlinks point at a working SDK already.
-
-### 4. Build the suite
+### 3. Build the suite
 
 ```powershell
 cd $HOME\ARS_Suite
@@ -255,7 +232,7 @@ foreach ($m in 'j-hub','j-log','j-map','j-digi','j-bridge','j-sat','morse-traine
 
 If any module fails, re-run just that line after fixing.
 
-### 5. Run the installer
+### 4. Run the installer
 
 This generates per-module `.bat` launchers (when missing) and creates
 **Start Menu shortcuts** under `ARS Suite` (in
@@ -268,7 +245,7 @@ re-run any time; never touches your config or databases.
 
 You should see nine entries installed.
 
-### 6. Launch J-Hub
+### 5. Launch J-Hub
 
 Press the Windows key, type **WM3J J-Hub**, and press Enter. Or from
 PowerShell:
@@ -289,9 +266,8 @@ launch them via the corresponding tab's **Launch** button.
 
 Tested on macOS 12 Monterey through 14 Sonoma, both Intel and
 Apple Silicon. There's a one-command bootstrap that handles the
-macOS-specific bits — JavaFX SDK download, arch detection, build,
-installer, Gatekeeper quarantine clearing — so the headline flow
-is short.
+macOS-specific bits — arch detection, build, installer, and
+Gatekeeper quarantine clearing — so the headline flow is short.
 
 ### Quick path (recommended)
 
@@ -315,12 +291,13 @@ upgrade path.
 1. **Prerequisites check.** Verifies `java` (≥ 21), `mvn`, `git`,
    `curl`, `unzip` are on PATH. Tells you the brew command to
    install whichever is missing.
-2. **Architecture detection + JavaFX SDK.** `uname -m` picks
-   `osx-aarch64` (Apple Silicon) or `osx-x64` (Intel). Downloads
-   the matching Gluon JavaFX 21.0.5 SDK to `~/.cache/ars-suite/`
-   (so subsequent runs skip the download), then copies its `lib/`
-   into every module that hard-codes `--module-path lib/javafx`
-   in its launcher: j-hub, j-log, j-map, j-digi, j-bridge, j-sat.
+2. **Architecture detection.** `uname -m` picks `osx-aarch64`
+   (Apple Silicon) or `osx-x64` (Intel) and still downloads the
+   matching Gluon JavaFX 21.0.5 SDK to `~/.cache/ars-suite/`.
+   *(As of the bundled-JavaFX change the Maven build already embeds
+   the correct macOS JavaFX runtime into each jar, so this download
+   is now redundant — harmless dead weight pending a
+   `bootstrap-mac.sh` cleanup.)*
 3. **Engine + web-app install** to your local `~/.m2/` repo —
    j-log-engine first, then j-learn and j-vault (which j-hub
    launches as child processes).
@@ -362,9 +339,9 @@ git pull
 ./bootstrap-mac.sh
 ```
 
-The JavaFX SDK is cached so the second run is just build + install
-(faster). The installer is safe to re-run — it overwrites the bundle
-contents and leaves config, logs, and databases alone.
+The second run is just build + install (faster). The installer is
+safe to re-run — it overwrites the bundle contents and leaves config,
+logs, and databases alone.
 
 ### Optional: Hamlib and WSJT-X
 
@@ -383,17 +360,14 @@ of Gluon, custom JDK location), the manual path is what the script
 does in pieces:
 
 1. `brew install --cask temurin@21 && brew install maven git`
-2. Download `openjfx-21.0.5_osx-aarch64_bin-sdk.zip` (Apple Silicon)
-   or `…_osx-x64_bin-sdk.zip` (Intel) from
-   <https://gluonhq.com/products/javafx/>; unzip and copy its `lib/`
-   into `j-hub/lib/javafx/`, `j-log/lib/javafx/`, `j-map/lib/javafx/`,
-   `j-digi/lib/javafx/`, `j-bridge/lib/javafx/`, `j-sat/lib/javafx/`.
-3. `mvn -DskipTests -f j-log-engine/pom.xml install`
-4. `mvn -DskipTests -f j-learn/pom.xml install`
-5. `mvn -DskipTests -f j-vault/pom.xml install`
-6. `mvn -DskipTests package` in each of the seven user-facing modules.
-7. `./install.sh`
-8. `xattr -dr com.apple.quarantine ~/Applications/WM3J\ *.app` to skip
+2. `mvn -DskipTests -f j-log-engine/pom.xml install`
+3. `mvn -DskipTests -f j-learn/pom.xml install`
+4. `mvn -DskipTests -f j-vault/pom.xml install`
+5. `mvn -DskipTests package` in each of the seven user-facing modules
+   (JavaFX is pulled automatically with the macOS classifier — no SDK
+   download or copy needed).
+6. `./install.sh`
+7. `xattr -dr com.apple.quarantine ~/Applications/WM3J\ *.app` to skip
    the per-module Gatekeeper prompt on first launch.
 
 ---
@@ -439,7 +413,7 @@ works. Common picks:
 | Raspberry Pi 4 / 5 (4 GB+) | Most popular. Use 64-bit Pi OS. J-Map's `pom.xml` auto-detects `aarch64` and pulls the matching JavaFX classifier — no SDK swap needed. |
 | Mac mini / spare Mac laptop | Same auto-detect handles Apple Silicon and Intel. |
 | Generic x86 Linux SBC (Intel NUC, mini-PC) | Same as Linux above; no extra steps. |
-| Windows mini-PC | Needs the Windows JavaFX SDK (same swap as the **Windows** section above). |
+| Windows mini-PC | Same as above — the build bundles the Windows JavaFX runtime automatically; no extra steps. |
 
 ### Recipe: from blank Pi to live dashboard
 
@@ -464,8 +438,8 @@ mvn -q -DskipTests -f j-map/pom.xml package
 
 That recipe also works on macOS (`brew install --cask temurin@21
 maven git` instead of apt) and on a non-Pi Linux box (no apt
-variation needed). On Windows, same flow plus the Windows JavaFX
-SDK swap from step 3 of the main Windows section.
+variation needed). On Windows the same flow works as-is — the build
+bundles the Windows JavaFX runtime, so there are no extra steps.
 
 ### Hub-side: open the firewall
 
@@ -633,9 +607,13 @@ Open a *new* PowerShell window. winget updates PATH but only for new sessions.
 
 **"java: command not found"** — Same: open a fresh terminal/PowerShell after install.
 
-**"Could not find or load main class" or "JavaFX runtime components are missing"
-on Windows** — You skipped step 3 (Windows JavaFX SDK). The Linux symlinks
-in `lib/javafx` don't work on Windows.
+**"JavaFX runtime components are missing" or "Could not find or load
+main class"** — The module's fat jar is stale or missing. JavaFX is
+bundled into every jar by the Maven build, so this means
+`target/<module>-<version>.jar` wasn't (re)built. Re-run that module's
+`mvn -q -DskipTests -f <module>/pom.xml package` (use `\` on Windows)
+and relaunch. (This also fixes it after a `git pull` that changed a
+module — rebuild before relaunching.)
 
 **"can't be opened because Apple cannot check it for malicious software"
 on macOS** — Gatekeeper quarantine. `bootstrap-mac.sh` clears this for
