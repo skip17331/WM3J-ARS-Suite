@@ -672,7 +672,9 @@ public class ContestLogController implements Initializable {
                     HBox.setHgrow(tp, Priority.NEVER);
                 }
                 case "section_tracker" -> {
-                    tp.setContent(buildSectionPane(pd));
+                    ScrollPane sp = new ScrollPane(buildSectionPane(pd));
+                    sp.setFitToWidth(true);
+                    tp.setContent(sp);
                     HBox.setHgrow(tp, Priority.ALWAYS);
                 }
                 case "statistics" -> {
