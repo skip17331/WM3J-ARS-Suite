@@ -330,12 +330,35 @@ public class JHubConfig {
             boolean changed = false;
             for (String[] d : defaults) {
                 AppLaunchEntry e = entryByName(d[0]);
-                if (e != null && (e.command == null || e.command.isBlank())) {
+                if (e == null) continue;
+                if (e.command == null || e.command.isBlank()
+                        || isForeignCommand(e.command, win)) {
+                    // Fill blanks, and also rewrite a command left over from a
+                    // different OS (e.g. a config carried from Linux still
+                    // holding "bash .../run.sh" when now run on Windows).
+                    // Same-OS user customisations have no foreign markers and
+                    // are preserved.
                     e.command = d[1];
                     changed = true;
                 }
             }
             return changed;
+        }
+
+        /**
+         * True if {@code cmd} is plainly meant for the other OS. A valid
+         * Windows command never contains {@code bash }/{@code .sh}/{@code
+         * /home/}; a valid *nix command never contains {@code .bat} or a
+         * {@code C:\} drive prefix. Anything else (a same-OS custom path) is
+         * left untouched.
+         */
+        private static boolean isForeignCommand(String cmd, boolean win) {
+            String low = cmd.trim().toLowerCase();
+            if (win) {
+                return low.startsWith("bash ") || low.contains(".sh")
+                        || low.contains("/home/");
+            }
+            return low.contains(".bat") || low.matches(".*[a-z]:\\\\.*");
         }
 
         private AppLaunchEntry entryByName(String n) {

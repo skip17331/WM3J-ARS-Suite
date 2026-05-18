@@ -4,11 +4,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import javax.imageio.ImageIO;
 
 /**
  * ARS Suite installer — Linux, macOS, and Windows.
@@ -326,8 +332,25 @@ public final class Installer {
             Path batPath = siblingBat(sourceRoot, shPath, jarPath);
             if (!Files.exists(batPath)) writeBatLauncher(batPath, jarPath);
 
+            // Generate a Windows .ico from the module's PNG icon (the repo
+            // only ships PNGs; .lnk needs .ico). Best-effort: a bad/absent
+            // image just yields a shortcut with the default icon.
+            Path iconIco = null;
+            if (m.has("icon") && !m.get("icon").isJsonNull()) {
+                Path png = sourceRoot.resolve(m.get("icon").getAsString());
+                if (Files.exists(png)) {
+                    try {
+                        iconIco = batPath.resolveSibling(name + ".ico");
+                        pngToIco(png, iconIco);
+                    } catch (Exception ex) {
+                        warn("icon for " + name + " skipped: " + ex.getMessage());
+                        iconIco = null;
+                    }
+                }
+            }
+
             Path shortcut = startMenu.resolve(title + ".lnk");
-            createWindowsShortcut(shortcut, batPath, batPath.getParent(), title);
+            createWindowsShortcut(shortcut, batPath, batPath.getParent(), title, iconIco);
             installed.add(name + " → " + shortcut);
         }
     }
@@ -362,7 +385,8 @@ public final class Installer {
     }
 
     /** Create a Windows .lnk file via a PowerShell WScript.Shell snippet. */
-    private static void createWindowsShortcut(Path lnk, Path target, Path workDir, String title)
+    private static void createWindowsShortcut(Path lnk, Path target, Path workDir,
+                                              String title, Path iconFile)
             throws Exception {
         // Build a single-liner PowerShell command that creates the shortcut.
         // Backtick-quote is PS-style; we pass via -Command so no script file
@@ -371,12 +395,18 @@ public final class Installer {
         String escTarget  = target.toString().replace("\"", "`\"");
         String escWorkDir = workDir.toString().replace("\"", "`\"");
         String escTitle   = title.replace("\"", "`\"");
+        String iconLine   = "";
+        if (iconFile != null && Files.exists(iconFile)) {
+            String escIcon = iconFile.toString().replace("\"", "`\"");
+            iconLine = "$s.IconLocation=\"" + escIcon + ",0\";";
+        }
 
         String ps =
             "$s=(New-Object -ComObject WScript.Shell).CreateShortcut(\"" + escLnk + "\");" +
             "$s.TargetPath=\"" + escTarget + "\";" +
             "$s.WorkingDirectory=\"" + escWorkDir + "\";" +
             "$s.Description=\"" + escTitle + "\";" +
+            iconLine +
             "$s.Save();";
 
         // Pass via -EncodedCommand (base64 UTF-16LE). Java's ProcessBuilder
@@ -399,6 +429,64 @@ public final class Installer {
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             throw new java.io.IOException("PowerShell failed (" + p.exitValue() + "): " + out);
         }
+    }
+
+    /**
+     * Convert a PNG to a single-image Windows {@code .ico}. The repo ships
+     * 512px+ PNGs; Explorer only reliably renders PNG-compressed icon entries
+     * up to 256x256, so we downscale to 256. Vista+ accepts a raw PNG payload
+     * inside the ICO container, so no BMP/DIB encoding is needed.
+     */
+    private static void pngToIco(Path png, Path ico) throws java.io.IOException {
+        BufferedImage src = ImageIO.read(png.toFile());
+        if (src == null) throw new java.io.IOException("unreadable image: " + png);
+
+        final int size = 256;
+        BufferedImage dst = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = dst.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                           RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,
+                           RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                           RenderingHints.VALUE_ANTIALIAS_ON);
+        g.drawImage(src, 0, 0, size, size, null);
+        g.dispose();
+
+        ByteArrayOutputStream pngBuf = new ByteArrayOutputStream();
+        ImageIO.write(dst, "png", pngBuf);
+        byte[] payload = pngBuf.toByteArray();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        // ICONDIR (6 bytes)
+        writeLE16(out, 0);                 // reserved
+        writeLE16(out, 1);                 // type = icon
+        writeLE16(out, 1);                 // image count
+        // ICONDIRENTRY (16 bytes) — width/height byte 0 means 256
+        out.write(0);                      // bWidth
+        out.write(0);                      // bHeight
+        out.write(0);                      // bColorCount (no palette)
+        out.write(0);                      // bReserved
+        writeLE16(out, 1);                 // wPlanes
+        writeLE16(out, 32);                // wBitCount
+        writeLE32(out, payload.length);    // dwBytesInRes
+        writeLE32(out, 22);                // dwImageOffset (6 + 16)
+        out.write(payload, 0, payload.length);
+
+        Files.write(ico, out.toByteArray(),
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    private static void writeLE16(OutputStream o, int v) throws java.io.IOException {
+        o.write(v & 0xFF);
+        o.write((v >>> 8) & 0xFF);
+    }
+
+    private static void writeLE32(OutputStream o, int v) throws java.io.IOException {
+        o.write(v & 0xFF);
+        o.write((v >>> 8) & 0xFF);
+        o.write((v >>> 16) & 0xFF);
+        o.write((v >>> 24) & 0xFF);
     }
 
     // -----------------------------------------------------------------

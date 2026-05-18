@@ -1,57 +1,19 @@
 @echo off
 rem ============================================================
-rem  ARS Suite - Windows installer bootstrap.
+rem  ARS Suite - unified Windows installer (thin wrapper).
 rem
-rem  Prerequisites:
-rem    - Java 21 on PATH    (java --version)
-rem    - Maven on PATH      (mvn --version) - only if the installer
-rem                           jar isn't built yet
-rem    - j-log-engine has been installed first  (mvn install)
-rem    - All nine user-facing modules built:  mvn package each
-rem        j-hub
-rem        j-log, j-map, j-digi, j-bridge, j-sat
-rem        j-vault         (shack inventory + estate handoff PDF)
-rem        j-learn         (reference library web app, port 8082)
-rem        morse-trainer   (Morse code learning + sending practice)
+rem  All logic lives in install.ps1. This wrapper just runs it
+rem  with an execution-policy bypass so a fresh box needs zero
+rem  PowerShell setup. Arguments pass straight through:
 rem
-rem  What this script does:
-rem    1. Builds the installer jar if not present.
-rem    2. Runs the installer, which:
-rem         - generates per-module .bat launchers if missing,
-rem         - writes Start-Menu shortcuts under
-rem           %APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\
-rem    3. Never touches j-hub.json, databases, or logs - safe to
-rem       re-run as an upgrade.
+rem      install.bat                (full install)
+rem      install.bat -SkipDeps      (toolchain already present)
+rem      install.bat -SkipBuild     (jars already built)
+rem
+rem  Re-runnable as an upgrade. Never touches logs, the j-vault
+rem  inventory DB, or station credentials.
 rem ============================================================
-
 setlocal
-set "SCRIPT_DIR=%~dp0"
-rem %~dp0 always ends with '\'; passing it as "...\" would escape the closing
-rem quote. Keep a separate, backslash-trimmed copy for the --root argument.
-set "ROOT_DIR=%SCRIPT_DIR%"
-if "%ROOT_DIR:~-1%"=="\" set "ROOT_DIR=%ROOT_DIR:~0,-1%"
-set "INSTALLER_JAR=%SCRIPT_DIR%installer\target\j-installer-1.0.8.jar"
-
-where java >nul 2>&1
-if errorlevel 1 (
-    echo error: Java 21 is required but 'java' was not found on PATH.
-    echo        Install Temurin 21 from https://adoptium.net/temurin/releases/
-    exit /b 1
-)
-
-if not exist "%INSTALLER_JAR%" (
-    echo [bootstrap] Installer jar not found - building...
-    where mvn >nul 2>&1
-    if errorlevel 1 (
-        echo error: Maven is required to build the installer but 'mvn' was not found.
-        exit /b 1
-    )
-    call mvn -q -DskipTests -f "%SCRIPT_DIR%installer\pom.xml" package
-    if errorlevel 1 (
-        echo error: Installer build failed.
-        exit /b 1
-    )
-)
-
-java -jar "%INSTALLER_JAR%" --root "%ROOT_DIR%" %*
-endlocal
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" %*
+set "RC=%ERRORLEVEL%"
+endlocal & exit /b %RC%

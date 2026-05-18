@@ -45,6 +45,11 @@ venv/
 */lib/bin/
 */lib/
 
+# Installer-generated Windows icons. Source icons are PNG (in each
+# module's resources); the installer derives a per-module .ico at
+# install time, so .ico is always a build artifact, never committed.
+*.ico
+
 # Runtime logs / state
 j-digi/logs/
 j-digi/j-hub.json
