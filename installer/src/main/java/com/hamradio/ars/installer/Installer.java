@@ -379,8 +379,16 @@ public final class Installer {
             "$s.Description=\"" + escTitle + "\";" +
             "$s.Save();";
 
+        // Pass via -EncodedCommand (base64 UTF-16LE). Java's ProcessBuilder
+        // mangles embedded double quotes when it builds the Windows command
+        // line, so a -Command string arrives at PowerShell with the path
+        // quotes stripped and spaces (Start Menu, ARS Suite) break the parser.
+        // Encoding sidesteps all command-line quoting entirely.
+        String encoded = Base64.getEncoder()
+            .encodeToString(ps.getBytes(StandardCharsets.UTF_16LE));
+
         ProcessBuilder pb = new ProcessBuilder(
-            "powershell", "-NoProfile", "-NonInteractive", "-Command", ps);
+            "powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded);
         pb.redirectErrorStream(true);
         Process p = pb.start();
         if (!p.waitFor(10, TimeUnit.SECONDS)) {
