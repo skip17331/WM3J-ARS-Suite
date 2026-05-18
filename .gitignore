@@ -53,9 +53,15 @@ venv/
 # Unified Windows installer transcript (per-machine, for bug reports)
 install-log.txt
 
+# Per-machine j-hub runtime config. j-hub writes j-hub.json into its
+# working directory (and modules launched from j-hub can drop one in
+# theirs), so it appears under several module dirs. It is auto-created
+# with OS-correct defaults on first run — committing it ships stale
+# (often Linux) launch commands to every clone. Ignore it everywhere.
+j-hub.json
+
 # Runtime logs / state
 j-digi/logs/
-j-digi/j-hub.json
 j-bridge/logs/
 j-hub/logs/
 j-learn/logs/

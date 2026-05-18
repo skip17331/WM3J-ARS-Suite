@@ -2243,11 +2243,17 @@ public class WebConfigServer {
             java.nio.file.Path script = locateRunScript();
             if (script == null) {
                 res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                json(res, "{\"error\":\"morse-trainer/run.sh not found near working dir\"}");
+                json(res, "{\"error\":\"morse-trainer launcher (run.bat/run.sh) not found near working dir\"}");
                 return;
             }
             try {
-                ProcessBuilder pb = new ProcessBuilder("bash", script.toString())
+                // OS-aware: Windows has no bash — run the .bat via cmd /c;
+                // bash the .sh everywhere else. Mirrors AppLauncher.
+                boolean win = System.getProperty("os.name", "")
+                        .toLowerCase().contains("win");
+                ProcessBuilder pb = (win
+                        ? new ProcessBuilder("cmd", "/c", script.toString())
+                        : new ProcessBuilder("bash", script.toString()))
                         .directory(script.getParent().toFile())
                         .redirectErrorStream(true)
                         .redirectOutput(ProcessBuilder.Redirect.DISCARD);
@@ -2265,15 +2271,19 @@ public class WebConfigServer {
         }
 
         /**
-         * Walk up from user.dir looking for a sibling morse-trainer/run.sh.
-         * Stops after a few levels so it can't run away on a misconfigured host.
+         * Walk up from user.dir looking for a sibling morse-trainer launcher
+         * — run.bat on Windows, run.sh elsewhere. Stops after a few levels
+         * so it can't run away on a misconfigured host.
          */
         private static java.nio.file.Path locateRunScript() {
+            boolean win = System.getProperty("os.name", "")
+                    .toLowerCase().contains("win");
+            String launcher = win ? "run.bat" : "run.sh";
             java.nio.file.Path here = java.nio.file.Paths.get(System.getProperty("user.dir"));
             for (int i = 0; i < 4 && here != null; i++, here = here.getParent()) {
-                java.nio.file.Path candidate = here.resolve("morse-trainer").resolve("run.sh");
+                java.nio.file.Path candidate = here.resolve("morse-trainer").resolve(launcher);
                 if (java.nio.file.Files.isRegularFile(candidate)) return candidate;
-                java.nio.file.Path sibling = here.resolveSibling("morse-trainer").resolve("run.sh");
+                java.nio.file.Path sibling = here.resolveSibling("morse-trainer").resolve(launcher);
                 if (java.nio.file.Files.isRegularFile(sibling)) return sibling;
             }
             return null;
