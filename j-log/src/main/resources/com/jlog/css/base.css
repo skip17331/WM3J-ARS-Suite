@@ -72,7 +72,10 @@
 
 /* ---- Section zone groups ---- */
 .section-zones { -fx-padding: 5; }
-.zone-column   { -fx-padding: 0 9 0 0; }
+/* Inter-column gap + dividers come from the HBox spacing and .zone-sep;
+   keep only minimal internal breathing room on the columns. */
+.zone-column   { -fx-padding: 0 2 0 2; }
+.zone-sep      { -fx-padding: 0; }
 .zone-header   { -fx-font-weight: bold; -fx-font-size: 13px; -fx-underline: true; -fx-padding: 0 3 3 3; }
 
 /* ---- Section worked ---- */

@@ -181,3 +181,6 @@
 .bp-marker-tri      { -fx-fill: #ffff44; -fx-stroke: transparent; }
 .bp-active-row      { -fx-background-color: rgba(255,255,100,0.07); }
 .bp-band-name-active { -fx-text-fill: #ffff88; }
+
+/* ── Section-tracker zone column dividers ────────────────────── */
+.zone-sep:vertical .line { -fx-border-color: rgba(255,255,255,0.25); }

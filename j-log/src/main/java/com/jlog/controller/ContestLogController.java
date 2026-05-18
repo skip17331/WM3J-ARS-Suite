@@ -47,6 +47,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.*;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -185,6 +186,11 @@ public class ContestLogController implements Initializable {
     private double dxExpandedDividerPos = 0.5;
 
     private static final DateTimeFormatter TABLE_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    // A section_tracker zone column taller than this is split into two
+    // side-by-side sub-columns so it stays within the pane row. 8 keeps
+    // W1/W5/W0 single and splits W4/W6/W7/VE (SS section layout).
+    private static final int SECTION_COL_SPLIT = 8;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -1185,12 +1191,18 @@ public class ContestLogController implements Initializable {
             ? (List<Map<String, Object>>) config.get("zoneGroups") : null;
 
         if (zoneGroups != null && !zoneGroups.isEmpty()) {
-            HBox zonesBox = new HBox(2);
+            HBox zonesBox = new HBox(12);
             zonesBox.getStyleClass().add("section-zones");
 
             for (Map<String, Object> zone : zoneGroups) {
                 String zoneName = (String) zone.get("name");
                 List<String> sects = (List<String>) zone.get("sections");
+
+                if (!zonesBox.getChildren().isEmpty()) {
+                    Separator sep = new Separator(Orientation.VERTICAL);
+                    sep.getStyleClass().add("zone-sep");
+                    zonesBox.getChildren().add(sep);
+                }
 
                 VBox col = new VBox(1);
                 col.getStyleClass().add("zone-column");
@@ -1200,11 +1212,27 @@ public class ContestLogController implements Initializable {
                 col.getChildren().add(header);
 
                 if (sects != null) {
-                    for (String sec : sects) {
-                        Label lbl = new Label(sec);
-                        lbl.getStyleClass().add("section-label");
-                        sectionLabels.put(sec, lbl);
-                        col.getChildren().add(lbl);
+                    if (sects.size() > SECTION_COL_SPLIT) {
+                        // Split tall zones across two sub-columns; the first
+                        // column takes the extra section on an odd count.
+                        int half = (sects.size() + 1) / 2;
+                        VBox a = new VBox(1);
+                        VBox b = new VBox(1);
+                        for (int i = 0; i < sects.size(); i++) {
+                            String sec = sects.get(i);
+                            Label lbl = new Label(sec);
+                            lbl.getStyleClass().add("section-label");
+                            sectionLabels.put(sec, lbl);
+                            (i < half ? a : b).getChildren().add(lbl);
+                        }
+                        col.getChildren().add(new HBox(6, a, b));
+                    } else {
+                        for (String sec : sects) {
+                            Label lbl = new Label(sec);
+                            lbl.getStyleClass().add("section-label");
+                            sectionLabels.put(sec, lbl);
+                            col.getChildren().add(lbl);
+                        }
                     }
                 }
                 zonesBox.getChildren().add(col);
