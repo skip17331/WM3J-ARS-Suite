@@ -1,5 +1,6 @@
 package com.hamradio.jhub.model;
 
+import com.hamradio.jhub.Platform;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -299,8 +300,7 @@ public class JHubConfig {
         public boolean applyDefaults(java.nio.file.Path arsRoot) {
             if (arsRoot == null) return false;
             String r = arsRoot.toString();
-            boolean win = System.getProperty("os.name", "")
-                    .toLowerCase().contains("win");
+            boolean win = Platform.isWindows();
             // Point at each module's native launcher: the per-module .bat on
             // Windows (run via cmd /c by AppLauncher), the <module>.sh on
             // Linux/macOS (run via bash -c). Unquoted, matching the Linux

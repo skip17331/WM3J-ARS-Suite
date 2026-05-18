@@ -2249,8 +2249,7 @@ public class WebConfigServer {
             try {
                 // OS-aware: Windows has no bash — run the .bat via cmd /c;
                 // bash the .sh everywhere else. Mirrors AppLauncher.
-                boolean win = System.getProperty("os.name", "")
-                        .toLowerCase().contains("win");
+                boolean win = Platform.isWindows();
                 ProcessBuilder pb = (win
                         ? new ProcessBuilder("cmd", "/c", script.toString())
                         : new ProcessBuilder("bash", script.toString()))
@@ -2276,8 +2275,7 @@ public class WebConfigServer {
          * so it can't run away on a misconfigured host.
          */
         private static java.nio.file.Path locateRunScript() {
-            boolean win = System.getProperty("os.name", "")
-                    .toLowerCase().contains("win");
+            boolean win = Platform.isWindows();
             String launcher = win ? "run.bat" : "run.sh";
             java.nio.file.Path here = java.nio.file.Paths.get(System.getProperty("user.dir"));
             for (int i = 0; i < 4 && here != null; i++, here = here.getParent()) {

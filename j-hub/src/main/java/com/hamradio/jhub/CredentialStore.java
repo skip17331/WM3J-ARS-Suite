@@ -228,7 +228,7 @@ public class CredentialStore {
         }
         // macOS: ioreg IOPlatformUUID — read by spawning a process; skip the
         // fork on systems where /etc/machine-id was sufficient.
-        if (System.getProperty("os.name", "").toLowerCase().contains("mac")) {
+        if (Platform.isMac()) {
             try {
                 Process p = new ProcessBuilder("ioreg", "-rd1", "-c", "IOPlatformExpertDevice").start();
                 String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
@@ -243,7 +243,7 @@ public class CredentialStore {
             } catch (Exception ignored) {}
         }
         // Windows: registry MachineGuid
-        if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
+        if (Platform.isWindows()) {
             try {
                 Process p = new ProcessBuilder("reg", "query",
                     "HKLM\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid").start();

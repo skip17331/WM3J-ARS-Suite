@@ -47,8 +47,7 @@ public class AppLauncher {
             // (cd, &&, pipes, args). Windows has no bash by default, so use
             // cmd /c there (its commands are the per-module .bat launchers);
             // bash -c everywhere else.
-            boolean win = System.getProperty("os.name", "")
-                    .toLowerCase().contains("win");
+            boolean win = Platform.isWindows();
             ProcessBuilder pb = win
                 ? new ProcessBuilder("cmd", "/c", command)
                 : new ProcessBuilder("bash", "-c", command);

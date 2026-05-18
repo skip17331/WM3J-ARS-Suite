@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,10 +24,8 @@ import java.util.concurrent.TimeUnit;
 public final class DependencyChecker {
 
     private static final Logger log = LoggerFactory.getLogger(DependencyChecker.class);
-    private static final boolean WINDOWS =
-        System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
-    private static final boolean MAC =
-        System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac");
+    private static final boolean WINDOWS = Platform.isWindows();
+    private static final boolean MAC     = Platform.isMac();
 
     private DependencyChecker() {}
 
