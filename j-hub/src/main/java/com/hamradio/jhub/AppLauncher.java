@@ -43,8 +43,15 @@ public class AppLauncher {
         kill(name); // stop stale instance if any (tracked in our process map)
         killOrphansMatching(command); // catch survivors from a previous j-hub run
         try {
-            // Run via bash so the command can use shell features (cd, &&, pipes, etc.)
-            ProcessBuilder pb = new ProcessBuilder("bash", "-c", command);
+            // Run through a shell so the command can use shell features
+            // (cd, &&, pipes, args). Windows has no bash by default, so use
+            // cmd /c there (its commands are the per-module .bat launchers);
+            // bash -c everywhere else.
+            boolean win = System.getProperty("os.name", "")
+                    .toLowerCase().contains("win");
+            ProcessBuilder pb = win
+                ? new ProcessBuilder("cmd", "/c", command)
+                : new ProcessBuilder("bash", "-c", command);
             pb.inheritIO();
             Process p = pb.start();
             processes.put(name, p);

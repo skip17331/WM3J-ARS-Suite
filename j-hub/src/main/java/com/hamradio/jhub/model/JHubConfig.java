@@ -299,15 +299,34 @@ public class JHubConfig {
         public boolean applyDefaults(java.nio.file.Path arsRoot) {
             if (arsRoot == null) return false;
             String r = arsRoot.toString();
-            String[][] defaults = {
-                {"jMap",    "bash " + r + "/j-map/j-map.sh"},
-                {"jLog",    "bash " + r + "/j-log/j-log.sh"},
-                {"jBridge", "bash " + r + "/j-bridge/j-bridge.sh"},
-                {"jDigi",   "bash " + r + "/j-digi/j-digi.sh"},
-                {"jSat",    "bash " + r + "/j-sat/j-sat.sh --launched-by-hub"},
-                {"jVault",  "bash " + r + "/j-vault/j-vault.sh"},
-                {"jLearn",  "bash " + r + "/j-learn/j-learn.sh"},
-            };
+            boolean win = System.getProperty("os.name", "")
+                    .toLowerCase().contains("win");
+            // Point at each module's native launcher: the per-module .bat on
+            // Windows (run via cmd /c by AppLauncher), the <module>.sh on
+            // Linux/macOS (run via bash -c). Unquoted, matching the Linux
+            // convention — a leading quote would trip cmd.exe's /c
+            // quote-stripping rule. (Paths with spaces are a pre-existing
+            // limitation noted in AppLauncher; the default install root has
+            // none.)
+            String[][] defaults = win
+                ? new String[][] {
+                    {"jMap",    r + "\\j-map\\j-map.bat"},
+                    {"jLog",    r + "\\j-log\\j-log.bat"},
+                    {"jBridge", r + "\\j-bridge\\j-bridge.bat"},
+                    {"jDigi",   r + "\\j-digi\\j-digi.bat"},
+                    {"jSat",    r + "\\j-sat\\j-sat.bat --launched-by-hub"},
+                    {"jVault",  r + "\\j-vault\\j-vault.bat"},
+                    {"jLearn",  r + "\\j-learn\\j-learn.bat"},
+                  }
+                : new String[][] {
+                    {"jMap",    "bash " + r + "/j-map/j-map.sh"},
+                    {"jLog",    "bash " + r + "/j-log/j-log.sh"},
+                    {"jBridge", "bash " + r + "/j-bridge/j-bridge.sh"},
+                    {"jDigi",   "bash " + r + "/j-digi/j-digi.sh"},
+                    {"jSat",    "bash " + r + "/j-sat/j-sat.sh --launched-by-hub"},
+                    {"jVault",  "bash " + r + "/j-vault/j-vault.sh"},
+                    {"jLearn",  "bash " + r + "/j-learn/j-learn.sh"},
+                  };
             boolean changed = false;
             for (String[] d : defaults) {
                 AppLaunchEntry e = entryByName(d[0]);
