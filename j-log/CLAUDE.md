@@ -46,6 +46,49 @@ J-Log is a Java 21 + JavaFX 21 desktop app using a standard MVC layout with a na
 
 **Contest plugin system**: JSON files define the entire contest UI (fields, scoring, multiplier model, Cabrillo mapping). `PluginLoader` discovers them from the JAR resources first, then `~/.j-log/plugins/`. `ContestPlugin` is a Jackson-mapped POJO — adding fields to the JSON schema requires updating `ContestPlugin.java` and its inner classes.
 
+### Group / multi-region QSO party pattern
+
+Multi-state/province QSO parties (7QP, NEQP, CPQP) get a county/region
+**list side-column** (worked-colored), an optional **combined geographic
+map** (`Contest → County Map`), and an optional **block tile map** under
+the list. The cockpit infra is generic — **adding a new one is data +
+plugin JSON only, zero Java**:
+
+1. **Bake the source**: `j-log-engine/src/main/resources/com/jlog/counties/<name>.json`
+   = `[{"c":<code>,"s":<state/prov>,"n":<name>}, …]`, from an
+   authoritative source — `~/.fldigi/data/<X>.txt` where it exists
+   (`7QP.txt`, `NEQP.txt`, …; CSV `State,ST,County,CC`), else
+   operator-supplied. **Verify, never fabricate** these (contest-scoring
+   critical; the operator will catch errors). `<code>` MUST equal what
+   the operator logs in `state_prov_rcvd`.
+2. **(Optional) geographic map**: add `<name>` to `COMBINED` in
+   `tools/county-map/build_counties.py` (pure-stdlib; replaces the
+   retired geopandas pipeline; `tools/county-map/data/` is a gitignored
+   reproducible download), then `python3 tools/county-map/build_counties.py
+   <NAME>` → `j-log/src/main/resources/com/jlog/maps/county-<name>.json`.
+   Fully verify (0 name/state mismatches, per-state counts).
+3. **Wire the plugin**: add to `row2Panes`
+   `{"paneType":"county_list","placement":"column","config":{"dataset":"<name>","blockMap":<true|false>}}`.
+
+Generic infra (no per-party Java): `ContestLogController.buildCountyListPane`,
+`countyDataset()`, `menuCountyMap()`, `countyBlockMap`. List labels
+register in `sectionLabels` so the worked-mult refresh greens
+list + map + block grid together. `blockMap:true` appends a
+`RegionMapPane` tile grid under the list — use when vector polygons
+aren't obtainable (CPQP).
+
+**Code-key gotchas (verify per party):** 7QP = state-first 5-char
+(`ORDES`); 7QP's WA codes differ from the WA Salmon Run codes — keep
+7QP's namespace isolated, never reuse the per-state `county-XX.json`.
+NEQP's plugin exchange is state-first (`MAWOR`) though `NEQP.txt`'s CC
+is county-first (`FAICT`) — build keys as `ST+county3`. CPQP = bare
+3-letter FED code, no province prefix.
+
+**Not every "group" party fits**: the ARC (Amateur Radio Club) QSO
+Party has no geographic/finite multiplier (mult = distinct worked
+club-member callsigns) — leave it on `worked_mults`; do not add a
+hollow list pane.
+
 **Macro system**: `Macro` objects (stored in `config.db` as JSON action arrays) are executed by `MacroEngine`, which dispatches each `MacroAction` type (PTT, CW, VOICE_PLAY, etc.) against `CivEngine` or JavaFX `AudioClip`. Macros are bound to F1–F12.
 
 **Theme/CSS**: `JLogApp.applyTheme(scene)` applies `base.css` + either `light.css` or `dark.css` to any `Scene`. Call this whenever a new window is created.
