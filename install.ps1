@@ -7,7 +7,8 @@
   .\install.bat) - that is the single command for Windows. It calls
   this script. One run on a clean Windows box installs the whole suite:
 
-    1. Toolchain  - ensures Git, Temurin 21 JDK, and Maven (winget if missing)
+    1. Toolchain  - ensures Git + Temurin 21 JDK (winget if missing) and
+                    Maven (genuine Apache zip, SHA-512 verified)
     2. Build      - mvn install j-log-engine/j-learn/j-vault, then
                     mvn package the remaining modules
     3. Integrate  - builds + runs the Java installer, which writes per-module
@@ -24,7 +25,8 @@
   inventory DB, or station credentials.
 
 .PARAMETER SkipDeps
-  Assume Git/JDK/Maven are already present; do not call winget.
+  Assume Git/JDK/Maven are already present; skip the toolchain step
+  entirely (no winget, no Maven download).
 
 .PARAMETER SkipBuild
   Jars are already built; only do desktop integration + config normalize.
@@ -80,6 +82,82 @@ function Ensure-Tool($exe, $wingetId, $label) {
     Info "$label - installed"
 }
 
+# Apache publishes no official winget package for Maven (request #65391 is
+# still Help-Wanted; the only winget entry is a third-party manifest whose
+# source has varied between the Apache CDN and a maintainer's personal
+# repo). So fetch the genuine Apache zip straight from Apache, verify its
+# published SHA-512, and put it on PATH - same provenance as the apt/brew
+# Maven the Linux/macOS paths get. Pinned version + hash; bump both
+# together when upgrading (sha512 is from
+# dlcdn.apache.org/.../apache-maven-<ver>-bin.zip.sha512, cross-checked
+# against archive.apache.org).
+function Ensure-Maven {
+    if (Get-Command mvn -ErrorAction SilentlyContinue) { Info 'Maven - found'; return }
+
+    $ver    = '3.9.16'
+    # PowerShell string -ne is case-insensitive, so lowercase is fine here
+    # (matches exactly what Apache publishes, so it's easy to re-verify).
+    $sha512 = 'ed41650d42485cfc243fad22158caf9cbb5dc408ce7a09ddb94dd42a019de929ca43065bfa450612cf12bf78b5cafa3884b96c090de326ff590448c933454af3'
+    $baseDir = Join-Path $env:LOCALAPPDATA 'ARS-Suite'
+    $mvnDir  = Join-Path $baseDir "apache-maven-$ver"
+    $mvnBin  = Join-Path $mvnDir 'bin'
+    $mvnCmd  = Join-Path $mvnBin 'mvn.cmd'
+
+    if (-not (Test-Path -LiteralPath $mvnCmd)) {
+        $zipName = "apache-maven-$ver-bin.zip"
+        $urls = @(
+            "https://dlcdn.apache.org/maven/maven-3/$ver/binaries/$zipName",
+            "https://archive.apache.org/dist/maven/maven-3/$ver/binaries/$zipName"
+        )
+        $tmp = Join-Path ([IO.Path]::GetTempPath()) $zipName
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $oldProgress = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'   # PS 5.1: progress bar cripples download speed
+
+        $got = $false
+        foreach ($u in $urls) {
+            try {
+                Info "Maven - downloading $ver from $u ..."
+                Invoke-WebRequest -Uri $u -OutFile $tmp -UseBasicParsing
+                $got = $true; break
+            } catch {
+                Info "  ... that mirror failed ($($_.Exception.Message)); trying next"
+            }
+        }
+        $ProgressPreference = $oldProgress
+        if (-not $got) { Die "Could not download Apache Maven $ver from any Apache mirror." }
+
+        $actual = (Get-FileHash -LiteralPath $tmp -Algorithm SHA512).Hash
+        if ($actual -ne $sha512) {
+            Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+            Die "Maven $ver download is corrupt or tampered (SHA-512 mismatch).`n  expected $sha512`n  got      $actual"
+        }
+        Info 'Maven - SHA-512 verified; extracting ...'
+        if (-not (Test-Path -LiteralPath $baseDir)) {
+            New-Item -ItemType Directory -Path $baseDir | Out-Null
+        }
+        if (Test-Path -LiteralPath $mvnDir) { Remove-Item -LiteralPath $mvnDir -Recurse -Force }
+        Expand-Archive -LiteralPath $tmp -DestinationPath $baseDir -Force
+        Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+        if (-not (Test-Path -LiteralPath $mvnCmd)) { Die "Maven extracted but $mvnCmd is missing." }
+    } else {
+        Info "Maven - reusing $mvnDir"
+    }
+
+    # Persist on the user PATH (future shells) + this session (rest of run).
+    $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+    if (($userPath -split ';') -notcontains $mvnBin) {
+        $newPath = (@($userPath, $mvnBin) | Where-Object { $_ }) -join ';'
+        [Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
+    }
+    Update-SessionPath
+    if ($env:Path -notlike "*$mvnBin*") { $env:Path = "$env:Path;$mvnBin" }
+    if (-not (Get-Command mvn -ErrorAction SilentlyContinue)) {
+        Die "Maven installed to $mvnDir but 'mvn' is still not resolvable."
+    }
+    Info "Maven - installed ($ver -> $mvnDir)"
+}
+
 # Run Maven for one pom; $goals may be a single goal or several.
 function Invoke-Mvn($pomRelative, [string[]]$goals) {
     $pom = Join-Path $root $pomRelative
@@ -113,7 +191,7 @@ try {
         Section '[1/4] Toolchain (Git, Java 21, Maven)'
         Ensure-Tool 'git'  'Git.Git'                        'Git'
         Ensure-Tool 'java' 'EclipseAdoptium.Temurin.21.JDK' 'Temurin 21 JDK'
-        Ensure-Tool 'mvn'  'Apache.Maven'                    'Maven'
+        Ensure-Maven
     } else {
         Section '[1/4] Toolchain - skipped (-SkipDeps)'
     }

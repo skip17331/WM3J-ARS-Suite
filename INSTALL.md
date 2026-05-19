@@ -220,8 +220,12 @@ zero setup, and pauses at the end if you double-clicked it so you can
 read the result. Both accept `-SkipDeps` (toolchain already present)
 and `-SkipBuild` (jars already built). In four idempotent stages it:
 
-1. **Toolchain** — ensures Git, Temurin 21 JDK, Maven via winget
-   (installs only what's missing; refreshes PATH in-process).
+1. **Toolchain** — ensures Git and Temurin 21 JDK via winget, and Maven
+   from the genuine Apache zip (SHA-512 verified, unpacked under
+   `%LOCALAPPDATA%\ARS-Suite`). Apache publishes no official winget
+   package for Maven, so the bootstrap pulls it straight from Apache
+   rather than trust a third-party manifest. Installs only what's
+   missing; refreshes PATH in-process.
 2. **Build** — `mvn install` j-log-engine, j-learn, j-vault; then
    `mvn package` j-hub, j-log, j-map, j-digi, j-bridge, j-sat,
    morse-trainer.
@@ -240,7 +244,14 @@ location, or you want to watch each step):
 ```powershell
 winget install --id Git.Git -e
 winget install --id EclipseAdoptium.Temurin.21.JDK -e
-winget install --id Apache.Maven -e
+# Maven has no official winget package - install the genuine Apache zip:
+$mvnVer = '3.9.16'
+$dest   = "$env:LOCALAPPDATA\ARS-Suite"
+$zip    = "$env:TEMP\apache-maven-$mvnVer-bin.zip"
+Invoke-WebRequest "https://dlcdn.apache.org/maven/maven-3/$mvnVer/binaries/apache-maven-$mvnVer-bin.zip" -OutFile $zip
+Expand-Archive $zip $dest -Force
+$env:Path = "$dest\apache-maven-$mvnVer\bin;$env:Path"   # this session
+# (the install.bat bootstrap also SHA-512-verifies the zip and persists PATH)
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git $HOME\ARS_Suite
 cd $HOME\ARS_Suite
 mvn -q -DskipTests -f j-log-engine\pom.xml install
@@ -593,8 +604,10 @@ See `i18n-packs/README.md` for the full layout.
 
 ## Common problems
 
-**"command not found: mvn" (after winget install on Windows)** —
-Open a *new* PowerShell window. winget updates PATH but only for new sessions.
+**"command not found: mvn" / "git" / "java" (Windows, after install)** —
+Open a *new* PowerShell window. The bootstrap adds these to your user
+PATH (winget for Git/JDK, the Apache Maven unpack for `mvn`), but an
+already-open shell keeps its old PATH until you restart it.
 
 **"java: command not found"** — Same: open a fresh terminal/PowerShell after install.
 
