@@ -10,6 +10,7 @@ const state = {
   spots:       [],
   connectedApps: [],
   rig:         null,
+  rigError:    '',
   rotor:       null,
   clusterConn: false,
   spm:         0,
@@ -603,7 +604,8 @@ function updateAlerts(status) {
     alerts.push({ icon: '⚠️', text: 'DX Cluster disconnected', sub: state.config.cluster.server });
   }
   if (!state.rig && state.config.rig && state.config.rig.backend !== 'NONE') {
-    alerts.push({ icon: '⚠️', text: 'Rig not reporting', sub: 'No RIG_STATUS received' });
+    alerts.push({ icon: '⚠️', text: 'Rig not reporting',
+                  sub: state.rigError || 'No RIG_STATUS received' });
   }
 
   const el = document.getElementById('alerts-list');
@@ -2181,14 +2183,25 @@ function updateRigConnStatus() {
   fetch('/api/rig/status')
     .then(r => r.json())
     .then(s => {
-      const el = document.getElementById('rig-conn-status');
+      const el  = document.getElementById('rig-conn-status');
+      const det = document.getElementById('rig-conn-detail');
       if (!el) return;
       if (!s.running) {
         el.textContent = 'Disabled'; el.className = 'rig-conn-badge off';
+        state.rigError = '';
+        if (det) det.style.display = 'none';
       } else if (s.connected) {
         el.textContent = 'Connected'; el.className = 'rig-conn-badge ok';
+        state.rigError = '';
+        if (det) det.style.display = 'none';
       } else {
         el.textContent = 'Connecting\u2026'; el.className = 'rig-conn-badge warn';
+        state.rigError = s.error || '';
+        if (det) {
+          det.textContent = s.error ? ('\u26a0 ' + s.error)
+                                    : 'Connecting to rigctld\u2026';
+          det.style.display = '';
+        }
       }
     })
     .catch(() => {});

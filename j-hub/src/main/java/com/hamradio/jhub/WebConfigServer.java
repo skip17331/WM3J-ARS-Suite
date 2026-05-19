@@ -731,6 +731,7 @@ public class WebConfigServer {
                 status.addProperty("connected", ctrl.isConnected());
                 status.addProperty("frequency", ctrl.getLastFreq());
                 status.addProperty("mode",      ctrl.getLastMode());
+                status.addProperty("error",     ctrl.getLastError());
                 json(res, status.toString());
             } else {
                 json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().rig));

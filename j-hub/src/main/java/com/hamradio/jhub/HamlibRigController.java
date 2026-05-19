@@ -21,15 +21,22 @@ import java.util.concurrent.*;
  *   • Accepts tune(freq, mode) calls from SPOT_SELECTED handling
  *   • Accepts setPtt(on) calls from the REST API (if enablePtt=true)
  *
- * rigctld command protocol (line-based, persistent TCP connection):
- *   f             → get frequency   → "<hz>\nRPRT 0"
- *   m             → get mode        → "<mode>\n<passband>\nRPRT 0"
- *   F <hz>        → set frequency   → "RPRT 0"
- *   M <mode> 0    → set mode        → "RPRT 0"
- *   T 0|1         → set PTT off/on  → "RPRT 0"
- *   L KEYSPD <n>  → set keyer WPM   → "RPRT 0"
- *   b <text>      → send morse      → "RPRT 0"
- *   \stop_morse   → abort morse     → "RPRT 0"
+ * rigctld protocol note (line-based, persistent TCP connection):
+ *
+ *   We send every command with the Hamlib EXTENDED-response prefix '+'. This is
+ *   load-bearing: in the *default* protocol, get-commands return only their bare
+ *   value with NO "RPRT" terminator —
+ *       f  →  "145000000\n"          (no RPRT)
+ *       m  →  "USB\n3000\n"          (no RPRT)
+ *   — so a reader that blocks until it sees "RPRT " (as sendCommand does) hangs
+ *   until the socket read times out, reconnects, and never reports "connected".
+ *   The '+' prefix makes rigctld label every field and append "RPRT x" to *both*
+ *   get and set replies, e.g.:
+ *       +f  →  "get_freq:\nFrequency: 145000000\nRPRT 0\n"
+ *       +m  →  "get_mode:\nMode: USB\nPassband: 3000\nRPRT 0\n"
+ *       +F <hz>  / +M <mode> 0 / +T 0|1 / +L KEYSPD <n> / +b <text> / +\stop_morse
+ *                →  "<echo>\nRPRT 0\n"
+ *   parseFrequency()/parseMode() read the labeled lines; a non-zero RPRT throws.
  *
  * If the rig/backend doesn't support the CW commands, sendCw/stopCw/setKeyerSpeed
  * latch a one-shot {@code cwUnsupported} flag and notify MessageRouter so J-Log
@@ -61,6 +68,17 @@ public class HamlibRigController {
     // cleared only by restart() since "unsupported" is a property of the configured rig.
     private volatile boolean cwUnsupported  = false;
 
+    // Last human-readable failure reason; "" when healthy. Surfaced via
+    // /api/rig/status so the Rig Control panel can explain *why* it won't connect
+    // instead of sitting on "Connecting…" forever with nothing in the INFO log.
+    private volatile String  lastError      = "";
+    // Failure-log throttle. The poll loop retries every ~3s; without throttling a
+    // down/silent rig spams the log. Log the first failure (and any clean->fail
+    // transition) at WARN, then re-log at WARN at most once a minute (DEBUG between).
+    private long failCount     = 0;   // scheduler-thread only
+    private long lastFailLogMs = 0;   // scheduler-thread only
+    private static final long FAIL_RELOG_MS = 60_000;
+
     // Socket — only touched from the scheduler thread
     private Socket         socket;
     private BufferedReader reader;
@@ -87,6 +105,9 @@ public class HamlibRigController {
         this.pollMs     = cfg.pollRateMs > 0 ? cfg.pollRateMs : 500;
         this.pttEnabled = cfg.enablePtt;
         this.running    = true;
+        this.lastError  = "";
+        this.failCount  = 0;
+        this.lastFailLogMs = 0;
         log.info("HamlibRigController starting — {}:{} poll={}ms", host, port, pollMs);
         schedulePoll();
     }
@@ -97,6 +118,7 @@ public class HamlibRigController {
         if (pollFuture != null) { pollFuture.cancel(false); pollFuture = null; }
         scheduler.execute(this::closeSocket);
         connected = false;
+        lastError = "";   // disabled is not an error state
         log.info("HamlibRigController stopped");
     }
 
@@ -110,7 +132,8 @@ public class HamlibRigController {
         if ("HAMLIB".equals(cfg.backend)) {
             start(cfg);
         } else {
-            running = false;
+            running   = false;
+            lastError = "";
         }
     }
 
@@ -128,6 +151,8 @@ public class HamlibRigController {
     public long    getLastFreq()     { return lastFreq; }
     public String  getLastMode()     { return lastMode; }
     public boolean isCwUnsupported() { return cwUnsupported; }
+    /** Last failure reason for the UI; "" when connected or disabled. */
+    public String  getLastError()    { return lastError; }
 
     // ── Commands (dispatched onto the scheduler thread) ───────────────
 
@@ -268,7 +293,10 @@ public class HamlibRigController {
             String mode = parseMode(modeResp);
 
             if (!connected) {
-                connected = true;
+                connected     = true;
+                lastError     = "";
+                failCount     = 0;
+                lastFailLogMs = 0;
                 log.info("Hamlib connected — {}:{}", host, port);
             }
 
@@ -279,11 +307,64 @@ public class HamlibRigController {
             }
 
         } catch (IOException e) {
-            if (connected) {
-                log.warn("Hamlib connection lost: {}", e.getMessage());
-                connected = false;
-            }
+            noteFailure(e);
             closeSocket();
+        }
+    }
+
+    /**
+     * Record a poll/command failure: build an operator-readable explanation,
+     * stash it for the Rig Control panel, and log it (throttled).
+     *
+     * The two failure modes look identical in the UI ("not connected") but have
+     * opposite fixes, so they must be told apart:
+     *   • rigctld unreachable     → ConnectException / connect timeout
+     *                               → start rigctld / fix host:port
+     *   • rigctld up, rig silent  → SocketTimeoutException on the read, or a
+     *                               negative RPRT on a get → fix rigctld's
+     *                               -m model / -r port / -s baud, power the radio
+     * Operators almost always misfile the second as a j-hub bug, so spell it out.
+     */
+    private void noteFailure(IOException e) {
+        boolean wasConnected = connected;
+        connected = false;
+
+        String where = host + ":" + port;
+        String detail;
+        if (e instanceof java.net.ConnectException) {
+            detail = "Can't reach rigctld at " + where
+                   + " — is rigctld running and listening on that port?";
+        } else if (e instanceof java.net.UnknownHostException) {
+            detail = "Unknown host '" + host + "' — check the Hamlib host setting.";
+        } else if (e instanceof java.net.SocketTimeoutException) {
+            detail = "Reached rigctld at " + where + " but got no reply within 3s"
+                   + " — rigctld is up, the rig isn't answering. Check rigctld's"
+                   + " model (-m), serial port (-r) and baud (-s), and that the"
+                   + " radio is powered on with CAT enabled.";
+        } else {
+            String m = e.getMessage();
+            if (m != null && m.contains("RPRT ")) {
+                detail = "rigctld is running but the rig didn't answer (" + m + ")"
+                       + " — check rigctld's -m model, -r port and -s baud, and"
+                       + " that the radio is on with CAT enabled.";
+            } else {
+                detail = "rigctld I/O error at " + where + ": "
+                       + (m == null ? e.toString() : m);
+            }
+        }
+        lastError = detail;
+
+        failCount++;
+        long now = System.currentTimeMillis();
+        boolean relog = wasConnected || lastFailLogMs == 0
+                     || (now - lastFailLogMs) >= FAIL_RELOG_MS;
+        if (relog) {
+            lastFailLogMs = now;
+            if (wasConnected) log.warn("Hamlib connection lost — {}", detail);
+            else              log.warn("Hamlib not connecting (attempt {}) — {}",
+                                       failCount, detail);
+        } else {
+            log.debug("Hamlib still failing (attempt {}) — {}", failCount, detail);
         }
     }
 
@@ -308,8 +389,20 @@ public class HamlibRigController {
 
     private void ensureConnected() throws IOException {
         if (socket != null && !socket.isClosed() && socket.isConnected()) return;
-        socket = new Socket(host, port);
-        socket.setSoTimeout(3000);
+        Socket s = new Socket();
+        try {
+            // Bounded connect so an unreachable host fails in 3s, not the OS
+            // default (~minutes). A connect-phase timeout is reported as a
+            // ConnectException so noteFailure() can distinguish "can't reach
+            // rigctld" from "rigctld up but the rig is mute" (a read timeout).
+            s.connect(new java.net.InetSocketAddress(host, port), 3000);
+        } catch (java.net.SocketTimeoutException te) {
+            try { s.close(); } catch (IOException ignored) {}
+            throw new java.net.ConnectException(
+                    "timed out connecting to " + host + ":" + port);
+        }
+        s.setSoTimeout(3000);
+        socket = s;
         reader = new BufferedReader(
                 new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
         out = socket.getOutputStream();
@@ -318,7 +411,11 @@ public class HamlibRigController {
 
     private String sendCommand(String cmd) throws IOException {
         ensureConnected();
-        out.write((cmd + "\n").getBytes(StandardCharsets.US_ASCII));
+        // '+' = Hamlib extended response: every reply (get OR set) is field-
+        // labelled and terminated with "RPRT x". Without it, plain get-commands
+        // (f, m) return a bare value and no RPRT, so the loop below would block
+        // until the socket times out. See the class header for the wire formats.
+        out.write(("+" + cmd + "\n").getBytes(StandardCharsets.US_ASCII));
         out.flush();
         StringBuilder sb = new StringBuilder();
         String line;
@@ -355,10 +452,23 @@ public class HamlibRigController {
         return 0;
     }
 
-    /** Takes the first line, strips "Mode: " prefix if present. */
+    /**
+     * Extended protocol returns "get_mode:\nMode: USB\nPassband: 3000" — pick the
+     * "Mode:" line, not the first line. Falls back to the first bare,
+     * non-label token so a plain-protocol "USB\n3000" reply still parses.
+     */
     private static String parseMode(String response) {
-        String first = response.split("\n")[0].trim();
-        return first.replaceFirst("(?i)^Mode:\\s*", "");
+        for (String raw : response.split("\n")) {
+            String s = raw.trim();
+            if (s.regionMatches(true, 0, "Mode:", 0, 5)) {
+                return s.substring(5).trim();
+            }
+        }
+        for (String raw : response.split("\n")) {
+            String s = raw.trim();
+            if (!s.isEmpty() && !s.endsWith(":")) return s;
+        }
+        return "";
     }
 
     // ── Frequency → band conversion ──────────────────────────────────
