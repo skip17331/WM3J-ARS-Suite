@@ -34,10 +34,6 @@ public class RegionMapPane extends Pane {
     private static final int TILE_H = 30;
     private static final int GAP    = 3;
 
-    private final int tileW;
-    private final int tileH;
-    private final int gap;
-
     private final Map<String, SVGPath> shapes = new LinkedHashMap<>();
     private final Map<String, Label>   labels = new LinkedHashMap<>();
     private final Map<String, Tooltip> tips   = new LinkedHashMap<>();
@@ -48,23 +44,14 @@ public class RegionMapPane extends Pane {
     private Function<String, String> tooltipProvider = id -> id;
 
     public RegionMapPane(Map<String, int[]> layout) {
-        this(layout, TILE_W, TILE_H, GAP);
-    }
-
-    /** Custom tile geometry — used to make a short (few-row) map fill the
-     *  same pane height as a taller map sitting beside it. */
-    public RegionMapPane(Map<String, int[]> layout, int tileW, int tileH, int gap) {
-        this.tileW = tileW;
-        this.tileH = tileH;
-        this.gap   = gap;
         getStyleClass().add("region-map-pane");
         setPickOnBounds(false);
         for (Map.Entry<String, int[]> e : layout.entrySet()) {
             String id  = e.getKey();
             int    col = e.getValue()[0];
             int    row = e.getValue()[1];
-            int    x   = col * (tileW + gap);
-            int    y   = row * (tileH + gap);
+            int    x   = col * (TILE_W + GAP);
+            int    y   = row * (TILE_H + GAP);
 
             SVGPath p = new SVGPath();
             p.setId(id);
@@ -72,13 +59,13 @@ public class RegionMapPane extends Pane {
             int r = 4;
             p.setContent(String.format(Locale.ROOT,
                 "M %d,%d h %d a %d,%d 0 0 1 %d,%d v %d a %d,%d 0 0 1 -%d,%d h -%d a %d,%d 0 0 1 -%d,-%d v -%d a %d,%d 0 0 1 %d,-%d z",
-                x + r, y, tileW - 2*r,
+                x + r, y, TILE_W - 2*r,
                 r, r, r, r,
-                tileH - 2*r,
+                TILE_H - 2*r,
                 r, r, r, r,
-                tileW - 2*r,
+                TILE_W - 2*r,
                 r, r, r, r,
-                tileH - 2*r,
+                TILE_H - 2*r,
                 r, r, r, r));
             p.getStyleClass().addAll("region-tile", "region-tile-unworked");
             p.setCursor(Cursor.HAND);
@@ -96,8 +83,8 @@ public class RegionMapPane extends Pane {
             lbl.setMouseTransparent(true);
             lbl.setLayoutX(x);
             lbl.setLayoutY(y);
-            lbl.setPrefWidth(tileW);
-            lbl.setPrefHeight(tileH);
+            lbl.setPrefWidth(TILE_W);
+            lbl.setPrefHeight(TILE_H);
             lbl.setAlignment(Pos.CENTER);
 
             getChildren().addAll(p, lbl);
@@ -106,7 +93,7 @@ public class RegionMapPane extends Pane {
         }
         int maxCol = layout.values().stream().mapToInt(v -> v[0]).max().orElse(0) + 1;
         int maxRow = layout.values().stream().mapToInt(v -> v[1]).max().orElse(0) + 1;
-        setPrefSize(maxCol * (tileW + gap), maxRow * (tileH + gap));
+        setPrefSize(maxCol * (TILE_W + GAP), maxRow * (TILE_H + GAP));
     }
 
     public Set<String> regionIds() { return Collections.unmodifiableSet(shapes.keySet()); }
@@ -193,10 +180,7 @@ public class RegionMapPane extends Pane {
         put(m, "BC", 1, 2); put(m, "AB", 2, 2); put(m, "SK", 3, 2); put(m, "MB", 4, 2);
         put(m, "ON", 5, 2); put(m, "QC", 6, 2); put(m, "NB", 7, 2);
         put(m, "NS", 7, 3); put(m, "PE", 8, 3);
-        // Canada is only 4 rows; the US states map beside it is 8 rows of
-        // 30+3. Larger 60+6 tiles make the 4-row Canada grid exactly the
-        // same height (4*66 == 8*33) so the two panes line up.
-        return new RegionMapPane(m, 46, 60, 6);
+        return new RegionMapPane(m);
     }
 
     /**
