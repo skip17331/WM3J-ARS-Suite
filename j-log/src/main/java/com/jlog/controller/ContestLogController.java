@@ -692,7 +692,7 @@ public class ContestLogController implements Initializable {
                     usMapPane = RegionMapPane.usStates();
                     usMapPane.setTooltipProvider(this::stateTooltip);
                     tp.setContent(usMapPane);
-                    HBox.setHgrow(tp, Priority.ALWAYS);
+                    HBox.setHgrow(tp, Priority.NEVER);
                 }
                 case "canada_map" -> {
                     caMapPane = RegionMapPane.canada();
