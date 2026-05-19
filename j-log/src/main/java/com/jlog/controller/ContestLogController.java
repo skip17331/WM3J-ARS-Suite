@@ -677,6 +677,9 @@ public class ContestLogController implements Initializable {
         sideColumnContainer.getChildren().clear();
         dxccColumnMapPane = null;
         countyBlockMap = null;
+        // Cleared ONCE here; section_tracker and county_list panes only
+        // ADD to it, so a plugin may safely declare both.
+        sectionLabels.clear();
         if (plugin.getRow2Panes() == null) { collapseSideColumn(); return; }
 
         for (ContestPlugin.PaneDef pd : plugin.getRow2Panes()) {
@@ -1287,8 +1290,7 @@ public class ContestLogController implements Initializable {
 
     @SuppressWarnings("unchecked")
     private Node buildSectionPane(ContestPlugin.PaneDef pd) {
-        sectionLabels.clear();
-
+        // sectionLabels is cleared once in buildRow2Panes(); only add here.
         Map<String, Object> config = pd.getConfig();
         List<Map<String, Object>> zoneGroups = config != null
             ? (List<Map<String, Object>>) config.get("zoneGroups") : null;
@@ -1377,7 +1379,7 @@ public class ContestLogController implements Initializable {
      * (records of {"c":code,"s":state,"n":countyName}).
      */
     private Node buildCountyListPane(String dataset, boolean blockMap) {
-        sectionLabels.clear();
+        // sectionLabels is cleared once in buildRow2Panes(); only add here.
         countyBlockMap = null;
         VBox box = new VBox(6);
         box.getStyleClass().add("section-zones");

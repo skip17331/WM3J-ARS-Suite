@@ -73,7 +73,10 @@ plugin JSON only, zero Java**:
 Generic infra (no per-party Java): `ContestLogController.buildCountyListPane`,
 `countyDataset()`, `menuCountyMap()`, `countyBlockMap`. List labels
 register in `sectionLabels` so the worked-mult refresh greens
-list + map + block grid together. `blockMap:true` appends a
+list + map + block grid together (`sectionLabels` is cleared once in
+`buildRow2Panes()`; `buildSectionPane`/`buildCountyListPane` only
+*add*, so a plugin may safely declare both a `section_tracker` and a
+`county_list`). `blockMap:true` appends a
 `RegionMapPane` tile grid under the list — use when vector polygons
 aren't obtainable (CPQP).
 
