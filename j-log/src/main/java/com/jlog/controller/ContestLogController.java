@@ -677,7 +677,6 @@ public class ContestLogController implements Initializable {
         dxccColumnMapPane = null;
         if (plugin.getRow2Panes() == null) { collapseSideColumn(); return; }
 
-        boolean hasSectionTracker = false;
         for (ContestPlugin.PaneDef pd : plugin.getRow2Panes()) {
             TitledPane tp = new TitledPane();
             tp.setText(pd.getTitle());
@@ -695,7 +694,6 @@ public class ContestLogController implements Initializable {
                     // the pane row — no vertical scrollbar.
                     tp.setContent(buildSectionPane(pd));
                     HBox.setHgrow(tp, Priority.ALWAYS);
-                    hasSectionTracker = true;
                 }
                 case "statistics" -> {
                     tp.setContent(buildStatsPane());
@@ -808,16 +806,17 @@ public class ContestLogController implements Initializable {
             }
         }
 
-        if (hasSectionTracker) {
-            // The FXML/CSS height floor (~180px) starves this strip, so the
-            // section zone columns get clipped at the bottom. Size the strip
-            // to its tallest pane's content and pin min == pref so the parent
-            // VBox can never shrink it — every section button shows in full
-            // with no scrollbar. Scoped to section-tracker contests so the
-            // map-pane contests keep their tuned fixed height.
-            row2PaneContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
-            row2PaneContainer.setMinHeight(Region.USE_PREF_SIZE);
-        }
+        // Pin the plugin strip to a concrete height. Measured prefs:
+        // US states map pane ~302px (8 tile rows), section trackers are
+        // shorter, the DXCC list scrolls internally. 340 shows the
+        // tallest fixed-content pane in full with margin. This MUST be a
+        // concrete code-set value: USE_PREF_SIZE / the FXML minHeight were
+        // both overridden by the CSS .plugin-pane-row min-height (now
+        // removed), and a non-vgrow strip otherwise collapses to its min
+        // when the vgrow QSO/DX split (DxSpot prefHeight=400) claims the
+        // VBox space.
+        row2PaneContainer.setMinHeight(340);
+        row2PaneContainer.setPrefHeight(340);
 
         if (sideColumnContainer.getChildren().isEmpty()) collapseSideColumn();
         else                                            restoreSideColumn();

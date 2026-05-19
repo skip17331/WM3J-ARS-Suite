@@ -25,7 +25,8 @@
 .macro-button { -fx-font-size: 11px; -fx-min-width: 44px; -fx-padding: 3 6 3 6; }
 
 /* ---- Plugin pane row ---- */
-.plugin-pane-row { -fx-min-height: 180px; }
+/* Height is pinned by ContestLogController (was -fx-min-height:180px,
+   which overrode the FXML/code value and clipped tall panes). */
 .pane-content { -fx-padding: 6; }
 .section-grid { -fx-padding: 4; }
 .section-label { -fx-font-family: monospace; -fx-font-size: 13px; -fx-padding: 2 5 2 5; -fx-background-radius: 3; }
