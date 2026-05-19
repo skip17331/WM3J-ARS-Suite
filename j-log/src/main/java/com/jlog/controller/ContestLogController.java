@@ -139,6 +139,7 @@ public class ContestLogController implements Initializable {
     private Stage                cqZoneMapStage;
     private CountyMap            countyMapPane;
     private Stage                countyMapStage;
+    private RegionMapPane        countyBlockMap;   // block tile grid under county_list
     private MaidenheadGridMap    gridMapPane;
     private Stage                gridMapStage;
     private SweepProgressPane    sweepProgressPane;
@@ -675,6 +676,7 @@ public class ContestLogController implements Initializable {
         row2PaneContainer.getChildren().clear();
         sideColumnContainer.getChildren().clear();
         dxccColumnMapPane = null;
+        countyBlockMap = null;
         if (plugin.getRow2Panes() == null) { collapseSideColumn(); return; }
 
         for (ContestPlugin.PaneDef pd : plugin.getRow2Panes()) {
@@ -757,7 +759,11 @@ public class ContestLogController implements Initializable {
                     Object dsv = pd.getConfig() != null
                         ? pd.getConfig().get("dataset") : null;
                     String ds = dsv != null ? String.valueOf(dsv) : "7qp";
-                    tp.setContent(buildCountyListPane(ds));
+                    Object bmv = pd.getConfig() != null
+                        ? pd.getConfig().get("blockMap") : null;
+                    boolean bm = bmv != null
+                        && Boolean.parseBoolean(String.valueOf(bmv));
+                    tp.setContent(buildCountyListPane(ds, bm));
                     HBox.setHgrow(tp, Priority.ALWAYS);
                 }
                 case "per_mode_mult_grid" -> {
@@ -1370,8 +1376,9 @@ public class ContestLogController implements Initializable {
      * county map does. Source: {@code /com/jlog/counties/<dataset>.json}
      * (records of {"c":code,"s":state,"n":countyName}).
      */
-    private Node buildCountyListPane(String dataset) {
+    private Node buildCountyListPane(String dataset, boolean blockMap) {
         sectionLabels.clear();
+        countyBlockMap = null;
         VBox box = new VBox(6);
         box.getStyleClass().add("section-zones");
         String res = "/com/jlog/counties/" + dataset + ".json";
@@ -1390,6 +1397,8 @@ public class ContestLogController implements Initializable {
         }
 
         java.util.LinkedHashMap<String, VBox> byState = new java.util.LinkedHashMap<>();
+        java.util.LinkedHashMap<String, java.util.List<String[]>> grouped =
+            new java.util.LinkedHashMap<>();
         for (Map<String, String> e : rows) {
             String code = e.get("c"), st = e.get("s"), name = e.get("n");
             VBox col = byState.computeIfAbsent(st, s -> {
@@ -1410,9 +1419,35 @@ public class ContestLogController implements Initializable {
             lbl.setOnMouseClicked(ev -> onMultiplierSelected(code, "US"));
             sectionLabels.put(code, lbl);
             fp.getChildren().add(lbl);
+            grouped.computeIfAbsent(st, s -> new java.util.ArrayList<>())
+                   .add(new String[]{code, name});
         }
         box.getChildren().addAll(byState.values());
-        return box;
+        if (!blockMap) return box;
+
+        // Block tile map under the list (RegionMapPane, same as the ARRL-10M
+        // states grid): each state/province laid out as a contiguous block
+        // of columns, codes filled column-major. Recolors on worked via the
+        // countyBlockMap hook in the worked-mult refresh.
+        final int ROWS = 10;
+        java.util.Map<String, int[]> layout = new java.util.HashMap<>();
+        java.util.Map<String, String> names = new java.util.HashMap<>();
+        int colCursor = 0;
+        for (var ent : grouped.entrySet()) {
+            int r = 0;
+            for (String[] cn : ent.getValue()) {
+                layout.put(cn[0], new int[]{colCursor, r});
+                names.put(cn[0], cn[1]);
+                if (++r == ROWS) { r = 0; colCursor++; }
+            }
+            if (r != 0) colCursor++;   // finish a partial column
+            colCursor++;               // gap column between states
+        }
+        RegionMapPane rmp = new RegionMapPane(layout);
+        rmp.setTooltipProvider(c -> names.getOrDefault(c, c));
+        rmp.setOnRegionClicked(c -> onMultiplierSelected(c, "US"));
+        countyBlockMap = rmp;
+        return new VBox(8, box, rmp);
     }
 
     private VBox buildStatsPane() {
@@ -3136,6 +3171,7 @@ public class ContestLogController implements Initializable {
                     if (dxccColumnMapPane != null) dxccColumnMapPane.setAllWorked(worked);
                     if (dxccTablePane     != null) dxccTablePane.setAllWorked(worked);
                     if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
+                    if (countyBlockMap    != null) countyBlockMap.setAllWorked(worked);
                     if (gridMapPane       != null) gridMapPane.setAllWorked(worked);
                 });
             }
@@ -3157,6 +3193,7 @@ public class ContestLogController implements Initializable {
         if (statesMapPane != null) statesMapPane.setAllWorked(allWorked);
         if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(allWorked);
         if (countyMapPane != null) countyMapPane.setAllWorked(allWorked);
+        if (countyBlockMap != null) countyBlockMap.setAllWorked(allWorked);
         if (gridMapPane   != null) gridMapPane.setAllWorked(allWorked);
     }
 
