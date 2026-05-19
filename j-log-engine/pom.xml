@@ -7,7 +7,7 @@
 
     <groupId>com.jlog</groupId>
     <artifactId>j-log-engine</artifactId>
-    <version>1.0.43</version>
+    <version>1.0.47</version>
     <packaging>jar</packaging>
     <name>j-Log Engine</name>
     <description>QSO logging engine — DB, CI-V, hub, plugins, export. No JavaFX.</description>
