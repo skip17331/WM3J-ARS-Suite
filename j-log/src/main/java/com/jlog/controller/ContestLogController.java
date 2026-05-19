@@ -193,10 +193,13 @@ public class ContestLogController implements Initializable {
 
     private static final DateTimeFormatter TABLE_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    // A section_tracker zone column taller than this is split into two
-    // side-by-side sub-columns so it stays within the pane row. 8 keeps
-    // W1/W5/W0 single and splits W4/W6/W7/VE (SS section layout).
-    private static final int SECTION_COL_SPLIT = 8;
+    // Max section rows per sub-column in a section_tracker zone. A zone
+    // with more sections than this flows into as many balanced
+    // side-by-side sub-columns as needed, so the tallest column always
+    // fits the pane row with no vertical scrollbar. 5 => single-column
+    // zones go dual and the big ones go triple (W4/VE -> 3x, W1/W5/W0 ->
+    // 2x), tallest column = 5 rows.
+    private static final int SECTION_COL_MAX_ROWS = 5;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -674,6 +677,7 @@ public class ContestLogController implements Initializable {
         dxccColumnMapPane = null;
         if (plugin.getRow2Panes() == null) { collapseSideColumn(); return; }
 
+        boolean hasSectionTracker = false;
         for (ContestPlugin.PaneDef pd : plugin.getRow2Panes()) {
             TitledPane tp = new TitledPane();
             tp.setText(pd.getTitle());
@@ -686,10 +690,12 @@ public class ContestLogController implements Initializable {
                     HBox.setHgrow(tp, Priority.NEVER);
                 }
                 case "section_tracker" -> {
-                    ScrollPane sp = new ScrollPane(buildSectionPane(pd));
-                    sp.setFitToWidth(true);
-                    tp.setContent(sp);
+                    // No ScrollPane: zone sub-columns are bounded
+                    // (SECTION_COL_MAX_ROWS) so every section button fits
+                    // the pane row — no vertical scrollbar.
+                    tp.setContent(buildSectionPane(pd));
                     HBox.setHgrow(tp, Priority.ALWAYS);
+                    hasSectionTracker = true;
                 }
                 case "statistics" -> {
                     tp.setContent(buildStatsPane());
@@ -800,6 +806,17 @@ public class ContestLogController implements Initializable {
             } else {
                 row2PaneContainer.getChildren().add(tp);
             }
+        }
+
+        if (hasSectionTracker) {
+            // The FXML/CSS height floor (~180px) starves this strip, so the
+            // section zone columns get clipped at the bottom. Size the strip
+            // to its tallest pane's content and pin min == pref so the parent
+            // VBox can never shrink it — every section button shows in full
+            // with no scrollbar. Scoped to section-tracker contests so the
+            // map-pane contests keep their tuned fixed height.
+            row2PaneContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
+            row2PaneContainer.setMinHeight(Region.USE_PREF_SIZE);
         }
 
         if (sideColumnContainer.getChildren().isEmpty()) collapseSideColumn();
@@ -1268,20 +1285,28 @@ public class ContestLogController implements Initializable {
                 col.getChildren().add(header);
 
                 if (sects != null) {
-                    if (sects.size() > SECTION_COL_SPLIT) {
-                        // Split tall zones across two sub-columns; the first
-                        // column takes the extra section on an odd count.
-                        int half = (sects.size() + 1) / 2;
-                        VBox a = new VBox(1);
-                        VBox b = new VBox(1);
-                        for (int i = 0; i < sects.size(); i++) {
-                            String sec = sects.get(i);
-                            Label lbl = new Label(sec);
-                            lbl.getStyleClass().add("section-label");
-                            sectionLabels.put(sec, lbl);
-                            (i < half ? a : b).getChildren().add(lbl);
+                    if (sects.size() > SECTION_COL_MAX_ROWS) {
+                        // Flow into N balanced side-by-side sub-columns so
+                        // no column exceeds SECTION_COL_MAX_ROWS rows — the
+                        // pane fits every button without a scrollbar.
+                        int numCols = (sects.size() + SECTION_COL_MAX_ROWS - 1)
+                                / SECTION_COL_MAX_ROWS;
+                        int per = (sects.size() + numCols - 1) / numCols;
+                        HBox subs = new HBox(6);
+                        for (int c = 0; c < numCols; c++) {
+                            VBox sub = new VBox(1);
+                            int start = c * per;
+                            int end = Math.min(start + per, sects.size());
+                            for (int i = start; i < end; i++) {
+                                String sec = sects.get(i);
+                                Label lbl = new Label(sec);
+                                lbl.getStyleClass().add("section-label");
+                                sectionLabels.put(sec, lbl);
+                                sub.getChildren().add(lbl);
+                            }
+                            subs.getChildren().add(sub);
                         }
-                        col.getChildren().add(new HBox(6, a, b));
+                        col.getChildren().add(subs);
                     } else {
                         for (String sec : sects) {
                             Label lbl = new Label(sec);

@@ -13,9 +13,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,7 +179,19 @@ public class ContestChooser {
 
             owner.setScene(scene);
             owner.setTitle("j-Log — Contest Log: " + plugin.getContestName());
+            // Dynamic window: size the stage to whatever the cockpit
+            // content (row-2 panes + QSO table) actually needs, so the
+            // section tracker is never clipped and no scrollbar is needed.
+            // Re-run after layout so the real content height is known,
+            // then clamp to the visual screen so a tall contest can't
+            // push the window off the bottom.
+            owner.sizeToScene();
             owner.show();
+            owner.sizeToScene();
+            Rectangle2D vb = Screen.getPrimary().getVisualBounds();
+            if (owner.getWidth()  > vb.getWidth())  owner.setWidth(vb.getWidth());
+            if (owner.getHeight() > vb.getHeight()) owner.setHeight(vb.getHeight());
+            owner.centerOnScreen();
             JLogUiPresence.getInstance().connect(HubEngine.getInstance().getUrl());
             log.info("Contest Log opened for {}", plugin.getContestName());
         } catch (Exception ex) {
