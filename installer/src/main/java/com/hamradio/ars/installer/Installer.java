@@ -378,12 +378,18 @@ public final class Installer {
         // JavaFX is bundled into every module's fat jar (OS-classifier Maven
         // deps + a non-Application Launcher Main-Class), so a plain
         // `java -jar` is all that is needed — no --module-path / lib/javafx.
-        // Resolve the jar by glob (newest target\<mod>-*.jar, skipping
-        // sources/javadoc) so a version bump never breaks this launcher.
+        // Prefer the runnable fat/uber jar (shade adds a -shaded/-fat
+        // classifier), else the in-place shaded main jar (skip thin
+        // original-/sources/javadoc) so a version bump never breaks this.
         sb.append("set \"JAR=\"\r\n");
         sb.append("for /f \"delims=\" %%F in ('dir /b /a-d /o-d \"%SCRIPT_DIR%target\\")
+          .append(mod).append("-*-shaded.jar\" \"%SCRIPT_DIR%target\\")
+          .append(mod).append("-*-fat.jar\" \"%SCRIPT_DIR%target\\")
           .append(mod)
-          .append("-*.jar\" 2^>nul ^| findstr /v /i \"sources javadoc shaded fat\"') do if not defined JAR set \"JAR=%SCRIPT_DIR%target\\%%F\"\r\n");
+          .append("-*-jar-with-dependencies.jar\" 2^>nul') do if not defined JAR set \"JAR=%SCRIPT_DIR%target\\%%F\"\r\n");
+        sb.append("if not defined JAR for /f \"delims=\" %%F in ('dir /b /a-d /o-d \"%SCRIPT_DIR%target\\")
+          .append(mod)
+          .append("-*.jar\" 2^>nul ^| findstr /v /i \"original- sources javadoc\"') do if not defined JAR set \"JAR=%SCRIPT_DIR%target\\%%F\"\r\n");
         sb.append("if not defined JAR (\r\n");
         sb.append("  echo Error: ").append(mod)
           .append(" jar not found in \"%SCRIPT_DIR%target\" - build it:  mvn -DskipTests -f \"%SCRIPT_DIR%pom.xml\" package\r\n");
