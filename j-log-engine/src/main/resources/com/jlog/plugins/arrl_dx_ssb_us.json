@@ -62,7 +62,8 @@
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "dupe_checker", "title": "Dupe Checker", "config": {} },
-    { "paneIndex": 2, "paneType": "statistics",   "title": "Statistics",   "config": {} }
+    { "paneIndex": 2, "paneType": "statistics",   "title": "Statistics",   "config": {} },
+    { "paneIndex": 3, "paneType": "dxcc_map",     "title": "DXCC Worked",  "placement": "column", "config": {} }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour","dxcc_count"],

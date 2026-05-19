@@ -84,6 +84,11 @@ public class ContestLogController implements Initializable {
     // ---- Row 2: plugin panes ----
     @FXML private HBox  row2PaneContainer;
 
+    // ---- Resizable right-hand side column (plugin "placement":"column") ----
+    @FXML private SplitPane  cockpitSplitPane;
+    @FXML private ScrollPane sideColumnScroll;
+    @FXML private VBox       sideColumnContainer;
+
     // ---- QSO table ----
     @FXML private TableView<QsoRecord>          qsoTable;
     @FXML private TableColumn<QsoRecord,String> colCall;
@@ -124,7 +129,8 @@ public class ContestLogController implements Initializable {
     private WorkedGridsPane      gridsPane;
     private ArrlSectionMap       ssSectionMapPane;
     private Stage                sectionMapStage;
-    private DxccMap              dxccMapPane;
+    private DxccMap              dxccMapPane;       // popup world-map window
+    private DxccMap              dxccColumnMapPane; // embedded "dxcc_map" side-column pane
     private DxccTable            dxccTablePane;
     private Stage                dxccMapStage;
     private StatesMap            statesMapPane;
@@ -664,7 +670,9 @@ public class ContestLogController implements Initializable {
 
     private void buildRow2Panes() {
         row2PaneContainer.getChildren().clear();
-        if (plugin.getRow2Panes() == null) return;
+        sideColumnContainer.getChildren().clear();
+        dxccColumnMapPane = null;
+        if (plugin.getRow2Panes() == null) { collapseSideColumn(); return; }
 
         for (ContestPlugin.PaneDef pd : plugin.getRow2Panes()) {
             TitledPane tp = new TitledPane();
@@ -706,6 +714,22 @@ public class ContestLogController implements Initializable {
                     tp.setContent(dxccPane);
                     tp.setMaxWidth(160);
                     HBox.setHgrow(tp, Priority.NEVER);
+                }
+                case "dxcc_map" -> {
+                    DxccMap map = new DxccMap();
+                    map.setTooltipProvider(entity -> {
+                        DxccMap.EntityInfo info = map.entityInfo().get(entity);
+                        return info != null ? entity + " — " + info.name() : entity;
+                    });
+                    dxccColumnMapPane = map;
+                    StackPane holder = new StackPane(map);
+                    holder.setMinWidth(0);
+                    // Rescale the world map to whatever width the (resizable)
+                    // column gives us, preserving aspect ratio.
+                    holder.widthProperty().addListener(
+                        (o, ov, nv) -> map.fitToWidth(nv.doubleValue()));
+                    tp.setContent(holder);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
                 }
                 case "per_mode_mult_grid" -> {
                     perModeGrid = new PerModeMultGridPane(
@@ -767,7 +791,34 @@ public class ContestLogController implements Initializable {
                     HBox.setHgrow(tp, Priority.NEVER);
                 }
             }
-            row2PaneContainer.getChildren().add(tp);
+            if ("column".equalsIgnoreCase(pd.getPlacement())) {
+                // Column panes fill the column width and stack vertically;
+                // the sideColumnScroll handles overflow.
+                tp.setMaxWidth(Double.MAX_VALUE);
+                VBox.setVgrow(tp, Priority.NEVER);
+                sideColumnContainer.getChildren().add(tp);
+            } else {
+                row2PaneContainer.getChildren().add(tp);
+            }
+        }
+
+        if (sideColumnContainer.getChildren().isEmpty()) collapseSideColumn();
+        else                                            restoreSideColumn();
+    }
+
+    /** Drop the side column from the split entirely when a contest declares
+     *  no "column" panes, so those contests render exactly as before. */
+    private void collapseSideColumn() {
+        if (cockpitSplitPane != null && sideColumnScroll != null) {
+            cockpitSplitPane.getItems().remove(sideColumnScroll);
+        }
+    }
+
+    private void restoreSideColumn() {
+        if (cockpitSplitPane != null && sideColumnScroll != null
+                && !cockpitSplitPane.getItems().contains(sideColumnScroll)) {
+            cockpitSplitPane.getItems().add(sideColumnScroll);
+            cockpitSplitPane.setDividerPositions(0.72);
         }
     }
 
@@ -1145,6 +1196,9 @@ public class ContestLogController implements Initializable {
         if (dxccPane != null) {
             dxccPane.setOnEntityClicked(entity -> onMultiplierSelected(entity, "DX"));
         }
+        if (dxccColumnMapPane != null) {
+            dxccColumnMapPane.setOnRegionClicked(entity -> onMultiplierSelected(entity, "DX"));
+        }
         if (gridsPane != null) {
             gridsPane.setOnGridClicked(this::onGridSelected);
         }
@@ -1173,8 +1227,10 @@ public class ContestLogController implements Initializable {
         };
         if (target != null) setFieldValue(target, value);
         if (tfCallsign != null) tfCallsign.requestFocus();
-        if (usMapPane  != null && "US".equals(region)) usMapPane.setCurrent(value);
-        if (caMapPane  != null && "CA".equals(region)) caMapPane.setCurrent(value);
+        if (usMapPane         != null && "US".equals(region)) usMapPane.setCurrent(value);
+        if (caMapPane         != null && "CA".equals(region)) caMapPane.setCurrent(value);
+        if (dxccMapPane       != null && "DX".equals(region)) dxccMapPane.setCurrent(value);
+        if (dxccColumnMapPane != null && "DX".equals(region)) dxccColumnMapPane.setCurrent(value);
     }
 
     private String firstPresent(String... ids) {
@@ -2975,6 +3031,7 @@ public class ContestLogController implements Initializable {
                     if (workedMultsPane   != null) workedMultsPane.setWorked(worked);
                     if (statesMapPane     != null) statesMapPane.setAllWorked(worked);
                     if (dxccMapPane       != null) dxccMapPane.setAllWorked(worked);
+                    if (dxccColumnMapPane != null) dxccColumnMapPane.setAllWorked(worked);
                     if (dxccTablePane     != null) dxccTablePane.setAllWorked(worked);
                     if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
                     if (gridMapPane       != null) gridMapPane.setAllWorked(worked);
@@ -2993,6 +3050,7 @@ public class ContestLogController implements Initializable {
         if (caMapPane     != null) caMapPane.setAllWorked(allWorked);
         if (dxccPane      != null) dxccPane.setAllWorked(allWorked);
         if (dxccMapPane   != null) dxccMapPane.setAllWorked(allWorked);
+        if (dxccColumnMapPane != null) dxccColumnMapPane.setAllWorked(allWorked);
         if (dxccTablePane != null) dxccTablePane.setAllWorked(allWorked);
         if (statesMapPane != null) statesMapPane.setAllWorked(allWorked);
         if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(allWorked);

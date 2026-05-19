@@ -55,6 +55,10 @@ public class DxccMap extends Pane {
     private Consumer<String>         onRegionClicked = id -> {};
     private Function<String, String> tooltipProvider = id -> id;
 
+    /** Native viewBox dimensions, captured once so {@link #fitToWidth} can
+     *  scale from the original geometry instead of compounding. */
+    private double nativeW = 1, nativeH = 1;
+
     public DxccMap() {
         getStyleClass().add("dxcc-map");
         setPickOnBounds(false);
@@ -69,6 +73,8 @@ public class DxccMap extends Pane {
         List<Number> vb = (List<Number>) raw.get("viewBox");
         double viewW = vb.get(2).doubleValue();
         double viewH = vb.get(3).doubleValue();
+        nativeW = viewW;
+        nativeH = viewH;
         setPrefSize(viewW, viewH);
 
         @SuppressWarnings("unchecked")
@@ -151,6 +157,24 @@ public class DxccMap extends Pane {
     public void setRenderScale(double factor) {
         double w = getPrefWidth()  * factor;
         double h = getPrefHeight() * factor;
+        getTransforms().clear();
+        getTransforms().add(new javafx.scene.transform.Scale(factor, factor, 0, 0));
+        setMinSize(w, h);
+        setPrefSize(w, h);
+        setMaxSize(w, h);
+    }
+
+    /**
+     * Scale the map to exactly fill {@code availWidth}, preserving aspect
+     * ratio. Unlike {@link #setRenderScale}, the factor is computed from the
+     * captured native viewBox, so this is safe to call repeatedly (e.g. on
+     * every container-width change) without compounding.
+     */
+    public void fitToWidth(double availWidth) {
+        if (availWidth <= 0 || nativeW <= 0) return;
+        double factor = availWidth / nativeW;
+        double w = nativeW * factor;
+        double h = nativeH * factor;
         getTransforms().clear();
         getTransforms().add(new javafx.scene.transform.Scale(factor, factor, 0, 0));
         setMinSize(w, h);

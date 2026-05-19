@@ -429,12 +429,15 @@ public class ContestPlugin {
         private int    paneIndex;       // 1-4
         private String paneType;        // "dupe_checker" | "custom" | "section_tracker" | "statistics"
         private String title;
+        private String placement = "row"; // "row" (horizontal strip) | "column" (tall right side panel)
         private Map<String, Object> config; // pane-specific config
 
         public int    getPaneIndex()    { return paneIndex; }
         public void   setPaneIndex(int v){ this.paneIndex = v; }
         public String getPaneType()     { return paneType; }
         public void   setPaneType(String v){ this.paneType = v; }
+        public String getPlacement()    { return placement == null ? "row" : placement; }
+        public void   setPlacement(String v){ this.placement = v; }
         public String getTitle()        { return title; }
         public void   setTitle(String v){ this.title = v; }
         public Map<String, Object> getConfig(){ return config; }

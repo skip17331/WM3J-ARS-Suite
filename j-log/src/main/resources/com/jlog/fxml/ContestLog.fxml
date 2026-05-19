@@ -88,22 +88,27 @@
             <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
                 <padding><Insets top="2" left="6" bottom="2"/></padding>
             </HBox>
-
-            <!-- ============================================================
-                 ROW 3: PLUGIN PANES
-                 ============================================================ -->
-            <HBox fx:id="row2PaneContainer" spacing="0" styleClass="plugin-pane-row"
-                  minHeight="300" prefHeight="330">
-                <!-- panes built dynamically by controller -->
-            </HBox>
         </VBox>
     </top>
 
     <!-- ============================================================
-         CENTER: QSO TABLE + DX SPOTTING
+         CENTER: [ plugin strip + QSO table + DX spotting ]  |  side column
+         The horizontal split lets the user drag the side-column width.
+         The side column starts just below the entry/macro bar (which
+         stay full-width in <top>) and runs to the bottom of the window.
          ============================================================ -->
     <center>
-        <SplitPane fx:id="mainSplitPane" orientation="VERTICAL">
+        <SplitPane fx:id="cockpitSplitPane" orientation="HORIZONTAL" dividerPositions="0.72">
+
+            <!-- Main area: plugin-pane strip above, table/DX split below -->
+            <VBox SplitPane.resizableWithParent="true">
+
+                <HBox fx:id="row2PaneContainer" spacing="0" styleClass="plugin-pane-row"
+                      minHeight="300" prefHeight="330">
+                    <!-- row-placement panes built dynamically by controller -->
+                </HBox>
+
+                <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" VBox.vgrow="ALWAYS">
 
             <!-- QSO Table -->
             <VBox styleClass="log-section">
@@ -142,6 +147,21 @@
                 <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
             </TitledPane>
 
-        </SplitPane>
+                </SplitPane>   <!-- /mainSplitPane (vertical) -->
+            </VBox>            <!-- /main-area VBox -->
+
+            <!-- Side column: panes a contest declares with "placement":"column".
+                 The controller removes this from the split when a contest
+                 declares none, so non-column contests look unchanged. -->
+            <ScrollPane fx:id="sideColumnScroll" fitToWidth="true"
+                        minWidth="280" prefWidth="380"
+                        SplitPane.resizableWithParent="false"
+                        styleClass="side-column-scroll">
+                <VBox fx:id="sideColumnContainer" spacing="0" styleClass="side-column">
+                    <!-- column-placement panes built dynamically by controller -->
+                </VBox>
+            </ScrollPane>
+
+        </SplitPane>   <!-- /cockpitSplitPane (horizontal) -->
     </center>
 </BorderPane>
