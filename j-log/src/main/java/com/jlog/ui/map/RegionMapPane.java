@@ -30,9 +30,9 @@ import java.util.function.Function;
  */
 public class RegionMapPane extends Pane {
 
-    private static final int TILE_W = 44;
-    private static final int TILE_H = 36;
-    private static final int GAP    = 4;
+    private static final int TILE_W = 38;
+    private static final int TILE_H = 30;
+    private static final int GAP    = 3;
 
     private final Map<String, SVGPath> shapes = new LinkedHashMap<>();
     private final Map<String, Label>   labels = new LinkedHashMap<>();

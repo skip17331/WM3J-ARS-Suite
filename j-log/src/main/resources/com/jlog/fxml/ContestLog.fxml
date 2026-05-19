@@ -93,7 +93,7 @@
                  ROW 3: PLUGIN PANES
                  ============================================================ -->
             <HBox fx:id="row2PaneContainer" spacing="0" styleClass="plugin-pane-row"
-                  minHeight="240" prefHeight="280">
+                  minHeight="300" prefHeight="330">
                 <!-- panes built dynamically by controller -->
             </HBox>
         </VBox>
