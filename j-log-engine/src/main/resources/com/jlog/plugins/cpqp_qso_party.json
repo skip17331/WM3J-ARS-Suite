@@ -52,7 +52,9 @@
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
     { "paneIndex": 2, "paneType": "worked_mults",  "title": "Prairie Districts / Mults", "config": {} },
-    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
+    { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} },
+    { "paneIndex": 4, "paneType": "county_list",   "title": "Prairie Ridings",
+      "placement": "column", "config": { "dataset": "cpqp" } }
   ],
 
   "statistics": ["qso_count","total_score","multipliers","qso_per_hour"],
