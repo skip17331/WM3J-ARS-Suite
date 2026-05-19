@@ -735,6 +735,31 @@ public class ContestLogController implements Initializable {
                     tp.setContent(holder);
                     HBox.setHgrow(tp, Priority.ALWAYS);
                 }
+                case "county_map" -> {
+                    // Resizable side-column county map (modeled on dxcc_map).
+                    // dataset "7qp" -> the combined 8-state 7th-Call-Area map
+                    // (county-7qp.json); any other value -> county-<v>.json.
+                    Object dsv = pd.getConfig() != null
+                        ? pd.getConfig().get("dataset") : null;
+                    String ds = dsv != null ? String.valueOf(dsv) : "7qp";
+                    CountyMap m = new CountyMap(ds);
+                    m.setTooltipProvider(code -> code);
+                    m.setOnRegionClicked(code -> onMultiplierSelected(code, "US"));
+                    countyMapPane = m;
+                    StackPane holder = new StackPane(m);
+                    holder.setMinWidth(0);
+                    holder.widthProperty().addListener(
+                        (o, ov, nv) -> m.fitToWidth(nv.doubleValue()));
+                    tp.setContent(holder);
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
+                case "county_list" -> {
+                    Object dsv = pd.getConfig() != null
+                        ? pd.getConfig().get("dataset") : null;
+                    String ds = dsv != null ? String.valueOf(dsv) : "7qp";
+                    tp.setContent(buildCountyListPane(ds));
+                    HBox.setHgrow(tp, Priority.ALWAYS);
+                }
                 case "per_mode_mult_grid" -> {
                     perModeGrid = new PerModeMultGridPane(
                         TRACKED_MODES_DEFAULT,
@@ -1335,6 +1360,59 @@ public class ContestLogController implements Initializable {
             }
         }
         return grid;
+    }
+
+    /**
+     * County list grouped by state for the resizable side column (e.g. 7QP).
+     * Each county-code label is registered in {@link #sectionLabels} keyed by
+     * its full code, so the existing worked-mult refresh toggles
+     * {@code section-worked} on it — the list recolors exactly when the
+     * county map does. Source: {@code /com/jlog/counties/<dataset>.json}
+     * (records of {"c":code,"s":state,"n":countyName}).
+     */
+    private Node buildCountyListPane(String dataset) {
+        sectionLabels.clear();
+        VBox box = new VBox(6);
+        box.getStyleClass().add("section-zones");
+        String res = "/com/jlog/counties/" + dataset + ".json";
+        List<Map<String, String>> rows;
+        try (var in = getClass().getResourceAsStream(res)) {
+            if (in == null) {
+                log.warn("County list resource not found: {}", res);
+                return new Label("County list unavailable (" + dataset + ")");
+            }
+            rows = new com.fasterxml.jackson.databind.ObjectMapper().readValue(
+                in, new com.fasterxml.jackson.core.type.TypeReference<
+                        List<Map<String, String>>>() {});
+        } catch (Exception ex) {
+            log.warn("Failed to load county list {}: {}", res, ex.getMessage());
+            return new Label("County list unavailable (" + dataset + ")");
+        }
+
+        java.util.LinkedHashMap<String, VBox> byState = new java.util.LinkedHashMap<>();
+        for (Map<String, String> e : rows) {
+            String code = e.get("c"), st = e.get("s"), name = e.get("n");
+            VBox col = byState.computeIfAbsent(st, s -> {
+                VBox v = new VBox(1);
+                v.getStyleClass().add("zone-column");
+                Label h = new Label(s);
+                h.getStyleClass().add("zone-header");
+                v.getChildren().add(h);
+                FlowPane fp = new FlowPane(4, 2);
+                v.getChildren().add(fp);
+                return v;
+            });
+            FlowPane fp = (FlowPane) col.getChildren().get(1);
+            Label lbl = new Label(code);
+            lbl.getStyleClass().add("section-label");
+            lbl.setTooltip(new Tooltip(name + ", " + st));
+            lbl.setCursor(javafx.scene.Cursor.HAND);
+            lbl.setOnMouseClicked(ev -> onMultiplierSelected(code, "US"));
+            sectionLabels.put(code, lbl);
+            fp.getChildren().add(lbl);
+        }
+        box.getChildren().addAll(byState.values());
+        return box;
     }
 
     private VBox buildStatsPane() {
@@ -3209,29 +3287,52 @@ public class ContestLogController implements Initializable {
     }
 
     /** Open the per-state county map for the active state QSO party plugin. */
+    /** The county dataset for the Contest → County Map window: a
+     *  {@code county_list}/{@code county_map} pane's {@code config.dataset}
+     *  (e.g. "7qp" → combined 8-state map) if declared, else the per-state
+     *  code derived from the plugin's multiplierList. */
+    private String countyDataset() {
+        if (plugin == null) return null;
+        if (plugin.getRow2Panes() != null) {
+            for (ContestPlugin.PaneDef pd : plugin.getRow2Panes()) {
+                if (("county_list".equals(pd.getPaneType())
+                        || "county_map".equals(pd.getPaneType()))
+                        && pd.getConfig() != null) {
+                    Object ds = pd.getConfig().get("dataset");
+                    if (ds != null && !String.valueOf(ds).isBlank())
+                        return String.valueOf(ds);
+                }
+            }
+        }
+        return CountyMap.stateFromMultiplierListPath(plugin.getMultiplierList());
+    }
+
     @FXML private void menuCountyMap() {
         if (plugin == null) {
             new Alert(Alert.AlertType.INFORMATION,
                 "Load a contest first — the county map needs a contest's worked set.").showAndWait();
             return;
         }
-        String state = CountyMap.stateFromMultiplierListPath(plugin.getMultiplierList());
-        if (state == null) {
+        String dataset = countyDataset();
+        if (dataset == null) {
             new Alert(Alert.AlertType.INFORMATION,
-                "County Map is only available for state QSO party plugins.").showAndWait();
+                "County Map is only available for county-based QSO party plugins.").showAndWait();
             return;
         }
         if (countyMapStage != null && countyMapStage.isShowing()) {
             countyMapStage.toFront();
             return;
         }
-        CountyMap map = new CountyMap(state);
+        CountyMap map = new CountyMap(dataset);
         if (map.regionIds().isEmpty()) {
             new Alert(Alert.AlertType.INFORMATION,
-                "County map for " + state + " hasn't been built yet — "
-              + "no county-" + state.toLowerCase() + ".json resource on the classpath.").showAndWait();
+                "County map for " + dataset + " hasn't been built yet — "
+              + "no county-" + dataset.toLowerCase() + ".json resource on the classpath.").showAndWait();
             return;
         }
+        String title = dataset.length() == 2
+            ? dataset.toUpperCase() + " Counties"
+            : dataset.toUpperCase() + " County Map";
         map.setTooltipProvider(code -> code);
         map.setOnRegionClicked(code -> onMultiplierSelected(code, "US"));
         countyMapPane = map;
@@ -3246,7 +3347,7 @@ public class ContestLogController implements Initializable {
         JLogApp.applyTheme(scene);
 
         Stage st = new Stage();
-        st.setTitle(state + " Counties — " + plugin.getContestName());
+        st.setTitle(title + " — " + plugin.getContestName());
         st.setScene(scene);
         st.setOnHidden(ev -> {
             countyMapStage = null;

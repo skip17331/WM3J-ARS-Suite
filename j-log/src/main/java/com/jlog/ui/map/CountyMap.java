@@ -40,6 +40,7 @@ public class CountyMap extends Pane {
     private final Map<String, List<SVGPath>> shapes = new LinkedHashMap<>();
     private final Map<String, List<String>>  aliasTargets = new LinkedHashMap<>();
     private final Set<String> worked = new HashSet<>();
+    private double nativeW, nativeH;          // viewBox size, for fitToWidth
     private String current;
     private String invalid;
     private Consumer<String>         onRegionClicked = id -> {};
@@ -57,7 +58,9 @@ public class CountyMap extends Pane {
         }
         @SuppressWarnings("unchecked")
         List<Number> vb = (List<Number>) raw.get("viewBox");
-        setPrefSize(vb.get(2).doubleValue(), vb.get(3).doubleValue());
+        nativeW = vb.get(2).doubleValue();
+        nativeH = vb.get(3).doubleValue();
+        setPrefSize(nativeW, nativeH);
 
         @SuppressWarnings("unchecked")
         Map<String, List<String>> aliases =
@@ -172,6 +175,25 @@ public class CountyMap extends Pane {
 
     public void setOnRegionClicked(Consumer<String> cb)        { this.onRegionClicked = cb != null ? cb : id -> {}; }
     public void setTooltipProvider(Function<String, String> p) { this.tooltipProvider = p != null ? p : id -> id; }
+
+    /**
+     * Scale the map to exactly fill {@code availWidth}, preserving aspect
+     * ratio. Computed from the captured native viewBox so it is safe to call
+     * repeatedly on every container-width change (no compounding). Mirrors
+     * {@code DxccMap.fitToWidth} so the resizable side column behaves the
+     * same for the embedded 7QP county map as for the ARRL-DX world map.
+     */
+    public void fitToWidth(double availWidth) {
+        if (availWidth <= 0 || nativeW <= 0) return;
+        double factor = availWidth / nativeW;
+        double w = nativeW * factor;
+        double h = nativeH * factor;
+        getTransforms().clear();
+        getTransforms().add(new javafx.scene.transform.Scale(factor, factor, 0, 0));
+        setMinSize(w, h);
+        setPrefSize(w, h);
+        setMaxSize(w, h);
+    }
 
     private void restyle(String id) {
         List<SVGPath> ps = shapes.get(id);
