@@ -39,14 +39,18 @@ ROOT = HERE.parent.parent
 CODES_DIR = ROOT / "j-log-engine/src/main/resources/com/jlog/counties"
 OUT_DIR = ROOT / "j-log/src/main/resources/com/jlog/maps"
 
-# 2-digit state FIPS. 7QP 7th-area states first, then the other state QPs.
+# 2-digit state FIPS. 7QP / NEQP member states + the other state QPs.
 STATE_FIPS = {
     "AZ": "04", "ID": "16", "MT": "30", "NV": "32",
     "OR": "41", "UT": "49", "WA": "53", "WY": "56",
     "CA": "06", "TX": "48", "NC": "37", "FL": "12",
     "GA": "13", "MI": "26", "NY": "36", "OH": "39",
     "PA": "42", "SC": "45", "TN": "47", "ME": "23", "NH": "33", "VT": "50",
+    "MA": "25", "RI": "44", "CT": "09",
 }
+
+# Multi-state "combined" datasets: one shared projection, 5-char codes.
+COMBINED = {"7qp", "neqp"}
 
 # Affects ONLY the positional-match sort order (geometry pulled by name).
 SORT_NAME_OVERRIDES = {"FL": {"Miami-Dade": "Dade"}}
@@ -225,15 +229,16 @@ def build_state(state: str, by_state: dict) -> None:
           f"{len(sections)} counties)")
 
 
-def build_7qp(by_state: dict) -> None:
-    """Combined 8-state 7th-Call-Area map: ONE shared Albers projection so
-    the states sit in correct relative geography. Section id = the 5-char
-    7QP code (e.g. WACLL); reproducible from the committed 7qp.json."""
-    src = json.loads((CODES_DIR / "7qp.json").read_text())
+def build_combined(name: str, by_state: dict) -> None:
+    """Combined multi-state map (7QP, NEQP, …): ONE shared Albers
+    projection so the member states sit in correct relative geography.
+    Section id = the dataset's 5-char code; reproducible from the
+    committed counties/<name>.json ([{"c","s","n"}, …])."""
+    src = json.loads((CODES_DIR / f"{name}.json").read_text())
     geo_by_key = {}  # (fips, normname) -> geometry
     for st, fips in STATE_FIPS.items():
-        for name, geom in by_state.get(fips, []):
-            geo_by_key[(fips, sort_key(name, {}))] = geom
+        for gname, geom in by_state.get(fips, []):
+            geo_by_key[(fips, sort_key(gname, {}))] = geom
 
     projected, miss = [], []
     minx = miny = float("inf")
@@ -292,23 +297,24 @@ def build_7qp(by_state: dict) -> None:
             "bbox": [round(bx0, 1), round(by0, 1), round(bx1, 1), round(by1, 1)],
             "name": county, "state": state,
         }
-    out = {"viewBox": [0, 0, VIEW_W, VIEW_H], "state": "7QP",
+    nstates = len({e["s"] for e in src})
+    out = {"viewBox": [0, 0, VIEW_W, VIEW_H], "state": name.upper(),
            "aliasTargets": {}, "sections": sections}
-    out_path = OUT_DIR / "county-7qp.json"
+    out_path = OUT_DIR / f"county-{name}.json"
     out_path.write_text(json.dumps(out, separators=(",", ":")))
     print(f"Wrote {out_path} ({out_path.stat().st_size/1024:.1f} KB, "
-          f"{len(sections)} counties, 8 states, shared projection)")
+          f"{len(sections)} counties, {nstates} states, shared projection)")
 
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: build_counties.py <STATE|all|7QP>", file=sys.stderr)
+        print("Usage: build_counties.py <STATE|all|7QP|NEQP>", file=sys.stderr)
         sys.exit(2)
     by_state = load_geojson()
     arg = sys.argv[1]
-    if arg.upper() == "7QP":
-        print("Building 7QP combined map…")
-        build_7qp(by_state)
+    if arg.lower() in COMBINED:
+        print(f"Building {arg.upper()} combined map…")
+        build_combined(arg.lower(), by_state)
         return
     if arg == "all":
         targets = sorted(s for s in STATE_FIPS
