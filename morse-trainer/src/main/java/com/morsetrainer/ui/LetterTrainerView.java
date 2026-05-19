@@ -36,6 +36,8 @@ public class LetterTrainerView {
     private boolean awaitingResponse = false;
 
     private final Label statusLabel = new Label("Press Start to begin.");
+    private final Label promptLabel = new Label(" ");        // training-wheels char
+    private final CheckBox showCharBox = new CheckBox("Show character");
     private final Label feedbackLabel = new Label(" ");
     private final Label progressLabel = new Label("");
     private final TextField input = new TextField();
@@ -57,18 +59,30 @@ public class LetterTrainerView {
         Label title = new Label("Letter Trainer");
         title.setFont(Font.font("System", FontWeight.BOLD, 22));
 
-        HBox controls = new HBox(12,
+        // Two rows — one HBox with all of these gets squished narrow
+        // (labels and buttons collapse to "..."). Settings on top,
+        // actions below.
+        HBox settingsRow = new HBox(12,
                 new Label("Koch level:"), levelSpinner,
                 new Label("WPM:"), wpmSpinner,
-                new Label("Farnsworth WPM:"), farnsSpinner,
+                new Label("Farnsworth WPM:"), farnsSpinner);
+        settingsRow.setAlignment(Pos.CENTER_LEFT);
+
+        HBox actionRow = new HBox(12,
+                showCharBox,
                 button("Start", this::start),
                 button("Stop",  this::stop),
                 button("Back",  () -> HomeView.show(owner)));
-        controls.setAlignment(Pos.CENTER_LEFT);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+        // Training wheels: on = show the letter while it's sent (learning);
+        // off = code only (testing). Defaults on for new learners.
+        showCharBox.setSelected(true);
 
-        VBox top = new VBox(12, title, controls);
+        VBox top = new VBox(12, title, settingsRow, actionRow);
         root.setTop(top);
 
+        promptLabel.setFont(Font.font("System", FontWeight.BOLD, 64));
+        promptLabel.setStyle("-fx-text-fill: #2563eb;");
         feedbackLabel.setFont(Font.font("System", FontWeight.BOLD, 28));
         progressLabel.setStyle("-fx-text-fill: #6b7280;");
         input.setMaxWidth(120);
@@ -78,7 +92,7 @@ public class LetterTrainerView {
             if (awaitingResponse && !val.isEmpty()) submitTyped();
         });
 
-        VBox center = new VBox(14, statusLabel, feedbackLabel, input, progressLabel);
+        VBox center = new VBox(14, statusLabel, promptLabel, feedbackLabel, input, progressLabel);
         center.setAlignment(Pos.CENTER);
         center.setPadding(new Insets(40));
         root.setCenter(center);
@@ -98,6 +112,8 @@ public class LetterTrainerView {
 
     private Button button(String label, Runnable r) {
         Button b = new Button(label);
+        // Never let the HBox shrink a button down to an unreadable "...".
+        b.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
         b.setOnAction(ev -> r.run());
         return b;
     }
@@ -114,6 +130,7 @@ public class LetterTrainerView {
 
     private void stop() {
         awaitingResponse = false;
+        promptLabel.setText(" ");
         statusLabel.setText(String.format("Stopped. Accuracy %.0f%%, WPM %.1f",
                 scoring.overallAccuracy() * 100, scoring.achievedWpm()));
         if (AppConfig.get().autoExportSessions) scoring.exportJson();
@@ -128,6 +145,8 @@ public class LetterTrainerView {
         currentChar = session.next();
         scoring.presented(currentChar);
         progressLabel.setText("Remaining: " + session.remaining());
+        promptLabel.setText(showCharBox.isSelected()
+                ? String.valueOf(Character.toUpperCase(currentChar)) : "");
         awaitingResponse = true;
         Platform.runLater(input::clear);
         new Thread(() -> {
