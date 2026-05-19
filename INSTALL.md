@@ -599,6 +599,7 @@ See `i18n-packs/README.md` for the full layout.
 | `~/Applications/WM3J *.app/`                | macOS app bundles (per module) |
 | `~/Library/Logs/ARS-Suite/<module>.log`     | macOS module log output |
 | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\` | Windows shortcuts |
+| `%LOCALAPPDATA%\ARS-Suite\apache-maven-<ver>\` | Maven (Windows; only if it wasn't already on PATH) |
 
 ---
 
