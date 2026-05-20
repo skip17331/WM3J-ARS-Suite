@@ -311,8 +311,11 @@ public class MainWindow {
         modeBox.setItems(FXCollections.observableArrayList(ModeType.values()));
         modeBox.setValue(ModeType.RTTY);
         modeBox.setPrefWidth(108);
-        // AX.25 decoder is a placeholder (tone-detect only) — show it but
-        // disable selection until a real packet decoder lands.
+        // AX.25 stays in the dropdown for cell-factory styling (SignalClassifier
+        // can identify Bell-202 packet bursts on the waterfall so the label is
+        // worth keeping), but it's not selectable as an active mode: the
+        // decoder is tone-detect only and transmit is permanently parked —
+        // real packet TX needs a TNC / direwolf, not in this app's scope.
         modeBox.setCellFactory(lv -> new ListCell<ModeType>() {
             @Override protected void updateItem(ModeType item, boolean empty) {
                 super.updateItem(item, empty);

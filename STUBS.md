@@ -1,65 +1,51 @@
 # ARS Suite — Stubs & Unfinished Features
 
-Audit captured 2026-05-20; closeout pass same day. Order is rough user-impact
-priority. Items closed in this pass are noted with their commit hash where
-already pushed.
+Audit captured 2026-05-20; closeout passes same day. Order is rough user-impact
+priority. Items closed are noted with the relevant commit / change.
 
 ## A. UI fields users fill in that no Java code reads
 
-- [x] **Rig: CI-V Direct backend** — `RigSection.civPort`/`civBaud`/`civAddress`.
-      Closed 2026-05-20, commit `f227aa1`.
-
-  ~~Rotor: shortPathOffset / customPreset~~ — false positive. Consumed
-  client-side at `config.js:rotorPreset()`.
-
-- [x] **Appearance: fontSize / waterfallColor** — schema-only, no readers.
-      Deleted from `AppearanceSection` + JS default. Closed in this pass.
-
-- [ ] **Logger: dbPath / mode** — `LoggerSection.normalLog.dbPath` and
-      `LoggerSection.mode` are exposed in the j-hub UI (Logging tab,
-      `#log-db-path` + `#log-mode`) and posted via `saveLogging()`, but no
-      Java code reads them and j-log uses its own hardcoded `~/.j-log/`
-      path. Same shape as the CI-V trap. **Closeout** (deferred): either
-      (a) wire the dbPath through `STATION_CONFIG` so j-log honors it, or
-      (b) remove the Logging tab. Decide later.
+- [x] **Rig: CI-V Direct backend** — closed in `f227aa1`.
+  ~~Rotor: shortPathOffset / customPreset~~ — false positive (consumed
+  client-side at `config.js:rotorPreset()`).
+- [x] **Appearance: fontSize / waterfallColor** — schema & default deleted
+      (`172f6a3`).
+- [x] **Logger: dbPath / mode** — dead "Log Database" card removed from
+      Logging tab; `saveLogging()`, populate code, and `LoggerSection`
+      schema all deleted. Log Uploaders and Cloud Backup cards stay.
+      Closed in this pass.
 
 ## B. Explicit "not implemented" markers
 
-User-facing — closed:
+Closed:
 
-- [x] **j-digi `{NAME}` macro = "OM" placeholder** — closed.
-      `LogEntryPane.getName()` exposes the typed DX-op name field;
-      `MacroBar` constructor gained a `nameFn` Supplier and wires
-      `ctx.name`. `MacroVariableEngine` already substitutes "OM" when
-      the supplier returns blank, so existing macros keep working. Also
-      added `ModemService.getMyName()` reading the station operator name
-      from `STATION_CONFIG.name`, for any future caller that wants the
-      local op (not the worked op).
+- [x] **j-digi `{NAME}` macro = "OM" placeholder** — wired to
+      `LogEntryPane.getName()` (`172f6a3`).
+- [x] **j-log "not implemented" alert** — `menuNewDatabase()` now wipes
+      the current contest's QSOs after confirmation (`172f6a3`).
+- [x] **j-log unknown distance-formula returns 0** — now logs warn +
+      falls back to `basePoints` (`172f6a3`).
+- [x] **j-digi AX.25 TX + WAV export** — **permanently parked**, not
+      built. Real packet TX needs a TNC / direwolf between soundcard
+      and radio, out of j-digi's scope. Messages now read "AX.25 is
+      decode-only in j-digi" instead of "not implemented yet";
+      `transmitterForMode` comment explains the decision so future
+      audits don't re-flag it. See memory entry
+      `feedback_ax25_tx_parked`.
+- [x] **j-hub antenna calculator Phase 2b** — false positive. Every
+      entry in `AW_ANTENNAS` (11) already has a matching `AW_CALCS`
+      entry, so the "Coming soon" branch and the "Phase 2b" message
+      are unreachable. Replaced the misleading "coming in a follow-up
+      commit" string with a defensive "calculator not defined"
+      fallback.
+- [x] ~~**j-hub FCC ULS Phase 2** — operator class from AM.dat~~ — false
+      positive (already implemented).
 
-- [x] **j-log "not implemented" alert** — `menuNewDatabase()` closed.
-      Now shows a confirmation dialog and deletes every QSO for the
-      current contest (plus joined `contest_qtc` rows) via
-      `ContestQsoDao.deleteAllForContest()`. Reloads table + stats on
-      success. Operator is told to use `File → Backup Database` first
-      since there's no undo.
-
-- [x] **j-log unknown distance-formula returns 0** —
-      `ContestLogController.java:1958` closed. Now logs a warn (once per
-      plugin+formula, via `warnUnknownDistanceFormula`) and falls back
-      to `basePoints` so contests don't silently score zero.
-
-User-facing — still open:
-
-- [ ] **j-digi AX.25 transmit + WAV export not implemented** —
-      `ModemService.java:524` (TX) and `:600` (WAV). `transmitterForMode`
-      returns `null` for `AX25`; every other mode has a transmitter.
-
-      **Closeout (~1-2 days):** Implement `Ax25Transmitter` (HDLC framing,
-      NRZI bit-stuff, AFSK 1200/2200 Hz tones at 1200 baud) or gate AX25
-      out of the mode dropdown.
+Still open:
 
 - [ ] **j-learn `<!-- TODO: content -->` placeholder** —
-      `jlearn.js:393`. Per-chapter content gap. Content-writing task.
+      `jlearn.js:393`. Per-chapter content gap. Content-writing task,
+      not engineering.
 
 Internal stubs (no user impact today):
 
@@ -67,28 +53,20 @@ Internal stubs (no user impact today):
       Foundation tier scaffolding only; real feature, not a polish fix.
       Defer.
 
-- [x] ~~**j-hub FCC ULS Phase 2** — operator class from AM.dat~~ — false
-      positive in the audit. `FccUlsImporter.readOperatorClasses()`
-      already parses AM.dat, expands the code via
-      `HamDbProvider.classExpand`, and writes it to
-      `callsigns.license_class`. The "Phase 2" label in line 83 is a
-      section header, not a TODO.
-
-- [ ] **j-hub antenna calculator Phase 2b** — `config.js:6380`.
-
 Intentional / out of scope:
 
 - **j-sat EME Phase 2** — matches the documented out-of-scope list.
+- **j-digi AX.25 TX** — see above; permanent.
 
 ## C. Dead-quiet schema fields
 
-- [x] `RotorSection.model`, `RotorSection.comPort` — deleted.
-- [x] `AmpSection.model`, `AmpSection.comPort`, `AmpSection.baud` —
-      deleted (schema comment already labeled them informational).
-- [x] `LoggerSection.contests`, `LoggerSection.activeContest` — deleted.
-- [x] `InfoScreenSection` whole class + top-level field + dead
-      `ConfigManager.getInfoScreen()` accessor — deleted.
+All closed in `172f6a3` + this pass:
+
+- [x] `RotorSection.model`, `RotorSection.comPort`
+- [x] `AmpSection.model`, `AmpSection.comPort`, `AmpSection.baud`
+- [x] `LoggerSection` entire class (+ `ConfigManager.getLogger()`)
+- [x] `InfoScreenSection` entire class (+ `ConfigManager.getInfoScreen()`)
+- [x] `AppearanceSection.fontSize`, `AppearanceSection.waterfallColor`
 
 Gson silently ignores unknown JSON fields, so existing `j-hub.json` files
-with these fields still load cleanly — they just drop out on the next
-save.
+with these fields still load cleanly — they just drop out on the next save.

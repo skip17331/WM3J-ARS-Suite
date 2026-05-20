@@ -105,7 +105,6 @@ public class ConfigManager {
     public synchronized JHubConfig.JHubSection      getJHub()      { return config.jHub;       }
     public synchronized JHubConfig.StationSection   getStation()   { return config.station;    }
     public synchronized JHubConfig.ClusterSection   getCluster()   { return config.cluster;    }
-    public synchronized JHubConfig.LoggerSection    getLogger()    { return config.logger;     }
     public synchronized JHubConfig.AppsSection       getApps()      { return config.apps;       }
 
     /**

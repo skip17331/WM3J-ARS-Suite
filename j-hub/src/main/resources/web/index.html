@@ -1262,38 +1262,6 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Log Database</div>
-        <div class="field-row cols-2">
-          <div class="field">
-            <input type="text" id="log-db-path" placeholder="/home/user/ars/log.db">
-            <label>Database Path</label>
-            <span class="hint">Managed by J-Log. Leave blank to use J-Log's default location.</span>
-          </div>
-          <div class="field">
-            <select id="log-mode">
-              <option value="normal">Normal</option>
-              <option value="contest">Contest</option>
-            </select>
-            <label>Logging Mode</label>
-          </div>
-        </div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Auto-Log Spots</div>
-            <div class="toggle-desc">Route clicked DX spots directly to J-Log as draft entries</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="log-auto-spot">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="saveLogging()">Save</button>
-          <span id="log-msg" style="font-size:12px;color:var(--overlay0)"></span>
-        </div>
-      </div>
-
-      <div class="card">
         <div class="card-title">Cloud Backup</div>
         <div style="font-size:12px;color:var(--subtext0);margin-bottom:8px">
           Periodically zip every <code>~/.j-*</code> state directory and write

@@ -1015,11 +1015,6 @@ function populateForms(cfg) {
   if (cfg.cluster) setText('d-clus-srv', cl.server || '—');
   loadNetworks();
 
-  // Logging
-  const lg = cfg.logger || {};
-  setVal('log-db-path', (lg.normalLog && lg.normalLog.dbPath) || '');
-  setVal('log-mode', lg.mode || 'normal');
-
   // Band/mode filters
   const filters = (cl.filters) || {};
   buildFilterChips('band-filters', ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m','2m','70cm'], filters.bands || []);
@@ -2021,16 +2016,6 @@ function saveFilters() {
   const modes = getCheckedChips('mode-filters');
   const body = { cluster: { filters: { bands, modes } } };
   postPartialConfig(body, 'cl-msg', 'Filters saved');
-}
-
-function saveLogging() {
-  const body = {
-    logger: {
-      mode: document.getElementById('log-mode').value,
-      normalLog: { dbPath: document.getElementById('log-db-path').value.trim() },
-    }
-  };
-  postPartialConfig(body, 'log-msg', 'Logging settings saved');
 }
 
 function savePorts() {
@@ -6376,8 +6361,14 @@ function awCalcOpen(id) {
 
   const calc = AW_CALCS[id];
   if (!calc) {
+    // Defensive fallback — every entry in AW_ANTENNAS currently has a
+    // matching AW_CALCS entry, so this branch is unreachable in normal
+    // UX. Lands here only if a future antenna is added to AW_ANTENNAS
+    // without a calculator companion. Keep the message factual, not
+    // promissory (the old "coming in a follow-up commit" wording aged
+    // badly when the follow-up shipped).
     document.getElementById('aw-calc-panel').innerHTML =
-      `<div style="color:var(--peach);font-size:13px">This calculator is part of Phase 2b — not yet implemented. The recommender already scores it; the chapter card and full calculator are coming in a follow-up commit.</div>`;
+      `<div style="color:var(--peach);font-size:13px">Calculator '${escHtml(id)}' isn't defined. The recommender scores it but no AW_CALCS entry was found — add one or remove the antenna from AW_ANTENNAS.</div>`;
     return;
   }
   aw.calc.current = id;

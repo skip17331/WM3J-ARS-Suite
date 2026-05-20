@@ -25,7 +25,6 @@ public class JHubConfig {
     public RbnSection         rbn             = new RbnSection();
     public SkimmerSection     skimmer         = new SkimmerSection();
     public BackupSection      backup          = new BackupSection();
-    public LoggerSection      logger          = new LoggerSection();
     public AppsSection        apps            = new AppsSection();
     public MacrosSection      macros          = new MacrosSection();
     public AppearanceSection  appearance      = new AppearanceSection();
@@ -256,23 +255,6 @@ public class JHubConfig {
         public Set<String> bands     = new HashSet<>(Arrays.asList("160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"));
         public Set<String> modes     = new HashSet<>(Arrays.asList("CW","FT8","FT4","RTTY","PSK31"));
         public int     minSnrDb      = 5;
-    }
-
-    // ---------------------------------------------------------------
-    // Logger application settings
-    // ---------------------------------------------------------------
-
-    // NOTE: the LoggerSection UI fields (mode, normalLog.dbPath) are still
-    // exposed in the web UI but no Java code reads them yet — see STUBS.md.
-    // The contests[] / activeContest fields have been deleted; they were
-    // never wired and j-log owns its own per-event state.
-    public static class LoggerSection {
-        public String    mode      = "normal";
-        public NormalLog normalLog = new NormalLog();
-    }
-
-    public static class NormalLog {
-        public String dbPath = "";
     }
 
     // ---------------------------------------------------------------

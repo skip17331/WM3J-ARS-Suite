@@ -532,7 +532,13 @@ public class ModemService implements HubMessageListener {
         DigitalTransmitter transmitter = transmitterForMode(txMode);
 
         if (transmitter == null) {
-            postDecodeLine("Transmit not implemented yet for mode: " + txMode);
+            // AX.25 is the only mode that lands here today and is permanently
+            // decode-only in j-digi by design (packet TX needs a real TNC or
+            // direwolf — not on this app's roadmap). The message is worded
+            // accordingly so users don't think it's still "coming".
+            postDecodeLine(txMode == ModeType.AX25
+                    ? "AX.25 is decode-only in j-digi"
+                    : "Transmit not available for mode: " + txMode);
             return;
         }
 
@@ -608,7 +614,10 @@ public class ModemService implements HubMessageListener {
         DigitalTransmitter transmitter = transmitterForMode(txMode);
 
         if (transmitter == null) {
-            throw new UnsupportedOperationException("WAV export not implemented yet for mode: " + txMode);
+            // See transmitText() — AX.25 is permanently decode-only in j-digi.
+            throw new UnsupportedOperationException(txMode == ModeType.AX25
+                    ? "AX.25 is decode-only in j-digi (WAV export not available)"
+                    : "WAV export not available for mode: " + txMode);
         }
 
         status.setTxMode(txMode);
@@ -716,6 +725,11 @@ public class ModemService implements HubMessageListener {
             case OLIVIA -> oliviaTransmitter;
             case MFSK16   -> mfsk16Transmitter;
             case DOMINOEX -> dominoExTransmitter;
+            // AX.25 is permanently decode-only in j-digi. Real packet TX
+            // requires a TNC (or a software emulator like direwolf) sitting
+            // between the soundcard and the radio's KISS/serial interface,
+            // which is out of scope for this app. Don't propose building
+            // an Ax25Transmitter — keep using a hardware TNC for packet TX.
             case AX25     -> null;
         };
     }
