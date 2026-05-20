@@ -16,12 +16,13 @@ import java.util.function.Consumer;
  * publishes them as <em>activity</em> events so j-hub can render them
  * to other modules (J-Map waterfall colouring, J-Log spot pane).
  *
- * <p>This is the foundation tier of Phase 2's "embedded CW skimmer".
- * Per-channel decoding (multiple {@link com.hamradio.modem.mode.CwMode}
- * instances behind Goertzel band-pass filters, then callsign
- * extraction) is a follow-up — but even on its own, the detector turns
- * J-Digi into a band-activity gauge for the audio passband which is
- * useful for finding open frequencies during contests.
+ * <p>This is the carrier-detection front end of the embedded CW skimmer.
+ * The per-channel decode + callsign-extraction stages live in
+ * {@link MultiCarrierDecoder}, {@link CallsignScorer}, and
+ * {@link SkimmerSpotPublisher}, which together publish {@code SPOT}
+ * messages to j-hub. Used standalone (without those followers), the
+ * detector also doubles as a band-activity gauge across the audio
+ * passband — useful for finding open frequencies during contests.
  *
  * <p>Algorithm per frame:
  * <ol>

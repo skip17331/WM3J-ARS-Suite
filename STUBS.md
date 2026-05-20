@@ -40,23 +40,22 @@ Closed:
       fallback.
 - [x] ~~**j-hub FCC ULS Phase 2** — operator class from AM.dat~~ — false
       positive (already implemented).
-
-Still open:
-
-- [ ] **j-learn `<!-- TODO: content -->` placeholder** —
-      `jlearn.js:393`. Per-chapter content gap. Content-writing task,
-      not engineering.
-
-Internal stubs (no user impact today):
-
-- [ ] **j-digi LocalSkimmer Phase 2** — `dsp/LocalSkimmer.java:19`.
-      Foundation tier scaffolding only; real feature, not a polish fix.
-      Defer.
+- [x] ~~**j-learn `<!-- TODO: content -->` placeholder**~~ — false positive.
+      `jlearn.js:392` is a defensive renderer for a marker that no
+      shipping chapter uses (verified: 0 markers across 297 markdown
+      files in 31 chapters). Comment updated to explain.
+- [x] ~~**j-digi LocalSkimmer Phase 2**~~ — false positive. The full
+      multi-carrier-decode + callsign-scoring + spot-publish pipeline
+      shipped (`MultiCarrierDecoder`, `CallsignScorer`,
+      `SkimmerSpotPublisher`). Stale Javadoc updated.
 
 Intentional / out of scope:
 
-- **j-sat EME Phase 2** — matches the documented out-of-scope list.
-- **j-digi AX.25 TX** — see above; permanent.
+- **j-sat EME Phase 1+2** — plan approved 2026-05-20, implementation
+  on hold. Phases 3+ (Doppler tuning, WSJT-X UDP, sky temperature,
+  sked board) still on the roadmap but not planned in detail.
+- **j-digi AX.25 TX** — permanently parked, see
+  `feedback_ax25_tx_parked` memory.
 
 ## C. Dead-quiet schema fields
 

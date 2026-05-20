@@ -389,6 +389,10 @@ function mdToHtml(md) {
     }
     if (para.length) {
       let html = inline(para.join(' '));
+      // Defensive renderer for `<!-- TODO: content -->` placeholders. No
+      // shipping chapter uses the marker today, but content editors can
+      // drop it into a section as a visual "draft" tag and it will render
+      // gracefully instead of as a bare HTML comment.
       html = html.replace(/&lt;!--\s*TODO:?\s*content\s*--&gt;/g,
         '<span style="font-style:italic;color:var(--overlay0);font-size:12px">(content not yet written)</span>');
       out.push('<p>' + html + '</p>');
