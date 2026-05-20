@@ -230,9 +230,13 @@ button re-probes after you install them.
    broker WebSocket; J-Hub just spawns the process and embeds its UI in
    the J-Vault tab.
 4. Optional but recommended: under **Rig Control**, configure either CI-V
-   (serial port, baud, hex address) or Hamlib (rigctld host/port). Under
-   **Rotor Control** do the same if you run a rotator. Under **Amp Control**
-   if you run an amplifier with `ampctld`.
+   (serial port, baud, hex address) or Hamlib (pick your rig from the
+   dropdown + serial port + baud — J-Hub spawns `rigctld` for you). Under
+   **Rotor Control** do the same if you run a rotator (J-Hub spawns
+   `rotctld`). Under **Amp Control** likewise (J-Hub spawns `ampctld`).
+   If you already run the daemons yourself (e.g. on a separate machine),
+   turn off the "Start &lt;daemon&gt; for me" toggle and just point Host/Port
+   at them.
 5. Under **DX Cluster**, pick a network (e.g. `dx.middlebrook.ca:8000`), enter
    your login callsign, tick **Auto-connect**, save.
 6. Restart J-Hub. Auto-launched modules come up, register on the hub, and

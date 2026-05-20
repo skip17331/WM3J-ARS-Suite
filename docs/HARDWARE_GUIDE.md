@@ -113,19 +113,12 @@ This is the easy case. Examples:
 3. If it does not appear on Windows, go to the radio's manufacturer website and download the USB driver. Install it, then plug in the radio again.
 4. In the radio's menu, set the CAT speed (sometimes called "baud rate"). 19200 or 38400 are common. Write down what you pick — you will need it again.
 5. In the radio's menu, set the CAT address if it asks. Icom default is `94`. Yaesu and Kenwood do not ask.
-6. Start `rigctld` with the right model number and the port you saw in step 2:
+6. Open the J-Hub web page (http://localhost:8081), go to the **Rig Control** tab and set the backend to **Hamlib rigctld**.
+7. Leave **Start rigctld for me** turned on (default). Pick your radio from the **Rig Model** dropdown, fill in the **Serial Port** from step 2 (`/dev/ttyUSB0` on Linux, `COM4` on Windows, etc.), pick the **Baud Rate** from step 4, and click **Save**. Within a few seconds you should see a frequency reading appear.
 
-   Linux:
-   ```bash
-   rigctld -m 3081 -r /dev/ttyUSB0 -s 19200
-   ```
-   Windows (in a Command Prompt):
-   ```
-   rigctld.exe -m 3081 -r COM4 -s 19200
-   ```
-   Replace `3081` with **your** radio's Hamlib model number. Run `rigctld -l` to see the full list — it is long.
+   J-Hub will start `rigctld` for you with the right arguments. If your rig isn't in the dropdown, choose **Other / Custom** and enter the Hamlib model number — run `rigctld -l` (or `rigctld.exe -l` on Windows) to find it.
 
-7. Open the J-Hub web page (http://localhost:8081), go to the **Rig Control** tab, set the backend to **Hamlib**, host to `localhost`, port to `4532`, and click **Save**. Within a few seconds you should see a frequency reading appear.
+   *Power user:* if you already run `rigctld` yourself (e.g. on a separate machine), turn the toggle off and just point Host/Port at it.
 
 ### 4.2 Older radios with a DB-9 CAT port
 
@@ -137,7 +130,7 @@ Examples: many older Yaesu, Kenwood, and Ten-Tec rigs. Also Icom rigs that come 
 2. Connect the adapter's serial end to the radio's CAT port using the cable that came with the radio (or a 9-pin straight-through cable).
 3. Plug the USB end into your PC.
 4. The PC sees a new serial port. On Linux it is usually `/dev/ttyUSB0`. On Windows it is `COMn` where n is some number.
-5. Continue with steps 4–7 from section 4.1.
+5. Continue with steps 4–7 from section 4.1 (set CAT speed/address on the radio; configure rig in the J-Hub web UI).
 
 ### 4.3 Icom rigs with only a CI-V (3.5 mm) jack
 
@@ -183,24 +176,22 @@ Most rotators have a separate **controller box** that sits on your desk. The rot
 
 1. The GS-232 box (sometimes built into the controller) has a DB-9 serial port labeled "Computer."
 2. Connect a USB-to-serial adapter from your PC to that port.
-3. Start `rotctld`:
-   ```bash
-   rotctld -m 603 -r /dev/ttyUSB1 -s 9600
-   ```
-   `603` is the Hamlib model number for the GS-232A. Use `601` for the older GS-232 protocol.
-4. In the J-Hub web UI, go to **Rotor Control**, set backend to **Hamlib**, host `localhost`, port `4533`, click **Save**. The compass display should start showing your current heading.
+3. Open the J-Hub web UI, go to **Rotor Control** and set backend to **Hamlib rotctld**.
+4. Leave **Start rotctld for me** turned on (default). Pick **Yaesu GS-232A**, **GS-232B**, or **GS-232** from the **Rotor Model** dropdown (whichever your controller actually speaks — check the menu), fill in **Serial Port** (`/dev/ttyUSB1`, `COM5`, etc.), **Baud Rate** (usually 9600), and click **Save**. The compass display should start showing your current heading.
 
-### 5.2 Hy-Gain DCU-1 / Tail Twister (T2X) / Ham IV
+   *Power user:* turn the toggle off and use Host/Port if you already run `rotctld` yourself.
 
-Same pattern. Use Hamlib model `1101` for DCU-1, `1102` for AlfaSpid, etc.
+### 5.2 Hy-Gain DCU-1 / DCU-1X / DCU-2 / DCU-3 / YRC-1
+
+Same pattern. Pick **Hy-Gain DCU-1 / DCU-1X** (Hamlib id 403) or **Hy-Gain DCU2 / DCU3 / YRC-1** (id 406) from the dropdown. AlfaSpid controllers use the SPID models (901–903).
 
 ### 5.3 Green Heron RT-21
 
-This is one of the few rotators with USB built in. Plug it in. Use Hamlib model `1404`. No adapter needed.
+This is one of the few rotators with USB built in. Plug it in, then in J-Hub pick **Green Heron RT-21** (Hamlib id 405) from the dropdown. No adapter needed.
 
-### 5.4 Heavy duty (Prosistel, Orion, Yaesu G-2800DXC)
+### 5.4 Heavy duty (Prosistel, Orion, M2 RC2800)
 
-Same as 5.1 — DB-9 serial → USB-serial adapter — but check the model number list because there are several.
+Same as 5.1 — DB-9 serial → USB-serial adapter. The dropdown has entries for **Prosistel D** (azimuth / elevation / combi-track) and **M2 RC2800**. If your specific model isn't listed, use **Other / Custom** and run `rotctld -l` to find the number.
 
 ---
 
@@ -210,22 +201,25 @@ Amplifier control is more recent than rig control, so older amps simply cannot b
 
 ### 6.1 Elecraft KPA1500
 
-Has built-in USB. Plug in one cable. Start `ampctld`:
-```bash
-ampctld -m 4 -r /dev/ttyUSB2 -s 38400
-```
-In J-Hub: **Amp Control** tab, backend **Hamlib ampctld**, host `localhost`, port `4531`, click **Save**.
+Has built-in USB. Plug in one cable, then in J-Hub:
 
-### 6.2 ACOM 600S / 700S / 1500 / 2000A
+1. **Amp Control** tab, backend **Hamlib ampctld**.
+2. Leave **Start ampctld for me** turned on (default).
+3. Pick **Elecraft KPA1500** from the **Amp Model** dropdown (Hamlib id 201).
+4. Fill in **Serial Port** (`/dev/ttyUSB2`, `COM6`, etc.) and **Baud Rate** (KPA1500 default is 38400).
+5. Click **Save**. Forward power and SWR should appear in the Live Status panel within a couple of seconds.
 
-ACOM ships a serial cable in the box. Use it with a USB-to-serial adapter.
-- ACOM 600S: model `5`
-- ACOM 1500: model `5` (same protocol)
-- ACOM 2000A: model `1`
+### 6.2 Gemini DX1200 / HF-1K
 
-### 6.3 Ameritron ALS-1306 / ALS-1300
+Same pattern. Pick **Gemini DX1200 / HF-1K** (Hamlib id 301) from the dropdown and fill in the serial port the amp shows up on.
 
-Some come with a USB module, some need an add-on. Check the manual.
+### 6.3 ACOM, Ameritron, and other amps with serial control
+
+Hamlib ships drivers for the Elecraft KPA1500 and Gemini DX1200 only (as of Hamlib 4.5). Other amps with serial-control ports — ACOM 600S/1500/2000A, Ameritron ALS-1300/1306, OM Power, SPE Expert — currently have no `ampctld` driver. You can still:
+
+- Run the manufacturer's own remote-control app (e.g. ACOM's *RCU-Pilot*) alongside J-Hub.
+- Get **band-follow** working by feeding the amp BCD band data straight from the rig — see your amp's manual for the BCD pinout and use a band-decoder board between rig and amp.
+- Drop the model number into the **Other / Custom** field if you've built a Hamlib amp driver locally that isn't in upstream yet.
 
 ### 6.4 Old tube amps (no remote port)
 
