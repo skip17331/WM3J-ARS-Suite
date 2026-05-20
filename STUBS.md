@@ -1,74 +1,94 @@
 # ARS Suite — Stubs & Unfinished Features
 
-Audit captured 2026-05-20 alongside the CI-V build-out. Each entry is what's
-*claimed* by the UI or code structure vs. what actually runs today. Order is
-rough priority: user-visible bugs first, internal stubs after.
+Audit captured 2026-05-20; closeout pass same day. Order is rough user-impact
+priority. Items closed in this pass are noted with their commit hash where
+already pushed.
 
 ## A. UI fields users fill in that no Java code reads
 
-These are the "CI-V trap" — a setting is presented in the j-hub web UI, gets
-saved to `j-hub.json`, but nothing on the backend ever consumes it. The user
-thinks the feature works.
+- [x] **Rig: CI-V Direct backend** — `RigSection.civPort`/`civBaud`/`civAddress`.
+      Closed 2026-05-20, commit `f227aa1`.
 
-- [x] **Rig: CI-V Direct backend** — `RigSection.civPort` / `civBaud` /
-      `civAddress`. UI: `#civ-block` in `index.html`, populated by `config.js`
-      lines 981–983. Build in progress (this branch).
-- [ ] **Rotor: Short-path offset** — `RotorSection.shortPathOffset`. UI:
-      `#rot-short-offset` (`config.js:1005`). `HamlibRotorController.start()`
-      reads only `tcpHost`/`tcpPort`; the offset feeds the rotor preset
-      buttons users actually click.
-- [ ] **Rotor: Custom preset** — `RotorSection.customPreset`. UI:
-      `#rot-custom` (`config.js:1006`). Same bug as above.
-- [ ] **Appearance: fontSize, waterfallColor** —
-      `AppearanceSection.fontSize`, `AppearanceSection.waterfallColor`.
-      Schema-only, no UI inputs and no readers. Either expose + apply, or
-      delete from schema.
+  ~~Rotor: shortPathOffset / customPreset~~ — false positive. Consumed
+  client-side at `config.js:rotorPreset()`.
 
-## B. Explicit "not implemented" markers in shipped code
+- [x] **Appearance: fontSize / waterfallColor** — schema-only, no readers.
+      Deleted from `AppearanceSection` + JS default. Closed in this pass.
 
-User-facing first.
+- [ ] **Logger: dbPath / mode** — `LoggerSection.normalLog.dbPath` and
+      `LoggerSection.mode` are exposed in the j-hub UI (Logging tab,
+      `#log-db-path` + `#log-mode`) and posted via `saveLogging()`, but no
+      Java code reads them and j-log uses its own hardcoded `~/.j-log/`
+      path. Same shape as the CI-V trap. **Closeout** (deferred): either
+      (a) wire the dbPath through `STATION_CONFIG` so j-log honors it, or
+      (b) remove the Logging tab. Decide later.
 
-- [ ] **j-digi `{NAME}` macro substitution returns "OM" placeholder** —
-      `j-digi/src/main/java/com/hamradio/modem/ui/MacroBar.java:23`. Every CW
-      macro that uses `{NAME}` is silently wrong. Should read from the
-      station-config `name` field broadcast in `STATION_CONFIG`.
-- [ ] **j-digi: Transmit not implemented for certain modes** —
-      `ModemService.java:527`. Identify which modes; document or finish.
-- [ ] **j-digi: WAV export not implemented for certain modes** —
-      `ModemService.java:603`. Same as above.
-- [ ] **j-log: "not implemented" alert dialog** —
-      `ContestLogController.java:3646`. Find which menu/button surfaces this
-      and either build it or hide the entry point.
-- [ ] **j-log: unknown-formula returns 0** — `ContestLogController.java:1958`.
-      Silent scoring stub; any contest that hits this falls through to a
-      zero score. Audit which contest plugins can trigger it.
-- [ ] **j-learn: `<!-- TODO: content -->` placeholder** — `jlearn.js:393`.
-      Per-page content gap; find which chapters/sections still hold the
-      marker.
+## B. Explicit "not implemented" markers
 
-Internal stubs (no user impact today, but flagged for completeness):
+User-facing — closed:
 
-- [ ] **j-digi LocalSkimmer Phase 2** — `dsp/LocalSkimmer.java:19`. Embedded
-      CW skimmer foundation tier.
-- [ ] **j-hub FCC ULS Phase 2** — `FccUlsImporter.java:83`. USI→operator
-      class mapping from AM.dat.
+- [x] **j-digi `{NAME}` macro = "OM" placeholder** — closed.
+      `LogEntryPane.getName()` exposes the typed DX-op name field;
+      `MacroBar` constructor gained a `nameFn` Supplier and wires
+      `ctx.name`. `MacroVariableEngine` already substitutes "OM" when
+      the supplier returns blank, so existing macros keep working. Also
+      added `ModemService.getMyName()` reading the station operator name
+      from `STATION_CONFIG.name`, for any future caller that wants the
+      local op (not the worked op).
+
+- [x] **j-log "not implemented" alert** — `menuNewDatabase()` closed.
+      Now shows a confirmation dialog and deletes every QSO for the
+      current contest (plus joined `contest_qtc` rows) via
+      `ContestQsoDao.deleteAllForContest()`. Reloads table + stats on
+      success. Operator is told to use `File → Backup Database` first
+      since there's no undo.
+
+- [x] **j-log unknown distance-formula returns 0** —
+      `ContestLogController.java:1958` closed. Now logs a warn (once per
+      plugin+formula, via `warnUnknownDistanceFormula`) and falls back
+      to `basePoints` so contests don't silently score zero.
+
+User-facing — still open:
+
+- [ ] **j-digi AX.25 transmit + WAV export not implemented** —
+      `ModemService.java:524` (TX) and `:600` (WAV). `transmitterForMode`
+      returns `null` for `AX25`; every other mode has a transmitter.
+
+      **Closeout (~1-2 days):** Implement `Ax25Transmitter` (HDLC framing,
+      NRZI bit-stuff, AFSK 1200/2200 Hz tones at 1200 baud) or gate AX25
+      out of the mode dropdown.
+
+- [ ] **j-learn `<!-- TODO: content -->` placeholder** —
+      `jlearn.js:393`. Per-chapter content gap. Content-writing task.
+
+Internal stubs (no user impact today):
+
+- [ ] **j-digi LocalSkimmer Phase 2** — `dsp/LocalSkimmer.java:19`.
+      Foundation tier scaffolding only; real feature, not a polish fix.
+      Defer.
+
+- [x] ~~**j-hub FCC ULS Phase 2** — operator class from AM.dat~~ — false
+      positive in the audit. `FccUlsImporter.readOperatorClasses()`
+      already parses AM.dat, expands the code via
+      `HamDbProvider.classExpand`, and writes it to
+      `callsigns.license_class`. The "Phase 2" label in line 83 is a
+      section header, not a TODO.
+
 - [ ] **j-hub antenna calculator Phase 2b** — `config.js:6380`.
 
-Intentional / out of scope (do NOT build):
+Intentional / out of scope:
 
-- **j-sat EME Phase 2** — `JsatSettings.java:38`. Matches the documented
-  out-of-scope list (SO2R, web-remote, EME, voice-recog).
+- **j-sat EME Phase 2** — matches the documented out-of-scope list.
 
-## C. Dead-quiet schema fields (config-file clutter, no UI exposure)
+## C. Dead-quiet schema fields
 
-Not user-visible but they pollute `j-hub.json` and mislead anyone reading the
-schema. Either wire them or delete them.
+- [x] `RotorSection.model`, `RotorSection.comPort` — deleted.
+- [x] `AmpSection.model`, `AmpSection.comPort`, `AmpSection.baud` —
+      deleted (schema comment already labeled them informational).
+- [x] `LoggerSection.contests`, `LoggerSection.activeContest` — deleted.
+- [x] `InfoScreenSection` whole class + top-level field + dead
+      `ConfigManager.getInfoScreen()` accessor — deleted.
 
-- [ ] `RotorSection.model`, `RotorSection.comPort` — "INTERNAL" backend
-      placeholder that never shipped.
-- [ ] `AmpSection.model`, `AmpSection.comPort`, `AmpSection.baud` — schema
-      comment already admits they're informational.
-- [ ] `LoggerSection.normalLog`, `LoggerSection.contests`,
-      `LoggerSection.activeContest` — never read by anything in j-hub.
-- [ ] All four `InfoScreenSection` fields (`mapStyle`, `showGreatCircle`,
-      `spotTimeout`, `maxCachedSpots`).
+Gson silently ignores unknown JSON fields, so existing `j-hub.json` files
+with these fields still load cleanly — they just drop out on the next
+save.

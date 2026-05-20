@@ -415,7 +415,8 @@ public class MainWindow {
         MacroBar macroBar = new MacroBar(
             service,
             () -> rightPanel.getLogEntryPane().getCallsign(),
-            () -> rightPanel.getLogEntryPane().getRst()
+            () -> rightPanel.getLogEntryPane().getRst(),
+            () -> rightPanel.getLogEntryPane().getName()
         );
         return macroBar;
     }

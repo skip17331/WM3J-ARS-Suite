@@ -111,6 +111,13 @@ public class LogEntryPane extends VBox {
         return tfCallsign.getText().trim().toUpperCase();
     }
 
+    /** DX operator's name as typed by the user; blank if not entered.
+     *  Read by MacroBar for the {NAME} substitution. Preserves case so a
+     *  macro like "TNX {NAME} 73" produces "TNX Mike 73", not "TNX MIKE 73". */
+    public String getName() {
+        return tfName.getText() == null ? "" : tfName.getText().trim();
+    }
+
     public String getRst() {
         String r = tfRstSent.getText().trim();
         return r.isBlank() ? "599" : r;

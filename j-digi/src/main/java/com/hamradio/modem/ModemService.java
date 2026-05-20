@@ -150,6 +150,10 @@ public class ModemService implements HubMessageListener {
     // Station identity — populated from j-hub JHUB_WELCOME; prefs used as fallback
     private volatile String hubCallsign  = null;
     private volatile String hubGridSquare = null;
+    // Operator name (the human-readable {NAME} macro substitution). Blank
+    // means "no name configured" — callers fall back to "OM" so macros
+    // still render plausibly instead of inserting an empty token.
+    private volatile String hubOperatorName = "";
 
     private HubClient hubClient;
     private boolean shuttingDown = false;
@@ -316,6 +320,10 @@ public class ModemService implements HubMessageListener {
                : PREFS.get(PREF_MY_CALL, "NOCALL");
     }
     public String getMyGrid() { return hubGridSquare != null ? hubGridSquare : ""; }
+    /** Operator name from j-hub StationSection, or blank if not configured.
+     *  Used to substitute the {NAME} token in macros. Callers should fall
+     *  back to "OM" when blank so the macro still produces a readable line. */
+    public String getMyName() { return hubOperatorName == null ? "" : hubOperatorName; }
 
     /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
     public String bandFromRigHz() {
@@ -796,6 +804,11 @@ public class ModemService implements HubMessageListener {
             }
             if (st.has("gridSquare")) {
                 hubGridSquare = st.get("gridSquare").getAsString().trim().toUpperCase();
+            }
+            // Operator name is mixed-case by convention (it's a human name,
+            // not a callsign), so don't upper-case it here.
+            if (st.has("name")) {
+                hubOperatorName = st.get("name").getAsString().trim();
             }
             if (st.has("iaruRegion")) {
                 PREFS.put(PREF_BANDPLAN_REGION, st.get("iaruRegion").getAsString());

@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  *   {MYCALL}  station callsign from prefs
  *   {CALL}    DX callsign from LogEntryPane callsign field
  *   {RST}     RST from LogEntryPane (default 599)
- *   {NAME}    OM (placeholder; not yet stored)
+ *   {NAME}    DX operator name from LogEntryPane Name field (defaults to "OM" when blank)
  *   {FREQ}    rig frequency in MHz
  *   {BAND}    band derived from rig frequency
  *   {MODE}    current modem mode
@@ -30,13 +30,16 @@ public class MacroBar extends HBox {
     private final ModemService     service;
     private final Supplier<String> callsignFn;
     private final Supplier<String> rstFn;
+    private final Supplier<String> nameFn;
 
     public MacroBar(ModemService service,
                     Supplier<String> callsignFn,
-                    Supplier<String> rstFn) {
+                    Supplier<String> rstFn,
+                    Supplier<String> nameFn) {
         this.service    = service;
         this.callsignFn = callsignFn;
         this.rstFn      = rstFn;
+        this.nameFn     = nameFn;
 
         setSpacing(5);
         setPadding(new Insets(5, 8, 5, 8));
@@ -99,6 +102,9 @@ public class MacroBar extends HBox {
         ctx.myCall      = service.getMyCall();
         ctx.dxCall      = callsignFn.get();
         ctx.rstSent     = rstFn.get();
+        // ctx.name is the DX op's name; MacroVariableEngine substitutes "OM"
+        // when the supplier returns blank, so users still get a sensible macro.
+        ctx.name        = nameFn.get();
         ctx.frequencyHz = service.getStatus().getRigFrequencyHz();
         ctx.mode        = service.getStatus().getMode() != null
                           ? service.getStatus().getMode().name() : "";

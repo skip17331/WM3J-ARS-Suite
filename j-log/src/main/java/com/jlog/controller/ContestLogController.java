@@ -1955,13 +1955,32 @@ public class ContestLogController implements Initializable {
                 if (dist < ds.getMinDistancePoints()) dist = ds.getMinDistancePoints();
                 return ds.getBasePoints() + dist;
             }
-            return 0;                                   // unknown formula — flagged stub
+            // Unknown formula in the plugin JSON — warn (once per plugin+formula,
+            // to keep the log out of the hot path) and fall back to basePoints
+            // rather than scoring 0, which would silently zero the contest.
+            warnUnknownDistanceFormula(f);
+            return ds.getBasePoints();
         }
         if (rules != null && ((rules.getPointsByBand() != null && !rules.getPointsByBand().isEmpty())
                 || (rules.getPointsByBandClass() != null && !rules.getPointsByBandClass().isEmpty()))) {
             return plugin.pointsForBand(band, mode);
         }
         return plugin.pointsForMode(mode);
+    }
+
+    // Cache so an unknown formula doesn't spam the log on every QSO. Keyed by
+    // plugin id + formula string — a single contest can't have two distinct
+    // unknown formulas without one already being logged.
+    private static final java.util.Set<String> WARNED_UNKNOWN_FORMULAS =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private void warnUnknownDistanceFormula(String formula) {
+        String key = (plugin != null ? plugin.getContestId() : "?") + ":" + (formula == null ? "" : formula);
+        if (WARNED_UNKNOWN_FORMULAS.add(key)) {
+            log.warn("Unknown distanceScoring.formula '{}' in plugin '{}' — using basePoints. "
+                   + "Known formulas: km_x_bandfactor, one_plus_ceil_km_div, one_plus_floor_km_div.",
+                    formula, plugin != null ? plugin.getContestId() : "?");
+        }
     }
 
     /** CQ WW DX Rule IV.B QSO points from the my-station ↔ worked
@@ -3643,7 +3662,45 @@ public class ContestLogController implements Initializable {
     }
 
     @FXML private void menuNewDatabase() {
-        new Alert(Alert.AlertType.INFORMATION, I18n.get("msg.not.implemented")).showAndWait();
+        // "New Database" historically threw a not-implemented alert. The
+        // realistic meaning in this single-contest-DB design is: wipe the
+        // current contest's QSOs and start fresh for the next event. We
+        // gate it behind an explicit Yes-this-is-destructive confirmation
+        // and *strongly* hint the operator should back up first, since
+        // there's no undo. Bypass the action if no contest is loaded —
+        // there's nothing to clear.
+        if (plugin == null) {
+            new Alert(Alert.AlertType.INFORMATION,
+                    "Load a contest plugin first before clearing the log.").showAndWait();
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Delete every logged QSO for the current contest "
+              + "(" + plugin.getContestName() + ") and start fresh?\n\n"
+              + "This cannot be undone. Use File → Backup Database first "
+              + "if you want a copy of the current log.",
+                javafx.scene.control.ButtonType.YES,
+                javafx.scene.control.ButtonType.NO);
+        confirm.setHeaderText("Start a fresh contest log?");
+        confirm.showAndWait().ifPresent(b -> {
+            if (b != javafx.scene.control.ButtonType.YES) return;
+            try {
+                int n = ContestQsoDao.getInstance().deleteAllForContest(plugin.getContestId());
+                // Section/county/grid worked-trackers cache state in memory —
+                // re-seed from the (now-empty) DB so the panes go gray again.
+                if (sectionLabels != null) sectionLabels.values().forEach(
+                        lbl -> lbl.getStyleClass().remove("worked"));
+                loadQsos();
+                updateStats();
+                setStatus("Cleared " + n + " QSO(s); fresh log ready");
+                log.info("menuNewDatabase: cleared {} QSO(s) for contest '{}'",
+                        n, plugin.getContestId());
+            } catch (Exception ex) {
+                log.warn("menuNewDatabase failed", ex);
+                new Alert(Alert.AlertType.ERROR,
+                        "Could not clear the contest log: " + ex.getMessage()).showAndWait();
+            }
+        });
     }
 
     @FXML private void menuBackupDatabase() {

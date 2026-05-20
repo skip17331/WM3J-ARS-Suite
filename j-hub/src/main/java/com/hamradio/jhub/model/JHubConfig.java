@@ -26,7 +26,6 @@ public class JHubConfig {
     public SkimmerSection     skimmer         = new SkimmerSection();
     public BackupSection      backup          = new BackupSection();
     public LoggerSection      logger          = new LoggerSection();
-    public InfoScreenSection  infoScreen      = new InfoScreenSection();
     public AppsSection        apps            = new AppsSection();
     public MacrosSection      macros          = new MacrosSection();
     public AppearanceSection  appearance      = new AppearanceSection();
@@ -103,9 +102,10 @@ public class JHubConfig {
     // ---------------------------------------------------------------
 
     public static class RotorSection {
-        public String  backend         = "NONE";    // INTERNAL | HAMLIB | NONE
-        public String  model           = "";
-        public String  comPort         = "";
+        public String  backend         = "NONE";    // HAMLIB | NONE
+        // tcpHost / tcpPort are the Hamlib rotctld endpoint. Heading offsets
+        // are consumed client-side in config.js (rotorPreset()) — they round-
+        // trip through JSON but never need a Java reader.
         public String  tcpHost         = "localhost";
         public int     tcpPort         = 4533;
         public double  shortPathOffset = 0.0;
@@ -118,9 +118,8 @@ public class JHubConfig {
 
     public static class AmpSection {
         public String  backend     = "NONE";        // HAMLIB | NONE
-        public String  model       = "";            // hamlib amp model id (informational)
-        public String  comPort     = "";            // serial port (informational; ampctld owns the device)
-        public int     baud        = 9600;          // (informational)
+        // ampctld owns the device — operator configures model/serial/baud on
+        // ampctld's own command line. j-hub only needs the TCP endpoint.
         public String  tcpHost     = "localhost";
         public int     tcpPort     = 4531;          // ampctld default
         public int     pollRateMs  = 1000;
@@ -176,11 +175,9 @@ public class JHubConfig {
     // ---------------------------------------------------------------
 
     public static class AppearanceSection {
-        public String theme          = "dark";      // dark | light | grayline
-        public int    fontSize       = 13;
-        public String waterfallColor = "viridis";   // viridis | plasma | inferno | grayscale
-        public String mapTheme       = "dark";      // dark | light | terrain | satellite
-        public String density        = "comfortable"; // compact | comfortable | spacious — UI breathing room
+        public String theme    = "dark";          // dark | light | grayline
+        public String mapTheme = "dark";          // dark | light | terrain | satellite
+        public String density  = "comfortable";   // compact | comfortable | spacious — UI breathing room
     }
 
     // ---------------------------------------------------------------
@@ -265,26 +262,17 @@ public class JHubConfig {
     // Logger application settings
     // ---------------------------------------------------------------
 
+    // NOTE: the LoggerSection UI fields (mode, normalLog.dbPath) are still
+    // exposed in the web UI but no Java code reads them yet — see STUBS.md.
+    // The contests[] / activeContest fields have been deleted; they were
+    // never wired and j-log owns its own per-event state.
     public static class LoggerSection {
-        public String  mode          = "normal";
-        public NormalLog normalLog   = new NormalLog();
-        public Object[] contests     = new Object[0];
-        public String  activeContest = null;
+        public String    mode      = "normal";
+        public NormalLog normalLog = new NormalLog();
     }
 
     public static class NormalLog {
         public String dbPath = "";
-    }
-
-    // ---------------------------------------------------------------
-    // Info / display screen settings
-    // ---------------------------------------------------------------
-
-    public static class InfoScreenSection {
-        public String  mapStyle       = "dark";
-        public boolean showGreatCircle = true;
-        public int     spotTimeout    = 30;   // minutes
-        public int     maxCachedSpots = 50;
     }
 
     // ---------------------------------------------------------------

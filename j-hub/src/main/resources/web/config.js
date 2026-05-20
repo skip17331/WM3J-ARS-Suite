@@ -15,7 +15,7 @@ const state = {
   clusterConn: false,
   spm:         0,
   wsState:     'CLOSED',
-  appearance:  { theme: 'dark', fontSize: 13, waterfallColor: 'viridis', mapTheme: 'dark' },
+  appearance:  { theme: 'dark', mapTheme: 'dark' },
 };
 
 // TLE freshness data keyed by satellite name, populated from J-Sat TLE API

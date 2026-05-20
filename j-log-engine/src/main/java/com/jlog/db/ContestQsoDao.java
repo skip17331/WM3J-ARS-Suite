@@ -129,6 +129,31 @@ public class ContestQsoDao {
     }
 
     /**
+     * Wipe every QSO for the given contest. Used by File → New Database to
+     * start a fresh log for the active event after the operator has exported
+     * (Cabrillo/ADIF) and backed up the DB. Returns the number of rows
+     * removed so the caller can log/show it.
+     *
+     * <p>QTC rows in {@code contest_qtc} are joined via QSO id, so wipe
+     * those first to avoid orphan rows for plugins that use the QTC table
+     * (WAE-DC family).
+     */
+    public int deleteAllForContest(String contestId) throws SQLException {
+        if (contestId == null) return 0;
+        try (PreparedStatement qtc = conn().prepareStatement(
+                "DELETE FROM contest_qtc WHERE qso_id IN "
+              + "(SELECT id FROM contest_qso WHERE contest_id=?)")) {
+            qtc.setString(1, contestId);
+            qtc.executeUpdate();
+        }
+        try (PreparedStatement ps = conn().prepareStatement(
+                "DELETE FROM contest_qso WHERE contest_id=?")) {
+            ps.setString(1, contestId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
      * Delete by the same natural key upsert uses. Silently no-ops if there is
      * no match — idempotent so repeated broadcasts don't fail.
      */
