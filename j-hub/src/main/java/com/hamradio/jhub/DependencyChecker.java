@@ -53,25 +53,42 @@ public final class DependencyChecker {
                 ? new String[] { "/usr/local/bin/rigctl", "/opt/homebrew/bin/rigctl" }
                 : new String[] { "/usr/bin/rigctl", "/usr/local/bin/rigctl" };
 
-        Detected rig = detect("rigctl", common);
-        Detected rot = detect("rotctl", mapRotSuffix(common));
+        Detected rig  = detect("rigctl",  common);
+        Detected rigd = detect("rigctld", mapSibling(common, "rigctl",  "rigctld"));
+        Detected rot  = detect("rotctl",  mapSibling(common, "rigctl",  "rotctl"));
 
         JsonObject o = new JsonObject();
-        boolean installed = rig.installed || rot.installed;
+        boolean installed = rig.installed || rot.installed || rigd.installed;
         o.addProperty("installed",  installed);
         o.addProperty("rigctlPath", rig.path);
         o.addProperty("rigctlVersion", rig.version);
+        o.addProperty("rigctldPath", rigd.path);
+        o.addProperty("rigctldVersion", rigd.version);
         o.addProperty("rotctlPath", rot.path);
         o.addProperty("rotctlVersion", rot.version);
         o.addProperty("installHint", hamlibInstallHint());
         return o;
     }
 
-    // Map rigctl paths to their rotctl siblings
-    private static String[] mapRotSuffix(String[] rigPaths) {
-        String[] out = new String[rigPaths.length];
-        for (int i = 0; i < rigPaths.length; i++) {
-            out[i] = rigPaths[i].replace("rigctl", "rotctl");
+    /** Find rigctld on this system, or null if not installed. Used by RigctldManager. */
+    public static String findRigctld() {
+        String[] common = WINDOWS
+            ? new String[] {
+                "C:\\Program Files\\hamlib-w64\\bin\\rigctld.exe",
+                "C:\\Program Files (x86)\\hamlib-w32\\bin\\rigctld.exe",
+              }
+            : MAC
+                ? new String[] { "/usr/local/bin/rigctld", "/opt/homebrew/bin/rigctld" }
+                : new String[] { "/usr/bin/rigctld", "/usr/local/bin/rigctld" };
+        Detected d = detect("rigctld", common);
+        return d.installed ? d.path : null;
+    }
+
+    // Rewrite a list of binary paths to a sibling tool (rigctl → rigctld / rotctl)
+    private static String[] mapSibling(String[] paths, String from, String to) {
+        String[] out = new String[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+            out[i] = paths[i].replace(from, to);
         }
         return out;
     }

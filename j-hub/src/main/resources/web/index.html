@@ -414,10 +414,99 @@
         <!-- Hamlib settings -->
         <div class="cond-block" id="hamlib-block">
           <div class="section-title">Hamlib rigctld</div>
+
+          <!-- Managed vs external rigctld toggle -->
+          <div class="toggle-row" style="margin-bottom:10px">
+            <div>
+              <div class="toggle-label">Start rigctld for me</div>
+              <div class="toggle-desc">J-Hub launches the rigctld daemon using the model and port below. Turn off if you already run rigctld yourself (e.g. on another machine).</div>
+            </div>
+            <label class="toggle" style="margin-left:12px">
+              <input type="checkbox" id="rig-manage" onchange="updateManageRigctldUI()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Managed-mode fields: model + serial port + baud -->
+          <div id="rig-managed-block">
+            <div class="field-row cols-3">
+              <div class="field">
+                <select id="rig-model-preset" onchange="onRigModelPresetChange()">
+                  <option value="">— Pick your rig —</option>
+                  <option value="1">Hamlib Dummy / Net rigctl (test, model 1)</option>
+                  <option value="2">NET rigctl client (model 2)</option>
+                  <option value="-- yaesu --" disabled>── Yaesu ──</option>
+                  <option value="132">Yaesu FT-1000MP (132)</option>
+                  <option value="124">Yaesu FT-1000MP Mark-V (124)</option>
+                  <option value="125">Yaesu FT-1000MP Mark-V Field (125)</option>
+                  <option value="1014">Yaesu FT-DX3000 (1014)</option>
+                  <option value="1029">Yaesu FT-DX1200 (1029)</option>
+                  <option value="1036">Yaesu FT-DX101D (1036)</option>
+                  <option value="1037">Yaesu FT-DX101MP (1037)</option>
+                  <option value="1042">Yaesu FT-991/A (1042)</option>
+                  <option value="1043">Yaesu FT-DX10 (1043)</option>
+                  <option value="122">Yaesu FT-857 (122)</option>
+                  <option value="127">Yaesu FT-897 (127)</option>
+                  <option value="135">Yaesu FT-450 (135)</option>
+                  <option value="-- icom --" disabled>── Icom ──</option>
+                  <option value="361">Icom IC-746PRO (361)</option>
+                  <option value="370">Icom IC-7100 (370)</option>
+                  <option value="3073">Icom IC-7300 (3073)</option>
+                  <option value="374">Icom IC-7600 (374)</option>
+                  <option value="3081">Icom IC-7610 (3081)</option>
+                  <option value="380">Icom IC-7700 (380)</option>
+                  <option value="381">Icom IC-7800 (381)</option>
+                  <option value="3085">Icom IC-705 (3085)</option>
+                  <option value="3087">Icom IC-9700 (3087)</option>
+                  <option value="311">Icom IC-718 (311)</option>
+                  <option value="-- kenwood --" disabled>── Kenwood ──</option>
+                  <option value="214">Kenwood TS-2000 (214)</option>
+                  <option value="215">Kenwood TS-590S/SG (215)</option>
+                  <option value="213">Kenwood TS-480 (213)</option>
+                  <option value="240">Kenwood TS-890S (240)</option>
+                  <option value="201">Kenwood TS-450S (201)</option>
+                  <option value="-- elecraft --" disabled>── Elecraft ──</option>
+                  <option value="229">Elecraft K3 / K3S (229)</option>
+                  <option value="230">Elecraft KX3 / KX2 (230)</option>
+                  <option value="custom">Other / Custom model id…</option>
+                </select>
+                <label>Rig Model</label>
+                <span class="hint">If yours isn't listed, choose Custom and enter the Hamlib model number (<code>rigctld --list</code>).</span>
+              </div>
+              <div class="field">
+                <input type="text" id="rig-serial-port" placeholder="COM3 or /dev/ttyUSB0">
+                <label>Serial Port</label>
+              </div>
+              <div class="field">
+                <select id="rig-baud">
+                  <option value="0">Default</option>
+                  <option value="1200">1200</option>
+                  <option value="2400">2400</option>
+                  <option value="4800">4800</option>
+                  <option value="9600">9600</option>
+                  <option value="19200">19200</option>
+                  <option value="38400">38400</option>
+                  <option value="57600">57600</option>
+                  <option value="115200">115200</option>
+                </select>
+                <label>Baud Rate</label>
+              </div>
+            </div>
+            <div class="field-row cols-1" id="rig-model-custom-row" style="display:none">
+              <div class="field">
+                <input type="number" id="rig-model-custom" min="1" max="9999" placeholder="e.g. 132">
+                <label>Custom Hamlib Model ID</label>
+                <span class="hint">Find your rig's number with <code>rigctld --list</code> at a command prompt.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- External-mode fields: just host/port -->
           <div class="field-row cols-2">
             <div class="field">
               <input type="text" id="rig-hamlib-host" placeholder="localhost">
               <label>Host</label>
+              <span class="hint" id="rig-host-hint">Where rigctld is listening.</span>
             </div>
             <div class="field">
               <input type="number" id="rig-hamlib-port" placeholder="4532" min="1" max="65535">

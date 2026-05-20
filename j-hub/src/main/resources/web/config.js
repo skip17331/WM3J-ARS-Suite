@@ -983,6 +983,14 @@ function populateForms(cfg) {
   setVal('civ-addr',   rig.civAddress || '94');
   setVal('rig-hamlib-host', rig.hamlibHost || 'localhost');
   setVal('rig-hamlib-port', rig.hamlibPort || 4532);
+  // Managed-rigctld fields. Default to "Start rigctld for me" ON for fresh
+  // configs (rig.manageRigctld may be undefined on configs predating this
+  // feature — !== false treats "missing" as "yes manage").
+  setChk('rig-manage', rig.manageRigctld !== false);
+  setRigModelUI(rig.rigModel || 0);
+  setVal('rig-serial-port', rig.serialPort || '');
+  setVal('rig-baud', rig.baudRate || 0);
+  updateManageRigctldUI();
   setVal('rig-poll-ms', rig.pollRateMs || 500);
   setChk('rig-ptt', !!rig.enablePtt);
   document.getElementById('ptt-test-btn').disabled = rig.backend === 'NONE';
@@ -1446,6 +1454,10 @@ function saveRig() {
     civAddress: document.getElementById('civ-addr').value.trim()||'94',
     hamlibHost: document.getElementById('rig-hamlib-host').value.trim()||'localhost',
     hamlibPort: parseInt(document.getElementById('rig-hamlib-port').value)||4532,
+    manageRigctld: document.getElementById('rig-manage').checked,
+    rigModel:   readRigModelId(),
+    serialPort: document.getElementById('rig-serial-port').value.trim(),
+    baudRate:   parseInt(document.getElementById('rig-baud').value)||0,
     pollRateMs: parseInt(document.getElementById('rig-poll-ms').value)||500,
     enablePtt:  document.getElementById('rig-ptt').checked,
   };
@@ -1453,6 +1465,59 @@ function saveRig() {
     .then(r => r.json())
     .then(() => { flashMsg('rig-save-msg', 'Saved'); state.config.rig = body; })
     .catch(() => flashMsg('rig-save-msg', 'Error', true));
+}
+
+// ── Managed-rigctld UI helpers ────────────────────────────────────
+// "Start rigctld for me" toggle hides/shows the model+port+baud trio.
+// When off, the user is on the hook for starting rigctld themselves and
+// only host/port matter (current external-daemon behavior).
+function updateManageRigctldUI() {
+  const on = document.getElementById('rig-manage').checked;
+  const managed = document.getElementById('rig-managed-block');
+  if (managed) managed.style.display = on ? '' : 'none';
+  const hint = document.getElementById('rig-host-hint');
+  if (hint) hint.textContent = on
+      ? 'J-Hub will bind rigctld here. Leave as localhost:4532 unless you have a reason.'
+      : 'Where your existing rigctld is listening.';
+}
+
+// Map a saved Hamlib model id back onto the preset dropdown — falls back to
+// "Custom" with the numeric input pre-filled when the id isn't in our list.
+function setRigModelUI(modelId) {
+  const sel = document.getElementById('rig-model-preset');
+  if (!sel) return;
+  const target = modelId ? String(modelId) : '';
+  const has = [...sel.options].some(o => o.value === target && !o.disabled);
+  if (has) {
+    sel.value = target;
+    document.getElementById('rig-model-custom-row').style.display = 'none';
+  } else if (modelId) {
+    sel.value = 'custom';
+    document.getElementById('rig-model-custom-row').style.display = '';
+    setVal('rig-model-custom', modelId);
+  } else {
+    sel.value = '';
+    document.getElementById('rig-model-custom-row').style.display = 'none';
+  }
+}
+
+function onRigModelPresetChange() {
+  const sel = document.getElementById('rig-model-preset');
+  const customRow = document.getElementById('rig-model-custom-row');
+  if (sel.value === 'custom') {
+    customRow.style.display = '';
+  } else {
+    customRow.style.display = 'none';
+  }
+}
+
+function readRigModelId() {
+  const sel = document.getElementById('rig-model-preset');
+  if (!sel) return 0;
+  if (sel.value === 'custom') {
+    return parseInt(document.getElementById('rig-model-custom').value) || 0;
+  }
+  return parseInt(sel.value) || 0;
 }
 
 function saveRotor() {

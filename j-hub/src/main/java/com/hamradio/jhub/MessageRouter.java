@@ -304,11 +304,11 @@ public class MessageRouter {
             //   • j-map populates its DX window
             server.broadcastToAll(rawJson);
 
-            // If j-hub owns Hamlib rig control, tune the rig directly.
-            HamlibRigController hamlibCtrl = HamlibRigController.getInstance();
-            if (freq > 0 && hamlibCtrl.isRunning()) {
+            // If j-hub owns rig control (Hamlib or CI-V), tune the rig directly.
+            RigController rigCtrl = RigControllers.active();
+            if (freq > 0 && rigCtrl.isRunning()) {
                 String m = msg.has("mode") ? msg.get("mode").getAsString() : null;
-                hamlibCtrl.tune(freq, m);
+                rigCtrl.tune(freq, m);
             }
 
             // Also derive and broadcast RIG_STATUS so the app that owns CI-V/CAT
@@ -442,7 +442,7 @@ public class MessageRouter {
             long uplinkHz   = msg.has("uplinkHz")   ? msg.get("uplinkHz").getAsLong()   : 0L;
             String mode     = msg.has("mode")        ? msg.get("mode").getAsString()     : null;
 
-            HamlibRigController rig = HamlibRigController.getInstance();
+            RigController rig = RigControllers.active();
             if (rig.isRunning() && downlinkHz > 0) {
                 rig.tune(downlinkHz, mode);
                 log.debug("SAT_DOPPLER → rig DL={} Hz mode={}", downlinkHz, mode);
@@ -538,9 +538,9 @@ public class MessageRouter {
             int    wpm  = msg.has("wpm")  ? msg.get("wpm").getAsInt()     : 25;
             if (text.isBlank()) return;
 
-            HamlibRigController rig = HamlibRigController.getInstance();
+            RigController rig = RigControllers.active();
             if (!rig.isRunning()) {
-                log.debug("SEND_CW from '{}' ignored — Hamlib not running", session.appName);
+                log.debug("SEND_CW from '{}' ignored — rig backend not running", session.appName);
                 return;
             }
             if (rig.isCwUnsupported()) {
@@ -559,23 +559,25 @@ public class MessageRouter {
     }
 
     private void handleStopCw(JHubServer.AppSession session) {
-        HamlibRigController rig = HamlibRigController.getInstance();
+        RigController rig = RigControllers.active();
         if (!rig.isRunning() || rig.isCwUnsupported()) return;
         rig.stopCw();
         log.debug("STOP_CW from '{}'", session.appName);
     }
 
     /**
-     * Broadcast that the configured rig does not support Hamlib CW.
-     * Called once by HamlibRigController on the first failed CW command.
+     * Broadcast that the configured rig does not support backend-level CW.
+     * Called by the active {@link RigController} on the first failed CW
+     * command (Hamlib) or upfront (CI-V backend, which has no universal
+     * keying command). j-log / j-digi fall back to their audio CW path.
      */
     public void publishCwUnsupported() {
         if (jHubServer == null) return;
         JsonObject msg = new JsonObject();
         msg.addProperty("type",   "CW_UNSUPPORTED");
-        msg.addProperty("reason", "rig rejected an earlier CW command");
+        msg.addProperty("reason", "rig backend does not support keying — use audio CW");
         jHubServer.broadcastToAll(msg.toString());
-        log.info("CW_UNSUPPORTED broadcast — Hamlib CW disabled for this session");
+        log.info("CW_UNSUPPORTED broadcast — backend CW disabled for this session");
     }
 
     // ---------------------------------------------------------------
@@ -585,9 +587,9 @@ public class MessageRouter {
     private void handleSetPtt(JsonObject msg, JHubServer.AppSession session) {
         try {
             boolean on = msg.has("on") && msg.get("on").getAsBoolean();
-            HamlibRigController rig = HamlibRigController.getInstance();
+            RigController rig = RigControllers.active();
             if (!rig.isRunning()) {
-                log.debug("SET_PTT from '{}' ignored — Hamlib not running", session.appName);
+                log.debug("SET_PTT from '{}' ignored — rig backend not running", session.appName);
                 return;
             }
             rig.setPtt(on);

@@ -139,7 +139,7 @@ public class WebConfigServer {
                 } else {
                     ClusterManager.getInstance().softDisconnect();
                 }
-                HamlibRigController.getInstance().restart(newCfg.rig);
+                RigControllers.restart(newCfg.rig);
                 HamlibRotorController.getInstance().restart(newCfg.rotor);
                 broadcastStationConfig();
                 json(res, "{\"status\":\"saved\"}");
@@ -725,13 +725,22 @@ public class WebConfigServer {
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
             String path = req.getPathInfo();
             if ("/status".equals(path)) {
-                HamlibRigController ctrl = HamlibRigController.getInstance();
+                // Active backend is whichever one matches RigSection.backend.
+                // We surface its status fields uniformly; the rigctld manager
+                // is only meaningful when backend=HAMLIB and the user opted
+                // into managed-rigctld mode.
+                RigController ctrl       = RigControllers.active();
+                String         backend   = ConfigManager.getInstance().getConfig().rig.backend;
+                RigctldManager rigctldMgr = RigctldManager.getInstance();
                 com.google.gson.JsonObject status = new com.google.gson.JsonObject();
+                status.addProperty("backend",   backend);
                 status.addProperty("running",   ctrl.isRunning());
                 status.addProperty("connected", ctrl.isConnected());
                 status.addProperty("frequency", ctrl.getLastFreq());
                 status.addProperty("mode",      ctrl.getLastMode());
                 status.addProperty("error",     ctrl.getLastError());
+                status.addProperty("rigctldRunning", rigctldMgr.isRunning());
+                status.addProperty("rigctldError",   rigctldMgr.getLastError());
                 json(res, status.toString());
             } else {
                 json(res, ConfigManager.gson().toJson(ConfigManager.getInstance().getConfig().rig));
@@ -743,10 +752,10 @@ public class WebConfigServer {
 
             // ── PTT key/unkey ──────────────────────────────────────
             if ("/ptt".equals(path)) {
-                HamlibRigController ctrl = HamlibRigController.getInstance();
+                RigController ctrl = RigControllers.active();
                 if (!ctrl.isRunning()) {
                     res.setStatus(HttpServletResponse.SC_CONFLICT);
-                    json(res, "{\"error\":\"Hamlib controller is not running\"}");
+                    json(res, "{\"error\":\"Rig backend is not running\"}");
                     return;
                 }
                 try {
@@ -767,7 +776,7 @@ public class WebConfigServer {
 
             // ── Force reconnect ─────────────────────────────────────
             if ("/reconnect".equals(path)) {
-                HamlibRigController.getInstance().reconnect();
+                RigControllers.active().reconnect();
                 json(res, "{\"status\":\"reconnecting\"}");
                 return;
             }
@@ -778,8 +787,8 @@ public class WebConfigServer {
                 JHubConfig.RigSection rig = ConfigManager.gson().fromJson(body, JHubConfig.RigSection.class);
                 ConfigManager.getInstance().getConfig().rig = rig;
                 ConfigManager.getInstance().save();
-                // Apply immediately — restart controller if backend changed
-                HamlibRigController.getInstance().restart(rig);
+                // Apply immediately — dispatcher swaps in the matching backend.
+                RigControllers.restart(rig);
                 // Push the new Hamlib endpoint to apps that key the rig (j-digi PTT/CW)
                 broadcastStationConfig();
                 json(res, "{\"status\":\"saved\"}");

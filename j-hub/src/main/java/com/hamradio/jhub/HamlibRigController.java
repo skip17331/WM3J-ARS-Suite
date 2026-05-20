@@ -42,7 +42,7 @@ import java.util.concurrent.*;
  * latch a one-shot {@code cwUnsupported} flag and notify MessageRouter so J-Log
  * can fall back to its CI-V CW path and display a single notice to the operator.
  */
-public class HamlibRigController {
+public class HamlibRigController implements RigController {
 
     private static final Logger log = LoggerFactory.getLogger(HamlibRigController.class);
 
@@ -108,7 +108,18 @@ public class HamlibRigController {
         this.lastError  = "";
         this.failCount  = 0;
         this.lastFailLogMs = 0;
-        log.info("HamlibRigController starting — {}:{} poll={}ms", host, port, pollMs);
+        // When manageRigctld is true, j-hub owns the daemon. Bring it up
+        // before the poll loop starts so the first TCP connect finds a
+        // listener instead of failing with "Connection refused" until the
+        // operator wonders what's wrong. A failure here is surfaced via
+        // lastError so the Rig Control panel can show the rigctld stderr
+        // instead of a generic "Connecting..." badge.
+        if (cfg.manageRigctld) {
+            String err = RigctldManager.getInstance().ensureRunning(cfg);
+            if (err != null) lastError = err;
+        }
+        log.info("HamlibRigController starting — {}:{} poll={}ms managed={}",
+                host, port, pollMs, cfg.manageRigctld);
         schedulePoll();
     }
 
@@ -117,6 +128,10 @@ public class HamlibRigController {
         running = false;
         if (pollFuture != null) { pollFuture.cancel(false); pollFuture = null; }
         scheduler.execute(this::closeSocket);
+        // Always stop the managed daemon on full controller stop. The "is it
+        // ours to stop?" question is answered inside the manager — if we never
+        // spawned one this is a cheap no-op.
+        RigctldManager.getInstance().stop();
         connected = false;
         lastError = "";   // disabled is not an error state
         log.info("HamlibRigController stopped");
@@ -132,6 +147,8 @@ public class HamlibRigController {
         if ("HAMLIB".equals(cfg.backend)) {
             start(cfg);
         } else {
+            // Backend turned off — also tear down any rigctld we spawned.
+            RigctldManager.getInstance().stop();
             running   = false;
             lastError = "";
         }

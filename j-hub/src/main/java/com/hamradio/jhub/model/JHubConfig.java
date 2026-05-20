@@ -84,6 +84,15 @@ public class JHubConfig {
         // Hamlib settings
         public String  hamlibHost = "localhost";
         public int     hamlibPort = 4532;
+        // Hamlib — managed-rigctld mode. When manageRigctld=true, j-hub spawns
+        // rigctld itself using rigModel/serialPort/baudRate so the operator
+        // never has to start a daemon by hand. When false, we assume an
+        // external rigctld is already listening at hamlibHost:hamlibPort
+        // (e.g. someone else launched it, or it's on another machine).
+        public boolean manageRigctld = true;
+        public int     rigModel     = 0;             // Hamlib model id (e.g. 132 = FT-1000MP, 3073 = IC-7300)
+        public String  serialPort   = "";            // COM3, /dev/ttyUSB0, …
+        public int     baudRate     = 0;             // 0 = use rig default; e.g. 4800, 9600, 19200…
         // Common
         public int     pollRateMs = 500;
         public boolean enablePtt  = false;

@@ -43,7 +43,6 @@ public class JHubMain extends Application {
     private static WebConfigServer         webConfigServer;
     private static ClusterManager          clusterManager;
     private static JHubDiscovery           jHubDiscovery;
-    private static HamlibRigController     rigController;
     private static HamlibRotorController   rotorController;
     private static HamlibAmpController     ampController;
     private static AntennaController       antennaController;
@@ -176,14 +175,16 @@ public class JHubMain extends Application {
             autoLaunch(launcher, "j-learn",  apps.jLearn,  true);
         }
 
-        // 10. Hamlib rig controller (only when backend = HAMLIB)
-        rigController = HamlibRigController.getInstance();
-        rigController.setRouter(router);
-        if ("HAMLIB".equals(config.getConfig().rig.backend)) {
-            rigController.start(config.getConfig().rig);
+        // 10. Rig controller — pick HAMLIB or CI-V backend per config.
+        // Both singletons get wired to the router; only the matching one
+        // starts polling. The dispatcher hides the choice from MessageRouter
+        // and the REST API so add-a-new-backend stays a localized change.
+        RigControllers.setRouter(router);
+        String rigBackend = config.getConfig().rig.backend;
+        if ("HAMLIB".equals(rigBackend) || "CI_V".equals(rigBackend)) {
+            RigControllers.startActive(config.getConfig().rig);
         } else {
-            log.info("Rig backend is '{}' — Hamlib rig controller not started",
-                    config.getConfig().rig.backend);
+            log.info("Rig backend is '{}' — no rig controller started", rigBackend);
         }
 
         // 11a. Hamlib rotor controller (only when rotor backend = HAMLIB)
@@ -286,7 +287,12 @@ public class JHubMain extends Application {
         try { if (antennaController != null) antennaController.stop();       } catch (Exception e) { log.warn("Antenna controller shutdown error", e); }
         try { if (ampController     != null) ampController.stop();           } catch (Exception e) { log.warn("Amp controller shutdown error",   e); }
         try { if (rotorController   != null) rotorController.stop();         } catch (Exception e) { log.warn("Rotor controller shutdown error", e); }
-        try { if (rigController     != null) rigController.stop();           } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
+        try { RigControllers.stopAll();                                       } catch (Exception e) { log.warn("Rig controller shutdown error", e); }
+        // Belt-and-braces: rigController.stop() already tells RigctldManager to
+        // tear down, but if the controller never started (backend != HAMLIB) or
+        // its stop() threw, an unmanaged-from-its-point-of-view rigctld could
+        // outlive j-hub. This second call is idempotent.
+        try { RigctldManager.getInstance().stop();                          } catch (Exception e) { log.warn("rigctld manager shutdown error", e); }
         try { AppLauncher.getInstance().stopAll();                          } catch (Exception e) { log.warn("App launcher shutdown error", e); }
         try { if (jHubDiscovery   != null) jHubDiscovery.stop();           } catch (Exception e) { log.warn("Discovery shutdown error", e); }
         try { if (clusterManager  != null) clusterManager.disconnect();    } catch (Exception e) { log.warn("Cluster shutdown error", e); }
