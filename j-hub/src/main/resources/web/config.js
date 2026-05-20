@@ -1002,6 +1002,13 @@ function populateForms(cfg) {
   setVal('rot-com',         rot.comPort      || '');
   setVal('rot-hamlib-host', rot.tcpHost      || 'localhost');
   setVal('rot-hamlib-port', rot.tcpPort      || 4533);
+  // Managed-rotctld fields — mirror the rig pane. !== false treats missing
+  // as "yes manage" so configs predating the feature still default ON.
+  setChk('rot-manage', rot.manageRotctld !== false);
+  setRotorModelUI(rot.rotorModel || 0);
+  setVal('rot-serial-port', rot.serialPort || '');
+  setVal('rot-baud', rot.baudRate || 0);
+  updateManageRotctldUI();
   setVal('rot-short-offset', rot.shortPathOffset != null ? rot.shortPathOffset : 0);
   setVal('rot-custom',      rot.customPreset != null ? rot.customPreset : 0);
   setText('i-rot-backend', rot.backend || 'NONE');
@@ -1523,6 +1530,10 @@ function saveRotor() {
     comPort: document.getElementById('rot-com').value.trim(),
     tcpHost: document.getElementById('rot-hamlib-host').value.trim()||'localhost',
     tcpPort: parseInt(document.getElementById('rot-hamlib-port').value)||4533,
+    manageRotctld: document.getElementById('rot-manage').checked,
+    rotorModel:  readRotorModelId(),
+    serialPort:  document.getElementById('rot-serial-port').value.trim(),
+    baudRate:    parseInt(document.getElementById('rot-baud').value)||0,
     shortPathOffset: parseFloat(document.getElementById('rot-short-offset').value)||0,
     customPreset:    parseFloat(document.getElementById('rot-custom').value)||0,
   };
@@ -1530,6 +1541,55 @@ function saveRotor() {
     .then(r => r.json())
     .then(() => { flashMsg('rot-save-msg', 'Saved'); state.config.rotor = body; setText('i-rot-backend', backend); })
     .catch(() => flashMsg('rot-save-msg', 'Error', true));
+}
+
+// ── Managed-rotctld UI helpers ────────────────────────────────────
+// Mirror of updateManageRigctldUI / setRigModelUI: when on, j-hub spawns
+// rotctld itself and the model+port+baud trio is meaningful; when off,
+// only host/port matter and the user runs rotctld themselves.
+function updateManageRotctldUI() {
+  const el = document.getElementById('rot-manage');
+  if (!el) return;
+  const on = el.checked;
+  const managed = document.getElementById('rot-managed-block');
+  if (managed) managed.style.display = on ? '' : 'none';
+  const hint = document.getElementById('rot-host-hint');
+  if (hint) hint.textContent = on
+      ? 'J-Hub will bind rotctld here. Leave as localhost:4533 unless you have a reason.'
+      : 'Where your existing rotctld is listening.';
+}
+
+function setRotorModelUI(modelId) {
+  const sel = document.getElementById('rot-model-preset');
+  if (!sel) return;
+  const target = modelId ? String(modelId) : '';
+  const has = [...sel.options].some(o => o.value === target && !o.disabled);
+  if (has) {
+    sel.value = target;
+    document.getElementById('rot-model-custom-row').style.display = 'none';
+  } else if (modelId) {
+    sel.value = 'custom';
+    document.getElementById('rot-model-custom-row').style.display = '';
+    setVal('rot-model-custom', modelId);
+  } else {
+    sel.value = '';
+    document.getElementById('rot-model-custom-row').style.display = 'none';
+  }
+}
+
+function onRotorModelPresetChange() {
+  const sel = document.getElementById('rot-model-preset');
+  const customRow = document.getElementById('rot-model-custom-row');
+  customRow.style.display = sel.value === 'custom' ? '' : 'none';
+}
+
+function readRotorModelId() {
+  const sel = document.getElementById('rot-model-preset');
+  if (!sel) return 0;
+  if (sel.value === 'custom') {
+    return parseInt(document.getElementById('rot-model-custom').value) || 0;
+  }
+  return parseInt(sel.value) || 0;
 }
 
 // ── Amp Control ────────────────────────────────────────────
@@ -1547,7 +1607,13 @@ function loadAmp() {
     setAmpBackendUI(amp.backend || 'NONE');
     setVal('amp-tcp-host',  amp.tcpHost   || 'localhost');
     setVal('amp-tcp-port',  amp.tcpPort   || 4531);
-    setVal('amp-model',     amp.model     || '');
+    // Managed-ampctld fields mirror the rig pane. !== false treats missing
+    // as "yes manage" so configs predating the feature default ON.
+    setChk('amp-manage', amp.manageAmpctld !== false);
+    setAmpModelUI(amp.ampModel || 0);
+    setVal('amp-serial-port', amp.serialPort || '');
+    setVal('amp-baud',        amp.baudRate   || 0);
+    updateManageAmpctldUI();
     setVal('amp-poll',      amp.pollRateMs|| 1000);
     setVal('amp-swr-fault', amp.swrFault != null ? amp.swrFault : 3.0);
     setChk('amp-band-follow', amp.bandFollow !== false);
@@ -1560,7 +1626,10 @@ function saveAmp() {
     backend,
     tcpHost:    document.getElementById('amp-tcp-host').value.trim()||'localhost',
     tcpPort:    parseInt(document.getElementById('amp-tcp-port').value)||4531,
-    model:      document.getElementById('amp-model').value.trim(),
+    manageAmpctld: document.getElementById('amp-manage').checked,
+    ampModel:   readAmpModelId(),
+    serialPort: document.getElementById('amp-serial-port').value.trim(),
+    baudRate:   parseInt(document.getElementById('amp-baud').value)||0,
     pollRateMs: parseInt(document.getElementById('amp-poll').value)||1000,
     swrFault:   parseFloat(document.getElementById('amp-swr-fault').value)||3.0,
     bandFollow: document.getElementById('amp-band-follow').checked,
@@ -1570,6 +1639,52 @@ function saveAmp() {
     .then(r => r.json())
     .then(() => flashMsg('amp-save-msg', 'Saved'))
     .catch(() => flashMsg('amp-save-msg', 'Error', true));
+}
+
+// ── Managed-ampctld UI helpers ────────────────────────────────────
+function updateManageAmpctldUI() {
+  const el = document.getElementById('amp-manage');
+  if (!el) return;
+  const on = el.checked;
+  const managed = document.getElementById('amp-managed-block');
+  if (managed) managed.style.display = on ? '' : 'none';
+  const hint = document.getElementById('amp-host-hint');
+  if (hint) hint.textContent = on
+      ? 'J-Hub will bind ampctld here. Leave as localhost:4531 unless you have a reason.'
+      : 'Where your existing ampctld is listening.';
+}
+
+function setAmpModelUI(modelId) {
+  const sel = document.getElementById('amp-model-preset');
+  if (!sel) return;
+  const target = modelId ? String(modelId) : '';
+  const has = [...sel.options].some(o => o.value === target && !o.disabled);
+  if (has) {
+    sel.value = target;
+    document.getElementById('amp-model-custom-row').style.display = 'none';
+  } else if (modelId) {
+    sel.value = 'custom';
+    document.getElementById('amp-model-custom-row').style.display = '';
+    setVal('amp-model-custom', modelId);
+  } else {
+    sel.value = '';
+    document.getElementById('amp-model-custom-row').style.display = 'none';
+  }
+}
+
+function onAmpModelPresetChange() {
+  const sel = document.getElementById('amp-model-preset');
+  const customRow = document.getElementById('amp-model-custom-row');
+  customRow.style.display = sel.value === 'custom' ? '' : 'none';
+}
+
+function readAmpModelId() {
+  const sel = document.getElementById('amp-model-preset');
+  if (!sel) return 0;
+  if (sel.value === 'custom') {
+    return parseInt(document.getElementById('amp-model-custom').value) || 0;
+  }
+  return parseInt(sel.value) || 0;
 }
 
 // ── Antenna Switching ─────────────────────────────────────

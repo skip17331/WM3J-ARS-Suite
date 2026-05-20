@@ -109,6 +109,15 @@ public class JHubConfig {
         public int     tcpPort         = 4533;
         public double  shortPathOffset = 0.0;
         public double  customPreset    = 0.0;
+        // Managed-rotctld mode. When manageRotctld=true, j-hub spawns rotctld
+        // itself using rotorModel/serialPort/baudRate so the operator never
+        // has to start a daemon by hand — same pattern as RigSection. When
+        // false, we assume an external rotctld is already listening at
+        // tcpHost:tcpPort.
+        public boolean manageRotctld = true;
+        public int     rotorModel    = 0;            // Hamlib rotor model id
+        public String  serialPort    = "";           // COM3, /dev/ttyUSB1, …
+        public int     baudRate      = 0;            // 0 = rotor default
     }
 
     // ---------------------------------------------------------------
@@ -117,10 +126,16 @@ public class JHubConfig {
 
     public static class AmpSection {
         public String  backend     = "NONE";        // HAMLIB | NONE
-        // ampctld owns the device — operator configures model/serial/baud on
-        // ampctld's own command line. j-hub only needs the TCP endpoint.
         public String  tcpHost     = "localhost";
         public int     tcpPort     = 4531;          // ampctld default
+        // Managed-ampctld mode (same pattern as RigSection / RotorSection).
+        // When manageAmpctld=true, j-hub spawns ampctld itself using
+        // ampModel/serialPort/baudRate. When false, connect to an existing
+        // ampctld at tcpHost:tcpPort.
+        public boolean manageAmpctld = true;
+        public int     ampModel      = 0;           // Hamlib amp model id
+        public String  serialPort    = "";          // COM4, /dev/ttyUSB2, …
+        public int     baudRate      = 0;           // 0 = amp default
         public int     pollRateMs  = 1000;
         public boolean bandFollow  = true;          // forward rig band changes to the amp
         public boolean faultAlert  = true;          // surface visual fault indicator on overage

@@ -596,14 +596,105 @@
           </div>
 
           <div class="cond-block" id="rot-hamlib-block">
+
+            <!-- Managed vs external rotctld toggle -->
+            <div class="toggle-row" style="margin-bottom:10px">
+              <div>
+                <div class="toggle-label">Start rotctld for me</div>
+                <div class="toggle-desc">J-Hub launches the rotctld daemon using the rotor and port below. Turn off if you already run rotctld yourself (e.g. on another machine).</div>
+              </div>
+              <label class="toggle" style="margin-left:12px">
+                <input type="checkbox" id="rot-manage" onchange="updateManageRotctldUI()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Managed-mode fields: model + serial port + baud -->
+            <div id="rot-managed-block">
+              <div class="field-row cols-3">
+                <div class="field">
+                  <select id="rot-model-preset" onchange="onRotorModelPresetChange()">
+                    <option value="">— Pick your rotor —</option>
+                    <option value="1">Hamlib Dummy / Net rotctl (test, model 1)</option>
+                    <option value="2">NET rotctl client (model 2)</option>
+                    <option value="-- yaesu --" disabled>── Yaesu / Kenpro ──</option>
+                    <option value="601">Yaesu GS-232A (601)</option>
+                    <option value="603">Yaesu GS-232B (603)</option>
+                    <option value="605">Yaesu/Kenpro GS-23 (605)</option>
+                    <option value="606">Yaesu/Kenpro GS-232 (606)</option>
+                    <option value="609">Yaesu GS-232A azimuth only (609)</option>
+                    <option value="610">Yaesu GS-232A elevation only (610)</option>
+                    <option value="611">Yaesu GS-232B azimuth only (611)</option>
+                    <option value="612">Yaesu GS-232B elevation only (612)</option>
+                    <option value="-- hygain --" disabled>── Hy-Gain / Idiom Press ──</option>
+                    <option value="401">Idiom Press Rotor-EZ (401)</option>
+                    <option value="402">Idiom Press RotorCard (402)</option>
+                    <option value="403">Hy-Gain DCU-1 / DCU-1X (403)</option>
+                    <option value="406">Hy-Gain DCU2 / DCU3 / YRC-1 (406)</option>
+                    <option value="-- greenheron --" disabled>── Green Heron / DF9GR ──</option>
+                    <option value="404">DF9GR ERC (404)</option>
+                    <option value="405">Green Heron RT-21 (405)</option>
+                    <option value="-- spid --" disabled>── SPID ──</option>
+                    <option value="901">SPID Rot2Prog (901)</option>
+                    <option value="902">SPID Rot1Prog (902)</option>
+                    <option value="903">SPID MD-01/02 — ROT2 mode (903)</option>
+                    <option value="-- m2 --" disabled>── M2 ──</option>
+                    <option value="1001">M2 RC2800 (1001)</option>
+                    <option value="-- prosistel --" disabled>── Prosistel ──</option>
+                    <option value="1701">Prosistel D azimuth (1701)</option>
+                    <option value="1702">Prosistel D elevation (1702)</option>
+                    <option value="1703">Prosistel Combi-Track az+el (1703)</option>
+                    <option value="-- ea4tx --" disabled>── EA4TX ARS ──</option>
+                    <option value="1101">EA4TX ARS RCI AZ &amp; EL (1101)</option>
+                    <option value="1102">EA4TX ARS RCI AZ (1102)</option>
+                    <option value="-- amsat --" disabled>── AMSAT / Tracker ──</option>
+                    <option value="607">AMSAT LVB Tracker (607)</option>
+                    <option value="1201">AMSAT IF-100 (1201)</option>
+                    <option value="-- heath --" disabled>── Heathkit ──</option>
+                    <option value="801">Heathkit HD 1780 Intellirotor (801)</option>
+                    <option value="custom">Other / Custom model id…</option>
+                  </select>
+                  <label>Rotor Model</label>
+                  <span class="hint">If yours isn't listed, choose Custom and enter the Hamlib model number (<code>rotctld --list</code>).</span>
+                </div>
+                <div class="field">
+                  <input type="text" id="rot-serial-port" placeholder="COM4 or /dev/ttyUSB1">
+                  <label>Serial Port</label>
+                </div>
+                <div class="field">
+                  <select id="rot-baud">
+                    <option value="0">Default</option>
+                    <option value="1200">1200</option>
+                    <option value="2400">2400</option>
+                    <option value="4800">4800</option>
+                    <option value="9600">9600</option>
+                    <option value="19200">19200</option>
+                    <option value="38400">38400</option>
+                    <option value="57600">57600</option>
+                    <option value="115200">115200</option>
+                  </select>
+                  <label>Baud Rate</label>
+                </div>
+              </div>
+              <div class="field-row cols-1" id="rot-model-custom-row" style="display:none">
+                <div class="field">
+                  <input type="number" id="rot-model-custom" min="1" max="9999" placeholder="e.g. 601">
+                  <label>Custom Hamlib Model ID</label>
+                  <span class="hint">Find your rotor's number with <code>rotctld --list</code> at a command prompt.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- External-mode fields: just host/port -->
             <div class="field-row cols-2">
               <div class="field">
                 <input type="text" id="rot-hamlib-host" placeholder="localhost">
-                <label>Hamlib Host</label>
+                <label>Host</label>
+                <span class="hint" id="rot-host-hint">Where rotctld is listening.</span>
               </div>
               <div class="field">
                 <input type="number" id="rot-hamlib-port" placeholder="4533" min="1" max="65535">
-                <label>Hamlib Port</label>
+                <label>Port</label>
               </div>
             </div>
           </div>
@@ -711,36 +802,95 @@
           </div>
 
           <div class="cond-block" id="amp-hamlib-block">
+
+            <!-- Managed vs external ampctld toggle -->
+            <div class="toggle-row" style="margin-bottom:10px">
+              <div>
+                <div class="toggle-label">Start ampctld for me</div>
+                <div class="toggle-desc">J-Hub launches the ampctld daemon using the amp and port below. Turn off if you already run ampctld yourself (e.g. on another machine).</div>
+              </div>
+              <label class="toggle" style="margin-left:12px">
+                <input type="checkbox" id="amp-manage" onchange="updateManageAmpctldUI()">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Managed-mode fields: model + serial port + baud -->
+            <div id="amp-managed-block">
+              <div class="field-row cols-3">
+                <div class="field">
+                  <select id="amp-model-preset" onchange="onAmpModelPresetChange()">
+                    <option value="">— Pick your amp —</option>
+                    <option value="1">Hamlib Dummy / Net ampctl (test, model 1)</option>
+                    <option value="2">NET ampctl client (model 2)</option>
+                    <option value="-- elecraft --" disabled>── Elecraft ──</option>
+                    <option value="201">Elecraft KPA1500 (201)</option>
+                    <option value="-- gemini --" disabled>── Gemini ──</option>
+                    <option value="301">Gemini DX1200 / HF-1K (301)</option>
+                    <option value="custom">Other / Custom model id…</option>
+                  </select>
+                  <label>Amp Model</label>
+                  <span class="hint">If yours isn't listed, choose Custom and enter the Hamlib model number (<code>ampctld --list</code>).</span>
+                </div>
+                <div class="field">
+                  <input type="text" id="amp-serial-port" placeholder="COM5 or /dev/ttyUSB2">
+                  <label>Serial Port</label>
+                </div>
+                <div class="field">
+                  <select id="amp-baud">
+                    <option value="0">Default</option>
+                    <option value="1200">1200</option>
+                    <option value="2400">2400</option>
+                    <option value="4800">4800</option>
+                    <option value="9600">9600</option>
+                    <option value="19200">19200</option>
+                    <option value="38400">38400</option>
+                    <option value="57600">57600</option>
+                    <option value="115200">115200</option>
+                  </select>
+                  <label>Baud Rate</label>
+                </div>
+              </div>
+              <div class="field-row cols-1" id="amp-model-custom-row" style="display:none">
+                <div class="field">
+                  <input type="number" id="amp-model-custom" min="1" max="9999" placeholder="e.g. 201">
+                  <label>Custom Hamlib Model ID</label>
+                  <span class="hint">Find your amp's number with <code>ampctld --list</code> at a command prompt.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- External-mode fields: just host/port -->
             <div class="field-row cols-2">
               <div class="field">
                 <input type="text" id="amp-tcp-host" placeholder="localhost">
-                <label>ampctld Host</label>
+                <label>Host</label>
+                <span class="hint" id="amp-host-hint">Where ampctld is listening.</span>
               </div>
               <div class="field">
                 <input type="number" id="amp-tcp-port" placeholder="4531" min="1" max="65535">
-                <label>ampctld Port</label>
+                <label>Port</label>
               </div>
             </div>
+
             <div class="field-row cols-2">
-              <div class="field">
-                <input type="text" id="amp-model" placeholder="e.g. Elecraft KPA1500">
-                <label>Amp Model (informational)</label>
-              </div>
               <div class="field">
                 <input type="number" id="amp-poll" placeholder="1000" min="200" max="10000">
                 <label>Poll Rate (ms)</label>
               </div>
-            </div>
-            <div class="field-row cols-2">
               <div class="field">
                 <input type="number" id="amp-swr-fault" step="0.1" placeholder="3.0" min="1.0" max="10.0">
                 <label>SWR Fault Threshold</label>
               </div>
+            </div>
+            <div class="field-row cols-2">
               <div class="field">
                 <label class="toggle-row">
                   <input type="checkbox" id="amp-band-follow">
                   <span>Follow rig band changes</span>
                 </label>
+              </div>
+              <div class="field">
                 <label class="toggle-row">
                   <input type="checkbox" id="amp-fault-alert">
                   <span>Show visual fault alerts</span>
@@ -766,8 +916,9 @@
           <hr class="divider">
           <div style="font-size:12px;color:var(--subtext0)">
             Levels read 'unsupported' on amps that don't expose them.<br>
-            ampctld must be running externally:
-            <code style="font-family:Consolas">ampctld -m &lt;model&gt; -r &lt;port&gt;</code>
+            With <em>Start ampctld for me</em> on, J-Hub spawns the daemon for you;
+            otherwise run <code style="font-family:Consolas">ampctld -m &lt;model&gt; -r &lt;port&gt;</code>
+            yourself before opening this tab.
           </div>
         </div>
       </div>

@@ -96,8 +96,13 @@ public class HamlibAmpController {
         this.running    = true;
         // Re-probe levels on each (re)start — replacing the amp may add/remove support.
         this.swrUnavailable = this.pwrUnavailable = this.powerstatUnavailable = false;
-        log.info("HamlibAmpController starting — {}:{} poll={}ms bandFollow={}",
-                host, port, pollMs, bandFollow);
+        // Spawn ampctld ourselves if asked. Same shape as the rig + rotor
+        // managed daemons; failures land in the j-hub log.
+        if (cfg.manageAmpctld) {
+            AmpctldManager.getInstance().ensureRunning(cfg);
+        }
+        log.info("HamlibAmpController starting — {}:{} poll={}ms bandFollow={} managed={}",
+                host, port, pollMs, bandFollow, cfg.manageAmpctld);
         schedulePoll();
     }
 
@@ -105,6 +110,7 @@ public class HamlibAmpController {
         running = false;
         if (pollFuture != null) { pollFuture.cancel(false); pollFuture = null; }
         scheduler.execute(this::closeSocket);
+        AmpctldManager.getInstance().stop();
         connected = false;
         log.info("HamlibAmpController stopped");
     }
@@ -117,6 +123,7 @@ public class HamlibAmpController {
         if ("HAMLIB".equals(cfg.backend)) {
             start(cfg);
         } else {
+            AmpctldManager.getInstance().stop();
             running = false;
         }
     }

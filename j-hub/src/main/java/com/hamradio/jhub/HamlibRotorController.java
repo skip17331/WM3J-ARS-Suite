@@ -66,7 +66,14 @@ public class HamlibRotorController {
         this.host    = cfg.tcpHost != null ? cfg.tcpHost : "localhost";
         this.port    = cfg.tcpPort > 0 ? cfg.tcpPort : 4533;
         this.running = true;
-        log.info("HamlibRotorController starting — {}:{}", host, port);
+        // When manageRotctld is true, bring up the daemon ourselves before the
+        // poll loop starts. Same pattern as the rig backend; spawn failures
+        // land in the j-hub log instead of an invisible "connecting" state.
+        if (cfg.manageRotctld) {
+            RotctldManager.getInstance().ensureRunning(cfg);
+        }
+        log.info("HamlibRotorController starting — {}:{} managed={}",
+                host, port, cfg.manageRotctld);
         schedulePoll();
     }
 
@@ -74,6 +81,7 @@ public class HamlibRotorController {
         running = false;
         if (pollFuture != null) { pollFuture.cancel(false); pollFuture = null; }
         scheduler.execute(this::closeSocket);
+        RotctldManager.getInstance().stop();
         connected = false;
         log.info("HamlibRotorController stopped");
     }
@@ -86,6 +94,7 @@ public class HamlibRotorController {
         if ("HAMLIB".equals(cfg.backend)) {
             start(cfg);
         } else {
+            RotctldManager.getInstance().stop();
             running = false;
         }
     }

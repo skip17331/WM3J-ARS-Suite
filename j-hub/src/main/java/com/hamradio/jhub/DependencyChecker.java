@@ -71,16 +71,26 @@ public final class DependencyChecker {
     }
 
     /** Find rigctld on this system, or null if not installed. Used by RigctldManager. */
-    public static String findRigctld() {
+    public static String findRigctld() { return findDaemon("rigctld"); }
+
+    /** Find rotctld on this system, or null if not installed. Used by RotctldManager. */
+    public static String findRotctld() { return findDaemon("rotctld"); }
+
+    /** Find ampctld on this system, or null if not installed. Used by AmpctldManager. */
+    public static String findAmpctld() { return findDaemon("ampctld"); }
+
+    /** Shared probe for the *ctld daemon family. PATH first, then platform-
+     *  specific fallback paths matching the rigctl install locations. */
+    private static String findDaemon(String name) {
         String[] common = WINDOWS
             ? new String[] {
-                "C:\\Program Files\\hamlib-w64\\bin\\rigctld.exe",
-                "C:\\Program Files (x86)\\hamlib-w32\\bin\\rigctld.exe",
+                "C:\\Program Files\\hamlib-w64\\bin\\" + name + ".exe",
+                "C:\\Program Files (x86)\\hamlib-w32\\bin\\" + name + ".exe",
               }
             : MAC
-                ? new String[] { "/usr/local/bin/rigctld", "/opt/homebrew/bin/rigctld" }
-                : new String[] { "/usr/bin/rigctld", "/usr/local/bin/rigctld" };
-        Detected d = detect("rigctld", common);
+                ? new String[] { "/usr/local/bin/" + name, "/opt/homebrew/bin/" + name }
+                : new String[] { "/usr/bin/" + name, "/usr/local/bin/" + name };
+        Detected d = detect(name, common);
         return d.installed ? d.path : null;
     }
 
