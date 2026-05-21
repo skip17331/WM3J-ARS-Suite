@@ -446,8 +446,18 @@ mvn -q -DskipTests -f j-map/pom.xml package
 
 That recipe also works on macOS (`brew install --cask temurin@21
 maven git` instead of apt) and on a non-Pi Linux box (no apt
-variation needed). On Windows the same flow works as-is — the build
-bundles the Windows JavaFX runtime, so there are no extra steps.
+variation needed).
+
+On Windows, install Java 21, Maven, and Git, then run the same clone
+and `mvn` build commands. Only the launch line differs — use the
+batch launcher instead of the shell script:
+
+```bat
+j-map\j-map.bat --hub 192.168.1.42
+```
+
+The build bundles the Windows JavaFX runtime automatically, so there
+are no extra steps.
 
 ### Hub-side: open the firewall
 
