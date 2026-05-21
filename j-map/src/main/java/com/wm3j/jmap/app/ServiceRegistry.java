@@ -206,7 +206,6 @@ public class ServiceRegistry {
             }
             if (changed) onSettingsChanged(settings);
         });
-        dxClusterClient.start(); // connect to Hub for spot delivery
         refreshRotor();
         refreshSolar();
         refreshDxSpots();
@@ -252,6 +251,12 @@ public class ServiceRegistry {
 
         // Rotor — every 1 second
         scheduler.scheduleAtFixedRate(this::refreshRotor,          0,  1, TimeUnit.SECONDS);
+
+        // Connect to the hub only now that the scheduler exists. A live hub
+        // replays its state the instant we connect, and the inbound config
+        // listener hands work to the scheduler — starting earlier raced an
+        // NPE (scheduler still null) on every fast LAN connect.
+        dxClusterClient.start(); // connect to Hub for spot delivery
 
         log.info("Service scheduler started");
     }

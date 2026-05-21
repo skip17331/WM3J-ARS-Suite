@@ -168,8 +168,12 @@ public class DxClusterClient {
         statusMessage = "Connecting to " + url + "…";
         addLine(">>> Connecting to Hub at " + url);
 
+        // One retry per attempt: whichever of onClose / connect-timeout /
+        // exception fires first wins the CAS and schedules the backoff.
+        final java.util.concurrent.atomic.AtomicBoolean retryFired =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
         try {
-            ws = new WebSocketClient(new URI(url)) {
+            final WebSocketClient client = new WebSocketClient(new URI(url)) {
                 @Override public void onOpen(ServerHandshake h) {
                     send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-map\",\"version\":\"1.0.0\"}");
                     connected = true;
@@ -195,26 +199,47 @@ public class DxClusterClient {
                 }
 
                 @Override public void onClose(int code, String reason, boolean remote) {
+                    if (ws != this) return;   // a superseded attempt — ignore
+                    ws = null;
                     connected = false;
                     if (disconnectedSince == null) disconnectedSince = Instant.now();
                     if (heartbeatFuture != null) { heartbeatFuture.cancel(false); heartbeatFuture = null; }
-                    int retry = nextBackoff();
-                    statusMessage = "Disconnected — retrying in " + retry + "s";
                     addLine(">>> Hub disconnected");
-                    log.info("Hub disconnected ({}) — retrying in {}s", reason, retry);
-                    scheduleConnect(retry);
+                    if (retryFired.compareAndSet(false, true)) {
+                        int retry = nextBackoff();
+                        statusMessage = "Disconnected — retrying in " + retry + "s";
+                        log.info("Hub disconnected ({}) — retrying in {}s", reason, retry);
+                        scheduleConnect(retry);
+                    } else {
+                        log.info("Hub disconnected ({})", reason);
+                    }
                 }
 
                 @Override public void onError(Exception ex) {
                     log.warn("Hub WS error: {}", ex.getMessage());
                 }
             };
-            ws.connectBlocking(5, TimeUnit.SECONDS);
+            ws = client;
+            // connectBlocking returns false on timeout WITHOUT throwing and
+            // WITHOUT firing onClose: an unreachable host sends no RST, so the
+            // OS connect can hang far past our 5s. Detect that and retry, or
+            // the reconnect loop dies silently after the first attempt.
+            boolean opened = client.connectBlocking(5, TimeUnit.SECONDS);
+            if (!opened && retryFired.compareAndSet(false, true)) {
+                ws = null;
+                try { client.close(); } catch (Exception ignored) {}
+                int retry = nextBackoff();
+                statusMessage = "Disconnected — retrying in " + retry + "s";
+                log.warn("Hub connect timed out at {} — retrying in {}s", url, retry);
+                scheduleConnect(retry);
+            }
         } catch (Exception e) {
-            int retry = nextBackoff();
-            statusMessage = "Disconnected — retrying in " + retry + "s";
-            log.warn("Hub connect failed: {} — retrying in {}s", e.getMessage(), retry);
-            scheduleConnect(retry);
+            if (retryFired.compareAndSet(false, true)) {
+                int retry = nextBackoff();
+                statusMessage = "Disconnected — retrying in " + retry + "s";
+                log.warn("Hub connect failed: {} — retrying in {}s", e.getMessage(), retry);
+                scheduleConnect(retry);
+            }
         }
     }
 

@@ -23,17 +23,24 @@ public class JMapApp extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(JMapApp.class);
 
-    /** Path to the j-hub start script. Resolved in order:
-     *  (1) {@code $ARS_SUITE_HOME/j-hub/start.sh} if env var is set,
-     *  (2) {@code $HOME/ARS_Suite/j-hub/start.sh} otherwise. */
+    /** True when running on Windows — selects {@code cmd}/{@code start.bat}
+     *  over {@code bash}/{@code start.sh} for the local J-Hub auto-start. */
+    private static final boolean IS_WINDOWS =
+        System.getProperty("os.name", "").toLowerCase().contains("win");
+
+    /** Path to the j-hub start script — {@code start.bat} on Windows,
+     *  {@code start.sh} elsewhere. Root resolved in order:
+     *  (1) {@code $ARS_SUITE_HOME} if the env var is set,
+     *  (2) {@code $HOME/ARS_Suite} otherwise. */
     private static final String JHUB_START    = resolveJHubStart();
 
     private static String resolveJHubStart() {
         String root = System.getenv("ARS_SUITE_HOME");
         if (root == null || root.isBlank()) {
-            root = System.getProperty("user.home", "") + "/ARS_Suite";
+            root = System.getProperty("user.home", "") + java.io.File.separator + "ARS_Suite";
         }
-        return root + "/j-hub/start.sh";
+        String script = IS_WINDOWS ? "start.bat" : "start.sh";
+        return java.nio.file.Path.of(root, "j-hub", script).toString();
     }
 
     private ServiceRegistry serviceRegistry;
@@ -157,10 +164,12 @@ public class JMapApp extends Application {
         if (isPortOpen("localhost", wsPort, 500)) return;
         log.info("J-Hub not detected — starting J-Hub...");
         try {
-            new ProcessBuilder("bash", JHUB_START, "--no-splash")
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start();
+            ProcessBuilder pb = IS_WINDOWS
+                ? new ProcessBuilder("cmd", "/c", JHUB_START, "--no-splash")
+                : new ProcessBuilder("bash", JHUB_START, "--no-splash");
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+              .redirectError(ProcessBuilder.Redirect.DISCARD)
+              .start();
             for (int i = 0; i < 20; i++) {
                 Thread.sleep(500);
                 if (isPortOpen("localhost", wsPort, 200)) {
