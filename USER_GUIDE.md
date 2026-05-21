@@ -536,6 +536,38 @@ Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
   follows the **IARU Region + Country Overlay** set under J-Hub's
   Station → Regional Settings. Updates live without a J-Map restart.
 
+#### Remote display (second machine)
+
+J-Map doubles as a dedicated shack display — a wall monitor driven by a
+cheap box (Raspberry Pi, mini-PC, spare laptop) showing grayline, spots,
+and propagation while the station PC does the real work. The display box
+runs **J-Map only** — there is no second J-Hub on it — and connects back
+to the station's J-Hub over the network.
+
+Build J-Map on the display box exactly as on the station, then launch it
+pointed at the station's LAN address:
+
+| Platform | Launch command |
+|---|---|
+| Linux / macOS | `./j-map/j-map.sh --hub 192.168.1.42` |
+| Windows | `j-map\j-map.bat --hub 192.168.1.42` |
+
+The station PC must allow two inbound ports: **8080** (WebSocket — live
+data) and **8081** (HTTP — a one-time settings fetch at startup).
+
+- **Resilient.** If the station is down when the display boots, or the
+  link drops later, J-Map keeps running, shows a reconnecting banner,
+  and retries automatically with exponential backoff (2 s → 60 s). It
+  resyncs the moment the station returns — no manual restart.
+- **Mostly read-only.** Settings and station identity flow hub →
+  display; clicking a spot sends it back so the station's J-Log /
+  J-Digi can tune the rig.
+- **Configured from the station.** Edit J-Map's settings in the
+  station's J-Hub web UI — changes broadcast live to the display.
+
+For the full per-OS build recipe, boot auto-launch, and crash-recovery,
+see **INSTALL.md → Standalone J-Map (second-machine display)**.
+
 ### J-Digi
 
 - Requires working audio input/output. Pick devices in **Audio** menu.
