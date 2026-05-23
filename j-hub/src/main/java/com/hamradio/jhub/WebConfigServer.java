@@ -1136,6 +1136,50 @@ public class WebConfigServer {
                 writeZipEntry(zip, "snapshot/deps.json",
                     DependencyChecker.checkAll().toString());
 
+                // 4b. Live rig / rotor / amp controller state. Captures the
+                // bits a triage will look at first when a "won't connect"
+                // bundle lands: the user-facing lastError, the managed-daemon
+                // process state, and the rig_open complaint we scraped from
+                // rigctld's stdout. Without this, the reader has to grep
+                // through j-hub.log to reconstruct the same picture.
+                com.google.gson.JsonObject rigSnap = new com.google.gson.JsonObject();
+                String rigBackend = ConfigManager.getInstance().getConfig().rig.backend;
+                rigSnap.addProperty("backend",         rigBackend);
+                RigController activeRig = RigControllers.active();
+                rigSnap.addProperty("running",         activeRig.isRunning());
+                rigSnap.addProperty("connected",       activeRig.isConnected());
+                rigSnap.addProperty("frequency",       activeRig.getLastFreq());
+                rigSnap.addProperty("mode",            activeRig.getLastMode());
+                rigSnap.addProperty("error",           activeRig.getLastError());
+                rigSnap.addProperty("cwUnsupported",   activeRig.isCwUnsupported());
+                RigctldManager rigMgr = RigctldManager.getInstance();
+                rigSnap.addProperty("rigctldRunning",      rigMgr.isRunning());
+                rigSnap.addProperty("rigctldLastError",    rigMgr.getLastError());
+                rigSnap.addProperty("rigctldDaemonComplaint", rigMgr.getDaemonComplaint());
+                writeZipEntry(zip, "snapshot/rig-status.json", rigSnap.toString());
+
+                com.google.gson.JsonObject rotorSnap = new com.google.gson.JsonObject();
+                String rotBackend = ConfigManager.getInstance().getConfig().rotor.backend;
+                HamlibRotorController rotorCtl = HamlibRotorController.getInstance();
+                rotorSnap.addProperty("backend",    rotBackend);
+                rotorSnap.addProperty("running",    rotorCtl.isRunning());
+                rotorSnap.addProperty("connected",  rotorCtl.isConnected());
+                rotorSnap.addProperty("azimuth",    rotorCtl.getLastAz());
+                rotorSnap.addProperty("elevation",  rotorCtl.getLastEl());
+                rotorSnap.addProperty("rotctldRunning",   RotctldManager.getInstance().isRunning());
+                rotorSnap.addProperty("rotctldLastError", RotctldManager.getInstance().getLastError());
+                writeZipEntry(zip, "snapshot/rotor-status.json", rotorSnap.toString());
+
+                com.google.gson.JsonObject ampSnap = new com.google.gson.JsonObject();
+                String ampBackend = ConfigManager.getInstance().getConfig().amp.backend;
+                HamlibAmpController ampCtl = HamlibAmpController.getInstance();
+                ampSnap.addProperty("backend",   ampBackend);
+                ampSnap.addProperty("running",   ampCtl.isRunning());
+                ampSnap.addProperty("connected", ampCtl.isConnected());
+                ampSnap.addProperty("ampctldRunning",   AmpctldManager.getInstance().isRunning());
+                ampSnap.addProperty("ampctldLastError", AmpctldManager.getInstance().getLastError());
+                writeZipEntry(zip, "snapshot/amp-status.json", ampSnap.toString());
+
                 // 5. Environment summary — Java version, OS, ARS_SUITE_HOME
                 com.google.gson.JsonObject env = new com.google.gson.JsonObject();
                 env.addProperty("javaVersion",   System.getProperty("java.version", ""));
