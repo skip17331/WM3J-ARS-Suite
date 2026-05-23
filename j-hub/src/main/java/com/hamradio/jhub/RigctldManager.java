@@ -40,6 +40,12 @@ public class RigctldManager {
     private Process     process;
     private String      currentSignature = "";
     private volatile String lastError    = "";
+    // Last rig_open / serial_open complaint scraped from rigctld's stdout. When
+    // rigctld is given a bad model/port/baud, it neither exits nor binds the TCP
+    // port — it sits alive and writes its complaint to stdout. The controller
+    // surfaces this to the operator instead of the generic "Can't reach rigctld"
+    // message that would otherwise blame the operator for our spawn's failure.
+    private volatile String daemonComplaint = "";
 
     /**
      * Ensure rigctld is running with the requested configuration. If a process
@@ -55,6 +61,7 @@ public class RigctldManager {
             return null; // already up with the right args
         }
         stop();
+        daemonComplaint = "";
 
         String rigctld = DependencyChecker.findRigctld();
         if (rigctld == null) {
@@ -129,6 +136,8 @@ public class RigctldManager {
 
     public boolean isRunning() { return process != null && process.isAlive(); }
     public String  getLastError() { return lastError; }
+    /** Last rig_open/serial_open complaint scraped from rigctld's stdout, or "" if none. */
+    public String  getDaemonComplaint() { return daemonComplaint; }
 
     // ── internals ────────────────────────────────────────────────────
 
@@ -139,13 +148,23 @@ public class RigctldManager {
 
     // rigctld writes a banner + per-connection chatter; pipe it to the logger
     // at DEBUG so it doesn't drown the console but is available when troubleshooting.
-    private static void startOutputPump(Process p) {
+    // Also watch for the specific "rig_open: error = ..." and "serial_open: ..."
+    // lines hamlib emits when it can't talk to the radio — those are the real
+    // cause behind a "rigctld up but won't accept connections" failure, and the
+    // controller needs them to give the operator an honest error message.
+    private void startOutputPump(Process p) {
         Thread t = new Thread(() -> {
             try (BufferedReader r = new BufferedReader(
                     new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = r.readLine()) != null) {
                     log.debug("[rigctld] {}", line);
+                    String trimmed = line.trim();
+                    if (trimmed.startsWith("rig_open: error")
+                            || trimmed.startsWith("serial_open:")
+                            || trimmed.contains("Unable to open")) {
+                        daemonComplaint = trimmed;
+                    }
                 }
             } catch (Exception ignored) {}
         }, "rigctld-stdout");

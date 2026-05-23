@@ -58,6 +58,11 @@ public class HamlibRigController implements RigController {
     private volatile int     port       = 4532;
     private volatile int     pollMs     = 500;
     private volatile boolean pttEnabled = false;
+    // True when this start() came up with manageRigctld=true. Needed in
+    // noteFailure() to attribute connect-refused errors correctly: when we own
+    // the daemon, the manager's getLastError() / getDaemonComplaint() is the
+    // truth, not the generic "is rigctld running?" message.
+    private volatile boolean managed    = false;
 
     // Status
     private volatile boolean running        = false;
@@ -104,6 +109,7 @@ public class HamlibRigController implements RigController {
         this.port       = cfg.hamlibPort > 0 ? cfg.hamlibPort : 4532;
         this.pollMs     = cfg.pollRateMs > 0 ? cfg.pollRateMs : 500;
         this.pttEnabled = cfg.enablePtt;
+        this.managed    = cfg.manageRigctld;
         this.running    = true;
         this.lastError  = "";
         this.failCount  = 0;
@@ -333,14 +339,20 @@ public class HamlibRigController implements RigController {
      * Record a poll/command failure: build an operator-readable explanation,
      * stash it for the Rig Control panel, and log it (throttled).
      *
-     * The two failure modes look identical in the UI ("not connected") but have
-     * opposite fixes, so they must be told apart:
-     *   • rigctld unreachable     → ConnectException / connect timeout
-     *                               → start rigctld / fix host:port
-     *   • rigctld up, rig silent  → SocketTimeoutException on the read, or a
-     *                               negative RPRT on a get → fix rigctld's
-     *                               -m model / -r port / -s baud, power the radio
-     * Operators almost always misfile the second as a j-hub bug, so spell it out.
+     * Three failure modes look identical in the UI ("not connected") but have
+     * different fixes, so they must be told apart:
+     *   • managed rigctld refused to spawn  → manager.getLastError() is the truth
+     *                                         ("Serial port not set", "rigctld
+     *                                         not found", "exited immediately…")
+     *   • managed rigctld up but won't bind → rigctld can't open the serial /
+     *                                         can't talk to the rig. It logs the
+     *                                         cause to stdout (rig_open: error =
+     *                                         …) which the manager scrapes into
+     *                                         getDaemonComplaint().
+     *   • external rigctld unreachable      → ConnectException → operator must
+     *                                         start rigctld themselves.
+     * Operators almost always misfile a managed-mode failure as a j-hub bug, so
+     * never tell them to "start rigctld" when we're the ones who tried to.
      */
     private void noteFailure(IOException e) {
         boolean wasConnected = connected;
@@ -349,8 +361,29 @@ public class HamlibRigController implements RigController {
         String where = host + ":" + port;
         String detail;
         if (e instanceof java.net.ConnectException) {
-            detail = "Can't reach rigctld at " + where
-                   + " — is rigctld running and listening on that port?";
+            if (managed) {
+                RigctldManager mgr = RigctldManager.getInstance();
+                String mgrErr = mgr.getLastError();
+                String complaint = mgr.getDaemonComplaint();
+                if (mgrErr != null && !mgrErr.isBlank()) {
+                    detail = mgrErr;
+                } else if (mgr.isRunning() && complaint != null && !complaint.isBlank()) {
+                    detail = "rigctld is running but couldn't open the rig (" + complaint
+                           + ") — check Model ID, serial port and baud, and that"
+                           + " the radio is on with CAT enabled.";
+                } else if (mgr.isRunning()) {
+                    detail = "rigctld is running but isn't accepting connections —"
+                           + " usually means it couldn't open the serial device."
+                           + " Check Model ID, serial port and baud, and that the"
+                           + " radio is on with CAT enabled.";
+                } else {
+                    detail = "rigctld failed to start (no process running). Check"
+                           + " Model ID, serial port and baud in Rig Control.";
+                }
+            } else {
+                detail = "Can't reach rigctld at " + where
+                       + " — is rigctld running and listening on that port?";
+            }
         } else if (e instanceof java.net.UnknownHostException) {
             detail = "Unknown host '" + host + "' — check the Hamlib host setting.";
         } else if (e instanceof java.net.SocketTimeoutException) {
