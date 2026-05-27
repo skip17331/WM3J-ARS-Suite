@@ -5,7 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,6 +116,36 @@ public class RigctldManager {
                 currentSignature = "";
                 return lastError;
             }
+
+            // Process is alive, but on Windows rigctld will silently sit alive
+            // without ever calling listen() when it can't open the serial port
+            // (its rig_open error goes to a block-buffered stdout pipe that
+            // never reaches startOutputPump). Probe the configured port to
+            // turn that silent failure into an actionable message instead of
+            // an indefinite stream of "Can't reach rigctld" from the poll loop.
+            int probePort = cfg.hamlibPort > 0 ? cfg.hamlibPort : 4532;
+            String probeHost = (cfg.hamlibHost != null && !cfg.hamlibHost.isBlank())
+                               ? cfg.hamlibHost : "127.0.0.1";
+            if (!waitForListen(probeHost, probePort, 2500)) {
+                if (!process.isAlive()) {
+                    int code = process.exitValue();
+                    lastError = "rigctld exited (code " + code + ") within 2s of"
+                              + " starting — check Model ID, serial port and baud";
+                } else if (!daemonComplaint.isBlank()) {
+                    lastError = "rigctld is running (pid " + process.pid() + ") but"
+                              + " did not bind " + probeHost + ":" + probePort
+                              + " — " + daemonComplaint;
+                } else {
+                    lastError = "rigctld is running (pid " + process.pid() + ") but"
+                              + " is not listening on " + probeHost + ":" + probePort
+                              + " — almost always means it could not open the serial"
+                              + " device. Run it manually to see the real error:"
+                              + " \"" + rigctld + "\" -m " + cfg.rigModel + " -r "
+                              + cfg.serialPort + " -s " + cfg.baudRate + " -vvv";
+                }
+                log.warn(lastError);
+                return lastError;
+            }
             return null;
         } catch (Exception e) {
             lastError = "Failed to start rigctld: " + e.getMessage();
@@ -144,6 +177,27 @@ public class RigctldManager {
     private static String signature(RigSection cfg) {
         return cfg.rigModel + "|" + cfg.serialPort + "|" + cfg.baudRate
                 + "|" + cfg.hamlibHost + "|" + cfg.hamlibPort;
+    }
+
+    /**
+     * Poll-connect to {@code host:port} until something accepts the TCP
+     * handshake or {@code totalTimeoutMs} elapses. Used right after spawning
+     * rigctld to confirm it actually reached {@code listen()} — when rigctld
+     * fails to open the serial port on Windows it stays alive without ever
+     * binding, and a probe is the only reliable way to detect that locally.
+     */
+    private static boolean waitForListen(String host, int port, int totalTimeoutMs) {
+        long deadline = System.currentTimeMillis() + totalTimeoutMs;
+        while (System.currentTimeMillis() < deadline) {
+            try (Socket s = new Socket()) {
+                s.connect(new InetSocketAddress(host, port), 250);
+                return true;
+            } catch (IOException ignored) {
+                try { Thread.sleep(150); }
+                catch (InterruptedException ie) { Thread.currentThread().interrupt(); return false; }
+            }
+        }
+        return false;
     }
 
     // rigctld writes a banner + per-connection chatter; pipe it to the logger
