@@ -56,11 +56,4 @@ public class WorkedListManager {
         return worked.contains(callsign.trim().toUpperCase()) ? "worked" : "needed";
     }
 
-    public boolean isWorked(String callsign) {
-        if (callsign == null || callsign.isBlank()) return false;
-        return worked.contains(callsign.trim().toUpperCase());
-    }
-
-    public int size()    { return worked.size(); }
-    public void clear()  { worked.clear(); listReceived = false; }
 }

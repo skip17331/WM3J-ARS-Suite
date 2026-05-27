@@ -97,12 +97,4 @@ public class CountdownTimerWindow extends FloatingWindow {
         renderTime();
     }
 
-    public void reset() {
-        if (flashTimeline != null) flashTimeline.stop();
-        flashing         = false;
-        remainingSeconds = TOTAL_SECONDS;
-        statusLabel.setText("RUNNING");
-        setFrameStyle("-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;");
-        renderTime();
-    }
 }

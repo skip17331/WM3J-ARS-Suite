@@ -42,7 +42,6 @@ public class WsprReporterService {
 
     private ScheduledExecutorService scheduler;
     private volatile JHubServer server;
-    private volatile Instant     lastFetchUtc;
     private volatile String      lastSeenTime = "";   // dedupe across polls
 
     public void start(JHubServer server) {
@@ -61,8 +60,6 @@ public class WsprReporterService {
     public void stop() {
         if (scheduler != null) { scheduler.shutdownNow(); scheduler = null; }
     }
-
-    public Instant getLastFetchUtc() { return lastFetchUtc; }
 
     // -----------------------------------------------------------------
     // Fetch + parse + broadcast
@@ -131,7 +128,6 @@ public class WsprReporterService {
                 broadcast++;
             }
             lastSeenTime = maxTime;
-            lastFetchUtc = Instant.now();
             if (broadcast > 0) log.debug("WSPR: broadcast {} new reports", broadcast);
         } catch (Exception e) {
             log.warn("WSPR fetch failed: {}", e.getMessage());

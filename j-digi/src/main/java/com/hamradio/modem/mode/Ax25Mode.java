@@ -85,16 +85,11 @@ public class Ax25Mode implements DigitalMode {
 
     private double lastMarkPower = 0.0;
     private double lastSpacePower = 0.0;
-    private int framesDecoded = 0;
-    private int framesFcsFailed = 0;
 
     @Override
     public String getName() {
         return "AX.25";
     }
-
-    public int getFramesDecoded() { return framesDecoded; }
-    public int getFramesFcsFailed() { return framesFcsFailed; }
 
     @Override
     public Optional<DecodeMessage> process(SignalSnapshot snapshot, long rigFrequencyHz) {
@@ -295,7 +290,6 @@ public class Ax25Mode implements DigitalMode {
         int computedFcs = computeFcs(data, 0, data.length - 2);
 
         if (computedFcs != receivedFcs) {
-            framesFcsFailed++;
             debug(String.format("FCS fail len=%d got=%04X want=%04X",
                     data.length, receivedFcs, computedFcs));
             return;
@@ -306,7 +300,6 @@ public class Ax25Mode implements DigitalMode {
             return;
         }
 
-        framesDecoded++;
         if (pendingText.length() + parsed.length() + 1 > MAX_PENDING_CHARS) {
             pendingText.setLength(0);
         }

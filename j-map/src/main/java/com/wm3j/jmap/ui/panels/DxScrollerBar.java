@@ -125,5 +125,4 @@ public class DxScrollerBar extends Pane {
         gc.fillText(tickerText, textX, BAR_HEIGHT - 15);
     }
 
-    public void stop() { ticker.stop(); }
 }

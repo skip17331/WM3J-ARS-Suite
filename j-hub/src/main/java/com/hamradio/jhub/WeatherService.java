@@ -30,7 +30,6 @@ public class WeatherService {
 
     private final AtomicReference<String> cachedJson =
         new AtomicReference<>("{\"spaceWeather\":{},\"localWeather\":null}");
-    private volatile Instant lastFetched;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "jhub-weather");
@@ -51,7 +50,6 @@ public class WeatherService {
     }
 
     public String getCachedJson() { return cachedJson.get(); }
-    public Instant getLastFetched() { return lastFetched; }
 
     // ── Fetch all data ─────────────────────────────────────────────────────────
 
@@ -80,7 +78,6 @@ public class WeatherService {
 
             root.addProperty("fetchedAt", Instant.now().toString());
             cachedJson.set(root.toString());
-            lastFetched = Instant.now();
             log.debug("Weather data refreshed");
         } catch (Exception e) {
             log.debug("Weather fetch error: {}", e.getMessage());

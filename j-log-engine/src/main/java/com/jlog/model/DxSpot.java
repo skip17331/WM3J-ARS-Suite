@@ -45,10 +45,8 @@ public class DxSpot {
     public LocalDateTime getTime()              { return time; }
     public void          setTime(LocalDateTime t){ this.time = t; }
 
-    public String getRawLine()          { return rawLine; }
     public void   setRawLine(String r)  { this.rawLine = r; }
 
-    public boolean isActive()              { return active; }
     public void    setActive(boolean a)    { this.active = a; }
 
     // ---------------------------------------------------------------
@@ -61,7 +59,6 @@ public class DxSpot {
     public String getCountry()          { return country; }
     public void   setCountry(String c)  { this.country = c; }
 
-    public String getContinent()            { return continent; }
     public void   setContinent(String c)    { this.continent = c; }
 
     public double getBearing()          { return bearing; }
@@ -70,7 +67,6 @@ public class DxSpot {
     public double getDistanceKm()           { return distanceKm; }
     public void   setDistanceKm(double d)   { this.distanceKm = d; }
 
-    public String getWorkedStatus()             { return workedStatus; }
     public void   setWorkedStatus(String ws)    { this.workedStatus = ws; }
 
     // ---------------------------------------------------------------

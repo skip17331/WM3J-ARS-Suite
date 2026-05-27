@@ -90,8 +90,6 @@ public class StateCache {
 
     private volatile String lastSatState;
 
-    public String getLastSatState() { return lastSatState; }
-
     public void setLastSatState(String rawJson) { this.lastSatState = rawJson; }
 
     // ---------------------------------------------------------------

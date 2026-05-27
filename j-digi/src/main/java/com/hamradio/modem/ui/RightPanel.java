@@ -73,14 +73,6 @@ public class RightPanel extends VBox {
     // Public API
     // ---------------------------------------------------------------
 
-    /** Fill contest pane from a decoded line (e.g. double-click in RX area). */
-    public void fillContestFromDecode(String text, String mode) {
-        contestEntryPane.fillFromDecode(text, mode);
-        if (!contestEntryPane.getContestId().isBlank()) {
-            tabPane.getSelectionModel().select(TAB_CONTEST);
-        }
-    }
-
     /** Call when a SPOT_SELECTED arrives from hub — prefills log and switches tab. */
     public void onHubSpotSelected(HubSpot spot) {
         logEntryPane.prefillFromSpot(spot);

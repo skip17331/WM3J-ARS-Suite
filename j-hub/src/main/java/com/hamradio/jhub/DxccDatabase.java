@@ -17,7 +17,6 @@ import java.util.*;
  *
  * Provides:
  *   • lookup(prefix)  → entity info map or null
- *   • allPrefixes()   → sorted list of all known prefixes
  *
  * The actual enrichment logic lives in SpotEnricher which uses this
  * class for its backing data.  This class exists as a separately
@@ -69,14 +68,4 @@ public class DxccDatabase {
         return prefixEntries.get(prefix == null ? null : prefix.toUpperCase());
     }
 
-    /**
-     * All known prefixes sorted alphabetically.
-     */
-    public List<String> allPrefixes() {
-        List<String> list = new ArrayList<>(prefixEntries.keySet());
-        Collections.sort(list);
-        return list;
-    }
-
-    public int size() { return prefixEntries.size(); }
 }

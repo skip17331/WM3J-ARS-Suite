@@ -45,7 +45,6 @@ public class PskReporterService {
 
     private ScheduledExecutorService scheduler;
     private volatile JHubServer server;
-    private volatile Instant     lastFetchUtc;
     private volatile long        lastFlowStartSeconds;  // dedupe across polls
 
     public void start(JHubServer server) {
@@ -64,8 +63,6 @@ public class PskReporterService {
     public void stop() {
         if (scheduler != null) { scheduler.shutdownNow(); scheduler = null; }
     }
-
-    public Instant getLastFetchUtc() { return lastFetchUtc; }
 
     // -----------------------------------------------------------------
     // Fetch + parse + broadcast
@@ -121,7 +118,6 @@ public class PskReporterService {
                 broadcast++;
             }
             lastFlowStartSeconds = maxFlow;
-            lastFetchUtc = Instant.now();
             if (broadcast > 0) log.debug("PSK Reporter: broadcast {} new reports", broadcast);
         } catch (Exception e) {
             log.warn("PSK Reporter fetch failed: {}", e.getMessage());

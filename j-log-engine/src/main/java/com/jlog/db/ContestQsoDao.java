@@ -235,32 +235,6 @@ public class ContestQsoDao {
         }
     }
 
-    /** QSO-party / rover-aware dupe: matches on callsign + band + mode +
-     *  a whitelisted QTH column (the received county/state field). A
-     *  mobile or rover that moves and sends a NEW county/QTH is therefore
-     *  NOT a duplicate and may be worked again for QSO + multiplier
-     *  credit (MNQP "county line", VTQP straddling mobiles). When the QTH
-     *  value is blank the check degrades to plain (call, band, mode). */
-    public boolean isDuplicateBandModeField(String contestId, String callsign,
-                                            String band, String mode,
-                                            String qthColumn, String qth) throws SQLException {
-        if (qthColumn == null || !qthColumn.matches("field[1-5]")
-                || qth == null || qth.isBlank()) {
-            return isDuplicate(contestId, callsign, band, mode);
-        }
-        String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? "
-                   + "AND band=? AND mode=? AND " + qthColumn + "=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, callsign.toUpperCase());
-            ps.setString(3, band);
-            ps.setString(4, mode);
-            ps.setString(5, qth);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
     /** Partial callsign match for dupe checker pane. */
     public List<String> partialMatch(String contestId, String partial) throws SQLException {
         List<String> results = new ArrayList<>();

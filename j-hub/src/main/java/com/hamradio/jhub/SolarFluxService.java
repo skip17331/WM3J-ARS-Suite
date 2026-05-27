@@ -36,7 +36,6 @@ public class SolarFluxService {
     private ScheduledExecutorService scheduler;
     private volatile JHubServer server;
     private volatile String     lastBroadcast;     // last JSON we sent
-    private volatile Instant    lastFetchUtc;
 
     public void start(JHubServer server) {
         this.server = server;
@@ -59,7 +58,6 @@ public class SolarFluxService {
 
     /** Last JSON payload broadcast. Null until the first successful broadcast. */
     public String getLatestBroadcast() { return lastBroadcast; }
-    public Instant getLastFetchUtc()   { return lastFetchUtc; }
 
     // -----------------------------------------------------------------
 
@@ -88,7 +86,6 @@ public class SolarFluxService {
             // on the first tick after startup.
             if (json.equals(lastBroadcast)) return;
             lastBroadcast = json;
-            lastFetchUtc  = Instant.now();
             if (server != null) server.broadcastToAll(json);
             log.debug("Broadcast SOLAR_FLUX: {}", json);
         } catch (Exception e) {

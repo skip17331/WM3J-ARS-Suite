@@ -139,21 +139,13 @@ public class ModemService implements HubMessageListener {
     private Consumer<String>        densityListener      = d -> {};
     /** Fires with the CONTEST_ACTIVE JsonObject when a j-log contest is loaded, or null for CONTEST_INACTIVE. */
     private Consumer<com.google.gson.JsonObject> contestListener = c -> {};
-    /** Fires with the language code ("en","es","de","fr","it","pt") whenever
-     *  j-hub delivers a station language — so the UI can re-render labels. */
-    private Consumer<String>        languageListener     = l -> {};
 
     private final List<HubMacro> macros = new ArrayList<>();
     private final List<HubSpot>  spots  = new ArrayList<>();
-    private volatile double rotorBearing = -1;
 
     // Station identity — populated from j-hub JHUB_WELCOME; prefs used as fallback
     private volatile String hubCallsign  = null;
     private volatile String hubGridSquare = null;
-    // Operator name (the human-readable {NAME} macro substitution). Blank
-    // means "no name configured" — callers fall back to "OM" so macros
-    // still render plausibly instead of inserting an empty token.
-    private volatile String hubOperatorName = "";
 
     private HubClient hubClient;
     private boolean shuttingDown = false;
@@ -308,11 +300,9 @@ public class ModemService implements HubMessageListener {
     public void setFontsListener(Consumer<com.google.gson.JsonObject> l) { this.fontsListener = l != null ? l : f -> {}; }
     public void setDensityListener(Consumer<String> l)          { this.densityListener      = l != null ? l : d -> {}; }
     public void setContestListener(Consumer<com.google.gson.JsonObject> l) { this.contestListener = l != null ? l : c -> {}; }
-    public void setLanguageListener(Consumer<String> l)         { this.languageListener     = l != null ? l : x -> {}; }
 
     public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
     public List<HubSpot>  getSpots()     { return Collections.unmodifiableList(spots);  }
-    public double getRotorBearing()      { return rotorBearing; }
     /** Returns callsign from j-hub config if available, otherwise falls back to local prefs. */
     public String getMyCall() {
         return hubCallsign != null && !hubCallsign.isBlank()
@@ -320,10 +310,6 @@ public class ModemService implements HubMessageListener {
                : PREFS.get(PREF_MY_CALL, "NOCALL");
     }
     public String getMyGrid() { return hubGridSquare != null ? hubGridSquare : ""; }
-    /** Operator name from j-hub StationSection, or blank if not configured.
-     *  Used to substitute the {NAME} token in macros. Callers should fall
-     *  back to "OM" when blank so the macro still produces a readable line. */
-    public String getMyName() { return hubOperatorName == null ? "" : hubOperatorName; }
 
     /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
     public String bandFromRigHz() {
@@ -819,11 +805,6 @@ public class ModemService implements HubMessageListener {
             if (st.has("gridSquare")) {
                 hubGridSquare = st.get("gridSquare").getAsString().trim().toUpperCase();
             }
-            // Operator name is mixed-case by convention (it's a human name,
-            // not a callsign), so don't upper-case it here.
-            if (st.has("name")) {
-                hubOperatorName = st.get("name").getAsString().trim();
-            }
             if (st.has("iaruRegion")) {
                 PREFS.put(PREF_BANDPLAN_REGION, st.get("iaruRegion").getAsString());
             }
@@ -833,7 +814,6 @@ public class ModemService implements HubMessageListener {
             if (st.has("language")) {
                 String lang = st.get("language").getAsString();
                 com.hamradio.modem.i18n.I18n.load(lang);
-                languageListener.accept(lang);
             }
             String tz = st.has("timezone") ? st.get("timezone").getAsString() : "UTC";
             stationListener.accept(new String[]{ getMyCall(), getMyGrid(), tz });
@@ -1137,7 +1117,6 @@ public class ModemService implements HubMessageListener {
 
             case "ROTOR_STATUS" -> {
                 RotorStatus rotor = GSON.fromJson(msg, RotorStatus.class);
-                rotorBearing = rotor.bearing;
                 rotorListener.accept(rotor);
             }
 
