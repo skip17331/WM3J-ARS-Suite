@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -172,6 +174,140 @@ public class RigctldManager {
     /** Last rig_open/serial_open complaint scraped from rigctld's stdout, or "" if none. */
     public String  getDaemonComplaint() { return daemonComplaint; }
 
+    /** Result of a one-shot {@link #testRigConfig} probe. */
+    public static class TestResult {
+        public final boolean ok;
+        public final String  message;
+        public TestResult(boolean ok, String message) { this.ok = ok; this.message = message; }
+    }
+
+    /**
+     * Spin up a throwaway rigctld with the supplied model/port/baud on a free
+     * ephemeral TCP port, query the rig's frequency, then tear it down. Used
+     * by the Rig Control "Test Comm Port" button so an operator can verify a
+     * config before saving it (or while diagnosing a misbehaving setup).
+     *
+     * <p>Uses an ephemeral port — not the configured hamlibPort — to avoid
+     * colliding with a managed rigctld that may already be bound there. If
+     * the test daemon can't open the serial port (usually because the
+     * managed daemon already holds it), the caller is told.
+     */
+    public static TestResult testRigConfig(int model, String serialPort, int baud) {
+        String rigctld = DependencyChecker.findRigctld();
+        if (rigctld == null) {
+            return new TestResult(false, "rigctld not found — install Hamlib first.");
+        }
+        if (model <= 0) {
+            return new TestResult(false, "Pick a rig model first.");
+        }
+        if (serialPort == null || serialPort.isBlank()) {
+            return new TestResult(false, "Set a serial port first.");
+        }
+
+        int testPort;
+        try (ServerSocket ss = new ServerSocket(0)) {
+            testPort = ss.getLocalPort();
+        } catch (IOException e) {
+            return new TestResult(false, "Could not allocate a test TCP port: " + e.getMessage());
+        }
+
+        List<String> argv = new ArrayList<>();
+        argv.add(rigctld);
+        argv.add("-m"); argv.add(Integer.toString(model));
+        argv.add("-r"); argv.add(serialPort);
+        if (baud > 0) { argv.add("-s"); argv.add(Integer.toString(baud)); }
+        argv.add("-t"); argv.add(Integer.toString(testPort));
+        argv.add("-T"); argv.add("127.0.0.1");
+
+        Process p = null;
+        StringBuilder out = new StringBuilder();
+        try {
+            p = new ProcessBuilder(argv).redirectErrorStream(true).start();
+            final Process proc = p;
+            log.debug("Test rigctld started — pid {} args {}", proc.pid(), String.join(" ", argv));
+            Thread reader = new Thread(() -> {
+                try (BufferedReader r = new BufferedReader(
+                        new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        if (line.contains("is already open")) continue;
+                        synchronized (out) { out.append(line).append('\n'); }
+                    }
+                } catch (Exception ignored) {}
+            }, "rigctld-test-stdout");
+            reader.setDaemon(true);
+            reader.start();
+
+            if (!waitForListen("127.0.0.1", testPort, 3000)) {
+                boolean managedRunning = getInstance().isRunning();
+                String captured;
+                synchronized (out) { captured = out.toString().trim(); }
+                StringBuilder msg = new StringBuilder();
+                if (!proc.isAlive()) {
+                    msg.append("rigctld exited (code ").append(proc.exitValue()).append(") within 3s.");
+                } else {
+                    msg.append("rigctld started but did not accept TCP connections — almost always means it could not open ")
+                       .append(serialPort).append(".");
+                }
+                if (managedRunning) {
+                    msg.append(" The managed rigctld is currently using this port — stop it (uncheck \"Start rigctld for me\") before testing, or save these settings and let the managed daemon use them.");
+                }
+                if (!captured.isEmpty()) {
+                    msg.append(" Hamlib said: ").append(captured.replace('\n', ' '));
+                }
+                return new TestResult(false, msg.toString());
+            }
+
+            try (Socket s = new Socket()) {
+                s.connect(new InetSocketAddress("127.0.0.1", testPort), 1500);
+                s.setSoTimeout(2500);
+                OutputStream os = s.getOutputStream();
+                os.write("f\n".getBytes(StandardCharsets.US_ASCII));
+                os.flush();
+                BufferedReader r = new BufferedReader(
+                        new InputStreamReader(s.getInputStream(), StandardCharsets.US_ASCII));
+                String resp = r.readLine();
+                if (resp == null) {
+                    return new TestResult(false, "Connected to rigctld but got no response to the frequency query.");
+                }
+                String trimmed = resp.trim();
+                try {
+                    long hz = Long.parseLong(trimmed);
+                    return new TestResult(true,
+                            String.format("OK — rig is responding. Frequency: %.3f MHz.", hz / 1_000_000.0));
+                } catch (NumberFormatException nfe) {
+                    String captured;
+                    synchronized (out) { captured = out.toString().trim(); }
+                    StringBuilder msg = new StringBuilder();
+                    msg.append("Connected to rigctld but the rig replied: \"").append(trimmed).append("\". ");
+                    msg.append("This usually means the model id doesn't match the radio, the rig is off, or the baud rate is wrong.");
+                    if (!captured.isEmpty()) {
+                        msg.append(" Hamlib said: ").append(captured.replace('\n', ' '));
+                    }
+                    return new TestResult(false, msg.toString());
+                }
+            } catch (IOException ioe) {
+                String captured;
+                synchronized (out) { captured = out.toString().trim(); }
+                StringBuilder msg = new StringBuilder();
+                msg.append("rigctld accepted a connection but the rig didn't answer the frequency query: ")
+                   .append(ioe.getMessage()).append(". ");
+                msg.append("Most likely causes: wrong serial port, wrong baud rate, rig is off, or CAT is disabled on the rig.");
+                if (!captured.isEmpty()) {
+                    msg.append(" Hamlib said: ").append(captured.replace('\n', ' '));
+                }
+                return new TestResult(false, msg.toString());
+            }
+        } catch (Exception e) {
+            return new TestResult(false, "Failed to start rigctld: " + e.getMessage());
+        } finally {
+            if (p != null && p.isAlive()) {
+                try { p.descendants().forEach(ProcessHandle::destroyForcibly); } catch (Exception ignored) {}
+                p.destroyForcibly();
+            }
+        }
+    }
+
     // ── internals ────────────────────────────────────────────────────
 
     private static String signature(RigSection cfg) {
@@ -214,6 +350,12 @@ public class RigctldManager {
                 while ((line = r.readLine()) != null) {
                     log.debug("[rigctld] {}", line);
                     String trimmed = line.trim();
+                    // "serial_open: serial port <name> is already open" is a benign
+                    // info line Hamlib emits on Windows when a port handle was
+                    // re-obtained — rig_open still succeeds. Ignore it so a real
+                    // subsequent rig_open error isn't masked, and so it doesn't
+                    // get surfaced as the cause of an unrelated TCP probe failure.
+                    if (trimmed.contains("is already open")) continue;
                     if (trimmed.startsWith("rig_open: error")
                             || trimmed.startsWith("serial_open:")
                             || trimmed.contains("Unable to open")) {

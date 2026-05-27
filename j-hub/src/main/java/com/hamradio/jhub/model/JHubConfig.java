@@ -36,6 +36,13 @@ public class JHubConfig {
     public com.google.gson.JsonObject jDigiSettings   = null;
     public com.google.gson.JsonObject jBridgeSettings = null;
 
+    // Optional override for the Hamlib bin/ directory (the folder containing
+    // rigctl/rigctld/rotctl/rotctld/ampctl/ampctld). When blank, detection
+    // falls back to PATH and a list of common install locations. Useful on
+    // Windows where the official ZIP extracts to a versioned folder
+    // (e.g. C:\hamlib-w64-4.5.5\bin) that the auto-probe wouldn't find.
+    public String hamlibBinDir = "";
+
     // ---------------------------------------------------------------
     // J-Hub network settings
     // ---------------------------------------------------------------

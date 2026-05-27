@@ -983,6 +983,8 @@ function populateForms(cfg) {
   setVal('civ-addr',   rig.civAddress || '94');
   setVal('rig-hamlib-host', rig.hamlibHost || 'localhost');
   setVal('rig-hamlib-port', rig.hamlibPort || 4532);
+  // Hamlib bin folder override — top-level field, not under rig.
+  setVal('rig-hamlib-bindir', cfg.hamlibBinDir || '');
   // Managed-rigctld fields. Default to "Start rigctld for me" ON for fresh
   // configs (rig.manageRigctld may be undefined on configs predating this
   // feature — !== false treats "missing" as "yes manage").
@@ -1462,10 +1464,20 @@ function saveRig() {
     baudRate:   parseInt(document.getElementById('rig-baud').value)||0,
     pollRateMs: parseInt(document.getElementById('rig-poll-ms').value)||500,
     enablePtt:  document.getElementById('rig-ptt').checked,
+    // Top-level override consumed by DependencyChecker. The /api/rig POST
+    // handler pulls this out of the RigSection payload before deserializing.
+    hamlibBinDir: document.getElementById('rig-hamlib-bindir').value.trim(),
   };
   fetch('/api/rig', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) })
     .then(r => r.json())
-    .then(() => { flashMsg('rig-save-msg', 'Saved'); state.config.rig = body; })
+    .then(() => {
+      flashMsg('rig-save-msg', 'Saved');
+      state.config.rig = body;
+      state.config.hamlibBinDir = body.hamlibBinDir;
+      // Re-run the dependency probe so the user sees the result of a new
+      // override immediately on the Dashboard's System Dependencies card.
+      if (typeof pollDeps === 'function') pollDeps();
+    })
     .catch(() => flashMsg('rig-save-msg', 'Error', true));
 }
 
@@ -2318,6 +2330,34 @@ function reconnectCluster() { clusterConnect(); }
 function reloadConfig()     { loadConfig(); loadMacros(); }
 function restartWs() {
   if (ws) ws.close();
+}
+
+// ── Comm-port test ─────────────────────────────────────────
+// One-shot rigctld + frequency query with the form values. Lets the
+// user verify COM port + baud + model id without saving first.
+function testRigPort() {
+  const model = readRigModelId();
+  const port  = document.getElementById('rig-serial-port').value.trim();
+  const baud  = parseInt(document.getElementById('rig-baud').value) || 0;
+  const msg   = document.getElementById('rig-save-msg');
+  if (msg) { msg.textContent = 'Testing… (up to 6s)'; msg.style.color = 'var(--overlay0)'; }
+  fetch('/api/rig/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rigModel: model, serialPort: port, baudRate: baud })
+  })
+  .then(r => r.json())
+  .then(j => {
+    if (!msg) return;
+    msg.textContent = j.message || (j.ok ? 'OK' : 'Failed');
+    msg.style.color = j.ok ? 'var(--green)' : 'var(--red)';
+    // Don't auto-clear — the diagnostic text is the point.
+  })
+  .catch(err => {
+    if (!msg) return;
+    msg.textContent = 'Test failed: ' + err.message;
+    msg.style.color = 'var(--red)';
+  });
 }
 
 // ── PTT test ───────────────────────────────────────────────

@@ -427,6 +427,15 @@
             </label>
           </div>
 
+          <!-- Optional override: where Hamlib binaries live on disk. -->
+          <div class="field-row cols-1" style="margin-bottom:10px">
+            <div class="field">
+              <input type="text" id="rig-hamlib-bindir" placeholder="(auto-detect — leave blank unless the System Dependencies card says Hamlib is missing)">
+              <label>Hamlib bin folder (override)</label>
+              <span class="hint">Folder containing <code>rigctl(.exe)</code>, <code>rigctld(.exe)</code>, <code>rotctl(.exe)</code>, etc. On Windows the official ZIP extracts to a versioned folder like <code>C:\hamlib-w64-4.5.5\bin</code>; paste that path here if the auto-probe can't find it. You may paste either the <code>bin</code> folder or the install root.</span>
+            </div>
+          </div>
+
           <!-- Managed-mode fields: model + serial port + baud -->
           <div id="rig-managed-block">
             <div class="field-row cols-3">
@@ -443,25 +452,37 @@
                   <option value="1034">Yaesu FTDX-1200 (1034)</option>
                   <option value="1040">Yaesu FTDX-101D (1040)</option>
                   <option value="1044">Yaesu FTDX-101MP (1044)</option>
+                  <option value="1032">Yaesu FTDX-5000 (1032)</option>
+                  <option value="1029">Yaesu FT-2000 (1029)</option>
+                  <option value="1028">Yaesu FT-950 (1028)</option>
                   <option value="1035">Yaesu FT-991 / FT-991A (1035)</option>
                   <option value="1042">Yaesu FTDX-10 (1042)</option>
+                  <option value="1049">Yaesu FT-710 (1049)</option>
                   <option value="1022">Yaesu FT-857 (1022)</option>
                   <option value="1023">Yaesu FT-897 (1023)</option>
                   <option value="1043">Yaesu FT-897D (1043)</option>
+                  <option value="1036">Yaesu FT-891 (1036)</option>
+                  <option value="1020">Yaesu FT-817 (1020)</option>
+                  <option value="1041">Yaesu FT-818 (1041)</option>
                   <option value="1027">Yaesu FT-450 (1027)</option>
                   <option value="1046">Yaesu FT-450D (1046)</option>
                   <option value="-- icom --" disabled>── Icom ──</option>
                   <option value="3046">Icom IC-746PRO (3046)</option>
+                  <option value="3060">Icom IC-7000 (3060)</option>
                   <option value="3070">Icom IC-7100 (3070)</option>
                   <option value="3073">Icom IC-7300 (3073)</option>
                   <option value="3063">Icom IC-7600 (3063)</option>
                   <option value="3078">Icom IC-7610 (3078)</option>
                   <option value="3062">Icom IC-7700 (3062)</option>
                   <option value="3056">Icom IC-7800 (3056)</option>
+                  <option value="3075">Icom IC-7850 / IC-7851 (3075)</option>
                   <option value="3085">Icom IC-705 (3085)</option>
+                  <option value="3068">Icom IC-9100 (3068)</option>
                   <option value="3081">Icom IC-9700 (3081)</option>
                   <option value="3013">Icom IC-718 (3013)</option>
+                  <option value="3061">Icom IC-7200 (3061)</option>
                   <option value="-- kenwood --" disabled>── Kenwood ──</option>
+                  <option value="2039">Kenwood TS-990S (2039)</option>
                   <option value="2014">Kenwood TS-2000 (2014)</option>
                   <option value="2031">Kenwood TS-590S (2031)</option>
                   <option value="2037">Kenwood TS-590SG (2037)</option>
@@ -474,6 +495,11 @@
                   <option value="2047">Elecraft K4 (2047)</option>
                   <option value="2045">Elecraft KX3 (2045)</option>
                   <option value="2044">Elecraft KX2 (2044)</option>
+                  <option value="-- sdr --" disabled>── SDR / Other ──</option>
+                  <option value="2036">FlexRadio 6xxx (SmartSDR/CAT, 2036)</option>
+                  <option value="2048">FlexRadio/ANAN PowerSDR/Thetis (2048)</option>
+                  <option value="2040">OpenHPSDR PiHPSDR (2040)</option>
+                  <option value="2050">Lab599 Discovery TX-500 (2050)</option>
                   <option value="custom">Other / Custom model id…</option>
                 </select>
                 <label>Rig Model</label>
@@ -545,6 +571,7 @@
 
         <div class="btn-row">
           <button class="btn btn-primary" onclick="saveRig()">Save Rig Settings</button>
+          <button class="btn btn-green" onclick="testRigPort()" title="Spawn a throwaway rigctld with the form values, query the rig's frequency, then tear down. Use to verify COM port + baud + model id before saving.">Test Comm Port</button>
           <button class="btn btn-green" id="ptt-test-btn" onclick="testPtt()" disabled>Test PTT</button>
           <button class="btn btn-yellow" onclick="exportDiag()" title="Zip of all module logs + rig/rotor/amp status + Hamlib deps probe. Attach to bug reports.">Download Diagnostics</button>
           <span id="rig-save-msg" style="font-size:12px;color:var(--overlay0)"></span>

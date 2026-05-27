@@ -718,6 +718,11 @@ public class WebConfigServer {
     //   POST /api/rig           → save rig config; (re)starts controller
     //   POST /api/rig/ptt       → { "ptt": true|false }  key/un-key TX
     //   POST /api/rig/reconnect → force-close and reopen rigctld connection
+    //   POST /api/rig/test      → spawn a throwaway rigctld with the supplied
+    //                              { rigModel, serialPort, baudRate } on an
+    //                              ephemeral port, query frequency, tear down;
+    //                              returns { ok, message }. Lets the operator
+    //                              verify COM port + baud + model before saving.
     // ---------------------------------------------------------------
 
     private static class RigApiServlet extends HttpServlet {
@@ -781,11 +786,54 @@ public class WebConfigServer {
                 return;
             }
 
+            // ── Test comm port (one-shot rigctld + frequency query) ──
+            if ("/test".equals(path)) {
+                try {
+                    String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                    com.google.gson.JsonObject j = body.isBlank()
+                        ? new com.google.gson.JsonObject()
+                        : com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                    int    model = j.has("rigModel")   && !j.get("rigModel").isJsonNull()
+                                   ? j.get("rigModel").getAsInt()      : 0;
+                    String port  = j.has("serialPort") && !j.get("serialPort").isJsonNull()
+                                   ? j.get("serialPort").getAsString() : "";
+                    int    baud  = j.has("baudRate")   && !j.get("baudRate").isJsonNull()
+                                   ? j.get("baudRate").getAsInt()      : 0;
+                    RigctldManager.TestResult tr = RigctldManager.testRigConfig(model, port, baud);
+                    com.google.gson.JsonObject jr = new com.google.gson.JsonObject();
+                    jr.addProperty("ok",      tr.ok);
+                    jr.addProperty("message", tr.message);
+                    json(res, jr.toString());
+                } catch (Exception e) {
+                    res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    com.google.gson.JsonObject jr = new com.google.gson.JsonObject();
+                    jr.addProperty("ok",      false);
+                    jr.addProperty("message", "Bad request: " + e.getMessage());
+                    json(res, jr.toString());
+                }
+                return;
+            }
+
             // ── Save config (no path suffix) ────────────────────────
             try {
                 String body = new String(req.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                JHubConfig.RigSection rig = ConfigManager.gson().fromJson(body, JHubConfig.RigSection.class);
+                // The payload is mostly a RigSection but may also carry a
+                // top-level `hamlibBinDir` (Hamlib install-folder override,
+                // edited from the same Rig Control pane). Pluck that out
+                // first, then deserialize the remainder as a RigSection.
+                com.google.gson.JsonObject obj =
+                    com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+                String hamlibBinDir = null;
+                if (obj.has("hamlibBinDir")) {
+                    com.google.gson.JsonElement el = obj.remove("hamlibBinDir");
+                    if (el != null && !el.isJsonNull()) hamlibBinDir = el.getAsString();
+                }
+                JHubConfig.RigSection rig =
+                    ConfigManager.gson().fromJson(obj, JHubConfig.RigSection.class);
                 ConfigManager.getInstance().getConfig().rig = rig;
+                if (hamlibBinDir != null) {
+                    ConfigManager.getInstance().getConfig().hamlibBinDir = hamlibBinDir.trim();
+                }
                 ConfigManager.getInstance().save();
                 // Apply immediately — dispatcher swaps in the matching backend.
                 RigControllers.restart(rig);
