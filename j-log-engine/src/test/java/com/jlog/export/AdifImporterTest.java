@@ -128,6 +128,51 @@ class AdifImporterTest {
     }
 
     /**
+     * Full round-trip through the file format: insert records, export to a
+     * fresh .adi via {@link AdifExporter}, wipe the table, re-import via
+     * {@link AdifImporter}, and verify every row came back. Catches any
+     * future regression where export and import disagree on the field set,
+     * charset, or quoting — including the 2026-05-28 export-charset lock
+     * (UTF-8) and the import cp1252 fallback combined.
+     */
+    @Test
+    void roundTripExportImportPreservesAllRecordsIncludingNonAscii(@TempDir Path dir) throws Exception {
+        // Seed three rows: one plain, one with a UTF-8 non-ASCII char in
+        // notes, one with smart quotes in country name.
+        com.jlog.model.QsoRecord a = new com.jlog.model.QsoRecord();
+        a.setCallsign("K1ABC"); a.setBand("20m"); a.setMode("CW");
+        a.setDateTimeUtc(java.time.LocalDateTime.of(2026, 1, 1, 12, 0));
+
+        com.jlog.model.QsoRecord b = new com.jlog.model.QsoRecord();
+        b.setCallsign("XE1AB"); b.setBand("15m"); b.setMode("SSB");
+        b.setDateTimeUtc(java.time.LocalDateTime.of(2026, 1, 1, 12, 15));
+        b.setNotes("Operator André, México");
+
+        com.jlog.model.QsoRecord c = new com.jlog.model.QsoRecord();
+        c.setCallsign("OH2XX"); c.setBand("40m"); c.setMode("FT8");
+        c.setDateTimeUtc(java.time.LocalDateTime.of(2026, 1, 1, 12, 30));
+        c.setCountry("Åland Islands");
+
+        QsoDao.getInstance().insert(a);
+        QsoDao.getInstance().insert(b);
+        QsoDao.getInstance().insert(c);
+        assertEquals(3, QsoDao.getInstance().count());
+
+        Path out = dir.resolve("round-trip.adi");
+        AdifExporter.exportAdif(out, java.util.List.of(a, b, c), false);
+
+        try (Statement st = DatabaseManager.getInstance().getLogConnection().createStatement()) {
+            st.executeUpdate("DELETE FROM qso");
+        }
+        assertEquals(0, QsoDao.getInstance().count());
+
+        AdifImporter.Result r = AdifImporter.importAdif(out, AdifImporter.DupeMode.APPEND);
+        assertEquals(3, r.imported, "round-trip must load every exported row");
+        assertEquals(0, r.failed);
+        assertEquals(3, QsoDao.getInstance().count());
+    }
+
+    /**
      * Pins the 2026-05-28 charset-fallback fix. HRD/Logger32/N1MM on Windows
      * write ADIF in Windows-1252; a strict UTF-8 read threw
      * {@code MalformedInputException: Input length = N} on any cp1252 byte
