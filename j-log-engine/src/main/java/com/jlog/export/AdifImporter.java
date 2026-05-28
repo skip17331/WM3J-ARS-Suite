@@ -41,11 +41,45 @@ public class AdifImporter {
         public int skipped;
         public int overwritten;
         public int failed;
-        public List<String> failures = new ArrayList<>();
+        /** Per-record rejections — operator can review/edit/approve via
+         *  the j-log Rejected QSOs dialog. Replaces the prior
+         *  {@code List<String>} of bare reason strings so the UI has the
+         *  parsed fields available to populate an edit form. */
+        public List<RejectedRecord> failures = new ArrayList<>();
 
         @Override public String toString() {
             return String.format("imported=%d overwritten=%d skipped=%d failed=%d",
                 imported, overwritten, skipped, failed);
+        }
+    }
+
+    /** One rejected ADIF record carried back to the UI for review. */
+    public static class RejectedRecord {
+        /** 1-based record number within the import — useful when the
+         *  operator opens the source file to track down a row. */
+        public final int recordNumber;
+        /** Why we didn't insert it (e.g. "Missing CALL in record",
+         *  "UNIQUE constraint failed: …"). */
+        public final String reason;
+        /** Raw ADIF tag → value map as parsed. Empty if parsing yielded
+         *  nothing. Allows the UI to pre-populate an edit form even when
+         *  the record was missing required fields. */
+        public final Map<String, String> fields;
+        /** Best-effort QsoRecord built from {@link #fields}. Whatever
+         *  could be extracted is set; missing/invalid values are blank
+         *  or null. Operator fills the gap before re-saving. */
+        public final QsoRecord partial;
+
+        public RejectedRecord(int recordNumber, String reason,
+                              Map<String, String> fields, QsoRecord partial) {
+            this.recordNumber = recordNumber;
+            this.reason       = reason;
+            this.fields       = fields == null ? Map.of() : Map.copyOf(fields);
+            this.partial      = partial;
+        }
+
+        @Override public String toString() {
+            return "#" + recordNumber + ": " + reason;
         }
     }
 
@@ -60,7 +94,11 @@ public class AdifImporter {
         int bodyStart = indexOfIgnoreCase(content, "<EOH>");
         int cursor = bodyStart >= 0 ? bodyStart + 5 : 0;
 
-        parseRecords(content, cursor, rec -> applyRecord(rec, dupeMode, r));
+        int[] recordCounter = {0};
+        parseRecords(content, cursor, rec -> {
+            recordCounter[0]++;
+            applyRecord(rec, dupeMode, r, recordCounter[0]);
+        });
         log.info("ADIF import from {} — {}", source, r);
         return r;
     }
@@ -143,12 +181,15 @@ public class AdifImporter {
     // Record → DB
     // -----------------------------------------------------------------
 
-    private static void applyRecord(Map<String, String> fields, DupeMode dupeMode, Result r) {
+    private static void applyRecord(Map<String, String> fields, DupeMode dupeMode,
+                                    Result r, int recordNumber) {
+        QsoRecord q = null;
         try {
-            QsoRecord q = toQso(fields);
+            q = toQso(fields);
             if (q.getCallsign() == null || q.getCallsign().isBlank()) {
                 r.failed++;
-                r.failures.add("Missing CALL in record");
+                r.failures.add(new RejectedRecord(
+                    recordNumber, "Missing CALL in record", fields, q));
                 return;
             }
             String band = q.getBand() == null ? "" : q.getBand();
@@ -171,7 +212,10 @@ public class AdifImporter {
             r.imported++;
         } catch (Exception ex) {
             r.failed++;
-            r.failures.add(ex.getMessage() == null ? ex.toString() : ex.getMessage());
+            r.failures.add(new RejectedRecord(
+                recordNumber,
+                ex.getMessage() == null ? ex.toString() : ex.getMessage(),
+                fields, q));
         }
     }
 
