@@ -1,14 +1,15 @@
 # Hardware Build Guide
 
-Three keyer designs, all DIY-friendly. All three accept either a **straight key** or an **iambic paddle**, and all three can do **iambic mode A or B** in firmware.
+> Looking for the J-Learn overview / decision-tree write-up? See **j-learn §05-09 — Hardware Keyer Builds** (`j-learn/src/main/resources/content/05-morse/05-09-hardware-keyer-builds.md`). This file is the authoritative build reference; the j-learn chapter is the learner-facing summary.
+
+Two keyer designs, both DIY-friendly. Both accept either a **straight key** or an **iambic paddle**, and both can do **iambic mode A or B** in firmware.
 
 | Design | Transport | Cost (USD) | Latency | Effort | App config |
 |--------|-----------|------------|---------|--------|------------|
 | **A. Arduino USB serial keyer** | Wired USB | ~$8–12 | 3–8 ms | 30 min | Pick "Arduino USB" + serial port |
-| **B. Arduino USB HID keyer** | Wired USB | ~$10–14 | 2–5 ms | 30 min | None — appears as a keyboard |
-| **C. Pi Zero W wireless keyer** | Wi-Fi UDP | ~$25–35 | 10–30 ms | 1–2 hr | Pick "Pi Zero Wireless" |
+| **B. Pi Zero W wireless keyer** | Wi-Fi UDP | ~$25–35 | 10–30 ms | 1–2 hr | Pick "Pi Zero Wireless" |
 
-Build A first if you want the best timing fidelity for the diagnostics. Build B if you want it to work with any Morse software (no app needed). Build C if you want a cordless desktop key.
+Build A if you want the best timing fidelity for the diagnostics. Build B if you want a cordless desktop key.
 
 ---
 
@@ -38,11 +39,11 @@ For sidetone (optional, all designs):
 ### Wiring
 ```
 Straight key:                Paddle (iambic):
-                                                    
+
    key ─┬── tip ─── D2          paddle ─┬── tip ─── D2  (dit)
         └── slv ── GND                  ├── ring ── D3  (dah)
                                         └── slv ── GND
-                                                    
+
    piezo + 1k resistor (optional sidetone): D9 → 1k → piezo → GND
 ```
 
@@ -75,26 +76,7 @@ See the comment block at the top of `arduino/morse_trainer_keyer.ino` for the fu
 
 ---
 
-## Design B: Arduino USB HID keyer
-
-Same wiring as Design A, but the firmware emulates a USB keyboard pressing **Space**. The desktop trainer (or any Morse software that accepts a spacebar key) sees it as if you were typing.
-
-### BOM differences
-- **Must use** an ATmega32U4 board (Pro Micro, Leonardo, SparkFun Pro Micro) **or** an RP2040 board with TinyUSB. Uno/Nano do not support HID.
-
-### Flash
-1. Open `arduino/morse_trainer_hid.ino`.
-2. Make sure the `Keyboard` library is installed (it's included with the Arduino IDE).
-3. Upload.
-
-### Connect from the desktop app
-Choose **Keyboard (Space)** as the input source. That's it — no port selection, no driver setup. Plug-and-play with any Morse software that uses the spacebar.
-
-> ⚠️ Be aware: while the keyer is plugged in, every key press will type a space *into whatever window has focus*. Unplug it when you're not practicing. (Some hams add a hardware switch between D2/D3 and the key for this reason.)
-
----
-
-## Design C: Pi Zero W wireless keyer
+## Design B: Pi Zero W wireless keyer
 
 ### Bill of materials
 | Qty | Part | Notes |
@@ -191,8 +173,7 @@ Or open the `.scad` file in OpenSCAD GUI to tweak dimensions.
 
 | Path | Median latency | Jitter (p95) | Notes |
 |------|----------------|--------------|-------|
-| Keyboard (USB HID) | 4 ms | 12 ms | OS keystroke pipeline |
-| Arduino HID firmware | 3 ms | 7 ms | Same path as above, hardware key |
+| Local keyboard (spacebar) | 4 ms | 12 ms | OS keystroke pipeline |
 | Arduino serial firmware | 5 ms | 9 ms | Includes serial parse on host |
 | Pi Zero W (5 GHz Wi-Fi) | 14 ms | 28 ms | Stable network |
 | Pi Zero W (2.4 GHz Wi-Fi) | 22 ms | 65 ms | Congested network |
@@ -209,6 +190,5 @@ For accurate sending diagnostics (especially dit/dah variance), prefer the Ardui
 | Paddle dits and dahs swapped | Swap the tip and ring connections, **or** flip `KEY_DIT_PIN` / `KEY_DAH_PIN` in firmware |
 | No sidetone from Pi Zero | Install `python3-rpi.gpio` and check the piezo is on GPIO 18 (PWM-capable) |
 | Iambic feels "slippy" (extra elements) | Try the other mode — A vs B is personal preference. Mode B is more forgiving of late releases. |
-| HID firmware: every keypress shows up in other apps | This is by design (it's a keyboard). Add a physical switch in the key line, or use Design A instead. |
 
 73 and have fun building!

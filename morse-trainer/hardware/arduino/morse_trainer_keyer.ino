@@ -2,7 +2,6 @@
  * Morse Trainer Keyer Firmware
  * ----------------------------
  * Targets: Arduino Pro Micro, Leonardo, Uno, Nano (anything with Serial).
- * For HID keyboard mode see morse_trainer_hid.ino instead.
  *
  * Supports three input modes (set INPUT_MODE below):
  *   MODE_STRAIGHT  : single key, one contact between KEY_DIT_PIN and GND

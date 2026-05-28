@@ -30,7 +30,6 @@ A production-grade desktop application for learning, practicing, and refining Mo
 ### Input methods
 - **Keyboard** – Spacebar (configurable) with auto-repeat suppression and audible sidetone.
 - **Arduino USB keyer** – serial protocol with timestamped DOWN/UP events. Supports straight key and iambic paddle (modes A & B). See [hardware/README.md](hardware/README.md).
-- **Arduino USB HID keyer** – alternative firmware emulates a USB keyboard pressing Space; works with any Morse software, no app config. See [hardware/README.md](hardware/README.md).
 - **Raspberry Pi Zero wireless keyer** – UDP over Wi-Fi with optional battery telemetry. Supports straight key and iambic paddle. (BLE bridge hook also exposed.)
 
 > **Building a keyer?** Full BOMs, wiring diagrams, 3D-printable enclosure, and step-by-step assembly are in [hardware/README.md](hardware/README.md).
