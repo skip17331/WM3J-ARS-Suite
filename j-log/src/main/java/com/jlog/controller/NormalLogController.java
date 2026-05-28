@@ -239,10 +239,14 @@ public class NormalLogController implements Initializable {
                 }
                 @Override protected void succeeded() {
                     var r = getValue();
-                    setStatus("ADIF import: " + r.imported + " imported, " + r.skipped + " skipped");
+                    setStatus("ADIF import: " + r.imported + " imported, "
+                        + r.skipped + " skipped, " + r.failed + " rejected");
                     loadQsos();
                     try { java.nio.file.Files.deleteIfExists(java.nio.file.Path.of(path)); }
                     catch (Exception ignored) {}
+                    if (r.failed > 0 && !r.failures.isEmpty()) {
+                        RejectedQsosDialog.show(r.failures, () -> loadQsos());
+                    }
                 }
                 @Override protected void failed() {
                     setStatus("ADIF import failed: " + getException().getMessage());
@@ -1180,6 +1184,9 @@ public class NormalLogController implements Initializable {
                 setStatus("Imported " + r.imported + ", skipped " + r.skipped
                           + ", failed " + r.failed);
                 loadQsos();
+                if (r.failed > 0 && !r.failures.isEmpty()) {
+                    RejectedQsosDialog.show(r.failures, () -> loadQsos());
+                }
             }
             @Override protected void failed() { setStatus("Import failed: " + getException().getMessage()); }
         };

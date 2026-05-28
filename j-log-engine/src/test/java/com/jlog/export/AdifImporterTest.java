@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * End-to-end check that AdifImporter's three DupeMode branches each touch
@@ -124,7 +125,18 @@ class AdifImporterTest {
         AdifImporter.Result r = AdifImporter.importAdif(adif, AdifImporter.DupeMode.SKIP);
         assertEquals(0, r.imported);
         assertEquals(1, r.failed);
-        assertEquals(List.of("Missing CALL in record"), r.failures);
+        assertEquals(1, r.failures.size());
+        AdifImporter.RejectedRecord rej = r.failures.get(0);
+        assertEquals(1, rej.recordNumber);
+        assertEquals("Missing CALL in record", rej.reason);
+        // Parsed fields preserved so the Rejected QSOs dialog can pre-populate
+        // the editor with the BAND / MODE that were present.
+        assertEquals("20m", rej.fields.get("BAND"));
+        assertEquals("CW",  rej.fields.get("MODE"));
+        // Partial QsoRecord has band/mode but blank callsign.
+        assertEquals("20m", rej.partial.getBand());
+        assertEquals("CW",  rej.partial.getMode());
+        assertTrue(rej.partial.getCallsign() == null || rej.partial.getCallsign().isBlank());
     }
 
     /**
