@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -76,7 +78,11 @@ public class AdifExporter {
         String stationCall = cfg.getStationCallsign();
         String stationGrid = cfg.getGridSquare();
 
-        try (PrintWriter pw = new PrintWriter(new FileWriter(destination.toFile()))) {
+        // Lock UTF-8 explicitly — the no-arg FileWriter uses the JVM default
+        // charset, which is Cp1252 on pre-JDK-18 Windows JREs and could drift
+        // if file.encoding isn't set. AdifImporter accepts UTF-8 or cp1252;
+        // we always emit UTF-8 for round-trip with modern loggers.
+        try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(destination, StandardCharsets.UTF_8))) {
             pw.println("j-Log ADIF Export");
             adifField(pw, "ADIF_VER",      "3.1.0"); pw.println();
             adifField(pw, "PROGRAMID",     "j-Log"); pw.println();
@@ -138,7 +144,11 @@ public class AdifExporter {
 
     public static void exportCsv(Path destination) throws Exception {
         List<QsoRecord> qsos = QsoDao.getInstance().fetchAll();
-        try (PrintWriter pw = new PrintWriter(new FileWriter(destination.toFile()))) {
+        // Lock UTF-8 explicitly — the no-arg FileWriter uses the JVM default
+        // charset, which is Cp1252 on pre-JDK-18 Windows JREs and could drift
+        // if file.encoding isn't set. AdifImporter accepts UTF-8 or cp1252;
+        // we always emit UTF-8 for round-trip with modern loggers.
+        try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(destination, StandardCharsets.UTF_8))) {
             pw.println("Callsign,Date,Time,Band,Mode,Frequency,Power,RSTSent,RSTRcvd," +
                        "Country,Name,State,County,Notes,QSLSent,QSLRcvd");
             DateTimeFormatter dtFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");

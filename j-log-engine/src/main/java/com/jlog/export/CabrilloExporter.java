@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -28,7 +30,10 @@ public class CabrilloExporter {
         List<QsoRecord> qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId());
         AppConfig cfg = AppConfig.getInstance();
 
-        try (PrintWriter pw = new PrintWriter(new FileWriter(destination.toFile()))) {
+        // Lock UTF-8 explicitly — see comment in AdifExporter for rationale.
+        // Cabrillo 3.0 spec is ASCII-only, but operator notes/comments may
+        // contain accented characters and we don't want JVM-default drift.
+        try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(destination, StandardCharsets.UTF_8))) {
             // Cabrillo 3.0 header — categories come from AppConfig (set via the
             // pre-export dialog) rather than being hardcoded. Score computed
             // against plugin rules instead of being a raw point sum.
