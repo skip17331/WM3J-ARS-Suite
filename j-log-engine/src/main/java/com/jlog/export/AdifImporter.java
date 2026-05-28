@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -48,7 +52,7 @@ public class AdifImporter {
     /** Import an ADIF file into the normal-log database. */
     public static Result importAdif(Path source, DupeMode dupeMode) throws IOException {
         Result r = new Result();
-        String content = Files.readString(source, StandardCharsets.UTF_8);
+        String content = readAdifText(source);
         // Strip optional UTF-8 BOM
         if (!content.isEmpty() && content.charAt(0) == '﻿') content = content.substring(1);
 
@@ -59,6 +63,32 @@ public class AdifImporter {
         parseRecords(content, cursor, rec -> applyRecord(rec, dupeMode, r));
         log.info("ADIF import from {} — {}", source, r);
         return r;
+    }
+
+    /**
+     * Read an ADIF file as text, tolerating the two encodings the wild
+     * actually emits: UTF-8 (everything written by Linux/macOS loggers and
+     * the modern ADIF 3.x spec) and Windows-1252 (HRD, Logger32, N1MM, and
+     * other Windows-native loggers on US/Western systems). Try strict UTF-8
+     * first so we preserve multi-byte characters when possible; fall back to
+     * Windows-1252 on MalformedInputException — cp1252 has a glyph for every
+     * byte so the fallback decode cannot fail. Replaces a strict
+     * {@code Files.readString(path, UTF_8)} that threw
+     * {@code MalformedInputException: Input length = N} on any cp1252 file.
+     */
+    private static String readAdifText(Path source) throws IOException {
+        byte[] bytes = Files.readAllBytes(source);
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes))
+                .toString();
+        } catch (CharacterCodingException notUtf8) {
+            Charset cp1252 = Charset.forName("windows-1252");
+            log.info("ADIF file {} is not valid UTF-8; decoding as {}", source, cp1252);
+            return new String(bytes, cp1252);
+        }
     }
 
     // -----------------------------------------------------------------

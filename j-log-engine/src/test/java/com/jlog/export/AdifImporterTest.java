@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Statement;
@@ -124,5 +125,32 @@ class AdifImporterTest {
         assertEquals(0, r.imported);
         assertEquals(1, r.failed);
         assertEquals(List.of("Missing CALL in record"), r.failures);
+    }
+
+    /**
+     * Pins the 2026-05-28 charset-fallback fix. HRD/Logger32/N1MM on Windows
+     * write ADIF in Windows-1252; a strict UTF-8 read threw
+     * {@code MalformedInputException: Input length = N} on any cp1252 byte
+     * (smart quotes in comments, accented chars in names, etc.) and the
+     * import silently bombed. importAdif() must transparently fall back to
+     * cp1252 and load the rows.
+     */
+    @Test
+    void cp1252AdifImportsWithoutCharsetError(@TempDir Path dir) throws Exception {
+        // 0xE9 is "é" in cp1252; it's also the start byte of a 3-byte UTF-8
+        // sequence, so a strict UTF-8 decoder throws MalformedInputException
+        // when the following bytes aren't valid continuation bytes.
+        String cp1252Text = """
+                Operator: André
+                <ADIF_VER:5>3.1.4
+                <EOH>
+                <CALL:5>K1ABC<BAND:3>20m<MODE:2>CW<QSO_DATE:8>20260101<TIME_ON:4>1200<COMMENT:14>QSO with André<EOR>
+                """;
+        Path adif = dir.resolve("cp1252.adi");
+        Files.write(adif, cp1252Text.getBytes(Charset.forName("windows-1252")));
+
+        AdifImporter.Result r = AdifImporter.importAdif(adif, AdifImporter.DupeMode.SKIP);
+        assertEquals(1, r.imported, "cp1252 ADIF must import, not blow up");
+        assertEquals(0, r.failed);
     }
 }
