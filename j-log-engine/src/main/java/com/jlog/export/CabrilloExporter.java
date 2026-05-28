@@ -27,7 +27,16 @@ public class CabrilloExporter {
     private static final DateTimeFormatter CAB_TIME = DateTimeFormatter.ofPattern("HHmm");
 
     public static void export(ContestPlugin plugin, Path destination) throws Exception {
-        List<QsoRecord> qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId());
+        // fetchByContest sorts datetime_utc DESC for the cockpit UI
+        // ("newest at top"). Cabrillo sponsors want the log in chronological
+        // order, so re-sort ascending here. Nulls (corrupt rows missing a
+        // timestamp) trail at the end rather than throwing.
+        List<QsoRecord> qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId())
+            .stream()
+            .sorted(java.util.Comparator.comparing(
+                QsoRecord::getDateTimeUtc,
+                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+            .toList();
         AppConfig cfg = AppConfig.getInstance();
 
         // Lock UTF-8 explicitly — see comment in AdifExporter for rationale.

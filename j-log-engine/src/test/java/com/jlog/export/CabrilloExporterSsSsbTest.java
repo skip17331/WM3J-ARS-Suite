@@ -154,5 +154,22 @@ class CabrilloExporterSsSsbTest {
             assertFalse(l.contains("  ?  ") || l.contains(" ?? "),
                 "QSO line should not contain placeholder ? tokens: " + l);
         }
+
+        // QSO lines must appear in chronological order — ARRL Cabrillo spec
+        // requires it, and the underlying fetchByContest sorts DESC for the
+        // cockpit UI. Catches regression of the sort flip in CabrilloExporter.
+        // The serial-sent column is monotonic and easier to compare than the
+        // date/time fields, so use it as a stand-in for chronology.
+        List<Integer> sentSerials = lines.stream()
+            .filter(l -> l.startsWith("QSO:"))
+            .map(l -> {
+                // QSO line layout: "QSO: <freq> <mode> <date> <time> <mycall> <serial_sent> ..."
+                // Tokens 0-6 are fixed; serial_sent is token 6.
+                String[] tok = l.trim().split("\\s+");
+                return Integer.parseInt(tok[6]);
+            })
+            .toList();
+        assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), sentSerials,
+            "QSO lines must be in chronological (ascending serial) order");
     }
 }
