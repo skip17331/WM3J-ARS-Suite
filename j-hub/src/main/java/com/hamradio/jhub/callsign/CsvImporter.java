@@ -4,6 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
@@ -15,7 +19,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Generic CSV importer for the local callsign database.
  *
- * Accepts a UTF-8 CSV file with a header row. Column names are matched
+ * Accepts a CSV file in UTF-8 or Windows-1252 (auto-detected by sniffing
+ * the first 64 KB; HamCall, Buckmaster, and other Windows-native callsign
+ * databases ship as cp1252). Header row required. Column names are matched
  * case-insensitively; unrecognized columns are silently ignored.
  *
  * Recognized column names:
@@ -101,8 +107,11 @@ public class CsvImporter {
         String now = Instant.now().toString();
         int batch = 0;
 
-        try (BufferedReader br = new BufferedReader(
-                 new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8));
+        Charset csvCharset = detectCharset(file);
+        if (csvCharset != StandardCharsets.UTF_8) {
+            log.info("CSV file {} not valid UTF-8; decoding as {}", file, csvCharset);
+        }
+        try (BufferedReader br = Files.newBufferedReader(file, csvCharset);
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             String headerLine = br.readLine();
@@ -207,5 +216,31 @@ public class CsvImporter {
         String v = getAny(cols, idx, keys);
         if (v.isEmpty()) return 0.0;
         try { return Double.parseDouble(v); } catch (NumberFormatException e) { return 0.0; }
+    }
+
+    /**
+     * Sniff the first 64 KB of the file to decide between UTF-8 (modern
+     * exports) and Windows-1252 (HamCall, Buckmaster, other Windows-native
+     * callsign DBs). Streaming the rest with the wrong charset would either
+     * substitute U+FFFD for every cp1252 byte (the prior strict-UTF-8 +
+     * REPLACE default; silently mangled "Müller" / "São Paulo" / etc.) or
+     * mojibake every UTF-8 multibyte sequence. The sniff window is large
+     * enough that any non-ASCII byte in a typical callsign-DB layout
+     * (city, name) will appear before the cutoff.
+     */
+    private static Charset detectCharset(Path file) throws IOException {
+        byte[] sniff;
+        try (InputStream in = Files.newInputStream(file)) {
+            sniff = in.readNBytes(64 * 1024);
+        }
+        try {
+            StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(sniff));
+            return StandardCharsets.UTF_8;
+        } catch (CharacterCodingException notUtf8) {
+            return Charset.forName("windows-1252");
+        }
     }
 }
