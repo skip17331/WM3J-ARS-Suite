@@ -34,6 +34,12 @@ public class ContestPlugin {
     private List<String> statistics;
     private List<String> cabrilloSent;             // ordered sent-exchange field ids
     private List<String> cabrilloRcvd;             // ordered rcvd-exchange field ids
+    // Optional sponsor-accepted CONTEST: header value. When unset,
+    // CabrilloExporter falls back to contestId.replace("_","-"), which
+    // works for plugins whose internal id matches the sponsor name 1:1.
+    // Use the override for our internal split-side disambiguations
+    // (ARRL_DX_SSB_US/DX → "ARRL-DX-SSB") and any other mismatch.
+    private String cabrilloContestName;
     private List<String> sections;
 
     // New (ARRL 10M / cockpit framework):
@@ -479,6 +485,9 @@ public class ContestPlugin {
     public void   setCabrilloSent(List<String> v){ this.cabrilloSent = v; }
     public List<String> getCabrilloRcvd(){ return cabrilloRcvd; }
     public void   setCabrilloRcvd(List<String> v){ this.cabrilloRcvd = v; }
+
+    public String getCabrilloContestName()        { return cabrilloContestName; }
+    public void   setCabrilloContestName(String v){ this.cabrilloContestName = v; }
 
     public List<String> getSections()   { return sections; }
     public void   setSections(List<String> v){ this.sections = v; }

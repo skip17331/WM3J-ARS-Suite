@@ -157,7 +157,13 @@ class CabrilloExporterAllPluginsSmokeTest {
         assertEquals("START-OF-LOG: 3.0", lines.get(0).trim(),
             "first line must be Cabrillo 3.0 marker for " + contestId);
 
-        String expectedContestHeader = "CONTEST: " + contestId.replace("_", "-");
+        // Plugins may declare a sponsor-accepted Cabrillo contest name
+        // (e.g. ARRL_DX_SSB_US/DX both emit "ARRL-DX-SSB"). Honor it.
+        String expectedHeaderValue = (plugin.getCabrilloContestName() != null
+                                      && !plugin.getCabrilloContestName().isBlank())
+            ? plugin.getCabrilloContestName()
+            : contestId.replace("_", "-");
+        String expectedContestHeader = "CONTEST: " + expectedHeaderValue;
         assertTrue(cabrillo.contains(expectedContestHeader),
             "missing '" + expectedContestHeader + "' header for " + contestId);
         assertTrue(cabrillo.contains("CALLSIGN: WM3J"),

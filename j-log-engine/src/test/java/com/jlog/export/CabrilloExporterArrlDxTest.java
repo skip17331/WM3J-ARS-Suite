@@ -108,16 +108,16 @@ class CabrilloExporterArrlDxTest {
 
         List<String> lines = cabrillo.lines().toList();
         assertEquals("START-OF-LOG: 3.0", lines.get(0).trim());
-        // KNOWN-WRONG (2026-05-28 finding): CONTEST: ARRL-DX-SSB-US is our
-        // internal split-side disambiguation; the ARRL robot expects
-        // "ARRL-DX-SSB" regardless of W/VE-vs-DX side (the operator
-        // category tells the sponsor which side). Pinned here as the
-        // current behavior; the planned Cabrillo header-correctness pass
-        // will flip this assertion to "ARRL-DX-SSB" once the exporter
-        // honors a per-plugin cabrilloContestName override. Affects
-        // ARRL_DX_*_US/DX (4 plugins) + likely ARRL_RRU_* (3 plugins).
-        assertTrue(cabrillo.contains("CONTEST: ARRL-DX-SSB-US"),
-            "header currently emits ARRL-DX-SSB-US (sponsor expects ARRL-DX-SSB)");
+        // Sponsor-correct ARRL CONTEST: header — the plugin's
+        // cabrilloContestName override collapses both ARRL_DX_SSB_US
+        // and ARRL_DX_SSB_DX onto the single "ARRL-DX-SSB" value the
+        // ARRL robot expects. (The operator's CATEGORY-OPERATOR header
+        // tells the sponsor which side they're on.) The internal
+        // "-US"/"-DX" suffix never reaches the file.
+        assertTrue(cabrillo.contains("CONTEST: ARRL-DX-SSB"),
+            "header must declare CONTEST: ARRL-DX-SSB");
+        assertTrue(!cabrillo.contains("CONTEST: ARRL-DX-SSB-US"),
+            "header MUST NOT leak our internal -US suffix");
         assertTrue(cabrillo.contains("CALLSIGN: WM3J"));
         assertTrue(cabrillo.contains("END-OF-LOG:"));
 
