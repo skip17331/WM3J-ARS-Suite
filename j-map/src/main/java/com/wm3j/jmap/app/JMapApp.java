@@ -161,7 +161,7 @@ public class JMapApp extends Application {
     // ── J-Hub auto-start ─────────────────────────────────────────────────────
 
     private static void ensureJHubRunning(int wsPort) {
-        if (isPortOpen("localhost", wsPort, 500)) return;
+        if (isPortOpen("127.0.0.1", wsPort, 500)) return;
         log.info("J-Hub not detected — starting J-Hub...");
         try {
             ProcessBuilder pb = IS_WINDOWS
@@ -172,7 +172,7 @@ public class JMapApp extends Application {
               .start();
             for (int i = 0; i < 20; i++) {
                 Thread.sleep(500);
-                if (isPortOpen("localhost", wsPort, 200)) {
+                if (isPortOpen("127.0.0.1", wsPort, 200)) {
                     log.info("J-Hub ready");
                     return;
                 }

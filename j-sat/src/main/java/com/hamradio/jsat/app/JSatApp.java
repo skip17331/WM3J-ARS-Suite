@@ -125,7 +125,7 @@ public class JSatApp extends Application {
     // ── J-Hub auto-start ──────────────────────────────────────────────────────
 
     private static void ensureJHubRunning() {
-        if (isPortOpen("localhost", JHUB_WS_PORT, 500)) return;
+        if (isPortOpen("127.0.0.1", JHUB_WS_PORT, 500)) return;
         log.info("J-Hub not detected — starting...");
         try {
             new ProcessBuilder("bash", JHUB_START, "--no-splash")
@@ -134,7 +134,7 @@ public class JSatApp extends Application {
                 .start();
             for (int i = 0; i < 20; i++) {
                 Thread.sleep(500);
-                if (isPortOpen("localhost", JHUB_WS_PORT, 200)) { log.info("J-Hub ready"); return; }
+                if (isPortOpen("127.0.0.1", JHUB_WS_PORT, 200)) { log.info("J-Hub ready"); return; }
             }
             log.warn("J-Hub did not start in time");
         } catch (Exception e) {

@@ -145,7 +145,8 @@ public class JBridgeMain extends Application {
 
     private static boolean isPortOpen(int port, int timeoutMs) {
         try (java.net.Socket s = new java.net.Socket()) {
-            s.connect(new InetSocketAddress("localhost", port), timeoutMs);
+            // 127.0.0.1 not "localhost" — see project_hamlib_loopback_ipv6_ipv4_bug
+            s.connect(new InetSocketAddress("127.0.0.1", port), timeoutMs);
             return true;
         } catch (Exception e) { return false; }
     }

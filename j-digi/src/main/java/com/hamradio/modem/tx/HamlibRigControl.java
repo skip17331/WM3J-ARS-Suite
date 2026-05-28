@@ -48,7 +48,13 @@ public final class HamlibRigControl implements RigControl {
     }
 
     public HamlibRigControl(String host, int port) {
-        this.host = host == null || host.isBlank() ? DEFAULT_HOST : host.trim();
+        // Force "localhost" → "127.0.0.1": on Windows, Hamlib's rigctld
+        // (C / getaddrinfo) binds [::1]:4532 from "localhost" while Java
+        // (InetAddress, IPv4 by default) connects 127.0.0.1, and Windows
+        // IPv6 sockets default to V6ONLY so the connect is refused. See
+        // memory: project_hamlib_loopback_ipv6_ipv4_bug.
+        String h = host == null || host.isBlank() ? DEFAULT_HOST : host.trim();
+        this.host = h.equalsIgnoreCase("localhost") ? DEFAULT_HOST : h;
         this.port = port > 0 ? port : DEFAULT_PORT;
     }
 
