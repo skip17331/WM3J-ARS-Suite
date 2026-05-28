@@ -395,6 +395,9 @@ public final class Installer {
           .append(" jar not found in \"%SCRIPT_DIR%target\" - build it:  mvn -DskipTests -f \"%SCRIPT_DIR%pom.xml\" package\r\n");
         sb.append("  exit /b 1\r\n");
         sb.append(")\r\n");
+        // cd into the module dir so logback's logs/ and per-module config
+        // files resolve relative to <mod>/, not whatever cwd the caller had.
+        sb.append("cd /d \"%SCRIPT_DIR%\"\r\n");
         sb.append("java -Dfile.encoding=UTF-8 -jar \"%JAR%\" %*\r\n");
         sb.append("endlocal\r\n");
         Files.writeString(batPath, sb.toString(), StandardCharsets.UTF_8,
