@@ -61,6 +61,7 @@ install-log.txt
 j-hub.json
 
 # Runtime logs / state
+/logs/
 j-digi/logs/
 j-bridge/logs/
 j-hub/logs/
