@@ -14,5 +14,6 @@ if not defined JAR (
   echo Build it first:  mvn -DskipTests -f "%SCRIPT_DIR%pom.xml" install
   exit /b 1
 )
+cd /d "%SCRIPT_DIR%"
 java -jar "%JAR%" %*
 endlocal

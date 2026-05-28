@@ -12,6 +12,7 @@ if [ -z "$JAR" ]; then
   exit 1
 fi
 
+cd "$SCRIPT_DIR"
 exec java -Dfile.encoding=UTF-8 \
      -jar "$JAR" \
      "$@"

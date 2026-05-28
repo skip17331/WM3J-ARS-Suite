@@ -11,5 +11,6 @@ if not defined JAR (
   echo Error: j-digi jar not found in "%SCRIPT_DIR%target" - build it:  mvn -DskipTests -f "%SCRIPT_DIR%pom.xml" package
   exit /b 1
 )
+cd /d "%SCRIPT_DIR%"
 java -Dfile.encoding=UTF-8 -jar "%JAR%" %*
 endlocal

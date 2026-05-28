@@ -18,4 +18,5 @@ if [ -z "$JAR" ]; then
     JAR="$( { ls -t "$SCRIPT_DIR"/target/j-sat-*-shaded.jar "$SCRIPT_DIR"/target/j-sat-*-fat.jar "$SCRIPT_DIR"/target/j-sat-*-jar-with-dependencies.jar 2>/dev/null; ls -t "$SCRIPT_DIR"/target/j-sat-*.jar 2>/dev/null | grep -Ev -- '-(sources|javadoc)\.jar$'; } | grep -v '/original-' | head -n1)"
 fi
 
+cd "$SCRIPT_DIR"
 exec java -Dfile.encoding=UTF-8 -jar "$JAR" "$@"
