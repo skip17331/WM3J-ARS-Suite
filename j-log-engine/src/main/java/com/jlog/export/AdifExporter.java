@@ -3,6 +3,8 @@ package com.jlog.export;
 import com.jlog.db.ContestQsoDao;
 import com.jlog.db.QsoDao;
 import com.jlog.model.QsoRecord;
+import com.jlog.plugin.ContestPlugin;
+import com.jlog.plugin.PluginLoader;
 import com.jlog.util.AppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +80,32 @@ public class AdifExporter {
         String stationCall = cfg.getStationCallsign();
         String stationGrid = cfg.getGridSquare();
 
+        // ContestQsoDao + QsoDao sort datetime_utc DESC for the cockpit UI
+        // ("newest at top"). Receiving loggers (LoTW, master log import)
+        // expect ascending chronological. Re-sort here; nulls trail.
+        qsos = qsos.stream()
+            .sorted(Comparator.comparing(
+                QsoRecord::getDateTimeUtc,
+                Comparator.nullsLast(Comparator.naturalOrder())))
+            .toList();
+
+        // For contest exports, look up the plugin once so we can emit
+        // STX_STRING / SRX_STRING using the plugin's declared cabrilloSent /
+        // cabrilloRcvd field order. Same exchange string the Cabrillo
+        // exporter produces — gives downstream loggers human-readable
+        // context for the QSO even when they don't know the contest's
+        // semantic field map. Only meaningful when ALL QSOs are in one
+        // contest (typical — exportContestAdif filters by contestId).
+        ContestPlugin contestPlugin = null;
+        if (contest && !qsos.isEmpty()) {
+            String firstContestId = qsos.get(0).getContestId();
+            boolean uniform = firstContestId != null
+                && qsos.stream().allMatch(q -> firstContestId.equals(q.getContestId()));
+            if (uniform) {
+                contestPlugin = PluginLoader.getInstance().getById(firstContestId);
+            }
+        }
+
         // Lock UTF-8 explicitly — the no-arg FileWriter uses the JVM default
         // charset, which is Cp1252 on pre-JDK-18 Windows JREs and could drift
         // if file.encoding isn't set. AdifImporter accepts UTF-8 or cp1252;
@@ -101,8 +129,19 @@ public class AdifExporter {
                 adifField(pw, "BAND",      normalizeBand(q.getBand()));
                 adifField(pw, "MODE",      normalizeMode(q.getMode()));
                 adifField(pw, "FREQ",      normalizeFreqMHz(q.getFrequency()));
-                adifField(pw, "RST_SENT",  q.getRstSent());
-                adifField(pw, "RST_RCVD",  q.getRstReceived());
+                // Default RST from the mode for contest exports — many
+                // contest cockpits don't capture RST (it's not in the
+                // formal exchange for SS/CQ WW/etc.) but LoTW rejects
+                // records without RST_SENT/RST_RCVD. Normal-log exports
+                // pass through whatever the operator logged (blank OK).
+                String rstSent = q.getRstSent();
+                String rstRcvd = q.getRstReceived();
+                if (contest) {
+                    if (rstSent == null || rstSent.isBlank()) rstSent = defaultRstForMode(q.getMode());
+                    if (rstRcvd == null || rstRcvd.isBlank()) rstRcvd = defaultRstForMode(q.getMode());
+                }
+                adifField(pw, "RST_SENT",  rstSent);
+                adifField(pw, "RST_RCVD",  rstRcvd);
                 if (q.getPowerWatts() > 0) adifField(pw, "TX_PWR", String.valueOf(q.getPowerWatts()));
 
                 if (!contest) {
@@ -117,12 +156,29 @@ public class AdifExporter {
                     adifField(pw, "SIG",       q.getSig());
                     adifField(pw, "SIG_INFO",  q.getSigInfo());
                 } else {
-                    // Contest-specific: serials only. The free-form exchange
-                    // string was intentionally dropped — structured fields hold
-                    // the data and contest sponsors take Cabrillo, not ADIF.
+                    // Contest path. STX/SRX preserve numeric serials per ADIF
+                    // convention. STX_STRING/SRX_STRING carry the full
+                    // exchange in the plugin's declared transmit order
+                    // (built via the same helper Cabrillo uses, so the
+                    // two file formats agree on what was exchanged). This
+                    // makes the LoTW / master-log round-trip useful even
+                    // when the receiving logger doesn't know the contest's
+                    // semantic field map. A full per-tag mapping (ARRL_SECT,
+                    // CHECK, CQZ, GRIDSQUARE, …) is a future enhancement
+                    // requiring per-plugin adifField declarations.
                     adifField(pw, "CONTEST_ID",  q.getContestId());
                     adifField(pw, "STX",         q.getSerialSent());
                     adifField(pw, "SRX",         q.getSerialReceived());
+                    if (contestPlugin != null) {
+                        String stxString = CabrilloExporter.buildOrderedExchange(
+                            q, contestPlugin, cfg, contestPlugin.getCabrilloSent());
+                        String srxString = CabrilloExporter.buildOrderedExchange(
+                            q, contestPlugin, cfg, contestPlugin.getCabrilloRcvd());
+                        if (stxString != null && !stxString.isBlank())
+                            adifField(pw, "STX_STRING", stxString);
+                        if (srxString != null && !srxString.isBlank())
+                            adifField(pw, "SRX_STRING", srxString);
+                    }
                     adifField(pw, "OPERATOR",    q.getOperator());
                     if (q.getNotes() != null) adifField(pw, "COMMENT", q.getNotes());
                 }
@@ -215,6 +271,22 @@ public class AdifExporter {
     private static void adifField(PrintWriter pw, String tag, String value) {
         if (value == null || value.isBlank()) return;
         pw.print("<" + tag + ":" + value.length() + ">" + value + " ");
+    }
+
+    /** Conventional default RST by mode for contest exports where the
+     *  operator didn't capture RST (common — SS/CQ WW/etc. don't include
+     *  RST in the formal exchange). Phone modes get "59", CW/digital get
+     *  "599". Keeps LoTW happy without forcing operators to fill in
+     *  fields that aren't part of the contest exchange. */
+    private static String defaultRstForMode(String mode) {
+        if (mode == null) return "59";
+        String m = mode.toUpperCase();
+        if (m.contains("SSB") || m.equals("USB") || m.equals("LSB")
+                || m.equals("AM") || m.equals("FM") || m.equals("PH")
+                || m.equals("PHONE")) {
+            return "59";
+        }
+        return "599";   // CW, RTTY, FT8, PSK31, OLIVIA, MFSK, JT*, etc.
     }
 
     private static String csv(String s) {
