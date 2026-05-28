@@ -107,6 +107,23 @@ public class NormalLogController implements Initializable {
     @FXML private TableColumn<QsoRecord,String> colRstRcvd;
     @FXML private TableColumn<QsoRecord,String> colCountry;
     @FXML private TableColumn<QsoRecord,String> colNotes;
+    @FXML private javafx.scene.control.ChoiceBox<String> cbSortOrder;
+    private static final String SORT_NEWEST = "Newest first";
+    private static final String SORT_OLDEST = "Oldest first";
+
+    // ---- Previous QSOs panel (live search by callsign) ----
+    @FXML private TitledPane                       prevQsosPane;
+    @FXML private TableView<QsoRecord>             prevQsosTable;
+    @FXML private TableColumn<QsoRecord,String>    colPqDate;
+    @FXML private TableColumn<QsoRecord,String>    colPqBand;
+    @FXML private TableColumn<QsoRecord,String>    colPqMode;
+    @FXML private TableColumn<QsoRecord,String>    colPqRstS;
+    @FXML private TableColumn<QsoRecord,String>    colPqRstR;
+    @FXML private TableColumn<QsoRecord,String>    colPqState;
+    @FXML private TableColumn<QsoRecord,String>    colPqNotes;
+    private final ObservableList<QsoRecord>        prevQsosData = FXCollections.observableArrayList();
+    /** Debounce timer for the live callsign → DB lookup. */
+    private javafx.animation.PauseTransition       prevQsosDebounce;
 
     // ---- DX Spotting ----
     @FXML private SplitPane  mainSplitPane;
@@ -509,6 +526,9 @@ public class NormalLogController implements Initializable {
         qsoTable.setItems(qsoData);
         qsoTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        initSortDropdown();
+        initPrevQsosPanel();
+
         // Center-align every column except Notes (which reads as prose and
         // wants left-alignment for scanability).
         for (TableColumn<QsoRecord, ?> c : qsoTable.getColumns()) {
@@ -526,6 +546,83 @@ public class NormalLogController implements Initializable {
             });
             return row;
         });
+    }
+
+    // ---------------------------------------------------------------
+    // Sort dropdown — explicit "Newest / Oldest first" over the log table.
+    // ---------------------------------------------------------------
+    private void initSortDropdown() {
+        if (cbSortOrder == null) return;
+        cbSortOrder.setItems(FXCollections.observableArrayList(SORT_NEWEST, SORT_OLDEST));
+        cbSortOrder.getSelectionModel().select(SORT_NEWEST);          // matches DAO default
+        cbSortOrder.valueProperty().addListener((obs, o, n) -> resortQsoData());
+    }
+
+    /** Re-sort {@link #qsoData} in place according to {@link #cbSortOrder}.
+     *  Nulls (corrupt rows with no datetime) trail at the end so the sort
+     *  never throws. Called both on dropdown change and after any reload. */
+    private void resortQsoData() {
+        if (cbSortOrder == null) return;
+        String pick = cbSortOrder.getValue();
+        java.util.Comparator<QsoRecord> cmp = java.util.Comparator.comparing(
+            QsoRecord::getDateTimeUtc,
+            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()));
+        if (SORT_NEWEST.equals(pick)) cmp = cmp.reversed();
+        FXCollections.sort(qsoData, cmp);
+    }
+
+    // ---------------------------------------------------------------
+    // Previous-QSOs panel — live DB lookup keyed on the callsign field.
+    // Debounced 300ms so a fast typist doesn't fire a query per keystroke.
+    // ---------------------------------------------------------------
+    private void initPrevQsosPanel() {
+        if (prevQsosTable == null) return;
+        colPqDate .setCellValueFactory(c -> new SimpleStringProperty(
+            c.getValue().getDateTimeUtc() != null ? c.getValue().getDateTimeUtc().format(TABLE_FMT) : ""));
+        colPqBand .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBand()));
+        colPqMode .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getMode()));
+        colPqRstS .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getRstSent()));
+        colPqRstR .setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getRstReceived()));
+        colPqState.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getState()));
+        colPqNotes.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNotes()));
+        prevQsosTable.setItems(prevQsosData);
+        for (TableColumn<QsoRecord, ?> c : prevQsosTable.getColumns()) {
+            if (c != colPqNotes) c.setStyle("-fx-alignment: CENTER;");
+        }
+
+        prevQsosDebounce = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
+        prevQsosDebounce.setOnFinished(e -> refreshPrevQsos());
+        if (tfCallsign != null) {
+            tfCallsign.textProperty().addListener((obs, o, n) -> prevQsosDebounce.playFromStart());
+        }
+        refreshPrevQsos();   // initial state — usually empty
+    }
+
+    /** Re-query the QSO DB for any previous contacts with the call currently
+     *  in {@link #tfCallsign}. Updates the panel title to show the call and
+     *  match count. Runs on the JavaFX thread — query is local SQLite and
+     *  takes <1ms for a personal-sized log; if logs ever balloon this could
+     *  move to a daemon. */
+    private void refreshPrevQsos() {
+        if (prevQsosTable == null || tfCallsign == null) return;
+        String call = tfCallsign.getText();
+        if (call != null) call = call.trim().toUpperCase();
+        if (call == null || call.isEmpty()) {
+            prevQsosData.clear();
+            if (prevQsosPane != null) prevQsosPane.setText("Previous QSOs");
+            return;
+        }
+        try {
+            java.util.List<QsoRecord> matches =
+                com.jlog.db.QsoDao.getInstance().findByCallsign(call);
+            prevQsosData.setAll(matches);
+            if (prevQsosPane != null) {
+                prevQsosPane.setText("Previous QSOs with " + call + " (" + matches.size() + ")");
+            }
+        } catch (Exception ex) {
+            prevQsosData.clear();
+            if (prevQsosPane != null) prevQsosPane.setText("Previous QSOs — lookup failed");
+        }
     }
 
     // ---------------------------------------------------------------

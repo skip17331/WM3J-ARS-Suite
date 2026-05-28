@@ -254,6 +254,8 @@
                     <Button text="%button.delete"    onAction="#doDeleteSelected"/>
                     <Button text="%button.prev"      onAction="#doPageBack"/>
                     <Button text="%button.next"      onAction="#doPageForward"/>
+                    <Label text="Sort:"/>
+                    <ChoiceBox fx:id="cbSortOrder" prefWidth="140"/>
                     <Label fx:id="lblStatus" styleClass="status-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                 </HBox>
                 <TableView fx:id="qsoTable" VBox.vgrow="ALWAYS" styleClass="qso-table">
@@ -312,6 +314,23 @@
                             <TableColumn fx:id="colHbMode"     text="Mode"     prefWidth="70"/>
                             <TableColumn fx:id="colHbSnr"      text="SNR"      prefWidth="55"/>
                             <TableColumn fx:id="colHbSource"   text="Source"   prefWidth="90"/>
+                        </columns>
+                    </TableView>
+                </TitledPane>
+
+                <!-- Previous QSOs with the call currently in the entry field.
+                     Auto-populates from the local log as the operator types. -->
+                <TitledPane fx:id="prevQsosPane" text="Previous QSOs" animated="false"
+                            collapsible="true" expanded="true" styleClass="dx-pane">
+                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="200">
+                        <columns>
+                            <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="140"/>
+                            <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="60"/>
+                            <TableColumn fx:id="colPqMode"  text="Mode"        prefWidth="70"/>
+                            <TableColumn fx:id="colPqRstS"  text="RST S"       prefWidth="55"/>
+                            <TableColumn fx:id="colPqRstR"  text="RST R"       prefWidth="55"/>
+                            <TableColumn fx:id="colPqState" text="State / Prov" prefWidth="90"/>
+                            <TableColumn fx:id="colPqNotes" text="Notes"       prefWidth="200"/>
                         </columns>
                     </TableView>
                 </TitledPane>

@@ -150,6 +150,22 @@ public class QsoDao {
         return query("SELECT * FROM qso ORDER BY datetime_utc ASC");
     }
 
+    /** All QSOs with this callsign (any band, any mode), newest-first.
+     *  Used by the cockpit's live "Previous QSOs with &lt;CALL&gt;" panel —
+     *  populates when the operator types into the callsign entry field. */
+    public List<QsoRecord> findByCallsign(String callsign) throws SQLException {
+        if (callsign == null || callsign.isBlank()) return List.of();
+        String sql = "SELECT * FROM qso WHERE callsign=? ORDER BY datetime_utc DESC";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setString(1, callsign.toUpperCase().trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                List<QsoRecord> list = new ArrayList<>();
+                while (rs.next()) list.add(map(rs));
+                return list;
+            }
+        }
+    }
+
     private List<QsoRecord> query(String sql) throws SQLException {
         List<QsoRecord> list = new ArrayList<>();
         try (Statement st = conn().createStatement();
