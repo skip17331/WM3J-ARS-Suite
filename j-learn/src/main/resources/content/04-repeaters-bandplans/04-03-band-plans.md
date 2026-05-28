@@ -9,7 +9,7 @@ status: draft
 
 # Band Plans (HF / VHF / UHF)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **band plan** is a voluntary agreement among amateurs about which modes (CW, SSB, digital, FM, etc.) live where on each band. The FCC sets the **band edges** and a few hard rules (license-class limits, mode restrictions in narrow segments). The band plan fills in everything else.
 
@@ -153,7 +153,7 @@ These are dial frequencies (USB) — actual signals occupy ~3 kHz above the dial
 - **ARRL color band chart** — printable PDF, every shack should have one taped to the wall.
 - **J-Learn floating bandplan overlay** (when shipped) — pulls the same data into a panel inside J-Digi/J-Map/J-Bridge.
 
-> ⚙️ **Advanced —** Band plans are technically only enforced through peer pressure, but the FCC has occasionally cited operators for "willful interference" when they planted high-bandwidth digital signals in the CW DX window or transmitted on frequencies clearly designated for satellite uplinks. The legal threshold is hazy; the social threshold is sharp. If your mode is going to take 10 kHz, find a 10 kHz hole, don't carve one in the middle of the CW segment.
+> **Advanced —** Band plans are technically only enforced through peer pressure, but the FCC has occasionally cited operators for "willful interference" when they planted high-bandwidth digital signals in the CW DX window or transmitted on frequencies clearly designated for satellite uplinks. The legal threshold is hazy; the social threshold is sharp. If your mode is going to take 10 kHz, find a 10 kHz hole, don't carve one in the middle of the CW segment.
 
 ## See also
 

@@ -275,7 +275,7 @@ The `DxClusterEngine` (singleton) maintains a **single** telnet connection.
 
 Two built-in themes: **Light** and **Dark**.
 
-Theme selection persists via Java `Preferences`.  
+Theme selection persists via Java `Preferences`.
 `JLogApp.applyTheme(scene)` applies the current theme to any scene.
 
 ---

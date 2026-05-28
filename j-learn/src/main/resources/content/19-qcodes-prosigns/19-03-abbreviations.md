@@ -9,7 +9,7 @@ status: draft
 
 # Abbreviations
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Beyond Q-codes (formal) and prosigns (procedural), amateur CW (and increasingly amateur digital modes) uses a layer of **conversational abbreviations**: short forms of common words and phrases, evolved over a century of operators trying to send "the same thing, faster." This section is the alphabetical reference.
 

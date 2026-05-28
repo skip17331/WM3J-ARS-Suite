@@ -9,7 +9,7 @@ status: draft
 
 # Linked Systems (AllStar / DMR / Fusion / D-STAR)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A traditional repeater serves a 30-mile circle. **Linked systems** connect repeaters together — over the internet, over RF, over both — so a station with a 5-watt handheld in Maryland can have a clean QSO with a station in New Zealand. There are several incompatible ecosystems doing this, each with its own technology, vocabulary, and culture.
 
@@ -75,7 +75,7 @@ The first widely-deployed digital voice mode for amateurs. Developed by JARL (Ja
 
 **What you need:** an Icom (or Kenwood) D-STAR-capable radio. Cheaper now than at launch but still a noticeable price premium over plain FM gear.
 
-> ⚙️ **Advanced —** D-STAR uses GMSK modulation at 4800 bits/sec for voice (3.6 kbit/s of AMBE codec + forward error correction). Channel spacing is 6.25 kHz, narrower than FM. The AMBE codec is patented and licensed only via the DV-Dongle/DV-AP hardware or radios with embedded AMBE chips — this licensing arrangement caused the open-source software-defined-radio community to develop the **Codec2** open codec as an alternative. Codec2-based digital voice (FreeDV) is rare on D-STAR but common on its own HF/VHF deployments.
+> **Advanced —** D-STAR uses GMSK modulation at 4800 bits/sec for voice (3.6 kbit/s of AMBE codec + forward error correction). Channel spacing is 6.25 kHz, narrower than FM. The AMBE codec is patented and licensed only via the DV-Dongle/DV-AP hardware or radios with embedded AMBE chips — this licensing arrangement caused the open-source software-defined-radio community to develop the **Codec2** open codec as an alternative. Codec2-based digital voice (FreeDV) is rare on D-STAR but common on its own HF/VHF deployments.
 
 ## DMR (Digital Mobile Radio)
 
@@ -94,7 +94,7 @@ The first widely-deployed digital voice mode for amateurs. Developed by JARL (Ja
 
 **What you need:** a DMR radio (Anytone D878 is a popular ham choice; Motorola XPR series is commercial but works), a DMR ID (free, register at radioid.net), and patience to wade through the codeplug programming.
 
-> ⚙️ **Advanced —** DMR's TDMA structure is precisely synchronized — slot 1 and slot 2 are 30 ms time slices. The radio always transmits on whichever slot is active for its talkgroup; this means two conversations happening on the same RF channel never interfere because they never transmit at the same time. The radio's TX is actually only on for half the time during a continuous transmission. This also means DMR transmitters are slightly more power-efficient than equivalent FM ones — a nice side effect.
+> **Advanced —** DMR's TDMA structure is precisely synchronized — slot 1 and slot 2 are 30 ms time slices. The radio always transmits on whichever slot is active for its talkgroup; this means two conversations happening on the same RF channel never interfere because they never transmit at the same time. The radio's TX is actually only on for half the time during a continuous transmission. This also means DMR transmitters are slightly more power-efficient than equivalent FM ones — a nice side effect.
 
 ## Yaesu System Fusion (C4FM)
 

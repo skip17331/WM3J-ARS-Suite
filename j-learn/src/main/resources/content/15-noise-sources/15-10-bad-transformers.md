@@ -9,7 +9,7 @@ status: draft
 
 # Bad Transformers
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Distribution transformers (the cylindrical or rectangular cans on poles, or the green pad-mount boxes in newer subdivisions) step down 7,200 V or higher distribution voltage to 240/120 V for residential use. When their internal core or windings degrade, they generate distinctive RFI — usually 60 Hz buzz with HF harmonics.
 

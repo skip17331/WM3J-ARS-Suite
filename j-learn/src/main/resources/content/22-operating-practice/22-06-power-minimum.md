@@ -9,7 +9,7 @@ status: draft
 
 # Power Minimum and Polite Operating
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 §97.313(a) is one of the shortest, clearest rules in amateur radio:
 
@@ -153,7 +153,7 @@ Bands get crowded; tempers fray. Polite resolution beats public flame wars. "Ple
 - **Confusing "more power" with "better antenna."** A small antenna at 1500 W often performs worse than a good antenna at 100 W. Improve the antenna first.
 - **Misreading rules.** §97.313 doesn't ban high power; it requires *minimum necessary*. If you need 1500 W, you can use 1500 W. The judgment call is whether you actually need it.
 
-> ⚙️ **Advanced —** §97.313 has a long history. The original 1934 amateur regulations specified maximum power (2 kW input); the 1968 amendments started requiring "the minimum power necessary" along with a 2 kW PEP output limit. The 1990 reform brought the 1500 W PEP output limit and the explicit minimum-power language. The rule is enforced through the "self-policing" model — the FCC rarely cites for excessive power, but the community's social pressure (DX cluster comments, social media) is meaningful. The "Effective Radiated Power (ERP)" calculations needed for MPE compliance (§97.13(c) + §97.0) are why high-power operators are increasingly expected to know §17-08 and §17-14.
+> **Advanced —** §97.313 has a long history. The original 1934 amateur regulations specified maximum power (2 kW input); the 1968 amendments started requiring "the minimum power necessary" along with a 2 kW PEP output limit. The 1990 reform brought the 1500 W PEP output limit and the explicit minimum-power language. The rule is enforced through the "self-policing" model — the FCC rarely cites for excessive power, but the community's social pressure (DX cluster comments, social media) is meaningful. The "Effective Radiated Power (ERP)" calculations needed for MPE compliance (§97.13(c) + §97.0) are why high-power operators are increasingly expected to know §17-08 and §17-14.
 
 ## See also
 

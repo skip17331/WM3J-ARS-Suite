@@ -9,7 +9,7 @@ status: draft
 
 # Controlled vs Uncontrolled
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The FCC's MPE limits come in **two tiers**: a higher (more permissive) limit for "controlled" environments, and a lower (stricter) limit — typically 5× tighter in the VHF range — for "uncontrolled" environments. Almost every amateur RF safety question reduces to: **for each location near my station, which limit applies?**
 
@@ -117,7 +117,7 @@ If your installation can't meet the uncontrolled MPE limit at some bystander loc
 
 Most amateur installations meet uncontrolled limits naturally. When they don't, mitigation is usually straightforward.
 
-> ⚙️ **Advanced —** The 5× factor between controlled and uncontrolled limits comes from the safety-factor scheme in IEEE C95.1: occupational SAR limit 0.4 W/kg, public SAR limit 0.08 W/kg — a 5× ratio. The MPE limits in V/m or mW/cm² are derived to keep an "average adult body" below those SAR thresholds at each frequency, with frequency-dependent body-resonance corrections. The IEEE rationale for the 5× public-vs-occupational factor is that the public includes all body types and ages (more biological variation than a screened occupational population), and the public cannot adjust their exposure based on knowledge.
+> **Advanced —** The 5× factor between controlled and uncontrolled limits comes from the safety-factor scheme in IEEE C95.1: occupational SAR limit 0.4 W/kg, public SAR limit 0.08 W/kg — a 5× ratio. The MPE limits in V/m or mW/cm² are derived to keep an "average adult body" below those SAR thresholds at each frequency, with frequency-dependent body-resonance corrections. The IEEE rationale for the 5× public-vs-occupational factor is that the public includes all body types and ages (more biological variation than a screened occupational population), and the public cannot adjust their exposure based on knowledge.
 
 ## Common mistakes
 

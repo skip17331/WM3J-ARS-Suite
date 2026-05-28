@@ -9,7 +9,7 @@ status: draft
 
 # Aircraft Scatter
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What aircraft scatter is
 
@@ -109,7 +109,7 @@ A station that's already equipped for tropo and meteor scatter on 2 m needs only
 ## A typical AS contact
 
 ```
-14:30 UTC — You (FN20) and W4XYZ (EM84) confirm on KST chat: 
+14:30 UTC — You (FN20) and W4XYZ (EM84) confirm on KST chat:
              "144.174 FT8, aircraft DAL2407 midpoint at 14:32"
 14:31      — Both stations start auto-CQ; antennas pointed at midpoint bearing
 14:32:00   — Aircraft enters predicted reflection volume
@@ -145,7 +145,7 @@ A complete FT8 contact in 90 seconds, with both stations knowing exactly when to
 - **Surface clutter near both stations** — you need clear line-of-sight upward to the aircraft volume.
 - **Quick casual operation.** AS rewards planning; it doesn't reward random calling.
 
-> ⚙️ **Advanced —** The radar-equation analog for aircraft scatter uses bistatic geometry with the aircraft as a non-cooperative target. The reflection coefficient depends on the aircraft's radar cross-section (RCS) at the operating frequency, the bistatic angle, and the aspect angle (which way the aircraft is pointing relative to the path). A B737 fuselage has an RCS of roughly 100 m² at 2 GHz and 1 m² at 100 MHz; the much larger relative reflector at microwave is why microwave AS is so much stronger than 2 m AS. The 60–90 second peak window is the time during which the aircraft's bistatic angle is within ~10° of forward-scatter maximum. Multi-aircraft AS — using two or more aircraft in the volume simultaneously — produces fading patterns from interference between the multiple reflections, observable on a waterfall and useful for diagnosing whether you're seeing AS or some other mechanism.
+> **Advanced —** The radar-equation analog for aircraft scatter uses bistatic geometry with the aircraft as a non-cooperative target. The reflection coefficient depends on the aircraft's radar cross-section (RCS) at the operating frequency, the bistatic angle, and the aspect angle (which way the aircraft is pointing relative to the path). A B737 fuselage has an RCS of roughly 100 m² at 2 GHz and 1 m² at 100 MHz; the much larger relative reflector at microwave is why microwave AS is so much stronger than 2 m AS. The 60–90 second peak window is the time during which the aircraft's bistatic angle is within ~10° of forward-scatter maximum. Multi-aircraft AS — using two or more aircraft in the volume simultaneously — produces fading patterns from interference between the multiple reflections, observable on a waterfall and useful for diagnosing whether you're seeing AS or some other mechanism.
 
 ## See also
 

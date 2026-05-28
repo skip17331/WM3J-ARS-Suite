@@ -9,7 +9,7 @@ status: draft
 
 # HF Mobile
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -104,7 +104,7 @@ Why does this matter? An ungrounded antenna couples to the body capacitively onl
 
 Properly grounded, the body becomes a real RF counterpoise, the SWR is stable, and the antenna radiates efficiently.
 
-> ⚙️ **Advanced —** Modern cars (post-2010 especially) have **CAN-bus** networks and increasing amounts of computer control. RF currents from a poorly-grounded antenna can disrupt CAN messages, causing warning lights, transmission shifts, even engine stalls. The aluminum and composite body panels on modern cars also reduce the natural counterpoise. The cure is more aggressive bonding *and* ferrite chokes on every RF-carrying lead near sensitive electronics. The Alpha Delta DX-A or Bencher YA-1 RF chokes are common; some operators wrap the radio's DC leads through ferrites at the radio end.
+> **Advanced —** Modern cars (post-2010 especially) have **CAN-bus** networks and increasing amounts of computer control. RF currents from a poorly-grounded antenna can disrupt CAN messages, causing warning lights, transmission shifts, even engine stalls. The aluminum and composite body panels on modern cars also reduce the natural counterpoise. The cure is more aggressive bonding *and* ferrite chokes on every RF-carrying lead near sensitive electronics. The Alpha Delta DX-A or Bencher YA-1 RF chokes are common; some operators wrap the radio's DC leads through ferrites at the radio end.
 
 ## Alternator noise
 

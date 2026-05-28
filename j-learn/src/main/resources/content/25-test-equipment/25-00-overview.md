@@ -9,7 +9,7 @@ status: draft
 
 # Test Equipment & Measurement — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Why a chapter on test equipment
 
@@ -64,7 +64,7 @@ This is where most active amateur experimenters live. The bandwidth, dynamic ran
 
 For amateur work, the high end is rarely necessary — but a used HP 8753C VNA is a beautiful instrument, accurate to fractions of a dB at 6 GHz, and an absolute pleasure to use after a NanoVNA.
 
-> ⚙️ **Advanced —** The accuracy spec to pay attention to when buying used lab gear is **calibration uncertainty** at the frequencies you care about. A used HP 8566B is excellent at 1 GHz but rolls off badly above 22 GHz; a Tek 7L13 is gorgeous at 100 MHz but flat-tops at high signal levels. Read the service manual's spec section — not the marketing copy — before buying.
+> **Advanced —** The accuracy spec to pay attention to when buying used lab gear is **calibration uncertainty** at the frequencies you care about. A used HP 8566B is excellent at 1 GHz but rolls off badly above 22 GHz; a Tek 7L13 is gorgeous at 100 MHz but flat-tops at high signal levels. Read the service manual's spec section — not the marketing copy — before buying.
 
 ## Borrow, share, build
 

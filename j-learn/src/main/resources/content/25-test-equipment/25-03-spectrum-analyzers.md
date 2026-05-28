@@ -9,7 +9,7 @@ status: draft
 
 # Spectrum Analyzers
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A spectrum analyzer (SA) is the **frequency-domain twin** of an oscilloscope. Where a scope shows you voltage vs. time, an SA shows you signal power vs. frequency. Two signals at the same frequency add up on a scope but are indistinguishable; the same two signals on an SA appear as two separate spectral lines you can measure individually.
 
@@ -81,7 +81,7 @@ Part 97.307(d) requires harmonics on HF be **at least 43 dB below the carrier** 
 
 A clean modern HF rig typically shows -55 to -65 dBc on harmonics — well inside Part 97 limits.
 
-> ⚙️ **Advanced —** The SA's own RF front-end produces spurious responses if overdriven. **Always check by inserting a 10 dB attenuator and confirming all the peaks drop by exactly 10 dB.** If a "harmonic" drops by 20 dB or more, it was generated inside the SA — your DUT is cleaner than the SA was telling you. Calibrated lab SAs (HP 8566, Keysight N9000) have very high input intercept points; cheap SAs (TinySA) saturate easily and produce internal spurs above -20 dBm input.
+> **Advanced —** The SA's own RF front-end produces spurious responses if overdriven. **Always check by inserting a 10 dB attenuator and confirming all the peaks drop by exactly 10 dB.** If a "harmonic" drops by 20 dB or more, it was generated inside the SA — your DUT is cleaner than the SA was telling you. Calibrated lab SAs (HP 8566, Keysight N9000) have very high input intercept points; cheap SAs (TinySA) saturate easily and produce internal spurs above -20 dBm input.
 
 ## Looking at spurious emissions
 
@@ -139,7 +139,7 @@ See **§25-09 Calibration Workflows** for the full procedure.
 - **Span too narrow.** Showing only 14.200 ± 100 kHz won't reveal the harmonic at 28.4 MHz. Use wide span when looking for far-away spurs.
 - **Span too wide for fine work.** Showing 0–6 GHz won't resolve a -50 dBc IMD product 3 kHz from the carrier. Use narrow span and narrow RBW for close-in.
 
-> ⚙️ **Advanced —** Modern SAs offer **FFT-based** analysis as an alternative to swept-tuned. FFT mode captures a wide span instantaneously (no sweep), but at the cost of dynamic range and image rejection. For transient signals (a hopping digital mode, a pulsed radar) FFT mode is the only way to see them. For steady-state harmonics, swept-tuned is more accurate. The Siglent SSA3000X-Plus and similar have both modes.
+> **Advanced —** Modern SAs offer **FFT-based** analysis as an alternative to swept-tuned. FFT mode captures a wide span instantaneously (no sweep), but at the cost of dynamic range and image rejection. For transient signals (a hopping digital mode, a pulsed radar) FFT mode is the only way to see them. For steady-state harmonics, swept-tuned is more accurate. The Siglent SSA3000X-Plus and similar have both modes.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Portable Power — Solar
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A solar panel and charge controller turn an LFP battery from a finite-runtime device into a sustainable power source. For SOTA, multi-day POTA, Field Day, and any off-grid deployment, solar is the standard. Sized correctly, the panel keeps the battery topped up faster than the radio drains it. Sized incorrectly, it's a heavy decoration.
 
@@ -127,7 +127,7 @@ The panel-to-controller and controller-to-battery cables add resistance. At 10 A
 - Controller to battery: #10 AWG, often 1–3 ft (mounted near the battery).
 - Use **MC4 connectors** (the solar industry standard) on the panel side; Powerpole on the battery side.
 
-> ⚙️ **Advanced —** For higher-power systems (200 W+), wire the panels in series rather than parallel. Two 100 W panels in series produce 36 V at the controller input, halving the current and reducing cable losses by a factor of 4. The MPPT controller converts the higher voltage down to 14 V for battery charging. Series-string mounting also tolerates partial shading better than parallel for some controller designs. The catch: open-circuit voltage on a cold morning can exceed the controller's input rating — check the panel's Voc spec and the controller's max input.
+> **Advanced —** For higher-power systems (200 W+), wire the panels in series rather than parallel. Two 100 W panels in series produce 36 V at the controller input, halving the current and reducing cable losses by a factor of 4. The MPPT controller converts the higher voltage down to 14 V for battery charging. Series-string mounting also tolerates partial shading better than parallel for some controller designs. The catch: open-circuit voltage on a cold morning can exceed the controller's input rating — check the panel's Voc spec and the controller's max input.
 
 ## What can go wrong
 

@@ -9,7 +9,7 @@ status: draft
 
 # Safe Antenna Placement
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section translates the rules and limits into **practical antenna-placement guidance**. Where should the antenna go relative to your house, your yard, your neighbors? How high? How far from the nearest people-occupied space? What constitutes a "safe distance" at typical amateur power levels?
 
@@ -120,7 +120,7 @@ These cases are usually compliant at 100 W; they may not be at 1500 W.
 - Concerns: forward-direction EIRP is enormous (> 100 kW common); MPE distances in the main beam can be hundreds of feet.
 - Status: the main beam is pointed at the moon, which means it's pointed *up* most of the time. Ground-level exposure is dominated by sidelobes, which are 20-30 dB below the forward gain. Usually compliant at the station; evaluate for any structure that might be in the main beam direction (other towers, buildings).
 
-> ⚙️ **Advanced —** Near-field exposure for low antennas requires the modified-image-theory formulas: the antenna's image in lossy ground re-radiates with reduced amplitude and shifted phase. For very low antennas (< 0.1 λ above ground), the field at ground level has both reactive and radiating components, with the reactive component frequently dominant within 0.05 λ. The OET-65 calculator and ARRL's tool both account for this; manual hand-calculation of low-antenna near-fields is error-prone and typically conservative by a factor of 2-3.
+> **Advanced —** Near-field exposure for low antennas requires the modified-image-theory formulas: the antenna's image in lossy ground re-radiates with reduced amplitude and shifted phase. For very low antennas (< 0.1 λ above ground), the field at ground level has both reactive and radiating components, with the reactive component frequently dominant within 0.05 λ. The OET-65 calculator and ARRL's tool both account for this; manual hand-calculation of low-antenna near-fields is error-prone and typically conservative by a factor of 2-3.
 
 ## Common mistakes
 

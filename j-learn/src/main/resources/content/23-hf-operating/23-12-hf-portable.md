@@ -9,7 +9,7 @@ status: draft
 
 # HF Portable
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -183,7 +183,7 @@ A typical POTA activation:
 
 The chase community is enormous — thousands of "hunters" are watching pota.app for new spots and calling immediately. A clean activation can produce 50–100 QSOs in an afternoon.
 
-> ⚙️ **Advanced —** Many POTA/SOTA operators run **FT8** rather than SSB or CW because the software handles the rate and the exchange is automated. With 5 W and a wire, FT8 routinely gets POTA hunters from 1,000+ miles away within seconds of self-spotting. The downside: FT8 is less "operator-vs-operator" satisfying than CW or SSB, but the numbers don't lie — FT8 activations finish faster.
+> **Advanced —** Many POTA/SOTA operators run **FT8** rather than SSB or CW because the software handles the rate and the exchange is automated. With 5 W and a wire, FT8 routinely gets POTA hunters from 1,000+ miles away within seconds of self-spotting. The downside: FT8 is less "operator-vs-operator" satisfying than CW or SSB, but the numbers don't lie — FT8 activations finish faster.
 
 ## A typical portable kit (1-day operation)
 

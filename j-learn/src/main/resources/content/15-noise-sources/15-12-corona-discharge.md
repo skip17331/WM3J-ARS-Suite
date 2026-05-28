@@ -9,7 +9,7 @@ status: draft
 
 # Corona Discharge
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Corona is a partial electrical discharge in the air around a high-voltage conductor. Unlike an arc (which jumps a gap to a definite endpoint), corona is a continuous low-energy ionization of the air at sharp points or under high field strength. It happens on essentially all high-voltage transmission lines to some degree; it becomes a problem when conditions amplify it.
 
@@ -64,7 +64,7 @@ Corona is the easiest power-line noise to identify by weather correlation. If yo
 
 You're almost certainly hearing corona, not insulator arcs (which usually behave the opposite way).
 
-> ⚙️ **Advanced —** Corona threshold for a conductor depends on diameter, surface condition, and air pressure/humidity. The Peek formula gives the gradient at which corona begins:
+> **Advanced —** Corona threshold for a conductor depends on diameter, surface condition, and air pressure/humidity. The Peek formula gives the gradient at which corona begins:
 >
 > `E_c (kV/cm) = 21.1 · m · δ · (1 + 0.301 / sqrt(r·δ))`
 >

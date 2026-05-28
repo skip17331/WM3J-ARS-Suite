@@ -9,7 +9,7 @@ status: draft
 
 # Loss Tables
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section is the lookup table for **matched-line loss** of common amateur cables across HF, VHF, and UHF. Loss is measured in dB per 100 ft of cable, terminated in its characteristic impedance (50 Ω) at the operating frequency.
 
@@ -68,7 +68,7 @@ Loss in coax is dominated at HF/VHF/UHF by **conductor skin-effect loss**, which
 
 **At HF, conductor loss dominates.** At UHF, dielectric loss starts to matter and the slope steepens. At GHz frequencies, dielectric loss is the bigger half.
 
-> ⚙️ **Advanced —** Total coax loss is the sum of: (a) conductor (skin-effect) loss, scaling as √f and proportional to 1/(D log(D/d)) where D is shield ID and d is center conductor OD; (b) dielectric loss, scaling as f × tan(δ) where δ is the dielectric loss angle; (c) radiation loss, usually negligible for coax. The crossover frequency where dielectric loss equals conductor loss is in the 1-10 GHz range for typical PE-dielectric cables, lower for foam or air dielectrics. This is why hardline (with foam dielectric and large geometry) is most cost-effective at VHF/UHF — both factors are reduced.
+> **Advanced —** Total coax loss is the sum of: (a) conductor (skin-effect) loss, scaling as √f and proportional to 1/(D log(D/d)) where D is shield ID and d is center conductor OD; (b) dielectric loss, scaling as f × tan(δ) where δ is the dielectric loss angle; (c) radiation loss, usually negligible for coax. The crossover frequency where dielectric loss equals conductor loss is in the 1-10 GHz range for typical PE-dielectric cables, lower for foam or air dielectrics. This is why hardline (with foam dielectric and large geometry) is most cost-effective at VHF/UHF — both factors are reduced.
 
 ## Loss with elevated SWR
 

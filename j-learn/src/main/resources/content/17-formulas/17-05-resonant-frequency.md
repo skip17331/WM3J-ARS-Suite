@@ -9,7 +9,7 @@ status: draft
 
 # Resonant Frequency
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A series L−C circuit is **resonant** at the frequency where the inductive and capacitive reactances are equal and cancel: X_L = X_C. At resonance the impedance is purely resistive (just the loss resistance), and the circuit appears as a short for series resonance or an open for parallel resonance.
 
@@ -75,7 +75,7 @@ A NanoVNA sweep before and after the trim confirms the actual resonance — no m
 - **Treating series and parallel resonance as the same.** A series LC at resonance is a *short* (low impedance, current flows freely); a parallel LC at resonance is an *open* (high impedance, current is blocked). Same formula, opposite behavior.
 - **Ignoring component tolerance.** A 5% capacitor and 10% inductor combined give resonance accuracy of about ±7%. For tight filters use 1% C and 2% L, or trim experimentally.
 
-> ⚙️ **Advanced —** The Q of a resonant circuit (§17-11) determines how sharp the resonance is. Q = 2π · stored energy / energy lost per cycle = X_L / R = X_C / R at resonance. A high-Q antenna trap (Q > 50) is sharply tuned and stays "open" only over a narrow band; a low-Q trap (Q ~ 10) tunes broadly but with more loss.
+> **Advanced —** The Q of a resonant circuit (§17-11) determines how sharp the resonance is. Q = 2π · stored energy / energy lost per cycle = X_L / R = X_C / R at resonance. A high-Q antenna trap (Q > 50) is sharply tuned and stays "open" only over a narrow band; a low-Q trap (Q ~ 10) tunes broadly but with more loss.
 
 ## See also
 

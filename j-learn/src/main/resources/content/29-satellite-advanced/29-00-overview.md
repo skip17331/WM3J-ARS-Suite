@@ -9,7 +9,7 @@ status: draft
 
 # Satellite Advanced Topics
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Chapter 7 introduced the basics — FM birds with an Arrow II, Doppler shift, the mechanics of an LEO pass. This chapter is Phase 2: what you do after you've worked SO-50 a few dozen times and the FM-bird-CQ-and-grid-exchange routine has lost its novelty. The next stage is linear transponders, full-duplex operation, decent antenna geometry, and the engineering questions that come with weak-signal work on a satellite that's 1500 km away and moving at 7.5 km/sec.
 
@@ -34,7 +34,7 @@ This chapter assumes you've read chapter 7 and can hold your own on an FM bird. 
 
 The sections are roughly independent. If you already have a tracking-software setup and just need help with linear transponder operating, skip ahead to §29-02 and §29-09. If you're shopping antennas, read §29-03 through §29-06 in order. The polarization and preamp sections (§29-06, §29-07) are infrastructure-level topics — read them once you've decided you want a permanent satellite station rather than a portable kit.
 
-> ⚙️ **Advanced —** A satellite station built out per this chapter — IC-9700, crossed Yagis with polarization switching, mast-mounted preamps, az/el rotor, tracking-software CAT — runs around $4000-6000 as of 2026. That's an order of magnitude more than the Arrow + HT kit in chapter 7. Most operators step up incrementally: full-duplex base radio first, then a proper Yagi (single polarization), then a rotor, then crossed Yagis with polarization switching, then a mast preamp last. Each step buys a measurable improvement.
+> **Advanced —** A satellite station built out per this chapter — IC-9700, crossed Yagis with polarization switching, mast-mounted preamps, az/el rotor, tracking-software CAT — runs around $4000-6000 as of 2026. That's an order of magnitude more than the Arrow + HT kit in chapter 7. Most operators step up incrementally: full-duplex base radio first, then a proper Yagi (single polarization), then a rotor, then crossed Yagis with polarization switching, then a mast preamp last. Each step buys a measurable improvement.
 
 ## What this chapter does NOT cover
 

@@ -9,7 +9,7 @@ status: draft
 
 # Pile-up Etiquette
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **pile-up** is what happens when many stations call one station at once — a rare DX entity, a special-event operator, a famous callsign, a popular DXpedition. Done well, a pile-up moves dozens of contacts per minute. Done poorly, it's chaos that wastes everyone's time and burns out the operator on the rare end.
 
@@ -176,7 +176,7 @@ A few habits to develop:
 - **Be patient.** Rare DX takes patience. You'll get the contact eventually.
 - **Use a small rig and modest antenna** sometimes — to know what it's like without the advantages of high power and big antennas. Trains better operating habits.
 
-> ⚙️ **Advanced —** Pile-up management is a skill the DX operator works at. Variants include "single-band, single-mode," "split with auto-rotate" (the DX listens at slowly varying frequency to disperse callers), "ZL listen" (only New Zealand calls), "EU listen" (only European calls), and "QRZ DX" (DX only, but the DX operator confirms each call). Veteran DX operators can sustain 60+ contacts per minute for hours; the operator on the rare end is the one being trained over and over again. The "lid" subculture in amateur radio is half-joking, half-genuine — operators who repeatedly violate pile-up etiquette get named publicly on social media and DX cluster comments.
+> **Advanced —** Pile-up management is a skill the DX operator works at. Variants include "single-band, single-mode," "split with auto-rotate" (the DX listens at slowly varying frequency to disperse callers), "ZL listen" (only New Zealand calls), "EU listen" (only European calls), and "QRZ DX" (DX only, but the DX operator confirms each call). Veteran DX operators can sustain 60+ contacts per minute for hours; the operator on the rare end is the one being trained over and over again. The "lid" subculture in amateur radio is half-joking, half-genuine — operators who repeatedly violate pile-up etiquette get named publicly on social media and DX cluster comments.
 
 ## See also
 

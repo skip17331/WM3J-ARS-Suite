@@ -9,7 +9,7 @@ status: draft
 
 # SDR ID
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A software-defined radio with a waterfall display gives you a visual fingerprint of power-line noise that can confirm the diagnosis and (sometimes) help with direction-finding. Pair this with the AM sniffer (§15-13) for the most complete tools.
 

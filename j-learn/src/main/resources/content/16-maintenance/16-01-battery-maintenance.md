@@ -9,7 +9,7 @@ status: draft
 
 # Battery Maintenance
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Batteries are the part of your station that *will* fail without warning if you don't maintain them. A 7-Ah AGM in the closet for emergency use, fully charged the day you bought it, may be at 30% capacity three years later — and you'll discover that during the power outage when the rig key-downs once and shuts off.
 
@@ -59,7 +59,7 @@ Once a year, run a load test. With a known load (a 12-V incandescent bulb of kno
 
 A new 7-Ah AGM should deliver close to 7 Ah. If it delivers 4 Ah or less, capacity is at 57% or worse — replace before next emergency. Document the number; trend over years tells you the slope.
 
-> ⚙️ **Advanced —** AGM battery internal resistance grows with sulfation. A simple test: with a known DC load (say 5 A), measure the voltage drop from open-circuit to under-load. Divide by current. A new 7-Ah AGM has internal resistance around 30 mΩ; a sulfated one near end-of-life rises to 100–200 mΩ. Hawker Genesis, Concorde, Lifeline, and Optima all publish internal-resistance specs in their datasheets — useful for comparing measurements over time.
+> **Advanced —** AGM battery internal resistance grows with sulfation. A simple test: with a known DC load (say 5 A), measure the voltage drop from open-circuit to under-load. Divide by current. A new 7-Ah AGM has internal resistance around 30 mΩ; a sulfated one near end-of-life rises to 100–200 mΩ. Hawker Genesis, Concorde, Lifeline, and Optima all publish internal-resistance specs in their datasheets — useful for comparing measurements over time.
 
 ### Storage rules
 
@@ -126,7 +126,7 @@ Before throwing out an HT pack that won't charge:
 
 If none of these revive the pack, replace.
 
-> ⚙️ **Advanced —** Li-ion calendar aging follows Arrhenius kinetics: degradation rate doubles roughly every 8-10 °C above ~25 °C. A pack stored at 40 °C will age twice as fast as one at 25 °C; at 60 °C, eight times as fast. State of charge during storage also matters: a pack stored at 100% ages 2-3× faster than one stored at 50%. The combined heat + high SoC effect explains why a phone battery left on a hot car dashboard plugged in for an afternoon may lose visibly more capacity than one left in a cool drawer for the same calendar time.
+> **Advanced —** Li-ion calendar aging follows Arrhenius kinetics: degradation rate doubles roughly every 8-10 °C above ~25 °C. A pack stored at 40 °C will age twice as fast as one at 25 °C; at 60 °C, eight times as fast. State of charge during storage also matters: a pack stored at 100% ages 2-3× faster than one stored at 50%. The combined heat + high SoC effect explains why a phone battery left on a hot car dashboard plugged in for an afternoon may lose visibly more capacity than one left in a cool drawer for the same calendar time.
 
 ## Common mistakes
 

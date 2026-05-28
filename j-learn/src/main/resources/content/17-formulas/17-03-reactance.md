@@ -9,7 +9,7 @@ status: draft
 
 # Reactance — Capacitive & Inductive
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Capacitors and inductors oppose AC current the way resistors oppose DC current — but the opposition is **frequency-dependent**, and instead of dissipating power, it stores and returns it. The frequency-dependent opposition is called **reactance** (symbol *X*), measured in ohms.
 
@@ -74,7 +74,7 @@ A common practical choke would be a #43 ferrite bead with sufficient turns to re
 - **Treating reactance like resistance for power dissipation.** Reactance does NOT dissipate power. A 100 Ω resistor and a 100 Ω reactance look the same to a meter, but only the resistor heats up.
 - **Adding reactances arithmetically when they should subtract.** A series L and C cancel: X_total = X_L − X_C. At resonance they cancel completely (§17-05).
 
-> ⚙️ **Advanced —** Reactance is signed. Capacitive reactance is conventionally written as −jX_C and inductive as +jX_L, where j = √(−1). The signs matter when computing complex impedance Z = R + jX, since they affect both magnitude and phase. See §17-04.
+> **Advanced —** Reactance is signed. Capacitive reactance is conventionally written as −jX_C and inductive as +jX_L, where j = √(−1). The signs matter when computing complex impedance Z = R + jX, since they affect both magnitude and phase. See §17-04.
 
 ## See also
 

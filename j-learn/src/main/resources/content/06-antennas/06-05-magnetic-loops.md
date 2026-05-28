@@ -9,7 +9,7 @@ status: draft
 
 # Magnetic Loops
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A small transmitting magnetic loop (STL) is an antenna shaped like a closed circle, **roughly 1/10 of a wavelength in circumference**, tuned to resonance with a high-Q variable capacitor. It looks ridiculous — a 3-ft hula hoop — but it works.
 
@@ -60,7 +60,7 @@ Q is intentionally high (that's how a small loop radiates efficiently). The narr
 - **Temperature affects resonance.** A 5°C change can shift the resonance enough to need a touch-up. Sun on a rooftop loop is a particular challenge.
 - **Motorized tuning is almost mandatory** for any serious operating beyond a single net frequency.
 
-> ⚙️ **Advanced —** Loop efficiency η = R_rad / (R_rad + R_loss). For a small loop, R_rad scales as (circumference / λ)⁴ — fourth power. So a loop 0.1 λ in circumference has *one ten-thousandth* the radiation resistance of a half-wave loop. Conductor and capacitor losses don't shrink as fast, so efficiency falls precipitously as you go lower in frequency for any given physical loop. This is why an 80 m mag loop (with the same 1-m diameter that works fine on 20 m) is on the order of 10% efficient: R_rad has fallen to milliohms while loss resistance is still tens of milliohms. The fix is a bigger loop, lower-resistance copper, and silver-plated or vacuum-variable capacitors.
+> **Advanced —** Loop efficiency η = R_rad / (R_rad + R_loss). For a small loop, R_rad scales as (circumference / λ)⁴ — fourth power. So a loop 0.1 λ in circumference has *one ten-thousandth* the radiation resistance of a half-wave loop. Conductor and capacitor losses don't shrink as fast, so efficiency falls precipitously as you go lower in frequency for any given physical loop. This is why an 80 m mag loop (with the same 1-m diameter that works fine on 20 m) is on the order of 10% efficient: R_rad has fallen to milliohms while loss resistance is still tens of milliohms. The fix is a bigger loop, lower-resistance copper, and silver-plated or vacuum-variable capacitors.
 
 ## Power handling
 

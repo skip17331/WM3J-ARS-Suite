@@ -9,7 +9,7 @@ status: draft
 
 # Operating Practice — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is the etiquette manual for everyday on-air operating — the customs and procedures that aren't legally mandated but make amateur radio actually work as a shared resource. They're the difference between the operator everyone wants to QSO and the one nobody calls back.
 

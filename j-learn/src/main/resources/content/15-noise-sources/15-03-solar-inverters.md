@@ -9,7 +9,7 @@ status: draft
 
 # Solar Inverters
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Roof-mounted photovoltaic systems use **inverters** to convert the panel's DC output into AC for your house. Most consumer inverters are noisy on HF — sometimes catastrophically so. If you're considering solar and you operate amateur radio, this section is critical reading. If you already have solar and a noise problem, the fixes are limited but real.
 

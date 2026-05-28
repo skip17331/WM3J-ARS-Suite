@@ -9,7 +9,7 @@ status: draft
 
 # Cross-Mode Linking
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## The problem
 
@@ -87,7 +87,7 @@ This is the most common cross-mode transcoding path and is fairly clean. Pi-Star
 
 Going from AMBE+2 (DMR) to AMBE+2 (Fusion) is theoretically just a re-framing operation — no codec re-encoding needed if the bit rates match. In practice, frame sizes differ (DMR is 30 ms slots, Fusion is 20 ms frames), so even "same codec" bridges require some re-packetization.
 
-> ⚙️ **Advanced —** The patent expiration on AMBE in ~2017 enabled open-source decoder implementations (the **md380tools** project on the firmware side, and the **mbelib** library on the software side). Before that, all transcoding required a licensed DVSI hardware chip — which is why pre-2018 cross-mode bridging was rare and expensive. Today, MBE-family transcoding happens in cheap hardware (Raspberry Pi handles it at 5–10% CPU) and quality is comparable to the chip-based implementations. The actual perceptual codec algorithm is identical; only the chip-vs-software question changes.
+> **Advanced —** The patent expiration on AMBE in ~2017 enabled open-source decoder implementations (the **md380tools** project on the firmware side, and the **mbelib** library on the software side). Before that, all transcoding required a licensed DVSI hardware chip — which is why pre-2018 cross-mode bridging was rare and expensive. Today, MBE-family transcoding happens in cheap hardware (Raspberry Pi handles it at 5–10% CPU) and quality is comparable to the chip-based implementations. The actual perceptual codec algorithm is identical; only the chip-vs-software question changes.
 
 ## Bridge implementations
 

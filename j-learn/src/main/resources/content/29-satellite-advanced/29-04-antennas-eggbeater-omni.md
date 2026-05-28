@@ -9,7 +9,7 @@ status: draft
 
 # Eggbeater Omnidirectional Antennas
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 An **eggbeater** is an omnidirectional satellite antenna — no pointing, no rotor, no tracking. It's named for its shape: two perpendicular loops arranged so they look like the whisks of a kitchen eggbeater. The radiation pattern is roughly hemispherical, with circular polarization (RHCP for most amateur sat designs), and gain in the 2-4 dBic range over a wide elevation arc.
 
@@ -80,7 +80,7 @@ The operating workflow is almost lazy compared to Arrow-and-track work:
 
 No aiming, no tracking, no body contortions to point an antenna overhead. The tradeoff is you miss the very-low-elevation portions of the pass and you can't compete with a high-gain station on a busy pass — but for casual FM-bird work from home, the eggbeater is the right antenna.
 
-> ⚙️ **Advanced —** Some eggbeater designs (notably the **Diamond X-Quad** family and some homebrew variants) use crossed Yagis with a phasing harness to produce a "high-gain omni-like" pattern — they're not truly omni but cover a wider arc than a steerable Yagi. These are a middle ground between the eggbeater and the rotor-mounted Yagi: a few dB more gain than the M2 EB designs in exchange for some directional sensitivity that you can ignore for casual passes.
+> **Advanced —** Some eggbeater designs (notably the **Diamond X-Quad** family and some homebrew variants) use crossed Yagis with a phasing harness to produce a "high-gain omni-like" pattern — they're not truly omni but cover a wider arc than a steerable Yagi. These are a middle ground between the eggbeater and the rotor-mounted Yagi: a few dB more gain than the M2 EB designs in exchange for some directional sensitivity that you can ignore for casual passes.
 
 ## DIY eggbeater builds
 

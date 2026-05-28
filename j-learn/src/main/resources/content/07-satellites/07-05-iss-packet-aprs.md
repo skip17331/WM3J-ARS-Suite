@@ -9,7 +9,7 @@ status: draft
 
 # ISS Packet & APRS
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The International Space Station carries amateur radio equipment maintained by the **ARISS** program (Amateur Radio on the International Space Station). Several radios in the Columbus, Service Module, and other modules support amateur operations on multiple modes — voice, packet, SSTV, and an FM cross-band repeater. From your back yard, with a $200 setup, you can work the ISS.
 

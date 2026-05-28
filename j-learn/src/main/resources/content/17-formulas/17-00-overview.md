@@ -9,7 +9,7 @@ status: draft
 
 # Formulas — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is the math reference for the rest of J-Learn. Every formula that other chapters wave at — Ohm's Law, ERP, feedline loss, resonant frequency, Q factor, decibels, Smith chart math — has its own card here with the symbols, the equation, a worked example, and the gotchas that catch new operators.
 
@@ -60,7 +60,7 @@ The cards are deliberately short. If you need the *why* behind a formula, the li
 | 1 dB | 10 × log₁₀(P₂/P₁) | Standard power-ratio definition |
 | Free-space impedance | 377 Ω | Useful for E-field / H-field math (§17-14 RF exposure) |
 
-> ⚙️ **Advanced —** The 468 and 234 numbers assume a thin wire well above ground at HF. They can be off by 5–10% for thick aluminum tubing, ground-plane antennas with sloped radials, antennas near other conductors, and at higher frequencies where the end-effect grows. Use them as a starting trim and verify with an analyzer (§18 references the NanoVNA workflow).
+> **Advanced —** The 468 and 234 numbers assume a thin wire well above ground at HF. They can be off by 5–10% for thick aluminum tubing, ground-plane antennas with sloped radials, antennas near other conductors, and at higher frequencies where the end-effect grows. Use them as a starting trim and verify with an analyzer (§18 references the NanoVNA workflow).
 
 ## Section index
 

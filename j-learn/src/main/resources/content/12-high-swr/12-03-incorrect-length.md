@@ -9,7 +9,7 @@ status: draft
 
 # Incorrect Length
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A resonant antenna is **resonant at one frequency** — set by its physical length. If the length is wrong, the resonance is on the wrong frequency, and the SWR on your operating frequency will be high. This is the most common cause of high SWR on a freshly-built antenna and the easiest to fix.
 
@@ -100,7 +100,7 @@ The antenna is resonant on frequency, but the impedance at resonance isn't 50 Ω
 
 A NanoVNA Smith chart shows you both resistance and reactance at resonance — if the antenna is resonant (reactance = 0) but resistance is, say, 25 Ω instead of 50 Ω, you'd see SWR of 2:1 even though the length is correct.
 
-> ⚙️ **Advanced —** Trimming an end-fed antenna doesn't follow the same rules as a center-fed one. EFHWs use a 49:1 (or 64:1) UNUN at the feed point; resonance shifts about half as much per unit of trimmed length because the feedpoint impedance also changes with length, partially compensating. Plan trimming-by-experiment for EFHWs, not pure calculation. Multi-band antennas with traps shift very little on the lowest band when trimmed at the tip (the lowest-band element passes through the traps), but high-band resonance shifts a lot. Trim a multi-band antenna iteratively, starting from the lowest band.
+> **Advanced —** Trimming an end-fed antenna doesn't follow the same rules as a center-fed one. EFHWs use a 49:1 (or 64:1) UNUN at the feed point; resonance shifts about half as much per unit of trimmed length because the feedpoint impedance also changes with length, partially compensating. Plan trimming-by-experiment for EFHWs, not pure calculation. Multi-band antennas with traps shift very little on the lowest band when trimmed at the tip (the lowest-band element passes through the traps), but high-band resonance shifts a lot. Trim a multi-band antenna iteratively, starting from the lowest band.
 
 ## Antennas where length isn't the answer
 

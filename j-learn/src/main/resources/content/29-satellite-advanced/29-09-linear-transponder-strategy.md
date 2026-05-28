@@ -9,7 +9,7 @@ status: draft
 
 # Linear Transponder Strategy
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What a linear transponder is
 
@@ -38,7 +38,7 @@ On an inverting linear bird with Doppler:
 
 In practice the tracking software handles this — set the transponder type to "inverting" in SatPC32 / GPredict / MacDoppler and the rig CAT follows correctly. The trap is *manual tracking*: if you simply chase the downlink with the RX VFO and key up without adjusting TX, you drift across the passband during the pass, interfering with other QSOs as you go.
 
-> ⚙️ **Advanced —** The "uplink ahead, downlink behind" mnemonic only works on non-inverting birds (which are rare). On an inverting bird, the relationship is reversed: as Doppler pushes the downlink up, the uplink must be pushed down by the same delta to stay locked on the same point in the passband. Most tracking software hides this and just keeps both VFOs aligned; the operator only needs to think about it when troubleshooting a misconfigured rig.
+> **Advanced —** The "uplink ahead, downlink behind" mnemonic only works on non-inverting birds (which are rare). On an inverting bird, the relationship is reversed: as Doppler pushes the downlink up, the uplink must be pushed down by the same delta to stay locked on the same point in the passband. Most tracking software hides this and just keeps both VFOs aligned; the operator only needs to think about it when troubleshooting a misconfigured rig.
 
 ## Tracking other operators across the passband
 

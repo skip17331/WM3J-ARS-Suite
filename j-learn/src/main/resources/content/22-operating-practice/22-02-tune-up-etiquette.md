@@ -9,7 +9,7 @@ status: draft
 
 # Tune-up Etiquette
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 When you tune your antenna, you transmit a **steady carrier or noise** for several seconds. That's enormously disruptive on a shared band. Tuning into the wrong place at the wrong time is one of the most common forms of accidental QRM, and it has nothing to do with skill — even experienced operators do it.
 
@@ -113,7 +113,7 @@ Special cases:
 - **Forgetting to identify.** Continuous carrier without identification, even for tune-up, is technically a violation of FCC §97.119 (identification required during transmissions). A brief callsign before and after the tune satisfies the rule.
 - **Tuning across a band edge.** If your antenna isn't trimmed for the band you're on, tuning forces the tuner to compromise. Trim the antenna for the operating range first; don't expect the tuner to make a 14 MHz dipole work on 7 MHz.
 
-> ⚙️ **Advanced —** Modern autotuners use TX-side relay banks and a mismatch detector loop to find the impedance match. The detector typically operates at 5-10 W and converges in 1-3 seconds for a "memory" frequency (the tuner has cached the previous match for this band). For a fresh frequency the search may take 5-10 seconds. Older "T-network" tuners with manual capacitors and inductors require continuous TX during the adjustment, taking 10-30 seconds per band. For homebrew or kit tuners without the relay-bank technology, dummy load is even more important — you're going to be transmitting for a while.
+> **Advanced —** Modern autotuners use TX-side relay banks and a mismatch detector loop to find the impedance match. The detector typically operates at 5-10 W and converges in 1-3 seconds for a "memory" frequency (the tuner has cached the previous match for this band). For a fresh frequency the search may take 5-10 seconds. Older "T-network" tuners with manual capacitors and inductors require continuous TX during the adjustment, taking 10-30 seconds per band. For homebrew or kit tuners without the relay-bank technology, dummy load is even more important — you're going to be transmitting for a while.
 
 ## See also
 

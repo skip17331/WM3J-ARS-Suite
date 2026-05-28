@@ -9,7 +9,7 @@ status: draft
 
 # Station Troubleshooting — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The radio works. The antenna works. The coax works. So why isn't anything happening on the air? This chapter is about the **station-level** problems — the ones that aren't pure SWR (which has its own chapter, 13), aren't RFI (chapter 15), but are the station-as-a-system not behaving.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Pile-up Strategy
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What this section is (and isn't)
 
@@ -44,7 +44,7 @@ Tactical options:
 3. **Avoid the spot the previous picked station was on.** If the last QSO worked someone at 5 up exactly, every newcomer will pile onto 5 up to mimic. Move to 8 up or 12 up.
 4. **Watch the panadapter.** If you have an SDR display (modern rigs all do), the pile-up shows up as a visible cluster of carriers. Look for gaps. Transmit in a gap.
 
-> ⚙️ **Advanced —** A common DX operator habit is to **walk** their listening focus — start at the bottom of the range, sweep up over 30 seconds, sweep back down. If you can detect this rhythm (by listening for the previous picked callsigns and where they were in the range), you can predict where the operator's "ear" will be in 30 seconds and pre-position your TX there. This is the elite skill of pile-up reading; very few operators do it consciously, but the best ones do.
+> **Advanced —** A common DX operator habit is to **walk** their listening focus — start at the bottom of the range, sweep up over 30 seconds, sweep back down. If you can detect this rhythm (by listening for the previous picked callsigns and where they were in the range), you can predict where the operator's "ear" will be in 30 seconds and pre-position your TX there. This is the elite skill of pile-up reading; very few operators do it consciously, but the best ones do.
 
 ## Timing within the QRZ window
 

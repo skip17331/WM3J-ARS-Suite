@@ -9,7 +9,7 @@ status: draft
 
 # Antenna Gain
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Antenna gain is **directional** — it concentrates energy in some directions at the expense of others. A "10 dBi gain antenna" radiates ten times the power density of an isotropic radiator *in its peak direction*, but probably less in other directions, and possibly negative gain (= lower power density than isotropic) in nulls.
 

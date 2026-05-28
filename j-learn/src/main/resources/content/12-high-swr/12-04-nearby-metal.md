@@ -9,7 +9,7 @@ status: draft
 
 # Nearby Metal
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 An antenna's resonant frequency and feedpoint impedance are profoundly affected by what's near it. Metal — gutters, wire fences, tower sections, electrical conduit, an HVAC unit, even the building's rebar — couples to the antenna and detunes it. New construction or even a vehicle parked under the antenna can push SWR from 1.5:1 to 4:1 overnight.
 
@@ -96,7 +96,7 @@ If you have a NanoVNA, you can sometimes identify nearby-metal problems by compa
 - **Changes day-to-day or with weather** = environment is variable; nearby metal or moisture in the antenna environment is implicated.
 - **Big changes around a known event** (someone parked a car under the antenna, you put up Christmas lights) = direct cause-and-effect.
 
-> ⚙️ **Advanced —** Quantitatively, the impedance perturbation of a nearby parasitic element depends on the **mutual impedance** Z₁₂ between the elements, which depends on their separation and orientation. For two parallel half-wave dipoles in free space, Z₁₂ at λ/4 separation is approximately 41+j17 Ω; at λ/2 separation it drops to about –10 Ω. The total impedance seen at the driven antenna feedpoint is Z₁₁ ± Z₁₂² / Z₂₂ — the classic parasitic-element formula. NEC modeling tools (4nec2, EZNEC) compute these effects and can predict an antenna's behavior with realistic surroundings.
+> **Advanced —** Quantitatively, the impedance perturbation of a nearby parasitic element depends on the **mutual impedance** Z₁₂ between the elements, which depends on their separation and orientation. For two parallel half-wave dipoles in free space, Z₁₂ at λ/4 separation is approximately 41+j17 Ω; at λ/2 separation it drops to about –10 Ω. The total impedance seen at the driven antenna feedpoint is Z₁₁ ± Z₁₂² / Z₂₂ — the classic parasitic-element formula. NEC modeling tools (4nec2, EZNEC) compute these effects and can predict an antenna's behavior with realistic surroundings.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Power Supply
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A bad or undersized power supply is the cause of more "the radio's broken" complaints than the radios themselves. Symptoms include power output dropping under heavy duty cycle, audio distortion, hum on the carrier, the radio resetting mid-transmission, or display brownouts. Most of these resolve when you address the supply.
 

@@ -9,7 +9,7 @@ status: draft
 
 # NanoVNA Trim Workflow
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -73,7 +73,7 @@ A clean half-wave dipole sweep looks like a **deep V-shape**:
 
 ```
 SWR
- │           min SWR  
+ │           min SWR
  │      ╱─────╲────────
  │     ╱        ╲
 1│────╱          ╲────
@@ -120,7 +120,7 @@ For a dipole at 20m, **1 cm of wire (per side) shifts resonance ~10 kHz**. This 
 - **Not saving baselines.** Without a baseline sweep, you can't spot drift months / years later. Save every install's final sweep.
 - **Trimming on a windy day.** Wind moves wire; readings shift. Trim in calm weather; sweep on calm days for baselines.
 
-> ⚙️ **Advanced —** For matching-network design (Smith chart work), the NanoVNA + NanoVNA-Saver provides a real-time Smith chart. Verify your match-network's transformation graphically — saves time vs. closed-form calculation when iterating on a tricky design. The chart also reveals mismatches that a reflection-magnitude-only meter would miss (e.g., resistive loads at the wrong impedance vs. reactive loads at the same magnitude).
+> **Advanced —** For matching-network design (Smith chart work), the NanoVNA + NanoVNA-Saver provides a real-time Smith chart. Verify your match-network's transformation graphically — saves time vs. closed-form calculation when iterating on a tricky design. The chart also reveals mismatches that a reflection-magnitude-only meter would miss (e.g., resistive loads at the wrong impedance vs. reactive loads at the same magnitude).
 
 ## See also
 

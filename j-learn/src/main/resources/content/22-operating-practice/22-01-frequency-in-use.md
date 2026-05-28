@@ -9,7 +9,7 @@ status: draft
 
 # "Is the Frequency in Use?"
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The first thing you say on a new HF frequency is **"is the frequency in use?"** — or its CW equivalent **QRL?**. The reason: someone may already be there, you just can't hear them. HF skip-zone propagation regularly puts two stations in QSO that neither of you can hear, and a third operator (you) plops down in the middle and walks all over them.
 
@@ -114,7 +114,7 @@ Many seasoned operators sit on a frequency for a minute or two before transmitti
 - **Being annoyed when told the frequency is in use.** It's not personal. The other station was there first. Move 3-5 kHz and try again — there's plenty of band.
 - **Claiming the frequency.** "WM3J holding 14.205 for the next 30 minutes" is not how amateur radio works. You hold the frequency only as long as you're actively using it; if you go silent, someone else may legitimately take it.
 
-> ⚙️ **Advanced —** Frequency reservation in amateur radio is informal and short-term. The IARU recommends a station that has been silent for **5 minutes** has effectively released the frequency. In contest operating this is much shorter — 30-60 seconds. The "QRZ" call (asking who's calling) is also a way to claim a frequency: by responding to your own CQ with "QRZ?" you signal that this frequency is yours and you're listening. In CW DX pile-ups, the DX station often "owns" a transmit frequency for hours by virtue of being the wanted signal that everyone is calling — but the same DX station has to occasionally re-call CQ to maintain the position.
+> **Advanced —** Frequency reservation in amateur radio is informal and short-term. The IARU recommends a station that has been silent for **5 minutes** has effectively released the frequency. In contest operating this is much shorter — 30-60 seconds. The "QRZ" call (asking who's calling) is also a way to claim a frequency: by responding to your own CQ with "QRZ?" you signal that this frequency is yours and you're listening. In CW DX pile-ups, the DX station often "owns" a transmit frequency for hours by virtue of being the wanted signal that everyone is calling — but the same DX station has to occasionally re-call CQ to maintain the position.
 
 ## See also
 

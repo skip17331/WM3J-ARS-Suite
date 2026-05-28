@@ -9,7 +9,7 @@ status: draft
 
 # Station Engineering & Grounding
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Most amateur stations are *assembled* — a radio bought from one place, an amplifier from another, a power supply pulled from a junk box, a computer chained in last. The cables wander. The grounds are arbitrary. The mic boom collides with the monitor. It works, mostly. Then one day a thunderstorm rolls through, or the FT8 audio suddenly hums, or a contest weekend leaves the operator with a sore back and an aching wrist, and the operator realizes the station isn't a *system* — it's a pile.
 
@@ -62,4 +62,4 @@ This chapter sits at the intersection of several others:
 - [§08 — RF Safety](../08-rf-safety/08-00-overview.md) — MPE and human exposure concerns
 - [§18-05 — Baluns & Chokes](../18-coax-connectors/18-05-baluns-chokes.md) — common-mode mitigation at the feedline
 
-> ⚙️ **Advanced —** Commercial broadcast and two-way radio sites treat all of this as a single engineered discipline called *site engineering*, with standards like Motorola R-56 ("Standards and Guidelines for Communication Sites"). Amateur stations don't need R-56 rigor, but the principles scale down well — single-point ground, halo bonds, isolated coax entries, low-impedance straps to multiple rods. The R-56 PDF is freely circulated; reading it once is worth more than ten forum threads.
+> **Advanced —** Commercial broadcast and two-way radio sites treat all of this as a single engineered discipline called *site engineering*, with standards like Motorola R-56 ("Standards and Guidelines for Communication Sites"). Amateur stations don't need R-56 rigor, but the principles scale down well — single-point ground, halo bonds, isolated coax entries, low-impedance straps to multiple rods. The R-56 PDF is freely circulated; reading it once is worth more than ten forum threads.

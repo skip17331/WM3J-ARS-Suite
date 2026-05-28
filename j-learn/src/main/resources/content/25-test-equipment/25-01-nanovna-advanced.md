@@ -9,7 +9,7 @@ status: draft
 
 # NanoVNA — Advanced Techniques
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section assumes you have read **§09-15 NanoVNA Trim Workflow** and can already do a basic SOL (short-open-load) calibration, sweep an antenna, and read SWR / R / X. Here we go deeper: what the calibration actually means, how to interpret the Smith chart for matching-network work, how to use the time-domain mode as a TDR, and the saturation / overdrive gotchas that make some readings worse than useless if you don't know about them.
 
@@ -30,7 +30,7 @@ Calibration measures the analyzer's known-imperfect response when looking at eac
 
 After calibration, the analyzer reports the true reflection at the **calibration reference plane** — the point where the open/short/load were connected.
 
-> ⚙️ **Advanced —** The standards are themselves imperfect. A real "short" has a small offset delay (the length from the SMA face to the actual short) and a tiny inductance. A real "open" has fringing capacitance. Professional calibration kits ship with measured polynomial coefficients for each standard. The NanoVNA assumes "ideal" standards, which is part of why its accuracy degrades above ~1.5 GHz. For HF amateur work, this error is negligible. For 23 cm / microwave work, it matters and is the main reason to step up to a calibrated lab VNA.
+> **Advanced —** The standards are themselves imperfect. A real "short" has a small offset delay (the length from the SMA face to the actual short) and a tiny inductance. A real "open" has fringing capacitance. Professional calibration kits ship with measured polynomial coefficients for each standard. The NanoVNA assumes "ideal" standards, which is part of why its accuracy degrades above ~1.5 GHz. For HF amateur work, this error is negligible. For 23 cm / microwave work, it matters and is the main reason to step up to a calibrated lab VNA.
 
 ## The reference plane and port extension
 
@@ -140,7 +140,7 @@ Procedure:
 3. Disconnect the barrel. Insert the device under test (DUT) between port 1 and port 2.
 4. Read S21 in dB at each frequency.
 
-> ⚙️ **Advanced —** The NanoVNA's S21 dynamic range is limited — typically ~70 dB at HF, dropping to ~40 dB above 1 GHz. This is *not* a deficiency to fix; it's the architecture (single-conversion receiver, no preselection). For measuring filter stopbands that exceed 50–60 dB you need a real network analyzer. The TinySA Ultra used as a "poor man's scalar network analyzer" can get a bit further by adding receiver gain.
+> **Advanced —** The NanoVNA's S21 dynamic range is limited — typically ~70 dB at HF, dropping to ~40 dB above 1 GHz. This is *not* a deficiency to fix; it's the architecture (single-conversion receiver, no preselection). For measuring filter stopbands that exceed 50–60 dB you need a real network analyzer. The TinySA Ultra used as a "poor man's scalar network analyzer" can get a bit further by adding receiver gain.
 
 ## Smith chart interpretation depth
 

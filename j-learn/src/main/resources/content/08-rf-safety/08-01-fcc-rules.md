@@ -9,7 +9,7 @@ status: draft
 
 # FCC Rules
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section covers the actual federal regulations governing RF exposure for amateur stations. The rules are spread across two parts of 47 CFR (the FCC's regulations): **Part 1** sets the underlying exposure rules for *all* FCC licensees, and **Part 97** (the amateur radio rules) tells amateur licensees how to comply.
 
@@ -96,7 +96,7 @@ The FCC has *very rarely* taken enforcement action against amateurs for RF expos
 
 The actual enforcement risk is low. The actual goal of the rules is to make hams **think about RF safety** and design responsibly.
 
-> ⚙️ **Advanced —** The FCC's MPE limits are derived from IEEE C95.1 and the older ANSI C95.1-1992 standards. The threshold for biological effect under IEEE's "expert panel" framework is set at a 4 W/kg whole-body Specific Absorption Rate (SAR) — the level at which significant tissue heating is documented. The MPE field-strength values are then derived to keep SAR below 0.4 W/kg for occupational and 0.08 W/kg for general public, applying safety factors of 10 and 50 respectively. The SAR-to-field-strength conversion is frequency-dependent and assumes a "standard adult body." This is why MPE limits drop in the 30–300 MHz range — that's where the human body is most resonant and absorbs most efficiently. Below 30 MHz and above 300 MHz, MPE limits relax somewhat.
+> **Advanced —** The FCC's MPE limits are derived from IEEE C95.1 and the older ANSI C95.1-1992 standards. The threshold for biological effect under IEEE's "expert panel" framework is set at a 4 W/kg whole-body Specific Absorption Rate (SAR) — the level at which significant tissue heating is documented. The MPE field-strength values are then derived to keep SAR below 0.4 W/kg for occupational and 0.08 W/kg for general public, applying safety factors of 10 and 50 respectively. The SAR-to-field-strength conversion is frequency-dependent and assumes a "standard adult body." This is why MPE limits drop in the 30–300 MHz range — that's where the human body is most resonant and absorbs most efficiently. Below 30 MHz and above 300 MHz, MPE limits relax somewhat.
 
 ## Common mistakes
 

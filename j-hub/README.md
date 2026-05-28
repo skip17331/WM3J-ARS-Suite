@@ -1,6 +1,6 @@
 # Ham Radio Hub
 
-Central WebSocket hub for the ham radio application suite.  
+Central WebSocket hub for the ham radio application suite.
 All connected apps share real-time rig state, DX cluster spots, and session data through this process.
 
 ---
@@ -54,7 +54,7 @@ Key sections:
 
 ## WebSocket Protocol
 
-Connect to `ws://localhost:8080`.  
+Connect to `ws://localhost:8080`.
 Send `APP_CONNECTED` as your first message:
 
 ```json

@@ -9,7 +9,7 @@ status: draft
 
 # Feedline & SWR — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The feedline is the cable between your radio and your antenna. It looks passive — just a wire — but it's the single piece of your station most likely to silently steal performance. A great antenna with a poor feedline is mediocre. A mediocre antenna with a great feedline is mediocre. The whole *system* matters; getting the feedline right is half of the problem.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Doppler Correction Tables
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section is the **lookup reference** for Doppler shift calculations on common amateur satellites. The tables below give the maximum Doppler shift (at AOS or LOS) and the typical correction needed at intermediate elevations during a pass. The conceptual treatment is in §07-02.
 

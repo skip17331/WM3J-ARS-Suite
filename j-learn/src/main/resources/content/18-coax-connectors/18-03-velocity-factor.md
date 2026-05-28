@@ -9,7 +9,7 @@ status: draft
 
 # Velocity Factor
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The wave traveling inside a coax does **not** move at the speed of light. It moves at the speed of light in vacuum *multiplied by* a factor less than 1 — the velocity factor (VF), determined by the dielectric between the inner and outer conductors. Solid polyethylene gives VF ≈ 0.66; foam dielectrics give VF in the 0.78–0.88 range; air-spaced gives VF up to 0.95.
 

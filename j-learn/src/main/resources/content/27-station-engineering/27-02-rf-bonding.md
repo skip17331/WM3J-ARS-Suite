@@ -9,7 +9,7 @@ status: draft
 
 # RF Bonding
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The single-point ground (§27-01) gets every chassis to the same DC potential. **RF bonding** keeps them at the same *RF* potential — across the frequencies the station actually operates on. The two are related but distinct, and confusing them is the single most common reason amateurs experience "RF in the shack."
 
@@ -93,7 +93,7 @@ For a typical 4-piece HF station (radio, amp, tuner, PSU), a starter bonding kit
 
 Total: under $70 for a station-wide bonding upgrade. The improvement in HF noise floor (typically 6–15 dB on receive) and elimination of RF-in-the-shack feedback is dramatic and immediate.
 
-> ⚙️ **Advanced —** For stations operating on 6 m and up, consider a *bonding plane* — a sheet of copper foil or aluminum plate behind/under the equipment, with each chassis bolted directly to it via the rear-panel ground lugs. The plane itself bonds to the SPG bus. This brings inter-chassis impedance to near zero across all amateur bands through 70 cm. Used in EME stations, weak-signal VHF setups, and contest stations where every dB of noise floor matters. A 24" × 36" × 0.04" copper sheet costs ~$80 and ties together everything bolted to it.
+> **Advanced —** For stations operating on 6 m and up, consider a *bonding plane* — a sheet of copper foil or aluminum plate behind/under the equipment, with each chassis bolted directly to it via the rear-panel ground lugs. The plane itself bonds to the SPG bus. This brings inter-chassis impedance to near zero across all amateur bands through 70 cm. Used in EME stations, weak-signal VHF setups, and contest stations where every dB of noise floor matters. A 24" × 36" × 0.04" copper sheet costs ~$80 and ties together everything bolted to it.
 
 ## Bonding antennas and feedlines
 

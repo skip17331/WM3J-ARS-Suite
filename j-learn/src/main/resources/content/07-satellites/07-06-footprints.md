@@ -9,7 +9,7 @@ status: draft
 
 # Footprints
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A satellite's **footprint** is the region of the Earth's surface that has line-of-sight to the satellite at a given moment. Inside the footprint, you can potentially work the satellite (subject to your antenna gain, the satellite's coverage at that elevation, and noise). Outside, you can't — the radio horizon blocks the path entirely.
 

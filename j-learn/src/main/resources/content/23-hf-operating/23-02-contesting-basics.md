@@ -9,7 +9,7 @@ status: draft
 
 # Contesting Basics
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -68,7 +68,7 @@ Contests come in two duration flavors:
 
 **Marathons** — 24 to 48 hours, sometimes longer. Sleep management is part of the game. The world-class operators sleep 4–6 hours total during a 48-hour weekend. Examples: CQ WW DX (48 h), ARRL DX (48 h), Sweepstakes (24 h within a 30 h window), CQ WPX (48 h), IARU (24 h), WAE (48 h).
 
-> ⚙️ **Advanced —** Multi-operator categories (Multi-Single, Multi-Two, Multi-Multi) split the operating across a team and allow continuous operation. Single-operator categories have rest-period rules: in CQ WW DX, the rule is 30 minutes minimum rest blocks, and you can't operate more than 36 hours out of 48. Logging software enforces this. Single-Op Unlimited allows packet/cluster spots; Single-Op Classic forbids them.
+> **Advanced —** Multi-operator categories (Multi-Single, Multi-Two, Multi-Multi) split the operating across a team and allow continuous operation. Single-operator categories have rest-period rules: in CQ WW DX, the rule is 30 minutes minimum rest blocks, and you can't operate more than 36 hours out of 48. Logging software enforces this. Single-Op Unlimited allows packet/cluster spots; Single-Op Classic forbids them.
 
 ## Common contests
 

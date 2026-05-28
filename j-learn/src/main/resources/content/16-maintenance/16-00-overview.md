@@ -9,7 +9,7 @@ status: draft
 
 # Maintenance — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A radio station is a system of components installed outdoors, indoors, on poles, in vehicles, behind walls — exposed to UV, water, ice, vibration, current cycling, and the slow march of firmware bugs. None of it is permanent. Coax water-ingresses, batteries lose capacity, connectors corrode, antennas droop, firmware develops new failure modes nobody saw at launch. **A station that worked great five years ago will work much less great today if nothing has been touched in that time** — and the slide is gradual enough that you may not notice until you wonder why your S-meter reads two units lower than your neighbor's.
 

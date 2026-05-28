@@ -9,7 +9,7 @@ status: draft
 
 # Emergency Frequencies & Major Nets
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section catalogs the **major U.S. amateur emergency communication nets** — long-running organized nets that activate during specific emergencies (hurricanes, maritime distress, severe weather) or operate continuously as standing emergency-response capability. It also covers conventional **calling frequencies** that operators monitor or use during emergencies even outside formal nets.
 

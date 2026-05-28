@@ -9,7 +9,7 @@ status: draft
 
 # Identifying — the 10-Minute Rule and §97.119
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 US amateur radio has one nearly-inviolable identification rule: **transmit your FCC-assigned callsign at least every 10 minutes during a transmission, and at the end of the transmission**. The rule lives in 47 CFR §97.119. It's both a regulatory requirement and a practical courtesy — listeners need to know who's on the frequency.
 
@@ -141,7 +141,7 @@ The exception: if you're on a controlled net and the NCS asks "WM3J, you still o
 - **Mobile / portable indicators**: optional. "WM3J/M" (mobile) and "WM3J/P" (portable) are sometimes used; not legally required in the US.
 - **Special event 1×1 callsigns**: legal for special events; assigned with specific dates and purposes.
 
-> ⚙️ **Advanced —** §97.119(b) covers details of various identification modes — phone, image, RTTY, CW. The 1989 amendment adopted the 10-minute / end-of-transmission rule that's now standard. Earlier rules required identification at the start AND end of transmissions and every 10 minutes; the start-of-transmission rule was relaxed because automatic identifiers and digital modes made it impractical. Special-event 1×1 calls were authorized in 1985 with a coordinated-with-FCC issuance system. Operating under §97.107 reciprocal arrangements requires identification using the host country's prefix; the FCC publishes lists of reciprocal countries.
+> **Advanced —** §97.119(b) covers details of various identification modes — phone, image, RTTY, CW. The 1989 amendment adopted the 10-minute / end-of-transmission rule that's now standard. Earlier rules required identification at the start AND end of transmissions and every 10 minutes; the start-of-transmission rule was relaxed because automatic identifiers and digital modes made it impractical. Special-event 1×1 calls were authorized in 1985 with a coordinated-with-FCC issuance system. Operating under §97.107 reciprocal arrangements requires identification using the host country's prefix; the FCC publishes lists of reciprocal countries.
 
 ## See also
 

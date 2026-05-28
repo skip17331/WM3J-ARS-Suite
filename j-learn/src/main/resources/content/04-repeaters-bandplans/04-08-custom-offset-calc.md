@@ -9,7 +9,7 @@ status: draft
 
 # Custom Offset Calculator
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Most repeaters use the **standard offsets** documented in §04-02 (–600 kHz on 2 m, +5 MHz on 70 cm, etc.). But every now and then you'll find one that doesn't — usually because of crowding, regional coordination decisions, or because the repeater was built before the conventions settled. Programming a custom offset by hand is straightforward; the math is grade-school subtraction.
 

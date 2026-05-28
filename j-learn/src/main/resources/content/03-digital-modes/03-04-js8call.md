@@ -9,7 +9,7 @@ status: draft
 
 # JS8Call
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -35,7 +35,7 @@ The protocol uses **15-second slots that can chain** — a long message is broke
 
 **Store-and-forward** is the killer feature for emcomm. JS8Call lets you queue a message addressed to a callsign that isn't currently on the air; the message gets relayed by intermediate stations that hear both you and the destination. This works without infrastructure and without coordination — any JS8Call station with relay enabled will participate.
 
-> ⚙️ **Advanced —** JS8Call's relay protocol is opportunistic: each station listens for messages addressed to callsigns it has heard recently and forwards them. Loop prevention uses a TTL field; duplicate-message suppression uses message hashes. The protocol is described in JS8Call's GitHub repository under `lib/js8/protocol.h`. It's not a full mesh, but it's enough to deliver a message hop-by-hop across a region without internet.
+> **Advanced —** JS8Call's relay protocol is opportunistic: each station listens for messages addressed to callsigns it has heard recently and forwards them. Loop prevention uses a TTL field; duplicate-message suppression uses message hashes. The protocol is described in JS8Call's GitHub repository under `lib/js8/protocol.h`. It's not a full mesh, but it's enough to deliver a message hop-by-hop across a region without internet.
 
 ## Why use it
 

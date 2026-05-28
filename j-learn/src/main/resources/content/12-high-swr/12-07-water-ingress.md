@@ -9,7 +9,7 @@ status: draft
 
 # Water Ingress
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Water inside coax, connectors, baluns, or matching networks is a common cause of high SWR — usually one that gets blamed on something else for months before being correctly identified. This section is the consolidated water-ingress diagnosis and the prevention practices that actually work.
 

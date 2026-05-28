@@ -9,7 +9,7 @@ status: draft
 
 # Power-Line Noise — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Power-line noise is its own beast. Unlike the household sources covered in §15-01 through §15-07, the source is **utility infrastructure** — poles, transformers, insulators, hardware — not anything inside your house. You can't fix it with a ferrite core; the fix involves the utility company. This subsection walks the diagnosis, the documentation, and the working-with-the-utility process.
 

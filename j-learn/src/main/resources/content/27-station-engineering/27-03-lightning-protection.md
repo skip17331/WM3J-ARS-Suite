@@ -9,7 +9,7 @@ status: draft
 
 # Lightning Protection
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Lightning is a low-probability, high-cost event. A direct strike on an exposed amateur antenna is rare — maybe once in a decade for a typical suburban tower in a moderate-lightning region, much more often in Florida or the Gulf Coast. **Induced surges** from nearby strikes, on the other hand, are *routine*. A strike a quarter-mile away dumps several kV onto every long conductor in the neighborhood — power lines, phone lines, and, especially, your 100-foot horizontal antenna. The station equipment doesn't care whether the energy came from a direct hit or an induced pulse; it dies the same way.
 
@@ -154,7 +154,7 @@ For a station you actively use, you can't always disconnect. That's what the arr
 
 This is the standard. Two rods, bonded together and to the AC service. All coax through arrestors on a common bulkhead. The bulkhead bonded with a short strap. Total cost for a 3-coax installation: ~$300–$500 depending on arrestor selection.
 
-> ⚙️ **Advanced —** For high-value stations (amp, transverter, SDR), consider a *secondary* protection stage inside the shack: a smaller arrestor between the bulkhead jumper and the radio, plus a switched bypass. The first stage (outside) dissipates the bulk of the energy; the second stage clamps anything that gets through. This is two-stage protection and is standard in commercial sites. Polyphaser sells dedicated "secondary protectors" rated for the post-bulkhead voltages. Not necessary for most amateur stations but worth considering for a $5,000 amplifier.
+> **Advanced —** For high-value stations (amp, transverter, SDR), consider a *secondary* protection stage inside the shack: a smaller arrestor between the bulkhead jumper and the radio, plus a switched bypass. The first stage (outside) dissipates the bulk of the energy; the second stage clamps anything that gets through. This is two-stage protection and is standard in commercial sites. Polyphaser sells dedicated "secondary protectors" rated for the post-bulkhead voltages. Not necessary for most amateur stations but worth considering for a $5,000 amplifier.
 
 ## Related sections
 

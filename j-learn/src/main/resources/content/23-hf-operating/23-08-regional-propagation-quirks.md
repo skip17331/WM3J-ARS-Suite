@@ -9,7 +9,7 @@ status: draft
 
 # Regional Propagation Quirks
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Why "quirks"
 
@@ -63,7 +63,7 @@ Recognition: working PY (Brazil) or LU (Argentina) on 20 m, you find your signal
 
 Tactically: if you have a directional antenna, sweep ±30 degrees off the GC bearing when working South America. The skew direction varies with time of day; afternoon openings often have the strongest skew.
 
-> ⚙️ **Advanced —** The Equatorial Ionization Anomaly is two peaks of F-layer density at ±15° magnetic latitude with a "trough" at the magnetic equator. Signals crossing the equator are refracted by the gradient, not just the magnitude — so the apparent bearing changes. The effect is most pronounced near solar maximum on 20 m and 17 m. VOACAP and similar prediction tools model this; field experience often confirms.
+> **Advanced —** The Equatorial Ionization Anomaly is two peaks of F-layer density at ±15° magnetic latitude with a "trough" at the magnetic equator. Signals crossing the equator are refracted by the gradient, not just the magnitude — so the apparent bearing changes. The effect is most pronounced near solar maximum on 20 m and 17 m. VOACAP and similar prediction tools model this; field experience often confirms.
 
 ## Trans-equatorial propagation (TEP)
 

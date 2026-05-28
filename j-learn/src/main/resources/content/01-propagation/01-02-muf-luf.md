@@ -9,7 +9,7 @@ status: draft
 
 # MUF and LUF
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 For any path between two stations on Earth, there is a **window of frequencies that will work** — too high and your signal punches through the ionosphere into space, too low and it's swallowed by absorption. The top of the window is the **MUF** (Maximum Usable Frequency); the bottom is the **LUF** (Lowest Usable Frequency).
 
@@ -89,7 +89,7 @@ If you can't reach a nearby station on a band but easily work overseas, you're i
 
 D-layer absorption goes roughly as **1/f²** — halve the frequency, quadruple the absorption. That's why 80 m is dead during the day (D-layer takes a 30 dB chunk out of every signal) but wide open after sunset.
 
-> ⚙️ **Advanced —** The full daytime absorption coefficient is approximately
+> **Advanced —** The full daytime absorption coefficient is approximately
 > `L (dB) ≈ 677.2 · sec(χ) · I / (f + fH)²`
 > where χ is the solar zenith angle, I is the absorption index (related to SFI and time of year), f is the operating frequency in MHz, and fH is the gyrofrequency (~1.4 MHz at temperate latitudes). The `sec(χ)` term is why the LUF rises sharply when the path passes through tropical latitudes around local noon — the sun is more directly overhead and the path through the D-layer is shortest.
 
@@ -103,7 +103,7 @@ MUF ≈ foF2 · sec(φ)
 
 where φ is the angle of incidence at the bottom of the F2 layer. For very low takeoff angles, sec(φ) approaches 3.5, which is why MUF is roughly **3 to 3.5 times foF2** for long hops. A foF2 of 8 MHz at noon translates to a path MUF in the 24–28 MHz range — comfortably on 10 m and 12 m.
 
-> ⚙️ **Advanced —** Real ionograms use the **M(3000)F2 factor** instead of computing the geometry from scratch. Standard ionosondes report foF2 (vertical critical frequency) and M(3000)F2 (the ratio of the 3000 km MUF to foF2). The 3000 km MUF is then `foF2 × M(3000)F2`. Typical M(3000)F2 values run 2.5 to 3.4 depending on latitude and time. For other distances, scale linearly between zero (where MUF = foF2) and 4000 km (where MUF is the maximum).
+> **Advanced —** Real ionograms use the **M(3000)F2 factor** instead of computing the geometry from scratch. Standard ionosondes report foF2 (vertical critical frequency) and M(3000)F2 (the ratio of the 3000 km MUF to foF2). The 3000 km MUF is then `foF2 × M(3000)F2`. Typical M(3000)F2 values run 2.5 to 3.4 depending on latitude and time. For other distances, scale linearly between zero (where MUF = foF2) and 4000 km (where MUF is the maximum).
 
 ## Tools
 

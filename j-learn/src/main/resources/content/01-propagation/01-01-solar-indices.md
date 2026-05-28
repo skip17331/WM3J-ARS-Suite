@@ -9,7 +9,7 @@ status: draft
 
 # Solar Indices (SFI, A-index, K-index)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Three numbers tell you almost everything about today's HF propagation. They appear on every cluster, every solar dashboard, every QST cover blurb. Learn them once and you can read the bands at a glance.
 
@@ -37,7 +37,7 @@ Officially the **10.7 cm solar radio flux** — the radio brightness of the enti
 
 Why this number? Because the same physical processes that make the sun bright at 10.7 cm also produce the **EUV** (extreme ultraviolet) radiation that ionizes our F-layer. EUV is hard to measure from the ground (atmosphere absorbs it). 10.7 cm radiation passes through cleanly and tracks EUV closely enough to be a great proxy.
 
-> ⚙️ **Advanced —** The 10.7 cm proxy isn't perfect. EUV peaks slightly earlier in the solar cycle than 10.7 cm does, and at very high SFI levels (200+) the relationship saturates. Models that need real ionization rates use the **F10.7** or — better — direct EUV measurements from the GOES SUVI instrument and SDO/EVE. For everyday operating, treat SFI as a linear ionization gauge and you'll be right far more often than wrong.
+> **Advanced —** The 10.7 cm proxy isn't perfect. EUV peaks slightly earlier in the solar cycle than 10.7 cm does, and at very high SFI levels (200+) the relationship saturates. Models that need real ionization rates use the **F10.7** or — better — direct EUV measurements from the GOES SUVI instrument and SDO/EVE. For everyday operating, treat SFI as a linear ionization gauge and you'll be right far more often than wrong.
 
 Typical range: **65 (deep solar minimum) to 300+ (cycle peak)**. During Cycle 24's maximum (~2014) we saw 150–180. Cycle 25 is currently producing readings in the 150–220 range; numbers above 200 are common.
 
@@ -62,7 +62,7 @@ What it means at the radio:
 | 7–8 | Strong storm (G3–G4) | Widespread blackouts; visual aurora down to mid-latitudes |
 | 9   | Extreme (G5) | Blackout of HF; possible damage to satellites and grids |
 
-> ⚙️ **Advanced —** The K-index is logarithmic with a non-uniform spacing. Each step roughly doubles the disturbance level: K=4 is about twice K=3 in nT terms, K=5 about twice K=4, etc. The full scale was designed by Bartels in 1939 and tied to specific ranges of horizontal magnetic field deviation in nT, with the boundaries calibrated per observatory so all stations report comparable numbers. The "estimated K" you see in real time is a forecast; the official Kp arrives a few hours later.
+> **Advanced —** The K-index is logarithmic with a non-uniform spacing. Each step roughly doubles the disturbance level: K=4 is about twice K=3 in nT terms, K=5 about twice K=4, etc. The full scale was designed by Bartels in 1939 and tied to specific ranges of horizontal magnetic field deviation in nT, with the boundaries calibrated per observatory so all stations report comparable numbers. The "estimated K" you see in real time is a forecast; the official Kp arrives a few hours later.
 
 ## A-index in detail
 

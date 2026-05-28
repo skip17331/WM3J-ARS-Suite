@@ -9,7 +9,7 @@ status: draft
 
 # Keplerian Elements
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A satellite's orbit can be fully described by **six numbers**: the Keplerian elements (sometimes called orbital elements). Plug those six numbers into a propagator, add a time, and you get the satellite's position and velocity in space. Tracking software does this thousands of times per minute to draw the satellite's path on a map and predict when it will be over your station.
 
@@ -84,7 +84,7 @@ The two-line block contains:
 - Mean motion (15.4957 revolutions per day) — implies period of ~93 minutes
 - Revolution number at epoch
 
-> ⚙️ **Advanced —** The TLE format dates from the 1960s and uses a specific quirk: the mean motion is given as revs/day (not radians/sec), the eccentricity is implicit-decimal (0.0007890 written as 0007890), and the drag terms are in scientific notation with a non-standard ASCII encoding (12345-3 means 1.2345e-3). The exact TLE columnal layout is defined by NORAD; parsers must respect every character position. SGP4 is the standard propagator that consumes TLEs; it includes J2 oblateness, atmospheric drag (with simplified models), and a few other perturbations. Higher-fidelity propagators (SGP4XP, HPOP) exist but require more orbital data than a TLE provides.
+> **Advanced —** The TLE format dates from the 1960s and uses a specific quirk: the mean motion is given as revs/day (not radians/sec), the eccentricity is implicit-decimal (0.0007890 written as 0007890), and the drag terms are in scientific notation with a non-standard ASCII encoding (12345-3 means 1.2345e-3). The exact TLE columnal layout is defined by NORAD; parsers must respect every character position. SGP4 is the standard propagator that consumes TLEs; it includes J2 oblateness, atmospheric drag (with simplified models), and a few other perturbations. Higher-fidelity propagators (SGP4XP, HPOP) exist but require more orbital data than a TLE provides.
 
 ## How a TLE relates to the six elements
 

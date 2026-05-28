@@ -9,7 +9,7 @@ status: draft
 
 # Yagi-Uda
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -95,7 +95,7 @@ Beyond 6 elements gain increases ~0.5–1 dB per added director, with diminishin
 - **Inadequate boom rigidity.** A 20-ft Yagi boom flexes significantly in wind; add boom support cables (truss) above 18 ft.
 - **Neglecting wind survival.** A 5-element 20m Yagi presents ~25 ft² of wind area at full broadside. Ensure tower can handle the load.
 
-> ⚙️ **Advanced —** Modern Yagi designs from W2PV, K1FO, DL6WU, and especially **YU7EF / OK1DFC optimized series** outperform classical "tapered" lengths by 1–2 dB through careful element-length and spacing optimization. For serious builds, run the antenna through **NEC-2 / 4nec2 / EZNEC** modeling rather than relying on closed-form formulas. The calculator's outputs are good for quick estimation; modeling gives precise lengths for your specific element diameters and boom material.
+> **Advanced —** Modern Yagi designs from W2PV, K1FO, DL6WU, and especially **YU7EF / OK1DFC optimized series** outperform classical "tapered" lengths by 1–2 dB through careful element-length and spacing optimization. For serious builds, run the antenna through **NEC-2 / 4nec2 / EZNEC** modeling rather than relying on closed-form formulas. The calculator's outputs are good for quick estimation; modeling gives precise lengths for your specific element diameters and boom material.
 
 ## Build & trim notes
 

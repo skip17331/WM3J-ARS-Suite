@@ -9,7 +9,7 @@ status: draft
 
 # Coax Types
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section is the type-by-type reference for the common coax cables in amateur use. Each entry covers physical construction, electrical specs, typical use cases, and notes on quality variation. Loss values per band are in §18-02; velocity factors are in §18-03.
 
@@ -107,7 +107,7 @@ Semi-rigid coax with a corrugated solid copper or aluminum outer conductor (not 
 
 **Connectors**: hardline uses specialized connectors (Type N hardline-specific, or Andrew's proprietary connectors). They cost $30-100 each and require specific tools to install. Plan for this in budget.
 
-> ⚙️ **Advanced —** Hardline's lower loss comes from three factors: (1) larger outer conductor diameter reduces resistive loss in the shield; (2) foam dielectric has lower dielectric loss tangent than solid PE; (3) the closed solid outer conductor has lower leakage and stray inductance than braided shields. The cost is mechanical: hardline cannot be flexed, must be supported every few feet, and connectors are precision components. The result is broadcast-quality feedline applied to amateur use — the same cable that runs from a TV transmitter's PA to its antenna goes from your IC-7610 to your tower-top Yagi.
+> **Advanced —** Hardline's lower loss comes from three factors: (1) larger outer conductor diameter reduces resistive loss in the shield; (2) foam dielectric has lower dielectric loss tangent than solid PE; (3) the closed solid outer conductor has lower leakage and stray inductance than braided shields. The cost is mechanical: hardline cannot be flexed, must be supported every few feet, and connectors are precision components. The result is broadcast-quality feedline applied to amateur use — the same cable that runs from a TV transmitter's PA to its antenna goes from your IC-7610 to your tower-top Yagi.
 
 ## Old / less-common types you might encounter
 

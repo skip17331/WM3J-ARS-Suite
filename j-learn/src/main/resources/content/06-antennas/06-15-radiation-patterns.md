@@ -9,7 +9,7 @@ status: draft
 
 # Radiation Patterns
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A radiation pattern is a **3D map of where your antenna sends and receives signal**. In two senses, your antenna *is* its pattern: the same dipole at two different heights produces two different patterns and therefore is, for practical purposes, two different antennas.
 
@@ -126,7 +126,7 @@ This is why a multi-band antenna may have gain in different *directions* on diff
 
 The implication: think of multi-band wire antennas as **band-specific patterns**, not "one omnidirectional antenna."
 
-> ⚙️ **Advanced —** The current distribution at higher harmonics has multiple full-wave loops along the wire (current zeros at half-wavelength intervals). The far-field pattern is the Fourier transform of the current distribution, so multi-loop currents produce multi-lobe patterns. The lobe maxima occur where the path length differences between the various current peaks are integer multiples of a wavelength toward the observer. For a 3λ wire (3rd harmonic), peak gain is about 4.5 dBi at angles roughly 50° off the wire axis; for 5λ it's 6 dBi at 35° off. Operating a wire antenna on its harmonic can actually be *more directional* than its fundamental, but pointed in a different direction than the fundamental.
+> **Advanced —** The current distribution at higher harmonics has multiple full-wave loops along the wire (current zeros at half-wavelength intervals). The far-field pattern is the Fourier transform of the current distribution, so multi-loop currents produce multi-lobe patterns. The lobe maxima occur where the path length differences between the various current peaks are integer multiples of a wavelength toward the observer. For a 3λ wire (3rd harmonic), peak gain is about 4.5 dBi at angles roughly 50° off the wire axis; for 5λ it's 6 dBi at 35° off. Operating a wire antenna on its harmonic can actually be *more directional* than its fundamental, but pointed in a different direction than the fundamental.
 
 ## Patterns and propagation
 

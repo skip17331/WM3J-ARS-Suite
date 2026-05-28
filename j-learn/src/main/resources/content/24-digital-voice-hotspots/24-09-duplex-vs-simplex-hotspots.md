@@ -9,7 +9,7 @@ status: draft
 
 # Duplex vs Simplex Hotspots
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What the distinction means
 
@@ -109,7 +109,7 @@ The power levels are tiny (10 mW peak), so the *absolute* spurious levels are al
 
 Better-quality hotspots (genuine ZUMspot, OpenSpot, Pi-Star duplex HATs with proper filtering) have additional output filters that reduce harmonics to 70–80 dB below the carrier. Cheap Jumbospots may be 30–40 dB down only.
 
-> ⚙️ **Advanced —** The FCC Part 97.307(d) spurious-emission limit for an amateur transmitter under 5 W is that any spurious emission must be at least 40 dB below the unmodulated carrier. A cheap MMDVM HAT transmitting at 10 mW (= +10 dBm carrier) with -40 dB spurious comes out to a spur power of -30 dBm, or 1 microwatt. That's well below the noise floor of most distant receivers, but enough to desense a co-located receiver on a different band. The fix is an external low-pass filter (cheap LPFs for 70 cm cost $10–$20) installed between the hotspot and its antenna. Most genuine ZUMspots have an LPF built in; clones often skip it.
+> **Advanced —** The FCC Part 97.307(d) spurious-emission limit for an amateur transmitter under 5 W is that any spurious emission must be at least 40 dB below the unmodulated carrier. A cheap MMDVM HAT transmitting at 10 mW (= +10 dBm carrier) with -40 dB spurious comes out to a spur power of -30 dBm, or 1 microwatt. That's well below the noise floor of most distant receivers, but enough to desense a co-located receiver on a different band. The fix is an external low-pass filter (cheap LPFs for 70 cm cost $10–$20) installed between the hotspot and its antenna. Most genuine ZUMspots have an LPF built in; clones often skip it.
 
 Duplex hotspots have similar concerns, but the dual-radio designs typically include better filtering as a side effect — the receiver path needs a filter to keep TX from desensing RX, and that filter helps with general spurious cleanup too.
 

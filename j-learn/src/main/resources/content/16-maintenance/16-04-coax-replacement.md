@@ -9,7 +9,7 @@ status: draft
 
 # Coax Replacement
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Coax doesn't last forever. Every coax run is on a slow timer — UV degrades the jacket, water creeps under the connectors, repeated flexing fatigues the shield, and dielectric absorbs moisture over years. Eventually performance drops measurably: the SWR sweep starts looking different, or 10 m signals are quieter than they should be, or the same antenna performs noticeably worse than it did last year.
 
@@ -78,7 +78,7 @@ A NanoVNA can act as a low-resolution Time Domain Reflectometer. The trace shows
 - **Spike in the middle**: a kink, water bubble, or junction problem.
 - **Gradual rise** down the cable: distributed loss (normal aging).
 
-> ⚙️ **Advanced —** A TDR's distance resolution is about half the wavelength of the highest frequency in the sweep. A NanoVNA sweeping to 1.5 GHz has ~10 cm resolution in coax (with VF 0.66); finer than that requires faster sampling. For locating water-ingress points or bad mid-run connectors, this resolution is plenty. The "TDR" mode in NanoVNA software (NanoVNA-Saver, etc.) does the inverse-FFT internally; the cable distance scale is automatic if you set the velocity factor correctly.
+> **Advanced —** A TDR's distance resolution is about half the wavelength of the highest frequency in the sweep. A NanoVNA sweeping to 1.5 GHz has ~10 cm resolution in coax (with VF 0.66); finer than that requires faster sampling. For locating water-ingress points or bad mid-run connectors, this resolution is plenty. The "TDR" mode in NanoVNA software (NanoVNA-Saver, etc.) does the inverse-FFT internally; the cable distance scale is automatic if you set the velocity factor correctly.
 
 ## Choosing replacement coax
 

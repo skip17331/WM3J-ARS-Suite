@@ -9,7 +9,7 @@ status: draft
 
 # Offsets, Tones, CTCSS, DCS
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 To talk through a repeater, your radio needs three settings right: the **frequency** (output), the **offset** (which tells it the input frequency), and a **tone** (which proves to the repeater that you're a real ham and not interference). Get any one of these wrong and the repeater either won't hear you, or won't repeat for you.
 
@@ -121,7 +121,7 @@ The repeater won't tell you — it'll just sit there ignoring you. Resources:
 - **Local club website** — ask Google "ham repeater [town]"; almost every active repeater has a club page.
 - **Listen for the ID** — if you hear the repeater's CW ID it's probably active, and someone on it can tell you the tone.
 
-> ⚙️ **Advanced —** Tone-Squelch Reverse-Burst (TSRB) is a feature some commercial radios use to suppress the squelch tail when releasing PTT. It briefly reverses the CTCSS tone phase before unkeying so the repeater controller drops out cleanly. Most ham repeaters don't bother with this, but if you're hearing an annoying "ker-chunk" tail, your repeater might benefit from a controller upgrade. Also: some Motorola controllers support **two-tone paging** in addition to CTCSS — a sequential tone burst that wakes a specific receiver. This is unusual on amateur repeaters but appears on commercial-converted gear.
+> **Advanced —** Tone-Squelch Reverse-Burst (TSRB) is a feature some commercial radios use to suppress the squelch tail when releasing PTT. It briefly reverses the CTCSS tone phase before unkeying so the repeater controller drops out cleanly. Most ham repeaters don't bother with this, but if you're hearing an annoying "ker-chunk" tail, your repeater might benefit from a controller upgrade. Also: some Motorola controllers support **two-tone paging** in addition to CTCSS — a sequential tone burst that wakes a specific receiver. This is unusual on amateur repeaters but appears on commercial-converted gear.
 
 ## See also
 

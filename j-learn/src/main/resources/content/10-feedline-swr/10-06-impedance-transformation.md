@@ -9,7 +9,7 @@ status: draft
 
 # Impedance Transformation by Feedline
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A length of transmission line is not "transparent" to impedance — it transforms the load's impedance into something different at the source end. The transformation depends on the line's characteristic impedance Z₀, the load impedance Z_L at the far end, and the **electrical length** of the line at the operating frequency.
 
@@ -132,7 +132,7 @@ Practical operators rarely need to solve the equation by hand:
 - **For matching**: pick from the standard cases (quarter-wave, half-wave) or use a Smith chart graphical approach.
 - **For tuner design**: either use a tuner (which solves for any impedance) or use modeling software.
 
-> ⚙️ **Advanced —** The full lossy transmission-line equation: Z_in = Z₀ × (Z_L + Z₀ × tanh γℓ) / (Z₀ + Z_L × tanh γℓ), where γ = α + jβ is the complex propagation constant (α is loss per unit length in nepers, β is phase per unit length in radians). For a lossless line, α = 0 and γ = jβ, recovering the formula at the start of the section. The hyperbolic tangent gives the loss-induced damping that causes SWR to "decay" toward 1:1 as line length increases — the characteristic of "lossy line hides high SWR" (§10-03).
+> **Advanced —** The full lossy transmission-line equation: Z_in = Z₀ × (Z_L + Z₀ × tanh γℓ) / (Z₀ + Z_L × tanh γℓ), where γ = α + jβ is the complex propagation constant (α is loss per unit length in nepers, β is phase per unit length in radians). For a lossless line, α = 0 and γ = jβ, recovering the formula at the start of the section. The hyperbolic tangent gives the loss-induced damping that causes SWR to "decay" toward 1:1 as line length increases — the characteristic of "lossy line hides high SWR" (§10-03).
 
 ## Common transformation-related mistakes
 

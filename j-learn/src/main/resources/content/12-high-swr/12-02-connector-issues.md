@@ -9,7 +9,7 @@ status: draft
 
 # Connector Issues
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 If the coax tests fine, the connectors are next. They fail more often than the cable does because they're the weakest link mechanically and because most operators install them poorly.
 
@@ -95,7 +95,7 @@ The single most-installed connector in ham radio. The standard procedure (for so
 
 If you can do this in under 10 minutes per connector with no failures, you're a competent installer. Most newcomers need 30 minutes and re-do the first half-dozen attempts. That's normal.
 
-> ⚙️ **Advanced —** PL-259 / SO-239 are constant-impedance connectors only at HF. Above ~150 MHz, the air-spaced gap inside the connector body causes a measurable impedance discontinuity (typically a 1.1:1 SWR added per connector at 432 MHz). For UHF and above, switch to N-type or, even better, BNC (which is constant-impedance up to about 4 GHz). The "UHF connector" name is a misnomer — it was descriptive of the technology at the time it was introduced (1930s); it has never been a good UHF connector by modern standards.
+> **Advanced —** PL-259 / SO-239 are constant-impedance connectors only at HF. Above ~150 MHz, the air-spaced gap inside the connector body causes a measurable impedance discontinuity (typically a 1.1:1 SWR added per connector at 432 MHz). For UHF and above, switch to N-type or, even better, BNC (which is constant-impedance up to about 4 GHz). The "UHF connector" name is a misnomer — it was descriptive of the technology at the time it was introduced (1930s); it has never been a good UHF connector by modern standards.
 
 ## Connector type quick reference
 

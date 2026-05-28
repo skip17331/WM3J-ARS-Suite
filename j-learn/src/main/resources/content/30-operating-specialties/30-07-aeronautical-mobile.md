@@ -9,7 +9,7 @@ status: draft
 
 # Aeronautical Mobile Operation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -26,7 +26,7 @@ The rules differ by country and by aircraft type. As of current FCC interpretati
 - **Drones (US):** Amateur radio operation from a drone is technically legal under §97 but must comply with FAA Part 107 rules (visual line of sight, weight limits, registration). The drone itself must be registered if heavy enough.
 - **Amateur balloons (US):** High-altitude balloons carrying amateur radio payloads are common in the amateur community. The balloon itself is not "controlled" by an operator the way an aircraft is, so the regulatory situation is different — the FCC regulates the radio transmission, not the platform.
 
-> ⚙️ **Advanced —** In the US, FCC §97.11 prohibits operation that "endangers the safety of any aircraft" — and the pilot-in-command has the final authority on what does or does not endanger safety. This effectively makes amateur radio in commercial aircraft impossible: airline crews are trained to prohibit any non-aircraft RF, and challenging that in flight is a fast track to being met by FBI agents on landing.
+> **Advanced —** In the US, FCC §97.11 prohibits operation that "endangers the safety of any aircraft" — and the pilot-in-command has the final authority on what does or does not endanger safety. This effectively makes amateur radio in commercial aircraft impossible: airline crews are trained to prohibit any non-aircraft RF, and challenging that in flight is a fast track to being met by FBI agents on landing.
 
 ## Where `/AM` actually happens in practice
 

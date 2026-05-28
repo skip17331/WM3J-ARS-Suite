@@ -9,7 +9,7 @@ status: draft
 
 # Scheduled Inspections
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The discipline of inspecting your station on a calendar — not in response to symptoms — is what separates stations that work reliably for ten years from stations that limp along until something breaks badly. Most degradation is gradual: water creeping under a connector boot, UV slowly cracking a coax jacket, terminal corrosion advancing one millimeter a year. Catch it during inspections; fix it before it becomes a fault.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Calibration Workflows
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A test instrument is only as good as its calibration. An uncalibrated NanoVNA reports nonsense; a year-out-of-cal spectrum analyzer can be off by 3 dB; a dropped wattmeter can read 20% high or low forever after. Calibration is the discipline of **tracing every reading back to a known standard** so you can trust the numbers.
 
@@ -82,7 +82,7 @@ The standard procedure, in detail:
 
 Save baselines with each cal. A baseline sweep of a known-good antenna stored alongside the cal lets you detect cal drift later.
 
-> ⚙️ **Advanced —** The included NanoVNA OSL kit assumes ideal standards. Real opens have ~30 fF of fringing capacitance; real shorts have ~30 pH of inductance. For HF amateur work this is negligible. For 6 GHz or 23 cm work, the assumption introduces ~1° of phase error and ~0.1 dB of amplitude error — too much for serious filter / matching work. Calibration kits with measured "polynomial coefficients" (Keysight 85033E, Maury) compensate for these standards' real values; the NanoVNA software typically doesn't load such corrections, which is why cheap NanoVNAs are limited above ~1.5 GHz.
+> **Advanced —** The included NanoVNA OSL kit assumes ideal standards. Real opens have ~30 fF of fringing capacitance; real shorts have ~30 pH of inductance. For HF amateur work this is negligible. For 6 GHz or 23 cm work, the assumption introduces ~1° of phase error and ~0.1 dB of amplitude error — too much for serious filter / matching work. Calibration kits with measured "polynomial coefficients" (Keysight 85033E, Maury) compensate for these standards' real values; the NanoVNA software typically doesn't load such corrections, which is why cheap NanoVNAs are limited above ~1.5 GHz.
 
 ### Spectrum analyzer — self-test and amplitude cal
 
@@ -146,7 +146,7 @@ Example: measuring the output power of your rig.
 
 Three methods agreeing to within 5% is strong informal evidence that all three are calibrated correctly. One disagreement points to the bad instrument.
 
-> ⚙️ **Advanced —** True NIST traceability requires an unbroken chain from your instrument to a national standard. Each link in the chain has an uncertainty budget, and uncertainties combine in quadrature. A professional lab's traceability documentation shows the entire chain explicitly. For amateur work this is overkill, but the *concept* is useful: when you measure something, ask "what's my chain back to a known reference?" If the chain is broken or unknown, you don't actually know the true value — just the consistent reading.
+> **Advanced —** True NIST traceability requires an unbroken chain from your instrument to a national standard. Each link in the chain has an uncertainty budget, and uncertainties combine in quadrature. A professional lab's traceability documentation shows the entire chain explicitly. For amateur work this is overkill, but the *concept* is useful: when you measure something, ask "what's my chain back to a known reference?" If the chain is broken or unknown, you don't actually know the true value — just the consistent reading.
 
 ## Documenting calibration
 
@@ -154,7 +154,7 @@ Keep a simple log per instrument:
 
 ```
 NanoVNA-H4 #2:
-  2025-10-15: SOL-cal verified against 50 Ω precision load (Maury). 
+  2025-10-15: SOL-cal verified against 50 Ω precision load (Maury).
               Showed 50.1 Ω ± 0.2 Ω across 1-100 MHz. ✓
   2026-04-10: Re-cal after travel. SOL with included kit. Saved to slot 0.
   2026-05-01: SOL re-cal for J-Map antenna baseline. Slot 1.

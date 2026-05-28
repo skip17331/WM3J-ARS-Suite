@@ -9,7 +9,7 @@ status: draft
 
 # Greyline Propagation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **greyline** — also called the **terminator** — is the moving line on Earth where day meets night. For about 30 to 90 minutes around your local sunrise and sunset, this line gives you a propagation gift: long, low-angle DX paths on bands that normally won't go anywhere near that distance.
 

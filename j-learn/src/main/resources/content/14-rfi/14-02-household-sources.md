@@ -9,7 +9,7 @@ status: draft
 
 # Household Sources
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Modern houses are full of low-level RF emitters. Most are accidents of design — a switching converter that should have a snubber but doesn't, a USB cable that should be shielded but is bare. Together they raise your noise floor, sometimes dramatically. This section catalogs the offenders most likely to be in your house and what to do about each.
 

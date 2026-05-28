@@ -9,7 +9,7 @@ status: draft
 
 # What is RFI
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 RFI — Radio Frequency Interference — is unwanted RF energy that disrupts intended communication. Your radio receives it as noise that masks weak signals; or your transmissions cause unintended effects in nearby electronics; or both.
 
@@ -116,7 +116,7 @@ In the US:
 
 In practice: the FCC won't intervene in most amateur-vs-neighbor interference disputes. You're expected to be a good neighbor, work with them to fix problems, and exhaust all reasonable avenues before escalating.
 
-> ⚙️ **Advanced —** The "harmful interference" language in Part 15 has been tested in court repeatedly. The relevant case law (especially *In the Matter of Wayne Stam*) confirms that a Part 15 device that's susceptible to interference from a licensed transmitter is the device's problem, not the licensee's. But practical resolution rarely involves the FCC; the official process (filing a complaint, etc.) is slow and the FCC's enforcement budget is small. Most disputes are resolved informally between operators and neighbors.
+> **Advanced —** The "harmful interference" language in Part 15 has been tested in court repeatedly. The relevant case law (especially *In the Matter of Wayne Stam*) confirms that a Part 15 device that's susceptible to interference from a licensed transmitter is the device's problem, not the licensee's. But practical resolution rarely involves the FCC; the official process (filing a complaint, etc.) is slow and the FCC's enforcement budget is small. Most disputes are resolved informally between operators and neighbors.
 
 ## See also
 

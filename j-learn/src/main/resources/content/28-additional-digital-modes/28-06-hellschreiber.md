@@ -9,7 +9,7 @@ status: draft
 
 # Hellschreiber — Painted-Text Mode
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -44,7 +44,7 @@ The receiver displays a **strip waterfall** — a horizontal scroll where each n
                          (character "K" painted column by column)
 ```
 
-> ⚙️ **Advanced —** Hell's resilience against fading is statistical, not algorithmic. Each pixel is independent — a fade that knocks out one column leaves the other 6 columns of the same character intact. The human visual system fills in missing pixels by pattern-matching to known letter shapes. This is similar to how we read handwriting through smudges or coffee stains. Computer OCR can match human performance on clean Hell, but humans win on degraded copy because the brain's letter-recognition engine is more forgiving of partial information. This is the one mode where the operator's eyes outperform the digital decoder.
+> **Advanced —** Hell's resilience against fading is statistical, not algorithmic. Each pixel is independent — a fade that knocks out one column leaves the other 6 columns of the same character intact. The human visual system fills in missing pixels by pattern-matching to known letter shapes. This is similar to how we read handwriting through smudges or coffee stains. Computer OCR can match human performance on clean Hell, but humans win on degraded copy because the brain's letter-recognition engine is more forgiving of partial information. This is the one mode where the operator's eyes outperform the digital decoder.
 
 ## Why use it
 

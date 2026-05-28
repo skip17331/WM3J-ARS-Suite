@@ -9,7 +9,7 @@ status: draft
 
 # Feedline Effects
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The SWR you read at your radio is **not** the SWR at your antenna. Sometimes the difference is small — half a tenth, no consequence. Sometimes the difference is dramatic, especially with high-loss feedline and significant antenna mismatch. Understanding what the feedline does to your apparent antenna behavior is essential to diagnosing antennas correctly.
 
@@ -69,7 +69,7 @@ If the line is a **quarter-wavelength**, it acts as an *impedance inverter*: Z_i
 
 For other lengths, the impedance traces a **circle on the Smith chart** (see §06-09), which is why two operators with the same antenna and different feedline lengths can report wildly different SWR readings at the radio.
 
-> ⚙️ **Advanced —** The transmission-line equation: Z_in = Z₀ × (Z_L + jZ₀ tan βℓ) / (Z₀ + jZ_L tan βℓ), where β = 2π/λ and ℓ is the line length. For matched line (Z_L = Z₀), Z_in = Z₀ at any length. For ℓ = λ/2, tan βℓ = 0 and the equation collapses to Z_in = Z_L. For ℓ = λ/4, tan βℓ = ∞ and L'Hôpital gives Z_in = Z₀² / Z_L. All other points are on the Smith circle. This is also why "make your feedline a half-wave on the band of interest" is a common matching trick — you can read the antenna's true impedance directly at the rig.
+> **Advanced —** The transmission-line equation: Z_in = Z₀ × (Z_L + jZ₀ tan βℓ) / (Z₀ + jZ_L tan βℓ), where β = 2π/λ and ℓ is the line length. For matched line (Z_L = Z₀), Z_in = Z₀ at any length. For ℓ = λ/2, tan βℓ = 0 and the equation collapses to Z_in = Z_L. For ℓ = λ/4, tan βℓ = ∞ and L'Hôpital gives Z_in = Z₀² / Z_L. All other points are on the Smith circle. This is also why "make your feedline a half-wave on the band of interest" is a common matching trick — you can read the antenna's true impedance directly at the rig.
 
 ## Velocity factor and electrical length
 

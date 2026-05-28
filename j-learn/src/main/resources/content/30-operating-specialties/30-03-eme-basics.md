@@ -9,7 +9,7 @@ status: draft
 
 # EME — Earth-Moon-Earth Basics
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What EME is
 
@@ -160,7 +160,7 @@ These channels are where the activity lives. If you're not on the chat during a 
 - **Time-of-day operation.** You operate when the Moon is up and in a useful position; that's a few hours per day, shifting nightly.
 - **Modest stations on 2 m looking for any contact.** EME needs the 4-Yagi tier minimum.
 
-> ⚙️ **Advanced —** The signal-to-noise calculation for EME uses the radar equation modified for Moon reflection: SNR (dB) = P_TX + G_TX + G_RX − L_path − L_lunar − 10 log(kT_sys B). On 2 m with 500 W (+27 dBW), 22 dBi each end, 252 dB one-way path × 2, 12 dB lunar loss, T_sys ≈ 200 K, and B = 5 Hz (Q65 tone bandwidth), the result is about −25 dB SNR — within Q65's −28 dB decode threshold by a 3 dB margin. That's the link budget that defines "entry-level EME station." The margin is what gets eaten by mispointing, feedline loss, libration broadening, and the inevitable Faraday rotation on 2 m (where ionospheric birefringence rotates linear polarization in unpredictable ways over the round trip). Many serious 2 m EME stations use circularly polarized antennas or switched H/V polarization to mitigate Faraday losses, which can be 20+ dB at worst alignment.
+> **Advanced —** The signal-to-noise calculation for EME uses the radar equation modified for Moon reflection: SNR (dB) = P_TX + G_TX + G_RX − L_path − L_lunar − 10 log(kT_sys B). On 2 m with 500 W (+27 dBW), 22 dBi each end, 252 dB one-way path × 2, 12 dB lunar loss, T_sys ≈ 200 K, and B = 5 Hz (Q65 tone bandwidth), the result is about −25 dB SNR — within Q65's −28 dB decode threshold by a 3 dB margin. That's the link budget that defines "entry-level EME station." The margin is what gets eaten by mispointing, feedline loss, libration broadening, and the inevitable Faraday rotation on 2 m (where ionospheric birefringence rotates linear polarization in unpredictable ways over the round trip). Many serious 2 m EME stations use circularly polarized antennas or switched H/V polarization to mitigate Faraday losses, which can be 20+ dB at worst alignment.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Regional Variations
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The amateur band allocations in the United States (FCC 47 CFR §97) are not the same as in Europe, in Japan, or in Australia. Three reasons:
 

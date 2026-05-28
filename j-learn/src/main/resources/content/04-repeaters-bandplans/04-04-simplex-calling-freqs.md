@@ -9,7 +9,7 @@ status: draft
 
 # Simplex Calling Frequencies
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 **Simplex** = direct, radio-to-radio, no repeater in the middle. You and the other station both transmit and receive on the same frequency, taking turns. It's the simplest way to use a VHF/UHF radio, and on a busy night it's often more pleasant than a crowded repeater.
 

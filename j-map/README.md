@@ -8,24 +8,24 @@ A cross-platform desktop amateur radio operator dashboard and world map display.
 
 | Feature | Status |
 |---|---|
-| Flat world map (equirectangular projection) | ✅ |
-| Grayline / day-night terminator (real-time, NOAA SPA algorithm) | ✅ |
-| DX spots overlay (mock + DXHeat live) | ✅ |
-| Solar & geomagnetic data (SFI, Kp, A-index, sunspot number) | ✅ |
-| Sunspot graphic (visual activity chart) | ✅ |
-| Propagation data (FOT, MUF, band conditions 80m–6m) | ✅ |
-| Aurora overlay (NOAA OVATION mock + live PNG) | ✅ |
-| Weather overlay (OpenWeatherMap tile) | ✅ |
-| Tropo ducting overlay (Hepburn maps) | ✅ |
-| UTC & local time displays | ✅ |
-| Great-circle rotor map (lower-right, azimuthal equidistant) | ✅ |
-| Green short-path / red long-path bearing lines | ✅ |
-| Beam-width arc with configurable degrees | ✅ |
-| Arduino HTTP/UDP/WebSocket rotor input | ✅ |
-| Web-based Setup Page (mobile-friendly) | ✅ |
-| Live settings update without restart | ✅ |
-| Persistent JSON settings (~/.j-map/settings.json) | ✅ |
-| Mock data mode (no internet required) | ✅ |
+| Flat world map (equirectangular projection) | |
+| Grayline / day-night terminator (real-time, NOAA SPA algorithm) | |
+| DX spots overlay (mock + DXHeat live) | |
+| Solar & geomagnetic data (SFI, Kp, A-index, sunspot number) | |
+| Sunspot graphic (visual activity chart) | |
+| Propagation data (FOT, MUF, band conditions 80m–6m) | |
+| Aurora overlay (NOAA OVATION mock + live PNG) | |
+| Weather overlay (OpenWeatherMap tile) | |
+| Tropo ducting overlay (Hepburn maps) | |
+| UTC & local time displays | |
+| Great-circle rotor map (lower-right, azimuthal equidistant) | |
+| Green short-path / red long-path bearing lines | |
+| Beam-width arc with configurable degrees | |
+| Arduino HTTP/UDP/WebSocket rotor input | |
+| Web-based Setup Page (mobile-friendly) | |
+| Live settings update without restart | |
+| Persistent JSON settings (~/.j-map/settings.json) | |
+| Mock data mode (no internet required) | |
 
 ---
 

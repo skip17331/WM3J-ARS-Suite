@@ -9,7 +9,7 @@ status: draft
 
 # FM vs Linear Satellites
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Amateur satellites fall into two operational families, distinguished by what they do with your transmitted signal:
 
@@ -78,7 +78,7 @@ Most amateur linear transponders are **inverting**. This means:
 - A station calling CQ at the HIGH end of the uplink is heard at the LOW end of the downlink.
 - USB on the uplink becomes LSB on the downlink (because the spectrum is mirrored).
 
-> ⚙️ **Advanced —** The frequency relationship for an inverting transponder is: f_downlink = f_inv_center − (f_uplink − f_inv_center) = (2 × f_inv_center) − f_uplink. The center frequency of inversion is determined by the satellite's local oscillator; it's published as part of the satellite's spec sheet. For non-inverting transponders, f_downlink = f_uplink + offset (constant).
+> **Advanced —** The frequency relationship for an inverting transponder is: f_downlink = f_inv_center − (f_uplink − f_inv_center) = (2 × f_inv_center) − f_uplink. The center frequency of inversion is determined by the satellite's local oscillator; it's published as part of the satellite's spec sheet. For non-inverting transponders, f_downlink = f_uplink + offset (constant).
 
 ### Equipment required
 

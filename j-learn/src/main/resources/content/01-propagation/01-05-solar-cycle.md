@@ -9,7 +9,7 @@ status: draft
 
 # Solar Cycle
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The sun goes through an **~11-year cycle** of activity. At minimum it's quiet — few sunspots, low solar flux, only the lower bands work for DX. At maximum it's energetic — many sunspots, high flux, 10 m and 6 m open daily. Knowing where you are in the cycle tells you which bands are worth a long-term antenna investment and which DX hunts are realistic.
 
@@ -49,7 +49,7 @@ Cycle 25 timeline (as best we know):
 
 Cycle 25 has surprised forecasters by exceeding the official NOAA prediction (peak SSN around 115). Actual smoothed sunspot numbers are running 150+, the highest since Cycle 23 in the early 2000s. SFI readings of 200+ are common in 2025–2026.
 
-> ⚙️ **Advanced —** Cycle prediction is hard. The Solar Cycle Prediction Panel uses a combination of polar magnetic field strength at the previous minimum, dynamo models, and statistical analysis of past cycles. Cycle 25's stronger-than-predicted performance has been attributed to the polar field at minimum being slightly stronger than initially measured, plus the dynamo model under-weighting recent cycle behavior. The next official update is in 2027.
+> **Advanced —** Cycle prediction is hard. The Solar Cycle Prediction Panel uses a combination of polar magnetic field strength at the previous minimum, dynamo models, and statistical analysis of past cycles. Cycle 25's stronger-than-predicted performance has been attributed to the polar field at minimum being slightly stronger than initially measured, plus the dynamo model under-weighting recent cycle behavior. The next official update is in 2027.
 
 ## Bands by part of cycle
 
@@ -82,7 +82,7 @@ Cycle 25 has surprised forecasters by exceeding the official NOAA prediction (pe
 
 The standard explanation is the **dynamo model**: the sun's interior is a churning ball of plasma with differential rotation (equator faster than poles) and convection cells. Over years, this winds up the solar magnetic field like rubber bands until it twists into knots, which break through the surface as sunspots. The whole field then reverses polarity and the cycle starts over.
 
-> ⚙️ **Advanced —** The 11-year sunspot cycle is actually one half of a 22-year **Hale cycle**: each successive 11-year cycle has reversed magnetic polarity in its sunspot pairs. There is also a longer **Gleissberg cycle** of about 80–90 years, modulating the amplitude of the 11-year cycles, plus a **Suess/de Vries cycle** of about 200 years apparent in cosmogenic isotope records. None of these long-period modulations are fully explained by current dynamo theory. Periods of unusually deep cycles (like the Dalton Minimum 1790–1830 and the Maunder Minimum 1645–1715) have profound climatic and propagation consequences but happen too rarely to predict reliably.
+> **Advanced —** The 11-year sunspot cycle is actually one half of a 22-year **Hale cycle**: each successive 11-year cycle has reversed magnetic polarity in its sunspot pairs. There is also a longer **Gleissberg cycle** of about 80–90 years, modulating the amplitude of the 11-year cycles, plus a **Suess/de Vries cycle** of about 200 years apparent in cosmogenic isotope records. None of these long-period modulations are fully explained by current dynamo theory. Periods of unusually deep cycles (like the Dalton Minimum 1790–1830 and the Maunder Minimum 1645–1715) have profound climatic and propagation consequences but happen too rarely to predict reliably.
 
 ## What about the Maunder Minimum?
 

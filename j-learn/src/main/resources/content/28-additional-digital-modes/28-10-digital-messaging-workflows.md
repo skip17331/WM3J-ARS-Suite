@@ -9,7 +9,7 @@ status: draft
 
 # Digital Messaging Workflows — How Emcomm Picks Modes in Practice
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -95,7 +95,7 @@ This is the killer feature for served agencies. They don't have to learn radio �
 
 For practical purposes: **do not encrypt amateur traffic.** Winlink, VARA, Pactor — all of these are designed to be FCC-compliant by transmitting in the clear with **compression but not encryption**. (Compression with a published algorithm is not encryption; the FCC has clarified this multiple times.)
 
-> ⚙️ **Advanced —** Pactor's PMC and VARA's LZHUF compression are publicly-documented algorithms; their bytestreams can be decoded by anyone with the standard decompressor. This is why both modes are legal on amateur frequencies despite the data being unrecognizable on a casual ear. The legal test isn't "can a casual listener read it" but "is the algorithm published and reversible without a key." Compression passes; encryption (AES, etc.) fails.
+> **Advanced —** Pactor's PMC and VARA's LZHUF compression are publicly-documented algorithms; their bytestreams can be decoded by anyone with the standard decompressor. This is why both modes are legal on amateur frequencies despite the data being unrecognizable on a casual ear. The legal test isn't "can a casual listener read it" but "is the algorithm published and reversible without a key." Compression passes; encryption (AES, etc.) fails.
 
 ## Field Day digital ops
 

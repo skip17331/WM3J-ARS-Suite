@@ -9,7 +9,7 @@ status: draft
 
 # No Receive
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The radio is on. The display lights up. But you don't hear anything — no static, no noise floor, nothing. Or you hear noise but no signals. Or you hear signals but they're impossibly weak.
 

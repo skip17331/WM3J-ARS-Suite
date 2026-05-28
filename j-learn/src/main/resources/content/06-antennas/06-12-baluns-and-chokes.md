@@ -9,7 +9,7 @@ status: draft
 
 # Baluns and Chokes
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **balun** (BALanced-to-UNbalanced) connects a balanced antenna (dipole, loop, folded element) to an unbalanced feedline (coax). A **choke** (or *common-mode choke*) breaks unwanted RF currents on the *outside* of a coax shield. The two functions are related but not identical, and which one you need depends on what's going wrong in your station.
 
@@ -129,7 +129,7 @@ The classic test for common-mode current: while transmitting, **slide a clamp-on
 
 Lacking a clamp-on meter: touch the coax shield. If you can feel RF (warmth at high power, or a small fizzing sensation), you have common-mode current.
 
-> ⚙️ **Advanced —** A ferrite choke's common-mode impedance has both a real (loss) and an imaginary (reactive) part. Type 31 and Type 43 are deliberately *lossy* materials at HF — you want the choke to dissipate common-mode energy as heat rather than just reflecting it (a purely reactive choke can produce standing waves of common-mode current down the feedline). The ratio of loss to reactance is the "Q" of the choke; for choking purposes you want a **low Q** (lossy core). This is the opposite of what you want in a tuning inductor, where high Q = low loss. A choke that runs warm at TX is doing its job.
+> **Advanced —** A ferrite choke's common-mode impedance has both a real (loss) and an imaginary (reactive) part. Type 31 and Type 43 are deliberately *lossy* materials at HF — you want the choke to dissipate common-mode energy as heat rather than just reflecting it (a purely reactive choke can produce standing waves of common-mode current down the feedline). The ratio of loss to reactance is the "Q" of the choke; for choking purposes you want a **low Q** (lossy core). This is the opposite of what you want in a tuning inductor, where high Q = low loss. A choke that runs warm at TX is doing its job.
 
 ## Common mistakes
 

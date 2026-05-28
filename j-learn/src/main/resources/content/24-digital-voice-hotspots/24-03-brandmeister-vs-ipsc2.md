@@ -9,7 +9,7 @@ status: draft
 
 # BrandMeister vs IPSC2
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What they are
 
@@ -97,7 +97,7 @@ The practical effect: if you switch your hotspot from BrandMeister to IPSC2, **y
                               registered DMR IDs
 ```
 
-> ⚙️ **Advanced —** Bridges between networks are usually implemented as a third entity — a "reflector bridge" — that connects to both networks simultaneously and forwards frames in both directions for specific talkgroup ID mappings. The XLX reflector software (originally for D-STAR — see [§24-05](24-05-dstar-routing.md)) supports DMR bridging too, which is how some BM↔IPSC2↔YSF cross-traffic works. The bridge introduces ~50–100 ms of latency on top of the underlying network hops and occasionally introduces transcoding artifacts if the bridge changes codecs.
+> **Advanced —** Bridges between networks are usually implemented as a third entity — a "reflector bridge" — that connects to both networks simultaneously and forwards frames in both directions for specific talkgroup ID mappings. The XLX reflector software (originally for D-STAR — see [§24-05](24-05-dstar-routing.md)) supports DMR bridging too, which is how some BM↔IPSC2↔YSF cross-traffic works. The bridge introduces ~50–100 ms of latency on top of the underlying network hops and occasionally introduces transcoding artifacts if the bridge changes codecs.
 
 ## Picking a network for your hotspot
 
@@ -122,7 +122,7 @@ A reasonable decision tree:
 
 You can switch networks any time. Pi-Star and OpenSpot both have a network selector in their config UIs. On Pi-Star: *Configuration → DMR Configuration → DMR Master* (drop-down lists all the public BrandMeister, IPSC2, and TGIF servers).
 
-> ⚙️ **Advanced —** Pi-Star supports running two MMDVMHost instances on a duplex hotspot, but the more common dual-network trick is to use the **DMR-XLX** option in Pi-Star — your hotspot connects to BrandMeister for primary DMR routing and *additionally* to an XLX reflector for cross-mode bridging. This effectively gives you both a DMR network connection and a YSF/D-STAR bridge on the same RF channel.
+> **Advanced —** Pi-Star supports running two MMDVMHost instances on a duplex hotspot, but the more common dual-network trick is to use the **DMR-XLX** option in Pi-Star — your hotspot connects to BrandMeister for primary DMR routing and *additionally* to an XLX reflector for cross-mode bridging. This effectively gives you both a DMR network connection and a YSF/D-STAR bridge on the same RF channel.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Operating Procedures
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section is the practical operations guide for amateur radio in emergency and public-service contexts. The previous sections covered the organizations (ARES, RACES, MARS), the framework (ICS), the message structure (NTS, ICS-213), and the network frequencies. This section is what you actually do behind the radio, on the air, during an active operation.
 
@@ -320,7 +320,7 @@ What every emcomm operator should have ready:
 
 A "ready bag" with this kit lets you deploy on short notice.
 
-> ⚙️ **Advanced —** The amateur radio service is "secondary" to commercial and governmental services in disaster response — i.e., we support, we don't lead. The 47 CFR §97 rules permit amateurs to communicate during emergencies even without normal authorization (§97.405), but only when normal communications systems have failed and only when the assistance is necessary. ARRL's PSCM (Public Service Communications Manual) is the operational guide for ARES activations; FEMA's IS-100 and IS-200 cover the ICS framework. The dual identity — voluntary auxiliary with regulatory backing — is the distinctive American amateur-emcomm tradition.
+> **Advanced —** The amateur radio service is "secondary" to commercial and governmental services in disaster response — i.e., we support, we don't lead. The 47 CFR §97 rules permit amateurs to communicate during emergencies even without normal authorization (§97.405), but only when normal communications systems have failed and only when the assistance is necessary. ARRL's PSCM (Public Service Communications Manual) is the operational guide for ARES activations; FEMA's IS-100 and IS-200 cover the ICS framework. The dual identity — voluntary auxiliary with regulatory backing — is the distinctive American amateur-emcomm tradition.
 
 ## See also
 

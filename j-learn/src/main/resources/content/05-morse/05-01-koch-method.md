@@ -9,7 +9,7 @@ status: draft
 
 # Koch Method
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **Koch method** is the way to learn Morse code that actually works. It was developed by Ludwig Koch in Germany in the 1930s, validated by decades of military and commercial training, and is the basis of every modern CW course (CWops, LCWO, G4FON). If anyone teaches you a different method — a chart of dots and dashes, "memorize this picture of the alphabet," or "use a mnemonic for each letter" — politely ignore them. None of those scale.
 

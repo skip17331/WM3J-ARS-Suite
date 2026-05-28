@@ -9,7 +9,7 @@ status: draft
 
 # TX Power
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The transmitter's output power is the starting point of the power budget. It sounds simple — "100 W rig" — but several real-world factors mean the rated power isn't always what's actually leaving the rig. SWR fold-back, duty cycle effects, ALC compression, age-related output drop, and the difference between PEP and average power all matter for an honest budget.
 
@@ -115,7 +115,7 @@ A station that's transmitting hard for an extended period (contest, DX-pedition 
 
 Plan budgets for typical operating conditions, not for theoretical peak.
 
-> ⚙️ **Advanced —** Modern transceivers use **MOSFET or LDMOS power amplifiers** in HF stations — typically Class AB linearized for SSB, with class A or B for tone. Efficiency is set by Class AB design (~50% at full output) plus regulator overhead. The "rated 100 W output" is achievable into 50 Ω, with thermal protection circuits, automatic level control, ALC, and SWR fold-back all designed to keep the PA operating in a safe regime. The trade-off: aggressive protection (good for the PA) may cut output below the rated label under non-ideal conditions. Knowing your rig's protection thresholds tells you when its label-output is achievable vs. when fold-back is reducing it.
+> **Advanced —** Modern transceivers use **MOSFET or LDMOS power amplifiers** in HF stations — typically Class AB linearized for SSB, with class A or B for tone. Efficiency is set by Class AB design (~50% at full output) plus regulator overhead. The "rated 100 W output" is achievable into 50 Ω, with thermal protection circuits, automatic level control, ALC, and SWR fold-back all designed to keep the PA operating in a safe regime. The trade-off: aggressive protection (good for the PA) may cut output below the rated label under non-ideal conditions. Knowing your rig's protection thresholds tells you when its label-output is achievable vs. when fold-back is reducing it.
 
 ## Common TX-power budget mistakes
 

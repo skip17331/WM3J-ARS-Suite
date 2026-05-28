@@ -9,7 +9,7 @@ status: draft
 
 # Station Layout
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A station's physical layout — where the radio sits, where the paddle is, where the cables run, where the operator's chair is — determines how easy it is to *use* the station and how long the operator can use it without fatigue or injury. Good layout is invisible. Bad layout, you fight against every QSO.
 

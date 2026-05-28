@@ -9,7 +9,7 @@ status: draft
 
 # Coax Loss by Frequency
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Coax loss is **frequency-dependent**. A cable that's fine on 80 m may be marginal on 6 m and unusable on 2 m. The relationship is governed by physics: the **skin effect** that confines AC current to the surface layer of the conductors gets stronger at higher frequencies, increasing resistance and therefore loss; **dielectric loss** in the insulator also grows with frequency.
 
@@ -95,7 +95,7 @@ For most amateur cables, the increase from 1.8 MHz to 1296 MHz is roughly:
 
 Roughly √(1296/1.8) ≈ 27× would be pure skin-effect; the larger increases reflect dielectric loss starting to matter at high frequencies.
 
-> ⚙️ **Advanced —** Coax loss has two main components: conductor loss (Rₛ × f^0.5 × geometry term) and dielectric loss (tan δ × f). Conductor loss dominates below the "loss-tangent crossover" frequency (typically 1-10 GHz for amateur cables). The conductor loss has a frequency-dependent skin depth: δ = 1/(√(πfμσ)), where σ is the conductor's conductivity and μ is permeability. Skin depth at 1 MHz in copper is 65 μm; at 1 GHz, 2 μm; at 10 GHz, 0.65 μm. The current is confined to this thin surface layer, increasing effective resistance with frequency. Real coax loss formulas integrate the resistance contributions of the inner conductor and outer braid, weighted by their respective current densities; this is the Maxwell-Boltzmann derivation that produces the closed-form coax loss equation.
+> **Advanced —** Coax loss has two main components: conductor loss (Rₛ × f^0.5 × geometry term) and dielectric loss (tan δ × f). Conductor loss dominates below the "loss-tangent crossover" frequency (typically 1-10 GHz for amateur cables). The conductor loss has a frequency-dependent skin depth: δ = 1/(√(πfμσ)), where σ is the conductor's conductivity and μ is permeability. Skin depth at 1 MHz in copper is 65 μm; at 1 GHz, 2 μm; at 10 GHz, 0.65 μm. The current is confined to this thin surface layer, increasing effective resistance with frequency. Real coax loss formulas integrate the resistance contributions of the inner conductor and outer braid, weighted by their respective current densities; this is the Maxwell-Boltzmann derivation that produces the closed-form coax loss equation.
 
 ## Loss vs. SWR: Mismatch makes it worse
 

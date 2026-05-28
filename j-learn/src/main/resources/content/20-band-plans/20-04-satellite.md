@@ -9,7 +9,7 @@ status: draft
 
 # Satellite Sub-bands
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Specific sub-bands of several amateur allocations are reserved by international convention for **satellite uplinks and downlinks**. These reservations come from the IARU's coordination work with AMSAT and other satellite organizations. They are voluntary band-plan conventions, not legal restrictions — but operating non-satellite traffic on these segments interferes directly with people working orbiting satellites and is poorly tolerated.
 

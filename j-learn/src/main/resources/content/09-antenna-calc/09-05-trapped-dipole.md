@@ -9,7 +9,7 @@ status: draft
 
 # Trapped Dipole
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -172,7 +172,7 @@ The full trapped dipole is **~107 ft tip-to-tip** — vs. ~127 ft for a full-len
 - **Trying to trim from outermost in.** Build and trim from **innermost band out** — the inner segment doesn't depend on outer-band traps' values.
 - **Forgetting traps detune over temperature.** Sealed weatherproof traps drift slightly with temperature (±0.1% per 20°C is typical for a quality build). Re-check resonance seasonally.
 
-> ⚙️ **Advanced —** A trap dipole acts as a *resonant trap* + *loading coil* below resonance. The effective inductance presented at the feedpoint at the lowest band is large, narrowing the bandwidth. A 2-trap 80/40/20 dipole typically has 80m bandwidth of ~50 kHz for SWR ≤ 2:1, vs. ~250 kHz for a full-length 80m dipole. This is the bandwidth tradeoff for the space saving.
+> **Advanced —** A trap dipole acts as a *resonant trap* + *loading coil* below resonance. The effective inductance presented at the feedpoint at the lowest band is large, narrowing the bandwidth. A 2-trap 80/40/20 dipole typically has 80m bandwidth of ~50 kHz for SWR ≤ 2:1, vs. ~250 kHz for a full-length 80m dipole. This is the bandwidth tradeoff for the space saving.
 
 ## Build & trim notes
 

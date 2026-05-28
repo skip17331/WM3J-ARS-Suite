@@ -9,7 +9,7 @@ status: draft
 
 # ERP / EIRP Output
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The output of the power budget — putting the previous three sections together — is **ERP** (Effective Radiated Power) or **EIRP** (Equivalent Isotropic Radiated Power). This is the radiated power in the direction of interest, accounting for transmitter output, feedline loss, and antenna gain.
 
@@ -158,7 +158,7 @@ PR = 43 + 0 (units conversion to dBW) − 129.4 + 6 − 1 = **−81.4 dBW = −5
 
 That's a strong signal; easily worked. Compare to a 5W QRP setup: P = 6.99 + 0 − 129.4 + 6 − 1 = **−117.4 dBW = -87.4 dBm = S5**. Marginal but workable on 20 m.
 
-> ⚙️ **Advanced —** The free-space path loss formula assumes line-of-sight propagation. For HF, the path is not free-space — it goes through the ionosphere. Real HF propagation involves: (a) ionospheric refraction with associated absorption (often dominant at HF), (b) multipath from multi-hop paths, (c) polarization rotation through the ionosphere (Faraday rotation at HF), (d) signal "QSB" from changing path geometry. VOACAP and similar prediction tools model all of these, producing a probability-of-success curve for each path/time/frequency combination — which is what propagation forecasts you see online are computing.
+> **Advanced —** The free-space path loss formula assumes line-of-sight propagation. For HF, the path is not free-space — it goes through the ionosphere. Real HF propagation involves: (a) ionospheric refraction with associated absorption (often dominant at HF), (b) multipath from multi-hop paths, (c) polarization rotation through the ionosphere (Faraday rotation at HF), (d) signal "QSB" from changing path geometry. VOACAP and similar prediction tools model all of these, producing a probability-of-success curve for each path/time/frequency combination — which is what propagation forecasts you see online are computing.
 
 ## Common EIRP mistakes
 

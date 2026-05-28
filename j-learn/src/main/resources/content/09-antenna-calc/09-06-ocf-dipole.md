@@ -9,7 +9,7 @@ status: draft
 
 # OCF Dipole (Windom)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -77,7 +77,7 @@ A real Carolina Windom commercial antenna (MyAntennas EFHW-8010 / OCF) is typica
 - **Trying to use it on WARC bands without a tuner.** The 3rd / 6th harmonics have different impedance — tuner required.
 - **Building a "Windom" with a single-wire feed.** That's the historical Windom but suffers from RFI and loss. Modern OCF uses balanced or coax feed via balun.
 
-> ⚙️ **Advanced —** The exact off-center feed point that gives band-independent impedance varies slightly with wire diameter, height, and ground conductivity. The "Carolina" 36% point is empirical; some operators get better results at 30% (with 6:1 balun). NEC-2 modeling can find the optimum for your installation. The trade-off: closer to 1/3 from center → higher Z (300 Ω, needs 6:1) and slightly better band-flatness; closer to 36% → lower Z (200 Ω, needs 4:1) and slightly more bandwidth on each band.
+> **Advanced —** The exact off-center feed point that gives band-independent impedance varies slightly with wire diameter, height, and ground conductivity. The "Carolina" 36% point is empirical; some operators get better results at 30% (with 6:1 balun). NEC-2 modeling can find the optimum for your installation. The trade-off: closer to 1/3 from center → higher Z (300 Ω, needs 6:1) and slightly better band-flatness; closer to 36% → lower Z (200 Ω, needs 4:1) and slightly more bandwidth on each band.
 
 ## Build & trim notes
 

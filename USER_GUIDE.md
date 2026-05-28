@@ -396,9 +396,9 @@ fall back to opening the corresponding J-Hub URL in a new tab.
 
 | Chapter | Banner | Action |
 |---------|--------|--------|
-| §03 Morse | 🎧 Morse Code Trainer | Launches the standalone JavaFX trainer app |
-| §07 Antenna Workshop | 📡 Antenna Workshop | Opens the matching antenna calculator |
-| §15 Formulas | 📐 Formula Calculator | Opens the matching per-formula calculator |
+| §03 Morse | Morse Code Trainer | Launches the standalone JavaFX trainer app |
+| §07 Antenna Workshop | Antenna Workshop | Opens the matching antenna calculator |
+| §15 Formulas | Formula Calculator | Opens the matching per-formula calculator |
 
 ### Modules
 
@@ -622,7 +622,7 @@ see **INSTALL.md → Standalone J-Map (second-machine display)**.
 - **Data lives in `~/.j-vault/inventory.db`** (separate from `~/.j-hub/`).
   On first launch, J-Vault checks for a legacy `~/.j-hub/inventory.db`
   (from before the J-Vault split) and copies it forward — no data lost.
-- **Estate Handoff PDF wizard** — click **📄 Estate Document…** in the
+- **Estate Handoff PDF wizard** — click **Estate Document…** in the
   Inventory toolbar. Pick which sections to include via Include/Exclude
   radio pairs (first-call contacts, equipment inventory, value summary,
   sale recommendations, step-by-step instructions, glossary). Click
@@ -649,7 +649,7 @@ see **INSTALL.md → Standalone J-Map (second-machine display)**.
 - **Search box** filters the TOC by title or section ID. Typing `15-`
   narrows to chapter 15 (Formulas); typing `emcomm` jumps to chapter 20.
 - **Advanced toggle** above the TOC shows / hides
-  `> ⚙️ **Advanced —**` callouts (Extra-class / engineering-depth
+  `> **Advanced —**` callouts (Extra-class / engineering-depth
   paragraphs). Default is hidden.
 - **Text-size slider** at the top of the page scales the rendered viewer
   between 80-180%. Persists per browser via `localStorage`.

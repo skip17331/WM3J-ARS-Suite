@@ -9,7 +9,7 @@ status: draft
 
 # SDR Waterfall
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A software-defined radio with a waterfall display turns RFI from a sound problem into a picture problem. You see exactly which frequencies are affected, the temporal pattern, and often the source's modulation signature. Combined with the AM radio sniffer (§14-07), an SDR waterfall is the modern RFI-hunter's complete toolkit.
 

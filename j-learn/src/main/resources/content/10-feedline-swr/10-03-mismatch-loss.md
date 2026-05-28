@@ -9,7 +9,7 @@ status: draft
 
 # Mismatch Loss
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 When a transmission line is terminated in something other than its characteristic impedance, two things happen at the load: **some of the forward wave reflects back** toward the source, and the **forward wave that reaches the load is reduced** (because not all of it transferred). Both effects mean less power reaches the load than the transmitter delivered into the line.
 
@@ -78,7 +78,7 @@ The reflected wave traveling back through a lossy cable loses energy each pass. 
 
 **Intuition**: a lossless line with 10:1 SWR has 67% reflected power, but 100% of the power eventually reaches the load (the reflections just bounce). A 6 dB lossy line with 10:1 SWR has 67% reflected once, then ~25% of that returning, then ~6%, then 1%, etc. — a small fraction of the original energy ever reaches the load. The bulk has been dissipated as heat in the lossy line.
 
-> ⚙️ **Advanced —** The exact formula for power transmitted through a line of matched-line loss α (in nepers, not dB) with reflection coefficient |Γ| at the load is:
+> **Advanced —** The exact formula for power transmitted through a line of matched-line loss α (in nepers, not dB) with reflection coefficient |Γ| at the load is:
 
 P_load / P_in = (1 − |Γ|²) × e^(−2α) / (1 − |Γ|² × e^(−4α))
 

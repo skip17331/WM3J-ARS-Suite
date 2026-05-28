@@ -9,7 +9,7 @@ status: draft
 
 # Coax Issues
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The coax cable itself is the most common cause of high SWR after about 10 years of outdoor service. Coax dies slowly — UV, water, ice cycling, rodent gnawing, mechanical fatigue. By the time the SWR shows it, the cable is usually well past its prime.
 
@@ -89,7 +89,7 @@ For most amateur HF runs:
 
 For VHF/UHF or very long runs, consider **hardline** (Heliax LDF4-50A, etc.) — much lower loss but much more expensive and harder to handle.
 
-> ⚙️ **Advanced —** Coax loss scales with the square root of frequency: a cable that's 1 dB/100 ft at 30 MHz is about 1.8 dB/100 ft at 100 MHz and 5.7 dB/100 ft at 1 GHz. Loss also rises with high SWR — the standing wave causes higher RMS current at the loss-maximizing points along the line. A short 100-ft run at 1.5:1 SWR has only marginally more loss than at 1:1; the same run at 5:1 SWR can have 2-3 dB more loss. This is the "additional loss due to SWR" curve printed in every coax catalog.
+> **Advanced —** Coax loss scales with the square root of frequency: a cable that's 1 dB/100 ft at 30 MHz is about 1.8 dB/100 ft at 100 MHz and 5.7 dB/100 ft at 1 GHz. Loss also rises with high SWR — the standing wave causes higher RMS current at the loss-maximizing points along the line. A short 100-ft run at 1.5:1 SWR has only marginally more loss than at 1:1; the same run at 5:1 SWR can have 2-3 dB more loss. This is the "additional loss due to SWR" curve printed in every coax catalog.
 
 ## Connector compatibility check
 

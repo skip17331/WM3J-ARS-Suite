@@ -9,7 +9,7 @@ status: draft
 
 # Rhombic (Terminated & Unterminated)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The rhombic was, for a generation, the highest-gain wire antenna a serious shortwave operator could build. Four wires laid out in a long diamond shape, each leg several wavelengths long, supported on four masts. Properly built, it produces 12–16 dBi of gain in a sharp forward-pointing pattern with deep nulls behind. Commercial shortwave broadcasters, transoceanic point-to-point HF links, and military operators ran rhombics for decades.
 
@@ -55,7 +55,7 @@ Now arrange four such legs in a diamond, with the right tilt angle, so all four 
 
 The terminator's job is to absorb the wave at the end of the system before it reflects back. Without termination, the reflected wave produces a **rearward-pointing lobe** and standing-wave-induced bandwidth narrowing.
 
-> ⚙️ **Advanced —** Rhombic design is a closed-form optimization problem: for given leg length L (in wavelengths), the optimum tilt angle θ satisfies sin(θ) = sqrt(1 − 1/(2L) − ... ); for L = 4 λ that's about 70°. The optimum height balances ground-reflection enhancement at the desired elevation angle. Bruce et al. (1931, AT&T) is the foundational paper; Harper's 1941 *Rhombic Antenna Design* is the classic engineering treatment. The unterminated version is sometimes called a "Bruce rhombic" after the 1931 paper.
+> **Advanced —** Rhombic design is a closed-form optimization problem: for given leg length L (in wavelengths), the optimum tilt angle θ satisfies sin(θ) = sqrt(1 − 1/(2L) − ... ); for L = 4 λ that's about 70°. The optimum height balances ground-reflection enhancement at the desired elevation angle. Bruce et al. (1931, AT&T) is the foundational paper; Harper's 1941 *Rhombic Antenna Design* is the classic engineering treatment. The unterminated version is sometimes called a "Bruce rhombic" after the 1931 paper.
 
 ## Why almost no one builds one anymore
 

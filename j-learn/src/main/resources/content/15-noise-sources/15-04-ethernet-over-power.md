@@ -9,7 +9,7 @@ status: draft
 
 # Ethernet Over Power
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 **Powerline networking** (PLN, also called "Ethernet over power", PLC) sends data through your house's AC wiring using high-frequency carriers across exactly the spectrum you want to use for HF amateur radio. By design. There's no way to filter your way out of this; it's the radio equivalent of having a competing transmitter in your house.
 

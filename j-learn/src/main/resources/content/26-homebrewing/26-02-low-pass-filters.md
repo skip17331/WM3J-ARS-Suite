@@ -9,7 +9,7 @@ status: draft
 
 # Low-Pass Filters for Harmonic Suppression
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Why the LPF is mandatory
 
@@ -65,7 +65,7 @@ Rev. George Dobbs G3RJV published the most-copied amateur LPF tables in his *G-Q
 ```
 
 | Band | L1 = L3 | L2 | C1 = C3 |
-|------|---------|----|---------| 
+|------|---------|----|---------|
 | 80 m | 2.40 µH | 2.74 µH | 1500 pF |
 | 40 m | 1.32 µH | 1.50 µH | 820 pF |
 | 30 m | 0.94 µH | 1.06 µH | 560 pF |
@@ -131,7 +131,7 @@ Build the filter, sweep it on a NanoVNA from 100 kHz to 100 MHz, and check:
 
 If passband insertion loss is high (> 0.5 dB), the inductors are wound on the wrong mix (too lossy) or with too-thin wire. If the cutoff is too low, you have too many turns; trim and re-sweep.
 
-> ⚙️ **Advanced —** A 7-element Chebyshev gives ~10 dB more harmonic rejection than a 5-element at the cost of one more inductor and one more cap. For combined filter/match networks (e.g., the output of a class-E PA that *needs* a specific load reactance), an elliptic-with-imaginary-zeros design places a notch at exactly 2× the fundamental, getting 60+ dB rejection there. The trade is filter sensitivity to component tolerance — 5 % caps may not be tight enough; you'll want 1 % or hand-selected.
+> **Advanced —** A 7-element Chebyshev gives ~10 dB more harmonic rejection than a 5-element at the cost of one more inductor and one more cap. For combined filter/match networks (e.g., the output of a class-E PA that *needs* a specific load reactance), an elliptic-with-imaginary-zeros design places a notch at exactly 2× the fundamental, getting 60+ dB rejection there. The trade is filter sensitivity to component tolerance — 5 % caps may not be tight enough; you'll want 1 % or hand-selected.
 
 ## Common LPF construction mistakes
 

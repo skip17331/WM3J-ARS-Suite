@@ -9,7 +9,7 @@ status: draft
 
 # Bandpass & Notch Filters
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Bandpass — when one band is enough
 
@@ -105,7 +105,7 @@ ANT → BCB HPF → 20 m BPF → variable notch (for in-band QRM) → RX
 
 Each filter does one job. The BCB HPF (§26-03) blocks AM broadcast. The 20 m BPF blocks other ham bands. The notch handles the one carrier that bleeds through everything. This stack typically adds 1.5–2 dB total insertion loss — acceptable for a quiet receiver, painful for a noise-floor-limited weak-signal mode like EME.
 
-> ⚙️ **Advanced —** Modern SDR receivers implement the BPF and notch in **digital DSP** after the ADC. Software notches can have Q > 10000 because they're not bound by component tolerance. The catch: the ADC must not overload upstream. A strong out-of-band signal that would have been killed by an analog BPF can saturate the ADC, intermodulating in-band signals and creating QRM that no DSP can remove. So even in SDR-only setups, an analog BPF in front of the ADC is good practice for contesting — it protects the dynamic range. The Flex SDR series, Apache Labs Anan, and Elecraft K4 all have switched analog BPF banks specifically for this reason.
+> **Advanced —** Modern SDR receivers implement the BPF and notch in **digital DSP** after the ADC. Software notches can have Q > 10000 because they're not bound by component tolerance. The catch: the ADC must not overload upstream. A strong out-of-band signal that would have been killed by an analog BPF can saturate the ADC, intermodulating in-band signals and creating QRM that no DSP can remove. So even in SDR-only setups, an analog BPF in front of the ADC is good practice for contesting — it protects the dynamic range. The Flex SDR series, Apache Labs Anan, and Elecraft K4 all have switched analog BPF banks specifically for this reason.
 
 ## Construction recipe — 5-section 20 m BPF
 

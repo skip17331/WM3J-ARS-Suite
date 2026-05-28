@@ -9,7 +9,7 @@ status: draft
 
 # Words and Callsigns
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The first time you copy a complete word at 15 WPM without writing each letter, your CW journey turns a corner. You stop hearing letters and start hearing words. This chapter is about that transition.
 

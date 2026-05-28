@@ -9,7 +9,7 @@ status: draft
 
 # DMR Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -32,7 +32,7 @@ DMR uses **2-slot TDMA** (Time-Division Multiple Access) on a single 12.5 kHz RF
 
 Each 60 ms frame is split into two 30 ms time slots. Two completely separate conversations can run on the same RF channel at the same time — Slot 1 might carry "North America Tac 1" while Slot 2 simultaneously carries "Worldwide English". A single 12.5 kHz repeater pair therefore behaves like two repeaters.
 
-> ⚙️ **Advanced —** TDMA also means a continuously transmitting DMR radio's RF stage is actually only keyed on for 30 ms out of every 60 ms. The radio's PA duty cycle is ~50%, which improves battery efficiency, lowers thermal stress, and explains why DMR HTs can run higher peak power in the same chassis as an equivalent FM radio. The "off" half of each frame is also where the radio's receiver gets a chance to listen for the other slot, talkgroup hangtime, and network sync.
+> **Advanced —** TDMA also means a continuously transmitting DMR radio's RF stage is actually only keyed on for 30 ms out of every 60 ms. The radio's PA duty cycle is ~50%, which improves battery efficiency, lowers thermal stress, and explains why DMR HTs can run higher peak power in the same chassis as an equivalent FM radio. The "off" half of each frame is also where the radio's receiver gets a chance to listen for the other slot, talkgroup hangtime, and network sync.
 
 ### The codec — AMBE+2
 
@@ -92,7 +92,7 @@ Almost entirely **UHF (70 cm / 440 MHz)**. A few VHF DMR repeaters exist but the
 
 Typical amateur DMR repeater frequencies in the US: **441–445 MHz input, +5 MHz offset** (e.g., 441.1875 in / 446.1875 out — though by tradition the listed frequency is the *output*).
 
-> ⚙️ **Advanced —** The DMR "color code" (CC) is a digital equivalent of CTCSS — a 4-bit field (0–15) embedded in every voice frame's sync pattern. Repeaters reject frames with the wrong color code. Adjacent repeaters on the same frequency use different CCs to keep cross-talk out. Most US amateur DMR repeaters default to **CC1**; some choose CC2 or CC11 to differentiate networks (e.g., BrandMeister vs IPSC2 in the same metro area).
+> **Advanced —** The DMR "color code" (CC) is a digital equivalent of CTCSS — a 4-bit field (0–15) embedded in every voice frame's sync pattern. Repeaters reject frames with the wrong color code. Adjacent repeaters on the same frequency use different CCs to keep cross-talk out. Most US amateur DMR repeaters default to **CC1**; some choose CC2 or CC11 to differentiate networks (e.g., BrandMeister vs IPSC2 in the same metro area).
 
 ## What you need to get on DMR
 

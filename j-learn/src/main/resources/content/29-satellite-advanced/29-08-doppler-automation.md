@@ -9,7 +9,7 @@ status: draft
 
 # Doppler Automation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Manual Doppler tuning works for FM birds. It's tolerable for a relaxed linear transponder QSO if you're patient and your rig has fast tuning. But for serious linear work — especially at UHF and above where the shift is large and the receiver bandwidth is narrow — manual tuning is exhausting and error-prone. The standard fix is to let a computer track the satellite's predicted position, compute the live Doppler shift, and send frequency commands to the rig via **CAT (Computer-Aided Transceiver)** control.
 
@@ -65,7 +65,7 @@ The CAT connection between the computer and the rig:
 
 The serial-port settings (baud rate, parity, stop bits, address byte for CI-V) must match between the computer and the rig. The rig's manual specifies these; SatPC32, MacDoppler, and Hamlib have rig-specific defaults that usually work out of the box.
 
-> ⚙️ **Advanced —** CI-V (Icom's protocol) is a multi-drop bus — you can chain multiple Icom rigs to one CAT cable, distinguished by a 1-byte address per rig. The default CI-V address for an IC-9700 is `0xA2`; for an IC-705 it's `0xA4`. If you're running both at once on the same cable, set distinct addresses and configure the tracking software to talk to each by address. Most operators with multiple Icom rigs use separate USB cables to avoid the configuration complexity.
+> **Advanced —** CI-V (Icom's protocol) is a multi-drop bus — you can chain multiple Icom rigs to one CAT cable, distinguished by a 1-byte address per rig. The default CI-V address for an IC-9700 is `0xA2`; for an IC-705 it's `0xA4`. If you're running both at once on the same cable, set distinct addresses and configure the tracking software to talk to each by address. Most operators with multiple Icom rigs use separate USB cables to avoid the configuration complexity.
 
 ## The half-second-latency problem
 

@@ -9,7 +9,7 @@ status: draft
 
 # Battery Chargers
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advenced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advenced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Modern battery chargers — for power tools, e-bikes, vehicles, drones, robotic vacuums — are essentially dedicated switching power supplies optimized for cell-chemistry charging. The same RFI mechanisms apply (§15-01), but a few specifics make battery chargers their own category.
 

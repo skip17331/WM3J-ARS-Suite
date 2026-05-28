@@ -9,7 +9,7 @@ status: draft
 
 # Noise Sources — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is a per-category guide to the most common noise sources you'll meet on the air. Each section covers what the source looks like in operation, what it sounds like, and the specific filtering or replacement strategies that work for that category.
 

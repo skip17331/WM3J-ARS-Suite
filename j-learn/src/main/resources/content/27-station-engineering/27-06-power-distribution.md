@@ -9,7 +9,7 @@ status: draft
 
 # Power Distribution
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Every amateur station needs two power systems: 12 V DC for the radios, and 120 V (or 240 V) AC for the computer, monitor, lighting, and high-power amplifier. How those two distribute determines whether the station is convenient and quiet, or a maze of barrel-plug adapters that hums on receive.
 
@@ -156,7 +156,7 @@ Every AC outlet bank should have surge suppression. The **Joule rating** is a ro
 
 A typical Isobar 6 Ultra is 3840 J — solid. Note that this is *only* mains-side protection; coax-side surge protection is separate (see §27-03).
 
-> ⚙️ **Advanced —** AC surge suppression alone is not enough during a real lightning event. The strike's primary path is *through the antenna and coax* — that's why §27-03 emphasizes coax surge protectors at the entry panel. AC suppression handles surges *originating* on the mains (utility events, neighbor's HVAC startup transients, etc.). The two are complementary, not interchangeable. A station with only AC suppression and no coax suppression is essentially unprotected against actual lightning. A station with only coax suppression and no AC suppression is exposed to common utility events. Use both.
+> **Advanced —** AC surge suppression alone is not enough during a real lightning event. The strike's primary path is *through the antenna and coax* — that's why §27-03 emphasizes coax surge protectors at the entry panel. AC suppression handles surges *originating* on the mains (utility events, neighbor's HVAC startup transients, etc.). The two are complementary, not interchangeable. A station with only AC suppression and no coax suppression is essentially unprotected against actual lightning. A station with only coax suppression and no AC suppression is exposed to common utility events. Use both.
 
 ## A finished power layout
 

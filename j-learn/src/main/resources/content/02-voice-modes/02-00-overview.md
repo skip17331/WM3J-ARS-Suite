@@ -9,7 +9,7 @@ status: draft
 
 # Voice Modes — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **voice mode** in amateur radio is any mode that transmits human speech as an analog audio signal modulated onto an RF carrier. Three voice modes account for nearly all amateur voice activity: **AM** (amplitude modulation), **FM** (frequency modulation), and **SSB** (single sideband, a variant of AM).
 
@@ -63,7 +63,7 @@ The history is layered:
 
 Today: SSB owns HF, FM owns repeaters and VHF/UHF simplex, AM is a small but active enthusiast community.
 
-> ⚙️ **Advanced —** Digital voice modes (D-STAR, DMR, Yaesu Fusion / C4FM, P25) are technically *digital* modes but operationally feel like FM voice — push-to-talk, codec encodes voice to digital bits, transmitted as 4-FSK or similar, decoded back to audio at the other end. They're covered separately in the digital-voice extension to chapter 19 (if/when added). The classic three voice modes — AM, FM, SSB — are all *analog*.
+> **Advanced —** Digital voice modes (D-STAR, DMR, Yaesu Fusion / C4FM, P25) are technically *digital* modes but operationally feel like FM voice — push-to-talk, codec encodes voice to digital bits, transmitted as 4-FSK or similar, decoded back to audio at the other end. They're covered separately in the digital-voice extension to chapter 19 (if/when added). The classic three voice modes — AM, FM, SSB — are all *analog*.
 
 ## What's covered
 

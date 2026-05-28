@@ -9,7 +9,7 @@ status: draft
 
 # Winlink — Radio Email for Emergency Comms
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -36,7 +36,7 @@ The user's client doesn't pick a route across the network — it just connects t
 
 **RMS gateways** are radio-attached servers run by volunteers worldwide. As of 2025 there are roughly 1,500 RMS stations, with denser coverage in the US, Canada, Western Europe, and Australia. An operator picks the nearest gateway with the right mode (VARA HF, Pactor, etc.) and propagation.
 
-> ⚙️ **Advanced —** The Winlink protocol stack is mode-agnostic. The RMS gateway speaks a protocol called **B2F** (Forwarding Protocol 2, Binary) with the client, regardless of whether the underlying transport is Pactor, ARDOP, VARA HF, VARA FM, or Telnet. B2F handles the message queue, compression (LZHUF), and acknowledgments. Each radio mode is just a "pipe" that B2F runs through. This is why the same .b2f files transfer cleanly across all transports.
+> **Advanced —** The Winlink protocol stack is mode-agnostic. The RMS gateway speaks a protocol called **B2F** (Forwarding Protocol 2, Binary) with the client, regardless of whether the underlying transport is Pactor, ARDOP, VARA HF, VARA FM, or Telnet. B2F handles the message queue, compression (LZHUF), and acknowledgments. Each radio mode is just a "pipe" that B2F runs through. This is why the same .b2f files transfer cleanly across all transports.
 
 ## Why use it
 

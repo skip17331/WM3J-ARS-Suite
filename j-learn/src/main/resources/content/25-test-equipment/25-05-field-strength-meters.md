@@ -9,7 +9,7 @@ status: draft
 
 # Field Strength Meters
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **field strength meter (FSM)** is a portable RF receiver with a known antenna and a meter showing **relative signal strength** at the operator's location. You walk around with it; the meter rises and falls. With it you can answer questions a fixed-station setup can't:
 
@@ -56,7 +56,7 @@ What this reveals:
 - **An asymmetry.** Usually means a nearby conductor (gutter, fence, power line) is coupling into the antenna and distorting the pattern.
 - **Reflections from buildings.** Look for unexpected peaks that don't fit the model.
 
-> ⚙️ **Advanced —** A full pattern measurement should be at multiple radii. Near the antenna (within ~λ/4) you're measuring near-field, which has reactive components that don't represent the radiated pattern. Far enough out (~10× λ) you're in the far field and the pattern stabilizes. For HF this means measurements at 100s of feet, which is rarely practical — most ham pattern measurements are in the transition region and need to be interpreted with that in mind.
+> **Advanced —** A full pattern measurement should be at multiple radii. Near the antenna (within ~λ/4) you're measuring near-field, which has reactive components that don't represent the radiated pattern. Far enough out (~10× λ) you're in the far field and the pattern stabilizes. For HF this means measurements at 100s of feet, which is rarely practical — most ham pattern measurements are in the transition region and need to be interpreted with that in mind.
 
 ### 2. Finding a transmitter (or RFI source)
 
@@ -108,7 +108,7 @@ Layout:
 
 Total parts cost: ~$15. Sensitivity is enough to register 5 W into a 20 m dipole at 100 ft. For better sensitivity, add a 2N3819 JFET front-end or a single op-amp DC amplifier.
 
-> ⚙️ **Advanced —** A diode detector is **square-law** at low signal levels and **linear** at high signal levels. This means the meter reading is proportional to *power* at low signals and to *voltage* at high signals. For relative pattern measurements at moderate power, square-law region is fine — equal-level peaks really are equal power. For accurate field strength in V/m, use a calibrated FSM with a known antenna factor.
+> **Advanced —** A diode detector is **square-law** at low signal levels and **linear** at high signal levels. This means the meter reading is proportional to *power* at low signals and to *voltage* at high signals. For relative pattern measurements at moderate power, square-law region is fine — equal-level peaks really are equal power. For accurate field strength in V/m, use a calibrated FSM with a known antenna factor.
 
 ## Pattern-measurement procedure (the proper way)
 
@@ -145,7 +145,7 @@ In practice ham FSMs are almost always used relatively, not absolutely.
 - **Measuring in the near-field and treating it as far-field.** Near-field readings don't represent radiation pattern.
 - **Hunting RFI with a fixed antenna.** Direction-finding needs a directional antenna; an omni gives no useful bearing.
 
-> ⚙️ **Advanced —** For exposure compliance under FCC rules, you need calibrated V/m readings, not relative FSM readings. The standard tool is a **broadband isotropic probe** (Narda, Holaday, EMR-300) which has multiple orthogonal sensors and reads peak vector field strength in V/m. These cost thousands of dollars; clubs sometimes own one for member use. See §14 (RFI / RF Exposure) for compliance workflow.
+> **Advanced —** For exposure compliance under FCC rules, you need calibrated V/m readings, not relative FSM readings. The standard tool is a **broadband isotropic probe** (Narda, Holaday, EMR-300) which has multiple orthogonal sensors and reads peak vector field strength in V/m. These cost thousands of dollars; clubs sometimes own one for member use. See §14 (RFI / RF Exposure) for compliance workflow.
 
 ## See also
 

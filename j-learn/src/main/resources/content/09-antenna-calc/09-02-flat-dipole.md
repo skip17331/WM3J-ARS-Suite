@@ -9,7 +9,7 @@ status: draft
 
 # Flat Dipole
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -69,7 +69,7 @@ For a clean 50 Ω match, mount at least 33 ft (1 wavelength) above ground. For a
 - **Trimming the wrong end.** Both legs must remain equal length. Trim equal amounts from both ends or you'll skew the radiation pattern.
 - **Ignoring nearby conductors.** A gutter or downspout 5 ft from the dipole can shift resonance by 100+ kHz.
 
-> ⚙️ **Advanced —** A horizontal half-wave dipole at height *h* has an idealized radiation pattern with peak at zenith for *h < λ/4*, peak at horizon for *h ≈ λ/2*, and develops lobes at higher heights. The half-wave-over-ground feed impedance is ~73 Ω at infinite height, dropping to ~30 Ω at λ/4 height for a perfect ground; real ground (lossy) modifies this and adds a few ohms of loss resistance.
+> **Advanced —** A horizontal half-wave dipole at height *h* has an idealized radiation pattern with peak at zenith for *h < λ/4*, peak at horizon for *h ≈ λ/2*, and develops lobes at higher heights. The half-wave-over-ground feed impedance is ~73 Ω at infinite height, dropping to ~30 Ω at λ/4 height for a perfect ground; real ground (lossy) modifies this and adds a few ohms of loss resistance.
 
 ## Build & trim notes
 

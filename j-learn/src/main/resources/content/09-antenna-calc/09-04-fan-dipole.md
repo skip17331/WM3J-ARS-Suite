@@ -9,7 +9,7 @@ status: draft
 
 # Fan Dipole
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -75,7 +75,7 @@ Compared to a flat 40m dipole alone (~66 ft), the fan adds ~50 ft of wire and gi
 - **Using a 4:1 or 9:1 balun.** All elements present 50–70 Ω resonant Z; a 1:1 current balun is correct.
 - **Excessively wide separation thinking it solves coupling.** It does, but at >12 in tips you've used 25+ ft of horizontal space for marginal benefit.
 
-> ⚙️ **Advanced —** Mutual coupling coefficient between two parallel half-wave dipoles separated by *d* (perpendicular spacing) follows the Carter / King–Sandler formulation. For d ≪ λ, coupling can exceed 0.5 (i.e., elements are strongly coupled); at d > λ/4, coupling drops below 0.1. The fan's tip-only spacing reduces *average* coupling but the closely-spaced center-insulator region still drives most of the interaction. Modeling in NEC-2 with both elements gives more accurate trim numbers than the empirical k.
+> **Advanced —** Mutual coupling coefficient between two parallel half-wave dipoles separated by *d* (perpendicular spacing) follows the Carter / King–Sandler formulation. For d ≪ λ, coupling can exceed 0.5 (i.e., elements are strongly coupled); at d > λ/4, coupling drops below 0.1. The fan's tip-only spacing reduces *average* coupling but the closely-spaced center-insulator region still drives most of the interaction. Modeling in NEC-2 with both elements gives more accurate trim numbers than the empirical k.
 
 ## Build & trim notes
 

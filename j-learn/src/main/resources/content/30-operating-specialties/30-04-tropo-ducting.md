@@ -9,7 +9,7 @@ status: draft
 
 # Tropospheric Ducting
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What tropo ducting is
 
@@ -134,7 +134,7 @@ Some regions have famous tropo paths:
 - **Inland operation in winter** — continental high pressure inversions are weaker; activity tails off.
 - **Inside a city's RF noise floor** — tropo signals are weak; you need a quiet receive site.
 
-> ⚙️ **Advanced —** Tropo ducting requires the modified refractive index gradient dM/dh to go negative — equivalently, dN/dh < −157 N-units per km where N is the radio refractive index N = 77.6(P/T) + 3.73×10⁵(e/T²) (P = pressure mb, T = temperature K, e = water vapor partial pressure mb). When dM/dh is negative across some atmospheric slab, signals are *guided* within that slab. The duct height and thickness determine the minimum trapped frequency: a thin (50 m) duct only traps signals above ~5 GHz; a thick (500 m) duct can trap 50 MHz signals. Surface ducts (where the inversion is right at ground level) carry the strongest signals because no leakage occurs at the bottom; elevated ducts (inversion aloft) leak energy out the bottom and are noisier. ITU-R P.452 is the standard for predicting tropo path loss with duct enhancement.
+> **Advanced —** Tropo ducting requires the modified refractive index gradient dM/dh to go negative — equivalently, dN/dh < −157 N-units per km where N is the radio refractive index N = 77.6(P/T) + 3.73×10⁵(e/T²) (P = pressure mb, T = temperature K, e = water vapor partial pressure mb). When dM/dh is negative across some atmospheric slab, signals are *guided* within that slab. The duct height and thickness determine the minimum trapped frequency: a thin (50 m) duct only traps signals above ~5 GHz; a thick (500 m) duct can trap 50 MHz signals. Surface ducts (where the inversion is right at ground level) carry the strongest signals because no leakage occurs at the bottom; elevated ducts (inversion aloft) leak energy out the bottom and are noisier. ITU-R P.452 is the standard for predicting tropo path loss with duct enhancement.
 
 ## See also
 

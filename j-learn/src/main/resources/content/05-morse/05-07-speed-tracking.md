@@ -9,7 +9,7 @@ status: draft
 
 # Speed Tracking
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 CW progress is hard to feel day-to-day. Some sessions go great; some are terrible. Without measurement you'll either think you're stuck (when you're not) or push past your limits (when you shouldn't). A simple weekly speed-tracking habit fixes both problems.
 
@@ -60,8 +60,8 @@ Date         Receive (WPM)   Send (WPM)   Notes
 2026-01-04   8 effective     5            Bumped from 7 last week, holding 92%
 2026-01-11   8               6            Send getting smoother
 2026-01-18   9               6            Receive bumped, send held
-2026-01-25   9               7            
-2026-02-01   10              7            
+2026-01-25   9               7
+2026-02-01   10              7
 2026-02-08   10              7            Plateau on receive — sticky character: G
 2026-02-15   10              8            Drilled G all week, broke through
 ...

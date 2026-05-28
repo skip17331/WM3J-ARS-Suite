@@ -9,7 +9,7 @@ status: draft
 
 # RF Feedback
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 RF feedback happens when transmitted RF energy gets back into the radio's input or audio chain instead of going to the antenna. Common-mode current on the coax is the usual root cause. The result: garbled audio, raspy SSB, sometimes distortion that varies with how you're touching the equipment.
 
@@ -35,7 +35,7 @@ Radio → coax (inside) → antenna → into the air
 In a feedback-prone station:
 
 ```
-Radio → coax (inside) → antenna 
+Radio → coax (inside) → antenna
                         ↓
                     coax (outside shield)
                         ↓
@@ -122,7 +122,7 @@ If you've added chokes everywhere and the problem persists:
 - **Use a remote autotuner** at the antenna instead of in the shack — keeps the high-SWR section confined outside.
 - **Switch antenna styles** — if you're using a poorly-fed long-wire that's begging for common-mode trouble, a balanced loop or properly choked dipole solves it.
 
-> ⚙️ **Advanced —** The choke effectiveness can be characterized with a NanoVNA: place the choke between two short coax stubs into the test ports, sweep, and measure the common-mode insertion loss versus frequency. A good HF choke shows >30 dB CM rejection from 1.8 to 30 MHz. Single-toroid chokes typically don't reach 30 dB across the whole HF range; you need a stack of 2–3 toroids or an air-core "ugly balun" with many more turns. Field-built chokes are easier than people expect, but don't guess at adequacy — measure.
+> **Advanced —** The choke effectiveness can be characterized with a NanoVNA: place the choke between two short coax stubs into the test ports, sweep, and measure the common-mode insertion loss versus frequency. A good HF choke shows >30 dB CM rejection from 1.8 to 30 MHz. Single-toroid chokes typically don't reach 30 dB across the whole HF range; you need a stack of 2–3 toroids or an air-core "ugly balun" with many more turns. Field-built chokes are easier than people expect, but don't guess at adequacy — measure.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # VARA HF — High-Throughput Soundcard Modem
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -38,7 +38,7 @@ VARA HF uses **OFDM** (orthogonal frequency-division multiplexing): the audio pa
 
 The modem continuously measures channel quality (via per-carrier SNR estimates) and negotiates an appropriate **modulation level** (BPSK, QPSK, 8-PSK, 16-QAM) and **frame size** (number of OFDM symbols per data block). On a weak link it sends slow, robust BPSK blocks; on a strong link it sends fast 16-QAM blocks. This switching happens every few seconds.
 
-> ⚙️ **Advanced —** VARA's ARQ uses a sliding window with selective repeat. The receiver acknowledges each correctly-decoded block by sequence number; failed blocks are retransmitted while later blocks continue forward. This is more efficient than stop-and-wait ARQ (used by older modes like Pactor I) and is why VARA HF gets much higher *usable* throughput than its raw symbol-rate would suggest. Under typical CONUS HF conditions, you'll see 1,000–2,500 bps sustained — about 3–5× a Pactor III link on the same path.
+> **Advanced —** VARA's ARQ uses a sliding window with selective repeat. The receiver acknowledges each correctly-decoded block by sequence number; failed blocks are retransmitted while later blocks continue forward. This is more efficient than stop-and-wait ARQ (used by older modes like Pactor I) and is why VARA HF gets much higher *usable* throughput than its raw symbol-rate would suggest. Under typical CONUS HF conditions, you'll see 1,000–2,500 bps sustained — about 3–5× a Pactor III link on the same path.
 
 ## Why use it
 

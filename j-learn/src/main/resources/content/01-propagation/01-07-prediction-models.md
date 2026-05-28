@@ -9,9 +9,9 @@ status: draft
 
 # Prediction Models
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-> ⚙️ **Advanced —** This entire chapter is at engineering depth. The basics in §01-01 through §01-06 cover what you need for everyday operating; this section is for operators who want to plan an expedition, design a circuit budget, or understand why VOACAP says one thing and reality says another.
+> **Advanced —** This entire chapter is at engineering depth. The basics in §01-01 through §01-06 cover what you need for everyday operating; this section is for operators who want to plan an expedition, design a circuit budget, or understand why VOACAP says one thing and reality says another.
 
 Propagation models take the physical state of the ionosphere — built from worldwide ionosonde measurements, monthly statistics, and parametric tweaks — and compute the expected signal-to-noise ratio for a specified path, frequency, time, and antenna configuration. They are not crystal balls; they are statistical climatology. Used right, they're the most powerful planning tool you have.
 
@@ -51,7 +51,7 @@ Originally written for Voice of America to plan their HF broadcast schedules. Re
 
 **What it gets wrong:** day-to-day variability, transient events (flares, CMEs, auroras), high-latitude paths during disturbed conditions, sporadic E (it doesn't try), greyline-specific enhancements.
 
-> ⚙️ **Advanced —** VOACAP's ionosphere model is **CCIR Recommendation 894** (the URSI-coefficient model), driven by a single-number SSN input. The model is parametric: it interpolates between empirically measured monthly median ionospheric parameters at a global grid of measurement points. It does not couple to real-time space weather. There are several "modes" of computation (Method 30 is the most common modern one), and the optional **VOAAREA** mode produces world maps of expected reliability or SNR for a fixed transmitter.
+> **Advanced —** VOACAP's ionosphere model is **CCIR Recommendation 894** (the URSI-coefficient model), driven by a single-number SSN input. The model is parametric: it interpolates between empirically measured monthly median ionospheric parameters at a global grid of measurement points. It does not couple to real-time space weather. There are several "modes" of computation (Method 30 is the most common modern one), and the optional **VOAAREA** mode produces world maps of expected reliability or SNR for a fixed transmitter.
 
 ### ICEPAC
 

@@ -9,7 +9,7 @@ status: draft
 
 # Pi-Star Hotspot Setup
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -180,7 +180,7 @@ timedatectl status
 
 Should show "System clock synchronized: yes".
 
-> ⚙️ **Advanced —** The MMDVMHost daemon expects UTC time from the OS and aligns DMR slot timing to the second boundary. Drift greater than ~30 ms causes the BrandMeister master server to reject your frames with a "frame alignment error". Pi-Star runs `chronyd` by default; if you've replaced it with systemd-timesyncd, double-check that NTP is actually working — systemd-timesyncd's once-on-boot strategy is not aggressive enough for DMR timing requirements.
+> **Advanced —** The MMDVMHost daemon expects UTC time from the OS and aligns DMR slot timing to the second boundary. Drift greater than ~30 ms causes the BrandMeister master server to reject your frames with a "frame alignment error". Pi-Star runs `chronyd` by default; if you've replaced it with systemd-timesyncd, double-check that NTP is actually working — systemd-timesyncd's once-on-boot strategy is not aggressive enough for DMR timing requirements.
 
 ## Common configuration recipes
 

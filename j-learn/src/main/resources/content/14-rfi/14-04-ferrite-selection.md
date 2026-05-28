@@ -9,7 +9,7 @@ status: draft
 
 # Ferrite Selection
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A ferrite "bead" or "core" wrapped around a cable adds **lossy impedance** to common-mode currents on the cable, dampening RFI without affecting the differential signal that's supposed to be there. Picking the right ferrite is the difference between a cure and a placebo.
 
@@ -90,7 +90,7 @@ Typical aim: **3000+ Ω of common-mode impedance** at the lowest band of interes
 
 For HF chokes on coax: 8–10 turns through an FT-240-31 or -43 covers 1.8–30 MHz reasonably.
 
-> ⚙️ **Advanced —** The square-of-turns relationship breaks down at high turn counts because the parasitic capacitance between turns creates a parallel resonance, after which impedance starts to drop. The "self-resonant frequency" of a winding limits how much choking you can get from a single core. For HF, the self-resonant frequency of a 10-turn FT-240-31 is around 30 MHz; above that, choking degrades. To choke higher frequencies, use fewer turns (1-3 for VHF) and a different mix (61 or 43).
+> **Advanced —** The square-of-turns relationship breaks down at high turn counts because the parasitic capacitance between turns creates a parallel resonance, after which impedance starts to drop. The "self-resonant frequency" of a winding limits how much choking you can get from a single core. For HF, the self-resonant frequency of a 10-turn FT-240-31 is around 30 MHz; above that, choking degrades. To choke higher frequencies, use fewer turns (1-3 for VHF) and a different mix (61 or 43).
 
 ## Reading the spec sheets
 

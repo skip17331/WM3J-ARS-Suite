@@ -9,7 +9,7 @@ status: draft
 
 # Distorted Audio
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 You can transmit. People hear you. But they describe your audio as muffled, harsh, clipped, distorted, or "having too much echo." Or you sound fine to yourself in the monitor but bad on the air. The most common station-level reason: **mic gain or compressor settings wrong**, often by a wide margin.
 
@@ -132,7 +132,7 @@ Antenna
 
 A problem at any stage shows up downstream. Walk the chain when troubleshooting.
 
-> ⚙️ **Advanced —** Modern transceivers add several stages of optional processing inside the chain — TX equalizer, transmit DSP, second-stage compressor, RF speech clipper. Each can be misconfigured to sound great in your monitor and terrible on the air. The transmit-monitor function in many rigs samples the audio AFTER all DSP but BEFORE the final RF output, so it doesn't catch distortion introduced by ALC limiting or final-stage saturation. The only honest test is a remote receiver.
+> **Advanced —** Modern transceivers add several stages of optional processing inside the chain — TX equalizer, transmit DSP, second-stage compressor, RF speech clipper. Each can be misconfigured to sound great in your monitor and terrible on the air. The transmit-monitor function in many rigs samples the audio AFTER all DSP but BEFORE the final RF output, so it doesn't catch distortion introduced by ALC limiting or final-stage saturation. The only honest test is a remote receiver.
 
 ## See also
 

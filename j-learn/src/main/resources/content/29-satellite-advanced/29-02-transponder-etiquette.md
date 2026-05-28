@@ -9,7 +9,7 @@ status: draft
 
 # Linear Transponder Etiquette
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A linear transponder is a shared resource — not in the FM-bird sense (one QSO at a time, take turns), but in the more nuanced sense of a 60 kHz passband where everyone is broadcasting and listening simultaneously. Your signal occupies a 2.5 kHz slot of SSB or a few hundred Hz of CW; the operator one kHz away is sharing the same transponder amplifier, the same downlink antenna, the same power budget. Bad etiquette on a linear sat doesn't ruin one QSO — it ruins every QSO inside that 60 kHz that's near you in frequency or louder than you in level.
 
@@ -60,7 +60,7 @@ The fix:
 - **Reduce uplink power until your downlink is at beacon level or below.** Typical linear birds need 5-25 W from a modest Yagi — *not* 100 W from a big Yagi. The IC-9700 default of 50 W is too much for most linear satellite work.
 - **If you can't hear yourself**, fix the receive side before you transmit. Better downlink antenna, mast preamp (§29-07), better aiming. Don't transmit blind into a transponder hoping you're on frequency.
 
-> ⚙️ **Advanced —** The transponder's AGC isn't actually capturing in the FM sense — the transponder is a linear amplifier and outputs the sum of all uplink signals, weighted by their relative input power. But the **total downlink power** is capped (usually at a few watts EIRP). When one operator's uplink is 20 dB stronger than the median, that operator's downlink is correspondingly louder, and the rest are correspondingly weaker — fixed-gain bird, fixed power budget, the math works out to direct competition for downlink share. On FO-29 the practical effect is that one alligator can suppress everyone else by 6-10 dB.
+> **Advanced —** The transponder's AGC isn't actually capturing in the FM sense — the transponder is a linear amplifier and outputs the sum of all uplink signals, weighted by their relative input power. But the **total downlink power** is capped (usually at a few watts EIRP). When one operator's uplink is 20 dB stronger than the median, that operator's downlink is correspondingly louder, and the rest are correspondingly weaker — fixed-gain bird, fixed power budget, the math works out to direct competition for downlink share. On FO-29 the practical effect is that one alligator can suppress everyone else by 6-10 dB.
 
 ## Sideband and frequency conventions
 

@@ -9,7 +9,7 @@ status: draft
 
 # Ferrite Mix Selection
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Ferrite is for **broadband** — that's the point
 
@@ -90,7 +90,7 @@ Three reasons:
 
 The downside of #43 below 3 MHz: marginal common-mode rejection. For a dedicated 160 m station, switch to #31. For a multi-band 80–10 m station, stick with #43.
 
-> ⚙️ **Advanced —** A **two-mix choke** stacks one FT240-31 (for low bands) with one FT240-43 (for high bands) on the same coax wind. The result is good choking from 1.8 to 50 MHz, where neither single mix excels alone. The trade is twice the cost and twice the length. K9YC and W1HIS have published detailed measurements; this approach is overkill for casual use but common in serious DX and contest stations where common-mode current must be killed across all bands without swapping chokes per band.
+> **Advanced —** A **two-mix choke** stacks one FT240-31 (for low bands) with one FT240-43 (for high bands) on the same coax wind. The result is good choking from 1.8 to 50 MHz, where neither single mix excels alone. The trade is twice the cost and twice the length. K9YC and W1HIS have published detailed measurements; this approach is overkill for casual use but common in serious DX and contest stations where common-mode current must be killed across all bands without swapping chokes per band.
 
 ## Power and saturation
 

@@ -9,7 +9,7 @@ status: draft
 
 # Duplexers
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A duplexer is the heavy steel-and-copper sculpture that lets a repeater **transmit and receive on the same antenna at the same time**. Without one, the repeater would either need two physically separated antennas (expensive, ugly, ground-hogging) or its receiver would be deafened by its own transmitter every time it keyed up.
 
@@ -52,7 +52,7 @@ A typical 2 m duplexer has **3 cavities per side, 6 cavities total**, all bandpa
 
 Resonant cavity Q (the sharpness of the filter) scales with the cavity's surface area. Bigger cavities = higher Q = sharper filters with less insertion loss. A 2 m duplexer cavity is roughly **6 inches in diameter and 18 inches tall**. UHF (70 cm) cavities are smaller. HF would require cavities the size of a small car — which is why HF doesn't use them; HF repeaters (rare) use frequency-separation duplexers tuned to far-apart frequencies.
 
-> ⚙️ **Advanced —** Cavity Q scales as `Q ≈ (π/2) · (D/δ)`, where D is the diameter and δ is the skin depth at the operating frequency. At 146 MHz the skin depth in copper is about 5.5 µm, so a 6-inch cavity (~150 mm diameter) has Q ≈ 21,000 in theory, more like 8,000–10,000 in practice after the loading by the loop couplers. That's enough to give 60–80 dB rejection at 600 kHz offset with reasonable insertion loss.
+> **Advanced —** Cavity Q scales as `Q ≈ (π/2) · (D/δ)`, where D is the diameter and δ is the skin depth at the operating frequency. At 146 MHz the skin depth in copper is about 5.5 µm, so a 6-inch cavity (~150 mm diameter) has Q ≈ 21,000 in theory, more like 8,000–10,000 in practice after the loading by the loop couplers. That's enough to give 60–80 dB rejection at 600 kHz offset with reasonable insertion loss.
 
 ## Tuning a duplexer
 

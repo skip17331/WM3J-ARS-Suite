@@ -9,7 +9,7 @@ status: draft
 
 # README — what J-Learn is
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 J-Learn is the **in-app reference library** for the WM3J ARS Suite. It's not a textbook, not a magazine, not a forum thread. It's a focused, opinionated set of cards that explain how amateur-radio operating works — written for the operator who needs answers fast.
 
@@ -43,7 +43,7 @@ Every section is a **card** with the same shape:
 - An opening paragraph stating what this section is for
 - Tables, formulas, or worked examples
 - A "common mistakes" or "gotchas" list where applicable
-- An optional `> ⚙️ **Advanced —**` callout for engineering-depth material
+- An optional `> **Advanced —**` callout for engineering-depth material
 - A "see also" footer with cross-links to related sections
 
 Most sections are 4–8 KB. A few (formula calculators, RF-exposure walkthrough, antenna recommender) are longer because the material genuinely needs the room.

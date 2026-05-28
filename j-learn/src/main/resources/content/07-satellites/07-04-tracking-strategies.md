@@ -9,7 +9,7 @@ status: draft
 
 # Tracking Strategies
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A satellite is a fast-moving target in the sky. To work it, you have to do two things continuously during the pass: **point your antenna at it**, and **manage Doppler shift on the radio**. This section is about the antenna pointing — manual aiming, automated rotators, and the in-between practices.
 
@@ -109,7 +109,7 @@ Rotators drift slightly over months — bearings wear, gear backlash develops, m
 - Verify the rotator agrees.
 - Adjust the offset in tracking software if needed.
 
-> ⚙️ **Advanced —** Az-el rotators have a problem at zenith: as the satellite passes directly overhead, the azimuth needs to flip 180° instantaneously. Most rotators can't do this fast enough; the antenna lags or overshoots. The classic fix is the **flip rotator** (a 0–540° azimuth range), which lets the antenna pass through the zenith point without azimuth flip. The Yaesu G-5500 supports this with its extended-range option. Without it, high-elevation passes are tricky — the rotator may "scan" frantically as the satellite crosses over.
+> **Advanced —** Az-el rotators have a problem at zenith: as the satellite passes directly overhead, the azimuth needs to flip 180° instantaneously. Most rotators can't do this fast enough; the antenna lags or overshoots. The classic fix is the **flip rotator** (a 0–540° azimuth range), which lets the antenna pass through the zenith point without azimuth flip. The Yaesu G-5500 supports this with its extended-range option. Without it, high-elevation passes are tricky — the rotator may "scan" frantically as the satellite crosses over.
 
 ## Polarization
 

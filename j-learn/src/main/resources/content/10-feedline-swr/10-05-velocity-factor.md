@@ -9,7 +9,7 @@ status: draft
 
 # Velocity Factor
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The wave inside a coax travels at a fraction of the speed of light. The fraction is the **velocity factor (VF)**, determined by the dielectric between conductors. Solid polyethylene gives VF ≈ 0.66; foam dielectrics give VF in the 0.78–0.88 range. This affects the *electrical* length of any feedline-based device — quarter-wave matching sections, half-wave repeater sections, phasing harnesses, and stubs.
 

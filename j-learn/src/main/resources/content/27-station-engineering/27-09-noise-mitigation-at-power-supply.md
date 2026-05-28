@@ -9,7 +9,7 @@ status: draft
 
 # Noise Mitigation at the Power Supply
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A modern switching power supply (SMPS) — the lightweight, cheap, efficient unit that powers most amateur rigs and almost all consumer electronics — operates by chopping DC at 30–100 kHz and rectifying. The chopping produces broadband electromagnetic energy that, without careful filtering at the supply's output, leaks into:
 
@@ -90,7 +90,7 @@ Suitable parts:
 
 Adding feedthrough caps requires opening the PSU. **Always unplug from AC and discharge the input filter caps** (a 1 MΩ resistor across the input filter for 30 seconds) before working inside.
 
-> ⚙️ **Advanced —** A well-designed switching PSU already has feedthrough capacitors at the output, plus a common-mode choke on the AC input. Manufacturers cheap out on these for cost reasons. Adding external compensation can recover what should have been there from the factory. For a *really noisy* PSU, the best approach is to add: (1) external chokes on DC output, (2) external chokes on AC input, (3) feedthrough caps if accessible, (4) a metal shield over the entire PSU bonded to station ground. Cumulative improvement can be 20–30 dB. At some point, the cost of all this exceeds the cost of just replacing the PSU with a better one.
+> **Advanced —** A well-designed switching PSU already has feedthrough capacitors at the output, plus a common-mode choke on the AC input. Manufacturers cheap out on these for cost reasons. Adding external compensation can recover what should have been there from the factory. For a *really noisy* PSU, the best approach is to add: (1) external chokes on DC output, (2) external chokes on AC input, (3) feedthrough caps if accessible, (4) a metal shield over the entire PSU bonded to station ground. Cumulative improvement can be 20–30 dB. At some point, the cost of all this exceeds the cost of just replacing the PSU with a better one.
 
 ## Replacing a noisy switcher with a linear
 

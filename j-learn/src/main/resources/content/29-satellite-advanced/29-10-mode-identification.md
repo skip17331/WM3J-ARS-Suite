@@ -9,7 +9,7 @@ status: draft
 
 # Mode Identification (V/U, U/V, L/U, etc.)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What "mode" means in satellite parlance
 
@@ -39,7 +39,7 @@ For active amateur satellites today, four mode combinations cover almost everyth
 | **L/U** | 23 cm → 70 cm | AO-40 (defunct), some experimental cubesats | Higher uplink frequency means smaller dish/yagi but the uplink power amp is more expensive. |
 | **V/S** | 2 m → 13 cm | AO-40 alternate mode, AMSAT Phase 3D | S-band downlink requires a low-noise preamp at the antenna feedpoint. |
 
-> ⚙️ **Advanced —** Higher-band downlinks (S, C, X, K) require progressively higher gain dish antennas, low-noise preamps mounted at the feedpoint, and precise pointing accuracy (degrees of error rather than degrees of beamwidth). The trade-off is reduced terrestrial QRM on those bands compared to 2 m and 70 cm.
+> **Advanced —** Higher-band downlinks (S, C, X, K) require progressively higher gain dish antennas, low-noise preamps mounted at the feedpoint, and precise pointing accuracy (degrees of error rather than degrees of beamwidth). The trade-off is reduced terrestrial QRM on those bands compared to 2 m and 70 cm.
 
 ## Reading mode designations from AMSAT-NA status
 
@@ -73,7 +73,7 @@ For each mode, the relevant rig settings:
 | L/U     | 1.2 GHz USB/LSB     | 70 cm USB/LSB       | IC-9700 (with L-band option), external transverter | Less common; AO-40 era |
 | V/S     | 2 m USB/LSB         | 2.4 GHz USB/LSB     | IC-9700 has built-in S-band RX | Needs S-band preamp + dish |
 
-> ⚙️ **Advanced —** The Icom IC-9700 is currently the only mass-market satellite-dedicated transceiver covering V/U/L on one chassis with built-in full-duplex and integrated Doppler tracking. Older operators built equivalent setups from a dual-rig pair (e.g., FT-817 for the downlink + FT-857 for the uplink, linked via Hamlib). For S-band you still need an external converter or a software-defined radio (Airspy + 2.4 GHz LNA).
+> **Advanced —** The Icom IC-9700 is currently the only mass-market satellite-dedicated transceiver covering V/U/L on one chassis with built-in full-duplex and integrated Doppler tracking. Older operators built equivalent setups from a dual-rig pair (e.g., FT-817 for the downlink + FT-857 for the uplink, linked via Hamlib). For S-band you still need an external converter or a software-defined radio (Airspy + 2.4 GHz LNA).
 
 ## Why the same satellite has different modes over its life
 

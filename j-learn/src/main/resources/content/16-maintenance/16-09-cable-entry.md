@@ -9,7 +9,7 @@ status: draft
 
 # Cable Entry & Water Intrusion
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The cable entry is where outdoor coax (and rotor cable, control lines, ground straps, etc.) meets indoor air. It's the most failure-prone single point in any station — it sees thermal cycling, UV, ice, animals, water, and sometimes lightning, all in one location. Done right, it lasts 20+ years; done poorly, it's the single biggest reason stations have intermittent problems and indoor water damage.
 

@@ -9,7 +9,7 @@ status: draft
 
 # RF Amplifier Topologies
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Amplifier classes — what the letter means
 
@@ -69,7 +69,7 @@ Bias is below cutoff; the device conducts only on signal peaks (typically 120° 
 
 You cannot use a class-C amp on SSB. Period. The amplifier sees only the peaks of an SSB envelope, throws away the variation, and produces a hash-and-splatter signal that violates every emission standard. Class C is for FM repeaters, CW transmitters with proper keying envelopes, and AM final-stage plate modulation (the modulating audio reconstructs the envelope, not the RF stage).
 
-> ⚙️ **Advanced —** A class-C stage *can* be used on AM if the carrier is plate-modulated (or in modern terms, drain/collector modulated). The RF stage runs flat-out at full carrier; the audio swings the supply voltage up and down. This is how every AM broadcast transmitter ever built worked through the 1970s and how the AM portion of an HF rig like the Heathkit DX-60B works internally.
+> **Advanced —** A class-C stage *can* be used on AM if the carrier is plate-modulated (or in modern terms, drain/collector modulated). The RF stage runs flat-out at full carrier; the audio swings the supply voltage up and down. This is how every AM broadcast transmitter ever built worked through the 1970s and how the AM portion of an HF rig like the Heathkit DX-60B works internally.
 
 ## Class E — modern QRP favorite
 
@@ -121,7 +121,7 @@ The 1500-W legal-limit SSB amp is **always** class AB. Anyone advertising a "150
 - **G0UPL QCX-mini** — class E, BS170×3 parallel, 5 W CW on a single band.
 - **W1FB / Doug DeMaw class-C FM repeater finals** — generations of 2 m / 70 cm amplifier designs in *Solid State Design for the Radio Amateur*.
 
-> ⚙️ **Advanced —** Modern commercial designs sometimes use **envelope-tracking class AB**, where the supply rail to the final is dynamically adjusted to track the SSB envelope. This recovers some of class AB's efficiency loss without sacrificing linearity. It's complex (requires a fast envelope detector and a switching supply that follows it), but it's how cellular base stations get 50 %+ efficiency on linear modulation. Amateur examples are rare but exist (e.g., some homebrew GaN-FET designs from N4FH and AB4OJ).
+> **Advanced —** Modern commercial designs sometimes use **envelope-tracking class AB**, where the supply rail to the final is dynamically adjusted to track the SSB envelope. This recovers some of class AB's efficiency loss without sacrificing linearity. It's complex (requires a fast envelope detector and a switching supply that follows it), but it's how cellular base stations get 50 %+ efficiency on linear modulation. Amateur examples are rare but exist (e.g., some homebrew GaN-FET designs from N4FH and AB4OJ).
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Decibels
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The decibel is a logarithmic ratio. Every gain, loss, signal level, antenna pattern, S-meter reading, and cable spec in radio uses it. You don't need to memorize tables — you need to internalize four numbers.
 
@@ -125,7 +125,7 @@ So "20 dB over S9" is roughly 1000× more power than S9 — almost always a stro
 - **Adding ratios instead of multiplying them.** When ratios multiply (cascaded gains/losses), dBs add. A 1 dB feedline loss + 6 dBd antenna gain = +5 dBd total. NOT 7 dB.
 - **Computing in dBµV but converting incorrectly.** dBµV = 20 × log(V/1µV). 1 µV across 50 Ω = 0 dBµV ≈ −113 dBm. There's a fixed 107 dB difference between dBµV and dBm at 50 Ω (60 dB from "µV → V" and 47 dB from the resistance term).
 
-> ⚙️ **Advanced —** dB is dimensionless because it's a ratio. The "dB" in dBm, dBW, etc. is technically referring to dB-relative-to-the-named-reference. Strictly speaking, you can't "add" dBm and dBm directly — that would mean "add the ratios," but each one's reference is 1 mW, so summing gives a meaningless number. To combine signals in linear power, convert each to mW first, sum, then convert back. The same caveat applies to averaging dB readings.
+> **Advanced —** dB is dimensionless because it's a ratio. The "dB" in dBm, dBW, etc. is technically referring to dB-relative-to-the-named-reference. Strictly speaking, you can't "add" dBm and dBm directly — that would mean "add the ratios," but each one's reference is 1 mW, so summing gives a meaningless number. To combine signals in linear power, convert each to mW first, sum, then convert back. The same caveat applies to averaging dB readings.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # EFHW — End-Fed Half-Wave (No Traps)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -76,7 +76,7 @@ Each harmonic resonance is slightly off-center within its band, but SWR ≤ 2:1 
 - **Skipping the bench test.** Verify the unun's ratio with a known load (a 2200 Ω resistor across the secondary should read 50 Ω at the primary) before installing.
 - **Bending the wire sharply.** A right-angle bend at ~30% from the unun (the high-current point) costs 1–2 dB. Keep the wire reasonably straight.
 
-> ⚙️ **Advanced —** The "478" constant in the EFHW length formula is empirical and accounts for the unun's parallel capacitance plus typical end-effect on a fed-end wire. Different unun construction (turns count, core material, capacitance compensation cap across the primary) can shift this constant by ±2%. Always verify with an analyzer; trim shorter as needed.
+> **Advanced —** The "478" constant in the EFHW length formula is empirical and accounts for the unun's parallel capacitance plus typical end-effect on a fed-end wire. Different unun construction (turns count, core material, capacitance compensation cap across the primary) can shift this constant by ±2%. Always verify with an analyzer; trim shorter as needed.
 
 ## Build & trim notes
 

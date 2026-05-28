@@ -9,7 +9,7 @@ status: draft
 
 # Common Operating Mistakes
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section is the consolidated "what not to do" list for everyday amateur operating. Each entry is a mistake that's easy to make, easy to fix, and gets noticed by other operators when it happens.
 

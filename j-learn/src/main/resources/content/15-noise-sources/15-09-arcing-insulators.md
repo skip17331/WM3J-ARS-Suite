@@ -9,7 +9,7 @@ status: draft
 
 # Arcing Insulators
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The most common cause of power-line RFI. A high-voltage insulator on a pole develops a crack, becomes contaminated with airborne dirt, or has a hairline conductive path. The high voltage (typically 7,200 V phase-to-ground on residential distribution lines) finds a way to arc across the gap, generating broadband HF noise.
 
@@ -40,7 +40,7 @@ When the insulator is cracked or contaminated:
 
 The arcs occur at AC voltage peaks (twice per cycle), giving the characteristic 120 Hz repetition rate (with each peak producing one or more arcs).
 
-> ⚙️ **Advanced —** The HF spectrum content of arc emissions roughly follows a 1/f² pattern from the LF range to high VHF. The spectral peak energy is in the LF/MF range, but enough harmonic energy reaches HF to make insulator arcs noticeable from kilometers away. Modeling work (notably by W2VTM in QST) characterized typical insulator arcs as broadband emitters with a relatively flat spectrum from 2 to 30 MHz, dropping off in the VHF range. This explains why insulator arcs affect so many bands at once.
+> **Advanced —** The HF spectrum content of arc emissions roughly follows a 1/f² pattern from the LF range to high VHF. The spectral peak energy is in the LF/MF range, but enough harmonic energy reaches HF to make insulator arcs noticeable from kilometers away. Modeling work (notably by W2VTM in QST) characterized typical insulator arcs as broadband emitters with a relatively flat spectrum from 2 to 30 MHz, dropping off in the VHF range. This explains why insulator arcs affect so many bands at once.
 
 ## How to find an arcing insulator
 

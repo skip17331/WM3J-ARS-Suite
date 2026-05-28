@@ -9,7 +9,7 @@ status: draft
 
 # D-STAR
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -40,7 +40,7 @@ D-STAR uses the original **AMBE** (not AMBE+2). Same DVSI lineage, just an earli
 
 The audio is the **biggest weakness** people cite about D-STAR. Whether it matters depends on your taste — many users adapt and never hear it as a problem.
 
-> ⚙️ **Advanced —** D-STAR specifies AMBE 2400+1200 — 2400 bps of voice plus 1200 bps of FEC. AMBE+2 used in DMR/Fusion runs at 2450 bps voice + 1150 bps FEC, plus a smarter post-filter. The audible difference is mostly in the smoothness of mid-band consonants ("sh", "ch", "f" sounds). AMBE is proprietary to DVSI, and Icom radios contain a licensed AMBE chip; open-source D-STAR transceivers were not legally possible for years, which slowed homebrew adoption. The patent has since expired (~2017), which is why Pi-Star and OpenSpot can now transcode D-STAR audio without buying a chip from DVSI.
+> **Advanced —** D-STAR specifies AMBE 2400+1200 — 2400 bps of voice plus 1200 bps of FEC. AMBE+2 used in DMR/Fusion runs at 2450 bps voice + 1150 bps FEC, plus a smarter post-filter. The audible difference is mostly in the smoothness of mid-band consonants ("sh", "ch", "f" sounds). AMBE is proprietary to DVSI, and Icom radios contain a licensed AMBE chip; open-source D-STAR transceivers were not legally possible for years, which slowed homebrew adoption. The patent has since expired (~2017), which is why Pi-Star and OpenSpot can now transcode D-STAR audio without buying a chip from DVSI.
 
 ### The data side
 

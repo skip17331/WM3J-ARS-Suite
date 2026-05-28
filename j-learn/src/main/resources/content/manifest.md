@@ -37,12 +37,12 @@ status: stub                  # one of: stub | draft | review | published
 Sections are tagged at the *file* level by the `level` field. Within `mixed` files, individual paragraphs intended for Extra-class / engineering depth are marked with a markdown blockquote that begins with the literal callout marker:
 
 ```markdown
-> ⚙️ **Advanced —** The MUF varies with the Earth's magnetic field
+> **Advanced —** The MUF varies with the Earth's magnetic field
 > direction relative to the path because the Appleton-Hartree equation
 > depends on the angle between propagation and B…
 ```
 
-Renderers in **simple mode** elide every blockquote whose first non-whitespace text starts with `⚙️ **Advanced —**`. **Advanced mode** renders them inline with a distinct visual style. The marker is a literal string, not a regex — keep the spacing and emoji exactly as shown.
+Renderers in **simple mode** elide every blockquote whose first non-whitespace text starts with `**Advanced —**`. **Advanced mode** renders them inline with a distinct visual style. The marker is a literal string, not a regex — keep the spacing and emoji exactly as shown.
 
 ---
 

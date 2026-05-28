@@ -9,7 +9,7 @@ status: draft
 
 # Power Delivered vs Lost
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section ties the previous three together: knowing matched-line loss (§10-01), SWR (§10-02), and mismatch loss (§10-03), how much of your transmitter's power actually reaches the antenna? And where does the lost power go?
 

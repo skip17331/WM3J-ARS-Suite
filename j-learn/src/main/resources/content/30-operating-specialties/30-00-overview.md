@@ -9,7 +9,7 @@ status: draft
 
 # Operating Specialties — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Most amateur radio operators spend their on-air time on a handful of well-trodden paths: HF SSB ragchews, FM repeaters, FT8, the occasional contest weekend. The bands offer far more than that. There's a layer of **specialty operating** that uses propagation paths and operating styles the casual ham never touches — paths that turn 80 m into a statewide intercom, paths that bounce VHF signals off ionized meteor trails, paths that go *through the moon*.
 

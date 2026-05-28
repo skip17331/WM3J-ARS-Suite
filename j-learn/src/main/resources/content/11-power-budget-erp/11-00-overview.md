@@ -9,7 +9,7 @@ status: draft
 
 # Power Budget & ERP — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A "100 W station" doesn't put 100 W on the air. The transmitter delivers some watts; the feedline consumes some; the antenna re-radiates some — and the *direction* it radiates determines whether the signal makes it to your contact. Everything between PA output and the wave heading toward the other operator is the **power budget** of your station.
 

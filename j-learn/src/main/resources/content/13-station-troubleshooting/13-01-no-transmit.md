@@ -9,7 +9,7 @@ status: draft
 
 # No Transmit
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 You key the mic and nothing happens. No power output. No "TX" indicator on the radio. Or the radio shows TX but no power reaches the antenna.
 
@@ -38,7 +38,7 @@ If the radio enters TX but produces no RF:
 - **Check the PA voltage rail.** With a multimeter on the PA voltage test point (consult the service manual), you should see the radio's nominal supply (12.0–13.8 V for most HF rigs).
 - **Listen for relay click.** Modern radios use solid-state TX/RX switching; older ones use relays. A quiet relay = it's not switching. A dead relay (no click) means the relay coil failed or the driver transistor died.
 
-> ⚙️ **Advanced —** Modern transceivers with solid-state TX/RX switching use PIN-diode pairs that need a small DC bias to switch. A failed bias supply can cause "TX mode but no RF output" with no obvious indicator. The service manual will document the bias voltage at each diode; ~+5 V or +12 V are typical depending on design.
+> **Advanced —** Modern transceivers with solid-state TX/RX switching use PIN-diode pairs that need a small DC bias to switch. A failed bias supply can cause "TX mode but no RF output" with no obvious indicator. The service manual will document the bias voltage at each diode; ~+5 V or +12 V are typical depending on design.
 
 ## Step 3 — Is the ALC pegged?
 

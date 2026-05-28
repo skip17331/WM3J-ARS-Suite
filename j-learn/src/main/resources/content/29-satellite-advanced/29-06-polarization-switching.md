@@ -9,7 +9,7 @@ status: draft
 
 # Polarization Switching
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 LEO satellites tumble. Their transmitted polarization rotates relative to the ground observer throughout a pass — sometimes slowly (a few degrees per minute, on stable spin-stabilized birds like AO-7), sometimes rapidly (tens of degrees per minute on tumbling CubeSats). A fixed-polarization ground antenna sees the satellite's signal **fade in and out** as the polarization drifts in and out of match.
 
@@ -54,7 +54,7 @@ For 437 MHz: λ/4 = 17.2 cm free-space; with LMR-400, physical length 14.4 cm.
 
 Get the length wrong and the polarization is degraded — not horribly, but enough that you lose some of the benefit of having a switchable antenna at all. Most commercial harnesses are factory-trimmed and tested. Homebrew harnesses require careful measurement, ideally with a vector network analyzer to verify the phase shift at the operating frequency.
 
-> ⚙️ **Advanced —** A perfectly-phased crossed Yagi gives 3 dB more gain over a linearly-polarized antenna when receiving the matching circular polarization (because you're capturing both polarization components instead of half of them), and infinite cross-polarization rejection of the opposite circular handedness. In practice, manufacturing tolerances limit the cross-pol rejection to about 20 dB. The "axial ratio" spec — the ratio of major-to-minor axis of the polarization ellipse — should be under 1 dB for a good circular antenna; commercial M2 OP-series antennas typically deliver 0.5-0.8 dB axial ratio across the operating band.
+> **Advanced —** A perfectly-phased crossed Yagi gives 3 dB more gain over a linearly-polarized antenna when receiving the matching circular polarization (because you're capturing both polarization components instead of half of them), and infinite cross-polarization rejection of the opposite circular handedness. In practice, manufacturing tolerances limit the cross-pol rejection to about 20 dB. The "axial ratio" spec — the ratio of major-to-minor axis of the polarization ellipse — should be under 1 dB for a good circular antenna; commercial M2 OP-series antennas typically deliver 0.5-0.8 dB axial ratio across the operating band.
 
 ## Auto-rotors with sequenced switching
 

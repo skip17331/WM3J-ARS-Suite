@@ -9,7 +9,7 @@ status: draft
 
 # Loose Hardware
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Sometimes the noise source isn't a damaged insulator or a bad transformer — it's just a bolt, ground strap, or guy wire that's slightly loose. The high-voltage line induces tiny voltages on adjacent metal hardware; if a connection isn't tight, those induced voltages create micro-arcs that radiate just like an insulator arc.
 

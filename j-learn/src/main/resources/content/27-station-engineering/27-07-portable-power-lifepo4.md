@@ -9,7 +9,7 @@ status: draft
 
 # Portable Power — LiFePO4
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Portable amateur radio — POTA, SOTA, Field Day, emcomm deployment — is power-budget-constrained in a way the home shack isn't. The choice of battery determines how long the station runs, how much it weighs, and how safe it is to throw in a backpack. Since around 2020, **LiFePO4** (lithium iron phosphate) has displaced lead-acid as the amateur standard for portable. This section covers why, how to use it, and what to watch for.
 
@@ -159,7 +159,7 @@ Despite LFP's safety advantage over NMC and LiCoO2, it's still a lithium battery
 - **Don't expose to fire**. LFP doesn't go into thermal runaway easily, but it will burn if you put it in a campfire.
 - **Use proper terminal protection** when storing — Powerpole connectors cap themselves; bare ring terminals should be wrapped.
 
-> ⚙️ **Advanced —** Inside a 12 V LFP pack are four cells in series. The BMS monitors each cell individually. As the pack ages, cells drift apart in capacity — a 1% difference at year zero becomes a 5–10% difference at year five. A "balancing" BMS slowly shunts current around the high cell during charging, allowing the low cell to catch up. Without balancing (cheap BMS), one cell hits cutoff before the others, and the pack's usable capacity drops. The Bioenno BPC chargers actively perform a balance charge every few cycles. For high-cycle applications (daily off-grid), this is worth the extra $30.
+> **Advanced —** Inside a 12 V LFP pack are four cells in series. The BMS monitors each cell individually. As the pack ages, cells drift apart in capacity — a 1% difference at year zero becomes a 5–10% difference at year five. A "balancing" BMS slowly shunts current around the high cell during charging, allowing the low cell to catch up. Without balancing (cheap BMS), one cell hits cutoff before the others, and the pack's usable capacity drops. The Bioenno BPC chargers actively perform a balance charge every few cycles. For high-cycle applications (daily off-grid), this is worth the extra $30.
 
 ## When LFP isn't the right choice
 

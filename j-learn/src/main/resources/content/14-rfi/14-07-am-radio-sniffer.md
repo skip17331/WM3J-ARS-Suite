@@ -9,7 +9,7 @@ status: draft
 
 # AM Radio Sniffer
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A cheap portable AM radio is the single most useful RFI direction-finding tool. It works on virtually any RFI source, costs $20, fits in a pocket, and runs on AA batteries. If you do any RFI hunting at all, get one.
 
@@ -129,7 +129,7 @@ A few cases:
 
 For 95% of household RFI cases, the AM radio finds it.
 
-> ⚙️ **Advanced —** The ferrite loop antenna in a portable AM radio has a directional response approximated by `cos(θ)` for the broadside angle θ. That cosine response gives the deep null at θ = 90° (perpendicular to the loop axis) and the peak at θ = 0° (along the loop axis). The depth of the null can exceed 30 dB in a well-designed antenna; the peak-to-null ratio is what gives the directional accuracy. For more precise direction-finding, professional equipment uses a narrow Adcock array or a phased loop pair, but a single loop in a $20 portable is enough for typical RFI hunting.
+> **Advanced —** The ferrite loop antenna in a portable AM radio has a directional response approximated by `cos(θ)` for the broadside angle θ. That cosine response gives the deep null at θ = 90° (perpendicular to the loop axis) and the peak at θ = 0° (along the loop axis). The depth of the null can exceed 30 dB in a well-designed antenna; the peak-to-null ratio is what gives the directional accuracy. For more precise direction-finding, professional equipment uses a narrow Adcock array or a phased loop pair, but a single loop in a $20 portable is enough for typical RFI hunting.
 
 ## See also
 

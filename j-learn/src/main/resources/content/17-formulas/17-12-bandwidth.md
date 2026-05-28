@@ -9,7 +9,7 @@ status: draft
 
 # Bandwidth
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Bandwidth is the frequency range over which a circuit, antenna, or signal operates. It's defined by where some quantity drops to a specified threshold — typically the 3-dB-down points (half-power points) of a filter or antenna's response.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Inverted V
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The inverted V is a dipole with the center supported high and the ends drooping toward the ground. It's the antenna most hams *actually* end up with on HF, because it solves a real problem: a flat-top dipole needs **two** tall supports, and most yards only have **one** good tree, mast, or roof peak.
 
@@ -69,7 +69,7 @@ An inverted V at 0.4 λ above ground typically shows:
 - **Higher angle of radiation** than a flat-top dipole at the same center height, because the drooping legs add a vertical component. This actually **helps for short-skip / NVIS** work (talking to stations 100–500 km away) and slightly hurts for long-haul DX.
 - **Some vertical polarization mixed in** — typically 10–20% by power. This makes it slightly more compatible with vertically polarized stations.
 
-> ⚙️ **Advanced —** The current distribution along an inverted V is essentially the same as a dipole — sinusoidal, peaking at the feedpoint. What changes is the geometry of how that current vector projects into the far field. The drooping legs give a downward-pointing component that adds constructively in the zenith direction (good for NVIS) and destructively at low elevations (worse for DX). Modeling in NEC shows about a 0.5 dB elevation-pattern shift toward higher angles for a 120° apex, and 1.5 dB shift for a 90° apex.
+> **Advanced —** The current distribution along an inverted V is essentially the same as a dipole — sinusoidal, peaking at the feedpoint. What changes is the geometry of how that current vector projects into the far field. The drooping legs give a downward-pointing component that adds constructively in the zenith direction (good for NVIS) and destructively at low elevations (worse for DX). Modeling in NEC shows about a 0.5 dB elevation-pattern shift toward higher angles for a 120° apex, and 1.5 dB shift for a 90° apex.
 
 ## When to pick a V over a flat-top
 

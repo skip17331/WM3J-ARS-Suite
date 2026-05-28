@@ -9,7 +9,7 @@ status: draft
 
 # Ohm's Law
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The single most-cited equation in radio. Relates voltage, current, and resistance in any DC circuit (and any AC circuit dominated by resistance).
 
@@ -63,7 +63,7 @@ Now the rig sees 12.92 V. Most rigs start cutting back power below 13.0 V, so th
 - **Ignoring connector and fuse-holder resistance.** A loose Anderson Powerpole or corroded ring terminal can add 0.05–0.1 Ω, which at 22 A drops another volt or two. Re-crimp suspect connectors.
 - **Confusing AC and DC values.** Ohm's Law in this form applies cleanly to DC. For AC with reactance, use complex impedance instead (§17-04).
 
-> ⚙️ **Advanced —** Ohm's Law is exact for ideal resistors. Real resistors have temperature coefficients (carbon-comp can drift ±5%/°C; metal film is ±50 ppm/°C) and skin-effect at RF (the effective AC resistance of a wire above ~1 MHz is higher than the DC resistance, because current crowds toward the surface). For RF power-handling design, use the AC resistance from the wire's datasheet.
+> **Advanced —** Ohm's Law is exact for ideal resistors. Real resistors have temperature coefficients (carbon-comp can drift ±5%/°C; metal film is ±50 ppm/°C) and skin-effect at RF (the effective AC resistance of a wire above ~1 MHz is higher than the DC resistance, because current crowds toward the surface). For RF power-handling design, use the AC resistance from the wire's datasheet.
 
 ## See also
 

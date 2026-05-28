@@ -9,7 +9,7 @@ status: draft
 
 # DXing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -53,7 +53,7 @@ A contact doesn't count until both stations confirm it. Two methods:
 
 Other systems (eQSL, ClubLog, QRZ.com logbook) exist but don't count toward DXCC. LoTW or paper are the only official paths.
 
-> ⚙️ **Advanced —** LoTW uses X.509 certificates issued by ARRL after a postal verification of your address. The protocol is `tqsl`, an open-source signing tool. Your log is signed locally, uploaded to ARRL, and matched against the other station's signed log. Forged confirmations are essentially impossible because both endpoints sign independently. The system has confirmed over 1.6 billion QSOs since 2003.
+> **Advanced —** LoTW uses X.509 certificates issued by ARRL after a postal verification of your address. The protocol is `tqsl`, an open-source signing tool. Your log is signed locally, uploaded to ARRL, and matched against the other station's signed log. Forged confirmations are essentially impossible because both endpoints sign independently. The system has confirmed over 1.6 billion QSOs since 2003.
 
 ## The two mindsets
 

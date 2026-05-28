@@ -9,7 +9,7 @@ status: draft
 
 # ICS Basics for Amateur Operators
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **Incident Command System (ICS)** is the standardized framework used by U.S. emergency response organizations — federal, state, local, tribal — for managing any incident, from a single-vehicle accident up through nationwide disasters. When amateur radio supports a real emergency response, you are operating *within* an ICS structure. Understanding how ICS works, where you fit in, and what the served agency expects from you is more important than your technical radio skills.
 
@@ -152,7 +152,7 @@ Format and content are different from NTS radiograms (§21-01). Both can be tran
 
 NBEMS (Fldigi-based digital messaging) supports ICS-213 transmission directly: the form is filled out on screen, transmitted via Fldigi over the radio, and reconstructed at the receiving end.
 
-> ⚙️ **Advanced —** ICS terminology has specific definitions that diverge from common English. "Resource" = any person, equipment, or supply. "Type" = capability rating (Type 1 is most-capable; Type 5 is least). "Strike Team" = same-type resources working together. "Task Force" = mixed-type resources working together. The full glossary runs hundreds of terms; FEMA's ICS Resource Center has a complete reference. For amateur operators, IS-100 covers the essential vocabulary.
+> **Advanced —** ICS terminology has specific definitions that diverge from common English. "Resource" = any person, equipment, or supply. "Type" = capability rating (Type 1 is most-capable; Type 5 is least). "Strike Team" = same-type resources working together. "Task Force" = mixed-type resources working together. The full glossary runs hundreds of terms; FEMA's ICS Resource Center has a complete reference. For amateur operators, IS-100 covers the essential vocabulary.
 
 ## Common ICS mistakes for new amateur operators
 

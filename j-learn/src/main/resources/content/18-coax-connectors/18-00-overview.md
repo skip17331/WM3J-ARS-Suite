@@ -9,7 +9,7 @@ status: draft
 
 # Coax & Connectors — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is the **reference appendix** for transmission lines and the connectors that go on them. It complements §06-10 (feedline effects on antenna behavior), §10 (feedline & SWR), and §16-04 (coax replacement) by being the place you look up "what is RG-213's loss at 50 MHz" or "what's the difference between PL-259 and N."
 

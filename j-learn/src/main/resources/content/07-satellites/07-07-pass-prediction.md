@@ -9,7 +9,7 @@ status: draft
 
 # Pass Prediction
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A satellite pass is a window of time when the satellite is visible from your location — between AOS (acquisition of signal, when it crests your horizon) and LOS (loss of signal, when it drops back below). For a low-Earth-orbit (LEO) satellite, that window is typically 5 to 15 minutes. For a higher orbit, longer; for geostationary, the satellite is either always visible or never visible.
 

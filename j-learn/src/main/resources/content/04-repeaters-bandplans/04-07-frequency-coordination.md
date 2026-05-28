@@ -9,7 +9,7 @@ status: draft
 
 # Frequency Coordination
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 In every region of the country there's a volunteer organization called a **frequency coordinator**. Their job: keep two repeaters from being put on the same frequency in the same area. Their tool is a **coordinated repeater list** that you must consult — and respect — before lighting up a new repeater.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Antenna Recommender
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The recommender is a **questionnaire-driven decision tool** that maps your living situation, lot, supports, and operating goals to a ranked list of antennas you can realistically build at your QTH. It's the answer to the most-asked question on every ham forum: "What antenna should I put up?"
 
@@ -125,25 +125,25 @@ Antennas with score ≥ 0.7 × top-score appear in the result list, with explana
    ✓ Two oaks on the lot are perfect supports (B3)
    ✓ Lot length 65 ft fits a 40m dipole (B1, C1)
    ✓ Wire-cheap; easy first build (D1, D3)
-   ⚠ Single-band; consider fan or trapped variant for multi-band
+   Single-band; consider fan or trapped variant for multi-band
    → Launch calculator
 
 2. End-Fed Half-Wave 40-10m            score 7.9
    ✓ Single end-support sufficient — only need one tree (B3)
    ✓ Covers 40 / 20 / 15 / 10m harmonically (C1)
-   ⚠ Requires 49:1 unun (small kit); first-build is moderate (D3)
+   Requires 49:1 unun (small kit); first-build is moderate (D3)
    → Launch calculator
 
 3. Multi-band Vertical                 score 7.5
-   ⚠ Requires 8-16 buried radials (B7 — your soil is good)
+   Requires 8-16 buried radials (B7 — your soil is good)
    ✓ Low visual profile (D5)
-   ⚠ Less favorable for high takeoff angle (C5 NVIS deprioritized)
+   Less favorable for high takeoff angle (C5 NVIS deprioritized)
    → Launch calculator
 ```
 
 The "Why this fits" lines reference the question codes (A1, B3, C1, etc.) so the operator can trace each judgment back to their answers.
 
-> ⚙️ **Advanced —** The scoring weights are tuneable. Defaults err toward "what works at most US suburban QTHs"; an HOA-restricted condo dweller and a 10-acre rural ham have wildly different priorities. The Antenna Workshop UI exposes a "weights" panel for advanced users to bias the recommender (e.g., set "stealth" weight to 1.0 if you must be invisible).
+> **Advanced —** The scoring weights are tuneable. Defaults err toward "what works at most US suburban QTHs"; an HOA-restricted condo dweller and a 10-acre rural ham have wildly different priorities. The Antenna Workshop UI exposes a "weights" panel for advanced users to bias the recommender (e.g., set "stealth" weight to 1.0 if you must be invisible).
 
 ## Worked example — single-family suburban, 80×120 ft lot, two oaks, no tower yet
 
@@ -186,22 +186,22 @@ Recommender output (top 3):
    ✓ Harmonic on 40 / 20 / 15 / 10m matches your bands (C1)
    ✓ Wire is invisible from street under roof line (D5)
    ✓ LMR-400 (E2) handles full 100 W comfortably
-   ⚠ Requires 49:1 unun (~$80 kit) and tuner (✓ E3)
-   ⚠ Bandwidth tight — tuner needed for FT8 vs SSB on same band
+   Requires 49:1 unun (~$80 kit) and tuner (✓ E3)
+   Bandwidth tight — tuner needed for FT8 vs SSB on same band
    → Launch calculator
 
 2. Trapped Multi-band Dipole 80-40-20m, 70 ft @ 30 ft     score 8.1
    ✓ 80 ft span fits horizontally between oaks (B1)
    ✓ Resonant on 80/40/20 with no tuner — cleaner FT8 (C3)
-   ⚠ Trap construction is a 1-2 weekend project (D2)
-   ⚠ More visible (3 traps + apex hardware) (D5)
+   Trap construction is a 1-2 weekend project (D2)
+   More visible (3 traps + apex hardware) (D5)
    → Launch calculator
 
 3. Multi-band Vertical (Hustler 5-BTV equivalent)         score 7.4
    ✓ Low visual profile if mounted at the edge of yard (D5)
    ✓ Low takeoff angle good for DX (C5, C6)
-   ⚠ Requires 16+ radials (B7 - lawn is workable)
-   ⚠ Single feedline run; performance highly soil-dependent
+   Requires 16+ radials (B7 - lawn is workable)
+   Single feedline run; performance highly soil-dependent
    → Launch calculator
 ```
 

@@ -9,7 +9,7 @@ status: draft
 
 # CW Prosigns
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **prosign** (procedural signal) is a single Morse pattern that has a procedural meaning beyond the simple letters that compose it. Many prosigns are formed by **concatenating two letters without the inter-letter space** — sending them as one continuous pattern. They function like punctuation marks for a CW transmission: signaling start, end, separation, error, and other procedural cues.
 
@@ -168,7 +168,7 @@ Prosigns and Q-codes serve overlapping purposes:
 
 Prosigns are *procedural* (about the protocol of the transmission); Q-codes are *content* (about the meaning of the message). In an actual QSO, you'll mix them naturally.
 
-> ⚙️ **Advanced —** The "concatenated letter" prosigns are fundamentally Morse trigrams (or longer) that don't decode as any single letter. The receiving operator's brain learns to recognize them as patterns, the same way it learns single letters — but as longer-than-letter recognized units. This is part of why high-speed CW operators read by sound-pattern rather than letter-by-letter; prosigns are just one example of the broader pattern-recognition skill.
+> **Advanced —** The "concatenated letter" prosigns are fundamentally Morse trigrams (or longer) that don't decode as any single letter. The receiving operator's brain learns to recognize them as patterns, the same way it learns single letters — but as longer-than-letter recognized units. This is part of why high-speed CW operators read by sound-pattern rather than letter-by-letter; prosigns are just one example of the broader pattern-recognition skill.
 
 ## Common mistakes
 

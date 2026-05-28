@@ -9,7 +9,7 @@ status: draft
 
 # Measuring Station Noise Floor
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **noise floor** of your station is the minimum signal level you can usefully receive. Below it, signals disappear into "grass" on the band. The noise floor on every HF station is dominated by **ambient noise picked up by the antenna** — not by the receiver's internal noise — and is *not* something you control by tuning the rig.
 
@@ -40,7 +40,7 @@ By band, noise generally falls with frequency:
 - 15 m / 10 m: lower (less atmospheric noise, but more man-made if you're in a city)
 - 6 m / 2 m / 70 cm: lowest (the receiver's own noise figure becomes the floor on a quiet day)
 
-> ⚙️ **Advanced —** The fundamental noise floor of the universe at amateur HF frequencies is about **-160 dBm/Hz** of cosmic background and galactic noise. In a 2.5 kHz SSB bandwidth that's about -126 dBm, equivalent to S1. Anything above that is *additional* noise from atmospheric, man-made, or receiver sources. Your antenna captures all of it; the rig amplifies it but can't reduce it. The only path to lower noise floor is a better antenna location, a directional antenna that nulls the noise source, or moving the noise source.
+> **Advanced —** The fundamental noise floor of the universe at amateur HF frequencies is about **-160 dBm/Hz** of cosmic background and galactic noise. In a 2.5 kHz SSB bandwidth that's about -126 dBm, equivalent to S1. Anything above that is *additional* noise from atmospheric, man-made, or receiver sources. Your antenna captures all of it; the rig amplifies it but can't reduce it. The only path to lower noise floor is a better antenna location, a directional antenna that nulls the noise source, or moving the noise source.
 
 ## S-units and dBm
 
@@ -81,7 +81,7 @@ Procedure:
 
 The typical HF station shows `S_antenna - S_dummy` in the range of 15–30 dB — confirmation that external noise is the limiter and that pursuing RFI mitigation will improve receive sensitivity.
 
-> ⚙️ **Advanced —** Receiver-noise-limited operation is normal on VHF/UHF where atmospheric noise is low. On 2 m, a station with a 0.5 dB NF preamp and a clean antenna mounting site may have receiver noise = antenna noise within ~3 dB. This is the regime where preamp noise figure improvements actually buy you better detection threshold. On HF, even a perfect noise-free receiver wouldn't help because the antenna delivers atmospheric and man-made noise far above the rig's noise floor.
+> **Advanced —** Receiver-noise-limited operation is normal on VHF/UHF where atmospheric noise is low. On 2 m, a station with a 0.5 dB NF preamp and a clean antenna mounting site may have receiver noise = antenna noise within ~3 dB. This is the regime where preamp noise figure improvements actually buy you better detection threshold. On HF, even a perfect noise-free receiver wouldn't help because the antenna delivers atmospheric and man-made noise far above the rig's noise floor.
 
 ## Procedure for identifying band-specific noise sources
 
@@ -143,7 +143,7 @@ Calibration: feed a calibrated signal generator at known dBm into the rig's ante
 
 Then for noise floor: read S-units, convert to dBm using the calibration, and report dBm. Or use a software spectrum-display tool (PowerSDR, SDR-Console, Quisk) that reads directly in dBm.
 
-> ⚙️ **Advanced —** "Noise floor" in dBm depends on bandwidth. A 2.5 kHz SSB filter delivers 10×log10(2500/500) = 7 dB more noise than a 500 Hz CW filter from the same external source. Specifying noise floor without specifying bandwidth is ambiguous; always say "S2 in 500 Hz CW" or "-110 dBm in 2.5 kHz SSB."
+> **Advanced —** "Noise floor" in dBm depends on bandwidth. A 2.5 kHz SSB filter delivers 10×log10(2500/500) = 7 dB more noise than a 500 Hz CW filter from the same external source. Specifying noise floor without specifying bandwidth is ambiguous; always say "S2 in 500 Hz CW" or "-110 dBm in 2.5 kHz SSB."
 
 ## Common mistakes
 

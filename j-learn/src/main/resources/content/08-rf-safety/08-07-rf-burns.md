@@ -9,7 +9,7 @@ status: draft
 
 # RF Burns
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 An RF burn is what happens when you touch (or get near) a high-voltage point of a transmitting antenna. Unlike a thermal burn, which heats the skin from the surface, an RF burn deposits energy *into* tissue at high frequency, often producing deep, slow-healing injuries that can be more severe than they look on the surface.
 
@@ -151,7 +151,7 @@ For clarity:
 - **The "tingling sensation" some operators feel** when touching radio gear during TX is RF "shock" — capacitive coupling of station ground potential through your body. Annoying, not usually injurious, but indicates poor station grounding (see §13-05).
 - **MPE non-compliance does not imply burn risk.** Bystanders 30 ft from your antenna might exceed MPE limits without ever being at burn risk; burn risk requires direct contact with the high-voltage components.
 
-> ⚙️ **Advanced —** RF tissue heating at HF and lower-VHF frequencies is dominated by **ohmic heating** in the highest-conductivity tissue layers (typically the dermis and subdermal fat). At higher frequencies (UHF and microwave) the dominant mechanism shifts to **dielectric heating** of water-rich tissue. This is why HF RF burns are often shallow (1–3 mm) but characterized by surface charring, while microwave RF damage is often deeper and characterized by inner-tissue hyperthermia. The thermal time constant of skin is on the order of 1 second; brief contact (< 0.5 s) is much less injurious than sustained contact.
+> **Advanced —** RF tissue heating at HF and lower-VHF frequencies is dominated by **ohmic heating** in the highest-conductivity tissue layers (typically the dermis and subdermal fat). At higher frequencies (UHF and microwave) the dominant mechanism shifts to **dielectric heating** of water-rich tissue. This is why HF RF burns are often shallow (1–3 mm) but characterized by surface charring, while microwave RF damage is often deeper and characterized by inner-tissue hyperthermia. The thermal time constant of skin is on the order of 1 second; brief contact (< 0.5 s) is much less injurious than sustained contact.
 
 ## Common mistakes
 

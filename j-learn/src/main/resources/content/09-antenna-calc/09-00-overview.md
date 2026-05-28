@@ -9,7 +9,7 @@ status: draft
 
 # Antenna Workshop — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is the **antenna design and calculation workshop** for the ARS Suite. It pairs a comprehensive set of calculators (lengths, trap values, loading coils, Yagi geometry, OCF feed points, EFHW transformer ratios) with a **questionnaire-driven recommender** that suggests appropriate antenna types based on your living situation, lot, supports, and operating goals.
 
@@ -87,7 +87,7 @@ For the lengths (dipole, EFHW, vertical), expect **±3–8%** off the calculator
 
 Plan to **trim** every antenna after installation. The calculators give you a starting length; the analyzer tells you the truth. §09-15 walks through the trim workflow.
 
-> ⚙️ **Advanced —** For installations where ±5% length error matters (matching restored antique gear, EME on 1296 MHz, narrow-band beacons), use a NEC-2 or NEC-4 modeling package (4nec2, EZNEC, MMANA-GAL) instead of these closed-form formulas. The calculator's purpose is to get you 95% of the way for 1% of the modeling effort.
+> **Advanced —** For installations where ±5% length error matters (matching restored antique gear, EME on 1296 MHz, narrow-band beacons), use a NEC-2 or NEC-4 modeling package (4nec2, EZNEC, MMANA-GAL) instead of these closed-form formulas. The calculator's purpose is to get you 95% of the way for 1% of the modeling effort.
 
 ## See also
 

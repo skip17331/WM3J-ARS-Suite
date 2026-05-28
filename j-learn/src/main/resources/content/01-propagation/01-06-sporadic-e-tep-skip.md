@@ -9,7 +9,7 @@ status: draft
 
 # Sporadic E, TEP, Skip
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The regular F2 propagation in §01-04 follows predictable rules. These three phenomena don't. They ignore the solar cycle, they show up out of nowhere, and they make the high bands and the low VHF do things they "shouldn't." Once you learn the patterns, you can chase them — but they will always have the last word.
 
@@ -37,7 +37,7 @@ Within the season, Es openings tend to:
 
 The exact mechanism is still debated, but the leading theory is **wind shear**: opposing tidal winds in the upper E region trap ionized particles (especially metals from meteor ablation — iron, magnesium, sodium) into thin layers. When these layers get dense enough, they reflect signals up to the VHF. The metallic ions recombine slowly enough to stay around for hours.
 
-> ⚙️ **Advanced —** The wind-shear hypothesis (Whitehead 1961, refined by many since) explains the temporal patterns and the metallic-ion content seen in rocket data. The horizontal extent of an Es cloud is typically 50–500 km; vertical extent is just 1–2 km — these are thin sheets, not clouds. Reflection efficiency is very high; loss can be under 1 dB per hop. The MUF for a single Es hop is sometimes called the **Es-MUF** or **fEs**; values reach 50 MHz routinely in summer, 100 MHz on big days, and over 200 MHz on the absolute monster days. Multi-hop Es paths are common and add roughly geometrically.
+> **Advanced —** The wind-shear hypothesis (Whitehead 1961, refined by many since) explains the temporal patterns and the metallic-ion content seen in rocket data. The horizontal extent of an Es cloud is typically 50–500 km; vertical extent is just 1–2 km — these are thin sheets, not clouds. Reflection efficiency is very high; loss can be under 1 dB per hop. The MUF for a single Es hop is sometimes called the **Es-MUF** or **fEs**; values reach 50 MHz routinely in summer, 100 MHz on big days, and over 200 MHz on the absolute monster days. Multi-hop Es paths are common and add roughly geometrically.
 
 ### Practical operating
 
@@ -62,7 +62,7 @@ The geomagnetic equator does odd things to the F2 layer. Ionization is forced up
 
 This is **not** simple two-hop F2. It's a coupled-mode propagation that follows the magnetic field geometry, and it's why it works at frequencies that "shouldn't" propagate F2 at all.
 
-> ⚙️ **Advanced —** Two TEP modes are distinguished: **afternoon TEP**, which is the slower-fading mode supporting MUFs up to ~50–60 MHz; and **evening TEP**, the spread-F mode that can punch up to 144 MHz and beyond at solar maximum. Evening TEP signals show characteristic flutter and echo because of the spread-F structure they pass through. Both modes require the path midpoint to lie roughly on the geomagnetic equator (not the geographic equator — the dip is near 0° magnetic latitude).
+> **Advanced —** Two TEP modes are distinguished: **afternoon TEP**, which is the slower-fading mode supporting MUFs up to ~50–60 MHz; and **evening TEP**, the spread-F mode that can punch up to 144 MHz and beyond at solar maximum. Evening TEP signals show characteristic flutter and echo because of the spread-F structure they pass through. Both modes require the path midpoint to lie roughly on the geomagnetic equator (not the geographic equator — the dip is near 0° magnetic latitude).
 
 ### Practical operating
 

@@ -9,7 +9,7 @@ status: draft
 
 # DMR Talkgroups
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What a talkgroup is
 
@@ -68,7 +68,7 @@ These are the BrandMeister assignments — they are *almost* the same on IPSC2 /
 
 The number range is structured: 1–9 is special (local, disconnect), 1–9999 is global/regional, 31XXX is US state, 310XXX is US local, and other countries have their own prefixes (3026 = Canada, 235 = UK, 268 = Ireland, 505 = Australia, 511 = New Zealand, etc. — the ITU country code stripped of the leading "2" or with the leading "+" stripped depending on convention).
 
-> ⚙️ **Advanced —** BrandMeister assigns talkgroup numbers using a loose hierarchy: 1-digit = network primitives, 2-3 digit = continental/national, 4-5 digit = regional / state, 6-7 digit = club / local interest. Anyone can request a new talkgroup via the BrandMeister web portal — it's a free-form namespace. IPSC2 is more curated; talkgroup creation requires a sysop. Cross-network talkgroup numbers do not always match — TG 3100 on BrandMeister is "USA Nationwide", but the same number on TGIF Network has different semantics. Always check the network's TG list, not just the number.
+> **Advanced —** BrandMeister assigns talkgroup numbers using a loose hierarchy: 1-digit = network primitives, 2-3 digit = continental/national, 4-5 digit = regional / state, 6-7 digit = club / local interest. Anyone can request a new talkgroup via the BrandMeister web portal — it's a free-form namespace. IPSC2 is more curated; talkgroup creation requires a sysop. Cross-network talkgroup numbers do not always match — TG 3100 on BrandMeister is "USA Nationwide", but the same number on TGIF Network has different semantics. Always check the network's TG list, not just the number.
 
 ## Static vs dynamic talkgroups
 

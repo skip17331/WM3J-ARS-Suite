@@ -9,7 +9,7 @@ status: draft
 
 # Pactor — Commercial-Grade HF Data
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -43,7 +43,7 @@ Pactor's architecture is **half-duplex ARQ**: one station transmits a block, the
 
 **Memory ARQ** is Pactor's secret weapon: when a block fails to decode, the receiver doesn't throw it away. It stores the soft-decision symbol estimates and combines them with the retransmitted copy. After 2–3 retries, the soft-combined version often decodes even though no individual copy could.
 
-> ⚙️ **Advanced —** Pactor IV's PMC (Pseudo-Markov Compression) achieves ~1.7× compression on English text and ~3× on typical email headers (which are highly structured). Combined with LZ77 dictionary compression for repeated phrases, an email with PMC sometimes transfers in *half* the air time of the same email uncompressed. On Pactor III, PMC alone was already a major throughput win — it's why a Pactor III link "feels" faster than its raw symbol rate suggests.
+> **Advanced —** Pactor IV's PMC (Pseudo-Markov Compression) achieves ~1.7× compression on English text and ~3× on typical email headers (which are highly structured). Combined with LZ77 dictionary compression for repeated phrases, an email with PMC sometimes transfers in *half* the air time of the same email uncompressed. On Pactor III, PMC alone was already a major throughput win — it's why a Pactor III link "feels" faster than its raw symbol rate suggests.
 
 ## Why use it
 

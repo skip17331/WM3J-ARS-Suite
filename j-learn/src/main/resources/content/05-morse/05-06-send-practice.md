@@ -9,7 +9,7 @@ status: draft
 
 # Send Practice
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Copying CW (receiving) and sending CW are different skills. You can be a perfect copyist and send miserably; you can be a great sender and miss half of what comes back. Most operators learn copy first, then sending — but some experienced ops will tell you to start sending sooner. The truth is that they reinforce each other, so once you've got 5 or 6 characters down in copy, start practicing sending too.
 
@@ -115,7 +115,7 @@ Your "fist" is your distinctive sending style. Even with a perfect electronic ke
 
 Record a few minutes of your sending periodically. Listen back a week later. You'll hear yourself with fresh ears and notice habits you didn't realize you had.
 
-> ⚙️ **Advanced —** A "good fist" historically meant clean, even straight-key sending. The phrase predates electronic keyers. Today the term still applies — operators sending with a paddle and keyer have a fist defined by their inter-character timing, their handling of common abbreviations (do you send "73" with a single inter-character gap or two?), and their use of ad-libbed words. CW skimmers can identify operators by their fist with surprising accuracy after a few minutes of listening, which is one reason competitive contest ops vary their inter-character timing slightly to remain "anonymous" between different stations.
+> **Advanced —** A "good fist" historically meant clean, even straight-key sending. The phrase predates electronic keyers. Today the term still applies — operators sending with a paddle and keyer have a fist defined by their inter-character timing, their handling of common abbreviations (do you send "73" with a single inter-character gap or two?), and their use of ad-libbed words. CW skimmers can identify operators by their fist with surprising accuracy after a few minutes of listening, which is one reason competitive contest ops vary their inter-character timing slightly to remain "anonymous" between different stations.
 
 ## Common sending mistakes
 

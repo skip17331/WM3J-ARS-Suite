@@ -9,7 +9,7 @@ status: draft
 
 # Grounding for Homebrew
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Why grounding is the silent killer
 
@@ -67,7 +67,7 @@ A typical homebrew transmitter or receiver has these "ground" subcircuits, each 
 
 The star is often *not* the chassis itself — it's a separate single point inside the box, with one final short wire from the star to the chassis. This way the chassis "ground" is one branch of the star, not the meeting point of everything.
 
-> ⚙️ **Advanced —** Some designs (Doug DeMaw W1FB's *QRP Notebook*; Wes Hayward W7ZOI's *Solid State Design*) use **multiple stars** in cascade — a "tree" structure. The transmitter front end has its own local star; the final amplifier has another; the audio section has a third. Each local star connects to a master star via a single wire. This works for complex designs but adds discipline; if you're a beginner, stick with a single star.
+> **Advanced —** Some designs (Doug DeMaw W1FB's *QRP Notebook*; Wes Hayward W7ZOI's *Solid State Design*) use **multiple stars** in cascade — a "tree" structure. The transmitter front end has its own local star; the final amplifier has another; the audio section has a third. Each local star connects to a master star via a single wire. This works for complex designs but adds discipline; if you're a beginner, stick with a single star.
 
 ## Ground loops — the disease star grounding cures
 

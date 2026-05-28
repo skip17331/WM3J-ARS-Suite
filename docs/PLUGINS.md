@@ -57,14 +57,14 @@ station classification, and per-mode multiplier counting.
 
 | Field | Type | Req | Purpose |
 |---|---|---|---|
-| `contestId` | string | ✅ | Unique key. Caching + dedup happens on this. |
-| `contestName` | string | ✅ | Display name in the contest chooser. |
+| `contestId` | string | | Unique key. Caching + dedup happens on this. |
+| `contestName` | string | | Display name in the contest chooser. |
 | `version` | string |   | Informational ("1.0.0"). |
 | `exchangeFormat` | string |   | Human-readable hint shown in the UI. |
-| `entryFields` | array | ✅ | The exchange entry bar — see below. |
-| `scoringRules` | object | ✅ | Points + dupes + multiplier source. |
-| `multiplierModel` | object | ✅ | What field holds the multiplier value. |
-| `row2Panes` | array | ✅ | 3–4 helper panes. See `paneType` list below. |
+| `entryFields` | array | | The exchange entry bar — see below. |
+| `scoringRules` | object | | Points + dupes + multiplier source. |
+| `multiplierModel` | object | | What field holds the multiplier value. |
+| `row2Panes` | array | | 3–4 helper panes. See `paneType` list below. |
 | `statistics` | array |   | Statistic IDs to compute. |
 | `cabrilloMapping` | object |   | Field → Cabrillo column for the exporter. |
 | `sections` | array |   | Valid section list (Sweepstakes-style). |
@@ -242,10 +242,10 @@ against in each QSO** (state, callsign, DXCC prefix, …) and either a
 
 | Field | Type | Req | Purpose |
 |---|---|---|---|
-| `awardId` | string | ✅ | Unique key. |
-| `awardName` | string | ✅ | Display name. |
+| `awardId` | string | | Unique key. |
+| `awardName` | string | | Display name. |
 | `description` | string |   | Detailed description shown in the dashboard's Details view. |
-| `matchOn` | string | ✅ | Which QSO field to match: `state` \| `country` \| `callsign` \| `prefix` \| `dxccPrefix` \| `continent` |
+| `matchOn` | string | | Which QSO field to match: `state` \| `country` \| `callsign` \| `prefix` \| `dxccPrefix` \| `continent` |
 | `targetLabel` | string |   | Display label for the progress axis (`"States"`, `"Prefixes"`, …) |
 | `targets` | array | conditional | Predeclared target list (set-match). Omit for count-match awards. |
 | `bonus` | array |   | Optional bonus targets that appear separately (13 Colonies). |

@@ -9,7 +9,7 @@ status: draft
 
 # MPE Limits
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **Maximum Permissible Exposure (MPE)** limits are the actual numbers used to evaluate compliance. They specify the maximum E-field strength, H-field strength, or far-field power density allowed at any place humans might be exposed, as a function of frequency and exposure category (controlled vs. uncontrolled).
 
@@ -104,7 +104,7 @@ where D is the largest dimension of the antenna and λ is the wavelength. For a 
 
 For amateur work near antennas (the operator inside their own near field, common for indoor antennas, low antennas, and especially magnetic loops), the calculation gets more complicated. Conservative approach: **assume the worst-case near-field intensity is 2–3× the far-field formula's prediction**, and check whether you're still compliant under that assumption. Or use NEC modeling, which can compute near-field strength directly.
 
-> ⚙️ **Advanced —** The 2D²/λ "far-field distance" comes from the requirement that the path-length difference from the antenna's edges to a point at distance d, vs. the path-length to the antenna center, is less than λ/16 — keeping phase coherence within an acceptable tolerance for the radiating-far-field approximation. Inside this distance, you can have either a "reactive near field" (very close, where the antenna's stored field dominates) or a "radiating near field" (transitional region). MPE evaluations in the near field properly use OET-65's near-field correction methods, or NEC's near-field output mode. For a simple low dipole or vertical, an upper-bound near-field estimate is **3× the far-field prediction at the same distance** — conservative but workable.
+> **Advanced —** The 2D²/λ "far-field distance" comes from the requirement that the path-length difference from the antenna's edges to a point at distance d, vs. the path-length to the antenna center, is less than λ/16 — keeping phase coherence within an acceptable tolerance for the radiating-far-field approximation. Inside this distance, you can have either a "reactive near field" (very close, where the antenna's stored field dominates) or a "radiating near field" (transitional region). MPE evaluations in the near field properly use OET-65's near-field correction methods, or NEC's near-field output mode. For a simple low dipole or vertical, an upper-bound near-field estimate is **3× the far-field prediction at the same distance** — conservative but workable.
 
 ## Magnetic loops: special case
 

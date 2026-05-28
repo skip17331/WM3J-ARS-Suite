@@ -9,7 +9,7 @@ status: draft
 
 # Where to Find Repeater Frequencies
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The 2m and 70cm bands have hundreds of thousands of repeaters worldwide. Knowing **where to find them** is half the battle — once you have the frequency, offset, and tone, your radio's memory does the rest.
 
@@ -130,7 +130,7 @@ Local clubs are the best source for **active** repeaters in your area:
 - A local club's "what's on tonight" net list tells you which machines are actually used.
 - Search "[your county/region] amateur radio club" to find them.
 
-> ⚙️ **Advanced —** Repeater "activity index" is a fuzzy concept. RepeaterBook crowd-sources usage-frequency reports, but they're sparse. The most reliable signal is the club's net schedule: a repeater that hosts a weekly net is by definition active. Repeaters with no net listing in the last 12 months are probably silent. RepeaterBook flags some as `OFF-AIR`; trust those flags.
+> **Advanced —** Repeater "activity index" is a fuzzy concept. RepeaterBook crowd-sources usage-frequency reports, but they're sparse. The most reliable signal is the club's net schedule: a repeater that hosts a weekly net is by definition active. Repeaters with no net listing in the last 12 months are probably silent. RepeaterBook flags some as `OFF-AIR`; trust those flags.
 
 ## How to use this information
 

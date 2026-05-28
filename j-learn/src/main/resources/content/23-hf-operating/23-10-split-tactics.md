@@ -9,7 +9,7 @@ status: draft
 
 # Split Tactics
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What this section is
 
@@ -37,7 +37,7 @@ The first task in any split situation is to figure out the operator's listening 
 
 Most operators run *linear-scan* during the first hour and *bouncing* later as they get tired or the pile-up thins. The first hour is the predictable hour.
 
-> ⚙️ **Advanced —** A useful trick: write down the kHz offset of each picked station for 5–10 QSOs. Patterns become obvious on paper that aren't obvious by ear. Top DX operators do this mentally; new operators benefit from physically writing it down. Some logging software auto-records pickup frequencies if you're using packet/RBN-augmented spotting.
+> **Advanced —** A useful trick: write down the kHz offset of each picked station for 5–10 QSOs. Patterns become obvious on paper that aren't obvious by ear. Top DX operators do this mentally; new operators benefit from physically writing it down. Some logging software auto-records pickup frequencies if you're using packet/RBN-augmented spotting.
 
 ## Staying ahead of the pile
 
@@ -82,7 +82,7 @@ For CW operations, the **CW Skimmer** software (or hardware equivalents like Ski
 
 This is essentially "computer-augmented hearing." On CW, a well-configured skimmer makes pile-up management 5–10x easier. The contest big-gun stations all use skimmers; many casual DXers do too.
 
-> ⚙️ **Advanced —** Skimmers feed the **Reverse Beacon Network**, but they also serve as personal pile-up management tools. The trade-off: a skimmer's decoded list can have errors at low SNR, and relying on the decoded list instead of your own ears is risky in marginal conditions. Verify decoded callsigns against the audio before trusting them.
+> **Advanced —** Skimmers feed the **Reverse Beacon Network**, but they also serve as personal pile-up management tools. The trade-off: a skimmer's decoded list can have errors at low SNR, and relying on the decoded list instead of your own ears is risky in marginal conditions. Verify decoded callsigns against the audio before trusting them.
 
 ## When to abandon split
 

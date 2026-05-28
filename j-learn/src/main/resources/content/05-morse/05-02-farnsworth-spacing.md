@@ -9,7 +9,7 @@ status: draft
 
 # Farnsworth Spacing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Farnsworth spacing is the trick that makes the Koch method (§05-01) bearable: send each individual character at full target speed, but **stretch the gap between characters** so a beginner has time to think. As you improve, you shrink the gap until you're at the target effective speed too.
 
@@ -47,7 +47,7 @@ So at 20 WPM:
 - Between characters = 180 ms
 - Between words = 420 ms
 
-> ⚙️ **Advanced —** The "PARIS" word is convention; some texts use "CODEX" (60 units) for slightly slower-rated speeds. Both are arbitrary; the WPM you read on a radio's display assumes PARIS unless documented otherwise. The mismatch between conventions causes the well-known phenomenon where a "20 WPM" recording from one source feels noticeably faster or slower than another.
+> **Advanced —** The "PARIS" word is convention; some texts use "CODEX" (60 units) for slightly slower-rated speeds. Both are arbitrary; the WPM you read on a radio's display assumes PARIS unless documented otherwise. The mismatch between conventions causes the well-known phenomenon where a "20 WPM" recording from one source feels noticeably faster or slower than another.
 
 ## How Farnsworth changes things
 

@@ -9,7 +9,7 @@ status: draft
 
 # RF Safety in Homebrew
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What can kill you (and what can just hurt)
 
@@ -127,7 +127,7 @@ For a tube amp the first time, also:
 - **Plate-current meter visible** to detect runaway from the first second.
 - **No skin contact possible** with anything inside the chassis — close the lid and look through ventilation slots.
 
-> ⚙️ **Advanced —** Modern lithium-iron-phosphate (LiFePO4) batteries are amateur-safe — they don't catch fire if shorted (the way old lithium-cobalt cells do). A 12 V LiFePO4 pack rated for 100 A continuous can still spot-weld a dropped tool to a buss bar, but it won't burn the shack down. This is one reason LiFePO4 has replaced lead-acid in serious portable stations. The trade is cost (~3× lead-acid per amp-hour) and a small risk-mitigation BMS that some hams remove "to save weight" — undoing the safety advantage.
+> **Advanced —** Modern lithium-iron-phosphate (LiFePO4) batteries are amateur-safe — they don't catch fire if shorted (the way old lithium-cobalt cells do). A 12 V LiFePO4 pack rated for 100 A continuous can still spot-weld a dropped tool to a buss bar, but it won't burn the shack down. This is one reason LiFePO4 has replaced lead-acid in serious portable stations. The trade is cost (~3× lead-acid per amp-hour) and a small risk-mitigation BMS that some hams remove "to save weight" — undoing the safety advantage.
 
 ## Common mistakes that hurt people
 

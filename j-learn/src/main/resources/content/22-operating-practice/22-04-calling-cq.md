@@ -9,7 +9,7 @@ status: draft
 
 # Calling CQ and the Standard QSO Flow
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **CQ** is amateur radio's "anyone want to talk?" — an open call to any listening station. It's how most QSOs start when you don't have a specific contact in mind. The format is conventional, the response is conventional, and the flow that follows is well-established. Once you've done a dozen CQ contacts you'll have it for life.
 
@@ -217,7 +217,7 @@ QRZ asks "who is calling me?" The other station re-transmits their callsign. Aft
 - **Forgetting to listen.** After CQ, wait. Don't immediately call CQ again — give listeners time to grab the mic.
 - **Inverted phonetics.** "WM3J" is "Whiskey Mike Three Juliet" — not "Whiskey Mike Three Joliet" (which is a city name, not a phonetic letter).
 
-> ⚙️ **Advanced —** "CQ" is a Western Union telegraph operator's "all stations" call from the 1880s, predating amateur radio by several decades. The phonetic alphabet ("Alpha Bravo...") is the NATO/ICAO standard adopted in 1956; the older RAF and US military versions ("Able Baker...") are sometimes still heard from older operators. The "5NN" CW signal-report shorthand exists because typing "599" three times per contact is tedious — the cut numbers (T=0, A=1, U=2, V=3, 4=4, 5=5, 6=6, B=7, D=8, N=9) saved keystrokes; "5NN" reads as "599." Modern contesting and DX work uses 5NN exclusively for both readability and speed.
+> **Advanced —** "CQ" is a Western Union telegraph operator's "all stations" call from the 1880s, predating amateur radio by several decades. The phonetic alphabet ("Alpha Bravo...") is the NATO/ICAO standard adopted in 1956; the older RAF and US military versions ("Able Baker...") are sometimes still heard from older operators. The "5NN" CW signal-report shorthand exists because typing "599" three times per contact is tedious — the cut numbers (T=0, A=1, U=2, V=3, 4=4, 5=5, 6=6, B=7, D=8, N=9) saved keystrokes; "5NN" reads as "599." Modern contesting and DX work uses 5NN exclusively for both readability and speed.
 
 ## See also
 

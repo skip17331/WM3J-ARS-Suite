@@ -9,7 +9,7 @@ status: draft
 
 # LED Lights
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 LED bulbs replaced incandescents almost universally over the last 15 years. They use less power and last longer — but most contain a small switching driver that emits HF noise. A house with 30+ LED bulbs adds measurably to the noise floor; a house with 30 cheap bulbs adds significantly.
 

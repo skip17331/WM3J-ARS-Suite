@@ -9,7 +9,7 @@ status: draft
 
 # Ionospheric Layers (D / E / F1 / F2)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The ionosphere is not a single layer — it's a stack of distinct ionized regions stretching from about 60 km to over 500 km up. Each layer has its own personality: when it appears, what frequencies it bends, what frequencies it absorbs. Once you know the cast of characters, every other propagation phenomenon makes sense.
 
@@ -34,7 +34,7 @@ D is the lowest, densest, and most absorptive layer. It only exists when the sun
 
 **Why D absorbs but doesn't reflect:** the D-layer's electron density is relatively low, but it sits in air dense enough that electrons collide with neutral molecules many millions of times per second. Each collision robs energy from the radio wave. The wave is too high in frequency to be bent back, and the collisions convert RF energy to heat.
 
-> ⚙️ **Advanced —** D-layer absorption (the so-called *non-deviative* loss) follows
+> **Advanced —** D-layer absorption (the so-called *non-deviative* loss) follows
 > `L (dB) ≈ K · sec(χ) / (f + fH)²`
 > where χ is the solar zenith angle, fH is the gyrofrequency (~1.4 MHz at temperate latitudes), and K depends on the time of year and solar conditions. The `sec(χ)` term explains why noon absorption is much worse than morning or afternoon absorption — the sun shines straight through the D-layer at noon, but at slant angles your signal traverses much more ionized material on its way up to the F-layer and back down.
 
@@ -54,7 +54,7 @@ F1 forms by day, mostly summer, in the 150–220 km range. Its electron density 
 
 For most amateur purposes you can ignore F1. It usually acts as a weak adjunct to F2, occasionally giving a short low-take-off-angle path. At sunset it merges with F2 into a single F-layer, and the merged layer is what carries you through the night.
 
-> ⚙️ **Advanced —** F1 produces a "ledge" in the electron density profile that creates a secondary critical frequency, foF1. At slant incidence, F1 can support a separate hop pattern with a shorter ground range than F2. In ionograms F1 shows up as a knee just below the F2 trace; if F1 dominates, low-take-off-angle DX paths can land at unexpectedly close ranges.
+> **Advanced —** F1 produces a "ledge" in the electron density profile that creates a secondary critical frequency, foF1. At slant incidence, F1 can support a separate hop pattern with a shorter ground range than F2. In ionograms F1 shows up as a knee just below the F2 trace; if F1 dominates, low-take-off-angle DX paths can land at unexpectedly close ranges.
 
 ## F2 layer — the DX workhorse
 
@@ -74,7 +74,7 @@ This is **the** layer for long-distance HF. F2 sits between 220 km and (during v
 
 **Solar cycle:** F2 ionization tracks SFI almost linearly. At solar minimum (SFI ~70) the F2 MUF rarely exceeds 18 MHz. At solar maximum (SFI 200+) it routinely reaches 35 MHz.
 
-> ⚙️ **Advanced —** F2 is created mainly by photoionization of atomic oxygen by EUV in the 10–100 nm wavelength range. The peak of the F2 layer (the "hmF2" altitude) varies from ~220 km at high latitudes to ~350 km in the equatorial belt, and it can rise to over 500 km during geomagnetic storms when neutral winds drive the ionization upward. The peak F2 electron density (NmF2) is what determines foF2 via `foF2 ≈ 9 · sqrt(NmF2 [m⁻³] / 10¹²)`. A foF2 of 8 MHz corresponds to NmF2 ≈ 7.9 × 10¹¹ electrons/m³.
+> **Advanced —** F2 is created mainly by photoionization of atomic oxygen by EUV in the 10–100 nm wavelength range. The peak of the F2 layer (the "hmF2" altitude) varies from ~220 km at high latitudes to ~350 km in the equatorial belt, and it can rise to over 500 km during geomagnetic storms when neutral winds drive the ionization upward. The peak F2 electron density (NmF2) is what determines foF2 via `foF2 ≈ 9 · sqrt(NmF2 [m⁻³] / 10¹²)`. A foF2 of 8 MHz corresponds to NmF2 ≈ 7.9 × 10¹¹ electrons/m³.
 
 ## Putting it together — a typical day
 

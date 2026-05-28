@@ -9,7 +9,7 @@ status: draft
 
 # Ground-Plane Effects
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The same antenna, hung at two different heights, produces wildly different signal reports. The same vertical, on two different soils, will work DX from one location and fall flat from the other. **Ground is the most-overlooked single factor in amateur antenna performance.**
 
@@ -113,7 +113,7 @@ Loss numbers:
 - **If you live near salt water**: any vertical you put up will outperform an average inland vertical with full radials. Take advantage of it.
 - **For modeling**: don't use "perfect ground" or "free space" except for sanity checks. Use the realistic ground type for your soil. The pattern shapes change.
 
-> ⚙️ **Advanced —** The Sommerfeld formulation (1909) is the canonical treatment of an antenna over imperfect ground; it requires evaluating the Sommerfeld integrals. Modern moment-method codes (NEC) approximate this with the Norton-derived Reflection Coefficient method (faster, slightly less accurate at low heights) or with a fully evaluated Sommerfeld solver (more accurate, much slower). For amateur antenna heights of 0.1 λ and above, the reflection-coefficient method matches measured patterns to within 0.5 dB. Below 0.1 λ, ground losses become inseparable from feedpoint impedance and the simpler models start to lie.
+> **Advanced —** The Sommerfeld formulation (1909) is the canonical treatment of an antenna over imperfect ground; it requires evaluating the Sommerfeld integrals. Modern moment-method codes (NEC) approximate this with the Norton-derived Reflection Coefficient method (faster, slightly less accurate at low heights) or with a fully evaluated Sommerfeld solver (more accurate, much slower). For amateur antenna heights of 0.1 λ and above, the reflection-coefficient method matches measured patterns to within 0.5 dB. Below 0.1 λ, ground losses become inseparable from feedpoint impedance and the simpler models start to lie.
 
 ## How to measure ground at your QTH
 

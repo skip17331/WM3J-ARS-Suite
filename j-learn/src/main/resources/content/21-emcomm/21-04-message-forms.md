@@ -9,7 +9,7 @@ status: draft
 
 # Message Forms
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section covers the two formal message structures amateur emergency operators most often handle: the **radiogram** (NTS format) and the **ICS-213 General Message** (FEMA standard for emergency operations). Each has a defined structure, specific procedural conventions, and a workflow for transmission.
 
@@ -314,7 +314,7 @@ After transmission, messages enter records:
 
 For digital-mode messages (NBEMS), the software typically logs everything automatically; no extra effort needed.
 
-> ⚙️ **Advanced —** The radiogram preamble dates from telegraph operating practices of the 1880s; the structure was adopted essentially unchanged for amateur use in the 1949 NTS plan. The check ("count the words") is borrowed from commercial telegraphy where charges were per word; in amateur use it became an integrity check. The "X" for period was a Western Union convention. The HX codes (HXA, HXB, etc.) date from the 1960s as the radiogram was being formalized for amateur use; many are now obsolete (HXA "collect call" is meaningless in modern context) but the structure preserves them.
+> **Advanced —** The radiogram preamble dates from telegraph operating practices of the 1880s; the structure was adopted essentially unchanged for amateur use in the 1949 NTS plan. The check ("count the words") is borrowed from commercial telegraphy where charges were per word; in amateur use it became an integrity check. The "X" for period was a Western Union convention. The HX codes (HXA, HXB, etc.) date from the 1960s as the radiogram was being formalized for amateur use; many are now obsolete (HXA "collect call" is meaningless in modern context) but the structure preserves them.
 
 ## See also
 

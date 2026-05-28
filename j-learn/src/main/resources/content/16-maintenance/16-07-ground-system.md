@@ -9,7 +9,7 @@ status: draft
 
 # Ground System Inspection
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The ground system is the silent partner of every amateur station. It does its job — equalizing voltages, providing a path for fault currents, dissipating lightning energy, completing the antenna's image plane — and it does it invisibly until the day it doesn't. A bad ground means a worse antenna, more RFI, more risk of equipment damage during storms, and possibly a hazard to people.
 
@@ -85,7 +85,7 @@ Inspect each arrestor:
 - **Bypass switch (if present)**: in the proper position for current operating mode (some surge protectors can be bypassed during operation, then re-engaged when leaving).
 - **Cycle count (if marked)**: gas-discharge tubes (GDT) and metal-oxide varistors (MOV) have finite lifetimes. Some commercial protectors have a "cycle count" or LED indicator showing remaining capacity. Replace at end of life.
 
-> ⚙️ **Advanced —** A surge arrestor of any quality has a "single-shot" rating (the largest single strike it can absorb without failure) and a "cycles to fail" rating (how many average-magnitude strikes it can take before degrading). Polyphaser, Andrew, and Surplus Sales make professional-grade arrestors with documented specs. The PolyPhaser PT-100 series for commercial communications towers handles 50 kA single-shot and many strikes; their amateur-priced arrestors handle 25-50 kA per cycle. The **clamping voltage** (where the arrestor begins to conduct) should be set well below the equipment's input withstand rating — typically 600 V for HF; 200 V for VHF; lower for sensitive receivers.
+> **Advanced —** A surge arrestor of any quality has a "single-shot" rating (the largest single strike it can absorb without failure) and a "cycles to fail" rating (how many average-magnitude strikes it can take before degrading). Polyphaser, Andrew, and Surplus Sales make professional-grade arrestors with documented specs. The PolyPhaser PT-100 series for commercial communications towers handles 50 kA single-shot and many strikes; their amateur-priced arrestors handle 25-50 kA per cycle. The **clamping voltage** (where the arrestor begins to conduct) should be set well below the equipment's input withstand rating — typically 600 V for HF; 200 V for VHF; lower for sensitive receivers.
 
 ## Ground-rod resistance test (annual or 5-year)
 

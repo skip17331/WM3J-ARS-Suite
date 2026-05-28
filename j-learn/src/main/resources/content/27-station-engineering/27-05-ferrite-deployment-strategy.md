@@ -9,7 +9,7 @@ status: draft
 
 # Ferrite Deployment Strategy
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Ferrite chokes are the single most cost-effective RFI mitigation tool an amateur owns. A $5 toroid with five turns of cable through it can kill a noise problem that would otherwise require hundreds of dollars of testing. The catch: **placement and mix selection matter more than quantity**. A pile of random ferrites scattered across the shack does very little; a few chokes placed thoughtfully at the right impedance discontinuities can transform a noisy station into a quiet one.
 
@@ -80,7 +80,7 @@ Common-mode chokes for AC line:
 
 A standard kit: one mix-31 and one mix-73 snap-on per AC cord. Cost: $4–$8 per snap-on. A typical 4-piece station with four AC cords needs 8 snap-ons — ~$50 total.
 
-> ⚙️ **Advanced —** For chronic AC-mains noise, a *whole-station mains filter* is better than per-cord chokes. The Tripp-Lite ISOBAR series, MFJ-1164, and Corcom EMI filters (industrial) all provide better attenuation than snap-ons because they include capacitors-to-ground in addition to common-mode inductance. A 15 A Corcom EMI filter is ~$40 and handles the entire shack's AC.
+> **Advanced —** For chronic AC-mains noise, a *whole-station mains filter* is better than per-cord chokes. The Tripp-Lite ISOBAR series, MFJ-1164, and Corcom EMI filters (industrial) all provide better attenuation than snap-ons because they include capacitors-to-ground in addition to common-mode inductance. A 15 A Corcom EMI filter is ~$40 and handles the entire shack's AC.
 
 ## Location 3: USB and Ethernet
 

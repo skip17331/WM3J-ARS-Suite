@@ -9,7 +9,7 @@ status: draft
 
 # Run vs. Search-and-Pounce
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## The two postures
 
@@ -118,7 +118,7 @@ All modern logging software has a **Run / S&P** mode toggle (Ctrl+Tab in N1MM Lo
 
 Toggling correctly between modes is a basic contesting skill. In N1MM, the entry window shows `RUN` or `S&P` in the title bar; in WinTest the indicator is in the status bar. If your macros are sending the wrong message, you're probably in the wrong mode.
 
-> ⚙️ **Advanced —** Top contesters using **SO2R** (Single Operator, Two Radios) literally do both at once — one radio runs on a clean frequency, the other S&Ps the rest of the band for multipliers. Coordinating between the two without missing exchanges is the elite skill of modern contesting. SO2V (Two VFOs on one radio) is a poor-man's SO2R using one rig's two receivers. N1MM's "Run+S&P" workflow assumes one of these setups.
+> **Advanced —** Top contesters using **SO2R** (Single Operator, Two Radios) literally do both at once — one radio runs on a clean frequency, the other S&Ps the rest of the band for multipliers. Coordinating between the two without missing exchanges is the elite skill of modern contesting. SO2V (Two VFOs on one radio) is a poor-man's SO2R using one rig's two receivers. N1MM's "Run+S&P" workflow assumes one of these setups.
 
 ## Multiplier hunting via S&P
 

@@ -9,7 +9,7 @@ status: draft
 
 # Linear vs Switching Power Supplies
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## The fundamental trade
 
@@ -97,7 +97,7 @@ If you have a noisy switcher and don't want to replace it:
 
 A combination of #1 (output choke) and #5 (AC mains choke) on a $180 MFJ switcher usually gets you within 3 dB of a linear supply, at $20 of ferrite.
 
-> ⚙️ **Advanced —** Some operators use **two supplies**: a small linear for the radio's receiver-side circuitry (a few amps) and a switcher for the high-current TX-amp side. This isolates the noise from the sensitive part. Hambrew designs are rare; KK7B's *Experimental Methods in RF Design* shows a few. For 99 % of stations, a single supply is fine.
+> **Advanced —** Some operators use **two supplies**: a small linear for the radio's receiver-side circuitry (a few amps) and a switcher for the high-current TX-amp side. This isolates the noise from the sensitive part. Hambrew designs are rare; KK7B's *Experimental Methods in RF Design* shows a few. For 99 % of stations, a single supply is fine.
 
 ## Battery operation — the cleanest of all
 

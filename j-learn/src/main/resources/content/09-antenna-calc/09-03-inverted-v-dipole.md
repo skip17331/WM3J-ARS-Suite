@@ -9,7 +9,7 @@ status: draft
 
 # Inverted-V Dipole
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -76,7 +76,7 @@ Expected feed Z is ~50 Ω at 30° droop — direct match to 50 Ω coax through a
 - **Skipping the balun.** Common-mode current on the coax is significantly worse for inverted-V than flat dipole geometry.
 - **Trimming for a flat-dipole length.** Will resonate ~3% high. Account for the droop correction.
 
-> ⚙️ **Advanced —** The inverted-V has slightly lower peak gain than a flat dipole at the same height (~0.5 dB) but more uniform azimuth coverage. Pattern is omnidirectional in the horizontal plane vs. the flat dipole's slight figure-8. For low-angle DX work, prefer flat dipole at full λ/4+ height; for general regional / NVIS work, inverted-V is often the better choice.
+> **Advanced —** The inverted-V has slightly lower peak gain than a flat dipole at the same height (~0.5 dB) but more uniform azimuth coverage. Pattern is omnidirectional in the horizontal plane vs. the flat dipole's slight figure-8. For low-angle DX work, prefer flat dipole at full λ/4+ height; for general regional / NVIS work, inverted-V is often the better choice.
 
 ## Build & trim notes
 

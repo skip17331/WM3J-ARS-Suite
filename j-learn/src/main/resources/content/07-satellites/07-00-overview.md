@@ -9,7 +9,7 @@ status: draft
 
 # Satellites — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The first amateur satellite, OSCAR-1, was launched as a hitchhiker payload in 1961 — three months after Sputnik. Sixty-five years later, dozens of amateur satellites are in orbit at any given time: FM "easy sats" anyone can work with a handheld and a small Yagi, linear transponder satellites for SSB/CW QSOs through orbiting birds, the International Space Station's amateur radio gear, packet store-and-forward birds, CubeSats from universities, and one geostationary amateur satellite (Es'hail-2 / QO-100) that puts amateur radio on television-quality 24/7 coverage of half the Earth.
 

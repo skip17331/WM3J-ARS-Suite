@@ -9,7 +9,7 @@ status: draft
 
 # Yaesu System Fusion / WIRES-X
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -51,7 +51,7 @@ Fusion offers **two voice modes**, selectable per transmission:
 
 **VW mode** dedicates the entire 9600 bps stream to voice — no FEC, no data. The audio is much cleaner — listeners describe it as "FM-quality" or "near broadcast" — but it has **no error correction**, so as the signal weakens it degrades sharply with no graceful recovery. Most operators use VW only on strong simplex contacts or when working someone direct on the same repeater. It's not network-routable in most cases because internet links assume DN-mode framing.
 
-> ⚙️ **Advanced —** Fusion also defines a **DW (Data Wide)** mode for 9600 bps pure data — used for image transmission and some experimental data applications. And **FR (Full Rate)** is the technical name sometimes used for VW. The mode encoding lives in the first frame's sync pattern, so a receiver can switch modes mid-QSO if the transmitter changes. Most repeaters are configured to operate in DN-only or AMS modes; pure VW links require both endpoints to be VW-capable, which limits VW's practical use to direct simplex.
+> **Advanced —** Fusion also defines a **DW (Data Wide)** mode for 9600 bps pure data — used for image transmission and some experimental data applications. And **FR (Full Rate)** is the technical name sometimes used for VW. The mode encoding lives in the first frame's sync pattern, so a receiver can switch modes mid-QSO if the transmitter changes. Most repeaters are configured to operate in DN-only or AMS modes; pure VW links require both endpoints to be VW-capable, which limits VW's practical use to direct simplex.
 
 ## WIRES-X — Yaesu's linking network
 

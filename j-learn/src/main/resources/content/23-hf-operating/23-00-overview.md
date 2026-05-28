@@ -9,7 +9,7 @@ status: draft
 
 # HF Operating Techniques — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is about *technique* on HF — the tactical decisions that turn a licensed operator into a working DXer, contester, or grayline chaser. It assumes you already know the etiquette (the unwritten rules that keep the bands usable) and want to know how to actually *get the contact* — the rare island, the all-band sweep, the JA opening at sunrise.
 

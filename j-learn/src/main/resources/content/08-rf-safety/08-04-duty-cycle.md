@@ -9,7 +9,7 @@ status: draft
 
 # Duty Cycle
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The FCC's MPE limits are **time-averaged**, not instantaneous. This is a critical detail that determines whether a "non-compliant peak field" is actually a violation. A station whose peak field exceeds MPE for 30 seconds out of every 6 minutes may comply easily; a station whose field is constantly at the MPE level — even if peaks are lower — may not.
 
@@ -130,7 +130,7 @@ The FCC's rules use *time-averaged* MPE. But for **safety against acute injury**
 
 In short: **MPE compliance covers chronic-exposure risks. Acute-injury risks need separate evaluation** (see §08-07 on RF burns).
 
-> ⚙️ **Advanced —** The 6-minute and 30-minute time-averaging windows come from the IEEE C95.1 thermal-equilibrium model: at frequencies above 100 kHz, the dominant biological effect is tissue heating, and thermoregulation operates on timescales of minutes. Skin and superficial tissue equilibrate in ~6 minutes (hence the controlled limit; trained personnel can take corrective action within that window). Whole-body or deep-tissue heating equilibrates in ~30 minutes (hence the uncontrolled limit). Below 100 kHz, the dominant effect shifts from heating to nerve excitation, and time-averaging is less applicable; that's why the MPE rules treat sub-100-kHz exposures differently (out of scope for amateur except 137 kHz / 472 kHz).
+> **Advanced —** The 6-minute and 30-minute time-averaging windows come from the IEEE C95.1 thermal-equilibrium model: at frequencies above 100 kHz, the dominant biological effect is tissue heating, and thermoregulation operates on timescales of minutes. Skin and superficial tissue equilibrate in ~6 minutes (hence the controlled limit; trained personnel can take corrective action within that window). Whole-body or deep-tissue heating equilibrates in ~30 minutes (hence the uncontrolled limit). Below 100 kHz, the dominant effect shifts from heating to nerve excitation, and time-averaging is less applicable; that's why the MPE rules treat sub-100-kHz exposures differently (out of scope for amateur except 137 kHz / 472 kHz).
 
 ## Common mistakes
 

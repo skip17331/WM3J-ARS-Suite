@@ -9,7 +9,7 @@ status: draft
 
 # Character Groups
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The Koch method (§05-01) introduces characters one at a time. The order matters: each new character should be sound-different from the ones already learned, and similar characters that might confuse a beginner should be spaced apart in the schedule.
 
@@ -36,7 +36,7 @@ Add:     X
 
 Forty-one lessons total, one new character per lesson.
 
-> ⚙️ **Advanced —** Koch's specific ordering was empirically derived from his thesis work at TU Berlin. He tested several sequences with student groups and tracked time-to-proficiency. The "K M U R E S" opening was the consistent winner because (1) those characters span the full range of Morse rhythm patterns (short/long, alternating, regular), (2) they let the student build to common simple words quickly (US, ME, EUR, RUSE), and (3) they avoid two characters that differ by only a single dit/dah (like E vs I, or T vs M) early in the curriculum, which is where confusion is hardest to recover from.
+> **Advanced —** Koch's specific ordering was empirically derived from his thesis work at TU Berlin. He tested several sequences with student groups and tracked time-to-proficiency. The "K M U R E S" opening was the consistent winner because (1) those characters span the full range of Morse rhythm patterns (short/long, alternating, regular), (2) they let the student build to common simple words quickly (US, ME, EUR, RUSE), and (3) they avoid two characters that differ by only a single dit/dah (like E vs I, or T vs M) early in the curriculum, which is where confusion is hardest to recover from.
 
 ## Why this order?
 

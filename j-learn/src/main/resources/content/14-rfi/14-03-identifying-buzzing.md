@@ -9,7 +9,7 @@ status: draft
 
 # Identifying Buzzing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Half of RFI diagnosis is just **listening carefully**. Different sources have characteristic sounds, time patterns, and frequency footprints. With practice you can identify many sources from a few seconds of audio without leaving the radio.
 
@@ -175,7 +175,7 @@ If you don't have an RFI problem right now, train your ear by deliberately turni
 
 After a few weeks of paying attention, you'll recognize household device noise reflexively when you encounter it on the air.
 
-> ⚙️ **Advanced —** Source identification by sound is sometimes formalized in commercial RFI investigation. The military uses standardized recordings of known emitters as reference; some utility companies use "EMI fingerprints" derived from time-frequency analysis of known equipment. For amateur use, building your own reference library of household noise sounds is a worthwhile exercise — name them in your notes, listen for patterns, and the on-air noise becomes much less mysterious.
+> **Advanced —** Source identification by sound is sometimes formalized in commercial RFI investigation. The military uses standardized recordings of known emitters as reference; some utility companies use "EMI fingerprints" derived from time-frequency analysis of known equipment. For amateur use, building your own reference library of household noise sounds is a worthwhile exercise — name them in your notes, listen for patterns, and the on-air noise becomes much less mysterious.
 
 ## See also
 

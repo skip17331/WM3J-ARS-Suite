@@ -9,7 +9,7 @@ status: draft
 
 # High-Pass Filters
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## When you actually need an HPF
 
@@ -64,7 +64,7 @@ The HPF inductors are *shunt* elements, so they need to look high-impedance acro
 
 For ferrite-based audio chokes (e.g., a 1 kHz HPF for hum rejection in a data interface), use a **ferrite** core (#75 or #77 mix) — not powdered iron — because permeability matters more than Q below ~100 kHz. At low audio frequencies, a few-mH choke might need 100+ turns on a small toroid; manganese-zinc ferrite gets you there in a few turns.
 
-> ⚙️ **Advanced —** The classic "BCB reject HPF" from the 1970s (e.g., the Drake TV-300LP and ARRL Handbook designs) used T-200-2 cores with 30+ turns. With modern NanoVNA verification, you can shrink to T-50-2 cores and 15–20 turns by accepting a steeper cutoff and slightly less attenuation deep in the stopband. The trade is component cost and self-resonance — small cores resonate higher and degrade attenuation above 50 MHz.
+> **Advanced —** The classic "BCB reject HPF" from the 1970s (e.g., the Drake TV-300LP and ARRL Handbook designs) used T-200-2 cores with 30+ turns. With modern NanoVNA verification, you can shrink to T-50-2 cores and 15–20 turns by accepting a steeper cutoff and slightly less attenuation deep in the stopband. The trade is component cost and self-resonance — small cores resonate higher and degrade attenuation above 50 MHz.
 
 ## Air-core for HF+ HPFs
 

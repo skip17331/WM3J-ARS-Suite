@@ -9,7 +9,7 @@ status: draft
 
 # Oscilloscopes for RF Work
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A scope shows **voltage versus time**. That sounds basic, but it's exactly the wrong tool for most RF work — and exactly the right tool for the *adjacent* work that happens in every ham station: power supplies, audio, modulation envelopes, switching transients, CW keying shapes. This section explains when a scope helps in a radio shack and when you reach for a spectrum analyzer instead.
 
@@ -63,12 +63,12 @@ Procedure: TX a steady CW dit-dah-dit into a dummy load with a small RF sniffer 
 
 ```
     envelope amplitude
-     │      
+     │
      │   ╱──────╲           ╱──╲                  ╱──────╲
      │  ╱        ╲         ╱    ╲                ╱        ╲
      │ ╱          ╲       ╱      ╲              ╱          ╲
      │╱            ╲_____╱        ╲____________╱            ╲___
-     │                                                           
+     │
      │ ←dah→ ←space→ ←dit→ ←space→         ←dah→
      │   ↑                              ↑
      │  ~10 ms rise (good)             ~0 ms rise (key clicks!)
@@ -101,7 +101,7 @@ For HF amateur work this means:
 
 Sample rate has a related but separate rule: **Nyquist** requires ≥ 2× the highest frequency, but practical "faithful reproduction" wants ≥ 5× the highest frequency. A 1 GS/s scope is fine up to ~200 MHz of signal; a 500 MS/s scope only up to ~100 MHz.
 
-> ⚙️ **Advanced —** Modern digital scopes have "DSO" architecture: the analog front-end has a fixed bandwidth (the -3 dB point), the ADC has a fixed sample rate, and the displayed waveform is reconstructed using sin(x)/x interpolation between samples. The interpolation works fine up to a few times below sample rate, but the reconstruction quality degrades as you push past Nyquist/2. Some older analog scopes (Tek 7000-series, HP 1700-series) had much higher *real* bandwidth than their digital descendants at the same price point — at the cost of no storage, no math, no decoding.
+> **Advanced —** Modern digital scopes have "DSO" architecture: the analog front-end has a fixed bandwidth (the -3 dB point), the ADC has a fixed sample rate, and the displayed waveform is reconstructed using sin(x)/x interpolation between samples. The interpolation works fine up to a few times below sample rate, but the reconstruction quality degrades as you push past Nyquist/2. Some older analog scopes (Tek 7000-series, HP 1700-series) had much higher *real* bandwidth than their digital descendants at the same price point — at the cost of no storage, no math, no decoding.
 
 ## The 10× probe rule
 
@@ -133,7 +133,7 @@ Never plug the scope's BNC directly into the rig's antenna jack at full power �
 - **Trying to see a carrier when you should be seeing the envelope.** Slow the timebase. The carrier is at MHz; the envelope is at kHz / Hz.
 - **Not zeroing the trace.** Ground-clip the probe and verify "0 V" reads as 0. DC offset in the probe or scope distorts envelope readings.
 
-> ⚙️ **Advanced —** A high-end scope with FFT math turns into a poor-man's spectrum analyzer. The Rigol DS1054Z and Siglent SDS1104X-E have built-in FFT — limited dynamic range (~40 dB) and resolution bandwidth (one bin = sample rate / record length), but enough to spot a strong harmonic without a separate instrument. Not a substitute for a real SA when measuring spurious emissions to FCC limits, but useful for quick checks.
+> **Advanced —** A high-end scope with FFT math turns into a poor-man's spectrum analyzer. The Rigol DS1054Z and Siglent SDS1104X-E have built-in FFT — limited dynamic range (~40 dB) and resolution bandwidth (one bin = sample rate / record length), but enough to spot a strong harmonic without a separate instrument. Not a substitute for a real SA when measuring spurious emissions to FCC limits, but useful for quick checks.
 
 ## See also
 

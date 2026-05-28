@@ -9,7 +9,7 @@ status: draft
 
 # Power & SWR Meters
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A power/SWR meter is the most-used piece of ham test gear — most stations have one inline between rig and antenna 24/7. It tells you two things at once: **how much power is going forward** to the antenna and **how much is reflecting back**. From those two you compute SWR.
 
@@ -92,7 +92,7 @@ For CW and digital modes, peak reading equals average reading (because the signa
 
 If your meter doesn't have a PEP mode and you're running SSB, **assume the actual PEP is roughly 5× the displayed average power** as a rough sanity check. Better yet, key the rig with a steady carrier (CW or RTTY at full power) to verify the maximum is what you expect.
 
-> ⚙️ **Advanced —** "PEP" in FCC parlance is the average power over the single RF cycle of the peak envelope. Meters that report PEP typically use a peak-hold detector with a fast attack (a few µs) and a slow release (seconds). The peak-hold release time matters — too fast and the needle bounces around chasing each syllable; too slow and you lose the ability to see if peaks are increasing during a long transmission. 200 ms attack / 2 s release is typical.
+> **Advanced —** "PEP" in FCC parlance is the average power over the single RF cycle of the peak envelope. Meters that report PEP typically use a peak-hold detector with a fast attack (a few µs) and a slow release (seconds). The peak-hold release time matters — too fast and the needle bounces around chasing each syllable; too slow and you lose the ability to see if peaks are increasing during a long transmission. 200 ms attack / 2 s release is typical.
 
 ## Reading SWR
 
@@ -144,7 +144,7 @@ The 43 has earned its reputation: rugged, reliable, repeatable. The slugs hold c
 
 The trade-off: you read forward power, **swap slug directionality**, read reflected power, then compute SWR. Cross-needle and digital meters do this in one operation.
 
-> ⚙️ **Advanced —** The Bird 43's slugs are directional couplers built around a coaxial transmission-line section with a precision sampling loop. The directivity of a good slug is 25–30 dB — meaning a perfectly absorbed forward wave produces a "reflected" reading 25–30 dB below the forward, even with no actual reflection. This is the noise floor of any directional-coupler-based SWR measurement; it's why you can't measure SWR below ~1.05:1 accurately with a Bird, or below ~1.10:1 accurately with most ham meters.
+> **Advanced —** The Bird 43's slugs are directional couplers built around a coaxial transmission-line section with a precision sampling loop. The directivity of a good slug is 25–30 dB — meaning a perfectly absorbed forward wave produces a "reflected" reading 25–30 dB below the forward, even with no actual reflection. This is the noise floor of any directional-coupler-based SWR measurement; it's why you can't measure SWR below ~1.05:1 accurately with a Bird, or below ~1.10:1 accurately with most ham meters.
 
 ## Common mistakes
 

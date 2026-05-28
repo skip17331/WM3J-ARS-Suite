@@ -9,7 +9,7 @@ status: draft
 
 # What is a Repeater
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A repeater is a radio that **listens on one frequency and transmits everything it hears on another frequency, simultaneously**. It's installed somewhere high — a hilltop, a tall building, a tower — and it lets two handheld radios that couldn't reach each other directly talk through it.
 

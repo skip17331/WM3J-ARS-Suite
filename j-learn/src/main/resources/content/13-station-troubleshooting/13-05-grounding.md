@@ -9,7 +9,7 @@ status: draft
 
 # Grounding
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 "Ground" means three different things in a ham shack, and confusing them is the source of half the station problems we see:
 
@@ -91,7 +91,7 @@ A lightning arrestor (PolyPhaser, etc.) on the coax must be installed at the bui
 
 Some operators leave their gear ungrounded, reasoning "it's safer that way." This is wrong. AC safety ground is required for shock protection. RF ground is required for clean station operation. The only safe ground is a properly designed one.
 
-> ⚙️ **Advanced —** True RF ground at HF is impossible to achieve with a single ground rod. The skin depth in earth at 14 MHz is about 1 meter, so an 8-foot rod connects you to the top meter of soil — which has nontrivial impedance (typically 5–20 Ω at HF for moist soil, much higher for dry). The "RF ground" concept is partly fiction; what matters is providing a low-impedance reference for the local equipment loop, which is what the single-point bus bar gives you. Verticals achieve a true RF ground via a radial mat that bypasses the soil entirely. The shack ground is for safety and equalization, not as a primary RF reference.
+> **Advanced —** True RF ground at HF is impossible to achieve with a single ground rod. The skin depth in earth at 14 MHz is about 1 meter, so an 8-foot rod connects you to the top meter of soil — which has nontrivial impedance (typically 5–20 Ω at HF for moist soil, much higher for dry). The "RF ground" concept is partly fiction; what matters is providing a low-impedance reference for the local equipment loop, which is what the single-point bus bar gives you. Verticals achieve a true RF ground via a radial mat that bypasses the soil entirely. The shack ground is for safety and equalization, not as a primary RF reference.
 
 ## Lightning protection — a brief detour
 

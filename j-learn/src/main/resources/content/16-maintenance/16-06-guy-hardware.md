@@ -9,7 +9,7 @@ status: draft
 
 # Guy Lines, Turnbuckles, Thimbles, and Clamps
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A guyed tower stands because three or four cables in tension hold it vertical against wind load and asymmetric antenna mass. Every component along the guy run — the cable, the thimble at each loop, the cable clamps that secure the loop, the turnbuckle at the anchor end, the anchor itself, the insulators along the line — is a single point of failure. A guy that snaps doesn't degrade your performance; it drops the tower.
 
@@ -56,7 +56,7 @@ The tension can be measured with a dynamometer or estimated by **how the guys be
 - **Properly tensioned**: a slight catenary, almost straight; the cable pings audibly when struck.
 - **Over-tensioned**: cable rings high-pitched when struck; guys may pull on the tower legs at attach point.
 
-> ⚙️ **Advanced —** Pre-tensioning math for a guyed tower is an exercise in vector statics. The horizontal component of guy tension must balance the wind-load horizontal force at each guy attach point. For Rohn 25G with 3 guys at 120° at each level, the tension required to resist a given wind speed is calculated per ANSI/TIA-222 (the structural standard for towers). Most amateur installations use the manufacturer's recommended tension for their tower height + guy count + antenna load. Over-tension causes leg buckling; under-tension causes excessive sway and accelerated fatigue.
+> **Advanced —** Pre-tensioning math for a guyed tower is an exercise in vector statics. The horizontal component of guy tension must balance the wind-load horizontal force at each guy attach point. For Rohn 25G with 3 guys at 120° at each level, the tension required to resist a given wind speed is calculated per ANSI/TIA-222 (the structural standard for towers). Most amateur installations use the manufacturer's recommended tension for their tower height + guy count + antenna load. Over-tension causes leg buckling; under-tension causes excessive sway and accelerated fatigue.
 
 ### Anchor inspection
 

@@ -9,7 +9,7 @@ status: draft
 
 # Tower & Mast Inspection
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A tower is a structural element. Unlike coax (which fails gradually and quietly) or batteries (which lose capacity on a curve), a tower fails **catastrophically** when something gives way — the welds let go, a leg buckles, the base bolts pull, and the entire structure can come down in seconds, often onto something or someone. Tower inspection is therefore the most safety-critical maintenance task on the station-keeping list.
 
@@ -165,7 +165,7 @@ Crank-up towers have additional inspection items:
 - **Sections sliding properly**: no binding, no scraping during raise/lower.
 - **Lubrication**: per manufacturer schedule (US Tower recommends quarterly grease on the cable pulleys).
 
-> ⚙️ **Advanced —** The cable in a crank-up tower is the single most critical safety item. ASTM A-1023 spec for galvanized aircraft-cable lifting wire applies; replace at any sign of broken strands. The "10% rule" from rigging best practice: if 10% or more of the visible strands in a 12-inch section are broken or corroded, retire the cable. The crank-up cable is also temperature-sensitive — never operate at extreme cold (sub-zero F); the lubricant binds and the cable can fail in a crank attempt. US Tower's manuals specify the recommended cable inspection and replacement intervals; follow them.
+> **Advanced —** The cable in a crank-up tower is the single most critical safety item. ASTM A-1023 spec for galvanized aircraft-cable lifting wire applies; replace at any sign of broken strands. The "10% rule" from rigging best practice: if 10% or more of the visible strands in a 12-inch section are broken or corroded, retire the cable. The crank-up cable is also temperature-sensitive — never operate at extreme cold (sub-zero F); the lubricant binds and the cable can fail in a crank attempt. US Tower's manuals specify the recommended cable inspection and replacement intervals; follow them.
 
 ## Rohn-specific notes
 

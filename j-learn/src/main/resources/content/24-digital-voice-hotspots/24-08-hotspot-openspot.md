@@ -9,7 +9,7 @@ status: draft
 
 # OpenSpot Hotspots
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -69,7 +69,7 @@ This works for any combination — DMR ↔ D-STAR, DMR ↔ Fusion, Fusion ↔ D-
 
 The audio quality penalty for cross-mode bridging is real (see [§24-11](24-11-cross-mode-linking.md)) — you're double-codec-encoding the audio, which always loses something. But for many users the convenience is worth the loss.
 
-> ⚙️ **Advanced —** The OpenSpot's AMBE transcoding implementation differs slightly between the 4 and 4 Pro. The 4 uses an open-source AMBE software implementation (legal because the AMBE patent expired in ~2017), while the 4 Pro uses a licensed AMBE chip from DVSI. Listeners sometimes report the 4 Pro sounds slightly cleaner on cross-mode transcoded audio, particularly on quiet passages where the open-source decoder's quantization noise is more audible. The 4 also occasionally fails to transcode certain unusual AMBE frames (control packets, dual-mode signaling) that the 4 Pro handles natively.
+> **Advanced —** The OpenSpot's AMBE transcoding implementation differs slightly between the 4 and 4 Pro. The 4 uses an open-source AMBE software implementation (legal because the AMBE patent expired in ~2017), while the 4 Pro uses a licensed AMBE chip from DVSI. Listeners sometimes report the 4 Pro sounds slightly cleaner on cross-mode transcoded audio, particularly on quiet passages where the open-source decoder's quantization noise is more audible. The 4 also occasionally fails to transcode certain unusual AMBE frames (control packets, dual-mode signaling) that the 4 Pro handles natively.
 
 ## Key differences in operating philosophy
 

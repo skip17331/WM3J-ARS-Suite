@@ -9,7 +9,7 @@ status: draft
 
 # Step-by-Step Elimination
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A printable, executable checklist for systematically eliminating sources of RFI in your house. Use this when the isolation workflow (§14-05) has identified a noisy circuit but you need to pin down which device on it. Or when you're doing a baseline cleanup of your shack and want to systematically reduce the noise floor by 6+ dB.
 

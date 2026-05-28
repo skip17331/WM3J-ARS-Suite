@@ -9,7 +9,7 @@ status: draft
 
 # D-STAR Routing — Reflectors and Callsign Routing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## The two routing models D-STAR supports
 
@@ -55,7 +55,7 @@ Famous reflectors that you'll encounter:
 
 The convention is to write the reflector name with the module letter separated by a space: "REF030 C" or "DCS005 D". On the air, the suffix is spoken: "I'm on Reflector Thirty Charlie."
 
-> ⚙️ **Advanced —** The three reflector protocols (REFxxx using dstar_chat, XRFxxx using dextra, DCSxxx using DCS) are wire-protocol incompatible — a repeater linked to REF030 cannot also be linked to DCS005 simultaneously, and audio from one does not flow to the other unless someone has set up a server-level bridge. XLX reflectors solve this by speaking all three protocols at once and bridging them transparently. The trade-off is server complexity — an XLX reflector is a larger, more brittle thing to operate.
+> **Advanced —** The three reflector protocols (REFxxx using dstar_chat, XRFxxx using dextra, DCSxxx using DCS) are wire-protocol incompatible — a repeater linked to REF030 cannot also be linked to DCS005 simultaneously, and audio from one does not flow to the other unless someone has set up a server-level bridge. XLX reflectors solve this by speaking all three protocols at once and bridging them transparently. The trade-off is server complexity — an XLX reflector is a larger, more brittle thing to operate.
 
 ## Linking a repeater to a reflector
 
@@ -140,7 +140,7 @@ You don't have to "subscribe" to anything. You don't have to be on the same refl
 
 This is genuinely magical when it works. The catch: if you haven't transmitted in a while, the tracking entry is stale, and callsign-routed audio goes to the wrong repeater or nowhere at all. Hams who use callsign routing keep up a "ping" habit — keying briefly on their local repeater every so often to keep the tracking entry fresh.
 
-> ⚙️ **Advanced —** The callsign-tracking database is *not* centralized for the whole D-STAR network — each gateway maintains its own view and periodically synchronizes with the upstream "trust server" (formerly run by Icom, now distributed). Sync lag is typically <60 seconds but can extend to several minutes during heavy traffic. If a callsign appears on two repeaters simultaneously (mobile operator driving between coverage zones), the tracking is non-deterministic — whichever gateway last updated wins.
+> **Advanced —** The callsign-tracking database is *not* centralized for the whole D-STAR network — each gateway maintains its own view and periodically synchronizes with the upstream "trust server" (formerly run by Icom, now distributed). Sync lag is typically <60 seconds but can extend to several minutes during heavy traffic. If a callsign appears on two repeaters simultaneously (mobile operator driving between coverage zones), the tracking is non-deterministic — whichever gateway last updated wins.
 
 ## DPRS / D-PRS — position data over D-STAR
 
@@ -153,7 +153,7 @@ When you key up:
 
 This means a D-STAR HT with built-in GPS (ID-52A, TH-D75A) acts as a free APRS tracker any time you key up — no extra hardware. Set DPRS in the radio's menu, key up once, and check aprs.fi for your callsign.
 
-> ⚙️ **Advanced —** DPRS packets are formatted in the slow-data channel as a NMEA-style sentence, e.g., `$$CRC4D08,WM3J,FN19,144.39,K3PDR B,*RST*`. The gateway parses this and constructs a standard APRS packet for forwarding. Some gateways add SSIDs based on the D-STAR routing context (e.g., `-7` for handheld, `-9` for mobile), others pass through whatever the radio sends. The lag from RF key-up to aprs.fi appearance is typically 5–30 seconds.
+> **Advanced —** DPRS packets are formatted in the slow-data channel as a NMEA-style sentence, e.g., `$$CRC4D08,WM3J,FN19,144.39,K3PDR B,*RST*`. The gateway parses this and constructs a standard APRS packet for forwarding. Some gateways add SSIDs based on the D-STAR routing context (e.g., `-7` for handheld, `-9` for mobile), others pass through whatever the radio sends. The lag from RF key-up to aprs.fi appearance is typically 5–30 seconds.
 
 ## Putting it together — a typical session
 

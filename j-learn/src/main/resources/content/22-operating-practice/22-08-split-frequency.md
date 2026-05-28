@@ -9,7 +9,7 @@ status: draft
 
 # Split-Frequency Operation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## The problem split solves
 
@@ -114,7 +114,7 @@ After your contact, **press SPLIT again to disable** before tuning around — ot
 - **Kenwood:** SPLIT button toggles; the rig display shows TX and RX frequencies separately when split.
 - **Elecraft K3/KX-series:** TAP `B/VFO` to swap VFOs; tap `SPLIT` to enable.
 
-> ⚙️ **Advanced —** Some rigs let you set a fixed split offset (e.g. always 5 kHz up) and toggle it on/off with a single button. This is convenient for habitual DXers but dangerous if the offset doesn't match the DX's stated listen range — you may transmit outside the listen window and never get called back.
+> **Advanced —** Some rigs let you set a fixed split offset (e.g. always 5 kHz up) and toggle it on/off with a single button. This is convenient for habitual DXers but dangerous if the offset doesn't match the DX's stated listen range — you may transmit outside the listen window and never get called back.
 
 ## The split protocol — a worked exchange
 
@@ -162,7 +162,7 @@ These rules are the same as in any pile-up (see [§22-05](22-05-pile-up-etiquett
 - **Rig transmits on the wrong frequency.** SPLIT button isn't on, or VFO A vs B is swapped. Stop transmitting; reset; verify with a brief dummy-load key-down.
 - **I forgot to turn split off and keyed up on a new band.** Common mistake. Always toggle SPLIT off after the contact.
 
-> ⚙️ **Advanced —** DXpedition operators often use multiple-listener modes. "Listening 5-up for North America, 10-up for Europe" splits the geographic regions across the listen range. Some rigs and logging software automate split for known DXpeditions — the cluster spot includes the listen range and the logger configures both VFOs. Be cautious with automation; verify the announced split matches what your software set up.
+> **Advanced —** DXpedition operators often use multiple-listener modes. "Listening 5-up for North America, 10-up for Europe" splits the geographic regions across the listen range. Some rigs and logging software automate split for known DXpeditions — the cluster spot includes the listen range and the logger configures both VFOs. Be cautious with automation; verify the announced split matches what your software set up.
 
 ## When NOT to use split
 

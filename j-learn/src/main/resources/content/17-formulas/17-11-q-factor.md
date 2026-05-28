@@ -9,7 +9,7 @@ status: draft
 
 # Q Factor
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The Q factor (quality factor) of a resonant circuit measures how sharp its resonance is. High Q = narrow bandwidth, high efficiency, sharp tuning. Low Q = wide bandwidth, more loss, broadly tuned.
 
@@ -109,7 +109,7 @@ The "current and voltage rise at resonance by Q" is what makes high-Q magnetic l
 - **Treating Q as a single property of the antenna.** Q changes with frequency for the same physical antenna. A loop at 14 MHz has a different Q than the same loop at 7 MHz.
 - **Reading Q off a sweep without correcting for analyzer load.** A NanoVNA's input impedance presents a load on the resonant circuit that reduces Q. Use a high-impedance probe or compute the unloaded Q from the loaded measurement.
 
-> ⚙️ **Advanced —** Q is a property of the *resonance*, not the components. The same inductor in a different circuit (different frequency, different damping) has a different effective Q. The "Q of an inductor" stated by manufacturers is at a specific frequency and assuming a specific test setup; check the datasheet's measurement conditions.
+> **Advanced —** Q is a property of the *resonance*, not the components. The same inductor in a different circuit (different frequency, different damping) has a different effective Q. The "Q of an inductor" stated by manufacturers is at a specific frequency and assuming a specific test setup; check the datasheet's measurement conditions.
 
 ## See also
 

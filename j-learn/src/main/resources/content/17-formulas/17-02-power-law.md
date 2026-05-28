@@ -9,7 +9,7 @@ status: draft
 
 # Power Law
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The relationship between voltage, current, resistance, and power. Combines Ohm's Law (§17-01) with the definition of power. Comes up every time you size a power supply, fuse, dummy load, resistor, or PA stage.
 
@@ -94,7 +94,7 @@ Runtime = 30 / 2.25 ≈ 13.3 hours
 - **Forgetting PEP vs. average power for SSB.** A "100 W" SSB rig produces 100 W *peak envelope power*, but the average power averaged over a few seconds of voice is closer to 25–40 W. Dummy loads can be sized for the *average* dissipation (lower); transmitter components must be sized for the *peak* (higher).
 - **Mixing AC and DC Ohms.** A 50 Ω dummy load is 50 Ω resistive at RF; its DC resistance is the same to within fractions of an ohm. But a 50 Ω antenna's *DC* resistance is essentially zero — it's the *RF* impedance that matches the line. Don't confuse them.
 
-> ⚙️ **Advanced —** For AC across complex impedance, only the in-phase (real) component of voltage and current dissipates real power; the reactive component circulates without dissipation. Real power is then P = V·I·cos(φ), where φ is the phase angle between V and I. For ham work the simple forms above almost always suffice (50 Ω matched lines, resistive dummy loads); the cos(φ) factor matters when you're doing antenna or amplifier matching network analysis.
+> **Advanced —** For AC across complex impedance, only the in-phase (real) component of voltage and current dissipates real power; the reactive component circulates without dissipation. Real power is then P = V·I·cos(φ), where φ is the phase angle between V and I. For ham work the simple forms above almost always suffice (50 Ω matched lines, resistive dummy loads); the cos(φ) factor matters when you're doing antenna or amplifier matching network analysis.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Q-Codes
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This is the alphabetical reference for Q-codes that appear in amateur use. Each entry shows the **statement form** (default) and the **question form** (with `?` appended). Most have both; a few are statement-only.
 
@@ -221,7 +221,7 @@ Common in DX-pedition info: "QSL VIA M0OXO" = "Send your QSL card to M0OXO who i
 
 Some Q-codes have different meanings in maritime, aeronautical, military, and amateur services. The amateur use is what's listed above. If you're decoding maritime or aeronautical traffic, consult a service-specific Q-code dictionary.
 
-> ⚙️ **Advanced —** The original ITU Q-code allocation reserves QAA-QNZ for aeronautical use, QOA-QQZ for maritime, and QRA-QUZ for general (which amateurs share). Within those ranges, individual codes may have parallel meanings — QSA in maritime use is signal-strength (same as amateur), but QHE in aeronautical use is "all clear" while QHE has no amateur use. The codes that exist in multiple services tend to be the most universally understood.
+> **Advanced —** The original ITU Q-code allocation reserves QAA-QNZ for aeronautical use, QOA-QQZ for maritime, and QRA-QUZ for general (which amateurs share). Within those ranges, individual codes may have parallel meanings — QSA in maritime use is signal-strength (same as amateur), but QHE in aeronautical use is "all clear" while QHE has no amateur use. The codes that exist in multiple services tend to be the most universally understood.
 
 ## How to remember them
 

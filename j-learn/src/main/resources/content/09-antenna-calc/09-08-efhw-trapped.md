@@ -9,7 +9,7 @@ status: draft
 
 # EFHW — End-Fed Half-Wave (Trapped)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -105,7 +105,7 @@ The voltage budget is brutal even at 100 W — at full power, both traps want va
 | 60%              | 40 ft                  | heavy — marginal        | ~5500 V | vacuum           |
 | < 40%            | < 27 ft                | infeasible              | —       | —                |
 
-> ⚙️ **Advanced —** EFHW trap voltage at full power exceeds the dipole equivalent because the trap nearest the unun sits in the high-Z region of the wire. For legal-limit (1500 W) shorty EFHW operation, **all** traps need vacuum capacitors. The cost stack ($150–600 in caps alone) means full-length EFHW + tuner is almost always the right call at high power.
+> **Advanced —** EFHW trap voltage at full power exceeds the dipole equivalent because the trap nearest the unun sits in the high-Z region of the wire. For legal-limit (1500 W) shorty EFHW operation, **all** traps need vacuum capacitors. The cost stack ($150–600 in caps alone) means full-length EFHW + tuner is almost always the right call at high power.
 
 ### When to use a shorty EFHW
 
@@ -154,7 +154,7 @@ A 67-foot trapped EFHW covers 40 / 20 / 15m precisely (no harmonic overlap). Exc
 - **Counterpoise sizing.** With multiple bands, the optimal counterpoise length is a compromise — try ~5% of the longest active radiating section.
 - **Trying to add a 4th band.** Three bands is the practical maximum for a sane build. Use a tuner for the WARC bands instead of stacking more traps.
 
-> ⚙️ **Advanced —** Each trap on a trapped EFHW adds ~0.5–1.5 dB of loss on the bands below its resonance (it's acting as a lossy loading coil). On the lowest band of a 3-trap design, total trap loss can be 2–4 dB — compare to a non-trapped EFHW (essentially no loss, just length). The space savings come at this efficiency cost.
+> **Advanced —** Each trap on a trapped EFHW adds ~0.5–1.5 dB of loss on the bands below its resonance (it's acting as a lossy loading coil). On the lowest band of a 3-trap design, total trap loss can be 2–4 dB — compare to a non-trapped EFHW (essentially no loss, just length). The space savings come at this efficiency cost.
 
 ## Build & trim notes
 

@@ -9,7 +9,7 @@ status: draft
 
 # Impedance Transformation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A radio's PA wants to see 50 Ω. A real antenna almost never *is* 50 Ω. Every antenna system in this chapter — from a perfect dipole to an end-fed wire to a magnetic loop — has a feedpoint impedance that needs to be transformed to 50 Ω before the radio is happy. **Matching networks** do that transformation.
 
@@ -53,7 +53,7 @@ An L-network has just **two reactive components**: one shunt and one series. It 
 
 The "low-pass L" is what most amateur tuners use. The components are tunable (a roller inductor and a variable capacitor), so the same network covers a range of impedances and frequencies.
 
-> ⚙️ **Advanced —** For a load of R + jX (where R < 50 Ω), the low-pass L solves: Q = sqrt((50/R) − 1); X_L = R × Q − X (series inductor, with the existing X cancelled); X_C = 50 / (Q × (1 + (1/Q²))) (shunt capacitor). For R > 50 Ω the formulation flips. The L-network's Q is fixed by the impedance ratio — Q ≈ sqrt((R_high / R_low) − 1). Higher Q means narrower bandwidth (good for filtering, bad if you wanted broadband).
+> **Advanced —** For a load of R + jX (where R < 50 Ω), the low-pass L solves: Q = sqrt((50/R) − 1); X_L = R × Q − X (series inductor, with the existing X cancelled); X_C = 50 / (Q × (1 + (1/Q²))) (shunt capacitor). For R > 50 Ω the formulation flips. The L-network's Q is fixed by the impedance ratio — Q ≈ sqrt((R_high / R_low) − 1). Higher Q means narrower bandwidth (good for filtering, bad if you wanted broadband).
 
 ## PI- and T-networks: the antenna tuner
 

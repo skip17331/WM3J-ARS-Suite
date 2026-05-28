@@ -9,7 +9,7 @@ status: draft
 
 # Firmware Updates
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Modern radios are computers with antenna ports. Every transceiver from the last 15 years runs firmware that the manufacturer continues to update — sometimes for years after release. Updates fix bugs, add modes, improve receive performance, and (occasionally) introduce new bugs. Maintaining your station means keeping firmware current — *deliberately*, not blindly.
 
@@ -108,7 +108,7 @@ Rare but possible. A power glitch during the critical write phase can leave the 
 2. If that doesn't work, **contact the manufacturer's service department** — they have low-level reflash tools (JTAG/SWD programmers) that can recover most bricked rigs.
 3. Last resort: factory service repair, which on a 5-year-old rig may not be cost-effective.
 
-> ⚙️ **Advanced —** Most modern rigs have a small bootloader (typically a few KB) in a separate flash region from the main firmware. The bootloader is what handles "if main firmware is corrupt, accept a reload." A bricked-state happens when the bootloader itself was corrupted — possible during the small fraction of update time when the bootloader region is being written. Manufacturers minimize this risk by checksumming, by only writing the bootloader during major firmware revisions (not minor ones), and by allowing two bootloader copies. JTAG/SWD recovery rewrites the bootloader from outside the rig's normal interfaces; it's a service-department procedure.
+> **Advanced —** Most modern rigs have a small bootloader (typically a few KB) in a separate flash region from the main firmware. The bootloader is what handles "if main firmware is corrupt, accept a reload." A bricked-state happens when the bootloader itself was corrupted — possible during the small fraction of update time when the bootloader region is being written. Manufacturers minimize this risk by checksumming, by only writing the bootloader during major firmware revisions (not minor ones), and by allowing two bootloader copies. JTAG/SWD recovery rewrites the bootloader from outside the rig's normal interfaces; it's a service-department procedure.
 
 ## Updates for accessories
 

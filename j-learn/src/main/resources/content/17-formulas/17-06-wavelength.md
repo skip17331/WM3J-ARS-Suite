@@ -9,7 +9,7 @@ status: draft
 
 # Wavelength
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The wavelength of a radio wave is the physical distance one cycle covers as it propagates. Antennas are sized in fractions of a wavelength (half-wave, quarter-wave, full-wave loop), feedlines have transformations every half-wavelength, and field-strength meters care about the fraction of a wavelength they're away from a source.
 

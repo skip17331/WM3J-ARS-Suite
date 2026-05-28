@@ -9,7 +9,7 @@ status: draft
 
 # Antennas — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The antenna is the most consequential decision in your station. A 100 W radio into a great antenna will routinely outperform a 1500 W amplifier into a compromise antenna. Money spent on the antenna pays back tenfold over money spent on anything else — including the radio itself, beyond a basic working transceiver.
 

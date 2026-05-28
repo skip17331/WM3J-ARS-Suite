@@ -9,7 +9,7 @@ status: draft
 
 # Olivia — Sub-Noise-Floor Manual Chat
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -45,7 +45,7 @@ For weak-signal CW-replacement: **8/250** is the canonical choice. For ragchew u
 
 The mode uses **Walsh-Hadamard FEC**: each character is spread across 64 bits transmitted as 64 separate symbols. Even with half the symbols destroyed by fading or QRM, the decoder reconstructs the character.
 
-> ⚙️ **Advanced —** Olivia's selectivity in the time domain comes from its **64-tone-time block**: each ASCII character occupies a 64-symbol-by-N-tone block, and the decoder correlates the received audio against all possible character codes. A character is reported only if its correlation exceeds the next-best candidate by a configurable margin (typically 1.4×). This is why Olivia "either copies or doesn't" — you rarely see partially-garbled text. The decoder either has enough signal energy to commit, or it stays silent.
+> **Advanced —** Olivia's selectivity in the time domain comes from its **64-tone-time block**: each ASCII character occupies a 64-symbol-by-N-tone block, and the decoder correlates the received audio against all possible character codes. A character is reported only if its correlation exceeds the next-best candidate by a configurable margin (typically 1.4×). This is why Olivia "either copies or doesn't" — you rarely see partially-garbled text. The decoder either has enough signal energy to commit, or it stays silent.
 
 ## Why use it
 

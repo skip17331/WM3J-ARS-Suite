@@ -9,7 +9,7 @@ status: draft
 
 # Enclosures & Shielding
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Why the box matters
 
@@ -88,7 +88,7 @@ Typical values:
 
 Suppliers: Spectrum Control, Tusonix, AVX, Murata — all stock standard 6-32 thread feedthroughs. Cost: $1–5 each.
 
-> ⚙️ **Advanced —** For very high-RF applications (a kilowatt PA filter chamber), use **multilayer ceramic feedthroughs** (Murata DSS series) that integrate a small ferrite bead into the feedthrough body. The bead adds series impedance, the cap adds shunt impedance — together they form an L-C low-pass that buys you 30+ dB of additional attenuation per lead. They're $5–15 each, but for a legal-limit PA where 200 W of harmonics on the DC bias lead can cause TVI, they're cheap.
+> **Advanced —** For very high-RF applications (a kilowatt PA filter chamber), use **multilayer ceramic feedthroughs** (Murata DSS series) that integrate a small ferrite bead into the feedthrough body. The bead adds series impedance, the cap adds shunt impedance — together they form an L-C low-pass that buys you 30+ dB of additional attenuation per lead. They're $5–15 each, but for a legal-limit PA where 200 W of harmonics on the DC bias lead can cause TVI, they're cheap.
 
 ## Ground-plane PCBs
 

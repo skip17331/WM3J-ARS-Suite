@@ -9,7 +9,7 @@ status: draft
 
 # Coax Inspection
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 §16-04 covers when and how to **replace** coax. This section covers how to **inspect** coax — the diagnostic process you do before, during, and between replacements. Inspection catches the early signs of degradation; replacement responds to the late ones.
 
@@ -158,7 +158,7 @@ A cable that has been wet, kinked, or has aged shield will show **higher matched
 
 If your measured loss exceeds spec by 30% or more, the cable is at end of life — schedule replacement.
 
-> ⚙️ **Advanced —** The NanoVNA's S11 reading isn't directly cable loss; it's the **return loss** through the cable + termination + cable. To extract one-way cable loss: measure return loss with the cable terminated; subtract the termination's known mismatch (a 50 Ω load typically has 35-40 dB return loss); divide by 2 for one-way. NanoVNA-Saver and similar software does this calculation automatically. For higher accuracy, sweep the cable with a known short or open at the far end and use the round-trip loss directly.
+> **Advanced —** The NanoVNA's S11 reading isn't directly cable loss; it's the **return loss** through the cable + termination + cable. To extract one-way cable loss: measure return loss with the cable terminated; subtract the termination's known mismatch (a 50 Ω load typically has 35-40 dB return loss); divide by 2 for one-way. NanoVNA-Saver and similar software does this calculation automatically. For higher accuracy, sweep the cable with a known short or open at the far end and use the round-trip loss directly.
 
 ## TDR sweep (annual or symptom-driven)
 

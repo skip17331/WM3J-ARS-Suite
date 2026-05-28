@@ -9,7 +9,7 @@ status: draft
 
 # Trap Design & Manufacturing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -129,7 +129,7 @@ Typical values:
 - **Under-counting turns.** The Wheeler formula slightly underestimates inductance (~5%); plan to wind 1 extra turn and remove if needed.
 - **Skimping on weatherproofing.** Trap drift over a season due to water ingress is the #2 trap failure mode. Pot the trap in epoxy or seal it in heat-shrink with sealing compound.
 
-> ⚙️ **Advanced —** Coaxial-cable traps (using a section of coax wound on a form) are a specialized variant where the inner conductor is the L and the inter-conductor capacitance is the C. Ratings are more predictable than discrete L+C, but the design space is more constrained. RG-58 has ~30 pF/ft of capacitance — that drives the design.
+> **Advanced —** Coaxial-cable traps (using a section of coax wound on a form) are a specialized variant where the inner conductor is the L and the inter-conductor capacitance is the C. Ratings are more predictable than discrete L+C, but the design space is more constrained. RG-58 has ~30 pF/ft of capacitance — that drives the design.
 
 ## Designing traps for shorty antennas
 

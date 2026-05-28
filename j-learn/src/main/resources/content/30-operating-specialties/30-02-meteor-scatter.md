@@ -9,7 +9,7 @@ status: draft
 
 # Meteor Scatter Operating
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What meteor scatter is
 
@@ -137,7 +137,7 @@ A few things meteor-scatter operators expect:
 - **Real-time emcomm.** You cannot rely on getting a message through in any given 15-second window.
 - **Casual operating.** It's a planning-and-patience activity; not something you fire up "for an hour after dinner" and expect contacts.
 
-> ⚙️ **Advanced —** The geometry of a meteor-scatter path matters as much as raw equipment. The optimum reflection volume is the patch of sky where the great-circle path between your two stations intersects the 100 km meteor zone — typically at the midpoint of the path, elevation 5–15°. WSJT-X has a "MSK144 sked planner" that displays this point given two grid squares. Both stations beam at the *common volume*, not at each other. A meteor trail oriented perpendicular to your station's bearing reflects strongly; one oriented along the path reflects poorly. The "hot rock" effect — a single bright meteor producing a 5+ second overdense trail — can carry an entire QSO in one ping; experienced operators chase these by listening more than transmitting during the few minutes after a fireball.
+> **Advanced —** The geometry of a meteor-scatter path matters as much as raw equipment. The optimum reflection volume is the patch of sky where the great-circle path between your two stations intersects the 100 km meteor zone — typically at the midpoint of the path, elevation 5–15°. WSJT-X has a "MSK144 sked planner" that displays this point given two grid squares. Both stations beam at the *common volume*, not at each other. A meteor trail oriented perpendicular to your station's bearing reflects strongly; one oriented along the path reflects poorly. The "hot rock" effect — a single bright meteor producing a 5+ second overdense trail — can carry an entire QSO in one ping; experienced operators chase these by listening more than transmitting during the few minutes after a fireball.
 
 ## See also
 

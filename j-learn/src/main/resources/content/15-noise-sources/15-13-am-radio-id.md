@@ -9,7 +9,7 @@ status: draft
 
 # AM Radio ID
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The AM radio sniffer technique from §14-07 works for power-line noise too — with some adaptations. Power-line sources are usually stronger than household sources and at a greater distance, which changes the practical procedure.
 
@@ -91,14 +91,14 @@ For transmission lines:
 Useful template:
 
 ```
-Date / time: 
+Date / time:
 Weather:                  (dry, fog, drizzle, etc.)
 Starting noise level:     S6 on 80 m (your station)
 Walked toward:            (street name, direction)
 Loudest pole found:       (pole #)
 Owner:                    (utility name from pole tag)
 Visible problem:          (insulator crack, etc.)
-GPS coordinates:          
+GPS coordinates:
 Photos taken:             yes/no
 Notes:
 ```

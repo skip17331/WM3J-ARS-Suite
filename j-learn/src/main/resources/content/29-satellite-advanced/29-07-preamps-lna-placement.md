@@ -9,7 +9,7 @@ status: draft
 
 # Mast-Mounted Preamps
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A satellite signal from LEO is weak when it gets to the ground. A 1-watt downlink from a CubeSat 1500 km away delivers roughly **-130 dBm at your antenna's feedpoint** — about 10 dB above thermal noise in a 2.5 kHz SSB bandwidth on a quiet receiver. There's no real margin. Anything that adds loss or noise between the antenna and the receiver eats into that 10 dB and pushes the signal toward unintelligible.
 
@@ -124,7 +124,7 @@ Cost is typically $150-400 per preamp + bias-T pair, depending on noise figure a
 - **Putting a preamp in front of an already-good-NF rig that's seeing zero coax loss.** If your rig is a Kenwood TS-2000 with the integrated 2 m / 70 cm preamps and you have 10 feet of LMR-400, the mast preamp adds almost nothing. The math has to favor mast-mounting; it doesn't always.
 - **Too much gain.** A 30+ dB mast preamp can overload the rig's front-end, especially if you have nearby paging transmitters or cell sites. 15-20 dB gain is typically the sweet spot.
 
-> ⚙️ **Advanced —** For 23 cm and microwave satellite work (1.2 GHz and up), the LNA's noise figure becomes the dominant system spec. State-of-the-art HEMT-based LNAs at 1.2 GHz reach 0.3 dB NF, and at 10 GHz can reach 0.6 dB NF with cryogenic cooling (not amateur-typical but possible). At these frequencies the cable loss penalty is so severe that the preamp **must** be at the antenna — there's no compromise that works. Most 23 cm satellite ground stations include a feedpoint LNA as part of the antenna assembly, with the bias-T integrated into the dish or helix mount.
+> **Advanced —** For 23 cm and microwave satellite work (1.2 GHz and up), the LNA's noise figure becomes the dominant system spec. State-of-the-art HEMT-based LNAs at 1.2 GHz reach 0.3 dB NF, and at 10 GHz can reach 0.6 dB NF with cryogenic cooling (not amateur-typical but possible). At these frequencies the cable loss penalty is so severe that the preamp **must** be at the antenna — there's no compromise that works. Most 23 cm satellite ground stations include a feedpoint LNA as part of the antenna assembly, with the bias-T integrated into the dish or helix mount.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Digital Modes — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A "digital mode" in amateur radio is any mode that encodes information as discrete symbols transmitted over RF, decoded by software at the other end. RTTY (1940s teletype), PSK31 (1990s rag-chew), FT8 (2017 weak-signal QSO mode), APRS (position reporting), and Packet (AX.25 data) are all digital modes — but they cover wildly different use cases, bandwidths, and decoders.
 

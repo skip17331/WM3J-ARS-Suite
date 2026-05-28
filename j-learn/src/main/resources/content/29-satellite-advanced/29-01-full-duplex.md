@@ -9,7 +9,7 @@ status: draft
 
 # Full-Duplex Operation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 **Full-duplex** means your station transmits and receives simultaneously, on different frequencies. **Half-duplex** means the radio can only do one or the other at a time — push-to-talk transmits and mutes the receiver; release-to-receive listens and disables the transmitter.
 
@@ -65,7 +65,7 @@ The IC-9700 is the dominant choice as of 2026 for new satellite stations. The na
 
 Whatever your hardware, full-duplex requires headphones. Speakers feedback the downlink audio into the microphone and the bird re-transmits your own voice with a delay, which is both annoying and unprofessional. Headphones — closed-back, comfortable — are not optional for serious satellite work.
 
-> ⚙️ **Advanced —** Some operators run a noise-cancelling headset (e.g., Heil Pro 7) with a sidetone-and-monitor mix that lets you hear both the satellite downlink and your own outgoing audio at adjustable levels. This is the equivalent of a broadcast-engineer's cue mix and is the smoothest way to work a linear transponder pass while paying attention to Doppler in real time.
+> **Advanced —** Some operators run a noise-cancelling headset (e.g., Heil Pro 7) with a sidetone-and-monitor mix that lets you hear both the satellite downlink and your own outgoing audio at adjustable levels. This is the equivalent of a broadcast-engineer's cue mix and is the smoothest way to work a linear transponder pass while paying attention to Doppler in real time.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Loading for Shortened Antennas
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -102,7 +102,7 @@ The actual reactance scales nonlinearly with shortening — a 50% shortened ante
 - **One coil for a dipole.** A horizontal shortened dipole needs **a coil in EACH leg** with half the inductance per side. Single coil at the feedpoint is wrong.
 - **Loaded-antenna bandwidth is narrow.** A 50%-shortened antenna has roughly 1/4 the bandwidth of full-size. Plan to retune (or accept high SWR) at band edges.
 
-> ⚙️ **Advanced —** The cot-approximation formula above is for shortened dipoles where the physical length is at most ~70–80% of full. For very short antennas (under 30% of full length), the formula breaks down because the antenna's input impedance becomes dominated by capacitive reactance and ohmic losses. NEC-2 modeling is essential for very-short HF mobile whips and similar designs.
+> **Advanced —** The cot-approximation formula above is for shortened dipoles where the physical length is at most ~70–80% of full. For very short antennas (under 30% of full length), the formula breaks down because the antenna's input impedance becomes dominated by capacitive reactance and ohmic losses. NEC-2 modeling is essential for very-short HF mobile whips and similar designs.
 
 ## Build & trim notes
 

@@ -9,7 +9,7 @@ status: draft
 
 # Full-Wave Loops
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **full-wave loop** is a closed wire about one wavelength in circumference, hung in any closed shape — square (quad), triangle (delta), or larger irregular shapes (skyloop). Unlike the small magnetic loop in §06-05, this loop is electrically *large*; its current and voltage distributions span a full wave around its perimeter. It radiates as a normal-sized antenna, not via near-field magnetic coupling.
 
@@ -89,7 +89,7 @@ Two real effects:
 
 Both effects are real but not dramatic — typical loops are **1–3 dB quieter** than a same-band dipole on receive, sometimes more if there's a strong local noise source nicely placed in a null.
 
-> ⚙️ **Advanced —** The "quiet loop" claim is sometimes mis-attributed. A loop's *radiation* characteristics vs. *near-field-coupling* characteristics are not the same. The reduced near-field noise pickup is a genuine consequence of the loop's input being at a low-impedance current node, while a dipole's feed point is at a higher-impedance current node — this changes how local-field noise voltages convert to terminal voltage. The pattern-null effect, by contrast, is just geometry. Both effects are typically a few dB; combined they can be quite useful, but a properly chosen Beverage receive antenna will outperform a TX loop for receive every time on 160/80 m.
+> **Advanced —** The "quiet loop" claim is sometimes mis-attributed. A loop's *radiation* characteristics vs. *near-field-coupling* characteristics are not the same. The reduced near-field noise pickup is a genuine consequence of the loop's input being at a low-impedance current node, while a dipole's feed point is at a higher-impedance current node — this changes how local-field noise voltages convert to terminal voltage. The pattern-null effect, by contrast, is just geometry. Both effects are typically a few dB; combined they can be quite useful, but a properly chosen Beverage receive antenna will outperform a TX loop for receive every time on 160/80 m.
 
 ## When to pick a full-wave loop
 

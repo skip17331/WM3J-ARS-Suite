@@ -9,7 +9,7 @@ status: draft
 
 # BER (Bit Error Rate) Explained
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -154,7 +154,7 @@ Sometimes BER is fine, but audio still sounds bad. That's not a BER problem — 
 - Mic gain on your radio (most DV radios have a separate digital mic gain setting).
 - Whether the network you're using is bridging through another codec (DMR → D-STAR transcoding adds artifacts even with perfect BER).
 
-> ⚙️ **Advanced —** BER on a Pi-Star dashboard is technically *raw* BER — counted before FEC. Modern DV modes apply substantial FEC: DMR adds Reed-Solomon and Hamming codes that recover most single-bit errors. The "audio breakup threshold" is therefore not at the raw BER value shown but at the *uncorrected* BER after FEC, which depends on the burst-error structure of the channel. A signal with 4% raw BER from random Gaussian noise may decode perfectly; a signal with 1% raw BER but in bursts (e.g., from a brief multipath null) may produce more audible artifacts. Pi-Star's BER number is a useful proxy but not the full story.
+> **Advanced —** BER on a Pi-Star dashboard is technically *raw* BER — counted before FEC. Modern DV modes apply substantial FEC: DMR adds Reed-Solomon and Hamming codes that recover most single-bit errors. The "audio breakup threshold" is therefore not at the raw BER value shown but at the *uncorrected* BER after FEC, which depends on the burst-error structure of the channel. A signal with 4% raw BER from random Gaussian noise may decode perfectly; a signal with 1% raw BER but in bursts (e.g., from a brief multipath null) may produce more audible artifacts. Pi-Star's BER number is a useful proxy but not the full story.
 
 ## Reading BER on a Pi-Star dashboard
 

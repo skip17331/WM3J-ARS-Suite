@@ -9,7 +9,7 @@ status: draft
 
 # RF Exposure
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This card walks through the **RF exposure** calculation end-to-end. It pulls together more variables (power, frequency, duty cycle, gain, distance) than any other formula in this chapter — it's the canonical use of the formula-calculator pattern.
 
@@ -55,7 +55,7 @@ P_avg = P_PEP × k_avg × D
 
 D is your transmit duty cycle: if you transmit 1 minute out of 6, D = 0.17. If you're rag-chewing, expect D ~ 0.5. Contest transmit-receive ratio is closer to D = 0.7 for the operator at the key.
 
-> ⚙️ **Advanced —** The 30 / 6 minute averaging windows come from FCC §1.1310. Controlled environment means you (the operator) and your family at the station; uncontrolled means anyone walking by — neighbors, kids, the public. Use the 6-min window when computing exposure to the public.
+> **Advanced —** The 30 / 6 minute averaging windows come from FCC §1.1310. Controlled environment means you (the operator) and your family at the station; uncontrolled means anyone walking by — neighbors, kids, the public. Use the 6-min window when computing exposure to the public.
 
 ## Step 2 — Power at the antenna (after feedline loss)
 
@@ -205,7 +205,7 @@ The practical takeaway: **hold the HT a few inches off your head, not pressed ag
 - **Forgetting to convert dBd → dBi.** The MPE formulas use EIRP (referenced to isotropic), not ERP (referenced to dipole). Always convert antenna gain to dBi before plugging in.
 - **Mixing controlled and uncontrolled tables.** A neighbor's window is uncontrolled. The shack itself (with you and your family present) is controlled. Use the right column.
 
-> ⚙️ **Advanced —** This walk-through assumes the far-field 1/d² law. In the *near field* (within ~2λ for HF, much less for VHF/UHF), the field is dominated by the antenna's reactive near-field structure and falls off faster than 1/d². For ham work near 80m antennas (λ = 80 m → near-field extends to ~160 m!), this means the simple formula *over-estimates* exposure within tens of meters of the antenna, giving conservative compliance numbers. The FCC accepts the simple formula as adequate for most ham installations.
+> **Advanced —** This walk-through assumes the far-field 1/d² law. In the *near field* (within ~2λ for HF, much less for VHF/UHF), the field is dominated by the antenna's reactive near-field structure and falls off faster than 1/d². For ham work near 80m antennas (λ = 80 m → near-field extends to ~160 m!), this means the simple formula *over-estimates* exposure within tens of meters of the antenna, giving conservative compliance numbers. The FCC accepts the simple formula as adequate for most ham installations.
 
 ## See also
 

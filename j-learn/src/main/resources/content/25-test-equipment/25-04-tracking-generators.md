@@ -9,7 +9,7 @@ status: draft
 
 # Tracking Generators
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **tracking generator (TG)** is a signal source that's locked to a spectrum analyzer's sweep. As the SA's receiver tunes across a band, the TG transmits a clean tone at exactly the same frequency. Connect TG-output to a device-under-test, then device-output to the SA input, and you get a real-time plot of the device's **frequency response** — gain (or loss) versus frequency, drawn live on the screen.
 
@@ -72,7 +72,7 @@ For a small-signal preamp:
 
 For a high-power PA: you cannot sweep at full power without a calibrated attenuator chain. Run the PA at reduced drive (a few watts), use a high-power coupler, attenuate the coupled output to safe SA input level, and sweep with the TG. Note that an amplifier's small-signal gain may differ from its full-power gain because of gain compression — for compression behavior you measure at one frequency with varied input level, not with a swept TG.
 
-> ⚙️ **Advanced —** A true scalar network analyzer goes one step further than a swept TG: it can normalize out the cable/coupler frequency response (insertion-loss calibration) by capturing a "thru" sweep first, then displaying the DUT response relative to thru. Most modern SAs with TGs offer this as "normalize" or "trace math" mode. Without it, the TG output flatness and cable losses contaminate the measurement.
+> **Advanced —** A true scalar network analyzer goes one step further than a swept TG: it can normalize out the cable/coupler frequency response (insertion-loss calibration) by capturing a "thru" sweep first, then displaying the DUT response relative to thru. Most modern SAs with TGs offer this as "normalize" or "trace math" mode. Without it, the TG output flatness and cable losses contaminate the measurement.
 
 ## What's in the box
 
@@ -132,7 +132,7 @@ A safe starting point is **-20 dBm TG output**, with attenuators added after gai
 - **Saturating the SA after a gain stage.** Forgetting to add padding when measuring amplifier gain.
 - **Confusing return loss with insertion loss.** A coupler measurement gives return loss (reflection); a thru measurement gives insertion loss (transmission). They look similar on the screen but mean opposite things.
 
-> ⚙️ **Advanced —** For real engineering work on a filter, you want both amplitude *and* phase response. A scalar TG/SA combo only gives amplitude. The phase response matters for cascaded filters (group delay distortion), for matching network design (where you need to know the DUT's reactive component), and for pulse-fidelity work (CW keying through a filter). Step up to a VNA when phase information becomes load-bearing.
+> **Advanced —** For real engineering work on a filter, you want both amplitude *and* phase response. A scalar TG/SA combo only gives amplitude. The phase response matters for cascaded filters (group delay distortion), for matching network design (where you need to know the DUT's reactive component), and for pulse-fidelity work (CW keying through a filter). Step up to a VNA when phase information becomes load-bearing.
 
 ## See also
 

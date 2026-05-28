@@ -9,7 +9,7 @@ status: draft
 
 # Feedline Loss
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The feedline component of the power budget is the cable run between transmitter and antenna. It has two contributions: **matched-line loss** (always present, set by cable type and frequency) and **mismatch-induced extra loss** (depends on antenna SWR). Both turn watts into heat in the cable.
 

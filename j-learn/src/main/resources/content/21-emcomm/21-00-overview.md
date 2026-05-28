@@ -9,7 +9,7 @@ status: draft
 
 # Emergency & Public Service Communications — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 When the cell network is down, the internet is out, the power grid is dark, and 911 is overloaded — amateur radio still works. A 100-watt HF rig running off a car battery can reach a coordinator a thousand miles away over a propagated path. A 5-watt HT can reach a regional repeater and pass health-and-welfare traffic out of a damaged town. A linked digital network can move formal messages across a state in minutes when no other channel is functioning.
 
@@ -49,7 +49,7 @@ There are three formal amateur emergency organizations operating in the United S
 - **Equipment**: Often operator-owned, sometimes agency-owned; varies by jurisdiction.
 - **Training**: ICS coursework typically required (FEMA IS-100, IS-700, IS-800); RACES-specific procedures vary by state.
 
-> ⚙️ **Advanced —** RACES historically had unique operating privileges in declared emergencies that ARES did not — e.g., authorization to relay messages on behalf of government agencies. The 1990s-era Section 97.407 has been substantially relaxed but RACES retains its formal civil-defense designation. Many ARES groups in practice also have RACES designations through their county emergency management agencies; a single operator may participate in both with different authorities depending on the activation type.
+> **Advanced —** RACES historically had unique operating privileges in declared emergencies that ARES did not — e.g., authorization to relay messages on behalf of government agencies. The 1990s-era Section 97.407 has been substantially relaxed but RACES retains its formal civil-defense designation. Many ARES groups in practice also have RACES designations through their county emergency management agencies; a single operator may participate in both with different authorities depending on the activation type.
 
 ### MARS — Military Auxiliary Radio System
 

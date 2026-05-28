@@ -9,7 +9,7 @@ status: draft
 
 # Dip Meters
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **dip meter** — historically a **grid-dip oscillator (GDO)** in the tube era, now usually solid-state — measures the **resonant frequency of an unpowered LC circuit**. You don't connect it; you bring its tunable coil near the circuit under test. When the meter's oscillator frequency matches the circuit's resonance, the circuit absorbs energy from the meter, the oscillator's amplitude drops, and the meter needle **dips**. Read the dial: that's the resonant frequency.
 
@@ -71,7 +71,7 @@ From that one fact you can derive many useful things, because resonance is `f = 
 
 It does **not** tell you the Q, the loss, the impedance at any other frequency, or anything about how the LC circuit will actually behave under power. For those, you need a VNA, oscilloscope, or signal generator.
 
-> ⚙️ **Advanced —** A dip meter is a Colpitts or Hartley oscillator with an external coil. Its resonant frequency is set by the coil and a variable capacitor; the meter measures rectified RF voltage at the cathode (tube) or collector (transistor). When an external LC tank loosely couples to the oscillator coil, it presents a high impedance only at its resonant frequency — that impedance, transformed through the mutual inductance, increases the loading on the oscillator and damps its amplitude. The needle "dip" is literally the oscillator losing gain.
+> **Advanced —** A dip meter is a Colpitts or Hartley oscillator with an external coil. Its resonant frequency is set by the coil and a variable capacitor; the meter measures rectified RF voltage at the cathode (tube) or collector (transistor). When an external LC tank loosely couples to the oscillator coil, it presents a high impedance only at its resonant frequency — that impedance, transformed through the mutual inductance, increases the loading on the oscillator and damps its amplitude. The needle "dip" is literally the oscillator losing gain.
 
 ## Using a dip meter — the basic procedure
 
@@ -109,7 +109,7 @@ Procedure:
 3. **Sweep and find the dip** as before. Suppose the dip is at 5.03 MHz.
 4. **Compute inductance:** `L = 1 / (4π² · f² · C)`. Plugging in f = 5.03 × 10⁶ Hz and C = 100 × 10⁻¹² F: `L = 1 / (4 · π² · (5.03e6)² · 100e-12) ≈ 1.0 × 10⁻⁵ H = 10 μH`.
 
-> ⚙️ **Advanced —** The capacitor must be much larger than the coil's self-capacitance and the dip meter's coupling capacitance, or the result is wrong. NP0/C0G is preferred because the capacitance is stable with temperature; X7R or worse will pull resonance several percent across a normal shack temperature swing. Use the Formulas calculator in J-Learn (§17) to cross-check the math.
+> **Advanced —** The capacitor must be much larger than the coil's self-capacitance and the dip meter's coupling capacitance, or the result is wrong. NP0/C0G is preferred because the capacitance is stable with temperature; X7R or worse will pull resonance several percent across a normal shack temperature swing. Use the Formulas calculator in J-Learn (§17) to cross-check the math.
 
 ## Testing a trap
 
@@ -131,9 +131,9 @@ Traps go bad — moisture intrudes, capacitors shift, parasites collapse. The di
                 ●─────────●
                ╱
               ╱ wire to inner dipole leg
-              
+
               ◢ loosely coupled ◣
-              
+
        ┌──────────────────────┐
        │ DIP METER coil hovers │   sweep the dial; needle dips at
        │ ~3 cm from trap body  │   the trap's resonant frequency
@@ -149,7 +149,7 @@ Procedure:
 5. **Read the dial at the dip.** If the dip is where it should be, the trap is fine. If the dip has drifted (say 6.4 MHz instead of 7.0), the trap's capacitance has shifted — moisture, corrosion, or a leaky cap. Some traps can be opened and re-tuned; others must be replaced.
 6. **If no dip can be found** anywhere with any coil, the trap is dead — open coil, open capacitor, or the trap's mechanical assembly has lost continuity.
 
-> ⚙️ **Advanced —** Some commercial traps (Hy-Gain, Mosley) have an aluminum housing that acts as a shorted turn. The shorted turn lowers Q and reduces the visible dip depth. Use the most-sensitive setting on the dip meter and bring the coil very close (1–2 cm). If still no dip, gently remove an end cap and probe the internal coil — that's where the LC tank lives. Always restore weatherproofing before re-installing on the antenna.
+> **Advanced —** Some commercial traps (Hy-Gain, Mosley) have an aluminum housing that acts as a shorted turn. The shorted turn lowers Q and reduces the visible dip depth. Use the most-sensitive setting on the dip meter and bring the coil very close (1–2 cm). If still no dip, gently remove an end cap and probe the internal coil — that's where the LC tank lives. Always restore weatherproofing before re-installing on the antenna.
 
 ## Testing other tuned circuits
 

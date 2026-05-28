@@ -9,7 +9,7 @@ status: draft
 
 # Arrow Handheld Yagi
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **Arrow Antennas 146/437-10WBP** ("Wide Band Portable") is the canonical handheld satellite Yagi. If a hundred amateurs are working AO-91 or SO-50 from a park bench somewhere on a Saturday afternoon, ninety of them have one of these — or its slightly-different sibling, the 146/437-10BP (without the wideband 70 cm matching network). Arrow Antennas of Cheyenne, Wyoming has been making these since the late 1990s, and the design has barely changed because it doesn't need to.
 
@@ -65,7 +65,7 @@ LEO satellites tumble. Their downlink polarization rotates relative to your ante
 
 If the downlink suddenly goes weak (deeper than expected for the geometry), **rotate the antenna 45° to 90° around the boom axis** while continuing to point at the satellite. Usually within a quarter turn you'll find the polarization that gives you a clean signal again. Repeat as needed throughout the pass.
 
-> ⚙️ **Advanced —** The 2 m and 70 cm elements are perpendicular, so when one band is at optimum linear polarization match, the other is at worst (cross-polarized → 20-30 dB loss). In practice this matters less than you'd think because the satellite is slowly rotating its polarization too — over a 10-minute pass, you'll cycle through several optima for each band, and 70 cm being the higher-gain link tends to be the one you optimize first. For FM birds where the uplink-receive bandwidth at the satellite is wide and forgiving, you optimize for downlink (70 cm); for linear birds with V/U mode, you may optimize for the harder of the two (typically downlink again, since the satellite's transmitter is power-limited and your TX has spare margin).
+> **Advanced —** The 2 m and 70 cm elements are perpendicular, so when one band is at optimum linear polarization match, the other is at worst (cross-polarized → 20-30 dB loss). In practice this matters less than you'd think because the satellite is slowly rotating its polarization too — over a 10-minute pass, you'll cycle through several optima for each band, and 70 cm being the higher-gain link tends to be the one you optimize first. For FM birds where the uplink-receive bandwidth at the satellite is wide and forgiving, you optimize for downlink (70 cm); for linear birds with V/U mode, you may optimize for the harder of the two (typically downlink again, since the satellite's transmitter is power-limited and your TX has spare margin).
 
 ## Common Arrow mistakes
 

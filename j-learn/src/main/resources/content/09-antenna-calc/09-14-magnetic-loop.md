@@ -9,7 +9,7 @@ status: draft
 
 # Magnetic Loop
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -105,7 +105,7 @@ A 3-ft mag loop with a vacuum capacitor and a 5-inch coupling loop is a complete
 - **Mounting too close to ground.** Mag loops want to be 6–10 ft above ground for cleanest pattern. Indoor installations couple to the floor / ceiling and detune.
 - **Using the loop as a bench-tested antenna.** A loop's Q and tuning shift dramatically when moved indoors / outdoors. Verify final tuning at the operating location.
 
-> ⚙️ **Advanced —** A small mag loop's radiation pattern is bidirectional in the plane of the loop — figure-8 with deep nulls perpendicular to the loop's plane. This is occasionally useful for nulling out a specific noise source. The pattern's nulls are sharp (>30 dB at the null direction) for properly-built loops. Larger loops (approaching ½λ) become more like full-wave loops with omnidirectional patterns and lower Q.
+> **Advanced —** A small mag loop's radiation pattern is bidirectional in the plane of the loop — figure-8 with deep nulls perpendicular to the loop's plane. This is occasionally useful for nulling out a specific noise source. The pattern's nulls are sharp (>30 dB at the null direction) for properly-built loops. Larger loops (approaching ½λ) become more like full-wave loops with omnidirectional patterns and lower Q.
 
 ## Build & trim notes
 

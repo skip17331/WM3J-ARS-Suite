@@ -9,7 +9,7 @@ status: draft
 
 # VARA FM — High-Throughput Soundcard Modem for VHF/UHF FM
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -36,7 +36,7 @@ The basic idea: FM audio between two radios provides a ~3 kHz analog channel of 
 
 Because FM either works or it doesn't, VARA FM doesn't need the deep weak-signal robustness of VARA HF. It can run faster modulation orders almost all the time, as long as the FM link is full-quieting. The moment the link starts hissing (mobile fade, hidden-transmitter), throughput collapses and VARA's ARQ retries fly.
 
-> ⚙️ **Advanced —** Latency vs. throughput is a real consideration. VARA FM uses larger frames than 1200-baud Packet because each frame's protocol overhead is amortized across more data. Larger frames also mean **higher round-trip latency** — typically 1–3 seconds, vs. ~250 ms for 1200-baud Packet. For email this is invisible; for an interactive console session it'd feel sluggish. VARA FM is engineered for batch transfer, not keystroke latency.
+> **Advanced —** Latency vs. throughput is a real consideration. VARA FM uses larger frames than 1200-baud Packet because each frame's protocol overhead is amortized across more data. Larger frames also mean **higher round-trip latency** — typically 1–3 seconds, vs. ~250 ms for 1200-baud Packet. For email this is invisible; for an interactive console session it'd feel sluggish. VARA FM is engineered for batch transfer, not keystroke latency.
 
 ## Why use it
 

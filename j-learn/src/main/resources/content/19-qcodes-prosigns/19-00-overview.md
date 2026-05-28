@@ -9,7 +9,7 @@ status: draft
 
 # Q-Codes & Prosigns — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Amateur radio inherited a vocabulary from the early 20th century when most communication was Morse code, transmissions were slow, and every saved keystroke mattered. Three-letter Q-codes ("QTH" for "my location"), CW prosigns ("AR" for "end of message"), abbreviations ("73" for "best regards"), and the phonetic alphabet ("Whiskey Mike Three Juliet") all came from this era.
 

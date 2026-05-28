@@ -9,7 +9,7 @@ status: draft
 
 # Modeling Concepts
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Antenna modeling lets you predict, in advance, what an antenna will do. Pattern shape, elevation angle, feedpoint impedance, current distribution — all without putting wire in the air. Modern modeling tools are accurate enough that for any new wire antenna, **you should model it before you build it** if you possibly can. An hour with EZNEC, MMANA, or 4nec2 will save you days of trial-and-error in the yard.
 
@@ -99,7 +99,7 @@ A typical model run produces:
 - **"My model says +3 dBd, my measurements show 0 dBd."** Most likely: model didn't include real losses (balun, feedline, ground) or omitted nearby objects (trees, walls, other antennas). The reality always includes those.
 - **Using "perfect ground."** Useful for sanity-checking a model in free space but never representative of a real installation. Always switch to real ground before drawing conclusions about height vs. pattern.
 
-> ⚙️ **Advanced —** The method of moments solves the Pocklington integral equation (or the more numerically tractable Hallén equation) for the current distribution on a wire conductor. The integral equation arises from requiring the tangential E-field at the conductor surface to equal zero (the perfect-conductor boundary condition). MoM expands the unknown current as a sum of basis functions (NEC uses sinusoidal basis functions per segment) and tests the residual against weighting functions (NEC uses pulse weighting), producing a Z-matrix equation Z·I = V to be solved for the segment currents. The "30 segments per wavelength" rule comes from the requirement that the basis functions resolve the current distribution adequately; resonances and rapid current changes need finer segmentation.
+> **Advanced —** The method of moments solves the Pocklington integral equation (or the more numerically tractable Hallén equation) for the current distribution on a wire conductor. The integral equation arises from requiring the tangential E-field at the conductor surface to equal zero (the perfect-conductor boundary condition). MoM expands the unknown current as a sum of basis functions (NEC uses sinusoidal basis functions per segment) and tests the residual against weighting functions (NEC uses pulse weighting), producing a Z-matrix equation Z·I = V to be solved for the segment currents. The "30 segments per wavelength" rule comes from the requirement that the basis functions resolve the current distribution adequately; resonances and rapid current changes need finer segmentation.
 
 ## Practical recommendations
 

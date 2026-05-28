@@ -9,7 +9,7 @@ status: draft
 
 # Robust Packet — AX.25 Hardened for HF
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -44,7 +44,7 @@ The original AX.25 frame structure is unchanged: callsigns, destination/source/d
 
 The combination of OFDM + FEC + interleaving makes Robust Packet **10–20 dB more sensitive** than 300-baud HF AFSK Packet on a typical HF path. A signal that's unintelligible to old HF Packet decodes cleanly in Robust Packet.
 
-> ⚙️ **Advanced —** Robust Packet's interleaver depth is ~10 symbol times (about 50 ms at RP 200). This is enough to spread byte information across the typical 1–10 ms multipath delays of HF, but short enough that ARQ latency doesn't suffer. Longer interleavers (used in some military HF modems) would offer more fade resilience but at the cost of much higher round-trip latency, which would break AX.25's connected-mode timeouts.
+> **Advanced —** Robust Packet's interleaver depth is ~10 symbol times (about 50 ms at RP 200). This is enough to spread byte information across the typical 1–10 ms multipath delays of HF, but short enough that ARQ latency doesn't suffer. Longer interleavers (used in some military HF modems) would offer more fade resilience but at the cost of much higher round-trip latency, which would break AX.25's connected-mode timeouts.
 
 ## Why use it
 

@@ -9,7 +9,7 @@ status: draft
 
 # PCB Layout Basics for RF
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## RF layout is not "digital layout with more care"
 
@@ -41,7 +41,7 @@ For two-sided boards in KiCad or EAGLE, the convention is **bottom = ground plan
 
 For Manhattan-style construction, the **base copper-clad sheet is the ground plane**, and small islands of copper-clad glued on top are signal pads. Every component has one lead going to the plane and one to an island.
 
-> ⚙️ **Advanced —** For four-layer boards (rare in amateur homebrew), the canonical arrangement is: top signal, ground plane, power plane, bottom signal. The two inner planes form a built-in bypass capacitor of significant value, dramatically improving high-frequency power-supply decoupling. Most amateur projects don't justify four-layer cost, but RF-amp-final or microwave projects sometimes do.
+> **Advanced —** For four-layer boards (rare in amateur homebrew), the canonical arrangement is: top signal, ground plane, power plane, bottom signal. The two inner planes form a built-in bypass capacitor of significant value, dramatically improving high-frequency power-supply decoupling. Most amateur projects don't justify four-layer cost, but RF-amp-final or microwave projects sometimes do.
 
 ## Via stitching
 
@@ -118,7 +118,7 @@ When you need a real PCB:
 
 Both approaches work. The classic *Solid State Design for the Radio Amateur* (W7ZOI and W1FB) shows a generation of Manhattan-style designs that compete with anything PCB-fabbed.
 
-> ⚙️ **Advanced —** "Ugly construction" is even simpler — you don't even cut pads. Components solder lead-to-lead in midair, with one lead going to the ground plane and others to a junction node held up by the component's own rigidity. Wes Hayward W7ZOI made an art form of this; his "ugly weekender" 40 m CW transmitter is a 70-component circuit built without a single cut pad, working perfectly on the first power-up.
+> **Advanced —** "Ugly construction" is even simpler — you don't even cut pads. Components solder lead-to-lead in midair, with one lead going to the ground plane and others to a junction node held up by the component's own rigidity. Wes Hayward W7ZOI made an art form of this; his "ugly weekender" 40 m CW transmitter is a 70-component circuit built without a single cut pad, working perfectly on the first power-up.
 
 ## PCB sourcing — modern reality
 

@@ -9,7 +9,7 @@ status: draft
 
 # QSO Simulation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This chapter is a script and a method for simulating CW QSOs at home before you key up on the air. Practice with these scripts and your first real CW contact will feel familiar instead of terrifying.
 

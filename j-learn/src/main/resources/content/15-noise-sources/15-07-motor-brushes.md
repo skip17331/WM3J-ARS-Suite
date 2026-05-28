@@ -9,7 +9,7 @@ status: draft
 
 # Motor Brushes
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A "brushed" motor uses sliding carbon contacts (brushes) against a rotating commutator to deliver power to the rotor windings. The act of brush-on-commutator contact creates **constant micro-arcs**, which radiate broadband HF noise. Vacuum cleaners, hair dryers, drills, mixers, blenders, and old ceiling fan motors are common offenders.
 

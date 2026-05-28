@@ -9,7 +9,7 @@ status: draft
 
 # Faulty Balun
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A balun (BALanced-to-UNbalanced transformer) sits between coax and an antenna that needs balanced feed. When it fails — most commonly from water, lightning, or core saturation — SWR rises and the radiation pattern goes weird. A balun is the second-most-likely external cause of SWR problems after coax/connectors.
 
@@ -100,7 +100,7 @@ If you do build:
 - Wind enough turns. Too few = poor common-mode rejection at the lowest band; too many = bandwidth limited.
 - Pot or seal the enclosure. Even a "dry" location like under an eave will see condensation; treat it as outdoor.
 
-> ⚙️ **Advanced —** Choke balun effectiveness is measured as common-mode impedance, ideally at least 5,000 Ω across the operating bands. A typical 10-turn FT-240-43 choke gives ~3,000–10,000 Ω on 80 m through 10 m, with the peak around 14 MHz. For 160 m operation, a single FT-240-43 isn't enough; stack 2-3 cores or use a "ugly balun" (coiled coax) with many more turns. The MyAntennas RF-1 series datasheets show common-mode impedance vs frequency plots — useful reference for builders deciding whether their design is adequate.
+> **Advanced —** Choke balun effectiveness is measured as common-mode impedance, ideally at least 5,000 Ω across the operating bands. A typical 10-turn FT-240-43 choke gives ~3,000–10,000 Ω on 80 m through 10 m, with the peak around 14 MHz. For 160 m operation, a single FT-240-43 isn't enough; stack 2-3 cores or use a "ugly balun" (coiled coax) with many more turns. The MyAntennas RF-1 series datasheets show common-mode impedance vs frequency plots — useful reference for builders deciding whether their design is adequate.
 
 ## See also
 

@@ -9,7 +9,7 @@ status: draft
 
 # Maritime Mobile Operating
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What maritime mobile is
 
@@ -145,7 +145,7 @@ The 14.300 MHz frequency is by long-standing tradition the international "/MM re
 - **Heavy weather** — neither you nor your antenna want to be on the air during a 40-knot squall. /MM ops shut down for safety in storms.
 - **Battery-budget operating** — running a kilowatt linear amp drains the house bank fast; most /MM is barefoot or modest-power.
 
-> ⚙️ **Advanced —** The "ground constants" advantage of saltwater appears in the radiated efficiency equation for a short vertical: η = R_radiation / (R_radiation + R_ground_loss). For a 23-ft whip on 40 m, R_radiation ≈ 5 Ω, R_ground_loss is ~30 Ω inland (poor ground) but only ~2 Ω over saltwater. The result: a saltwater whip is ~70% efficient where the same whip inland is ~14% efficient — a 7 dB advantage. This is also why coastal contest stations (Multi/Multi installations on the Atlantic or Pacific coast) routinely outperform inland competition: not bigger antennas, just better ground. Maritime mobile takes this to the limit.
+> **Advanced —** The "ground constants" advantage of saltwater appears in the radiated efficiency equation for a short vertical: η = R_radiation / (R_radiation + R_ground_loss). For a 23-ft whip on 40 m, R_radiation ≈ 5 Ω, R_ground_loss is ~30 Ω inland (poor ground) but only ~2 Ω over saltwater. The result: a saltwater whip is ~70% efficient where the same whip inland is ~14% efficient — a 7 dB advantage. This is also why coastal contest stations (Multi/Multi installations on the Atlantic or Pacific coast) routinely outperform inland competition: not bigger antennas, just better ground. Maritime mobile takes this to the limit.
 
 ## See also
 

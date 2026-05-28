@@ -9,7 +9,7 @@ status: draft
 
 # Verticals
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A vertical antenna is **omnidirectional in azimuth** and radiates at **low elevation angles** when properly installed. That two-sentence summary is why the vertical is the DX antenna of choice for operators who can't put up a tower, and the antenna of frustration for operators who don't understand its ground-system requirements.
 
@@ -60,7 +60,7 @@ A vertical needs the **other half** of itself somewhere. That's what radials are
 
 Bare copper, #14 to #18 AWG, is fine. Insulated wire works too, with a slight detuning effect. **Bury it shallow** (1–2 inches) so the lawnmower doesn't find it, but don't bury it deep — surface conductivity is what matters, not depth.
 
-> ⚙️ **Advanced —** A radial system replaces lossy earth in the *near field* of the vertical. The near-field zone roughly extends out to about 0.3–0.5 λ from the antenna; this is where displacement current density is high enough that earth losses dominate. Radials only need to cover that zone; there's no benefit to making them longer than ¼ λ for a single-band vertical, and there's diminishing return past 32 of them. The Brown/Lewis/Epstein 1937 paper is the foundational reference; 113 radials at 0.4 λ each is the canonical broadcast-quality number for an MF tower (530 kHz–1.6 MHz), but at HF and especially with elevated radials, the requirements are much more relaxed.
+> **Advanced —** A radial system replaces lossy earth in the *near field* of the vertical. The near-field zone roughly extends out to about 0.3–0.5 λ from the antenna; this is where displacement current density is high enough that earth losses dominate. Radials only need to cover that zone; there's no benefit to making them longer than ¼ λ for a single-band vertical, and there's diminishing return past 32 of them. The Brown/Lewis/Epstein 1937 paper is the foundational reference; 113 radials at 0.4 λ each is the canonical broadcast-quality number for an MF tower (530 kHz–1.6 MHz), but at HF and especially with elevated radials, the requirements are much more relaxed.
 
 ## Half-wave vertical: the no-radial trick
 

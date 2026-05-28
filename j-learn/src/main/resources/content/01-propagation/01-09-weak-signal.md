@@ -9,7 +9,7 @@ status: draft
 
 # Weak-Signal VHF/UHF — Tropo, EME, Meteor Scatter, Aurora
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The HF bands ride the ionosphere. VHF and UHF mostly don't — they go where line-of-sight, the atmosphere's lower layers, or unusual physics will take them. **Weak-signal operating** is the umbrella term for chasing those unusual paths: tropospheric ducting, Earth-Moon-Earth, meteor scatter, and aurora. Each has its own physics, its own season, its own operating playbook.
 
@@ -50,7 +50,7 @@ The classic continental enhancement is **summer high-pressure** sitting over a r
 - **Listen first.** Tropo openings can be one-way; hearing the other end doesn't mean they hear you.
 - **Watch the weather map.** A persistent surface high pressure system over the path corridor is the trigger.
 
-> ⚙️ **Advanced —** The mathematical condition for ducting is dN/dh < −157 N-units per km, where N is the radio refractive index (a function of pressure, temperature, and water-vapor partial pressure). The duct height and thickness determine which frequencies are trapped: very thin ducts only work above 1 GHz; thick ducts can trap 50 MHz down to 2 m. The ITU-R P.452 model is the standard reference for predicting tropo path loss including duct enhancement. WSJT-X's MSK144 and FT8 modes work brilliantly through tropo because they're designed for shallow-fade weak-signal paths.
+> **Advanced —** The mathematical condition for ducting is dN/dh < −157 N-units per km, where N is the radio refractive index (a function of pressure, temperature, and water-vapor partial pressure). The duct height and thickness determine which frequencies are trapped: very thin ducts only work above 1 GHz; thick ducts can trap 50 MHz down to 2 m. The ITU-R P.452 model is the standard reference for predicting tropo path loss including duct enhancement. WSJT-X's MSK144 and FT8 modes work brilliantly through tropo because they're designed for shallow-fade weak-signal paths.
 
 ## EME — Earth-Moon-Earth ("moonbounce")
 
@@ -96,7 +96,7 @@ If you're new to EME:
 3. **Use Q65 mode** in WSJT-X, with the EME sub-band setting. Listen first; learn the rhythm; then call.
 4. **Don't expect a ragchew.** Q65 EME is callsign + grid + report exchanges only. A complete contact is 6-10 minutes.
 
-> ⚙️ **Advanced —** EME signal-to-noise depends on the radar equation modified for Moon reflection: SNR (dB) = ERP_dBW + Gr_dB − 41 − 20 log(f_GHz) + cos(elev) corrections. Moon noise (libration broadening — the Moon's rotation makes a 2 Hz spread on 144 MHz, 18 Hz on 1296) limits how narrow your detection bandwidth can be. The optimal mode tradeoff is bandwidth vs symbol time: Q65-60A uses 60 s sequences and ~6 Hz tones — narrow enough to dig out −28 dB SNR signals, wide enough to tolerate libration and Doppler smearing.
+> **Advanced —** EME signal-to-noise depends on the radar equation modified for Moon reflection: SNR (dB) = ERP_dBW + Gr_dB − 41 − 20 log(f_GHz) + cos(elev) corrections. Moon noise (libration broadening — the Moon's rotation makes a 2 Hz spread on 144 MHz, 18 Hz on 1296) limits how narrow your detection bandwidth can be. The optimal mode tradeoff is bandwidth vs symbol time: Q65-60A uses 60 s sequences and ~6 Hz tones — narrow enough to dig out −28 dB SNR signals, wide enough to tolerate libration and Doppler smearing.
 
 ## Meteor scatter
 
@@ -147,7 +147,7 @@ Outside showers, "sporadic background" still produces 2-5 reflections per minute
 
 A serious meteor-scatter session is patient: long-Yagi station, a digital-mode-friendly waterfall display, and the willingness to try a contact for 20-30 minutes before catching the right ping at the right moment.
 
-> ⚙️ **Advanced —** Meteor trails are classified as **underdense** (electron density too low to fully reflect — signal builds up exponentially then decays) or **overdense** (full reflection during the trail's lifetime). Underdense trails dominate at meteor sizes below a few mg; they last ~0.1 s and produce the sharp "pings" common in MS QSOs. Overdense trails from larger meteors last seconds and produce continuous sustained signals. The radio reflection coefficient depends on the angle between the trail and the path geometry — there's a "meteor scatter geometry" optimum where your beam and the other station's beam both point at a common reflection volume in the sky. WSJT-X's meteor-scatter map tool shows the optimum aiming for any given path.
+> **Advanced —** Meteor trails are classified as **underdense** (electron density too low to fully reflect — signal builds up exponentially then decays) or **overdense** (full reflection during the trail's lifetime). Underdense trails dominate at meteor sizes below a few mg; they last ~0.1 s and produce the sharp "pings" common in MS QSOs. Overdense trails from larger meteors last seconds and produce continuous sustained signals. The radio reflection coefficient depends on the angle between the trail and the path geometry — there's a "meteor scatter geometry" optimum where your beam and the other station's beam both point at a common reflection volume in the sky. WSJT-X's meteor-scatter map tool shows the optimum aiming for any given path.
 
 ## Auroral propagation
 
@@ -172,7 +172,7 @@ When the geomagnetic activity gets high enough — A-index > 30, K-index ≥ 6 �
 - **Use CW** during aurora openings — SSB can be unintelligible.
 - Watch **PSK Reporter, RBN, and the Cluster** for early indicators that the aurora is producing 6 m / 2 m contacts.
 
-> ⚙️ **Advanced —** Auroral scattering is field-aligned: the ionization density irregularities along the geomagnetic field lines act like a corner reflector in the sky. The reflection bandwidth is finite — wide modulation gets distorted as different frequencies scatter from slightly different positions in the reflective volume. The "buzz" is the time-domain manifestation of this dispersion. Aurora can also produce **auroral E** propagation on HF — the high-latitude D-layer thickens during a storm and absorbs HF signals, but the E-layer ionization can scatter 28-50 MHz signals for short hops (300-1500 km) along the auroral oval.
+> **Advanced —** Auroral scattering is field-aligned: the ionization density irregularities along the geomagnetic field lines act like a corner reflector in the sky. The reflection bandwidth is finite — wide modulation gets distorted as different frequencies scatter from slightly different positions in the reflective volume. The "buzz" is the time-domain manifestation of this dispersion. Aurora can also produce **auroral E** propagation on HF — the high-latitude D-layer thickens during a storm and absorbs HF signals, but the E-layer ionization can scatter 28-50 MHz signals for short hops (300-1500 km) along the auroral oval.
 
 ## Combining the modes
 

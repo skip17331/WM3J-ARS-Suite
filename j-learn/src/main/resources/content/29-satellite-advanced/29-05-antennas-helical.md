@@ -9,7 +9,7 @@ status: draft
 
 # Helical Antennas
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **helical antenna** is a wire wound into a helix — a 3D spring shape — fed at one end against a ground-plane reflector at the other. The geometry produces **circular polarization** natively, with gain proportional to the helix's length in wavelengths. Helicals are the standard for high-gain circular-polarization work: amateur satellite uplinks and downlinks at UHF and above, telemetry stations for spacecraft, and the original feed for the deep-space dish at Goldstone before phased arrays took over.
 
@@ -99,7 +99,7 @@ Cost is in the $3000-5000 range for the antennas and rotor (helicals are not com
 
 The payoff is the ability to work weak linear birds throughout their passes with margin to spare, and the option to chase deep-space amateur transponders (AO-7 from a long way off, EME if you add another rotor and high-frequency setup).
 
-> ⚙️ **Advanced —** Helicals have a known impedance issue: the feedpoint Z is around 140 ohms naturally, which mismatches 50-ohm coax by 2.8:1 SWR. The quarter-wave matching section at the feedpoint (a flat copper strip ~λ/4 long, transforming 50→140 ohms via Z₀ = √(50 × 140) = 84 ohms characteristic impedance) is the standard fix. Some commercial helicals use a 100-ohm balun or a tapered matching transformer instead. Verify SWR on a vector network analyzer before locking in the design — small geometry errors translate to significant SWR shifts at 70 cm and above.
+> **Advanced —** Helicals have a known impedance issue: the feedpoint Z is around 140 ohms naturally, which mismatches 50-ohm coax by 2.8:1 SWR. The quarter-wave matching section at the feedpoint (a flat copper strip ~λ/4 long, transforming 50→140 ohms via Z₀ = √(50 × 140) = 84 ohms characteristic impedance) is the standard fix. Some commercial helicals use a 100-ohm balun or a tapered matching transformer instead. Verify SWR on a vector network analyzer before locking in the design — small geometry errors translate to significant SWR shifts at 70 cm and above.
 
 ## Comparing helical to crossed Yagi
 

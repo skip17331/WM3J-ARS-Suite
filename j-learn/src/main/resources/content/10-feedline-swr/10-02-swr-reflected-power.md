@@ -9,7 +9,7 @@ status: draft
 
 # SWR & Reflected Power
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 When a wave traveling down a transmission line meets an impedance mismatch at the far end, **part of the wave reflects back** toward the source. The forward and reflected waves combine in the line, producing standing waves of voltage and current — a pattern that's stationary in space, oscillating in time. The **Standing Wave Ratio (SWR)** measures the depth of this pattern.
 
@@ -121,7 +121,7 @@ Higher RL = better match. RL = 14 dB ≈ SWR 1.5:1; RL = 6 dB ≈ SWR 3:1; RL = 
 
 NanoVNAs, network analyzers, and other vector instruments often report return loss directly. The two are equivalent; just different scales.
 
-> ⚙️ **Advanced —** SWR is a single-frequency measurement of the standing-wave amplitude on the transmission line. The full vector reflection coefficient Γ = Γ_real + jΓ_imag carries more information — both magnitude and phase. A Smith chart plots Γ in the complex plane, showing every aspect of the line's impedance behavior at once. SWR is just |Γ| converted to ratio form. Return loss is just |Γ| in dB. All three describe the same physics.
+> **Advanced —** SWR is a single-frequency measurement of the standing-wave amplitude on the transmission line. The full vector reflection coefficient Γ = Γ_real + jΓ_imag carries more information — both magnitude and phase. A Smith chart plots Γ in the complex plane, showing every aspect of the line's impedance behavior at once. SWR is just |Γ| converted to ratio form. Return loss is just |Γ| in dB. All three describe the same physics.
 
 ## What rigs do with high SWR
 

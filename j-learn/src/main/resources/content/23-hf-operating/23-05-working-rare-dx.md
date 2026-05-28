@@ -9,7 +9,7 @@ status: draft
 
 # Working Rare DX
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -31,7 +31,7 @@ The 1–4 weeks before the operation begins are when you do your homework. Big D
 
 The operating plan tells you when to be on the air. If they're working JA at 1000 UTC and you're in California, that's morning your time — be at the rig. If they're working EU at 0200 UTC and you're in the Eastern US, that's late-night and a long shot, but not impossible.
 
-> ⚙️ **Advanced —** Major DXpeditions use specialized software like DXLog and DXCluster filters to manage the pile-up. Some use "DX Heat" auto-rotation — the rig's listen VFO automatically scans the listen range, disrupting "habitual" callers and forcing the pile to spread out. The 3Y0J Bouvet operation used a custom FT8 fox/hound configuration that handled 1000+ contacts per hour per operator.
+> **Advanced —** Major DXpeditions use specialized software like DXLog and DXCluster filters to manage the pile-up. Some use "DX Heat" auto-rotation — the rig's listen VFO automatically scans the listen range, disrupting "habitual" callers and forcing the pile to spread out. The 3Y0J Bouvet operation used a custom FT8 fox/hound configuration that handled 1000+ contacts per hour per operator.
 
 ## During the DXpedition
 

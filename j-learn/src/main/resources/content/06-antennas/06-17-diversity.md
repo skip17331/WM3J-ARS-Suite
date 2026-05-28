@@ -9,7 +9,7 @@ status: draft
 
 # Diversity
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A single antenna captures one snapshot of a fading signal. **Diversity reception** uses two or more antennas (or two or more frequencies, or two polarizations, or two propagation paths) and combines or selects between them — recovering signal during fades that would kill a single-antenna receiver.
 
@@ -57,7 +57,7 @@ Common implementations:
 - **Beverage receiving array** (long wire antennas at different angles) — selecting between two beverages with different headings is a form of space diversity.
 - **Phased arrays** (4-square, 8-square verticals) — combining produces a directional pattern AND diversity gain in one design.
 
-> ⚙️ **Advanced —** True space-diversity gain requires the receiver to combine the two signals correctly. Three combining methods:
+> **Advanced —** True space-diversity gain requires the receiver to combine the two signals correctly. Three combining methods:
 > - **Selection combining**: pick the stronger antenna at any moment. Simplest; near-optimal for binary fading.
 > - **Maximal-ratio combining (MRC)**: weight each antenna by its instantaneous SNR before summing. Mathematically optimal; requires phase-coherent reception. SDR-based receivers can do this in software.
 > - **Equal-gain combining**: sum the two with equal weight after phase alignment. Simpler than MRC; ~1 dB worse.

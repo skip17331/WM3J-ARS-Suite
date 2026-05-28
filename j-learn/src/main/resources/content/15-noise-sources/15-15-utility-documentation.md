@@ -9,7 +9,7 @@ status: draft
 
 # Utility Documentation
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The most important practical chapter on power-line RFI. Filing a complaint that gets acted on requires good documentation, the right contact, and persistent follow-up. This section walks the procedure that actually works.
 

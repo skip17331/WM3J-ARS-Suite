@@ -9,7 +9,7 @@ status: draft
 
 # Mini Tests
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A handful of self-administered tests you can run any week to check where you really stand. Each is short (3–10 minutes). Pick whichever matches what you want to measure today.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Dipoles
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The half-wave dipole is the antenna everything else is compared to. When someone says "+3 dBd," they mean *3 dB better than a dipole at the same height*. When a manufacturer claims gain in dBi, you can mentally subtract about 2.15 to get dBd.
 
@@ -65,7 +65,7 @@ Center-fed dipoles want **balanced feedline** because the antenna itself is bala
 
 The fix is a **1:1 current balun (choke balun)** at the feedpoint. See §06-12 for the details. In practice: every coax-fed dipole should have a choke balun at the center, period.
 
-> ⚙️ **Advanced —** The 73-ohm free-space impedance comes from solving the integral for sinusoidal current distribution on a half-wave wire and is a textbook result. Real dipoles in real installations rarely sit at 73 ohms; height above ground, soil conductivity, and proximity to other conductors all shift it. At a half-wavelength above earth the impedance peaks near 90 Ω; at a quarter-wavelength it dips below 50 Ω; at very low heights (<0.15 λ) it falls below 20 Ω with significant ground loss. This is one reason the same dipole "tunes differently" at different heights.
+> **Advanced —** The 73-ohm free-space impedance comes from solving the integral for sinusoidal current distribution on a half-wave wire and is a textbook result. Real dipoles in real installations rarely sit at 73 ohms; height above ground, soil conductivity, and proximity to other conductors all shift it. At a half-wavelength above earth the impedance peaks near 90 Ω; at a quarter-wavelength it dips below 50 Ω; at very low heights (<0.15 λ) it falls below 20 Ω with significant ground loss. This is one reason the same dipole "tunes differently" at different heights.
 
 ## Multiband dipoles
 

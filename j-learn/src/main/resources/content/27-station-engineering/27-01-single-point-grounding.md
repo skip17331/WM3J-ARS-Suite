@@ -9,7 +9,7 @@ status: draft
 
 # Single-Point Grounding
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The **single-point ground (SPG)** is the most important concept in station engineering. It says: every ground reference in the station — every chassis, every coax shield, every arrestor, every power-supply return — converges at **one physical bus bar**, and that bus bar is bonded to earth at one place.
 
@@ -108,7 +108,7 @@ Two philosophies:
 
 For the typical home shack, philosophy #1 is fine if the ground-rod run is short (< 10 ft) and there's a properly-rated arrestor at the entry. Philosophy #2 is mandatory if the shack is on an upper floor or far from grade.
 
-> ⚙️ **Advanced —** The reason philosophy #2 is preferred for serious installations is that the *entry panel* becomes the lightning surge boundary. Energy is dissipated to earth *before* it enters the building. Inside the shack, the SPG bus is at the same potential as the equipment chassis and the operator — even during a strike. The shack is essentially inside a *Faraday cage* for surge purposes. This is the same principle that protects commercial sites with thousands of dollars of equipment from strikes that would atomize an unprotected amateur station.
+> **Advanced —** The reason philosophy #2 is preferred for serious installations is that the *entry panel* becomes the lightning surge boundary. Energy is dissipated to earth *before* it enters the building. Inside the shack, the SPG bus is at the same potential as the equipment chassis and the operator — even during a strike. The shack is essentially inside a *Faraday cage* for surge purposes. This is the same principle that protects commercial sites with thousands of dollars of equipment from strikes that would atomize an unprotected amateur station.
 
 ## What lands on the bus
 

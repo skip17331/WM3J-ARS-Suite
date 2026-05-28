@@ -9,7 +9,7 @@ status: draft
 
 # Isolation Workflow
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A workflow for systematically isolating an RFI source. The point is to **never guess** — every step either rules out a class of source or narrows down to a smaller set. Done correctly, a stubborn RFI problem can be tracked from "I have noise on 80 m" to "this specific power adapter" in 15–60 minutes.
 

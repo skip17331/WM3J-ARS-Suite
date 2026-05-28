@@ -9,7 +9,7 @@ status: draft
 
 # Band Plans — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A band plan is the agreed-upon division of an amateur band into segments for different operating modes — CW here, digital there, voice in this slice, beacons in that one. Some of these divisions are **legal requirements** set by the FCC (47 CFR §97.301 and §97.305 in the United States); others are **voluntary conventions** organized by IARU regional bodies, national societies, and decades of operator practice.
 
@@ -56,7 +56,7 @@ For a 20 m band (14.000–14.350 MHz) example:
 14.000──┬──────CW────────┬──Digital──┬──────────SSB Phone──────────┬──14.350
         │                │           │                              │
      14.000           14.070      14.150                          14.350
-                                       
+
        Wide CW  Narrow CW    PSK/RTTY/   Lower SSB phone    Upper SSB phone
                               FT8/FT4    (DX/contests)      (general/nets)
 ```

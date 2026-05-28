@@ -9,7 +9,7 @@ status: draft
 
 # J-Pole
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -70,7 +70,7 @@ A typical build uses **1/2" Type-M copper pipe**, **two 90° elbows** to form th
 - **Forgetting to short the stub bottom.** A jumper (typically a length of solid #14 wire soldered between the two pipes at the bottom) is essential. Without it, the stub doesn't transform impedance.
 - **Insulating the antenna from a metal support.** Some operators mount J-poles on aluminum masts and find SWR shifts when the mast contacts the bottom of the stub. Use a fiberglass or wooden insulator at the mounting point.
 
-> ⚙️ **Advanced —** The J-pole is a special case of the more general "shunt-fed" matching topology. The Slim Jim variant folds the radiator back, doubling the effective wire length in the same physical space and slightly improving low-angle radiation; the trade-off is more complex matching geometry.
+> **Advanced —** The J-pole is a special case of the more general "shunt-fed" matching topology. The Slim Jim variant folds the radiator back, doubling the effective wire length in the same physical space and slightly improving low-angle radiation; the trade-off is more complex matching geometry.
 
 ## Build & trim notes
 

@@ -9,7 +9,7 @@ status: draft
 
 # Switching Power Supplies
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The most common single source of HF noise in modern households. Every wall wart, phone charger, laptop brick, USB charger, LED driver, and most appliance controllers contain one. They're cheap, light, and efficient — and many are noisy on the air.
 
@@ -140,7 +140,7 @@ Real-world report from a US suburban household:
 
 This is a typical pattern. Switching supplies are usually the biggest single contributor and the easiest to fix.
 
-> ⚙️ **Advanced —** EMC (Electromagnetic Compatibility) regulations require that switching supplies meet conducted-emission limits at the AC mains terminals. The CISPR 22 / FCC Part 15 limits are roughly 60 dBµV from 150 kHz to 500 kHz, declining to 50 dBµV at higher frequencies. Many cheap supplies don't actually meet these limits in practice — the certification is paid for by the importer who tests one sample, and the production units may differ. Knockoff and counterfeit chargers (especially USB-C PD) frequently fail safety AND EMC tests; this is one good reason to avoid the cheapest options.
+> **Advanced —** EMC (Electromagnetic Compatibility) regulations require that switching supplies meet conducted-emission limits at the AC mains terminals. The CISPR 22 / FCC Part 15 limits are roughly 60 dBµV from 150 kHz to 500 kHz, declining to 50 dBµV at higher frequencies. Many cheap supplies don't actually meet these limits in practice — the certification is paid for by the importer who tests one sample, and the production units may differ. Knockoff and counterfeit chargers (especially USB-C PD) frequently fail safety AND EMC tests; this is one good reason to avoid the cheapest options.
 
 ## See also
 

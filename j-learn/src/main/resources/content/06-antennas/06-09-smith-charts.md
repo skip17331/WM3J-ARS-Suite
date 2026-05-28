@@ -9,7 +9,7 @@ status: draft
 
 # Smith Charts
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The Smith chart is the antenna engineer's most-used graphical tool. It looks like circles drawn inside circles, but it is in fact a *one-glance display of every relevant property of a transmission-line/antenna system at a chosen frequency*: impedance, reflection coefficient, SWR, return loss, electrical length, and what a matching network needs to look like to fix any of those.
 
@@ -96,7 +96,7 @@ Practical NanoVNA reading workflow:
 | Trace is a small bunch on the right edge | Open or near-open — antenna conductor is broken or disconnected |
 | Trace is a small bunch on the left edge | Short — coax shield touching center conductor, or shorted balun |
 
-> ⚙️ **Advanced —** The Smith chart's mathematical magic is the conformal mapping z → (z−1)/(z+1) from the right half of the complex impedance plane onto the unit disk in the Γ plane. Resistance circles in z-space map to circles tangent to the right edge in Γ-space; reactance lines map to arcs passing through the right edge. The fact that a length of transmission line transforms impedance via Γ_new = Γ_old × e^(−j2βℓ) is what makes feedline transformation a clean rotation. Phillip Smith published the chart in 1939 (*Electronics* magazine); the pre-Smith approach involved nomographs and was vastly more painful.
+> **Advanced —** The Smith chart's mathematical magic is the conformal mapping z → (z−1)/(z+1) from the right half of the complex impedance plane onto the unit disk in the Γ plane. Resistance circles in z-space map to circles tangent to the right edge in Γ-space; reactance lines map to arcs passing through the right edge. The fact that a length of transmission line transforms impedance via Γ_new = Γ_old × e^(−j2βℓ) is what makes feedline transformation a clean rotation. Phillip Smith published the chart in 1939 (*Electronics* magazine); the pre-Smith approach involved nomographs and was vastly more painful.
 
 ## When you don't need the Smith chart
 

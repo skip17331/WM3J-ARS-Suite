@@ -9,7 +9,7 @@ status: draft
 
 # Vertical Antennas
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -85,7 +85,7 @@ A 20m vertical is **16.5 ft tall** plus a **16 × 16.5 = 264 ft buried radial fi
 - **Using insulated wire for radials.** Bare or stranded uninsulated wire is preferred — insulation slightly degrades radiation but mostly it complicates termination at the base.
 - **Electrolytic decay.** Buried radials in salty / wet soil corrode in 5–10 years; check resistance to ground annually.
 
-> ⚙️ **Advanced —** A 5/8-wave (⅝λ) vertical has slightly more gain than a ¼λ — about 3 dB at low takeoff angles — at the cost of a more complex matching network (since 5/8-wave is not naturally 50 Ω). The 5/8 is popular for VHF/UHF mobile installs because it's easier to mount than a ½λ vertical at 144 MHz. The half-wave (½λ) **center-fed** vertical (sometimes called "Coaxial vertical" or "Sleeve dipole") is a fully-radial-free design that uses the coax shield as the lower half — a different tradeoff than the ¼λ with radials.
+> **Advanced —** A 5/8-wave (⅝λ) vertical has slightly more gain than a ¼λ — about 3 dB at low takeoff angles — at the cost of a more complex matching network (since 5/8-wave is not naturally 50 Ω). The 5/8 is popular for VHF/UHF mobile installs because it's easier to mount than a ½λ vertical at 144 MHz. The half-wave (½λ) **center-fed** vertical (sometimes called "Coaxial vertical" or "Sleeve dipole") is a fully-radial-free design that uses the coax shield as the lower half — a different tradeoff than the ¼λ with radials.
 
 ## Build & trim notes
 

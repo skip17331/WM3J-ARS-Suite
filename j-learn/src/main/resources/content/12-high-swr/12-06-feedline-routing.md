@@ -9,7 +9,7 @@ status: draft
 
 # Feedline Routing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 How the coax leaves the antenna and where it goes matters as much as what cable you used. Bad routing causes **common-mode current** — RF flowing on the outside of the coax shield instead of staying inside between conductor and shield. Common-mode currents make the coax act as part of the antenna, distorting the pattern, raising SWR, and dumping RF into the shack where it doesn't belong.
 
@@ -96,7 +96,7 @@ A separate but related concern: outdoor coax should be **grounded at the buildin
 
 This is a safety issue, not just an SWR one — but a damaged arrestor or a bad ground bond can cause weird SWR symptoms too.
 
-> ⚙️ **Advanced —** Common-mode current isn't always bad in itself — it's a problem when the antenna designer didn't intend it. Some antenna designs (off-center-fed dipoles, end-fed half-waves with insufficient counterpoise) deliberately use common-mode current as part of the radiating system. In these cases, removing the common mode (with too much choking) can actually make the antenna work worse. Match the choking strategy to the antenna design — read the manual, or model the system in NEC if you're building from scratch.
+> **Advanced —** Common-mode current isn't always bad in itself — it's a problem when the antenna designer didn't intend it. Some antenna designs (off-center-fed dipoles, end-fed half-waves with insufficient counterpoise) deliberately use common-mode current as part of the radiating system. In these cases, removing the common mode (with too much choking) can actually make the antenna work worse. Match the choking strategy to the antenna design — read the manual, or model the system in NEC if you're building from scratch.
 
 ## See also
 

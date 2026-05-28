@@ -9,7 +9,7 @@ status: draft
 
 # Antenna Analyzers
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 An **antenna analyzer** is a small battery-powered instrument that tells you, at a glance, what the antenna and feedline look like at any frequency you pick — SWR, impedance, sometimes return loss, and on better models the resistive (R) and reactive (X) components separately. It's the instrument most amateurs reach for first when an antenna is misbehaving, and the instrument that turned antenna work from "tune and pray" into "measure and adjust."
 
@@ -85,12 +85,12 @@ If you'd swept the band and plotted it, you'd see a curve like:
 
 ```
 SWR
-3.0 ┤ ●                                    ● 
-2.5 ┤  ●                                  ● 
-2.0 ┤   ●                                ● 
-1.5 ┤    ●                              ● 
-1.2 ┤     ●●                          ●●  
-1.0 ┤       ●●●●●●●●●●●●●●●●●●●●●●●●●●     
+3.0 ┤ ●                                    ●
+2.5 ┤  ●                                  ●
+2.0 ┤   ●                                ●
+1.5 ┤    ●                              ●
+1.2 ┤     ●●                          ●●
+1.0 ┤       ●●●●●●●●●●●●●●●●●●●●●●●●●●
     └─────────────────────────────────────── freq
     14.0          14.2          14.4
                   ↑ resonance (lowest SWR)
@@ -162,7 +162,7 @@ Where you measure matters more than most operators realize. The same antenna can
 
 For a serious tune, climb up or bring the antenna down. For a sanity check or "did anything change since yesterday?" — shack end is fine.
 
-> ⚙️ **Advanced —** A half-wavelength of feedline (counting velocity factor) transforms impedance back to itself. So if you tune at a frequency where the feedline is electrically `n × λ/2` long, the shack reading equals the feedpoint reading. This is occasionally useful, but only if you know the feedline's actual electrical length precisely — which you can measure with the analyzer's TDR mode on better units, or with a NanoVNA.
+> **Advanced —** A half-wavelength of feedline (counting velocity factor) transforms impedance back to itself. So if you tune at a frequency where the feedline is electrically `n × λ/2` long, the shack reading equals the feedpoint reading. This is occasionally useful, but only if you know the feedline's actual electrical length precisely — which you can measure with the analyzer's TDR mode on better units, or with a NanoVNA.
 
 ## Gotchas
 

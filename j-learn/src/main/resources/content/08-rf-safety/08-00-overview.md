@@ -9,7 +9,7 @@ status: draft
 
 # RF Safety — Overview
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Every amateur radio licensee in the United States is **legally required** to evaluate their station for RF exposure compliance. This isn't a paperwork ritual — at amateur power levels (especially 100 W and up) and at typical antenna distances, real RF exposure limits do get exceeded under bad geometry. The FCC's rules exist because the underlying physics is real.
 

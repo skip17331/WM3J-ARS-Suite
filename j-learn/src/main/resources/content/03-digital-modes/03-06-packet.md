@@ -9,7 +9,7 @@ status: draft
 
 # Packet Radio
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## What it is
 
@@ -53,7 +53,7 @@ The Address field carries up to 8 callsigns: 1 source, 1 destination, and up to 
 
 When you "connect" to a BBS at `K1ABC-1`, your TNC sends an SABM frame ("Set Asynchronous Balanced Mode" — start a connection); the BBS sends UA ("Unnumbered Acknowledge"). After that, every I-frame is acknowledged, retried if lost, and delivered in order. Disconnect with a DISC frame.
 
-> ⚙️ **Advanced —** AX.25's sliding window allows up to 7 outstanding frames. Combined with the FCS retry behavior, throughput on 1200 baud can approach 1200 bps when the channel is clean. On a noisy channel, throughput collapses to under 100 bps because every dropped frame triggers retransmission. 9600 baud has the same protocol but with 8x the raw rate, giving usable interactive throughput when the channel is good.
+> **Advanced —** AX.25's sliding window allows up to 7 outstanding frames. Combined with the FCS retry behavior, throughput on 1200 baud can approach 1200 bps when the channel is clean. On a noisy channel, throughput collapses to under 100 bps because every dropped frame triggers retransmission. 9600 baud has the same protocol but with 8x the raw rate, giving usable interactive throughput when the channel is good.
 
 ## Why use it
 

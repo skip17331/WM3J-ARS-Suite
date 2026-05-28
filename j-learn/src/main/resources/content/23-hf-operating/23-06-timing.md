@@ -9,7 +9,7 @@ status: draft
 
 # Timing
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Why timing matters more than power
 
@@ -88,7 +88,7 @@ How to be ready:
 - **Have macros ready.** "TX call once" should be one key. Pre-typed your CQ-reply message, the exchange, the thank-you. Don't be hunting for keys when the spot lands.
 - **Auto-QSY.** Many loggers can auto-tune your rig to a clicked spot's frequency. One click → rig tuned → ready to call.
 
-> ⚙️ **Advanced —** The **Reverse Beacon Network (RBN)** is a global network of automated CW/FT8/RTTY skimmers that decode signals and post them to the cluster within 5–15 seconds of each CQ. RBN spots flood the cluster during contests but are invaluable in normal operation — they detect openings before human operators do. Filter your cluster feed to "RBN only" for the freshest spots; filter to "human spots only" for verified DX without false positives.
+> **Advanced —** The **Reverse Beacon Network (RBN)** is a global network of automated CW/FT8/RTTY skimmers that decode signals and post them to the cluster within 5–15 seconds of each CQ. RBN spots flood the cluster during contests but are invaluable in normal operation — they detect openings before human operators do. Filter your cluster feed to "RBN only" for the freshest spots; filter to "human spots only" for verified DX without false positives.
 
 ## Don't call into a quiet pause
 

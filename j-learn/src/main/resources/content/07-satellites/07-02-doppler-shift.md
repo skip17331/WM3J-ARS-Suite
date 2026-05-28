@@ -9,7 +9,7 @@ status: draft
 
 # Doppler Shift
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 When a satellite is approaching you, its transmitted frequency is shifted **higher** than its rest frequency. When it's receding, lower. The amount of shift depends on the satellite's speed along the line of sight (its **range rate**) and the operating frequency. For Low Earth Orbit (LEO) satellites moving at ~7.5 km/sec, the Doppler shift is significant — several kilohertz at VHF/UHF — and the shift changes throughout the pass as the geometry changes.
 
@@ -104,7 +104,7 @@ Required:
 
 Once set up, the operator just works the QSO; the software handles all Doppler.
 
-> ⚙️ **Advanced —** The CAT update rate matters. A 1-second update gives smooth tuning but can leave the receiver up to 2-3 Hz off the actual signal momentarily during fast-changing geometry (closest approach for a high pass). Update rates of 100ms or faster are smoother. Some radios accept frequency commands faster than they can process them; the IC-9700 maxes at about 4 Hz CAT update rate before it starts dropping commands.
+> **Advanced —** The CAT update rate matters. A 1-second update gives smooth tuning but can leave the receiver up to 2-3 Hz off the actual signal momentarily during fast-changing geometry (closest approach for a high pass). Update rates of 100ms or faster are smoother. Some radios accept frequency commands faster than they can process them; the IC-9700 maxes at about 4 Hz CAT update rate before it starts dropping commands.
 
 ## "Doppler-correcting" practice
 

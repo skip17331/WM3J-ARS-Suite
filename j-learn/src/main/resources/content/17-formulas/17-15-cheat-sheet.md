@@ -9,7 +9,7 @@ status: draft
 
 # Cheat Sheet
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 One-page quick reference. Every formula card in §17-01 through §17-14 has its own dedicated calculator in the J-Hub Antenna Workshop tab; this page is for when you just want the equation in front of you.
 

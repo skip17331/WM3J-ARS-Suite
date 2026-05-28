@@ -9,7 +9,7 @@ status: draft
 
 # Smith Chart Basics
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 The Smith chart is a polar plot of the reflection coefficient Γ. It maps every possible complex impedance onto a unit circle, with constant-resistance and constant-reactance contours superimposed. It's the universal tool for visualizing impedance, mismatch, and matching networks.
 
@@ -69,7 +69,7 @@ Computing Γ:
 ```
 Γ = ((1.5 + j0.7) − 1) / ((1.5 + j0.7) + 1)
   = (0.5 + j0.7) / (2.5 + j0.7)
-  
+
 |0.5 + j0.7| = √(0.25 + 0.49) = √0.74 ≈ 0.860
 |2.5 + j0.7| = √(6.25 + 0.49) = √6.74 ≈ 2.596
 |Γ| = 0.860 / 2.596 ≈ 0.331
@@ -120,7 +120,7 @@ L-network matching is a sequence of one series-component jump and one parallel-c
 - **Treating line losses as zero.** A real lossy line slightly shrinks the constant-\|Γ\| circle as you move along it (the impedance spirals inward, not just rotates). For ham work the spiral is small and usually ignored.
 - **Reading wavelength scales as fractions of frequency.** The "wavelengths toward generator/load" scales on a Smith chart are wavelengths *in the line*, not free-space wavelengths. Multiply by VF.
 
-> ⚙️ **Advanced —** The Smith chart was patented by Phillip Smith at Bell Labs in 1939 as a graphical computational aid. With software (NanoVNA, simNEC, etc.) doing the math automatically, the chart is now mostly used as a visualization tool: "where is my impedance, how far from the center, what direction does this matching component move me?" The intuition is the value, not the slide-rule precision.
+> **Advanced —** The Smith chart was patented by Phillip Smith at Bell Labs in 1939 as a graphical computational aid. With software (NanoVNA, simNEC, etc.) doing the math automatically, the chart is now mostly used as a visualization tool: "where is my impedance, how far from the center, what direction does this matching component move me?" The intuition is the value, not the slide-rule precision.
 
 ## See also
 

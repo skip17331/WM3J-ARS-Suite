@@ -9,7 +9,7 @@ status: draft
 
 # Toroid Selection (Powdered Iron)
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 ## Powdered iron vs ferrite — first decision
 
@@ -134,7 +134,7 @@ A T-50-2 will overheat in a 500 W LPF on 80 m. Always size up if the duty cycle 
 
 Price (2026): T-50-6 ≈ $0.80 single, $0.40 in bulk. T-200-2 ≈ $5 single. Buy a hundred T-50-6 and a hundred T-37-6 and you're set for years of HF homebrew.
 
-> ⚙️ **Advanced —** Some legendary amateur designs use **stacked toroids** — gluing two cores together to double A_L without doubling diameter. This works for inductors (the magnetic path is shared) but introduces a small inductance variation due to airgap between the cores. For critical filter alignment, use a single larger core (T-94 instead of two T-50s stacked) — the result is more predictable. Stacking is fine for non-critical inductors like RFC chokes.
+> **Advanced —** Some legendary amateur designs use **stacked toroids** — gluing two cores together to double A_L without doubling diameter. This works for inductors (the magnetic path is shared) but introduces a small inductance variation due to airgap between the cores. For critical filter alignment, use a single larger core (T-94 instead of two T-50s stacked) — the result is more predictable. Stacking is fine for non-critical inductors like RFC chokes.
 
 ## Common mistakes
 

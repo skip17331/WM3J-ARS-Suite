@@ -9,7 +9,7 @@ status: draft
 
 # Portable Budget
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 This section walks through complete power budgets for typical portable scenarios — SOTA (Summits On The Air), POTA (Parks On The Air), Field Day, mobile, and battery-powered base operations. Each example shows where the watts go and what the resulting EIRP is, so you can compare configurations before you pack the truck.
 

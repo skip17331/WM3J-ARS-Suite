@@ -9,7 +9,7 @@ status: draft
 
 # How to read this library
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 J-Learn is reference material. You don't read it cover-to-cover — you find what you need, then close it. This section explains how to do that efficiently with the J-Hub UI, the search index, the Advanced toggle, and the deep-links into other parts of the suite.
 
@@ -17,7 +17,7 @@ J-Learn is reference material. You don't read it cover-to-cover — you find wha
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  📖 J-Learn — In-App Reference Library                           │
+│  J-Learn — In-App Reference Library                           │
 ├──────────────────────────────────────────────────────────────────┤
 │ ┌────────────┐ ┌────────────────────────────────────────────────┐│
 │ │ Search box │ │                                                ││
@@ -60,7 +60,7 @@ Filtering is case-insensitive and matches anywhere in the title or ID.
 
 ## The Advanced toggle
 
-Many sections include `> ⚙️ **Advanced —**` callouts — short engineering-depth sidebars that explain the underlying physics or math, the kind of detail an Extra-class operator might want but a casual reader can skip.
+Many sections include `> **Advanced —**` callouts — short engineering-depth sidebars that explain the underlying physics or math, the kind of detail an Extra-class operator might want but a casual reader can skip.
 
 Toggle the **Advanced** checkbox above the TOC to show or hide these callouts in the rendered content. Simple mode is the default.
 
@@ -76,9 +76,9 @@ Some chapters surface integrated tools as a banner at the top of every section:
 
 | Chapter | Banner | Action |
 |---------|--------|--------|
-| **§05 Morse** | 🎧 Morse Code Trainer | Launches the bundled JavaFX trainer app |
-| **§09 Antenna Workshop** | 📡 Antenna Workshop | Opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab |
-| **§17 Formulas** | 📐 Formula Calculator | Opens the matching per-formula calculator in the same Antenna Workshop tab |
+| **§05 Morse** | Morse Code Trainer | Launches the bundled JavaFX trainer app |
+| **§09 Antenna Workshop** | Antenna Workshop | Opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab |
+| **§17 Formulas** | Formula Calculator | Opens the matching per-formula calculator in the same Antenna Workshop tab |
 
 The banner appears for every section in the chapter, not just the overview. From §09-10 (Yagi-Uda) the banner button takes you straight to the Yagi calculator pre-filled with example values; from §17-08 (ERP) the banner opens the ERP calculator.
 

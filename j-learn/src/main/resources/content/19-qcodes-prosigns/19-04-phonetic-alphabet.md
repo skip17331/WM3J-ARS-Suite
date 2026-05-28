@@ -9,7 +9,7 @@ status: draft
 
 # Phonetic Alphabet
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A phonetic alphabet substitutes a distinctive word for each letter, so that radio communication remains accurate even when conditions are bad, accents differ, or band noise obscures syllables. "M" and "N" sound nearly identical on a noisy channel; "Mike" and "November" do not.
 

@@ -9,7 +9,7 @@ status: draft
 
 # Feedline Loss
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 Coaxial cable attenuates the signal as it travels. The loss is specified per unit length and per frequency in the cable's datasheet, then scaled to the actual run length. Loss when the line is matched (1:1 SWR) is the **matched loss**; loss when the line is mismatched is higher because reflections traverse the cable more than once.
 
@@ -76,7 +76,7 @@ For a 100 W rig, 91 W is delivered. 9 W is lost as cable heat (and pattern disto
 
 ```
 ℓ = 4.6 dB / 100 ft
-length = 100 ft  
+length = 100 ft
 L_matched = 4.6 dB
 ```
 
@@ -109,7 +109,7 @@ For 100 W in: 90 W out at the antenna. Effectively the same as LMR-400 for this 
 - **Treating SWR as a separate loss to add.** Matched loss and SWR-mismatch loss interact: a high-loss cable hides SWR (because the reflected wave is attenuated). See §10-03.
 - **Counting only one-way length.** Loss is *one-way attenuation* per the cable's spec. Don't multiply by 2 — you're already measuring loss from rig to antenna.
 
-> ⚙️ **Advanced —** Loss in coax has two components: I²R loss in the conductor (proportional to √f) and dielectric loss in the insulator (proportional to f). At HF the conductor loss dominates; at UHF and microwave the dielectric loss dominates. This is why dielectric-quality matters more at higher frequencies (Teflon vs. polyethylene vs. foam vs. air-spaced).
+> **Advanced —** Loss in coax has two components: I²R loss in the conductor (proportional to √f) and dielectric loss in the insulator (proportional to f). At HF the conductor loss dominates; at UHF and microwave the dielectric loss dominates. This is why dielectric-quality matters more at higher frequencies (Teflon vs. polyethylene vs. foam vs. air-spaced).
 
 ## See also
 

@@ -48,15 +48,15 @@ Ten Maven modules. Built once, work together.
 
 | Module | What it does |
 |---|---|
-| **🎛 J‑Hub** | Central broker + browser‑based control surface (port 8081). Dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop — all in one web UI. Embeds J‑Vault and J‑Learn as iframed tabs. |
-| **📋 J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
-| **🗺 J‑Map** | Real‑time DX map with grayline, propagation overlays, weather, aurora, and great‑circle paths to spotted DX. |
+| **J‑Hub** | Central broker + browser‑based control surface (port 8081). Dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop — all in one web UI. Embeds J‑Vault and J‑Learn as iframed tabs. |
+| **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
+| **J‑Map** | Real‑time DX map with grayline, propagation overlays, weather, aurora, and great‑circle paths to spotted DX. |
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
-| **🛰 J‑Sat** | Satellite tracker with Doppler correction and rotor control through J‑Hub. |
-| **📦 J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed; runs as its own web app on port 8083. |
-| **📖 J‑Learn** | Standalone amateur‑radio reference library web app on port 8082. ~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; per‑chapter "Open in Workshop" deep‑links to the matching calculators. Markdown source seeds to `~/.j-learn/content/` so users can edit content without rebuilding. |
-| **🔑 Morse Trainer** | Standalone JavaFX app for learning and practicing CW. Letter trainer (Koch‑method progression), letter‑group trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. Launchable from J‑Hub. |
+| **J‑Sat** | Satellite tracker with Doppler correction and rotor control through J‑Hub. |
+| **J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed; runs as its own web app on port 8083. |
+| **J‑Learn** | Standalone amateur‑radio reference library web app on port 8082. ~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; per‑chapter "Open in Workshop" deep‑links to the matching calculators. Markdown source seeds to `~/.j-learn/content/` so users can edit content without rebuilding. |
+| **Morse Trainer** | Standalone JavaFX app for learning and practicing CW. Letter trainer (Koch‑method progression), letter‑group trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. Launchable from J‑Hub. |
 
 A shared **j‑log‑engine** library underpins logging across J‑Log, J‑Digi,
 and J‑Bridge so everything writes to one set of databases under `~/.j‑log/`.
@@ -65,7 +65,7 @@ and J‑Bridge so everything writes to one set of databases under `~/.j‑log/`.
 
 ## Highlights
 
-### 🧮 Antenna Workshop (inside J‑Hub)
+### Antenna Workshop (inside J‑Hub)
 
 A **questionnaire‑driven antenna recommender** + **13 live calculators**:
 
@@ -82,7 +82,7 @@ A **questionnaire‑driven antenna recommender** + **13 live calculators**:
 Click a chapter card in J‑Learn → it opens the matching calculator
 pre‑filled with sane defaults.
 
-### 📦 J‑Vault — the SK problem, solved
+### J‑Vault — the SK problem, solved
 
 When an operator becomes a Silent Key, families inherit a shack of expensive
 gear they don't recognize. J‑Vault turns your inventory into a
@@ -92,14 +92,14 @@ sale‑recommendation matrix (HRO / DXE / R&L / Universal / GigaParts), an
 11‑step plain‑language checklist, and a glossary for non‑hams. Real PDF
 output via bundled jsPDF — no print dialog, no copy‑paste.
 
-### 📖 J‑Learn — your reference library, in‑app
+### J‑Learn — your reference library, in‑app
 
 Twenty‑two chapters, ~200 sections, written for operators who already
 have their license. Searchable, with an Advanced toggle for engineering
 depth. Cross‑references jump straight to the calculator or sub‑section
 you need. Bundled into J‑Hub — no separate install, no internet required.
 
-### 🎚 One settings surface
+### One settings surface
 
 Every operator preference lives in **J‑Hub's web UI** — callsign, grid,
 rig backend, Hamlib host/port, IARU region + country (for bandplan
@@ -109,7 +109,7 @@ connected module live — no restart, no per‑app duplicate config files.
 Modules cache the last‑known values locally so they can still run
 stand‑alone after a hub disconnect.
 
-### 🌐 Six languages, suite-wide
+### Six languages, suite-wide
 
 UI strings across every module are translatable — English, Spanish,
 German, French, Italian, Portuguese. EN + ES ship embedded; the
@@ -117,27 +117,27 @@ other four ride as drop-in `.properties` packs under `i18n-packs/`
 so native speakers can polish translations without rebuilding Java.
 See `i18n-packs/README.md` for details.
 
-### 🎙 Macros that share state
+### Macros that share state
 
 Every app uses the same macro engine. `{MYCALL}`, `{CALL}`, `{RST_S}`,
 `{RST_R}`, `{NAME}`, `{EXCH}`, `{SERIAL}`, `{NR}`, `{FREQ}`, `{BAND}`,
 `{MODE}` — the values come from the live rig + the QSO entry pane in
 J‑Log/J‑Digi, **not** from per‑app duplicates.
 
-### ☁ Log uploaders
+### Log uploaders
 
 Push QSOs from J‑Log to **eQSL.cc**, **Club Log**, **QRZ Logbook**, and
 **HRDLog** with one click. Credentials are encrypted on disk
 (AES‑GCM, key tied to this machine). Already‑uploaded QSOs are tracked
 so subsequent runs only push the new ones.
 
-### 🗼 J‑Map
+### J‑Map
 
 Real‑time grayline + DX spots + ITU/CQ zones + Skywarn / aurora /
 geomagnetic alerts + tropo + lightning + weather radar. Pulls spots from
 the brokered J‑Hub feed (one telnet connection serves the whole suite).
 
-### 🔭 J‑Sat
+### J‑Sat
 
 Doppler‑corrected satellite tracking with rotor control through J‑Hub.
 ISS APRS, FM birds, linear birds. Pass prediction with editable

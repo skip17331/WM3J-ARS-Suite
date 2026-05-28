@@ -9,7 +9,7 @@ status: draft
 
 # Traps
 
-> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> ⚙️ **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
+> **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
 A **trap** is a parallel LC circuit installed in the body of an antenna, tuned to a specific frequency. At its tuned frequency the trap presents a high impedance — effectively *open-circuiting* the antenna at that point. Below the trap's tuned frequency it acts mostly as an inductor; above, mostly as a capacitor. This trick lets a single physical antenna behave as if it had **different effective lengths on different bands**, so one piece of wire (or one set of aluminum elements) covers multiple bands.
 
@@ -76,7 +76,7 @@ Practically:
 
 For a 4-band trap vertical, the **40 m operation passes through three traps each acting as inductors** — small loss per trap, but 3× the count adds up.
 
-> ⚙️ **Advanced —** Trap loss can be derived from the trap's loaded Q at the operating frequency. At resonance, P_loss / P_total ≈ 1/Q_loaded; for Q_L = 100, that's 1% (or 0.04 dB) — but this is per-trap, and most dipoles use traps in pairs. Off-resonance, the loss falls roughly as the square of the frequency offset (Δf/f₀)². The trap is also re-tuned by adjacent loading: any inductive loading from the wire connected through the trap shifts the effective resonance. Real-world measurements (W8JI's experiments published on his website) consistently show 0.3–1 dB total loss per band for well-built trap dipoles.
+> **Advanced —** Trap loss can be derived from the trap's loaded Q at the operating frequency. At resonance, P_loss / P_total ≈ 1/Q_loaded; for Q_L = 100, that's 1% (or 0.04 dB) — but this is per-trap, and most dipoles use traps in pairs. Off-resonance, the loss falls roughly as the square of the frequency offset (Δf/f₀)². The trap is also re-tuned by adjacent loading: any inductive loading from the wire connected through the trap shifts the effective resonance. Real-world measurements (W8JI's experiments published on his website) consistently show 0.3–1 dB total loss per band for well-built trap dipoles.
 
 ## When traps are right
 
