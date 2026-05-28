@@ -1,7 +1,8 @@
 {
-  "contestId":   "ARRL_DX_SSB_US",
-  "contestName": "ARRL International DX (SSB) — W/VE",
-  "version":     "1.1.0",
+  "contestId":           "ARRL_DX_SSB_US",
+  "contestName":         "ARRL International DX (SSB) — W/VE",
+  "cabrilloContestName": "ARRL-DX-SSB",
+  "version":             "1.1.0",
 
   "exchangeFormat": "Send 59 STATE | Rcv 59 POWER  (e.g. send: 59 PA  rcv: 59 100)",
 

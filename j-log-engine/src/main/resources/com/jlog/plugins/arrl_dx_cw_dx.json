@@ -1,7 +1,8 @@
 {
-  "contestId":   "ARRL_DX_CW_DX",
-  "contestName": "ARRL International DX (CW) — DX",
-  "version":     "1.1.0",
+  "contestId":           "ARRL_DX_CW_DX",
+  "contestName":         "ARRL International DX (CW) — DX",
+  "cabrilloContestName": "ARRL-DX-CW",
+  "version":             "1.1.0",
 
   "exchangeFormat": "Send 599 POWER | Rcv 599 STATE  (e.g. send: 599 100  rcv: 599 PA)",
 

@@ -48,7 +48,16 @@ public class CabrilloExporter {
             // against plugin rules instead of being a raw point sum.
             pw.println("START-OF-LOG: 3.0");
             pw.println("CREATED-BY: j-Log v1.0.0");
-            pw.println("CONTEST: " + plugin.getContestId().replace("_", "-"));
+            // Honor the plugin's sponsor-accepted name when set; otherwise
+            // fall back to the internal id with underscores dashed. Override
+            // is required for split-side plugins (ARRL_DX_SSB_US/DX both
+            // emit "ARRL-DX-SSB") and any other case where our internal id
+            // doesn't match what the sponsor's robot expects.
+            String contestHeader = (plugin.getCabrilloContestName() != null
+                                    && !plugin.getCabrilloContestName().isBlank())
+                ? plugin.getCabrilloContestName()
+                : plugin.getContestId().replace("_", "-");
+            pw.println("CONTEST: " + contestHeader);
             pw.println("CALLSIGN: " + nullSafe(cfg.getStationCallsign()));
             pw.println("CATEGORY-OPERATOR: "    + cfg.getCabOperator());
             pw.println("CATEGORY-BAND: "        + cfg.getCabBand());
