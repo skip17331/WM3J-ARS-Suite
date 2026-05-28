@@ -1,6 +1,7 @@
 package com.hamradio.jhub;
 
 import com.hamradio.jhub.model.AmpStatus;
+import com.hamradio.jhub.model.JHubConfig;
 import com.hamradio.jhub.model.JHubConfig.AmpSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class HamlibAmpController {
     private MessageRouter router;
 
     // Config
-    private volatile String  host       = "localhost";
+    private volatile String  host       = "127.0.0.1";
     private volatile int     port       = 4531;
     private volatile int     pollMs     = 1000;
     private volatile boolean bandFollow = true;
@@ -88,7 +89,7 @@ public class HamlibAmpController {
     public void setRouter(MessageRouter r) { this.router = r; }
 
     public void start(AmpSection cfg) {
-        this.host       = cfg.tcpHost != null ? cfg.tcpHost : "localhost";
+        this.host       = JHubConfig.normalizeHost(cfg.tcpHost);
         this.port       = cfg.tcpPort > 0 ? cfg.tcpPort : 4531;
         this.pollMs     = cfg.pollRateMs > 0 ? cfg.pollRateMs : 1000;
         this.bandFollow = cfg.bandFollow;

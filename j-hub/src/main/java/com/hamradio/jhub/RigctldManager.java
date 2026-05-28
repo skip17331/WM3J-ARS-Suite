@@ -1,5 +1,6 @@
 package com.hamradio.jhub;
 
+import com.hamradio.jhub.model.JHubConfig;
 import com.hamradio.jhub.model.JHubConfig.RigSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,8 +95,9 @@ public class RigctldManager {
         if (cfg.baudRate > 0) { argv.add("-s"); argv.add(Integer.toString(cfg.baudRate)); }
         argv.add("-t"); argv.add(Integer.toString(cfg.hamlibPort > 0 ? cfg.hamlibPort : 4532));
         // Bind to localhost only; remote daemons should be configured manually.
-        argv.add("-T"); argv.add(cfg.hamlibHost != null && !cfg.hamlibHost.isBlank()
-                                  ? cfg.hamlibHost : "127.0.0.1");
+        // normalizeHost forces "localhost" → "127.0.0.1" so Hamlib doesn't pick
+        // ::1 via getaddrinfo while Java's client connects to 127.0.0.1.
+        argv.add("-T"); argv.add(JHubConfig.normalizeHost(cfg.hamlibHost));
 
         try {
             ProcessBuilder pb = new ProcessBuilder(argv).redirectErrorStream(true);
@@ -126,8 +128,7 @@ public class RigctldManager {
             // turn that silent failure into an actionable message instead of
             // an indefinite stream of "Can't reach rigctld" from the poll loop.
             int probePort = cfg.hamlibPort > 0 ? cfg.hamlibPort : 4532;
-            String probeHost = (cfg.hamlibHost != null && !cfg.hamlibHost.isBlank())
-                               ? cfg.hamlibHost : "127.0.0.1";
+            String probeHost = JHubConfig.normalizeHost(cfg.hamlibHost);
             if (!waitForListen(probeHost, probePort, 2500)) {
                 if (!process.isAlive()) {
                     int code = process.exitValue();

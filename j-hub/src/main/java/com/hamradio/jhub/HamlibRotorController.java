@@ -1,5 +1,6 @@
 package com.hamradio.jhub;
 
+import com.hamradio.jhub.model.JHubConfig;
 import com.hamradio.jhub.model.JHubConfig.RotorSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class HamlibRotorController {
 
     private MessageRouter router;
 
-    private volatile String  host      = "localhost";
+    private volatile String  host      = "127.0.0.1";
     private volatile int     port      = 4533;
     private volatile boolean running   = false;
     private volatile boolean connected = false;
@@ -63,7 +64,7 @@ public class HamlibRotorController {
     public void setRouter(MessageRouter r) { this.router = r; }
 
     public void start(RotorSection cfg) {
-        this.host    = cfg.tcpHost != null ? cfg.tcpHost : "localhost";
+        this.host    = JHubConfig.normalizeHost(cfg.tcpHost);
         this.port    = cfg.tcpPort > 0 ? cfg.tcpPort : 4533;
         this.running = true;
         // When manageRotctld is true, bring up the daemon ourselves before the

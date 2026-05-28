@@ -1,5 +1,6 @@
 package com.hamradio.jhub;
 
+import com.hamradio.jhub.model.JHubConfig;
 import com.hamradio.jhub.model.JHubConfig.RigSection;
 import com.hamradio.jhub.model.RigStatus;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class HamlibRigController implements RigController {
     private MessageRouter router;
 
     // Config (updated by restart())
-    private volatile String  host       = "localhost";
+    private volatile String  host       = "127.0.0.1";
     private volatile int     port       = 4532;
     private volatile int     pollMs     = 500;
     private volatile boolean pttEnabled = false;
@@ -105,7 +106,7 @@ public class HamlibRigController implements RigController {
 
     /** Start polling with the supplied rig configuration. */
     public void start(RigSection cfg) {
-        this.host       = cfg.hamlibHost != null ? cfg.hamlibHost : "localhost";
+        this.host       = JHubConfig.normalizeHost(cfg.hamlibHost);
         this.port       = cfg.hamlibPort > 0 ? cfg.hamlibPort : 4532;
         this.pollMs     = cfg.pollRateMs > 0 ? cfg.pollRateMs : 500;
         this.pttEnabled = cfg.enablePtt;

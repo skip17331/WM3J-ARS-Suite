@@ -43,6 +43,25 @@ public class JHubConfig {
     // (e.g. C:\hamlib-w64-4.5.5\bin) that the auto-probe wouldn't find.
     public String hamlibBinDir = "";
 
+    /**
+     * Normalize a loopback host string for use in both rigctld/rotctld/ampctld
+     * -T arguments and Java client connects. Returns "127.0.0.1" for null,
+     * blank, or "localhost" (any case); returns the input unchanged otherwise.
+     *
+     * Why: on modern Windows, "localhost" resolves via getaddrinfo to BOTH ::1
+     * and 127.0.0.1, and the picker differs between callers. Hamlib (C) picks
+     * IPv6 first and binds rigctld only to [::1]:4532. Java's InetAddress
+     * defaults to IPv4 and connects to 127.0.0.1:4532. Windows IPv6 sockets
+     * default to V6ONLY, so the connect is refused even though both sides
+     * "say localhost". Forcing 127.0.0.1 on both ends sidesteps the mismatch.
+     */
+    public static String normalizeHost(String host) {
+        if (host == null || host.isBlank() || host.equalsIgnoreCase("localhost")) {
+            return "127.0.0.1";
+        }
+        return host;
+    }
+
     // ---------------------------------------------------------------
     // J-Hub network settings
     // ---------------------------------------------------------------
@@ -87,7 +106,7 @@ public class JHubConfig {
         public int     civBaud    = 9600;
         public String  civAddress = "94";            // hex address (e.g. 94 = IC-7300)
         // Hamlib settings
-        public String  hamlibHost = "localhost";
+        public String  hamlibHost = "127.0.0.1";
         public int     hamlibPort = 4532;
         // Hamlib — managed-rigctld mode. When manageRigctld=true, j-hub spawns
         // rigctld itself using rigModel/serialPort/baudRate so the operator
@@ -112,7 +131,7 @@ public class JHubConfig {
         // tcpHost / tcpPort are the Hamlib rotctld endpoint. Heading offsets
         // are consumed client-side in config.js (rotorPreset()) — they round-
         // trip through JSON but never need a Java reader.
-        public String  tcpHost         = "localhost";
+        public String  tcpHost         = "127.0.0.1";
         public int     tcpPort         = 4533;
         public double  shortPathOffset = 0.0;
         public double  customPreset    = 0.0;
@@ -133,7 +152,7 @@ public class JHubConfig {
 
     public static class AmpSection {
         public String  backend     = "NONE";        // HAMLIB | NONE
-        public String  tcpHost     = "localhost";
+        public String  tcpHost     = "127.0.0.1";
         public int     tcpPort     = 4531;          // ampctld default
         // Managed-ampctld mode (same pattern as RigSection / RotorSection).
         // When manageAmpctld=true, j-hub spawns ampctld itself using

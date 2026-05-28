@@ -1,5 +1,6 @@
 package com.hamradio.jhub;
 
+import com.hamradio.jhub.model.JHubConfig;
 import com.hamradio.jhub.model.JHubConfig.RotorSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +78,7 @@ public class RotctldManager {
         argv.add("-r"); argv.add(cfg.serialPort);
         if (cfg.baudRate > 0) { argv.add("-s"); argv.add(Integer.toString(cfg.baudRate)); }
         argv.add("-t"); argv.add(Integer.toString(cfg.tcpPort > 0 ? cfg.tcpPort : 4533));
-        argv.add("-T"); argv.add(cfg.tcpHost != null && !cfg.tcpHost.isBlank()
-                                  ? cfg.tcpHost : "127.0.0.1");
+        argv.add("-T"); argv.add(JHubConfig.normalizeHost(cfg.tcpHost));
 
         try {
             ProcessBuilder pb = new ProcessBuilder(argv).redirectErrorStream(true);
