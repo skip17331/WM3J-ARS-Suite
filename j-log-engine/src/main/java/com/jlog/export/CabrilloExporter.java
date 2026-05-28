@@ -173,8 +173,10 @@ public class CabrilloExporter {
     }
 
     /** Build an exchange string from an explicit ordered list of field-id
-     *  tokens (declared sponsor transmit order). */
-    private static String buildOrderedExchange(QsoRecord q, ContestPlugin plugin,
+     *  tokens (declared sponsor transmit order). Package-private so
+     *  {@link AdifExporter} can reuse the same logic when emitting
+     *  STX_STRING / SRX_STRING for contest QSOs. */
+    static String buildOrderedExchange(QsoRecord q, ContestPlugin plugin,
                                                 AppConfig cfg, List<String> tokens) {
         if (tokens == null || tokens.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
