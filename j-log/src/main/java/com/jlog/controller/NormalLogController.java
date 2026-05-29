@@ -82,6 +82,16 @@ public class NormalLogController implements Initializable {
     @FXML private TitledPane entryPane;
     @FXML private TitledPane rigControlPane;
     @FXML private Region     entryDragHandle;
+    @FXML private GridPane   rigGrid;
+    @FXML private Label      lblRigFreq;
+    @FXML private Label      lblRigMode;
+    @FXML private Label      lblRigBand;
+    @FXML private Label      lblRigPower;
+    @FXML private HBox       rigButtonBar;
+    @FXML private CheckBox   cbRigAutoTrack;
+    /** Last RIG_STATUS payload from j-hub, cached so the "Use Rig Freq/Mode"
+     *  buttons can read it on click. Null until the first message arrives. */
+    private volatile com.fasterxml.jackson.databind.JsonNode lastRigStatus;
     @FXML private TitledPane spaceWxPane;
     @FXML private Label lblSolarSfi;
     @FXML private Label lblSolarK;
@@ -226,6 +236,21 @@ public class NormalLogController implements Initializable {
         HubEngine.getInstance().setAmpStatusListener(node ->
             Platform.runLater(() -> updateAmpStatus(node)));
 
+        // RIG_STATUS — j-hub publishes the rig's freq/mode/band/power every
+        // poll cycle. The Rig Control pane shows "—" until the first message
+        // arrives. setRigStatusListener replays the last cached payload
+        // immediately so a window opened mid-session populates without
+        // waiting for the next poll tick.
+        HubEngine.getInstance().setRigStatusListener(node ->
+            Platform.runLater(() -> updateRigStatus(node)));
+
+        // Rig Control pane visibility — operator toggles it on/off from
+        // j-hub's J-Log card (CONFIG_UPDATE settings.rigControlVisible). The
+        // listener replays the cached value on registration so a fresh j-log
+        // launch picks up the saved choice without waiting for a re-save.
+        HubEngine.getInstance().setRigControlVisibleListener(visible ->
+            Platform.runLater(() -> setRigControlVisible(visible)));
+
         // ANT_STATUS — j-hub publishes whenever a switch position changes or
         // the PTT lockout flips. Stays hidden until the first message arrives
         // so unconfigured stations see no extra status-bar clutter.
@@ -338,6 +363,80 @@ public class NormalLogController implements Initializable {
             lblAmpStatus.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-padding: 2 8 2 8;");
         } else {
             lblAmpStatus.setStyle("");
+        }
+    }
+
+    /** Render the latest RIG_STATUS into the Rig Control pane's Freq / Mode /
+     *  Band / Power labels. Each field falls back to "—" when missing so the
+     *  pane always looks alive — visibility of the whole pane is controlled
+     *  by the J-Log card toggle in j-hub (setRigControlVisible). Auto-track:
+     *  when checked, every RIG_STATUS pushes freq + mode into the entry form
+     *  (off by default so the user opts into rig-driven autofill). */
+    private void updateRigStatus(com.fasterxml.jackson.databind.JsonNode node) {
+        if (node == null || lblRigFreq == null) return;
+        lastRigStatus = node;
+
+        long   freqHz = node.path("frequency").asLong(0);
+        String mode   = node.path("mode").asText("");
+        String band   = node.path("band").asText("");
+        int    power  = node.path("power").asInt(0);
+
+        lblRigFreq.setText(freqHz > 0
+            ? String.format("%.3f MHz", freqHz / 1_000_000.0) : "—");
+        lblRigMode.setText(mode.isEmpty() ? "—" : mode);
+        lblRigBand.setText(band.isEmpty() ? "—" : band);
+        lblRigPower.setText(power > 0 ? power + " W" : "—");
+
+        if (cbRigAutoTrack != null && cbRigAutoTrack.isSelected()) {
+            applyRigToEntry(freqHz, mode);
+        }
+    }
+
+    /** Show or hide the whole Rig Control TitledPane. Driven by j-hub's
+     *  J-Log card toggle (CONFIG_UPDATE settings.rigControlVisible). When
+     *  hidden, Data Entry's HBox.hgrow takes back the full width — the
+     *  layout stays clean without dangling empty space. */
+    private void setRigControlVisible(boolean visible) {
+        if (rigControlPane == null) return;
+        rigControlPane.setVisible(visible);
+        rigControlPane.setManaged(visible);
+        // entryDragHandle becomes meaningless when the rig pane is gone;
+        // toggle it together so the operator doesn't grab an invisible seam.
+        if (entryDragHandle != null) {
+            entryDragHandle.setVisible(visible);
+            entryDragHandle.setManaged(visible);
+        }
+    }
+
+    /** Copy the cached rig frequency into the entry form's Frequency field.
+     *  No-op if no RIG_STATUS has arrived. Formats as MHz with 3 decimals to
+     *  match the entry field's expected format. */
+    @FXML
+    private void useRigFreq() {
+        if (lastRigStatus == null || tfFrequency == null) return;
+        long freqHz = lastRigStatus.path("frequency").asLong(0);
+        if (freqHz <= 0) return;
+        tfFrequency.setText(String.format("%.3f", freqHz / 1_000_000.0));
+    }
+
+    /** Copy the cached rig mode into the entry form's Mode field. No-op if no
+     *  RIG_STATUS yet or the mode field is empty. */
+    @FXML
+    private void useRigMode() {
+        if (lastRigStatus == null || tfMode == null) return;
+        String mode = lastRigStatus.path("mode").asText("");
+        if (!mode.isEmpty()) tfMode.setText(mode);
+    }
+
+    /** Push rig freq/mode into the entry form unconditionally — called by
+     *  updateRigStatus when auto-track is enabled. Kept separate from the
+     *  button handlers so manual button clicks bypass the auto-track guard. */
+    private void applyRigToEntry(long freqHz, String mode) {
+        if (freqHz > 0 && tfFrequency != null) {
+            tfFrequency.setText(String.format("%.3f", freqHz / 1_000_000.0));
+        }
+        if (mode != null && !mode.isEmpty() && tfMode != null) {
+            tfMode.setText(mode);
         }
     }
 

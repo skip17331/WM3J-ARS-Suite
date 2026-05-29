@@ -3028,14 +3028,18 @@ function populateJLogForm(s) {
 
   const wx = document.getElementById('jlog-show-spacewx');
   if (wx) wx.checked = (s.showSpaceWeather !== false);   // default true
+  const rc = document.getElementById('jlog-rig-control-visible');
+  if (rc) rc.checked = (s.rigControlVisible !== false);  // default true
 }
 
 function saveJLogSettings() {
   const intOf = id => parseInt(document.getElementById(id).value, 10);
   const wxEl  = document.getElementById('jlog-show-spacewx');
+  const rcEl  = document.getElementById('jlog-rig-control-visible');
   const payload = {
     fontSize: intOf('jlog-font-size') || 13,
-    showSpaceWeather: wxEl ? wxEl.checked : true,
+    showSpaceWeather:    wxEl ? wxEl.checked : true,
+    rigControlVisible:   rcEl ? rcEl.checked : true,
     fonts: {
       statusBar: intOf('jlog-font-statusbar') || 12,
       entry:     intOf('jlog-font-entry')     || 13,

@@ -75,6 +75,17 @@ public class HubEngine {
     private final AtomicBoolean hamlibCwAvailable = new AtomicBoolean(true);
     private Consumer<JsonNode> ampStatusListener;
     private Consumer<JsonNode> antStatusListener;
+    private Consumer<JsonNode> rigStatusListener;
+    /** Last-seen RIG_STATUS payload — replayed on listener registration so a
+     *  newly-opened pane shows the current rig state immediately rather than
+     *  waiting for the next 500ms poll tick. */
+    private volatile JsonNode  lastRigStatusPayload;
+    private Consumer<Boolean>  rigControlVisibleListener;
+    /** Last-seen j-log settings payload from CONFIG_UPDATE. Cached so a
+     *  late-wired listener (e.g. NormalLogController registering after the
+     *  CONFIG_UPDATE arrived during JHUB_WELCOME replay) gets the current
+     *  values immediately rather than waiting for the next save in the UI. */
+    private volatile JsonNode  lastJlogSettings;
     private Runnable           onConnected;
     private Runnable           onDisconnected;
     private Runnable           onShutdown;
@@ -205,12 +216,17 @@ public class HubEngine {
 
             } else if ("CONFIG_UPDATE".equals(type)) {
                 JsonNode settings = node.path("settings");
+                lastJlogSettings = settings;
                 int size = settings.path("fontSize").asInt(0);
                 if (size > 0 && configUpdateListener != null)
                     configUpdateListener.accept(size);
                 String dens = settings.path("density").asText("");
                 if (!dens.isBlank() && densityListener != null)
                     densityListener.accept(dens);
+                if (settings.has("rigControlVisible") && rigControlVisibleListener != null) {
+                    rigControlVisibleListener.accept(
+                        settings.path("rigControlVisible").asBoolean(true));
+                }
 
             } else if ("SHUTDOWN".equals(type)) {
                 log.info("SHUTDOWN command received from j-hub");
@@ -270,8 +286,13 @@ public class HubEngine {
             } else if ("ANT_STATUS".equals(type)) {
                 if (antStatusListener != null)
                     antStatusListener.accept(node);
+
+            } else if ("RIG_STATUS".equals(type)) {
+                lastRigStatusPayload = node;
+                if (rigStatusListener != null)
+                    rigStatusListener.accept(node);
             }
-            // HUB_WELCOME, APP_LIST, RIG_STATUS etc. appear in raw tab — no special handling needed
+            // HUB_WELCOME, APP_LIST etc. appear in raw tab — no special handling needed
 
         } catch (Exception ex) {
             log.warn("Hub message parse error: {}", json, ex);
@@ -346,6 +367,27 @@ public class HubEngine {
     public boolean isHamlibCwAvailable() { return hamlibCwAvailable.get(); }
     public void setAmpStatusListener        (Consumer<JsonNode> l) { this.ampStatusListener        = l; }
     public void setAntStatusListener        (Consumer<JsonNode> l) { this.antStatusListener        = l; }
+    public void setRigStatusListener        (Consumer<JsonNode> l) {
+        this.rigStatusListener = l;
+        // Replay last-seen payload — covers the timing race where j-hub's
+        // RIG_STATUS arrives before the controller registers its listener.
+        if (l != null && lastRigStatusPayload != null) {
+            try { l.accept(lastRigStatusPayload); } catch (Exception ignored) {}
+        }
+    }
+
+    /** Driven by the J-Log card toggle in j-hub's web UI. Replays the cached
+     *  CONFIG_UPDATE's rigControlVisible (default true) so a freshly-launched
+     *  j-log applies the operator's last saved choice without waiting for
+     *  them to re-save in j-hub. */
+    public void setRigControlVisibleListener(Consumer<Boolean>  l) {
+        this.rigControlVisibleListener = l;
+        if (l != null && lastJlogSettings != null) {
+            try {
+                l.accept(lastJlogSettings.path("rigControlVisible").asBoolean(true));
+            } catch (Exception ignored) {}
+        }
+    }
 
     /** Ask j-hub to force the named switch to the given antenna until cleared. */
     public void sendAntOverride(String switchId, int antenna) {

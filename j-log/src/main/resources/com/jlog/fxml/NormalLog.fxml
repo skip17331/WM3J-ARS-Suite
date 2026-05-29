@@ -180,18 +180,42 @@
                 </GridPane>
             </TitledPane>
 
-            <!-- Rig Control pane — placeholder for now. Future content
-                 (Tier 1 display + Use Rig Freq button) will read
-                 RIG_STATUS from HubEngine and send RIG_COMMAND back
-                 via WebSocket. j-log stays interface-only; serial
-                 ownership stays in j-hub. -->
+            <!-- Rig Control pane — Tier 1: read-only display of RIG_STATUS
+                 from j-hub + buttons to copy rig freq/mode into the entry
+                 form. Always shows the grid + buttons (with "—" defaults
+                 until j-hub publishes a RIG_STATUS); the whole pane is
+                 hidden if the operator switches off Rig Control in j-hub's
+                 J-Log card (CONFIG_UPDATE settings.rigControlVisible). -->
             <TitledPane fx:id="rigControlPane" text="Rig Control"
                         collapsible="false" styleClass="entry-pane"
                         prefWidth="280">
-                <VBox spacing="6" alignment="TOP_LEFT">
+                <VBox spacing="4" alignment="TOP_LEFT" styleClass="rig-pane">
                     <padding><Insets top="8" right="10" bottom="8" left="10"/></padding>
-                    <Label text="Rig control coming soon."
-                           style="-fx-text-fill: #888; -fx-font-style: italic;"/>
+                    <GridPane hgap="8" vgap="2" fx:id="rigGrid">
+                        <Label text="Freq"  GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="entry-label"/>
+                        <Label fx:id="lblRigFreq" text="—"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0"
+                               styleClass="rig-freq"/>
+                        <Label text="Mode"  GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="entry-label"/>
+                        <Label fx:id="lblRigMode" text="—"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"
+                               styleClass="rig-value"/>
+                        <Label text="Band"  GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="entry-label"/>
+                        <Label fx:id="lblRigBand" text="—"
+                               GridPane.columnIndex="1" GridPane.rowIndex="2"
+                               styleClass="rig-value"/>
+                        <Label text="Power" GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="entry-label"/>
+                        <Label fx:id="lblRigPower" text="—"
+                               GridPane.columnIndex="1" GridPane.rowIndex="3"
+                               styleClass="rig-value"/>
+                    </GridPane>
+                    <HBox spacing="6" fx:id="rigButtonBar">
+                        <Button text="Use Freq" onAction="#useRigFreq"
+                                styleClass="secondary-button"/>
+                        <Button text="Use Mode" onAction="#useRigMode"
+                                styleClass="secondary-button"/>
+                    </HBox>
+                    <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>
             </HBox>
