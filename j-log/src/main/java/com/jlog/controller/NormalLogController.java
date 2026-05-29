@@ -79,6 +79,9 @@ public class NormalLogController implements Initializable {
     @FXML private Label lblContinent;
     @FXML private Label lblBearing;
     @FXML private Label lblDistance;
+    @FXML private TitledPane entryPane;
+    @FXML private TitledPane rigControlPane;
+    @FXML private Region     entryDragHandle;
     @FXML private TitledPane spaceWxPane;
     @FXML private Label lblSolarSfi;
     @FXML private Label lblSolarK;
@@ -192,6 +195,7 @@ public class NormalLogController implements Initializable {
         initMacroBar();
         initKeyHandlers();
         initBandWarning();
+        initEntryDragHandle();
         loadQsos();
         initQrzLookup();
 
@@ -1547,6 +1551,25 @@ public class NormalLogController implements Initializable {
         freqValidateDelay.setOnFinished(e -> checkBandWarning());
         tfFrequency.textProperty().addListener((obs, o, n) -> freqValidateDelay.playFromStart());
         tfMode.textProperty().addListener((obs, o, n) -> checkBandWarning());
+    }
+
+    /** Wire the invisible drag strip overlaid on the Data Entry / Rig Control
+     *  seam (see NormalLog.fxml). Dragging adjusts rigControlPane.prefWidth;
+     *  the Data Entry pane (HBox.hgrow=ALWAYS) absorbs the rest. The strip's
+     *  translateX tracks entryPane.width so it stays glued to the seam as
+     *  the operator drags or the window resizes. */
+    private void initEntryDragHandle() {
+        if (entryDragHandle == null || rigControlPane == null || entryPane == null) return;
+        entryDragHandle.translateXProperty().bind(entryPane.widthProperty().subtract(3));
+        final double[] state = new double[2]; // [0]=startSceneX, [1]=startRigWidth
+        entryDragHandle.setOnMousePressed(e -> {
+            state[0] = e.getSceneX();
+            state[1] = rigControlPane.getWidth();
+        });
+        entryDragHandle.setOnMouseDragged(e -> {
+            double delta = e.getSceneX() - state[0];
+            rigControlPane.setPrefWidth(state[1] - delta);
+        });
     }
 
     private void checkBandWarning() {

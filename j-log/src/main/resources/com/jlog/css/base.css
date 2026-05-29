@@ -179,3 +179,24 @@
 .bp-tick         { -fx-font-size: 9px; }
 .bp-seg          { -fx-border-width: 0 1 0 0; }
 .bp-band-row     { -fx-padding: 1 0 1 0; }
+
+/* ---- Data Entry / Rig Control row dividers ----
+   entry-split  = horizontal SplitPane between Data Entry and Rig Control.
+                  Divider rendered as a 2px transparent strip so the two
+                  title bars appear flush against each other while remaining
+                  user-draggable.
+   row-split    = vertical SplitPane between the entry row and the info
+                  pane row. Divider stays at default 6-8px chrome so the
+                  operator has a visible grip to drag the row's height. */
+.entry-split > .split-pane-divider {
+    -fx-padding: 0;
+    -fx-pref-width: 2;
+    -fx-min-width: 2;
+    -fx-max-width: 2;
+    -fx-background-color: transparent;
+}
+.row-split > .split-pane-divider {
+    -fx-pref-height: 6;
+    -fx-background-color: -fx-background;
+    -fx-background-insets: 0;
+}

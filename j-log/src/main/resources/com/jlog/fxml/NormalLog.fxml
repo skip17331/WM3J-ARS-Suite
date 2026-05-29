@@ -83,18 +83,34 @@
             </HBox>
 
             <!-- ============================================================
-                 ROW 2: DATA ENTRY (left) + RIG CONTROL (right) — adjacent
-                 banners with no divider gap between them. HBox spacing=0
-                 so the right edge of "Data Entry" touches the left edge
-                 of "Rig Control" exactly. Each pane stretches with the
-                 window via HBox.hgrow; the entry pane gets the larger
-                 prefWidth so the 12-column grid fits at typical widths.
-                 (Previously used a horizontal SplitPane — the
-                 split-pane-divider strip created an unwanted gap between
-                 the two title bars per operator screenshot.)
+                 ROW 2 + ROW 3 wrapped in a VERTICAL SplitPane so the
+                 operator can drag the row heights up and down. Inside,
+                 ROW 2 is the Data Entry + Rig Control HORIZONTAL split.
+                 Both SplitPane dividers are user-draggable.
+
+                 entry-split (horizontal) — divider styled to 2px
+                 transparent strip (base.css) so the two banners look
+                 flush; still grabbable.
+                 row-split   (vertical)   — divider stays default 6px
+                 height so it's visible/grippy. Info-pane-row gets an
+                 explicit minHeight so it can't be squeezed to nothing.
                  ============================================================ -->
+            <SplitPane fx:id="rowSplit" orientation="VERTICAL"
+                       dividerPositions="0.45" styleClass="row-split"
+                       prefHeight="380">
+            <!-- rowSplit child 1: VBox wraps entry-row + activationBar so
+                 the (hidden) activation bar stays visually above the info
+                 row when shown. The entry row sits inside a StackPane so a
+                 thin invisible drag strip (entryDragHandle) can overlay
+                 the seam between Data Entry and Rig Control — banners
+                 stay flush (HBox spacing=0) while the operator can still
+                 grab the seam to redistribute width. NormalLogController
+                 binds the strip's translateX to entryPane.width-3 and
+                 wires its onMouseDragged to adjust rigControlPane prefWidth. -->
+            <VBox spacing="0">
+            <StackPane VBox.vgrow="ALWAYS">
             <HBox spacing="0" styleClass="entry-split">
-            <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane"
+            <TitledPane fx:id="entryPane" text="%pane.entry" collapsible="false" styleClass="entry-pane"
                         HBox.hgrow="ALWAYS" prefWidth="1000">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
                     <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
@@ -171,7 +187,7 @@
                  ownership stays in j-hub. -->
             <TitledPane fx:id="rigControlPane" text="Rig Control"
                         collapsible="false" styleClass="entry-pane"
-                        HBox.hgrow="ALWAYS" prefWidth="280">
+                        prefWidth="280">
                 <VBox spacing="6" alignment="TOP_LEFT">
                     <padding><Insets top="8" right="10" bottom="8" left="10"/></padding>
                     <Label text="Rig control coming soon."
@@ -179,6 +195,16 @@
                 </VBox>
             </TitledPane>
             </HBox>
+            <!-- Invisible draggable strip overlaid on the Data Entry / Rig
+                 Control seam. 6px wide, transparent, H_RESIZE cursor. The
+                 controller binds translateX to entryPane.width-3 so it
+                 tracks the seam as the operator drags. -->
+            <Region fx:id="entryDragHandle" prefWidth="6"
+                    minWidth="6" maxWidth="6"
+                    maxHeight="Infinity" pickOnBounds="true"
+                    StackPane.alignment="TOP_LEFT"
+                    style="-fx-cursor: H_RESIZE; -fx-background-color: transparent;"/>
+            </StackPane>
 
             <!-- Macro button bar moved into the keyer pane (toggled with it). -->
 
@@ -195,8 +221,11 @@
                 <Button text="Stop"  onAction="#stopActivation"/>
                 <Label fx:id="lblActivationStatus" style="-fx-font-style: italic;"/>
             </HBox>
+            </VBox>
 
-            <!-- Info pane row -->
+            <!-- rowSplit child 2: info-pane-row. No minHeight — operator
+                 can drag the row-split divider freely; pane will collapse
+                 if dragged all the way down. -->
             <HBox spacing="0" styleClass="info-pane-row">
                 <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
                     <VBox spacing="4" styleClass="info-content">
@@ -278,6 +307,7 @@
                     </TableView>
                 </TitledPane>
             </HBox>
+            </SplitPane>
         </VBox>
     </top>
 
