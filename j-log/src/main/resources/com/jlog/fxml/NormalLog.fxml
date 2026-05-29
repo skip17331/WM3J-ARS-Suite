@@ -191,6 +191,17 @@
                         prefWidth="280">
                 <VBox spacing="4" alignment="TOP_LEFT" styleClass="rig-pane">
                     <padding><Insets top="8" right="10" bottom="8" left="10"/></padding>
+                    <!-- Liveness indicator. NormalLogController ticks a 1s
+                         Timeline that compares now() to the last RIG_STATUS
+                         timestamp; the dot flips green when fresh (<3s) and
+                         gray when stale, so an offline rigctld or a never
+                         connected rig is visible at a glance. -->
+                    <HBox spacing="6" alignment="CENTER_LEFT" styleClass="rig-live-row">
+                        <Region fx:id="rigLiveDot" prefWidth="10" prefHeight="10"
+                                minWidth="10" minHeight="10" maxWidth="10" maxHeight="10"
+                                styleClass="rig-dot,rig-dot-stale"/>
+                        <Label fx:id="lblRigLive" text="No rig" styleClass="rig-live-label"/>
+                    </HBox>
                     <GridPane hgap="8" vgap="2" fx:id="rigGrid">
                         <Label text="Freq"  GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="entry-label"/>
                         <Label fx:id="lblRigFreq" text="—"

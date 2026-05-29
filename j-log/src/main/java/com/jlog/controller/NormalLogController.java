@@ -13,7 +13,9 @@ import com.jlog.util.BandPlan;
 import com.jlog.util.MacroVariableEngine;
 import com.jlog.util.BandPlan.ValidationResult;
 import com.jlog.util.QrzLookup;
+import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -89,9 +91,20 @@ public class NormalLogController implements Initializable {
     @FXML private Label      lblRigPower;
     @FXML private GridPane   rigButtonBar;
     @FXML private CheckBox   cbRigAutoTrack;
+    @FXML private Region     rigLiveDot;
+    @FXML private Label      lblRigLive;
     /** Last RIG_STATUS payload from j-hub, cached so the "Use Rig Freq/Mode"
      *  buttons can read it on click. Null until the first message arrives. */
     private volatile com.fasterxml.jackson.databind.JsonNode lastRigStatus;
+    /** Wall-clock ms when the last RIG_STATUS arrived. Compared on a 1s
+     *  Timeline tick (rigLiveTimeline) against the freshness threshold
+     *  below to drive the green/gray live indicator. Volatile because the
+     *  WebSocket thread writes it and the JavaFX thread reads it. */
+    private volatile long lastRigStatusMs = 0;
+    /** RIG_STATUS is considered "live" if it arrived within this many ms.
+     *  j-hub's default poll cadence is 500ms, so a 3s window tolerates a
+     *  handful of dropped polls before flipping to "Stale". */
+    private static final long RIG_LIVE_THRESHOLD_MS = 3000;
     @FXML private TitledPane spaceWxPane;
     @FXML private Label lblSolarSfi;
     @FXML private Label lblSolarK;
@@ -206,6 +219,7 @@ public class NormalLogController implements Initializable {
         initKeyHandlers();
         initBandWarning();
         initEntryDragHandle();
+        initRigLiveIndicator();
         loadQsos();
         initQrzLookup();
 
@@ -375,6 +389,7 @@ public class NormalLogController implements Initializable {
     private void updateRigStatus(com.fasterxml.jackson.databind.JsonNode node) {
         if (node == null || lblRigFreq == null) return;
         lastRigStatus = node;
+        lastRigStatusMs = System.currentTimeMillis();
 
         long   freqHz = node.path("frequency").asLong(0);
         String mode   = node.path("mode").asText("");
@@ -389,6 +404,41 @@ public class NormalLogController implements Initializable {
 
         if (cbRigAutoTrack != null && cbRigAutoTrack.isSelected()) {
             applyRigToEntry(freqHz, mode);
+        }
+    }
+
+    /** Spin up a 1s Timeline that re-evaluates the live indicator. Cheap
+     *  (the tick body is just timestamp math + a style swap), and a fixed
+     *  cadence keeps the "Stale" transition prompt even if RIG_STATUS
+     *  silently stops arriving — the UI has no way to know without
+     *  checking the clock. INDEFINITE so it keeps ticking for the life
+     *  of the window. */
+    private void initRigLiveIndicator() {
+        if (rigLiveDot == null || lblRigLive == null) return;
+        refreshRigLiveIndicator();
+        Timeline t = new Timeline(new KeyFrame(Duration.seconds(1),
+            e -> refreshRigLiveIndicator()));
+        t.setCycleCount(Timeline.INDEFINITE);
+        t.play();
+    }
+
+    /** Flip rigLiveDot's style class between live/stale and update the
+     *  text label. Three states: never received → "No rig" + gray dot;
+     *  fresh (<3s) → "Live" + green dot; stale → "Offline (Ns ago)" +
+     *  gray dot so the operator knows how long ago the rig went quiet. */
+    private void refreshRigLiveIndicator() {
+        if (rigLiveDot == null || lblRigLive == null) return;
+        boolean live = lastRigStatusMs > 0
+            && (System.currentTimeMillis() - lastRigStatusMs) < RIG_LIVE_THRESHOLD_MS;
+        rigLiveDot.getStyleClass().removeAll("rig-dot-live", "rig-dot-stale");
+        rigLiveDot.getStyleClass().add(live ? "rig-dot-live" : "rig-dot-stale");
+        if (lastRigStatusMs == 0) {
+            lblRigLive.setText("No rig");
+        } else if (live) {
+            lblRigLive.setText("Live");
+        } else {
+            long ageS = (System.currentTimeMillis() - lastRigStatusMs) / 1000;
+            lblRigLive.setText("Offline (" + ageS + "s ago)");
         }
     }
 
