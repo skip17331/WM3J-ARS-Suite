@@ -153,10 +153,7 @@
                 </GridPane>
             </TitledPane>
 
-            <!-- Macro button bar -->
-            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
-                <padding><Insets top="2" left="6" bottom="2"/></padding>
-            </HBox>
+            <!-- Macro button bar moved into the keyer pane (toggled with it). -->
 
             <!-- POTA/SOTA activation bar — hidden unless launched in activation mode -->
             <HBox fx:id="activationBar" spacing="8" alignment="CENTER_LEFT"
@@ -258,14 +255,49 @@
     </top>
 
     <!-- ============================================================
-         CENTER: full-width QSO area split horizontally — QSO log on
-         the left, DX Spotting (+ collapsible Heard-By) on the right.
-         The horizontal divider is draggable. The Keyer pane stays
-         nested below the QSO log toolbar/table, collapsible via the
-         Tools menu so it doesn't steal vertical space when unused.
+         CENTER: full-width Keyer pane (above) over a horizontal
+         SplitPane (QSO log left, DX Spotting + Heard-By right). The
+         Keyer pane is hidden by default and toggled via Tools menu;
+         when shown it spans the entire window width (not constrained
+         to the SplitPane's left half) and carries the Macro button
+         bar as its top row. The horizontal divider between QSO log
+         and DX column is draggable.
          ============================================================ -->
     <center>
-        <SplitPane fx:id="mainSplitPane" orientation="HORIZONTAL" dividerPositions="0.66">
+        <VBox>
+            <!-- CW / Digital keyer + macros. Hidden by default. Spans
+                 the full window width because it's a direct VBox child
+                 (not inside the SplitPane). -->
+            <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
+                  visible="false" managed="false" minHeight="0" prefHeight="150">
+                <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
+                <!-- Macro button bar (moved out of the top section so it
+                     toggles with the keyer). MacroEngine populates it at
+                     init time. -->
+                <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
+                    <padding><Insets top="2" bottom="2"/></padding>
+                </HBox>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="Keyer:" styleClass="section-title"/>
+                    <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
+                    <Label fx:id="lblCwWpm" text="WPM:"/>
+                    <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
+                    <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
+                              prefRowCount="3" HBox.hgrow="ALWAYS"
+                              promptText="Decoded text — select a callsign, right-click to use it"/>
+                </HBox>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="TX:"/>
+                    <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
+                               promptText="Type and press Enter or Send"/>
+                    <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
+                    <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
+                    <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
+                </HBox>
+            </VBox>
+
+            <SplitPane fx:id="mainSplitPane" orientation="HORIZONTAL"
+                       dividerPositions="0.66" VBox.vgrow="ALWAYS">
             <!-- LEFT: QSO log + collapsible Keyer pane underneath -->
             <VBox styleClass="log-section">
                 <HBox spacing="6" styleClass="table-toolbar">
@@ -292,32 +324,6 @@
                         <TableColumn fx:id="colNotes"    text="%col.notes"    prefWidth="200"/>
                     </columns>
                 </TableView>
-
-                <!-- CW / Digital keyer — embedded pane, toggled via Tools
-                     menu. Hidden by default so it doesn't steal vertical
-                     space when unused. Lives below the QSO log per the
-                     2026-05-28 layout discussion. -->
-                <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
-                      visible="false" managed="false" minHeight="0" prefHeight="110">
-                    <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label text="Keyer:" styleClass="section-title"/>
-                        <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
-                        <Label fx:id="lblCwWpm" text="WPM:"/>
-                        <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
-                        <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
-                                  prefRowCount="3" HBox.hgrow="ALWAYS"
-                                  promptText="Decoded text — select a callsign, right-click to use it"/>
-                    </HBox>
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label text="TX:"/>
-                        <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
-                                   promptText="Type and press Enter or Send"/>
-                        <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
-                        <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
-                        <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
-                    </HBox>
-                </VBox>
             </VBox>
 
             <!-- RIGHT: DX Spotting (always expanded) + Heard-By (collapsible).
@@ -346,5 +352,6 @@
                 </TitledPane>
             </VBox>
         </SplitPane>
+        </VBox>
     </center>
 </BorderPane>
