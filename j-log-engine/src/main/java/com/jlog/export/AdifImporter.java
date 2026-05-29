@@ -34,7 +34,12 @@ public class AdifImporter {
 
     private static final Logger log = LoggerFactory.getLogger(AdifImporter.class);
 
-    public enum DupeMode { SKIP, OVERWRITE, APPEND }
+    /** What to do when an incoming record collides with an existing one
+     *  on the (callsign, band, mode) key. {@code REVIEW} is the
+     *  interactive variant — instead of acting silently on every dupe,
+     *  the importer collects them into {@link Result#duplicates} and
+     *  the UI opens a per-row review dialog after the import settles. */
+    public enum DupeMode { SKIP, OVERWRITE, APPEND, REVIEW }
 
     public static class Result {
         public int imported;
@@ -46,10 +51,15 @@ public class AdifImporter {
          *  {@code List<String>} of bare reason strings so the UI has the
          *  parsed fields available to populate an edit form. */
         public List<RejectedRecord> failures = new ArrayList<>();
+        /** Per-record duplicate-collision review queue — populated only
+         *  when {@link DupeMode#REVIEW} is used. The UI opens a separate
+         *  Review Duplicates dialog after the import settles so the
+         *  operator can pick Keep / Overwrite / Skip for each row. */
+        public List<DuplicateRecord> duplicates = new ArrayList<>();
 
         @Override public String toString() {
-            return String.format("imported=%d overwritten=%d skipped=%d failed=%d",
-                imported, overwritten, skipped, failed);
+            return String.format("imported=%d overwritten=%d skipped=%d failed=%d duplicates=%d",
+                imported, overwritten, skipped, failed, duplicates.size());
         }
     }
 
@@ -80,6 +90,27 @@ public class AdifImporter {
 
         @Override public String toString() {
             return "#" + recordNumber + ": " + reason;
+        }
+    }
+
+    /** One incoming record that collided with an existing log row.
+     *  Surfaced to the Review Duplicates dialog when DupeMode.REVIEW
+     *  is used. */
+    public static class DuplicateRecord {
+        public final int recordNumber;
+        /** Parsed-and-ready QsoRecord for the incoming row. */
+        public final QsoRecord incoming;
+        /** Existing rows that match the (callsign, band, mode) dupe
+         *  key in the DB right now. Usually exactly 1; can be &gt;1 if
+         *  earlier APPEND imports left genuine accumulated dupes. */
+        public final List<QsoRecord> existingMatches;
+
+        public DuplicateRecord(int recordNumber, QsoRecord incoming,
+                               List<QsoRecord> existingMatches) {
+            this.recordNumber    = recordNumber;
+            this.incoming        = incoming;
+            this.existingMatches = existingMatches == null
+                ? List.of() : List.copyOf(existingMatches);
         }
     }
 
@@ -204,6 +235,14 @@ public class AdifImporter {
                     QsoDao.getInstance().deleteByKey(q.getCallsign(), band, mode);
                     QsoDao.getInstance().insert(q);
                     r.overwritten++;
+                    return;
+                }
+                if (dupeMode == DupeMode.REVIEW) {
+                    // Defer the per-row decision to the UI's Review
+                    // Duplicates dialog. Don't touch the DB now.
+                    r.duplicates.add(new DuplicateRecord(
+                        recordNumber, q,
+                        QsoDao.getInstance().findByDupeKey(q.getCallsign(), band, mode)));
                     return;
                 }
                 // APPEND: fall through to the plain insert below.

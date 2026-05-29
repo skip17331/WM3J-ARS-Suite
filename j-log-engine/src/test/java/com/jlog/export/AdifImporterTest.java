@@ -115,6 +115,42 @@ class AdifImporterTest {
         assertEquals(6, QsoDao.getInstance().count(), "APPEND legitimately duplicates");
     }
 
+    /**
+     * REVIEW mode: collisions go into r.duplicates instead of silently
+     * skipping/overwriting. DB is NOT modified for dupe rows (the UI
+     * dialog applies the operator's per-row Keep/Overwrite/Skip choice
+     * after the fact). Non-dupe rows still import normally.
+     */
+    @Test
+    void reviewModeCollectsDupesInsteadOfActing(@TempDir Path dir) throws Exception {
+        Path adif = writeAdif(dir, "review.adi");
+        AdifImporter.importAdif(adif, AdifImporter.DupeMode.SKIP);   // seed: 3 rows
+        int before = QsoDao.getInstance().count();
+        assertEquals(3, before);
+
+        AdifImporter.Result r = AdifImporter.importAdif(adif, AdifImporter.DupeMode.REVIEW);
+        assertEquals(0, r.imported,    "REVIEW must not insert dupes silently");
+        assertEquals(0, r.overwritten, "REVIEW must not overwrite dupes silently");
+        assertEquals(0, r.skipped,     "REVIEW counts dupes in r.duplicates, not r.skipped");
+        assertEquals(3, r.duplicates.size(),
+            "all 3 incoming rows collided and must surface in r.duplicates");
+        assertEquals(before, QsoDao.getInstance().count(),
+            "REVIEW must leave the DB unchanged for dupe rows");
+
+        // Each DuplicateRecord must carry the incoming QsoRecord +
+        // the existing DB row that matched (so the UI can show both).
+        for (AdifImporter.DuplicateRecord d : r.duplicates) {
+            assertTrue(d.incoming != null && d.incoming.getCallsign() != null
+                && !d.incoming.getCallsign().isBlank(),
+                "incoming QsoRecord must be parsed and have a callsign");
+            assertEquals(1, d.existingMatches.size(),
+                "each dupe must have exactly 1 existing match in this seed");
+            assertEquals(d.incoming.getCallsign(),
+                d.existingMatches.get(0).getCallsign().toUpperCase(),
+                "existing match must be on the same callsign");
+        }
+    }
+
     @Test
     void missingCallRecordIsRecordedAsFailure(@TempDir Path dir) throws Exception {
         Path adif = dir.resolve("bad.adi");
