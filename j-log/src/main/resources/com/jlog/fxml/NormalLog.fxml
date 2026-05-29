@@ -242,6 +242,16 @@
                             <ColumnConstraints percentWidth="50"/>
                         </columnConstraints>
                     </GridPane>
+                    <!-- Quick band jump. Selecting a band fires a SET_FREQ to
+                         the band's typical operating center via j-hub; the
+                         rig's own RIG_STATUS reply will repaint the grid
+                         above. Operator can fine-tune from there. Empty
+                         first item so the dropdown can be re-selected to
+                         the same band (onAction fires on selection). -->
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="Quick band:" styleClass="entry-label"/>
+                        <ChoiceBox fx:id="cbRigBand" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    </HBox>
                     <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>

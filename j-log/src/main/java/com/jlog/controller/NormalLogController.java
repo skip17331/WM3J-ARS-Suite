@@ -91,8 +91,29 @@ public class NormalLogController implements Initializable {
     @FXML private Label      lblRigPower;
     @FXML private GridPane   rigButtonBar;
     @FXML private CheckBox   cbRigAutoTrack;
+    @FXML private ChoiceBox<String> cbRigBand;
     @FXML private Region     rigLiveDot;
     @FXML private Label      lblRigLive;
+    /** Band → typical SSB phone center in Hz, used by the Rig Control pane's
+     *  "Quick band" picker. Values are mid-band starting points; the
+     *  operator fine-tunes from there. CW/digital operators can ignore the
+     *  picker and type into the entry-form Frequency field directly. */
+    private static final java.util.LinkedHashMap<String, Long> BAND_CENTERS =
+        new java.util.LinkedHashMap<>() {{
+            put("160m",   1_910_000L);
+            put("80m",    3_800_000L);
+            put("60m",    5_357_000L);
+            put("40m",    7_200_000L);
+            put("30m",   10_130_000L);
+            put("20m",   14_250_000L);
+            put("17m",   18_140_000L);
+            put("15m",   21_300_000L);
+            put("12m",   24_940_000L);
+            put("10m",   28_400_000L);
+            put("6m",    50_150_000L);
+            put("2m",   146_500_000L);
+            put("70cm", 446_000_000L);
+        }};
     /** Last RIG_STATUS payload from j-hub, cached so the "Use Rig Freq/Mode"
      *  buttons can read it on click. Null until the first message arrives. */
     private volatile com.fasterxml.jackson.databind.JsonNode lastRigStatus;
@@ -220,6 +241,7 @@ public class NormalLogController implements Initializable {
         initBandWarning();
         initEntryDragHandle();
         initRigLiveIndicator();
+        initRigBandPicker();
         loadQsos();
         initQrzLookup();
 
@@ -405,6 +427,24 @@ public class NormalLogController implements Initializable {
         if (cbRigAutoTrack != null && cbRigAutoTrack.isSelected()) {
             applyRigToEntry(freqHz, mode);
         }
+    }
+
+    /** Populate the Quick band ChoiceBox + wire selection to a SET_FREQ.
+     *  Operator picks a band → j-log sends band-center Hz via j-hub. The
+     *  rig's reply RIG_STATUS will repaint the labels above so the operator
+     *  sees the change took. Selection is cleared back to null afterwards
+     *  so the same band can be re-picked to "snap back to center". */
+    private void initRigBandPicker() {
+        if (cbRigBand == null) return;
+        cbRigBand.getItems().setAll(BAND_CENTERS.keySet());
+        cbRigBand.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) return;
+            Long centerHz = BAND_CENTERS.get(newV);
+            if (centerHz != null) HubEngine.getInstance().sendSetFreq(centerHz);
+            // Clear so re-picking the same band re-fires (and so the box reads
+            // empty between picks, hinting it's an action picker not a setting).
+            Platform.runLater(() -> cbRigBand.getSelectionModel().clearSelection());
+        });
     }
 
     /** Spin up a 1s Timeline that re-evaluates the live indicator. Cheap
