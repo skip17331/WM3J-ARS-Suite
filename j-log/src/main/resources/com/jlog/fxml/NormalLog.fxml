@@ -83,14 +83,19 @@
             </HBox>
 
             <!-- ============================================================
-                 ROW 2: DATA ENTRY (left) + RIG CONTROL (right) — draggable
-                 horizontal split. Initial divider at 0.78 leaves enough
-                 width for the 12-column entry grid; the operator can drag
-                 the divider to give the rig pane more room when needed.
+                 ROW 2: DATA ENTRY (left) + RIG CONTROL (right) — adjacent
+                 banners with no divider gap between them. HBox spacing=0
+                 so the right edge of "Data Entry" touches the left edge
+                 of "Rig Control" exactly. Each pane stretches with the
+                 window via HBox.hgrow; the entry pane gets the larger
+                 prefWidth so the 12-column grid fits at typical widths.
+                 (Previously used a horizontal SplitPane — the
+                 split-pane-divider strip created an unwanted gap between
+                 the two title bars per operator screenshot.)
                  ============================================================ -->
-            <SplitPane orientation="HORIZONTAL" dividerPositions="0.78"
-                       styleClass="entry-split">
-            <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane">
+            <HBox spacing="0" styleClass="entry-split">
+            <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane"
+                        HBox.hgrow="ALWAYS" prefWidth="1000">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
                     <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
 
@@ -165,14 +170,15 @@
                  via WebSocket. j-log stays interface-only; serial
                  ownership stays in j-hub. -->
             <TitledPane fx:id="rigControlPane" text="Rig Control"
-                        collapsible="false" styleClass="entry-pane">
+                        collapsible="false" styleClass="entry-pane"
+                        HBox.hgrow="ALWAYS" prefWidth="280">
                 <VBox spacing="6" alignment="TOP_LEFT">
                     <padding><Insets top="8" right="10" bottom="8" left="10"/></padding>
                     <Label text="Rig control coming soon."
                            style="-fx-text-fill: #888; -fx-font-style: italic;"/>
                 </VBox>
             </TitledPane>
-            </SplitPane>
+            </HBox>
 
             <!-- Macro button bar moved into the keyer pane (toggled with it). -->
 
