@@ -150,6 +150,25 @@ public class QsoDao {
         return query("SELECT * FROM qso ORDER BY datetime_utc ASC");
     }
 
+    /** Rows that match the dupe key (callsign + band + mode). Returned in
+     *  insertion order. Used by AdifImporter's REVIEW dupe-mode so the
+     *  operator's review dialog can show the EXISTING row(s) next to the
+     *  incoming row before deciding Keep / Overwrite / Skip. */
+    public List<QsoRecord> findByDupeKey(String callsign, String band, String mode) throws SQLException {
+        String sql = "SELECT * FROM qso WHERE callsign=? AND band=? AND mode=? "
+                   + "ORDER BY id ASC";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setString(1, callsign == null ? "" : callsign.toUpperCase().trim());
+            ps.setString(2, band == null ? "" : band);
+            ps.setString(3, mode == null ? "" : mode);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<QsoRecord> list = new ArrayList<>();
+                while (rs.next()) list.add(map(rs));
+                return list;
+            }
+        }
+    }
+
     /** All QSOs with this callsign (any band, any mode), newest-first.
      *  Used by the cockpit's live "Previous QSOs with &lt;CALL&gt;" panel —
      *  populates when the operator types into the callsign entry field. */

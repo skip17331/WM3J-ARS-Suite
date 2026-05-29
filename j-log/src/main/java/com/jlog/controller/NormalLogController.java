@@ -1160,20 +1160,23 @@ public class NormalLogController implements Initializable {
         File f = fc.showOpenDialog(getStage());
         if (f == null) return;
 
-        // Three choices: Skip / Overwrite / Append
+        // Four choices: Skip / Append / Review / Cancel
         Alert dupeChoice = new Alert(Alert.AlertType.CONFIRMATION,
             "How should duplicates be handled?\n\n"
-          + "Skip — keep existing, drop incoming.\n"
+          + "Skip   — keep existing, drop incoming.\n"
           + "Append — insert all rows, even duplicates.\n"
+          + "Review — open a per-row Keep/Overwrite/Skip dialog after import.\n"
           + "Cancel — abort import.",
-            new ButtonType("Skip"), new ButtonType("Append"), ButtonType.CANCEL);
+            new ButtonType("Skip"), new ButtonType("Append"),
+            new ButtonType("Review"), ButtonType.CANCEL);
         dupeChoice.setHeaderText("Duplicate handling");
         ButtonType choice = dupeChoice.showAndWait().orElse(ButtonType.CANCEL);
         if (choice == ButtonType.CANCEL) return;
-        final com.jlog.export.AdifImporter.DupeMode mode =
-            "Append".equals(choice.getText())
-                ? com.jlog.export.AdifImporter.DupeMode.APPEND
-                : com.jlog.export.AdifImporter.DupeMode.SKIP;
+        final com.jlog.export.AdifImporter.DupeMode mode = switch (choice.getText()) {
+            case "Append" -> com.jlog.export.AdifImporter.DupeMode.APPEND;
+            case "Review" -> com.jlog.export.AdifImporter.DupeMode.REVIEW;
+            default       -> com.jlog.export.AdifImporter.DupeMode.SKIP;
+        };
 
         Task<com.jlog.export.AdifImporter.Result> task = new Task<>() {
             @Override protected com.jlog.export.AdifImporter.Result call() throws Exception {
@@ -1182,10 +1185,14 @@ public class NormalLogController implements Initializable {
             @Override protected void succeeded() {
                 var r = getValue();
                 setStatus("Imported " + r.imported + ", skipped " + r.skipped
-                          + ", failed " + r.failed);
+                    + ", failed " + r.failed
+                    + (r.duplicates.isEmpty() ? "" : ", duplicates " + r.duplicates.size()));
                 loadQsos();
                 if (r.failed > 0 && !r.failures.isEmpty()) {
                     RejectedQsosDialog.show(r.failures, () -> loadQsos());
+                }
+                if (!r.duplicates.isEmpty()) {
+                    ReviewDuplicatesDialog.show(r.duplicates, () -> loadQsos());
                 }
             }
             @Override protected void failed() { setStatus("Import failed: " + getException().getMessage()); }
