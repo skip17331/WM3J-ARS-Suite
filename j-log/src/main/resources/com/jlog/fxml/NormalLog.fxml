@@ -239,7 +239,7 @@
                      the Callsign entry field above. -->
                 <TitledPane fx:id="prevQsosPane" text="Previous QSOs"
                             collapsible="false" HBox.hgrow="ALWAYS">
-                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="110">
+                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="220">
                         <columns>
                             <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
                             <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
@@ -266,12 +266,15 @@
          ============================================================ -->
     <center>
         <VBox>
-            <!-- Macro button bar — always visible, lives in the gap
-                 between the 4-pane info row and the transmit/keyer
-                 pane. MacroEngine populates the buttons at init. -->
-            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
-                <padding><Insets top="2" left="6" right="6" bottom="2"/></padding>
-            </HBox>
+            <!-- Macro button bar removed from the center area — the
+                 4 top-row info panes absorb the vertical space it
+                 used to occupy. MacroEngine still references the
+                 fx:id below (controller wires F-key handlers) but
+                 the bar is hidden + zero-height + zero-padding so
+                 it contributes no visible chrome. If macros need to
+                 surface again, raise visible/managed and prefHeight. -->
+            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
+                  visible="false" managed="false"/>
 
             <!-- CW / Digital keyer (the "transmit pane"). Always visible
                  (Tools menu toggle can hide it). minHeight=USE_PREF_SIZE
