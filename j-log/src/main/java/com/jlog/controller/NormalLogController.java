@@ -92,6 +92,13 @@ public class NormalLogController implements Initializable {
     @FXML private GridPane   rigButtonBar;
     @FXML private CheckBox   cbRigAutoTrack;
     @FXML private ChoiceBox<String> cbRigBand;
+    @FXML private ChoiceBox<String> cbRigMode;
+    /** Quick-mode picker values — direct Hamlib mode strings so j-hub's
+     *  tune() forwards them verbatim to rigctld. PKTUSB / PKTLSB cover
+     *  the digital modes (FT8/FT4/PSK over USB or LSB); operators wanting
+     *  a non-listed mode can type it into the entry-form Mode field. */
+    private static final java.util.List<String> RIG_MODES = java.util.List.of(
+        "USB", "LSB", "CW", "CWR", "AM", "FM", "RTTY", "PKTUSB", "PKTLSB");
     @FXML private Region     rigLiveDot;
     @FXML private Label      lblRigLive;
     /** Band → typical SSB phone center in Hz, used by the Rig Control pane's
@@ -242,6 +249,7 @@ public class NormalLogController implements Initializable {
         initEntryDragHandle();
         initRigLiveIndicator();
         initRigBandPicker();
+        initRigModePicker();
         loadQsos();
         initQrzLookup();
 
@@ -444,6 +452,19 @@ public class NormalLogController implements Initializable {
             // Clear so re-picking the same band re-fires (and so the box reads
             // empty between picks, hinting it's an action picker not a setting).
             Platform.runLater(() -> cbRigBand.getSelectionModel().clearSelection());
+        });
+    }
+
+    /** Symmetric companion to initRigBandPicker — pick a mode, fire SET_MODE,
+     *  clear selection. Verbatim Hamlib mode strings; if a rig doesn't
+     *  accept one, the backend's tune() will log a warning but won't crash. */
+    private void initRigModePicker() {
+        if (cbRigMode == null) return;
+        cbRigMode.getItems().setAll(RIG_MODES);
+        cbRigMode.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) return;
+            HubEngine.getInstance().sendSetMode(newV);
+            Platform.runLater(() -> cbRigMode.getSelectionModel().clearSelection());
         });
     }
 

@@ -252,6 +252,10 @@
                         <Label text="Quick band:" styleClass="entry-label"/>
                         <ChoiceBox fx:id="cbRigBand" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                     </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="Quick mode:" styleClass="entry-label"/>
+                        <ChoiceBox fx:id="cbRigMode" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    </HBox>
                     <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>
