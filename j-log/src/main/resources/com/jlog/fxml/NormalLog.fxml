@@ -235,16 +235,38 @@
                                GridPane.columnIndex="5" GridPane.rowIndex="1"/>
                     </GridPane>
                 </TitledPane>
+
+                <!-- 4th info-row pane: live "Previous QSOs with <CALL>" lookup,
+                     auto-populated from the local log as the operator types into
+                     the Callsign entry field above. -->
+                <TitledPane fx:id="prevQsosPane" text="Previous QSOs"
+                            collapsible="false" HBox.hgrow="ALWAYS">
+                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="110">
+                        <columns>
+                            <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
+                            <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
+                            <TableColumn fx:id="colPqMode"  text="Mode"        prefWidth="60"/>
+                            <TableColumn fx:id="colPqRstS"  text="RST S"       prefWidth="50"/>
+                            <TableColumn fx:id="colPqRstR"  text="RST R"       prefWidth="50"/>
+                            <TableColumn fx:id="colPqState" text="State"       prefWidth="60"/>
+                            <TableColumn fx:id="colPqNotes" text="Notes"       prefWidth="160"/>
+                        </columns>
+                    </TableView>
+                </TitledPane>
             </HBox>
         </VBox>
     </top>
 
     <!-- ============================================================
-         CENTER: QSO TABLE + DX SPOTTING (vertical SplitPane)
+         CENTER: full-width QSO area split horizontally — QSO log on
+         the left, DX Spotting (+ collapsible Heard-By) on the right.
+         The horizontal divider is draggable. The Keyer pane stays
+         nested below the QSO log toolbar/table, collapsible via the
+         Tools menu so it doesn't steal vertical space when unused.
          ============================================================ -->
     <center>
-        <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" dividerPositions="0.42, 0.6">
-            <!-- QSO Table -->
+        <SplitPane fx:id="mainSplitPane" orientation="HORIZONTAL" dividerPositions="0.66">
+            <!-- LEFT: QSO log + collapsible Keyer pane underneath -->
             <VBox styleClass="log-section">
                 <HBox spacing="6" styleClass="table-toolbar">
                     <padding><Insets left="6" top="4" bottom="4"/></padding>
@@ -270,39 +292,44 @@
                         <TableColumn fx:id="colNotes"    text="%col.notes"    prefWidth="200"/>
                     </columns>
                 </TableView>
+
+                <!-- CW / Digital keyer — embedded pane, toggled via Tools
+                     menu. Hidden by default so it doesn't steal vertical
+                     space when unused. Lives below the QSO log per the
+                     2026-05-28 layout discussion. -->
+                <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
+                      visible="false" managed="false" minHeight="0" prefHeight="110">
+                    <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="Keyer:" styleClass="section-title"/>
+                        <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
+                        <Label fx:id="lblCwWpm" text="WPM:"/>
+                        <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
+                        <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
+                                  prefRowCount="3" HBox.hgrow="ALWAYS"
+                                  promptText="Decoded text — select a callsign, right-click to use it"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="TX:"/>
+                        <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
+                                   promptText="Type and press Enter or Send"/>
+                        <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
+                        <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
+                        <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
+                    </HBox>
+                </VBox>
             </VBox>
 
-            <!-- CW / Digital keyer — embedded pane, toggled via Tools menu.
-                 Hidden by default so it doesn't steal SplitPane height when unused. -->
-            <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
-                  visible="false" managed="false" minHeight="0" prefHeight="110">
-                <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
-                <HBox spacing="6" alignment="CENTER_LEFT">
-                    <Label text="Keyer:" styleClass="section-title"/>
-                    <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
-                    <Label fx:id="lblCwWpm" text="WPM:"/>
-                    <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
-                    <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
-                              prefRowCount="3" HBox.hgrow="ALWAYS"
-                              promptText="Decoded text — select a callsign, right-click to use it"/>
-                </HBox>
-                <HBox spacing="6" alignment="CENTER_LEFT">
-                    <Label text="TX:"/>
-                    <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
-                               promptText="Type and press Enter or Send"/>
-                    <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
-                    <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
-                    <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
-                </HBox>
-            </VBox>
-
-            <!-- DX Spotting + Heard-By stacked -->
+            <!-- RIGHT: DX Spotting (always expanded) + Heard-By (collapsible).
+                 Operator can drag the divider to give either side more room. -->
             <VBox spacing="0">
-                <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane">
+                <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane"
+                            VBox.vgrow="ALWAYS">
                     <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
                 </TitledPane>
 
-                <!-- Heard-By pane: who is currently hearing us (PSK Reporter + WSPR) -->
+                <!-- Heard-By pane: who is currently hearing us (PSK Reporter
+                     + WSPR). Collapsed by default to keep the column clean. -->
                 <TitledPane fx:id="heardByPane" text="Heard By" animated="false"
                             collapsible="true" expanded="false" styleClass="dx-pane">
                     <TableView fx:id="heardByTable" styleClass="qso-table" prefHeight="220">
@@ -314,23 +341,6 @@
                             <TableColumn fx:id="colHbMode"     text="Mode"     prefWidth="70"/>
                             <TableColumn fx:id="colHbSnr"      text="SNR"      prefWidth="55"/>
                             <TableColumn fx:id="colHbSource"   text="Source"   prefWidth="90"/>
-                        </columns>
-                    </TableView>
-                </TitledPane>
-
-                <!-- Previous QSOs with the call currently in the entry field.
-                     Auto-populates from the local log as the operator types. -->
-                <TitledPane fx:id="prevQsosPane" text="Previous QSOs" animated="false"
-                            collapsible="true" expanded="true" styleClass="dx-pane">
-                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="200">
-                        <columns>
-                            <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="140"/>
-                            <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="60"/>
-                            <TableColumn fx:id="colPqMode"  text="Mode"        prefWidth="70"/>
-                            <TableColumn fx:id="colPqRstS"  text="RST S"       prefWidth="55"/>
-                            <TableColumn fx:id="colPqRstR"  text="RST R"       prefWidth="55"/>
-                            <TableColumn fx:id="colPqState" text="State / Prov" prefWidth="90"/>
-                            <TableColumn fx:id="colPqNotes" text="Notes"       prefWidth="200"/>
                         </columns>
                     </TableView>
                 </TitledPane>
