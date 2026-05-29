@@ -266,18 +266,21 @@
          ============================================================ -->
     <center>
         <VBox>
-            <!-- CW / Digital keyer + macros. Hidden by default. Spans
-                 the full window width because it's a direct VBox child
-                 (not inside the SplitPane). -->
+            <!-- Macro button bar — always visible, lives in the gap
+                 between the 4-pane info row and the transmit/keyer
+                 pane. MacroEngine populates the buttons at init. -->
+            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
+                <padding><Insets top="2" left="6" right="6" bottom="2"/></padding>
+            </HBox>
+
+            <!-- CW / Digital keyer (the "transmit pane"). Always visible
+                 (Tools menu toggle can hide it). minHeight=USE_PREF_SIZE
+                 so VBox can't collapse it to zero when the SplitPane
+                 below it wants more space (e.g. operator expands the
+                 Heard-By TitledPane in the right column). -->
             <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
-                  minHeight="0">
+                  minHeight="-Infinity">
                 <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
-                <!-- Macro button bar (moved out of the top section so it
-                     toggles with the keyer). MacroEngine populates it at
-                     init time. -->
-                <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
-                    <padding><Insets top="2" bottom="2"/></padding>
-                </HBox>
                 <HBox spacing="6" alignment="CENTER_LEFT">
                     <Label text="Keyer:" styleClass="section-title"/>
                     <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
