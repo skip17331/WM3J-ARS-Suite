@@ -256,6 +256,28 @@
                         <Label text="Quick mode:" styleClass="entry-label"/>
                         <ChoiceBox fx:id="cbRigMode" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                     </HBox>
+
+                    <!-- Tuning step + chevron buttons. Step ChoiceBox sets
+                         the SLOW step; the FAST step is 10x. Each click on
+                         a chevron reads cached lastRigStatus.frequency,
+                         adds (±slow) or (±slow*10), and fires SET_FREQ.
+                         No-op when there's no RIG_STATUS yet (otherwise
+                         we'd be guessing the baseline). -->
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="Step:" styleClass="entry-label"/>
+                        <ChoiceBox fx:id="cbRigStep" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <HBox spacing="4" alignment="CENTER_LEFT" styleClass="rig-tune-row">
+                        <Label text="Tune:" styleClass="entry-label"/>
+                        <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
+                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
+                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
+                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
+                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    </HBox>
                     <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>

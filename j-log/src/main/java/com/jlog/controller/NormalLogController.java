@@ -93,6 +93,28 @@ public class NormalLogController implements Initializable {
     @FXML private CheckBox   cbRigAutoTrack;
     @FXML private ChoiceBox<String> cbRigBand;
     @FXML private ChoiceBox<String> cbRigMode;
+    @FXML private ChoiceBox<String> cbRigStep;
+    @FXML private Button     btnTuneDownFast;
+    @FXML private Button     btnTuneDownSlow;
+    @FXML private Button     btnTuneUpSlow;
+    @FXML private Button     btnTuneUpFast;
+    /** Step picker labels paired with their slow-step Hz. The FAST step
+     *  used by « / » is always 10x the slow step. Default "100 Hz" matches
+     *  the original Tier 1 fixed step so existing muscle memory survives. */
+    private static final java.util.LinkedHashMap<String, Long> RIG_STEPS =
+        new java.util.LinkedHashMap<>() {{
+            put("10 Hz",     10L);
+            put("50 Hz",     50L);
+            put("100 Hz",   100L);
+            put("500 Hz",   500L);
+            put("1 kHz",   1_000L);
+            put("5 kHz",   5_000L);
+            put("10 kHz", 10_000L);
+            put("25 kHz", 25_000L);
+        }};
+    /** Currently-selected slow step in Hz. Fast = 10x. Mutable so the
+     *  picker can update it without rewiring button handlers. */
+    private volatile long slowStepHz = 100;
     /** Quick-mode picker values — direct Hamlib mode strings so j-hub's
      *  tune() forwards them verbatim to rigctld. PKTUSB / PKTLSB cover
      *  the digital modes (FT8/FT4/PSK over USB or LSB); operators wanting
@@ -250,6 +272,7 @@ public class NormalLogController implements Initializable {
         initRigLiveIndicator();
         initRigBandPicker();
         initRigModePicker();
+        initRigStepPicker();
         loadQsos();
         initQrzLookup();
 
@@ -561,6 +584,60 @@ public class NormalLogController implements Initializable {
         String mode = tfMode.getText();
         if (mode == null || mode.isBlank()) return;
         HubEngine.getInstance().sendSetMode(mode.trim());
+    }
+
+    /** Shift the rig's frequency by deltaHz. Reads the cached
+     *  lastRigStatus.frequency as the baseline so the steps add to whatever
+     *  the rig actually shows, not what j-log might have predicted from a
+     *  prior Set. No-op when no RIG_STATUS has arrived (we'd be guessing). */
+    private void tuneStep(long deltaHz) {
+        if (lastRigStatus == null) return;
+        long base = lastRigStatus.path("frequency").asLong(0);
+        if (base <= 0) return;
+        long next = base + deltaHz;
+        if (next <= 0) return;
+        HubEngine.getInstance().sendSetFreq(next);
+    }
+
+    @FXML private void tuneDownFast() { tuneStep(-slowStepHz * 10); }
+    @FXML private void tuneDownSlow() { tuneStep(-slowStepHz); }
+    @FXML private void tuneUpSlow()   { tuneStep(+slowStepHz); }
+    @FXML private void tuneUpFast()   { tuneStep(+slowStepHz * 10); }
+
+    /** Wire the Step ChoiceBox + refresh tooltips so the « / ‹ / › / »
+     *  buttons advertise their current step magnitude on hover. Defaults
+     *  to the "100 Hz" entry; survives outside the BAND_CENTERS-style
+     *  pickers because step ISN'T an action — it's a persistent setting
+     *  on the rig pane until the operator changes it again. */
+    private void initRigStepPicker() {
+        if (cbRigStep == null) return;
+        cbRigStep.getItems().setAll(RIG_STEPS.keySet());
+        cbRigStep.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV == null) return;
+            Long s = RIG_STEPS.get(newV);
+            if (s != null) {
+                slowStepHz = s;
+                refreshTuneTooltips();
+            }
+        });
+        cbRigStep.getSelectionModel().select("100 Hz");
+    }
+
+    /** Re-render the chevron buttons' hover tooltips to match the current
+     *  step. Called once on init and again each time the Step picker
+     *  changes — so the operator always sees the actual ±delta on hover. */
+    private void refreshTuneTooltips() {
+        if (btnTuneDownSlow == null) return;
+        btnTuneDownSlow.setTooltip(new Tooltip("−" + formatStep(slowStepHz)));
+        btnTuneUpSlow  .setTooltip(new Tooltip("+" + formatStep(slowStepHz)));
+        btnTuneDownFast.setTooltip(new Tooltip("−" + formatStep(slowStepHz * 10)));
+        btnTuneUpFast  .setTooltip(new Tooltip("+" + formatStep(slowStepHz * 10)));
+    }
+
+    /** Pretty-print a Hz step as "100 Hz" / "1 kHz" / "10 kHz". */
+    private static String formatStep(long hz) {
+        if (hz % 1000 == 0) return (hz / 1000) + " kHz";
+        return hz + " Hz";
     }
 
     /** Push rig freq/mode into the entry form unconditionally — called by
