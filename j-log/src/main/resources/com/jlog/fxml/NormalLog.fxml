@@ -83,8 +83,13 @@
             </HBox>
 
             <!-- ============================================================
-                 ROW 2: DATA ENTRY PANE
+                 ROW 2: DATA ENTRY (left) + RIG CONTROL (right) — draggable
+                 horizontal split. Initial divider at 0.78 leaves enough
+                 width for the 12-column entry grid; the operator can drag
+                 the divider to give the rig pane more room when needed.
                  ============================================================ -->
+            <SplitPane orientation="HORIZONTAL" dividerPositions="0.78"
+                       styleClass="entry-split">
             <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
                     <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
@@ -153,6 +158,23 @@
                            GridPane.columnSpan="12" maxWidth="Infinity"/>
                 </GridPane>
             </TitledPane>
+
+            <!-- Rig Control pane — placeholder for now. Future content
+                 (Tier 1 display + Use Rig Freq button) will read
+                 RIG_STATUS from HubEngine and send RIG_COMMAND back
+                 via WebSocket. j-log stays interface-only; serial
+                 ownership stays in j-hub. -->
+            <TitledPane fx:id="rigControlPane" text="Rig Control"
+                        collapsible="false" styleClass="entry-pane">
+                <VBox spacing="6" alignment="CENTER">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    <Label text="Rig control coming soon."
+                           style="-fx-text-fill: #888; -fx-font-style: italic;"/>
+                    <Label text="Drag the divider to size this pane."
+                           style="-fx-text-fill: #888; -fx-font-size: 0.85em;"/>
+                </VBox>
+            </TitledPane>
+            </SplitPane>
 
             <!-- Macro button bar moved into the keyer pane (toggled with it). -->
 
