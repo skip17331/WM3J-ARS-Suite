@@ -239,7 +239,7 @@
                      the Callsign entry field above. -->
                 <TitledPane fx:id="prevQsosPane" text="Previous QSOs"
                             collapsible="false" HBox.hgrow="ALWAYS">
-                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="220">
+                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="110">
                         <columns>
                             <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
                             <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
