@@ -209,12 +209,28 @@
                                GridPane.columnIndex="1" GridPane.rowIndex="3"
                                styleClass="rig-value"/>
                     </GridPane>
-                    <HBox spacing="6" fx:id="rigButtonBar">
-                        <Button text="Use Freq" onAction="#useRigFreq"
-                                styleClass="secondary-button"/>
-                        <Button text="Use Mode" onAction="#useRigMode"
-                                styleClass="secondary-button"/>
-                    </HBox>
+                    <!-- Rig ←→ Entry buttons. Left column copies the cached
+                         RIG_STATUS into the entry form; right column pushes
+                         the entry form's value out to the rig via j-hub
+                         (SET_FREQ / SET_MODE → rigctld). -->
+                    <GridPane hgap="6" vgap="4" fx:id="rigButtonBar">
+                        <Button text="← Use Freq" onAction="#useRigFreq"
+                                styleClass="secondary-button" maxWidth="Infinity"
+                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Button text="Set Freq →" onAction="#setRigFreq"
+                                styleClass="secondary-button" maxWidth="Infinity"
+                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Button text="← Use Mode" onAction="#useRigMode"
+                                styleClass="secondary-button" maxWidth="Infinity"
+                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Button text="Set Mode →" onAction="#setRigMode"
+                                styleClass="secondary-button" maxWidth="Infinity"
+                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+                    </GridPane>
                     <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>

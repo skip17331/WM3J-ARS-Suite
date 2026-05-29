@@ -141,6 +141,14 @@ public class MessageRouter {
                 handleSetPtt(msg, session);
                 break;
 
+            case "SET_FREQ":
+                handleSetFreq(msg, session);
+                break;
+
+            case "SET_MODE":
+                handleSetMode(msg, session);
+                break;
+
             case "ANT_OVERRIDE":
                 handleAntOverride(msg, session);
                 break;
@@ -596,6 +604,47 @@ public class MessageRouter {
             log.debug("SET_PTT {} from '{}'", on ? "ON" : "OFF", session.appName);
         } catch (Exception e) {
             log.warn("Failed to process SET_PTT: {}", e.getMessage());
+        }
+    }
+
+    /** Apps push a new VFO frequency to the rig. Reuses tune() with a null
+     *  mode arg — both Hamlib and CI-V backends skip the mode branch when
+     *  mode is null/blank, so this only retunes the frequency. The backend
+     *  publishes a fresh RIG_STATUS on success, which rebroadcasts to all
+     *  clients (including the sender — confirms the change took). */
+    private void handleSetFreq(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            if (!msg.has("frequency")) return;
+            long freqHz = msg.get("frequency").getAsLong();
+            if (freqHz <= 0) return;
+            RigController rig = RigControllers.active();
+            if (!rig.isRunning()) {
+                log.debug("SET_FREQ from '{}' ignored — rig backend not running", session.appName);
+                return;
+            }
+            rig.tune(freqHz, null);
+            log.debug("SET_FREQ {} Hz from '{}'", freqHz, session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process SET_FREQ: {}", e.getMessage());
+        }
+    }
+
+    /** Apps push a new mode to the rig. Same trick as handleSetFreq but
+     *  with freq=0, which both backends treat as "leave frequency alone". */
+    private void handleSetMode(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            if (!msg.has("mode")) return;
+            String mode = msg.get("mode").getAsString();
+            if (mode == null || mode.isBlank()) return;
+            RigController rig = RigControllers.active();
+            if (!rig.isRunning()) {
+                log.debug("SET_MODE from '{}' ignored — rig backend not running", session.appName);
+                return;
+            }
+            rig.tune(0, mode);
+            log.debug("SET_MODE {} from '{}'", mode, session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process SET_MODE: {}", e.getMessage());
         }
     }
 

@@ -411,6 +411,33 @@ public class HubEngine {
             wsClient.send(msg.toString());
         } catch (Exception e) { log.warn("sendAntOverrideClear failed: {}", e.getMessage()); }
     }
+
+    /** Tell j-hub to retune the active rig to the given frequency (Hz). j-hub
+     *  routes through RigControllers.active() → tune(freqHz, null). A fresh
+     *  RIG_STATUS will come back on success so the Rig Control pane confirms
+     *  the change took. No-op when disconnected or freq is non-positive. */
+    public void sendSetFreq(long freqHz) {
+        if (!connected.get() || wsClient == null || freqHz <= 0) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_FREQ");
+            msg.put("frequency", freqHz);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetFreq failed: {}", e.getMessage()); }
+    }
+
+    /** Tell j-hub to set the active rig's mode (e.g. "USB", "CW", "FT8"). j-hub
+     *  routes through RigControllers.active() → tune(0, mode). No-op when
+     *  disconnected or mode is blank. */
+    public void sendSetMode(String mode) {
+        if (!connected.get() || wsClient == null || mode == null || mode.isBlank()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_MODE");
+            msg.put("mode", mode.trim().toUpperCase());
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetMode failed: {}", e.getMessage()); }
+    }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }

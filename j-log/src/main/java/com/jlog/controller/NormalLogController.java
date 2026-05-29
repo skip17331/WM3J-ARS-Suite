@@ -87,7 +87,7 @@ public class NormalLogController implements Initializable {
     @FXML private Label      lblRigMode;
     @FXML private Label      lblRigBand;
     @FXML private Label      lblRigPower;
-    @FXML private HBox       rigButtonBar;
+    @FXML private GridPane   rigButtonBar;
     @FXML private CheckBox   cbRigAutoTrack;
     /** Last RIG_STATUS payload from j-hub, cached so the "Use Rig Freq/Mode"
      *  buttons can read it on click. Null until the first message arrives. */
@@ -426,6 +426,30 @@ public class NormalLogController implements Initializable {
         if (lastRigStatus == null || tfMode == null) return;
         String mode = lastRigStatus.path("mode").asText("");
         if (!mode.isEmpty()) tfMode.setText(mode);
+    }
+
+    /** Push the entry form's frequency to the rig via j-hub (SET_FREQ).
+     *  Entry field is in MHz with up to 3 decimals (e.g. "14.225"); we
+     *  convert to Hz long. Silently no-op on parse error — no toast spam
+     *  on every empty / mid-typed value. */
+    @FXML
+    private void setRigFreq() {
+        if (tfFrequency == null) return;
+        String txt = tfFrequency.getText();
+        if (txt == null || txt.isBlank()) return;
+        try {
+            long freqHz = Math.round(Double.parseDouble(txt.trim()) * 1_000_000.0);
+            if (freqHz > 0) HubEngine.getInstance().sendSetFreq(freqHz);
+        } catch (NumberFormatException ignored) { /* don't shout at mid-typed input */ }
+    }
+
+    /** Push the entry form's mode to the rig via j-hub (SET_MODE). */
+    @FXML
+    private void setRigMode() {
+        if (tfMode == null) return;
+        String mode = tfMode.getText();
+        if (mode == null || mode.isBlank()) return;
+        HubEngine.getInstance().sendSetMode(mode.trim());
     }
 
     /** Push rig freq/mode into the entry form unconditionally — called by
