@@ -225,14 +225,18 @@ public class AdifImporter {
             }
             String band = q.getBand() == null ? "" : q.getBand();
             String mode = q.getMode() == null ? "" : q.getMode();
-            boolean dupe = QsoDao.getInstance().isDuplicate(q.getCallsign(), band, mode);
+            // Dupe key includes the QSO date — same call+band+mode on a
+            // different UTC day is a DIFFERENT contact. Operator rule.
+            java.time.LocalDate qDate = q.getDateTimeUtc() != null
+                ? q.getDateTimeUtc().toLocalDate() : null;
+            boolean dupe = QsoDao.getInstance().isDuplicate(q.getCallsign(), band, mode, qDate);
             if (dupe) {
                 if (dupeMode == DupeMode.SKIP) {
                     r.skipped++;
                     return;
                 }
                 if (dupeMode == DupeMode.OVERWRITE) {
-                    QsoDao.getInstance().deleteByKey(q.getCallsign(), band, mode);
+                    QsoDao.getInstance().deleteByKey(q.getCallsign(), band, mode, qDate);
                     QsoDao.getInstance().insert(q);
                     r.overwritten++;
                     return;
@@ -242,7 +246,7 @@ public class AdifImporter {
                     // Duplicates dialog. Don't touch the DB now.
                     r.duplicates.add(new DuplicateRecord(
                         recordNumber, q,
-                        QsoDao.getInstance().findByDupeKey(q.getCallsign(), band, mode)));
+                        QsoDao.getInstance().findByDupeKey(q.getCallsign(), band, mode, qDate)));
                     return;
                 }
                 // APPEND: fall through to the plain insert below.

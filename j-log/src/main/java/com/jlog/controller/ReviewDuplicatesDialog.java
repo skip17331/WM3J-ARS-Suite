@@ -156,7 +156,9 @@ public final class ReviewDuplicatesDialog {
                     String call = rec.incoming.getCallsign();
                     String band = rec.incoming.getBand() == null ? "" : rec.incoming.getBand();
                     String mode = rec.incoming.getMode() == null ? "" : rec.incoming.getMode();
-                    QsoDao.getInstance().deleteByKey(call, band, mode);
+                    java.time.LocalDate date = rec.incoming.getDateTimeUtc() != null
+                        ? rec.incoming.getDateTimeUtc().toLocalDate() : null;
+                    QsoDao.getInstance().deleteByKey(call, band, mode, date);
                     QsoDao.getInstance().insert(rec.incoming);
                 }
                 case SKIP -> { /* no-op */ }
