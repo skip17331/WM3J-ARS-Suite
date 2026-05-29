@@ -116,6 +116,35 @@ class AdifImporterTest {
     }
 
     /**
+     * Pins the 2026-05-29 operator rule: same callsign + band + mode on
+     * DIFFERENT UTC dates is NOT a duplicate. SKIP mode used to drop
+     * legitimate re-contacts on a later day; now they import.
+     */
+    @Test
+    void sameCallBandModeDifferentDateIsNotADupe(@TempDir Path dir) throws Exception {
+        // Seed: same record set as SAMPLE_ADIF (3 QSOs on 2026-01-01).
+        Path seed = writeAdif(dir, "seed.adi");
+        AdifImporter.importAdif(seed, AdifImporter.DupeMode.SKIP);
+        assertEquals(3, QsoDao.getInstance().count());
+
+        // Same 3 callsigns on the same bands/modes but a DIFFERENT day.
+        Path next = dir.resolve("nextday.adi");
+        Files.writeString(next, """
+                Header
+                <ADIF_VER:5>3.1.4
+                <EOH>
+                <CALL:5>K1ABC<BAND:3>20m<MODE:2>CW<QSO_DATE:8>20260102<TIME_ON:4>1300<EOR>
+                <CALL:5>JA1XY<BAND:3>15m<MODE:3>SSB<QSO_DATE:8>20260102<TIME_ON:4>1330<EOR>
+                <CALL:4>DL5Z<BAND:3>40m<MODE:3>FT8<QSO_DATE:8>20260102<TIME_ON:4>1345<EOR>
+                """);
+        AdifImporter.Result r = AdifImporter.importAdif(next, AdifImporter.DupeMode.SKIP);
+        assertEquals(3, r.imported, "different-day QSOs must NOT be flagged as duplicates");
+        assertEquals(0, r.skipped,  "different-day QSOs must not be skipped");
+        assertEquals(6, QsoDao.getInstance().count(),
+            "both days' contacts must coexist in the log");
+    }
+
+    /**
      * REVIEW mode: collisions go into r.duplicates instead of silently
      * skipping/overwriting. DB is NOT modified for dupe rows (the UI
      * dialog applies the operator's per-row Keep/Overwrite/Skip choice
