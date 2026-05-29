@@ -8,7 +8,10 @@
             styleClass="main-window">
 
     <!-- ============================================================
-         ROW 1: MENU BAR
+         TOP: MenuBar + clock bar + (hidden) activation bar.
+         The Data Entry / Rig Control row + the 4-pane info row
+         used to live here; both moved into <center>'s vertical
+         SplitPane so the operator can drag their heights.
          ============================================================ -->
     <top>
         <VBox>
@@ -82,102 +85,6 @@
                        text="" visible="false" managed="false"/>
             </HBox>
 
-            <!-- ============================================================
-                 ROW 2: DATA ENTRY (left) + RIG CONTROL (right) — draggable
-                 horizontal split. Initial divider at 0.78 leaves enough
-                 width for the 12-column entry grid; the operator can drag
-                 the divider to give the rig pane more room when needed.
-                 ============================================================ -->
-            <SplitPane orientation="HORIZONTAL" dividerPositions="0.78"
-                       styleClass="entry-split">
-            <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane">
-                <GridPane hgap="8" vgap="6" styleClass="entry-grid">
-                    <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
-
-                    <!-- Row 0: Callsign, Band, Mode, Power, RST Sent, RST Rcvd -->
-                    <Label text="%label.callsign" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                    <TextField fx:id="tfCallsign" styleClass="callsign-field"
-                               GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="130"/>
-
-                    <Label text="%label.band" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                    <TextField fx:id="tfBand" GridPane.columnIndex="3" GridPane.rowIndex="0" prefWidth="80" promptText="band"/>
-
-                    <Label text="%label.mode" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
-                    <TextField fx:id="tfMode" GridPane.columnIndex="5" GridPane.rowIndex="0" prefWidth="90" promptText="mode"/>
-
-                    <Label text="%label.power" GridPane.columnIndex="6" GridPane.rowIndex="0"/>
-                    <TextField fx:id="tfPower" GridPane.columnIndex="7" GridPane.rowIndex="0" prefWidth="60"/>
-
-                    <Label text="%label.rst.sent" GridPane.columnIndex="8" GridPane.rowIndex="0"/>
-                    <TextField fx:id="tfRstSent" GridPane.columnIndex="9" GridPane.rowIndex="0" prefWidth="50"/>
-
-                    <Label text="%label.rst.rcvd" GridPane.columnIndex="10" GridPane.rowIndex="0"/>
-                    <TextField fx:id="tfRstReceived" GridPane.columnIndex="11" GridPane.rowIndex="0" prefWidth="50"/>
-
-                    <!-- Row 1: Country, Name, State, County, Frequency -->
-                    <Label text="%label.country" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                    <TextField fx:id="tfCountry" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="130"/>
-
-                    <Label text="%label.name" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                    <TextField fx:id="tfOperatorName" GridPane.columnIndex="3" GridPane.rowIndex="1"
-                               prefWidth="140" GridPane.columnSpan="2"/>
-
-                    <Label text="%label.state" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
-                    <TextField fx:id="tfState" GridPane.columnIndex="6" GridPane.rowIndex="1" prefWidth="60"/>
-
-                    <Label text="%label.county" GridPane.columnIndex="7" GridPane.rowIndex="1"/>
-                    <TextField fx:id="tfCounty" GridPane.columnIndex="8" GridPane.rowIndex="1" prefWidth="100"/>
-
-                    <Label text="%label.freq" GridPane.columnIndex="9" GridPane.rowIndex="1"/>
-                    <TextField fx:id="tfFrequency" GridPane.columnIndex="10" GridPane.rowIndex="1" prefWidth="90"/>
-                    <Button text="Band Plan" onAction="#showBandPlan"
-                            styleClass="secondary-button"
-                            GridPane.columnIndex="11" GridPane.rowIndex="1"/>
-
-                    <!-- Row 2: Notes, QSL, Buttons -->
-                    <Label text="%label.notes" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                    <TextField fx:id="tfNotes" GridPane.columnIndex="1" GridPane.rowIndex="2"
-                               GridPane.columnSpan="5" prefWidth="300"/>
-
-                    <CheckBox fx:id="cbQslSent"     text="%label.qsl.sent"
-                              GridPane.columnIndex="6" GridPane.rowIndex="2"/>
-                    <CheckBox fx:id="cbQslReceived" text="%label.qsl.rcvd"
-                              GridPane.columnIndex="7" GridPane.rowIndex="2"/>
-
-                    <HBox GridPane.columnIndex="8" GridPane.rowIndex="2"
-                          GridPane.columnSpan="4" spacing="6">
-                        <Button fx:id="btnSave" text="%button.save"   onAction="#doSave"            styleClass="primary-button"/>
-                        <Button text="%button.clear"  onAction="#doClear"           styleClass="secondary-button"/>
-                        <Button text="%button.lookup" onAction="#doCallsignLookup"  styleClass="secondary-button"/>
-                    </HBox>
-
-                    <!-- Row 3: Band / mode warning bar (hidden when no warning) -->
-                    <Label fx:id="lblBandWarning" styleClass="band-warning"
-                           visible="false" managed="false"
-                           GridPane.columnIndex="0" GridPane.rowIndex="3"
-                           GridPane.columnSpan="12" maxWidth="Infinity"/>
-                </GridPane>
-            </TitledPane>
-
-            <!-- Rig Control pane — placeholder for now. Future content
-                 (Tier 1 display + Use Rig Freq button) will read
-                 RIG_STATUS from HubEngine and send RIG_COMMAND back
-                 via WebSocket. j-log stays interface-only; serial
-                 ownership stays in j-hub. -->
-            <TitledPane fx:id="rigControlPane" text="Rig Control"
-                        collapsible="false" styleClass="entry-pane">
-                <VBox spacing="6" alignment="CENTER">
-                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                    <Label text="Rig control coming soon."
-                           style="-fx-text-fill: #888; -fx-font-style: italic;"/>
-                    <Label text="Drag the divider to size this pane."
-                           style="-fx-text-fill: #888; -fx-font-size: 0.85em;"/>
-                </VBox>
-            </TitledPane>
-            </SplitPane>
-
-            <!-- Macro button bar moved into the keyer pane (toggled with it). -->
-
             <!-- POTA/SOTA activation bar — hidden unless launched in activation mode -->
             <HBox fx:id="activationBar" spacing="8" alignment="CENTER_LEFT"
                   visible="false" managed="false" styleClass="macro-bar">
@@ -191,8 +98,118 @@
                 <Button text="Stop"  onAction="#stopActivation"/>
                 <Label fx:id="lblActivationStatus" style="-fx-font-style: italic;"/>
             </HBox>
+        </VBox>
+    </top>
 
-            <!-- Info pane row -->
+    <!-- ============================================================
+         CENTER: vertical SplitPane with 3 segments — operator drags
+         the dividers to grow/shrink each row.
+
+           Segment 1 (top):    Data Entry + Rig Control row
+                               (horizontal SplitPane, also draggable)
+           Segment 2 (middle): 4-pane info row (Station / Bearing /
+                               Space Wx / Previous QSOs)
+           Segment 3 (bottom): macros + keyer + QSO log / DX
+                               horizontal split
+
+         Growing segment 1 makes BOTH Data Entry and Rig Control
+         taller together (they share the horizontal SplitPane's
+         height). Heights stolen from segments 2/3 below.
+         ============================================================ -->
+    <center>
+        <SplitPane fx:id="rowSplitPane" orientation="VERTICAL"
+                   dividerPositions="0.18, 0.32">
+
+            <!-- Segment 1: Data Entry (left) + Rig Control (right). -->
+            <SplitPane orientation="HORIZONTAL" dividerPositions="0.78"
+                       styleClass="entry-split">
+                <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane">
+                    <GridPane hgap="8" vgap="6" styleClass="entry-grid">
+                        <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
+
+                        <!-- Row 0: Callsign, Band, Mode, Power, RST Sent, RST Rcvd -->
+                        <Label text="%label.callsign" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfCallsign" styleClass="callsign-field"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="130"/>
+
+                        <Label text="%label.band" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfBand" GridPane.columnIndex="3" GridPane.rowIndex="0" prefWidth="80" promptText="band"/>
+
+                        <Label text="%label.mode" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfMode" GridPane.columnIndex="5" GridPane.rowIndex="0" prefWidth="90" promptText="mode"/>
+
+                        <Label text="%label.power" GridPane.columnIndex="6" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfPower" GridPane.columnIndex="7" GridPane.rowIndex="0" prefWidth="60"/>
+
+                        <Label text="%label.rst.sent" GridPane.columnIndex="8" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfRstSent" GridPane.columnIndex="9" GridPane.rowIndex="0" prefWidth="50"/>
+
+                        <Label text="%label.rst.rcvd" GridPane.columnIndex="10" GridPane.rowIndex="0"/>
+                        <TextField fx:id="tfRstReceived" GridPane.columnIndex="11" GridPane.rowIndex="0" prefWidth="50"/>
+
+                        <!-- Row 1: Country, Name, State, County, Frequency -->
+                        <Label text="%label.country" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <TextField fx:id="tfCountry" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="130"/>
+
+                        <Label text="%label.name" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <TextField fx:id="tfOperatorName" GridPane.columnIndex="3" GridPane.rowIndex="1"
+                                   prefWidth="140" GridPane.columnSpan="2"/>
+
+                        <Label text="%label.state" GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                        <TextField fx:id="tfState" GridPane.columnIndex="6" GridPane.rowIndex="1" prefWidth="60"/>
+
+                        <Label text="%label.county" GridPane.columnIndex="7" GridPane.rowIndex="1"/>
+                        <TextField fx:id="tfCounty" GridPane.columnIndex="8" GridPane.rowIndex="1" prefWidth="100"/>
+
+                        <Label text="%label.freq" GridPane.columnIndex="9" GridPane.rowIndex="1"/>
+                        <TextField fx:id="tfFrequency" GridPane.columnIndex="10" GridPane.rowIndex="1" prefWidth="90"/>
+                        <Button text="Band Plan" onAction="#showBandPlan"
+                                styleClass="secondary-button"
+                                GridPane.columnIndex="11" GridPane.rowIndex="1"/>
+
+                        <!-- Row 2: Notes, QSL, Buttons -->
+                        <Label text="%label.notes" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <TextField fx:id="tfNotes" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                   GridPane.columnSpan="5" prefWidth="300"/>
+
+                        <CheckBox fx:id="cbQslSent"     text="%label.qsl.sent"
+                                  GridPane.columnIndex="6" GridPane.rowIndex="2"/>
+                        <CheckBox fx:id="cbQslReceived" text="%label.qsl.rcvd"
+                                  GridPane.columnIndex="7" GridPane.rowIndex="2"/>
+
+                        <HBox GridPane.columnIndex="8" GridPane.rowIndex="2"
+                              GridPane.columnSpan="4" spacing="6">
+                            <Button fx:id="btnSave" text="%button.save"   onAction="#doSave"            styleClass="primary-button"/>
+                            <Button text="%button.clear"  onAction="#doClear"           styleClass="secondary-button"/>
+                            <Button text="%button.lookup" onAction="#doCallsignLookup"  styleClass="secondary-button"/>
+                        </HBox>
+
+                        <!-- Row 3: Band / mode warning bar (hidden when no warning) -->
+                        <Label fx:id="lblBandWarning" styleClass="band-warning"
+                               visible="false" managed="false"
+                               GridPane.columnIndex="0" GridPane.rowIndex="3"
+                               GridPane.columnSpan="12" maxWidth="Infinity"/>
+                    </GridPane>
+                </TitledPane>
+
+                <!-- Rig Control pane — placeholder for now. Future content
+                     (Tier 1 display + Use Rig Freq button) will read
+                     RIG_STATUS from HubEngine and send RIG_COMMAND back
+                     via WebSocket. j-log stays interface-only; serial
+                     ownership stays in j-hub. -->
+                <TitledPane fx:id="rigControlPane" text="Rig Control"
+                            collapsible="false" styleClass="entry-pane">
+                    <VBox spacing="6" alignment="TOP_LEFT">
+                        <padding><Insets top="8" right="10" bottom="8" left="10"/></padding>
+                        <Label text="Rig control coming soon."
+                               style="-fx-text-fill: #888; -fx-font-style: italic;"/>
+                        <Label text="Drag the bottom divider to grow this row."
+                               style="-fx-text-fill: #888; -fx-font-size: 0.85em;"/>
+                    </VBox>
+                </TitledPane>
+            </SplitPane>
+
+            <!-- Segment 2: 4-pane info row -->
             <HBox spacing="0" styleClass="info-pane-row">
                 <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
                     <VBox spacing="4" styleClass="info-content">
@@ -274,113 +291,97 @@
                     </TableView>
                 </TitledPane>
             </HBox>
-        </VBox>
-    </top>
 
-    <!-- ============================================================
-         CENTER: full-width Keyer pane (above) over a horizontal
-         SplitPane (QSO log left, DX Spotting + Heard-By right). The
-         Keyer pane is hidden by default and toggled via Tools menu;
-         when shown it spans the entire window width (not constrained
-         to the SplitPane's left half) and carries the Macro button
-         bar as its top row. The horizontal divider between QSO log
-         and DX column is draggable.
-         ============================================================ -->
-    <center>
-        <VBox>
-            <!-- Macro button bar removed from the center area — the
-                 4 top-row info panes absorb the vertical space it
-                 used to occupy. MacroEngine still references the
-                 fx:id below (controller wires F-key handlers) but
-                 the bar is hidden + zero-height + zero-padding so
-                 it contributes no visible chrome. If macros need to
-                 surface again, raise visible/managed and prefHeight. -->
-            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
-                  visible="false" managed="false"/>
+            <!-- Segment 3: macros + keyer + QSO log / DX split -->
+            <VBox>
+                <!-- Macro button bar — hidden + zero-height. MacroEngine
+                     still references the fx:id (controller wires F-key
+                     handlers). If macros need to surface again, raise
+                     visible/managed and prefHeight. -->
+                <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
+                      visible="false" managed="false"/>
 
-            <!-- CW / Digital keyer (the "transmit pane"). Always visible
-                 (Tools menu toggle can hide it). minHeight=USE_PREF_SIZE
-                 so VBox can't collapse it to zero when the SplitPane
-                 below it wants more space (e.g. operator expands the
-                 Heard-By TitledPane in the right column). -->
-            <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
-                  minHeight="-Infinity">
-                <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
-                <HBox spacing="6" alignment="CENTER_LEFT">
-                    <Label text="Keyer:" styleClass="section-title"/>
-                    <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
-                    <Label fx:id="lblCwWpm" text="WPM:"/>
-                    <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
-                    <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
-                              prefRowCount="3" HBox.hgrow="ALWAYS"
-                              promptText="Decoded text — select a callsign, right-click to use it"/>
-                </HBox>
-                <HBox spacing="6" alignment="CENTER_LEFT">
-                    <Label text="TX:"/>
-                    <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
-                               promptText="Type and press Enter or Send"/>
-                    <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
-                    <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
-                    <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
-                </HBox>
+                <!-- CW / Digital keyer (the "transmit pane"). Always visible
+                     (Tools menu toggle can hide it). minHeight=USE_PREF_SIZE
+                     so VBox can't collapse it to zero when the SplitPane
+                     below it wants more space. -->
+                <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
+                      minHeight="-Infinity">
+                    <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="Keyer:" styleClass="section-title"/>
+                        <ComboBox fx:id="cbKeyerMode" prefWidth="90"/>
+                        <Label fx:id="lblCwWpm" text="WPM:"/>
+                        <Spinner fx:id="spCwWpm" prefWidth="70" editable="true"/>
+                        <TextArea fx:id="taKeyerRx" editable="false" wrapText="true"
+                                  prefRowCount="3" HBox.hgrow="ALWAYS"
+                                  promptText="Decoded text — select a callsign, right-click to use it"/>
+                    </HBox>
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <Label text="TX:"/>
+                        <TextField fx:id="tfKeyerTx" HBox.hgrow="ALWAYS"
+                                   promptText="Type and press Enter or Send"/>
+                        <Button fx:id="btnKeyerSend"  text="Send"  onAction="#doKeyerSend"  styleClass="primary-button"/>
+                        <Button fx:id="btnKeyerClear" text="Clear" onAction="#doKeyerClear" styleClass="secondary-button"/>
+                        <Label fx:id="lblKeyerStatus" styleClass="status-label"/>
+                    </HBox>
+                </VBox>
+
+                <SplitPane fx:id="mainSplitPane" orientation="HORIZONTAL"
+                           dividerPositions="0.66" VBox.vgrow="ALWAYS">
+                    <!-- LEFT: QSO log -->
+                    <VBox styleClass="log-section">
+                        <HBox spacing="6" styleClass="table-toolbar">
+                            <padding><Insets left="6" top="4" bottom="4"/></padding>
+                            <Label text="%pane.log" styleClass="section-title"/>
+                            <Button text="%button.edit"      onAction="#doEditSelected"/>
+                            <Button text="%button.save.edit" onAction="#doSaveEdited"/>
+                            <Button text="%button.delete"    onAction="#doDeleteSelected"/>
+                            <Button text="%button.prev"      onAction="#doPageBack"/>
+                            <Button text="%button.next"      onAction="#doPageForward"/>
+                            <Label text="Sort:"/>
+                            <ChoiceBox fx:id="cbSortOrder" prefWidth="140"/>
+                            <Label fx:id="lblStatus" styleClass="status-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        </HBox>
+                        <TableView fx:id="qsoTable" VBox.vgrow="ALWAYS" styleClass="qso-table">
+                            <columns>
+                                <TableColumn fx:id="colCallsign" text="%col.callsign" prefWidth="120"/>
+                                <TableColumn fx:id="colDate"     text="%col.date"     prefWidth="140"/>
+                                <TableColumn fx:id="colBand"     text="%col.band"     prefWidth="60"/>
+                                <TableColumn fx:id="colMode"     text="%col.mode"     prefWidth="70"/>
+                                <TableColumn fx:id="colRstSent"  text="%col.rst.sent" prefWidth="60"/>
+                                <TableColumn fx:id="colRstRcvd"  text="%col.rst.rcvd" prefWidth="60"/>
+                                <TableColumn fx:id="colCountry"  text="%col.country"  prefWidth="130"/>
+                                <TableColumn fx:id="colNotes"    text="%col.notes"    prefWidth="200"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- RIGHT: DX Spotting (always expanded) + Heard-By -->
+                    <VBox spacing="0">
+                        <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane"
+                                    VBox.vgrow="ALWAYS">
+                            <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
+                        </TitledPane>
+
+                        <TitledPane fx:id="heardByPane" text="Heard By" animated="false"
+                                    collapsible="true" expanded="false" styleClass="dx-pane">
+                            <TableView fx:id="heardByTable" styleClass="qso-table" prefHeight="220">
+                                <columns>
+                                    <TableColumn fx:id="colHbTime"     text="Time"     prefWidth="80"/>
+                                    <TableColumn fx:id="colHbReporter" text="Reporter" prefWidth="100"/>
+                                    <TableColumn fx:id="colHbGrid"     text="Grid"     prefWidth="70"/>
+                                    <TableColumn fx:id="colHbBand"     text="Band"     prefWidth="60"/>
+                                    <TableColumn fx:id="colHbMode"     text="Mode"     prefWidth="70"/>
+                                    <TableColumn fx:id="colHbSnr"      text="SNR"      prefWidth="55"/>
+                                    <TableColumn fx:id="colHbSource"   text="Source"   prefWidth="90"/>
+                                </columns>
+                            </TableView>
+                        </TitledPane>
+                    </VBox>
+                </SplitPane>
             </VBox>
 
-            <SplitPane fx:id="mainSplitPane" orientation="HORIZONTAL"
-                       dividerPositions="0.66" VBox.vgrow="ALWAYS">
-            <!-- LEFT: QSO log + collapsible Keyer pane underneath -->
-            <VBox styleClass="log-section">
-                <HBox spacing="6" styleClass="table-toolbar">
-                    <padding><Insets left="6" top="4" bottom="4"/></padding>
-                    <Label text="%pane.log" styleClass="section-title"/>
-                    <Button text="%button.edit"      onAction="#doEditSelected"/>
-                    <Button text="%button.save.edit" onAction="#doSaveEdited"/>
-                    <Button text="%button.delete"    onAction="#doDeleteSelected"/>
-                    <Button text="%button.prev"      onAction="#doPageBack"/>
-                    <Button text="%button.next"      onAction="#doPageForward"/>
-                    <Label text="Sort:"/>
-                    <ChoiceBox fx:id="cbSortOrder" prefWidth="140"/>
-                    <Label fx:id="lblStatus" styleClass="status-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                </HBox>
-                <TableView fx:id="qsoTable" VBox.vgrow="ALWAYS" styleClass="qso-table">
-                    <columns>
-                        <TableColumn fx:id="colCallsign" text="%col.callsign" prefWidth="120"/>
-                        <TableColumn fx:id="colDate"     text="%col.date"     prefWidth="140"/>
-                        <TableColumn fx:id="colBand"     text="%col.band"     prefWidth="60"/>
-                        <TableColumn fx:id="colMode"     text="%col.mode"     prefWidth="70"/>
-                        <TableColumn fx:id="colRstSent"  text="%col.rst.sent" prefWidth="60"/>
-                        <TableColumn fx:id="colRstRcvd"  text="%col.rst.rcvd" prefWidth="60"/>
-                        <TableColumn fx:id="colCountry"  text="%col.country"  prefWidth="130"/>
-                        <TableColumn fx:id="colNotes"    text="%col.notes"    prefWidth="200"/>
-                    </columns>
-                </TableView>
-            </VBox>
-
-            <!-- RIGHT: DX Spotting (always expanded) + Heard-By (collapsible).
-                 Operator can drag the divider to give either side more room. -->
-            <VBox spacing="0">
-                <TitledPane fx:id="dxPane" text="%pane.dx" animated="false" styleClass="dx-pane"
-                            VBox.vgrow="ALWAYS">
-                    <fx:include source="DxSpot.fxml" fx:id="dxSpot"/>
-                </TitledPane>
-
-                <!-- Heard-By pane: who is currently hearing us (PSK Reporter
-                     + WSPR). Collapsed by default to keep the column clean. -->
-                <TitledPane fx:id="heardByPane" text="Heard By" animated="false"
-                            collapsible="true" expanded="false" styleClass="dx-pane">
-                    <TableView fx:id="heardByTable" styleClass="qso-table" prefHeight="220">
-                        <columns>
-                            <TableColumn fx:id="colHbTime"     text="Time"     prefWidth="80"/>
-                            <TableColumn fx:id="colHbReporter" text="Reporter" prefWidth="100"/>
-                            <TableColumn fx:id="colHbGrid"     text="Grid"     prefWidth="70"/>
-                            <TableColumn fx:id="colHbBand"     text="Band"     prefWidth="60"/>
-                            <TableColumn fx:id="colHbMode"     text="Mode"     prefWidth="70"/>
-                            <TableColumn fx:id="colHbSnr"      text="SNR"      prefWidth="55"/>
-                            <TableColumn fx:id="colHbSource"   text="Source"   prefWidth="90"/>
-                        </columns>
-                    </TableView>
-                </TitledPane>
-            </VBox>
         </SplitPane>
-        </VBox>
     </center>
 </BorderPane>
