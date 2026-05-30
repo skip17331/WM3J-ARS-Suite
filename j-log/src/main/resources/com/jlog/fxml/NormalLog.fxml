@@ -281,23 +281,95 @@
                 <VBox spacing="6" alignment="TOP_LEFT" styleClass="rig-pane">
                     <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
 
-                    <!-- Big yellow VFO display. Band/Mode stacked on the
-                         left, frequency fills the right side big. When
-                         F-INP keypad mode is active, lblRigDisplayFreq
-                         shows the in-progress buffer instead. -->
-                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="rig-display">
-                        <VBox spacing="2" alignment="CENTER_LEFT">
-                            <Label fx:id="lblRigDisplayBand" text="Band: —"
-                                   styleClass="rig-display-label"/>
-                            <Label fx:id="lblRigDisplayMode" text="Mode: —"
-                                   styleClass="rig-display-label"/>
+                    <!-- Top block (2x2): narrower VFO window (left) with the
+                         S-meter inline to its right; tuning chevrons directly
+                         under the VFO window and RIT/XIT under the S-meter. The
+                         mode toolbar follows below this block. -->
+                    <GridPane hgap="8" vgap="6">
+                        <columnConstraints>
+                            <ColumnConstraints/>
+                            <ColumnConstraints/>
+                        </columnConstraints>
+
+                        <!-- (0,0) VFO frequency window — narrower (no longer
+                             full-width; the S-meter takes the right). -->
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="rig-display"
+                              GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <VBox spacing="2" alignment="CENTER_LEFT">
+                                <Label fx:id="lblRigDisplayBand" text="Band: —"
+                                       styleClass="rig-display-label"/>
+                                <Label fx:id="lblRigDisplayMode" text="Mode: —"
+                                       styleClass="rig-display-label"/>
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="lblRigDisplayFreq" text="—"
+                                   styleClass="rig-display-freq"
+                                   style="-fx-font-size: 38px;"
+                                   alignment="CENTER_RIGHT"/>
+                        </HBox>
+
+                        <!-- (1,0) S-meter, inline to the right of the VFO window. -->
+                        <VBox styleClass="rig-meter" alignment="CENTER_LEFT"
+                              minHeight="80" prefHeight="90" maxHeight="120"
+                              minWidth="180" prefWidth="200" maxWidth="240" spacing="3"
+                              GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
+                            <Label text="S - METER" styleClass="rig-meter-title"/>
+                            <HBox fx:id="sMeterSegments" spacing="1" alignment="CENTER_LEFT"/>
+                            <Label text=" 1   3   5   7   9 +20 +40 +60"
+                                   styleClass="rig-meter-tick"/>
                         </VBox>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="lblRigDisplayFreq" text="—"
-                               styleClass="rig-display-freq"
-                               style="-fx-font-size: 56px;"
-                               alignment="CENTER_RIGHT"/>
-                    </HBox>
+
+                        <!-- (0,1) Tuning chevrons — directly under the VFO window.
+                             Step set by the keypad TS button; «/» = 10x fast.
+                             Tooltips live-update from refreshTsTooltip. -->
+                        <HBox spacing="4" alignment="CENTER_LEFT"
+                              GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label text="Tune:" styleClass="entry-label"/>
+                            <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
+                                    styleClass="rig-keypad-btn"/>
+                        </HBox>
+
+                        <!-- (1,1) RIT/XIT — right side, under the S-meter (two
+                             compact lines so it fits the S-meter's width). -->
+                        <VBox spacing="3" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <HBox spacing="4" alignment="CENTER_LEFT">
+                                <Button fx:id="btnRigRit" text="RIT" onAction="#rigRitToggle"
+                                        styleClass="rig-keypad-btn">
+                                    <tooltip><Tooltip text="Toggle RIT (receive incremental tuning)"/></tooltip>
+                                </Button>
+                                <Button fx:id="btnRitDown" text="−" onAction="#ritDown"
+                                        styleClass="rig-keypad-btn"/>
+                                <Label fx:id="lblRitOffset" text="0" minWidth="34"
+                                       alignment="CENTER" styleClass="rig-display-label"/>
+                                <Button fx:id="btnRitUp" text="+" onAction="#ritUp"
+                                        styleClass="rig-keypad-btn"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="btnRitXitClear" text="Clr" onAction="#ritXitClear"
+                                        styleClass="rig-keypad-btn">
+                                    <tooltip><Tooltip text="Clear RIT and XIT offsets"/></tooltip>
+                                </Button>
+                            </HBox>
+                            <HBox spacing="4" alignment="CENTER_LEFT">
+                                <Button fx:id="btnRigXit" text="XIT" onAction="#rigXitToggle"
+                                        styleClass="rig-keypad-btn">
+                                    <tooltip><Tooltip text="Toggle XIT (transmit incremental tuning)"/></tooltip>
+                                </Button>
+                                <Button fx:id="btnXitDown" text="−" onAction="#xitDown"
+                                        styleClass="rig-keypad-btn"/>
+                                <Label fx:id="lblXitOffset" text="0" minWidth="34"
+                                       alignment="CENTER" styleClass="rig-display-label"/>
+                                <Button fx:id="btnXitUp" text="+" onAction="#xitUp"
+                                        styleClass="rig-keypad-btn"/>
+                            </HBox>
+                        </VBox>
+                    </GridPane>
 
                     <!-- Top toolbar (mockup row 2): ANT 1/2 | SET SSB CW/RTTY
                          AM/FM | Filter. Fixed-size buttons; spacers carry
@@ -432,63 +504,10 @@
                         </Button>
                     </GridPane>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <!-- Right column: live S-meter on top, tuning chevrons beneath. -->
+                    <!-- Right column beside the keypad: RF power, then P.AMP/NB
+                         and Auto-track. (S-meter, tuning chevrons and RIT/XIT
+                         now live in the top block above, by the VFO window.) -->
                     <VBox spacing="6" alignment="TOP_RIGHT">
-                        <VBox styleClass="rig-meter" alignment="CENTER_LEFT"
-                              minHeight="80" prefHeight="90" maxHeight="120"
-                              minWidth="180" prefWidth="200" maxWidth="240"
-                              spacing="3">
-                            <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
-                            <Label text="S - METER" styleClass="rig-meter-title"/>
-                            <HBox fx:id="sMeterSegments" spacing="1" alignment="CENTER_LEFT"/>
-                            <Label text=" 1   3   5   7   9 +20 +40 +60"
-                                   styleClass="rig-meter-tick"/>
-                        </VBox>
-                        <!-- Chevron tune buttons. Step magnitude is set by the
-                             TS button on the keypad (cycles 10 Hz → 25 kHz);
-                             ‹ / › use the TS-selected slow step, « / » use 10×
-                             (fast). Tooltips live-update from refreshTsTooltip. -->
-                        <HBox spacing="4" alignment="CENTER_LEFT">
-                            <Label text="Tune:" styleClass="entry-label"/>
-                            <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
-                                    styleClass="rig-keypad-btn"/>
-                            <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
-                                    styleClass="rig-keypad-btn"/>
-                            <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
-                                    styleClass="rig-keypad-btn"/>
-                            <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
-                                    styleClass="rig-keypad-btn"/>
-                        </HBox>
-                        <!-- RIT/XIT, RF power, and P.AMP/NB + Auto-track moved
-                             into this right column so they no longer stack below
-                             the keypad and lengthen the pane. -->
-                        <HBox spacing="4" alignment="CENTER_LEFT">
-                            <Button fx:id="btnRigRit" text="RIT" onAction="#rigRitToggle"
-                                    styleClass="rig-keypad-btn">
-                                <tooltip><Tooltip text="Toggle RIT (receive incremental tuning)"/></tooltip>
-                            </Button>
-                            <Button fx:id="btnRitDown" text="−" onAction="#ritDown"
-                                    styleClass="rig-keypad-btn"/>
-                            <Label fx:id="lblRitOffset" text="0" minWidth="40"
-                                   alignment="CENTER" styleClass="rig-display-label"/>
-                            <Button fx:id="btnRitUp" text="+" onAction="#ritUp"
-                                    styleClass="rig-keypad-btn"/>
-                            <Region prefWidth="10"/>
-                            <Button fx:id="btnRigXit" text="XIT" onAction="#rigXitToggle"
-                                    styleClass="rig-keypad-btn">
-                                <tooltip><Tooltip text="Toggle XIT (transmit incremental tuning)"/></tooltip>
-                            </Button>
-                            <Button fx:id="btnXitDown" text="−" onAction="#xitDown"
-                                    styleClass="rig-keypad-btn"/>
-                            <Label fx:id="lblXitOffset" text="0" minWidth="40"
-                                   alignment="CENTER" styleClass="rig-display-label"/>
-                            <Button fx:id="btnXitUp" text="+" onAction="#xitUp"
-                                    styleClass="rig-keypad-btn"/>
-                            <Button fx:id="btnRitXitClear" text="Clr" onAction="#ritXitClear"
-                                    styleClass="rig-keypad-btn">
-                                <tooltip><Tooltip text="Clear RIT and XIT offsets"/></tooltip>
-                            </Button>
-                        </HBox>
                         <HBox spacing="6" alignment="CENTER_LEFT">
                             <Label text="PWR" styleClass="entry-label"/>
                             <Slider fx:id="sliderRfPower" min="0" max="100" prefWidth="150"/>
