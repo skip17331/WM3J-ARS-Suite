@@ -351,11 +351,6 @@
                                        alignment="CENTER" styleClass="rig-display-label"/>
                                 <Button fx:id="btnRitUp" text="+" onAction="#ritUp"
                                         styleClass="rig-keypad-btn"/>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Button fx:id="btnRitXitClear" text="Clr" onAction="#ritXitClear"
-                                        styleClass="rig-keypad-btn">
-                                    <tooltip><Tooltip text="Clear RIT and XIT offsets"/></tooltip>
-                                </Button>
                             </HBox>
                             <HBox spacing="4" alignment="CENTER_LEFT">
                                 <Button fx:id="btnRigXit" text="XIT" onAction="#rigXitToggle"
@@ -381,28 +376,16 @@
                             <Button fx:id="btnRigAnt2" text="ANT 2" onAction="#rigAnt2"
                                     styleClass="rig-keypad-btn"/>
                         </VBox>
-                    </GridPane>
 
-                    <!-- Mode toolbar: SET | SSB CW/RTTY AM/FM | Filter. (ANT 1/2
-                         moved to the upper-right of the top block above.) -->
-                    <HBox spacing="4" alignment="CENTER_LEFT">
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="btnRigSet" text="SET" onAction="#rigSet"
-                                styleClass="rig-keypad-btn">
-                            <tooltip><Tooltip text="Open j-hub Rig Control settings in browser"/></tooltip>
+                        <!-- (2,1) Clr (clears RIT/XIT) — far right, under the
+                             ANT stack, at the RIT/XIT row level. -->
+                        <Button fx:id="btnRitXitClear" text="Clr" onAction="#ritXitClear"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="1"
+                                GridPane.valignment="TOP">
+                            <tooltip><Tooltip text="Clear RIT and XIT offsets"/></tooltip>
                         </Button>
-                        <Button fx:id="btnRigModeSsb" text="SSB" onAction="#rigModeSsb"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnRigModeCwRtty" text="CW/RTTY" onAction="#rigModeCwRtty"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnRigModeAmFm" text="AM/FM" onAction="#rigModeAmFm"
-                                styleClass="rig-keypad-btn"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="btnRigFilter" text="Filter"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true">
-                            <tooltip><Tooltip text="Rig filter select (coming soon)"/></tooltip>
-                        </Button>
-                    </HBox>
+                    </GridPane>
 
                     <!-- Band / keypad grid (mockup rows 3-6). Each cell's
                          primary label is a band freq in MHz (1.8 = 160m,
@@ -534,6 +517,26 @@
                             <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                         </HBox>
                     </VBox>
+                    </HBox>
+
+                    <!-- Mode toolbar moved below the keypad (so the keypad sits
+                         higher): SET / SSB / CW-RTTY / AM-FM / Filter, far right. -->
+                    <HBox spacing="4" alignment="CENTER_RIGHT">
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnRigSet" text="SET" onAction="#rigSet"
+                                styleClass="rig-keypad-btn">
+                            <tooltip><Tooltip text="Open j-hub Rig Control settings in browser"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnRigModeSsb" text="SSB" onAction="#rigModeSsb"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnRigModeCwRtty" text="CW/RTTY" onAction="#rigModeCwRtty"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnRigModeAmFm" text="AM/FM" onAction="#rigModeAmFm"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnRigFilter" text="Filter"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true">
+                            <tooltip><Tooltip text="Rig filter select (coming soon)"/></tooltip>
+                        </Button>
                     </HBox>
                 </VBox>
             </TitledPane>
