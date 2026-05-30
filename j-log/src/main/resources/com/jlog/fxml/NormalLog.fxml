@@ -351,6 +351,39 @@
                                 GridPane.columnIndex="3" GridPane.rowIndex="3">
                             <tooltip><Tooltip text="Tuning Step"/></tooltip>
                         </Button>
+                        <!-- Rows 4-5: extra band-only keys (no F-INP digit).
+                             These generalize the keypad past the 746's HF+2m
+                             set; each is capability-gated against the rig's TX
+                             ranges (RIG_CAPS) exactly like the main keys, so
+                             bands the rig can't reach grey out automatically. -->
+                        <Button fx:id="btnBand2200" text="2200" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="0" GridPane.rowIndex="4">
+                            <tooltip><Tooltip text="2200 m (137 kHz)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnBand630" text="630" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="1" GridPane.rowIndex="4">
+                            <tooltip><Tooltip text="630 m (475 kHz)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnBand60" text="60" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="4">
+                            <tooltip><Tooltip text="60 m (5.3585 MHz)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnBand222" text="222" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="3" GridPane.rowIndex="4">
+                            <tooltip><Tooltip text="1.25 m (222.1 MHz)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnBand70cm" text="70cm" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="0" GridPane.rowIndex="5">
+                            <tooltip><Tooltip text="70 cm (432.1 MHz)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnBand33cm" text="33cm" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="1" GridPane.rowIndex="5">
+                            <tooltip><Tooltip text="33 cm (902.1 MHz)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnBand23cm" text="23cm" styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="5">
+                            <tooltip><Tooltip text="23 cm (1296.1 MHz)"/></tooltip>
+                        </Button>
                     </GridPane>
 
                     <!-- P.AMP/ATT + NB (placeholders) -->

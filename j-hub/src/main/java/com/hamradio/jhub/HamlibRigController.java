@@ -947,6 +947,8 @@ public class HamlibRigController implements RigController {
 
     private static String frequencyToBand(long hz) {
         long khz = hz / 1000;
+        if (khz >=   135 && khz <=   138) return "2200m";
+        if (khz >=   472 && khz <=   479) return "630m";
         if (khz >=  1800 && khz <=  2000) return "160m";
         if (khz >=  3500 && khz <=  4000) return "80m";
         if (khz >=  5300 && khz <=  5500) return "60m";
@@ -959,6 +961,10 @@ public class HamlibRigController implements RigController {
         if (khz >= 28000 && khz <= 29700) return "10m";
         if (khz >= 50000 && khz <= 54000) return "6m";
         if (khz >= 144000 && khz <= 148000) return "2m";
+        if (khz >= 222000 && khz <= 225000) return "1.25m";
+        if (khz >= 420000 && khz <= 450000) return "70cm";
+        if (khz >= 902000 && khz <= 928000) return "33cm";
+        if (khz >= 1240000 && khz <= 1300000) return "23cm";
         return "";
     }
 }

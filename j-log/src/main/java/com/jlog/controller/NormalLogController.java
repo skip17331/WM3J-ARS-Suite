@@ -105,6 +105,12 @@ public class NormalLogController implements Initializable {
                              btnKey6, btnKey7, btnKey8, btnKey9, btnKey0,
                              btnKeyGen, btnKeyEnt;
     @FXML private Button     btnRigVfoSwap;
+    // Extra band-only keypad keys (no F-INP digit) — see bandOnlyKeys.
+    @FXML private Button     btnBand2200, btnBand630, btnBand60, btnBand222,
+                             btnBand70cm, btnBand33cm, btnBand23cm;
+    /** Band-only key → band-jump frequency (Hz). Built in initRigKeypad;
+     *  reused by applyKeypadGating so these gate against TX ranges too. */
+    private java.util.Map<Button, Long> bandOnlyKeys;
     // RIT / XIT / power controls — added with the capability-driven pane.
     // Gated via RIG_CAPS (disabled when the connected rig lacks the feature).
     @FXML private Button     btnRigRit, btnRigXit, btnRitDown, btnRitUp,
@@ -589,6 +595,13 @@ public class NormalLogController implements Initializable {
             boolean ok = !gate || hz == null || txCanTransmit(ranges, hz);
             setDisabled(e.getValue(), !ok);
         }
+        // Extra band-only keys gate the same way.
+        if (bandOnlyKeys != null) {
+            for (java.util.Map.Entry<Button, Long> e : bandOnlyKeys.entrySet()) {
+                boolean ok = !gate || e.getValue() == null || txCanTransmit(ranges, e.getValue());
+                setDisabled(e.getKey(), !ok);
+            }
+        }
     }
 
     private static boolean txCanTransmit(com.fasterxml.jackson.databind.JsonNode ranges, long hz) {
@@ -850,7 +863,31 @@ public class NormalLogController implements Initializable {
         wireKeypadBtn(btnKey0,   "0",   KEYPAD_BAND_HZ.get("0"));
         wireKeypadBtn(btnKeyGen, ".",   null);    // GENE band-jump TBD; "." still works in keypad mode
         wireKeypadBtn(btnKeyEnt, "ENT", KEYPAD_BAND_HZ.get("ENT"));
+
+        // Band-only keys (rows 4-5): pure band jumps, no F-INP digit role.
+        // LinkedHashMap so iteration order is stable for gating/logging.
+        bandOnlyKeys = new java.util.LinkedHashMap<>();
+        bandOnlyKeys.put(btnBand2200,         137_500L);   // 2200 m
+        bandOnlyKeys.put(btnBand630,          475_000L);   // 630 m
+        bandOnlyKeys.put(btnBand60,         5_358_500L);   // 60 m
+        bandOnlyKeys.put(btnBand222,      222_100_000L);   // 1.25 m
+        bandOnlyKeys.put(btnBand70cm,     432_100_000L);   // 70 cm
+        bandOnlyKeys.put(btnBand33cm,     902_100_000L);   // 33 cm
+        bandOnlyKeys.put(btnBand23cm,   1_296_100_000L);   // 23 cm
+        bandOnlyKeys.forEach(this::wireBandKey);
+
         refreshTsTooltip();
+    }
+
+    /** Wire a band-only key: jump to its band when not mid-F-INP entry. These
+     *  have no keypad digit, so they're inert during keypad mode. */
+    private void wireBandKey(Button btn, Long bandHz) {
+        if (btn == null) return;
+        btn.setOnAction(e -> {
+            if (!keypadMode && bandHz != null && bandHz > 0) {
+                HubEngine.getInstance().sendSetFreq(bandHz);
+            }
+        });
     }
 
     private void wireKeypadBtn(Button btn, String secondary, Long primaryBandHz) {
