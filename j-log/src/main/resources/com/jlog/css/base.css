@@ -214,7 +214,7 @@
 .rig-dot-stale     { -fx-background-color: #9e9e9e; }
 .rig-live-label    { -fx-font-size: 11px; -fx-font-weight: bold; }
 .rig-live-row      { -fx-padding: 0 0 2 0; }
-/* Radio-front-panel look — big yellow VFO display, faux waterfall + meter,
+/* Radio-front-panel look — big yellow VFO display, S-meter,
    keypad-style band buttons, and a "coming-soon" treatment for placeholders
    that are wired into the UI but not yet implemented on the j-hub side. */
 .rig-display       { -fx-background-color: #f5c842; -fx-background-radius: 4;
@@ -224,10 +224,6 @@
                      -fx-font-size: 11px; }
 .rig-display-freq  { -fx-text-fill: #0a0a0a; -fx-font-family: monospace;
                      -fx-font-weight: bold; -fx-font-size: 56px; }
-.rig-waterfall     { -fx-background-color: #2a5784; -fx-background-radius: 3;
-                     -fx-padding: 8; }
-.rig-waterfall-lbl { -fx-text-fill: #e0e0e0; -fx-font-size: 13px;
-                     -fx-font-style: italic; }
 .rig-meter         { -fx-background-color: linear-gradient(to bottom, #1a1a1a, #050505);
                      -fx-background-radius: 4; -fx-border-color: #444;
                      -fx-border-width: 1; -fx-border-radius: 4; }
