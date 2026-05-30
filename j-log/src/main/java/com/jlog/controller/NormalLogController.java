@@ -104,8 +104,29 @@ public class NormalLogController implements Initializable {
     @FXML private Button     btnKey1, btnKey2, btnKey3, btnKey4, btnKey5,
                              btnKey6, btnKey7, btnKey8, btnKey9, btnKey0,
                              btnKeyGen, btnKeyEnt;
+    @FXML private Button     btnRigVfoSwap;
+    // RIT / XIT / power controls — added with the capability-driven pane.
+    // Gated via RIG_CAPS (disabled when the connected rig lacks the feature).
+    @FXML private Button     btnRigRit, btnRigXit, btnRitDown, btnRitUp,
+                             btnXitDown, btnXitUp, btnRitXitClear;
+    @FXML private Label      lblRitOffset, lblXitOffset, lblRfPower;
+    @FXML private Slider     sliderRfPower;
     @FXML private Region     rigLiveDot;
     @FXML private Label      lblRigLive;
+    /** Last RIG_CAPS payload from j-hub; null until the first arrives (and
+     *  while null, nothing is gated — matches pre-caps behavior / the 746). */
+    private volatile com.fasterxml.jackson.databind.JsonNode lastRigCaps;
+    /** RIT/XIT mirror state, synced from RIG_STATUS so the toggles + offset
+     *  labels reflect what the rig actually reports (incl. rig-side changes). */
+    private volatile boolean ritOn = false, xitOn = false;
+    private volatile int     ritOffset = 0, xitOffset = 0;
+    /** Per-click RIT/XIT nudge. RIT lives in small steps regardless of the
+     *  big TS tuning step (which can be 25 kHz). */
+    private static final int RIT_STEP_HZ = 10;
+    /** Guard so RIG_STATUS-driven slider updates don't echo back as a SET. */
+    private boolean updatingPowerFromRig = false;
+    /** S-meter segment Regions, built once by initSMeter, re-styled live. */
+    private final java.util.List<Region> sMeterSegs = new java.util.ArrayList<>();
     /** F-INP keypad mode. False = each band/keypad button jumps to its
      *  primary band on click; true = appends its secondary digit ("." or
      *  "ENT") into keypadBuffer. ENT commits the buffer as MHz → SET_FREQ. */
@@ -262,6 +283,7 @@ public class NormalLogController implements Initializable {
         initEntryDragHandle();
         initRigLiveIndicator();
         initRigKeypad();
+        initRigControls();
         initRigTitleBar();
         initSMeter();
         loadQsos();
@@ -301,6 +323,14 @@ public class NormalLogController implements Initializable {
         // waiting for the next poll tick.
         HubEngine.getInstance().setRigStatusListener(node ->
             Platform.runLater(() -> updateRigStatus(node)));
+
+        // RIG_CAPS — j-hub publishes once per rig connection describing what
+        // the connected rig can do. The pane gates controls (split, RIT/XIT,
+        // power, band keys, mode buttons) to match. Until it arrives — and
+        // when the rig reports unknown caps — nothing is gated, so the IC-746
+        // path behaves exactly as before.
+        HubEngine.getInstance().setRigCapsListener(node ->
+            Platform.runLater(() -> applyRigCaps(node)));
 
         // Rig Control pane visibility — operator toggles it on/off from
         // j-hub's J-Log card (CONFIG_UPDATE settings.rigControlVisible). The
@@ -439,11 +469,137 @@ public class NormalLogController implements Initializable {
         // which case paintBigDisplayFromBuffer owns the freq label.
         if (!keypadMode) repaintBigDisplay(node);
 
+        // Live S-meter from sMeterDb (absent → 0 / dark).
+        setSMeterLevel(sMeterDbToSegments(node.path("sMeterDb").asInt(Integer.MIN_VALUE)));
+
+        // Split state is now authoritative from the rig — reflect it (incl.
+        // changes made at the rig's front panel) on the SPLIT button.
+        splitOn = node.path("split").asBoolean(false);
+        if (btnRigSplit != null) {
+            btnRigSplit.getStyleClass().remove("rig-keypad-active");
+            if (splitOn) btnRigSplit.getStyleClass().add("rig-keypad-active");
+        }
+
+        // RIT / XIT offsets + engaged state.
+        ritOffset = node.path("rit").asInt(0);
+        xitOffset = node.path("xit").asInt(0);
+        ritOn     = node.path("ritOn").asBoolean(false);
+        xitOn     = node.path("xitOn").asBoolean(false);
+        if (lblRitOffset != null) lblRitOffset.setText(formatOffset(ritOffset));
+        if (lblXitOffset != null) lblXitOffset.setText(formatOffset(xitOffset));
+        styleToggle(btnRigRit, ritOn);
+        styleToggle(btnRigXit, xitOn);
+
+        // RF power slider/label (rfPower is 0..1; negative = not available).
+        double pwr = node.path("rfPower").asDouble(-1.0);
+        if (pwr >= 0) {
+            if (lblRfPower != null) lblRfPower.setText(Math.round(pwr * 100) + "%");
+            if (sliderRfPower != null && !sliderRfPower.isValueChanging()) {
+                updatingPowerFromRig = true;
+                sliderRfPower.setValue(pwr * 100);
+                updatingPowerFromRig = false;
+            }
+        } else if (lblRfPower != null) {
+            lblRfPower.setText("—");
+        }
+
         if (cbRigAutoTrack != null && cbRigAutoTrack.isSelected()) {
             long   freqHz = node.path("frequency").asLong(0);
             String mode   = node.path("mode").asText("");
             applyRigToEntry(freqHz, mode);
         }
+    }
+
+    /** "+250" / "−250" / "0" for a RIT/XIT offset display. */
+    private static String formatOffset(int hz) {
+        if (hz == 0) return "0";
+        return (hz > 0 ? "+" : "−") + Math.abs(hz);
+    }
+
+    /** Add/remove the active-highlight class on a rig button. */
+    private static void styleToggle(Button btn, boolean on) {
+        if (btn == null) return;
+        btn.getStyleClass().remove("rig-keypad-active");
+        if (on) btn.getStyleClass().add("rig-keypad-active");
+    }
+
+    // ── Capability gating (RIG_CAPS) ────────────────────────────────
+
+    /**
+     * Enable/disable controls to match the connected rig. Driven by the
+     * one-shot RIG_CAPS message. The {@code can*} flags mirror
+     * RigCapabilities' accessors: every one is permissive when caps are
+     * unknown, so a rig that reports nothing — or no caps at all — leaves the
+     * whole panel enabled exactly as before (the IC-746 never regresses).
+     */
+    private void applyRigCaps(com.fasterxml.jackson.databind.JsonNode node) {
+        if (node == null) return;
+        lastRigCaps = node;
+        boolean known = node.path("known").asBoolean(false);
+
+        // Split / VFO swap
+        setDisabled(btnRigSplit,   !capFlag(node, "splitVfo"));
+        setDisabled(btnRigVfoSwap, !capFlag(node, "setVfo"));
+
+        // RIT / XIT (offset call OR enable func present → usable)
+        boolean rit = !known || node.path("ritOffset").asBoolean(false) || node.path("ritFunc").asBoolean(false);
+        boolean xit = !known || node.path("xitOffset").asBoolean(false) || node.path("xitFunc").asBoolean(false);
+        for (Button b : new Button[]{btnRigRit, btnRitUp, btnRitDown}) setDisabled(b, !rit);
+        for (Button b : new Button[]{btnRigXit, btnXitUp, btnXitDown}) setDisabled(b, !xit);
+        setDisabled(btnRitXitClear, !rit && !xit);
+
+        // RF power: SET gates the slider; GET (shown via RIG_STATUS) is separate.
+        if (sliderRfPower != null) sliderRfPower.setDisable(known && !node.path("setRfPower").asBoolean(false));
+
+        // Mode buttons: disable a pair when the rig reports neither member mode.
+        java.util.Set<String> modes = new java.util.HashSet<>();
+        if (node.path("modes").isArray()) {
+            for (com.fasterxml.jackson.databind.JsonNode m : node.path("modes")) modes.add(m.asText().toUpperCase());
+        }
+        boolean gateModes = known && !modes.isEmpty();
+        setDisabled(btnRigModeSsb,    gateModes && !(modes.contains("USB") || modes.contains("LSB")));
+        setDisabled(btnRigModeCwRtty, gateModes && !(modes.contains("CW")  || modes.contains("RTTY")));
+        setDisabled(btnRigModeAmFm,   gateModes && !(modes.contains("AM")  || modes.contains("FM")));
+
+        // Band keypad: disable keys the rig can't transmit on (from dump_state
+        // TX ranges). When ranges are unknown, nothing is gated.
+        applyKeypadGating(node);
+    }
+
+    /** Read a "Can set X" style boolean from caps, permissive when unknown. */
+    private static boolean capFlag(com.fasterxml.jackson.databind.JsonNode caps, String field) {
+        if (!caps.path("known").asBoolean(false)) return true;
+        return caps.path(field).asBoolean(false);
+    }
+
+    /** Disable band-keypad buttons outside the rig's TX frequency ranges. */
+    private void applyKeypadGating(com.fasterxml.jackson.databind.JsonNode caps) {
+        com.fasterxml.jackson.databind.JsonNode ranges = caps.path("txRanges");
+        // Unknown or empty ranges → don't gate (every band enabled).
+        boolean gate = caps.path("known").asBoolean(false) && ranges.isArray() && ranges.size() > 0;
+        java.util.Map<String, Button> keys = java.util.Map.ofEntries(
+            java.util.Map.entry("1", btnKey1), java.util.Map.entry("2", btnKey2),
+            java.util.Map.entry("3", btnKey3), java.util.Map.entry("4", btnKey4),
+            java.util.Map.entry("5", btnKey5), java.util.Map.entry("6", btnKey6),
+            java.util.Map.entry("7", btnKey7), java.util.Map.entry("8", btnKey8),
+            java.util.Map.entry("9", btnKey9), java.util.Map.entry("0", btnKey0),
+            java.util.Map.entry("ENT", btnKeyEnt));
+        for (java.util.Map.Entry<String, Button> e : keys.entrySet()) {
+            Long hz = KEYPAD_BAND_HZ.get(e.getKey());
+            boolean ok = !gate || hz == null || txCanTransmit(ranges, hz);
+            setDisabled(e.getValue(), !ok);
+        }
+    }
+
+    private static boolean txCanTransmit(com.fasterxml.jackson.databind.JsonNode ranges, long hz) {
+        for (com.fasterxml.jackson.databind.JsonNode r : ranges) {
+            if (r.isArray() && r.size() >= 2 && hz >= r.get(0).asLong() && hz <= r.get(1).asLong()) return true;
+        }
+        return false;
+    }
+
+    private static void setDisabled(javafx.scene.control.Control c, boolean disabled) {
+        if (c != null) c.setDisable(disabled);
     }
 
     /** Render Band / Freq / Mode into the big yellow display from a
@@ -459,32 +615,52 @@ public class NormalLogController implements Initializable {
         lblRigDisplayMode.setText("Mode: " + (mode.isEmpty() ? "—" : mode));
     }
 
-    /** Build the segment-LED S-meter — 13 segments, 9 green (S1-9) and
-     *  4 overload (red, +20/+40/+60 plus a "shoulder"). Currently a
-     *  decorative placeholder: lit to S5 statically until j-hub starts
-     *  shipping RSSI in RIG_STATUS. When that lands, expose a public
-     *  setSMeterLevel(int sUnits) and call it from updateRigStatus. */
+    private static final int S_METER_SEGMENTS = 13;
+    private static final int S_METER_GREEN    = 9;   // S1 through S9
+
+    /** Build the segment-LED S-meter — 13 segments, 9 green (S1-9) and 4
+     *  overload (S8-9 tint mid, the rest hi/red). Segments start unlit; live
+     *  values arrive via {@link #setSMeterLevel(int)} from RIG_STATUS sMeterDb. */
     private void initSMeter() {
         if (sMeterSegments == null) return;
-        final int totalSegments = 13;
-        final int greenCount    = 9;          // S1 through S9
-        final int litTo         = 5;          // placeholder visual: lit to S5
-        for (int i = 0; i < totalSegments; i++) {
+        sMeterSegs.clear();
+        for (int i = 0; i < S_METER_SEGMENTS; i++) {
             Region seg = new Region();
             seg.getStyleClass().add("rig-meter-seg");
-            boolean isHi  = i >= greenCount;
-            boolean isMid = !isHi && i >= greenCount - 2;  // S8-9 tint to yellow
-            boolean lit   = i < litTo;
-            if (lit) {
+            sMeterSegs.add(seg);
+            sMeterSegments.getChildren().add(seg);
+        }
+        setSMeterLevel(0);   // dark until the first reading
+    }
+
+    /** Light the S-meter up to {@code litTo} segments (0..13), restyling each
+     *  to its lit/unlit tier. Called on the JavaFX thread from updateRigStatus. */
+    private void setSMeterLevel(int litTo) {
+        int clamped = Math.max(0, Math.min(S_METER_SEGMENTS, litTo));
+        for (int i = 0; i < sMeterSegs.size(); i++) {
+            Region seg = sMeterSegs.get(i);
+            seg.getStyleClass().removeAll("rig-meter-seg-on", "rig-meter-seg-mid",
+                    "rig-meter-seg-hi", "rig-meter-seg-off", "rig-meter-seg-off-hi");
+            boolean isHi  = i >= S_METER_GREEN;
+            boolean isMid = !isHi && i >= S_METER_GREEN - 2;  // S8-9 tint to yellow
+            if (i < clamped) {
                 seg.getStyleClass().add(isHi ? "rig-meter-seg-hi"
                                        : isMid ? "rig-meter-seg-mid"
                                               : "rig-meter-seg-on");
             } else {
-                seg.getStyleClass().add(isHi ? "rig-meter-seg-off-hi"
-                                              : "rig-meter-seg-off");
+                seg.getStyleClass().add(isHi ? "rig-meter-seg-off-hi" : "rig-meter-seg-off");
             }
-            sMeterSegments.getChildren().add(seg);
         }
+    }
+
+    /** Map Hamlib STRENGTH (dB relative to S9; S9 = 0 dB, 6 dB per S-unit
+     *  below) to a lit-segment count. Below S9: S1 (-54 dB) → 0 … S9 (0 dB) →
+     *  9. Above S9: the 4 overload segments span roughly +60 dB. Returns 0 for
+     *  the "absent" sentinel (Integer.MIN_VALUE). */
+    private static int sMeterDbToSegments(int db) {
+        if (db == Integer.MIN_VALUE) return 0;
+        double seg = (db <= 0) ? 9.0 + db / 6.0 : 9.0 + db / 15.0;
+        return (int) Math.round(seg);
     }
 
     /** Make the Rig Control TitledPane's title-bar HBox span the full
@@ -592,10 +768,68 @@ public class NormalLogController implements Initializable {
     @FXML private void rigSplitToggle() {
         splitOn = !splitOn;
         HubEngine.getInstance().sendSetSplit(splitOn);
-        if (btnRigSplit != null) {
-            if (splitOn) btnRigSplit.getStyleClass().add("rig-keypad-active");
-            else         btnRigSplit.getStyleClass().remove("rig-keypad-active");
-        }
+        styleToggle(btnRigSplit, splitOn);
+    }
+
+    // ── RIT / XIT / power handlers ──────────────────────────────────
+
+    /** RIT enable toggle. Optimistically flips the highlight; the next
+     *  RIG_STATUS confirms the rig's actual state. */
+    @FXML private void rigRitToggle() {
+        ritOn = !ritOn;
+        HubEngine.getInstance().sendSetRitEnabled(ritOn);
+        styleToggle(btnRigRit, ritOn);
+    }
+
+    @FXML private void rigXitToggle() {
+        xitOn = !xitOn;
+        HubEngine.getInstance().sendSetXitEnabled(xitOn);
+        styleToggle(btnRigXit, xitOn);
+    }
+
+    @FXML private void ritDown() { nudgeRit(-RIT_STEP_HZ); }
+    @FXML private void ritUp()   { nudgeRit(+RIT_STEP_HZ); }
+    @FXML private void xitDown() { nudgeXit(-RIT_STEP_HZ); }
+    @FXML private void xitUp()   { nudgeXit(+RIT_STEP_HZ); }
+
+    private void nudgeRit(int deltaHz) {
+        ritOffset += deltaHz;
+        HubEngine.getInstance().sendSetRit(ritOffset);
+        if (lblRitOffset != null) lblRitOffset.setText(formatOffset(ritOffset));
+    }
+
+    private void nudgeXit(int deltaHz) {
+        xitOffset += deltaHz;
+        HubEngine.getInstance().sendSetXit(xitOffset);
+        if (lblXitOffset != null) lblXitOffset.setText(formatOffset(xitOffset));
+    }
+
+    /** Clr → zero both offsets (set_rit 0 / set_xit 0). */
+    @FXML private void ritXitClear() {
+        ritOffset = 0; xitOffset = 0;
+        HubEngine.getInstance().sendSetRit(0);
+        HubEngine.getInstance().sendSetXit(0);
+        if (lblRitOffset != null) lblRitOffset.setText("0");
+        if (lblXitOffset != null) lblXitOffset.setText("0");
+    }
+
+    /** Wire the RF power slider: live label while dragging, SET on click or
+     *  drag-release. The updatingPowerFromRig guard stops RIG_STATUS-driven
+     *  slider moves from echoing straight back as a command. */
+    private void initRigControls() {
+        if (sliderRfPower == null) return;
+        sliderRfPower.valueProperty().addListener((obs, ov, nv) -> {
+            if (updatingPowerFromRig) return;
+            if (lblRfPower != null) lblRfPower.setText(Math.round(nv.doubleValue()) + "%");
+            if (!sliderRfPower.isValueChanging()) {
+                HubEngine.getInstance().sendSetRfPower(nv.doubleValue() / 100.0);
+            }
+        });
+        sliderRfPower.valueChangingProperty().addListener((obs, was, changing) -> {
+            if (!changing && !updatingPowerFromRig) {
+                HubEngine.getInstance().sendSetRfPower(sliderRfPower.getValue() / 100.0);
+            }
+        });
     }
 
     /** Wire each band/keypad button to dispatch by current keypadMode.

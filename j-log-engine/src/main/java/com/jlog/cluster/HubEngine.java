@@ -80,6 +80,12 @@ public class HubEngine {
      *  newly-opened pane shows the current rig state immediately rather than
      *  waiting for the next 500ms poll tick. */
     private volatile JsonNode  lastRigStatusPayload;
+    private Consumer<JsonNode> rigCapsListener;
+    /** Last-seen RIG_CAPS payload — replayed on listener registration so the
+     *  Rig Control pane gates its controls immediately (j-hub publishes
+     *  RIG_CAPS once per connection, so without replay a late-wired pane would
+     *  miss it until the next rig reconnect). */
+    private volatile JsonNode  lastRigCapsPayload;
     private Consumer<Boolean>  rigControlVisibleListener;
     /** Last-seen j-log settings payload from CONFIG_UPDATE. Cached so a
      *  late-wired listener (e.g. NormalLogController registering after the
@@ -291,6 +297,11 @@ public class HubEngine {
                 lastRigStatusPayload = node;
                 if (rigStatusListener != null)
                     rigStatusListener.accept(node);
+
+            } else if ("RIG_CAPS".equals(type)) {
+                lastRigCapsPayload = node;
+                if (rigCapsListener != null)
+                    rigCapsListener.accept(node);
             }
             // HUB_WELCOME, APP_LIST etc. appear in raw tab — no special handling needed
 
@@ -373,6 +384,16 @@ public class HubEngine {
         // RIG_STATUS arrives before the controller registers its listener.
         if (l != null && lastRigStatusPayload != null) {
             try { l.accept(lastRigStatusPayload); } catch (Exception ignored) {}
+        }
+    }
+
+    /** Register the RIG_CAPS listener. Replays the last-seen payload so a
+     *  pane wiring up after the one-shot RIG_CAPS already arrived still gates
+     *  its controls correctly. */
+    public void setRigCapsListener(Consumer<JsonNode> l) {
+        this.rigCapsListener = l;
+        if (l != null && lastRigCapsPayload != null) {
+            try { l.accept(lastRigCapsPayload); } catch (Exception ignored) {}
         }
     }
 
@@ -463,6 +484,97 @@ public class HubEngine {
             wsClient.send(msg.toString());
         } catch (Exception e) { log.warn("sendSetSplit failed: {}", e.getMessage()); }
     }
+
+    /** Select the active VFO by Hamlib name (VFOA/VFOB/Main/Sub/MEM...). */
+    public void sendSetVfo(String vfo) {
+        if (!connected.get() || wsClient == null || vfo == null || vfo.isBlank()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_VFO");
+            msg.put("vfo",  vfo);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetVfo failed: {}", e.getMessage()); }
+    }
+
+    /** Set the split (TX) frequency in Hz. */
+    public void sendSetSplitFreq(long freqHz) {
+        if (!connected.get() || wsClient == null || freqHz <= 0) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_SPLIT_FREQ");
+            msg.put("frequency", freqHz);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetSplitFreq failed: {}", e.getMessage()); }
+    }
+
+    /** Set the split (TX) mode + passband (Hz; 0 = backend default width). */
+    public void sendSetSplitMode(String mode, int widthHz) {
+        if (!connected.get() || wsClient == null || mode == null || mode.isBlank()) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",  "SET_SPLIT_MODE");
+            msg.put("mode",  mode.trim().toUpperCase());
+            msg.put("width", Math.max(widthHz, 0));
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetSplitMode failed: {}", e.getMessage()); }
+    }
+
+    /** Set the RIT offset in Hz (0 clears). */
+    public void sendSetRit(int hz) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_RIT");
+            msg.put("hz",   hz);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetRit failed: {}", e.getMessage()); }
+    }
+
+    /** Enable / disable RIT (Hamlib func RIT). */
+    public void sendSetRitEnabled(boolean on) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_RIT_ENABLED");
+            msg.put("on",   on);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetRitEnabled failed: {}", e.getMessage()); }
+    }
+
+    /** Set the XIT offset in Hz (0 clears). */
+    public void sendSetXit(int hz) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_XIT");
+            msg.put("hz",   hz);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetXit failed: {}", e.getMessage()); }
+    }
+
+    /** Enable / disable XIT (Hamlib func XIT). */
+    public void sendSetXitEnabled(boolean on) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_XIT_ENABLED");
+            msg.put("on",   on);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetXitEnabled failed: {}", e.getMessage()); }
+    }
+
+    /** Set RF output power as a 0.0–1.0 fraction (Hamlib level RFPOWER). */
+    public void sendSetRfPower(double fraction) {
+        if (!connected.get() || wsClient == null) return;
+        double f = Math.max(0.0, Math.min(1.0, fraction));
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type",  "SET_RFPOWER");
+            msg.put("power", f);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetRfPower failed: {}", e.getMessage()); }
+    }
+
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }
