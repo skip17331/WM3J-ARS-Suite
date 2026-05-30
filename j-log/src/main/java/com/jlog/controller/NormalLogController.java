@@ -95,6 +95,8 @@ public class NormalLogController implements Initializable {
     @FXML private Button     btnRigAnt1, btnRigAnt2;
     @FXML private Button     btnRigModeSsb, btnRigModeCwRtty, btnRigModeAmFm;
     @FXML private Button     btnRigFInp, btnRigTs, btnRigSplit;
+    @FXML private Button     btnTuneDownFast, btnTuneDownSlow,
+                             btnTuneUpSlow, btnTuneUpFast;
     /** Split-op state mirror — j-log tracks it because RIG_STATUS doesn't
      *  yet carry the split flag. Toggle flips the value, sends SET_SPLIT,
      *  and repaints the button's active-class highlight. */
@@ -682,9 +684,36 @@ public class NormalLogController implements Initializable {
     private void refreshTsTooltip() {
         if (btnRigTs == null) return;
         long s = TS_STEPS_HZ[tsStepIdx];
-        String label = (s % 1000 == 0) ? (s / 1000) + " kHz" : s + " Hz";
-        btnRigTs.setTooltip(new Tooltip("Tuning step: " + label));
+        String slow = formatStepHz(s);
+        String fast = formatStepHz(s * 10);
+        btnRigTs.setTooltip(new Tooltip("Tuning step: " + slow));
+        if (btnTuneDownSlow != null) btnTuneDownSlow.setTooltip(new Tooltip("−" + slow));
+        if (btnTuneUpSlow   != null) btnTuneUpSlow  .setTooltip(new Tooltip("+" + slow));
+        if (btnTuneDownFast != null) btnTuneDownFast.setTooltip(new Tooltip("−" + fast));
+        if (btnTuneUpFast   != null) btnTuneUpFast  .setTooltip(new Tooltip("+" + fast));
     }
+
+    private static String formatStepHz(long hz) {
+        return (hz % 1000 == 0) ? (hz / 1000) + " kHz" : hz + " Hz";
+    }
+
+    /** Shift the rig's frequency by deltaHz. Reads the cached
+     *  lastRigStatus.frequency as the baseline so the steps add to whatever
+     *  the rig actually reports, not what j-log might have predicted from a
+     *  prior Set. No-op when no RIG_STATUS has arrived yet. */
+    private void tuneStep(long deltaHz) {
+        if (lastRigStatus == null) return;
+        long base = lastRigStatus.path("frequency").asLong(0);
+        if (base <= 0) return;
+        long next = base + deltaHz;
+        if (next <= 0) return;
+        HubEngine.getInstance().sendSetFreq(next);
+    }
+
+    @FXML private void tuneDownFast() { tuneStep(-TS_STEPS_HZ[tsStepIdx] * 10); }
+    @FXML private void tuneDownSlow() { tuneStep(-TS_STEPS_HZ[tsStepIdx]);      }
+    @FXML private void tuneUpSlow()   { tuneStep(+TS_STEPS_HZ[tsStepIdx]);      }
+    @FXML private void tuneUpFast()   { tuneStep(+TS_STEPS_HZ[tsStepIdx] * 10); }
 
     /** Push rig freq/mode into the entry form unconditionally — called by
      *  updateRigStatus when auto-track is enabled. Kept separate from the

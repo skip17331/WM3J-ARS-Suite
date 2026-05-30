@@ -365,6 +365,23 @@
                         </Button>
                     </HBox>
 
+                    <!-- Chevron tune buttons. Step magnitude is set by the
+                         TS button on the keypad (cycles 10 Hz → 25 kHz);
+                         ‹ / › use the TS-selected slow step, « / » use 10×
+                         (fast). Tooltips live-update from refreshTsTooltip
+                         so hover always shows the current ±delta. -->
+                    <HBox spacing="4" alignment="CENTER_LEFT">
+                        <Label text="Tune:" styleClass="entry-label"/>
+                        <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
+                                styleClass="rig-keypad-btn"/>
+                    </HBox>
+
                     <!-- Waterfall + S-meter moved out of this pane and
                          under Data Entry (per mockup refinement). -->
 
