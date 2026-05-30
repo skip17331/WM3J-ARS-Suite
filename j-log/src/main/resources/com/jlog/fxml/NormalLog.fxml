@@ -110,8 +110,11 @@
             <VBox spacing="0">
             <StackPane VBox.vgrow="ALWAYS">
             <HBox spacing="0" styleClass="entry-split">
-            <TitledPane fx:id="entryPane" text="%pane.entry" collapsible="false" styleClass="entry-pane"
-                        HBox.hgrow="ALWAYS" prefWidth="1000">
+            <!-- Left column: Data Entry with Station Info / Bearing-Distance /
+                 Space Wx directly beneath it (filling the space left of the
+                 taller Rig Control pane). -->
+            <VBox spacing="0" HBox.hgrow="ALWAYS" prefWidth="1000">
+            <TitledPane fx:id="entryPane" text="%pane.entry" collapsible="false" styleClass="entry-pane">
                 <VBox spacing="6">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
                     <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
@@ -182,6 +185,73 @@
 
                 </VBox>
             </TitledPane>
+
+            <!-- Station Info / Bearing-Distance / Space Wx — moved here from the
+                 lower info-pane-row to sit directly under Data Entry. -->
+            <HBox spacing="0" styleClass="info-pane-row">
+                <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
+                    <VBox spacing="4" styleClass="info-content">
+                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
+                        <HBox spacing="8">
+                            <Label text="%label.country"/>
+                            <Label fx:id="lblCountry" styleClass="info-value"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="%label.continent"/>
+                            <Label fx:id="lblContinent" styleClass="info-value"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+                <TitledPane text="%pane.bearing" collapsible="false" HBox.hgrow="ALWAYS">
+                    <VBox spacing="4" styleClass="info-content">
+                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
+                        <HBox spacing="8">
+                            <Label text="%label.bearing"/>
+                            <Label fx:id="lblBearing" styleClass="info-value"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="%label.distance"/>
+                            <Label fx:id="lblDistance" styleClass="info-value"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+                <TitledPane fx:id="spaceWxPane" text="Space Wx" collapsible="false" HBox.hgrow="ALWAYS">
+                    <GridPane hgap="14" vgap="4" styleClass="info-content">
+                        <padding><Insets top="6" right="10" bottom="6" left="10"/></padding>
+                        <columnConstraints>
+                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="50"/>
+                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="60"/>
+                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="50"/>
+                        </columnConstraints>
+
+                        <!-- Row 0 — SFI | K | SSN -->
+                        <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarSfi" styleClass="info-value"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarK"   styleClass="info-value"
+                               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                        <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarSsn" styleClass="info-value"
+                               GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+
+                        <!-- Row 1 — X-Ray | Wind | Geomag -->
+                        <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarXray" styleClass="info-value"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarWind" styleClass="info-value"
+                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                        <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarGeo"  styleClass="info-value"
+                               GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                    </GridPane>
+                </TitledPane>
+            </HBox>
+            </VBox>
 
             <!-- Rig Control pane — radio-front-panel layout (per WM3J mockup
                  2026-05-29). Big yellow VFO display on top with compact
@@ -481,71 +551,10 @@
                  can drag the row-split divider freely; pane will collapse
                  if dragged all the way down. -->
             <HBox spacing="0" styleClass="info-pane-row">
-                <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
-                    <VBox spacing="4" styleClass="info-content">
-                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
-                        <HBox spacing="8">
-                            <Label text="%label.country"/>
-                            <Label fx:id="lblCountry" styleClass="info-value"/>
-                        </HBox>
-                        <HBox spacing="8">
-                            <Label text="%label.continent"/>
-                            <Label fx:id="lblContinent" styleClass="info-value"/>
-                        </HBox>
-                    </VBox>
-                </TitledPane>
-                <TitledPane text="%pane.bearing" collapsible="false" HBox.hgrow="ALWAYS">
-                    <VBox spacing="4" styleClass="info-content">
-                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
-                        <HBox spacing="8">
-                            <Label text="%label.bearing"/>
-                            <Label fx:id="lblBearing" styleClass="info-value"/>
-                        </HBox>
-                        <HBox spacing="8">
-                            <Label text="%label.distance"/>
-                            <Label fx:id="lblDistance" styleClass="info-value"/>
-                        </HBox>
-                    </VBox>
-                </TitledPane>
-                <TitledPane fx:id="spaceWxPane" text="Space Wx" collapsible="false" HBox.hgrow="ALWAYS">
-                    <GridPane hgap="14" vgap="4" styleClass="info-content">
-                        <padding><Insets top="6" right="10" bottom="6" left="10"/></padding>
-                        <columnConstraints>
-                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
-                            <ColumnConstraints halignment="LEFT"  minWidth="50"/>
-                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
-                            <ColumnConstraints halignment="LEFT"  minWidth="60"/>
-                            <ColumnConstraints halignment="RIGHT" minWidth="42"/>
-                            <ColumnConstraints halignment="LEFT"  minWidth="50"/>
-                        </columnConstraints>
-
-                        <!-- Row 0 — SFI | K | SSN -->
-                        <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <Label fx:id="lblSolarSfi" styleClass="info-value"
-                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                        <Label fx:id="lblSolarK"   styleClass="info-value"
-                               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-                        <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
-                        <Label fx:id="lblSolarSsn" styleClass="info-value"
-                               GridPane.columnIndex="5" GridPane.rowIndex="0"/>
-
-                        <!-- Row 1 — X-Ray | Wind | Geomag -->
-                        <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <Label fx:id="lblSolarXray" styleClass="info-value"
-                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                        <Label fx:id="lblSolarWind" styleClass="info-value"
-                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                        <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
-                        <Label fx:id="lblSolarGeo"  styleClass="info-value"
-                               GridPane.columnIndex="5" GridPane.rowIndex="1"/>
-                    </GridPane>
-                </TitledPane>
-
-                <!-- 4th info-row pane: live "Previous QSOs with <CALL>" lookup,
-                     auto-populated from the local log as the operator types into
-                     the Callsign entry field above. -->
+                <!-- Station Info / Bearing / Space Wx moved up under Data Entry;
+                     this lower row now carries the live "Previous QSOs with
+                     <CALL>" lookup, auto-populated from the local log as the
+                     operator types into the Callsign entry field above. -->
                 <TitledPane fx:id="prevQsosPane" text="Previous QSOs"
                             collapsible="false" HBox.hgrow="ALWAYS">
                     <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="60">
