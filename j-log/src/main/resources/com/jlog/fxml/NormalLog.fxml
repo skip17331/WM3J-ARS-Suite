@@ -180,23 +180,6 @@
                            GridPane.columnSpan="12" maxWidth="Infinity"/>
                 </GridPane>
 
-                <!-- Live S-meter under Data Entry (per WM3J 2026-05-29 mockup).
-                     Segment LED bar driven from RIG_STATUS sMeterDb (Hamlib
-                     STRENGTH). The waterfall placeholder was removed — it would
-                     need a spectrum/IQ source j-log doesn't have. -->
-                <HBox spacing="4">
-                    <padding><Insets top="0" right="10" bottom="6" left="10"/></padding>
-                    <VBox styleClass="rig-meter" alignment="CENTER_LEFT"
-                          minHeight="80" prefHeight="90" maxHeight="120"
-                          minWidth="180" prefWidth="200" maxWidth="240"
-                          spacing="3">
-                        <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
-                        <Label text="S - METER" styleClass="rig-meter-title"/>
-                        <HBox fx:id="sMeterSegments" spacing="1" alignment="CENTER_LEFT"/>
-                        <Label text=" 1   3   5   7   9 +20 +40 +60"
-                               styleClass="rig-meter-tick"/>
-                    </VBox>
-                </HBox>
                 </VBox>
             </TitledPane>
 
@@ -280,6 +263,9 @@
                          band-jump OR digit-append based on keypadMode.
                          Fixed-width buttons — the pane does NOT stretch
                          them when the operator widens the rig area. -->
+                    <!-- Keypad on the left; S-meter + tuning chevrons in a
+                         right-hand column (fills the space beside the keypad). -->
+                    <HBox spacing="8" alignment="TOP_LEFT">
                     <GridPane fx:id="rigKeypad" hgap="3" vgap="3">
                         <!-- Row 0: 1.8/1   3.5/2   7/3    F-INP -->
                         <Button fx:id="btnKey1" text="1.8 / 1"
@@ -375,6 +361,36 @@
                             <tooltip><Tooltip text="23 cm (1296.1 MHz)"/></tooltip>
                         </Button>
                     </GridPane>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <!-- Right column: live S-meter on top, tuning chevrons beneath. -->
+                    <VBox spacing="6" alignment="TOP_RIGHT">
+                        <VBox styleClass="rig-meter" alignment="CENTER_LEFT"
+                              minHeight="80" prefHeight="90" maxHeight="120"
+                              minWidth="180" prefWidth="200" maxWidth="240"
+                              spacing="3">
+                            <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
+                            <Label text="S - METER" styleClass="rig-meter-title"/>
+                            <HBox fx:id="sMeterSegments" spacing="1" alignment="CENTER_LEFT"/>
+                            <Label text=" 1   3   5   7   9 +20 +40 +60"
+                                   styleClass="rig-meter-tick"/>
+                        </VBox>
+                        <!-- Chevron tune buttons. Step magnitude is set by the
+                             TS button on the keypad (cycles 10 Hz → 25 kHz);
+                             ‹ / › use the TS-selected slow step, « / » use 10×
+                             (fast). Tooltips live-update from refreshTsTooltip. -->
+                        <HBox spacing="4" alignment="CENTER_LEFT">
+                            <Label text="Tune:" styleClass="entry-label"/>
+                            <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
+                                    styleClass="rig-keypad-btn"/>
+                        </HBox>
+                    </VBox>
+                    </HBox>
 
                     <!-- P.AMP/ATT + NB (placeholders) -->
                     <HBox spacing="4">
@@ -386,23 +402,6 @@
                                 styleClass="rig-keypad-btn,coming-soon" disable="true">
                             <tooltip><Tooltip text="Noise blanker (coming soon)"/></tooltip>
                         </Button>
-                    </HBox>
-
-                    <!-- Chevron tune buttons. Step magnitude is set by the
-                         TS button on the keypad (cycles 10 Hz → 25 kHz);
-                         ‹ / › use the TS-selected slow step, « / » use 10×
-                         (fast). Tooltips live-update from refreshTsTooltip
-                         so hover always shows the current ±delta. -->
-                    <HBox spacing="4" alignment="CENTER_LEFT">
-                        <Label text="Tune:" styleClass="entry-label"/>
-                        <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
-                                styleClass="rig-keypad-btn"/>
                     </HBox>
 
                     <!-- RIT / XIT offset controls. Each: enable toggle (lights
