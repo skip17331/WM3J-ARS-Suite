@@ -251,6 +251,22 @@
                     </GridPane>
                 </TitledPane>
             </HBox>
+
+            <!-- Previous QSOs — directly under the Station Info / Bearing /
+                 Space Wx row (moved up from the old full-width lower row). -->
+            <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="false">
+                <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="60">
+                    <columns>
+                        <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
+                        <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
+                        <TableColumn fx:id="colPqMode"  text="Mode"        prefWidth="60"/>
+                        <TableColumn fx:id="colPqRstS"  text="RST S"       prefWidth="50"/>
+                        <TableColumn fx:id="colPqRstR"  text="RST R"       prefWidth="50"/>
+                        <TableColumn fx:id="colPqState" text="State"       prefWidth="60"/>
+                        <TableColumn fx:id="colPqNotes" text="Notes"       prefWidth="160"/>
+                    </columns>
+                </TableView>
+            </TitledPane>
             </VBox>
 
             <!-- Rig Control pane — radio-front-panel layout (per WM3J mockup
@@ -575,30 +591,6 @@
             <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
                   alignment="CENTER_LEFT"/>
             </VBox>
-
-            <!-- rowSplit child 2: info-pane-row. No minHeight — operator
-                 can drag the row-split divider freely; pane will collapse
-                 if dragged all the way down. -->
-            <HBox spacing="0" styleClass="info-pane-row">
-                <!-- Station Info / Bearing / Space Wx moved up under Data Entry;
-                     this lower row now carries the live "Previous QSOs with
-                     <CALL>" lookup, auto-populated from the local log as the
-                     operator types into the Callsign entry field above. -->
-                <TitledPane fx:id="prevQsosPane" text="Previous QSOs"
-                            collapsible="false" HBox.hgrow="ALWAYS">
-                    <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="60">
-                        <columns>
-                            <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
-                            <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
-                            <TableColumn fx:id="colPqMode"  text="Mode"        prefWidth="60"/>
-                            <TableColumn fx:id="colPqRstS"  text="RST S"       prefWidth="50"/>
-                            <TableColumn fx:id="colPqRstR"  text="RST R"       prefWidth="50"/>
-                            <TableColumn fx:id="colPqState" text="State"       prefWidth="60"/>
-                            <TableColumn fx:id="colPqNotes" text="Notes"       prefWidth="160"/>
-                        </columns>
-                    </TableView>
-                </TitledPane>
-            </HBox>
             </SplitPane>
         </VBox>
     </top>
