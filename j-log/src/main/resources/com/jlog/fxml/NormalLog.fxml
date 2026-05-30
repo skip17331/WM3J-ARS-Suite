@@ -112,6 +112,7 @@
             <HBox spacing="0" styleClass="entry-split">
             <TitledPane fx:id="entryPane" text="%pane.entry" collapsible="false" styleClass="entry-pane"
                         HBox.hgrow="ALWAYS" prefWidth="1000">
+                <VBox spacing="6">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
                     <padding><Insets top="8" left="10" right="10" bottom="8"/></padding>
 
@@ -178,106 +179,198 @@
                            GridPane.columnIndex="0" GridPane.rowIndex="3"
                            GridPane.columnSpan="12" maxWidth="Infinity"/>
                 </GridPane>
+
+                <!-- Waterfall + S-meter placeholders. Moved under Data Entry
+                     (out of the Rig Control pane) per WM3J 2026-05-29 mockup
+                     refinement. Waterfall needs a spectrum source (FFT over
+                     rig audio I/Q); S-meter needs Hamlib RSSI in RIG_STATUS.
+                     Both aspirational placeholders for now. -->
+                <HBox spacing="4">
+                    <padding><Insets top="0" right="10" bottom="6" left="10"/></padding>
+                    <VBox styleClass="rig-waterfall,coming-soon" HBox.hgrow="ALWAYS"
+                          alignment="CENTER" minHeight="60" prefHeight="80" maxHeight="120">
+                        <Label text="Waterfall" styleClass="rig-waterfall-lbl"/>
+                    </VBox>
+                    <!-- Faux S-meter: segment LED bar with green→red gradient.
+                         Controller builds 13 segments at init; static
+                         placeholder lights up to S5 until Hamlib RSSI is
+                         plumbed through RIG_STATUS. -->
+                    <VBox styleClass="rig-meter" alignment="CENTER_LEFT"
+                          minHeight="80" prefHeight="90" maxHeight="120"
+                          minWidth="180" prefWidth="200" maxWidth="240"
+                          spacing="3">
+                        <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
+                        <Label text="S - METER" styleClass="rig-meter-title"/>
+                        <HBox fx:id="sMeterSegments" spacing="1" alignment="CENTER_LEFT"/>
+                        <Label text=" 1   3   5   7   9 +20 +40 +60"
+                               styleClass="rig-meter-tick"/>
+                    </VBox>
+                </HBox>
+                </VBox>
             </TitledPane>
 
-            <!-- Rig Control pane — Tier 1: read-only display of RIG_STATUS
-                 from j-hub + buttons to copy rig freq/mode into the entry
-                 form. Always shows the grid + buttons (with "—" defaults
-                 until j-hub publishes a RIG_STATUS); the whole pane is
-                 hidden if the operator switches off Rig Control in j-hub's
-                 J-Log card (CONFIG_UPDATE settings.rigControlVisible). -->
-            <TitledPane fx:id="rigControlPane" text="Rig Control"
-                        collapsible="false" styleClass="entry-pane"
-                        prefWidth="280">
-                <VBox spacing="4" alignment="TOP_LEFT" styleClass="rig-pane">
-                    <padding><Insets top="8" right="10" bottom="8" left="10"/></padding>
-                    <!-- Liveness indicator. NormalLogController ticks a 1s
-                         Timeline that compares now() to the last RIG_STATUS
-                         timestamp; the dot flips green when fresh (<3s) and
-                         gray when stale, so an offline rigctld or a never
-                         connected rig is visible at a glance. -->
-                    <HBox spacing="6" alignment="CENTER_LEFT" styleClass="rig-live-row">
+            <!-- Rig Control pane — radio-front-panel layout (per WM3J mockup
+                 2026-05-29). Big yellow VFO display on top with compact
+                 status grid below it, then mode/feature buttons, then a
+                 3×4 dual-label band/keypad grid with F-INP toggle for
+                 number-pad mode. Disabled buttons (.coming-soon) are
+                 placeholders for j-hub backend commands not yet
+                 implemented (SPLIT, A/B, SET, Filter, P.AMP/ATT, NB,
+                 Waterfall, S-meter). The whole pane is hidden if the
+                 operator switches off Rig Control in j-hub's J-Log
+                 card (CONFIG_UPDATE settings.rigControlVisible). -->
+            <TitledPane fx:id="rigControlPane" collapsible="false"
+                        styleClass="entry-pane" prefWidth="380" text="">
+                <!-- Title bar: "Rig Control" on the left, liveness dot +
+                     status on the right. The HBox's prefWidth is bound
+                     to the TitledPane's width in NormalLogController so
+                     it spans the full title-bar minus the arrow inset. -->
+                <graphic>
+                    <HBox fx:id="rigTitleBar" alignment="CENTER_LEFT" spacing="8">
+                        <Label text="Rig Control" styleClass="rig-title-label"/>
+                        <Region HBox.hgrow="ALWAYS"/>
                         <Region fx:id="rigLiveDot" prefWidth="10" prefHeight="10"
                                 minWidth="10" minHeight="10" maxWidth="10" maxHeight="10"
                                 styleClass="rig-dot,rig-dot-stale"/>
                         <Label fx:id="lblRigLive" text="No rig" styleClass="rig-live-label"/>
                     </HBox>
-                    <GridPane hgap="8" vgap="2" fx:id="rigGrid">
-                        <Label text="Freq"  GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="entry-label"/>
-                        <Label fx:id="lblRigFreq" text="—"
-                               GridPane.columnIndex="1" GridPane.rowIndex="0"
-                               styleClass="rig-freq"/>
-                        <Label text="Mode"  GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="entry-label"/>
-                        <Label fx:id="lblRigMode" text="—"
-                               GridPane.columnIndex="1" GridPane.rowIndex="1"
-                               styleClass="rig-value"/>
-                        <Label text="Band"  GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="entry-label"/>
-                        <Label fx:id="lblRigBand" text="—"
-                               GridPane.columnIndex="1" GridPane.rowIndex="2"
-                               styleClass="rig-value"/>
-                        <Label text="Power" GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="entry-label"/>
-                        <Label fx:id="lblRigPower" text="—"
-                               GridPane.columnIndex="1" GridPane.rowIndex="3"
-                               styleClass="rig-value"/>
-                    </GridPane>
-                    <!-- Rig ←→ Entry buttons. Left column copies the cached
-                         RIG_STATUS into the entry form; right column pushes
-                         the entry form's value out to the rig via j-hub
-                         (SET_FREQ / SET_MODE → rigctld). -->
-                    <GridPane hgap="6" vgap="4" fx:id="rigButtonBar">
-                        <Button text="← Use Freq" onAction="#useRigFreq"
-                                styleClass="secondary-button" maxWidth="Infinity"
-                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <Button text="Set Freq →" onAction="#setRigFreq"
-                                styleClass="secondary-button" maxWidth="Infinity"
-                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <Button text="← Use Mode" onAction="#useRigMode"
-                                styleClass="secondary-button" maxWidth="Infinity"
-                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <Button text="Set Mode →" onAction="#setRigMode"
-                                styleClass="secondary-button" maxWidth="Infinity"
-                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="50"/>
-                            <ColumnConstraints percentWidth="50"/>
-                        </columnConstraints>
-                    </GridPane>
-                    <!-- Quick band jump. Selecting a band fires a SET_FREQ to
-                         the band's typical operating center via j-hub; the
-                         rig's own RIG_STATUS reply will repaint the grid
-                         above. Operator can fine-tune from there. Empty
-                         first item so the dropdown can be re-selected to
-                         the same band (onAction fires on selection). -->
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label text="Quick band:" styleClass="entry-label"/>
-                        <ChoiceBox fx:id="cbRigBand" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                    </HBox>
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label text="Quick mode:" styleClass="entry-label"/>
-                        <ChoiceBox fx:id="cbRigMode" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                </graphic>
+                <VBox spacing="6" alignment="TOP_LEFT" styleClass="rig-pane">
+                    <padding><Insets top="6" right="8" bottom="6" left="8"/></padding>
+
+                    <!-- Big yellow VFO display. Band/Mode stacked on the
+                         left, frequency fills the right side big. When
+                         F-INP keypad mode is active, lblRigDisplayFreq
+                         shows the in-progress buffer instead. -->
+                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="rig-display">
+                        <VBox spacing="2" alignment="CENTER_LEFT">
+                            <Label fx:id="lblRigDisplayBand" text="Band: —"
+                                   styleClass="rig-display-label"/>
+                            <Label fx:id="lblRigDisplayMode" text="Mode: —"
+                                   styleClass="rig-display-label"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblRigDisplayFreq" text="—"
+                               styleClass="rig-display-freq"
+                               style="-fx-font-size: 56px;"
+                               alignment="CENTER_RIGHT"/>
                     </HBox>
 
-                    <!-- Tuning step + chevron buttons. Step ChoiceBox sets
-                         the SLOW step; the FAST step is 10x. Each click on
-                         a chevron reads cached lastRigStatus.frequency,
-                         adds (±slow) or (±slow*10), and fires SET_FREQ.
-                         No-op when there's no RIG_STATUS yet (otherwise
-                         we'd be guessing the baseline). -->
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label text="Step:" styleClass="entry-label"/>
-                        <ChoiceBox fx:id="cbRigStep" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <!-- Top toolbar (mockup row 2): ANT 1/2 | SET SSB CW/RTTY
+                         AM/FM | Filter. Fixed-size buttons; spacers carry
+                         the visual grouping. -->
+                    <HBox spacing="4" alignment="CENTER_LEFT">
+                        <Button fx:id="btnRigAnt1" text="ANT 1" onAction="#rigAnt1"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnRigAnt2" text="ANT 2" onAction="#rigAnt2"
+                                styleClass="rig-keypad-btn"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnRigSet" text="SET"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true">
+                            <tooltip><Tooltip text="Settings (coming soon)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnRigModeSsb" text="SSB" onAction="#rigModeSsb"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnRigModeCwRtty" text="CW/RTTY" onAction="#rigModeCwRtty"
+                                styleClass="rig-keypad-btn"/>
+                        <Button fx:id="btnRigModeAmFm" text="AM/FM" onAction="#rigModeAmFm"
+                                styleClass="rig-keypad-btn"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnRigFilter" text="Filter"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true">
+                            <tooltip><Tooltip text="Rig filter select (coming soon)"/></tooltip>
+                        </Button>
                     </HBox>
-                    <HBox spacing="4" alignment="CENTER_LEFT" styleClass="rig-tune-row">
-                        <Label text="Tune:" styleClass="entry-label"/>
-                        <Button fx:id="btnTuneDownFast" text="«" onAction="#tuneDownFast"
-                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <Button fx:id="btnTuneDownSlow" text="‹" onAction="#tuneDownSlow"
-                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <Button fx:id="btnTuneUpSlow" text="›" onAction="#tuneUpSlow"
-                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-                        <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
-                                styleClass="secondary-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+
+                    <!-- Band / keypad grid (mockup rows 3-6). Each cell's
+                         primary label is a band freq in MHz (1.8 = 160m,
+                         3.5 = 80m, etc.); secondary "/N" is the keypad
+                         digit revealed when F-INP toggles keypad mode.
+                         NormalLogController dispatches each click to
+                         band-jump OR digit-append based on keypadMode.
+                         Fixed-width buttons — the pane does NOT stretch
+                         them when the operator widens the rig area. -->
+                    <GridPane fx:id="rigKeypad" hgap="3" vgap="3">
+                        <!-- Row 0: 1.8/1   3.5/2   7/3    F-INP -->
+                        <Button fx:id="btnKey1" text="1.8 / 1"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Button fx:id="btnKey2" text="3.5 / 2"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Button fx:id="btnKey3" text="7 / 3"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        <Button fx:id="btnRigFInp" text="F-INP" onAction="#rigFInpToggle"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="3" GridPane.rowIndex="0">
+                            <tooltip><Tooltip text="Direct frequency input — keypad mode"/></tooltip>
+                        </Button>
+                        <!-- Row 1: 10/4   14/5   18/6    SPLIT -->
+                        <Button fx:id="btnKey4" text="10 / 4"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Button fx:id="btnKey5" text="14 / 5"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Button fx:id="btnKey6" text="18 / 6"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <Button fx:id="btnRigSplit" text="SPLIT"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true"
+                                GridPane.columnIndex="3" GridPane.rowIndex="1">
+                            <tooltip><Tooltip text="Split-frequency op (coming soon)"/></tooltip>
+                        </Button>
+                        <!-- Row 2: 21/7   24/8   28/9    A/B -->
+                        <Button fx:id="btnKey7" text="21 / 7"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <Button fx:id="btnKey8" text="24 / 8"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        <Button fx:id="btnKey9" text="28 / 9"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                        <Button fx:id="btnRigVfoSwap" text="A / B"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true"
+                                GridPane.columnIndex="3" GridPane.rowIndex="2">
+                            <tooltip><Tooltip text="Swap VFO A/B (coming soon)"/></tooltip>
+                        </Button>
+                        <!-- Row 3: GENE/.   50/0   144/ENT   TS -->
+                        <Button fx:id="btnKeyGen" text="GENE / ."
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                        <Button fx:id="btnKey0" text="50 / 0"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        <Button fx:id="btnKeyEnt" text="144 / ENT"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                        <Button fx:id="btnRigTs" text="TS" onAction="#rigTsCycle"
+                                styleClass="rig-keypad-btn"
+                                GridPane.columnIndex="3" GridPane.rowIndex="3">
+                            <tooltip><Tooltip text="Tuning Step"/></tooltip>
+                        </Button>
+                    </GridPane>
+
+                    <!-- P.AMP/ATT + NB (placeholders) -->
+                    <HBox spacing="4">
+                        <Button fx:id="btnRigPampAtt" text="P.AMP/ATT"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true">
+                            <tooltip><Tooltip text="Preamp / Attenuator (coming soon)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnRigNb" text="NB"
+                                styleClass="rig-keypad-btn,coming-soon" disable="true">
+                            <tooltip><Tooltip text="Noise blanker (coming soon)"/></tooltip>
+                        </Button>
                     </HBox>
+
+                    <!-- Waterfall + S-meter moved out of this pane and
+                         under Data Entry (per mockup refinement). -->
+
+                    <!-- Auto-track rig: when checked, every RIG_STATUS
+                         auto-fills the entry-form Freq + Mode. Off by
+                         default so the operator opts in. -->
                     <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>
@@ -308,6 +401,13 @@
                 <Button text="Stop"  onAction="#stopActivation"/>
                 <Label fx:id="lblActivationStatus" style="-fx-font-style: italic;"/>
             </HBox>
+
+            <!-- F1-F12 macro buttons. NormalLogController.initMacroBar()
+                 populates this HBox with one Button per slot. Lives in the
+                 rowSplit's top VBox so it sits directly above the Station
+                 Info banner (per WM3J 2026-05-29 layout). -->
+            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
+                  alignment="CENTER_LEFT"/>
             </VBox>
 
             <!-- rowSplit child 2: info-pane-row. No minHeight — operator
@@ -409,15 +509,9 @@
          ============================================================ -->
     <center>
         <VBox>
-            <!-- Macro button bar removed from the center area — the
-                 4 top-row info panes absorb the vertical space it
-                 used to occupy. MacroEngine still references the
-                 fx:id below (controller wires F-key handlers) but
-                 the bar is hidden + zero-height + zero-padding so
-                 it contributes no visible chrome. If macros need to
-                 surface again, raise visible/managed and prefHeight. -->
-            <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
-                  visible="false" managed="false"/>
+            <!-- Macro button bar now lives in the rowSplit's top VBox
+                 (just above the Station Info banner) — see above. -->
+
 
             <!-- CW / Digital keyer (the "transmit pane"). Always visible
                  (Tools menu toggle can hide it). minHeight=USE_PREF_SIZE

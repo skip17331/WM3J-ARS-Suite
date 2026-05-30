@@ -84,65 +84,48 @@ public class NormalLogController implements Initializable {
     @FXML private TitledPane entryPane;
     @FXML private TitledPane rigControlPane;
     @FXML private Region     entryDragHandle;
-    @FXML private GridPane   rigGrid;
-    @FXML private Label      lblRigFreq;
-    @FXML private Label      lblRigMode;
-    @FXML private Label      lblRigBand;
-    @FXML private Label      lblRigPower;
-    @FXML private GridPane   rigButtonBar;
+    @FXML private SplitPane  rowSplit;
+    // Compact Freq/Mode/Band/Power grid removed per mockup — the big yellow
+    // VFO display owns this data now. Power field would need a header label
+    // somewhere else if we revive it later.
     @FXML private CheckBox   cbRigAutoTrack;
-    @FXML private ChoiceBox<String> cbRigBand;
-    @FXML private ChoiceBox<String> cbRigMode;
-    @FXML private ChoiceBox<String> cbRigStep;
-    @FXML private Button     btnTuneDownFast;
-    @FXML private Button     btnTuneDownSlow;
-    @FXML private Button     btnTuneUpSlow;
-    @FXML private Button     btnTuneUpFast;
-    /** Step picker labels paired with their slow-step Hz. The FAST step
-     *  used by « / » is always 10x the slow step. Default "100 Hz" matches
-     *  the original Tier 1 fixed step so existing muscle memory survives. */
-    private static final java.util.LinkedHashMap<String, Long> RIG_STEPS =
-        new java.util.LinkedHashMap<>() {{
-            put("10 Hz",     10L);
-            put("50 Hz",     50L);
-            put("100 Hz",   100L);
-            put("500 Hz",   500L);
-            put("1 kHz",   1_000L);
-            put("5 kHz",   5_000L);
-            put("10 kHz", 10_000L);
-            put("25 kHz", 25_000L);
-        }};
-    /** Currently-selected slow step in Hz. Fast = 10x. Mutable so the
-     *  picker can update it without rewiring button handlers. */
-    private volatile long slowStepHz = 100;
-    /** Quick-mode picker values — direct Hamlib mode strings so j-hub's
-     *  tune() forwards them verbatim to rigctld. PKTUSB / PKTLSB cover
-     *  the digital modes (FT8/FT4/PSK over USB or LSB); operators wanting
-     *  a non-listed mode can type it into the entry-form Mode field. */
-    private static final java.util.List<String> RIG_MODES = java.util.List.of(
-        "USB", "LSB", "CW", "CWR", "AM", "FM", "RTTY", "PKTUSB", "PKTLSB");
+    @FXML private Label      lblRigDisplayBand;
+    @FXML private Label      lblRigDisplayFreq;
+    @FXML private Label      lblRigDisplayMode;
+    @FXML private Button     btnRigAnt1, btnRigAnt2;
+    @FXML private Button     btnRigModeSsb, btnRigModeCwRtty, btnRigModeAmFm;
+    @FXML private Button     btnRigFInp, btnRigTs;
+    @FXML private Button     btnKey1, btnKey2, btnKey3, btnKey4, btnKey5,
+                             btnKey6, btnKey7, btnKey8, btnKey9, btnKey0,
+                             btnKeyGen, btnKeyEnt;
     @FXML private Region     rigLiveDot;
     @FXML private Label      lblRigLive;
-    /** Band → typical SSB phone center in Hz, used by the Rig Control pane's
-     *  "Quick band" picker. Values are mid-band starting points; the
-     *  operator fine-tunes from there. CW/digital operators can ignore the
-     *  picker and type into the entry-form Frequency field directly. */
-    private static final java.util.LinkedHashMap<String, Long> BAND_CENTERS =
-        new java.util.LinkedHashMap<>() {{
-            put("160m",   1_910_000L);
-            put("80m",    3_800_000L);
-            put("60m",    5_357_000L);
-            put("40m",    7_200_000L);
-            put("30m",   10_130_000L);
-            put("20m",   14_250_000L);
-            put("17m",   18_140_000L);
-            put("15m",   21_300_000L);
-            put("12m",   24_940_000L);
-            put("10m",   28_400_000L);
-            put("6m",    50_150_000L);
-            put("2m",   146_500_000L);
-            put("70cm", 446_000_000L);
-        }};
+    /** F-INP keypad mode. False = each band/keypad button jumps to its
+     *  primary band on click; true = appends its secondary digit ("." or
+     *  "ENT") into keypadBuffer. ENT commits the buffer as MHz → SET_FREQ. */
+    private volatile boolean keypadMode = false;
+    private final StringBuilder keypadBuffer = new StringBuilder();
+    /** TS button cycles through these. Not bound to chevron-tune buttons
+     *  in this layout (the mockup dropped them); reserved for a future
+     *  keyboard-shortcut bind. Tooltip on btnRigTs shows the current. */
+    private static final long[] TS_STEPS_HZ = {10, 50, 100, 500, 1_000, 5_000, 10_000, 25_000};
+    private volatile int tsStepIdx = 2; // start at 100 Hz
+    /** Band keypad primary action: each digit (1-9, 0, ENT) maps to the
+     *  band-jump frequency for the band labeled on the button. ENT key
+     *  (the "144 / ENT" button) doubles as commit in keypad mode. */
+    private static final java.util.Map<String, Long> KEYPAD_BAND_HZ = java.util.Map.ofEntries(
+        java.util.Map.entry("1", 1_810_000L),   // 1.8 = 160m
+        java.util.Map.entry("2", 3_750_000L),   // 3.5 = 80m
+        java.util.Map.entry("3", 7_200_000L),   // 7   = 40m
+        java.util.Map.entry("4", 10_130_000L),  // 10  = 30m
+        java.util.Map.entry("5", 14_250_000L),  // 14  = 20m
+        java.util.Map.entry("6", 18_140_000L),  // 18  = 17m
+        java.util.Map.entry("7", 21_300_000L),  // 21  = 15m
+        java.util.Map.entry("8", 24_940_000L),  // 24  = 12m
+        java.util.Map.entry("9", 28_400_000L),  // 28  = 10m
+        java.util.Map.entry("0", 50_150_000L),  // 50  = 6m
+        java.util.Map.entry("ENT", 146_500_000L)// 144 = 2m
+    );
     /** Last RIG_STATUS payload from j-hub, cached so the "Use Rig Freq/Mode"
      *  buttons can read it on click. Null until the first message arrives. */
     private volatile com.fasterxml.jackson.databind.JsonNode lastRigStatus;
@@ -155,6 +138,8 @@ public class NormalLogController implements Initializable {
      *  j-hub's default poll cadence is 500ms, so a 3s window tolerates a
      *  handful of dropped polls before flipping to "Stale". */
     private static final long RIG_LIVE_THRESHOLD_MS = 3000;
+    @FXML private HBox       rigTitleBar;
+    @FXML private HBox       sMeterSegments;
     @FXML private TitledPane spaceWxPane;
     @FXML private Label lblSolarSfi;
     @FXML private Label lblSolarK;
@@ -270,9 +255,9 @@ public class NormalLogController implements Initializable {
         initBandWarning();
         initEntryDragHandle();
         initRigLiveIndicator();
-        initRigBandPicker();
-        initRigModePicker();
-        initRigStepPicker();
+        initRigKeypad();
+        initRigTitleBar();
+        initSMeter();
         loadQsos();
         initQrzLookup();
 
@@ -440,55 +425,74 @@ public class NormalLogController implements Initializable {
      *  when checked, every RIG_STATUS pushes freq + mode into the entry form
      *  (off by default so the user opts into rig-driven autofill). */
     private void updateRigStatus(com.fasterxml.jackson.databind.JsonNode node) {
-        if (node == null || lblRigFreq == null) return;
+        if (node == null || lblRigDisplayFreq == null) return;
         lastRigStatus = node;
         lastRigStatusMs = System.currentTimeMillis();
 
-        long   freqHz = node.path("frequency").asLong(0);
-        String mode   = node.path("mode").asText("");
-        String band   = node.path("band").asText("");
-        int    power  = node.path("power").asInt(0);
-
-        lblRigFreq.setText(freqHz > 0
-            ? String.format("%.3f MHz", freqHz / 1_000_000.0) : "—");
-        lblRigMode.setText(mode.isEmpty() ? "—" : mode);
-        lblRigBand.setText(band.isEmpty() ? "—" : band);
-        lblRigPower.setText(power > 0 ? power + " W" : "—");
+        // Big yellow VFO display — unless keypad mode is mid-entry, in
+        // which case paintBigDisplayFromBuffer owns the freq label.
+        if (!keypadMode) repaintBigDisplay(node);
 
         if (cbRigAutoTrack != null && cbRigAutoTrack.isSelected()) {
+            long   freqHz = node.path("frequency").asLong(0);
+            String mode   = node.path("mode").asText("");
             applyRigToEntry(freqHz, mode);
         }
     }
 
-    /** Populate the Quick band ChoiceBox + wire selection to a SET_FREQ.
-     *  Operator picks a band → j-log sends band-center Hz via j-hub. The
-     *  rig's reply RIG_STATUS will repaint the labels above so the operator
-     *  sees the change took. Selection is cleared back to null afterwards
-     *  so the same band can be re-picked to "snap back to center". */
-    private void initRigBandPicker() {
-        if (cbRigBand == null) return;
-        cbRigBand.getItems().setAll(BAND_CENTERS.keySet());
-        cbRigBand.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV == null) return;
-            Long centerHz = BAND_CENTERS.get(newV);
-            if (centerHz != null) HubEngine.getInstance().sendSetFreq(centerHz);
-            // Clear so re-picking the same band re-fires (and so the box reads
-            // empty between picks, hinting it's an action picker not a setting).
-            Platform.runLater(() -> cbRigBand.getSelectionModel().clearSelection());
-        });
+    /** Render Band / Freq / Mode into the big yellow display from a
+     *  RIG_STATUS node. Same data the compact grid shows, just bigger. */
+    private void repaintBigDisplay(com.fasterxml.jackson.databind.JsonNode node) {
+        if (lblRigDisplayFreq == null) return;
+        long freqHz = node.path("frequency").asLong(0);
+        String mode = node.path("mode").asText("");
+        String band = node.path("band").asText("");
+        lblRigDisplayBand.setText("Band: " + (band.isEmpty() ? "—" : band));
+        lblRigDisplayFreq.setText(freqHz > 0
+            ? String.format("%.3f MHz", freqHz / 1_000_000.0) : "—");
+        lblRigDisplayMode.setText("Mode: " + (mode.isEmpty() ? "—" : mode));
     }
 
-    /** Symmetric companion to initRigBandPicker — pick a mode, fire SET_MODE,
-     *  clear selection. Verbatim Hamlib mode strings; if a rig doesn't
-     *  accept one, the backend's tune() will log a warning but won't crash. */
-    private void initRigModePicker() {
-        if (cbRigMode == null) return;
-        cbRigMode.getItems().setAll(RIG_MODES);
-        cbRigMode.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV == null) return;
-            HubEngine.getInstance().sendSetMode(newV);
-            Platform.runLater(() -> cbRigMode.getSelectionModel().clearSelection());
-        });
+    /** Build the segment-LED S-meter — 13 segments, 9 green (S1-9) and
+     *  4 overload (red, +20/+40/+60 plus a "shoulder"). Currently a
+     *  decorative placeholder: lit to S5 statically until j-hub starts
+     *  shipping RSSI in RIG_STATUS. When that lands, expose a public
+     *  setSMeterLevel(int sUnits) and call it from updateRigStatus. */
+    private void initSMeter() {
+        if (sMeterSegments == null) return;
+        final int totalSegments = 13;
+        final int greenCount    = 9;          // S1 through S9
+        final int litTo         = 5;          // placeholder visual: lit to S5
+        for (int i = 0; i < totalSegments; i++) {
+            Region seg = new Region();
+            seg.getStyleClass().add("rig-meter-seg");
+            boolean isHi  = i >= greenCount;
+            boolean isMid = !isHi && i >= greenCount - 2;  // S8-9 tint to yellow
+            boolean lit   = i < litTo;
+            if (lit) {
+                seg.getStyleClass().add(isHi ? "rig-meter-seg-hi"
+                                       : isMid ? "rig-meter-seg-mid"
+                                              : "rig-meter-seg-on");
+            } else {
+                seg.getStyleClass().add(isHi ? "rig-meter-seg-off-hi"
+                                              : "rig-meter-seg-off");
+            }
+            sMeterSegments.getChildren().add(seg);
+        }
+    }
+
+    /** Make the Rig Control TitledPane's title-bar HBox span the full
+     *  title-bar width so the liveness indicator sits flush against the
+     *  right edge. The TitledPane's default skin renders its graphic
+     *  flow-left, so we bind the HBox's prefWidth to the pane's width
+     *  minus the arrow + padding inset; the Region.hgrow=ALWAYS spacer
+     *  inside the HBox does the rest. */
+    private void initRigTitleBar() {
+        if (rigTitleBar == null || rigControlPane == null) return;
+        // 36 = leading expander-arrow area + pane padding allowance. Empirical
+        // for the default JavaFX 21 TitledPane skin; tweak if a theme shifts.
+        rigTitleBar.prefWidthProperty().bind(
+            rigControlPane.widthProperty().subtract(36));
     }
 
     /** Spin up a 1s Timeline that re-evaluates the live indicator. Cheap
@@ -542,102 +546,117 @@ public class NormalLogController implements Initializable {
         }
     }
 
-    /** Copy the cached rig frequency into the entry form's Frequency field.
-     *  No-op if no RIG_STATUS has arrived. Formats as MHz with 3 decimals to
-     *  match the entry field's expected format. */
-    @FXML
-    private void useRigFreq() {
-        if (lastRigStatus == null || tfFrequency == null) return;
-        long freqHz = lastRigStatus.path("frequency").asLong(0);
-        if (freqHz <= 0) return;
-        tfFrequency.setText(String.format("%.3f", freqHz / 1_000_000.0));
+    // ── Radio-panel button handlers ─────────────────────────────────
+
+    /** ANT 1 / ANT 2 override the active antenna on j-hub's switch "1"
+     *  via the existing ANT_OVERRIDE path. Multi-switch UI deferred. */
+    @FXML private void rigAnt1() { HubEngine.getInstance().sendAntOverride("1", 1); }
+    @FXML private void rigAnt2() { HubEngine.getInstance().sendAntOverride("1", 2); }
+
+    /** SSB / CW-RTTY / AM-FM mode buttons. SSB picks USB above 10 MHz else
+     *  LSB (per amateur convention). CW-RTTY and AM-FM toggle their pair
+     *  based on the rig's current mode — second click swaps to the partner. */
+    @FXML private void rigModeSsb() {
+        long freq = lastRigStatus != null ? lastRigStatus.path("frequency").asLong(0) : 0;
+        HubEngine.getInstance().sendSetMode(freq >= 10_000_000L ? "USB" : "LSB");
+    }
+    @FXML private void rigModeCwRtty() {
+        String cur = lastRigStatus != null ? lastRigStatus.path("mode").asText("") : "";
+        HubEngine.getInstance().sendSetMode("RTTY".equalsIgnoreCase(cur) ? "CW" : "RTTY");
+    }
+    @FXML private void rigModeAmFm() {
+        String cur = lastRigStatus != null ? lastRigStatus.path("mode").asText("") : "";
+        HubEngine.getInstance().sendSetMode("AM".equalsIgnoreCase(cur) ? "FM" : "AM");
     }
 
-    /** Copy the cached rig mode into the entry form's Mode field. No-op if no
-     *  RIG_STATUS yet or the mode field is empty. */
-    @FXML
-    private void useRigMode() {
-        if (lastRigStatus == null || tfMode == null) return;
-        String mode = lastRigStatus.path("mode").asText("");
-        if (!mode.isEmpty()) tfMode.setText(mode);
+    /** Wire each band/keypad button to dispatch by current keypadMode.
+     *  Each tuple = (button, "secondary digit", primaryBandHz). The
+     *  primary action when keypadMode==false is a band-jump SET_FREQ;
+     *  the secondary action when keypadMode==true is to append the
+     *  digit to keypadBuffer (or commit on ENT). */
+    private void initRigKeypad() {
+        wireKeypadBtn(btnKey1,   "1",   KEYPAD_BAND_HZ.get("1"));
+        wireKeypadBtn(btnKey2,   "2",   KEYPAD_BAND_HZ.get("2"));
+        wireKeypadBtn(btnKey3,   "3",   KEYPAD_BAND_HZ.get("3"));
+        wireKeypadBtn(btnKey4,   "4",   KEYPAD_BAND_HZ.get("4"));
+        wireKeypadBtn(btnKey5,   "5",   KEYPAD_BAND_HZ.get("5"));
+        wireKeypadBtn(btnKey6,   "6",   KEYPAD_BAND_HZ.get("6"));
+        wireKeypadBtn(btnKey7,   "7",   KEYPAD_BAND_HZ.get("7"));
+        wireKeypadBtn(btnKey8,   "8",   KEYPAD_BAND_HZ.get("8"));
+        wireKeypadBtn(btnKey9,   "9",   KEYPAD_BAND_HZ.get("9"));
+        wireKeypadBtn(btnKey0,   "0",   KEYPAD_BAND_HZ.get("0"));
+        wireKeypadBtn(btnKeyGen, ".",   null);    // GENE band-jump TBD; "." still works in keypad mode
+        wireKeypadBtn(btnKeyEnt, "ENT", KEYPAD_BAND_HZ.get("ENT"));
+        refreshTsTooltip();
     }
 
-    /** Push the entry form's frequency to the rig via j-hub (SET_FREQ).
-     *  Entry field is in MHz with up to 3 decimals (e.g. "14.225"); we
-     *  convert to Hz long. Silently no-op on parse error — no toast spam
-     *  on every empty / mid-typed value. */
-    @FXML
-    private void setRigFreq() {
-        if (tfFrequency == null) return;
-        String txt = tfFrequency.getText();
-        if (txt == null || txt.isBlank()) return;
-        try {
-            long freqHz = Math.round(Double.parseDouble(txt.trim()) * 1_000_000.0);
-            if (freqHz > 0) HubEngine.getInstance().sendSetFreq(freqHz);
-        } catch (NumberFormatException ignored) { /* don't shout at mid-typed input */ }
-    }
-
-    /** Push the entry form's mode to the rig via j-hub (SET_MODE). */
-    @FXML
-    private void setRigMode() {
-        if (tfMode == null) return;
-        String mode = tfMode.getText();
-        if (mode == null || mode.isBlank()) return;
-        HubEngine.getInstance().sendSetMode(mode.trim());
-    }
-
-    /** Shift the rig's frequency by deltaHz. Reads the cached
-     *  lastRigStatus.frequency as the baseline so the steps add to whatever
-     *  the rig actually shows, not what j-log might have predicted from a
-     *  prior Set. No-op when no RIG_STATUS has arrived (we'd be guessing). */
-    private void tuneStep(long deltaHz) {
-        if (lastRigStatus == null) return;
-        long base = lastRigStatus.path("frequency").asLong(0);
-        if (base <= 0) return;
-        long next = base + deltaHz;
-        if (next <= 0) return;
-        HubEngine.getInstance().sendSetFreq(next);
-    }
-
-    @FXML private void tuneDownFast() { tuneStep(-slowStepHz * 10); }
-    @FXML private void tuneDownSlow() { tuneStep(-slowStepHz); }
-    @FXML private void tuneUpSlow()   { tuneStep(+slowStepHz); }
-    @FXML private void tuneUpFast()   { tuneStep(+slowStepHz * 10); }
-
-    /** Wire the Step ChoiceBox + refresh tooltips so the « / ‹ / › / »
-     *  buttons advertise their current step magnitude on hover. Defaults
-     *  to the "100 Hz" entry; survives outside the BAND_CENTERS-style
-     *  pickers because step ISN'T an action — it's a persistent setting
-     *  on the rig pane until the operator changes it again. */
-    private void initRigStepPicker() {
-        if (cbRigStep == null) return;
-        cbRigStep.getItems().setAll(RIG_STEPS.keySet());
-        cbRigStep.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV == null) return;
-            Long s = RIG_STEPS.get(newV);
-            if (s != null) {
-                slowStepHz = s;
-                refreshTuneTooltips();
+    private void wireKeypadBtn(Button btn, String secondary, Long primaryBandHz) {
+        if (btn == null) return;
+        btn.setOnAction(e -> {
+            if (keypadMode) {
+                if ("ENT".equals(secondary)) commitKeypadBuffer();
+                else { keypadBuffer.append(secondary); paintBigDisplayFromBuffer(); }
+            } else {
+                if (primaryBandHz != null && primaryBandHz > 0) {
+                    HubEngine.getInstance().sendSetFreq(primaryBandHz);
+                }
             }
         });
-        cbRigStep.getSelectionModel().select("100 Hz");
     }
 
-    /** Re-render the chevron buttons' hover tooltips to match the current
-     *  step. Called once on init and again each time the Step picker
-     *  changes — so the operator always sees the actual ±delta on hover. */
-    private void refreshTuneTooltips() {
-        if (btnTuneDownSlow == null) return;
-        btnTuneDownSlow.setTooltip(new Tooltip("−" + formatStep(slowStepHz)));
-        btnTuneUpSlow  .setTooltip(new Tooltip("+" + formatStep(slowStepHz)));
-        btnTuneDownFast.setTooltip(new Tooltip("−" + formatStep(slowStepHz * 10)));
-        btnTuneUpFast  .setTooltip(new Tooltip("+" + formatStep(slowStepHz * 10)));
+    /** F-INP toggles keypad mode. Entering: clear buffer, highlight the
+     *  F-INP button + the big display's freq area shows the buffer as it
+     *  builds. Leaving (manually or after ENT): drop highlight + repaint
+     *  the display from the latest RIG_STATUS. */
+    @FXML
+    private void rigFInpToggle() {
+        keypadMode = !keypadMode;
+        keypadBuffer.setLength(0);
+        if (btnRigFInp != null) {
+            if (keypadMode) btnRigFInp.getStyleClass().add("rig-keypad-active");
+            else            btnRigFInp.getStyleClass().remove("rig-keypad-active");
+        }
+        if (keypadMode) paintBigDisplayFromBuffer();
+        else if (lastRigStatus != null) repaintBigDisplay(lastRigStatus);
     }
 
-    /** Pretty-print a Hz step as "100 Hz" / "1 kHz" / "10 kHz". */
-    private static String formatStep(long hz) {
-        if (hz % 1000 == 0) return (hz / 1000) + " kHz";
-        return hz + " Hz";
+    /** Parse the keypad buffer as MHz → Hz, fire SET_FREQ, leave keypad
+     *  mode. Invalid input (empty, junk) just exits without sending. */
+    private void commitKeypadBuffer() {
+        String s = keypadBuffer.toString();
+        if (!s.isEmpty()) {
+            try {
+                long freqHz = Math.round(Double.parseDouble(s) * 1_000_000.0);
+                if (freqHz > 0) HubEngine.getInstance().sendSetFreq(freqHz);
+            } catch (NumberFormatException ignored) {}
+        }
+        keypadBuffer.setLength(0);
+        keypadMode = false;
+        if (btnRigFInp != null) btnRigFInp.getStyleClass().remove("rig-keypad-active");
+        if (lastRigStatus != null) repaintBigDisplay(lastRigStatus);
+    }
+
+    private void paintBigDisplayFromBuffer() {
+        if (lblRigDisplayFreq == null) return;
+        lblRigDisplayFreq.setText(keypadBuffer.length() == 0 ? "_" : keypadBuffer + "_");
+        if (lblRigDisplayBand != null) lblRigDisplayBand.setText("Band: F-INP");
+        if (lblRigDisplayMode != null) lblRigDisplayMode.setText("Mode: typing…");
+    }
+
+    /** TS button cycles step sizes (10 Hz → … → 25 kHz → 10 Hz). Step
+     *  isn't bound to a tune control in this layout but the tooltip
+     *  reflects the current selection so the operator sees the cycle. */
+    @FXML
+    private void rigTsCycle() {
+        tsStepIdx = (tsStepIdx + 1) % TS_STEPS_HZ.length;
+        refreshTsTooltip();
+    }
+
+    private void refreshTsTooltip() {
+        if (btnRigTs == null) return;
+        long s = TS_STEPS_HZ[tsStepIdx];
+        String label = (s % 1000 == 0) ? (s / 1000) + " kHz" : s + " Hz";
+        btnRigTs.setTooltip(new Tooltip("Tuning step: " + label));
     }
 
     /** Push rig freq/mode into the entry form unconditionally — called by
@@ -1236,6 +1255,21 @@ public class NormalLogController implements Initializable {
         double saved = cfg.getDivider("normalLog.div0", 0.5);
         dxExpandedDividerPos = saved;
         mainSplitPane.setDividerPositions(saved);
+
+        // Restore the Rig Control pane's last-saved width (set by the
+        // operator dragging the entryDragHandle seam) and the row-split's
+        // vertical divider. Both fall through to defaults on first launch.
+        double savedRigW = cfg.getDivider("normalLog.rigPaneWidth", -1);
+        if (savedRigW > 0 && rigControlPane != null) {
+            rigControlPane.setPrefWidth(savedRigW);
+        }
+        if (rowSplit != null) {
+            double savedRow = cfg.getDivider("normalLog.rowSplit", 0.45);
+            Platform.runLater(() -> rowSplit.setDividerPositions(savedRow));
+            rowSplit.getDividers().forEach(div ->
+                div.positionProperty().addListener((o, ov, nv) ->
+                    cfg.setDivider("normalLog.rowSplit", nv.doubleValue())));
+        }
 
         // Persist divider changes only while the DX pane is open
         mainSplitPane.getDividers().forEach(div ->
@@ -1881,6 +1915,12 @@ public class NormalLogController implements Initializable {
             double delta = e.getSceneX() - state[0];
             rigControlPane.setPrefWidth(state[1] - delta);
         });
+        // Save the final width on release rather than on every drag frame —
+        // avoids hammering Java Preferences 60×/sec while still capturing
+        // every committed resize.
+        entryDragHandle.setOnMouseReleased(e ->
+            AppConfig.getInstance().setDivider(
+                "normalLog.rigPaneWidth", rigControlPane.getWidth()));
     }
 
     private void checkBandWarning() {

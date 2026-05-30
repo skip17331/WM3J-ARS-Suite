@@ -214,3 +214,47 @@
 .rig-dot-stale     { -fx-background-color: #9e9e9e; }
 .rig-live-label    { -fx-font-size: 11px; -fx-font-weight: bold; }
 .rig-live-row      { -fx-padding: 0 0 2 0; }
+/* Radio-front-panel look — big yellow VFO display, faux waterfall + meter,
+   keypad-style band buttons, and a "coming-soon" treatment for placeholders
+   that are wired into the UI but not yet implemented on the j-hub side. */
+.rig-display       { -fx-background-color: #f5c842; -fx-background-radius: 4;
+                     -fx-padding: 6 10 6 10; -fx-border-color: #b8901a;
+                     -fx-border-width: 1; -fx-border-radius: 4; }
+.rig-display-label { -fx-text-fill: #1a1a1a; -fx-font-weight: bold;
+                     -fx-font-size: 11px; }
+.rig-display-freq  { -fx-text-fill: #0a0a0a; -fx-font-family: monospace;
+                     -fx-font-weight: bold; -fx-font-size: 56px; }
+.rig-waterfall     { -fx-background-color: #2a5784; -fx-background-radius: 3;
+                     -fx-padding: 8; }
+.rig-waterfall-lbl { -fx-text-fill: #e0e0e0; -fx-font-size: 13px;
+                     -fx-font-style: italic; }
+.rig-meter         { -fx-background-color: linear-gradient(to bottom, #1a1a1a, #050505);
+                     -fx-background-radius: 4; -fx-border-color: #444;
+                     -fx-border-width: 1; -fx-border-radius: 4; }
+.rig-meter-lbl     { -fx-text-fill: #d8d8d8; -fx-font-family: monospace;
+                     -fx-font-size: 10px; }
+.rig-meter-title   { -fx-text-fill: #d0a020; -fx-font-family: monospace;
+                     -fx-font-size: 9px; -fx-font-weight: bold; }
+.rig-meter-tick    { -fx-text-fill: #888; -fx-font-family: monospace;
+                     -fx-font-size: 9px; }
+.rig-meter-seg     { -fx-background-radius: 2; -fx-border-width: 0;
+                     -fx-min-width: 12; -fx-pref-width: 12; -fx-max-width: 12;
+                     -fx-min-height: 22; -fx-pref-height: 22; -fx-max-height: 22; }
+.rig-meter-seg-on  { -fx-background-color: linear-gradient(to bottom, #6cf06c, #1aa01a);
+                     -fx-effect: dropshadow(gaussian, #50ee50, 4, 0.4, 0, 0); }
+.rig-meter-seg-mid { -fx-background-color: linear-gradient(to bottom, #f0d050, #a08010);
+                     -fx-effect: dropshadow(gaussian, #f0d050, 4, 0.4, 0, 0); }
+.rig-meter-seg-hi  { -fx-background-color: linear-gradient(to bottom, #ff7050, #c8281a);
+                     -fx-effect: dropshadow(gaussian, #ff5030, 4, 0.5, 0, 0); }
+.rig-meter-seg-off { -fx-background-color: #1a2a1a; }
+.rig-meter-seg-off-hi { -fx-background-color: #2a1a1a; }
+/* Fixed-size radio-front-panel buttons. Width is a hard cap (min=pref=max)
+   so the keypad grid stays at the operator's chosen layout no matter how
+   wide they drag the rig pane. */
+.rig-keypad-btn    { -fx-font-family: monospace; -fx-font-size: 11px;
+                     -fx-padding: 3 4 3 4;
+                     -fx-min-width: 72px; -fx-pref-width: 72px; -fx-max-width: 72px;
+                     -fx-min-height: 26px; -fx-pref-height: 26px; }
+.rig-title-label   { -fx-font-weight: bold; }
+.rig-keypad-active { -fx-background-color: #c84d2a; -fx-text-fill: white; }
+.coming-soon       { -fx-opacity: 0.55; }
