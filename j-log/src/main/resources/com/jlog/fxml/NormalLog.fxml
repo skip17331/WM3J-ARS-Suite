@@ -353,6 +353,25 @@
                                     styleClass="rig-keypad-btn"/>
                         </HBox>
 
+                        <!-- (0,2) Mode buttons — directly under the tuning chevrons. -->
+                        <HBox spacing="4" alignment="CENTER_LEFT"
+                              GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <Button fx:id="btnRigSet" text="SET" onAction="#rigSet"
+                                    styleClass="rig-keypad-btn">
+                                <tooltip><Tooltip text="Open j-hub Rig Control settings in browser"/></tooltip>
+                            </Button>
+                            <Button fx:id="btnRigModeSsb" text="SSB" onAction="#rigModeSsb"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnRigModeCwRtty" text="CW/RTTY" onAction="#rigModeCwRtty"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnRigModeAmFm" text="AM/FM" onAction="#rigModeAmFm"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnRigFilter" text="Filter"
+                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
+                                <tooltip><Tooltip text="Rig filter select (coming soon)"/></tooltip>
+                            </Button>
+                        </HBox>
+
                         <!-- (1,1) RIT/XIT — right side, under the S-meter (two
                              compact lines so it fits the S-meter's width). -->
                         <VBox spacing="3" GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -381,6 +400,33 @@
                                         styleClass="rig-keypad-btn"/>
                             </HBox>
                         </VBox>
+
+                        <!-- (1,2) PWR slider centered across cols 1-2 (between the
+                             Filter button and the pane's right edge); (1,3)
+                             Auto-track centered under it. P.AMP/NB sit at (0,3),
+                             directly under the SSB/mode row. -->
+                        <HBox spacing="6" alignment="CENTER"
+                              GridPane.columnIndex="1" GridPane.rowIndex="2"
+                              GridPane.columnSpan="2" GridPane.halignment="CENTER">
+                            <Label text="PWR" styleClass="entry-label"/>
+                            <Slider fx:id="sliderRfPower" min="0" max="100" prefWidth="150"/>
+                            <Label fx:id="lblRfPower" text="—" minWidth="40"
+                                   styleClass="rig-display-label"/>
+                        </HBox>
+                        <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"
+                                  GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                  GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
+                        <HBox spacing="4" alignment="CENTER_LEFT"
+                              GridPane.columnIndex="0" GridPane.rowIndex="3">
+                            <Button fx:id="btnRigPampAtt" text="P.AMP/ATT"
+                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
+                                <tooltip><Tooltip text="Preamp / Attenuator (coming soon)"/></tooltip>
+                            </Button>
+                            <Button fx:id="btnRigNb" text="NB"
+                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
+                                <tooltip><Tooltip text="Noise blanker (coming soon)"/></tooltip>
+                            </Button>
+                        </HBox>
 
                         <!-- (2,0) ANT 1 / ANT 2 stacked in the upper-right corner
                              of the pane (moved out of the mode toolbar). -->
@@ -413,7 +459,10 @@
                          them when the operator widens the rig area. -->
                     <!-- Keypad on the left; S-meter + tuning chevrons in a
                          right-hand column (fills the space beside the keypad). -->
-                    <HBox spacing="8" alignment="TOP_LEFT">
+                    <!-- Keypad in a collapsible, full-width pane (like Heard By /
+                         DX Spotter) so the operator can fold it away to shrink
+                         the pane. -->
+                    <TitledPane text="Band / Keypad" collapsible="true" animated="false" expanded="false">
                     <GridPane fx:id="rigKeypad" hgap="3" vgap="3">
                         <!-- Row 0: 1.8/1   3.5/2   7/3    F-INP -->
                         <Button fx:id="btnKey1" text="1.8 / 1"
@@ -509,51 +558,7 @@
                             <tooltip><Tooltip text="23 cm (1296.1 MHz)"/></tooltip>
                         </Button>
                     </GridPane>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <!-- Right column beside the keypad: RF power, then P.AMP/NB
-                         and Auto-track. (S-meter, tuning chevrons and RIT/XIT
-                         now live in the top block above, by the VFO window.) -->
-                    <VBox spacing="6" alignment="TOP_RIGHT">
-                        <HBox spacing="6" alignment="CENTER_LEFT">
-                            <Label text="PWR" styleClass="entry-label"/>
-                            <Slider fx:id="sliderRfPower" min="0" max="100" prefWidth="150"/>
-                            <Label fx:id="lblRfPower" text="—" minWidth="40"
-                                   styleClass="rig-display-label"/>
-                        </HBox>
-                        <HBox spacing="4" alignment="CENTER_LEFT">
-                            <Button fx:id="btnRigPampAtt" text="P.AMP/ATT"
-                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
-                                <tooltip><Tooltip text="Preamp / Attenuator (coming soon)"/></tooltip>
-                            </Button>
-                            <Button fx:id="btnRigNb" text="NB"
-                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
-                                <tooltip><Tooltip text="Noise blanker (coming soon)"/></tooltip>
-                            </Button>
-                            <Region prefWidth="8"/>
-                            <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
-                        </HBox>
-                    </VBox>
-                    </HBox>
-
-                    <!-- Mode toolbar moved below the keypad (so the keypad sits
-                         higher): SET / SSB / CW-RTTY / AM-FM / Filter, far right. -->
-                    <HBox spacing="4" alignment="CENTER_RIGHT">
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="btnRigSet" text="SET" onAction="#rigSet"
-                                styleClass="rig-keypad-btn">
-                            <tooltip><Tooltip text="Open j-hub Rig Control settings in browser"/></tooltip>
-                        </Button>
-                        <Button fx:id="btnRigModeSsb" text="SSB" onAction="#rigModeSsb"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnRigModeCwRtty" text="CW/RTTY" onAction="#rigModeCwRtty"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnRigModeAmFm" text="AM/FM" onAction="#rigModeAmFm"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnRigFilter" text="Filter"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true">
-                            <tooltip><Tooltip text="Rig filter select (coming soon)"/></tooltip>
-                        </Button>
-                    </HBox>
+                    </TitledPane>
                 </VBox>
             </TitledPane>
             </HBox>
