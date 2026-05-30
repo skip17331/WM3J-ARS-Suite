@@ -389,70 +389,56 @@
                             <Button fx:id="btnTuneUpFast" text="»" onAction="#tuneUpFast"
                                     styleClass="rig-keypad-btn"/>
                         </HBox>
+                        <!-- RIT/XIT, RF power, and P.AMP/NB + Auto-track moved
+                             into this right column so they no longer stack below
+                             the keypad and lengthen the pane. -->
+                        <HBox spacing="4" alignment="CENTER_LEFT">
+                            <Button fx:id="btnRigRit" text="RIT" onAction="#rigRitToggle"
+                                    styleClass="rig-keypad-btn">
+                                <tooltip><Tooltip text="Toggle RIT (receive incremental tuning)"/></tooltip>
+                            </Button>
+                            <Button fx:id="btnRitDown" text="−" onAction="#ritDown"
+                                    styleClass="rig-keypad-btn"/>
+                            <Label fx:id="lblRitOffset" text="0" minWidth="40"
+                                   alignment="CENTER" styleClass="rig-display-label"/>
+                            <Button fx:id="btnRitUp" text="+" onAction="#ritUp"
+                                    styleClass="rig-keypad-btn"/>
+                            <Region prefWidth="10"/>
+                            <Button fx:id="btnRigXit" text="XIT" onAction="#rigXitToggle"
+                                    styleClass="rig-keypad-btn">
+                                <tooltip><Tooltip text="Toggle XIT (transmit incremental tuning)"/></tooltip>
+                            </Button>
+                            <Button fx:id="btnXitDown" text="−" onAction="#xitDown"
+                                    styleClass="rig-keypad-btn"/>
+                            <Label fx:id="lblXitOffset" text="0" minWidth="40"
+                                   alignment="CENTER" styleClass="rig-display-label"/>
+                            <Button fx:id="btnXitUp" text="+" onAction="#xitUp"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnRitXitClear" text="Clr" onAction="#ritXitClear"
+                                    styleClass="rig-keypad-btn">
+                                <tooltip><Tooltip text="Clear RIT and XIT offsets"/></tooltip>
+                            </Button>
+                        </HBox>
+                        <HBox spacing="6" alignment="CENTER_LEFT">
+                            <Label text="PWR" styleClass="entry-label"/>
+                            <Slider fx:id="sliderRfPower" min="0" max="100" prefWidth="150"/>
+                            <Label fx:id="lblRfPower" text="—" minWidth="40"
+                                   styleClass="rig-display-label"/>
+                        </HBox>
+                        <HBox spacing="4" alignment="CENTER_LEFT">
+                            <Button fx:id="btnRigPampAtt" text="P.AMP/ATT"
+                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
+                                <tooltip><Tooltip text="Preamp / Attenuator (coming soon)"/></tooltip>
+                            </Button>
+                            <Button fx:id="btnRigNb" text="NB"
+                                    styleClass="rig-keypad-btn,coming-soon" disable="true">
+                                <tooltip><Tooltip text="Noise blanker (coming soon)"/></tooltip>
+                            </Button>
+                            <Region prefWidth="8"/>
+                            <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
+                        </HBox>
                     </VBox>
                     </HBox>
-
-                    <!-- P.AMP/ATT + NB (placeholders) -->
-                    <HBox spacing="4">
-                        <Button fx:id="btnRigPampAtt" text="P.AMP/ATT"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true">
-                            <tooltip><Tooltip text="Preamp / Attenuator (coming soon)"/></tooltip>
-                        </Button>
-                        <Button fx:id="btnRigNb" text="NB"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true">
-                            <tooltip><Tooltip text="Noise blanker (coming soon)"/></tooltip>
-                        </Button>
-                    </HBox>
-
-                    <!-- RIT / XIT offset controls. Each: enable toggle (lights
-                         when engaged) + −/+ nudge (10 Hz) framing the live
-                         offset. Capability-gated — disabled automatically when
-                         the connected rig (RIG_CAPS) doesn't support RIT/XIT. -->
-                    <HBox spacing="4" alignment="CENTER_LEFT">
-                        <Button fx:id="btnRigRit" text="RIT" onAction="#rigRitToggle"
-                                styleClass="rig-keypad-btn">
-                            <tooltip><Tooltip text="Toggle RIT (receive incremental tuning)"/></tooltip>
-                        </Button>
-                        <Button fx:id="btnRitDown" text="−" onAction="#ritDown"
-                                styleClass="rig-keypad-btn"/>
-                        <Label fx:id="lblRitOffset" text="0" minWidth="46"
-                               alignment="CENTER" styleClass="rig-display-label"/>
-                        <Button fx:id="btnRitUp" text="+" onAction="#ritUp"
-                                styleClass="rig-keypad-btn"/>
-                        <Region prefWidth="12"/>
-                        <Button fx:id="btnRigXit" text="XIT" onAction="#rigXitToggle"
-                                styleClass="rig-keypad-btn">
-                            <tooltip><Tooltip text="Toggle XIT (transmit incremental tuning)"/></tooltip>
-                        </Button>
-                        <Button fx:id="btnXitDown" text="−" onAction="#xitDown"
-                                styleClass="rig-keypad-btn"/>
-                        <Label fx:id="lblXitOffset" text="0" minWidth="46"
-                               alignment="CENTER" styleClass="rig-display-label"/>
-                        <Button fx:id="btnXitUp" text="+" onAction="#xitUp"
-                                styleClass="rig-keypad-btn"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="btnRitXitClear" text="Clr" onAction="#ritXitClear"
-                                styleClass="rig-keypad-btn">
-                            <tooltip><Tooltip text="Clear RIT and XIT offsets"/></tooltip>
-                        </Button>
-                    </HBox>
-
-                    <!-- RF power. Slider commits on release / click; the live
-                         readout tracks RIG_STATUS rfPower. Gated off when the
-                         rig can't set power (read-only or absent). -->
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label text="PWR" styleClass="entry-label"/>
-                        <Slider fx:id="sliderRfPower" min="0" max="100" prefWidth="200"/>
-                        <Label fx:id="lblRfPower" text="—" minWidth="46"
-                               styleClass="rig-display-label"/>
-                    </HBox>
-
-                    <!-- S-meter lives under Data Entry (per mockup refinement). -->
-
-                    <!-- Auto-track rig: when checked, every RIG_STATUS
-                         auto-fills the entry-form Freq + Mode. Off by
-                         default so the operator opts in. -->
-                    <CheckBox fx:id="cbRigAutoTrack" text="Auto-track rig"/>
                 </VBox>
             </TitledPane>
             </HBox>
