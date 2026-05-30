@@ -289,6 +289,7 @@
                         <columnConstraints>
                             <ColumnConstraints/>
                             <ColumnConstraints/>
+                            <ColumnConstraints/>
                         </columnConstraints>
 
                         <!-- (0,0) VFO frequency window — narrower (no longer
@@ -369,16 +370,22 @@
                                         styleClass="rig-keypad-btn"/>
                             </HBox>
                         </VBox>
+
+                        <!-- (2,0) ANT 1 / ANT 2 stacked in the upper-right corner
+                             of the pane (moved out of the mode toolbar). -->
+                        <VBox spacing="4" alignment="TOP_LEFT"
+                              GridPane.columnIndex="2" GridPane.rowIndex="0"
+                              GridPane.valignment="TOP">
+                            <Button fx:id="btnRigAnt1" text="ANT 1" onAction="#rigAnt1"
+                                    styleClass="rig-keypad-btn"/>
+                            <Button fx:id="btnRigAnt2" text="ANT 2" onAction="#rigAnt2"
+                                    styleClass="rig-keypad-btn"/>
+                        </VBox>
                     </GridPane>
 
-                    <!-- Top toolbar (mockup row 2): ANT 1/2 | SET SSB CW/RTTY
-                         AM/FM | Filter. Fixed-size buttons; spacers carry
-                         the visual grouping. -->
+                    <!-- Mode toolbar: SET | SSB CW/RTTY AM/FM | Filter. (ANT 1/2
+                         moved to the upper-right of the top block above.) -->
                     <HBox spacing="4" alignment="CENTER_LEFT">
-                        <Button fx:id="btnRigAnt1" text="ANT 1" onAction="#rigAnt1"
-                                styleClass="rig-keypad-btn"/>
-                        <Button fx:id="btnRigAnt2" text="ANT 2" onAction="#rigAnt2"
-                                styleClass="rig-keypad-btn"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button fx:id="btnRigSet" text="SET" onAction="#rigSet"
                                 styleClass="rig-keypad-btn">
