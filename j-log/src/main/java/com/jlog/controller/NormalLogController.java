@@ -94,7 +94,11 @@ public class NormalLogController implements Initializable {
     @FXML private Label      lblRigDisplayMode;
     @FXML private Button     btnRigAnt1, btnRigAnt2;
     @FXML private Button     btnRigModeSsb, btnRigModeCwRtty, btnRigModeAmFm;
-    @FXML private Button     btnRigFInp, btnRigTs;
+    @FXML private Button     btnRigFInp, btnRigTs, btnRigSplit;
+    /** Split-op state mirror — j-log tracks it because RIG_STATUS doesn't
+     *  yet carry the split flag. Toggle flips the value, sends SET_SPLIT,
+     *  and repaints the button's active-class highlight. */
+    private volatile boolean splitOn = false;
     @FXML private Button     btnKey1, btnKey2, btnKey3, btnKey4, btnKey5,
                              btnKey6, btnKey7, btnKey8, btnKey9, btnKey0,
                              btnKeyGen, btnKeyEnt;
@@ -573,6 +577,19 @@ public class NormalLogController implements Initializable {
      *  swapVfo() (Hamlib: vfo_op XCHG). Backend's next poll publishes a
      *  fresh RIG_STATUS so the yellow display reflects the new active VFO. */
     @FXML private void rigVfoSwap() { HubEngine.getInstance().sendSwapVfo(); }
+
+    /** SPLIT button — toggle split mode. j-log tracks the state locally
+     *  (RIG_STATUS doesn't yet carry split); the button highlights via
+     *  the rig-keypad-active CSS class when on. Hamlib: `S 1 VFOB` to
+     *  enable (TX on VFO B, classic DX-pile split), `S 0 VFOA` off. */
+    @FXML private void rigSplitToggle() {
+        splitOn = !splitOn;
+        HubEngine.getInstance().sendSetSplit(splitOn);
+        if (btnRigSplit != null) {
+            if (splitOn) btnRigSplit.getStyleClass().add("rig-keypad-active");
+            else         btnRigSplit.getStyleClass().remove("rig-keypad-active");
+        }
+    }
 
     /** Wire each band/keypad button to dispatch by current keypadMode.
      *  Each tuple = (button, "secondary digit", primaryBandHz). The

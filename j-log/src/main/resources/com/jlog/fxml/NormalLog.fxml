@@ -316,10 +316,10 @@
                         <Button fx:id="btnKey6" text="18 / 6"
                                 styleClass="rig-keypad-btn"
                                 GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                        <Button fx:id="btnRigSplit" text="SPLIT"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true"
+                        <Button fx:id="btnRigSplit" text="SPLIT" onAction="#rigSplitToggle"
+                                styleClass="rig-keypad-btn"
                                 GridPane.columnIndex="3" GridPane.rowIndex="1">
-                            <tooltip><Tooltip text="Split-frequency op (coming soon)"/></tooltip>
+                            <tooltip><Tooltip text="Split-frequency op (TX on VFO B)"/></tooltip>
                         </Button>
                         <!-- Row 2: 21/7   24/8   28/9    A/B -->
                         <Button fx:id="btnKey7" text="21 / 7"

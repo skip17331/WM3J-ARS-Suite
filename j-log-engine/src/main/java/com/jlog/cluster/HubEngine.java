@@ -450,6 +450,19 @@ public class HubEngine {
             wsClient.send(msg.toString());
         } catch (Exception e) { log.warn("sendSwapVfo failed: {}", e.getMessage()); }
     }
+
+    /** Enable or disable split-frequency operation on the rig. j-hub
+     *  routes through RigControllers.active().setSplit(on). When enabling,
+     *  the backend conventionally transmits on VFO B. */
+    public void sendSetSplit(boolean on) {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SET_SPLIT");
+            msg.put("on",   on);
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSetSplit failed: {}", e.getMessage()); }
+    }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }

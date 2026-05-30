@@ -222,6 +222,25 @@ public class HamlibRigController implements RigController {
         });
     }
 
+    /** Enable / disable split mode. Hamlib syntax:
+     *    S <split> <tx_vfo>   where split = 0|1, tx_vfo = VFOA|VFOB
+     *  When enabling, transmit on VFO B (the typical DX-split convention);
+     *  when disabling, the second arg is required but ignored, so VFO A
+     *  keeps things tidy. */
+    @Override
+    public void setSplit(boolean on) {
+        if (!running) return;
+        scheduler.execute(() -> {
+            try {
+                sendCommand("S " + (on ? "1 VFOB" : "0 VFOA"));
+                log.debug("Split {}", on ? "ON" : "OFF");
+            } catch (IOException e) {
+                log.warn("Hamlib setSplit failed: {}", e.getMessage());
+                closeSocket();
+            }
+        });
+    }
+
     /**
      * Key or un-key the transmitter.
      * Only takes effect when enablePtt=true in config.

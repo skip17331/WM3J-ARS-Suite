@@ -153,6 +153,10 @@ public class MessageRouter {
                 handleSwapVfo(session);
                 break;
 
+            case "SET_SPLIT":
+                handleSetSplit(msg, session);
+                break;
+
             case "ANT_OVERRIDE":
                 handleAntOverride(msg, session);
                 break;
@@ -630,6 +634,23 @@ public class MessageRouter {
             log.debug("SET_FREQ {} Hz from '{}'", freqHz, session.appName);
         } catch (Exception e) {
             log.warn("Failed to process SET_FREQ: {}", e.getMessage());
+        }
+    }
+
+    /** Enable / disable split-frequency operation. Field "on" (boolean)
+     *  carries the desired state; missing or non-boolean treated as false. */
+    private void handleSetSplit(JsonObject msg, JHubServer.AppSession session) {
+        try {
+            boolean on = msg.has("on") && msg.get("on").getAsBoolean();
+            RigController rig = RigControllers.active();
+            if (!rig.isRunning()) {
+                log.debug("SET_SPLIT from '{}' ignored — rig backend not running", session.appName);
+                return;
+            }
+            rig.setSplit(on);
+            log.debug("SET_SPLIT {} from '{}'", on ? "ON" : "OFF", session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process SET_SPLIT: {}", e.getMessage());
         }
     }
 

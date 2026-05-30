@@ -44,6 +44,10 @@ public interface RigController {
     /** Swap (exchange) VFOs A and B. Backends without a native swap should
      *  log a warning and no-op rather than throw. */
     default void swapVfo() { /* default no-op; backends override */ }
+    /** Enable / disable split-frequency operation. When enabled, the rig
+     *  receives on the current VFO and transmits on the other (TX VFO).
+     *  Backends without native split support no-op by default. */
+    default void setSplit(boolean on) { /* default no-op; backends override */ }
     /** Key (true) or un-key (false) the transmitter. No-op when PTT disabled in config. */
     void setPtt(boolean on);
     /** Set the rig keyer speed in WPM. No-op for backends that don't support CW. */
