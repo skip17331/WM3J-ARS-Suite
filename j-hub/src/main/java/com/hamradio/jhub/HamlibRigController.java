@@ -205,6 +205,23 @@ public class HamlibRigController implements RigController {
         });
     }
 
+    /** Exchange VFOs A and B (vfo_op XCHG in Hamlib parlance). The
+     *  scheduler-thread send mirrors tune()'s pattern; on success the next
+     *  500ms poll cycle will broadcast a fresh RIG_STATUS so all clients
+     *  see the new active VFO's freq/mode without a manual refresh. */
+    @Override
+    public void swapVfo() {
+        if (!running) return;
+        scheduler.execute(() -> {
+            try {
+                sendCommand("g XCHG");
+            } catch (IOException e) {
+                log.warn("Hamlib VFO swap failed: {}", e.getMessage());
+                closeSocket();
+            }
+        });
+    }
+
     /**
      * Key or un-key the transmitter.
      * Only takes effect when enablePtt=true in config.

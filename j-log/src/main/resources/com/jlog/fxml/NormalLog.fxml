@@ -331,10 +331,10 @@
                         <Button fx:id="btnKey9" text="28 / 9"
                                 styleClass="rig-keypad-btn"
                                 GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-                        <Button fx:id="btnRigVfoSwap" text="A / B"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true"
+                        <Button fx:id="btnRigVfoSwap" text="A / B" onAction="#rigVfoSwap"
+                                styleClass="rig-keypad-btn"
                                 GridPane.columnIndex="3" GridPane.rowIndex="2">
-                            <tooltip><Tooltip text="Swap VFO A/B (coming soon)"/></tooltip>
+                            <tooltip><Tooltip text="Swap VFO A and B (Hamlib vfo_op XCHG)"/></tooltip>
                         </Button>
                         <!-- Row 3: GENE/.   50/0   144/ENT   TS -->
                         <Button fx:id="btnKeyGen" text="GENE / ."

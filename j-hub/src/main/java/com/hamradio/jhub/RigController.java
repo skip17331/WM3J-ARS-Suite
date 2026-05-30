@@ -41,6 +41,9 @@ public interface RigController {
 
     /** Tune the rig (set frequency in Hz, set mode by name e.g. "USB"/"CW"). */
     void tune(long freqHz, String mode);
+    /** Swap (exchange) VFOs A and B. Backends without a native swap should
+     *  log a warning and no-op rather than throw. */
+    default void swapVfo() { /* default no-op; backends override */ }
     /** Key (true) or un-key (false) the transmitter. No-op when PTT disabled in config. */
     void setPtt(boolean on);
     /** Set the rig keyer speed in WPM. No-op for backends that don't support CW. */

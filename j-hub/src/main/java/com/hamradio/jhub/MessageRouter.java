@@ -149,6 +149,10 @@ public class MessageRouter {
                 handleSetMode(msg, session);
                 break;
 
+            case "SWAP_VFO":
+                handleSwapVfo(session);
+                break;
+
             case "ANT_OVERRIDE":
                 handleAntOverride(msg, session);
                 break;
@@ -626,6 +630,22 @@ public class MessageRouter {
             log.debug("SET_FREQ {} Hz from '{}'", freqHz, session.appName);
         } catch (Exception e) {
             log.warn("Failed to process SET_FREQ: {}", e.getMessage());
+        }
+    }
+
+    /** Exchange VFOs A and B. Backend's own poll cycle publishes a fresh
+     *  RIG_STATUS reflecting the newly-active VFO so all clients update. */
+    private void handleSwapVfo(JHubServer.AppSession session) {
+        try {
+            RigController rig = RigControllers.active();
+            if (!rig.isRunning()) {
+                log.debug("SWAP_VFO from '{}' ignored — rig backend not running", session.appName);
+                return;
+            }
+            rig.swapVfo();
+            log.debug("SWAP_VFO from '{}'", session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process SWAP_VFO: {}", e.getMessage());
         }
     }
 

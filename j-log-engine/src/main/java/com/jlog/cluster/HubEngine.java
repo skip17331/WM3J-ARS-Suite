@@ -438,6 +438,18 @@ public class HubEngine {
             wsClient.send(msg.toString());
         } catch (Exception e) { log.warn("sendSetMode failed: {}", e.getMessage()); }
     }
+
+    /** Ask j-hub to swap VFOs A and B on the active rig (Hamlib vfo_op
+     *  XCHG). No-op for backends without native swap (the default no-op
+     *  on the interface). A fresh RIG_STATUS will arrive on success. */
+    public void sendSwapVfo() {
+        if (!connected.get() || wsClient == null) return;
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode msg = MAPPER.createObjectNode();
+            msg.put("type", "SWAP_VFO");
+            wsClient.send(msg.toString());
+        } catch (Exception e) { log.warn("sendSwapVfo failed: {}", e.getMessage()); }
+    }
     public void setOnConnected              (Runnable r)           { this.onConnected              = r; }
     public void setOnDisconnected           (Runnable r)           { this.onDisconnected           = r; }
     public void setOnShutdown               (Runnable r)           { this.onShutdown               = r; }

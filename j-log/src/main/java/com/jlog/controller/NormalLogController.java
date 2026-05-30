@@ -569,6 +569,11 @@ public class NormalLogController implements Initializable {
         HubEngine.getInstance().sendSetMode("AM".equalsIgnoreCase(cur) ? "FM" : "AM");
     }
 
+    /** A/B button → SWAP_VFO. j-hub routes through RigControllers.active().
+     *  swapVfo() (Hamlib: vfo_op XCHG). Backend's next poll publishes a
+     *  fresh RIG_STATUS so the yellow display reflects the new active VFO. */
+    @FXML private void rigVfoSwap() { HubEngine.getInstance().sendSwapVfo(); }
+
     /** Wire each band/keypad button to dispatch by current keypadMode.
      *  Each tuple = (button, "secondary digit", primaryBandHz). The
      *  primary action when keypadMode==false is a band-jump SET_FREQ;
