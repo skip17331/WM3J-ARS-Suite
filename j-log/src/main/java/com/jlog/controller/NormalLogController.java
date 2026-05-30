@@ -578,6 +578,11 @@ public class NormalLogController implements Initializable {
      *  fresh RIG_STATUS so the yellow display reflects the new active VFO. */
     @FXML private void rigVfoSwap() { HubEngine.getInstance().sendSwapVfo(); }
 
+    /** SET button → open j-hub's Rig Control settings tab in the system
+     *  browser. Reuses the same xdg-open helper used by the Tools menu
+     *  items, so behavior matches the operator's existing muscle memory. */
+    @FXML private void rigSet() { openJHubSetupAt("rig"); }
+
     /** SPLIT button — toggle split mode. j-log tracks the state locally
      *  (RIG_STATUS doesn't yet carry split); the button highlights via
      *  the rig-keypad-active CSS class when on. Hamlib: `S 1 VFOB` to

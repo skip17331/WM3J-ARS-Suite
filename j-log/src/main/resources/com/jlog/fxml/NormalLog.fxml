@@ -265,9 +265,9 @@
                         <Button fx:id="btnRigAnt2" text="ANT 2" onAction="#rigAnt2"
                                 styleClass="rig-keypad-btn"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="btnRigSet" text="SET"
-                                styleClass="rig-keypad-btn,coming-soon" disable="true">
-                            <tooltip><Tooltip text="Settings (coming soon)"/></tooltip>
+                        <Button fx:id="btnRigSet" text="SET" onAction="#rigSet"
+                                styleClass="rig-keypad-btn">
+                            <tooltip><Tooltip text="Open j-hub Rig Control settings in browser"/></tooltip>
                         </Button>
                         <Button fx:id="btnRigModeSsb" text="SSB" onAction="#rigModeSsb"
                                 styleClass="rig-keypad-btn"/>
