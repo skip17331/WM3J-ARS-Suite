@@ -254,7 +254,10 @@
 
             <!-- Previous QSOs — directly under the Station Info / Bearing /
                  Space Wx row (moved up from the old full-width lower row). -->
-            <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="false">
+            <!-- Grows downward (VBox.vgrow) to fill the left column's leftover
+                 height, ending just above the F1-F12 macro bar. -->
+            <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="false"
+                        VBox.vgrow="ALWAYS">
                 <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="60">
                     <columns>
                         <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
