@@ -171,6 +171,13 @@ public class JHubServer extends WebSocketServer {
             sendTo(session.socket, ConfigManager.gson().toJson(rig));
         }
 
+        // Last rig capabilities (so the Rig Control pane can gate controls
+        // without waiting for the next reconnect/probe).
+        com.hamradio.jhub.model.RigCapabilities caps = cache.getLastRigCaps();
+        if (caps != null) {
+            sendTo(session.socket, ConfigManager.gson().toJson(caps));
+        }
+
         // Logger session
         String loggerSession = cache.getLastLoggerSession();
         if (loggerSession != null) {

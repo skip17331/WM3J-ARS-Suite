@@ -1,0 +1,32 @@
+Caps dump for model: 9999
+Model name:	FM-Only-HT
+Mfg name:	Acme
+Rig type:	Handheld
+PTT type:	Rig
+Get functions: MUTE TONE TSQL
+Set functions: MUTE TONE TSQL
+Get level: AF(0..1/0) SQL(0..1/0) RFPOWER(0..1/0) STRENGTH(-54..60/0)
+Set level: AF(0..1/0) SQL(0..1/0)
+Mode list: FM WFM
+VFO list: VFOA VFOB MEM
+Can set Conf:	Y
+Can get Conf:	Y
+Can set Frequency:	Y
+Can get Frequency:	Y
+Can set Mode:	Y
+Can get Mode:	Y
+Can set VFO:	Y
+Can get VFO:	N
+Can set PTT:	Y
+Can get PTT:	Y
+Can set Split Freq:	N
+Can get Split Freq:	N
+Can set Split Mode:	N
+Can get Split Mode:	N
+Can set Split VFO:	N
+Can get Split VFO:	N
+Can set RIT:	N
+Can get RIT:	N
+Can set XIT:	N
+Can get XIT:	N
+Can get Info:	Y

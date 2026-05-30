@@ -1,5 +1,6 @@
 package com.hamradio.jhub;
 
+import com.hamradio.jhub.model.RigCapabilities;
 import com.hamradio.jhub.model.RigStatus;
 import com.hamradio.jhub.model.Spot;
 
@@ -40,6 +41,19 @@ public class StateCache {
 
     public void setLastRigStatus(RigStatus status) {
         this.lastRigStatus = status;
+    }
+
+    // ---------------------------------------------------------------
+    // Rig capabilities (RIG_CAPS) — one per connection, replayed to
+    // late joiners so the Rig Control pane can gate controls immediately.
+    // ---------------------------------------------------------------
+
+    private volatile RigCapabilities lastRigCaps;
+
+    public RigCapabilities getLastRigCaps() { return lastRigCaps; }
+
+    public void setLastRigCaps(RigCapabilities caps) {
+        this.lastRigCaps = caps;
     }
 
     // ---------------------------------------------------------------

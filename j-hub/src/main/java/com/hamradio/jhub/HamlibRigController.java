@@ -2,6 +2,7 @@ package com.hamradio.jhub;
 
 import com.hamradio.jhub.model.JHubConfig;
 import com.hamradio.jhub.model.JHubConfig.RigSection;
+import com.hamradio.jhub.model.RigCapabilities;
 import com.hamradio.jhub.model.RigStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,8 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -74,6 +77,45 @@ public class HamlibRigController implements RigController {
     // cleared only by restart() since "unsupported" is a property of the configured rig.
     private volatile boolean cwUnsupported  = false;
 
+    // ── Capability-driven state ──────────────────────────────────────
+    // Parsed once per connection from dump_caps/dump_state and published as
+    // RIG_CAPS. Null until probed; callers treat null as "unknown → don't gate".
+    private volatile RigCapabilities caps;
+    // Latches true if this backend rejects \get_rig_info (older Hamlib); the
+    // poll loop then falls back to the legacy f/m reads. A rig property, so it
+    // survives reconnects but is cleared by start()/restart().
+    private volatile boolean rigInfoUnsupported = false;
+    // Full last-published snapshot, for change detection. Scheduler-thread only,
+    // except the volatile mirrors above (lastFreq/lastMode) read by getters.
+    private final Snapshot last = new Snapshot();
+    // Power/RIT/XIT are read on a slower cadence than freq/mode/S-meter to keep
+    // CAT traffic on slow-serial rigs near the legacy 2-round-trip level.
+    private static final long AUX_READ_MS = 2000;
+    private long lastAuxReadMs = 0;   // scheduler-thread only
+
+    /** One poll cycle's worth of rig state. */
+    private static final class Snapshot {
+        long    freq;
+        String  mode = "";
+        String  vfo  = "";
+        boolean split;
+        long    splitTxFreq;
+        int     rit;     boolean ritOn;
+        int     xit;     boolean xitOn;
+        int     sMeterDb = Integer.MIN_VALUE;
+        double  rfPower  = -1.0;
+        String  txVfo;   // transient parse helper, not published
+
+        Snapshot copy() {
+            Snapshot c = new Snapshot();
+            c.freq = freq; c.mode = mode; c.vfo = vfo;
+            c.split = split; c.splitTxFreq = splitTxFreq;
+            c.rit = rit; c.ritOn = ritOn; c.xit = xit; c.xitOn = xitOn;
+            c.sMeterDb = sMeterDb; c.rfPower = rfPower;
+            return c;
+        }
+    }
+
     // Last human-readable failure reason; "" when healthy. Surfaced via
     // /api/rig/status so the Rig Control panel can explain *why* it won't connect
     // instead of sitting on "Connecting…" forever with nothing in the INFO log.
@@ -115,6 +157,11 @@ public class HamlibRigController implements RigController {
         this.lastError  = "";
         this.failCount  = 0;
         this.lastFailLogMs = 0;
+        // Fresh connection to a (possibly different) rig — re-probe capabilities
+        // and re-test get_rig_info support.
+        this.caps               = null;
+        this.rigInfoUnsupported = false;
+        this.lastAuxReadMs      = 0;
         // When manageRigctld is true, j-hub owns the daemon. Bring it up
         // before the poll loop starts so the first TCP connect finds a
         // listener instead of failing with "Connection refused" until the
@@ -177,6 +224,7 @@ public class HamlibRigController implements RigController {
     public boolean isCwUnsupported() { return cwUnsupported; }
     /** Last failure reason for the UI; "" when connected or disabled. */
     public String  getLastError()    { return lastError; }
+    @Override public RigCapabilities getCapabilities() { return caps; }
 
     // ── Commands (dispatched onto the scheduler thread) ───────────────
 
@@ -190,19 +238,99 @@ public class HamlibRigController implements RigController {
             try {
                 if (freq > 0) {
                     sendCommand("F " + freq);
-                    lastFreq = freq;
+                    lastFreq = freq; last.freq = freq;
                 }
                 if (mode != null && !mode.isBlank()) {
                     sendCommand("M " + mode + " 0");
-                    lastMode = mode;
+                    lastMode = mode; last.mode = mode;
                 }
-                // Publish immediately so the UI updates without waiting for the next poll
-                publishRigStatus(lastFreq, lastMode);
+                // Publish immediately so the UI updates without waiting for the
+                // next poll; carry forward the rest of the last-known snapshot.
+                publishRigStatus(last.copy());
             } catch (IOException e) {
                 log.warn("Hamlib tune failed: {}", e.getMessage());
                 closeSocket();
             }
         });
+    }
+
+    /** Select the active VFO (VFOA/VFOB/Main/Sub/MEM...). The next get_rig_info
+     *  poll (≤ one cycle) republishes the newly-active VFO's freq/mode. */
+    @Override
+    public void setVfo(String vfo) {
+        if (!running || vfo == null || vfo.isBlank()) return;
+        scheduler.execute(() -> safeSend("\\set_vfo " + vfo, "setVfo"));
+    }
+
+    /** Set the split (TX) frequency in Hz. */
+    @Override
+    public void setSplitFreq(long freqHz) {
+        if (!running || freqHz <= 0) return;
+        scheduler.execute(() -> safeSend("\\set_split_freq " + freqHz, "setSplitFreq"));
+    }
+
+    /** Set the split (TX) mode + passband (0 = backend default width). */
+    @Override
+    public void setSplitMode(String mode, int widthHz) {
+        if (!running || mode == null || mode.isBlank()) return;
+        final int w = Math.max(widthHz, 0);
+        scheduler.execute(() -> safeSend("\\set_split_mode " + mode + " " + w, "setSplitMode"));
+    }
+
+    /** Set the RIT offset in Hz (0 clears). Forces an aux re-read so the UI
+     *  reflects the change within one poll cycle. */
+    @Override
+    public void setRit(int hz) {
+        if (!running) return;
+        scheduler.execute(() -> { safeSend("\\set_rit " + hz, "setRit"); lastAuxReadMs = 0; });
+    }
+
+    /** Enable / disable RIT (Hamlib func RIT). */
+    @Override
+    public void setRitEnabled(boolean on) {
+        if (!running) return;
+        scheduler.execute(() -> { safeSend("\\set_func RIT " + (on ? 1 : 0), "setRitEnabled"); lastAuxReadMs = 0; });
+    }
+
+    /** Set the XIT offset in Hz (0 clears). */
+    @Override
+    public void setXit(int hz) {
+        if (!running) return;
+        scheduler.execute(() -> { safeSend("\\set_xit " + hz, "setXit"); lastAuxReadMs = 0; });
+    }
+
+    /** Enable / disable XIT (Hamlib func XIT). */
+    @Override
+    public void setXitEnabled(boolean on) {
+        if (!running) return;
+        scheduler.execute(() -> { safeSend("\\set_func XIT " + (on ? 1 : 0), "setXitEnabled"); lastAuxReadMs = 0; });
+    }
+
+    /** Set RF output power as a 0.0–1.0 fraction (Hamlib level RFPOWER). */
+    @Override
+    public void setRfPower(double fraction) {
+        if (!running) return;
+        final double f = Math.max(0.0, Math.min(1.0, fraction));
+        scheduler.execute(() -> { safeSend("\\set_level RFPOWER " + f, "setRfPower"); lastAuxReadMs = 0; });
+    }
+
+    /**
+     * Send a fire-and-forget command on the scheduler thread. A protocol-level
+     * rejection (RPRT &lt; 0 — e.g. the rig doesn't support this op) is logged
+     * but leaves the connection healthy; a real I/O error closes the socket so
+     * the next poll reconnects. Mirrors the tune()/setSplit() error policy.
+     */
+    private void safeSend(String cmd, String op) {
+        try {
+            sendCommand(cmd);
+        } catch (IOException e) {
+            if (isRprt(e)) {
+                log.warn("Hamlib {} rejected by rig: {}", op, e.getMessage());
+            } else {
+                log.warn("Hamlib {} I/O error: {}", op, e.getMessage());
+                closeSocket();
+            }
+        }
     }
 
     /** Exchange VFOs A and B (vfo_op XCHG in Hamlib parlance). The
@@ -346,30 +474,195 @@ public class HamlibRigController implements RigController {
     private void poll() {
         if (!running) return;
         try {
-            String freqResp = sendCommand("f");
-            String modeResp = sendCommand("m");
+            boolean firstConnect = !connected;
 
-            long   freq = parseFrequency(freqResp);
-            String mode = parseMode(modeResp);
+            // 1. Structural snapshot — one round-trip via get_rig_info (freq +
+            //    mode + active VFO + split), or the legacy f/m reads if the
+            //    backend can't do get_rig_info.
+            Snapshot s = new Snapshot();
+            readSnapshot(s);
 
-            if (!connected) {
+            if (firstConnect) {
                 connected     = true;
                 lastError     = "";
                 failCount     = 0;
                 lastFailLogMs = 0;
                 log.info("Hamlib connected — {}:{}", host, port);
+                // Probe + publish capabilities once per connection.
+                probeAndPublishCaps();
             }
 
-            if (freq != lastFreq || !mode.equals(lastMode)) {
-                lastFreq = freq;
-                lastMode = mode;
-                publishRigStatus(freq, mode);
+            // 2. S-meter every cycle (the one genuinely live value), gated by caps.
+            if (caps == null || caps.canShowSMeter()) {
+                s.sMeterDb = readStrength();
+            }
+
+            // 3. Power / RIT / XIT on a slower cadence to spare slow-serial CAT.
+            //    Carry forward the last-known values in between so change
+            //    detection doesn't flap them to defaults every cycle.
+            long now = System.currentTimeMillis();
+            if (now - lastAuxReadMs >= AUX_READ_MS) {
+                lastAuxReadMs = now;
+                if (caps == null || caps.canShowRfPower()) s.rfPower = readRfPower();
+                else                                       s.rfPower = last.rfPower;
+                if (caps == null || caps.canRit()) readRit(s); else { s.rit = last.rit; s.ritOn = last.ritOn; }
+                if (caps == null || caps.canXit()) readXit(s); else { s.xit = last.xit; s.xitOn = last.xitOn; }
+            } else {
+                s.rfPower = last.rfPower;
+                s.rit = last.rit; s.ritOn = last.ritOn;
+                s.xit = last.xit; s.xitOn = last.xitOn;
+            }
+
+            // 4. Publish on a structural change OR a whole-dB S-meter move.
+            if (firstConnect || structuralChanged(s) || s.sMeterDb != last.sMeterDb) {
+                commit(s);
+                publishRigStatus(s);
             }
 
         } catch (IOException e) {
             noteFailure(e);
             closeSocket();
         }
+    }
+
+    /** Fill {@code s} with freq/mode/vfo/split. Prefers the get_rig_info
+     *  snapshot (one round-trip); on RPRT (older Hamlib) latches a fallback to
+     *  the legacy f/m reads for the rest of the session. */
+    private void readSnapshot(Snapshot s) throws IOException {
+        if (!rigInfoUnsupported) {
+            try {
+                parseRigInfo(sendCommand("\\get_rig_info"), s);
+                return;
+            } catch (IOException e) {
+                if (isRprt(e)) {
+                    rigInfoUnsupported = true;
+                    log.info("Hamlib get_rig_info unsupported — falling back to f/m polling");
+                } else {
+                    throw e;
+                }
+            }
+        }
+        s.freq = parseFrequency(sendCommand("f"));
+        s.mode = parseMode(sendCommand("m"));
+    }
+
+    /** Issue dump_caps (+ dump_state) once, build RigCapabilities, publish
+     *  RIG_CAPS. A backend that rejects dump_caps yields an "unknown" caps so
+     *  the UI explicitly falls back to everything-enabled (the 746 never
+     *  regresses). Real I/O errors propagate to poll()'s reconnect path. */
+    private void probeAndPublishCaps() throws IOException {
+        RigCapabilities c;
+        try {
+            String dumpCaps  = sendCommand("\\dump_caps");
+            String dumpState = null;
+            try { dumpState = sendCommand("\\dump_state"); }
+            catch (IOException e) { if (!isRprt(e)) throw e; }
+            c = RigCapsParser.parse(dumpCaps, dumpState);
+        } catch (IOException e) {
+            if (!isRprt(e)) throw e;
+            c = new RigCapabilities();   // known=false → don't gate
+            log.info("Hamlib dump_caps rejected — capabilities unknown, UI won't gate controls");
+        }
+        c.source    = "HAMLIB";
+        c.timestamp = Instant.now().toString();
+        this.caps   = c;
+        if (router != null) router.publishRigCaps(c);
+        log.info("Rig caps: model={} '{}' known={} modes={} split={} rit={} xit={} sMeter={} setPwr={}",
+                c.model, c.modelName, c.known, c.modes,
+                c.canSplit(), c.canRit(), c.canXit(), c.canShowSMeter(), c.canSetRfPower());
+    }
+
+    private int readStrength() throws IOException {
+        try {
+            double v = parseLevelValue(sendCommand("\\get_level STRENGTH"));
+            return Double.isNaN(v) ? Integer.MIN_VALUE : (int) Math.round(v);
+        } catch (IOException e) {
+            if (isRprt(e)) return Integer.MIN_VALUE;
+            throw e;
+        }
+    }
+
+    private double readRfPower() throws IOException {
+        try {
+            double v = parseLevelValue(sendCommand("\\get_level RFPOWER"));
+            return Double.isNaN(v) ? -1.0 : v;
+        } catch (IOException e) {
+            if (isRprt(e)) return -1.0;
+            throw e;
+        }
+    }
+
+    private void readRit(Snapshot s) throws IOException {
+        try {
+            s.rit   = (int) parseLabeledLong(sendCommand("\\get_rit"), "RIT");
+            s.ritOn = parseFuncOn(sendCommand("\\get_func RIT"));
+        } catch (IOException e) {
+            if (!isRprt(e)) throw e;   // unsupported → leave neutral defaults
+        }
+    }
+
+    private void readXit(Snapshot s) throws IOException {
+        try {
+            s.xit   = (int) parseLabeledLong(sendCommand("\\get_xit"), "XIT");
+            s.xitOn = parseFuncOn(sendCommand("\\get_func XIT"));
+        } catch (IOException e) {
+            if (!isRprt(e)) throw e;
+        }
+    }
+
+    private boolean structuralChanged(Snapshot s) {
+        return s.freq != last.freq
+            || !eq(s.mode, last.mode)
+            || !eq(s.vfo, last.vfo)
+            || s.split != last.split
+            || s.splitTxFreq != last.splitTxFreq
+            || s.rit != last.rit || s.ritOn != last.ritOn
+            || s.xit != last.xit || s.xitOn != last.xitOn
+            || Double.compare(s.rfPower, last.rfPower) != 0;
+    }
+
+    /** Persist {@code s} as the new last-published snapshot and keep the
+     *  volatile freq/mode mirrors (read by getLastFreq/getLastMode) in sync. */
+    private void commit(Snapshot s) {
+        lastFreq = s.freq;
+        lastMode = s.mode;
+        last.freq = s.freq; last.mode = s.mode; last.vfo = s.vfo;
+        last.split = s.split; last.splitTxFreq = s.splitTxFreq;
+        last.rit = s.rit; last.ritOn = s.ritOn;
+        last.xit = s.xit; last.xitOn = s.xitOn;
+        last.sMeterDb = s.sMeterDb; last.rfPower = s.rfPower;
+    }
+
+    private static boolean eq(String a, String b) {
+        return a == null ? b == null : a.equals(b);
+    }
+
+    private static boolean isRprt(IOException e) {
+        String m = e.getMessage();
+        return m != null && m.contains("RPRT ");
+    }
+
+    private void publishRigStatus(Snapshot s) {
+        if (router == null) return;
+        RigStatus rig  = new RigStatus();
+        rig.source     = "HAMLIB";
+        rig.frequency  = s.freq;
+        rig.mode       = s.mode;
+        rig.band       = frequencyToBand(s.freq);
+        rig.timestamp  = Instant.now().toString();
+        rig.vfo        = s.vfo == null ? "" : s.vfo;
+        rig.split      = s.split;
+        rig.splitTxFreq= s.splitTxFreq;
+        rig.rit        = s.rit;   rig.ritOn = s.ritOn;
+        rig.xit        = s.xit;   rig.xitOn = s.xitOn;
+        rig.sMeterDb   = s.sMeterDb;
+        rig.rfPower    = s.rfPower;
+        StateCache.getInstance().setLastRigStatus(rig);
+        router.publishRigStatus(rig);
+        // Forward the new frequency to the amp so band-switched amps follow
+        // the rig automatically. The amp controller filters same-band repeats
+        // and respects its own bandFollow flag, so this is a cheap call.
+        HamlibAmpController.getInstance().followBand(s.freq);
     }
 
     /**
@@ -556,6 +849,98 @@ public class HamlibRigController implements RigController {
             if (!s.isEmpty() && !s.endsWith(":")) return s;
         }
         return "";
+    }
+
+    /**
+     * Parse a get_rig_info body into {@code s}. Wire format (verified, dummy):
+     * <pre>
+     *   VFO=Main Freq=145000000 Mode=FM Width=15000 RX=1 TX=1
+     *   VFO=Sub  Freq=146000000 Mode=FM Width=15000 RX=0 TX=0
+     *   Split=0 SatMode=0
+     * </pre>
+     * The RX=1 VFO is the active receive VFO (its freq/mode are displayed). When
+     * split, the TX=1 VFO (different from RX) carries the split TX frequency.
+     */
+    private static void parseRigInfo(String body, Snapshot s) {
+        boolean split = false;
+        for (String raw : body.split("\n")) {
+            String line = raw.trim();
+            if (line.startsWith("VFO=")) {
+                Map<String,String> kv = parseKvLine(line);
+                boolean rx = "1".equals(kv.get("RX"));
+                boolean tx = "1".equals(kv.get("TX"));
+                if (rx) {
+                    s.freq = parseLongSafe(kv.get("Freq"));
+                    String m = kv.get("Mode");
+                    s.mode = m == null ? "" : m;
+                    s.vfo  = kv.getOrDefault("VFO", "");
+                }
+                if (tx) {
+                    s.splitTxFreq = parseLongSafe(kv.get("Freq"));
+                    s.txVfo = kv.get("VFO");
+                }
+            } else if (line.startsWith("Split=")) {
+                split = "1".equals(parseKvLine(line).get("Split"));
+            }
+        }
+        s.split = split;
+        // Not split, or TX VFO == RX VFO → no distinct split TX frequency.
+        if (!split || (s.txVfo != null && s.txVfo.equals(s.vfo))) {
+            s.splitTxFreq = 0;
+        }
+    }
+
+    /** Split a "K1=V1 K2=V2 …" line into a map. */
+    private static Map<String,String> parseKvLine(String line) {
+        Map<String,String> kv = new HashMap<>();
+        for (String tok : line.trim().split("\\s+")) {
+            int eq = tok.indexOf('=');
+            if (eq > 0) kv.put(tok.substring(0, eq), tok.substring(eq + 1));
+        }
+        return kv;
+    }
+
+    private static long parseLongSafe(String s) {
+        if (s == null) return 0;
+        try { return (long) Double.parseDouble(s.trim()); }
+        catch (NumberFormatException e) { return 0; }
+    }
+
+    /**
+     * Extract a numeric level from a get_level body. Extended replies look like
+     * "get_level: STRENGTH\n-26" or "get_level: RFPOWER\n0.500000"; the value is
+     * the last bare numeric line (the "get_level:" label line is skipped).
+     * Returns NaN when no numeric value is present.
+     */
+    private static double parseLevelValue(String body) {
+        double val = Double.NaN;
+        for (String raw : body.split("\n")) {
+            String s = raw.trim();
+            if (s.isEmpty() || s.regionMatches(true, 0, "get_level", 0, 9)) continue;
+            try { val = Double.parseDouble(s); } catch (NumberFormatException ignored) {}
+        }
+        return val;
+    }
+
+    /** Pull the value off a "Label: 123" line (e.g. "RIT: 100" → 100). */
+    private static long parseLabeledLong(String body, String label) {
+        for (String raw : body.split("\n")) {
+            String s = raw.trim();
+            if (s.regionMatches(true, 0, label + ":", 0, label.length() + 1)) {
+                return parseLongSafe(s.substring(label.length() + 1));
+            }
+        }
+        return 0;
+    }
+
+    /** get_func reply: "get_func: RIT\n1" → true when the bare value line is 1. */
+    private static boolean parseFuncOn(String body) {
+        for (String raw : body.split("\n")) {
+            String s = raw.trim();
+            if (s.isEmpty() || s.regionMatches(true, 0, "get_func", 0, 8)) continue;
+            return s.startsWith("1");
+        }
+        return false;
     }
 
     // ── Frequency → band conversion ──────────────────────────────────

@@ -157,6 +157,47 @@ public class MessageRouter {
                 handleSetSplit(msg, session);
                 break;
 
+            case "SET_VFO":
+                handleRigCmd(session, "SET_VFO",
+                        r -> r.setVfo(msg.has("vfo") ? msg.get("vfo").getAsString() : ""));
+                break;
+
+            case "SET_SPLIT_FREQ":
+                handleRigCmd(session, "SET_SPLIT_FREQ",
+                        r -> { if (msg.has("frequency")) r.setSplitFreq(msg.get("frequency").getAsLong()); });
+                break;
+
+            case "SET_SPLIT_MODE":
+                handleRigCmd(session, "SET_SPLIT_MODE",
+                        r -> { if (msg.has("mode")) r.setSplitMode(msg.get("mode").getAsString(),
+                                msg.has("width") ? msg.get("width").getAsInt() : 0); });
+                break;
+
+            case "SET_RIT":
+                handleRigCmd(session, "SET_RIT",
+                        r -> r.setRit(msg.has("hz") ? msg.get("hz").getAsInt() : 0));
+                break;
+
+            case "SET_RIT_ENABLED":
+                handleRigCmd(session, "SET_RIT_ENABLED",
+                        r -> r.setRitEnabled(msg.has("on") && msg.get("on").getAsBoolean()));
+                break;
+
+            case "SET_XIT":
+                handleRigCmd(session, "SET_XIT",
+                        r -> r.setXit(msg.has("hz") ? msg.get("hz").getAsInt() : 0));
+                break;
+
+            case "SET_XIT_ENABLED":
+                handleRigCmd(session, "SET_XIT_ENABLED",
+                        r -> r.setXitEnabled(msg.has("on") && msg.get("on").getAsBoolean()));
+                break;
+
+            case "SET_RFPOWER":
+                handleRigCmd(session, "SET_RFPOWER",
+                        r -> { if (msg.has("power")) r.setRfPower(msg.get("power").getAsDouble()); });
+                break;
+
             case "ANT_OVERRIDE":
                 handleAntOverride(msg, session);
                 break;
@@ -637,6 +678,27 @@ public class MessageRouter {
         }
     }
 
+    /**
+     * Shared guard for the capability-driven rig commands (VFO, split freq/mode,
+     * RIT/XIT, power). Resolves the active backend, skips when it isn't running,
+     * runs {@code action}, and logs uniformly. The backend itself no-ops any op
+     * the rig doesn't support, so this layer doesn't need the caps.
+     */
+    private void handleRigCmd(JHubServer.AppSession session, String label,
+                              java.util.function.Consumer<RigController> action) {
+        try {
+            RigController rig = RigControllers.active();
+            if (!rig.isRunning()) {
+                log.debug("{} from '{}' ignored — rig backend not running", label, session.appName);
+                return;
+            }
+            action.accept(rig);
+            log.debug("{} from '{}'", label, session.appName);
+        } catch (Exception e) {
+            log.warn("Failed to process {}: {}", label, e.getMessage());
+        }
+    }
+
     /** Enable / disable split-frequency operation. Field "on" (boolean)
      *  carries the desired state; missing or non-boolean treated as false. */
     private void handleSetSplit(JsonObject msg, JHubServer.AppSession session) {
@@ -718,6 +780,20 @@ public class MessageRouter {
         }
         AntennaController.getInstance().onBandMode(rig.band, rig.mode);
         log.debug("RIG_STATUS published: {} Hz, {}", rig.frequency, rig.mode);
+    }
+
+    /**
+     * Publish a RIG_CAPS message describing what the connected rig can do.
+     * Emitted once per connection by the active {@link RigController} after it
+     * probes {@code dump_caps}/{@code dump_state}. Cached so late-joining apps
+     * (the J-Log Rig Control pane) can gate their controls immediately.
+     */
+    public void publishRigCaps(com.hamradio.jhub.model.RigCapabilities caps) {
+        StateCache.getInstance().setLastRigCaps(caps);
+        if (jHubServer != null) {
+            jHubServer.broadcastToAll(ConfigManager.gson().toJson(caps));
+        }
+        log.debug("RIG_CAPS published: model={} known={}", caps.model, caps.known);
     }
 
     /**

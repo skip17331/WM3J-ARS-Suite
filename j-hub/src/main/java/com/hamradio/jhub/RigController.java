@@ -1,6 +1,7 @@
 package com.hamradio.jhub;
 
 import com.hamradio.jhub.model.JHubConfig.RigSection;
+import com.hamradio.jhub.model.RigCapabilities;
 
 /**
  * Common contract for a backend that drives the operator's rig.
@@ -37,6 +38,12 @@ public interface RigController {
     /** True once the backend has decided this rig can't accept CW keying commands. */
     boolean isCwUnsupported();
 
+    /** Capabilities of the connected rig, or {@code null} until the backend
+     *  has probed them. Backends that don't query capabilities return null,
+     *  which callers treat as "unknown → don't gate" (see
+     *  {@link RigCapabilities#known}). */
+    default RigCapabilities getCapabilities() { return null; }
+
     // ── Commands ────────────────────────────────────────────────────
 
     /** Tune the rig (set frequency in Hz, set mode by name e.g. "USB"/"CW"). */
@@ -48,6 +55,23 @@ public interface RigController {
      *  receives on the current VFO and transmits on the other (TX VFO).
      *  Backends without native split support no-op by default. */
     default void setSplit(boolean on) { /* default no-op; backends override */ }
+    /** Select the active VFO by Hamlib name (e.g. "VFOA"/"VFOB"/"Main"/"Sub"/"MEM").
+     *  Backends without VFO selection no-op by default. */
+    default void setVfo(String vfo) { /* default no-op; backends override */ }
+    /** Set the split (TX) frequency in Hz. No-op when the rig can't set split freq. */
+    default void setSplitFreq(long freqHz) { /* default no-op */ }
+    /** Set the split (TX) mode + passband (Hz; 0 = backend default width). */
+    default void setSplitMode(String mode, int widthHz) { /* default no-op */ }
+    /** Set the RIT offset in Hz (0 clears). No-op when unsupported. */
+    default void setRit(int hz) { /* default no-op */ }
+    /** Enable/disable RIT (Hamlib func RIT). No-op when unsupported. */
+    default void setRitEnabled(boolean on) { /* default no-op */ }
+    /** Set the XIT offset in Hz (0 clears). No-op when unsupported. */
+    default void setXit(int hz) { /* default no-op */ }
+    /** Enable/disable XIT (Hamlib func XIT). No-op when unsupported. */
+    default void setXitEnabled(boolean on) { /* default no-op */ }
+    /** Set RF output power as a 0.0–1.0 fraction (Hamlib level RFPOWER). */
+    default void setRfPower(double fraction) { /* default no-op */ }
     /** Key (true) or un-key (false) the transmitter. No-op when PTT disabled in config. */
     void setPtt(boolean on);
     /** Set the rig keyer speed in WPM. No-op for backends that don't support CW. */
