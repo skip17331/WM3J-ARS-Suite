@@ -116,7 +116,12 @@
             <!-- Left column: Data Entry with Station Info / Bearing-Distance /
                  Space Wx directly beneath it (filling the space left of the
                  taller Rig Control pane). -->
-            <VBox spacing="0" HBox.hgrow="ALWAYS" prefWidth="1000" maxHeight="Infinity">
+            <!-- Vertical SplitPane: Data Entry / Station & Space Wx / Previous
+                 QSOs are now drag-resizable (vertical). Horizontal resize of the
+                 whole column vs the Rig Control pane is the entryDragHandle. -->
+            <SplitPane orientation="VERTICAL" HBox.hgrow="ALWAYS" prefWidth="1000"
+                       maxHeight="Infinity" dividerPositions="0.35, 0.55"
+                       styleClass="left-col-split">
             <TitledPane fx:id="entryPane" text="%pane.entry" collapsible="false" styleClass="entry-pane">
                 <VBox spacing="6">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
@@ -279,7 +284,7 @@
                     </columns>
                 </TableView>
             </TitledPane>
-            </VBox>
+            </SplitPane>
 
             <!-- Rig Control pane — radio-front-panel layout (per WM3J mockup
                  2026-05-29). Big yellow VFO display on top with compact
