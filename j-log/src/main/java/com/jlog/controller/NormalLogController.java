@@ -294,6 +294,7 @@ public class NormalLogController implements Initializable {
         initRigKeypad();
         initRigControls();
         initKeypadPaneState();
+        initKeyerPaneState();
         initRigTitleBar();
         initSMeter();
         loadQsos();
@@ -1423,7 +1424,21 @@ public class NormalLogController implements Initializable {
             keyerPane.setManaged(show);
         }
         if (miToggleKeyer != null) miToggleKeyer.setSelected(show);
+        DatabaseManager.getInstance().setConfig("normal.keyerVisible", String.valueOf(show));
         if (show && tfKeyerTx != null) tfKeyerTx.requestFocus();
+    }
+
+    /** Restore the keyer pane's shown/hidden state from the last session. The
+     *  FXML starts with the keyer present (an item of centerSplit) and the menu
+     *  checked; if it was hidden at last close, drop it from the split and
+     *  uncheck the Tools menu item so it stays hidden. */
+    private void initKeyerPaneState() {
+        boolean show = Boolean.parseBoolean(
+            DatabaseManager.getInstance().getConfig("normal.keyerVisible", "true"));
+        if (miToggleKeyer != null) miToggleKeyer.setSelected(show);
+        if (!show && keyerPane != null && centerSplit != null) {
+            centerSplit.getItems().remove(keyerPane);
+        }
     }
 
     @FXML private void doKeyerSend() {
