@@ -81,32 +81,24 @@
                 <Label fx:id="lblAntStatus" styleClass="ant-status"
                        text="" visible="false" managed="false"/>
             </HBox>
+        </VBox>
+    </top>
 
-            <!-- ============================================================
-                 ROW 2 + ROW 3 wrapped in a VERTICAL SplitPane so the
-                 operator can drag the row heights up and down. Inside,
-                 ROW 2 is the Data Entry + Rig Control HORIZONTAL split.
-                 Both SplitPane dividers are user-draggable.
-
-                 entry-split (horizontal) — divider styled to 2px
-                 transparent strip (base.css) so the two banners look
-                 flush; still grabbable.
-                 row-split   (vertical)   — divider stays default 6px
-                 height so it's visible/grippy. Info-pane-row gets an
-                 explicit minHeight so it can't be squeezed to nothing.
-                 ============================================================ -->
+    <!-- ============================================================
+         CENTER: everything below the clock bar lives in ONE vertical
+         SplitPane so every row height is drag-adjustable.
+           item 1 = entry area (Data Entry / Station & Space Wx / Previous
+                    QSOs vertical split, beside the Rig Control pane)
+           item 2 = keyer over the QSO-log/DX area (a nested vertical
+                    split, so the keyer is resizable vs the log)
+         The entry-split (Data Entry vs Rig Control) is a horizontal seam
+         dragged via entryDragHandle.
+         ============================================================ -->
+    <center>
             <SplitPane fx:id="rowSplit" orientation="VERTICAL"
-                       dividerPositions="0.45" styleClass="row-split"
-                       prefHeight="380">
-            <!-- rowSplit child 1: VBox wraps entry-row + activationBar so
-                 the (hidden) activation bar stays visually above the info
-                 row when shown. The entry row sits inside a StackPane so a
-                 thin invisible drag strip (entryDragHandle) can overlay
-                 the seam between Data Entry and Rig Control — banners
-                 stay flush (HBox spacing=0) while the operator can still
-                 grab the seam to redistribute width. NormalLogController
-                 binds the strip's translateX to entryPane.width-3 and
-                 wires its onMouseDragged to adjust rigControlPane prefWidth. -->
+                       styleClass="row-split" dividerPositions="0.5">
+            <!-- item 1: entry area. The StackPane lets entryDragHandle overlay
+                 the Data Entry / Rig Control seam. -->
             <VBox spacing="0">
             <StackPane VBox.vgrow="ALWAYS">
             <!-- maxHeight=Infinity lets the StackPane stretch this row to fill
@@ -613,32 +605,15 @@
             <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4"
                   alignment="CENTER_LEFT"/>
             </VBox>
-            </SplitPane>
-        </VBox>
-    </top>
 
-    <!-- ============================================================
-         CENTER: full-width Keyer pane (above) over a horizontal
-         SplitPane (QSO log left, DX Spotting + Heard-By right). The
-         Keyer pane is hidden by default and toggled via Tools menu;
-         when shown it spans the entire window width (not constrained
-         to the SplitPane's left half) and carries the Macro button
-         bar as its top row. The horizontal divider between QSO log
-         and DX column is draggable.
-         ============================================================ -->
-    <center>
-        <VBox>
-            <!-- Macro button bar now lives in the rowSplit's top VBox
-                 (just above the Station Info banner) — see above. -->
-
-
-            <!-- CW / Digital keyer (the "transmit pane"). Always visible
-                 (Tools menu toggle can hide it). minHeight=USE_PREF_SIZE
-                 so VBox can't collapse it to zero when the SplitPane
-                 below it wants more space (e.g. operator expands the
-                 Heard-By TitledPane in the right column). -->
+            <!-- item 2: keyer over the QSO-log/DX area, as a nested vertical
+                 SplitPane so the keyer is drag-resizable vs the log. The keyer
+                 is toggled via the Tools menu — added to / removed from this
+                 split's items in toggleKeyerPane (managed/visible alone leaves
+                 a dead divider gap in a SplitPane). -->
+            <SplitPane fx:id="centerSplit" orientation="VERTICAL" dividerPositions="0.22">
             <VBox fx:id="keyerPane" spacing="4" styleClass="keyer-pane"
-                  minHeight="-Infinity">
+                  minHeight="80">
                 <padding><Insets top="4" right="6" bottom="4" left="6"/></padding>
                 <HBox spacing="6" alignment="CENTER_LEFT">
                     <Label text="Keyer:" styleClass="section-title"/>
@@ -715,6 +690,7 @@
                 </TitledPane>
             </VBox>
         </SplitPane>
-        </VBox>
+            </SplitPane>
+            </SplitPane>
     </center>
 </BorderPane>

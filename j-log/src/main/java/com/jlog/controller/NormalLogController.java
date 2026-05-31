@@ -87,6 +87,7 @@ public class NormalLogController implements Initializable {
     @FXML private TitledPane rigKeypadPane;
     @FXML private Region     entryDragHandle;
     @FXML private SplitPane  rowSplit;
+    @FXML private SplitPane  centerSplit;   // keyer over QSO-log/DX; keyer toggled in/out of its items
     // Compact Freq/Mode/Band/Power grid removed per mockup — the big yellow
     // VFO display owns this data now. Power field would need a header label
     // somewhere else if we revive it later.
@@ -1410,8 +1411,14 @@ public class NormalLogController implements Initializable {
 
     @FXML private void toggleKeyerPane() {
         boolean show = (miToggleKeyer != null) ? miToggleKeyer.isSelected()
-                                               : !(keyerPane != null && keyerPane.isVisible());
-        if (keyerPane != null) {
+                                               : !(keyerPane != null && keyerPane.getParent() != null);
+        // keyerPane is an item of the centerSplit SplitPane; add/remove it from
+        // the items (setManaged alone leaves a dead divider gap in a SplitPane).
+        if (keyerPane != null && centerSplit != null) {
+            boolean present = centerSplit.getItems().contains(keyerPane);
+            if (show && !present)       centerSplit.getItems().add(0, keyerPane);
+            else if (!show && present)  centerSplit.getItems().remove(keyerPane);
+        } else if (keyerPane != null) {  // fallback if not in a SplitPane
             keyerPane.setVisible(show);
             keyerPane.setManaged(show);
         }
