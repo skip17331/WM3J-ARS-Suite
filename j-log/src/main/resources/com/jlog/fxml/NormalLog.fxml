@@ -262,7 +262,7 @@
                  Space Wx row (moved up from the old full-width lower row). -->
             <!-- Grows downward (VBox.vgrow) to fill the left column's leftover
                  height, ending just above the F1-F12 macro bar. -->
-            <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="false"
+            <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="true" animated="false"
                         VBox.vgrow="ALWAYS" maxHeight="Infinity">
                 <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="240" minHeight="40">
                     <columns>
