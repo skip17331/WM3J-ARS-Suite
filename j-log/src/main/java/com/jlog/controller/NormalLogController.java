@@ -689,8 +689,16 @@ public class NormalLogController implements Initializable {
         if (rigTitleBar == null || rigControlPane == null) return;
         // 36 = leading expander-arrow area + pane padding allowance. Empirical
         // for the default JavaFX 21 TitledPane skin; tweak if a theme shifts.
+        //
+        // Bind to the pane's *prefWidth* (the explicit value set at init from
+        // config and on drag), NOT its live width. The title bar is this pane's
+        // graphic, so binding to width() is self-referential: the graphic's
+        // pref feeds back into the pane's computed width, and every layout pass
+        // (e.g. the 1 s live-indicator tick) nudges it — the pane visibly
+        // drifts. prefWidth isn't influenced by the graphic, so the loop is
+        // broken while the title bar still tracks real width changes.
         rigTitleBar.prefWidthProperty().bind(
-            rigControlPane.widthProperty().subtract(36));
+            rigControlPane.prefWidthProperty().subtract(36));
     }
 
     /** Spin up a 1s Timeline that re-evaluates the live indicator. Cheap
