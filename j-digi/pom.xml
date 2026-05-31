@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-engine</artifactId>
-            <version>1.0.47</version>
+            <version>1.1.1</version>
         </dependency>
 
         <!-- JavaFX — OS-specific classifier so the native runtime is
