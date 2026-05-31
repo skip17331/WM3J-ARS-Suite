@@ -8,6 +8,7 @@ import com.jlog.db.QsoDao;
 import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
+import com.jlog.db.DatabaseManager;
 import com.jlog.util.AppConfig;
 import com.jlog.util.BandPlan;
 import com.jlog.util.MacroVariableEngine;
@@ -83,6 +84,7 @@ public class NormalLogController implements Initializable {
     @FXML private Label lblDistance;
     @FXML private TitledPane entryPane;
     @FXML private TitledPane rigControlPane;
+    @FXML private TitledPane rigKeypadPane;
     @FXML private Region     entryDragHandle;
     @FXML private SplitPane  rowSplit;
     // Compact Freq/Mode/Band/Power grid removed per mockup — the big yellow
@@ -290,6 +292,7 @@ public class NormalLogController implements Initializable {
         initRigLiveIndicator();
         initRigKeypad();
         initRigControls();
+        initKeypadPaneState();
         initRigTitleBar();
         initSMeter();
         loadQsos();
@@ -843,6 +846,20 @@ public class NormalLogController implements Initializable {
                 HubEngine.getInstance().sendSetRfPower(sliderRfPower.getValue() / 100.0);
             }
         });
+    }
+
+    /** Restore the Band/Keypad pane's expanded state from the last session and
+     *  persist it whenever the operator toggles it. (Setting expanded here in
+     *  code is reliable, unlike the FXML {@code expanded} attribute on a nested
+     *  TitledPane, which isn't honored at load.) Defaults to expanded on first
+     *  run. */
+    private void initKeypadPaneState() {
+        if (rigKeypadPane == null) return;
+        boolean expanded = Boolean.parseBoolean(
+            DatabaseManager.getInstance().getConfig("normal.keypadExpanded", "true"));
+        rigKeypadPane.setExpanded(expanded);
+        rigKeypadPane.expandedProperty().addListener((o, ov, nv) ->
+            DatabaseManager.getInstance().setConfig("normal.keypadExpanded", String.valueOf(nv)));
     }
 
     /** Wire each band/keypad button to dispatch by current keypadMode.

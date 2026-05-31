@@ -109,11 +109,14 @@
                  wires its onMouseDragged to adjust rigControlPane prefWidth. -->
             <VBox spacing="0">
             <StackPane VBox.vgrow="ALWAYS">
-            <HBox spacing="0" styleClass="entry-split">
+            <!-- maxHeight=Infinity lets the StackPane stretch this row to fill
+                 the available height (down to the macro bar) so the left
+                 column's Previous QSOs pane can grow into it. -->
+            <HBox spacing="0" styleClass="entry-split" maxHeight="Infinity">
             <!-- Left column: Data Entry with Station Info / Bearing-Distance /
                  Space Wx directly beneath it (filling the space left of the
                  taller Rig Control pane). -->
-            <VBox spacing="0" HBox.hgrow="ALWAYS" prefWidth="1000">
+            <VBox spacing="0" HBox.hgrow="ALWAYS" prefWidth="1000" maxHeight="Infinity">
             <TitledPane fx:id="entryPane" text="%pane.entry" collapsible="false" styleClass="entry-pane">
                 <VBox spacing="6">
                 <GridPane hgap="8" vgap="6" styleClass="entry-grid">
@@ -257,8 +260,8 @@
             <!-- Grows downward (VBox.vgrow) to fill the left column's leftover
                  height, ending just above the F1-F12 macro bar. -->
             <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="false"
-                        VBox.vgrow="ALWAYS">
-                <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="60">
+                        VBox.vgrow="ALWAYS" maxHeight="Infinity">
+                <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="240">
                     <columns>
                         <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
                         <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
@@ -465,7 +468,7 @@
                     <!-- Keypad in a collapsible, full-width pane (like Heard By /
                          DX Spotter) so the operator can fold it away to shrink
                          the pane. -->
-                    <TitledPane text="Band / Keypad" collapsible="true" animated="false" expanded="false">
+                    <TitledPane fx:id="rigKeypadPane" text="Band / Keypad" collapsible="true" animated="false">
                     <GridPane fx:id="rigKeypad" hgap="3" vgap="3">
                         <!-- Row 0: 1.8/1   3.5/2   7/3    F-INP -->
                         <Button fx:id="btnKey1" text="1.8 / 1"
