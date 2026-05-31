@@ -189,8 +189,11 @@
                 </VBox>
             </TitledPane>
 
-            <!-- Station Info / Bearing-Distance / Space Wx — moved here from the
-                 lower info-pane-row to sit directly under Data Entry. -->
+            <!-- Station Info / Bearing-Distance / Space Wx under Data Entry, in a
+                 collapsible pane so the whole row can be folded away. Station
+                 Info expands to the right (hgrow); Bearing + Space Wx size to
+                 content (Space Wx kept compact). -->
+            <TitledPane text="Lookup / Space Wx" collapsible="true" animated="false">
             <HBox spacing="0" styleClass="info-pane-row">
                 <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
                     <VBox spacing="4" styleClass="info-content">
@@ -205,7 +208,7 @@
                         </HBox>
                     </VBox>
                 </TitledPane>
-                <TitledPane text="%pane.bearing" collapsible="false" HBox.hgrow="ALWAYS">
+                <TitledPane text="%pane.bearing" collapsible="false">
                     <VBox spacing="4" styleClass="info-content">
                         <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
                         <HBox spacing="8">
@@ -218,7 +221,7 @@
                         </HBox>
                     </VBox>
                 </TitledPane>
-                <TitledPane fx:id="spaceWxPane" text="Space Wx" collapsible="false" HBox.hgrow="ALWAYS">
+                <TitledPane fx:id="spaceWxPane" text="Space Wx" collapsible="false">
                     <GridPane hgap="14" vgap="4" styleClass="info-content">
                         <padding><Insets top="6" right="10" bottom="6" left="10"/></padding>
                         <columnConstraints>
@@ -254,6 +257,7 @@
                     </GridPane>
                 </TitledPane>
             </HBox>
+            </TitledPane>
 
             <!-- Previous QSOs — directly under the Station Info / Bearing /
                  Space Wx row (moved up from the old full-width lower row). -->
@@ -284,7 +288,7 @@
                  implemented (Filter, P.AMP/ATT, NB). The whole pane is hidden if the
                  operator switches off Rig Control in j-hub's J-Log
                  card (CONFIG_UPDATE settings.rigControlVisible). -->
-            <TitledPane fx:id="rigControlPane" collapsible="false"
+            <TitledPane fx:id="rigControlPane" collapsible="true" animated="false"
                         styleClass="entry-pane" prefWidth="380" text="">
                 <!-- Title bar: "Rig Control" on the left, liveness dot +
                      status on the right. The HBox's prefWidth is bound
