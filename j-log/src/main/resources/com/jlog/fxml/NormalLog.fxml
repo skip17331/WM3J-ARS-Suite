@@ -194,7 +194,7 @@
                  labelled columns, NOT nested TitledPanes, so nothing looks like
                  a pane floating inside a pane. Station Info expands right
                  (hgrow); the others size to content. -->
-            <TitledPane text="Lookup" collapsible="true" animated="false">
+            <TitledPane text="Station &amp; Space Wx" collapsible="true" animated="false">
             <HBox styleClass="info-pane-row" spacing="20">
                 <padding><Insets top="4" right="8" bottom="6" left="8"/></padding>
                 <!-- Station Info -->
