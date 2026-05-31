@@ -189,41 +189,43 @@
                 </VBox>
             </TitledPane>
 
-            <!-- Station Info / Bearing-Distance / Space Wx under Data Entry, in a
-                 collapsible pane so the whole row can be folded away. Station
-                 Info expands to the right (hgrow); Bearing + Space Wx size to
-                 content (Space Wx kept compact). -->
-            <TitledPane text="Lookup / Space Wx" collapsible="true" animated="false">
-            <HBox spacing="0" styleClass="info-pane-row">
-                <TitledPane text="%pane.info" collapsible="false" HBox.hgrow="ALWAYS">
-                    <VBox spacing="4" styleClass="info-content">
-                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
-                        <HBox spacing="8">
-                            <Label text="%label.country"/>
-                            <Label fx:id="lblCountry" styleClass="info-value"/>
-                        </HBox>
-                        <HBox spacing="8">
-                            <Label text="%label.continent"/>
-                            <Label fx:id="lblContinent" styleClass="info-value"/>
-                        </HBox>
-                    </VBox>
-                </TitledPane>
-                <TitledPane text="%pane.bearing" collapsible="false">
-                    <VBox spacing="4" styleClass="info-content">
-                        <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
-                        <HBox spacing="8">
-                            <Label text="%label.bearing"/>
-                            <Label fx:id="lblBearing" styleClass="info-value"/>
-                        </HBox>
-                        <HBox spacing="8">
-                            <Label text="%label.distance"/>
-                            <Label fx:id="lblDistance" styleClass="info-value"/>
-                        </HBox>
-                    </VBox>
-                </TitledPane>
-                <TitledPane fx:id="spaceWxPane" text="Space Wx" collapsible="false">
-                    <GridPane hgap="14" vgap="4" styleClass="info-content">
-                        <padding><Insets top="6" right="10" bottom="6" left="10"/></padding>
+            <!-- Station Info / Bearing / Space Wx in ONE collapsible pane (the
+                 whole row folds away). Flattened: the three sections are plain
+                 labelled columns, NOT nested TitledPanes, so nothing looks like
+                 a pane floating inside a pane. Station Info expands right
+                 (hgrow); the others size to content. -->
+            <TitledPane text="Lookup" collapsible="true" animated="false">
+            <HBox styleClass="info-pane-row" spacing="20">
+                <padding><Insets top="4" right="8" bottom="6" left="8"/></padding>
+                <!-- Station Info -->
+                <VBox spacing="3" styleClass="info-content" HBox.hgrow="ALWAYS">
+                    <Label text="%pane.info" styleClass="section-title"/>
+                    <HBox spacing="8">
+                        <Label text="%label.country"/>
+                        <Label fx:id="lblCountry" styleClass="info-value"/>
+                    </HBox>
+                    <HBox spacing="8">
+                        <Label text="%label.continent"/>
+                        <Label fx:id="lblContinent" styleClass="info-value"/>
+                    </HBox>
+                </VBox>
+                <!-- Bearing / Distance -->
+                <VBox spacing="3" styleClass="info-content">
+                    <Label text="%pane.bearing" styleClass="section-title"/>
+                    <HBox spacing="8">
+                        <Label text="%label.bearing"/>
+                        <Label fx:id="lblBearing" styleClass="info-value"/>
+                    </HBox>
+                    <HBox spacing="8">
+                        <Label text="%label.distance"/>
+                        <Label fx:id="lblDistance" styleClass="info-value"/>
+                    </HBox>
+                </VBox>
+                <!-- Space Wx — fx:id moved here from the old inner pane; shown/
+                     hidden via the showSpaceWeather setting. -->
+                <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content">
+                    <Label text="Space Wx" styleClass="section-title"/>
+                    <GridPane hgap="14" vgap="4">
                         <columnConstraints>
                             <ColumnConstraints halignment="RIGHT" minWidth="42"/>
                             <ColumnConstraints halignment="LEFT"  minWidth="50"/>
@@ -255,7 +257,7 @@
                         <Label fx:id="lblSolarGeo"  styleClass="info-value"
                                GridPane.columnIndex="5" GridPane.rowIndex="1"/>
                     </GridPane>
-                </TitledPane>
+                </VBox>
             </HBox>
             </TitledPane>
 

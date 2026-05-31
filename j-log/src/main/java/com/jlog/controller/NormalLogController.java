@@ -175,7 +175,7 @@ public class NormalLogController implements Initializable {
     private static final long RIG_LIVE_THRESHOLD_MS = 3000;
     @FXML private HBox       rigTitleBar;
     @FXML private HBox       sMeterSegments;
-    @FXML private TitledPane spaceWxPane;
+    @FXML private javafx.scene.layout.VBox spaceWxPane;  // flattened section (was a TitledPane)
     @FXML private Label lblSolarSfi;
     @FXML private Label lblSolarK;
     @FXML private Label lblSolarSsn;
