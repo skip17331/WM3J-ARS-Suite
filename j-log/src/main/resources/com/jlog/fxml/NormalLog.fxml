@@ -194,8 +194,8 @@
             <TitledPane text="Station &amp; Space Wx" collapsible="true" animated="false">
             <HBox styleClass="info-pane-row" spacing="20">
                 <padding><Insets top="4" right="8" bottom="6" left="8"/></padding>
-                <!-- Station Info -->
-                <VBox spacing="3" styleClass="info-content" HBox.hgrow="ALWAYS">
+                <!-- Station Info (left) -->
+                <VBox spacing="3" styleClass="info-content">
                     <Label text="%pane.info" styleClass="section-title"/>
                     <HBox spacing="8">
                         <Label text="%label.country"/>
@@ -206,7 +206,9 @@
                         <Label fx:id="lblContinent" styleClass="info-value"/>
                     </HBox>
                 </VBox>
-                <!-- Bearing / Distance -->
+                <Region HBox.hgrow="ALWAYS"/>
+                <!-- Bearing / Distance (centered between Station Info & Space Wx
+                     by the equal flexible spacers on either side) -->
                 <VBox spacing="3" styleClass="info-content">
                     <Label text="%pane.bearing" styleClass="section-title"/>
                     <HBox spacing="8">
@@ -218,8 +220,9 @@
                         <Label fx:id="lblDistance" styleClass="info-value"/>
                     </HBox>
                 </VBox>
-                <!-- Space Wx — fx:id moved here from the old inner pane; shown/
-                     hidden via the showSpaceWeather setting. -->
+                <Region HBox.hgrow="ALWAYS"/>
+                <!-- Space Wx (right) — fx:id moved here from the old inner pane;
+                     shown/hidden via the showSpaceWeather setting. -->
                 <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content">
                     <Label text="Space Wx" styleClass="section-title"/>
                     <GridPane hgap="14" vgap="4">
