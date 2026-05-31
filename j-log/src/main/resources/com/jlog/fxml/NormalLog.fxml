@@ -264,7 +264,7 @@
                  height, ending just above the F1-F12 macro bar. -->
             <TitledPane fx:id="prevQsosPane" text="Previous QSOs" collapsible="false"
                         VBox.vgrow="ALWAYS" maxHeight="Infinity">
-                <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="240" minHeight="180">
+                <TableView fx:id="prevQsosTable" styleClass="qso-table" prefHeight="240" minHeight="40">
                     <columns>
                         <TableColumn fx:id="colPqDate"  text="Date / Time" prefWidth="120"/>
                         <TableColumn fx:id="colPqBand"  text="Band"        prefWidth="55"/>
