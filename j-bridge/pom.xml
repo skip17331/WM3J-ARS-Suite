@@ -21,11 +21,11 @@
             the same Maven local cache is reused and no classpath conflicts arise
             if all three apps ever share a parent POM in future.
         -->
-        <javafx.version>21.0.2</javafx.version>
+        <javafx.version>21.0.3</javafx.version>
         <gson.version>2.10.1</gson.version>          <!-- matches j-hub -->
-        <websocket.version>1.5.4</websocket.version>  <!-- matches j-log -->
-        <slf4j.version>2.0.12</slf4j.version>         <!-- matches j-log -->
-        <logback.version>1.5.3</logback.version>      <!-- matches j-log -->
+        <websocket.version>1.5.6</websocket.version>  <!-- matches j-log -->
+        <slf4j.version>2.0.13</slf4j.version>         <!-- matches j-log -->
+        <logback.version>1.5.6</logback.version>      <!-- matches j-log -->
         <main.class>com.hamradio.jbridge.JBridgeMain</main.class>
     </properties>
 
