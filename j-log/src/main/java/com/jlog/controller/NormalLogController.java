@@ -161,7 +161,9 @@ public class NormalLogController implements Initializable, RigControlController.
 
     // ---- ID timer (FCC §97.119) — toggled + interval set from j-hub's J-Log
     //      card (jLogSettings.idTimerEnabled / idTimerMinutes). Not used in
-    //      Contest mode. Counts down on the existing 1 s clock tick. ----
+    //      Contest mode. Lives in the Station & Space Wx pane (right of Space
+    //      Wx); counts down on the existing 1 s clock tick. ----
+    @FXML private VBox   idTimerBox;
     @FXML private Label  lblIdTimer;
     @FXML private Button btnIdReset;
     private volatile boolean idTimerEnabled = false;
@@ -921,8 +923,7 @@ public class NormalLogController implements Initializable, RigControlController.
      *  button and (re)starts or stops the countdown. Live-toggle, no restart. */
     private void setIdTimerEnabled(boolean enabled) {
         idTimerEnabled = enabled;
-        if (lblIdTimer != null) { lblIdTimer.setVisible(enabled); lblIdTimer.setManaged(enabled); }
-        if (btnIdReset != null) { btnIdReset.setVisible(enabled); btnIdReset.setManaged(enabled); }
+        if (idTimerBox != null) { idTimerBox.setVisible(enabled); idTimerBox.setManaged(enabled); }
         if (enabled) resetIdTimer(); else idDueAtMs = 0;
     }
 
