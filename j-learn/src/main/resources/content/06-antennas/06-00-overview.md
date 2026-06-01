@@ -17,33 +17,55 @@ This chapter walks the antenna families an HF/VHF operator actually meets, then 
 
 ## How the chapter is organized
 
-The chapter goes antenna-by-antenna for the first nine sections, then pivots to the *physics and engineering* sections that explain why some antennas work in your yard and others don't.
+The chapter splits into two groups: the **antenna families** an operator actually builds, and the **physics and engineering** sections that explain why some antennas work in your yard and others don't.
+
+The antenna families:
 
 | § | Topic | Why it's here |
 |---|-------|---------------|
-| 05-01 | Dipoles | The default reference antenna; everything else is compared to it |
-| 05-02 | Inverted V | The dipole most hams actually build (one center support) |
-| 05-03 | Verticals | Quarter-wave, half-wave, ground-plane, no-radial designs |
-| 05-04 | EFHW (End-Fed Half-Wave) | One support, one feedline, multi-band — the modern wire favorite |
-| 05-05 | Magnetic loops | Tiny, high-Q, the apartment-dweller's secret weapon |
-| 05-06 | Full-wave loops | Quad, delta, skyloop — quiet, efficient, big |
-| 05-07 | Rhombic | The classic high-gain wire DX antenna |
-| 05-08 | Traps | How one antenna can cover several bands |
-| 05-09 | Smith charts | The diagnostic tool for any matching problem |
-| 05-10 | Feedline effects | What the coax does to your "antenna" SWR |
-| 05-11 | Impedance transformation | Matching networks, transformers, ATUs |
-| 05-12 | Baluns and chokes | When you need them, when you don't |
-| 05-13 | Ground-plane effects | Why the same antenna at two heights performs differently |
-| 05-14 | Modeling concepts | NEC, MMANA, EZNEC — what they do and don't tell you |
-| 05-15 | Radiation patterns | Reading azimuth and elevation plots |
+| 06-01 | Dipoles | The default reference antenna; everything else is compared to it |
+| 06-02 | Inverted V | The dipole most hams actually build (one center support) |
+| 06-03 | Verticals | Quarter-wave, half-wave, ground-plane, no-radial designs |
+| 06-04 | EFHW (End-Fed Half-Wave) | One support, one feedline, multi-band — the modern wire favorite |
+| 06-05 | Magnetic loops | Tiny, high-Q, the apartment-dweller's secret weapon |
+| 06-06 | Full-wave loops | Quad, delta, skyloop — quiet, efficient, big |
+| 06-07 | Rhombic | The classic high-gain wire DX antenna |
+| 06-08 | Traps | How one antenna can cover several bands |
+| 06-18 | Folded dipole | Same length as a dipole, 4× the feed impedance, wider bandwidth |
+| 06-19 | OCFD / Windom | Off-center feed → one balun matches several harmonic bands |
+| 06-20 | G5RV / ZS6BKW | The famous (and famously misunderstood) ladder-matched wires |
+| 06-21 | Doublet | Any-length wire + ladder line + tuner = every HF band |
+| 06-22 | Fan dipole | One feedpoint, a full-size dipole per band, no tuner |
+| 06-23 | Sloper / half-sloper | Slanted dipole, and the tower-fed quarter-wave DX wire |
+| 06-24 | Random wire | The non-resonant 9:1-fed wire for when nothing else fits |
+| 06-25 | Inverted-L | The classic 160/80 m DX wire from one tall-ish support |
+| 06-26 | Linked dipole | The SOTA/POTA favorite — full efficiency, no tuner, flip a link to change band |
+
+The physics and engineering sections:
+
+| § | Topic | Why it's here |
+|---|-------|---------------|
+| 06-09 | Smith charts | The diagnostic tool for any matching problem |
+| 06-10 | Feedline effects | What the coax does to your "antenna" SWR |
+| 06-11 | Impedance transformation | Matching networks, transformers, ATUs |
+| 06-12 | Baluns and chokes | When you need them, when you don't |
+| 06-13 | Ground-plane effects | Why the same antenna at two heights performs differently |
+| 06-14 | Modeling concepts | NEC, MMANA, EZNEC — what they do and don't tell you |
+| 06-15 | Radiation patterns | Reading azimuth and elevation plots |
+| 06-16 | Polarization | Horizontal, vertical, and why it matters |
+| 06-17 | Diversity | Combining antennas for better receive |
+
+> **Note on numbering —** §06-18 through §06-26 are wire-antenna families added after the original chapter was laid out. Section IDs are stable across releases (so reading-state pointers don't go stale), so they carry higher numbers but belong with the antenna families above, not after the engineering sections.
 
 ## What to read first
 
-If you're brand new and trying to put up your first HF antenna, read **05-01 (Dipoles)** and **05-02 (Inverted V)** — together they cover what 80% of new HF stations use. Then read **05-13 (Ground-plane effects)** so you understand *why height matters* before you start arguing with your spouse about how high to put it.
+If you're brand new and trying to put up your first HF antenna, read **06-01 (Dipoles)** and **06-02 (Inverted V)** — together they cover what 80% of new HF stations use. Then read **06-13 (Ground-plane effects)** so you understand *why height matters* before you start arguing with your spouse about how high to put it.
 
-If you have an antenna and it doesn't seem to work, read **05-12 (Baluns and chokes)** and **05-10 (Feedline effects)** — those two cover most of "I built it from the magazine article and it still won't tune."
+If you have an antenna and it doesn't seem to work, read **06-12 (Baluns and chokes)** and **06-10 (Feedline effects)** — those two cover most of "I built it from the magazine article and it still won't tune."
 
-If you're modeling antennas in EZNEC or MMANA, you already know enough to skip the early sections and head to **05-14** and **05-15**.
+If you want multi-band from one feedline, the choice is laid out across **06-04 (EFHW)**, **06-20 (G5RV/ZS6BKW)**, **06-21 (Doublet)**, **06-22 (Fan dipole)**, and **06-26 (Linked dipole)** — each trades tuner-vs-no-tuner, efficiency, and mechanical complexity differently.
+
+If you're modeling antennas in EZNEC or MMANA, you already know enough to skip the early sections and head to **06-14** and **06-15**.
 
 ## A note on "best antenna"
 
@@ -53,10 +75,10 @@ What this chapter will *not* do is give you a single recommendation. What it wil
 
 ## What you will not learn here
 
-- **Beam antennas (Yagis, log periodics)** — these get their own chapter (planned: 27).
-- **Phased arrays and beverages** — top-band-specific, planned for chapter 28.
-- **VHF/UHF antennas (J-poles, slim Jims, Diamond verticals)** — covered in the VHF/UHF operating chapter (planned: 30).
-- **Satellite antennas (turnstiles, Yagis with circular polarization)** — see §07 (Satellites).
+- **Beam antennas (Yagis, log periodics)** — planned for their own chapter.
+- **Phased arrays, beverages, and phasing harnesses** — phasing/stacking lines for matching and feeding two or more elements in phase are a chapter of their own (planned); top-band receive arrays live there too.
+- **VHF/UHF antennas (J-poles, slim Jims, Diamond verticals)** — covered in the VHF/UHF operating material.
+- **Satellite and EME antennas (turnstiles, circularly-polarized Yagis, EME dishes and arrays)** — these belong with the satellite/weak-signal material rather than the general HF/VHF antenna families here; see §07 (Satellites). A dedicated satellite/EME antenna treatment is planned.
 
 ## Where the suite helps
 

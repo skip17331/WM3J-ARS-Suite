@@ -76,7 +76,7 @@ Other useful coincidences:
 - **80 m dipole** is roughly usable on **30 m** with a tuner, and resonant on **24 MHz** (12 m) as a third harmonic.
 - **A 135-ft doublet** (close to a half-wave on 80 m) fed with ladder line and an antenna tuner will tune everywhere from 80 m through 10 m. This is the **G5RV's underlying idea** but cleaner.
 
-For genuine multi-band coverage with separate resonance per band, see **fan dipoles** (multiple parallel dipoles, all at the center insulator, only one resonant per band) and **trap dipoles** (§06-08).
+For genuine multi-band coverage with separate resonance per band, see **fan dipoles** (§06-22) and **trap dipoles** (§06-08). For all-band coverage from one wire plus a tuner, see the **doublet** (§06-21); for the famous ladder-matched wires, **G5RV / ZS6BKW** (§06-20).
 
 ## Bandwidth
 
@@ -87,9 +87,13 @@ Bandwidth scales with conductor diameter. A dipole made of 1-inch aluminum tubin
 ## Common variations
 
 - **Inverted V** — center supported, ends drooping. See §06-02.
-- **Sloper** — fed at the top, slanted toward the ground. Slightly directional.
-- **Doublet** — same physical dipole, but fed with ladder line and a tuner instead of cut to a single resonance. Multi-band.
-- **OCFD (Off-Center Fed Dipole)** — fed about 1/3 of the way from one end. Higher feed impedance (~200 Ω, used with a 4:1 balun), works on more harmonic bands than a center-fed dipole. See §06-12 for the balun.
+- **Sloper** — slanted, one end high; slightly directional. See §06-23.
+- **Folded dipole** — two parallel conductors shorted at the ends; 4× feed impedance, wider bandwidth. See §06-18.
+- **Doublet** — same physical dipole, but fed with ladder line and a tuner instead of cut to a single resonance. Multi-band. See §06-21.
+- **OCFD (Off-Center Fed Dipole)** — fed about 1/3 from one end; ~200 Ω feed (4:1 balun), works on more harmonic bands than a center-fed dipole. See §06-19 (and §06-12 for the balun).
+- **Fan dipole** — several dipoles on one feedpoint, one per band. See §06-22.
+- **Linked dipole** — segmented legs with links you open to change band; the portable favorite. See §06-26.
+- **G5RV / ZS6BKW** — a dipole flat-top fed through a ladder-line matching section. See §06-20.
 
 ## Common mistakes
 

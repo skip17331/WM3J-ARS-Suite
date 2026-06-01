@@ -124,6 +124,15 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 06-15   | Radiation Patterns                                   | 06-antennas/06-15-radiation-patterns.md                           | mixed      |
 | 06-16   | Polarization                                         | 06-antennas/06-16-polarization.md                                 | mixed      |
 | 06-17   | Diversity                                            | 06-antennas/06-17-diversity.md                                    | mixed      |
+| 06-18   | Folded Dipole                                        | 06-antennas/06-18-folded-dipole.md                                | mixed      |
+| 06-19   | Off-Center-Fed Dipole (OCFD / Windom)                | 06-antennas/06-19-ocfd-windom.md                                  | mixed      |
+| 06-20   | G5RV and ZS6BKW                                       | 06-antennas/06-20-g5rv-zs6bkw.md                                  | mixed      |
+| 06-21   | Doublet (All-Band Tuned)                             | 06-antennas/06-21-doublet.md                                      | mixed      |
+| 06-22   | Fan Dipole (Parallel Dipole)                         | 06-antennas/06-22-fan-dipole.md                                   | mixed      |
+| 06-23   | Sloper and Half-Sloper                               | 06-antennas/06-23-sloper.md                                       | mixed      |
+| 06-24   | Random-Wire and Non-Resonant Long Wire               | 06-antennas/06-24-random-wire.md                                  | mixed      |
+| 06-25   | Inverted-L                                           | 06-antennas/06-25-inverted-l.md                                   | mixed      |
+| 06-26   | Linked Dipole                                        | 06-antennas/06-26-linked-dipole.md                                | mixed      |
 | 07-00   | Satellites — Overview                                | 07-satellites/07-00-overview.md                                   | simple     |
 | 07-01   | FM vs Linear                                         | 07-satellites/07-01-fm-vs-linear.md                               | simple     |
 | 07-02   | Doppler Shift                                        | 07-satellites/07-02-doppler-shift.md                              | mixed      |
