@@ -202,8 +202,8 @@
             <HBox styleClass="info-pane-row" spacing="0">
                 <padding><Insets top="4" right="8" bottom="6" left="8"/></padding>
 
-                <!-- Column 1: Bearing / Distance -->
-                <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                <!-- Column 1: Bearing / Distance (left-aligned) -->
+                <HBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">
                     <VBox spacing="3" styleClass="info-content">
                         <Label text="%pane.bearing" styleClass="section-title"/>
                         <HBox spacing="8">
@@ -218,8 +218,8 @@
                 </HBox>
                 <Separator orientation="VERTICAL" styleClass="col-sep"/>
 
-                <!-- Column 2: Space Wx -->
-                <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                <!-- Column 2: Space Wx (left-aligned) -->
+                <HBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">
                     <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content">
                         <Label text="Space Wx" styleClass="section-title"/>
                         <GridPane hgap="6" vgap="4">
@@ -266,7 +266,6 @@
                     <VBox fx:id="idTimerBox" spacing="3" styleClass="info-content"
                           alignment="CENTER" fillWidth="false"
                           visible="false" managed="false">
-                        <Label text="ID Timer" styleClass="section-title"/>
                         <Button fx:id="btnIdTimer" styleClass="id-timer" text="ID: —"
                                 onAction="#resetIdTimer">
                             <tooltip><Tooltip text="Click when you ID to restart the timer (also resets on each logged QSO)"/></tooltip>
