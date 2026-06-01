@@ -164,8 +164,8 @@ public class NormalLogController implements Initializable, RigControlController.
     //      Contest mode. Lives in the Station & Space Wx pane (right of Space
     //      Wx); counts down on the existing 1 s clock tick. ----
     @FXML private VBox   idTimerBox;
-    @FXML private Label  lblIdTimer;
-    @FXML private Button btnIdReset;
+    /** The countdown readout IS the reset button — click to restart. */
+    @FXML private Button btnIdTimer;
     private volatile boolean idTimerEnabled = false;
     private volatile int     idTimerMinutes = 10;
     /** UTC-millis when the next ID is due. 0 = not started. */
@@ -944,17 +944,17 @@ public class NormalLogController implements Initializable, RigControlController.
     /** Called once per second from the clock tick. Updates the countdown text
      *  and flashes the readout red once the ID is due. */
     private void tickIdTimer() {
-        if (!idTimerEnabled || idDueAtMs == 0 || lblIdTimer == null) return;
+        if (!idTimerEnabled || idDueAtMs == 0 || btnIdTimer == null) return;
         updateIdTimerLabel(idDueAtMs - System.currentTimeMillis());
     }
 
     private void updateIdTimerLabel(long remainingMs) {
-        if (lblIdTimer == null) return;
+        if (btnIdTimer == null) return;
         boolean due = remainingMs <= 0;
         long secs = Math.max(0, remainingMs) / 1000L;
-        lblIdTimer.setText(String.format("ID: %d:%02d", secs / 60, secs % 60));
-        lblIdTimer.getStyleClass().remove("id-timer-due");
-        if (due) lblIdTimer.getStyleClass().add("id-timer-due");
+        btnIdTimer.setText(String.format("ID: %d:%02d", secs / 60, secs % 60));
+        btnIdTimer.getStyleClass().remove("id-timer-due");
+        if (due) btnIdTimer.getStyleClass().add("id-timer-due");
     }
 
     private void initCivListeners() {

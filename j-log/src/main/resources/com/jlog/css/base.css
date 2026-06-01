@@ -162,14 +162,18 @@
     -fx-max-width: Infinity;
 }
 
-/* ---- ID timer (FCC §97.119 countdown in the clock bar) ---- */
+/* ---- ID timer (FCC §97.119) — the big countdown IS the reset button.
+        Lives in the Station & Space Wx pane, right of Space Wx. ---- */
 .id-timer {
     -fx-font-family: monospace;
-    -fx-font-size: 12px;
+    -fx-font-size: 30px;
     -fx-font-weight: bold;
-    -fx-padding: 1 8 1 8;
-    -fx-background-radius: 3;
+    -fx-padding: 6 16 6 16;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
 }
+.id-timer:hover  { -fx-opacity: 0.9; }
+.id-timer:armed  { -fx-opacity: 0.8; }
 /* Flashes when the ID is due — white-on-red, legible on both themes. */
 .id-timer-due {
     -fx-text-fill: white;
