@@ -9,7 +9,7 @@ mvn package -q                          # compile + produce target/j-hub-1.5.0.j
 java -jar target/j-hub-1.5.0.jar      # run (creates j-hub.json on first launch)
 ```
 
-There are no tests in this project. There is no lint step.
+Run tests with `mvn test` (JUnit 5; 35 tests as of the 1.5.0 release). There is no lint step.
 
 ## Architecture
 
