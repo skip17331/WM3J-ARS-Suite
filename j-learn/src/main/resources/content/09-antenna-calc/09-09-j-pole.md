@@ -84,6 +84,7 @@ A typical build uses **1/2" Type-M copper pipe**, **two 90° elbows** to form th
 
 ## See also
 
+- §06-32 — VHF/UHF antennas (where the J-pole sits among the other VHF verticals)
 - §04 — Repeaters & Bandplans (where J-poles do their work)
 - §09-00 — Antenna Workshop overview
 - §09-15 — NanoVNA Trim Workflow

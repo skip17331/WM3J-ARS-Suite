@@ -59,6 +59,7 @@ The antenna families:
 | 06-29 | Phased arrays & directivity | Feeding elements out of phase for a steerable beam — cardioids, four-squares |
 | 06-30 | Beams — Yagis, quads & log-periodics | Parasitic directivity: gain and front-to-back from a rotatable beam |
 | 06-31 | Receive antennas | Beverages, steerable-null loops, flags/K9AY — hearing over noise on the low bands |
+| 06-32 | VHF/UHF antennas | Ground-planes, 5/8 & collinear verticals, J-poles, mobile/HT whips, discone |
 
 ## What to read first
 
@@ -78,7 +79,6 @@ What this chapter will *not* do is give you a single recommendation. What it wil
 
 ## What you will not learn here
 
-- **VHF/UHF antennas** — the homebrew **J-pole and Slim Jim** are covered in §09-09 (Antenna Workshop). Commercial base verticals (collinears, the Diamond X-series) and mobile whips aren't treated in depth here; they follow the vertical / ground-plane principles in §06-12.
 - **Satellite and EME antennas (turnstiles, circularly-polarized Yagis, EME dishes and arrays)** — these belong with the satellite/weak-signal material rather than the general HF/VHF antenna families here; see §07 (Satellites). A dedicated satellite/EME antenna treatment is planned.
 
 ## Where the suite helps
