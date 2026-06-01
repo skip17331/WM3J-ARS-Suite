@@ -64,7 +64,7 @@ root (`<root>`):
 | `jDigi`   | J-Digi   | `<root>\j-digi\j-digi.bat`                  | `bash <root>/j-digi/j-digi.sh` |
 | `jSat`    | J-Sat    | `<root>\j-sat\j-sat.bat --launched-by-hub`  | `bash <root>/j-sat/j-sat.sh --launched-by-hub` |
 | `jVault`  | J-Vault  | `<root>\j-vault\j-vault.bat`                | `bash <root>/j-vault/j-vault.sh` |
-| `jLearn`  | J-Learn  | `<root>\j-learn\j-learn.bat`                | `bash <root>/j-learn/j-learn.sh` |
+| `jLearn`  | J-Learn  | `<root>\j-learn\j-learn.bat --launched-by-hub`  | `bash <root>/j-learn/j-learn.sh --launched-by-hub` |
 
 `applyDefaults()` fills blank commands **and normalizes** one carried
 from another OS (e.g. a `bash …/run.sh` left in a config now opened on

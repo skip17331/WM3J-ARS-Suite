@@ -336,7 +336,7 @@ public class JHubConfig {
                     {"jDigi",   r + "\\j-digi\\j-digi.bat"},
                     {"jSat",    r + "\\j-sat\\j-sat.bat --launched-by-hub"},
                     {"jVault",  r + "\\j-vault\\j-vault.bat"},
-                    {"jLearn",  r + "\\j-learn\\j-learn.bat"},
+                    {"jLearn",  r + "\\j-learn\\j-learn.bat --launched-by-hub"},
                   }
                 : new String[][] {
                     {"jMap",    "bash " + r + "/j-map/j-map.sh"},
@@ -345,7 +345,7 @@ public class JHubConfig {
                     {"jDigi",   "bash " + r + "/j-digi/j-digi.sh"},
                     {"jSat",    "bash " + r + "/j-sat/j-sat.sh --launched-by-hub"},
                     {"jVault",  "bash " + r + "/j-vault/j-vault.sh"},
-                    {"jLearn",  "bash " + r + "/j-learn/j-learn.sh"},
+                    {"jLearn",  "bash " + r + "/j-learn/j-learn.sh --launched-by-hub"},
                   };
             boolean changed = false;
             for (String[] d : defaults) {
@@ -359,6 +359,24 @@ public class JHubConfig {
                     // Same-OS user customisations have no foreign markers and
                     // are preserved.
                     e.command = d[1];
+                    changed = true;
+                }
+            }
+
+            // Heal hub-managed web apps that MUST carry --launched-by-hub.
+            // j-sat and j-learn run as headless web servers that j-hub iframes;
+            // the flag suppresses their browser auto-open and tells them j-hub
+            // owns the lifecycle (so they don't self-terminate on the
+            // browser-presence watchdog). Configs generated before the flag was
+            // added launch a stray browser tab and then get killed by the
+            // watchdog. A flagless launched-by-hub command is never a valid
+            // customization, so append the flag in place rather than leaving it.
+            for (String key : new String[] { "jSat", "jLearn" }) {
+                AppLaunchEntry e = entryByName(key);
+                if (e == null || e.command == null || e.command.isBlank()) continue;
+                String launcher = "jSat".equals(key) ? "j-sat" : "j-learn";
+                if (e.command.contains(launcher) && !e.command.contains("--launched-by-hub")) {
+                    e.command = e.command.trim() + " --launched-by-hub";
                     changed = true;
                 }
             }
