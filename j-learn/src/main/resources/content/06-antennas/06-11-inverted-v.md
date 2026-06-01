@@ -1,8 +1,8 @@
 ---
-id: 06-02
+id: 06-11
 title: Inverted V
 chapter: 06
-section: 02
+section: 11
 level: mixed
 status: draft
 ---
@@ -92,8 +92,8 @@ An inverted V at 0.4 λ above ground typically shows:
 
 ## See also
 
-- §06-01 — Dipole (the parent form)
-- §06-12 — Choke balun (you really do need one)
-- §06-13 — Ground-plane effects (height matters even more for a V)
-- §06-15 — Reading the radiation pattern
+- §06-10 — Dipole (the parent form)
+- §06-04 — Choke balun (you really do need one)
+- §06-05 — Ground-plane effects (height matters even more for a V)
+- §06-07 — Reading the radiation pattern
 - §09 — Antenna calculator

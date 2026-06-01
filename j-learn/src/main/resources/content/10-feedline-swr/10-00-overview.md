@@ -13,7 +13,7 @@ status: draft
 
 The feedline is the cable between your radio and your antenna. It looks passive — just a wire — but it's the single piece of your station most likely to silently steal performance. A great antenna with a poor feedline is mediocre. A mediocre antenna with a great feedline is mediocre. The whole *system* matters; getting the feedline right is half of the problem.
 
-This chapter covers the relationship between SWR (Standing Wave Ratio), feedline loss, and what actually arrives at your antenna. The math here is the foundation of antenna-system design and is referenced by §06-10 (feedline effects on antenna behavior), §11 (power budget), §12 (high-SWR troubleshooting), and §18 (coax & connectors reference).
+This chapter covers the relationship between SWR (Standing Wave Ratio), feedline loss, and what actually arrives at your antenna. The math here is the foundation of antenna-system design and is referenced by §06-02 (feedline effects on antenna behavior), §11 (power budget), §12 (high-SWR troubleshooting), and §18 (coax & connectors reference).
 
 ## How the chapter is organized
 
@@ -53,7 +53,7 @@ The chapter unpacks this: where the loss goes, how to measure it, and what to do
 
 - **Per-cable specs (loss/100 ft, VF, dimensions)** — see §18 for the complete reference table.
 - **Connector types and how to install them** — see §18-04.
-- **Baluns and chokes** — see §06-12 (full discussion) and §18-05 (reference).
+- **Baluns and chokes** — see §06-04 (full discussion) and §18-05 (reference).
 - **Specific feedline failure modes** — see §12-01 (coax issues) and §12-07 (water ingress).
 - **Antenna behavior** — see §06.
 
@@ -65,8 +65,8 @@ The chapter unpacks this: where the loss goes, how to measure it, and what to do
 
 ## See also
 
-- §06-10 — Feedline effects on antenna behavior
-- §06-11 — Impedance transformation (companion to §10-06)
+- §06-02 — Feedline effects on antenna behavior
+- §06-03 — Impedance transformation (companion to §10-06)
 - §11 — Power budget and ERP (uses these numbers in system-level context)
 - §12 — High-SWR troubleshooting (when something goes wrong)
 - §18 — Coax & connectors reference

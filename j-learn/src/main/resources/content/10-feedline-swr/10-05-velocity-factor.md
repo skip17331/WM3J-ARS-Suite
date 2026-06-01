@@ -135,6 +135,6 @@ This propagation delay is normally small but matters for:
 - §10-01 — Coax loss by frequency
 - §10-06 — Impedance transformation (where VF determines electrical length)
 - §18-03 — Velocity factor (full reference table)
-- §06-10 — Feedline effects
-- §06-11 — Impedance transformation (Smith chart context)
+- §06-02 — Feedline effects
+- §06-03 — Impedance transformation (Smith chart context)
 - §09 — Antenna calculator (auto-computes lengths)

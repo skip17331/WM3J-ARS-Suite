@@ -79,7 +79,7 @@ A NanoVNA sweep before and after the trim confirms the actual resonance — no m
 
 ## See also
 
-- §06-08 — Traps (uses this formula for multi-band antennas)
+- §06-17 — Traps (uses this formula for multi-band antennas)
 - §12-04 — High-SWR diagnosis (off-resonance is one cause)
 - §17-03 — Reactance (the X_L = X_C condition that defines resonance)
 - §17-11 — Q Factor (sharpness of the resonance)

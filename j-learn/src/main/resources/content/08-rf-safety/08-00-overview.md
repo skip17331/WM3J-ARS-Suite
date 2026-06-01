@@ -85,5 +85,5 @@ The "magnetic loop on your desk" case is one of the genuinely problematic amateu
 
 - §12 — RF Exposure Calculator (the practical tool)
 - §11 — ERP / Power Budget
-- §06-13 — Ground-plane effects (matters for near-field calculation)
-- §06-15 — Patterns (gain at the relevant elevation matters for exposure direction)
+- §06-05 — Ground-plane effects (matters for near-field calculation)
+- §06-07 — Patterns (gain at the relevant elevation matters for exposure direction)

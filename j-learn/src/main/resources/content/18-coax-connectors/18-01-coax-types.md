@@ -147,5 +147,5 @@ For a single antenna run, amateur dealer is fine. For a multi-tower installation
 - §18-02 — Loss tables (the per-band loss numbers for each cable here)
 - §18-03 — Velocity factor (electrical-length implications)
 - §18-04 — Connectors (which connectors fit which cables)
-- §06-10 — Feedline effects (the *why* of coax choice)
+- §06-02 — Feedline effects (the *why* of coax choice)
 - §16-04 — Coax replacement (when to replace)

@@ -197,7 +197,7 @@ For emcomm/Field Day, plan all three margins.
 
 - §11-00 — Chapter overview
 - §11-01 through §11-04 — The components of this budget
-- §06-04 — EFHW (the portable workhorse)
-- §06-03 — Verticals (with portable radial system)
+- §06-13 — EFHW (the portable workhorse)
+- §06-12 — Verticals (with portable radial system)
 - §16-01 — Battery maintenance (for solar/portable operation)
 - §08-05 — ERP for RF safety (verify EIRP doesn't exceed MPE distances)

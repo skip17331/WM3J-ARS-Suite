@@ -113,8 +113,8 @@ The "current and voltage rise at resonance by Q" is what makes high-Q magnetic l
 
 ## See also
 
-- §06-05 — Magnetic loops (where Q is a defining specification)
-- §06-08 — Traps (high-Q traps stay sharp; low-Q traps tune broadly)
+- §06-14 — Magnetic loops (where Q is a defining specification)
+- §06-17 — Traps (high-Q traps stay sharp; low-Q traps tune broadly)
 - §17-03 — Reactance (X_L and X_C from which Q is computed)
 - §17-05 — Resonant frequency (where Q applies)
 - §17-12 — Bandwidth (the f_r / Q relationship)

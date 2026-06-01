@@ -1,8 +1,8 @@
 ---
-id: 06-06
+id: 06-15
 title: Full-Wave Loops
 chapter: 06
-section: 06
+section: 15
 level: mixed
 status: draft
 ---
@@ -11,7 +11,7 @@ status: draft
 
 > **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-A **full-wave loop** is a closed wire about one wavelength in circumference, hung in any closed shape — square (quad), triangle (delta), or larger irregular shapes (skyloop). Unlike the small magnetic loop in §06-05, this loop is electrically *large*; its current and voltage distributions span a full wave around its perimeter. It radiates as a normal-sized antenna, not via near-field magnetic coupling.
+A **full-wave loop** is a closed wire about one wavelength in circumference, hung in any closed shape — square (quad), triangle (delta), or larger irregular shapes (skyloop). Unlike the small magnetic loop in §06-14, this loop is electrically *large*; its current and voltage distributions span a full wave around its perimeter. It radiates as a normal-sized antenna, not via near-field magnetic coupling.
 
 Full-wave loops have two reputations among hams: **quiet on receive** and **slightly higher-gain than a dipole**. Both reputations are deserved, with caveats.
 
@@ -113,8 +113,8 @@ Both effects are real but not dramatic — typical loops are **1–3 dB quieter*
 
 ## See also
 
-- §06-01 — Dipoles (loops compared to)
-- §06-12 — Baluns (the matching system)
-- §06-15 — Pattern (loops have non-trivial elevation patterns)
+- §06-10 — Dipoles (loops compared to)
+- §06-04 — Baluns (the matching system)
+- §06-07 — Pattern (loops have non-trivial elevation patterns)
 - §15 — Noise (loops vs. other antennas)
-- §06-13 — Height effects matter for loops too
+- §06-05 — Height effects matter for loops too

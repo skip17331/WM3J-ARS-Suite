@@ -144,4 +144,4 @@ Don't reuse it for a real antenna run. The reason you replaced it was that it fa
 - §12-01 — Coax issues (the troubleshooting view)
 - §12-07 — Water ingress
 - §18 — Coax & connectors reference
-- §06-10 — Feedline effects (why loss matters)
+- §06-02 — Feedline effects (why loss matters)

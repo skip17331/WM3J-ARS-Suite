@@ -151,7 +151,7 @@ For length-tuned cables (quarter-wave matching sections in service for 20+ years
 
 - §18-00 — Overview
 - §18-02 — Loss tables
-- §06-10 — Feedline effects (electrical length transformations)
-- §06-11 — Impedance transformation
+- §06-02 — Feedline effects (electrical length transformations)
+- §06-03 — Impedance transformation
 - §09 — Antenna calculator (computes lengths automatically)
 - §17-09 — Feedline-loss formula in the formula appendix

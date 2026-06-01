@@ -107,23 +107,23 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 05-08   | Mini Tests                                           | 05-morse/05-08-mini-tests.md                                      | simple     |
 | 05-09   | Hardware Keyer Builds                                | 05-morse/05-09-hardware-keyer-builds.md                           | simple     |
 | 06-00   | Antennas — Overview                                  | 06-antennas/06-00-overview.md                                     | simple     |
-| 06-01   | Dipoles                                              | 06-antennas/06-01-dipoles.md                                      | mixed      |
-| 06-02   | Inverted V                                           | 06-antennas/06-02-inverted-v.md                                   | mixed      |
-| 06-03   | Verticals                                            | 06-antennas/06-03-verticals.md                                    | mixed      |
-| 06-04   | End-Fed Half-Wave (EFHW)                             | 06-antennas/06-04-efhw.md                                         | mixed      |
-| 06-05   | Magnetic Loops                                       | 06-antennas/06-05-magnetic-loops.md                               | mixed      |
-| 06-06   | Full-Wave Loops                                      | 06-antennas/06-06-full-wave-loops.md                              | mixed      |
-| 06-07   | Rhombic (Terminated & Unterminated)                  | 06-antennas/06-07-rhombic.md                                      | advanced   |
-| 06-08   | Traps                                                | 06-antennas/06-08-traps.md                                        | advanced   |
-| 06-09   | Smith Charts                                         | 06-antennas/06-09-smith-charts.md                                 | advanced   |
-| 06-10   | Feedline Effects                                     | 06-antennas/06-10-feedline-effects.md                             | mixed      |
-| 06-11   | Impedance Transformation                             | 06-antennas/06-11-impedance-transformation.md                     | advanced   |
-| 06-12   | Baluns and Chokes                                    | 06-antennas/06-12-baluns-and-chokes.md                            | mixed      |
-| 06-13   | Ground-Plane Effects                                 | 06-antennas/06-13-ground-plane-effects.md                         | mixed      |
-| 06-14   | Modeling Concepts                                    | 06-antennas/06-14-modeling-concepts.md                            | advanced   |
-| 06-15   | Radiation Patterns                                   | 06-antennas/06-15-radiation-patterns.md                           | mixed      |
-| 06-16   | Polarization                                         | 06-antennas/06-16-polarization.md                                 | mixed      |
-| 06-17   | Diversity                                            | 06-antennas/06-17-diversity.md                                    | mixed      |
+| 06-01   | Smith Charts                                         | 06-antennas/06-01-smith-charts.md                                 | advanced   |
+| 06-02   | Feedline Effects                                     | 06-antennas/06-02-feedline-effects.md                             | mixed      |
+| 06-03   | Impedance Transformation                             | 06-antennas/06-03-impedance-transformation.md                     | advanced   |
+| 06-04   | Baluns and Chokes                                    | 06-antennas/06-04-baluns-and-chokes.md                            | mixed      |
+| 06-05   | Ground-Plane Effects                                 | 06-antennas/06-05-ground-plane-effects.md                         | mixed      |
+| 06-06   | Modeling Concepts                                    | 06-antennas/06-06-modeling-concepts.md                            | advanced   |
+| 06-07   | Radiation Patterns                                   | 06-antennas/06-07-radiation-patterns.md                           | mixed      |
+| 06-08   | Polarization                                         | 06-antennas/06-08-polarization.md                                 | mixed      |
+| 06-09   | Diversity                                            | 06-antennas/06-09-diversity.md                                    | mixed      |
+| 06-10   | Dipoles                                              | 06-antennas/06-10-dipoles.md                                      | mixed      |
+| 06-11   | Inverted V                                           | 06-antennas/06-11-inverted-v.md                                   | mixed      |
+| 06-12   | Verticals                                            | 06-antennas/06-12-verticals.md                                    | mixed      |
+| 06-13   | End-Fed Half-Wave (EFHW)                             | 06-antennas/06-13-efhw.md                                         | mixed      |
+| 06-14   | Magnetic Loops                                       | 06-antennas/06-14-magnetic-loops.md                               | mixed      |
+| 06-15   | Full-Wave Loops                                      | 06-antennas/06-15-full-wave-loops.md                              | mixed      |
+| 06-16   | Rhombic (Terminated & Unterminated)                  | 06-antennas/06-16-rhombic.md                                      | advanced   |
+| 06-17   | Traps                                                | 06-antennas/06-17-traps.md                                        | advanced   |
 | 06-18   | Folded Dipole                                        | 06-antennas/06-18-folded-dipole.md                                | mixed      |
 | 06-19   | Off-Center-Fed Dipole (OCFD / Windom)                | 06-antennas/06-19-ocfd-windom.md                                  | mixed      |
 | 06-20   | G5RV and ZS6BKW                                       | 06-antennas/06-20-g5rv-zs6bkw.md                                  | mixed      |

@@ -59,7 +59,7 @@ The link is the whole design problem — it's a connector that must be insulated
 
 ## When to avoid
 
-- **Contest or fast band-hopping** from a fixed station — lowering the antenna per band change is a non-starter; use a fan dipole (§06-22) or EFHW (§06-04).
+- **Contest or fast band-hopping** from a fixed station — lowering the antenna per band change is a non-starter; use a fan dipole (§06-22) or EFHW (§06-13).
 - The antenna is hard to reach (high, over water, in a tree) — you can't get to the links.
 
 ## Common mistakes
@@ -71,8 +71,8 @@ The link is the whole design problem — it's a connector that must be insulated
 
 ## See also
 
-- §06-01 — Dipoles (the resonant baseline each configuration becomes)
+- §06-10 — Dipoles (the resonant baseline each configuration becomes)
 - §06-22 — Fan dipole (multiband with no band-change handling, but heavier)
-- §06-04 — EFHW (the other portable multiband favorite — unun vs. links trade-off)
-- §06-02 — Inverted V (the usual portable hang for a linked dipole)
+- §06-13 — EFHW (the other portable multiband favorite — unun vs. links trade-off)
+- §06-11 — Inverted V (the usual portable hang for a linked dipole)
 - §09 — Antenna calculator

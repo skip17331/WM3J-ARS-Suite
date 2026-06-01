@@ -11,7 +11,7 @@ status: draft
 
 > **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-This is the **lookup section** for balun and choke specs — sizes, ratios, ferrite mixes, power ratings. The full conceptual treatment lives in §06-12 (when to use each, what common-mode current is, why current baluns matter). Come here when you need to remember "what mix is FT240-43" or "what's the power rating of a typical 4:1 voltage balun."
+This is the **lookup section** for balun and choke specs — sizes, ratios, ferrite mixes, power ratings. The full conceptual treatment lives in §06-04 (when to use each, what common-mode current is, why current baluns matter). Come here when you need to remember "what mix is FT240-43" or "what's the power rating of a typical 4:1 voltage balun."
 
 ## Quick selection: what to put where
 
@@ -162,7 +162,7 @@ For VHF/UHF:
 
 ## See also
 
-- §06-12 — Baluns and chokes (full discussion: when to use each, common-mode theory)
+- §06-04 — Baluns and chokes (full discussion: when to use each, common-mode theory)
 - §18-00 — Coax & connectors overview
 - §12-05 — Faulty balun (troubleshooting view)
 - §14 — RFI (the problem common-mode current causes)

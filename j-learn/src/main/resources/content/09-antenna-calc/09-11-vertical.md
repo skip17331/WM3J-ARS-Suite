@@ -98,7 +98,7 @@ A 20m vertical is **16.5 ft tall** plus a **16 × 16.5 = 264 ft buried radial fi
 
 ## See also
 
-- §06-03 — Verticals (theory chapter)
+- §06-12 — Verticals (theory chapter)
 - §09-00 — Antenna Workshop overview
 - §09-15 — NanoVNA Trim Workflow
 - §17-06 — Wavelength

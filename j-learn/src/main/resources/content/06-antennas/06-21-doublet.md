@@ -62,7 +62,7 @@ The doublet wants a **balanced** match. Two ways:
 
 ## When to avoid
 
-- You refuse to run a tuner — then an EFHW (§06-04) or ZS6BKW (§06-20) gives you no-tuner bands instead.
+- You refuse to run a tuner — then an EFHW (§06-13) or ZS6BKW (§06-20) gives you no-tuner bands instead.
 - You can't route open-wire line cleanly into the shack (apartments, lots of metal) — coax-fed designs are easier there.
 
 ## Common mistakes
@@ -74,8 +74,8 @@ The doublet wants a **balanced** match. Two ways:
 
 ## See also
 
-- §06-01 — Dipoles (a doublet is a dipole you don't cut to resonance)
+- §06-10 — Dipoles (a doublet is a dipole you don't cut to resonance)
 - §06-20 — G5RV / ZS6BKW (a doublet with a fixed matching section instead of a tuner)
-- §06-11 — Impedance transformation (tuners and baluns)
-- §06-10 — Feedline effects (why ladder line wins at high SWR)
+- §06-03 — Impedance transformation (tuners and baluns)
+- §06-02 — Feedline effects (why ladder line wins at high SWR)
 - §10-04 — Feedline and SWR

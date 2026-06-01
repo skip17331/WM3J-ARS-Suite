@@ -18,7 +18,7 @@ Two consequences for amateur operators:
 1. **The SWR you read at the rig is not necessarily the SWR at the antenna.** Feedline transformation can make the rig-end SWR appear better (or, less commonly, worse) than the antenna's actual SWR.
 2. **You can deliberately use feedline as a matching device** — quarter-wave matching sections, half-wave repeaters, stubs.
 
-This section unpacks both. The general matching-network discussion is in §06-11; this section focuses on the feedline-specific behavior.
+This section unpacks both. The general matching-network discussion is in §06-03; this section focuses on the feedline-specific behavior.
 
 ## The transmission-line equation
 
@@ -61,7 +61,7 @@ For Z_L = 25 Ω, target 50 Ω: Z₀ = √(50 × 25) = √1250 ≈ 35 Ω. Standar
 
 ### Case 3: Other electrical lengths
 
-In between λ/4 and λ/2, the line transforms impedance into a complex value (with both real and imaginary parts). On the Smith chart (§06-09), this looks like the impedance "spiraling" around the chart center as you move along the line.
+In between λ/4 and λ/2, the line transforms impedance into a complex value (with both real and imaginary parts). On the Smith chart (§06-01), this looks like the impedance "spiraling" around the chart center as you move along the line.
 
 The general behavior: as you move the line length from 0 to λ/2, the impedance traces a circle on the Smith chart, completing one full revolution.
 
@@ -146,7 +146,7 @@ Practical operators rarely need to solve the equation by hand:
 - §10-00 — Chapter overview
 - §10-02 — SWR & reflected power
 - §10-05 — Velocity factor
-- §06-09 — Smith charts (visualizing transformation)
-- §06-10 — Feedline effects (the broader picture)
-- §06-11 — Impedance transformation (matching-network view)
+- §06-01 — Smith charts (visualizing transformation)
+- §06-02 — Feedline effects (the broader picture)
+- §06-03 — Impedance transformation (matching-network view)
 - §18-03 — Velocity factor reference

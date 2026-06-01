@@ -1,8 +1,8 @@
 ---
-id: 06-14
+id: 06-06
 title: Modeling Concepts
 chapter: 06
-section: 14
+section: 06
 level: advanced
 status: draft
 ---
@@ -111,7 +111,7 @@ A typical model run produces:
 
 ## See also
 
-- §06-09 — Smith charts (modeling output → Smith chart visualization)
-- §06-13 — Ground effects (the modeling input most people get wrong)
-- §06-15 — Radiation patterns (interpreting the modeled output)
+- §06-01 — Smith charts (modeling output → Smith chart visualization)
+- §06-05 — Ground effects (the modeling input most people get wrong)
+- §06-07 — Radiation patterns (interpreting the modeled output)
 - §09 — Antenna calculator (J-Hub's simple length calculator for the cookbook cases)

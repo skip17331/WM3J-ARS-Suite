@@ -89,7 +89,7 @@ Each harmonic resonance is slightly off-center within its band, but SWR ≤ 2:1 
 
 ## See also
 
-- §06-04 — EFHW (theory chapter — related single-band variant)
+- §06-13 — EFHW (theory chapter — related single-band variant)
 - §09-00 — Antenna Workshop overview
 - §09-08 — EFHW (Trapped) — the multi-band variant with traps
 - §09-15 — NanoVNA Trim Workflow

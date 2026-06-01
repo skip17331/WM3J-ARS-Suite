@@ -101,5 +101,5 @@ This is a safety issue, not just an SWR one — but a damaged arrestor or a bad 
 ## See also
 
 - §12-05 — balun (also relates to common-mode)
-- §06-12 — baluns and chokes theory
+- §06-04 — baluns and chokes theory
 - §14-rfi — RFI in the shack (often caused by feedline radiation)

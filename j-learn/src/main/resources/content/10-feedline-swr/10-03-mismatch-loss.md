@@ -102,7 +102,7 @@ So **a "low SWR at the rig" can be a sign of a dead antenna behind a lot of cabl
 
 For a complete loss accounting, work backward from the antenna:
 
-1. **Antenna's actual delivered power** = transmitted ERP / antenna gain (linear) − antenna efficiency loss. (See §06-13 for ground losses; some are included in the antenna's effective gain.)
+1. **Antenna's actual delivered power** = transmitted ERP / antenna gain (linear) − antenna efficiency loss. (See §06-05 for ground losses; some are included in the antenna's effective gain.)
 2. **Power reaching the antenna feedpoint** = P_load.
 3. **Power leaving the rig** = P_load × 10^(L_total/10).
 4. **Transmitter rated power** = power leaving the rig (if the rig is delivering rated output).
@@ -149,7 +149,7 @@ The exception: a **tuner at the antenna feedpoint** does change SWR on the feedl
 - §10-01 — Coax loss by frequency (the matched-line baseline)
 - §10-02 — SWR & reflected power
 - §10-04 — Power delivered vs lost
-- §06-10 — Feedline effects (impedance transformation context)
+- §06-02 — Feedline effects (impedance transformation context)
 - §12 — High-SWR troubleshooting
 - §18 — Coax & connectors reference (cable specs, dB/100 ft, connector ratings)
 - §18-02 — Loss tables (matched-line baseline values used in this calc)

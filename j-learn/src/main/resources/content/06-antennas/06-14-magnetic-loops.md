@@ -1,8 +1,8 @@
 ---
-id: 06-05
+id: 06-14
 title: Magnetic Loops
 chapter: 06
-section: 05
+section: 14
 level: mixed
 status: draft
 ---
@@ -105,7 +105,7 @@ The vertical-loop figure-8 pattern is sharp — typical front-to-side ratio is 2
 
 ## See also
 
-- §06-15 — Pattern (the figure-8 of a vertical mag loop)
+- §06-07 — Pattern (the figure-8 of a vertical mag loop)
 - §08-07 — RF burns (mag loop voltages are no joke)
 - §15 — Noise sources (loops null directionally)
-- §06-14 — Modeling (NEC loops are tricky; prefer specialized loop calculators)
+- §06-06 — Modeling (NEC loops are tricky; prefer specialized loop calculators)

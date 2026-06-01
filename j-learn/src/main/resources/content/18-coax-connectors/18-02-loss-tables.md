@@ -13,7 +13,7 @@ status: draft
 
 This section is the lookup table for **matched-line loss** of common amateur cables across HF, VHF, and UHF. Loss is measured in dB per 100 ft of cable, terminated in its characteristic impedance (50 Ω) at the operating frequency.
 
-For *additional* loss caused by SWR mismatch, see §06-10. For the use of these numbers in feedline-system design, see §06-11. This section just gives you the numbers.
+For *additional* loss caused by SWR mismatch, see §06-02. For the use of these numbers in feedline-system design, see §06-03. This section just gives you the numbers.
 
 ## Master loss table (dB per 100 ft, matched line)
 
@@ -92,7 +92,7 @@ The relation, expressed as total loss = matched + extra:
 
 **The bigger the matched-line loss, the more SWR hurts.** A short, low-loss cable feeding a high-SWR antenna is much friendlier than a long, lossy cable feeding the same high-SWR antenna.
 
-This is why high-SWR coax problems are often hidden by long lossy cables — see §06-10 and §12-07.
+This is why high-SWR coax problems are often hidden by long lossy cables — see §06-02 and §12-07.
 
 ## Power handling vs. frequency
 
@@ -137,6 +137,6 @@ For specific antennas (doublet, G5RV, multi-band with balanced tuner), ladder li
 - §18-00 — Overview
 - §18-01 — Coax types
 - §18-03 — Velocity factor (for electrical-length calculations)
-- §06-10 — Feedline effects (the conceptual treatment)
+- §06-02 — Feedline effects (the conceptual treatment)
 - §12-01 — Coax issues troubleshooting
 - §11 — Power budget

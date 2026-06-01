@@ -32,7 +32,7 @@ The gain is identical to a plain dipole. Anyone who tells you a folded dipole "h
 
 The two conductors carry the antenna current in parallel, so the current *entering the feedpoint* is half what a single-wire dipole would draw for the same radiated power. Half the current at the same power means four times the impedance: 70 Ω becomes ~280 Ω. That number is what makes the folded dipole convenient.
 
-> **Advanced —** The 4:1 ratio holds only when the two conductors have equal diameter. With unequal-diameter conductors the step-up ratio is set by the conductor-diameter and spacing geometry and can be designed for 1.5:1, 2:1, 9:1, and other values — this is how some matching "gamma-free" driven elements and the wider-bandwidth multiwire dipoles set their feed impedance. The general transmission-line model treats the folded section as a shorted stub in parallel with the radiating-mode impedance; see §06-11.
+> **Advanced —** The 4:1 ratio holds only when the two conductors have equal diameter. With unequal-diameter conductors the step-up ratio is set by the conductor-diameter and spacing geometry and can be designed for 1.5:1, 2:1, 9:1, and other values — this is how some matching "gamma-free" driven elements and the wider-bandwidth multiwire dipoles set their feed impedance. The general transmission-line model treats the folded section as a shorted stub in parallel with the radiating-mode impedance; see §06-03.
 
 ## Feeding it
 
@@ -40,7 +40,7 @@ The ~300 Ω feedpoint matches three common things directly:
 
 - **300 Ω TV twinlead** — connect it straight across. This is the classic attic/closet FM and 2 m receive antenna.
 - **450 Ω window line into a tuner** — fine, the tuner finishes the small remaining mismatch.
-- **50 Ω coax through a 4:1 balun** — 300 Ω ÷ 4 = 75 Ω, an SWR of ~1.5:1 on 50 Ω. Use a **4:1 current balun** (§06-12), not a voltage balun, and you have a clean coax-fed folded dipole.
+- **50 Ω coax through a 4:1 balun** — 300 Ω ÷ 4 = 75 Ω, an SWR of ~1.5:1 on 50 Ω. Use a **4:1 current balun** (§06-04), not a voltage balun, and you have a clean coax-fed folded dipole.
 
 ## Building one from window line
 
@@ -67,14 +67,14 @@ That's a complete, wide-band, single-band antenna for the cost of a few feet of 
 ## Common mistakes
 
 - **Expecting gain.** There is none over a plain dipole.
-- **Using a 4:1 voltage balun** where a current balun belongs. The folded dipole is balanced; you want common-mode suppression, which only the current type gives. See §06-12.
+- **Using a 4:1 voltage balun** where a current balun belongs. The folded dipole is balanced; you want common-mode suppression, which only the current type gives. See §06-04.
 - **Forgetting to short the far ends.** An unshorted "folded dipole" is just a weird open-wire stub and won't work.
 - **Unequal spacing along the span.** The spacing sets the impedance; keep it constant with spreaders or use window line.
 
 ## See also
 
-- §06-01 — Dipoles (the reference this is folded from)
-- §06-11 — Impedance transformation (the 4:1 step-up explained)
-- §06-12 — Baluns and chokes (which 4:1 to use)
+- §06-10 — Dipoles (the reference this is folded from)
+- §06-03 — Impedance transformation (the 4:1 step-up explained)
+- §06-04 — Baluns and chokes (which 4:1 to use)
 - §06-22 — Fan dipole (the other way to get multiband from dipoles)
 - §09 — Antenna calculator

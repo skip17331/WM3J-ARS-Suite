@@ -116,7 +116,7 @@ Spec sheets show **modeled gain** (peak, free space, ideal). Real-world is typic
 - **Plus 4-6 dB at the right height over real ground**: constructive ground reflection in the lobe direction.
 - **Minus several dB in unwanted directions**: pattern nulls deepen with real ground.
 
-The "antenna at 0.5 λ above good ground has gain X dBi" numbers in §06-15 already include the ground-reflection gain. Modeling software reports both free-space and over-real-ground, distinguishing the two.
+The "antenna at 0.5 λ above good ground has gain X dBi" numbers in §06-07 already include the ground-reflection gain. Modeling software reports both free-space and over-real-ground, distinguishing the two.
 
 For budget purposes: **use the modeled-over-real-ground gain in your peak direction, minus 0.5 dB for real losses.**
 
@@ -149,7 +149,7 @@ For amateur use, the typical progression is: dipole → vertical → 2-element Y
 
 - §11-00 — Chapter overview
 - §11-04 — ERP / EIRP output
-- §06-15 — Radiation patterns (where these gain numbers come from)
-- §06-13 — Ground-plane effects (how ground modifies free-space gain)
-- §06-14 — Modeling concepts
+- §06-07 — Radiation patterns (where these gain numbers come from)
+- §06-05 — Ground-plane effects (how ground modifies free-space gain)
+- §06-06 — Modeling concepts
 - §08-05 — ERP for RF safety

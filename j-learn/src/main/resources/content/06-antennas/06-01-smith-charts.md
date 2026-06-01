@@ -1,8 +1,8 @@
 ---
-id: 06-09
+id: 06-01
 title: Smith Charts
 chapter: 06
-section: 09
+section: 01
 level: advanced
 status: draft
 ---
@@ -108,7 +108,7 @@ For most amateur antenna work, the **SWR vs frequency trace** alone gives you ev
 
 ## See also
 
-- §06-10 — Feedline effects (Smith chart shows them as rotations)
-- §06-11 — Impedance transformation (Smith chart designs the network)
+- §06-02 — Feedline effects (Smith chart shows them as rotations)
+- §06-03 — Impedance transformation (Smith chart designs the network)
 - §12 — High-SWR troubleshooting (Smith chart traces help diagnose)
 - §17-13 — Smith chart formulas (the math, in the formula appendix)

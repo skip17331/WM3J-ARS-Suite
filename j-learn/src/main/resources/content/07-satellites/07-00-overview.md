@@ -27,14 +27,14 @@ Three reasons amateurs work satellites:
 
 | § | Topic | What you find |
 |---|-------|---------------|
-| 06-01 | FM vs linear satellites | The two main satellite types, each with different operating procedures |
-| 06-02 | Doppler shift | Why the frequency changes during a pass, by how much, and how to compensate |
-| 06-03 | Keplerian elements | The 6 numbers that describe an orbit; updating them in your tracking software |
-| 06-04 | Tracking strategies | Getting the antenna pointed; manual aim, automated rotators, "look and shoot" |
-| 06-05 | ISS packet & APRS | The amateur radio gear on the International Space Station |
-| 06-06 | Footprints | Where on Earth a satellite is visible at any given moment |
-| 06-07 | Pass prediction | Calculating when a satellite will be over you, for how long, and where |
-| 06-08 | Doppler correction tables | Quick-reference numbers for common satellites |
+| 07-01 | FM vs linear satellites | The two main satellite types, each with different operating procedures |
+| 07-02 | Doppler shift | Why the frequency changes during a pass, by how much, and how to compensate |
+| 07-03 | Keplerian elements | The 6 numbers that describe an orbit; updating them in your tracking software |
+| 07-04 | Tracking strategies | Getting the antenna pointed; manual aim, automated rotators, "look and shoot" |
+| 07-05 | ISS packet & APRS | The amateur radio gear on the International Space Station |
+| 07-06 | Footprints | Where on Earth a satellite is visible at any given moment |
+| 07-07 | Pass prediction | Calculating when a satellite will be over you, for how long, and where |
+| 07-08 | Doppler correction tables | Quick-reference numbers for common satellites |
 
 ## What you need to work satellites
 
@@ -71,4 +71,4 @@ For more serious satellite work (linear transponders, weak-signal modes, EME):
 - §07-02 — Doppler shift (the most-counterintuitive part of satellite ops)
 - §20-04 — Satellite sub-bands (frequencies)
 - §04 — Repeaters & bandplans
-- §06-15 — Radiation patterns (relevant for satellite antenna gain)
+- §06-07 — Radiation patterns (relevant for satellite antenna gain)

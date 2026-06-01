@@ -97,12 +97,12 @@ The 10 Ω of resistance is essentially negligible — the impedance is dominated
 - **Treating Z and R interchangeably.** A "50 Ω line" has 50 Ω **characteristic impedance**, which is purely resistive only at the matched frequency / when terminated in 50 Ω. Mismatched lines have complex Z that varies with position.
 - **Ignoring the phase angle.** A 50 Ω resistive load and a 50 Ω reactive load both read "50 Ω" on a magnitude-only meter, but the rig sees them as totally different — one delivers power, one bounces it back.
 
-> **Advanced —** Impedance can be written in several equivalent forms: rectangular Z = R + jX, polar Z = \|Z\|∠φ, and admittance Y = 1/Z = G + jB (conductance + susceptance). Smith charts (§17-13, §06-09) plot impedance in normalized form Z/Z_0, allowing graphical impedance manipulation. Most modern matching is done numerically (NanoVNA software), but the Smith-chart intuition is still essential for understanding *what* a matching network is doing.
+> **Advanced —** Impedance can be written in several equivalent forms: rectangular Z = R + jX, polar Z = \|Z\|∠φ, and admittance Y = 1/Z = G + jB (conductance + susceptance). Smith charts (§17-13, §06-01) plot impedance in normalized form Z/Z_0, allowing graphical impedance manipulation. Most modern matching is done numerically (NanoVNA software), but the Smith-chart intuition is still essential for understanding *what* a matching network is doing.
 
 ## See also
 
-- §06-09 — Smith Charts
-- §06-11 — Impedance Transformation
+- §06-01 — Smith Charts
+- §06-03 — Impedance Transformation
 - §10-02 — SWR & Reflected Power (uses Z to compute SWR)
 - §17-03 — Reactance
 - §17-13 — Smith Chart Basics

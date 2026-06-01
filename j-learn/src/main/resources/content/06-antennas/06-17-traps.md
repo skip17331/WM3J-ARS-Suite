@@ -1,8 +1,8 @@
 ---
-id: 06-08
+id: 06-17
 title: Traps
 chapter: 06
-section: 08
+section: 17
 level: advanced
 status: draft
 ---
@@ -100,8 +100,8 @@ For a 4-band trap vertical, the **40 m operation passes through three traps each
 
 ## See also
 
-- §06-01 — Dipoles (the trap dipole's reference)
-- §06-03 — Verticals (trap verticals are common)
-- §06-12 — Baluns (trap antennas still need them)
+- §06-10 — Dipoles (the trap dipole's reference)
+- §06-12 — Verticals (trap verticals are common)
+- §06-04 — Baluns (trap antennas still need them)
 - §12-05 — Faulty balun (and faulty traps; the symptoms can look similar)
 - §18 — Coax & Connectors (W3DZZ-style traps are made of coax)

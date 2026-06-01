@@ -16,8 +16,8 @@ A random-wire antenna is the simplest HF antenna that exists: one wire of conven
 First, a terminology cleanup the rest of this section depends on:
 
 - **Random wire** — a *short*, non-resonant end-fed wire (typically well under one wavelength on the bands used). Needs a tuner; radiates roughly like a vertical or sloped wire. This section.
-- **EFHW** — a wire cut to a *resonant* half-wave, fed with a **49:1** transformer, no tuner. Different beast — see §06-04.
-- **True long wire** — an end-fed wire **one wavelength or longer**, which develops multi-lobe gain that tilts toward the wire's axis as frequency rises. The rhombic and V-beam are its high-gain descendants — see §06-07.
+- **EFHW** — a wire cut to a *resonant* half-wave, fed with a **49:1** transformer, no tuner. Different beast — see §06-13.
+- **True long wire** — an end-fed wire **one wavelength or longer**, which develops multi-lobe gain that tilts toward the wire's axis as frequency rises. The rhombic and V-beam are its high-gain descendants — see §06-16.
 
 A 40 ft wire is *not* a "long wire." It's a random wire. The distinction matters because only the genuine ≥1 λ wire has the gain lobes people imagine when they say "long wire."
 
@@ -57,7 +57,7 @@ End-fed against "nothing" means the feedline shield and the shack become the ret
 
 ## When to avoid
 
-- You can fit a resonant antenna — an EFHW (§06-04) or dipole (§06-01) will be quieter and more efficient.
+- You can fit a resonant antenna — an EFHW (§06-13) or dipole (§06-10) will be quieter and more efficient.
 - You can't lay any counterpoise — the random wire's worst case (RF in the shack, poor efficiency) gets worse.
 
 ## Common mistakes
@@ -69,8 +69,8 @@ End-fed against "nothing" means the feedline shield and the shack become the ret
 
 ## See also
 
-- §06-04 — EFHW (the resonant, no-tuner end-fed — don't confuse them)
-- §06-07 — Rhombic (where true long wires lead)
+- §06-13 — EFHW (the resonant, no-tuner end-fed — don't confuse them)
+- §06-16 — Rhombic (where true long wires lead)
 - §06-25 — Inverted-L (a random/resonant wire bent for low-band DX)
-- §06-11 — Impedance transformation (the 9:1 and the tuner)
-- §06-12 — Baluns and chokes
+- §06-03 — Impedance transformation (the 9:1 and the tuner)
+- §06-04 — Baluns and chokes

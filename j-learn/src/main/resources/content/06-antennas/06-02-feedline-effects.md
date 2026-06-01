@@ -1,8 +1,8 @@
 ---
-id: 06-10
+id: 06-02
 title: Feedline Effects
 chapter: 06
-section: 10
+section: 02
 level: mixed
 status: draft
 ---
@@ -67,7 +67,7 @@ The headline rule: if your line is exactly an **electrical half-wavelength** at 
 
 If the line is a **quarter-wavelength**, it acts as an *impedance inverter*: Z_in = Z₀² / Z_load. So a quarter-wave of 50-ohm coax with a 200-Ω load presents 12.5 Ω at the rig end. Useful and dangerous: useful for matching networks, dangerous because random coax lengths near the antenna can create misleading SWR readings.
 
-For other lengths, the impedance traces a **circle on the Smith chart** (see §06-09), which is why two operators with the same antenna and different feedline lengths can report wildly different SWR readings at the radio.
+For other lengths, the impedance traces a **circle on the Smith chart** (see §06-01), which is why two operators with the same antenna and different feedline lengths can report wildly different SWR readings at the radio.
 
 > **Advanced —** The transmission-line equation: Z_in = Z₀ × (Z_L + jZ₀ tan βℓ) / (Z₀ + jZ_L tan βℓ), where β = 2π/λ and ℓ is the line length. For matched line (Z_L = Z₀), Z_in = Z₀ at any length. For ℓ = λ/2, tan βℓ = 0 and the equation collapses to Z_in = Z_L. For ℓ = λ/4, tan βℓ = ∞ and L'Hôpital gives Z_in = Z₀² / Z_L. All other points are on the Smith circle. This is also why "make your feedline a half-wave on the band of interest" is a common matching trick — you can read the antenna's true impedance directly at the rig.
 
@@ -102,9 +102,9 @@ This is one of the most useful sweep checks in antenna debugging: do the measure
 
 ## See also
 
-- §06-09 — Smith charts (the tool for visualizing line transformation)
-- §06-11 — Impedance transformation (when transformation is desired)
-- §06-12 — Baluns and chokes
+- §06-01 — Smith charts (the tool for visualizing line transformation)
+- §06-03 — Impedance transformation (when transformation is desired)
+- §06-04 — Baluns and chokes
 - §10-05 — Feedline mismatch and SWR
 - §18 — Coax and connectors (loss and types reference)
 - §12 — High-SWR troubleshooting

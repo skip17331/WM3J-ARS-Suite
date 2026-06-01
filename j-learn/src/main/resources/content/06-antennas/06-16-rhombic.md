@@ -1,8 +1,8 @@
 ---
-id: 06-07
+id: 06-16
 title: Rhombic (Terminated & Unterminated)
 chapter: 06
-section: 07
+section: 16
 level: advanced
 status: draft
 ---
@@ -81,7 +81,7 @@ Three reasons:
 
 ## See also
 
-- §06-15 — Reading directional patterns
-- §06-13 — Height effects on radiation patterns
-- §06-12 — Matching transformers (rhombic feed systems)
+- §06-07 — Reading directional patterns
+- §06-05 — Height effects on radiation patterns
+- §06-04 — Matching transformers (rhombic feed systems)
 - (planned §27 — Yagis: the modern alternative)

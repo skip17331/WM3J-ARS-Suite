@@ -65,7 +65,7 @@ L = 500 / (2π · 14×10⁶)
 L ≈ 5.7 µH
 ```
 
-A common practical choke would be a #43 ferrite bead with sufficient turns to reach ~6 µH, or a quarter-wave coax choke at the band of interest (see §06-12 baluns and chokes for the physical implementations).
+A common practical choke would be a #43 ferrite bead with sufficient turns to reach ~6 µH, or a quarter-wave coax choke at the band of interest (see §06-04 baluns and chokes for the physical implementations).
 
 ## Common mistakes
 
@@ -78,7 +78,7 @@ A common practical choke would be a #43 ferrite bead with sufficient turns to re
 
 ## See also
 
-- §06-12 — Baluns and chokes (where these formulas size real chokes)
+- §06-04 — Baluns and chokes (where these formulas size real chokes)
 - §17-04 — Impedance (combines R with X to get full Z)
 - §17-05 — Resonant Frequency (where X_L and X_C cancel exactly)
 - §18-05 — Baluns reference (formulas applied to balun design)

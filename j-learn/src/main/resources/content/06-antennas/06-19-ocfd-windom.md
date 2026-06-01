@@ -28,7 +28,7 @@ At that feedpoint the impedance sits near **200–300 Ω** on the fundamental an
 
 - **4:1 balun** matches ~200 Ω down to 50 Ω. The most common choice.
 - **6:1 balun** for designs that center on ~300 Ω.
-- Always a **current (choke) balun**, and usually a **second choke** a few feet down the coax. The OCFD is electrically lopsided, so it pushes common-mode current onto the feedline harder than a center-fed dipole does — the feedline *will* radiate and bring RF into the shack if you skip the choking. See §06-12.
+- Always a **current (choke) balun**, and usually a **second choke** a few feet down the coax. The OCFD is electrically lopsided, so it pushes common-mode current onto the feedline harder than a center-fed dipole does — the feedline *will* radiate and bring RF into the shack if you skip the choking. See §06-04.
 
 > **Advanced —** Because the feed is off-center, the two halves carry unequal currents and the antenna is inherently unbalanced at the feedpoint. The 4:1 balun handles the impedance step, but only an additional common-mode choke restores feedline balance. This is why "my OCFD has RF in the shack" is the single most common complaint about the design — the cure is a good choke 0.05–0.1 λ down the coax, not a different balun ratio.
 
@@ -65,8 +65,8 @@ Exact split varies by published design; cut a little long and trim the **long** 
 
 ## See also
 
-- §06-01 — Dipoles (the center-fed baseline)
-- §06-12 — Baluns and chokes (the 4:1 and the all-important second choke)
+- §06-10 — Dipoles (the center-fed baseline)
+- §06-04 — Baluns and chokes (the 4:1 and the all-important second choke)
 - §06-20 — G5RV / ZS6BKW (the other "one wire, several bands" approach)
 - §06-21 — Doublet (when you'd rather have a tuner and all bands)
 - §10-04 — Feedline and SWR

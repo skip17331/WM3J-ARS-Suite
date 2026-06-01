@@ -188,7 +188,7 @@ For a typical 14 MHz, 100 W trap:
 
 ## See also
 
-- §06-08 — Traps (theory chapter)
+- §06-17 — Traps (theory chapter)
 - §09-00 — Antenna Workshop overview
 - §09-05 — Trapped Dipole (uses these traps)
 - §09-08 — EFHW (Trapped) (also uses these traps)

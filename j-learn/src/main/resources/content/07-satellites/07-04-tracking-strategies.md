@@ -151,4 +151,4 @@ Linear transponder operations on cross-band sats commonly use this configuration
 - §07-02 — Doppler shift (the radio-side companion)
 - §07-03 — Keplerian elements (where the prediction comes from)
 - §07-07 — Pass prediction
-- §06-15 — Radiation patterns (Yagi gain considerations)
+- §06-07 — Radiation patterns (Yagi gain considerations)

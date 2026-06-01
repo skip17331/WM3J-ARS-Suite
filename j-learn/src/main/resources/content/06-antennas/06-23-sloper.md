@@ -22,7 +22,7 @@ A half-wave dipole with one end up high and the other end down low, fed at the c
 - **Why use it:** when you have one tall support and the geometry of a slant fits the lot better than a flat-top, or you want a little low-angle bias toward a favored direction.
 - A slope angle of **30–45° from horizontal** is the usual practical range.
 
-It's just a dipole; feed and tune it like one (§06-01).
+It's just a dipole; feed and tune it like one (§06-10).
 
 ## The half-sloper (quarter-wave sloper)
 
@@ -44,7 +44,7 @@ When it works, a half-sloper is a compact, low-angle DX antenna that reuses a to
 1. Attach the wire near the top, slope it at ~45° to a low support.
 2. Sweep: trim the wire to move resonance, *and* move the tower attachment point up/down to move the resistance toward 50 Ω.
 3. Expect to chase both at once. A 1.5:1 result is a good day; some towers won't beat 2.5:1.
-4. Choke the feedline (§06-12) — common-mode current is part of why it's twitchy.
+4. Choke the feedline (§06-04) — common-mode current is part of why it's twitchy.
 
 ## When to pick each
 
@@ -65,8 +65,8 @@ When it works, a half-sloper is a compact, low-angle DX antenna that reuses a to
 
 ## See also
 
-- §06-01 — Dipoles (the full sloper is one)
+- §06-10 — Dipoles (the full sloper is one)
 - §06-25 — Inverted-L (the other "one support, low-band DX" wire)
-- §06-03 — Verticals (the half-sloper is a tower-fed vertical relative)
-- §06-13 — Ground-plane effects (why the tower base ground matters)
-- §06-12 — Baluns and chokes
+- §06-12 — Verticals (the half-sloper is a tower-fed vertical relative)
+- §06-05 — Ground-plane effects (why the tower base ground matters)
+- §06-04 — Baluns and chokes

@@ -88,7 +88,7 @@ Quarter wave in air: λ/4 = 300 / (4 × 14.15) ≈ 5.30 m
 Inside RG-11 (VF = 0.66): 5.30 × 0.66 ≈ 3.50 m  (about 11.5 ft)
 ```
 
-Cut a 11.5 ft length of 75 Ω cable, insert it between the antenna and the 50 Ω feedline, and you get a near-perfect impedance match at 14.150 MHz. (See §06-09 Smith charts and §06-11 impedance transformation for the geometry of why this works.)
+Cut a 11.5 ft length of 75 Ω cable, insert it between the antenna and the 50 Ω feedline, and you get a near-perfect impedance match at 14.150 MHz. (See §06-01 Smith charts and §06-03 impedance transformation for the geometry of why this works.)
 
 ## Common mistakes
 

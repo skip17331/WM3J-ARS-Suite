@@ -109,7 +109,7 @@ For an antenna to work, it must:
 1. **Have low SWR** (so power gets to it through the feedline).
 2. **Have high radiation resistance** relative to its loss resistance (so power that reaches it is radiated, not dissipated as heat in the antenna's matching components).
 
-The two conditions are independent. SWR tells you about the first; modeling and pattern measurement tell you about the second. See §06-13 (ground effects on efficiency) and §06-14 (modeling).
+The two conditions are independent. SWR tells you about the first; modeling and pattern measurement tell you about the second. See §06-05 (ground effects on efficiency) and §06-06 (modeling).
 
 ## Relationship to return loss
 
@@ -146,7 +146,7 @@ Older rigs (vacuum-tube finals, no protection) could be damaged by sustained hig
 - §10-00 — Chapter overview
 - §10-03 — Mismatch loss (what high SWR costs you)
 - §10-04 — Power delivered vs lost
-- §06-10 — Feedline effects (impedance transformation hides true SWR)
+- §06-02 — Feedline effects (impedance transformation hides true SWR)
 - §12 — High-SWR troubleshooting
-- §06-09 — Smith charts (Γ in complex plane)
+- §06-01 — Smith charts (Γ in complex plane)
 - §18 — Coax & connectors

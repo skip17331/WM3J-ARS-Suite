@@ -1,8 +1,8 @@
 ---
-id: 06-12
+id: 06-04
 title: Baluns and Chokes
 chapter: 06
-section: 12
+section: 04
 level: mixed
 status: draft
 ---
@@ -141,9 +141,9 @@ Lacking a clamp-on meter: touch the coax shield. If you can feel RF (warmth at h
 
 ## See also
 
-- §06-01 — Dipole feeding (where most baluns go)
-- §06-04 — EFHW (49:1 unun + separate choke is the standard)
-- §06-11 — Impedance transformation (the matching aspect)
+- §06-10 — Dipole feeding (where most baluns go)
+- §06-13 — EFHW (49:1 unun + separate choke is the standard)
+- §06-03 — Impedance transformation (the matching aspect)
 - §12-05 — Faulty balun (failure modes)
 - §12-06 — Feedline routing (common-mode current symptoms)
 - §14 — RFI (common-mode current is a major cause)

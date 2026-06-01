@@ -117,7 +117,7 @@ Fold-back is a safety feature but it complicates the math: you can't just multip
 A subtle point: power *delivered to the antenna feedpoint* is not the same as power *radiated into space*. The antenna also has internal losses:
 
 - **Antenna conductor losses** (I²R in element wire/tubing).
-- **Ground losses** (especially significant for verticals; see §06-13).
+- **Ground losses** (especially significant for verticals; see §06-05).
 - **Match-network losses** in the antenna itself (some antennas have a built-in matching transformer).
 - **Loading losses** in loaded antennas (mobile whips, magnetic loops, traps).
 
@@ -159,7 +159,7 @@ This is why for marginal stations, **better feedline pays double**. Replacing a 
 - §10-02 — SWR & reflected power
 - §10-03 — Mismatch loss
 - §11 — Power budget & ERP (the system-level extension of this)
-- §06-13 — Ground-plane effects (antenna efficiency)
+- §06-05 — Ground-plane effects (antenna efficiency)
 - §12 — High-SWR troubleshooting
 - §18 — Coax & connectors reference (when picking a cable for this calc)
 - §18-02 — Cable loss specifications

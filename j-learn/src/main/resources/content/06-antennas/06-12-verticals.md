@@ -1,8 +1,8 @@
 ---
-id: 06-03
+id: 06-12
 title: Verticals
 chapter: 06
-section: 03
+section: 12
 level: mixed
 status: draft
 ---
@@ -115,8 +115,8 @@ Be aware: ground losses *flatten* the pattern in unhelpful ways at low angles. A
 
 ## See also
 
-- §06-13 — Ground effects (verticals depend on ground more than any other antenna)
-- §06-15 — Reading the elevation pattern of a vertical
-- §06-12 — Baluns and chokes (you still want one)
+- §06-05 — Ground effects (verticals depend on ground more than any other antenna)
+- §06-07 — Reading the elevation pattern of a vertical
+- §06-04 — Baluns and chokes (you still want one)
 - §15 — Noise sources (verticals pick up noise differently)
 - §09 — Antenna calculator

@@ -118,7 +118,7 @@ A 3-ft mag loop with a vacuum capacitor and a 5-inch coupling loop is a complete
 
 ## See also
 
-- §06-05 — Magnetic Loops (theory chapter)
+- §06-14 — Magnetic Loops (theory chapter)
 - §09-00 — Antenna Workshop overview
 - §17-03 — Reactance
 - §17-05 — Resonant Frequency

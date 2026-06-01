@@ -147,7 +147,7 @@ For severe burns (extensive area, deep, signs of nerve involvement, persistent s
 For clarity:
 
 - **RF burns are not radiation burns** in the radiological sense. They are localized tissue heating from RF currents, similar to a thermal burn but from inside-out.
-- **Touching coax shield during TX** doesn't usually cause RF burns — common-mode currents are usually not high enough on the shield for significant tissue damage. But it does indicate a balun problem (see §06-12).
+- **Touching coax shield during TX** doesn't usually cause RF burns — common-mode currents are usually not high enough on the shield for significant tissue damage. But it does indicate a balun problem (see §06-04).
 - **The "tingling sensation" some operators feel** when touching radio gear during TX is RF "shock" — capacitive coupling of station ground potential through your body. Annoying, not usually injurious, but indicates poor station grounding (see §13-05).
 - **MPE non-compliance does not imply burn risk.** Bystanders 30 ft from your antenna might exceed MPE limits without ever being at burn risk; burn risk requires direct contact with the high-voltage components.
 
@@ -165,7 +165,7 @@ For clarity:
 
 - §08-01 — FCC rules (MPE rules; not directly burn-related but related context)
 - §08-06 — Safe antenna placement (geometry to prevent burn risk)
-- §06-12 — Baluns and chokes (common-mode current → tingling/burn potential)
-- §06-05 — Magnetic loops (kilovolt capacitor gaps)
+- §06-04 — Baluns and chokes (common-mode current → tingling/burn potential)
+- §06-14 — Magnetic loops (kilovolt capacitor gaps)
 - §13-05 — Grounding (poor grounding → tingling sensation; precursor to burns)
 - §14 — RFI (related to common-mode currents)

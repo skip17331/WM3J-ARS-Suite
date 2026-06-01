@@ -168,8 +168,8 @@ A 67-foot trapped EFHW covers 40 / 20 / 15m precisely (no harmonic overlap). Exc
 
 ## See also
 
-- §06-08 — Traps (theory)
-- §06-04 — EFHW (theory)
+- §06-17 — Traps (theory)
+- §06-13 — EFHW (theory)
 - §09-00 — Antenna Workshop overview
 - §09-07 — EFHW (No Traps) — simpler, harmonic-only variant
 - §09-13 — Trap Design

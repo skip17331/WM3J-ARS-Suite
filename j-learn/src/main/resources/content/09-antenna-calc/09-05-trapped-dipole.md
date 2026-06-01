@@ -185,7 +185,7 @@ The full trapped dipole is **~107 ft tip-to-tip** — vs. ~127 ft for a full-len
 
 ## See also
 
-- §06-08 — Traps (theory chapter for trap antennas)
+- §06-17 — Traps (theory chapter for trap antennas)
 - §09-00 — Antenna Workshop overview
 - §09-13 — Trap Design (component values, coil winding)
 - §09-04 — Fan Dipole (alternative approach to multi-band)

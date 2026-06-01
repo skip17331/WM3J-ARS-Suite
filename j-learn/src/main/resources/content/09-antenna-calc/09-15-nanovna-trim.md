@@ -124,7 +124,7 @@ For a dipole at 20m, **1 cm of wire (per side) shifts resonance ~10 kHz**. This 
 
 ## See also
 
-- §06-09 — Smith Charts (for matching-network analysis)
+- §06-01 — Smith Charts (for matching-network analysis)
 - §09-00 — Antenna Workshop overview
 - §12 — High-SWR Troubleshooting (when the sweep is unexpected)
 - **J-Vault** — Antennas (where to store baseline sweeps in inventory)

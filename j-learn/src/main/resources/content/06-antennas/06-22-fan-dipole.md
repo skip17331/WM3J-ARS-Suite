@@ -34,7 +34,7 @@ The wires interact, so you tune from the **lowest band up** and expect iteration
 3. Tune the **lowest band first** (trim that dipole), then the next band up, and so on.
 4. Re-check the lower bands after tuning the higher ones — adjusting one wire pulls its neighbors slightly. Two or three passes converges.
 
-> **Advanced —** The interaction is strongest between bands in a harmonic relationship — a 40 m dipole is near-resonant on 15 m (3rd harmonic), so a 40/20/15/10 fan couples 40↔15 noticeably. Wider end-spacing decouples them; so does staggering the wires in different planes (a true 3-D fan rather than a flat one). Mutual coupling is also why each added wire lowers every dipole's resonant frequency a little — always cut long and trim. EZNEC (§06-14) models the coupling well if you want to skip the iteration on the ground.
+> **Advanced —** The interaction is strongest between bands in a harmonic relationship — a 40 m dipole is near-resonant on 15 m (3rd harmonic), so a 40/20/15/10 fan couples 40↔15 noticeably. Wider end-spacing decouples them; so does staggering the wires in different planes (a true 3-D fan rather than a flat one). Mutual coupling is also why each added wire lowers every dipole's resonant frequency a little — always cut long and trim. EZNEC (§06-06) models the coupling well if you want to skip the iteration on the ground.
 
 ## Mechanical reality
 
@@ -43,7 +43,7 @@ A fan dipole is heavier and windier than any single wire — four dipoles means 
 ## When to pick a fan dipole
 
 - You want **no-tuner, full-efficiency** operation on several bands and have the supports for a full-size multi-wire center.
-- You don't want the losses of traps (§06-08) or the unun of an EFHW (§06-04).
+- You don't want the losses of traps (§06-17) or the unun of an EFHW (§06-13).
 - You have one good center support and room for the wires to spread.
 
 ## When to avoid
@@ -56,13 +56,13 @@ A fan dipole is heavier and windier than any single wire — four dipoles means 
 
 - **Wires too close together** — tight coupling makes the bands un-tunable and shifts resonances unpredictably. Spread the ends.
 - **Tuning the wrong order** — always lowest band first, then work up, then re-check.
-- **One balun is fine; one wire isn't.** People forget the choke balun and get the usual feedline-radiation symptoms (§06-12).
+- **One balun is fine; one wire isn't.** People forget the choke balun and get the usual feedline-radiation symptoms (§06-04).
 - **Letting the legs sag together** — wind shorts or detunes them; use spreaders.
 
 ## See also
 
-- §06-01 — Dipoles (each element is one)
-- §06-08 — Traps (the other no-tuner multiband approach, with losses)
-- §06-04 — EFHW (multiband from one wire instead of many)
-- §06-14 — Modeling concepts (model the coupling before you climb)
-- §06-12 — Baluns and chokes
+- §06-10 — Dipoles (each element is one)
+- §06-17 — Traps (the other no-tuner multiband approach, with losses)
+- §06-13 — EFHW (multiband from one wire instead of many)
+- §06-06 — Modeling concepts (model the coupling before you climb)
+- §06-04 — Baluns and chokes

@@ -1,8 +1,8 @@
 ---
-id: 06-13
+id: 06-05
 title: Ground-Plane Effects
 chapter: 06
-section: 13
+section: 05
 level: mixed
 status: draft
 ---
@@ -132,7 +132,7 @@ If you suspect ground is the difference between your antenna's modeled and obser
 
 ## See also
 
-- §06-03 — Verticals (most ground-sensitive antenna)
-- §06-15 — Radiation patterns (where the height-vs-angle effects show up)
-- §06-14 — Modeling concepts (handling ground in NEC-style code)
+- §06-12 — Verticals (most ground-sensitive antenna)
+- §06-07 — Radiation patterns (where the height-vs-angle effects show up)
+- §06-06 — Modeling concepts (handling ground in NEC-style code)
 - §11 — Power budget / ERP (ground losses are real losses)

@@ -64,9 +64,9 @@ Three contexts where the budget calculation is more than academic:
 
 ## What's not in this chapter
 
-- **Antenna pattern shape and how gain is measured** — see §06-15.
+- **Antenna pattern shape and how gain is measured** — see §06-07.
 - **Specific feedline loss values per cable / frequency** — see §18-02.
-- **Detailed Smith chart impedance work** — see §06-09.
+- **Detailed Smith chart impedance work** — see §06-01.
 - **Propagation losses on the path to a distant station** — see §01.
 - **RF safety calculation specifics** — see §08-05.
 
@@ -81,5 +81,5 @@ Three contexts where the budget calculation is more than academic:
 - §08-05 — ERP / EIRP for RF safety
 - §11-05 — Portable budget (worked example)
 - §18 — Coax & connectors (the feedline-loss source)
-- §06-15 — Radiation patterns (where antenna gain comes from)
+- §06-07 — Radiation patterns (where antenna gain comes from)
 - §01 — Propagation (the path-loss side)

@@ -38,13 +38,13 @@ Maximize the **vertical** portion within your support height; let the horizontal
 
 ## The ground system is the antenna
 
-This is a vertical monopole, so the same rule as §06-03 applies, only more so on the low bands where losses dominate:
+This is a vertical monopole, so the same rule as §06-12 applies, only more so on the low bands where losses dominate:
 
 - **Radials, lots of them.** 16 is a working minimum; 32–60 is better on 160 m. They don't need to be resonant — many shorter radials beat a few long ones.
 - On-ground or buried radials are fine; elevated radials (a few, tuned) also work and can cut the count.
 - A poor ground turns DX power into dirt-heating. The difference between 4 radials and 32 on 160 m can be several S-units to the DX station.
 
-> **Advanced —** The inverted-L's low takeoff angle comes from the vertical section's current, which peaks at the feed (current maximum) for the quarter-wave case. The horizontal top carries mostly the high-voltage / low-current end, so it contributes little radiation and largely cancels its own horizontal component above good ground — that's *why* the L stays a low-angle radiator instead of turning into a high-angle horizontal wire. Push the current maximum higher (go to the 3/8–1/2 λ version, which moves the current node up the vertical section) and the low-angle gain improves further, at the cost of needing a matching network for the high feed impedance. See §06-13 and §06-15.
+> **Advanced —** The inverted-L's low takeoff angle comes from the vertical section's current, which peaks at the feed (current maximum) for the quarter-wave case. The horizontal top carries mostly the high-voltage / low-current end, so it contributes little radiation and largely cancels its own horizontal component above good ground — that's *why* the L stays a low-angle radiator instead of turning into a high-angle horizontal wire. Push the current maximum higher (go to the 3/8–1/2 λ version, which moves the current node up the vertical section) and the low-angle gain improves further, at the cost of needing a matching network for the high feed impedance. See §06-05 and §06-07.
 
 ## When to pick an inverted-L
 
@@ -61,13 +61,13 @@ This is a vertical monopole, so the same rule as §06-03 applies, only more so o
 
 - **Too few radials.** The number-one inverted-L disappointment — it's a vertical, and verticals need ground.
 - **Too little vertical height.** A short vertical section with a long horizontal top becomes a high-angle cloud-warmer, not a DX antenna. Get the wire *up* first.
-- **Confusing it with an EFHW mounted as an "inverted-L."** That's a resonant half-wave with a 49:1 unun and minimal ground (§06-04); this is a ground-dependent quarter-wave monopole. Different feed, different ground needs.
-- **No feedline choke** — common-mode current on an end-fed-against-ground wire is real (§06-12).
+- **Confusing it with an EFHW mounted as an "inverted-L."** That's a resonant half-wave with a 49:1 unun and minimal ground (§06-13); this is a ground-dependent quarter-wave monopole. Different feed, different ground needs.
+- **No feedline choke** — common-mode current on an end-fed-against-ground wire is real (§06-04).
 
 ## See also
 
-- §06-03 — Verticals (the inverted-L is a bent, top-loaded one)
-- §06-13 — Ground-plane effects (the radial field decides performance)
-- §06-04 — EFHW (the resonant end-fed cousin — different feed/ground)
+- §06-12 — Verticals (the inverted-L is a bent, top-loaded one)
+- §06-05 — Ground-plane effects (the radial field decides performance)
+- §06-13 — EFHW (the resonant end-fed cousin — different feed/ground)
 - §06-23 — Sloper / half-sloper (the other one-support low-band wire)
-- §06-15 — Radiation patterns (seeing the low-angle lobe)
+- §06-07 — Radiation patterns (seeing the low-angle lobe)

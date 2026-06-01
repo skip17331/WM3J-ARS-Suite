@@ -78,7 +78,7 @@ The cards are deliberately short. If you need the *why* behind a formula, the li
 | 18-10 | Decibels | Almost every chapter |
 | 18-11 | Q Factor | §06 antennas (mag loops), §18 baluns |
 | 18-12 | Bandwidth | §04 repeaters, §06 antennas, §18 |
-| 18-13 | Smith Chart Basics | §06-09 Smith charts (chapter context) |
+| 18-13 | Smith Chart Basics | §06-01 Smith charts (chapter context) |
 | 18-14 | RF Exposure | §08 RF safety |
 
 ## See also

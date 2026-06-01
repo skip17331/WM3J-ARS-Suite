@@ -39,7 +39,7 @@ Brian Austin (ZS6BKW, also G0GSF) re-ran the math to find the flat-top length *a
 
 Note what's *missing*: no 80, no 30, no 15 m without a tuner (15 m falls where the matching transform misses). But on the five bands it does cover, it's a genuine no-ATU antenna — which the G5RV is not.
 
-> **Advanced —** The flat-top and matching section together form a two-section transmission-line transformer. The flat-top length sets the load impedance presented to the matching line on each band; the matching-line length (electrical, not physical) rotates that impedance around the Smith chart toward 50 Ω. Because the rotation depends on *electrical* length, the matching section must be scaled by the **velocity factor** of the line you actually use (≈0.91 for 450 Ω window line, ≈0.82 for solid 300 Ω). Use a published physical length with the wrong line VF and you detune all five bands at once. See §06-09 for the Smith-chart view.
+> **Advanced —** The flat-top and matching section together form a two-section transmission-line transformer. The flat-top length sets the load impedance presented to the matching line on each band; the matching-line length (electrical, not physical) rotates that impedance around the Smith chart toward 50 Ω. Because the rotation depends on *electrical* length, the matching section must be scaled by the **velocity factor** of the line you actually use (≈0.91 for 450 Ω window line, ≈0.82 for solid 300 Ω). Use a published physical length with the wrong line VF and you detune all five bands at once. See §06-01 for the Smith-chart view.
 
 ## The velocity-factor trap
 
@@ -47,7 +47,7 @@ This is the mistake that ruins more G5RV/ZS6BKW builds than anything else: **the
 
 ## Feeding the bottom of the matching section
 
-The junction between the balanced matching section and the coax is a balance-to-unbalance transition — put a **1:1 current choke** there (§06-12). Without it the coax shield becomes part of the antenna and the patterns and SWR wander. Keep the matching section in the clear, away from metal and the ground, since it radiates a little and its impedance shifts near conductors.
+The junction between the balanced matching section and the coax is a balance-to-unbalance transition — put a **1:1 current choke** there (§06-04). Without it the coax shield becomes part of the antenna and the patterns and SWR wander. Keep the matching section in the clear, away from metal and the ground, since it radiates a little and its impedance shifts near conductors.
 
 ## When to pick one
 
@@ -68,8 +68,8 @@ The junction between the balanced matching section and the coax is a balance-to-
 
 ## See also
 
-- §06-01 — Dipoles (the flat-top is a dipole)
+- §06-10 — Dipoles (the flat-top is a dipole)
 - §06-21 — Doublet (the better all-band choice — no fixed matching section)
-- §06-09 — Smith charts (how the matching section is found)
-- §06-12 — Baluns and chokes (the 1:1 at the coax junction)
-- §06-11 — Impedance transformation
+- §06-01 — Smith charts (how the matching section is found)
+- §06-04 — Baluns and chokes (the 1:1 at the coax junction)
+- §06-03 — Impedance transformation

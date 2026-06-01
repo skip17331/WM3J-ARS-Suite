@@ -11,9 +11,9 @@ status: draft
 
 > **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-This chapter is the **reference appendix** for transmission lines and the connectors that go on them. It complements §06-10 (feedline effects on antenna behavior), §10 (feedline & SWR), and §16-04 (coax replacement) by being the place you look up "what is RG-213's loss at 50 MHz" or "what's the difference between PL-259 and N."
+This chapter is the **reference appendix** for transmission lines and the connectors that go on them. It complements §06-02 (feedline effects on antenna behavior), §10 (feedline & SWR), and §16-04 (coax replacement) by being the place you look up "what is RG-213's loss at 50 MHz" or "what's the difference between PL-259 and N."
 
-The content is organized for fast lookup, with full tables rather than long prose. If you want to *understand* feedline behavior, read §06-10. If you want to *check* a number, you're in the right chapter.
+The content is organized for fast lookup, with full tables rather than long prose. If you want to *understand* feedline behavior, read §06-02. If you want to *check* a number, you're in the right chapter.
 
 ## How the chapter is organized
 
@@ -23,7 +23,7 @@ The content is organized for fast lookup, with full tables rather than long pros
 | 22-02 | Loss tables — matched-line loss per 100 ft for every common cable, every band |
 | 22-03 | Velocity factor — VF values per cable; how to compute electrical lengths |
 | 22-04 | Connectors — PL-259, N, BNC, SMA, F, etc. — specs and comparisons |
-| 22-05 | Baluns & chokes (reference) — quick-lookup table; full discussion in §06-12 |
+| 22-05 | Baluns & chokes (reference) — quick-lookup table; full discussion in §06-04 |
 
 ## What's a "coax"?
 
@@ -75,9 +75,9 @@ Section 22-04 covers each in detail.
 
 ## See also
 
-- §06-10 — Feedline effects (the *why* behind the numbers in this chapter)
-- §06-11 — Impedance transformation
-- §06-12 — Baluns and chokes (full discussion)
+- §06-02 — Feedline effects (the *why* behind the numbers in this chapter)
+- §06-03 — Impedance transformation
+- §06-04 — Baluns and chokes (full discussion)
 - §10 — Feedline & SWR
 - §12-01 — Coax issues (troubleshooting view)
 - §16-04 — Coax replacement

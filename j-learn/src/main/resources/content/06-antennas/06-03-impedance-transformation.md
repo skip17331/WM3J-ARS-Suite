@@ -1,8 +1,8 @@
 ---
-id: 06-11
+id: 06-03
 title: Impedance Transformation
 chapter: 06
-section: 11
+section: 03
 level: advanced
 status: draft
 ---
@@ -39,7 +39,7 @@ These are wound on ferrite toroids and use a turns ratio to step impedance:
 | 3:1 | 9:1 | Random-wire / long-wire vertical (450 → 50 Ω); G5RV variants |
 | 4:1 | 16:1 | High-impedance feed; T2FD; some commercial verticals |
 | 5:1 | 25:1 | Less common but used in some EFHW designs |
-| 7:1 | 49:1 | EFHW (2500 → 50 Ω) — see §06-04 |
+| 7:1 | 49:1 | EFHW (2500 → 50 Ω) — see §06-13 |
 | 8:1 | 64:1 | EFHW for higher-impedance installs |
 
 **Transformers are inherently broadband.** A well-built FT240-43-cored transformer covers 80–10 m (or even 160–10) with reasonable efficiency. Their main limits are core saturation at high power and progressive loss at the band extremes.
@@ -126,8 +126,8 @@ A radio shows a "1:1 match" because the rig sees 50 Ω. That tells you nothing a
 
 ## See also
 
-- §06-09 — Smith charts (the design tool for matching networks)
-- §06-12 — Baluns and chokes (specific transformer types)
-- §06-10 — Feedline effects (length affects observed Z)
-- §06-04 — EFHW (the canonical unun-matched antenna)
+- §06-01 — Smith charts (the design tool for matching networks)
+- §06-04 — Baluns and chokes (specific transformer types)
+- §06-02 — Feedline effects (length affects observed Z)
+- §06-13 — EFHW (the canonical unun-matched antenna)
 - §17 — Formula appendix

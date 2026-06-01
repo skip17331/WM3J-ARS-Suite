@@ -13,7 +13,7 @@ status: draft
 
 The Smith chart is a polar plot of the reflection coefficient Γ. It maps every possible complex impedance onto a unit circle, with constant-resistance and constant-reactance contours superimposed. It's the universal tool for visualizing impedance, mismatch, and matching networks.
 
-If §06-09 explains the picture and §06-11 explains the transformations, this section gives the underlying math.
+If §06-01 explains the picture and §06-03 explains the transformations, this section gives the underlying math.
 
 ## Equations
 
@@ -124,7 +124,7 @@ L-network matching is a sequence of one series-component jump and one parallel-c
 
 ## See also
 
-- §06-09 — Smith Charts (the picture-side explanation)
-- §06-11 — Impedance Transformation (matching networks via Smith chart)
+- §06-01 — Smith Charts (the picture-side explanation)
+- §06-03 — Impedance Transformation (matching networks via Smith chart)
 - §17-04 — Impedance (the Z = R + jX form)
 - §17-07 — SWR (the radius-from-center reading)

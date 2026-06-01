@@ -1,8 +1,8 @@
 ---
-id: 06-15
+id: 06-07
 title: Radiation Patterns
 chapter: 06
-section: 15
+section: 07
 level: mixed
 status: draft
 ---
@@ -147,8 +147,8 @@ If your antenna has poor low-angle gain (a low dipole), distant DX becomes much 
 
 ## See also
 
-- §06-13 — Ground-plane effects (the major pattern-shaper at low heights)
-- §06-14 — Modeling (tools to compute these patterns)
-- §06-09 — Smith charts (matching is part of the system; pattern is the other)
+- §06-05 — Ground-plane effects (the major pattern-shaper at low heights)
+- §06-06 — Modeling (tools to compute these patterns)
+- §06-01 — Smith charts (matching is part of the system; pattern is the other)
 - §11 — Power budget and ERP (ERP × pattern gain = effective field strength)
 - §01-04 — Ionospheric layers (how angle becomes distance)

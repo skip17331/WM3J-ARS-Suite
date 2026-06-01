@@ -1,8 +1,8 @@
 ---
-id: 06-17
+id: 06-09
 title: Diversity
 chapter: 06
-section: 17
+section: 09
 level: mixed
 status: draft
 ---
@@ -107,6 +107,6 @@ These don't replace true antenna diversity but achieve similar end-results for t
 ## See also
 
 - §01 — Propagation (multipath fading mechanism)
-- §06-15 — Radiation Patterns (pattern shaping, the basis for some diversity schemes)
-- §06-16 — Polarization (the basis for polarization diversity)
+- §06-07 — Radiation Patterns (pattern shaping, the basis for some diversity schemes)
+- §06-08 — Polarization (the basis for polarization diversity)
 - §03 — Digital modes (FT8, JS8Call use time/coding diversity in software)
