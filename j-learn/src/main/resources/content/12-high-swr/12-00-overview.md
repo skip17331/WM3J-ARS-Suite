@@ -42,13 +42,13 @@ This tree leads you to one of the seven sections in this chapter.
 
 | § | Cause | When to suspect it |
 |---|-------|--------------------|
-| 13-01 | Coax issues | Old or weather-damaged cable, kinks, water in the dielectric |
-| 13-02 | Connector issues | Recent re-termination, water-exposed connector, gradually worsening |
-| 13-03 | Incorrect length | Brand new antenna, not yet tuned, or moved/shortened |
-| 13-04 | Nearby metal | New gutter, new tower section, a tree branch grew, building added |
-| 13-05 | Faulty balun | Balun got rained on, internal core saturated, or hit by lightning |
-| 13-06 | Feedline routing | Coax wrapped around the antenna, common-mode current issue |
-| 13-07 | Water ingress | Water in coax dielectric, in connectors, or in feedpoint matching network |
+| 12-01 | Coax issues | Old or weather-damaged cable, kinks, water in the dielectric |
+| 12-02 | Connector issues | Recent re-termination, water-exposed connector, gradually worsening |
+| 12-03 | Incorrect length | Brand new antenna, not yet tuned, or moved/shortened |
+| 12-04 | Nearby metal | New gutter, new tower section, a tree branch grew, building added |
+| 12-05 | Faulty balun | Balun got rained on, internal core saturated, or hit by lightning |
+| 12-06 | Feedline routing | Coax wrapped around the antenna, common-mode current issue |
+| 12-07 | Water ingress | Water in coax dielectric, in connectors, or in feedpoint matching network |
 
 ## Tools you need
 

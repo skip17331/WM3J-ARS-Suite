@@ -19,11 +19,11 @@ The content is organized for fast lookup, with full tables rather than long pros
 
 | § | Topic |
 |---|-------|
-| 22-01 | Coax types — what each common type is, what it's good for, when to pick it |
-| 22-02 | Loss tables — matched-line loss per 100 ft for every common cable, every band |
-| 22-03 | Velocity factor — VF values per cable; how to compute electrical lengths |
-| 22-04 | Connectors — PL-259, N, BNC, SMA, F, etc. — specs and comparisons |
-| 22-05 | Baluns & chokes (reference) — quick-lookup table; full discussion in §06-04 |
+| 18-01 | Coax types — what each common type is, what it's good for, when to pick it |
+| 18-02 | Loss tables — matched-line loss per 100 ft for every common cable, every band |
+| 18-03 | Velocity factor — VF values per cable; how to compute electrical lengths |
+| 18-04 | Connectors — PL-259, N, BNC, SMA, F, etc. — specs and comparisons |
+| 18-05 | Baluns & chokes (reference) — quick-lookup table; full discussion in §06-04 |
 
 ## What's a "coax"?
 
@@ -65,7 +65,7 @@ The amateur coax-connector world is dominated by:
 - **F-type** — 75 Ω TV/satellite TV connector. You'll occasionally find it in amateur use, mostly with TV-coax (RG-6) repurposed antennas.
 - **TNC** — threaded version of BNC. Used some in commercial / military.
 
-Section 22-04 covers each in detail.
+Section 18-04 covers each in detail.
 
 ## "If you only remember three things"
 

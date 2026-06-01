@@ -66,20 +66,20 @@ The cards are deliberately short. If you need the *why* behind a formula, the li
 
 | § | Title | Used by |
 |---|-------|---------|
-| 18-01 | Ohm's Law | §13 troubleshooting, §11 power budget |
-| 18-02 | Power Law | §08 RF safety, §11 power budget, §12 SWR |
-| 18-03 | Reactance (capacitive & inductive) | §06 antennas, §18 baluns |
-| 18-04 | Impedance | §06 antennas, §10 feedline, §18 baluns |
-| 18-05 | Resonant Frequency | §06 antennas, §12 high SWR |
-| 18-06 | Wavelength | §06 antennas, §10 feedline |
-| 18-07 | SWR | §10 feedline, §12 high SWR |
-| 18-08 | ERP | §08 RF safety, §11 power budget, §20 band plans |
-| 18-09 | Feedline Loss | §10 feedline, §18 coax |
-| 18-10 | Decibels | Almost every chapter |
-| 18-11 | Q Factor | §06 antennas (mag loops), §18 baluns |
-| 18-12 | Bandwidth | §04 repeaters, §06 antennas, §18 |
-| 18-13 | Smith Chart Basics | §06-01 Smith charts (chapter context) |
-| 18-14 | RF Exposure | §08 RF safety |
+| 17-01 | Ohm's Law | §13 troubleshooting, §11 power budget |
+| 17-02 | Power Law | §08 RF safety, §11 power budget, §12 SWR |
+| 17-03 | Reactance (capacitive & inductive) | §06 antennas, §18 baluns |
+| 17-04 | Impedance | §06 antennas, §10 feedline, §18 baluns |
+| 17-05 | Resonant Frequency | §06 antennas, §12 high SWR |
+| 17-06 | Wavelength | §06 antennas, §10 feedline |
+| 17-07 | SWR | §10 feedline, §12 high SWR |
+| 17-08 | ERP | §08 RF safety, §11 power budget, §20 band plans |
+| 17-09 | Feedline Loss | §10 feedline, §18 coax |
+| 17-10 | Decibels | Almost every chapter |
+| 17-11 | Q Factor | §06 antennas (mag loops), §18 baluns |
+| 17-12 | Bandwidth | §04 repeaters, §06 antennas, §18 |
+| 17-13 | Smith Chart Basics | §06-01 Smith charts (chapter context) |
+| 17-14 | RF Exposure | §08 RF safety |
 
 ## See also
 

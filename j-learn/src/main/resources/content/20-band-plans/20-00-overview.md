@@ -30,11 +30,11 @@ Most amateurs treat both layers as binding. Following the voluntary plan keeps t
 
 | § | Topic | Coverage |
 |---|-------|----------|
-| 24-01 | HF | 160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m — both regulatory and voluntary |
-| 24-02 | VHF | 6m, 2m, 1.25m — repeater allocations, weak-signal segments, FM voice |
-| 24-03 | UHF | 70cm, 33cm, 23cm — repeater pairs, satellite sub-bands, weak-signal |
-| 24-04 | Satellite sub-bands | Specific segments reserved for satellite uplinks/downlinks; ITU footnotes |
-| 24-05 | Regional variations | IARU regions, country-specific allocations, DX considerations |
+| 20-01 | HF | 160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m — both regulatory and voluntary |
+| 20-02 | VHF | 6m, 2m, 1.25m — repeater allocations, weak-signal segments, FM voice |
+| 20-03 | UHF | 70cm, 33cm, 23cm — repeater pairs, satellite sub-bands, weak-signal |
+| 20-04 | Satellite sub-bands | Specific segments reserved for satellite uplinks/downlinks; ITU footnotes |
+| 20-05 | Regional variations | IARU regions, country-specific allocations, DX considerations |
 
 ## Why band plans exist
 

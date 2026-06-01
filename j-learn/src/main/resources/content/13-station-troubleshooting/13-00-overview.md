@@ -19,12 +19,12 @@ The sections are sorted by "what is failing":
 
 | § | Failure | Common cause |
 |---|---------|--------------|
-| 14-01 | No transmit | PTT, power supply, sequencer, fuse, ALC misconfigured |
-| 14-02 | No receive | Antenna selector, attenuator, preamp dead, audio chain, squelch |
-| 14-03 | Distorted audio | Mic gain, compressor, ALC, mic placement, processed monitor |
-| 14-04 | RF feedback | Common-mode current, ground loop, audio cable shielding |
-| 14-05 | Grounding | Single-point ground, station ground bus, pipe ground |
-| 14-06 | Power supply | Voltage drop under load, ripple, ground noise |
+| 13-01 | No transmit | PTT, power supply, sequencer, fuse, ALC misconfigured |
+| 13-02 | No receive | Antenna selector, attenuator, preamp dead, audio chain, squelch |
+| 13-03 | Distorted audio | Mic gain, compressor, ALC, mic placement, processed monitor |
+| 13-04 | RF feedback | Common-mode current, ground loop, audio cable shielding |
+| 13-05 | Grounding | Single-point ground, station ground bus, pipe ground |
+| 13-06 | Power supply | Voltage drop under load, ripple, ground noise |
 
 Walk the chapter that matches your symptom. If you don't know what's failing, work this overview's diagnostic tree first.
 

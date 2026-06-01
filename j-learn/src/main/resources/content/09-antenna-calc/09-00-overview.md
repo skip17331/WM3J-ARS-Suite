@@ -19,22 +19,22 @@ The unique value here is **integration**. There are excellent single-purpose cal
 
 | § | Section | Purpose |
 |---|---------|---------|
-| 08-00 | This overview | How the chapter is organized |
-| 08-01 | Antenna Recommender | The questionnaire and scoring rules |
-| 08-02 | Flat Dipole | Half-wave dipole, length math, height-vs-Z |
-| 08-03 | Inverted-V Dipole | Apex height, droop angle, length correction |
-| 08-04 | Fan Dipole | Multi-band parallel dipoles, mutual coupling |
-| 08-05 | Trapped Dipole | Multi-band with traps, leg lengths between traps |
-| 08-06 | OCF Dipole (Windom) | Off-center feed, balun ratio, harmonic feed-Z |
-| 08-07 | EFHW (No Traps) | Half-wave end-fed, 49:1 / 64:1 unun, harmonics |
-| 08-08 | EFHW (Trapped) | Multi-band end-fed with traps |
-| 08-09 | J-Pole | VHF/UHF half-wave + matching stub |
-| 08-10 | Yagi-Uda | Driven, reflector, directors, spacing, expected gain/F-B |
-| 08-11 | Vertical Antennas | ¼λ / ⅝λ / ½λ + radial design |
-| 08-12 | Loading for Shortened Antennas | Base, center, top loading coils |
-| 08-13 | Trap Design & Manufacturing | L-C values + physical wire-on-form construction |
-| 08-14 | Magnetic Loop | Tuning capacitor, Q, voltage breakdown |
-| 08-15 | NanoVNA Trim Workflow | The standard "build → sweep → trim" loop |
+| 09-00 | This overview | How the chapter is organized |
+| 09-01 | Antenna Recommender | The questionnaire and scoring rules |
+| 09-02 | Flat Dipole | Half-wave dipole, length math, height-vs-Z |
+| 09-03 | Inverted-V Dipole | Apex height, droop angle, length correction |
+| 09-04 | Fan Dipole | Multi-band parallel dipoles, mutual coupling |
+| 09-05 | Trapped Dipole | Multi-band with traps, leg lengths between traps |
+| 09-06 | OCF Dipole (Windom) | Off-center feed, balun ratio, harmonic feed-Z |
+| 09-07 | EFHW (No Traps) | Half-wave end-fed, 49:1 / 64:1 unun, harmonics |
+| 09-08 | EFHW (Trapped) | Multi-band end-fed with traps |
+| 09-09 | J-Pole | VHF/UHF half-wave + matching stub |
+| 09-10 | Yagi-Uda | Driven, reflector, directors, spacing, expected gain/F-B |
+| 09-11 | Vertical Antennas | ¼λ / ⅝λ / ½λ + radial design |
+| 09-12 | Loading for Shortened Antennas | Base, center, top loading coils |
+| 09-13 | Trap Design & Manufacturing | L-C values + physical wire-on-form construction |
+| 09-14 | Magnetic Loop | Tuning capacitor, Q, voltage breakdown |
+| 09-15 | NanoVNA Trim Workflow | The standard "build → sweep → trim" loop |
 
 ## How the workshop is organized
 

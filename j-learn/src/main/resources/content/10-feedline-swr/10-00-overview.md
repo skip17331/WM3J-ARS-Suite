@@ -19,12 +19,12 @@ This chapter covers the relationship between SWR (Standing Wave Ratio), feedline
 
 | § | Topic | What it covers |
 |---|-------|----------------|
-| 09-01 | Coax loss by frequency | How attenuation grows with frequency, and per-cable curves |
-| 09-02 | SWR and reflected power | What SWR means, how it relates to forward and reflected power |
-| 09-03 | Mismatch loss | Power lost specifically due to impedance mismatch |
-| 09-04 | Power delivered vs. lost | Tracking watts through the entire feedline + matching system |
-| 09-05 | Velocity factor | How fast the wave travels in coax; computing electrical lengths |
-| 09-06 | Impedance transformation | How feedline length transforms the impedance you see at the rig end |
+| 10-01 | Coax loss by frequency | How attenuation grows with frequency, and per-cable curves |
+| 10-02 | SWR and reflected power | What SWR means, how it relates to forward and reflected power |
+| 10-03 | Mismatch loss | Power lost specifically due to impedance mismatch |
+| 10-04 | Power delivered vs. lost | Tracking watts through the entire feedline + matching system |
+| 10-05 | Velocity factor | How fast the wave travels in coax; computing electrical lengths |
+| 10-06 | Impedance transformation | How feedline length transforms the impedance you see at the rig end |
 
 ## The four numbers that describe a feedline system
 

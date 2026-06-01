@@ -19,10 +19,10 @@ Most amateur operators today learn just enough of this vocabulary to be on the a
 
 | § | Topic | What you find |
 |---|-------|---------------|
-| 23-01 | Q-codes | The amateur-relevant subset of ITU Q-codes — alphabetical list with meanings |
-| 23-02 | CW prosigns | Procedural signals (concatenated Morse characters with special meaning) |
-| 23-03 | Abbreviations | Common amateur shorthand (CUL, OM, YL, ES, FB, etc.) |
-| 23-04 | Phonetic alphabet | NATO/ICAO standard plus alternative civilian sets |
+| 19-01 | Q-codes | The amateur-relevant subset of ITU Q-codes — alphabetical list with meanings |
+| 19-02 | CW prosigns | Procedural signals (concatenated Morse characters with special meaning) |
+| 19-03 | Abbreviations | Common amateur shorthand (CUL, OM, YL, ES, FB, etc.) |
+| 19-04 | Phonetic alphabet | NATO/ICAO standard plus alternative civilian sets |
 
 ## Why this stuff still matters
 

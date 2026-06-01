@@ -25,16 +25,16 @@ This chapter focuses on **RFI you suffer** — what generates it, how to track i
 
 | § | Topic |
 |---|-------|
-| 15-01 | What is RFI — the basic concepts and terminology |
-| 15-02 | Common household sources you might be making yourself |
-| 15-03 | Identifying buzzing / hash / specific noises by sound |
-| 15-04 | Ferrite selection — picking the right cores for filtering |
-| 15-05 | Isolation workflow — narrowing down where the noise is from |
-| 15-06 | Step-by-step elimination — the practical procedure |
-| 15-07 | AM radio sniffer — the cheapest direction-finding tool |
-| 15-08 | SDR waterfall — modern direction-finding with cheap dongles |
+| 14-01 | What is RFI — the basic concepts and terminology |
+| 14-02 | Common household sources you might be making yourself |
+| 14-03 | Identifying buzzing / hash / specific noises by sound |
+| 14-04 | Ferrite selection — picking the right cores for filtering |
+| 14-05 | Isolation workflow — narrowing down where the noise is from |
+| 14-06 | Step-by-step elimination — the practical procedure |
+| 14-07 | AM radio sniffer — the cheapest direction-finding tool |
+| 14-08 | SDR waterfall — modern direction-finding with cheap dongles |
 
-The two technique chapters (15-07 and 15-08) tell you *how* to find RFI sources. The diagnostic chapters (15-01 through 15-06) tell you *what to do* once you find one.
+The two technique chapters (14-07 and 14-08) tell you *how* to find RFI sources. The diagnostic chapters (14-01 through 14-06) tell you *what to do* once you find one.
 
 ## A quick framework
 

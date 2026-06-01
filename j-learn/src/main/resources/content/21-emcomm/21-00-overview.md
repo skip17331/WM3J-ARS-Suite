@@ -19,11 +19,11 @@ This is what amateur radio's public-service tradition is for: stepping in when t
 
 | § | Topic | What it covers |
 |---|-------|----------------|
-| 26-01 | NTS | National Traffic System — formal radiogram message handling; how nets work |
-| 26-02 | ICS basics | FEMA's Incident Command System — the structure that emcomm operates within |
-| 26-03 | Emergency frequencies | Major emcomm nets — HWN, SATERN, MMSN, regional ARES nets, simplex frequencies |
-| 26-04 | Message forms | Radiograms (ARRL form), ICS-213, formal traffic structure |
-| 26-05 | Operating procedures | Net control, tactical communications, organizational activation |
+| 21-01 | NTS | National Traffic System — formal radiogram message handling; how nets work |
+| 21-02 | ICS basics | FEMA's Incident Command System — the structure that emcomm operates within |
+| 21-03 | Emergency frequencies | Major emcomm nets — HWN, SATERN, MMSN, regional ARES nets, simplex frequencies |
+| 21-04 | Message forms | Radiograms (ARRL form), ICS-213, formal traffic structure |
+| 21-05 | Operating procedures | Net control, tactical communications, organizational activation |
 
 ## The three main organizations
 

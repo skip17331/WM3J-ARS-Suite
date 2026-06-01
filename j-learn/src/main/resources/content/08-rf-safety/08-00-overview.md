@@ -29,13 +29,13 @@ Three reasons RF safety is more than legal box-checking:
 
 | § | Topic | Why it's here |
 |---|-------|---------------|
-| 07-01 | FCC rules | What 47 CFR 1.1307 / 97.13 actually say; the legal structure |
-| 07-02 | MPE limits | The exposure numbers themselves (E-field, H-field, power density) by frequency |
-| 07-03 | Controlled vs uncontrolled environments | The two MPE thresholds; why "uncontrolled" is usually the binding one |
-| 07-04 | Duty cycle | How TX time fraction and mode duty cycle affect time-averaged exposure |
-| 07-05 | ERP & EIRP | Effective radiated power as the input to all MPE calculations |
-| 07-06 | Safe antenna placement | Practical distances; antenna height, fences, neighbor proximity |
-| 07-07 | RF burns | The contact-injury side; how burns happen and how to prevent them |
+| 08-01 | FCC rules | What 47 CFR 1.1307 / 97.13 actually say; the legal structure |
+| 08-02 | MPE limits | The exposure numbers themselves (E-field, H-field, power density) by frequency |
+| 08-03 | Controlled vs uncontrolled environments | The two MPE thresholds; why "uncontrolled" is usually the binding one |
+| 08-04 | Duty cycle | How TX time fraction and mode duty cycle affect time-averaged exposure |
+| 08-05 | ERP & EIRP | Effective radiated power as the input to all MPE calculations |
+| 08-06 | Safe antenna placement | Practical distances; antenna height, fences, neighbor proximity |
+| 08-07 | RF burns | The contact-injury side; how burns happen and how to prevent them |
 
 ## What changed in 2021
 

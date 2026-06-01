@@ -34,15 +34,15 @@ The first three weeks are the hardest. After that, your brain switches from "dec
 
 | § | Topic | What you get out of it |
 |---|-------|------------------------|
-| 03-01 | Koch method | The training method that actually works (vs. the ones that don't) |
-| 03-02 | Farnsworth spacing | The trick that lets you learn at high character speed without panic |
-| 03-03 | Character groups | The order Koch teaches characters in, and why |
-| 03-04 | Words and callsigns | Moving from random characters to actual content |
-| 03-05 | QSO simulation | The standard CW QSO format you can practice against |
-| 03-06 | Send practice | Learning to transmit, paddle vs straight key, sending well |
-| 03-07 | Speed tracking | How to measure progress and when to bump the speed |
-| 03-08 | Mini tests | Self-administered tests you can use to check yourself |
-| 03-09 | Hardware keyer builds | Two reference DIY keyer designs (Arduino USB serial, Pi Zero W wireless) |
+| 05-01 | Koch method | The training method that actually works (vs. the ones that don't) |
+| 05-02 | Farnsworth spacing | The trick that lets you learn at high character speed without panic |
+| 05-03 | Character groups | The order Koch teaches characters in, and why |
+| 05-04 | Words and callsigns | Moving from random characters to actual content |
+| 05-05 | QSO simulation | The standard CW QSO format you can practice against |
+| 05-06 | Send practice | Learning to transmit, paddle vs straight key, sending well |
+| 05-07 | Speed tracking | How to measure progress and when to bump the speed |
+| 05-08 | Mini tests | Self-administered tests you can use to check yourself |
+| 05-09 | Hardware keyer builds | Two reference DIY keyer designs (Arduino USB serial, Pi Zero W wireless) |
 
 ## What gear do I need?
 
