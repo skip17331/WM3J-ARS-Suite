@@ -102,12 +102,13 @@ If you operate FT8 or FT4 and your clock drifts more than a second, your QSOs wi
 
 | § | Mode | Bandwidth | When to use |
 |---|------|----------:|-------------|
-| 25-01 | FT8 / FT4 | 50 / 90 Hz | Weak-signal DXing, low-power, dense activity |
-| 25-02 | RTTY | 250–500 Hz | Contests with RTTY events, traditional digital |
-| 25-03 | PSK31 | 31 Hz | Keyboard-to-keyboard rag chew, very narrow |
-| 25-04 | JS8Call | 50 Hz | Conversational + store-and-forward, emcomm |
-| 25-05 | APRS | 2 kHz | Position reporting, weather telemetry, messaging |
-| 25-06 | Packet | 6 / 16 kHz | BBS, DX cluster, KISS-to-IP, mostly historical |
+| 03-01 | FT8 / FT4 | 50 / 90 Hz | Weak-signal DXing, low-power, dense activity |
+| 03-02 | RTTY | 250–500 Hz | Contests with RTTY events, traditional digital |
+| 03-03 | PSK31 | 31 Hz | Keyboard-to-keyboard rag chew, very narrow |
+| 03-04 | JS8Call | 50 Hz | Conversational + store-and-forward, emcomm |
+| 03-05 | APRS | 2 kHz | Position reporting, weather telemetry, messaging |
+| 03-06 | Packet | 6 / 16 kHz | BBS, DX cluster, KISS-to-IP, mostly historical |
+| 03-07 | WSPR | 6 Hz | Propagation beacon / antenna testing (not a QSO mode) |
 
 ## See also
 

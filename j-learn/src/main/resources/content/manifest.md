@@ -86,6 +86,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 03-04   | JS8Call                                              | 03-digital-modes/03-04-js8call.md                                 | simple     |
 | 03-05   | APRS                                                 | 03-digital-modes/03-05-aprs.md                                    | simple     |
 | 03-06   | Packet                                               | 03-digital-modes/03-06-packet.md                                  | mixed      |
+| 03-07   | WSPR                                                 | 03-digital-modes/03-07-wspr.md                                    | mixed      |
 | 04-00   | Repeaters & Bandplans — Overview                     | 04-repeaters-bandplans/04-00-overview.md                          | simple     |
 | 04-01   | What is a Repeater                                   | 04-repeaters-bandplans/04-01-what-is-a-repeater.md                | simple     |
 | 04-02   | Offsets, Tones, CTCSS, DCS                           | 04-repeaters-bandplans/04-02-offsets-tones-ctcss-dcs.md           | simple     |

@@ -39,7 +39,7 @@ The chapter's heaviest cross-references go to **§21 Emergency Comms**: ICS form
 ## What's *not* in this chapter
 
 - **Digital voice** (D-STAR, DMR, System Fusion, M17) — see §24 Digital Voice & Hotspots.
-- **WSPR, FST4W, Q65** — weak-signal beacons and EME modes — see §29 Satellite & EME (where Q65 is covered); WSPR is introduced in the §03-00 digital-modes overview.
+- **WSPR, FST4W, Q65** — weak-signal beacons and EME modes — see §03-07 (WSPR) and §29 Satellite & EME (where Q65 is covered).
 - **POCSAG / pager modes**, niche commercial relics not commonly used by hams.
 
 ## Table of contents
