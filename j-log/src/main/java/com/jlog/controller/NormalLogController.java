@@ -289,6 +289,14 @@ public class NormalLogController implements Initializable, RigControlController.
             spaceWxPane.setVisible(showSpaceWx);
             spaceWxPane.setManaged(showSpaceWx);
         }
+
+        // ID timer — j-hub only broadcasts CONFIG_UPDATE on a settings *save*,
+        // not on connect, so a freshly-launched j-log would otherwise miss the
+        // saved state until the next re-save. Seed from j-hub.json directly at
+        // startup (same fallback pattern as showSpaceWeather); the HubEngine
+        // listeners above still apply later live toggles.
+        setIdTimerMinutes(readJLogInt("idTimerMinutes", 10));
+        setIdTimerEnabled(readJLogBool("idTimerEnabled", false));
         // Prime the info-pane values with em-dashes so the pane isn't blank
         // until the first solar broadcast arrives (~10–20 seconds after hub start).
         if (lblSolarSfi  != null) lblSolarSfi .setText("—");
@@ -318,6 +326,26 @@ public class NormalLogController implements Initializable, RigControlController.
                     new com.fasterxml.jackson.databind.ObjectMapper().readTree(p.toFile());
                 com.fasterxml.jackson.databind.JsonNode v = root.path("jLogSettings").path(key);
                 if (!v.isMissingNode() && v.isBoolean()) return v.asBoolean();
+            } catch (Exception ignored) {}
+        }
+        return dflt;
+    }
+
+    /** Read an int from jLogSettings in j-hub.json. Returns {@code dflt} if
+     *  the file is unreadable or the key is missing. */
+    private static int readJLogInt(String key, int dflt) {
+        String home = System.getProperty("user.home", "");
+        java.nio.file.Path[] candidates = {
+            java.nio.file.Paths.get(home, "ARS_Suite", "j-hub", "j-hub.json"),
+            java.nio.file.Paths.get(".", "j-hub.json"),
+        };
+        for (java.nio.file.Path p : candidates) {
+            if (!java.nio.file.Files.isReadable(p)) continue;
+            try {
+                com.fasterxml.jackson.databind.JsonNode root =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(p.toFile());
+                com.fasterxml.jackson.databind.JsonNode v = root.path("jLogSettings").path(key);
+                if (!v.isMissingNode() && v.isNumber()) return v.asInt();
             } catch (Exception ignored) {}
         }
         return dflt;
