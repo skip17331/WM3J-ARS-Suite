@@ -145,7 +145,7 @@ For VHF/UHF, similar exercise — but the matched losses are higher, so meeting 
 **Multi-antenna installations** (switchable antenna systems):
 - Compute budget separately for each antenna; the budget changes as you switch.
 
-**Stacked antennas** (two Yagis fed from one feed harness):
+**Stacked antennas** (two Yagis fed from one feed harness — see §06-27):
 - Add the harness's loss to the feedline loss budget.
 - The shared feedpoint sees the antenna pair as the combined antenna; gain is higher but feed efficiency is set by the harness.
 

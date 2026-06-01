@@ -116,6 +116,7 @@ Be aware: ground losses *flatten* the pattern in unhelpful ways at low angles. A
 ## See also
 
 - §06-05 — Ground effects (verticals depend on ground more than any other antenna)
+- §06-28 — Shunt-fed towers (using a grounded tower as a top-loaded vertical)
 - §06-07 — Reading the elevation pattern of a vertical
 - §06-04 — Baluns and chokes (you still want one)
 - §15 — Noise sources (verticals pick up noise differently)

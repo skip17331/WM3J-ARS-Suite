@@ -68,5 +68,6 @@ When it works, a half-sloper is a compact, low-angle DX antenna that reuses a to
 - §06-10 — Dipoles (the full sloper is one)
 - §06-25 — Inverted-L (the other "one support, low-band DX" wire)
 - §06-12 — Verticals (the half-sloper is a tower-fed vertical relative)
+- §06-28 — Shunt-fed towers (the grounded tower fed as a full vertical, not a counterpoise)
 - §06-05 — Ground-plane effects (why the tower base ground matters)
 - §06-04 — Baluns and chokes

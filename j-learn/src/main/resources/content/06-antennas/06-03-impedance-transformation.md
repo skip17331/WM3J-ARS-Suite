@@ -104,6 +104,7 @@ Stub matching is design-intensive (you need to know the load impedance precisely
 | Random wire / long wire | 9:1 unun + counterpoise |
 | Multiband antenna with non-resonant feedline | T- or PI-network tuner at the rig |
 | Yagi with non-50-Ω driven element | Gamma match, hairpin match, or beta match |
+| Two identical antennas combined (stacking) | Quarter-wave 75-Ω Q-section per antenna — see §06-27 |
 | VHF/UHF where lumped elements are too small | Stub or transmission-line matching |
 
 ## Loss vs. SWR vs. matching efficiency
@@ -130,4 +131,5 @@ A radio shows a "1:1 match" because the rig sees 50 Ω. That tells you nothing a
 - §06-04 — Baluns and chokes (specific transformer types)
 - §06-02 — Feedline effects (length affects observed Z)
 - §06-13 — EFHW (the canonical unun-matched antenna)
+- §06-27 — Phasing harnesses (the ¼λ transformer applied to combining antennas)
 - §17 — Formula appendix

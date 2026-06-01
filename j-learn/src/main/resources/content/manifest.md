@@ -133,6 +133,8 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 06-24   | Random-Wire and Non-Resonant Long Wire               | 06-antennas/06-24-random-wire.md                                  | mixed      |
 | 06-25   | Inverted-L                                           | 06-antennas/06-25-inverted-l.md                                   | mixed      |
 | 06-26   | Linked Dipole                                        | 06-antennas/06-26-linked-dipole.md                                | mixed      |
+| 06-27   | Phasing Harnesses & Stacking                         | 06-antennas/06-27-phasing-harnesses.md                            | mixed      |
+| 06-28   | Shunt-Fed Towers                                     | 06-antennas/06-28-shunt-fed-towers.md                             | mixed      |
 | 07-00   | Satellites — Overview                                | 07-satellites/07-00-overview.md                                   | simple     |
 | 07-01   | FM vs Linear                                         | 07-satellites/07-01-fm-vs-linear.md                               | simple     |
 | 07-02   | Doppler Shift                                        | 07-satellites/07-02-doppler-shift.md                              | mixed      |

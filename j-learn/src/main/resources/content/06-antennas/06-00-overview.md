@@ -54,6 +54,8 @@ The antenna families:
 | 06-24 | Random wire | The non-resonant 9:1-fed wire for when nothing else fits |
 | 06-25 | Inverted-L | The classic 160/80 m DX wire from one tall-ish support |
 | 06-26 | Linked dipole | The SOTA/POTA favorite — full efficiency, no tuner, flip a link to change band |
+| 06-27 | Phasing harnesses & stacking | Combining two antennas without ending up at 25 Ω — the Q-section harness |
+| 06-28 | Shunt-fed towers | Feeding a grounded tower (and the beam on top) as a low-band vertical |
 
 ## What to read first
 
