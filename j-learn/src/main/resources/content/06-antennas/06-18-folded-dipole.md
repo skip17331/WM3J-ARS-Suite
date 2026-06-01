@@ -77,4 +77,5 @@ That's a complete, wide-band, single-band antenna for the cost of a few feet of 
 - §06-03 — Impedance transformation (the 4:1 step-up explained)
 - §06-04 — Baluns and chokes (which 4:1 to use)
 - §06-22 — Fan dipole (the other way to get multiband from dipoles)
+- §06-30 — Beams (the folded dipole as a Yagi driven element)
 - §09 — Antenna calculator

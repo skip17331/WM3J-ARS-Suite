@@ -114,6 +114,7 @@ Both effects are real but not dramatic — typical loops are **1–3 dB quieter*
 ## See also
 
 - §06-10 — Dipoles (loops compared to)
+- §06-30 — Beams (loop elements become the quad)
 - §06-04 — Baluns (the matching system)
 - §06-07 — Pattern (loops have non-trivial elevation patterns)
 - §15 — Noise (loops vs. other antennas)

@@ -80,7 +80,7 @@ For a 4-stack, either run a **4-way harness** (each leg `Z₀ = √(50 × 4 × 5
 
 ## What this section does *not* cover
 
-This is about feeding identical antennas **in phase** for gain. Deliberately feeding elements **out of phase** to *steer* a pattern — 90° offsets for a cardioid two-element vertical, four-squares, and the Christman / Lewallen / Collins feed methods — is a separate topic planned for the phased-arrays chapter. Those harnesses use unequal electrical lengths *on purpose*; everything here assumes equal lengths and broadside (in-phase) combining.
+This is about feeding identical antennas **in phase** for gain. Deliberately feeding elements **out of phase** to *steer* a pattern — 90° offsets for a cardioid two-element vertical, four-squares, and the Christman / Lewallen / Collins feed methods — is covered in §06-29 (Phased Arrays & Directivity). Those harnesses use unequal electrical lengths *on purpose*; everything here assumes equal lengths and broadside (in-phase) combining.
 
 ## Common mistakes
 
@@ -93,6 +93,7 @@ This is about feeding identical antennas **in phase** for gain. Deliberately fee
 
 ## See also
 
+- §06-29 — Phased arrays & directivity (the same elements fed *out* of phase, for a steerable beam)
 - §06-03 — Impedance transformation (the ¼λ transformer this is built from)
 - §06-07 — Radiation patterns (what stacking does to the lobe; stacking distance)
 - §18-03 — Velocity factor (cutting phasing and matching lines accurately)

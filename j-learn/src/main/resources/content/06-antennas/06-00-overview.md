@@ -56,6 +56,9 @@ The antenna families:
 | 06-26 | Linked dipole | The SOTA/POTA favorite — full efficiency, no tuner, flip a link to change band |
 | 06-27 | Phasing harnesses & stacking | Combining two antennas without ending up at 25 Ω — the Q-section harness |
 | 06-28 | Shunt-fed towers | Feeding a grounded tower (and the beam on top) as a low-band vertical |
+| 06-29 | Phased arrays & directivity | Feeding elements out of phase for a steerable beam — cardioids, four-squares |
+| 06-30 | Beams — Yagis, quads & log-periodics | Parasitic directivity: gain and front-to-back from a rotatable beam |
+| 06-31 | Receive antennas | Beverages, steerable-null loops, flags/K9AY — hearing over noise on the low bands |
 
 ## What to read first
 
@@ -75,9 +78,7 @@ What this chapter will *not* do is give you a single recommendation. What it wil
 
 ## What you will not learn here
 
-- **Beam antennas (Yagis, log periodics)** — planned for their own chapter.
-- **Phased arrays, beverages, and phasing harnesses** — phasing/stacking lines for matching and feeding two or more elements in phase are a chapter of their own (planned); top-band receive arrays live there too.
-- **VHF/UHF antennas (J-poles, slim Jims, Diamond verticals)** — covered in the VHF/UHF operating material.
+- **VHF/UHF antennas** — the homebrew **J-pole and Slim Jim** are covered in §09-09 (Antenna Workshop). Commercial base verticals (collinears, the Diamond X-series) and mobile whips aren't treated in depth here; they follow the vertical / ground-plane principles in §06-12.
 - **Satellite and EME antennas (turnstiles, circularly-polarized Yagis, EME dishes and arrays)** — these belong with the satellite/weak-signal material rather than the general HF/VHF antenna families here; see §07 (Satellites). A dedicated satellite/EME antenna treatment is planned.
 
 ## Where the suite helps

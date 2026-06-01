@@ -135,6 +135,9 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 06-26   | Linked Dipole                                        | 06-antennas/06-26-linked-dipole.md                                | mixed      |
 | 06-27   | Phasing Harnesses & Stacking                         | 06-antennas/06-27-phasing-harnesses.md                            | mixed      |
 | 06-28   | Shunt-Fed Towers                                     | 06-antennas/06-28-shunt-fed-towers.md                             | mixed      |
+| 06-29   | Phased Arrays & Directivity                          | 06-antennas/06-29-phased-arrays.md                                | mixed      |
+| 06-30   | Beams — Yagis, Quads & Log-Periodics                 | 06-antennas/06-30-beams.md                                        | mixed      |
+| 06-31   | Receive Antennas — Beverages, Loops & Flags          | 06-antennas/06-31-receive-antennas.md                             | mixed      |
 | 07-00   | Satellites — Overview                                | 07-satellites/07-00-overview.md                                   | simple     |
 | 07-01   | FM vs Linear                                         | 07-satellites/07-01-fm-vs-linear.md                               | simple     |
 | 07-02   | Doppler Shift                                        | 07-satellites/07-02-doppler-shift.md                              | mixed      |
