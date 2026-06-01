@@ -73,9 +73,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   Row 4 — QSO database table
  *   Row 5 — DX Spotting pane
  */
-public class ContestLogController implements Initializable {
+public class ContestLogController implements Initializable, RigControlController.RigHost {
 
     private static final Logger log = LoggerFactory.getLogger(ContestLogController.class);
+
+    /** Shared Rig Control component (fx:include id="rig" in ContestLog.fxml). */
+    @FXML private RigControlController rigController;
 
     // ---- Row 1: dynamic entry fields (created programmatically) ----
     @FXML private VBox  entryBar;
@@ -219,6 +222,7 @@ public class ContestLogController implements Initializable {
         wireConditionalFields();
         wireRegionMapClicks();
         initCivListeners();
+        if (rigController != null) rigController.attach(this);
         initKeyHandlers();
         initDxPaneRestore();
         loadQsos();
@@ -3978,6 +3982,20 @@ public class ContestLogController implements Initializable {
     private void setStatus(String msg) {
         Platform.runLater(() -> { if (lblStatus != null) lblStatus.setText(msg); });
     }
+
+    // ---- RigControlController.RigHost ----
+
+    /** Auto-track: push the rig's band (derived from freq) + mode into the
+     *  plugin entry form. Mirrors the contest CI-V auto-fill (initCivListeners). */
+    @Override public void applyRigToEntry(long freqHz, String mode) {
+        if (freqHz > 0) {
+            String band = CivEngine.freqToBand(freqHz);
+            if (band != null) setFieldValue("band", band);
+        }
+        if (mode != null && !mode.isEmpty()) setFieldValue("mode", mode);
+    }
+
+    @Override public String keypadExpandedKey() { return "contest.keypadExpanded"; }
 
     private void updateSolarLabel(JsonNode node) {
         if (lblSolar == null || node == null) return;

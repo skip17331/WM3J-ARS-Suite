@@ -76,13 +76,20 @@
             </HBox>
 
             <!-- ============================================================
-                 ROW 2: DYNAMIC ENTRY BAR (built by controller)
+                 ROW 2: DYNAMIC ENTRY BAR (built by controller) + RIG CONTROL
+                 Entry bar grows; the shared Rig Control component docks to its
+                 right (collapsible to a thin strip). Same component fx:included
+                 by NormalLog.fxml — see RigControlController.
                  ============================================================ -->
-            <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane">
-                <VBox fx:id="entryBar" spacing="4">
-                    <padding><Insets top="6" left="10" right="10" bottom="6"/></padding>
-                </VBox>
-            </TitledPane>
+            <HBox spacing="0" styleClass="entry-split" alignment="TOP_LEFT">
+                <TitledPane text="%pane.entry" collapsible="false" styleClass="entry-pane"
+                            HBox.hgrow="ALWAYS">
+                    <VBox fx:id="entryBar" spacing="4">
+                        <padding><Insets top="6" left="10" right="10" bottom="6"/></padding>
+                    </VBox>
+                </TitledPane>
+                <fx:include fx:id="rig" source="RigControl.fxml"/>
+            </HBox>
 
             <!-- Macro button bar -->
             <HBox fx:id="macroButtonBar" styleClass="macro-bar" spacing="4">
