@@ -146,6 +146,36 @@ html, body {
 }
 .section-link .adv-marker { color: var(--peach); font-size: 0.71em; }
 
+/* ---- search results ---- */
+.search-note {
+  padding: 6px 6px 8px;
+  font-size: 0.78em;
+  color: var(--subtext0);
+}
+.search-result {
+  cursor: pointer;
+  padding: 7px 8px;
+  border-radius: 4px;
+  border-bottom: 1px solid var(--surface0);
+}
+.search-result:hover { background: var(--surface0); }
+.search-result-title {
+  font-size: 0.88em;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.search-snippet {
+  font-size: 0.78em;
+  line-height: 1.4;
+  color: var(--subtext0);
+}
+.search-result mark,
+.viewer mark {
+  background: transparent;
+  color: var(--mauve);
+  font-weight: 600;
+}
+
 .viewer {
   overflow: auto;
   padding: 24px 32px;

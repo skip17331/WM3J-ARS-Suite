@@ -111,15 +111,9 @@ function loadLearn() {
 function renderLearnToc() {
   const wrap = document.getElementById('jl-toc');
   if (!wrap) return;
-  const filter = (document.getElementById('jl-search')?.value || '').toLowerCase();
-
-  const visible = state.manifest.filter(e => {
-    if (!filter) return true;
-    return e.title.toLowerCase().includes(filter) || e.id.includes(filter);
-  });
 
   const byChapter = {};
-  for (const e of visible) {
+  for (const e of state.manifest) {
     (byChapter[e.chapter] = byChapter[e.chapter] || []).push(e);
   }
   const chapters = Object.keys(byChapter).sort();
@@ -141,7 +135,62 @@ function renderLearnToc() {
   });
 }
 
-function filterLearnToc() { renderLearnToc(); }
+// ---------- full-text search --------------------------------------------
+
+let learnSearchTimer = null;
+
+// Debounced handler for the sidebar search box. < 2 chars restores the
+// chapter TOC; otherwise we hit the server's full-text endpoint.
+function onLearnSearch() {
+  const q = (document.getElementById('jl-search')?.value || '').trim();
+  clearTimeout(learnSearchTimer);
+  if (q.length < 2) { renderLearnToc(); return; }
+  learnSearchTimer = setTimeout(() => runLearnSearch(q), 180);
+}
+
+function runLearnSearch(q) {
+  fetch('/api/jlearn/search?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(results => {
+      // Ignore a stale response if the box changed while in flight.
+      const cur = (document.getElementById('jl-search')?.value || '').trim();
+      if (cur !== q) return;
+      renderLearnSearchResults(q, results);
+    })
+    .catch(() => renderLearnToc());
+}
+
+function renderLearnSearchResults(q, results) {
+  const wrap = document.getElementById('jl-toc');
+  if (!wrap) return;
+  const terms = q.toLowerCase().split(/\s+/).filter(t => t.length >= 2);
+
+  if (!results || !results.length) {
+    wrap.innerHTML = '<div class="search-note">No matches for “' + esc(q) + '”.</div>';
+    return;
+  }
+  wrap.innerHTML =
+    '<div class="search-note">' + results.length + ' result' + (results.length === 1 ? '' : 's') + '</div>' +
+    results.map(r =>
+      '<div class="search-result" data-id="' + r.id + '">' +
+        '<div class="search-result-title">' + r.id + ' · ' + highlightTerms(r.title, terms) + '</div>' +
+        '<div class="search-snippet">' + highlightTerms(r.snippet, terms) + '</div>' +
+      '</div>'
+    ).join('');
+
+  wrap.querySelectorAll('[data-id]').forEach(el => {
+    el.addEventListener('click', () => openLearnSection(el.dataset.id));
+  });
+}
+
+// Wrap matched terms in <mark>. Operates on already-escaped (tag-free) text
+// in a single combined pass so highlights can't nest inside each other.
+function highlightTerms(s, terms) {
+  const html = esc(s == null ? '' : s);
+  const safe = terms.filter(Boolean).map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!safe.length) return html;
+  return html.replace(new RegExp('(' + safe.join('|') + ')', 'gi'), '<mark>$1</mark>');
+}
 
 // ---------- content load + render ---------------------------------------
 

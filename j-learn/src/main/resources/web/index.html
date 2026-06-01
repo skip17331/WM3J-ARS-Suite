@@ -35,7 +35,8 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="sidebar-controls">
-        <input type="text" id="jl-search" placeholder="Filter chapters…" oninput="filterLearnToc()">
+        <input type="search" id="jl-search" placeholder="Search the library…"
+               autocomplete="off" oninput="onLearnSearch()">
       </div>
       <div id="jl-toc"></div>
     </aside>

@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
  *   GET  /                          → index.html
  *   GET  /api/jlearn/manifest       → parsed manifest as JSON array
  *   GET  /api/jlearn/content?id=X-Y → raw markdown for a single section
+ *   GET  /api/jlearn/search?q=…     → full-text search across section bodies
  *   GET  /api/health                → liveness probe
  *
  * Static assets live on the classpath under {@code /web/}; markdown
@@ -120,6 +121,7 @@ public final class JLearnServer {
             String path = req.getPathInfo() == null ? "" : req.getPathInfo();
             if ("/manifest".equals(path)) { writeManifest(res);            return; }
             if ("/content".equals(path))  { writeContent(req, res);        return; }
+            if ("/search".equals(path))   { writeSearch(req, res);         return; }
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             json(res, "{\"error\":\"unknown jlearn endpoint\"}");
         }
@@ -184,6 +186,96 @@ public final class JLearnServer {
             res.setContentType("text/markdown; charset=utf-8");
             res.setHeader("Access-Control-Allow-Origin", "*");
             try (PrintWriter w = res.getWriter()) { w.write(body); }
+        }
+
+        /** Full-text search. Query is split into terms (len >= 2); a section
+         *  matches when EVERY term appears in its title or body. Results are
+         *  ranked title-matches-first, then by total body hit count, and each
+         *  carries a snippet around the first match. Content is read fresh per
+         *  request so on-disk edits are reflected without a restart. */
+        private void writeSearch(HttpServletRequest req, HttpServletResponse res) throws IOException {
+            JsonArray out = new JsonArray();
+            String q = req.getParameter("q");
+            java.util.List<String> terms = new java.util.ArrayList<>();
+            if (q != null) {
+                for (String t : q.trim().toLowerCase().split("\\s+")) {
+                    if (t.length() >= 2) terms.add(t);
+                }
+            }
+            String md = content.readManifest();
+            if (terms.isEmpty() || md == null) { json(res, out.toString()); return; }
+
+            java.util.List<JsonObject> hits = new java.util.ArrayList<>();
+            for (String line : md.split("\\R")) {
+                Matcher m = ROW.matcher(line);
+                if (!m.find()) continue;
+                String id = m.group(1);
+                String title = m.group(2).trim();
+                String body = content.readSection(m.group(3).trim());
+                if (body == null) continue;
+                String text = stripFrontMatter(body);
+                String loTitle = title.toLowerCase();
+                String loBody  = text.toLowerCase();
+
+                boolean all = true, titleHit = false;
+                int score = 0;
+                for (String t : terms) {
+                    int inBody = countOccurrences(loBody, t);
+                    boolean inTitle = loTitle.contains(t);
+                    if (inBody == 0 && !inTitle) { all = false; break; }
+                    score += inBody;
+                    if (inTitle) titleHit = true;
+                }
+                if (!all) continue;
+                if (titleHit) score += 1000;   // title matches sort to the top
+
+                JsonObject row = new JsonObject();
+                row.addProperty("id",      id);
+                row.addProperty("title",   title);
+                row.addProperty("chapter", id.substring(0, 2));
+                row.addProperty("section", id.substring(3, 5));
+                row.addProperty("snippet", snippet(text, terms));
+                row.addProperty("score",   score);
+                hits.add(row);
+            }
+            hits.sort((a, b) -> {
+                int s = Integer.compare(b.get("score").getAsInt(), a.get("score").getAsInt());
+                return s != 0 ? s : a.get("id").getAsString().compareTo(b.get("id").getAsString());
+            });
+            for (int i = 0; i < Math.min(hits.size(), 50); i++) out.add(hits.get(i));
+            json(res, out.toString());
+        }
+
+        private static int countOccurrences(String hay, String needle) {
+            int n = 0, idx = 0;
+            while ((idx = hay.indexOf(needle, idx)) >= 0) { n++; idx += needle.length(); }
+            return n;
+        }
+
+        private static String stripFrontMatter(String md) {
+            if (!md.startsWith("---")) return md;
+            int end = md.indexOf("\n---", 3);
+            if (end < 0) return md;
+            return md.substring(end + 4).replaceFirst("^\\s*\\n", "");
+        }
+
+        /** A ~180-char window of plain text around the first matched term,
+         *  with markdown punctuation flattened, ellipses where it was cut. */
+        private static String snippet(String text, java.util.List<String> terms) {
+            String flat = text.replaceAll("[#>*`|_]", " ").replaceAll("\\s+", " ").trim();
+            String low = flat.toLowerCase();
+            int pos = -1;
+            for (String t : terms) {
+                int p = low.indexOf(t);
+                if (p >= 0 && (pos < 0 || p < pos)) pos = p;
+            }
+            if (pos < 0) return flat.length() > 160 ? flat.substring(0, 160) + " …" : flat;
+            int start = Math.max(0, pos - 60);
+            int end   = Math.min(flat.length(), pos + 120);
+            String s = flat.substring(start, end).trim();
+            if (start > 0)           s = "… " + s;
+            if (end < flat.length()) s = s + " …";
+            return s;
         }
     }
 
