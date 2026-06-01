@@ -199,80 +199,84 @@
                  was dropped — Country + Continent now live in the Data Entry
                  pane.) -->
             <TitledPane text="Space Wx" collapsible="true" animated="false">
-            <HBox styleClass="info-pane-row" spacing="0">
+            <!-- Three guaranteed-equal columns via percentWidth ColumnConstraints
+                 (plain HBox hgrow won't force equal thirds). Cols 1-2 left-aligned
+                 with a right-border separator (.col-divider); col 3 centers the
+                 ID-timer button. -->
+            <GridPane styleClass="info-pane-row" hgap="0" vgap="0">
                 <padding><Insets top="4" right="8" bottom="6" left="8"/></padding>
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="33.34" halignment="LEFT"/>
+                    <ColumnConstraints percentWidth="33.33" halignment="LEFT"/>
+                    <ColumnConstraints percentWidth="33.33" halignment="CENTER"/>
+                </columnConstraints>
 
-                <!-- Column 1: Bearing / Distance (left-aligned) -->
-                <HBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">
-                    <VBox spacing="3" styleClass="info-content">
-                        <Label text="%pane.bearing" styleClass="section-title"/>
-                        <HBox spacing="8">
-                            <Label text="%label.bearing"/>
-                            <Label fx:id="lblBearing" styleClass="info-value"/>
-                        </HBox>
-                        <HBox spacing="8">
-                            <Label text="%label.distance"/>
-                            <Label fx:id="lblDistance" styleClass="info-value"/>
-                        </HBox>
-                    </VBox>
-                </HBox>
-                <Separator orientation="VERTICAL" styleClass="col-sep"/>
+                <!-- Column 1: Bearing / Distance -->
+                <VBox spacing="3" styleClass="info-content,col-divider"
+                      GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label text="%pane.bearing" styleClass="section-title"/>
+                    <HBox spacing="8">
+                        <Label text="%label.bearing"/>
+                        <Label fx:id="lblBearing" styleClass="info-value"/>
+                    </HBox>
+                    <HBox spacing="8">
+                        <Label text="%label.distance"/>
+                        <Label fx:id="lblDistance" styleClass="info-value"/>
+                    </HBox>
+                </VBox>
 
-                <!-- Column 2: Space Wx (left-aligned) -->
-                <HBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">
-                    <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content">
-                        <Label text="Space Wx" styleClass="section-title"/>
-                        <GridPane hgap="6" vgap="4">
-                            <columnConstraints>
-                                <ColumnConstraints halignment="RIGHT" minWidth="34"/>
-                                <ColumnConstraints halignment="LEFT"  minWidth="40"/>
-                                <ColumnConstraints halignment="RIGHT" minWidth="30"/>
-                                <ColumnConstraints halignment="LEFT"  minWidth="44"/>
-                                <ColumnConstraints halignment="RIGHT" minWidth="34"/>
-                                <ColumnConstraints halignment="LEFT"  minWidth="40"/>
-                            </columnConstraints>
+                <!-- Column 2: Space Wx -->
+                <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content,col-divider"
+                      GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <Label text="Space Wx" styleClass="section-title"/>
+                    <GridPane hgap="6" vgap="4">
+                        <columnConstraints>
+                            <ColumnConstraints halignment="RIGHT" minWidth="34"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="40"/>
+                            <ColumnConstraints halignment="RIGHT" minWidth="30"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="44"/>
+                            <ColumnConstraints halignment="RIGHT" minWidth="34"/>
+                            <ColumnConstraints halignment="LEFT"  minWidth="40"/>
+                        </columnConstraints>
 
-                            <!-- Row 0 — SFI | K | SSN -->
-                            <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <Label fx:id="lblSolarSfi" styleClass="info-value"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                            <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                            <Label fx:id="lblSolarK"   styleClass="info-value"
-                                   GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-                            <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
-                            <Label fx:id="lblSolarSsn" styleClass="info-value"
-                                   GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+                        <!-- Row 0 — SFI | K | SSN -->
+                        <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarSfi" styleClass="info-value"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarK"   styleClass="info-value"
+                               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                        <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                        <Label fx:id="lblSolarSsn" styleClass="info-value"
+                               GridPane.columnIndex="5" GridPane.rowIndex="0"/>
 
-                            <!-- Row 1 — X-Ray | Wind | Geomag -->
-                            <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <Label fx:id="lblSolarXray" styleClass="info-value"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                            <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                            <Label fx:id="lblSolarWind" styleClass="info-value"
-                                   GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                            <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
-                            <Label fx:id="lblSolarGeo"  styleClass="info-value"
-                                   GridPane.columnIndex="5" GridPane.rowIndex="1"/>
-                        </GridPane>
-                    </VBox>
-                </HBox>
-                <Separator orientation="VERTICAL" styleClass="col-sep"/>
+                        <!-- Row 1 — X-Ray | Wind | Geomag -->
+                        <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarXray" styleClass="info-value"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarWind" styleClass="info-value"
+                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                        <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                        <Label fx:id="lblSolarGeo"  styleClass="info-value"
+                               GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                    </GridPane>
+                </VBox>
 
-                <!-- Column 3: ID timer (FCC §97.119). Whole block hidden unless
+                <!-- Column 3: ID timer (FCC §97.119), centered. Hidden unless
                      enabled via j-hub's J-Log card. The big countdown IS the
                      reset button: click it (or log a QSO) to restart; flashes
                      red when the ID is due. -->
-                <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
-                    <VBox fx:id="idTimerBox" spacing="3" styleClass="info-content"
-                          alignment="CENTER" fillWidth="false"
-                          visible="false" managed="false">
-                        <Button fx:id="btnIdTimer" styleClass="id-timer" text="ID: —"
-                                onAction="#resetIdTimer">
-                            <tooltip><Tooltip text="Click when you ID to restart the timer (also resets on each logged QSO)"/></tooltip>
-                        </Button>
-                    </VBox>
-                </HBox>
-            </HBox>
+                <VBox fx:id="idTimerBox" spacing="3" styleClass="info-content"
+                      alignment="CENTER" fillWidth="false"
+                      visible="false" managed="false"
+                      GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <Button fx:id="btnIdTimer" styleClass="id-timer" text="ID: —"
+                            onAction="#resetIdTimer">
+                        <tooltip><Tooltip text="Click when you ID to restart the timer (also resets on each logged QSO)"/></tooltip>
+                    </Button>
+                </VBox>
+            </GridPane>
             </TitledPane>
 
             <!-- Previous QSOs — directly under the Station Info / Bearing /

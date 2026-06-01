@@ -162,11 +162,13 @@
     -fx-max-width: Infinity;
 }
 
-/* ---- Light vertical separators between the Station / Bearing / Space Wx /
-        ID Timer columns in the info-pane row. ---- */
-.col-sep .line {
-    -fx-border-color: -fx-text-base-color;
-    -fx-opacity: 0.18;
+/* ---- Light vertical dividers between the Bearing / Space Wx / ID Timer
+        columns: a faint right border on the first two columns. The rgba alpha
+        keeps the line subtle without dimming the column's text. ---- */
+.col-divider {
+    -fx-border-color: transparent rgba(128,128,128,0.35) transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0 12 0 2;
 }
 
 /* ---- ID timer (FCC §97.119) — the big countdown IS the reset button.
