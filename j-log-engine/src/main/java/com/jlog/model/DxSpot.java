@@ -59,6 +59,7 @@ public class DxSpot {
     public String getCountry()          { return country; }
     public void   setCountry(String c)  { this.country = c; }
 
+    public String getContinent()            { return continent; }
     public void   setContinent(String c)    { this.continent = c; }
 
     public double getBearing()          { return bearing; }

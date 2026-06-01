@@ -78,7 +78,8 @@ public class NormalLogController implements Initializable, RigControlController.
     private QsoRecord editingRecord = null;
 
     // ---- Info panes ----
-    @FXML private Label lblCountry;
+    // Continent display lives in the Data Entry pane next to the Country field;
+    // filled from the callsign lookup / spot (blank until resolved).
     @FXML private Label lblContinent;
     @FXML private Label lblBearing;
     @FXML private Label lblDistance;
@@ -1135,7 +1136,7 @@ public class NormalLogController implements Initializable, RigControlController.
         tfNotes.clear();
         cbQslSent.setSelected(false);
         cbQslReceived.setSelected(false);
-        lblCountry.setText(""); lblContinent.setText("");
+        lblContinent.setText("");
         lblBearing.setText(""); lblDistance.setText("");
         refreshSaveButton();
         tfCallsign.requestFocus();
@@ -1159,7 +1160,7 @@ public class NormalLogController implements Initializable, RigControlController.
     private void applyQrzData(Map<String, String> data) {
         if (data == null || data.isEmpty()) return;
         if (!data.getOrDefault("fullname", "").isEmpty()) tfOperatorName.setText(data.get("fullname"));
-        if (!data.getOrDefault("country",  "").isEmpty()) { tfCountry.setText(data.get("country")); lblCountry.setText(data.get("country")); }
+        if (!data.getOrDefault("country",  "").isEmpty()) tfCountry.setText(data.get("country"));
         if (!data.getOrDefault("state",    "").isEmpty()) tfState.setText(data.get("state"));
         if (!data.getOrDefault("county",   "").isEmpty()) tfCounty.setText(data.get("county"));
         try {
@@ -1531,13 +1532,15 @@ public class NormalLogController implements Initializable, RigControlController.
         // Only apply if the result matches the currently-entered callsign
         if (!call.isEmpty() && !call.equals(tfCallsign.getText().trim().toUpperCase())) return;
 
-        String name    = node.path("name").asText("").trim();
-        String state   = node.path("state").asText("").trim();
-        String country = node.path("country").asText("").trim();
+        String name      = node.path("name").asText("").trim();
+        String state     = node.path("state").asText("").trim();
+        String country   = node.path("country").asText("").trim();
+        String continent = node.path("continent").asText("").trim();
 
         if (!name.isEmpty())    tfOperatorName.setText(name);
         if (!state.isEmpty())   tfState.setText(state);
-        if (!country.isEmpty()) { tfCountry.setText(country); lblCountry.setText(country); }
+        if (!country.isEmpty()) tfCountry.setText(country);
+        if (!continent.isEmpty()) lblContinent.setText(continent);
 
         double dxLat = node.path("lat").asDouble(0);
         double dxLon = node.path("lon").asDouble(0);
@@ -1565,7 +1568,9 @@ public class NormalLogController implements Initializable, RigControlController.
         }
         if (spot.getCountry() != null && !spot.getCountry().isBlank()) {
             tfCountry.setText(spot.getCountry());
-            lblCountry.setText(spot.getCountry());
+        }
+        if (spot.getContinent() != null && !spot.getContinent().isBlank()) {
+            lblContinent.setText(spot.getContinent());
         }
         if (spot.getBearing() > 0)    lblBearing.setText(String.format("%.0f°", spot.getBearing()));
         if (spot.getDistanceKm() > 0) lblDistance.setText(String.format("%.0f km", spot.getDistanceKm()));

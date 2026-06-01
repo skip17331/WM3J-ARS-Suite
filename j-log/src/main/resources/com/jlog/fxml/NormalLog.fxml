@@ -139,9 +139,15 @@
                     <Label text="%label.rst.rcvd" GridPane.columnIndex="10" GridPane.rowIndex="0"/>
                     <TextField fx:id="tfRstReceived" GridPane.columnIndex="11" GridPane.rowIndex="0" prefWidth="50"/>
 
-                    <!-- Row 1: Country, Name, State, County, Frequency -->
+                    <!-- Row 1: Country (+continent), Name, State, County, Frequency -->
                     <Label text="%label.country" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                    <TextField fx:id="tfCountry" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="130"/>
+                    <HBox spacing="6" alignment="CENTER_LEFT"
+                          GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <TextField fx:id="tfCountry" prefWidth="130"/>
+                        <!-- Continent (e.g. EU) — read-only, filled from the
+                             callsign lookup / spot; blank until resolved. -->
+                        <Label fx:id="lblContinent" styleClass="info-value"/>
+                    </HBox>
 
                     <Label text="%label.name" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                     <TextField fx:id="tfOperatorName" GridPane.columnIndex="3" GridPane.rowIndex="1"
@@ -186,99 +192,87 @@
                 </VBox>
             </TitledPane>
 
-            <!-- Station Info / Bearing / Space Wx in ONE collapsible pane (the
-                 whole row folds away). Flattened: the three sections are plain
-                 labelled columns, NOT nested TitledPanes, so nothing looks like
-                 a pane floating inside a pane. Station Info expands right
-                 (hgrow); the others size to content. -->
-            <TitledPane text="Station &amp; Space Wx" collapsible="true" animated="false">
-            <HBox styleClass="info-pane-row" spacing="20">
+            <!-- Bearing / Space Wx / ID Timer in ONE collapsible pane (the whole
+                 row folds away). Three equal-width columns: each content VBox is
+                 wrapped in an hgrow=ALWAYS HBox so the three share the row width
+                 evenly, with light separators on the two seams. (Station Info
+                 was dropped — Country + Continent now live in the Data Entry
+                 pane.) -->
+            <TitledPane text="Space Wx" collapsible="true" animated="false">
+            <HBox styleClass="info-pane-row" spacing="0">
                 <padding><Insets top="4" right="8" bottom="6" left="8"/></padding>
-                <!-- Station Info (left). minWidth gives it breathing room and
-                     pushes the first column separator rightward. -->
-                <VBox spacing="3" styleClass="info-content" minWidth="180">
-                    <Label text="%pane.info" styleClass="section-title"/>
-                    <HBox spacing="8">
-                        <Label text="%label.country"/>
-                        <Label fx:id="lblCountry" styleClass="info-value"/>
-                    </HBox>
-                    <HBox spacing="8">
-                        <Label text="%label.continent"/>
-                        <Label fx:id="lblContinent" styleClass="info-value"/>
-                    </HBox>
-                </VBox>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Separator orientation="VERTICAL" styleClass="col-sep"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <!-- Bearing / Distance (centered between Station Info & Space Wx
-                     by the equal flexible spacers on either side) -->
-                <VBox spacing="3" styleClass="info-content">
-                    <Label text="%pane.bearing" styleClass="section-title"/>
-                    <HBox spacing="8">
-                        <Label text="%label.bearing"/>
-                        <Label fx:id="lblBearing" styleClass="info-value"/>
-                    </HBox>
-                    <HBox spacing="8">
-                        <Label text="%label.distance"/>
-                        <Label fx:id="lblDistance" styleClass="info-value"/>
-                    </HBox>
-                </VBox>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Separator orientation="VERTICAL" styleClass="col-sep"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <!-- Space Wx (right) — fx:id moved here from the old inner pane;
-                     shown/hidden via the showSpaceWeather setting. -->
-                <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content">
-                    <Label text="Space Wx" styleClass="section-title"/>
-                    <GridPane hgap="6" vgap="4">
-                        <columnConstraints>
-                            <ColumnConstraints halignment="RIGHT" minWidth="34"/>
-                            <ColumnConstraints halignment="LEFT"  minWidth="40"/>
-                            <ColumnConstraints halignment="RIGHT" minWidth="30"/>
-                            <ColumnConstraints halignment="LEFT"  minWidth="44"/>
-                            <ColumnConstraints halignment="RIGHT" minWidth="34"/>
-                            <ColumnConstraints halignment="LEFT"  minWidth="40"/>
-                        </columnConstraints>
 
-                        <!-- Row 0 — SFI | K | SSN -->
-                        <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <Label fx:id="lblSolarSfi" styleClass="info-value"
-                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                        <Label fx:id="lblSolarK"   styleClass="info-value"
-                               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
-                        <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
-                        <Label fx:id="lblSolarSsn" styleClass="info-value"
-                               GridPane.columnIndex="5" GridPane.rowIndex="0"/>
-
-                        <!-- Row 1 — X-Ray | Wind | Geomag -->
-                        <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <Label fx:id="lblSolarXray" styleClass="info-value"
-                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                        <Label fx:id="lblSolarWind" styleClass="info-value"
-                               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                        <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
-                        <Label fx:id="lblSolarGeo"  styleClass="info-value"
-                               GridPane.columnIndex="5" GridPane.rowIndex="1"/>
-                    </GridPane>
-                </VBox>
-                <Region HBox.hgrow="ALWAYS"/>
+                <!-- Column 1: Bearing / Distance -->
+                <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                    <VBox spacing="3" styleClass="info-content">
+                        <Label text="%pane.bearing" styleClass="section-title"/>
+                        <HBox spacing="8">
+                            <Label text="%label.bearing"/>
+                            <Label fx:id="lblBearing" styleClass="info-value"/>
+                        </HBox>
+                        <HBox spacing="8">
+                            <Label text="%label.distance"/>
+                            <Label fx:id="lblDistance" styleClass="info-value"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
                 <Separator orientation="VERTICAL" styleClass="col-sep"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <!-- ID timer (FCC §97.119) — right of Space Wx. Whole block is
-                     hidden unless enabled via j-hub's J-Log card. The big
-                     countdown IS the reset button: click it (or log a QSO) to
-                     restart. Flashes red when the ID is due. -->
-                <VBox fx:id="idTimerBox" spacing="3" styleClass="info-content"
-                      alignment="CENTER" fillWidth="false" minWidth="150"
-                      visible="false" managed="false">
-                    <Label text="ID Timer" styleClass="section-title"/>
-                    <Button fx:id="btnIdTimer" styleClass="id-timer" text="ID: —"
-                            onAction="#resetIdTimer">
-                        <tooltip><Tooltip text="Click when you ID to restart the timer (also resets on each logged QSO)"/></tooltip>
-                    </Button>
-                </VBox>
+
+                <!-- Column 2: Space Wx -->
+                <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                    <VBox fx:id="spaceWxPane" spacing="3" styleClass="info-content">
+                        <Label text="Space Wx" styleClass="section-title"/>
+                        <GridPane hgap="6" vgap="4">
+                            <columnConstraints>
+                                <ColumnConstraints halignment="RIGHT" minWidth="34"/>
+                                <ColumnConstraints halignment="LEFT"  minWidth="40"/>
+                                <ColumnConstraints halignment="RIGHT" minWidth="30"/>
+                                <ColumnConstraints halignment="LEFT"  minWidth="44"/>
+                                <ColumnConstraints halignment="RIGHT" minWidth="34"/>
+                                <ColumnConstraints halignment="LEFT"  minWidth="40"/>
+                            </columnConstraints>
+
+                            <!-- Row 0 — SFI | K | SSN -->
+                            <Label text="SFI:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <Label fx:id="lblSolarSfi" styleClass="info-value"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                            <Label text="K:"   GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                            <Label fx:id="lblSolarK"   styleClass="info-value"
+                                   GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                            <Label text="SSN:" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                            <Label fx:id="lblSolarSsn" styleClass="info-value"
+                                   GridPane.columnIndex="5" GridPane.rowIndex="0"/>
+
+                            <!-- Row 1 — X-Ray | Wind | Geomag -->
+                            <Label text="X-Ray:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <Label fx:id="lblSolarXray" styleClass="info-value"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                            <Label text="Wind:"  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                            <Label fx:id="lblSolarWind" styleClass="info-value"
+                                   GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                            <Label text="Geo:"   GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                            <Label fx:id="lblSolarGeo"  styleClass="info-value"
+                                   GridPane.columnIndex="5" GridPane.rowIndex="1"/>
+                        </GridPane>
+                    </VBox>
+                </HBox>
+                <Separator orientation="VERTICAL" styleClass="col-sep"/>
+
+                <!-- Column 3: ID timer (FCC §97.119). Whole block hidden unless
+                     enabled via j-hub's J-Log card. The big countdown IS the
+                     reset button: click it (or log a QSO) to restart; flashes
+                     red when the ID is due. -->
+                <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                    <VBox fx:id="idTimerBox" spacing="3" styleClass="info-content"
+                          alignment="CENTER" fillWidth="false"
+                          visible="false" managed="false">
+                        <Label text="ID Timer" styleClass="section-title"/>
+                        <Button fx:id="btnIdTimer" styleClass="id-timer" text="ID: —"
+                                onAction="#resetIdTimer">
+                            <tooltip><Tooltip text="Click when you ID to restart the timer (also resets on each logged QSO)"/></tooltip>
+                        </Button>
+                    </VBox>
+                </HBox>
             </HBox>
             </TitledPane>
 
