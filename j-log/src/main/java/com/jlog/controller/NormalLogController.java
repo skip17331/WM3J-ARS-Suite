@@ -166,15 +166,6 @@ public class NormalLogController implements Initializable, RigControlController.
     // ---- Macro buttons ----
     @FXML private HBox macroButtonBar;
 
-    // ---- POTA/SOTA activation bar ----
-    @FXML private HBox      activationBar;
-    @FXML private TextField tfActivationSig;
-    @FXML private TextField tfActivationSigInfo;
-    @FXML private Label     lblActivationStatus;
-
-    private volatile String currentSig;
-    private volatile String currentSigInfo;
-
     private final ObservableList<QsoRecord> qsoData = FXCollections.observableArrayList();
     private ScheduledExecutorService clockService;
     private QrzLookup qrzLookup;
@@ -474,8 +465,6 @@ public class NormalLogController implements Initializable, RigControlController.
         forceUpperCase(tfCountry);
         forceUpperCase(tfOperatorName);
         forceUpperCase(tfNotes);
-        if (tfActivationSig != null)     forceUpperCase(tfActivationSig);
-        if (tfActivationSigInfo != null) forceUpperCase(tfActivationSigInfo);
 
         tfCallsign.textProperty().addListener((obs, o, n) -> refreshSaveButton());
     }
@@ -1401,16 +1390,7 @@ public class NormalLogController implements Initializable, RigControlController.
         q.setNotes(tfNotes.getText());
         q.setQslSent(cbQslSent.isSelected());
         q.setQslReceived(cbQslReceived.isSelected());
-        applyActivationTag(q);
         return q;
-    }
-
-    /** If an activation is running, stamp SIG / SIG_INFO onto the QSO. */
-    private void applyActivationTag(QsoRecord q) {
-        if (currentSig == null || currentSig.isBlank()) return;
-        if (currentSigInfo == null || currentSigInfo.isBlank()) return;
-        q.setSig(currentSig);
-        q.setSigInfo(currentSigInfo);
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -1445,44 +1425,6 @@ public class NormalLogController implements Initializable, RigControlController.
         q.setNotes(tfNotes.getText());
         q.setQslSent(cbQslSent.isSelected());
         q.setQslReceived(cbQslReceived.isSelected());
-        applyActivationTag(q);
-    }
-
-    // ---------------------------------------------------------------
-    // POTA / SOTA activation mode
-    // ---------------------------------------------------------------
-
-    /** Called by the splash when launching in activation mode — unhides the
-     *  activation bar and defaults SIG to POTA. */
-    public void enableActivationMode() {
-        if (activationBar != null) {
-            activationBar.setVisible(true);
-            activationBar.setManaged(true);
-        }
-        if (tfActivationSig != null && (tfActivationSig.getText() == null || tfActivationSig.getText().isBlank()))
-            tfActivationSig.setText("POTA");
-        if (lblActivationStatus != null) lblActivationStatus.setText("(not active)");
-    }
-
-    @FXML private void startActivation() {
-        if (tfActivationSig == null || tfActivationSigInfo == null) return;
-        String sig  = tfActivationSig.getText() == null ? "" : tfActivationSig.getText().trim().toUpperCase();
-        String sigInfo = tfActivationSigInfo.getText() == null ? "" : tfActivationSigInfo.getText().trim().toUpperCase();
-        if (sig.isBlank() || sigInfo.isBlank()) {
-            setStatus("Enter SIG (POTA/SOTA) and reference (e.g. K-0001) first.");
-            return;
-        }
-        currentSig     = sig;
-        currentSigInfo = sigInfo;
-        if (lblActivationStatus != null) lblActivationStatus.setText("🏔️ Activating " + sig + " " + sigInfo);
-        setStatus("Activation started: " + sig + " " + sigInfo);
-    }
-
-    @FXML private void stopActivation() {
-        currentSig     = null;
-        currentSigInfo = null;
-        if (lblActivationStatus != null) lblActivationStatus.setText("(not active)");
-        setStatus("Activation stopped.");
     }
 
     // ---------------------------------------------------------------

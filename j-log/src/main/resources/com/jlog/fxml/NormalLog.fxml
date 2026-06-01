@@ -298,20 +298,6 @@
 
             <!-- Macro button bar moved into the keyer pane (toggled with it). -->
 
-            <!-- POTA/SOTA activation bar — hidden unless launched in activation mode -->
-            <HBox fx:id="activationBar" spacing="8" alignment="CENTER_LEFT"
-                  visible="false" managed="false" styleClass="macro-bar">
-                <padding><Insets top="3" left="6" right="6" bottom="3"/></padding>
-                <Label text="Activation:"/>
-                <Label text="SIG"/>
-                <TextField fx:id="tfActivationSig" prefWidth="80" promptText="POTA"/>
-                <Label text="Ref"/>
-                <TextField fx:id="tfActivationSigInfo" prefWidth="110" promptText="K-0001"/>
-                <Button text="Start" onAction="#startActivation"/>
-                <Button text="Stop"  onAction="#stopActivation"/>
-                <Label fx:id="lblActivationStatus" style="-fx-font-style: italic;"/>
-            </HBox>
-
             <!-- F1-F12 macro buttons. NormalLogController.initMacroBar()
                  populates this HBox with one Button per slot. Lives in the
                  rowSplit's top VBox so it sits directly above the Station

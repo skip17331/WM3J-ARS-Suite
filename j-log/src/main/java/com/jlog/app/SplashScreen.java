@@ -110,20 +110,16 @@ public class SplashScreen {
 
         Button normalBtn  = new Button(I18n.get("mode.normal"));
         Button contestBtn = new Button(I18n.get("mode.contest"));
-        Button potaBtn    = new Button("POTA / SOTA Log");
 
         normalBtn.setPrefWidth(200);
         contestBtn.setPrefWidth(200);
-        potaBtn.setPrefWidth(200);
         normalBtn.getStyleClass().add("chooser-button");
         contestBtn.getStyleClass().add("chooser-button");
-        potaBtn.getStyleClass().add("chooser-button");
 
-        normalBtn.setOnAction(e -> { launchNormalLog(false); chooser.close(); });
-        contestBtn.setOnAction(e -> { launchContestLog();   chooser.close(); });
-        potaBtn.setOnAction(e -> { launchNormalLog(true);    chooser.close(); });
+        normalBtn.setOnAction(e -> { launchNormalLog(); chooser.close(); });
+        contestBtn.setOnAction(e -> { launchContestLog(); chooser.close(); });
 
-        VBox box = new VBox(20, prompt, normalBtn, contestBtn, potaBtn);
+        VBox box = new VBox(20, prompt, normalBtn, contestBtn);
         box.setAlignment(Pos.CENTER);
         box.setPadding(new Insets(40));
 
@@ -134,9 +130,9 @@ public class SplashScreen {
         chooser.show();
     }
 
-    private void launchNormalLog(boolean activationMode) {
+    private void launchNormalLog() {
         try {
-            AppConfig.getInstance().setCurrentMode(activationMode ? "POTA" : "NORMAL");
+            AppConfig.getInstance().setCurrentMode("NORMAL");
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/jlog/fxml/NormalLog.fxml"),
                 I18n.getBundle());
@@ -146,16 +142,10 @@ public class SplashScreen {
             // a floating banner on top of the main log.
             com.jlog.controller.PriorityBanner.attach(scene);
             restoreWindow(primaryStage, scene, "NormalLog");
-            primaryStage.setTitle(activationMode
-                ? "j-Log — POTA / SOTA Activation Log"
-                : "j-Log — Normal Log");
-            if (activationMode) {
-                com.jlog.controller.NormalLogController ctrl = loader.getController();
-                if (ctrl != null) ctrl.enableActivationMode();
-            }
+            primaryStage.setTitle("j-Log — Normal Log");
             primaryStage.show();
             JLogUiPresence.getInstance().connect(HubEngine.getInstance().getUrl());
-            log.info("{} window opened", activationMode ? "POTA/SOTA" : "Normal Log");
+            log.info("Normal Log window opened");
         } catch (Exception ex) {
             log.error("Failed to open Normal Log", ex);
         }
