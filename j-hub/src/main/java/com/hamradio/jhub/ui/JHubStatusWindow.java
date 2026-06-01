@@ -46,10 +46,6 @@ public class JHubStatusWindow {
     private final Stage      stage;
     private final JHubServer jHubServer;
 
-    /** System-tray integration. When present, closing the window hides it to
-     *  the tray (broker keeps running) instead of exiting. */
-    private TrayManager tray;
-
     private Timeline ticker;
 
     // Status grid labels
@@ -103,40 +99,19 @@ public class JHubStatusWindow {
         stage.setResizable(true);
         stage.setMinWidth(380);
         stage.setMinHeight(420);
-
-        // Install the system-tray icon. j-Hub starts minimized to the tray:
-        // the broker runs, but the window stays hidden until restored. If no
-        // tray is available (e.g. GNOME), fall back to showing the window so
-        // the operator is never left without a way to reach j-Hub.
-        tray = new TrayManager(stage);
-        boolean hasTray = tray.install();
-
-        if (hasTray) {
-            // Keep the FX runtime alive while the only window is hidden — else
-            // Platform would auto-exit and take the broker down with it.
-            Platform.setImplicitExit(false);
-            // Close (X) hides to the tray; only the tray's Quit exits.
-            stage.setOnCloseRequest(e -> {
-                e.consume();
-                tray.hideWindow();
-                log.info("j-Hub window hidden to tray (broker still running)");
-            });
-        } else {
-            // No tray: closing the window exits j-Hub (original behavior).
-            stage.setOnCloseRequest(e -> {
-                e.consume();
-                ticker.stop();
-                lblStatus.setText("Closing DX Telnet Session…");
-                lblStatus.setTextFill(Color.web("#fab387"));
-                lblCluster.setText("○ Disconnecting");
-                lblCluster.setTextFill(Color.web("#fab387"));
-                log.info("Closing DX telnet session before exit");
-                new Thread(() -> {
-                    ClusterManager.getInstance().disconnect();
-                    Platform.exit();
-                }, "shutdown-ui").start();
-            });
-        }
+        stage.setOnCloseRequest(e -> {
+            e.consume();
+            ticker.stop();
+            lblStatus.setText("Closing DX Telnet Session…");
+            lblStatus.setTextFill(Color.web("#fab387"));
+            lblCluster.setText("○ Disconnecting");
+            lblCluster.setTextFill(Color.web("#fab387"));
+            log.info("Closing DX telnet session before exit");
+            new Thread(() -> {
+                ClusterManager.getInstance().disconnect();
+                Platform.exit();
+            }, "shutdown-ui").start();
+        });
 
         VBox root = buildUI();
         // Wrap in a ScrollPane so content like the Connected Apps + System
@@ -149,9 +124,7 @@ public class JHubStatusWindow {
         Scene scene = new Scene(scroll, 420, 720);
         scene.setFill(Color.web(C_BASE));
         stage.setScene(scene);
-
-        // Start minimized to the tray when one exists; otherwise show normally.
-        if (!hasTray) stage.show();
+        stage.show();
 
         ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> refresh()));
         ticker.setCycleCount(Timeline.INDEFINITE);
