@@ -55,7 +55,7 @@ public class JLogApp extends Application {
             ensureJHubRunning();
         }
 
-        log.info("j-Log initialised — version 1.0.0{}{}",
+        log.info("j-Log initialised — version 1.5.0{}{}",
             engineOnly    ? " [engine-only]"     : "",
             launchedByHub ? " [launched-by-hub]" : "");
     }

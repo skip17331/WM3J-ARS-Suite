@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 mvn clean package -DskipTests
-java -Dfile.encoding=UTF-8 -jar target/j-vault-1.0.0.jar
+java -Dfile.encoding=UTF-8 -jar target/j-vault-1.5.0.jar
 # Optional flags:
 #   --no-browser        skip the browser auto-open
 #   --launched-by-hub   J-Hub owns the lifecycle; skip the heartbeat watchdog

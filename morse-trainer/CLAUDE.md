@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./run.sh
 # or
 mvn clean package -q
-java -Dfile.encoding=UTF-8 -jar target/morse-trainer-1.0.0.jar
+java -Dfile.encoding=UTF-8 -jar target/morse-trainer-1.5.0.jar
 ```
 
 Java 21 + JavaFX 21. **Standalone — no network, no dependencies on other ARS Suite modules.**

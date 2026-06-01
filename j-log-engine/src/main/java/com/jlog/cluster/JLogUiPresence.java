@@ -30,7 +30,7 @@ public class JLogUiPresence {
         try {
             ws = new WebSocketClient(new URI(hubUrl)) {
                 @Override public void onOpen(ServerHandshake h) {
-                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-log\",\"version\":\"1.0.0\"}");
+                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-log\",\"version\":\"1.5.0\"}");
                     log.info("j-log UI presence registered with hub");
                 }
                 @Override public void onMessage(String msg) {}

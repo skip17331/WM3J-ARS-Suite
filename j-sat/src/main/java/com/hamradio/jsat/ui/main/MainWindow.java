@@ -107,7 +107,7 @@ public class MainWindow {
      */
     private void openIssueReporter() {
         try {
-            String title = "[j-sat v1.0.0] <one-line summary>";
+            String title = "[j-sat v1.5.0] <one-line summary>";
             String body =
                 "### Module\n- Name: j-sat\n- Version: 1.0.0\n\n" +
                 "### Environment\n" +

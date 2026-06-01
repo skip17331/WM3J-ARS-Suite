@@ -1417,7 +1417,7 @@ public class NormalLogController implements Initializable, RigControlController.
 
     @FXML private void menuReportIssue() {
         String log = System.getProperty("user.home", "") + "/.j-log/logs/j-log.log";
-        com.jlog.util.IssueReporter.openGitHubIssue("j-log", "1.0.51", log);
+        com.jlog.util.IssueReporter.openGitHubIssue("j-log", "1.5.0", log);
         setStatus("Opening GitHub Issues in your browser…");
     }
 

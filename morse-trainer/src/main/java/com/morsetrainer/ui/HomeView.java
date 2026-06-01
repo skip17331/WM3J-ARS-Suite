@@ -90,7 +90,7 @@ public final class HomeView {
      */
     private static void openIssueReporter() {
         try {
-            String title = "[morse-trainer v1.0.0] <one-line summary>";
+            String title = "[morse-trainer v1.5.0] <one-line summary>";
             String body =
                 "### Module\n- Name: morse-trainer\n- Version: 1.0.0\n\n" +
                 "### Environment\n" +

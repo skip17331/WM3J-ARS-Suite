@@ -175,7 +175,7 @@ public class DxClusterClient {
         try {
             final WebSocketClient client = new WebSocketClient(new URI(url)) {
                 @Override public void onOpen(ServerHandshake h) {
-                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-map\",\"version\":\"1.0.0\"}");
+                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"j-map\",\"version\":\"1.5.0\"}");
                     connected = true;
                     disconnectedSince = null;
                     backoffSec = MIN_BACKOFF_SEC;   // reset backoff on success

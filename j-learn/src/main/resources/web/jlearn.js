@@ -62,11 +62,11 @@ function resetJLearnPrefs() {
 
 function reportJLearnIssue() {
   const sectionId = (state && state.current) ? state.current : '(none)';
-  const title = '[j-learn v1.0.0] <one-line summary>';
+  const title = '[j-learn v1.5.0] <one-line summary>';
   const body =
 `### Module
 - Name: j-learn
-- Version: 1.0.0
+- Version: 1.5.0
 - Current section: ${sectionId}
 - Browser: ${navigator.userAgent}
 

@@ -5,8 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Run
 
 ```bash
-mvn package -q                          # compile + produce target/j-hub-1.0.101.jar (fat JAR)
-java -jar target/j-hub-1.0.101.jar      # run (creates j-hub.json on first launch)
+mvn package -q                          # compile + produce target/j-hub-1.5.0.jar (fat JAR)
+java -jar target/j-hub-1.5.0.jar      # run (creates j-hub.json on first launch)
 ```
 
 There are no tests in this project. There is no lint step.

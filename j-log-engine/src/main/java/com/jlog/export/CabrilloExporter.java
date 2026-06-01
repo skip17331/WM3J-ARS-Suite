@@ -47,7 +47,7 @@ public class CabrilloExporter {
             // pre-export dialog) rather than being hardcoded. Score computed
             // against plugin rules instead of being a raw point sum.
             pw.println("START-OF-LOG: 3.0");
-            pw.println("CREATED-BY: j-Log v1.0.0");
+            pw.println("CREATED-BY: j-Log v1.5.0");
             // Honor the plugin's sponsor-accepted name when set; otherwise
             // fall back to the internal id with underscores dashed. Override
             // is required for split-side plugins (ARRL_DX_SSB_US/DX both

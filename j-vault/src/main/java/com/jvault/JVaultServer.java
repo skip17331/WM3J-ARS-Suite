@@ -103,7 +103,7 @@ public class JVaultServer {
 
     private static class HealthServlet extends HttpServlet {
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-            json(res, "{\"ok\":true,\"app\":\"j-vault\",\"version\":\"1.0.0\"}");
+            json(res, "{\"ok\":true,\"app\":\"j-vault\",\"version\":\"1.5.0\"}");
         }
     }
 

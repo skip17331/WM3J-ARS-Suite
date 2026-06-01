@@ -189,7 +189,7 @@ public class JHubClient {
                     ObjectNode reg = MAPPER.createObjectNode();
                     reg.put("type",    "APP_CONNECTED");
                     reg.put("appName", "j-sat");
-                    reg.put("version", "1.0.0");
+                    reg.put("version", "1.5.0");
                     send(reg.toString());
                 } catch (Exception e) {
                     log.warn("APP_CONNECTED send failed", e);

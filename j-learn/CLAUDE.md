@@ -11,7 +11,7 @@ mvn clean install -DskipTests
 # Run the standalone web server (default port 8082)
 ./start.sh
 # or
-java -jar target/j-learn-1.0.0.jar
+java -jar target/j-learn-1.5.0.jar
 ```
 
 J-Hub iframes this server at `http://localhost:8082/`. J-Learn is independent of JavaFX and depends only on Jetty + Jackson + SLF4J.

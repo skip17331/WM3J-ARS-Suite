@@ -107,7 +107,7 @@ public final class JLearnServer {
 
     private static class HealthServlet extends HttpServlet {
         @Override protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-            json(res, "{\"ok\":true,\"app\":\"j-learn\",\"version\":\"1.1.0\"}");
+            json(res, "{\"ok\":true,\"app\":\"j-learn\",\"version\":\"1.5.0\"}");
         }
     }
 

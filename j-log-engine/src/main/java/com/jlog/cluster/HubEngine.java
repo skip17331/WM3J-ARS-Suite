@@ -125,7 +125,7 @@ public class HubEngine {
                     // configuration on the hub side may have changed.
                     hamlibCwAvailable.set(true);
                     // Register with hub — required before any other message
-                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"logging-engine\",\"version\":\"1.0.0\"}");
+                    send("{\"type\":\"APP_CONNECTED\",\"appName\":\"logging-engine\",\"version\":\"1.5.0\"}");
                     log.info("Hub connected: {}", wsUrl);
                     startHeartbeat();
                     if (onConnected != null)

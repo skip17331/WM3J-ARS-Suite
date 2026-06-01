@@ -270,7 +270,7 @@ function connectWs() {
   }
 
   ws.onopen = () => {
-    ws.send(JSON.stringify({ type: 'APP_CONNECTED', appName: 'webconfig', version: '1.0.0' }));
+    ws.send(JSON.stringify({ type: 'APP_CONNECTED', appName: 'webconfig', version: '1.5.0' }));
     setWsState('OPEN');
     if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
   };
@@ -2705,7 +2705,7 @@ function reportIssue() {
     const env = s.environment || {};
     const apps = (s.connectedApps || []).map(a => `- ${a.appName} v${a.version || '?'}`).join('\n')
                  || '- (none connected)';
-    const title = `[j-hub v1.0.0] <one-line summary>`;
+    const title = `[j-hub v1.5.0] <one-line summary>`;
     const body =
 `### Reporting from
 - Module: J-Hub web UI

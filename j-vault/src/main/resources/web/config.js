@@ -970,11 +970,11 @@ function resetVaultPrefs() {
 }
 
 function reportVaultIssue() {
-  const title = '[j-vault v1.0.0] <one-line summary>';
+  const title = '[j-vault v1.5.0] <one-line summary>';
   const body =
 `### Module
 - Name: j-vault
-- Version: 1.0.0
+- Version: 1.5.0
 - Browser: ${navigator.userAgent}
 
 ### What I expected to happen

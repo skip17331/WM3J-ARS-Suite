@@ -12,7 +12,7 @@ mvn clean package -DskipTests
 mvn javafx:run
 
 # Run fat JAR directly
-java -jar target/j-map-1.0.0-fat.jar
+java -jar target/j-map-1.5.0-fat.jar
 
 # Run all tests
 mvn test
