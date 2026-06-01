@@ -207,6 +207,8 @@
                     </HBox>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
+                <Separator orientation="VERTICAL" styleClass="col-sep"/>
+                <Region HBox.hgrow="ALWAYS"/>
                 <!-- Bearing / Distance (centered between Station Info & Space Wx
                      by the equal flexible spacers on either side) -->
                 <VBox spacing="3" styleClass="info-content">
@@ -220,6 +222,8 @@
                         <Label fx:id="lblDistance" styleClass="info-value"/>
                     </HBox>
                 </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Separator orientation="VERTICAL" styleClass="col-sep"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <!-- Space Wx (right) — fx:id moved here from the old inner pane;
                      shown/hidden via the showSpaceWeather setting. -->
@@ -258,6 +262,8 @@
                                GridPane.columnIndex="5" GridPane.rowIndex="1"/>
                     </GridPane>
                 </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Separator orientation="VERTICAL" styleClass="col-sep"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <!-- ID timer (FCC §97.119) — right of Space Wx. Whole block is
                      hidden unless enabled via j-hub's J-Log card. The big
