@@ -24,22 +24,25 @@ Both are practical, both are easy to learn, and both will save you embarrassment
 
 | § | Topic | Why it's here |
 |---|-------|---------------|
-| 02-01 | What is a repeater | The basics — input, output, duplex, geographic coverage |
-| 02-02 | Offsets, tones, CTCSS, DCS | The settings that make your radio actually open the repeater |
-| 02-03 | Band plans | Where to operate on each band, by mode |
-| 02-04 | Simplex calling frequencies | Direct radio-to-radio without a repeater |
-| 02-05 | Linked systems (AllStar, DMR, Fusion, D-STAR) | When repeaters talk to each other across the internet |
-| 02-06 | Duplexers | The magic that lets a repeater transmit and receive simultaneously |
-| 02-07 | Frequency coordination | Why the local coordinator matters and how to play nicely |
-| 02-08 | Custom offset calculator | Programming non-standard repeaters |
+| 04-01 | What is a repeater | The basics — input, output, duplex, geographic coverage |
+| 04-02 | Offsets, tones, CTCSS, DCS | The settings that make your radio actually open the repeater |
+| 04-03 | Band plans | Where to operate on each band, by mode |
+| 04-04 | Simplex calling frequencies | Direct radio-to-radio without a repeater |
+| 04-05 | Linked systems (AllStar, DMR, Fusion, D-STAR) | The overview/comparison of internet-linked systems |
+| 04-06 | Duplexers | The magic that lets a repeater transmit and receive simultaneously |
+| 04-07 | Frequency coordination | Why the local coordinator matters and how to play nicely |
+| 04-08 | Custom offset calculator | Programming non-standard repeaters |
+| 04-09 | Where to find repeater frequencies | Directories, apps, and databases |
+| 04-10 | EchoLink | Analog VoIP linking — node types, validation, app, operating |
+| 04-11 | AllStar Link | Open-source full-quality analog linking on Asterisk |
 
 ## Where to start
 
-If you just got a 2 m / 70 cm radio and want to use the local repeater, read **02-01** then **02-02** and you're operational.
+If you just got a 2 m / 70 cm radio and want to use the local repeater, read **04-01** then **04-02** and you're operational.
 
-If you're trying to figure out why your radio "isn't doing anything" on a frequency you found in a directory, **02-02** (tones) is almost certainly your problem.
+If you're trying to figure out why your radio "isn't doing anything" on a frequency you found in a directory, **04-02** (tones) is almost certainly your problem.
 
-If you want to understand the digital alphabet soup (DMR, Fusion, D-STAR, AllStar), go straight to **02-05**.
+If you want to understand the digital alphabet soup (DMR, Fusion, D-STAR, AllStar), go straight to **04-05** — then **04-10** (EchoLink) and **04-11** (AllStar) for the analog linkers in depth.
 
 ## What you will not learn here
 

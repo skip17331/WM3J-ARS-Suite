@@ -47,6 +47,8 @@ Two big distinctions matter:
 
 **The strength:** open, free, audio quality is good (16 kHz analog), and an active node operator community.
 
+The full treatment — the DTMF command set, node hardware/appliances, ASL3 vs HamVoIP, dashboards, and DVSwitch bridging — is in **§04-11**.
+
 ## EchoLink (analog, IP-based, computer-friendly)
 
 Older protocol, still alive. Two ways to use it:
@@ -55,6 +57,8 @@ Older protocol, still alive. Two ways to use it:
 2. **Through the EchoLink desktop or mobile app** — you talk into your laptop or phone microphone and the audio gets injected into the receiving repeater. Useful when traveling, but feels a bit like cheating.
 
 EchoLink requires you to validate your callsign with the system once (proof you're a licensed amateur) before you can connect.
+
+The full treatment — node types (`-L` / `-R` / app / conference), validation, connecting over RF and via the app, and latency etiquette — is in **§04-10**.
 
 ## IRLP (Internet Radio Linking Project)
 
@@ -139,6 +143,8 @@ Many local clubs only support one. Find out which **before** you buy gear.
 
 ## See also
 
+- §04-10 — EchoLink (the analog VoIP system in depth)
+- §04-11 — AllStar Link (the open-source analog linker in depth)
 - §04-01 — what plain-old repeaters do (linked systems are repeaters with more software)
 - §14 — RFI (hotspots can interact with RFI in entertaining ways)
 - §03 — Digital Modes (FT8, RTTY, etc.)

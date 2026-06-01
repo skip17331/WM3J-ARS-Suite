@@ -96,6 +96,8 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 04-07   | Frequency Coordination                               | 04-repeaters-bandplans/04-07-frequency-coordination.md            | simple     |
 | 04-08   | Custom Offset Calculator                             | 04-repeaters-bandplans/04-08-custom-offset-calc.md                | simple     |
 | 04-09   | Where to Find Repeater Frequencies                   | 04-repeaters-bandplans/04-09-finding-repeaters.md                 | simple     |
+| 04-10   | EchoLink                                             | 04-repeaters-bandplans/04-10-echolink.md                          | mixed      |
+| 04-11   | AllStar Link                                         | 04-repeaters-bandplans/04-11-allstar.md                           | mixed      |
 | 05-00   | Morse — Overview                                     | 05-morse/05-00-overview.md                                        | simple     |
 | 05-01   | Koch Method                                          | 05-morse/05-01-koch-method.md                                     | simple     |
 | 05-02   | Farnsworth Spacing                                   | 05-morse/05-02-farnsworth-spacing.md                              | simple     |
