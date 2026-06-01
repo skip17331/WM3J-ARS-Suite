@@ -311,6 +311,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 24-09   | Duplex vs Simplex Hotspots                           | 24-digital-voice-hotspots/24-09-duplex-vs-simplex-hotspots.md     | mixed      |
 | 24-10   | BER (Bit Error Rate) Explained                       | 24-digital-voice-hotspots/24-10-ber-explained.md                  | mixed      |
 | 24-11   | Cross-Mode Linking                                   | 24-digital-voice-hotspots/24-11-cross-mode-linking.md             | mixed      |
+| 24-12   | Digital Voice Etiquette                              | 24-digital-voice-hotspots/24-12-digital-voice-etiquette.md        | mixed      |
 | 25-00   | Test Equipment & Measurement — Overview              | 25-test-equipment/25-00-overview.md                               | mixed      |
 | 25-01   | NanoVNA — Advanced Techniques                        | 25-test-equipment/25-01-nanovna-advanced.md                       | advanced   |
 | 25-02   | Oscilloscopes for RF Work                            | 25-test-equipment/25-02-oscilloscopes-for-rf.md                   | mixed      |
@@ -345,6 +346,7 @@ The table is grouped by Part (I–V) for human readability. The Java loader read
 | 27-07   | Portable Power — LiFePO4                             | 27-station-engineering/27-07-portable-power-lifepo4.md            | mixed      |
 | 27-08   | Portable Power — Solar                               | 27-station-engineering/27-08-portable-power-solar.md              | mixed      |
 | 27-09   | Noise Mitigation at the Power Supply                 | 27-station-engineering/27-09-noise-mitigation-at-power-supply.md  | mixed      |
+| 27-10   | Shack Ergonomics                                    | 27-station-engineering/27-10-shack-ergonomics.md                  | mixed      |
 | 28-00   | Overview — Additional Digital Modes                  | 28-additional-digital-modes/28-00-overview.md                     | simple     |
 | 28-01   | Winlink                                              | 28-additional-digital-modes/28-01-winlink.md                      | mixed      |
 | 28-02   | VARA HF                                              | 28-additional-digital-modes/28-02-vara-hf.md                      | mixed      |

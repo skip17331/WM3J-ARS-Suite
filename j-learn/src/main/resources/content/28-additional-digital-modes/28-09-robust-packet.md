@@ -111,7 +111,7 @@ The frames look identical to VHF APRS — same format, same content. The only di
 ## See also
 
 - §03-06 — Packet (the VHF AX.25 ancestor)
-- §03-07 — APRS (the most common Robust Packet user)
+- §03-05 — APRS (the most common Robust Packet user)
 - §28-07 — Pactor (also SCS, different design point)
 - §21 — Emergency Comms (tactical packet networks)
 - §27 — Station Engineering (sound-card RFI mitigation)
