@@ -87,6 +87,8 @@ public class HubEngine {
      *  miss it until the next rig reconnect). */
     private volatile JsonNode  lastRigCapsPayload;
     private Consumer<Boolean>  rigControlVisibleListener;
+    private Consumer<Boolean>  idTimerEnabledListener;
+    private Consumer<Integer>  idTimerMinutesListener;
     /** Last-seen j-log settings payload from CONFIG_UPDATE. Cached so a
      *  late-wired listener (e.g. NormalLogController registering after the
      *  CONFIG_UPDATE arrived during JHUB_WELCOME replay) gets the current
@@ -232,6 +234,14 @@ public class HubEngine {
                 if (settings.has("rigControlVisible") && rigControlVisibleListener != null) {
                     rigControlVisibleListener.accept(
                         settings.path("rigControlVisible").asBoolean(true));
+                }
+                if (settings.has("idTimerMinutes") && idTimerMinutesListener != null) {
+                    idTimerMinutesListener.accept(
+                        settings.path("idTimerMinutes").asInt(10));
+                }
+                if (settings.has("idTimerEnabled") && idTimerEnabledListener != null) {
+                    idTimerEnabledListener.accept(
+                        settings.path("idTimerEnabled").asBoolean(false));
                 }
 
             } else if ("SHUTDOWN".equals(type)) {
@@ -406,6 +416,29 @@ public class HubEngine {
         if (l != null && lastJlogSettings != null) {
             try {
                 l.accept(lastJlogSettings.path("rigControlVisible").asBoolean(true));
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /** ID-timer on/off, driven by j-hub's J-Log card. Replays the cached
+     *  value (default false) so a freshly-launched j-log applies the saved
+     *  choice without a re-save. Normal-mode only. */
+    public void setIdTimerEnabledListener(Consumer<Boolean> l) {
+        this.idTimerEnabledListener = l;
+        if (l != null && lastJlogSettings != null) {
+            try {
+                l.accept(lastJlogSettings.path("idTimerEnabled").asBoolean(false));
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /** ID-timer interval in minutes, driven by j-hub's J-Log card. Replays the
+     *  cached value (default 10) on registration. */
+    public void setIdTimerMinutesListener(Consumer<Integer> l) {
+        this.idTimerMinutesListener = l;
+        if (l != null && lastJlogSettings != null) {
+            try {
+                l.accept(lastJlogSettings.path("idTimerMinutes").asInt(10));
             } catch (Exception ignored) {}
         }
     }

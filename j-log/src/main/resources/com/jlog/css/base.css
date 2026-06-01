@@ -162,6 +162,20 @@
     -fx-max-width: Infinity;
 }
 
+/* ---- ID timer (FCC §97.119 countdown in the clock bar) ---- */
+.id-timer {
+    -fx-font-family: monospace;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 8 1 8;
+    -fx-background-radius: 3;
+}
+/* Flashes when the ID is due — white-on-red, legible on both themes. */
+.id-timer-due {
+    -fx-text-fill: white;
+    -fx-background-color: #c0392b;
+}
+
 /* ---- Band Plan window ---- */
 .bp-header   { -fx-padding: 6 10 6 10; }
 .bp-key      { -fx-font-size: 11px; -fx-font-style: italic; }

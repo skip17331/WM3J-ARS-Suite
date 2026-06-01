@@ -3030,16 +3030,23 @@ function populateJLogForm(s) {
   if (wx) wx.checked = (s.showSpaceWeather !== false);   // default true
   const rc = document.getElementById('jlog-rig-control-visible');
   if (rc) rc.checked = (s.rigControlVisible !== false);  // default true
+  const idt = document.getElementById('jlog-id-timer-enabled');
+  if (idt) idt.checked = (s.idTimerEnabled === true);    // default false
+  const idm = document.getElementById('jlog-id-timer-minutes');
+  if (idm) idm.value = (s.idTimerMinutes || 10);         // default 10
 }
 
 function saveJLogSettings() {
   const intOf = id => parseInt(document.getElementById(id).value, 10);
   const wxEl  = document.getElementById('jlog-show-spacewx');
   const rcEl  = document.getElementById('jlog-rig-control-visible');
+  const idtEl = document.getElementById('jlog-id-timer-enabled');
   const payload = {
     fontSize: intOf('jlog-font-size') || 13,
     showSpaceWeather:    wxEl ? wxEl.checked : true,
     rigControlVisible:   rcEl ? rcEl.checked : true,
+    idTimerEnabled:      idtEl ? idtEl.checked : false,
+    idTimerMinutes:      Math.min(60, Math.max(1, intOf('jlog-id-timer-minutes') || 10)),
     fonts: {
       statusBar: intOf('jlog-font-statusbar') || 12,
       entry:     intOf('jlog-font-entry')     || 13,

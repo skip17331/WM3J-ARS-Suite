@@ -159,6 +159,16 @@ public class NormalLogController implements Initializable, RigControlController.
     @FXML private Label lblAntStatus;
     @FXML private Label lblStationCall;
 
+    // ---- ID timer (FCC §97.119) — toggled + interval set from j-hub's J-Log
+    //      card (jLogSettings.idTimerEnabled / idTimerMinutes). Not used in
+    //      Contest mode. Counts down on the existing 1 s clock tick. ----
+    @FXML private Label  lblIdTimer;
+    @FXML private Button btnIdReset;
+    private volatile boolean idTimerEnabled = false;
+    private volatile int     idTimerMinutes = 10;
+    /** UTC-millis when the next ID is due. 0 = not started. */
+    private volatile long    idDueAtMs = 0;
+
     // ---- Band / mode warning ----
     @FXML private Label lblBandWarning;
     private final PauseTransition freqValidateDelay = new PauseTransition(Duration.millis(400));
@@ -235,6 +245,15 @@ public class NormalLogController implements Initializable, RigControlController.
         // so unconfigured stations see no extra status-bar clutter.
         HubEngine.getInstance().setAntStatusListener(node ->
             Platform.runLater(() -> updateAntStatus(node)));
+
+        // ID timer — enabled flag + interval (minutes) come from j-hub's J-Log
+        // card (jLogSettings.idTimerEnabled / idTimerMinutes). Both replay the
+        // last saved value on registration so a fresh launch applies the
+        // operator's choice without a re-save. Off by default.
+        HubEngine.getInstance().setIdTimerMinutesListener(min ->
+            Platform.runLater(() -> setIdTimerMinutes(min)));
+        HubEngine.getInstance().setIdTimerEnabledListener(enabled ->
+            Platform.runLater(() -> setIdTimerEnabled(enabled)));
 
         HubEngine.getInstance().setAdifImportListener(node -> {
             String path = node.path("path").asText("");
@@ -861,8 +880,52 @@ public class NormalLogController implements Initializable, RigControlController.
             Platform.runLater(() -> {
                 tfUtcTime.setText(UTC_FMT.format(utc));
                 tfLocalTime.setText(LOCAL_FMT.format(local));
+                tickIdTimer();
             });
         }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    // ---------------------------------------------------------------
+    // ID timer (FCC §97.119 station-identification reminder)
+    // ---------------------------------------------------------------
+
+    /** Apply the enabled flag from j-hub. Shows/hides the readout + reset
+     *  button and (re)starts or stops the countdown. Live-toggle, no restart. */
+    private void setIdTimerEnabled(boolean enabled) {
+        idTimerEnabled = enabled;
+        if (lblIdTimer != null) { lblIdTimer.setVisible(enabled); lblIdTimer.setManaged(enabled); }
+        if (btnIdReset != null) { btnIdReset.setVisible(enabled); btnIdReset.setManaged(enabled); }
+        if (enabled) resetIdTimer(); else idDueAtMs = 0;
+    }
+
+    /** Apply the interval (minutes) from j-hub. Restarts the countdown if the
+     *  timer is currently running so the new interval takes effect immediately. */
+    private void setIdTimerMinutes(int minutes) {
+        idTimerMinutes = Math.max(1, minutes);
+        if (idTimerEnabled) resetIdTimer();
+    }
+
+    /** Reset the countdown to a full interval. Called on every logged QSO
+     *  (a contact counts as an ID) and by the "ID'd" button. */
+    @FXML private void resetIdTimer() {
+        idDueAtMs = System.currentTimeMillis() + idTimerMinutes * 60_000L;
+        updateIdTimerLabel(idTimerMinutes * 60_000L);
+    }
+
+    /** Called once per second from the clock tick. Updates the countdown text
+     *  and flashes the readout red once the ID is due. */
+    private void tickIdTimer() {
+        if (!idTimerEnabled || idDueAtMs == 0 || lblIdTimer == null) return;
+        updateIdTimerLabel(idDueAtMs - System.currentTimeMillis());
+    }
+
+    private void updateIdTimerLabel(long remainingMs) {
+        if (lblIdTimer == null) return;
+        boolean due = remainingMs <= 0;
+        long secs = Math.max(0, remainingMs) / 1000L;
+        lblIdTimer.setText(String.format("ID: %d:%02d", secs / 60, secs % 60));
+        lblIdTimer.getStyleClass().remove("id-timer-due");
+        if (due) lblIdTimer.getStyleClass().add("id-timer-due");
     }
 
     private void initCivListeners() {
@@ -1021,6 +1084,8 @@ public class NormalLogController implements Initializable, RigControlController.
                 setStatus(isUpdate
                     ? I18n.get("status.updated")
                     : I18n.get("status.saved", q.getCallsign()));
+                // A logged contact counts as a station ID — restart the timer.
+                if (!isUpdate && idTimerEnabled) resetIdTimer();
                 doClear();
                 loadQsos();
             }

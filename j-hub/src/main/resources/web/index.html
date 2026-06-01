@@ -1622,6 +1622,20 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">ID Timer</div>
+            <div class="toggle-desc">Station-ID countdown (FCC §97.119) in the J-Log Normal clock bar; flashes red when due. Resets on each logged QSO or the "ID'd" button. Normal Log only — toggles live, no restart.</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="jlog-id-timer-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="jlog-id-timer-minutes">ID interval (minutes)</label>
+          <input type="number" id="jlog-id-timer-minutes" min="1" max="60" value="10" style="width:70px">
+        </div>
       </div>
 
       <div class="card">

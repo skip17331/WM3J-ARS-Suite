@@ -76,6 +76,14 @@
                 <Label text="%label.local" styleClass="clock-label"/>
                 <TextField fx:id="tfLocalTime" styleClass="clock-field" editable="false" prefWidth="160"/>
                 <Label fx:id="lblCivStatus" styleClass="civ-status" text="CI-V: —"/>
+                <!-- ID timer (FCC §97.119). Shown only when enabled via j-hub's
+                     J-Log card. Counts down from idTimerMinutes; flashes red when
+                     due. Resets on each logged QSO or the "ID'd" button. -->
+                <Label fx:id="lblIdTimer" styleClass="id-timer"
+                       text="" visible="false" managed="false"/>
+                <Button fx:id="btnIdReset" text="ID'd" onAction="#resetIdTimer"
+                        styleClass="secondary-button"
+                        visible="false" managed="false"/>
                 <Label fx:id="lblAmpStatus" styleClass="amp-status"
                        text="" visible="false" managed="false"/>
                 <Label fx:id="lblAntStatus" styleClass="ant-status"
