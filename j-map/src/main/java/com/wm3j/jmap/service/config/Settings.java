@@ -76,7 +76,6 @@ public class Settings {
     private int     pskMaxAgeMinutes = 30;
 
     // === MOVABLE WINDOWS ===
-    private boolean showCountdownTimer = false;
     private boolean showContestList = false;
 
     // === DE WINDOW ===
@@ -87,7 +86,6 @@ public class Settings {
     private String dxWindowCallsign = "";
 
     // === FLOATING WINDOW POSITIONS ===
-    private double countdownTimerX = 10;  private double countdownTimerY = 10;
     private double contestListX    = 10;  private double contestListY    = 220;
     private double deWindowX       = 10;  private double deWindowY       = 460;
     private double dxWindowX       = 250; private double dxWindowY       = 10;
@@ -151,7 +149,6 @@ public class Settings {
     private int deInfoFontSize      = 0;
     private int dxInfoFontSize      = 0;
     private int contestListFontSize = 0;
-    private int countdownFontSize   = 0;
     private int propagationFontSize = 0;
     private int lunarFontSize       = 0;
 
@@ -242,9 +239,6 @@ public class Settings {
     public boolean isShowSatelliteTracking() { return showSatelliteTracking; }
     public void setShowSatelliteTracking(boolean showSatelliteTracking) { this.showSatelliteTracking = showSatelliteTracking; }
 
-    public boolean isShowCountdownTimer() { return showCountdownTimer; }
-    public void setShowCountdownTimer(boolean showCountdownTimer) { this.showCountdownTimer = showCountdownTimer; }
-
     public boolean isShowContestList() { return showContestList; }
     public void setShowContestList(boolean showContestList) { this.showContestList = showContestList; }
 
@@ -290,8 +284,6 @@ public class Settings {
     public int getPskMaxAgeMinutes() { return pskMaxAgeMinutes; }
     public void setPskMaxAgeMinutes(int pskMaxAgeMinutes) { this.pskMaxAgeMinutes = pskMaxAgeMinutes; }
 
-    public double getCountdownTimerX() { return countdownTimerX; } public void setCountdownTimerX(double v) { countdownTimerX = v; }
-    public double getCountdownTimerY() { return countdownTimerY; } public void setCountdownTimerY(double v) { countdownTimerY = v; }
     public double getContestListX()    { return contestListX; }    public void setContestListX(double v)    { contestListX = v; }
     public double getContestListY()    { return contestListY; }    public void setContestListY(double v)    { contestListY = v; }
     public double getDeWindowX()       { return deWindowX; }       public void setDeWindowX(double v)       { deWindowX = v; }
@@ -413,8 +405,6 @@ public class Settings {
     public void setDxInfoFontSize(int v){ this.dxInfoFontSize = v; }
     public int getContestListFontSize()     { return contestListFontSize; }
     public void setContestListFontSize(int v){ this.contestListFontSize = v; }
-    public int getCountdownFontSize()     { return countdownFontSize; }
-    public void setCountdownFontSize(int v){ this.countdownFontSize = v; }
     public int getPropagationFontSize()     { return propagationFontSize; }
     public void setPropagationFontSize(int v){ this.propagationFontSize = v; }
     public int getLunarFontSize()     { return lunarFontSize; }

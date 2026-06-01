@@ -14,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Top-bar time display showing UTC, local time, and optional second timezone.
- * Also hosts the ID countdown timer on the left when enabled.
  * All font sizes use em units — scales with the root font size setting.
  */
 public class TimePanel extends HBox {
@@ -29,11 +28,6 @@ public class TimePanel extends HBox {
     private final HBox  utcBlock;
     private final HBox  localBlock;
 
-    // ID timer display (left side)
-    private final VBox  timerBlock;
-    private final Label timerTimeLabel;
-    private final Label timerStatusLabel;
-
     private Settings settings;
 
     public TimePanel(Settings settings) {
@@ -44,22 +38,6 @@ public class TimePanel extends HBox {
         setSpacing(24);
         setStyle("-fx-background-color: #05050d; -fx-border-color: #1a2a4a; -fx-border-width: 0 0 1 0;");
         setPrefHeight(-1);
-
-        // ── ID timer block (left) ──────────────────────────────────────────
-        Label timerIdLabel = new Label(com.wm3j.jmap.i18n.I18n.get("time.timer.id"));
-        timerIdLabel.setStyle("-fx-font-size: 0.85em; -fx-font-weight: bold; -fx-text-fill: #888899;");
-
-        timerTimeLabel = new Label("10:00");
-        timerTimeLabel.setStyle("-fx-font-size: 2.15em; -fx-font-weight: bold; -fx-text-fill: #00cc66;");
-
-        timerStatusLabel = new Label(com.wm3j.jmap.i18n.I18n.get("time.timer.running"));
-        timerStatusLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #666677;");
-
-        timerBlock = new VBox(1);
-        timerBlock.setAlignment(Pos.CENTER_LEFT);
-        timerBlock.getChildren().addAll(timerIdLabel, timerTimeLabel, timerStatusLabel);
-        timerBlock.setVisible(settings.isShowCountdownTimer());
-        timerBlock.setManaged(settings.isShowCountdownTimer());
 
         // ── UTC block ──────────────────────────────────────────────────────
         utcTimeLabel = new Label("--:--:--");
@@ -95,7 +73,7 @@ public class TimePanel extends HBox {
         localBlock.setVisible(settings.isShowLocalTime());
         localBlock.setManaged(settings.isShowLocalTime());
 
-        getChildren().addAll(timerBlock, spacerL, utcBlock, spacerR, localBlock);
+        getChildren().addAll(spacerL, utcBlock, spacerR, localBlock);
 
         update();
     }
@@ -134,37 +112,19 @@ public class TimePanel extends HBox {
         }
     }
 
-    // ── Timer update (called by DashboardLayout) ──────────────────────────
-
-    /** Update the timer readout. colorHex e.g. "#00cc66". */
-    public void updateTimer(String timeStr, String colorHex, String status) {
-        timerTimeLabel.setText(timeStr);
-        timerTimeLabel.setStyle(
-            "-fx-font-size: 2.15em; -fx-font-weight: bold; -fx-text-fill: " + colorHex + ";");
-        timerStatusLabel.setText(status);
-    }
-
-    /** Show/hide the time digit during flash. */
-    public void flashTimerText(boolean visible) {
-        timerTimeLabel.setVisible(visible);
-    }
-
     // ── Settings change ───────────────────────────────────────────────────
 
     public void settingsChanged(Settings newSettings) {
         this.settings = newSettings;
         boolean showUtc   = newSettings.isShowUtcTime();
         boolean showLocal = newSettings.isShowLocalTime();
-        boolean showTimer = newSettings.isShowCountdownTimer();
 
         utcBlock.setVisible(showUtc);
         utcBlock.setManaged(showUtc);
         localBlock.setVisible(showLocal);
         localBlock.setManaged(showLocal);
-        timerBlock.setVisible(showTimer);
-        timerBlock.setManaged(showTimer);
 
-        boolean show = showUtc || showLocal || showTimer;
+        boolean show = showUtc || showLocal;
         setVisible(show);
         setManaged(show);
     }

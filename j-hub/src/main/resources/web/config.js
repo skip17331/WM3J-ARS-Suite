@@ -2909,7 +2909,6 @@ function populateJMapForm(s) {
 
   setChk('jm-dewindow',  s.showDeWindow !== false);
   setChk('jm-dxwindow',  !!s.showDxWindow);
-  setChk('jm-countdown', !!s.showCountdownTimer);
   setChk('jm-contests',  !!s.showContestList);
 
   setSelectVal('jm-dx-band', s.dxBandFilter || 'ALL');
@@ -2971,7 +2970,6 @@ function saveJMapSettings() {
     showRotorMap:           chk('jm-rotormap'),
     showDeWindow:           chk('jm-dewindow'),
     showDxWindow:           chk('jm-dxwindow'),
-    showCountdownTimer:     chk('jm-countdown'),
     showContestList:        chk('jm-contests'),
     dxBandFilter:           val('jm-dx-band'),
     dxMaxAgeMinutes:        intn('jm-dx-maxage') || 30,

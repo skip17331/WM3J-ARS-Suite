@@ -7,14 +7,10 @@ import com.wm3j.jmap.ui.overlays.WorldMapCanvas;
 import com.wm3j.jmap.ui.panels.*;
 import com.wm3j.jmap.ui.rotor.RotorMapPane;
 import com.wm3j.jmap.ui.windows.*;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
-import javafx.util.Duration;
 
 /**
  * Orchestrates the full dashboard layout:
@@ -30,7 +26,6 @@ import javafx.util.Duration;
  *  └──────────────────────────┴───────────┴───────────────────────┘
  *
  * Floating windows (movable, over the map):
- *  - CountdownTimerWindow
  *  - ContestListWindow
  *  - DEInfoWindow
  *  - DXInfoWindow
@@ -56,15 +51,6 @@ public class DashboardLayout {
     private DXInfoWindow           dxWindow;
     private PropagationModelWindow propagationModelWindow;
     private LunarPlanetaryWindow   lunarWindow;
-
-    // ID timer state (displayed in TimePanel)
-    private static final int TIMER_TOTAL_SECONDS = 600;
-    private static final int TIMER_FLASH_CYCLES  = 12;
-    private int      timerRemaining  = TIMER_TOTAL_SECONDS;
-    private boolean  timerFlashing   = false;
-    private boolean  timerFlashVisible = true;
-    private int      timerFlashCount = 0;
-    private Timeline timerFlashTimeline;
 
     // The Pane that holds the map + all floating windows
     private Pane mapOverlayPane;
@@ -255,54 +241,6 @@ public class DashboardLayout {
 
     public void updateRotor() {
         if (rotorMap != null && rotorMap.isVisible()) rotorMap.update();
-    }
-
-    /** Called every second by the animation loop for the countdown timer. */
-    public void updateTimer() {
-        if (timePanel == null || !services.getSettings().isShowCountdownTimer()) return;
-        if (timerFlashing) return;
-
-        if (timerRemaining > 0) {
-            timerRemaining--;
-            renderTimerDisplay();
-        }
-
-        if (timerRemaining == 0) startTimerFlash();
-    }
-
-    private void renderTimerDisplay() {
-        int m = timerRemaining / 60;
-        int s = timerRemaining % 60;
-        String timeStr = String.format("%d:%02d", m, s);
-        String color;
-        if      (timerRemaining > 60) color = "#00cc66";
-        else if (timerRemaining > 10) color = "#ffcc00";
-        else                          color = "#ff4455";
-        timePanel.updateTimer(timeStr, color, "RUNNING");
-    }
-
-    private void startTimerFlash() {
-        timerFlashing    = true;
-        timerFlashCount  = 0;
-        timerFlashVisible = true;
-        timePanel.updateTimer("0:00", "#ff4455", "ZERO!");
-
-        timerFlashTimeline = new Timeline(new KeyFrame(Duration.millis(250), e -> {
-            timerFlashVisible = !timerFlashVisible;
-            timePanel.flashTimerText(timerFlashVisible);
-            if (++timerFlashCount >= TIMER_FLASH_CYCLES) stopTimerFlash();
-        }));
-        timerFlashTimeline.setCycleCount(Timeline.INDEFINITE);
-        timerFlashTimeline.play();
-    }
-
-    private void stopTimerFlash() {
-        if (timerFlashTimeline != null) timerFlashTimeline.stop();
-        timerFlashing  = false;
-        timerRemaining = TIMER_TOTAL_SECONDS;
-        timePanel.flashTimerText(true);
-        renderTimerDisplay();
-        timePanel.updateTimer("10:00", "#00cc66", "RUNNING");
     }
 
     /** Called when settings change from Setup Page */

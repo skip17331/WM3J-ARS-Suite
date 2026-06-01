@@ -108,7 +108,6 @@ public class MainWindow {
                     lastFullUpdate = now;  // advance first so exceptions don't cause retry storms
                     try { dashboard.updateTime(); }     catch (Exception e) { log.warn("Time update error", e); }
                     try { dashboard.updateGrayline(); } catch (Exception e) { log.warn("Grayline update error", e); }
-                    try { dashboard.updateTimer(); }    catch (Exception e) { log.warn("Timer update error", e); }
                 }
             }
         };
