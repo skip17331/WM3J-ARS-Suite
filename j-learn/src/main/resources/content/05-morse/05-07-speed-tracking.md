@@ -4,7 +4,7 @@ title: Speed Tracking
 chapter: 05
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # Speed Tracking

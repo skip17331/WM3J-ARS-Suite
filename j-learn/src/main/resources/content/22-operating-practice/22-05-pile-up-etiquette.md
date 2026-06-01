@@ -4,7 +4,7 @@ title: Pile-up Etiquette
 chapter: 22
 section: 05
 level: simple
-status: draft
+status: published
 ---
 
 # Pile-up Etiquette

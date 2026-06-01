@@ -4,7 +4,7 @@ title: Doppler Shift
 chapter: 07
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # Doppler Shift

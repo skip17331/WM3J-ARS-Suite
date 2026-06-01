@@ -4,7 +4,7 @@ title: Character Groups
 chapter: 05
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Character Groups

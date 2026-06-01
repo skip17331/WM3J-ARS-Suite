@@ -4,7 +4,7 @@ title: Maritime Mobile Operating
 chapter: 30
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Maritime Mobile Operating

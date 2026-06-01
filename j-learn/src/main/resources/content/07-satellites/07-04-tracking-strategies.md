@@ -4,7 +4,7 @@ title: Tracking Strategies
 chapter: 07
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Tracking Strategies

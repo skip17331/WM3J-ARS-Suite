@@ -4,7 +4,7 @@ title: Random-Wire and Non-Resonant Long Wire
 chapter: 06
 section: 24
 level: mixed
-status: draft
+status: published
 ---
 
 # Random-Wire and Non-Resonant Long Wire

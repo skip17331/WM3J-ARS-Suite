@@ -4,7 +4,7 @@ title: Doppler Automation
 chapter: 29
 section: 08
 level: advanced
-status: draft
+status: published
 ---
 
 # Doppler Automation

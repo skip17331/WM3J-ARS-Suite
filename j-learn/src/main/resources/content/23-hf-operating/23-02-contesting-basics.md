@@ -4,7 +4,7 @@ title: Contesting Basics
 chapter: 23
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Contesting Basics

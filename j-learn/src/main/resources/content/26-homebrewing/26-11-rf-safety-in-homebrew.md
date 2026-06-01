@@ -4,7 +4,7 @@ title: RF Safety in Homebrew
 chapter: 26
 section: 11
 level: mixed
-status: draft
+status: published
 ---
 
 # RF Safety in Homebrew

@@ -4,7 +4,7 @@ title: Ferrite Selection
 chapter: 14
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Ferrite Selection

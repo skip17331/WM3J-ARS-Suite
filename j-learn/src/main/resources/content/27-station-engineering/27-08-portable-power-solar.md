@@ -4,7 +4,7 @@ title: Portable Power — Solar
 chapter: 27
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # Portable Power — Solar

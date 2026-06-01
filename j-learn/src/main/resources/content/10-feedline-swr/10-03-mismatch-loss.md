@@ -4,7 +4,7 @@ title: Mismatch Loss
 chapter: 10
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Mismatch Loss

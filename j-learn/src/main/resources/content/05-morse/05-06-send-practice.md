@@ -4,7 +4,7 @@ title: Send Practice
 chapter: 05
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Send Practice

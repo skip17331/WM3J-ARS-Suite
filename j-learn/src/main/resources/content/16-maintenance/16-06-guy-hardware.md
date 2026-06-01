@@ -4,7 +4,7 @@ title: Guy Lines, Turnbuckles, Thimbles, and Clamps
 chapter: 16
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Guy Lines, Turnbuckles, Thimbles, and Clamps

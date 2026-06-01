@@ -4,7 +4,7 @@ title: Step-by-Step Elimination
 chapter: 14
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Step-by-Step Elimination

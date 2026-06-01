@@ -4,7 +4,7 @@ title: Incorrect Length
 chapter: 12
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Incorrect Length

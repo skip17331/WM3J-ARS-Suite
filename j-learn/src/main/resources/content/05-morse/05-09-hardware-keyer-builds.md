@@ -4,7 +4,7 @@ title: Hardware Keyer Builds
 chapter: 05
 section: 09
 level: simple
-status: draft
+status: published
 ---
 
 # Hardware Keyer Builds

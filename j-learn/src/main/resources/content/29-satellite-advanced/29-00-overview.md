@@ -4,7 +4,7 @@ title: Satellite Advanced Topics
 chapter: 29
 section: 00
 level: mixed
-status: draft
+status: published
 ---
 
 # Satellite Advanced Topics

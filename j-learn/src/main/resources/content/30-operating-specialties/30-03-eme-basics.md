@@ -4,7 +4,7 @@ title: EME — Earth-Moon-Earth Basics
 chapter: 30
 section: 03
 level: advanced
-status: draft
+status: published
 ---
 
 # EME — Earth-Moon-Earth Basics

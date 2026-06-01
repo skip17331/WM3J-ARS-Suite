@@ -4,7 +4,7 @@ title: Linear vs Switching Power Supplies
 chapter: 26
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # Linear vs Switching Power Supplies

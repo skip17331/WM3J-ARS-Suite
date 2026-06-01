@@ -4,7 +4,7 @@ title: Arcing Insulators
 chapter: 15
 section: 09
 level: simple
-status: draft
+status: published
 ---
 
 # Arcing Insulators

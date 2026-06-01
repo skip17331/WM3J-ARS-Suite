@@ -4,7 +4,7 @@ title: Power-Line Noise — Overview
 chapter: 15
 section: 08
 level: simple
-status: draft
+status: published
 ---
 
 # Power-Line Noise — Overview

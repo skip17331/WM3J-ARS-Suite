@@ -4,7 +4,7 @@ title: Mast-Mounted Preamps
 chapter: 29
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # Mast-Mounted Preamps

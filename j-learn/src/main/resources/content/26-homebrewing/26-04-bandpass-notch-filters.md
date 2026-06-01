@@ -4,7 +4,7 @@ title: Bandpass & Notch Filters
 chapter: 26
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Bandpass & Notch Filters

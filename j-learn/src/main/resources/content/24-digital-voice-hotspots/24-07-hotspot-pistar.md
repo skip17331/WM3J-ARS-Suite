@@ -4,7 +4,7 @@ title: Pi-Star Hotspot Setup
 chapter: 24
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # Pi-Star Hotspot Setup

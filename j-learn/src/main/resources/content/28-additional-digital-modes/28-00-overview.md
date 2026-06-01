@@ -4,7 +4,7 @@ title: Overview — Additional Digital Modes
 chapter: 28
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Additional Digital Modes — Overview

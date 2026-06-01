@@ -4,7 +4,7 @@ title: Scheduled Inspections
 chapter: 16
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Scheduled Inspections

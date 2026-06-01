@@ -4,7 +4,7 @@ title: Distorted Audio
 chapter: 13
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Distorted Audio

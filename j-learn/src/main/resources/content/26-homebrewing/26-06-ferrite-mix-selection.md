@@ -4,7 +4,7 @@ title: Ferrite Mix Selection
 chapter: 26
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Ferrite Mix Selection

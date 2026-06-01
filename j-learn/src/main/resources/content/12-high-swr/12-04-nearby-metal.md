@@ -4,7 +4,7 @@ title: Nearby Metal
 chapter: 12
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Nearby Metal

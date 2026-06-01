@@ -4,7 +4,7 @@ title: Water Ingress
 chapter: 12
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # Water Ingress

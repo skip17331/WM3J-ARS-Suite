@@ -4,7 +4,7 @@ title: Helical Antennas
 chapter: 29
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Helical Antennas

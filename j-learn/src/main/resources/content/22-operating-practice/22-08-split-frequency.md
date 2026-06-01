@@ -4,7 +4,7 @@ title: Split-Frequency Operation
 chapter: 22
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # Split-Frequency Operation

@@ -4,7 +4,7 @@ title: Duplexers
 chapter: 04
 section: 06
 level: advanced
-status: draft
+status: published
 ---
 
 # Duplexers

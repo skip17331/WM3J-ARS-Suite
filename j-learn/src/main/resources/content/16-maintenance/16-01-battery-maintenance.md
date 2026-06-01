@@ -4,7 +4,7 @@ title: Battery Maintenance
 chapter: 16
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # Battery Maintenance

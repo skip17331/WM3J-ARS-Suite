@@ -4,7 +4,7 @@ title: Velocity Factor
 chapter: 18
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Velocity Factor

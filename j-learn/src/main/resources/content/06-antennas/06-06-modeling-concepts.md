@@ -4,7 +4,7 @@ title: Modeling Concepts
 chapter: 06
 section: 06
 level: advanced
-status: draft
+status: published
 ---
 
 # Modeling Concepts

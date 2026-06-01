@@ -4,7 +4,7 @@ title: Magnetic Loop
 chapter: 09
 section: 14
 level: advanced
-status: draft
+status: published
 ---
 
 # Magnetic Loop

@@ -4,7 +4,7 @@ title: Operating Practice — Overview
 chapter: 22
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Operating Practice — Overview

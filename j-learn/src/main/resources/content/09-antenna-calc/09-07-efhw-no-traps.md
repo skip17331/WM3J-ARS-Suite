@@ -4,7 +4,7 @@ title: EFHW (No Traps)
 chapter: 09
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # EFHW — End-Fed Half-Wave (No Traps)

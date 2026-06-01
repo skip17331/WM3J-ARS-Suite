@@ -4,7 +4,7 @@ title: Linear Transponder Strategy
 chapter: 29
 section: 09
 level: advanced
-status: draft
+status: published
 ---
 
 # Linear Transponder Strategy

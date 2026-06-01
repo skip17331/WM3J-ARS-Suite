@@ -4,7 +4,7 @@ title: Station Layout
 chapter: 27
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Station Layout

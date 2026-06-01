@@ -4,7 +4,7 @@ title: Ferrite Deployment Strategy
 chapter: 27
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Ferrite Deployment Strategy

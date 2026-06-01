@@ -4,7 +4,7 @@ title: OpenSpot Hotspots
 chapter: 24
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # OpenSpot Hotspots

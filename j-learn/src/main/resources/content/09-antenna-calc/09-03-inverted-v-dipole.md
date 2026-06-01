@@ -4,7 +4,7 @@ title: Inverted-V Dipole
 chapter: 09
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Inverted-V Dipole

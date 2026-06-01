@@ -4,7 +4,7 @@ title: HF Mobile
 chapter: 23
 section: 11
 level: mixed
-status: draft
+status: published
 ---
 
 # HF Mobile

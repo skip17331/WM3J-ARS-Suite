@@ -4,7 +4,7 @@ title: Fan Dipole
 chapter: 09
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Fan Dipole

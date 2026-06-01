@@ -4,7 +4,7 @@ title: Footprints
 chapter: 07
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Footprints

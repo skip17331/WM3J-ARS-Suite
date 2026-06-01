@@ -4,7 +4,7 @@ title: Weak-Signal VHF/UHF (Tropo, EME, Meteor Scatter, Aurora)
 chapter: 01
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Weak-Signal VHF/UHF — Tropo, EME, Meteor Scatter, Aurora

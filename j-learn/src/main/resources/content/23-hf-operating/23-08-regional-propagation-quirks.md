@@ -4,7 +4,7 @@ title: Regional Propagation Quirks
 chapter: 23
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # Regional Propagation Quirks

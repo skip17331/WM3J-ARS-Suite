@@ -4,7 +4,7 @@ title: Noise Mitigation at the Power Supply
 chapter: 27
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Noise Mitigation at the Power Supply

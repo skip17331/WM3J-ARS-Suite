@@ -4,7 +4,7 @@ title: SWR & Reflected Power
 chapter: 10
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # SWR & Reflected Power

@@ -4,7 +4,7 @@ title: Yagi-Uda
 chapter: 09
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # Yagi-Uda

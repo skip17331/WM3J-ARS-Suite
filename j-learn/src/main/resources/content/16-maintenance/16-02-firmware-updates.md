@@ -4,7 +4,7 @@ title: Firmware Updates
 chapter: 16
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Firmware Updates

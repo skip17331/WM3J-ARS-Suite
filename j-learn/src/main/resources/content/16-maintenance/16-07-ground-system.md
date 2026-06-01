@@ -4,7 +4,7 @@ title: Ground System Inspection
 chapter: 16
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # Ground System Inspection

@@ -4,7 +4,7 @@ title: Solar Inverters
 chapter: 15
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Solar Inverters

@@ -4,7 +4,7 @@ title: Coax Types
 chapter: 18
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # Coax Types

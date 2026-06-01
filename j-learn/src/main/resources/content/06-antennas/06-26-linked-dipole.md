@@ -4,7 +4,7 @@ title: Linked Dipole
 chapter: 06
 section: 26
 level: mixed
-status: draft
+status: published
 ---
 
 # Linked Dipole

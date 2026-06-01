@@ -4,7 +4,7 @@ title: Linear Transponder Etiquette
 chapter: 29
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # Linear Transponder Etiquette

@@ -4,7 +4,7 @@ title: AM Radio Sniffer
 chapter: 14
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # AM Radio Sniffer

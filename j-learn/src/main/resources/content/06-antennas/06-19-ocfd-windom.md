@@ -4,7 +4,7 @@ title: Off-Center-Fed Dipole (OCFD / Windom)
 chapter: 06
 section: 19
 level: mixed
-status: draft
+status: published
 ---
 
 # Off-Center-Fed Dipole (OCFD / Windom)

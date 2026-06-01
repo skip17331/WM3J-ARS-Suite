@@ -4,7 +4,7 @@ title: Tail-ending
 chapter: 23
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Tail-ending

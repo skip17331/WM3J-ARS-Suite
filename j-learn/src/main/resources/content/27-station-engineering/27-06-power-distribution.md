@@ -4,7 +4,7 @@ title: Power Distribution
 chapter: 27
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Power Distribution

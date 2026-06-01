@@ -4,7 +4,7 @@ title: Satellite Sub-bands
 chapter: 20
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Satellite Sub-bands

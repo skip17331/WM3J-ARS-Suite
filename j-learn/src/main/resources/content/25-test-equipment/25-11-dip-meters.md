@@ -4,7 +4,7 @@ title: Dip Meters
 chapter: 25
 section: 11
 level: mixed
-status: draft
+status: published
 ---
 
 # Dip Meters

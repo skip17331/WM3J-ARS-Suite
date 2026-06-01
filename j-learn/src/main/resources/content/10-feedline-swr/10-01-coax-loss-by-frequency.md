@@ -4,7 +4,7 @@ title: Coax Loss by Frequency
 chapter: 10
 section: 01
 level: mixed
-status: draft
+status: published
 ---
 
 # Coax Loss by Frequency

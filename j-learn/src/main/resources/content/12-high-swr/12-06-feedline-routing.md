@@ -4,7 +4,7 @@ title: Feedline Routing
 chapter: 12
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Feedline Routing

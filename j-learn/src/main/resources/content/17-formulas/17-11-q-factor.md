@@ -4,7 +4,7 @@ title: Q Factor
 chapter: 17
 section: 11
 level: advanced
-status: draft
+status: published
 ---
 
 # Q Factor

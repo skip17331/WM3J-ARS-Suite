@@ -4,7 +4,7 @@ title: What is a Repeater
 chapter: 04
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # What is a Repeater

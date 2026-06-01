@@ -4,7 +4,7 @@ title: VARA FM
 chapter: 28
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # VARA FM — High-Throughput Soundcard Modem for VHF/UHF FM

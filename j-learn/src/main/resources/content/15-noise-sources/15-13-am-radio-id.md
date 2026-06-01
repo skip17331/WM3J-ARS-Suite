@@ -4,7 +4,7 @@ title: AM Radio ID
 chapter: 15
 section: 13
 level: simple
-status: draft
+status: published
 ---
 
 # AM Radio ID

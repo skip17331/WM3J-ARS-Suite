@@ -4,7 +4,7 @@ title: Cheat Sheet
 chapter: 17
 section: 15
 level: simple
-status: draft
+status: published
 ---
 
 # Cheat Sheet

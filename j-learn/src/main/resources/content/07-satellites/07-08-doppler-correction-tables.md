@@ -4,7 +4,7 @@ title: Doppler Correction Tables
 chapter: 07
 section: 08
 level: advanced
-status: draft
+status: published
 ---
 
 # Doppler Correction Tables

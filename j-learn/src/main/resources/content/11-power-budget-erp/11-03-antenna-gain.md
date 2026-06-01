@@ -4,7 +4,7 @@ title: Antenna Gain
 chapter: 11
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Antenna Gain

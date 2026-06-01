@@ -4,7 +4,7 @@ title: Power Law
 chapter: 17
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Power Law

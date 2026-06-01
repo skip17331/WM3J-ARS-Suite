@@ -4,7 +4,7 @@ title: Voice Modes — Overview
 chapter: 02
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Voice Modes — Overview

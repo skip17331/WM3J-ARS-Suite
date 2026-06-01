@@ -4,7 +4,7 @@ title: Phonetic Alphabet
 chapter: 19
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Phonetic Alphabet

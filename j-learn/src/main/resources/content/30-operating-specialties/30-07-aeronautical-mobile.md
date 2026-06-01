@@ -4,7 +4,7 @@ title: Aeronautical Mobile Operation
 chapter: 30
 section: 07
 level: advanced
-status: draft
+status: published
 ---
 
 # Aeronautical Mobile Operation

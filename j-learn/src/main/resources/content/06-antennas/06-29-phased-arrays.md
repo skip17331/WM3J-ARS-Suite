@@ -4,7 +4,7 @@ title: Phased Arrays & Directivity
 chapter: 06
 section: 29
 level: mixed
-status: draft
+status: published
 ---
 
 # Phased Arrays & Directivity

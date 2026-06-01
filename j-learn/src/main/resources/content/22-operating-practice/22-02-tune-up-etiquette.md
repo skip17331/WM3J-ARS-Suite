@@ -4,7 +4,7 @@ title: Tune-up Etiquette
 chapter: 22
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Tune-up Etiquette

@@ -4,7 +4,7 @@ title: Band Plans — Overview
 chapter: 20
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Band Plans — Overview

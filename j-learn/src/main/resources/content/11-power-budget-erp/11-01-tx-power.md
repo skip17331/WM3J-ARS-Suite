@@ -4,7 +4,7 @@ title: TX Power
 chapter: 11
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # TX Power

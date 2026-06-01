@@ -4,7 +4,7 @@ title: Beams — Yagis, Quads & Log-Periodics
 chapter: 06
 section: 30
 level: mixed
-status: draft
+status: published
 ---
 
 # Beams — Yagis, Quads & Log-Periodics

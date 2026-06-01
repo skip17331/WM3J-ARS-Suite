@@ -4,7 +4,7 @@ title: Where to Find Repeater Frequencies
 chapter: 04
 section: 09
 level: simple
-status: draft
+status: published
 ---
 
 # Where to Find Repeater Frequencies

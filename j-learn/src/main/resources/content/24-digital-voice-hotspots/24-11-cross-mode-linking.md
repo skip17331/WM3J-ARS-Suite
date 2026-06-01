@@ -4,7 +4,7 @@ title: Cross-Mode Linking
 chapter: 24
 section: 11
 level: mixed
-status: draft
+status: published
 ---
 
 # Cross-Mode Linking

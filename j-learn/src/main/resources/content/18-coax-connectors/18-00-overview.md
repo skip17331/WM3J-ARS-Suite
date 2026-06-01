@@ -4,7 +4,7 @@ title: Coax & Connectors — Overview
 chapter: 18
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Coax & Connectors — Overview

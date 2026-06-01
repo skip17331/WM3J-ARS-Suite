@@ -4,7 +4,7 @@ title: Satellites — Overview
 chapter: 07
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Satellites — Overview

@@ -4,7 +4,7 @@ title: Koch Method
 chapter: 05
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # Koch Method

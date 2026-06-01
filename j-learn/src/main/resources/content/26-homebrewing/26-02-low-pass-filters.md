@@ -4,7 +4,7 @@ title: Low-Pass Filters for Harmonic Suppression
 chapter: 26
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # Low-Pass Filters for Harmonic Suppression

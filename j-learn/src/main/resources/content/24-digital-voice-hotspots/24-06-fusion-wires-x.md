@@ -4,7 +4,7 @@ title: Yaesu System Fusion / WIRES-X
 chapter: 24
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Yaesu System Fusion / WIRES-X

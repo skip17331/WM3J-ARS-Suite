@@ -4,7 +4,7 @@ title: Band Plans (HF / VHF / UHF)
 chapter: 04
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Band Plans (HF / VHF / UHF)

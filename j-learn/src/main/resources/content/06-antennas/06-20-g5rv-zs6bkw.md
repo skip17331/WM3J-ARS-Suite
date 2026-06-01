@@ -4,7 +4,7 @@ title: G5RV and ZS6BKW
 chapter: 06
 section: 20
 level: mixed
-status: draft
+status: published
 ---
 
 # G5RV and ZS6BKW

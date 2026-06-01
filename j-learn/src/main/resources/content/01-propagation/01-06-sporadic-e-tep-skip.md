@@ -4,7 +4,7 @@ title: Sporadic E, TEP, Skip
 chapter: 01
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Sporadic E, TEP, Skip

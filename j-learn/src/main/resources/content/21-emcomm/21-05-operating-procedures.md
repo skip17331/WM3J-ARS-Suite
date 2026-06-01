@@ -4,7 +4,7 @@ title: Operating Procedures
 chapter: 21
 section: 05
 level: simple
-status: draft
+status: published
 ---
 
 # Operating Procedures

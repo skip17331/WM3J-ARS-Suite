@@ -4,7 +4,7 @@ title: Dipoles
 chapter: 06
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # Dipoles

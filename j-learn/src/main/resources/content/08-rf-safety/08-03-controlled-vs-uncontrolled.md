@@ -4,7 +4,7 @@ title: Controlled vs Uncontrolled
 chapter: 08
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Controlled vs Uncontrolled

@@ -4,7 +4,7 @@ title: Tropospheric Ducting
 chapter: 30
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Tropospheric Ducting

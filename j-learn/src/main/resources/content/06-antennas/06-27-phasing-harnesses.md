@@ -4,7 +4,7 @@ title: Phasing Harnesses & Stacking
 chapter: 06
 section: 27
 level: mixed
-status: draft
+status: published
 ---
 
 # Phasing Harnesses & Stacking

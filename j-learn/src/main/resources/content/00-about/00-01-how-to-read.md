@@ -4,7 +4,7 @@ title: How to read this library
 chapter: 00
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # How to read this library
@@ -115,7 +115,7 @@ The manifest is parsed from `content/manifest.md`; content lives at the per-sect
 
 Content is in markdown files in the `j-learn` Maven module under `src/main/resources/content/`. Corrections, typos, and additions are welcome via pull request to the WM3J-ARS-Suite GitHub repo.
 
-When chapters are revised, the section's front-matter `status` field reflects current state (`stub` / `draft` / `final`). Until "final" content review is done, treat all `draft` material as authoritative-but-revisable.
+When chapters are revised, the section's front-matter `status` field reflects current state (`stub` / `draft` / `review` / `published`). All sections are currently `published` — treat the content as authoritative, though refinements continue.
 
 ## See also
 

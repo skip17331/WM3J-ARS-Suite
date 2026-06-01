@@ -4,7 +4,7 @@ title: Power Budget & ERP — Overview
 chapter: 11
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Power Budget & ERP — Overview

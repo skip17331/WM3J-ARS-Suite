@@ -4,7 +4,7 @@ title: Receive Antennas — Beverages, Loops & Flags
 chapter: 06
 section: 31
 level: mixed
-status: draft
+status: published
 ---
 
 # Receive Antennas — Beverages, Loops & Flags

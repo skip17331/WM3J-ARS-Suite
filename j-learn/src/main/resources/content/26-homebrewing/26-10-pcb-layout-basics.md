@@ -4,7 +4,7 @@ title: PCB Layout Basics for RF
 chapter: 26
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # PCB Layout Basics for RF

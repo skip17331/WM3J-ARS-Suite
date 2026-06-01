@@ -4,7 +4,7 @@ title: Folded Dipole
 chapter: 06
 section: 18
 level: mixed
-status: draft
+status: published
 ---
 
 # Folded Dipole

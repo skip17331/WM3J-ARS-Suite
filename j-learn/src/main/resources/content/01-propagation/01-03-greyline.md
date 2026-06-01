@@ -4,7 +4,7 @@ title: Greyline Propagation
 chapter: 01
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Greyline Propagation

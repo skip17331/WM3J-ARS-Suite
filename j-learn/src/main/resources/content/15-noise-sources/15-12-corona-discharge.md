@@ -4,7 +4,7 @@ title: Corona Discharge
 chapter: 15
 section: 12
 level: mixed
-status: draft
+status: published
 ---
 
 # Corona Discharge

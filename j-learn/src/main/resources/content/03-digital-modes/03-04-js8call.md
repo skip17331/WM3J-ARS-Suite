@@ -4,7 +4,7 @@ title: JS8Call
 chapter: 03
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # JS8Call

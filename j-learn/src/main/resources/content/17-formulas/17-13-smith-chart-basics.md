@@ -4,7 +4,7 @@ title: Smith Chart Basics
 chapter: 17
 section: 13
 level: advanced
-status: draft
+status: published
 ---
 
 # Smith Chart Basics

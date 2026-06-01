@@ -4,7 +4,7 @@ title: AllStar Link
 chapter: 04
 section: 11
 level: mixed
-status: draft
+status: published
 ---
 
 # AllStar Link

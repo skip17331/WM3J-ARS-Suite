@@ -4,7 +4,7 @@ title: Emergency & Public Service Communications — Overview
 chapter: 21
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Emergency & Public Service Communications — Overview

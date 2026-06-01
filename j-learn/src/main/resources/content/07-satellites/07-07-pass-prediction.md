@@ -4,7 +4,7 @@ title: Pass Prediction
 chapter: 07
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # Pass Prediction

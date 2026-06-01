@@ -4,7 +4,7 @@ title: What is RFI
 chapter: 14
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # What is RFI

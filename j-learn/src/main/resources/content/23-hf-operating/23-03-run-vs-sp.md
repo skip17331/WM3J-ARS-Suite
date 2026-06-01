@@ -4,7 +4,7 @@ title: Run vs. Search-and-Pounce
 chapter: 23
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Run vs. Search-and-Pounce

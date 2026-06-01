@@ -4,7 +4,7 @@ title: RF Safety — Overview
 chapter: 08
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # RF Safety — Overview

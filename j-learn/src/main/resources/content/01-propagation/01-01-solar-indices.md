@@ -4,7 +4,7 @@ title: Solar Indices (SFI, A-index, K-index)
 chapter: 01
 section: 01
 level: mixed
-status: draft
+status: published
 ---
 
 # Solar Indices (SFI, A-index, K-index)

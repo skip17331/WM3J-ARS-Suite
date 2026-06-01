@@ -4,7 +4,7 @@ title: QSO Simulation
 chapter: 05
 section: 05
 level: simple
-status: draft
+status: published
 ---
 
 # QSO Simulation

@@ -4,7 +4,7 @@ title: Digital Voice & Hotspot Systems — Overview
 chapter: 24
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Digital Voice & Hotspot Systems — Overview

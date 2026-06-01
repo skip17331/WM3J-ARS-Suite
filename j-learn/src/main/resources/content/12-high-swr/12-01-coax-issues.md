@@ -4,7 +4,7 @@ title: Coax Issues
 chapter: 12
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # Coax Issues

@@ -4,7 +4,7 @@ title: Polarization Switching
 chapter: 29
 section: 06
 level: advanced
-status: draft
+status: published
 ---
 
 # Polarization Switching

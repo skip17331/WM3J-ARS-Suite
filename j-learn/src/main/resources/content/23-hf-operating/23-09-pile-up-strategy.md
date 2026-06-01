@@ -4,7 +4,7 @@ title: Pile-up Strategy
 chapter: 23
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Pile-up Strategy

@@ -4,7 +4,7 @@ title: Tracking Generators
 chapter: 25
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Tracking Generators

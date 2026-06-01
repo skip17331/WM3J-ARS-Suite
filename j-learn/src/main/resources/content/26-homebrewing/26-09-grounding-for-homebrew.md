@@ -4,7 +4,7 @@ title: Grounding for Homebrew
 chapter: 26
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Grounding for Homebrew

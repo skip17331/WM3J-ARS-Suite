@@ -4,7 +4,7 @@ title: VHF/UHF Antennas
 chapter: 06
 section: 32
 level: mixed
-status: draft
+status: published
 ---
 
 # VHF/UHF Antennas

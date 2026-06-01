@@ -4,7 +4,7 @@ title: Emergency Frequencies & Major Nets
 chapter: 21
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Emergency Frequencies & Major Nets

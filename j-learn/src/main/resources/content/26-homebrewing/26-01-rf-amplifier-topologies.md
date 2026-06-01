@@ -4,7 +4,7 @@ title: RF Amplifier Topologies
 chapter: 26
 section: 01
 level: advanced
-status: draft
+status: published
 ---
 
 # RF Amplifier Topologies

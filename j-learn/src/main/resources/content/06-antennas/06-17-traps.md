@@ -4,7 +4,7 @@ title: Traps
 chapter: 06
 section: 17
 level: advanced
-status: draft
+status: published
 ---
 
 # Traps

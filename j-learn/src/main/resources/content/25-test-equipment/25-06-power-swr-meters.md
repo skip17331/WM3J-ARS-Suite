@@ -4,7 +4,7 @@ title: Power & SWR Meters
 chapter: 25
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Power & SWR Meters

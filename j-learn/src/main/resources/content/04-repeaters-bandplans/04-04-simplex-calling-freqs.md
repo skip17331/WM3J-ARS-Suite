@@ -4,7 +4,7 @@ title: Simplex Calling Frequencies
 chapter: 04
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Simplex Calling Frequencies

@@ -4,7 +4,7 @@ title: D-STAR Routing — Reflectors and Callsign Routing
 chapter: 24
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # D-STAR Routing — Reflectors and Callsign Routing

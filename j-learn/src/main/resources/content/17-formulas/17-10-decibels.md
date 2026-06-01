@@ -4,7 +4,7 @@ title: Decibels
 chapter: 17
 section: 10
 level: simple
-status: draft
+status: published
 ---
 
 # Decibels

@@ -4,7 +4,7 @@ title: Regional Variations
 chapter: 20
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Regional Variations

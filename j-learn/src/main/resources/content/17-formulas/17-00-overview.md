@@ -4,7 +4,7 @@ title: Formulas — Overview
 chapter: 17
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Formulas — Overview

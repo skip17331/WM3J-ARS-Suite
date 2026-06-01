@@ -4,7 +4,7 @@ title: VARA HF
 chapter: 28
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # VARA HF — High-Throughput Soundcard Modem

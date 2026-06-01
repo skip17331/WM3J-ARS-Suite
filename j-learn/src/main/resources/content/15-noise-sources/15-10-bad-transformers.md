@@ -4,7 +4,7 @@ title: Bad Transformers
 chapter: 15
 section: 10
 level: simple
-status: draft
+status: published
 ---
 
 # Bad Transformers

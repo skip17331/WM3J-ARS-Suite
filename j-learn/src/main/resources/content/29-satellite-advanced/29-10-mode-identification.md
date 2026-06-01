@@ -4,7 +4,7 @@ title: Mode Identification (V/U, U/V, L/U, etc.)
 chapter: 29
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # Mode Identification (V/U, U/V, L/U, etc.)

@@ -4,7 +4,7 @@ title: Split Tactics
 chapter: 23
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # Split Tactics

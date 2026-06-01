@@ -4,7 +4,7 @@ title: Pactor
 chapter: 28
 section: 07
 level: advanced
-status: draft
+status: published
 ---
 
 # Pactor — Commercial-Grade HF Data

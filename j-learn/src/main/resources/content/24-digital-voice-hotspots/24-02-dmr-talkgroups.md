@@ -4,7 +4,7 @@ title: DMR Talkgroups
 chapter: 24
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # DMR Talkgroups

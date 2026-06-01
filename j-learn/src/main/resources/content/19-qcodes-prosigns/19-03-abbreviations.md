@@ -4,7 +4,7 @@ title: Abbreviations
 chapter: 19
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Abbreviations

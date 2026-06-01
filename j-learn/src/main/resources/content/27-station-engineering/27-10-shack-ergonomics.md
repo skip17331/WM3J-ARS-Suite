@@ -4,7 +4,7 @@ title: Shack Ergonomics
 chapter: 27
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # Shack Ergonomics

@@ -4,7 +4,7 @@ title: Robust Packet
 chapter: 28
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Robust Packet — AX.25 Hardened for HF

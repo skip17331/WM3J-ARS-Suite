@@ -4,7 +4,7 @@ title: Flat Dipole
 chapter: 09
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Flat Dipole

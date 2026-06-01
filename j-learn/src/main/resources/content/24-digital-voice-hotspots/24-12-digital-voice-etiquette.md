@@ -4,7 +4,7 @@ title: Digital Voice Etiquette
 chapter: 24
 section: 12
 level: mixed
-status: draft
+status: published
 ---
 
 # Digital Voice Etiquette

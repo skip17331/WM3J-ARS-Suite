@@ -4,7 +4,7 @@ title: Band Choice Right Now
 chapter: 01
 section: 08
 level: simple
-status: draft
+status: published
 ---
 
 # Band Choice Right Now

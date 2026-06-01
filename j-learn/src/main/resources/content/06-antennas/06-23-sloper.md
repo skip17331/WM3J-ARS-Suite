@@ -4,7 +4,7 @@ title: Sloper and Half-Sloper
 chapter: 06
 section: 23
 level: mixed
-status: draft
+status: published
 ---
 
 # Sloper and Half-Sloper

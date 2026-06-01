@@ -4,7 +4,7 @@ title: Full-Wave Loops
 chapter: 06
 section: 15
 level: mixed
-status: draft
+status: published
 ---
 
 # Full-Wave Loops

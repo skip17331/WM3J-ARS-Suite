@@ -4,7 +4,7 @@ title: Household Sources
 chapter: 14
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Household Sources

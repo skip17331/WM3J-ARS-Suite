@@ -4,7 +4,7 @@ title: Isolation Workflow
 chapter: 14
 section: 05
 level: simple
-status: draft
+status: published
 ---
 
 # Isolation Workflow

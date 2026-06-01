@@ -4,7 +4,7 @@ title: Reactance (Capacitive & Inductive)
 chapter: 17
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Reactance — Capacitive & Inductive

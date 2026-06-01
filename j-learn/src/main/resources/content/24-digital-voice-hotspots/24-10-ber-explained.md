@@ -4,7 +4,7 @@ title: BER (Bit Error Rate) Explained
 chapter: 24
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # BER (Bit Error Rate) Explained

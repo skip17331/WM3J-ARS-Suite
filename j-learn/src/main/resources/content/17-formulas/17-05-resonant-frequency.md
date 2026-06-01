@@ -4,7 +4,7 @@ title: Resonant Frequency
 chapter: 17
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Resonant Frequency

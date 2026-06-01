@@ -4,7 +4,7 @@ title: Noise Sources — Overview
 chapter: 15
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Noise Sources — Overview

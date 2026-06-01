@@ -4,7 +4,7 @@ title: Safe Antenna Placement
 chapter: 08
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Safe Antenna Placement

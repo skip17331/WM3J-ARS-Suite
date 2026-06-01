@@ -4,7 +4,7 @@ title: Common Operating Mistakes
 chapter: 22
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # Common Operating Mistakes

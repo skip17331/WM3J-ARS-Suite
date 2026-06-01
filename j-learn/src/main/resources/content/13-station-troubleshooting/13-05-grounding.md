@@ -4,7 +4,7 @@ title: Grounding
 chapter: 13
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Grounding

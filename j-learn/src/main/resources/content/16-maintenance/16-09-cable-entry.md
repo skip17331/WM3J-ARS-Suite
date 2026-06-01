@@ -4,7 +4,7 @@ title: Cable Entry & Water Intrusion
 chapter: 16
 section: 09
 level: simple
-status: draft
+status: published
 ---
 
 # Cable Entry & Water Intrusion

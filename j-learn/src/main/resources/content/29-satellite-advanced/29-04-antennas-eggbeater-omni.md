@@ -4,7 +4,7 @@ title: Eggbeater Omnidirectional Antennas
 chapter: 29
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Eggbeater Omnidirectional Antennas

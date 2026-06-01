@@ -4,7 +4,7 @@ title: README — what J-Learn is
 chapter: 00
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # README — what J-Learn is
@@ -54,15 +54,15 @@ Most sections are 4–8 KB. A few (formula calculators, RF-exposure walkthrough,
 - **Not a forum.** No discussion, no comments, no posting. Send corrections to the J-Hub project's GitHub.
 - **Not a buyers' guide.** Specific products are named only when they're effectively standard (Astron RS-50, Bird 43, Heil PR-781, Hustler 5-BTV) — not as recommendations.
 - **Not a substitute for the FCC rules.** §97 is authoritative; J-Learn cites and summarizes but you should know how to look up the actual regulation.
-- **Not finished.** As of this writing the content is `draft` everywhere; expect refinements over time. See **Status** below.
+- **Content-complete.** Every section is written and marked `published`; refinements and corrections are ongoing. See **Status** below.
 
 ## How J-Learn integrates with the suite
 
 Two J-Hub features deep-link into J-Learn chapters and back:
 
-- **Chapter 03 (Morse)** has a "▶ Launch Trainer" button at the top of every section that opens the bundled Morse Code Trainer app.
-- **Chapter 07 (Antenna Workshop)** has a "▶ Open in Workshop" button that opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab.
-- **Chapter 15 (Formulas)** has the same "▶ Open in Workshop" pattern, mapping each formula card to a per-formula calculator (Ohm's, Power, Reactance, Impedance, Resonance, Wavelength, SWR, ERP, Feedline Loss, Decibels, Q, Bandwidth, RF Exposure).
+- **Chapter 05 (Morse)** has a "▶ Launch Trainer" button at the top of every section that opens the bundled Morse Code Trainer app.
+- **Chapter 09 (Antenna Workshop)** has a "▶ Open in Workshop" button that opens the matching antenna calculator panel in the J-Hub Antenna Workshop tab.
+- **Chapter 17 (Formulas)** has the same "▶ Open in Workshop" pattern, mapping each formula card to a per-formula calculator (Ohm's, Power, Reactance, Impedance, Resonance, Wavelength, SWR, ERP, Feedline Loss, Decibels, Q, Bandwidth, RF Exposure).
 
 The recommender in §09-01 also walks the operator backward from goals → chapter sections that might apply.
 
@@ -70,7 +70,7 @@ Cross-references between sections are written as `§NN-NN` (e.g., §17-06 for th
 
 ## Status
 
-Every section's front matter has a **status** field: `stub` (placeholder, no real content) or `draft` (written, may be refined). As of late 2026 every chapter is at `draft` and the library is content-complete. Refinement and corrections are ongoing.
+Every section's front matter has a **status** field that moves through `stub` → `draft` → `review` → `published`. As of late 2026 every section is `published` and the library is content-complete; refinements and corrections are ongoing.
 
 J-Learn ships with the suite. To see what's been written, open the J-Learn tab in J-Hub and use the search box at the top of the left-side index. §00-01 covers how to navigate effectively.
 

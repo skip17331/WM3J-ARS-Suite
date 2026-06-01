@@ -4,7 +4,7 @@ title: Power Supply
 chapter: 13
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Power Supply

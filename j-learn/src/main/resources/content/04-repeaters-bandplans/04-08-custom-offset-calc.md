@@ -4,7 +4,7 @@ title: Custom Offset Calculator
 chapter: 04
 section: 08
 level: simple
-status: draft
+status: published
 ---
 
 # Custom Offset Calculator

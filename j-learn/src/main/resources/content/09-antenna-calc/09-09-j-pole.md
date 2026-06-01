@@ -4,7 +4,7 @@ title: J-Pole
 chapter: 09
 section: 09
 level: simple
-status: draft
+status: published
 ---
 
 # J-Pole

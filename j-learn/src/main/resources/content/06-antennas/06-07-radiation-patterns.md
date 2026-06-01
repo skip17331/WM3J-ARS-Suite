@@ -4,7 +4,7 @@ title: Radiation Patterns
 chapter: 06
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # Radiation Patterns

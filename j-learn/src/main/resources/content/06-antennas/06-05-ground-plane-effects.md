@@ -4,7 +4,7 @@ title: Ground-Plane Effects
 chapter: 06
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Ground-Plane Effects

@@ -4,7 +4,7 @@ title: Diversity
 chapter: 06
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Diversity

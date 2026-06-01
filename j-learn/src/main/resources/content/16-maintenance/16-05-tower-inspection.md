@@ -4,7 +4,7 @@ title: Tower & Mast Inspection
 chapter: 16
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Tower & Mast Inspection

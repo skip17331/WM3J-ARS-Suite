@@ -4,7 +4,7 @@ title: Verticals
 chapter: 06
 section: 12
 level: mixed
-status: draft
+status: published
 ---
 
 # Verticals

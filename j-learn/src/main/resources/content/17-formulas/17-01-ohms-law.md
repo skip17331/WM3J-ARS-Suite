@@ -4,7 +4,7 @@ title: Ohm's Law
 chapter: 17
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # Ohm's Law

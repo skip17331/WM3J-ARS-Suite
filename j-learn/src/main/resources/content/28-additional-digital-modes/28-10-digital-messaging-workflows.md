@@ -4,7 +4,7 @@ title: Digital Messaging Workflows
 chapter: 28
 section: 10
 level: mixed
-status: draft
+status: published
 ---
 
 # Digital Messaging Workflows — How Emcomm Picks Modes in Practice

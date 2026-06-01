@@ -4,7 +4,7 @@ title: Digital Modes — Overview
 chapter: 03
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Digital Modes — Overview

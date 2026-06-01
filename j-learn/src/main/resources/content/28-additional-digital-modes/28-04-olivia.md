@@ -4,7 +4,7 @@ title: Olivia
 chapter: 28
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Olivia — Sub-Noise-Floor Manual Chat

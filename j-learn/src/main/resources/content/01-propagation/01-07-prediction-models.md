@@ -4,7 +4,7 @@ title: Prediction Models
 chapter: 01
 section: 07
 level: advanced
-status: draft
+status: published
 ---
 
 # Prediction Models

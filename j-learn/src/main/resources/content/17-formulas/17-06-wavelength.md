@@ -4,7 +4,7 @@ title: Wavelength
 chapter: 17
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Wavelength

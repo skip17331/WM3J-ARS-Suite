@@ -4,7 +4,7 @@ title: Faulty Balun
 chapter: 12
 section: 05
 level: simple
-status: draft
+status: published
 ---
 
 # Faulty Balun

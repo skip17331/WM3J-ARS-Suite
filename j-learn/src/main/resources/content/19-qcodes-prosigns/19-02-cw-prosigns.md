@@ -4,7 +4,7 @@ title: CW Prosigns
 chapter: 19
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # CW Prosigns

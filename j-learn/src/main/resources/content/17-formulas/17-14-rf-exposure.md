@@ -4,7 +4,7 @@ title: RF Exposure
 chapter: 17
 section: 14
 level: mixed
-status: draft
+status: published
 ---
 
 # RF Exposure

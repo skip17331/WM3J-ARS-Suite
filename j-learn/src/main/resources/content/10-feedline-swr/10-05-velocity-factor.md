@@ -4,7 +4,7 @@ title: Velocity Factor
 chapter: 10
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Velocity Factor

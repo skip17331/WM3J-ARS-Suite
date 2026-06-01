@@ -4,7 +4,7 @@ title: Propagation — Overview
 chapter: 01
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Propagation — Overview

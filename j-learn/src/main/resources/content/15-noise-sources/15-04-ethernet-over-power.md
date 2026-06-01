@@ -4,7 +4,7 @@ title: Ethernet Over Power
 chapter: 15
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Ethernet Over Power

@@ -4,7 +4,7 @@ title: Hellschreiber
 chapter: 28
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Hellschreiber — Painted-Text Mode

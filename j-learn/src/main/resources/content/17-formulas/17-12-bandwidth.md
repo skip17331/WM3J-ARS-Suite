@@ -4,7 +4,7 @@ title: Bandwidth
 chapter: 17
 section: 12
 level: mixed
-status: draft
+status: published
 ---
 
 # Bandwidth

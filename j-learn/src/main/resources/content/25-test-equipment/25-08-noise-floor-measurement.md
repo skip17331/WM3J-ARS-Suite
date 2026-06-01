@@ -4,7 +4,7 @@ title: Measuring Station Noise Floor
 chapter: 25
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # Measuring Station Noise Floor

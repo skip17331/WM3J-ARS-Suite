@@ -4,7 +4,7 @@ title: Power Minimum and Polite Operating
 chapter: 22
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Power Minimum and Polite Operating

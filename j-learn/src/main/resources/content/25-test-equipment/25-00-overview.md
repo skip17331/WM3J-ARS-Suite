@@ -4,7 +4,7 @@ title: Test Equipment & Measurement — Overview
 chapter: 25
 section: 00
 level: mixed
-status: draft
+status: published
 ---
 
 # Test Equipment & Measurement — Overview

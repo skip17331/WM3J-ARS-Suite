@@ -4,7 +4,7 @@ title: Duty Cycle
 chapter: 08
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Duty Cycle

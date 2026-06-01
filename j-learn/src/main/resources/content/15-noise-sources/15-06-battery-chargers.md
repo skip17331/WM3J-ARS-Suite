@@ -4,7 +4,7 @@ title: Battery Chargers
 chapter: 15
 section: 06
 level: simple
-status: draft
+status: published
 ---
 
 # Battery Chargers

@@ -4,7 +4,7 @@ title: Duplex vs Simplex Hotspots
 chapter: 24
 section: 09
 level: mixed
-status: draft
+status: published
 ---
 
 # Duplex vs Simplex Hotspots

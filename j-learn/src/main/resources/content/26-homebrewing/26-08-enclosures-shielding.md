@@ -4,7 +4,7 @@ title: Enclosures & Shielding
 chapter: 26
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # Enclosures & Shielding

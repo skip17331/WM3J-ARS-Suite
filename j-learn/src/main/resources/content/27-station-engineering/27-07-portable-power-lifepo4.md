@@ -4,7 +4,7 @@ title: Portable Power — LiFePO4
 chapter: 27
 section: 07
 level: mixed
-status: draft
+status: published
 ---
 
 # Portable Power — LiFePO4

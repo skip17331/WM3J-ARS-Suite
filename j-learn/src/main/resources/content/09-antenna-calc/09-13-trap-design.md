@@ -4,7 +4,7 @@ title: Trap Design & Manufacturing
 chapter: 09
 section: 13
 level: advanced
-status: draft
+status: published
 ---
 
 # Trap Design & Manufacturing

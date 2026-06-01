@@ -4,7 +4,7 @@ title: Impedance
 chapter: 17
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Impedance

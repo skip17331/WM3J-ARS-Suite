@@ -4,7 +4,7 @@ title: EFHW (Trapped)
 chapter: 09
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # EFHW — End-Fed Half-Wave (Trapped)

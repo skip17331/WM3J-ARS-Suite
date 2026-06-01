@@ -4,7 +4,7 @@ title: Switching Power Supplies
 chapter: 15
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # Switching Power Supplies

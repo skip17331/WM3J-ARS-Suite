@@ -4,7 +4,7 @@ title: Packet Radio
 chapter: 03
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Packet Radio

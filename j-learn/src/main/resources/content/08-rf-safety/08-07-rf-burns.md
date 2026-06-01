@@ -4,7 +4,7 @@ title: RF Burns
 chapter: 08
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # RF Burns

@@ -4,7 +4,7 @@ title: Coax Inspection
 chapter: 16
 section: 08
 level: simple
-status: draft
+status: published
 ---
 
 # Coax Inspection

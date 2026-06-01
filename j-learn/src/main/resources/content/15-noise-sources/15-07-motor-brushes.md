@@ -4,7 +4,7 @@ title: Motor Brushes
 chapter: 15
 section: 07
 level: simple
-status: draft
+status: published
 ---
 
 # Motor Brushes

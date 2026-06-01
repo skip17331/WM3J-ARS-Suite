@@ -4,7 +4,7 @@ title: Magnetic Loops
 chapter: 06
 section: 14
 level: mixed
-status: draft
+status: published
 ---
 
 # Magnetic Loops

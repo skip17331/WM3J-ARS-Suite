@@ -4,7 +4,7 @@ title: ERP / EIRP Output
 chapter: 11
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # ERP / EIRP Output

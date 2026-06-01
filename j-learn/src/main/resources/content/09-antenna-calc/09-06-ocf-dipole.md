@@ -4,7 +4,7 @@ title: OCF Dipole (Windom)
 chapter: 09
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # OCF Dipole (Windom)

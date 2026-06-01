@@ -4,7 +4,7 @@ title: Polarization
 chapter: 06
 section: 08
 level: mixed
-status: draft
+status: published
 ---
 
 # Polarization

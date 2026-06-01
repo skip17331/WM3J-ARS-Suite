@@ -4,7 +4,7 @@ title: Loose Hardware
 chapter: 15
 section: 11
 level: simple
-status: draft
+status: published
 ---
 
 # Loose Hardware

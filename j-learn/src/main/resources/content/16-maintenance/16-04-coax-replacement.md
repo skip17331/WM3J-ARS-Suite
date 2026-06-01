@@ -4,7 +4,7 @@ title: Coax Replacement
 chapter: 16
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Coax Replacement

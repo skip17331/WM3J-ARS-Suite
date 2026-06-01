@@ -4,7 +4,7 @@ title: Solar Cycle
 chapter: 01
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Solar Cycle

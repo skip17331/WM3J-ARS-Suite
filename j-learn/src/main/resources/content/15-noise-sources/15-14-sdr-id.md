@@ -4,7 +4,7 @@ title: SDR ID
 chapter: 15
 section: 14
 level: simple
-status: draft
+status: published
 ---
 
 # SDR ID

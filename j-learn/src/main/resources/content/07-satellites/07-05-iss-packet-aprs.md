@@ -4,7 +4,7 @@ title: ISS Packet & APRS
 chapter: 07
 section: 05
 level: simple
-status: draft
+status: published
 ---
 
 # ISS Packet & APRS

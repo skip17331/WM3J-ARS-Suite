@@ -4,7 +4,7 @@ title: No Transmit
 chapter: 13
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # No Transmit

@@ -4,7 +4,7 @@ title: Full-Duplex Operation
 chapter: 29
 section: 01
 level: mixed
-status: draft
+status: published
 ---
 
 # Full-Duplex Operation

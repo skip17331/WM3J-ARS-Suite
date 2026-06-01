@@ -4,7 +4,7 @@ title: Rhombic (Terminated & Unterminated)
 chapter: 06
 section: 16
 level: advanced
-status: draft
+status: published
 ---
 
 # Rhombic (Terminated & Unterminated)

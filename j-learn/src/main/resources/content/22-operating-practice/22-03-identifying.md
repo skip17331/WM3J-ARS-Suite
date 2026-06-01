@@ -4,7 +4,7 @@ title: Identifying — the 10-Minute Rule and §97.119
 chapter: 22
 section: 03
 level: simple
-status: draft
+status: published
 ---
 
 # Identifying — the 10-Minute Rule and §97.119

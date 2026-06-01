@@ -4,7 +4,7 @@ title: Aircraft Scatter
 chapter: 30
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Aircraft Scatter

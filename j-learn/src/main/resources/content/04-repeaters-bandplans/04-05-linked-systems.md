@@ -4,7 +4,7 @@ title: Linked Systems (AllStar / DMR / Fusion / D-STAR)
 chapter: 04
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Linked Systems (AllStar / DMR / Fusion / D-STAR)

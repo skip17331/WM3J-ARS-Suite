@@ -4,7 +4,7 @@ title: FM vs Linear Satellites
 chapter: 07
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # FM vs Linear Satellites

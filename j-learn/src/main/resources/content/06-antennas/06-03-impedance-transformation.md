@@ -4,7 +4,7 @@ title: Impedance Transformation
 chapter: 06
 section: 03
 level: advanced
-status: draft
+status: published
 ---
 
 # Impedance Transformation

@@ -4,7 +4,7 @@ title: RF Bonding
 chapter: 27
 section: 02
 level: mixed
-status: draft
+status: published
 ---
 
 # RF Bonding

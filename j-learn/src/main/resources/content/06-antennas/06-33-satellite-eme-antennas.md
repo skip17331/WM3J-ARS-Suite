@@ -4,7 +4,7 @@ title: Satellite & EME Antennas
 chapter: 06
 section: 33
 level: mixed
-status: draft
+status: published
 ---
 
 # Satellite & EME Antennas

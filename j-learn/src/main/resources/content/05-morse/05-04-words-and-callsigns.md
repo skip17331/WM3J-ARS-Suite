@@ -4,7 +4,7 @@ title: Words and Callsigns
 chapter: 05
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Words and Callsigns

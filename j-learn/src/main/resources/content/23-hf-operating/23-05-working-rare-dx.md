@@ -4,7 +4,7 @@ title: Working Rare DX
 chapter: 23
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Working Rare DX

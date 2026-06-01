@@ -4,7 +4,7 @@ title: Farnsworth Spacing
 chapter: 05
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Farnsworth Spacing

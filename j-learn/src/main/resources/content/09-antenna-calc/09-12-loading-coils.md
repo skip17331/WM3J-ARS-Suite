@@ -4,7 +4,7 @@ title: Loading for Shortened Antennas
 chapter: 09
 section: 12
 level: mixed
-status: draft
+status: published
 ---
 
 # Loading for Shortened Antennas

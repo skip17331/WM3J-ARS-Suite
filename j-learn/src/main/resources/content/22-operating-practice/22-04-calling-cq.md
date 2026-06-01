@@ -4,7 +4,7 @@ title: Calling CQ and the Standard QSO Flow
 chapter: 22
 section: 04
 level: simple
-status: draft
+status: published
 ---
 
 # Calling CQ and the Standard QSO Flow

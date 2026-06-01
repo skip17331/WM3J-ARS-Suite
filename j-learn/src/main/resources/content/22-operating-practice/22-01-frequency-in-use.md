@@ -4,7 +4,7 @@ title: "Is the Frequency in Use?"
 chapter: 22
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # "Is the Frequency in Use?"

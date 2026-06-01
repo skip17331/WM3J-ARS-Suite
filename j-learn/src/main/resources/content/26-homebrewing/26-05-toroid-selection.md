@@ -4,7 +4,7 @@ title: Toroid Selection (Powdered Iron)
 chapter: 26
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Toroid Selection (Powdered Iron)

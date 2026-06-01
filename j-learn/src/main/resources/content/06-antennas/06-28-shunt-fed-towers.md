@@ -4,7 +4,7 @@ title: Shunt-Fed Towers
 chapter: 06
 section: 28
 level: mixed
-status: draft
+status: published
 ---
 
 # Shunt-Fed Towers

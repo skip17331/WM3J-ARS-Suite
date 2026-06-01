@@ -4,7 +4,7 @@ title: Doublet (All-Band Tuned)
 chapter: 06
 section: 21
 level: mixed
-status: draft
+status: published
 ---
 
 # Doublet (All-Band Tuned)

@@ -4,7 +4,7 @@ title: Spectrum Analyzers
 chapter: 25
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # Spectrum Analyzers

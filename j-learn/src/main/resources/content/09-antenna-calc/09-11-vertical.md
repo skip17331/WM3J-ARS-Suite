@@ -4,7 +4,7 @@ title: Vertical Antennas
 chapter: 09
 section: 11
 level: mixed
-status: draft
+status: published
 ---
 
 # Vertical Antennas

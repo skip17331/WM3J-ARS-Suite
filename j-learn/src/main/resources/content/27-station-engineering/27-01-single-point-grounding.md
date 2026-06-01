@@ -4,7 +4,7 @@ title: Single-Point Grounding
 chapter: 27
 section: 01
 level: mixed
-status: draft
+status: published
 ---
 
 # Single-Point Grounding

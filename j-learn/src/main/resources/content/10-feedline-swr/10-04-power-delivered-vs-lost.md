@@ -4,7 +4,7 @@ title: Power Delivered vs Lost
 chapter: 10
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Power Delivered vs Lost

@@ -4,7 +4,7 @@ title: Ionospheric Layers (D / E / F1 / F2)
 chapter: 01
 section: 04
 level: mixed
-status: draft
+status: published
 ---
 
 # Ionospheric Layers (D / E / F1 / F2)

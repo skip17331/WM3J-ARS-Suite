@@ -4,7 +4,7 @@ title: ICS Basics for Amateur Operators
 chapter: 21
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # ICS Basics for Amateur Operators

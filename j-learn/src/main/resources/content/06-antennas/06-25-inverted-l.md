@@ -4,7 +4,7 @@ title: Inverted-L
 chapter: 06
 section: 25
 level: mixed
-status: draft
+status: published
 ---
 
 # Inverted-L

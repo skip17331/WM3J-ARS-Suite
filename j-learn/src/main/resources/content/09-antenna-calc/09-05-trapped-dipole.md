@@ -4,7 +4,7 @@ title: Trapped Dipole
 chapter: 09
 section: 05
 level: mixed
-status: draft
+status: published
 ---
 
 # Trapped Dipole

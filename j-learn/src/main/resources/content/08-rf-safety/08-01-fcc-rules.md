@@ -4,7 +4,7 @@ title: FCC Rules
 chapter: 08
 section: 01
 level: simple
-status: draft
+status: published
 ---
 
 # FCC Rules

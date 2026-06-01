@@ -4,7 +4,7 @@ title: Connector Issues
 chapter: 12
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Connector Issues

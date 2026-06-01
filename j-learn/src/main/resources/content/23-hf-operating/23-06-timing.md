@@ -4,7 +4,7 @@ title: Timing
 chapter: 23
 section: 06
 level: mixed
-status: draft
+status: published
 ---
 
 # Timing

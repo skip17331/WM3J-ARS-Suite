@@ -4,7 +4,7 @@ title: High-Pass Filters
 chapter: 26
 section: 03
 level: mixed
-status: draft
+status: published
 ---
 
 # High-Pass Filters

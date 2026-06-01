@@ -4,7 +4,7 @@ title: Offsets, Tones, CTCSS, DCS
 chapter: 04
 section: 02
 level: simple
-status: draft
+status: published
 ---
 
 # Offsets, Tones, CTCSS, DCS

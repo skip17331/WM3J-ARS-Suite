@@ -4,7 +4,7 @@ title: Repeaters & Bandplans — Overview
 chapter: 04
 section: 00
 level: simple
-status: draft
+status: published
 ---
 
 # Repeaters & Bandplans — Overview

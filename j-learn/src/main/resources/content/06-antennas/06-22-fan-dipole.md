@@ -4,7 +4,7 @@ title: Fan Dipole (Parallel Dipole)
 chapter: 06
 section: 22
 level: mixed
-status: draft
+status: published
 ---
 
 # Fan Dipole (Parallel Dipole)

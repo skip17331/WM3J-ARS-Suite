@@ -4,7 +4,7 @@ title: Mini Tests
 chapter: 05
 section: 08
 level: simple
-status: draft
+status: published
 ---
 
 # Mini Tests
