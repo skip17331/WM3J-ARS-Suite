@@ -81,8 +81,8 @@ The A-index is more useful than K for understanding the *trend*. Three days of A
 
 ## Putting them together
 
-| SFI | K | A | What you do |
-|-----|---|---|-------------|
+| SFI / K / A | Conditions | What you do |
+|-------------|------------|-------------|
 | 80, 1, 5 | Low SFI, quiet | Stay on 40 m and 80 m for any reliable QSO. 20 m might open mid-day. |
 | 150, 2, 8 | Average to good | Try every band 80 m through 15 m. 10 m might surprise you. |
 | 200, 4, 22 | Good flux, but stirred up | High bands open in theory; expect QSB and noise. Avoid polar paths. |
