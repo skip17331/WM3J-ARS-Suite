@@ -51,9 +51,9 @@ Click any row to open it in the viewer. The library remembers the last-opened se
 The text box at the top filters the TOC by title or section ID. Type:
 
 - **`balun`** to find every section mentioning balun in the title (§06-04, §18-05).
-- **`15-`** to filter to chapter 15 (Formulas) only.
-- **`emcomm`** to find chapter 20.
-- **`21-`** to filter to chapter 21 (Operating Practice) only.
+- **`17-`** to filter to chapter 17 (Formulas) only.
+- **`emcomm`** to find chapter 21.
+- **`22-`** to filter to chapter 22 (Operating Practice) only.
 - **(empty)** restores the full TOC.
 
 Filtering is case-insensitive and matches anywhere in the title or ID.

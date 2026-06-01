@@ -72,7 +72,7 @@ Three contexts where the budget calculation is more than academic:
 
 ## Where the suite helps
 
-- **§12 (RF Exposure Calculator)**: takes power budget output (EIRP) and computes MPE compliance distances.
+- **§17-14 (RF Exposure Calculator)**: takes power budget output (EIRP) and computes MPE compliance distances.
 - **J-Hub Antenna Tab**: shows real-time SWR data for power-budget computations.
 - **§09 (Antenna Calculator)**: complementary — computes physical lengths.
 

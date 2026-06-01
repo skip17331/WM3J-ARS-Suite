@@ -77,13 +77,13 @@ The "magnetic loop on your desk" case is one of the genuinely problematic amateu
 
 ## Where the suite helps
 
-- **§12 (RF Exposure Calculator)** — interactive calculator. Enter band, ERP, antenna distance; get controlled/uncontrolled compliance status.
+- **§17-14 (RF Exposure Calculator)** — interactive calculator. Enter band, ERP, antenna distance; get controlled/uncontrolled compliance status.
 - **§11 (Power Budget / ERP)** — work out your ERP given TX power, feedline loss, and antenna gain.
 - **§08 (this chapter)** — the conceptual background for both calculators.
 
 ## See also
 
-- §12 — RF Exposure Calculator (the practical tool)
+- §17-14 — RF Exposure Calculator (the practical tool)
 - §11 — ERP / Power Budget
 - §06-05 — Ground-plane effects (matters for near-field calculation)
 - §06-07 — Patterns (gain at the relevant elevation matters for exposure direction)

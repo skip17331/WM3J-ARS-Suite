@@ -152,5 +152,5 @@ In practice ham FSMs are almost always used relatively, not absolutely.
 - §14 — RFI (hunting interference with an FSM)
 - §15 — Noise Sources
 - §25-03 — Spectrum Analyzers (a more sophisticated relative-strength tool)
-- §07 — Antenna Theory (patterns)
+- §06-07 — Radiation Patterns (antenna patterns)
 - §17 — Formulas (V/m, dBμV/m, Friis)

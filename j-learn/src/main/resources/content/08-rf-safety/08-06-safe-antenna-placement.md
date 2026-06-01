@@ -136,6 +136,6 @@ These cases are usually compliant at 100 W; they may not be at 1500 W.
 - §08-03 — Controlled vs uncontrolled
 - §08-04 — Duty cycle
 - §08-05 — ERP / EIRP
-- §12 — RF Exposure Calculator
+- §17-14 — RF Exposure Calculator
 - §06-05 — Ground-plane effects (where the pattern goes)
 - §06-07 — Radiation patterns (where the gain is high)

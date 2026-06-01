@@ -47,7 +47,7 @@ If you already operate but don't know why, read **01-04 (Ionospheric Layers)** f
 
 - VHF/UHF tropospheric ducting and meteor scatter — those live in the satellite and weak-signal chapters.
 - EME (moonbounce) — fascinating, but a different category of physics.
-- Detailed antenna patterns — chapter 05 covers those.
+- Detailed antenna patterns — chapter 06 covers those.
 
 ## Where to look up the numbers
 

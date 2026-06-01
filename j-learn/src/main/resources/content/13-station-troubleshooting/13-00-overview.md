@@ -11,7 +11,7 @@ status: published
 
 > **Advanced callout convention:** sections or paragraphs intended for Extra-class / engineering depth are marked with a blockquote starting `> **Advanced —**`. Simple-mode renderers can hide these; advanced-mode renderers show them inline.
 
-The radio works. The antenna works. The coax works. So why isn't anything happening on the air? This chapter is about the **station-level** problems — the ones that aren't pure SWR (which has its own chapter, 13), aren't RFI (chapter 15), but are the station-as-a-system not behaving.
+The radio works. The antenna works. The coax works. So why isn't anything happening on the air? This chapter is about the **station-level** problems — the ones that aren't pure SWR (which has its own chapter, 12), aren't RFI (chapter 14), but are the station-as-a-system not behaving.
 
 ## How this chapter is organized
 
@@ -44,7 +44,7 @@ Is the radio powered on and receiving normal background noise?
             ├── No → audio chain. See §13-03.
             └── Yes:
                 Are you getting reports of being heard?
-                ├── No → antenna or feedline (chapter 13)
+                ├── No → antenna or feedline (chapters 06 / 10)
                 └── Yes:
                     Is there RF in the shack (tingles, RFI)?
                     ├── Yes → §13-04 (RF feedback) or §13-05 (grounding)

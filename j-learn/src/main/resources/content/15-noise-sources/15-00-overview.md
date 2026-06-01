@@ -13,7 +13,7 @@ status: published
 
 This chapter is a per-category guide to the most common noise sources you'll meet on the air. Each section covers what the source looks like in operation, what it sounds like, and the specific filtering or replacement strategies that work for that category.
 
-For the higher-level workflow of how to *find* a noise source, see chapter 12 (RFI). This chapter assumes you've already identified what kind of device or infrastructure you're dealing with and are looking for fix specifics.
+For the higher-level workflow of how to *find* a noise source, see chapter 14 (RFI). This chapter assumes you've already identified what kind of device or infrastructure you're dealing with and are looking for fix specifics.
 
 ## Two subsections
 

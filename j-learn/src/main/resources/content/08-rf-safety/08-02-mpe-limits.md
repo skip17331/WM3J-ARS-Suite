@@ -151,5 +151,5 @@ A 1500 W FT8 station transmitting in 15-second bursts every minute is exposing b
 - §08-04 — Duty cycle (the time-averaging factor)
 - §08-05 — ERP (the input to power-density calculations)
 - §08-06 — Safe antenna placement (using these limits in installation design)
-- §12 — RF Exposure Calculator
+- §17-14 — RF Exposure Calculator
 - §11 — Power budget / ERP

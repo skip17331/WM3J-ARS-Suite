@@ -116,6 +116,6 @@ For these antennas, "incorrect length" maps to "tuning element out of adjustment
 
 ## See also
 
-- §06-antennas (chapter 05) — antenna design fundamentals
+- §06-antennas (chapter 06) — antenna design fundamentals
 - §09-antenna-calc — calculators for antenna lengths
 - §12-04 — nearby metal effects (often confused with length issues)

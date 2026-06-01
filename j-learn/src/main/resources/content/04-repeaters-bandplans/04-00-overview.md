@@ -48,7 +48,7 @@ If you want to understand the digital alphabet soup (DMR, Fusion, D-STAR, AllSta
 
 - Specific equipment programming — every brand of radio has its own menus. Read your manual.
 - Repeater building or duplexer tuning beyond a conceptual level — that's a whole hobby of its own.
-- HF operating practices — see chapter 24 (band plans) and the per-mode chapters in 25.
+- HF operating practices — see chapter 20 (band plans) and chapter 23 (HF operating).
 
 ## Quick reference for the impatient
 

@@ -84,4 +84,4 @@ Three reasons:
 - §06-07 — Reading directional patterns
 - §06-05 — Height effects on radiation patterns
 - §06-04 — Matching transformers (rhombic feed systems)
-- (planned §27 — Yagis: the modern alternative)
+- (§06-30 — Yagis/beams: the modern alternative)

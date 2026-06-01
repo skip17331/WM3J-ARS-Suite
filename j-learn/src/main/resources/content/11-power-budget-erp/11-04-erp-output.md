@@ -136,7 +136,7 @@ For 47 CFR §97.13 RF exposure compliance:
 4. Compute power density at each bystander location: PD = (0.0796 × EIRP_W / d²_m²) for far-field; corrections for near-field.
 5. Compare to MPE; document compliance.
 
-The §12 (RF Exposure Calculator) in J-Hub does this; you input EIRP from this chapter's output.
+The §17-14 (RF Exposure Calculator) in J-Hub does this; you input EIRP from this chapter's output.
 
 ## EIRP and DX path budget
 
@@ -177,4 +177,4 @@ That's a strong signal; easily worked. Compare to a 5W QRP setup: P = 6.99 + 0 �
 - §11-05 — Portable budget (worked example)
 - §08-05 — ERP for RF safety
 - §01-07 — Prediction models (where path loss meets EIRP)
-- §12 — RF Exposure Calculator
+- §17-14 — RF Exposure Calculator

@@ -133,4 +133,4 @@ Most amateur installations meet uncontrolled limits naturally. When they don't, 
 - §08-02 — MPE limits (the actual numbers per category)
 - §08-04 — Duty cycle (time-averaging within the categories)
 - §08-06 — Safe antenna placement (where category boundaries fall)
-- §12 — RF Exposure Calculator
+- §17-14 — RF Exposure Calculator

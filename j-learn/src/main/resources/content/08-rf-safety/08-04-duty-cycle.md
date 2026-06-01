@@ -144,4 +144,4 @@ In short: **MPE compliance covers chronic-exposure risks. Acute-injury risks nee
 - §08-02 — MPE limits (the time-averaged values being compared against)
 - §08-05 — ERP (the peak-power input)
 - §08-01 — FCC rules (the time-averaging is in 47 CFR 1.1310)
-- §12 — RF Exposure Calculator (handles duty cycle automatically)
+- §17-14 — RF Exposure Calculator (handles duty cycle automatically)
