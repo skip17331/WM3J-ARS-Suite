@@ -168,5 +168,5 @@ These channels are where the activity lives. If you're not on the chat during a 
 - [§30-02 — Meteor Scatter Operating](30-02-meteor-scatter.md) — the related VHF specialty
 - [§03 — Digital Modes](../03-digital-modes/) — Q65 / JT65 in the WSJT-X family
 - [§07 — Satellites](../07-satellites/) — Doppler tracking; same mechanical infrastructure
-- [§06 — Antennas](../06-antennas/) — long Yagis and stacked arrays
+- [§06-33 — Satellite & EME Antennas](../06-antennas/06-33-satellite-eme-antennas.md) — the EME array & dish antennas; §06-30 for the Yagis, §06-27 for the phasing harness
 - [§11 — Power Budget / ERP](../11-power-budget-erp/) — link budget calculation

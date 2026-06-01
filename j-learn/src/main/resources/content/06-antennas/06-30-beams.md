@@ -80,4 +80,5 @@ An **LPDA** is *all* elements driven, through a phase-reversing feedline run alo
 - §06-15 — Full-wave loops (the quad's elements)
 - §06-03 — Impedance transformation (gamma / hairpin / beta matches)
 - §06-27 — Phasing harnesses & stacking (stacking beams for more gain)
+- §06-33 — Satellite & EME antennas (stacked-Yagi arrays for moonbounce)
 - §06-05 — Ground-plane effects (why height wins)

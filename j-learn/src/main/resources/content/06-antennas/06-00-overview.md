@@ -60,6 +60,7 @@ The antenna families:
 | 06-30 | Beams — Yagis, quads & log-periodics | Parasitic directivity: gain and front-to-back from a rotatable beam |
 | 06-31 | Receive antennas | Beverages, steerable-null loops, flags/K9AY — hearing over noise on the low bands |
 | 06-32 | VHF/UHF antennas | Ground-planes, 5/8 & collinear verticals, J-poles, mobile/HT whips, discone |
+| 06-33 | Satellite & EME antennas | Circular polarization, omni vs Yagi, EME arrays & dishes (operating → §07/§29/§30) |
 
 ## What to read first
 
@@ -77,9 +78,12 @@ There is no best antenna. There is only the best antenna *for your space, your b
 
 What this chapter will *not* do is give you a single recommendation. What it will do is teach you enough to evaluate any antenna design and predict roughly how it will work for you before you spend money on it.
 
-## What you will not learn here
+## What lives in other chapters
 
-- **Satellite and EME antennas (turnstiles, circularly-polarized Yagis, EME dishes and arrays)** — these belong with the satellite/weak-signal material rather than the general HF/VHF antenna families here; see §07 (Satellites). A dedicated satellite/EME antenna treatment is planned.
+This chapter covers the antennas themselves. The *operating* mechanics that go with the specialized ones live elsewhere, and the antenna sections cross-link to them:
+
+- **Satellite & EME operating** — orbits and Keplerian elements, tracking software, Doppler correction, modes, and link budgets — is in §07 (Satellites), §29 (Satellite Advanced), and §30-03 (EME). §06-33 covers the antennas and points there.
+- **The Antenna Workshop (§09)** has the interactive calculators (dipole, vertical, J-pole, Yagi, loop, trap…) and the recommender wizard.
 
 ## Where the suite helps
 
