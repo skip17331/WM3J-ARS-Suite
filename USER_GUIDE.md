@@ -798,22 +798,96 @@ and a status label.
 
 *JavaFX desktop · WebSocket client (8080) + one-time settings fetch (HTTP 8081) · data in `~/.j-map/`*
 
-- **Needs your lat/lon** — without a station position, grayline and bearings are
-  meaningless. Set it in **J-Hub → Station** before launching.
-- **From the hub:** callsign, lat/lon, timezone, zones, and the full
-  `JMAP_CONFIG` (everything except window positions, which stay local so they
-  don't snap back when a config broadcast arrives). The **map style / image is
-  not uploaded inside J-Map** — pick it on **J-Hub → J-Map** (Blue Marble /
-  Cloudless / Night Lights / Political / Custom); the hub pushes a
-  `RELOAD_MAP_IMAGE` and J-Map redraws live.
-- **Floating windows** (DX Info, DE Info, Propagation, Lunar, Contest List) drag
-  freely, toggle individually, and persist their positions.
-- **DX Info bandplan caption** (`14074 kHz   DATA — Digimodes / FT8`) follows the
-  **IARU Region + Country** set on the Station tab and updates live.
-- **Reconnect:** if the hub is down at launch or the link drops later, J-Map
-  keeps running, shows a reconnecting banner, and retries with exponential
-  backoff (2 s → 60 s, ±20 % jitter), resyncing automatically when the hub
-  returns.
+J-Map is a full-screen situational-awareness display: an equirectangular world
+map with toggleable overlays, a set of detachable info windows, and live
+solar / propagation panels. **It has no menus or toolbar** — everything is
+configured from **J-Hub → J-Map** and broadcasts live. Set your **lat/lon** in
+J-Hub → Station first, or grayline and bearings are meaningless.
+
+#### Controls & keys
+
+No menu bar — J-Map is driven from the J-Hub web UI plus three keys:
+
+- **F** / **F11** — toggle full screen
+- **F1** — open J-Learn in your browser
+- **Esc** — leave full screen
+
+The cursor auto-hides over the map, and a startup overlay shows the keys and the
+config URL.
+
+#### The map & base styles
+
+An equirectangular world map on a configurable viewport. The base image is
+chosen on **J-Hub → J-Map** — **Blue Marble · Cloudless · Night Lights ·
+Political · Custom** (your own equirectangular JPG); the hub pushes
+`RELOAD_MAP_IMAGE` and J-Map redraws live (it's *not* uploaded inside J-Map).
+Always drawn on top: your **home-QTH** crosshair, the **subsolar** (sun) point,
+and the **moon** marker.
+
+#### Map overlays (each toggled in J-Hub → J-Map)
+
+- **Grayline / terminator** — night shade plus the golden day/night line.
+- **DX spots** — dots colored by mode (CW · SSB · FT8 · FT4 · RTTY · PSK · DIGI),
+  sized by age, optional callsign labels; a **mode legend** sits at the bottom.
+- **DX paths** — great-circle lines spotter→DX, mode-colored, band/age filtered.
+- **PSK Reporter** — sender dots + reception paths, mode-colored, band/age filtered.
+- **Aurora oval** + **geomagnetic alert rings** — auroral intensity map and
+  dashed visibility-latitude rings labeled with Kp / storm scale.
+- **Propagation (MUF) grid** — color-coded MUF cells across the map.
+- **Satellites** — ground tracks + current position / name (and footprints).
+- **Zone & grid overlays** — CQ zones, ITU zones, Maidenhead grid squares.
+- **Weather layers** — radar, lightning (density + recent strikes), weather
+  fronts, surface temperature / pressure.
+
+#### Top bar & side panels
+
+- **Time bar** (top) — **UTC** and **Local** clocks with dates.
+- **Right sidebar** (each optional) — **Solar Data** (Kp gauge, SFI, A-index,
+  SSN, X-ray, solar-wind speed/density/Bz, proton flux, optional SDO sunspot
+  image, data age), **Propagation** (FOT / MUF / LUF / SFI), and **Band
+  Conditions** (80 m–6 m OPEN / MARGINAL / CLOSED pills).
+- **Rotor map** (bottom-right) — a great-circle map with your beam heading /
+  beamwidth arc (and long-path), shown when the rotor is enabled.
+
+#### Floating windows (drag to place; positions persist; toggled in J-Hub)
+
+- **DE — Your Station** — callsign, local time, lat/lon, CQ/ITU zone + ARRL
+  section, grid.
+- **DX Information** — fills in when you click a spot (below): DX call, name,
+  country/state, **band + bandplan caption**, mode, local time at the DX end,
+  lat/lon, CQ/ITU zone + ARRL, grid, and the spotter + age. Auto-clears after
+  ~10 minutes.
+- **Contest Calendar** — active (▶) and upcoming contests with UTC start/end,
+  modes, and bands (from WA7BNM).
+- **HF Propagation** — a polar plot of MUF by direction around your QTH, plus
+  per-band OPEN / MARGINAL / CLOSED pills.
+- **Moon & Planets** — moon phase / illumination + az/el, and Venus / Mars /
+  Jupiter / Saturn az/el (above or below horizon).
+
+#### Clicking a DX spot
+
+Click a spot dot and J-Map populates the **DX Information** window, sends
+**`SPOT_SELECTED`** back to the hub (so your J-Log / J-Digi can tune the rig),
+and requests a **callsign lookup** — the returned name / country / state / coords
+enrich the window. The bandplan caption (`14074 kHz  DATA — Digimodes / FT8`)
+follows the **IARU Region + Country** set on the Station tab.
+
+#### Status & connection
+
+- A **hub-disconnected banner** appears at the bottom only when the link is down,
+  showing the URL and how long it's been out.
+- A **DX alert ticker** scrolls geomagnetic-storm and lightning alerts (or
+  "space weather quiet").
+- **Reconnect:** if the hub is down at launch or drops later, J-Map keeps
+  running and retries with exponential backoff (2 s → 60 s, ±20 % jitter),
+  resyncing automatically when the hub returns.
+
+#### Settings
+
+All settings come from **J-Hub → J-Map** over `JMAP_CONFIG` (window positions
+stay local so they don't snap back on a broadcast); the last config is cached in
+`~/.j-map/settings.json` for warm-start. Launch flags: `--hub <host>`,
+`--hub-ws-port`, `--hub-web-port`, `--launched-by-hub` (see Remote display).
 
 #### Remote display (second machine)
 
