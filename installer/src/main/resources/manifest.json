@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "modules": [
     {
       "name": "j-hub",
@@ -34,7 +34,7 @@
       "title": "WM3J J-Digi",
       "comment": "ARS Suite — digital modem",
       "launch": "j-digi/j-digi.sh",
-      "jar":    "j-digi/target/j-digi-1.0.41.jar",
+      "jar":    "j-digi/target/j-digi-1.0.42.jar",
       "icon":   "j-digi/src/main/resources/com/hamradio/modem/icons/icon.png",
       "categories": "HamRadio;AudioVideo;"
     },

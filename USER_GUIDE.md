@@ -705,7 +705,7 @@ auto-launch, and crash-recovery, see
 
 ### J-Digi — native digital modem
 
-*JavaFX desktop · WebSocket client (8080) · audio devices · version 1.0.41 (kept separate from the 1.5.0 suite)*
+*JavaFX desktop · WebSocket client (8080) · audio devices · version 1.0.42 (kept separate from the rest of the suite)*
 
 - **Needs working audio in/out** — pick the devices in the **Audio** menu.
 - **Modes:** CW, RTTY, PSK31, Olivia, MFSK16, DominoEX, and AX.25 (decode-only).

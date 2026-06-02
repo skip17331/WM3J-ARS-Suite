@@ -403,7 +403,7 @@ public class ModemService implements HubMessageListener {
         fireStatus();
 
         connectLatch = new CountDownLatch(1);
-        hubClient = new HubClient(new URI(trimmed), "j-digi", "1.0.41", this);
+        hubClient = new HubClient(new URI(trimmed), "j-digi", "1.0.42", this);
         hubClient.connect();
 
         boolean connected = connectLatch.await(CONNECT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
