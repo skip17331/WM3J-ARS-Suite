@@ -3644,6 +3644,11 @@ function jhubZoomGet() {
 }
 function jhubZoomApply(v) {
   document.body.style.zoom = String(v);
+  // Counter the zoom on the shell height: CSS `zoom` scales the 100vh app box
+  // too, so at v>1 it grows past the window and pushes the status bar + the
+  // nav-footer controls off the bottom (with no way to scroll there). Shrinking
+  // the body height by the same factor keeps the rendered shell == one viewport.
+  document.body.style.height = 'calc(100vh / ' + v + ')';
   try { localStorage.setItem('jhub-zoom', String(v)); } catch (e) {}
 }
 function jhubZoomDelta(d) {

@@ -51,7 +51,7 @@ body {
   display: grid;
   grid-template-columns: var(--nav-w) 1fr var(--intel-w);
   grid-template-rows: 1fr var(--status-h);
-  height: 100vh;
+  height: 100%;   /* fill body; body height is zoom-compensated in jhubZoomApply */
 }
 
 /* ── Left navigation ──────────────────────────────────────── */
