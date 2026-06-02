@@ -375,7 +375,6 @@ Backend + manual control for an az (or az/el) rotator. Stored under `rotor`.
 
 ![J-Hub — Amp Control](docs/images/jhub-amp.png)
 ![J-Hub — Amp Control (cont.)](docs/images/jhub-amp-2.png)
-![J-Hub — Amp Control (cont.)](docs/images/jhub-amp-3.png)
 
 Hamlib `ampctld` backend + live amp telemetry. Stored under `amp`.
 
@@ -394,7 +393,7 @@ Hamlib `ampctld` backend + live amp telemetry. Stored under `amp`.
 
 ### 4.6 Antenna — automatic antenna switching
 
-> 📷 *Antenna Switch screenshot pending.*
+![J-Hub — Antenna Switch](docs/images/jhub-antenna.png)
 
 Drives serial relay switches from band / mode / rotor heading. Stored under `antenna`.
 
