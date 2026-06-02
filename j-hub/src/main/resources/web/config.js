@@ -3642,13 +3642,22 @@ function jhubZoomGet() {
   const v = parseFloat(localStorage.getItem('jhub-zoom'));
   return isFinite(v) && v >= 0.7 && v <= 1.6 ? v : 1.0;
 }
+// Does this browser honor the (non-standard) CSS `zoom` property? Chrome/Safari
+// always; Firefox only since 126. Computed once.
+var JHUB_ZOOM_OK = (function () {
+  try { return !!(window.CSS && CSS.supports && CSS.supports('zoom', '1')); }
+  catch (e) { return false; }
+})();
 function jhubZoomApply(v) {
-  document.body.style.zoom = String(v);
-  // Counter the zoom on the shell height: CSS `zoom` scales the 100vh app box
-  // too, so at v>1 it grows past the window and pushes the status bar + the
-  // nav-footer controls off the bottom (with no way to scroll there). Shrinking
-  // the body height by the same factor keeps the rendered shell == one viewport.
-  document.body.style.height = 'calc(100vh / ' + v + ')';
+  // Only touch layout if `zoom` is actually supported. The height below counters
+  // the fact that CSS `zoom` scales the 100vh app box too — without that counter
+  // a v>1 zoom pushes the status bar + nav-footer controls off the bottom. But on
+  // a browser that ignores `zoom`, applying the height anyway would SHRINK the
+  // shell without zooming, so we skip both there (A−/A+ simply do nothing).
+  if (JHUB_ZOOM_OK) {
+    document.body.style.zoom = String(v);
+    document.body.style.height = 'calc(100vh / ' + v + ')';
+  }
   try { localStorage.setItem('jhub-zoom', String(v)); } catch (e) {}
 }
 function jhubZoomDelta(d) {
