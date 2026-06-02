@@ -76,7 +76,7 @@ public class SplashScreen {
     }
 
     private void launchMainWindow() {
-        splashStage.close();
+        if (splashStage != null) splashStage.close();   // null when launchedByHub (no splash was shown)
         ModemAppContext.applyIcon(primaryStage);
         MainWindow window = new MainWindow(context.getModemService());
         window.show(primaryStage);
