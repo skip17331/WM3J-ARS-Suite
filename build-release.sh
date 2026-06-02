@@ -100,7 +100,28 @@ restore_host_jars() {
   verify_host_jars
 }
 
+# Preflight: the universal (crossplatform) jar is only correct when built on an
+# x86-64 host — on an aarch64 host the auto-activated linux-aarch64 profile forces
+# JavaFX 23.0.1 + an aarch64 native, so the "universal" jar would be wrong. Also
+# assert every JavaFX pom still pins the ARM JavaFX version in BOTH its
+# linux-aarch64 and arm-release profiles, so a dropped override (the 2026-06-02
+# Pi-build regression) fails the release loudly instead of shipping a 404-on-Pi jar.
+ARM_FX_VERSION="23.0.1"
+preflight() {
+  case "$(uname -m)" in
+    x86_64|amd64) ;;
+    *) echo "ERROR: build the release on an x86-64 host. On $(uname -m) the crossplatform profile resolves JavaFX $ARM_FX_VERSION + an aarch64 native, producing a broken 'universal' jar."; exit 2 ;;
+  esac
+  local m n fail=0
+  for m in "${JAVAFX_MODULES[@]}"; do
+    n="$(grep -c "<javafx.version>${ARM_FX_VERSION}</javafx.version>" "$m/pom.xml" || true)"
+    [ "$n" -ge 2 ] || { echo "   !! $m/pom.xml: expected the linux-aarch64 AND arm-release profiles to pin javafx $ARM_FX_VERSION (found $n) — ARM override drift"; fail=1; }
+  done
+  [ "$fail" = 0 ] || { echo "PREFLIGHT FAILED — fix the ARM JavaFX version override(s) above before releasing."; exit 1; }
+}
+
 full_release() {
+  preflight
   echo "==> Clean dist/"
   rm -rf "$DIST"; mkdir -p "$DIST"
 
