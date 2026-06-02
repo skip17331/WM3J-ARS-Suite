@@ -223,6 +223,7 @@
                     <archive>
                         <manifest>
                             <mainClass>com.hamradio.modem.Launcher</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
                     <descriptorRefs>

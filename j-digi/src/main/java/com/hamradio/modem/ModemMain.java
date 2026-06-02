@@ -27,6 +27,14 @@ public class ModemMain extends Application {
         return root + "/j-hub/start.sh";
     }
 
+    /** App version, read from the jar manifest's Implementation-Version
+     *  (set by ${project.version} at build time); "dev" when run unpackaged.
+     *  Single source so the value can't drift from the pom. */
+    public static String version() {
+        String v = ModemMain.class.getPackage().getImplementationVersion();
+        return (v != null && !v.isBlank()) ? v : "dev";
+    }
+
     private ModemService modemService;
     private boolean      launchedByHub = false;
 
