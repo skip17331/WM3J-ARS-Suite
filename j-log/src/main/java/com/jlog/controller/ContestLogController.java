@@ -12,6 +12,8 @@ import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
 import com.jlog.scoring.RecordFields;
+import com.jlog.scoring.ContestScorer;
+import com.jlog.scoring.StationContext;
 import com.jlog.scoring.AriDx;
 import com.jlog.scoring.AsianEntities;
 import com.jlog.scoring.OceaniaDx;
@@ -1867,6 +1869,23 @@ public class ContestLogController implements Initializable, RigControlController
     /** Resolve QSO points honouring region-pair (ARRL 160M) / band-class (Intl
      *  Digital) / rookie-roundup rules when declared; falls back to mode / default. */
     private int computeQsoPoints(QsoRecord q) {
+        return ContestScorer.points(plugin, q, stationContext());
+    }
+
+    /** Station facts the engine scorer needs: own call (station, else the contest
+     *  "sent" call), grid, and — for qso_party only — the operator's own sent QTH. */
+    private StationContext stationContext() {
+        String myCall = AppConfig.getInstance().getStationCallsign();
+        if (myCall == null || myCall.isBlank()) myCall = AppConfig.getInstance().getSsCallsign();
+        boolean qp = plugin.getScoringRules() != null
+                && "qso_party".equals(plugin.getScoringRules().getMultiplierType());
+        return StationContext.of(myCall, AppConfig.getInstance().getGridSquare(), qp ? qpMyQth() : "");
+    }
+
+    /** @deprecated superseded by {@link ContestScorer#points} (scoring refactor
+     *  stage 2). Dead; kept to minimize churn, removed in the stage-2 cleanup. */
+    @Deprecated
+    private int computeQsoPointsLegacy(QsoRecord q) {
         String mode = q.getMode() != null ? q.getMode() : "";
         String band = q.getBand() != null ? q.getBand() : "";
         var rules = plugin.getScoringRules();
