@@ -78,7 +78,7 @@ J-Hub isn't "the launcher you can close once the apps are up." It is the thing t
 | `j-hub` | broker + web UI (JavaFX tray + Jetty) | Switchboard, config authority, state cache, app launcher, Antenna Workshop | **8080** WS, **8081** HTTP |
 | `j-log` | JavaFX desktop | QSO logger — Normal + contest (68+ plugins) + awards | — (WS client) |
 | `j-map` | JavaFX desktop | DX map: grayline, propagation, satellite / lunar / aurora overlays | — (WS client) |
-| `j-digi` | JavaFX desktop | Native digital modem — CW, RTTY, PSK, Olivia, MFSK, Feld Hell | — (audio devices) |
+| `j-digi` | JavaFX desktop | Native digital modem — CW, RTTY, PSK31, Olivia, MFSK16, DominoEX, AX.25 | — (audio devices) |
 | `j-bridge` | JavaFX desktop | Bridges WSJT-X into the suite | **2237** UDP (WSJT-X) |
 | `j-sat` | JavaFX desktop | Satellite pass tracker; rig/rotor auto-tune during passes | 4540 (TLE API) |
 | `morse-trainer` | JavaFX desktop | CW trainer — letter/group/QSO drills + sending practice | — |
@@ -249,8 +249,8 @@ button re-probes after you install them.
 5. Under **DX Cluster**, pick a network (e.g. `dx.middlebrook.ca:8000`), enter
    your login callsign, tick **Auto-connect**, save.
 6. Restart J-Hub. Auto-launched modules come up, register on the hub, and
-   start sharing state. J-Vault appears in its own window on first launch
-   (it's a JavaFX status window with an "Open in Browser" button).
+   start sharing state. J-Vault opens in your browser on first launch
+   (a tab at `http://localhost:8083`; J-Hub also frames it as the J-Vault tab).
 
 ---
 
@@ -617,163 +617,217 @@ Independent of the tabs, a right-hand **Operator Intel** pane is always on scree
 
 ## 5. Per-app notes
 
-Most apps need no special setup beyond what's in j-hub's web UI. The exceptions:
+Each app is its own process. The five JavaFX apps (J-Log, J-Map, J-Digi,
+J-Bridge, J-Sat) are **WebSocket clients of J-Hub** on port 8080 — they take
+their station identity and settings from the hub and need almost no local
+setup. Morse Trainer is fully standalone. J-Vault and J-Learn are
+browser-based web apps. What follows is the per-app detail beyond the J-Hub
+tabs covered in §4.
 
-### J-Log
+> **The common launch flag.** Every app J-Hub starts gets `--launched-by-hub`,
+> which suppresses that app's own splash / auto-browser-open and hands lifecycle
+> control to the hub. You only pass flags yourself when launching an app by hand
+> (for example a second-machine J-Map — see below).
 
-- **Modes** — Normal Log (casual QSOs) or Contest Log. Choose at startup from
-  the splash screen; the active choice drives which pane layout loads.
-- **Contest plugins** live in `~/.j-log/contests/` (user-installed) or bundled
-  inside `j-log-engine.jar`. Import a community plugin via **File → Import
-  Plugin…** from inside j-log.
-- **Awards** live in `~/.j-log/awards/`. Drop a JSON plugin into that folder
-  and click **Refresh** on the Awards dashboard.
-- **POTA/SOTA activation mode** — launch j-log with `--activation` to reveal
-  the activation bar (SIG + SIG_INFO fields that stamp every QSO).
-- **CW/Digital keyer** — toggle via **Tools → CW / Digital Keyer**. The
-  embedded pane drops into the main window; right-click RX text to send
-  selection to callsign/name/state fields.
-- **QSL printing** — **File → Print QSL Cards…** opens a 4-up layout that
-  prints either the currently-selected rows or all unsent cards. Option to
-  auto-mark QSL sent after print succeeds.
+### J-Log — logger (Normal + Contest)
 
-### J-Map
+*JavaFX desktop · WebSocket client (`ws://127.0.0.1:8080`) · data in `~/.j-log/`*
 
-- First run asks for Station lat/lon; without it, grayline and bearings are
-  useless. Set them in the **Station** tab before starting j-map.
-- Default world map is a basic blue-marble. Upload any equirectangular jpg
-  under **J-Map → Map Images** to replace it.
-- Floating windows (DX Info, Contest List, Countdown, Propagation, Lunar)
-  can be dragged, toggled individually, and their positions persist.
-- **DX Info bandplan caption** (`14074 kHz   DATA — Digimodes / FT8`)
-  follows the **IARU Region + Country Overlay** set under J-Hub's
-  Station → Regional Settings. Updates live without a J-Map restart.
+- **Startup mode** is chosen on the splash screen: **Normal Log** (casual) or
+  **Contest Log** (which then shows a contest-plugin chooser). The choice drives
+  which pane layout loads.
+- **From the hub:** station config plus a live `CONFIG_UPDATE` (font size,
+  density, rig-pane visibility, ID-timer). Rig status, recent spots, and the
+  active logging session are replayed on connect, so opening J-Log mid-session
+  lands you in the current picture.
+- **To the hub:** J-Log both consumes and *drives* — selecting a spot
+  (`SPOT_SELECTED`), QRZ lookups, rig-control commands (set freq / mode / VFO),
+  CW and PTT keying, antenna overrides, and — in a contest — `CONTEST_ACTIVE`
+  plus per-QSO `QSO_SAVED` broadcasts for multi-op sync.
+- **Databases (local):** `~/.j-log/j-log.db` (normal), `contest.db` (contest),
+  `config.db` (station / macros); backups in `~/.j-log/backups/`.
+- **Contest plugins** live in `~/.j-log/plugins/` (or bundled in
+  `j-log-engine.jar`); import a community plugin from **File → Import Plugin…**.
+  **Awards** live in `~/.j-log/awards/` — drop in a JSON plugin and hit
+  **Refresh** on the Awards dashboard.
+- **CW / Digital keyer** — **Tools → CW / Digital Keyer** drops an embedded pane
+  into the window; right-click RX text to push a selection to the
+  callsign / name / state fields.
+- **QSL printing** — **File → Print QSL Cards…** gives a 4-up layout for the
+  selected rows or all unsent cards, with an optional auto-mark-sent.
+- **Gotcha:** there is no `--hub` override — J-Log expects the hub at
+  `127.0.0.1:8080` (IPv4 by design, to dodge the loopback IPv6/IPv4 mismatch)
+  and will auto-start J-Hub for you if it isn't already running.
+
+### J-Map — DX / propagation map
+
+*JavaFX desktop · WebSocket client (8080) + one-time settings fetch (HTTP 8081) · data in `~/.j-map/`*
+
+- **Needs your lat/lon** — without a station position, grayline and bearings are
+  meaningless. Set it in **J-Hub → Station** before launching.
+- **From the hub:** callsign, lat/lon, timezone, zones, and the full
+  `JMAP_CONFIG` (everything except window positions, which stay local so they
+  don't snap back when a config broadcast arrives). The **map style / image is
+  not uploaded inside J-Map** — pick it on **J-Hub → J-Map** (Blue Marble /
+  Cloudless / Night Lights / Political / Custom); the hub pushes a
+  `RELOAD_MAP_IMAGE` and J-Map redraws live.
+- **Floating windows** (DX Info, DE Info, Propagation, Lunar, Contest List) drag
+  freely, toggle individually, and persist their positions.
+- **DX Info bandplan caption** (`14074 kHz   DATA — Digimodes / FT8`) follows the
+  **IARU Region + Country** set on the Station tab and updates live.
+- **Reconnect:** if the hub is down at launch or the link drops later, J-Map
+  keeps running, shows a reconnecting banner, and retries with exponential
+  backoff (2 s → 60 s, ±20 % jitter), resyncing automatically when the hub
+  returns.
 
 #### Remote display (second machine)
 
-J-Map doubles as a dedicated shack display — a wall monitor driven by a
-cheap box (Raspberry Pi, mini-PC, spare laptop) showing grayline, spots,
-and propagation while the station PC does the real work. The display box
-runs **J-Map only** — there is no second J-Hub on it — and connects back
-to the station's J-Hub over the network.
-
-Build J-Map on the display box exactly as on the station, then launch it
-pointed at the station's LAN address:
+J-Map doubles as a dedicated shack display — a wall monitor driven by a cheap
+box (Raspberry Pi, mini-PC, spare laptop) showing grayline, spots, and
+propagation while the station PC does the real work. The display box runs
+**J-Map only** (there is no second J-Hub on it) and points back at the station's
+hub:
 
 | Platform | Launch command |
 |---|---|
 | Linux / macOS | `./j-map/j-map.sh --hub 192.168.1.42` |
 | Windows | `j-map\j-map.bat --hub 192.168.1.42` |
 
-The station PC must allow two inbound ports: **8080** (WebSocket — live
-data) and **8081** (HTTP — a one-time settings fetch at startup).
+`--hub <host>` pins the address (and disables LAN auto-discovery);
+`--hub-ws-port` / `--hub-web-port` override the ports if you've moved them. The
+address persists to `~/.j-map/settings.json`, so later launches need no flag.
+The station PC must allow two inbound ports: **8080** (WebSocket — live data)
+and **8081** (HTTP — the one-time settings fetch at startup). Settings and
+station identity flow hub → display; clicking a spot flows back so the station's
+J-Log / J-Digi can tune the rig. For the full per-OS build recipe, boot
+auto-launch, and crash-recovery, see
+**INSTALL.md → Standalone J-Map (second-machine display)**.
 
-- **Resilient.** If the station is down when the display boots, or the
-  link drops later, J-Map keeps running, shows a reconnecting banner,
-  and retries automatically with exponential backoff (2 s → 60 s). It
-  resyncs the moment the station returns — no manual restart.
-- **Mostly read-only.** Settings and station identity flow hub →
-  display; clicking a spot sends it back so the station's J-Log /
-  J-Digi can tune the rig.
-- **Configured from the station.** Edit J-Map's settings in the
-  station's J-Hub web UI — changes broadcast live to the display.
+### J-Digi — native digital modem
 
-For the full per-OS build recipe, boot auto-launch, and crash-recovery,
-see **INSTALL.md → Standalone J-Map (second-machine display)**.
+*JavaFX desktop · WebSocket client (8080) · audio devices · version 1.0.41 (kept separate from the 1.5.0 suite)*
 
-### J-Digi
+- **Needs working audio in/out** — pick the devices in the **Audio** menu.
+- **Modes:** CW, RTTY, PSK31, Olivia, MFSK16, DominoEX, and AX.25 (decode-only).
+  It does **not** decode FT8 / FT4 — it only flags them and points you at
+  WSJT-X (use **J-Bridge** for those).
+- **Transmit & PTT** (set on **J-Hub → J-Digi**): **VOX** (audio-sensing —
+  required for SignaLink / DigiRig audio-PTT) or **HAMLIB** (sends `T 1` / `T 0`
+  to `rigctld`). HAMLIB is required for pure CW, since there's no audio for VOX
+  to key on.
+- **CW keying paths:** `cw.keyer = AUDIO` (default) synthesizes sidetone through
+  the soundcard; `cw.keyer = HAMLIB` hands the text to the rig's built-in keyer
+  over CAT (`b <text>`). Both paths share the **CW WPM** setting.
+- **Bandplan caption** in the status bar follows the Station tab's IARU
+  Region + Country.
+- **Contest mode:** on a `CONTEST_ACTIVE` message from J-Log, J-Digi rebuilds its
+  entry form to match the contest's exchange schema; QSOs logged here go straight
+  into the shared contest DB via j-log-engine.
 
-- Requires working audio input/output. Pick devices in **Audio** menu.
-- Doesn't interface with WSJT-X — use j-bridge for that. J-Digi is for
-  keyboard-to-keyboard and legacy digital modes (RTTY, PSK31, Olivia,
-  MFSK, Feld Hell).
-- **Transmit & PTT** — pick **VOX** (audio-sensing — works without CAT,
-  required if you use SignaLink/DigiRig audio-PTT) or **HAMLIB** (J-Digi
-  sends `T 1`/`T 0` to the station's `rigctld`). HAMLIB is required for
-  pure CW since there's no audio for VOX to sense. Set in **J-Hub →
-  J-Digi → Transmit & CW**.
-- **CW keying paths** — set `cw.keyer = AUDIO` (default) for synthesized
-  sidetone through the soundcard, or `cw.keyer = HAMLIB` to hand the
-  text to the rig's built-in keyer over CAT (`b <text>`). Both paths
-  share the **CW WPM** setting on the same card. AUDIO works with VOX;
-  HAMLIB is cleanest if you have CAT but no audio path to the rig.
-- **Bandplan caption** in the status bar follows the **IARU Region** +
-  **Country** set on J-Hub's Station tab.
-- **Contest mode** — when j-log enters a contest, j-digi gets a
-  `CONTEST_ACTIVE` message and rebuilds its entry form to match the
-  contest's exchange schema. QSOs logged from j-digi go directly to the
-  shared contest DB via j-log-engine.
+### J-Bridge — WSJT-X bridge
 
-### J-Bridge
+*JavaFX desktop · WebSocket client (8080) · listens for WSJT-X UDP on 2237*
 
-- Listens for WSJT-X UDP broadcasts on port 2237 by default.
-- Configure WSJT-X: **File → Settings → Reporting → UDP Server**:
-  - Server: `127.0.0.1`
-  - Port: `2237`
-  - **Accept UDP requests**: checked
-- The WSJT-X sidebar panel in j-bridge shows connection status (green dot +
-  version string when connected). If WSJT-X was already running before
-  j-bridge started, click the **Reconnect** button in that panel.
-- **Frequency bandplan caption** in the status panel follows the
-  **IARU Region + Country Overlay** set under J-Hub's Station tab.
+- **Point WSJT-X at it:** **File → Settings → Reporting → UDP Server** → Server
+  `127.0.0.1`, Port `2237`, **Accept UDP requests** checked. (The port is
+  configurable via `j-bridge-config.json` → `wsjtx.udpPort` if 2237 clashes.)
+- **To the hub:** `WSJTX_DECODE`, `WSJTX_STATUS`, `WSJTX_QSO_LOGGED`,
+  `WSJTX_CONNECTION` — so WSJT-X decodes and logged QSOs reach the rest of the
+  suite.
+- **Status panels:** separate WSJT-X and Hub panels each show a connection dot
+  (green + version string when up) and a **Reconnect** button. If WSJT-X was
+  already running before J-Bridge started, click **Reconnect** on the WSJT-X
+  panel.
+- **Bandplan caption** in the status panel follows the Station tab's IARU
+  Region + Country.
 
-### J-Sat
+### J-Sat — satellite tracker
 
-- Loads TLE data on first run (a few hundred KB from Celestrak). Configure
-  TLE source and staleness threshold in the **J-Sat** tab.
-- Rig and rotor control are independent toggles — both require their
-  respective backend in j-hub's Rig/Rotor Control tabs.
-- Select active satellites on the J-Sat tab's satellite list; only selected
-  birds appear in the upcoming-passes list.
+*JavaFX desktop · WebSocket client (8080) · TLE API on 4540*
 
-### J-Vault
+- **TLEs** load on first run from Celestrak (amateur + stations groups, with an
+  AMSAT fallback). Set the source and staleness threshold (default 48 h) on the
+  **J-Sat** tab; the fetched elements are served locally on port 4540.
+- **Rig and rotor control are independent toggles** — each requires its backend
+  running in J-Hub's Rig / Rotor tabs. When a toggle is on and a bird is in view,
+  J-Sat publishes `SAT_DOPPLER` (doppler-corrected up/down-link frequencies)
+  and / or `SAT_ROTOR_CMD` (az/el target) every tick.
+- **Pass list:** only the satellites you tick in the satellite list drive the
+  upcoming-passes list, and the selected bird is the one tracked.
 
-- **Standalone process on port 8083.** Launch from J-Hub's Modules panel
-  or the Mini UI, or directly via `bash j-vault/j-vault.sh`. Opens its
-  own JavaFX status window with **Open in Browser** / **Hide** / **Quit**
-  buttons.
-- **Data lives in `~/.j-vault/inventory.db`** (separate from `~/.j-hub/`).
-  On first launch, J-Vault checks for a legacy `~/.j-hub/inventory.db`
-  (from before the J-Vault split) and copies it forward — no data lost.
-- **Estate Handoff PDF wizard** — click **Estate Document…** in the
-  Inventory toolbar. Pick which sections to include via Include/Exclude
-  radio pairs (first-call contacts, equipment inventory, value summary,
-  sale recommendations, step-by-step instructions, glossary). Click
-  **Download PDF** — produces a real `.pdf` file in your browser's
-  Downloads folder via bundled jsPDF + jspdf-autotable. No print
-  dialog, no copy-paste.
-- **Filter by disposition** in the wizard — All / Working only /
-  Working + Repairable (sellable).
-- **Personal note** field on the wizard prints on the cover page.
-- **Type-specific hints** in the Add Item modal change as you switch
-  the Type dropdown — radios get hints about firmware versions, coax
-  runs get hints about model = type+length, towers get hints about
-  guy material, etc.
+### Morse Trainer — CW practice
 
-### J-Learn
+*JavaFX desktop · **fully standalone** (no J-Hub connection) · config in `config/app-config.json`*
 
-- **Standalone web app** on port 8082. J-Hub iframes it as the J-Learn
-  tab; the same URL works directly in any browser on the LAN.
-- **Editable content** — on first run, the bundled markdown is seeded to
-  `~/.j-learn/content/`. Edit a file there, hit Reload in the J-Learn tab,
-  and the change shows up immediately. No rebuild required.
-- **Settings** — `~/.j-learn/settings.json` lets you change the listen
-  port. Override per-launch with `-Djlearn.port=NNNN`.
-- **Search box** filters the TOC by title or section ID. Typing `15-`
-  narrows to chapter 15 (Formulas); typing `emcomm` jumps to chapter 20.
-- **Advanced toggle** above the TOC shows / hides
-  `> **Advanced —**` callouts (Extra-class / engineering-depth
-  paragraphs). Default is hidden.
-- **Text-size slider** at the top of the page scales the rendered viewer
-  between 80-180%. Persists per browser via `localStorage`.
-- **Direct deep-links** — `http://localhost:8082/?section=04-03` opens
-  J-Learn straight to that section. Used by the iframe inside J-Hub for
-  cross-module navigation.
-- **Cross-references** look like `§NN-NN` in prose. Most chapters end
-  with a "See also" section linking to related sections.
-- **Per-chapter banners** (§03 Morse, §07 Antenna Workshop, §15 Formulas)
-  inject a Launch / Open button at the top of every section in that
-  chapter — see the table in the Web UI walkthrough.
+- **Not a hub client.** It runs entirely on its own — the only J-Hub touch-point
+  is optional language packs under `~/.j-hub/lang/morse-trainer/`, and it falls
+  back to English if those are absent.
+- **Drills:** single-letter and group (Koch-ordered) practice, QSO simulation
+  (Training / Casual / Contest difficulty, optionally seeded with your call /
+  name / QTH), and sending practice with a live decoder (Guided compares your
+  sending to a target; Free just decodes what you key).
+- **Timing:** configurable character **WPM** (5–50) and **Farnsworth** spacing
+  (applied only when the Farnsworth WPM is below the character WPM); Koch order
+  and starting level are configurable.
+- **Hardware keyers (optional, both DIY):** an **Arduino** USB-serial keyer
+  (pick the serial port and baud — default 115200) and a **Pi Zero W** wireless
+  keyer (UDP). Firmware, the Java glue, and an OpenSCAD enclosure all live under
+  `morse-trainer/hardware/`. (The old USB-HID variant was dropped — don't expect
+  it.)
+- **Gotcha:** both keyers derive dit length from the app's WPM, not the device,
+  so keep the firmware and app WPM in sync or the timing drifts. If the audio
+  line can't be opened, the app keeps running silently (no sidetone) rather than
+  erroring out.
+
+### J-Vault — inventory & estate planning
+
+*Browser web app (Jetty, **no native window**) · standalone (not a hub client) · port 8083 · data in `~/.j-vault/inventory.db`*
+
+- **Launch / reach it:** from J-Hub's Modules panel (it's iframed as the J-Vault
+  tab) or directly via `java -jar j-vault-….jar`. The UI lives entirely in the
+  browser at `http://localhost:8083` — there is no JavaFX window. `--no-browser`
+  (or `--launched-by-hub`) skips the auto-open tab; `-Djvault.port=NNNN` moves
+  the port.
+- **Standalone:** J-Vault does *not* open a WebSocket to J-Hub — it's a
+  self-contained app the hub merely frames. On first launch it copies a legacy
+  `~/.j-hub/inventory.db` forward (copies, doesn't move) so pre-split data isn't
+  lost.
+- **Estate Handoff PDF wizard** — **Estate Document…** in the Inventory toolbar.
+  Include or exclude each section via radio pairs (first-call contacts,
+  equipment inventory, value summary, sale recommendations, step-by-step
+  instructions, non-ham glossary), filter by disposition (All / Working only /
+  Working + Repairable), add a personal note that prints on the cover, then
+  **Download PDF** — a real `.pdf` straight to your browser's Downloads via
+  bundled jsPDF + jspdf-autotable, with no print dialog.
+- **Type-specific hints** in the Add Item modal change as you switch the Type
+  dropdown — radios get firmware-version hints, coax runs get model =
+  type + length, towers get guy-material hints, and so on.
+
+### J-Learn — reference library
+
+*Browser web app (Jetty, no native window) · standalone (not a hub client) · port 8082 · content in `~/.j-learn/content/`*
+
+- **Launch / reach it:** iframed as the J-Learn tab, or open
+  `http://localhost:8082` in any browser on the LAN (phone, tablet, shack
+  laptop). `--launched-by-hub` suppresses the auto-browser-open and the
+  standalone presence-watchdog so the hub owns its lifecycle.
+- **300+ sections across 31 chapters.** On first run the bundled markdown seeds
+  to `~/.j-learn/content/`; edit a file there and hit Reload — the change shows
+  immediately, no rebuild. Port override via `~/.j-learn/settings.json` or
+  `-Djlearn.port=NNNN`.
+- **Search box** filters the TOC by title or section ID — type `17-` to narrow
+  to the Formulas chapter, or a word like `emcomm` to jump across chapters.
+- **Advanced material** is marked with a ⚙️ in the TOC and an accented callout in
+  the text; it is always shown (there is no longer a hide / show toggle).
+- **Text-size slider** (80–180 %) at the top scales the rendered viewer and
+  persists per browser via `localStorage`.
+- **Deep-links:** `…/?section=04-03` opens J-Learn straight to that section —
+  this is how the J-Hub iframe and cross-module buttons navigate.
+- **Cross-module banners** appear at the top of three chapter families and post
+  back to J-Hub: **§05** (Morse → *Launch Trainer*), **§09** (Antennas →
+  *Open in Antenna Workshop*), and **§17** (Formulas → *Open the matching
+  calculator*). Cross-references in prose look like `§NN-NN`, and most chapters
+  end with a "See also" list.
 
 ---
 
