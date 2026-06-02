@@ -1,7 +1,8 @@
 {
   "contestId":   "ARRL_RRU_CW",
   "contestName": "ARRL Rookie Roundup (CW)",
-  "version":     "1.1.0",
+  "cabrilloContestName": "ARRL-RR-CW",
+  "version":     "1.2.0",
 
   "exchangeFormat": "NAME YY STATE/PROV/XE#/DX  (e.g. JOHN 23 PA, SUE 05 ON, RAMON 96 XE1, TOSHI 75 DX)",
 
