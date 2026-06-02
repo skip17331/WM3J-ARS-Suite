@@ -263,7 +263,7 @@ How saving works (verified in `config.js` / `WebConfigServer`):
 - A small status line next to each Save button confirms the write.
 - Read-only tabs (Dashboard) only display state streamed from the apps; nothing to save.
 
-> 📷 *Screenshots:* each tab below references an image under `docs/images/` (e.g. `jhub-station.png`). Capture each tab at ~1400 px wide with representative data.
+> 📷 *Screenshots:* each tab below shows a capture under `docs/images/`. Taller tabs (Rig, Rotor, Amp, Modules, J-Map, J-Sat, …) are shown as two or three scrolled views.
 
 ---
 
@@ -319,6 +319,8 @@ The suite-wide identity. These values are broadcast to every app via `STATION_CO
 ### 4.3 Rig — transceiver backend
 
 ![J-Hub — Rig Control](docs/images/jhub-rig.png)
+![J-Hub — Rig Control (cont.)](docs/images/jhub-rig-2.png)
+![J-Hub — Rig Control (cont.)](docs/images/jhub-rig-3.png)
 
 Sets how J-Hub talks to your radio. Stored under `rig` in `j-hub.json`; a connection badge by the card title shows Disabled / connected / error.
 
@@ -348,6 +350,8 @@ Sets how J-Hub talks to your radio. Stored under `rig` in `j-hub.json`; a connec
 ### 4.4 Rotor — antenna rotator
 
 ![J-Hub — Rotor Control](docs/images/jhub-rotor.png)
+![J-Hub — Rotor Control (cont.)](docs/images/jhub-rotor-2.png)
+![J-Hub — Rotor Control (cont.)](docs/images/jhub-rotor-3.png)
 
 Backend + manual control for an az (or az/el) rotator. Stored under `rotor`.
 
@@ -370,6 +374,8 @@ Backend + manual control for an az (or az/el) rotator. Stored under `rotor`.
 ### 4.5 Amp — amplifier (Hamlib ampctld)
 
 ![J-Hub — Amp Control](docs/images/jhub-amp.png)
+![J-Hub — Amp Control (cont.)](docs/images/jhub-amp-2.png)
+![J-Hub — Amp Control (cont.)](docs/images/jhub-amp-3.png)
 
 Hamlib `ampctld` backend + live amp telemetry. Stored under `amp`.
 
@@ -388,7 +394,7 @@ Hamlib `ampctld` backend + live amp telemetry. Stored under `amp`.
 
 ### 4.6 Antenna — automatic antenna switching
 
-![J-Hub — Antenna Switch](docs/images/jhub-antenna.png)
+> 📷 *Antenna Switch screenshot pending.*
 
 Drives serial relay switches from band / mode / rotor heading. Stored under `antenna`.
 
@@ -405,6 +411,7 @@ Drives serial relay switches from band / mode / rotor heading. Stored under `ant
 ### 4.7 Macros — text & voice
 
 ![J-Hub — Macros](docs/images/jhub-macros.png)
+![J-Hub — Macros (cont.)](docs/images/jhub-macros-2.png)
 
 Define the macros every module shares (the same `MacroVariableEngine` expands them at QSO time). A segmented control at the top switches between **Digital / CW** macros (text) and **Voice** macros (recorded WAV). Stored under `macros`.
 
@@ -438,6 +445,7 @@ Results and calculators deep-link into the matching J-Learn sections for the und
 ### 4.9 J-Learn — reference library (embedded)
 
 ![J-Hub — J-Learn](docs/images/jhub-learn.png)
+![J-Hub — J-Learn (cont.)](docs/images/jhub-learn-2.png)
 
 Embeds the J-Learn web app (separate process on **:8082**) as an iframe — 300+ sections on propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Lazy-loaded (no network hit until you open the tab).
 
@@ -449,6 +457,7 @@ Embeds the J-Learn web app (separate process on **:8082**) as an iframe — 300+
 ### 4.10 Cluster — DX cluster, RBN & skimmer
 
 ![J-Hub — DX Cluster](docs/images/jhub-cluster.png)
+![J-Hub — DX Cluster (cont.)](docs/images/jhub-cluster-2.png)
 
 Telnet feeds that fan spots out to J-Map and J-Log over the broker (`SPOT`). Stored under `cluster` / `rbn` / `skimmer`.
 
@@ -487,6 +496,8 @@ Telnet feeds that fan spots out to J-Map and J-Log over the broker (`SPOT`). Sto
 ### 4.12 Modules — process & launch management
 
 ![J-Hub — Modules](docs/images/jhub-modules.png)
+![J-Hub — Modules (cont.)](docs/images/jhub-modules-2.png)
+![J-Hub — Modules (cont.)](docs/images/jhub-modules-3.png)
 
 The full version of the dashboard's Module Connections.
 
@@ -515,6 +526,9 @@ Per-app settings for J-Log (stored and pushed to J-Log; some apply live, some ne
 ### 4.14 J-Map — map display, overlays & windows
 
 ![J-Hub — J-Map settings](docs/images/jhub-jmap.png)
+![J-Hub — J-Map settings (cont.)](docs/images/jhub-jmap-2.png)
+![J-Hub — J-Map settings (cont.)](docs/images/jhub-jmap-3.png)
+![J-Hub — J-Map settings (cont.)](docs/images/jhub-jmap-4.png)
 
 Per-app settings for J-Map (mostly applied when J-Map starts; window fonts apply live). A blue note at top explains running J-Map on a **second machine** with `bash j-map.sh --hub <host> --hub-ws-port 8080 --hub-web-port 8081` (it subscribes to this hub — no second cluster connection).
 
@@ -570,6 +584,8 @@ Embeds the J-Vault web app (separate process on **:8083**; data in `~/.j-vault/i
 ### 4.18 J-Sat — satellite & EME
 
 ![J-Hub — J-Sat settings](docs/images/jhub-jsat.png)
+![J-Hub — J-Sat settings (cont.)](docs/images/jhub-jsat-2.png)
+![J-Hub — J-Sat settings (cont.)](docs/images/jhub-jsat-3.png)
 
 Per-app settings for J-Sat. J-Sat is the suite's **authoritative TLE source** (J-Map and others pull TLEs from it). Doppler/rotor automation is performed by **J-Hub** on messages from J-Sat, using the Rig/Rotor backends configured on those tabs.
 
@@ -599,6 +615,7 @@ Per-app settings for J-Sat. J-Sat is the suite's **authoritative TLE source** (J
 ### 4.20 Callsign — multi-provider lookup
 
 ![J-Hub — Callsign Lookup](docs/images/jhub-callsign.png)
+![J-Hub — Callsign Lookup (cont.)](docs/images/jhub-callsign-2.png)
 
 Resolves callsigns from a local SQLite DB and online providers; modules use this for name/grid/class. Stored under `callsignLookup`.
 
@@ -758,6 +775,8 @@ auto-launch, and crash-recovery, see
 ### Morse Trainer — CW practice
 
 *JavaFX desktop · **fully standalone** (no J-Hub connection) · config in `config/app-config.json`*
+
+![Morse Trainer](docs/images/morse-trainer.png)
 
 - **Not a hub client.** It runs entirely on its own — the only J-Hub touch-point
   is optional language packs under `~/.j-hub/lang/morse-trainer/`, and it falls
