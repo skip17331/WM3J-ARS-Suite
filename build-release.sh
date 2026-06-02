@@ -31,25 +31,40 @@ cd "$(dirname "$0")"
 ROOT="$(pwd)"
 DIST="$ROOT/dist"
 
-# JavaFX desktop modules — three single-arch artifacts each.
-JAVAFX_MODULES=(j-hub j-log j-map j-digi j-bridge j-sat morse-trainer)
+# JavaFX desktop modules — three single-arch artifacts each. Discovered as the
+# modules whose pom declares the arm-release profile, so a newly added JavaFX
+# module can't be silently forgotten here (which would skip it from the build
+# AND from the arch guard). Falls back to the explicit list if discovery finds
+# nothing (e.g. run from an unexpected cwd).
+mapfile -t JAVAFX_MODULES < <(grep -l '<id>arm-release</id>' */pom.xml 2>/dev/null | sed 's#/pom\.xml$##' | sort -u)
+[ ${#JAVAFX_MODULES[@]} -gt 0 ] || JAVAFX_MODULES=(j-hub j-log j-map j-digi j-bridge j-sat morse-trainer)
 # Platform-independent modules (pure Java/Jetty) — one jar each. `installer` -> j-installer-*.jar.
 PLAIN_MODULES=(j-learn j-vault installer)
 
 MVN="mvn -q -DskipTests"
 
-# Path to a module's bare shaded jar (no classifier, not original-/sources/javadoc).
+# Path to a module's bare shaded jar in target/ (classified -mac-aarch64 /
+# -linux-aarch64 jars only ever live in dist/, never target/, so they need no
+# filtering here — just skip the thin original-/sources/javadoc jars).
 bare_jar() {
-  ls "$1"/target/*.jar 2>/dev/null \
-    | grep -vE 'original-|sources|javadoc|-mac-aarch64|-linux-aarch64' | head -1
+  ls "$1"/target/*.jar 2>/dev/null | grep -vE 'original-|sources|javadoc' | head -1
 }
 
-# Print x86-64 / aarch64 for the JavaFX prism native bundled in a jar (blank if none).
+# Print x86-64 / aarch64 for the host-OS JavaFX prism native bundled in a jar
+# (blank if absent). Reads the entry from stdin — no temp dir — and picks the
+# native by host OS (Linux ELF .so vs macOS Mach-O .dylib) so the guard works
+# on a macOS build host, not just Linux.
 prism_arch() {
-  local jar="$1" tmp; tmp="$(mktemp -d)"
-  unzip -o -j "$jar" 'libprism_es2.so' -d "$tmp" >/dev/null 2>&1 || true
-  [ -f "$tmp/libprism_es2.so" ] && file "$tmp/libprism_es2.so" | grep -oE 'x86-64|aarch64' | head -1
-  rm -rf "$tmp"
+  local jar="$1" lib desc
+  case "$(uname -s)" in
+    Darwin) lib='libprism_es2.dylib' ;;
+    *)      lib='libprism_es2.so' ;;
+  esac
+  desc="$(unzip -p "$jar" "$lib" 2>/dev/null | file -b - 2>/dev/null || true)"
+  case "$desc" in
+    *x86-64*|*x86_64*) echo x86-64 ;;
+    *aarch64*|*arm64*) echo aarch64 ;;
+  esac
 }
 
 want_arch() { case "$(uname -m)" in aarch64|arm64) echo aarch64;; *) echo x86-64;; esac; }
