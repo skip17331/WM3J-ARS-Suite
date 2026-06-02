@@ -649,31 +649,150 @@ tabs covered in §4.
 
 *JavaFX desktop · WebSocket client (`ws://127.0.0.1:8080`) · data in `~/.j-log/`*
 
-- **Startup mode** is chosen on the splash screen: **Normal Log** (casual) or
-  **Contest Log** (which then shows a contest-plugin chooser). The choice drives
-  which pane layout loads.
-- **From the hub:** station config plus a live `CONFIG_UPDATE` (font size,
-  density, rig-pane visibility, ID-timer). Rig status, recent spots, and the
-  active logging session are replayed on connect, so opening J-Log mid-session
-  lands you in the current picture.
-- **To the hub:** J-Log both consumes and *drives* — selecting a spot
-  (`SPOT_SELECTED`), QRZ lookups, rig-control commands (set freq / mode / VFO),
-  CW and PTT keying, antenna overrides, and — in a contest — `CONTEST_ACTIVE`
-  plus per-QSO `QSO_SAVED` broadcasts for multi-op sync.
-- **Databases (local):** `~/.j-log/j-log.db` (normal), `contest.db` (contest),
-  `config.db` (station / macros); backups in `~/.j-log/backups/`.
-- **Contest plugins** live in `~/.j-log/plugins/` (or bundled in
-  `j-log-engine.jar`); import a community plugin from **File → Import Plugin…**.
-  **Awards** live in `~/.j-log/awards/` — drop in a JSON plugin and hit
-  **Refresh** on the Awards dashboard.
-- **CW / Digital keyer** — **Tools → CW / Digital Keyer** drops an embedded pane
-  into the window; right-click RX text to push a selection to the
-  callsign / name / state fields.
-- **QSL printing** — **File → Print QSL Cards…** gives a 4-up layout for the
-  selected rows or all unsent cards, with an optional auto-mark-sent.
-- **Gotcha:** there is no `--hub` override — J-Log expects the hub at
-  `127.0.0.1:8080` (IPv4 by design, to dodge the loopback IPv6/IPv4 mismatch)
-  and will auto-start J-Hub for you if it isn't already running.
+J-Log is the station's logging surface. It opens in one of two layouts chosen
+at startup, and both embed the live **Rig Control** and **DX cluster** panes so
+you can run the station without leaving the window.
+
+#### Startup & modes
+
+A splash screen leads to a **mode chooser**: **Normal Log** (everyday / DX
+logging) or **Contest Log**. Choosing Contest opens a **contest chooser**
+listing installed plugins as `Name [id]`, with **Import Plugin…** (point at a
+community `*.json`), **Remove**, and **Select**; the chosen plugin drives the
+contest layout. The title bar shows the mode (and, in contest, the contest
+name).
+
+#### Connectivity (to / from J-Hub)
+
+- **From the hub:** station config plus a live `CONFIG_UPDATE` (base font size,
+  per-pane font sizes, UI density, rig-pane visibility, ID-timer on/off +
+  interval). Rig status, recent spots, and the active logging session are
+  replayed on connect, so opening J-Log mid-session lands you in the current
+  picture.
+- **To the hub:** J-Log both consumes and *drives* — spot selection
+  (`SPOT_SELECTED`), callsign lookups, rig commands (freq / mode / VFO / RIT /
+  XIT / power / antenna / split), CW & PTT keying, antenna overrides, and in a
+  contest `CONTEST_ACTIVE` + per-QSO `QSO_SAVED` for multi-op sync.
+- **Gotcha:** no `--hub` override — J-Log expects the hub at `127.0.0.1:8080`
+  (IPv4 by design, to dodge the loopback IPv6/IPv4 mismatch) and auto-starts
+  J-Hub if it isn't already running.
+
+#### Menus
+
+**Normal Log**
+
+- **File** — Import ADIF… · Export ADIF · Export CSV · Upload to LoTW… ·
+  Download LoTW QSLs… · Print QSL Cards… · Exit
+- **Awards** — Awards Dashboard…
+- **Tools** — CW / Digital Keyer (toggles the keyer pane) · Override Antenna… ·
+  Clear Antenna Override · Translator — User Selected… · Translator — DXCC
+  Driven… · Priority Callsigns…
+- **Setup** — J-Hub Setup UI · Macros… · Amp Control… · Antenna Switch… · Log
+  Uploaders… · Cloud Backup… · J-Learn…
+- **Help** — Report an Issue…
+
+**Contest Log** (what differs) — **File** swaps in New Database / Backup
+Database / **Export Cabrillo** / Export ADIF / Upload to LoTW; a **Contest**
+menu adds Contest Setup plus the multiplier maps (Section · States/Provinces ·
+World/DXCC · CQ Zones · County · Grid Square) and Export Cabrillo; **Tools**
+keeps the translators + Priority Callsigns. (No Awards menu in contest mode.)
+
+#### Window panes — Normal Log
+
+- **Clock / status strip** (top) — station callsign, **UTC** and **Local**
+  clocks, CI-V status, and amp / antenna-override indicators when active.
+- **Data Entry** — the QSO form (fields below).
+- **Space Wx / Bearing / ID-timer** — left: **Bearing** and **Distance** to the
+  worked station; middle: a space-weather readout (**SFI · K · SSN · X-Ray ·
+  Solar Wind · Geo**); right: the **ID timer** countdown button (FCC §97.119),
+  hidden unless enabled in J-Hub, which flashes red when due and resets on each
+  logged QSO.
+- **Previous QSOs** — auto-filters to prior contacts with the call you're
+  entering (Date/Time · Band · Mode · RST S · RST R · State · Notes).
+- **Rig Control** (right) — embedded radio panel; see below.
+- **CW / Digital Keyer** — toggleable; see below.
+- **QSO Log** table (bottom-left) — your logged contacts (columns below) with
+  Edit / Save / Delete / Prev / Next and a Sort selector.
+- **DX cluster** (bottom-right) — live spots; see below.
+- **Heard By** — collapsible; PSK Reporter / WSPR reception reports of *your*
+  signal (Time · Reporter · Grid · Band · Mode · SNR · Source).
+- **Macro bar** — F1–F12 user macros.
+
+#### Data entry fields (Normal Log, in order)
+
+Callsign · Band · Mode · Power · RST Sent · RST Received · Country (+ derived
+**Continent**) · Name · State · County · Frequency · Notes · QSL Sent ☑ · QSL
+Received ☑. **Lookup** fills country / continent / name / state and the
+bearing/distance from the callsign; **Save** / **Clear** sit beside it. A **Band
+Plan** button opens the allocation reference, and a warning appears if the
+frequency and mode don't line up.
+
+#### Log table columns (Normal Log)
+
+Callsign · Date/Time · Band · Mode · RST S · RST R · Country · Notes.
+
+#### Data you're given on each call
+
+Entering or looking up a call surfaces, without leaving the form: **DXCC country
++ continent** (callsign-resolved), **bearing + distance** from your grid, your
+**prior contacts** with that station (Previous QSOs pane), and the live
+**space-weather** numbers — so you can judge the path and the band at a glance.
+
+#### Rig Control pane (embedded, both modes)
+
+A full radio panel: large **frequency / band / mode** readout with a liveness
+dot, an **S-meter**, fast/slow **tuning** chevrons, mode buttons (SSB · CW/RTTY
+· AM/FM · **SET** → opens J-Hub's rig settings), **RIT/XIT** with ± nudge and
+clear, an **RF power** slider, an **Auto-track rig** toggle, **ANT 1/2**, and a
+collapsible **Band / Keypad** grid — HF band buttons, a direct-frequency
+**F-INP** keypad, **SPLIT**, **A/B** VFO swap, tuning-step cycle, and MF/VHF/UHF
+bands (2200 m → 23 cm). Buttons gray out for bands the rig can't transmit on
+(capability-gated).
+
+#### DX cluster pane (embedded, both modes)
+
+Network picker + Connect / Disconnect + status, and a spot table: Spotter · DX ·
+Freq (kHz) · Band · Mode · Country · Comment · Time. Selecting a spot can tune
+the rig and pre-fill the entry form.
+
+#### CW / Digital keyer pane (Normal Log)
+
+Toggled from **Tools → CW / Digital Keyer**: a mode picker + **WPM** spinner, a
+read-only **RX decode** area (right-click decoded text to push a selection into
+the Callsign / Name / State fields), and a **TX** line with **Send** / **Clear**
+and a status label.
+
+#### Contest Log specifics
+
+- **Dynamic entry bar** — Rcvd / Sent rows built from the plugin's exchange
+  schema (RST, serial, section / zone / class / check, …); your call and a
+  running **serial counter** appear in the Sent row, and the plugin's exchange
+  format prints as help text.
+- **Score line** — live **QSO count · Score · Mults · QSO/hr**.
+- **Plugin panes** (a scrollable strip / side column, varying by contest) —
+  dupe checker, section / zone / multiplier trackers, statistics,
+  worked-before, a **QTC** pane, sweep progress, and clickable **maps** (ARRL
+  section, US states / Canada, DXCC world, CQ zones, counties, Maidenhead grid)
+  also reachable from the **Contest** menu.
+- **Contest log table** — Callsign · Time · Band · Mode · Serial · RST S · RST R
+  · Exchange · Operator.
+- Multi-op sync plus dupe-review and rejected-QSO dialogs handle shared /
+  imported logs.
+
+#### Other windows
+
+- **Print QSL Cards…** — 4-up layout for the selected rows or all unsent cards,
+  with optional auto-mark-sent.
+- **Awards Dashboard** — progress cards per award plugin (`~/.j-log/awards/*.json`);
+  click a card for a worked / missing drill-down; Refresh / Import Award.
+- **Translators** (User-selected & DXCC-driven) and **Priority Callsigns** —
+  custom callsign→entity overrides and alert-worthy call lists.
+
+#### Files
+
+`~/.j-log/j-log.db` (normal log) · `contest.db` (contest) · `config.db`
+(station / macros) · `plugins/` (contest plugins; also bundled in
+`j-log-engine.jar`) · `awards/` · `backups/`.
 
 ### J-Map — DX / propagation map
 
