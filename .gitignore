@@ -73,3 +73,6 @@ j-sat/logs/
 j-vault/logs/
 morse-trainer/logs/
 git-sync.log
+
+# release staging produced by build-release.sh
+dist/
