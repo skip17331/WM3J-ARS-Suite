@@ -117,9 +117,10 @@
         </profile>
         <profile>
             <id>crossplatform</id>
-            <!-- Opt-in (mvn -Pcrossplatform): bundle JavaFX natives for win/mac/mac-aarch64/linux so
-                 one fat jar runs on Windows, macOS (Intel+Apple Silicon) and Linux x64. Release artifacts.
-                 (JavaFX 21.0.3 has no linux-aarch64 build.) Dev/normal builds use the host classifier. -->
+            <!-- Opt-in (mvn -Pcrossplatform): universal desktop jar bundling JavaFX natives for
+                 Windows + macOS (Intel) + Linux x64. Apple Silicon and Raspberry Pi are separate
+                 single-arch builds (mac-aarch64-release / arm-release) — same-OS architectures
+                 share native filenames and would collide in one jar. -->
             <dependencies>
                 <dependency>
                     <groupId>org.openjfx</groupId>
@@ -137,12 +138,6 @@
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-base</artifactId>
                     <version>${javafx.version}</version>
-                    <classifier>mac-aarch64</classifier>
-                </dependency>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-base</artifactId>
-                    <version>${javafx.version}</version>
                     <classifier>linux</classifier>
                 </dependency>
                 <dependency>
@@ -156,12 +151,6 @@
                     <artifactId>javafx-controls</artifactId>
                     <version>${javafx.version}</version>
                     <classifier>mac</classifier>
-                </dependency>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-controls</artifactId>
-                    <version>${javafx.version}</version>
-                    <classifier>mac-aarch64</classifier>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
@@ -185,12 +174,6 @@
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-fxml</artifactId>
                     <version>${javafx.version}</version>
-                    <classifier>mac-aarch64</classifier>
-                </dependency>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-fxml</artifactId>
-                    <version>${javafx.version}</version>
                     <classifier>linux</classifier>
                 </dependency>
                 <dependency>
@@ -204,12 +187,6 @@
                     <artifactId>javafx-graphics</artifactId>
                     <version>${javafx.version}</version>
                     <classifier>mac</classifier>
-                </dependency>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-graphics</artifactId>
-                    <version>${javafx.version}</version>
-                    <classifier>mac-aarch64</classifier>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
@@ -228,12 +205,6 @@
                     <artifactId>javafx-media</artifactId>
                     <version>${javafx.version}</version>
                     <classifier>mac</classifier>
-                </dependency>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-media</artifactId>
-                    <version>${javafx.version}</version>
-                    <classifier>mac-aarch64</classifier>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
@@ -242,6 +213,20 @@
                     <classifier>linux</classifier>
                 </dependency>
             </dependencies>
+        </profile>
+        <profile>
+            <id>mac-aarch64-release</id>
+            <!-- Opt-in: single-platform macOS Apple Silicon jar (mvn -Pmac-aarch64-release). -->
+            <properties><javafx.platform>mac-aarch64</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>arm-release</id>
+            <!-- Opt-in: single-platform Linux ARM64 / Raspberry Pi 64-bit jar (mvn -Parm-release).
+                 Uses JavaFX 23.0.1 — 21.0.3 publishes no linux-aarch64 native build. -->
+            <properties>
+                <javafx.platform>linux-aarch64</javafx.platform>
+                <javafx.version>23.0.1</javafx.version>
+            </properties>
         </profile>
     </profiles>
 
