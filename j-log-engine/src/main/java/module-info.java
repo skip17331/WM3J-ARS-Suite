@@ -20,6 +20,7 @@ module com.jlog.engine {
     exports com.jlog.cluster;
     exports com.jlog.plugin;
     exports com.jlog.award;
+    exports com.jlog.scoring;
     exports com.jlog.export;
     exports com.jlog.util;
     exports com.jlog.model;
