@@ -127,7 +127,7 @@
             <activation>
                 <os><family>unix</family><name>linux</name><arch>aarch64</arch></os>
             </activation>
-            <properties><javafx.platform>linux-aarch64</javafx.platform></properties>
+            <properties><javafx.platform>linux-aarch64</javafx.platform><javafx.version>23.0.1</javafx.version></properties>
         </profile>
         <profile>
             <id>linux-x64</id>

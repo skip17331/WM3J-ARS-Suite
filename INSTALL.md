@@ -49,7 +49,9 @@ LAN.
 > **No JavaFX SDK needed.** The Maven build bundles the correct JavaFX
 > native runtime into each module's jar automatically — Linux, Windows,
 > and macOS, x64 and arm64. There is nothing extra to download or copy
-> on any platform.
+> on any platform. (On 64-bit ARM / Raspberry Pi the build automatically
+> uses JavaFX 23.0.1, since 21.0.3 ships no ARM native — see the
+> [Raspberry Pi and ARM64](#raspberry-pi-and-arm64) section.)
 
 ---
 
@@ -380,6 +382,81 @@ does in pieces:
 
 ---
 
+## Raspberry Pi and ARM64
+
+The suite runs on 64-bit ARM — Raspberry Pi 4 / 5, or any aarch64 Linux box
+(Ampere, Apple-Silicon Linux VMs, ARM cloud instances). Two ways in: build
+from source (identical to the Linux steps), or download the prebuilt ARM
+jars from a release.
+
+> **64-bit OS required.** You need a 64-bit (aarch64) OS — Raspberry Pi OS
+> (64-bit), Ubuntu for Pi, or Debian arm64. Check with `uname -m`: it must
+> print **`aarch64`**. If it says `armv7l` you're on 32-bit Pi OS, which is
+> **not supported** — there is no upstream JavaFX desktop build for 32-bit
+> ARM (armhf). Reflash with the 64-bit image.
+>
+> On ARM the build automatically uses **JavaFX 23.0.1** (JavaFX 21.0.3 has
+> no linux-aarch64 native). This is detected from the CPU arch — there is
+> nothing to set or pass.
+
+### Option A — build from source (same as Linux)
+
+The Linux instructions above work unchanged on a Pi; the build detects
+`aarch64` and selects the ARM JavaFX runtime on its own:
+
+```bash
+sudo apt update
+sudo apt install -y git openjdk-21-jdk maven
+
+git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
+cd ~/ARS_Suite
+
+# Shared engine first, then the standalone web apps J-Hub launches
+mvn -q -DskipTests -f j-log-engine/pom.xml install
+mvn -q -DskipTests -f j-learn/pom.xml install
+mvn -q -DskipTests -f j-vault/pom.xml install
+
+# The JavaFX desktop apps
+for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
+  mvn -q -DskipTests -f "$m/pom.xml" package
+done
+
+./install.sh
+```
+
+Then launch `./j-hub/start.sh` and open <http://localhost:8081/>, exactly as
+on desktop Linux.
+
+> **Build time / RAM.** A full build on a Pi 4 / 5 takes longer than on a
+> desktop (roughly 10–25 minutes) and wants **4 GB+ RAM**. If you only need
+> the wall-display, build just J-Map — see *Standalone J-Map* below. The
+> first run downloads JavaFX 23.0.1 (a few tens of MB extra) the first time.
+
+### Option B — download prebuilt ARM jars (no build)
+
+From the latest [release](https://github.com/skip17331/WM3J-ARS-Suite/releases)
+grab the **`*-linux-aarch64.jar`** files for the desktop apps, plus the
+platform-independent jars (which run on any CPU):
+
+- ARM-native desktop: `j-hub-*-linux-aarch64.jar`, and likewise `j-log`,
+  `j-map`, `j-digi`, `j-bridge`, `j-sat`, `morse-trainer`.
+- Platform-independent: `j-learn-*.jar`, `j-vault-*.jar`, `j-installer-*.jar`.
+
+JavaFX is bundled inside each jar, so just run them with Java 21 (J-Hub
+first):
+
+```bash
+sudo apt install -y openjdk-21-jdk          # runtime only; no Maven needed
+java -jar j-hub-1.5.0-linux-aarch64.jar     # then open http://localhost:8081/
+```
+
+Launch the other desktop apps the same way (`java -jar
+<module>-…-linux-aarch64.jar`); J-Learn and J-Vault are the plain jars. The
+prebuilt jars don't create menu shortcuts — if you want `.desktop`
+integration, use Option A and `./install.sh`.
+
+---
+
 ## Standalone J-Map (second-machine display)
 
 J-Map is the one module worth dedicating a second machine to. It's a
@@ -418,7 +495,7 @@ works. Common picks:
 
 | Box | Notes |
 |---|---|
-| Raspberry Pi 4 / 5 (4 GB+) | Most popular. Use 64-bit Pi OS. J-Map's `pom.xml` auto-detects `aarch64` and pulls the matching JavaFX classifier — no SDK swap needed. |
+| Raspberry Pi 4 / 5 (4 GB+) | Most popular. Use **64-bit** Pi OS (`uname -m` must say `aarch64`). The build auto-detects `aarch64` and pulls JavaFX 23.0.1 — no SDK swap. See [Raspberry Pi and ARM64](#raspberry-pi-and-arm64). |
 | Mac mini / spare Mac laptop | Same auto-detect handles Apple Silicon and Intel. |
 | Generic x86 Linux SBC (Intel NUC, mini-PC) | Same as Linux above; no extra steps. |
 | Windows mini-PC | Same as above — the build bundles the Windows JavaFX runtime automatically; no extra steps. |
