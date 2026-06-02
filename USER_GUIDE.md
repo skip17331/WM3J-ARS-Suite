@@ -24,7 +24,7 @@ See [README.md](README.md) for the project's purpose and license, and
    - [macOS](#26-macos)
    - [Optional dependencies — Hamlib and WSJT-X](#27-optional-dependencies--hamlib-and-wsjt-x)
 3. [First-run setup](#3-first-run-setup)
-4. [Web UI walkthrough](#4-web-ui-walkthrough)
+4. [J-Hub control panel](#4-j-hub-control-panel)
 5. [Per-app notes](#5-per-app-notes)
 6. [Troubleshooting](#6-troubleshooting)
 7. [Appendix: interconnection map](#7-appendix-interconnection-map)
@@ -33,50 +33,59 @@ See [README.md](README.md) for the project's purpose and license, and
 
 ## 1. Overview
 
-The suite is **one broker** (J-Hub), **six JavaFX desktop apps** (J-Log,
-J-Map, J-Digi, J-Bridge, J-Sat, Morse Trainer), and **two web apps**
-(J-Vault, J-Learn) that J-Hub iframes for a single-pane experience:
+The suite is not one program — it's **J-Hub plus a set of independent apps that connect to it.** Understanding that hub-and-spoke shape explains everything else, including the most common new-user question: *"why does J-Hub always have to be running?"*
 
-| Name        | What it does                                                          | Default ports                |
-|-------------|-----------------------------------------------------------------------|------------------------------|
-| `j-hub`     | Central WebSocket broker + web control surface + service manager. Hosts the **Antenna Workshop** (recommender + 27 calculators); iframes J-Vault and J-Learn for a unified UI. | 8080 (WS), 8081 (HTTP)       |
-| `j-log`     | QSO logger: casual (Normal) + contest (68+ plugins) + awards          | none (connects to j-hub)     |
-| `j-map`     | DX map, grayline, propagation model, satellite/lunar/aurora overlays  | none                         |
-| `j-digi`    | Native digital modem — CW, RTTY, PSK31/63/125, Olivia, MFSK, Feld Hell | none (uses audio devices)   |
-| `j-bridge`  | Bridges WSJT-X to the suite via UDP 2237                              | 2237 (WSJT-X UDP)            |
-| `j-sat`     | Satellite pass tracker, rig/rotor auto-tune during passes             | 4540 (TLE API)               |
-| `j-vault`   | Shack inventory + first-call contacts + Estate Handoff PDF wizard. Standalone JavaFX app with its own embedded Jetty + SQLite. | 8083 (HTTP) |
-| `j-learn`   | Amateur-radio reference library web app. Pure Jetty + HTML; markdown content seeds to `~/.j-learn/content/` so users can edit without rebuilding. | 8082 (HTTP) |
-| `morse-trainer` | Standalone JavaFX Morse code trainer — letter / group / QSO simulator + sending practice with real-time decoding. Launchable from J-Hub or directly. | none                  |
+### The shape: one hub, many spokes
 
-**J-Learn** is its own process. The J-Hub web UI iframes it as the J-Learn
-tab, but you can also visit `http://localhost:8082/` directly from any
-browser on the LAN — phone, tablet, the shack laptop. ~200 sections
-covering propagation, antennas, RF safety, troubleshooting, formulas,
-operating practice, and emcomm; with click-through deep-links to the
-matching calculators in J-Hub's Antenna Workshop.
+```
+                         ┌─────────────────────────────────────┐
+                         │               J-HUB                  │
+   browser ── :8081 ───▶ │  • Web control surface (config UI)   │
+   (you configure here)  │  • WebSocket broker      :8080       │
+                         │  • Shared StateCache (rig, spots,    │
+                         │    logger session, station config)   │
+                         │  • DX-cluster / RBN / skimmer feeds   │
+                         │  • Launches the apps (child procs)    │
+                         └───────▲───────────────▲──────────────┘
+                                 │  WebSocket :8080 (one per app) │
+        ┌──────────┬──────────┬──┴───┬──────────┬───────┴───┬──────────┐
+     J-Log      J-Map     J-Digi   J-Bridge   J-Sat    morse-trainer  …
+   (logger)   (DX map)  (modem)  (WSJT-X)  (sats)     (CW practice)
 
-**Traffic flow:** every app opens a WebSocket to `j-hub` on port 8080, sends
-`APP_CONNECTED`, and joins a shared event stream. When a spot arrives, a
-callsign is looked up, or the rig changes frequency, every connected app
-sees it. J-Vault is the exception — it's a self-contained service that
-keeps its own state in `~/.j-vault/inventory.db` and serves its own UI
-on port 8083; J-Hub launches it as a child process and embeds its UI in
-the J-Vault tab via iframe.
+   Web apps J-Hub launches and iframes into its own UI (also reachable directly):
+     J-Learn  :8082   (reference library)      J-Vault  :8083  (inventory / estate)
+```
 
-**Config lives in one place:** `~/.j-hub/j-hub.json`. Edit via the
-web UI at `http://localhost:8081` — or by hand if you prefer. J-Vault
-keeps a separate, isolated database under `~/.j-vault/` since estate /
-inventory data is sensitive enough to warrant its own file.
+Every app — J-Log, J-Map, J-Digi, J-Bridge, J-Sat — is its **own process** and opens a WebSocket to J-Hub on port **8080**. They do **not** talk to each other directly; J-Hub is the switchboard in the middle.
 
-**One settings surface.** J-Hub's web UI is the source of truth for
-every operator preference that affects the broader suite — callsign +
-grid, IARU region + country (used for bandplan captions across modules),
-Hamlib endpoint, PTT method + CW keyer for J-Digi, DX cluster, log
-uploaders, macros. Changes propagate live over the broker via
-`STATION_CONFIG` / `CONFIG_UPDATE` messages — no per-app restart, no
-duplicate JSON files to keep in sync. Modules cache the last-known
-values so they can still run stand-alone after a hub disconnect.
+### Why J-Hub is always running
+
+J-Hub isn't "the launcher you can close once the apps are up." It is the thing the apps *depend on the whole time*. It plays four roles at once:
+
+1. **Message broker.** All inter-app traffic flows through it. When J-Map gets a DX spot, J-Bridge gets a WSJT-X decode, or the rig changes frequency, that event goes to J-Hub and J-Hub re-broadcasts it to every other connected app. Close J-Hub and the apps go silent to each other.
+2. **Configuration authority.** Your callsign, grid, IARU region/country, Hamlib (rig/rotor/amp) endpoints, PTT/keyer, DX cluster, log uploaders, macros — all live in **one file** (`~/.j-hub/j-hub.json`) and are edited in J-Hub's web UI. J-Hub pushes them to the apps live over the broker (`STATION_CONFIG`, and per-app messages like `JMAP_CONFIG`). There are no per-app config files to keep in sync.
+3. **Shared state cache.** J-Hub remembers the last rig status, the active logging session, and a buffer of recent spots. An app that starts late (or reconnects) gets the current picture replayed to it immediately on connect — so opening J-Map mid-session shows the spots that already arrived.
+4. **Service manager + control surface.** J-Hub launches the apps as child processes (the **Modules** tab), serves the whole web UI at `http://localhost:8081`, and hosts the **Antenna Workshop** (recommender + calculators). It also iframes the two web apps (J-Learn, J-Vault) so everything lives in one window.
+
+> **The handshake.** An app starts → opens the WebSocket → sends `APP_CONNECTED` → J-Hub replies `JHUB_WELCOME` and replays cached state + the current station config → the app is now live on the shared bus. This is why apps can be opened in any order and still end up consistent.
+>
+> **If the hub goes away**, the apps don't crash — each caches the last config it received and keeps working stand-alone — but they stop seeing each other's events and stop getting config updates until J-Hub is back.
+
+### The apps at a glance
+
+| Name | Type | What it does | Ports |
+|------|------|--------------|-------|
+| `j-hub` | broker + web UI (JavaFX tray + Jetty) | Switchboard, config authority, state cache, app launcher, Antenna Workshop | **8080** WS, **8081** HTTP |
+| `j-log` | JavaFX desktop | QSO logger — Normal + contest (68+ plugins) + awards | — (WS client) |
+| `j-map` | JavaFX desktop | DX map: grayline, propagation, satellite / lunar / aurora overlays | — (WS client) |
+| `j-digi` | JavaFX desktop | Native digital modem — CW, RTTY, PSK, Olivia, MFSK, Feld Hell | — (audio devices) |
+| `j-bridge` | JavaFX desktop | Bridges WSJT-X into the suite | **2237** UDP (WSJT-X) |
+| `j-sat` | JavaFX desktop | Satellite pass tracker; rig/rotor auto-tune during passes | 4540 (TLE API) |
+| `morse-trainer` | JavaFX desktop | CW trainer — letter/group/QSO drills + sending practice | — |
+| `j-learn` | **web app** (Jetty) | Reference library (300+ sections); iframed as the J-Learn tab, also at `:8082` | **8082** HTTP |
+| `j-vault` | **web app** (Jetty + SQLite) | Shack inventory + Estate-Handoff PDF; iframed as J-Vault, also at `:8083` | **8083** HTTP |
+
+The two **web apps** (J-Learn, J-Vault) are the only ones you can also open straight from a browser on the LAN — phone, tablet, shack laptop — at their ports. J-Vault keeps its own database (`~/.j-vault/inventory.db`) because inventory/estate data is sensitive enough to warrant a separate, isolated file.
 
 ---
 
@@ -245,262 +254,366 @@ button re-probes after you install them.
 
 ---
 
-## 4. Web UI walkthrough
+## 4. J-Hub control panel
 
-The web UI lives at `http://localhost:8081`. Navigation is a left sidebar
-with tabs in this order:
+Every tab, card by card. J-Hub's web UI at **http://localhost:8081** is the single place you configure the whole suite. J-Hub must be running to reach it (see §1). The left-hand nav has **20 tabs**; each tab is built from **cards**, and most editable cards have their own **Save** button.
 
-```
-Dashboard · Station · Callsign · J-Log · J-Map · J-Digi · J-Bridge · J-Sat ·
-J-Vault · J-Learn · Modules · Logging & Data · Macros · Rig Control ·
-Rotor Control · Amp Control · Antenna Switch · DX Cluster · Antenna Workshop · Weather
-```
+How saving works (verified in `config.js` / `WebConfigServer`):
+- Editable settings are written to **`~/.j-hub/j-hub.json`** and pushed **live** to the running apps over the broker — no restart needed (the per-app config tabs note where a restart *is* required).
+- A small status line next to each Save button confirms the write.
+- Read-only tabs (Dashboard) only display state streamed from the apps; nothing to save.
 
-Each tab saves independently via its own **Save** button.
-
-### Dashboard
-
-Live cockpit. Shows:
-
-- **Rig Status**: current frequency, mode, power, source (CI-V / Hamlib / WSJT-X).
-- **Rotor / Antenna**: azimuth, target, connection state.
-- **Module Connections**: J-Log, J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, and
-  J-Learn each with a status dot and Launch / Stop buttons. J-Vault and
-  J-Learn also have an Open button that switches to their tab (which iframes
-  the standalone process).
-- **Quick Actions**: reconnect rig, restart cluster, reload config, restart WS.
-- **Connected Apps**: each registered WebSocket client with `up` / `msg` / `hb`
-  age counters. Red dot = stale (no traffic in ~60 s and no heartbeat in ~45 s).
-- **System Dependencies**: Hamlib and WSJT-X presence + version; **Re-check**
-  button.
-
-### Station
-
-Operator identity. Two rows:
-
-- **Callsign** + **Operator Name**.
-- **Rig (Model)** (e.g. `IC-746pro`) + **Alias / Friendly Name**
-  (e.g. `Backup`) — independent fields, both can be set freely.
-- **Rig Operator** — overrides operator name for this rig (shared / club /
-  multi-op stations); leave blank to default to operator name.
-
-Plus QTH, grid, lat/lon, timezone, ARRL section, CQ/ITU zones, display
-language (en / de / es / fr / it / pt). All of these propagate to every
-module on next start (or live if the module supports it).
-
-> **What "Language" covers today.**
->
-> - **English + Spanish ship embedded** in every module's jar (or
->   `i18n.js` for web modules). Selecting `en` or `es` works out of
->   the box on a fresh install.
-> - **German, French, Italian, Portuguese** ship as drop-in language
->   packs at `i18n-packs/<module>/messages_<lang>.properties` in the
->   repo. The helper script installs them in one command:
->
->     ```bash
->     # Linux / macOS
->     ./install-lang-pack.sh de
->
->     # Windows
->     install-lang-pack.bat de
->     ```
->
->   That copies the files into `~/.j-hub/lang/<module>/`. After
->   that, choose **Language: de** (or whichever) in **J-Hub →
->   Station → Regional Settings**. Modules pick it up on the next
->   launch — or live if they listen for `JHUB_WELCOME` /
->   `STATION_CONFIG`.
-> - **J-Log** has the deepest coverage (every menu, label, button, and
->   status string — 6 bundles, ~163 keys each).
-> - **J-Digi, J-Bridge, J-Map, J-Sat, Morse Trainer** translate the
->   top-level UI surfaces (menus, buttons, panel headings, status
->   messages, dialog titles). Strings deep inside dialogs may still
->   appear in English until reported and added to the bundles.
-> - **J-Learn** translates its UI chrome (search box, theme picker,
->   top-bar buttons); the ~200 chapters of body content remain
->   English-only — translating that is a content-team effort.
-> - **J-Vault** translates its top header, equipment-card heading,
->   and filter dropdowns via `web/i18n.js`. Operator-written equipment
->   names and notes stay in whatever language they were typed in.
->
-> All translations except English are machine-translated and would
-> benefit from a native-speaker pass. Corrections only require editing
-> the relevant `.properties` file — no Java rebuild needed for the
-> external packs.
-
-Under **Regional Settings**, set your **IARU Region** (R1 Europe/Africa,
-R2 Americas, R3 Asia/Oceania) and optionally a **Country Overlay** (US
-FCC sub-bands today; other countries can be added later). These drive
-the bandplan caption shown in J-Digi (rig status bar), J-Bridge (status
-panel) and J-Map (DX info window) — e.g. `20m   14074 kHz   DATA —
-Digimodes / FT8`. Defaults are `IARU-R2` + `US`.
-
-### Callsign
-
-Configure callsign lookup providers: QRZ.com XML, HamQTH, HamDB, Callook,
-local FCC ULS database. Set a priority chain (`auto`) or pin to a single
-provider. Import the FCC ULS data locally for offline lookups.
-
-### J-Log / J-Map / J-Digi / J-Bridge / J-Sat
-
-Per-app font / display settings, plus app-specific extras:
-
-- **J-Log** — global base font + per-pane overrides (status bar, data entry,
-  QSO log table, info/bearing pane, DX + Heard-By panes). `0 = inherit`.
-- **J-Map** — API keys (NOAA, OpenWeatherMap), map-image uploads
-  (custom equirectangular world map, custom great-circle map).
-- **J-Digi** — **Transmit & CW** card (PTT method `VOX` / `HAMLIB`,
-  CW keyer `AUDIO` / `HAMLIB`, CW WPM) plus font sizes for waterfall,
-  decode pane, status. Hamlib host/port come from the **Rig Control**
-  tab — no duplicate field here. When `cw.keyer = HAMLIB`, J-Digi hands
-  the text to `rigctld` (`b <text>`) so the rig's own keyer plays the
-  Morse at its configured WPM. Changes apply live on the next transmit;
-  no J-Digi restart needed.
-- **J-Bridge** — font sizes; restart-on-save flushes WSJT-X UDP listener.
-- **J-Sat** — satellite selection, elevation thresholds, TLE source URL +
-  staleness threshold.
-
-Each tab has **Save** and **Save Data & Restart** buttons. The latter
-flushes + restarts the app so pane overrides take effect.
-
-### J-Vault
-
-Embedded view of the J-Vault web UI (loaded from `http://localhost:8083/`
-in an iframe). Two cards:
-
-- **J-Vault Process** — Launch / Stop / Open in Browser. Launch first if
-  the iframe shows a connection error.
-- **Embedded J-Vault** — text-size slider (80-160%) zooms the iframe;
-  Reload button refetches.
-
-The full J-Vault feature set (inventory CRUD, first-call contacts, Estate
-Handoff PDF wizard) lives inside the iframe — see [§5 Per-app notes](#5-per-app-notes).
-
-### J-Learn
-
-Iframes the standalone J-Learn web app at `http://localhost:8082/`. Lazy-
-loaded — the iframe is created the first time the tab opens, so no network
-hit if J-Learn isn't running. Top of tab:
-
-- **Launch / Reload / Open in Browser** — same lifecycle controls as J-Vault.
-- Status text shows whether `:8082/api/health` answered.
-
-The actual UI lives inside the iframe (the same one you'd get visiting
-`http://localhost:8082/` directly): TOC sidebar with filter + Advanced
-toggle, rendered markdown viewer, and a text-size slider.
-
-Some chapters surface a banner that deep-links into J-Hub features. When
-the iframe is embedded inside J-Hub, clicking the button posts a message
-to the parent which then dispatches the action; standalone, the buttons
-fall back to opening the corresponding J-Hub URL in a new tab.
-
-| Chapter | Banner | Action |
-|---------|--------|--------|
-| §03 Morse | Morse Code Trainer | Launches the standalone JavaFX trainer app |
-| §07 Antenna Workshop | Antenna Workshop | Opens the matching antenna calculator |
-| §15 Formulas | Formula Calculator | Opens the matching per-formula calculator |
-
-### Modules
-
-Launch configuration for each managed app — J-Log, J-Digi, J-Bridge, J-Map,
-J-Sat, J-Vault, J-Learn. Per app:
-
-- **Launch Command** — shell command that launches the app (platform-specific).
-- **IP** — reserved for future remote-launch support; leave `localhost`.
-- **Auto-Launch** toggle — start automatically when J-Hub starts.
-- **Launch / Stop / Save** buttons + a status message.
-
-### Logging & Data
-
-Three things in one tab:
-
-- **Log Uploaders** — push QSOs from `~/.j-log/j-log.db` to **eQSL.cc**,
-  **Club Log**, **QRZ Logbook**, and **HRDLog**. Credentials encrypted
-  on disk in `~/.j-hub/credentials.enc` (AES-GCM, key tied to this
-  machine). Already-uploaded QSOs tracked in an `upload_state` table so
-  subsequent runs only push new ones.
-- **Log Database** — switch between multiple `.db` files in `~/.j-log/`,
-  add / set active / delete, ADIF import + ADIF/CSV export, **Backup
-  Active DB** for a timestamped sidecar copy.
-- **Configuration Backup & Export** — back up `~/.j-hub/`, `~/.j-log/`,
-  `~/.j-map/`, `~/.j-sat/`, `~/.j-digi/`, `~/.j-bridge/` as a folder or
-  to a WebDAV target, with rotation. Plus **Export Diagnostics** which
-  bundles every app's logs + config + dep-check results into a zip.
-
-### Macros
-
-Two-mode (Digital/CW vs Voice) macro editor with a **Macro Variables
-Reference** card listing every `{VAR}` placeholder supported by the
-shared `MacroVariableEngine`:
-
-| Placeholder | Source       | Description |
-|-------------|--------------|-------------|
-| `{MYCALL}`  | Station config | Operator's own callsign |
-| `{CALL}`    | QSO entry    | DX (worked) callsign |
-| `{RST}`, `{RST_S}`, `{RST_R}` | QSO entry | Sent / received signal report |
-| `{NAME}`    | QSO entry    | DX operator name |
-| `{EXCH}`    | QSO entry    | Contest exchange / notes |
-| `{SERIAL}` / `{NR}` | Logger | Zero-padded / bare serial number |
-| `{FREQ}`    | Live rig     | Rig frequency in MHz, three decimals |
-| `{BAND}`    | Derived      | Band tag derived from `{FREQ}` |
-| `{MODE}`    | Live rig     | Current operating mode |
-
-Voice macros store **WAV recordings** alongside text macros — record
-once, replay during a contest exchange. Unknown placeholders pass
-through untouched so future variables don't break old macros.
-
-### Rig Control / Rotor Control / Amp Control
-
-Choose a backend (`CI_V`, `HAMLIB`, or `NONE`) and configure the relevant
-parameters (serial port + baud + CI-V address; or rigctld/rotctld/ampctld
-host + port). Supports hot-swap: change the backend and save; J-Hub
-reconnects without a full restart.
-
-The **Rig Control → Hamlib** host/port set here is the single
-station-level `rigctld` endpoint. When J-Digi's PTT method or CW keyer
-is set to `HAMLIB`, J-Digi reuses *this* endpoint — no duplicate config
-in the J-Digi tab.
-
-### Antenna Switch
-
-Configure a serial-controlled antenna switch with a per-switch command
-template. Optional **lockout on PTT** prevents switching while
-transmitting. Rules let you tie specific bands or rigs to specific
-antennas automatically.
-
-### DX Cluster
-
-Pick from a list of networks or add your own, set filters (bands, modes),
-auto-connect toggle. Plus an opt-in **Reverse Beacon Network** feed on
-parallel telnet that streams skimmer-decoded spots into the same broadcast
-(tagged `source:"RBN"` for distinct rendering downstream). Raw telnet
-stream and parsed spots both flow to every connected app — J-Log shows
-them in the DX Spotting pane, J-Map plots them on the world map.
-
-### Antenna Workshop
-
-Two sub-tabs:
-
-- **Calculators** (default) — 13 antenna calculators (flat dipole,
-  inverted-V, fan dipole, trapped dipole, OCF/Windom, EFHW with/without
-  traps, J-pole, Yagi-Uda, vertical, loading coils, trap design,
-  magnetic loop, NanoVNA trim workflow) plus 14 per-formula calculators
-  for J-Learn's Formulas chapter (Ohm's law, power, reactance,
-  impedance, resonance, wavelength, SWR, ERP, feedline loss, decibels,
-  Q factor, bandwidth, Smith chart, RF exposure).
-- **Recommender** — questionnaire-driven antenna picker. Doesn't render
-  until you click the Recommender sub-tab (saves a few hundred ms on
-  page load). Asks a handful of questions about your QTH, HOA status,
-  bands, height, stealth needs, and budget, then ranks antennas that
-  actually fit.
-
-### Weather
-
-Live Space Weather tiles (Kp, X-ray flux, IMF Bz, solar wind, proton flux)
-plus local weather when an OpenWeatherMap key is configured in the J-Map
-tab.
+> 📷 *Screenshots:* each tab below references an image under `docs/images/` (e.g. `jhub-station.png`). Capture each tab at ~1400 px wide with representative data.
 
 ---
+
+### 4.1 Dashboard — live status (read-only)
+
+![J-Hub — Dashboard](docs/images/jhub-dashboard.png)
+
+The landing tab. Nothing here is editable; it's the at-a-glance state of the station, fed live over the broker.
+
+- **Rig Status** — current **frequency**, **mode**, **power (W)**, **source**, **band**, and the rig **alias** (from Station). "Last update" timestamps the most recent `RIG_STATUS` message. Shows dashes until a rig backend is connected (Rig tab).
+- **Rotor / Antenna** — an **azimuth compass** (heading needle) and an **elevation** dial, plus the rotor **backend** name. Driven by the Rotor tab / Hamlib `rotctld`.
+- **DX Cluster** — connection dot + state, the **server** in use, **spots/min**, and **total spots** this session. Configured on the Cluster tab.
+- **Module Connections** — one row per app (**J-Log, J-Digi, J-Bridge, J-Map, J-Sat, J-Vault, J-Learn**): a status dot, a meta line ("Not connected" / port), and **Launch** / **Stop** buttons that start or kill that app's process. This is the quickest way to bring an app up without a terminal.
+- **Quick Actions** — four buttons: **Reconnect Rig**, **Restart Cluster**, **Reload Config** (re-reads `j-hub.json`), **Restart WS** (restarts the WebSocket broker).
+- **Connected Apps** — a live WebSocket roster: which apps currently hold a connection to the broker, with a count. (Distinct from Module Connections, which is about the *process*; this is about the *live WS session*.)
+- **System Dependencies** — auto-detection of **Hamlib** and **WSJT-X** with a **Re-check** button. Tells you whether rig control and the WSJT-X bridge have what they need on this machine.
+
+---
+
+### 4.2 Station — operator identity & location
+
+![J-Hub — Station](docs/images/jhub-station.png)
+
+The suite-wide identity. These values are broadcast to every app via `STATION_CONFIG`, and grid/region drive the band-plan captions shown on rig frequency and DX spots. Stored under `station` in `j-hub.json`. **Save Station** writes the whole tab.
+
+**Operator** card:
+| Field | Notes |
+|-------|-------|
+| **Callsign** | Your station callsign (forced uppercase). Used by every module and as the default cluster/RBN login. |
+| **Operator Name** | Display name. |
+| **Rig (Model)** | Actual transceiver model (e.g. `IC-746pro`, `FTDX-10`). Independent of the nickname. |
+| **Alias / Friendly Name** | Short nickname shown wherever the rig is referenced ("Main", "Backup"). |
+| **Rig Operator** | Person actually using this rig. Defaults to Operator Name; override for shared / club / multi-op stations. |
+
+**Location** card:
+| Field | Notes |
+|-------|-------|
+| **QTH** | Free-text location. |
+| **Grid Square** | Maidenhead grid (uppercase). Feeds J-Map centering, J-Sat look angles, distance/bearing. |
+| **Latitude / Longitude** | Decimal degrees (step 0.0001). |
+| **CQ Zone** (1–40) · **ARRL Section** · **ITU Zone** (1–90) | Used for contest exchanges and award context. |
+
+**Regional Settings** card:
+| Field | Notes |
+|-------|-------|
+| **Timezone** | Drives local-time displays. |
+| **Language** | UI language — English, German, Spanish, French, Italian, Portuguese. |
+| **IARU Region** | R1 (Europe/Africa/ME), R2 (Americas), R3 (Asia/Oceania). Controls band-edge / segment captions on rig frequency and DX spots. |
+| **Country Overlay** | National sub-band overlay on top of the IARU region — currently only **US (FCC §97.301)**, or "(region only)". |
+
+---
+
+### 4.3 Rig — transceiver backend
+
+![J-Hub — Rig Control](docs/images/jhub-rig.png)
+
+Sets how J-Hub talks to your radio. Stored under `rig` in `j-hub.json`; a connection badge by the card title shows Disabled / connected / error.
+
+**Backend** (segmented): **None** · **CI-V Direct** (native Icom CI-V, no Hamlib) · **Hamlib rigctld**.
+
+*CI-V Settings* (shown for CI-V Direct):
+| Field | Notes |
+|-------|-------|
+| **Serial Port** | e.g. `/dev/ttyUSB0` or `COM3`. |
+| **Baud Rate** | 4800–115200 (default 19200). |
+| **CI-V Address (hex)** | Icom radio address, e.g. IC-7300 = `94`, IC-7700 = `74`. |
+
+*Hamlib rigctld* (shown for Hamlib):
+- **Start rigctld for me** (toggle) — J-Hub launches the `rigctld` daemon from the model/port below. Turn **off** if you run rigctld yourself (e.g. another machine).
+- **Hamlib bin folder (override)** — leave blank to auto-detect; paste the folder containing `rigctld(.exe)` etc. if the System Dependencies card says Hamlib is missing (Windows ZIP extracts to a versioned folder like `C:\hamlib-w64-4.5.5\bin`).
+- *Managed mode* fields: **Rig Model** (curated dropdown of common Yaesu / Icom / Kenwood / Elecraft / FlexRadio / SDR rigs, or **Custom** → enter the Hamlib model id from `rigctld --list`), **Serial Port**, **Baud Rate** (Default + 1200–115200).
+- *External mode* fields: **Host** + **Port** (where your rigctld is listening; default `localhost:4532`).
+
+**Common Settings:** **Poll Rate (ms)** (100–5000, default 500) · **Enable PTT** toggle (let J-Hub key the transmitter).
+
+**Buttons:** **Save Rig Settings** · **Test Comm Port** (spawns a throwaway rigctld with the form values, queries frequency, tears down — verify COM/baud/model *before* saving) · **Test PTT** (enabled once PTT is on) · **Download Diagnostics** (zip of all module logs + rig/rotor/amp status + Hamlib probe, for bug reports).
+
+**Live Rig Readout** card (read-only): Frequency (MHz) · Mode · Band · Power (W).
+
+---
+
+### 4.4 Rotor — antenna rotator
+
+![J-Hub — Rotor Control](docs/images/jhub-rotor.png)
+
+Backend + manual control for an az (or az/el) rotator. Stored under `rotor`.
+
+**Backend** (segmented): **None** · **Internal** (model + COM/serial port) · **Hamlib rotctld**.
+
+*Hamlib rotctld* mirrors the Rig tab:
+- **Start rotctld for me** toggle (managed vs external).
+- *Managed:* **Rotor Model** (dropdown: Yaesu/Kenpro GS-232 family, Hy-Gain/Idiom Press, Green Heron RT-21, SPID, M2, Prosistel, EA4TX, AMSAT LVB/IF-100, Heathkit — or **Custom** from `rotctld --list`), **Serial Port**, **Baud Rate**.
+- *External:* **Host** + **Port** (default `localhost:4533`).
+- **Short-Path Offset (°)** (0–359) and **Custom Preset (°)** (0–359). **Save Rotor Settings**.
+
+**Live Position & Manual Control** card:
+- **Azimuth** + **Elevation** gauges with live needles and big numeric readouts.
+- **Azimuth** point-buttons: NW · N · NE · W · E · SW · S · SE.
+- **Elevation** jog: ▲ +10° / +5° · ▼ −5° / −10° · **Park (0°)** · **■ Stop**.
+- **Presets:** Short Path · Long Path · Custom (uses the offsets above).
+
+---
+
+### 4.5 Amp — amplifier (Hamlib ampctld)
+
+![J-Hub — Amp Control](docs/images/jhub-amp.png)
+
+Hamlib `ampctld` backend + live amp telemetry. Stored under `amp`.
+
+**Backend** (segmented): **None** · **Hamlib ampctld**.
+
+*Hamlib ampctld:*
+- **Start ampctld for me** toggle (managed vs external).
+- *Managed:* **Amp Model** (Elecraft KPA1500, Gemini DX1200 / HF-1K, or **Custom** from `ampctld --list`), **Serial Port**, **Baud Rate**.
+- *External:* **Host** + **Port** (default `localhost:4531`).
+- **Poll Rate (ms)** (200–10000, default 1000) · **SWR Fault Threshold** (1.0–10.0, default 3.0).
+- **Follow rig band changes** toggle · **Show visual fault alerts** toggle. **Save Amp Settings**.
+
+**Live Status** card (read-only): Power · SWR · Forward (W) · Frequency. Levels read "unsupported" on amps that don't expose them.
+
+---
+
+### 4.6 Antenna — automatic antenna switching
+
+![J-Hub — Antenna Switch](docs/images/jhub-antenna.png)
+
+Drives serial relay switches from band / mode / rotor heading. Stored under `antenna`.
+
+**Connection** card: **Enable automatic switching** toggle · **Serial Port** · **Baud** · **Lockout switching while PTT is keyed** (recommended) toggle · **Save Connection**.
+
+**Current Status** card (read-only): Band · Mode · Heading · Active Antenna · the matching rule (or "No matching rule").
+
+**Switches** card: a list of switch definitions; **+ Add Switch**.
+
+**Rules** card: ordered list (**first match wins**, reorder with ↑/↓); **+ Add Rule**; **Save Switches & Rules**. The per-switch command template substitutes `{switch}` and `{antenna}`, with `\r` / `\n` for line endings (e.g. `SW{switch}={antenna}\r`).
+
+---
+
+### 4.7 Macros — text & voice
+
+![J-Hub — Macros](docs/images/jhub-macros.png)
+
+Define the macros every module shares (the same `MacroVariableEngine` expands them at QSO time). A segmented control at the top switches between **Digital / CW** macros (text) and **Voice** macros (recorded WAV). Stored under `macros`.
+
+- **Macros** card: an editable list (label + content); **+ Add Macro**; **Save Macros**.
+- **Macro Variables Reference** card: a live table of every placeholder, its current value, and which tab/app owns it:
+
+| Placeholder | Filled from |
+|-------------|-------------|
+| `{MYCALL}` | Station tab → Callsign |
+| `{CALL}` · `{RST}`/`{RST_S}`/`{RST_R}` · `{NAME}` · `{EXCH}` | the per-QSO **entry pane** in J-Log / J-Digi (defaults: RST `599`, NAME `OM`) |
+| `{SERIAL}` (zero-padded `007`) · `{NR}` (bare `7`) | J-Log contest module |
+| `{FREQ}` (MHz, 3-dp) · `{MODE}` | Rig Control tab / rig CAT |
+| `{BAND}` | derived from `{FREQ}` |
+
+Values shown as "(entry pane)" / "(logger)" aren't held by J-Hub — they're filled by the app at send time. Unknown placeholders are left untouched, so new variables never break old macros.
+
+---
+
+### 4.8 Antenna Workshop — recommender + calculators
+
+![J-Hub — Antenna Workshop](docs/images/jhub-antworkshop.png)
+
+Two sub-panes (top sub-nav):
+- **Calculators** — pick an antenna from the list and design it in the panel: flat / inverted-V / fan / trapped / OCF dipoles, EFHW (with and without traps), J-pole, Yagi-Uda, verticals, loading coils, and trap manufacturing.
+- **Recommender** — a questionnaire wizard (Back / Next, progress) that scores and lists antennas suited to your space, bands, and goals; **Start Over** resets it.
+
+Results and calculators deep-link into the matching J-Learn sections for the underlying math (antenna chapter + formula chapter).
+
+---
+
+### 4.9 J-Learn — reference library (embedded)
+
+![J-Hub — J-Learn](docs/images/jhub-learn.png)
+
+Embeds the J-Learn web app (separate process on **:8082**) as an iframe — 300+ sections on propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Lazy-loaded (no network hit until you open the tab).
+
+- Buttons: **Launch & Attach** (start the j-learn process if needed and load it), **Reload** (refresh the iframe after content edits), **Open in New Tab** (`http://localhost:8082/` — also reachable from any LAN browser).
+- This tab also hosts the **Morse Code Trainer** launch row — **▶ Launch Trainer** opens the standalone JavaFX trainer in its own window.
+
+---
+
+### 4.10 Cluster — DX cluster, RBN & skimmer
+
+![J-Hub — DX Cluster](docs/images/jhub-cluster.png)
+
+Telnet feeds that fan spots out to J-Map and J-Log over the broker (`SPOT`). Stored under `cluster` / `rbn` / `skimmer`.
+
+**Connection** card:
+- **Saved Networks** — pick a stored node (or "manual entry"); **Delete** removes the selected one.
+- **Connection Details** — **Host**, **Port** (default 7373), **Login Callsign** (defaults to station call).
+- **Save as Network Name** + **Save Network** to store the current details.
+- **Auto-Reconnect** toggle (exponential backoff). Buttons: **Connect** · **Disconnect** · **Save Settings**.
+
+**Status** card (read-only): Status dot · Server · Spots/min · Total spots.
+
+**Spot Filters** card: **Bands** and **Modes** checkbox grids; **Save Filters**, **All Bands**, **Clear Bands**. These filter the operator-spotted cluster feed.
+
+**Reverse Beacon Network** card: **Enable RBN feed** toggle · Server (`telnet.reversebeacon.net`) · Port (7000) · Login (falls back to station call) · **Min SNR (dB)** · Bands / Modes grids · **Save & Restart RBN**. RBN spots arrive tagged `source:"RBN"` and have their *own* band/mode filter, separate from the cluster filter.
+
+**Local CW Skimmer Server** card: same shape as RBN for a LAN skimmer (CW Skimmer Server / AR-Cluster format), default `127.0.0.1:7300`, tagged `source:"SKIMMER"`. **Save & Restart Skimmer**.
+
+**Recent Spots** card: a live table (DX · Freq · Mode · Country · Dist · Brg · Time); **Refresh**.
+
+**Raw Telnet Feed** card: the live node stream, a **Send to Telnet** box for commands (e.g. `SH/DX 10`, `SH/WWV`), and **Clear**.
+
+---
+
+### 4.11 Logging & Data — uploaders, backup, databases, ports
+
+![J-Hub — Logging & Data](docs/images/jhub-logging.png)
+
+- **Log Uploaders** — push QSOs from `~/.j-log/j-log.db` to **eQSL.cc, Club Log, QRZ Logbook, HRDLog**. Per-service rows with **Upload pending**. Credentials are encrypted in `~/.j-hub/credentials.enc` (AES-GCM, key tied to this machine); already-uploaded QSOs are tracked in an `upload_state` table and skipped on re-run.
+- **Cloud Backup** — **Enable scheduled cloud backup** toggle; mode **Folder** (any sync client — Dropbox/Drive/OneDrive/iCloud) or **WebDAV** (Nextcloud/ownCloud: URL + user + password + **Save WebDAV Credentials**). **Schedule (hours, 0 = manual)**, **Keep last N backups**, and **Include directories** checkboxes (`.j-hub`/`.j-log`/`.j-map`/`.j-sat`/`.j-digi`/`.j-bridge`). **Save Settings** · **Back up now** · status line.
+- **Database Tools** — manage logs in `~/.j-log/`: **Select Database** + **Refresh**, shown **Active** name (*restart J-Log to apply a switch*); **+ Add Database** · **Set Active** · **Delete**. Import/Export: **Export ADIF** · **Export CSV** · **Import ADIF…**. **Backup Active DB** (timestamped copy next to the DB).
+- **Configuration Backup & Export** — **Export Config (JSON)** · **Import Config** · **Export Diagnostics** (logs + status snapshot) · **🐛 Report an Issue…** (pre-filled GitHub issue; export diagnostics first and attach).
+- **J-Hub Ports** — **J-Hub IP** (address modules use to reach the hub), **WebSocket Port** (default 8080), **Web Config Port** (default 8081). **Both port changes require a J-Hub restart.** **Save Ports**.
+
+---
+
+### 4.12 Modules — process & launch management
+
+![J-Hub — Modules](docs/images/jhub-modules.png)
+
+The full version of the dashboard's Module Connections.
+
+- **Per-module cards** — for each app, its **launch command** (auto-filled per OS by `JHubConfig.applyDefaults`) and **auto-launch** setting, plus Launch/Stop. This is where you point J-Hub at a module's launcher if it lives somewhere non-standard.
+- **Connected WebSocket Sessions** — a live table (App · Version · Connected time) of who currently holds a broker connection; **Refresh**.
+
+---
+
+### 4.13 J-Log — logger preferences
+
+![J-Hub — J-Log settings](docs/images/jhub-jlog.png)
+
+Per-app settings for J-Log (stored and pushed to J-Log; some apply live, some need a J-Log restart — noted per control).
+
+- **Display** card:
+  - **Show Space Weather** — SFI / A / K / SN / MUF in the J-Log clock bar (restart to apply).
+  - **Show Rig Control Pane** — live freq/mode/band/power next to Data Entry with Use Freq / Use Mode buttons (live, no restart).
+  - **ID Timer** — station-ID countdown (FCC §97.119) in the Normal clock bar; flashes red when due; resets on each logged QSO or the "ID'd" button (Normal Log only; live). **ID interval (minutes)** (1–60, default 10).
+- **Global Base Font** — baseline size slider (10–22 px) for all unstyled elements.
+- **Per-Pane Font Sizes** — overrides for Status/Clock Bar, Data Entry, QSO Log Table, Info/Bearing Pane, and DX + Heard-By panes (restart to apply).
+- Buttons: **Save J-Log Settings** · **Save Data & Restart J-Log**.
+- **Community Plug-in Registry** — browse contributed contest/award plug-ins; one click installs the JSON into `~/.j-log/plugins/` or `~/.j-log/awards/`. **🔄 Refresh Registry**; see `docs/PLUGINS.md` for the schema.
+
+---
+
+### 4.14 J-Map — map display, overlays & windows
+
+![J-Hub — J-Map settings](docs/images/jhub-jmap.png)
+
+Per-app settings for J-Map (mostly applied when J-Map starts; window fonts apply live). A blue note at top explains running J-Map on a **second machine** with `bash j-map.sh --hub <host> --hub-ws-port 8080 --hub-web-port 8081` (it subscribes to this hub — no second cluster connection).
+
+- **API Keys** — **Use Mock Data** toggle (offline sample data); **NOAA API Key** (solar/geomagnetic); **OpenWeatherMap API Key** (weather overlays).
+- **Map & Core Overlays** — toggles: World Map · Grayline · DX Spots on Map · DX Spot Paths (great-circle spotter→DX) · Sun Position; plus **Grayline Opacity** slider (0–1).
+- **Space Weather Overlays** — Aurora · Geomagnetic Alerts · Satellite Tracking.
+- **Terrestrial Weather Overlays** — Weather · Troposcatter · Radar · Lightning · Weather Fronts · Surface Conditions.
+- **Amateur Radio Overlays** — CQ Zones · ITU Zones · Grid Squares · Rotor Map.
+- **Visible Windows** — DE Window (My Station) · DX Window · Contest List.
+- **DX Spot Filters** — Band Filter (All/160–2 m) · Max Spot Age (min) · Show Callsigns on map.
+- **Time Display** — Show Local · Show UTC · optional **Secondary Timezone** (IANA).
+- **Solar & Propagation** — Solar Data Panel · Sunspot Graphic · Propagation Data · Band Conditions.
+- **Global Base Font** (10–22 px) and **Per-Window Font Sizes** (DE Info, DX Info, Contest List, Propagation, Lunar/Planetary; 0 = inherit, applied live).
+- **Map Images** — **Map Style** (Blue Marble / Cloudless / Night Lights / Political / Custom), **Region**, and uploads for a **Custom World Map** (equirectangular JPG → `~/.j-map/world_map.jpg`) and **Great Circle Map** for the rotor pane (`~/.j-map/gcm.jpg`).
+- **Map Source & Data** — **Tile Provider** (Flat / OSM / ESRI / CartoDB), **Default Zoom**, **Default Center Lat/Lon**, **Refresh Interval (sec)**. (TLE/satellite sources live on the J-Sat tab.)
+- Buttons: **Save & Apply J-Map Settings** · **Save Data & Restart J-Map**.
+
+---
+
+### 4.15 J-Digi — modem keying, CW & audio
+
+![J-Hub — J-Digi settings](docs/images/jhub-jdigi.png)
+
+- **Audio Setup Wizard** — **🔍 Probe Audio Devices** lists the machine's sound cards; pick **Input (RX)** + **Output (TX)**, **🔁 Run Loopback Test** (a detected tone with SNR > 6 dB confirms wiring), **💾 Save to J-Digi**. It also tells you which device names to set in WSJT-X → Settings → Audio.
+- **Local CW Skimmer** (experimental) — toggle a multi-channel CW detector that publishes `LOCAL_SKIMMER_ACTIVITY` snapshots as a band-activity gauge.
+- **Transmit & CW** — **PTT Method** (VOX vs HAMLIB `rigctld T 1/T 0`), **CW Keyer** (AUDIO — synthesised Morse vs HAMLIB — rig's built-in keyer), **CW WPM** (5–60). Hamlib host/port are inherited from the **Rig Control** tab.
+- **Global Base Font** (10–22) and **Per-Pane Font Sizes** (RX/TX text, Frequency/Callsign, Status Bar, Toolbar, Entry/Macros; 0 = inherit, live).
+- Buttons: **Save J-Digi Settings** · **Save Data & Restart J-Digi**.
+
+---
+
+### 4.16 J-Bridge — WSJT-X integration
+
+![J-Hub — J-Bridge settings](docs/images/jhub-jbridge.png)
+
+- **WSJT-X Integration** — **WSJT-X Executable Path** (used when J-Bridge launches WSJT-X). J-Bridge listens for WSJT-X on UDP 2237.
+- **Global Base Font** (10–22) and **Per-Pane Font Sizes** (Toolbar/Title, Sidebar/Status, Band Activity, Decode Table; restart to apply).
+- Buttons: **Save J-Bridge Settings** · **Save Data & Restart J-Bridge**.
+
+---
+
+### 4.17 J-Vault — inventory (embedded)
+
+![J-Hub — J-Vault](docs/images/jhub-jvault.png)
+
+Embeds the J-Vault web app (separate process on **:8083**; data in `~/.j-vault/inventory.db`).
+
+- **J-Vault Process** — status dot + **Launch & Attach** / **Stop** / **Open in New Tab** (`http://localhost:8083/`).
+- **Embedded J-Vault** — the iframe (launch J-Vault first if it shows a connection error), a **Text Size** zoom slider (80–160 %), and **Reload**.
+
+---
+
+### 4.18 J-Sat — satellite & EME
+
+![J-Hub — J-Sat settings](docs/images/jhub-jsat.png)
+
+Per-app settings for J-Sat. J-Sat is the suite's **authoritative TLE source** (J-Map and others pull TLEs from it). Doppler/rotor automation is performed by **J-Hub** on messages from J-Sat, using the Rig/Rotor backends configured on those tabs.
+
+- **J-Sat Connection** — status dot + Launch/Stop, with live Tracking / AZ-EL / Downlink readouts.
+- **Station** — Callsign, Latitude °N, Longitude °E, Altitude km (J-Sat keeps its own copy for look-angle math).
+- **Satellites to Track** — quick-select **All FM / All Linear / All APRS / Weather / Select All / Clear All**, then a scrollable per-sat checklist.
+- **Pass Prediction** — **Min Elevation °** (0–30) · **Look-ahead Hours** (1–72).
+- **Display** — Ground Track · Footprint · Space Weather Panel toggles.
+- **Doppler Rig Control** — **Enable Doppler Correction** (J-Hub auto-tunes the rig via rigctld on each `SAT_DOPPLER`); shows live rig backend/status. Configure the rig on the **Rig** tab.
+- **AZ/EL Rotor Tracking** — **Enable Rotor Tracking** (J-Hub auto-aims via rotctld on each `SAT_ROTOR_CMD`); shows rotor backend/position. Configure the rotor on the **Rotor** tab.
+- **TLE Configuration** — **Stale Threshold (hours)** (default 48) · **TLE API Port** (default 4540) · **Refresh TLE Status**.
+- **Global Base Font** + **Per-Pane Font Sizes** (Top Bar, Live Pass, Upcoming Passes, Space Weather, Rig/Rotor; 0 = inherit; restart to apply).
+- **EME (Moon-bounce)** — **Enable EME panel**, **Reference RX frequency (MHz)** (Doppler scales with band: 50/144/222/432/1296/2304/3456/5760/10368), optional **DX QTH grid** (shows the mutual-Moon-window sked time).
+- Buttons: **Save J-Sat Settings** · **Save Data & Restart J-Sat**.
+
+---
+
+### 4.19 Weather — space & local (read-only)
+
+![J-Hub — Weather](docs/images/jhub-weather.png)
+
+- **Space Weather** (NOAA SWPC) — tiles for **Kp Index**, **X-Ray Flux**, **IMF Bz / Bt**, **Solar Wind Speed / Density**, **Proton Flux**, with an HF-conditions summary line. **Refresh Now** + link to NOAA SWPC.
+- **Local Weather** (OpenWeather) — Temperature, Conditions, Wind, Humidity, Visibility. Requires an **OpenWeatherMap API key** set on the **J-Map** tab; otherwise the card prompts for one.
+
+---
+
+### 4.20 Callsign — multi-provider lookup
+
+![J-Hub — Callsign Lookup](docs/images/jhub-callsign.png)
+
+Resolves callsigns from a local SQLite DB and online providers; modules use this for name/grid/class. Stored under `callsignLookup`.
+
+- **Lookup** — type a callsign → result rows (Callsign, Name, Address, Grid, Class, Expires, Source).
+- **Local Database** — shows Path / Records / Size / Last Updated, plus three import paths:
+  - **FCC ULS Auto-Download** — one-click fetch + extract + import of the full FCC amateur DB (~220 MB, 700k+ US records) with a progress bar.
+  - **Manual FCC Import** — point at an extracted `l_amat` folder (HD.dat / EN.dat / AM.dat).
+  - **CSV Import** — HamCall/Buckmaster/any CSV with a callsign column.
+- **Provider Settings** — **Lookup Provider** (Auto chain: Local DB → QRZ → HamQTH → HamDB → Callook; or force one) · **Local Database Path** · **Cache TTL (hours)** · **QRZ.com** user/pass (paid XML sub) · **HamQTH** user/pass (free) · **FCC Download URL Override** · **Enable Callsign Lookup** toggle · **Save Settings**.
+
+---
+
+### 4.21 The Operator Intel sidebar (always visible)
+
+Independent of the tabs, a right-hand **Operator Intel** pane is always on screen: your **callsign / grid / rig / alias / operator** (operator is click-to-edit), the **live rig** readout (freq / mode / band / power), and **rotor** heading/backend — a persistent at-a-glance status that follows you across every tab.
 
 ## 5. Per-app notes
 
