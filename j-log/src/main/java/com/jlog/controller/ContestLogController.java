@@ -11,6 +11,7 @@ import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.scoring.DxccResolver;
+import com.jlog.scoring.RecordFields;
 import com.jlog.scoring.AriDx;
 import com.jlog.scoring.AsianEntities;
 import com.jlog.scoring.OceaniaDx;
@@ -1745,7 +1746,7 @@ public class ContestLogController implements Initializable, RigControlController
                     plugin.getContestId(), q.getCallsign());
             } else if (plugin.isRoverAwareDupe() && isRover(q.getCallsign())) {
                 // June VHF rovers: (callsign, band, grid) — new grid = new QSO.
-                String grid = getFieldValue(firstPresent("grid_rcvd", "gridsquare_rcvd"));
+                String grid = RecordFields.value(plugin, q, firstPresent("grid_rcvd", "gridsquare_rcvd"));
                 dupe = ContestQsoDao.getInstance().isDuplicateBandGrid(
                     plugin.getContestId(), q.getCallsign(),
                     q.getBand() != null ? q.getBand() : "",
@@ -1760,7 +1761,7 @@ public class ContestLogController implements Initializable, RigControlController
                 // ARRL 10 GHz & Up: once per band from each specific location.
                 // Any station re-worked from a new grid is a new QSO (Rule 2.4
                 // / 6.3) — keyed (callsign, band, grid), no /R suffix needed.
-                String grid = getFieldValue(firstPresent("grid_rcvd", "gridsquare_rcvd"));
+                String grid = RecordFields.value(plugin, q, firstPresent("grid_rcvd", "gridsquare_rcvd"));
                 dupe = ContestQsoDao.getInstance().isDuplicateBandGrid(
                     plugin.getContestId(), q.getCallsign(),
                     q.getBand() != null ? q.getBand() : "",
@@ -1798,7 +1799,7 @@ public class ContestLogController implements Initializable, RigControlController
                 final boolean qpMrgCw = qpc != null && qpc.isMergeCwDigital();
                 final String qpCls  = QsoParty.modeClass(q.getMode(), qpMerge, qpMrgCw);
                 final String qpBand = q.getBand() != null ? q.getBand() : "";
-                final String qpQth  = getFieldValue("state_prov_rcvd");
+                final String qpQth  = RecordFields.value(plugin, q, "state_prov_rcvd");
                 final String qpQthN = qpQth == null ? "" : qpQth.trim().toUpperCase();
                 dupe = ContestQsoDao.getInstance()
                     .findByCallsign(plugin.getContestId(), q.getCallsign())
@@ -1909,7 +1910,7 @@ public class ContestLogController implements Initializable, RigControlController
             // checks 23/22/21/20 → delta 0..3 inclusive. RK↔RK = 2 pts, RK↔non-RK
             // = 1 pt (Rule 5.1).
             String yearField = firstPresent("year_rcvd", "chk_rcvd", "check_rcvd");
-            String yearStr   = yearField == null ? "" : getFieldValue(yearField);
+            String yearStr   = RecordFields.value(plugin, q, yearField);
             if (yearStr != null && yearStr.trim().matches("[0-9]{1,2}")) {
                 int yy    = Integer.parseInt(yearStr.trim());
                 int curYy = LocalDateTime.now(ZoneOffset.UTC).getYear() % 100;
@@ -1929,8 +1930,8 @@ public class ContestLogController implements Initializable, RigControlController
             // Claimed/running score — ARRL re-adjudicates from submitted grids.
             var ds = rules.getDistanceScoring();
             String theirId = ds.getTheirGridField() != null ? ds.getTheirGridField() : "grid_rcvd";
-            String theirGrid = getFieldValue(theirId);
-            String ownGrid = ds.getOwnGridField() != null ? getFieldValue(ds.getOwnGridField()) : null;
+            String theirGrid = RecordFields.value(plugin, q, theirId);
+            String ownGrid = ds.getOwnGridField() != null ? RecordFields.value(plugin, q, ds.getOwnGridField()) : null;
             if (ownGrid == null || ownGrid.isBlank())
                 ownGrid = AppConfig.getInstance().getGridSquare();
             double km = Maidenhead.distanceKm(ownGrid, theirGrid);
