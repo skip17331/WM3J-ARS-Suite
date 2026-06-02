@@ -1741,82 +1741,8 @@ public class ContestLogController implements Initializable, RigControlController
         q.setSerialSent(String.valueOf(serialCounter.get()));
 
         try {
-            boolean dupe;
-            if (plugin.isContestWideDupe()) {
-                // ARRL Sweepstakes: one QSO per callsign for the entire contest.
-                dupe = ContestQsoDao.getInstance().isDuplicateContestWide(
-                    plugin.getContestId(), q.getCallsign());
-            } else if (plugin.isRoverAwareDupe() && isRover(q.getCallsign())) {
-                // June VHF rovers: (callsign, band, grid) — new grid = new QSO.
-                String grid = RecordFields.value(plugin, q, firstPresent("grid_rcvd", "gridsquare_rcvd"));
-                dupe = ContestQsoDao.getInstance().isDuplicateBandGrid(
-                    plugin.getContestId(), q.getCallsign(),
-                    q.getBand() != null ? q.getBand() : "",
-                    multColumn,
-                    grid != null ? grid : "");
-            } else if (plugin.isRoverAwareDupe()) {
-                // Non-rover on a rover-aware contest: (callsign, band).
-                dupe = ContestQsoDao.getInstance().isDuplicatePerBand(
-                    plugin.getContestId(), q.getCallsign(),
-                    q.getBand() != null ? q.getBand() : "");
-            } else if (plugin.isPerBandGridDupe()) {
-                // ARRL 10 GHz & Up: once per band from each specific location.
-                // Any station re-worked from a new grid is a new QSO (Rule 2.4
-                // / 6.3) — keyed (callsign, band, grid), no /R suffix needed.
-                String grid = RecordFields.value(plugin, q, firstPresent("grid_rcvd", "gridsquare_rcvd"));
-                dupe = ContestQsoDao.getInstance().isDuplicateBandGrid(
-                    plugin.getContestId(), q.getCallsign(),
-                    q.getBand() != null ? q.getBand() : "",
-                    multColumn,
-                    grid != null ? grid : "");
-            } else if (plugin.isPerModeMultipliers()) {
-                // Dupe rule is mode-specific, band-independent (e.g. ARRL 10M).
-                dupe = ContestQsoDao.getInstance().isDuplicatePerMode(
-                    plugin.getContestId(), q.getCallsign(),
-                    q.getMode() != null ? q.getMode() : "");
-            } else if (plugin.isFieldDayModeDupe()) {
-                // ARRL Field Day (Rule 6.3/6.6/6.7): once per band per mode
-                // CATEGORY — all voice equivalent, all non-CW digital
-                // equivalent, CW its own. The stored mode column is the raw
-                // mode, so collapse to CW/PH/DG and compare in Java against
-                // prior same-callsign QSOs.
-                final String fdCls = fdModeClass(q.getMode());
-                final String fdBand = q.getBand() != null ? q.getBand() : "";
-                dupe = ContestQsoDao.getInstance()
-                    .findByCallsign(plugin.getContestId(), q.getCallsign())
-                    .stream()
-                    .anyMatch(r -> !r.isDupe()
-                        && fdBand.equals(r.getBand() != null ? r.getBand() : "")
-                        && fdCls.equals(fdModeClass(r.getMode())));
-            } else if (plugin.getScoringRules() != null
-                    && "qso_party".equals(plugin.getScoringRules().getMultiplierType())) {
-                // QSO party: workable once per band per MODE-CLASS from
-                // each county/QTH. Mode class (PH/CW/RY/DG, RY→DG when
-                // mergeRttyDigital) is compared in Java so USB/LSB, and
-                // FT8/FT4/RTTY where merged, collapse correctly; a
-                // mobile/rover that moves and sends a new county is a new
-                // QSO (MNQP county line, VTQP straddling, SCQP mobiles).
-                var qpc = plugin.getScoringRules().getQsoParty();
-                final boolean qpMerge = qpc != null && qpc.isMergeRttyDigital();
-                final boolean qpMrgCw = qpc != null && qpc.isMergeCwDigital();
-                final String qpCls  = QsoParty.modeClass(q.getMode(), qpMerge, qpMrgCw);
-                final String qpBand = q.getBand() != null ? q.getBand() : "";
-                final String qpQth  = RecordFields.value(plugin, q, "state_prov_rcvd");
-                final String qpQthN = qpQth == null ? "" : qpQth.trim().toUpperCase();
-                dupe = ContestQsoDao.getInstance()
-                    .findByCallsign(plugin.getContestId(), q.getCallsign())
-                    .stream()
-                    .anyMatch(r -> !r.isDupe()
-                        && qpBand.equals(r.getBand() != null ? r.getBand() : "")
-                        && qpCls.equals(QsoParty.modeClass(r.getMode(), qpMerge, qpMrgCw))
-                        && qpQthN.equals(r.getContestField1() == null ? ""
-                                : r.getContestField1().trim().toUpperCase()));
-            } else {
-                dupe = ContestQsoDao.getInstance().isDuplicate(
-                    plugin.getContestId(), q.getCallsign(),
-                    q.getBand() != null ? q.getBand() : "",
-                    q.getMode() != null ? q.getMode() : "");
-            }
+            boolean dupe = ContestScorer.isDupe(plugin, q,
+                ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), q.getCallsign()));
             q.setDupe(dupe);
         } catch (Exception e) {
             log.warn("dupe check failed", e);

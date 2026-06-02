@@ -305,6 +305,89 @@ public final class ContestScorer {
                 c != null && c.isCountyByExclusion());
     }
 
+    // ---- dupe ----------------------------------------------------------
+    /**
+     * Whether this candidate QSO duplicates a prior one under the plugin's dupe
+     * rule. Pure over the candidate + the contest's prior QSOs for the SAME
+     * callsign (the caller fetches them, e.g. {@code ContestQsoDao.findByCallsign});
+     * priors already flagged dupe are ignored. Mirrors the controller dispatch
+     * order: contest-wide → rover-aware → per-band-grid → per-mode → field-day
+     * mode-class → qso_party → (default) band+mode.
+     */
+    public static boolean isDupe(ContestPlugin plugin, QsoRecord cand, List<QsoRecord> priorForCall) {
+        if (priorForCall == null || priorForCall.isEmpty()) return false;
+        final String band = nz(cand.getBand());
+        java.util.List<QsoRecord> prior = new java.util.ArrayList<>();
+        for (QsoRecord r : priorForCall) if (!r.isDupe()) prior.add(r);
+        if (prior.isEmpty()) return false;
+
+        if (plugin.isContestWideDupe()) return true;                         // any prior with this call
+
+        if (plugin.isRoverAwareDupe() && isRover(cand.getCallsign())) {
+            String g = nz(RecordFields.value(plugin, cand, gridFieldCand(plugin)));
+            return anyMatch(prior, r -> band.equals(nz(r.getBand()))
+                    && g.equals(nz(RecordFields.value(plugin, r, gridFieldPrior(plugin)))));
+        }
+        if (plugin.isRoverAwareDupe()) {
+            return anyMatch(prior, r -> band.equals(nz(r.getBand())));        // non-rover: call+band
+        }
+        if (plugin.isPerBandGridDupe()) {
+            String g = nz(RecordFields.value(plugin, cand, gridFieldCand(plugin)));
+            return anyMatch(prior, r -> band.equals(nz(r.getBand()))
+                    && g.equals(nz(RecordFields.value(plugin, r, gridFieldPrior(plugin)))));
+        }
+        if (plugin.isPerModeMultipliers()) {
+            String mode = nz(cand.getMode());
+            return anyMatch(prior, r -> mode.equals(nz(r.getMode())));        // call+mode, band-agnostic
+        }
+        if (plugin.isFieldDayModeDupe()) {
+            String cls = fdModeClass(cand.getMode());
+            return anyMatch(prior, r -> band.equals(nz(r.getBand())) && cls.equals(fdModeClass(r.getMode())));
+        }
+        var rules = plugin.getScoringRules();
+        if (rules != null && "qso_party".equals(rules.getMultiplierType())) {
+            var qpc = rules.getQsoParty();
+            boolean merge = qpc != null && qpc.isMergeRttyDigital();
+            boolean mrgCw = qpc != null && qpc.isMergeCwDigital();
+            String cls = QsoParty.modeClass(cand.getMode(), merge, mrgCw);
+            String qth = nz(RecordFields.value(plugin, cand, "state_prov_rcvd")).trim().toUpperCase();
+            return anyMatch(prior, r -> band.equals(nz(r.getBand()))
+                    && cls.equals(QsoParty.modeClass(r.getMode(), merge, mrgCw))
+                    && qth.equals(nz(r.getContestField1()).trim().toUpperCase()));
+        }
+        String mode = nz(cand.getMode());
+        return anyMatch(prior, r -> band.equals(nz(r.getBand())) && mode.equals(nz(r.getMode())));
+    }
+
+    private static boolean isRover(String call) {
+        if (call == null) return false;
+        String c = call.trim().toUpperCase();
+        return c.endsWith("/R") || c.endsWith("/ROVER");
+    }
+    private static String fdModeClass(String mode) {
+        if (mode == null) return "DG";
+        String m = mode.trim().toUpperCase();
+        if (m.equals("CW")) return "CW";
+        if (m.equals("SSB") || m.equals("USB") || m.equals("LSB") || m.equals("FM")
+                || m.equals("AM") || m.equals("PHONE") || m.equals("DV") || m.equals("VOICE")) return "PH";
+        return "DG";
+    }
+    /** Candidate's grid is read from grid_rcvd/gridsquare_rcvd; priors are compared on the
+     *  multiplier-model field (the original "multColumn") — identical for real band-grid
+     *  contests, which set multiplierModel.field = grid_rcvd. */
+    private static String gridFieldCand(ContestPlugin plugin) {
+        return fieldPresent(plugin, "grid_rcvd", "gridsquare_rcvd");
+    }
+    private static String gridFieldPrior(ContestPlugin plugin) {
+        return plugin.getMultiplierModel() != null ? plugin.getMultiplierModel().getField()
+                                                    : gridFieldCand(plugin);
+    }
+    private static boolean anyMatch(java.util.List<QsoRecord> rs, java.util.function.Predicate<QsoRecord> p) {
+        for (QsoRecord r : rs) if (p.test(r)) return true;
+        return false;
+    }
+    private static String nz(String s) { return s == null ? "" : s; }
+
     // ---- helpers -------------------------------------------------------
     private static String regionTag(String callsign) {
         return switch (CallsignRegion.classify(callsign)) {
