@@ -3,12 +3,12 @@ name: Build
 # When this workflow runs:
 #   - every push to main
 #   - every pull request (useful later if contributors show up)
-#   - when you push a tag starting with 'v' (e.g. v1.0.0) — will later attach
-#     the built jars to a GitHub Release
+# Tags (v*) are handled by release.yml, which builds the per-arch artifacts,
+# runs the arch guard, and publishes the GitHub Release — so they're not built
+# here to avoid double work.
 on:
   push:
     branches: [main]
-    tags:     ['v*']
   pull_request:
 
 jobs:
