@@ -43,14 +43,15 @@ appear — another reason the tool must validate before export.
 | **Cabrillo export** (`CabrilloExporter`) incl. `CONTEST:` + exchange mapping | `j-log-engine` | ✅ |
 | **Award progress** (`AwardService`, `AwardProgress`) | `j-log-engine` | ✅ |
 | Dupe SQL primitives (`ContestQsoDao.isDuplicate*`) | `j-log-engine` | ✅ |
-| **Contest scoring / multiplier-count / dupe dispatch** | **`j-log` `ContestLogController` + `com.jlog.scoring.*`** | ❌ not in engine |
+| **Contest scoring / multiplier-count / dupe** (`ContestScorer.points`/`isDupe`/`score`) | **`j-log-engine` `com.jlog.scoring`** (extracted 2026-06) | ✅ |
 | Map/section render panes, 13-Colonies call→state map | `j-log` UI | ❌ |
 
-**Implication for the builder:** structural validation, Cabrillo preview, and *award*
-score preview work off `j-log-engine` alone. A *contest* score/multiplier/dupe preview
-needs either (a) a dependency on `j-log`, or (b) lifting the scoring dispatch out of
-`ContestLogController` into the engine (the cleaner long-term move — it would also make the
-scoring unit-testable in isolation). Decide this before promising "live score preview."
+**Implication for the builder:** everything the builder needs — structural validation,
+Cabrillo preview, *award* progress, and a *contest* score/multiplier/dupe preview — now
+works off `j-log-engine` alone. The scoring dispatch was lifted out of `ContestLogController`
+into `com.jlog.scoring.ContestScorer` (`points` / `isDupe` / `score`, plus `ContestScore` /
+`StationContext`), so it is unit-tested in isolation and reused by the builder's live
+preview. No `j-log` dependency required.
 
 ---
 
@@ -185,8 +186,8 @@ bandFactor: Map<band,int>, divisorKm, basePoints, minDistancePoints}`. `formula`
 
 ## 6. `multiplierType` catalog
 
-Dispatched by two `equals()` ladders in `ContestLogController` (**not** the engine). The
-13 values with dedicated logic:
+Dispatched in `com.jlog.scoring.ContestScorer` (engine — lifted out of
+`ContestLogController` in the 2026-06 scoring refactor). The 13 values with dedicated logic:
 
 | Value | What it computes |
 |---|---|
