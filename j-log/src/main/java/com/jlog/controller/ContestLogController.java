@@ -10,18 +10,10 @@ import com.jlog.i18n.I18n;
 import com.jlog.macro.MacroEngine;
 import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
-import com.jlog.scoring.DxccResolver;
 import com.jlog.scoring.RecordFields;
+import com.jlog.scoring.ContestScore;
 import com.jlog.scoring.ContestScorer;
 import com.jlog.scoring.StationContext;
-import com.jlog.scoring.AriDx;
-import com.jlog.scoring.AsianEntities;
-import com.jlog.scoring.OceaniaDx;
-import com.jlog.scoring.QsoParty;
-import com.jlog.scoring.RussianDx;
-import com.jlog.scoring.Scandinavian;
-import com.jlog.scoring.Wag;
-import com.jlog.scoring.WaeMultiplier;
 import com.jlog.ui.contest.DxccListPane;
 import com.jlog.ui.contest.PerModeMultGridPane;
 import com.jlog.ui.contest.SweepProgressPane;
@@ -1810,25 +1802,6 @@ public class ContestLogController implements Initializable, RigControlController
 
     // ---- QSO-party engine (multiplierType:"qso_party") ----------------
 
-    private ContestPlugin.QsoPartyConfig qpCfg() {
-        return plugin.getScoringRules() == null ? null
-             : plugin.getScoringRules().getQsoParty();
-    }
-
-    private Set<String> qpUpper(List<String> in) {
-        Set<String> s = new HashSet<>();
-        if (in != null) for (String v : in) if (v != null) s.add(v.trim().toUpperCase());
-        return s;
-    }
-
-    /** In-state county universe — explicit config list, else the
-     *  declared multiplierList resource (the worked_mults universe). */
-    private Set<String> qpCounties(ContestPlugin.QsoPartyConfig c) {
-        if (c != null && c.getInStateCounties() != null && !c.getInStateCounties().isEmpty())
-            return qpUpper(c.getInStateCounties());
-        return qpUpper(com.jlog.plugin.MultiplierLists.load(plugin.getMultiplierList()));
-    }
-
     /** Field-slot column ("field1".."field5") for an entry-field id,
      *  using the same special-skip rule as computeMultiplierColumn. */
     private String qpColumnFor(String id) {
@@ -1869,22 +1842,6 @@ public class ContestLogController implements Initializable, RigControlController
             log.warn("qpMyQth fetch failed", e);
         }
         return "";
-    }
-
-    /** Is the worked station in-state? County match, or (digital) an
-     *  in-state grid, or a known club/in-state special call. */
-    private boolean qpWorkedInState(QsoRecord q, ContestPlugin.QsoPartyConfig c,
-                                    Set<String> counties, Set<String> grids,
-                                    Set<String> clubs) {
-        if (QsoParty.callIn(q.getCallsign(), clubs)) return true;
-        String mc = QsoParty.modeClass(q.getMode());
-        String r  = q.getContestField1();
-        if ("DG".equals(mc) && c != null && c.getFt8GridDivisor() > 0) {
-            String g = QsoParty.grid4(r);
-            return g != null && grids.contains(g);
-        }
-        return QsoParty.isCounty(r, counties, c == null ? 0 : c.getCountyCodeLen(),
-                c != null && c.isCountyByExclusion());
     }
 
     private void populateFromRecord(QsoRecord q) {
@@ -2078,676 +2035,60 @@ public class ContestLogController implements Initializable, RigControlController
     private void updateStats() {
         if (plugin == null) return;
         try {
-            String multCol = multColumn;
-            int count  = ContestQsoDao.getInstance().countByContest(plugin.getContestId());
-            int qsoHr  = computeQsoHour();
-
-            // Field Day-style scoring: final score = QSO points (no multiplier).
-            // Bonus points are computed off-log at submission time.
-            if (plugin.getScoringRules() != null && plugin.getScoringRules().isScoreIsPointsOnly()) {
-                int total = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
-                List<String> worked = ContestQsoDao.getInstance()
-                    .distinctFieldByColumn(plugin.getContestId(), multCol);
-                final int score = total;
-                final int sections = worked.size();
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(sections));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                    sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
-                    worked.forEach(sec -> {
-                        Label lbl = sectionLabels.get(sec);
-                        if (lbl != null) lbl.getStyleClass().add("section-worked");
-                    });
-                });
-                return;
-            }
-
-            if (plugin.isPerModeMultipliers()) {
-                // Per-mode mults + per-mode point sums. Score = (P_cw + P_phone) × (M_cw + M_phone).
-                Map<String, List<String>> workedByMode = new LinkedHashMap<>();
-                int totalMults = 0, totalPoints = 0;
-                for (String mode : TRACKED_MODES_DEFAULT) {
-                    List<String> w = ContestQsoDao.getInstance()
-                        .distinctFieldByColumnAndMode(plugin.getContestId(), multCol, mode);
-                    workedByMode.put(mode, w);
-                    totalMults  += w.size();
-                    totalPoints += ContestQsoDao.getInstance()
-                        .pointsByMode(plugin.getContestId(), mode);
+            int qsoHr = computeQsoHour();
+            boolean wae = plugin.getScoringRules() != null
+                    && "wae".equals(plugin.getScoringRules().getMultiplierType());
+            int qtcPoints = wae
+                    ? ContestQtcDao.getInstance().totalQtcPointsByContest(plugin.getContestId())
+                    : 0;
+            List<QsoRecord> qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId());
+            ContestScore s = ContestScorer.score(plugin, qsos, stationContext(),
+                    multColumn, contestBands(), qtcPoints);
+            Platform.runLater(() -> {
+                if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(s.qsoCount()));
+                if (lblScore    != null) lblScore.setText(String.valueOf(s.score()));
+                if (lblMults    != null) lblMults.setText(String.valueOf(s.mults()));
+                if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
+                switch (s.painter()) {
+                    case WORKED   -> paintWorkedFull(s.worked());
+                    case SECTIONS -> paintSections(s.worked());
+                    case PER_MODE -> { refreshMapsWorked(s.workedByMode()); refreshPerModeGrid(s.workedByMode()); }
+                    case PER_BAND -> { if (gridsPane != null) s.workedByBand().forEach(gridsPane::setWorked); }
+                    case ZONES    -> { if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(s.zonesWorked()); }
+                    case NONE     -> { }
                 }
-                final int score = totalPoints * totalMults;
-                final int mults = totalMults;
-
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                    refreshMapsWorked(workedByMode);
-                    refreshPerModeGrid(workedByMode);
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "state_prov_country".equals(plugin.getScoringRules().getMultiplierType())) {
-                // CQ WW 160m (Rule V/VII): one combined multiplier set =
-                // US state | VE province | DXCC country, contest-wide (single
-                // band). W/VE mult = the state/prov the op logged (field1);
-                // DX mult = DXCC entity resolved from the callsign (the zone
-                // they send is a location indicator only, NOT a multiplier).
-                // MM stations carry no multiplier (Rule VI). US=dxcc 291,
-                // Canada=dxcc 1; everything else = its own country.
-                DxccResolver dxr = DxccResolver.getInstance();
-                Set<String> mset = new HashSet<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String call = q.getCallsign();
-                    if (DxccResolver.isMaritimeOrAir(call)) continue;   // no mult
-                    DxccResolver.Entity e = dxr.resolve(call);
-                    if (e == null) continue;                            // unresolved
-                    String key;
-                    if ("291".equals(e.id()) || "1".equals(e.id())) {
-                        String sp = q.getContestField1();               // state/prov logged
-                        if (sp == null || sp.isBlank()) continue;
-                        key = e.id() + ":" + sp.trim().toUpperCase();
-                    } else {
-                        key = "DX:" + e.id();
-                    }
-                    mset.add(key);
-                }
-                int total  = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = mset.size();
-                final int score = total * mults;
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "all_asian".equals(plugin.getScoringRules().getMultiplierType())) {
-                // JARL All Asian DX (Rule §7/§8): per-band multiplier is
-                // asymmetric by entrant. Asian entrant → distinct DXCC
-                // entities per band (same-entity & MM excluded). Non-Asian
-                // entrant → distinct Asian WPX prefixes per band (only Asian
-                // stations count). Score = Σ pts (all bands) × Σ mults (all
-                // bands). Callsign-derived; no logged mult field.
-                String aaCall = AppConfig.getInstance().getStationCallsign();
-                if (aaCall == null || aaCall.isBlank())
-                    aaCall = AppConfig.getInstance().getSsCallsign();
-                boolean meAsian = AsianEntities.isAsian(aaCall);
-                String meEnt = DxccResolver.getInstance().entityOf(aaCall);
-                Map<String, Set<String>> aaByBand = new LinkedHashMap<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String call = q.getCallsign();
-                    if (DxccResolver.isMaritimeOrAir(call)) continue;   // MM = no mult
-                    String tok;
-                    if (meAsian) {
-                        String e = DxccResolver.getInstance().entityOf(call);
-                        if (e == null) continue;
-                        if (meEnt != null && meEnt.equals(e)) continue; // same entity = no mult
-                        tok = e;
-                    } else {
-                        if (!AsianEntities.isAsian(call)) continue;     // only Asian count
-                        tok = CallsignRegion.wpxPrefix(call);
-                        if (tok == null || tok.isBlank()) continue;
-                    }
-                    aaByBand.computeIfAbsent(b, k -> new HashSet<>()).add(tok);
-                }
-                int aaMults = aaByBand.values().stream().mapToInt(Set::size).sum();
-                int aaTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = aaMults;
-                final int score = aaTotal * aaMults;
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "russian_dx".equals(plugin.getScoringRules().getMultiplierType())) {
-                // Russian DX (Rule §9/§10): dual per-band multiplier =
-                // distinct oblast + distinct DXCC/WAE country. Oblast comes
-                // from the logged exchange field (field1) for Russian
-                // stations; UA2F/RI1FJ/RI1AN count as a separate country AND
-                // a separate oblast (§7.3 double mult). Country is resolved
-                // from the callsign. MM = no mult (§7.4). Score = Σ pts ×
-                // (Σ oblast mults + Σ country mults).
-                Set<String> rdMult = new HashSet<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String call = q.getCallsign();
-                    if (DxccResolver.isMaritimeOrAir(call)) continue;     // §7.4 no mult
-                    rdMult.add(b + "|C|" + RussianDx.countryToken(call)); // country/band
-                    if (RussianDx.isRussian(call)) {
-                        String ct = RussianDx.countryToken(call);
-                        String ob;
-                        if ("RI1FJ".equals(ct) || "RI1AN".equals(ct) || "UA2F".equals(ct))
-                            ob = ct;                                       // §7.3 separate oblast
-                        else {
-                            String f1 = q.getContestField1();
-                            ob = f1 == null ? "" : f1.trim().toUpperCase();
-                        }
-                        if (!ob.isBlank()) rdMult.add(b + "|O|" + ob);     // oblast/band
-                    }
-                }
-                int rdTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = rdMult.size();
-                final int score = rdTotal * rdMult.size();
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "sac".equals(plugin.getScoringRules().getMultiplierType())) {
-                // Scandinavian Activity Contest (Rule §8): per-band
-                // multiplier is asymmetric by entrant. Scandinavian entrant
-                // → distinct DXCC entities per band over every station
-                // worked. Non-Scandinavian entrant → distinct Scandinavian
-                // district tokens (entity + call-area digit, §8.2) per
-                // band, only Scandinavian stations counting. Score = Σ QSO
-                // pts (all bands) × Σ mults (all bands). Callsign-derived;
-                // no logged multiplier field. Claimed/running — the SAC
-                // committee re-adjudicates.
-                String scCall = AppConfig.getInstance().getStationCallsign();
-                if (scCall == null || scCall.isBlank())
-                    scCall = AppConfig.getInstance().getSsCallsign();
-                boolean meScand = Scandinavian.isScandinavian(scCall);
-                DxccResolver dxr = DxccResolver.getInstance();
-                Map<String, Set<String>> scByBand = new LinkedHashMap<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String call = q.getCallsign();
-                    String tok;
-                    if (meScand) {
-                        DxccResolver.Entity e = dxr.resolve(call);
-                        if (e == null) continue;
-                        tok = e.id();
-                    } else {
-                        tok = Scandinavian.multToken(call);     // null if not Scandinavian
-                        if (tok == null) continue;
-                    }
-                    scByBand.computeIfAbsent(b, k -> new HashSet<>()).add(tok);
-                }
-                int scMults = scByBand.values().stream().mapToInt(Set::size).sum();
-                int scTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = scMults;
-                final int score = scTotal * scMults;
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "ari_dx".equals(plugin.getScoringRules().getMultiplierType())) {
-                // ARI DX (Multipliers/Final score): one combined per-band
-                // multiplier set = Italian province (the 2-letter code the
-                // Italian station logged, field1) + DXCC entity for every
-                // non-Italian station. I (248) and IS0 (225) are NEVER a
-                // country multiplier — only their province counts. Each
-                // value once per band; the same station re-worked in
-                // another mode adds no new key (set-dedup = "only the
-                // first QSO is good for multiplier credit"). Score = Σ QSO
-                // pts (all bands) × Σ mults (all bands). Claimed — the ARI
-                // committee re-adjudicates.
-                DxccResolver dxr = DxccResolver.getInstance();
-                Set<String> arMult = new HashSet<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String call = q.getCallsign();
-                    if (AriDx.isItalian(call)) {
-                        String pr = q.getContestField1();
-                        pr = pr == null ? "" : pr.trim().toUpperCase();
-                        if (!pr.isBlank()) arMult.add(b + "|P|" + pr); // province
-                    } else {
-                        String e = dxr.entityOf(call);
-                        if (e == null) continue;
-                        if (AriDx.ITALY.equals(e) || AriDx.SARDINIA.equals(e)) continue;
-                        arMult.add(b + "|C|" + e);                     // DXCC country
-                    }
-                }
-                int arTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = arMult.size();
-                final int score = arTotal * arMult.size();
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "oceania_dx".equals(plugin.getScoringRules().getMultiplierType())) {
-                // Oceania DX (Rule 9/11): multiplier = distinct WPX
-                // prefixes, the same prefix counting once PER BAND. An
-                // Oceania entrant counts every station's prefix; a non-
-                // Oceania entrant counts only Oceania stations' prefixes
-                // (non-Oceania↔non-Oceania = no mult, Rule 4b). Prefix is
-                // callsign-derived (CallsignRegion.wpxPrefix — the shared
-                // WPX helper, same coarse spots as CQ WPX). Score = Σ QSO
-                // pts (all bands) × Σ prefixes (all bands).
-                String ocCall = AppConfig.getInstance().getStationCallsign();
-                if (ocCall == null || ocCall.isBlank())
-                    ocCall = AppConfig.getInstance().getSsCallsign();
-                boolean meOc = OceaniaDx.isOceania(ocCall);
-                Set<String> ocMult = new HashSet<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String call = q.getCallsign();
-                    if (!meOc && !OceaniaDx.isOceania(call)) continue; // Rule 4b
-                    String pfx = CallsignRegion.wpxPrefix(call);
-                    if (pfx == null || pfx.isBlank()) continue;
-                    ocMult.add(b + "|" + pfx);
-                }
-                int ocTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = ocMult.size();
-                final int score = ocTotal * ocMult.size();
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "qso_party".equals(plugin.getScoringRules().getMultiplierType())) {
-                // Reusable QSO-party engine. Multiplier scope per_mode /
-                // per_band / once. In-state entrant counts own counties +
-                // (config) W/VE states & provinces + DXCC (each or one) +
-                // club calls; an out-of-state entrant counts ONLY in-state
-                // counties + club calls. Digital (FT8/WSJT) when a grid
-                // divisor is configured contributes grid mults instead of
-                // QTH: in-state = floor(Σ distinct grids / divisor),
-                // out-of-state = min(distinct in-state grids, cap). The
-                // power multiplier (a station category, not log-derivable)
-                // is intentionally NOT applied. Claimed/running — the
-                // sponsor's checker re-adjudicates.
-                ContestPlugin.QsoPartyConfig c = qpCfg();
-                Set<String> counties = qpCounties(c);
-                Set<String> grids = c == null ? Set.of() : qpUpper(c.getInStateGrids());
-                Set<String> clubs = c == null ? Set.of() : qpUpper(c.getClubMultCalls());
-                String scope = c != null && c.getMultScope() != null
-                        ? c.getMultScope() : "once";
-                boolean inCounties = c == null || c.isInStateCountsCounties();
-                boolean ownState   = c != null && c.isInStateOwnStateMult();
-                boolean inStates   = c != null && c.isInStateCountsStates();
-                boolean dxEach     = c != null && c.isInStateCountsDxccEach();
-                boolean noDx       = c != null && c.isInStateNoDxMult();
-                boolean selfState  = c != null && c.isInStateSelfStateMult();
-                boolean clubMemMult = c != null && c.isClubMemberMult();
-                boolean merge      = c != null && c.isMergeRttyDigital();
-                boolean mergeCw    = c != null && c.isMergeCwDigital();
-                boolean gridCeil   = c != null && c.isGridDivisorCeil();
-                boolean gridUncap  = c != null && c.isOutStateGridUncapped();
-                int divisor = c == null ? 0 : c.getFt8GridDivisor();
-                int outCap  = c == null ? 0 : c.getOutStateGridCap();
-                String stateAbbr = c == null || c.getStateAbbr() == null
-                        ? "" : c.getStateAbbr().toUpperCase();
-                int countyLen = c == null ? 0 : c.getCountyCodeLen();
-                boolean byExcl = c != null && c.isCountyByExclusion();
-                int areaPfx = c == null ? 0 : c.getAreaStatePrefixLen();
-                Map<String,Integer> bonusMap = c == null || c.getBonusStations() == null
-                        ? Map.of() : c.getBonusStations();
-                Map<String,Integer> bonusOnce = c == null || c.getBonusStationsOnce() == null
-                        ? Map.of() : c.getBonusStationsOnce();
-                Map<String,Integer> bonusPerMode = c == null || c.getBonusStationsPerMode() == null
-                        ? Map.of() : c.getBonusStationsPerMode();
-                boolean multsAll = c != null && c.isMultsAllEntrants();
-                boolean meIn = QsoParty.isCounty(qpMyQth(), counties, countyLen, byExcl);
-                // Entrant-asymmetric multiplier scope: an out-of-state
-                // entrant may count on a different scope than the in-state
-                // entrant (HQP: in-HI once, non-HI per band).
-                if (!meIn && c != null && c.getMultScopeOut() != null
-                        && !c.getMultScopeOut().isBlank())
-                    scope = c.getMultScopeOut();
-                Set<String> mset = new HashSet<>();
-                Set<String> allDg = new HashSet<>();
-                Set<String> inDg  = new HashSet<>();
-                Set<String> bonusSeen = new HashSet<>();   // baseCall|band|mc credited once
-                Set<String> bonusOnceSeen = new HashSet<>(); // baseCall credited once total
-                Set<String> bonusPerModeSeen = new HashSet<>(); // baseCall|mc credited once
-                int bonusPts = 0;
-                Set<String> rareSet  = c == null ? Set.of() : qpUpper(c.getRareCounties());
-                Set<String> rareSeen = new HashSet<>();     // distinct rare counties (sweep)
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b  = q.getBand() == null ? "" : q.getBand();
-                    String mc = QsoParty.modeClass(q.getMode(), merge, mergeCw);
-                    String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
-                    String R  = q.getContestField1() == null ? ""
-                            : q.getContestField1().trim().toUpperCase();
-                    if (clubMemMult) {
-                        // ARC QSO Party: the multiplier is the count of
-                        // distinct club-member base callsigns. A club
-                        // member signs "call /###" so the received
-                        // exchange carries the club-age digits; a non-club
-                        // member sends only a name (no digit). Counted
-                        // once overall, not per band/mode.
-                        if (R.chars().anyMatch(Character::isDigit))
-                            mset.add("M|" + QsoParty.baseCall(call));
-                        continue;
-                    }
-                    String sk = "per_mode".equals(scope) ? mc + "|"
-                              : "per_band".equals(scope) ? b + "|"
-                              : "per_band_mode".equals(scope) ? b + "|" + mc + "|" : "";
-                    // post-multiply bonus station (base-call, once per band+mode)
-                    if (!bonusMap.isEmpty()) {
-                        String bc = QsoParty.baseCall(call);
-                        Integer bp = bonusMap.get(bc);
-                        if (bp != null && bonusSeen.add(bc + "|" + b + "|" + mc))
-                            bonusPts += bp;
-                    }
-                    // once-total bonus station (whole log, e.g. N5LCC / W1AW/5)
-                    if (!bonusOnce.isEmpty()) {
-                        String bc = QsoParty.baseCall(call);
-                        Integer bp = bonusOnce.get(bc);
-                        if (bp != null && bonusOnceSeen.add(bc))
-                            bonusPts += bp;
-                    }
-                    // once-per-mode-class bonus station (WA Salmon Run W7DX
-                    // = +500 per mode, Phone+CW, max 1000 — not per band)
-                    if (!bonusPerMode.isEmpty()) {
-                        String bc = QsoParty.baseCall(call);
-                        Integer bp = bonusPerMode.get(bc);
-                        if (bp != null && bonusPerModeSeen.add(bc + "|" + mc))
-                            bonusPts += bp;
-                    }
-                    if (rareSet.contains(R)) rareSeen.add(R);   // sweep tracking
-                    boolean club = QsoParty.callIn(call, clubs);
-                    if ("DG".equals(mc) && divisor > 0) {           // digital → grid only
-                        String g = QsoParty.grid4(R);
-                        if (g != null) {
-                            if (meIn) allDg.add(g);
-                            else if (grids.contains(g)) inDg.add(g);
-                        }
-                        if (club) mset.add(sk + "K|" + call);
-                        continue;
-                    }
-                    boolean isDx  = "DX".equals(regionTag(call)) || "DX".equals(R);
-                    // A callsign-classified DX station never counts as an
-                    // in-state county even if its sent token (a DXCC
-                    // prefix, OKQP) coincides with a county code length.
-                    boolean isCty = !isDx && QsoParty.isCounty(R, counties, countyLen, byExcl);
-                    if (meIn || multsAll) {     // MEQP: every entrant counts the full mult set
-                        if (isCty) {
-                            if (areaPfx > 0 && R.length() >= areaPfx)
-                                mset.add(sk + "S|" + R.substring(0, areaPfx)); // 7QP: in-area code's state token
-                            else if (ownState) mset.add(sk + "S|" + stateAbbr); // in-state stn = state mult
-                            else if (inCounties) mset.add(sk + "C|" + R);
-                        } else if (isDx) {
-                            if (!noDx) {
-                                String e = DxccResolver.getInstance().entityOf(call);
-                                mset.add(sk + "X|" + (dxEach ? (e == null ? "DX" : e) : "DX"));
-                            }
-                        } else if (inStates && !R.isBlank() && !R.equals(stateAbbr)) {
-                            mset.add(sk + "S|" + R);
-                        }
-                        if (selfState) mset.add(sk + "S|" + stateAbbr); // WVQP: own state counts among the 50
-                        if (club) mset.add(sk + "K|" + call);
-                    } else {
-                        if (isCty) mset.add(sk + "C|" + R);
-                        if (club) mset.add(sk + "K|" + call);
-                    }
-                }
-                if (c != null && c.getSweepBonusThreshold() > 0
-                        && rareSeen.size() >= c.getSweepBonusThreshold())
-                    bonusPts += c.getSweepBonusPoints();        // post-multiply sweep
-                else if (c != null && c.getSweepBonusThreshold2() > 0
-                        && rareSeen.size() >= c.getSweepBonusThreshold2())
-                    bonusPts += c.getSweepBonusPoints2();        // lower fallback tier (MDC 13→250)
-                int qpMults = mset.size();
-                if (meIn && divisor > 0)
-                    qpMults += gridCeil
-                        ? (int) Math.ceil(allDg.size() / (double) divisor)
-                        : allDg.size() / divisor;
-                if (!meIn && (outCap > 0 || gridUncap))
-                    qpMults += gridUncap ? inDg.size()
-                                         : Math.min(inDg.size(), outCap);
-                if (c != null && c.getMultCap() > 0)
-                    qpMults = Math.min(qpMults, c.getMultCap()); // CQP: 58 scored of 63
-                int qpTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = qpMults;
-                final int score = qpTotal * qpMults + bonusPts;   // bonus added post-multiply
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "wag".equals(plugin.getScoringRules().getMultiplierType())) {
-                // Worked All Germany (Rule §5): multiplier counted per
-                // band AND per mode-class — "once in CW and once in SSB"
-                // (new 2024). German entrant → each DXCC/WAE area worked
-                // (WaeMultiplier token). Non-German entrant → German
-                // district = first letter of the worked German station's
-                // DOK (logged field1); "NM" / blank = no mult, and only
-                // German stations carry a district. Score = Σ QSO pts
-                // (all bands) × Σ mults (all bands/modes). Claimed — the
-                // WAG committee re-adjudicates.
-                String wgCall = AppConfig.getInstance().getStationCallsign();
-                if (wgCall == null || wgCall.isBlank())
-                    wgCall = AppConfig.getInstance().getSsCallsign();
-                boolean meGer = Wag.isGerman(wgCall);
-                Set<String> wgMult = new HashSet<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String mc = Wag.modeClass(q.getMode());
-                    String call = q.getCallsign();
-                    if (meGer) {
-                        String tok = WaeMultiplier.token(call);
-                        if (tok != null) wgMult.add(b + "|" + mc + "|" + tok);
-                    } else {
-                        if (!Wag.isGerman(call)) continue;          // district = German only
-                        String d = Wag.dokDistrict(q.getContestField1());
-                        if (d != null) wgMult.add(b + "|" + mc + "|D|" + d);
-                    }
-                }
-                int wgTotal = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = wgMult.size();
-                final int score = wgTotal * wgMult.size();
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && plugin.getScoringRules().getMultiplierType() != null
-                    && plugin.getScoringRules().getMultiplierType().startsWith("zone_country")) {
-                // CQ WW dual/triple multiplier (Rule IV.C), each counted once
-                // PER BAND. Zone = received-zone field (slot field1 = multColumn);
-                // country resolved from the worked callsign (no DB column);
-                // MM/AM resolve to no entity (zone mult only). CQ WW RTTY adds a
-                // THIRD multiplier — US states + VE provinces — logged in the
-                // state_rcvd field (slot field3), blank for non-W/VE.
-                boolean withState = "zone_country_state"
-                        .equals(plugin.getScoringRules().getMultiplierType());
-                DxccResolver dxr = DxccResolver.getInstance();
-                Map<String, Set<String>> zonesByBand = new LinkedHashMap<>();
-                Map<String, Set<String>> ctrysByBand = new LinkedHashMap<>();
-                Map<String, Set<String>> stateByBand = new LinkedHashMap<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String zone = q.getContestField1();
-                    if (zone != null && !zone.isBlank())
-                        zonesByBand.computeIfAbsent(b, k -> new HashSet<>()).add(zone.trim());
-                    String ent = dxr.entityOf(q.getCallsign());
-                    if (ent != null)
-                        ctrysByBand.computeIfAbsent(b, k -> new HashSet<>()).add(ent);
-                    if (withState) {
-                        String st = q.getContestField3();
-                        if (st != null && !st.isBlank())
-                            stateByBand.computeIfAbsent(b, k -> new HashSet<>())
-                                    .add(st.trim().toUpperCase());
-                    }
-                }
-                int zoneMults  = zonesByBand.values().stream().mapToInt(Set::size).sum();
-                int ctryMults  = ctrysByBand.values().stream().mapToInt(Set::size).sum();
-                int stateMults = stateByBand.values().stream().mapToInt(Set::size).sum();
-                int total  = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = zoneMults + ctryMults + stateMults;
-                final int score = total * mults;
-                final List<String> zonesWorked = zonesByBand.values().stream()
-                        .flatMap(Set::stream).distinct().toList();
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                    if (cqZoneMapPane != null) cqZoneMapPane.setAllWorked(zonesWorked);
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "grid_field".equals(plugin.getScoringRules().getMultiplierType())) {
-                // WW Digi (Rule IV.C): multiplier = distinct 2-char Maidenhead
-                // grid FIELD (first 2 chars of the 4-char grid) counted once
-                // PER BAND. Grid is the received-grid field (slot field1).
-                // Score = Σ QSO points (distance-scored, all bands) × Σ grid
-                // fields (per band).
-                Map<String, Set<String>> gfByBand = new LinkedHashMap<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (b.isBlank()) continue;
-                    String g = q.getContestField1();
-                    if (g == null || g.trim().length() < 2) continue;
-                    gfByBand.computeIfAbsent(b, k -> new HashSet<>())
-                            .add(g.trim().substring(0, 2).toUpperCase());
-                }
-                int totalMults = gfByBand.values().stream().mapToInt(Set::size).sum();
-                int total = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                final int mults = totalMults;
-                final int score = total * mults;
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getScoringRules() != null
-                    && "wae".equals(plugin.getScoringRules().getMultiplierType())) {
-                // WAE-DC (Rule §6/§8): per-band distinct WAE multiplier token,
-                // each band's count band-WEIGHTED (80m×4, 40m×3, 20/15/10m×2),
-                // summed. Score = (Σ QSO pts [1 each] + Σ QTC pts [1 each]) ×
-                // weighted multiplier sum. Token is callsign-derived
-                // (WaeMultiplier): WAE country for EU, DXCC / call-area split
-                // for non-EU.
-                Map<String, Set<String>> tokByBand = new LinkedHashMap<>();
-                for (QsoRecord q : ContestQsoDao.getInstance()
-                        .fetchByContest(plugin.getContestId())) {
-                    if (q.isDupe()) continue;
-                    String b = q.getBand() == null ? "" : q.getBand();
-                    if (WaeMultiplier.bandWeight(b) == 0) continue;
-                    String tok = WaeMultiplier.token(q.getCallsign());
-                    if (tok != null)
-                        tokByBand.computeIfAbsent(b, k -> new HashSet<>()).add(tok);
-                }
-                int weighted = 0;
-                for (var e : tokByBand.entrySet())
-                    weighted += e.getValue().size() * WaeMultiplier.bandWeight(e.getKey());
-                int qsoPts = ContestQsoDao.getInstance()
-                        .totalPointsByContest(plugin.getContestId());
-                int qtcPts = ContestQtcDao.getInstance()
-                        .totalQtcPointsByContest(plugin.getContestId());
-                final int mults = weighted;
-                final int score = (qsoPts + qtcPts) * weighted;
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                });
-            } else if (plugin.getMultiplierModel() != null
-                    && plugin.getMultiplierModel().isPerBand()) {
-                // Per-band multiplier accounting (ARRL Intl Digital): total mults =
-                // Σ over bands of distinct values on that band. Feeds WorkedGridsPane.
-                Map<String, List<String>> workedByBand = new LinkedHashMap<>();
-                int totalMults = 0;
-                for (String band : contestBands()) {
-                    List<String> w = ContestQsoDao.getInstance()
-                        .distinctFieldByColumnAndBand(plugin.getContestId(), multCol, band);
-                    workedByBand.put(band, w);
-                    totalMults += w.size();
-                }
-                int total = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
-                final int score = total * totalMults;
-                final int mults = totalMults;
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                    if (gridsPane != null) {
-                        workedByBand.forEach(gridsPane::setWorked);
-                    }
-                });
-            } else {
-                List<String> worked = ContestQsoDao.getInstance()
-                    .distinctFieldByColumn(plugin.getContestId(), multCol);
-                int total  = ContestQsoDao.getInstance().totalPointsByContest(plugin.getContestId());
-                int mults  = worked.size();
-                int score  = total * mults;
-
-                Platform.runLater(() -> {
-                    if (lblQsoCount != null) lblQsoCount.setText(String.valueOf(count));
-                    if (lblScore    != null) lblScore.setText(String.valueOf(score));
-                    if (lblMults    != null) lblMults.setText(String.valueOf(mults));
-                    if (lblQsoHour  != null) lblQsoHour.setText(String.valueOf(qsoHr));
-                    sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
-                    worked.forEach(sec -> {
-                        Label lbl = sectionLabels.get(sec);
-                        if (lbl != null) lbl.getStyleClass().add("section-worked");
-                    });
-                    if (ssSectionMapPane  != null) ssSectionMapPane.setAllWorked(worked);
-                    if (sweepProgressPane != null) sweepProgressPane.setWorked(mults);
-                    if (workedMultsPane   != null) workedMultsPane.setWorked(worked);
-                    if (statesMapPane     != null) statesMapPane.setAllWorked(worked);
-                    if (dxccMapPane       != null) dxccMapPane.setAllWorked(worked);
-                    if (dxccColumnMapPane != null) dxccColumnMapPane.setAllWorked(worked);
-                    if (dxccTablePane     != null) dxccTablePane.setAllWorked(worked);
-                    if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
-                    if (countyBlockMap    != null) countyBlockMap.setAllWorked(worked);
-                    if (gridMapPane       != null) gridMapPane.setAllWorked(worked);
-                });
-            }
+            });
         } catch (Exception e) {
             log.warn("updateStats failed", e);
         }
+    }
+
+    /** Field-Day / points-only painting: colour worked section labels only. */
+    private void paintSections(List<String> worked) {
+        sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
+        worked.forEach(sec -> {
+            Label lbl = sectionLabels.get(sec);
+            if (lbl != null) lbl.getStyleClass().add("section-worked");
+        });
+    }
+
+    /** Default multiplier-model painting: section labels plus every worked map/table pane. */
+    private void paintWorkedFull(List<String> worked) {
+        sectionLabels.values().forEach(l -> l.getStyleClass().remove("section-worked"));
+        worked.forEach(sec -> {
+            Label lbl = sectionLabels.get(sec);
+            if (lbl != null) lbl.getStyleClass().add("section-worked");
+        });
+        if (ssSectionMapPane  != null) ssSectionMapPane.setAllWorked(worked);
+        if (sweepProgressPane != null) sweepProgressPane.setWorked(worked.size());
+        if (workedMultsPane   != null) workedMultsPane.setWorked(worked);
+        if (statesMapPane     != null) statesMapPane.setAllWorked(worked);
+        if (dxccMapPane       != null) dxccMapPane.setAllWorked(worked);
+        if (dxccColumnMapPane != null) dxccColumnMapPane.setAllWorked(worked);
+        if (dxccTablePane     != null) dxccTablePane.setAllWorked(worked);
+        if (countyMapPane     != null) countyMapPane.setAllWorked(worked);
+        if (countyBlockMap    != null) countyBlockMap.setAllWorked(worked);
+        if (gridMapPane       != null) gridMapPane.setAllWorked(worked);
     }
 
     /** Colour each region on the US / Canada maps and the DXCC list if any mode worked it. */
