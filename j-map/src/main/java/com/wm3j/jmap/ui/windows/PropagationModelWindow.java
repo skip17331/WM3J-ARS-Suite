@@ -51,7 +51,7 @@ public class PropagationModelWindow extends FloatingWindow {
             String bandName = (String) BANDS[i][0];
             HBox row = new HBox(6);
             Label nameLabel = new Label(bandName);
-            nameLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #aabbdd; -fx-min-width: 32;");
+            nameLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #93a0ae; -fx-min-width: 32;");
 
             Label pill = new Label("---");
             pill.setStyle(pillStyle("#444"));
@@ -77,11 +77,11 @@ public class PropagationModelWindow extends FloatingWindow {
         double cx = size / 2, cy = size / 2;
         double maxR = size / 2 - 10;
 
-        gc.setFill(Color.web("#080c1a"));
+        gc.setFill(Color.web("#11161d"));
         gc.fillRect(0, 0, size, size);
 
         // Range rings
-        gc.setStroke(Color.web("#1e2d50", 0.8));
+        gc.setStroke(Color.web("#323b47", 0.8));
         gc.setLineWidth(0.8);
         gc.strokeOval(cx - maxR * 0.5, cy - maxR * 0.5, maxR, maxR);
         gc.strokeOval(cx - maxR, cy - maxR, maxR * 2, maxR * 2);
@@ -117,7 +117,7 @@ public class PropagationModelWindow extends FloatingWindow {
             gc.fill();
 
             // Radial spoke
-            gc.setStroke(Color.web("#1e2d50", 0.6));
+            gc.setStroke(Color.web("#323b47", 0.6));
             gc.setLineWidth(0.5);
             gc.strokeLine(cx, cy, ex, ey);
         }

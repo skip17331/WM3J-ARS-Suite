@@ -38,8 +38,8 @@ public class RotorMapPane extends StackPane {
         canvas = new Canvas(MAP_SIZE, MAP_SIZE);
         loadMapImage();
         setPadding(new Insets(4));
-        setStyle("-fx-background-color: #08090f; -fx-background-radius: 6; " +
-                 "-fx-border-color: #1a2a4a; -fx-border-width: 1; -fx-border-radius: 6;");
+        setStyle("-fx-background-color: #11161d; -fx-background-radius: 6; " +
+                 "-fx-border-color: #2c3540; -fx-border-width: 1; -fx-border-radius: 6;");
         setPrefSize(MAP_SIZE + 8, MAP_SIZE + 8);
         setMaxSize(MAP_SIZE + 8, MAP_SIZE + 8);
 
@@ -82,7 +82,7 @@ public class RotorMapPane extends StackPane {
         double r = Math.min(w, h) / 2 - 8;
 
         // Background
-        gc.setFill(Color.web("#08090f"));
+        gc.setFill(Color.web("#11161d"));
         gc.fillRect(0, 0, w, h);
 
         // Clip to circle, draw world map inside it
@@ -99,7 +99,7 @@ public class RotorMapPane extends StackPane {
             gc.setFill(Color.web("#000010", 0.45));
             gc.fillRect(cx - r, cy - r, r * 2, r * 2);
         } else {
-            gc.setFill(Color.web("#0d1a2e"));
+            gc.setFill(Color.web("#1b2027"));
             gc.fillOval(cx - r, cy - r, r * 2, r * 2);
         }
         gc.restore();
@@ -118,7 +118,7 @@ public class RotorMapPane extends StackPane {
         gc.strokeLine(cx - r, cy, cx + r, cy);
 
         // N/S/E/W labels
-        gc.setFill(Color.web("#99aabb"));
+        gc.setFill(Color.web("#93a0ae"));
         gc.setFont(Font.font("Liberation Mono", FontWeight.BOLD, 9));
         gc.setTextAlign(TextAlignment.CENTER);
         gc.fillText("N", cx, cy - r - 2);
@@ -127,7 +127,7 @@ public class RotorMapPane extends StackPane {
         gc.fillText("W", cx - r - 4, cy + 4);
 
         // Outer ring
-        gc.setStroke(Color.web("#1a2a4a"));
+        gc.setStroke(Color.web("#2c3540"));
         gc.setLineWidth(1.0);
         gc.strokeOval(cx - r, cy - r, r * 2, r * 2);
 
@@ -219,7 +219,7 @@ public class RotorMapPane extends StackPane {
         double w = MAP_SIZE;
 
         // Panel title
-        gc.setFill(Color.web("#334455"));
+        gc.setFill(Color.web("#4a5664"));
         gc.setFont(Font.font("Liberation Mono", FontWeight.BOLD, 9));
         gc.setTextAlign(TextAlignment.LEFT);
         gc.fillText("ROTOR MAP", 4, 12);
@@ -228,7 +228,7 @@ public class RotorMapPane extends StackPane {
         boolean connected = rotor != null && rotor.isConnected();
         gc.setFill(connected ? Color.web("#00ff44") : Color.web("#ff4444"));
         gc.fillOval(w - 14, 4, 8, 8);
-        gc.setFill(Color.web("#556677"));
+        gc.setFill(Color.web("#5d6a78"));
         gc.setFont(Font.font("Liberation Mono", 8));
         gc.setTextAlign(TextAlignment.RIGHT);
         gc.fillText(connected ? "LIVE" : "DEMO", w - 16, 12);

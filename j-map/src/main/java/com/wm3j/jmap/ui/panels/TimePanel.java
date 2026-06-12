@@ -36,17 +36,17 @@ public class TimePanel extends HBox {
         setAlignment(Pos.CENTER);
         setPadding(new Insets(2, 16, 2, 16));
         setSpacing(24);
-        setStyle("-fx-background-color: #05050d; -fx-border-color: #1a2a4a; -fx-border-width: 0 0 1 0;");
+        setStyle("-fx-background-color: #11161d; -fx-border-color: #2c3540; -fx-border-width: 0 0 1 0;");
         setPrefHeight(-1);
 
         // ── UTC block ──────────────────────────────────────────────────────
         utcTimeLabel = new Label("--:--:--");
-        utcTimeLabel.setStyle("-fx-font-size: 2.15em; -fx-font-weight: bold; -fx-text-fill: #00ccff;");
+        utcTimeLabel.setStyle("-fx-font-size: 2.15em; -fx-font-weight: bold; -fx-text-fill: #4fc3f7;");
 
         utcDateLabel = new Label("---");
-        utcDateLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #666677;");
+        utcDateLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #6f7d8c;");
 
-        utcBlock = makeTimeBlock("UTC", "#888899", utcTimeLabel, utcDateLabel);
+        utcBlock = makeTimeBlock("UTC", "#6f7d8c", utcTimeLabel, utcDateLabel);
 
         // ── Local block ────────────────────────────────────────────────────
         String tz = (settings.getTimezone() == null || settings.getTimezone().isBlank()
@@ -58,9 +58,9 @@ public class TimePanel extends HBox {
         localTimeLabel.setStyle("-fx-font-size: 2.15em; -fx-font-weight: bold; -fx-text-fill: #88ff88;");
 
         localDateLabel = new Label("---");
-        localDateLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #666677;");
+        localDateLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #6f7d8c;");
 
-        localBlock = makeTimeBlock(tz, "#888899", localTimeLabel, localDateLabel);
+        localBlock = makeTimeBlock(tz, "#6f7d8c", localTimeLabel, localDateLabel);
 
         // ── Spacers to push clocks center/right ────────────────────────────
         Region spacerL = new Region();

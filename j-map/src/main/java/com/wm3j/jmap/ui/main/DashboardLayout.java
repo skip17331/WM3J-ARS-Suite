@@ -186,7 +186,7 @@ public class DashboardLayout {
 
         // ── Root layout ────────────────────────────────────────────────────
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: #0a0a0f;");
+        root.setStyle("-fx-background-color: #15191f;");
         root.setTop(timePanel);
         root.setCenter(mapStack);
         root.setRight(rightSidebar);
@@ -204,7 +204,7 @@ public class DashboardLayout {
         VBox sidebar = new VBox(4);
         sidebar.setPadding(new Insets(4, 4, 4, 4));
         sidebar.setPrefWidth(253);
-        sidebar.setStyle("-fx-background-color: #090912;");
+        sidebar.setStyle("-fx-background-color: #15191f;");
 
         if (s.isShowSolarData())       sidebar.getChildren().add(solarPanel);
         if (s.isShowPropagationData()) sidebar.getChildren().add(propagationPanel);

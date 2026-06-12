@@ -43,14 +43,14 @@ public class LunarPlanetaryWindow extends FloatingWindow {
 
         HBox illumRow = new HBox(6);
         illuminationLabel = new Label("●");
-        illuminationLabel.setStyle("-fx-font-size: 1.0em; -fx-text-fill: #888888;");
+        illuminationLabel.setStyle("-fx-font-size: 1.0em; -fx-text-fill: #93a0ae;");
         phaseLabel = new Label("---");
-        phaseLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #ccd6f6;");
+        phaseLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #dde3ea;");
         illumRow.getChildren().addAll(illuminationLabel, phaseLabel);
         contentBox.getChildren().add(illumRow);
 
         moonAzAltLabel = new Label("Az: ---  Alt: ---");
-        moonAzAltLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #aabbdd;");
+        moonAzAltLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #93a0ae;");
         contentBox.getChildren().add(moonAzAltLabel);
 
         // Planets section header
@@ -61,7 +61,7 @@ public class LunarPlanetaryWindow extends FloatingWindow {
 
         for (int i = 0; i < 4; i++) {
             planetLabels[i] = new Label(PLANET_SYMBOLS[i][0] + " ---");
-            planetLabels[i].setStyle("-fx-font-size: 0.85em; -fx-text-fill: #ccd6f6;");
+            planetLabels[i].setStyle("-fx-font-size: 0.85em; -fx-text-fill: #dde3ea;");
             contentBox.getChildren().add(planetLabels[i]);
         }
 
@@ -91,7 +91,7 @@ public class LunarPlanetaryWindow extends FloatingWindow {
 
         moonAzAltLabel.setText(String.format("Az: %.0f°  Alt: %+.0f°",
             moon.getAzimuth(), moon.getAltitude()));
-        String altColor = moon.getAltitude() > 5 ? "#ccd6f6" : "#4a5580";
+        String altColor = moon.getAltitude() > 5 ? "#dde3ea" : "#6f7d8c";
         moonAzAltLabel.setStyle("-fx-font-size: 0.85em; -fx-text-fill: " + altColor + ";");
 
         // Planets
@@ -105,10 +105,10 @@ public class LunarPlanetaryWindow extends FloatingWindow {
             if (p.isVisible()) {
                 text  = symbol + " " + name + "  Az:" + String.format("%.0f°", p.azimuth())
                       + " Alt:" + String.format("%+.0f°", p.altitude());
-                style = "-fx-font-size: 0.85em; -fx-text-fill: #ccd6f6;";
+                style = "-fx-font-size: 0.85em; -fx-text-fill: #dde3ea;";
             } else {
                 text  = symbol + " " + name + "  below horizon";
-                style = "-fx-font-size: 0.85em; -fx-text-fill: #4a5580;";
+                style = "-fx-font-size: 0.85em; -fx-text-fill: #6f7d8c;";
             }
             planetLabels[i].setText(text);
             planetLabels[i].setStyle(style);

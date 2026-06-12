@@ -51,11 +51,11 @@ public class SolarDataPanel extends VBox {
 
         setSpacing(4);
         setPadding(new Insets(8));
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
-               + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle("-fx-background-color: #1b2027; -fx-background-radius: 4; "
+               + "-fx-border-color: #323b47; -fx-border-radius: 4; -fx-border-width: 1;");
 
         Label title = new Label(com.wm3j.jmap.i18n.I18n.get("panel.solar"));
-        title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #aabbdd; -fx-padding: 0 0 4 0;");
+        title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #93a0ae; -fx-padding: 0 0 4 0;");
         getChildren().add(title);
 
         // ── Kp gauge bar ───────────────────────────────────────
@@ -75,7 +75,7 @@ public class SolarDataPanel extends VBox {
         kpLabel   = new Label("---");
         kpLabel.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #44cc44; -fx-font-weight: bold;");
         xrayLabel = new Label("---");
-        xrayLabel.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #cccccc;");
+        xrayLabel.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #dde3ea;");
 
         grid.add(dataKey("SFI"),   0, 0); grid.add(sfiValue, 1, 0);
         grid.add(dataKey("Kp"),    0, 1); grid.add(kpValue,  1, 1); grid.add(kpLabel, 2, 1);
@@ -86,7 +86,7 @@ public class SolarDataPanel extends VBox {
 
         // ── Solar wind section ─────────────────────────────────
         Label swTitle = new Label(com.wm3j.jmap.i18n.I18n.get("panel.solar.wind"));
-        swTitle.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #556688; -fx-padding: 4 0 1 0;");
+        swTitle.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #6f7d8c; -fx-padding: 4 0 1 0;");
         getChildren().add(swTitle);
 
         GridPane swGrid = new GridPane();
@@ -124,7 +124,7 @@ public class SolarDataPanel extends VBox {
         // ── Sunspot graphic ────────────────────────────────────
         if (services.getSettings().isShowSunspotGraphic()) {
             Label ssTitle2 = new Label(com.wm3j.jmap.i18n.I18n.get("panel.sunspots"));
-            ssTitle2.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #556688; -fx-padding: 4 0 1 0;");
+            ssTitle2.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #6f7d8c; -fx-padding: 4 0 1 0;");
             sunspotCanvas = new Canvas(SUNSPOT_W, SUNSPOT_H);
             getChildren().addAll(ssTitle2, sunspotCanvas);
         } else {
@@ -132,7 +132,7 @@ public class SolarDataPanel extends VBox {
         }
 
         lastUpdatedLabel = new Label(com.wm3j.jmap.i18n.I18n.get("dx.last.updated"));
-        lastUpdatedLabel.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #444466;");
+        lastUpdatedLabel.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #566270;");
         getChildren().add(lastUpdatedLabel);
 
         update();
@@ -178,15 +178,15 @@ public class SolarDataPanel extends VBox {
             String swText = String.format("%.0f", data.getSolarWindSpeed());
             if (swStale) swText += "  (" + staleAgeMinutes(data.getSolarWindObservedAt()) + "m)";
             swSpeedLabel.setText(swText);
-            String swFill = swStale ? "#888899" : swSpeedColor(data.getSolarWindSpeed());
+            String swFill = swStale ? "#6f7d8c" : swSpeedColor(data.getSolarWindSpeed());
             swSpeedLabel.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: "
                 + swFill + ";");
         }
         if (data.getSolarWindDensity() > 0) {
             swDensLabel.setText(String.format("%.1f", data.getSolarWindDensity()));
             swDensLabel.setStyle(swStale
-                ? "-fx-font-size: 1.08em; -fx-text-fill: #888899;"
-                : "-fx-font-size: 1.08em; -fx-text-fill: #ccd6f6;");
+                ? "-fx-font-size: 1.08em; -fx-text-fill: #6f7d8c;"
+                : "-fx-font-size: 1.08em; -fx-text-fill: #dde3ea;");
         }
 
         // IMF Bz — same staleness treatment as the plasma data.
@@ -196,10 +196,10 @@ public class SolarDataPanel extends VBox {
         if (imfStale) bzText += "  (" + staleAgeMinutes(data.getImfObservedAt()) + "m)";
         bzValueLabel.setText(bzText);
         bzValueLabel.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: "
-            + (imfStale ? "#888899" : data.getBzColor()) + ";");
+            + (imfStale ? "#6f7d8c" : data.getBzColor()) + ";");
         bzLabel.setText(imfStale ? "STALE" : data.getBzLabel());
         bzLabel.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: "
-            + (imfStale ? "#888899" : data.getBzColor()) + ";");
+            + (imfStale ? "#6f7d8c" : data.getBzColor()) + ";");
 
         // Proton flux
         double pf = data.getProtonFlux();
@@ -212,7 +212,7 @@ public class SolarDataPanel extends VBox {
             long ago = Duration.between(data.getObservationTime(), Instant.now()).toMinutes();
             lastUpdatedLabel.setText(String.format("updated %dm ago", ago));
             lastUpdatedLabel.setStyle("-fx-font-size: 0.69em; -fx-text-fill: "
-                + (ago > 30 ? "#ff4444" : "#444466") + ";");
+                + (ago > 30 ? "#ff4444" : "#566270") + ";");
         }
 
         // Graphics
@@ -228,7 +228,7 @@ public class SolarDataPanel extends VBox {
         double h = kpBarCanvas.getHeight();
 
         // Background gradient: green → yellow → red
-        gc.setFill(Color.web("#0d1020"));
+        gc.setFill(Color.web("#1b2027"));
         gc.fillRect(0, 0, w, h);
 
         // Draw 9 segments
@@ -425,13 +425,13 @@ public class SolarDataPanel extends VBox {
 
     private Label dataKey(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #556688;");
+        l.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #6f7d8c;");
         return l;
     }
 
     private Label dataValue(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: #ccddff;");
+        l.setStyle("-fx-font-size: 1.08em; -fx-font-weight: bold; -fx-text-fill: #dde3ea;");
         return l;
     }
 }

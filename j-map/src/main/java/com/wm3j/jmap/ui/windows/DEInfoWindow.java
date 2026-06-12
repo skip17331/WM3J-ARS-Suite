@@ -32,8 +32,8 @@ public class DEInfoWindow extends FloatingWindow {
 
         callsignLabel  = styled("", "2.10em", "#ffd700", true);
         localTimeLabel = styled("", "1.21em", "#00cc66", false);
-        latLonLabel    = styled("", "1.06em", "#ccd6f6", false);
-        zonesLabel     = styled("", "1.06em", "#ccd6f6", false);
+        latLonLabel    = styled("", "1.06em", "#dde3ea", false);
+        zonesLabel     = styled("", "1.06em", "#dde3ea", false);
         gridLabel      = styled("", "1.21em", "#4fc3f7", true);
 
         contentBox.getChildren().addAll(
@@ -78,7 +78,7 @@ public class DEInfoWindow extends FloatingWindow {
     private Region sep() {
         Region r = new Region();
         r.setPrefHeight(4);
-        r.setStyle("-fx-border-color: #1e2d50; -fx-border-width: 0 0 1 0;");
+        r.setStyle("-fx-border-color: #323b47; -fx-border-width: 0 0 1 0;");
         return r;
     }
 

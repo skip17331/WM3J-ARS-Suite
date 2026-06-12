@@ -21,7 +21,7 @@ public abstract class FloatingWindow extends VBox {
     /** Frame-only style (colors, borders); font-size is appended separately so
      *  subclasses can flip frame state (e.g. countdown flash) without losing
      *  the per-window font-size override. */
-    private String frameStyle = "-fx-background-color: #080c1a; -fx-border-color: #1e2d50; -fx-border-width: 1;";
+    private String frameStyle = "-fx-background-color: #11161d; -fx-border-color: #323b47; -fx-border-width: 1;";
     private int    baseFontSizePx = 0;   // 0 = inherit from scene root
 
     public void setOnPositionSaved(Runnable callback) { this.onPositionSaved = callback; }
@@ -54,7 +54,7 @@ public abstract class FloatingWindow extends VBox {
 
         // ── Title bar ──────────────────────────────────
         HBox titleBar = new HBox();
-        titleBar.setStyle("-fx-background-color: #0d1530; -fx-border-color: #1e2d50 #1e2d50 #0a1020 #1e2d50;");
+        titleBar.setStyle("-fx-background-color: #1c2530; -fx-border-color: #323b47 #323b47 #11161d #323b47;");
         titleBar.setPadding(new Insets(5, 8, 5, 8));
         titleBar.setSpacing(6);
         titleBar.setCursor(Cursor.MOVE);
@@ -66,10 +66,10 @@ public abstract class FloatingWindow extends VBox {
         HBox.setHgrow(titleLabel, Priority.ALWAYS);
 
         Label closeBtn = new Label("✕");
-        closeBtn.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #4a5580; -fx-cursor: hand;");
+        closeBtn.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #6f7d8c; -fx-cursor: hand;");
         closeBtn.setOnMouseClicked(e -> setVisible(false));
         closeBtn.setOnMouseEntered(e -> closeBtn.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #ff4455; -fx-cursor: hand;"));
-        closeBtn.setOnMouseExited(e -> closeBtn.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #4a5580; -fx-cursor: hand;"));
+        closeBtn.setOnMouseExited(e -> closeBtn.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #6f7d8c; -fx-cursor: hand;"));
 
         titleBar.getChildren().addAll(titleLabel, closeBtn);
 

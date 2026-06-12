@@ -859,7 +859,7 @@ public class WorldMapCanvas extends Pane {
         double y      = h - barH;
 
         // Background strip
-        gc.setFill(Color.web("#080c1a", 0.78));
+        gc.setFill(Color.web("#11161d", 0.78));
         gc.fillRect(startX - 6, y, totalW + 12, barH);
 
         double cx = startX + itemW / 2.0;
@@ -868,7 +868,7 @@ public class WorldMapCanvas extends Pane {
             gc.setFill(Color.web(entry[1]));
             gc.fillOval(cx - dotR * 2.5, y + 3, dotR * 2, dotR * 2);
             // Label
-            gc.setFill(Color.web("#ccd6f6"));
+            gc.setFill(Color.web("#dde3ea"));
             gc.setTextAlign(javafx.scene.text.TextAlignment.LEFT);
             gc.fillText(entry[0], cx - dotR * 0.5, y + barH - 4);
             cx += itemW;
@@ -1035,7 +1035,7 @@ public class WorldMapCanvas extends Pane {
         // Phase shadow (crescent effect): cover part of disc based on illumination)
         double illum = moon.getIllumination();
         double phaseAngle = moon.getPhaseAngle();
-        gc.setFill(Color.web("#080c1a", 0.75));
+        gc.setFill(Color.web("#11161d", 0.75));
         // Shadow width proportional to how unlit the face is
         double shadowFrac = 1.0 - illum;
         double shadowW = 12.0 * shadowFrac;

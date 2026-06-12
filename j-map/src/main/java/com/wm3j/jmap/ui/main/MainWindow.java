@@ -127,7 +127,7 @@ public class MainWindow {
 
     private static void applyRootFontSize(BorderPane root, int fontSize) {
         root.setStyle(String.format(
-            "-fx-background-color: #0a0a0f; -fx-font-size: %dpx; -fx-font-family: 'Liberation Mono', monospace;",
+            "-fx-background-color: #15191f; -fx-font-size: %dpx; -fx-font-family: 'Liberation Mono', monospace;",
             fontSize));
     }
 }

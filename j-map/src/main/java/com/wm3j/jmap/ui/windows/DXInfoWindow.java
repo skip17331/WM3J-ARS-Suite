@@ -47,17 +47,17 @@ public class DXInfoWindow extends FloatingWindow {
         super("🌍  DX INFORMATION", 260);
         this.services = services;
 
-        noSpotLabel    = styled("Click a spot on the map", "0.97em", "#4a5580", false);
-        callsignLabel  = styled("", "1.95em", "#00ccff", true);
-        nameLabel      = styled("", "0.97em", "#ccd6f6", false);
+        noSpotLabel    = styled("Click a spot on the map", "0.97em", "#6f7d8c", false);
+        callsignLabel  = styled("", "1.95em", "#4fc3f7", true);
+        nameLabel      = styled("", "0.97em", "#dde3ea", false);
         countryLabel   = styled("", "0.97em", "#88aacc", false);
         bandLabel      = styled("", "1.06em", "#ffd700", false);
         modeLabel      = styled("", "1.06em", "#ffffff", true);
         localTimeLabel = styled("", "1.12em", "#00cc66", false);
-        latLonLabel    = styled("", "1.06em", "#ccd6f6", false);
-        zonesLabel     = styled("", "1.06em", "#ccd6f6", false);
+        latLonLabel    = styled("", "1.06em", "#dde3ea", false);
+        zonesLabel     = styled("", "1.06em", "#dde3ea", false);
         gridLabel      = styled("", "1.21em", "#4fc3f7", true);
-        spotterLabel   = styled("", "0.97em", "#4a5580", false);
+        spotterLabel   = styled("", "0.97em", "#6f7d8c", false);
 
         contentBox.getChildren().add(noSpotLabel);
     }
@@ -200,7 +200,7 @@ public class DXInfoWindow extends FloatingWindow {
     private Region sep() {
         Region r = new Region();
         r.setPrefHeight(4);
-        r.setStyle("-fx-border-color: #1e2d50; -fx-border-width: 0 0 1 0;");
+        r.setStyle("-fx-border-color: #323b47; -fx-border-width: 0 0 1 0;");
         return r;
     }
 }

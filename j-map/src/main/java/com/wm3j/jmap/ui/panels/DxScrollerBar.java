@@ -41,7 +41,7 @@ public class DxScrollerBar extends Pane {
         getChildren().add(canvas);
         setPrefHeight(BAR_HEIGHT);
         setMaxHeight(BAR_HEIGHT);
-        setStyle("-fx-background-color: #05050d;");
+        setStyle("-fx-background-color: #11161d;");
 
         ticker = new Timeline(new KeyFrame(Duration.millis(TICK_MS), e -> tick()));
         ticker.setCycleCount(Timeline.INDEFINITE);
@@ -85,7 +85,7 @@ public class DxScrollerBar extends Pane {
         // ── Quiet / no alerts ──────────────────────────────────────────────
         if (sb.length() == 0) {
             sb.append("  Space weather quiet  ●  No active alerts  ●  No lightning activity detected  ●  ");
-            color = "#334455";
+            color = "#4a5664";
         }
 
         // Repeat text so it loops seamlessly
@@ -115,9 +115,9 @@ public class DxScrollerBar extends Pane {
         double fs = services.getSettings().getFontSize() * 2.31;
         gc.setFont(Font.font("Liberation Mono", fs));
 
-        gc.setFill(Color.web("#05050d"));
+        gc.setFill(Color.web("#11161d"));
         gc.fillRect(0, 0, w, BAR_HEIGHT);
-        gc.setStroke(Color.web("#1a2a4a"));
+        gc.setStroke(Color.web("#2c3540"));
         gc.setLineWidth(1);
         gc.strokeLine(0, 0, w, 0);
 

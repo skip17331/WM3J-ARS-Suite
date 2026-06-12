@@ -56,10 +56,10 @@ public class ContestListWindow extends FloatingWindow {
     private VBox buildRow(Contest c) {
         VBox row = new VBox(1);
         row.setPadding(new Insets(4, 0, 4, 0));
-        row.setStyle("-fx-border-color: #1e2d50; -fx-border-width: 0 0 1 0;");
+        row.setStyle("-fx-border-color: #323b47; -fx-border-width: 0 0 1 0;");
 
         boolean active = c.isActive();
-        String nameColor = active ? "#00cc66" : "#ccd6f6";
+        String nameColor = active ? "#00cc66" : "#dde3ea";
         String prefix    = active ? "▶ " : "  ";
 
         Label name = new Label(prefix + c.getName());
@@ -68,7 +68,7 @@ public class ContestListWindow extends FloatingWindow {
         name.setMaxWidth(Double.MAX_VALUE);
 
         Label time = new Label(TIME_FMT.format(c.getStartTime()) + " – " + TIME_FMT.format(c.getEndTime()));
-        time.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #4a5580;");
+        time.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #6f7d8c;");
 
         Label info = new Label(c.getModes() + "  " + c.getBands());
         info.setStyle("-fx-font-size: 0.69em; -fx-text-fill: #4fc3f7;");
@@ -79,7 +79,7 @@ public class ContestListWindow extends FloatingWindow {
 
     private Label muted(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #4a5580;");
+        l.setStyle("-fx-font-size: 0.85em; -fx-text-fill: #6f7d8c;");
         return l;
     }
 }

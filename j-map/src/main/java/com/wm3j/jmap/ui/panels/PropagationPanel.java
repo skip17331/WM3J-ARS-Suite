@@ -25,11 +25,11 @@ public class PropagationPanel extends VBox {
 
         setSpacing(4);
         setPadding(new Insets(8));
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; " +
-                 "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle("-fx-background-color: #1b2027; -fx-background-radius: 4; " +
+                 "-fx-border-color: #323b47; -fx-border-radius: 4; -fx-border-width: 1;");
 
         Label title = new Label(com.wm3j.jmap.i18n.I18n.get("panel.propagation"));
-        title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #aabbdd; -fx-padding: 0 0 4 0;");
+        title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #93a0ae; -fx-padding: 0 0 4 0;");
         getChildren().add(title);
 
         GridPane grid = new GridPane();
@@ -78,13 +78,13 @@ public class PropagationPanel extends VBox {
 
     private Label keyLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #556688;");
+        l.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #6f7d8c;");
         return l;
     }
 
     private Label valueLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-size: 1em; -fx-font-weight: bold; -fx-text-fill: #ccddff;");
+        l.setStyle("-fx-font-size: 1em; -fx-font-weight: bold; -fx-text-fill: #dde3ea;");
         return l;
     }
 }

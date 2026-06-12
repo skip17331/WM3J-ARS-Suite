@@ -17,11 +17,11 @@ public class SetupHintBar extends HBox {
     public SetupHintBar(String hubHost, int webPort) {
         setAlignment(Pos.CENTER);
         setPadding(new Insets(2, 16, 2, 16));
-        setStyle("-fx-background-color: #050508; -fx-border-color: #0d1a33; -fx-border-width: 1 0 0 0;");
+        setStyle("-fx-background-color: #11161d; -fx-border-color: #2c3540; -fx-border-width: 1 0 0 0;");
 
         Label hint = new Label(
             "⚙  Setup & Configuration:  http://" + hubHost + ":" + webPort + "  •  F / F11 = fullscreen");
-        hint.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #334455;");
+        hint.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #4a5664;");
 
         getChildren().add(hint);
     }

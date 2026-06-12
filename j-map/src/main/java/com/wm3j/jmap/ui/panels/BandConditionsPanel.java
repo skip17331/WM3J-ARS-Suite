@@ -32,11 +32,11 @@ public class BandConditionsPanel extends VBox {
 
         setSpacing(3);
         setPadding(new Insets(8));
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; " +
-                 "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle("-fx-background-color: #1b2027; -fx-background-radius: 4; " +
+                 "-fx-border-color: #323b47; -fx-border-radius: 4; -fx-border-width: 1;");
 
         Label title = new Label(com.wm3j.jmap.i18n.I18n.get("panel.band.conditions"));
-        title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #aabbdd; -fx-padding: 0 0 4 0;");
+        title.setStyle("-fx-font-size: 0.77em; -fx-font-weight: bold; -fx-text-fill: #93a0ae; -fx-padding: 0 0 4 0;");
         getChildren().add(title);
 
         GridPane grid = new GridPane();
@@ -65,7 +65,7 @@ public class BandConditionsPanel extends VBox {
         dot.setId("dot_" + band);
 
         Label bandLabel = new Label(band);
-        bandLabel.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #778899; -fx-min-width: 2.5em;");
+        bandLabel.setStyle("-fx-font-size: 0.77em; -fx-text-fill: #8492a1; -fx-min-width: 2.5em;");
 
         Label condLabel = new Label(condition.label);
         condLabel.setStyle("-fx-font-size: 0.69em; -fx-font-weight: bold; -fx-text-fill: " + condition.colorHex + ";");
