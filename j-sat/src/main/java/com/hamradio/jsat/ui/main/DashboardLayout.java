@@ -54,15 +54,15 @@ public class DashboardLayout {
         // ── Top bar ────────────────────────────────────────────────────────────
         int topFz = s.effective(s.topBarFontSize);
         Label title = styled("J-SAT", "#4fc3f7", true, Math.round(topFz * 1.23f));
-        Label callsign = styled(s.callsign, "#aabbdd", true, Math.round(topFz * 1.08f));
-        utcClock = styled("--:--:-- Z", "#88bbff", false, topFz);
-        locClock = styled("--:--:--",   "#6688aa", false, topFz);
+        Label callsign = styled(s.callsign, "#b6c2cf", true, Math.round(topFz * 1.08f));
+        utcClock = styled("--:--:-- Z", "#4fc3f7", false, topFz);
+        locClock = styled("--:--:--",   "#93a0ae", false, topFz);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         HBox topBar = new HBox(12, title, callsign, spacer, locClock, utcClock);
         topBar.setPadding(new Insets(8, 14, 8, 14));
-        topBar.setStyle("-fx-background-color: #080c18; -fx-border-color: #1a2a4a; -fx-border-width: 0 0 1 0;");
+        topBar.setStyle("-fx-background-color: #11161d; -fx-border-color: #323b47; -fx-border-width: 0 0 1 0;");
         topBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         // ── World map ──────────────────────────────────────────────────────────
@@ -84,13 +84,13 @@ public class DashboardLayout {
         VBox rightSidebar = new VBox(8, livePass, passList);
         rightSidebar.setPadding(new Insets(8));
         rightSidebar.setPrefWidth(340);
-        rightSidebar.setStyle("-fx-background-color: #08090f;");
+        rightSidebar.setStyle("-fx-background-color: #11161d;");
 
         ScrollPane rightScroll = new ScrollPane(rightSidebar);
         rightScroll.setFitToWidth(true);
         rightScroll.setPrefWidth(348);
         rightScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        rightScroll.setStyle("-fx-background-color: #08090f; -fx-border-color: #1a2a4a; "
+        rightScroll.setStyle("-fx-background-color: #11161d; -fx-border-color: #323b47; "
                            + "-fx-border-width: 0 0 0 1;");
 
         // ── Bottom bar: pass prediction + range/rate + space weather + rig/rotor
@@ -115,7 +115,7 @@ public class DashboardLayout {
         rigRotor.setMaxWidth(Double.MAX_VALUE);
         bottomBar.getChildren().add(rigRotor);
         bottomBar.setPadding(new Insets(6, 8, 6, 8));
-        bottomBar.setStyle("-fx-background-color: #08090f; -fx-border-color: #1a2a4a; "
+        bottomBar.setStyle("-fx-background-color: #11161d; -fx-border-color: #323b47; "
                          + "-fx-border-width: 1 0 0 0;");
 
         BorderPane root = new BorderPane();
@@ -123,7 +123,7 @@ public class DashboardLayout {
         root.setCenter(centerPane);
         root.setRight(rightScroll);
         root.setBottom(bottomBar);
-        root.setStyle("-fx-background-color: #0a0a0f; -fx-font-size: " + s.fontSize + "px; "
+        root.setStyle("-fx-background-color: #15191f; -fx-font-size: " + s.fontSize + "px; "
                     + "-fx-font-family: 'Liberation Mono', monospace;");
 
         return root;

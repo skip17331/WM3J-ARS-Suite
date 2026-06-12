@@ -1,15 +1,15 @@
 .root {
-    -fx-background-color: #f8fafc;
+    -fx-background-color: #eceff4;
 }
 
 .label {
-    -fx-text-fill: #111827;
+    -fx-text-fill: #1f2733;
 }
 
 .button {
     -fx-background-color: #ffffff;
-    -fx-text-fill: #111827;
-    -fx-border-color: #e5e7eb;
+    -fx-text-fill: #1f2733;
+    -fx-border-color: #c9d3e0;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
     -fx-padding: 6 12 6 12;
@@ -17,17 +17,17 @@
 }
 
 .button:hover {
-    -fx-background-color: #f3f4f6;
-    -fx-border-color: #cbd5e1;
+    -fx-background-color: #e7ecf3;
+    -fx-border-color: #a9b6c6;
 }
 
 .button:focused {
-    -fx-border-color: #4fc3f7;
+    -fx-border-color: #1565c0;
 }
 
 .mode-card {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e5e7eb;
+    -fx-border-color: #c9d3e0;
     -fx-border-radius: 12;
     -fx-background-radius: 12;
     -fx-padding: 0;
@@ -36,17 +36,17 @@
 }
 
 .mode-card:hover {
-    -fx-border-color: #4fc3f7;
-    -fx-effect: dropshadow(gaussian, rgba(79,195,247,0.15), 16, 0, 0, 4);
+    -fx-border-color: #1565c0;
+    -fx-effect: dropshadow(gaussian, rgba(21,101,192,0.15), 16, 0, 0, 4);
 }
 
 .text-field, .text-area, .spinner, .combo-box {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e5e7eb;
+    -fx-border-color: #c9d3e0;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
 }
 
 .text-field:focused, .text-area:focused, .combo-box:focused {
-    -fx-border-color: #4fc3f7;
+    -fx-border-color: #1565c0;
 }

@@ -1,84 +1,92 @@
 /* ============================================================
    J-Sat — JavaFX Stylesheet
-   Dark cockpit theme — phosphor blue/cyan accents
+   Dark cockpit theme — chrome follows the suite facelift slate
+   palette (mirrors j-log dark.css -jl-*); data colours (pass
+   quality, sunlight, track colours) stay loud in the UI classes.
    ============================================================ */
 
 .root {
-    -fx-base:             #0a0a0f;
-    -fx-background:       #0a0a0f;
-    -fx-control-inner-background: #0d1020;
+    -fx-base:             #15191f;
+    -fx-background:       #15191f;
+    -fx-control-inner-background: #1b2027;
     -fx-accent:           #4fc3f7;
     -fx-focus-color:      #4fc3f7;
     -fx-faint-focus-color: rgba(79,195,247,0.12);
-    -fx-text-fill:        #ccd6f6;
+    -fx-text-fill:        #dde3ea;
     -fx-font-family:      "Liberation Mono";
 }
 
-/* ── Scrollbars ── */
-.scroll-bar { -fx-background-color: #0a0b12; }
-.scroll-bar .thumb { -fx-background-color: #1a2a4a; -fx-background-radius: 4; }
-.scroll-bar .thumb:hover { -fx-background-color: #2a3a6a; }
-.scroll-bar .increment-button,
-.scroll-bar .decrement-button { -fx-background-color: transparent; }
-.scroll-bar .increment-arrow,
-.scroll-bar .decrement-arrow { -fx-background-color: #334455; }
+/* ── Scrollbars (slim, arrowless) ── */
+.scroll-bar { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 2; }
+.scroll-bar .track { -fx-background-color: transparent; -fx-border-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: #323b47; -fx-background-radius: 5; -fx-background-insets: 0; }
+.scroll-bar .thumb:hover, .scroll-bar .thumb:pressed { -fx-background-color: #46525f; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-background-color: transparent; -fx-padding: 0; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: " "; -fx-padding: 0; }
+.scroll-bar:vertical   { -fx-pref-width: 11; }
+.scroll-bar:horizontal { -fx-pref-height: 11; }
+.corner { -fx-background-color: transparent; }
 
 /* ── Labels ── */
-.label { -fx-text-fill: #ccd6f6; -fx-font-family: "Liberation Mono"; }
+.label { -fx-text-fill: #dde3ea; -fx-font-family: "Liberation Mono"; }
 
 /* ── Tooltip ── */
 .tooltip {
-    -fx-background-color: #0d1020;
-    -fx-border-color: #1e2d50;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-text-fill: #aabbdd;
+    -fx-background-color: rgba(27,32,39,0.95);
+    -fx-border-color: #323b47;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #b6c2cf;
     -fx-font-family: "Liberation Mono";
     -fx-font-size: 11px;
+    -fx-padding: 6 10 6 10;
 }
 
 /* ── ListView ── */
 .list-view {
-    -fx-background-color: #08090f;
-    -fx-border-color: #1a2a4a;
+    -fx-background-color: #11161d;
+    -fx-border-color: #323b47;
     -fx-border-width: 1;
 }
 .list-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #ccd6f6;
+    -fx-text-fill: #dde3ea;
     -fx-font-family: "Liberation Mono";
     -fx-font-size: 11px;
 }
 .list-cell:selected {
-    -fx-background-color: #0a2040;
+    -fx-background-color: #1f3a52;
 }
 .list-cell:hover {
-    -fx-background-color: #0a1830;
+    -fx-background-color: #232a33;
 }
 
 /* ── Buttons ── */
 .button {
-    -fx-background-color: #1a3060;
-    -fx-text-fill: #aabbdd;
+    -fx-background-color: #232a33;
+    -fx-text-fill: #dde3ea;
     -fx-font-family: "Liberation Mono";
     -fx-font-size: 12px;
-    -fx-background-radius: 3;
-    -fx-border-radius: 3;
+    -fx-background-radius: 6;
+    -fx-border-color: #323b47;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
     -fx-cursor: hand;
 }
-.button:hover { -fx-background-color: #1e3e7a; }
-.button:pressed { -fx-background-color: #0a1a40; }
+.button:hover   { -fx-background-color: #2c3540; -fx-border-color: #46525f; }
+.button:pressed { -fx-background-color: #1f3a52; }
+.button:focused { -fx-border-color: #4fc3f7; }
 
 /* ── TextField ── */
 .text-field {
-    -fx-background-color: #0a0e1a;
-    -fx-text-fill: #ccd6f6;
+    -fx-background-color: #20262e;
+    -fx-text-fill: #dde3ea;
     -fx-font-family: "Liberation Mono";
-    -fx-border-color: #1a2a4a;
+    -fx-border-color: #323b47;
     -fx-border-width: 1;
-    -fx-background-radius: 2;
-    -fx-border-radius: 2;
-    -fx-prompt-text-fill: #334455;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-prompt-text-fill: #6f7d8c;
 }
 .text-field:focused {
     -fx-border-color: #4fc3f7;
@@ -86,32 +94,46 @@
 
 /* ── CheckBox ── */
 .check-box .box {
-    -fx-background-color: #0a0e1a;
-    -fx-border-color: #1a2a4a;
-    -fx-border-radius: 2;
+    -fx-background-color: #20262e;
+    -fx-border-color: #46525f;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
 }
-.check-box:selected .box { -fx-background-color: #004466; }
-.check-box .mark { -fx-background-color: #4fc3f7; }
-.check-box .text { -fx-text-fill: #ccd6f6; -fx-font-family: "Liberation Mono"; }
+.check-box:selected .box { -fx-background-color: #4fc3f7; -fx-border-color: #4fc3f7; }
+.check-box .mark { -fx-background-color: #0b1620; }
+.check-box .text { -fx-text-fill: #dde3ea; -fx-font-family: "Liberation Mono"; }
 
-/* ── TabPane ── */
-.tab-pane { -fx-background-color: #0d1020; -fx-tab-min-width: 100; }
-.tab-pane .tab-header-area { -fx-background-color: #08090f; }
-.tab {
-    -fx-background-color: #0a0e1a;
-    -fx-border-color: #1a2a4a;
+/* ── TabPane (underline-style selected tab) ── */
+.tab-pane { -fx-background-color: #1b2027; -fx-tab-min-width: 100; }
+.tab-pane .tab-header-area { -fx-background-color: #11161d; }
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: #11161d;
+    -fx-border-color: transparent transparent #323b47 transparent;
+    -fx-border-width: 0 0 1 0;
 }
-.tab:selected { -fx-background-color: #0d1a30; }
-.tab .tab-label { -fx-text-fill: #7a8aaa; -fx-font-family: "Liberation Mono"; -fx-font-size: 12px; }
-.tab:selected .tab-label { -fx-text-fill: #4fc3f7; }
+.tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent transparent transparent;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 4 12 3 12;
+}
+.tab:hover { -fx-background-color: rgba(79,195,247,0.09); }
+.tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #4fc3f7 transparent;
+}
+.tab .tab-label { -fx-text-fill: #93a0ae; -fx-font-family: "Liberation Mono"; -fx-font-size: 12px; }
+.tab:selected .tab-label { -fx-text-fill: #4fc3f7; -fx-font-weight: bold; }
+.tab:selected .focus-indicator { -fx-border-color: transparent; }
 
 /* ── Separator ── */
-.separator .line { -fx-border-color: #1a2a4a; -fx-border-width: 1 0 0 0; }
+.separator .line { -fx-border-color: #2c3540; -fx-border-width: 1 0 0 0; }
 
 /* ── Alert dialogs ── */
 .dialog-pane {
-    -fx-background-color: #0d1020;
-    -fx-border-color: #1a2a5a;
+    -fx-background-color: #1b2027;
+    -fx-border-color: #323b47;
 }
-.dialog-pane .content { -fx-text-fill: #ccd6f6; -fx-font-family: "Liberation Mono"; }
-.dialog-pane .header-panel { -fx-background-color: #08090f; }
+.dialog-pane .content { -fx-text-fill: #dde3ea; -fx-font-family: "Liberation Mono"; }
+.dialog-pane .header-panel { -fx-background-color: #1c2530; }

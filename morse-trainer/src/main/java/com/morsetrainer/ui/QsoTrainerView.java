@@ -126,7 +126,7 @@ public class QsoTrainerView {
         userCopy.setPromptText("Type the QSO as you copy it…");
         userCopy.setFont(Font.font("Monospaced", 14));
         reference.setEditable(false);
-        reference.setStyle("-fx-control-inner-background: #f3f4f6;");
+        reference.setStyle("-fx-control-inner-background: #e7ecf3;");
         reference.setFont(Font.font("Monospaced", 14));
         reference.setPromptText("(Reference QSO appears here when you reveal)");
         userCopy.setPrefRowCount(7);
@@ -142,7 +142,7 @@ public class QsoTrainerView {
         turnLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
         turnPrompt.setFont(Font.font("Monospaced", 16));
         turnPrompt.setWrapText(true);
-        turnPrompt.setStyle("-fx-text-fill: #1d4ed8;");
+        turnPrompt.setStyle("-fx-text-fill: #1565c0;");
         liveCopy.setPromptText("(DX turn) Type what you copy…");
         liveCopy.setFont(Font.font("Monospaced", 14));
         liveCopy.setPrefRowCount(3);

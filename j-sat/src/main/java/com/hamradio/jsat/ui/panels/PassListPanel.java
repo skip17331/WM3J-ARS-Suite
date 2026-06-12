@@ -30,13 +30,13 @@ public class PassListPanel extends VBox {
 
         setSpacing(4);
         setPadding(new Insets(8));
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
-               + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle("-fx-background-color: #1b2027; -fx-background-radius: 4; "
+               + "-fx-border-color: #323b47; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = label("📡  UPCOMING PASSES", "#aabbdd", true);
+        Label title = label("📡  UPCOMING PASSES", "#b6c2cf", true);
         listView = new ListView<>();
         listView.setPrefHeight(220);
-        listView.setStyle("-fx-background-color: #08090f; -fx-border-color: #1a2a4a;");
+        listView.setStyle("-fx-background-color: #11161d; -fx-border-color: #323b47;");
         listView.setCellFactory(lv -> new PassCell());
 
         listView.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
@@ -74,8 +74,8 @@ public class PassListPanel extends VBox {
             String line2 = String.format("MaxEl %4.1f°  AOS Az %3.0f°  %s",
                 pass.maxElDeg, pass.aosAzDeg, countdown);
 
-            String color = active ? "#4fc3f7" : (secs < 300 ? "#ffdd00" : "#ccd6f6");
-            String bg    = active ? "#001830" : "#0d1020";
+            String color = active ? "#4fc3f7" : (secs < 300 ? "#ffdd00" : "#dde3ea");
+            String bg    = active ? "#1f3a52" : "#1b2027";
 
             // Build stale badge for this satellite's TLE
             Label staleBadge = buildStaleBadge(pass.satName);
@@ -86,7 +86,7 @@ public class PassListPanel extends VBox {
             if (staleBadge != null) titleRow.getChildren().add(staleBadge);
             titleRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-            Label l2 = label(line2, "#7a8aaa", false);
+            Label l2 = label(line2, "#93a0ae", false);
             VBox  vb = new VBox(2, titleRow, l2);
             vb.setPadding(new Insets(4, 6, 4, 6));
             vb.setStyle("-fx-background-color: " + bg + ";");
@@ -104,13 +104,13 @@ public class PassListPanel extends VBox {
         if (ageHours <= threshold) return null;
 
         // Yellow badge for 48–96h, red badge beyond 96h
-        String badgeColor  = ageHours > 96 ? "#f38ba8" : "#f9e2af";
+        String badgeColor  = ageHours > 96 ? "#ef5350" : "#ffca28";
         String badgeText   = ageHours > 96 ? "STALE" : "OLD";
         String tooltip     = String.format("TLE age: %.0fh (threshold: %dh)", ageHours, threshold);
 
         Label badge = new Label(badgeText);
         badge.setStyle(String.format(
-            "-fx-background-color: %s; -fx-text-fill: #1e1e2e; "
+            "-fx-background-color: %s; -fx-text-fill: #0b1620; "
           + "-fx-font-size: 9px; -fx-font-weight: bold; "
           + "-fx-padding: 1 4 1 4; -fx-background-radius: 3;", badgeColor));
         Tooltip.install(badge, new Tooltip(tooltip));

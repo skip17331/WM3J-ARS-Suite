@@ -82,9 +82,9 @@ public class LetterTrainerView {
         root.setTop(top);
 
         promptLabel.setFont(Font.font("System", FontWeight.BOLD, 64));
-        promptLabel.setStyle("-fx-text-fill: #2563eb;");
+        promptLabel.setStyle("-fx-text-fill: #1565c0;");
         feedbackLabel.setFont(Font.font("System", FontWeight.BOLD, 28));
-        progressLabel.setStyle("-fx-text-fill: #6b7280;");
+        progressLabel.setStyle("-fx-text-fill: #5d6b7c;");
         input.setMaxWidth(120);
         input.setFont(Font.font("Monospaced", 24));
         input.setOnAction(ev -> submitTyped());
@@ -163,10 +163,10 @@ public class LetterTrainerView {
         scoring.typed(currentChar, typed);
         if (typed == Character.toUpperCase(currentChar)) {
             feedbackLabel.setText("✓ " + currentChar);
-            feedbackLabel.setStyle("-fx-text-fill: #10b981;");
+            feedbackLabel.setStyle("-fx-text-fill: #2e7d32;");
         } else {
             feedbackLabel.setText("✗ " + currentChar + " (you: " + typed + ")");
-            feedbackLabel.setStyle("-fx-text-fill: #ef4444;");
+            feedbackLabel.setStyle("-fx-text-fill: #c62828;");
         }
         renderHeatmap();
         awaitingResponse = false;

@@ -39,20 +39,20 @@ public class SpaceWeatherPanel extends HBox {
         setSpacing(0);
         setPadding(new Insets(6, 8, 6, 8));
         setAlignment(Pos.CENTER_LEFT);
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
-               + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle("-fx-background-color: #1b2027; -fx-background-radius: 4; "
+               + "-fx-border-color: #323b47; -fx-border-radius: 4; -fx-border-width: 1;");
 
         // ── Column 1: Kp index ────────────────────────────────────────────────
         kpValue = styledLabel("---", "#44cc44", true, fz + 1);
         kpBar   = new Canvas(BAR_W, BAR_H);
-        Label kpHead = styledLabel("☀ KP INDEX", "#556688", false, fz - 3);
+        Label kpHead = styledLabel("☀ KP INDEX", "#6f7d8c", false, fz - 3);
         VBox col1 = col(kpHead, kpValue, kpBar);
 
         // ── Column 2: Solar wind ──────────────────────────────────────────────
-        swSpeedLabel = styledLabel("--- km/s",  "#ccd6f6", false, fz - 1);
-        swDensLabel  = styledLabel("--- n/cm³", "#ccd6f6", false, fz - 1);
-        bzLabel      = styledLabel("---",       "#ccd6f6", true,  fz - 1);
-        Label windHead = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.solar.wind"), "#556688", false, fz - 3);
+        swSpeedLabel = styledLabel("--- km/s",  "#dde3ea", false, fz - 1);
+        swDensLabel  = styledLabel("--- n/cm³", "#dde3ea", false, fz - 1);
+        bzLabel      = styledLabel("---",       "#dde3ea", true,  fz - 1);
+        Label windHead = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.solar.wind"), "#6f7d8c", false, fz - 3);
         VBox col2 = col(windHead,
             row("Speed",   swSpeedLabel, fz),
             row("Density", swDensLabel,  fz),
@@ -60,9 +60,9 @@ public class SpaceWeatherPanel extends HBox {
 
         // ── Column 3: Activity ────────────────────────────────────────────────
         xrayLabel    = styledLabel("---",     "#44cc44", true,  fz - 1);
-        protonLabel  = styledLabel("--- pfu", "#ccd6f6", false, fz - 1);
-        updatedLabel = styledLabel("",        "#445566", false, fz - 3);
-        Label actHead = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.activity"), "#556688", false, fz - 3);
+        protonLabel  = styledLabel("--- pfu", "#dde3ea", false, fz - 1);
+        updatedLabel = styledLabel("",        "#5d6a78", false, fz - 3);
+        Label actHead = styledLabel(com.hamradio.jsat.i18n.I18n.get("panel.activity"), "#6f7d8c", false, fz - 3);
         VBox col3 = col(actHead,
             row("X-Ray",   xrayLabel,   fz),
             row("Protons", protonLabel, fz),
@@ -113,9 +113,9 @@ public class SpaceWeatherPanel extends HBox {
         };
         double segW = (double) BAR_W / 9;
         for (int i = 0; i < 9; i++) {
-            gc.setFill(i < (int) kp ? colors[i] : Color.web("#111825"));
+            gc.setFill(i < (int) kp ? colors[i] : Color.web("#11161d"));
             gc.fillRect(i * segW + 1, 0, segW - 2, BAR_H);
-            gc.setFill(Color.web("#1a2a4a"));
+            gc.setFill(Color.web("#323b47"));
             gc.fillRect(i * segW, 0, 1, BAR_H);
         }
         double kpX = Math.min(kp / 9.0, 1.0) * BAR_W;
@@ -131,7 +131,7 @@ public class SpaceWeatherPanel extends HBox {
     }
 
     private static HBox row(String keyText, Label val, int fz) {
-        Label k = styledLabel(keyText, "#556688", false, fz - 3);
+        Label k = styledLabel(keyText, "#6f7d8c", false, fz - 3);
         HBox h = new HBox(6, k, val);
         h.setAlignment(Pos.CENTER_LEFT);
         return h;
@@ -139,7 +139,7 @@ public class SpaceWeatherPanel extends HBox {
 
     private static Region vSep() {
         Region sep = new Region();
-        sep.setStyle("-fx-background-color: #1a2a5a;");
+        sep.setStyle("-fx-background-color: #323b47;");
         sep.setPrefWidth(1);
         sep.setMaxHeight(Double.MAX_VALUE);
         return sep;

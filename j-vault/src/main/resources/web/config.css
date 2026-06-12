@@ -1,49 +1,51 @@
-/* J-Vault — standalone web UI (Catppuccin Mocha-ish dark theme). */
+/* J-Vault — standalone web UI (suite facelift slate palette,
+   mirrors j-log dark.css / light.css -jl-* values). */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Default theme: Catppuccin Mocha (dark). */
+/* Default theme: dark (slate). Theme keys keep their historical
+   Catppuccin names so saved preferences stay valid. */
 :root,
 :root[data-theme="mocha"] {
-  --base:     #1e1e2e;
-  --mantle:   #181825;
-  --crust:    #11111b;
-  --surface0: #313244;
-  --surface1: #45475a;
-  --surface2: #585b70;
-  --overlay0: #6c7086;
-  --overlay1: #7f849c;
-  --subtext0: #a6adc8;
-  --subtext1: #bac2de;
-  --text:     #cdd6f4;
-  --blue:     #89b4fa;
-  --teal:     #94e2d5;
-  --green:    #a6e3a1;
-  --yellow:   #f9e2af;
-  --peach:    #fab387;
-  --red:      #f38ba8;
+  --base:     #15191f;
+  --mantle:   #11161d;
+  --crust:    #0b1620;
+  --surface0: #232a33;
+  --surface1: #323b47;
+  --surface2: #46525f;
+  --overlay0: #6f7d8c;
+  --overlay1: #93a0ae;
+  --subtext0: #a8b4c0;
+  --subtext1: #c3ccd6;
+  --text:     #dde3ea;
+  --blue:     #4fc3f7;
+  --teal:     #80cbc4;
+  --green:    #66bb6a;
+  --yellow:   #ffca28;
+  --peach:    #ffa726;
+  --red:      #ef5350;
   --mauve:    #4fc3f7;
 }
 
-/* Light theme: Catppuccin Latte. Sister palette to Mocha. */
+/* Light theme. */
 :root[data-theme="latte"] {
-  --base:     #eff1f5;
-  --mantle:   #e6e9ef;
-  --crust:    #dce0e8;
-  --surface0: #ccd0da;
-  --surface1: #bcc0cc;
-  --surface2: #acb0be;
-  --overlay0: #9ca0b0;
-  --overlay1: #8c8fa1;
-  --subtext0: #6c6f85;
-  --subtext1: #5c5f77;
-  --text:     #4c4f69;
-  --blue:     #1e66f5;
-  --teal:     #179299;
-  --green:    #40a02b;
-  --yellow:   #df8e1d;
-  --peach:    #fe640b;
-  --red:      #d20f39;
+  --base:     #eceff4;
+  --mantle:   #e2e8f2;
+  --crust:    #c9d3e0;
+  --surface0: #d5dde8;
+  --surface1: #c9d3e0;
+  --surface2: #b4c0ce;
+  --overlay0: #8a96a5;
+  --overlay1: #76828f;
+  --subtext0: #5d6b7c;
+  --subtext1: #43505e;
+  --text:     #1f2733;
+  --blue:     #1565c0;
+  --teal:     #00695c;
+  --green:    #2e7d32;
+  --yellow:   #c77800;
+  --peach:    #e65100;
+  --red:      #c62828;
   --mauve:    #1565c0;
 }
 

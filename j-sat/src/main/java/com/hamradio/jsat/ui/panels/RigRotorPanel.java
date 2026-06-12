@@ -34,16 +34,16 @@ public class RigRotorPanel extends HBox {
         setSpacing(10);
         setPadding(new Insets(6, 8, 6, 8));
         setAlignment(Pos.CENTER_LEFT);
-        setStyle("-fx-background-color: #0d1020; -fx-background-radius: 4; "
-               + "-fx-border-color: #1a2a5a; -fx-border-radius: 4; -fx-border-width: 1;");
+        setStyle("-fx-background-color: #1b2027; -fx-background-radius: 4; "
+               + "-fx-border-color: #323b47; -fx-border-radius: 4; -fx-border-width: 1;");
 
-        Label title = styled("🎛  RIG / ROTOR", "#aabbdd", true, fz - 1);
+        Label title = styled("🎛  RIG / ROTOR", "#b6c2cf", true, fz - 1);
 
-        rigStatusLabel   = styled("Rig: —",           "#445566", false, fz - 2);
-        rigFreqLabel     = styled("DL: ---  UL: ---",  "#ccd6f6", true,  fz - 2);
-        rotorStatusLabel = styled("Rotor: —",          "#445566", false, fz - 2);
-        rotorPosLabel    = styled("AZ ---°  EL ---°",  "#ccd6f6", false, fz - 2);
-        rotorTargetLabel = styled("→ ---°  ---°",      "#7a8aaa", false, fz - 2);
+        rigStatusLabel   = styled("Rig: —",           "#5d6a78", false, fz - 2);
+        rigFreqLabel     = styled("DL: ---  UL: ---",  "#dde3ea", true,  fz - 2);
+        rotorStatusLabel = styled("Rotor: —",          "#5d6a78", false, fz - 2);
+        rotorPosLabel    = styled("AZ ---°  EL ---°",  "#dde3ea", false, fz - 2);
+        rotorTargetLabel = styled("→ ---°  ---°",      "#93a0ae", false, fz - 2);
 
         VBox textSide = new VBox(2, title,
             rigStatusLabel, rigFreqLabel,
@@ -62,7 +62,7 @@ public class RigRotorPanel extends HBox {
         if (!services.getSettings().rigControlEnabled) {
             rigStatusLabel.setText(com.hamradio.jsat.i18n.I18n.get("rig.doppler.disabled"));
             rigStatusLabel.setStyle(rigStatusLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
-                "-fx-text-fill: #445566;"));
+                "-fx-text-fill: #5d6a78;"));
             rigFreqLabel.setText("---");
         } else {
             String rigSt = hubConn ? "● Via J-Hub" : "○ J-Hub offline";
@@ -79,7 +79,7 @@ public class RigRotorPanel extends HBox {
         if (!services.getSettings().rotorControlEnabled) {
             rotorStatusLabel.setText(com.hamradio.jsat.i18n.I18n.get("rotor.disabled"));
             rotorStatusLabel.setStyle(rotorStatusLabel.getStyle().replaceAll("-fx-text-fill: [^;]+;",
-                "-fx-text-fill: #445566;"));
+                "-fx-text-fill: #5d6a78;"));
             rotorPosLabel.setText("---");
             rotorTargetLabel.setText("---");
         } else {
@@ -109,20 +109,20 @@ public class RigRotorPanel extends HBox {
 
     private void drawCompassBackground(GraphicsContext gc) {
         double cx = COMPASS_SIZE / 2.0, cy = COMPASS_SIZE / 2.0, r = cx - 8;
-        gc.setFill(Color.web("#080c18"));
+        gc.setFill(Color.web("#11161d"));
         gc.fillRect(0, 0, COMPASS_SIZE, COMPASS_SIZE);
-        gc.setStroke(Color.web("#1a2a4a"));
+        gc.setStroke(Color.web("#323b47"));
         gc.setLineWidth(1.5);
         gc.strokeOval(cx - r, cy - r, r * 2, r * 2);
 
-        gc.setFill(Color.web("#445566"));
+        gc.setFill(Color.web("#5d6a78"));
         gc.setFont(javafx.scene.text.Font.font("Liberation Mono", 10));
         gc.fillText("N", cx - 4, cy - r + 12);
         gc.fillText("S", cx - 4, cy + r + 2);
         gc.fillText("E", cx + r - 10, cy + 4);
         gc.fillText("W", cx - r + 2, cy + 4);
 
-        gc.setStroke(Color.web("#334455"));
+        gc.setStroke(Color.web("#4a5664"));
         gc.setLineWidth(1.0);
         for (int deg = 0; deg < 360; deg += 30) {
             double a = Math.toRadians(deg - 90);
@@ -140,7 +140,7 @@ public class RigRotorPanel extends HBox {
         drawCompassBackground(gc);
         double cx = COMPASS_SIZE / 2.0, cy = COMPASS_SIZE / 2.0, r = cx - 8;
 
-        drawPointer(gc, cx, cy, r - 10, curAz, Color.web("#ccd6f6"), 2.5);
+        drawPointer(gc, cx, cy, r - 10, curAz, Color.web("#dde3ea"), 2.5);
 
         if (satAz >= 0) {
             drawPointer(gc, cx, cy, r - 4, satAz, Color.web("#4fc3f7"), 1.5);

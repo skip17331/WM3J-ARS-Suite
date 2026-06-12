@@ -42,7 +42,7 @@ public final class HomeView {
         Label title = new Label(com.morsetrainer.i18n.I18n.get("brand.title"));
         title.setFont(Font.font("System", FontWeight.BOLD, 28));
         Label subtitle = new Label(com.morsetrainer.i18n.I18n.get("brand.sub"));
-        subtitle.setStyle("-fx-text-fill: #6b7280;");
+        subtitle.setStyle("-fx-text-fill: #5d6b7c;");
         header.getChildren().addAll(title, subtitle);
         root.setTop(header);
 
@@ -119,7 +119,7 @@ public final class HomeView {
         Label t = new Label(title);
         t.setFont(Font.font("System", FontWeight.BOLD, 18));
         Label s = new Label(subtitle);
-        s.setStyle("-fx-text-fill: #6b7280;");
+        s.setStyle("-fx-text-fill: #5d6b7c;");
         s.setWrapText(true);
         content.getChildren().addAll(t, s);
 

@@ -57,7 +57,7 @@ public class SendingTrainerView {
                 "Keyboard uses Space. Arduino & Pi Zero auto-detect straight key vs iambic paddle "
               + "based on their firmware/launch mode (see hardware/README).");
         hint.setWrapText(true);
-        hint.setStyle("-fx-text-fill: #6b7280;");
+        hint.setStyle("-fx-text-fill: #5d6b7c;");
 
         inputBox.getItems().addAll("Keyboard (Space)", "Arduino USB", "Pi Zero Wireless");
         inputBox.setValue("Keyboard (Space)");

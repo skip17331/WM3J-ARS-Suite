@@ -45,17 +45,17 @@ public class EmePanel extends VBox {
         this.services = services;
         setSpacing(2);
         setPadding(new Insets(6, 8, 6, 8));
-        setStyle("-fx-background-color: #0d1018; -fx-border-color: #2a3a5a; -fx-border-width: 1; -fx-border-radius: 4;");
+        setStyle("-fx-background-color: #1b2027; -fx-border-color: #323b47; -fx-border-width: 1; -fx-border-radius: 4;");
 
         JsatSettings s = services.getSettings();
         int fz = s.effective(s.rigRotorFontSize);
 
         headerLbl    = styled("🌒  EME",                        "#bb88ff", true,  Math.round(fz * 1.05f));
-        azElLbl      = styled("Az --°  El --°",                  "#ccddee", false, fz);
-        rangeLbl     = styled("Range -- km",                     "#9fbacd", false, fz);
+        azElLbl      = styled("Az --°  El --°",                  "#c3ccd6", false, fz);
+        rangeLbl     = styled("Range -- km",                     "#a8b4c0", false, fz);
         dopplerLbl   = styled("Doppler 2-way: -- Hz @ -- MHz",   "#ffd966", true,  fz);
-        librationLbl = styled("Libration --   --",               "#9fbacd", false, fz);
-        windowLbl    = styled("",                                 "#88aacc", false, Math.max(10, fz - 1));
+        librationLbl = styled("Libration --   --",               "#a8b4c0", false, fz);
+        windowLbl    = styled("",                                 "#a8b4c0", false, Math.max(10, fz - 1));
         windowLbl.setWrapText(true);
 
         getChildren().addAll(headerLbl, azElLbl, rangeLbl, dopplerLbl, librationLbl, windowLbl);
@@ -84,9 +84,9 @@ public class EmePanel extends VBox {
         String libVerdict = libMag < 2.0 ? "clean"
                           : libMag < 5.0 ? "moderate"
                                          : "smeared";
-        String libColour = libMag < 2.0 ? "#a6e3a1"
+        String libColour = libMag < 2.0 ? "#66bb6a"
                          : libMag < 5.0 ? "#ffd966"
-                                        : "#f38ba8";
+                                        : "#ef5350";
         librationLbl.setText(String.format("Libration lon %+5.2f°  lat %+5.2f°  (%s, %.1f°)",
                                             lib[0], lib[1], libVerdict, libMag));
         librationLbl.setStyle("-fx-text-fill: " + libColour + "; -fx-font-family: 'Liberation Mono';");

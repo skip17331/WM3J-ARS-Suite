@@ -1,34 +1,36 @@
-/* J-Learn standalone — Catppuccin Mocha (dark) by default. */
+/* J-Learn standalone — suite facelift slate palette (mirrors j-log
+   dark.css / light.css -jl-* values). Theme keys keep their historical
+   Catppuccin names so saved preferences stay valid. */
 :root,
 :root[data-theme="mocha"] {
-  --base:     #1e1e2e;
-  --mantle:   #181825;
-  --surface0: #313244;
-  --surface1: #45475a;
-  --overlay0: #6c7086;
-  --subtext0: #a6adc8;
-  --text:     #cdd6f4;
+  --base:     #15191f;
+  --mantle:   #11161d;
+  --surface0: #232a33;
+  --surface1: #323b47;
+  --overlay0: #6f7d8c;
+  --subtext0: #a8b4c0;
+  --text:     #dde3ea;
   --mauve:    #4fc3f7;
-  --blue:     #89b4fa;
-  --peach:    #fab387;
-  --green:    #a6e3a1;
-  --red:      #f38ba8;
+  --blue:     #4fc3f7;
+  --peach:    #ffa726;
+  --green:    #66bb6a;
+  --red:      #ef5350;
 }
 
-/* Light theme: Catppuccin Latte. Sister palette to Mocha. */
+/* Light theme. */
 :root[data-theme="latte"] {
-  --base:     #eff1f5;
-  --mantle:   #e6e9ef;
-  --surface0: #ccd0da;
-  --surface1: #bcc0cc;
-  --overlay0: #9ca0b0;
-  --subtext0: #6c6f85;
-  --text:     #4c4f69;
+  --base:     #eceff4;
+  --mantle:   #e2e8f2;
+  --surface0: #d5dde8;
+  --surface1: #c9d3e0;
+  --overlay0: #8a96a5;
+  --subtext0: #5d6b7c;
+  --text:     #1f2733;
   --mauve:    #1565c0;
-  --blue:     #1e66f5;
-  --peach:    #fe640b;
-  --green:    #40a02b;
-  --red:      #d20f39;
+  --blue:     #1565c0;
+  --peach:    #e65100;
+  --green:    #2e7d32;
+  --red:      #c62828;
 }
 
 * { box-sizing: border-box; }
