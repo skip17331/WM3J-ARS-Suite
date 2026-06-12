@@ -4,7 +4,7 @@
 
     <groupId>com.morsetrainer</groupId>
     <artifactId>morse-trainer</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
     <name>Morse Code Trainer</name>
 

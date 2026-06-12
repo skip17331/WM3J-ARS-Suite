@@ -6,7 +6,7 @@
 
     <groupId>com.wm3j.jmap</groupId>
     <artifactId>j-map</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
     <name>j-Map</name>
     <description>WM3j ARS Suite — operator dashboard and world map</description>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-engine</artifactId>
-            <version>1.5.1</version>
+            <version>1.5.2</version>
         </dependency>
 
         <!-- JSON -->

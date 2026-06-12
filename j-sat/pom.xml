@@ -6,7 +6,7 @@
 
     <groupId>com.hamradio.jsat</groupId>
     <artifactId>j-sat</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
     <name>J-Sat</name>
     <description>WM3J ARS Suite — amateur satellite tracking and Doppler control</description>

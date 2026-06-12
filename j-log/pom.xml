@@ -7,7 +7,7 @@
 
     <groupId>com.jlog</groupId>
     <artifactId>j-log</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
     <name>j-Log</name>
 
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-engine</artifactId>
-            <version>1.5.1</version>
+            <version>1.5.2</version>
         </dependency>
 
         <!-- JavaFX — OS-specific classifier so the native runtime is
