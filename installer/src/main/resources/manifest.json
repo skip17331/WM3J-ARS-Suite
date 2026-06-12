@@ -6,7 +6,7 @@
       "title": "WM3J J-Hub",
       "comment": "ARS Suite — central broker and web configurator",
       "launch": "j-hub/start.sh",
-      "jar":    "j-hub/target/j-hub-1.5.0.jar",
+      "jar":    "j-hub/target/j-hub-1.5.1.jar",
       "icon":   "j-hub/src/main/resources/icons/icon.png",
       "primary": true,
       "categories": "Network;HamRadio;"
@@ -16,7 +16,7 @@
       "title": "WM3J J-Log",
       "comment": "ARS Suite — QSO logger and contest module",
       "launch": "j-log/j-log.sh",
-      "jar":    "j-log/target/j-log-1.5.0.jar",
+      "jar":    "j-log/target/j-log-1.5.1.jar",
       "icon":   "j-log/src/main/resources/com/jlog/icons/icon.png",
       "categories": "HamRadio;Database;"
     },
@@ -25,7 +25,7 @@
       "title": "WM3J J-Map",
       "comment": "ARS Suite — DX map with propagation overlays",
       "launch": "j-map/j-map.sh",
-      "jar":    "j-map/target/j-map-1.5.0.jar",
+      "jar":    "j-map/target/j-map-1.5.1.jar",
       "icon":   "j-map/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Geography;"
     },
@@ -43,7 +43,7 @@
       "title": "WM3J J-Bridge",
       "comment": "ARS Suite — WSJT-X integration",
       "launch": "j-bridge/j-bridge.sh",
-      "jar":    "j-bridge/target/j-bridge-1.5.0.jar",
+      "jar":    "j-bridge/target/j-bridge-1.5.1.jar",
       "icon":   "j-bridge/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Network;"
     },
@@ -52,7 +52,7 @@
       "title": "WM3J J-Sat",
       "comment": "ARS Suite — satellite tracker",
       "launch": "j-sat/j-sat.sh",
-      "jar":    "j-sat/target/j-sat-1.5.0.jar",
+      "jar":    "j-sat/target/j-sat-1.5.1.jar",
       "icon":   "j-sat/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Science;"
     },
@@ -61,7 +61,7 @@
       "title": "WM3J J-Vault",
       "comment": "ARS Suite — shack inventory + estate handoff PDF (port 8083)",
       "launch": "j-vault/j-vault.sh",
-      "jar":    "j-vault/target/j-vault-1.5.0.jar",
+      "jar":    "j-vault/target/j-vault-1.5.1.jar",
       "icon":   "j-vault/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Office;"
     },
@@ -70,7 +70,7 @@
       "title": "WM3J J-Learn",
       "comment": "ARS Suite — amateur radio reference library (port 8082)",
       "launch": "j-learn/j-learn.sh",
-      "jar":    "j-learn/target/j-learn-1.5.0.jar",
+      "jar":    "j-learn/target/j-learn-1.5.1.jar",
       "icon":   "j-hub/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Education;"
     },
@@ -79,7 +79,7 @@
       "title": "WM3J Morse Trainer",
       "comment": "ARS Suite — Morse code learning, sending practice, and analytics",
       "launch": "morse-trainer/run.sh",
-      "jar":    "morse-trainer/target/morse-trainer-1.5.0.jar",
+      "jar":    "morse-trainer/target/morse-trainer-1.5.1.jar",
       "icon":   "j-hub/src/main/resources/icons/icon.png",
       "categories": "HamRadio;Education;"
     }

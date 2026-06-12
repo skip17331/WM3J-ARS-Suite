@@ -7,7 +7,7 @@
 
     <groupId>com.hamradio</groupId>
     <artifactId>j-vault</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
     <packaging>jar</packaging>
     <name>J-Vault</name>
     <description>WM3J ARS Suite — shack inventory + estate handoff</description>

@@ -7,7 +7,7 @@
 
     <groupId>com.hamradio</groupId>
     <artifactId>j-bridge</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
     <packaging>jar</packaging>
     <name>J-Bridge</name>
     <description>WSJT-X ↔ j-Hub bridge — WM3j ARS Suite</description>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-engine</artifactId>
-            <version>1.5.0</version>
+            <version>1.5.1</version>
         </dependency>
 
         <!-- JavaFX — same version as j-log; OS-specific classifier so the

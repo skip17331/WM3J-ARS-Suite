@@ -447,7 +447,7 @@ first):
 
 ```bash
 sudo apt install -y openjdk-21-jdk          # runtime only; no Maven needed
-java -jar j-hub-1.5.0-linux-aarch64.jar     # then open http://localhost:8081/
+java -jar j-hub-1.5.1-linux-aarch64.jar     # then open http://localhost:8081/
 ```
 
 Launch the other desktop apps the same way (`java -jar
