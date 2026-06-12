@@ -79,15 +79,15 @@ public class JHubStatusWindow {
     private static final DateTimeFormatter TIME_FMT =
         DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
 
-    // Catppuccin Mocha palette
-    private static final String C_GREEN  = "#a6e3a1";
-    private static final String C_RED    = "#f38ba8";
+    // J-Log dark palette (mirrors j-log dark.css -jl-* values)
+    private static final String C_GREEN  = "#66bb6a";
+    private static final String C_RED    = "#ef5350";
     private static final String C_MAUVE  = "#4fc3f7";
-    private static final String C_BLUE   = "#89b4fa";
-    private static final String C_TEXT   = "#cdd6f4";
-    private static final String C_SUBTLE = "#6c7086";
-    private static final String C_BASE   = "#1e1e2e";
-    private static final String C_SURF0  = "#313244";
+    private static final String C_BLUE   = "#90caf9";
+    private static final String C_TEXT   = "#dde3ea";
+    private static final String C_SUBTLE = "#93a0ae";
+    private static final String C_BASE   = "#15191f";
+    private static final String C_SURF0  = "#232a33";
 
     public JHubStatusWindow(Stage stage, JHubServer jHubServer) {
         this.stage      = stage;
@@ -103,9 +103,9 @@ public class JHubStatusWindow {
             e.consume();
             ticker.stop();
             lblStatus.setText("Closing DX Telnet Session…");
-            lblStatus.setTextFill(Color.web("#fab387"));
+            lblStatus.setTextFill(Color.web("#ffa726"));
             lblCluster.setText("○ Disconnecting");
-            lblCluster.setTextFill(Color.web("#fab387"));
+            lblCluster.setTextFill(Color.web("#ffa726"));
             log.info("Closing DX telnet session before exit");
             new Thread(() -> {
                 ClusterManager.getInstance().disconnect();

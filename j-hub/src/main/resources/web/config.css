@@ -7,32 +7,33 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* ── J-Log dark theme palette ── */
-  --base:     #1e1e1e;   /* j-log root background    */
-  --mantle:   #1a2a3a;   /* j-log clock/toolbar bar  */
-  --crust:    #0d1b2a;   /* j-log splash / darkest   */
-  --surface0: #2d2d2d;   /* j-log control inner      */
-  --surface1: #3a3a3a;   /* j-log TextField bg       */
-  --surface2: #555555;   /* j-log border / dividers  */
-  --overlay0: #888888;   /* j-log clock label        */
-  --overlay1: #aaaaaa;   /* j-log subdued text       */
-  --subtext0: #90caf9;   /* j-log table header text  */
-  --text:     #e0e0e0;   /* j-log primary text       */
-  --blue:     #4fc3f7;   /* j-log accent cyan        */
-  --teal:     #80cbc4;   /* j-log raw / teal         */
-  --green:    #80cbc4;   /* j-log teal-green         */
-  --yellow:   #80deea;   /* j-log stats cyan         */
-  --peach:    #4fc3f7;   /* repurposed → accent      */
-  --red:      #ef9a9a;   /* j-log dupe red           */
-  --mauve:    #4fc3f7;   /* j-log accent (was mauve) */
-  --entry:    #252535;   /* j-log entry pane         */
-  --header:   #1a2a4a;   /* j-log entry pane header  */
-  --primary:  #014479;   /* j-log primary button     */
-  --primary-h:#0277bd;   /* j-log primary hover      */
+  /* ── J-Log dark theme palette (mirrors j-log dark.css -jl-*) ── */
+  --base:     #15191f;   /* j-log -jl-bg              */
+  --mantle:   #11161d;   /* j-log -jl-strip-bg        */
+  --crust:    #0b1620;   /* darkest / on-accent text  */
+  --surface0: #232a33;   /* j-log -jl-surface-hi      */
+  --surface1: #323b47;   /* j-log -jl-border          */
+  --surface2: #46525f;   /* j-log -jl-border-strong   */
+  --overlay0: #6f7d8c;   /* dim text                  */
+  --overlay1: #93a0ae;   /* j-log -jl-text-muted      */
+  --subtext0: #90caf9;   /* j-log table header text   */
+  --text:     #dde3ea;   /* j-log -jl-text            */
+  --blue:     #4fc3f7;   /* j-log -jl-accent          */
+  --teal:     #80cbc4;   /* j-log raw / teal          */
+  --green:    #66bb6a;   /* j-log -jl-success         */
+  --yellow:   #80deea;   /* j-log stats cyan          */
+  --peach:    #4fc3f7;   /* repurposed → accent       */
+  --red:      #ef9a9a;   /* j-log dupe red            */
+  --mauve:    #4fc3f7;   /* j-log accent (was mauve)  */
+  --entry:    #1d2330;   /* j-log entry pane          */
+  --header:   #1c2530;   /* j-log -jl-pane-header-bg  */
+  --primary:  #4fc3f7;   /* j-log primary button = accent fill */
+  --primary-h:#71d1fa;   /* j-log -jl-accent-hover    */
+  --primary-text: #0b1620; /* j-log -jl-accent-text   */
   --nav-w:    190px;
   --intel-w:  250px;
   --status-h: 34px;
-  --radius:   4px;
+  --radius:   6px;
   --gap:      16px;
 }
 
@@ -105,7 +106,7 @@ body {
 .nav-btn:hover { background: var(--surface0); color: var(--text); }
 
 .nav-btn.active {
-  background: #1a3a5a;
+  background: #1f3a52;
   color: var(--blue);
   border-left-color: var(--blue);
   font-weight: 600;
@@ -244,7 +245,7 @@ input[type="number"] {
 .btn:hover  { filter: brightness(1.12); }
 .btn:active { filter: brightness(0.9); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
-.btn-primary { background: var(--primary); color: white; }
+.btn-primary { background: var(--primary); color: var(--primary-text); }
 .btn-primary:hover { background: var(--primary-h); }
 .btn-green   { background: #2e7d32; color: white; }
 .btn-blue    { background: var(--blue);   color: var(--crust); }
@@ -585,31 +586,32 @@ hr.divider { border: none; border-top: 1px solid var(--surface0); margin: 14px 0
 
 /* ── Light theme (body.light) — mirrors j-log light.css ─── */
 body.light {
-  --base:     #f4f4f4;
-  --mantle:   #dce4f0;
-  --crust:    #c8d0e8;
-  --surface0: #eef2fb;
-  --surface1: #e0e8f8;
-  --surface2: #c8d0e8;
-  --overlay0: #666666;
-  --overlay1: #444444;
+  --base:     #eceff4;
+  --mantle:   #e2e8f2;
+  --crust:    #e6ebf3;
+  --surface0: #ffffff;
+  --surface1: #c9d3e0;
+  --surface2: #b4c0ce;
+  --overlay0: #5d6b7c;
+  --overlay1: #43505e;
   --subtext0: #1565c0;
-  --text:     #212121;
+  --text:     #1f2733;
   --blue:     #1565c0;
   --teal:     #00695c;
-  --green:    #388e3c;
+  --green:    #2e7d32;
   --yellow:   #0277bd;
   --peach:    #1565c0;
   --red:      #c62828;
   --mauve:    #1565c0;
-  --entry:    #eef2fb;
-  --header:   #c5cfe8;
+  --entry:    #f3f6fb;
+  --header:   #dde5f1;
   --primary:  #1565c0;
   --primary-h:#1e88e5;
+  --primary-text: #ffffff;
 }
 
 body.light .nav-btn.active {
-  background: #bbdefb;
+  background: #cfe3fa;
   color: #1565c0;
   border-left-color: #1565c0;
 }

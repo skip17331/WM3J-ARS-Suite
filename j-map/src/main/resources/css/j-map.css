@@ -1,6 +1,10 @@
 /* ============================================================
    J-Map — JavaFX Stylesheet
-   Dark operator-centric theme with phosphor-green accents
+   Dark operator-centric theme with phosphor accents.
+   Panel colours are set inline by the UI classes; this sheet
+   skins the generic chrome (scrollbars, buttons, fields,
+   menus, tooltips) in the same flat-rounded style as the
+   suite-wide j-log facelift, tuned to j-map's navy palette.
    ============================================================ */
 
 .root {
@@ -12,16 +16,28 @@
     -fx-faint-focus-color: rgba(79,195,247,0.15);
     -fx-text-fill:        #ccd6f6;
     -fx-font-family:      "Liberation Mono";
+
+    /* palette (mirrors the inline panel colours) */
+    -jm-bg:        #0a0a0f;
+    -jm-surface:   #0d1020;
+    -jm-raised:    #141a30;
+    -jm-border:    #1e2d50;
+    -jm-border-hi: #2a3a5a;
+    -jm-text:      #ccd6f6;
+    -jm-muted:     #8899bb;
+    -jm-accent:    #4fc3f7;
 }
 
-/* ── Scrollbars ── */
-.scroll-bar { -fx-background-color: #0a0b12; }
-.scroll-bar .thumb { -fx-background-color: #1a2a4a; -fx-background-radius: 4; }
-.scroll-bar .thumb:hover { -fx-background-color: #2a3a5a; }
-.scroll-bar .increment-button,
-.scroll-bar .decrement-button { -fx-background-color: transparent; }
-.scroll-bar .increment-arrow,
-.scroll-bar .decrement-arrow { -fx-background-color: #334455; }
+/* ── Scrollbars (slim, arrowless) ── */
+.scroll-bar { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 2; }
+.scroll-bar .track { -fx-background-color: transparent; -fx-border-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: #1e2d50; -fx-background-radius: 5; -fx-background-insets: 0; }
+.scroll-bar .thumb:hover, .scroll-bar .thumb:pressed { -fx-background-color: #2a3a5a; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-background-color: transparent; -fx-padding: 0; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: " "; -fx-padding: 0; }
+.scroll-bar:vertical   { -fx-pref-width: 11; }
+.scroll-bar:horizontal { -fx-pref-height: 11; }
+.corner { -fx-background-color: transparent; }
 
 /* ── Labels (fallback) ── */
 .label {
@@ -29,15 +45,64 @@
     -fx-font-family: "Liberation Mono";
 }
 
+/* ── Buttons ── */
+.button {
+    -fx-background-color: -jm-raised;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jm-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-text-fill: -jm-text;
+    -fx-padding: 3 10 3 10;
+}
+.button:hover   { -fx-border-color: -jm-border-hi; -fx-background-color: derive(-jm-raised, 25%); }
+.button:armed   { -fx-background-color: -jm-border; }
+.button:focused { -fx-border-color: -jm-accent; }
+.button:disabled { -fx-opacity: 0.45; }
+
+/* ── Text inputs (rare in j-map, but skinned for consistency) ── */
+.text-field, .text-area {
+    -fx-background-color: -jm-surface;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jm-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-text-fill: -jm-text;
+    -fx-prompt-text-fill: -jm-muted;
+    -fx-highlight-fill: #1f3a52;
+    -fx-highlight-text-fill: -jm-text;
+}
+.text-field:focused, .text-area:focused { -fx-border-color: -jm-accent; }
+.text-area .content { -fx-background-color: -jm-surface; -fx-background-radius: 5; }
+
+/* ── Context menus ── */
+.context-menu {
+    -fx-background-color: -jm-surface;
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+    -fx-border-color: -jm-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 14, 0.1, 0, 4);
+}
+.menu-item { -fx-background-radius: 5; -fx-padding: 5 14 5 10; }
+.menu-item .label { -fx-text-fill: -jm-text; }
+.menu-item:focused { -fx-background-color: -jm-accent; }
+.menu-item:focused .label { -fx-text-fill: #0b1620; }
+
 /* ── Tooltip ── */
 .tooltip {
-    -fx-background-color: #0d1020;
+    -fx-background-color: rgba(13,16,32,0.95);
     -fx-border-color: #1e2d50;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
     -fx-text-fill: #aabbdd;
     -fx-font-family: "Courier New";
     -fx-font-size: 11px;
+    -fx-padding: 6 10 6 10;
 }
 
 /* ── Separator ── */

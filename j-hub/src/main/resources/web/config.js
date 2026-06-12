@@ -78,11 +78,11 @@ const JVAULT_NOT_RUNNING_PLACEHOLDER =
   + encodeURIComponent(
       '<!doctype html><html><body style="margin:0;height:100vh;display:flex;'
       + 'flex-direction:column;align-items:center;justify-content:center;gap:10px;'
-      + 'font:13px system-ui,-apple-system,Segoe UI,sans-serif;background:#1e1e2e;color:#9399b2;text-align:center;padding:20px">'
+      + 'font:13px system-ui,-apple-system,Segoe UI,sans-serif;background:#15191f;color:#93a0ae;text-align:center;padding:20px">'
       + '<div style="font-size:32px">🗂️</div>'
       + '<div style="font-size:14px">J-Vault isn\'t running on port 8083.</div>'
-      + '<div>Click <strong style="color:#cdd6f4">Launch &amp; Attach</strong> above to start it and load it here, '
-      + 'or visit <a href="http://localhost:8083/" target="_blank" style="color:#89b4fa">localhost:8083</a> directly.</div>'
+      + '<div>Click <strong style="color:#dde3ea">Launch &amp; Attach</strong> above to start it and load it here, '
+      + 'or visit <a href="http://localhost:8083/" target="_blank" style="color:#4fc3f7">localhost:8083</a> directly.</div>'
       + '</body></html>');
 function applyJVaultZoom(pct) {
   const f = document.getElementById('jvault-frame');
@@ -675,7 +675,7 @@ function renderJSatSatList(enabledNames) {
           staleBadge = `<span style="font-size:9px;background:var(--red);color:#fff;border-radius:3px;padding:1px 4px;margin-left:4px;flex-shrink:0" title="${age}">STALE</span>`;
         } else if (tleInfo.freshness === 'YELLOW' || tleInfo.stale) {
           const age = tleInfo.ageHours != null ? tleInfo.ageHours.toFixed(1) + 'h old' : 'aging';
-          staleBadge = `<span style="font-size:9px;background:var(--yellow,#f9e2af);color:#1e1e2e;border-radius:3px;padding:1px 4px;margin-left:4px;flex-shrink:0" title="${age}">AGING</span>`;
+          staleBadge = `<span style="font-size:9px;background:var(--yellow,#ffa726);color:#15191f;border-radius:3px;padding:1px 4px;margin-left:4px;flex-shrink:0" title="${age}">AGING</span>`;
         }
       }
       html += `<label style="display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer">
@@ -2556,13 +2556,13 @@ function installPlugin(type, downloadUrl, id) {
     if (!msgEl) return;
     if (r.error) {
       msgEl.textContent = '✗ ' + r.error;
-      msgEl.style.color = '#f38ba8';
+      msgEl.style.color = '#ef5350';
     } else {
       msgEl.textContent = `✓ Installed → ${r.path}`;
-      msgEl.style.color = '#a6e3a1';
+      msgEl.style.color = '#66bb6a';
     }
   }).catch(e => {
-    if (msgEl) { msgEl.textContent = '✗ ' + e.message; msgEl.style.color = '#f38ba8'; }
+    if (msgEl) { msgEl.textContent = '✗ ' + e.message; msgEl.style.color = '#ef5350'; }
   });
 }
 
@@ -2639,7 +2639,7 @@ function audioLoopbackTest() {
   const resultEl = document.getElementById('audio-test-result');
   if (!inEl.value || !outEl.value) {
     resultEl.textContent = 'Pick input + output first.';
-    resultEl.style.color = '#fab387';
+    resultEl.style.color = '#ffa726';
     return;
   }
   resultEl.textContent = 'Testing…';
@@ -2656,21 +2656,21 @@ function audioLoopbackTest() {
   }).then(r => r.json()).then(r => {
     if (r.error) {
       resultEl.textContent = '✗ ' + r.error;
-      resultEl.style.color = '#f38ba8';
+      resultEl.style.color = '#ef5350';
       return;
     }
     const peak = r.peakDb.toFixed(1);
     const snr  = r.snrDb.toFixed(1);
     if (r.detected) {
       resultEl.textContent = `✓ Detected — peak ${peak} dB, SNR ${snr} dB`;
-      resultEl.style.color = '#a6e3a1';
+      resultEl.style.color = '#66bb6a';
     } else {
       resultEl.textContent = `✗ No tone (peak ${peak} dB, SNR ${snr} dB) — check wiring`;
-      resultEl.style.color = '#f38ba8';
+      resultEl.style.color = '#ef5350';
     }
   }).catch(() => {
     resultEl.textContent = '✗ Test failed (check j-hub logs)';
-    resultEl.style.color = '#f38ba8';
+    resultEl.style.color = '#ef5350';
   });
 }
 
@@ -3756,7 +3756,7 @@ function renderSessionList(sessions) {
   box.innerHTML = sessions.map(s => {
     const msgStale = s.lastMessageAgeSeconds   > STALE_MSG;
     const hbStale  = s.lastHeartbeatAgeSeconds > STALE_HB;
-    const dotColor = (msgStale && hbStale) ? '#f38ba8' : '#a6e3a1';
+    const dotColor = (msgStale && hbStale) ? '#ef5350' : '#66bb6a';
     const name = s.appName + (s.version ? ' v' + s.version : '');
     return '<div>' +
            '<span style="color:' + dotColor + '">●</span> <strong>' + name + '</strong>' +
@@ -3775,7 +3775,7 @@ function pollDeps() {
   fetch('/api/deps')
     .then(r => r.json())
     .then(renderDeps)
-    .catch(() => { if (box) box.innerHTML = '<span style="color:#f38ba8">Check failed</span>'; });
+    .catch(() => { if (box) box.innerHTML = '<span style="color:#ef5350">Check failed</span>'; });
 }
 
 function renderDeps(d) {
@@ -3789,22 +3789,22 @@ function renderDeps(d) {
     const details = [];
     if (h.rigctlVersion) details.push('rigctl: ' + h.rigctlVersion);
     if (h.rotctlVersion) details.push('rotctl: ' + h.rotctlVersion);
-    rows.push('<div><span style="color:#a6e3a1">●</span> <strong>Hamlib</strong> ' +
+    rows.push('<div><span style="color:#66bb6a">●</span> <strong>Hamlib</strong> ' +
               '<span style="color:var(--overlay0)">' +
               (details.join(' · ') || (h.rigctlPath || h.rotctlPath)) +
               '</span></div>');
   } else {
-    rows.push('<div><span style="color:#f38ba8">●</span> <strong>Hamlib</strong> not found ' +
+    rows.push('<div><span style="color:#ef5350">●</span> <strong>Hamlib</strong> not found ' +
               '<span style="color:var(--overlay0)">— ' + (h.installHint || '') + '</span></div>');
   }
 
   // WSJT-X
   const w = d.wsjtx || {};
   if (w.installed) {
-    rows.push('<div><span style="color:#a6e3a1">●</span> <strong>WSJT-X</strong> ' +
+    rows.push('<div><span style="color:#66bb6a">●</span> <strong>WSJT-X</strong> ' +
               '<span style="color:var(--overlay0)">' + (w.version || w.path) + '</span></div>');
   } else {
-    rows.push('<div><span style="color:#f38ba8">●</span> <strong>WSJT-X</strong> not found ' +
+    rows.push('<div><span style="color:#ef5350">●</span> <strong>WSJT-X</strong> not found ' +
               '<span style="color:var(--overlay0)">— ' + (w.installHint || '') + '</span></div>');
   }
 
