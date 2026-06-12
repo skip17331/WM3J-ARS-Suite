@@ -1,69 +1,58 @@
 /* ================================================================
-   HamLog Light Theme
+   J-Log Light Theme — palette + theme-specific state colours.
+   All structural / control styling lives in base.css and reads
+   the -jl-* looked-up colours defined here.
    ================================================================ */
 
 .root {
-    -fx-base: #f4f4f4;
-    -fx-background: #f4f4f4;
+    /* Modena hooks */
+    -fx-base: #f0f2f6;
+    -fx-background: #eceff4;
     -fx-control-inner-background: #ffffff;
-    -fx-text-fill: #212121;
     -fx-accent: #1565c0;
     -fx-focus-color: #1565c0;
     -fx-faint-focus-color: #1565c020;
+
+    /* J-Log palette */
+    -jl-bg:             #eceff4;
+    -jl-surface:        #f7f9fc;
+    -jl-surface-hi:     #ffffff;
+    -jl-field-bg:       #ffffff;
+    -jl-strip-bg:       #e2e8f2;
+    -jl-pane-header-bg: #dde5f1;
+    -jl-border:         #c9d3e0;
+    -jl-border-strong:  #a9b6c6;
+    -jl-text:           #1f2733;
+    -jl-text-muted:     #5d6b7c;
+    -jl-accent:         #1565c0;
+    -jl-accent-hover:   #1e88e5;
+    -jl-accent-soft:    #d6e6f8;
+    -jl-accent-text:    #ffffff;
+    -jl-selection:      #cfe3fa;
+    -jl-hover:          rgba(21,101,192,0.08);
+    -jl-success:        #2e7d32;
+    -jl-danger:         #c62828;
+    -jl-warning:        #e65100;
+    -jl-scroll-thumb:   rgba(96,112,134,0.45);
 }
 
-.main-window  { -fx-background-color: #f4f4f4; }
-.setup-window { -fx-background-color: #f4f4f4; }
-
-/* Menu bar */
-.menu-bar { -fx-background-color: #e8e8e8; }
-.menu-bar .label { -fx-text-fill: #212121; }
+.label { -fx-text-fill: -jl-text; }
 
 /* Clock bar */
-.clock-bar { -fx-background-color: #dce4f0; }
-.clock-field { -fx-background-color: transparent; -fx-border-color: transparent; }
+.clock-field { -fx-text-fill: #0d47a1; }
 
 /* Entry pane */
 .entry-pane { -fx-background-color: #eef2fb; }
-.entry-pane .titled-pane-header { -fx-background-color: #c5cfe8; }
+.entry-pane > *.content { -fx-background-color: #eef2fb; }
 
-/* Info pane row */
-.info-pane-row { -fx-background-color: #e8eaf0; }
-.info-pane-row .titled-pane-header { -fx-background-color: #d0d8f0; }
+/* Callsign field highlight */
+.callsign-field { -fx-text-fill: #0d47a1; }
 
-/* Macro bar */
-.macro-bar { -fx-background-color: #dde3f4; }
-.macro-button {
-    -fx-background-color: #1565c0;
-    -fx-text-fill: white;
-    -fx-background-radius: 4;
-}
-.macro-button:hover { -fx-background-color: #1e88e5; }
+/* DX raw feed */
+.raw-area .content { -fx-background-color: #f2f5f9; }
+.raw-area { -fx-text-fill: #00695c; -fx-font-family: monospace; }
 
-/* Tables */
-.table-view { -fx-background-color: white; }
-.table-view .column-header { -fx-background-color: #c8d8f0; }
-.table-row-cell:selected { -fx-background-color: #bbdefb; }
-
-/* Plugin panes */
-.plugin-pane-row .titled-pane-header { -fx-background-color: #c8d0e8; }
-.section-label { -fx-background-color: #e8ecf8; -fx-text-fill: #333333; }
-
-/* DX panel */
-.dx-panel { -fx-background-color: #f0f0f0; }
-.dx-toolbar { -fx-background-color: #e4e4e4; }
-
-/* Setup */
-.setup-tabs .tab-header-area .tab-header-background { -fx-background-color: #e0e4ee; }
-
-/* Buttons */
-.primary-button {
-    -fx-background-color: #1565c0;
-    -fx-text-fill: white;
-    -fx-background-radius: 4;
-}
-.primary-button:hover { -fx-background-color: #1e88e5; }
-
+/* Dupe */
 .dupe-label { -fx-text-fill: #c62828; }
 .dupe-status-warn { -fx-text-fill: #c62828; }
 .dupe-row { -fx-background-color: #ffcdd2 !important; }
@@ -71,6 +60,7 @@
 /* Section worked */
 .section-worked { -fx-background-color: #388e3c; -fx-text-fill: white; }
 
+/* Splash */
 .splash-root { -fx-background-color: #1565c0; }
 .splash-title    { -fx-text-fill: white; }
 .splash-subtitle { -fx-text-fill: #bbdefb; }
@@ -91,8 +81,6 @@
 }
 
 /* ── Band Plan window rows ─────────────────────────────────── */
-.bp-header { -fx-background-color: #c8d8f0; }
-
 .table-row-cell.bp-cw         { -fx-background-color: #e0f7fa; }
 .table-row-cell.bp-cw:odd     { -fx-background-color: #d6f2f7; }
 .table-row-cell.bp-cw:selected{ -fx-background-color: #80deea; }

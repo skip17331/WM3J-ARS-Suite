@@ -1,61 +1,426 @@
 /* ================================================================
-   HamLog Base CSS — shared structural styles
-   Theme-specific colours are in light.css / dark.css
+   J-Log Base CSS — shared structural styles + control skinning
+   Colours come from looked-up colours (-jl-*) defined per theme in
+   light.css / dark.css. The .root block below only provides light
+   fallbacks in case a theme file fails to load.
    ================================================================ */
 
+.root {
+    /* Fallback palette (light) — authoritative values live in the themes */
+    -jl-bg:             #eceff4;
+    -jl-surface:        #f7f9fc;
+    -jl-surface-hi:     #ffffff;
+    -jl-field-bg:       #ffffff;
+    -jl-strip-bg:       #e2e8f2;
+    -jl-pane-header-bg: #dde5f1;
+    -jl-border:         #c9d3e0;
+    -jl-border-strong:  #a9b6c6;
+    -jl-text:           #1f2733;
+    -jl-text-muted:     #5d6b7c;
+    -jl-accent:         #1565c0;
+    -jl-accent-hover:   #1e88e5;
+    -jl-accent-soft:    #d6e6f8;
+    -jl-accent-text:    #ffffff;
+    -jl-selection:      #cfe3fa;
+    -jl-hover:          rgba(21,101,192,0.08);
+    -jl-success:        #2e7d32;
+    -jl-danger:         #c62828;
+    -jl-warning:        #e65100;
+    -jl-scroll-thumb:   rgba(96,112,134,0.45);
+}
+
 /* ---- Root / Window ---- */
-.main-window { -fx-font-family: "DejaVu Sans", "Liberation Sans", sans-serif; -fx-font-size: 13px; }
-.setup-window { -fx-font-size: 13px; }
+.main-window  { -fx-font-family: "DejaVu Sans", "Liberation Sans", sans-serif; -fx-font-size: 13px;
+                -fx-background-color: -jl-bg; }
+.setup-window { -fx-font-size: 13px; -fx-background-color: -jl-bg; }
+
+/* ================================================================
+   GENERIC CONTROL SKINNING (applies to every window in both modes)
+   ================================================================ */
+
+/* ---- Buttons ---- */
+.button {
+    -fx-background-color: -jl-surface-hi;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-text-fill: -jl-text;
+    -fx-padding: 3 10 3 10;
+}
+.button:hover   { -fx-background-color: -jl-hover; -fx-border-color: -jl-border-strong; }
+.button:armed   { -fx-background-color: -jl-selection; }
+.button:focused { -fx-border-color: -jl-accent; }
+.button:disabled { -fx-opacity: 0.45; }
+
+.primary-button {
+    -fx-background-color: -jl-accent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -jl-accent-text;
+    -fx-font-weight: bold;
+}
+.primary-button:hover { -fx-background-color: -jl-accent-hover; -fx-border-color: transparent; }
+.primary-button:armed { -fx-background-color: derive(-jl-accent, -15%); }
+
+.secondary-button { }
+
+/* Splash-screen mode chooser */
+.chooser-button {
+    -fx-font-size: 14px;
+    -fx-min-height: 44px;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+.chooser-button:hover { -fx-border-color: -jl-accent; -fx-background-color: -jl-accent-soft; }
+.chooser-prompt { -fx-font-size: 16px; -fx-font-weight: bold; }
+
+/* ---- Text inputs ---- */
+.text-field, .password-field {
+    -fx-background-color: -jl-field-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-text-fill: -jl-text;
+    -fx-prompt-text-fill: -jl-text-muted;
+    -fx-highlight-fill: -jl-selection;
+    -fx-highlight-text-fill: -jl-text;
+}
+.text-field:focused, .password-field:focused { -fx-border-color: -jl-accent; }
+
+.text-area {
+    -fx-background-color: -jl-field-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-text-fill: -jl-text;
+    -fx-prompt-text-fill: -jl-text-muted;
+    -fx-highlight-fill: -jl-selection;
+    -fx-highlight-text-fill: -jl-text;
+}
+.text-area:focused { -fx-border-color: -jl-accent; }
+.text-area .content { -fx-background-color: -jl-field-bg; -fx-background-radius: 5; }
+
+/* ---- Combo / choice boxes, spinners ---- */
+.combo-box-base, .choice-box {
+    -fx-background-color: -jl-field-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+}
+.combo-box-base:focused, .choice-box:focused { -fx-border-color: -jl-accent; }
+.combo-box-base:hover,   .choice-box:hover   { -fx-border-color: -jl-border-strong; }
+.combo-box .list-cell, .choice-box .label {
+    -fx-background-color: transparent;
+    -fx-text-fill: -jl-text;
+}
+.combo-box-base > .arrow-button > .arrow,
+.choice-box > .open-button > .arrow { -fx-background-color: -jl-text-muted; }
+
+.spinner {
+    -fx-background-color: -jl-field-bg;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+}
+.spinner:focused { -fx-border-color: -jl-accent; }
+.spinner .text-field { -fx-background-color: transparent; -fx-border-color: transparent; }
+.spinner .increment-arrow-button, .spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+}
+.spinner .increment-arrow-button:hover, .spinner .decrement-arrow-button:hover {
+    -fx-background-color: -jl-hover;
+}
+.spinner .increment-arrow, .spinner .decrement-arrow { -fx-background-color: -jl-text-muted; }
+
+/* ---- Check boxes / radio buttons ---- */
+.check-box .box {
+    -fx-background-color: -jl-field-bg;
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border-strong;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+}
+.check-box:hover .box { -fx-border-color: -jl-accent; }
+.check-box:selected .box { -fx-background-color: -jl-accent; -fx-border-color: -jl-accent; }
+.check-box:selected .mark { -fx-background-color: -jl-accent-text; }
+.radio-button .radio {
+    -fx-background-color: -jl-field-bg;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border-strong;
+    -fx-border-width: 1;
+    -fx-border-radius: 100;
+}
+.radio-button:hover .radio { -fx-border-color: -jl-accent; }
+.radio-button:selected .radio { -fx-border-color: -jl-accent; }
+.radio-button:selected .dot { -fx-background-color: -jl-accent; -fx-background-insets: 0; }
+
+/* ---- Menu bar & menus ---- */
+.menu-bar {
+    -fx-background-color: -jl-strip-bg;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent -jl-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 4 0 4;
+}
+.menu-bar .label { -fx-text-fill: -jl-text; }
+.menu-bar > .container > .menu-button { -fx-background-radius: 5; -fx-background-insets: 1; }
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:focused,
+.menu-bar > .container > .menu-button:showing { -fx-background-color: -jl-accent; }
+.menu-bar > .container > .menu-button:hover > .label,
+.menu-bar > .container > .menu-button:focused > .label,
+.menu-bar > .container > .menu-button:showing > .label { -fx-text-fill: -jl-accent-text; }
+
+.context-menu {
+    -fx-background-color: -jl-surface-hi;
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 14, 0.1, 0, 4);
+}
+.menu-item { -fx-background-radius: 5; -fx-padding: 5 14 5 10; }
+.menu-item .label { -fx-text-fill: -jl-text; }
+.menu-item:focused { -fx-background-color: -jl-accent; }
+.menu-item:focused .label { -fx-text-fill: -jl-accent-text; }
+.separator:horizontal .line {
+    -fx-border-color: -jl-border transparent transparent transparent;
+    -fx-border-insets: 1 0 0 0;
+}
+
+/* ---- Titled panes (Data Entry, plugin panes, DX, Previous QSOs…) ----
+   Flat header bar with a 3px accent tick on the left edge. */
+.titled-pane { -fx-text-fill: -jl-text; }
+.titled-pane > .title {
+    -fx-background-color: -jl-pane-header-bg;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent -jl-border -jl-accent;
+    -fx-border-width: 0 0 1 3;
+    -fx-padding: 4 8 4 8;
+    -fx-font-weight: bold;
+}
+.titled-pane > .title > .arrow-button > .arrow { -fx-background-color: -jl-text-muted; }
+.titled-pane > *.content {
+    -fx-background-color: -jl-surface;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+/* ---- Tables ---- */
+.table-view {
+    -fx-background-color: -jl-surface;
+    -fx-background-insets: 0;
+    -fx-control-inner-background: -jl-surface;
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 0;
+}
+.table-view .column-header-background {
+    -fx-background-color: -jl-pane-header-bg;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent transparent -jl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent derive(-jl-border, 25%) transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-size: 26px;
+}
+.table-view .column-header .label {
+    -fx-text-fill: -jl-text-muted;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+.table-view .column-header .arrow { -fx-background-color: -jl-accent; }
+.table-view .column-drag-header { -fx-background-color: -jl-accent-soft; }
+.table-row-cell {
+    -fx-background-color: -jl-surface;
+    -fx-background-insets: 0;
+    -fx-text-fill: -jl-text;
+    -fx-border-color: transparent;
+}
+.table-row-cell:odd { -fx-background-color: derive(-jl-surface, -2.5%); }
+.table-row-cell:filled:hover { -fx-background-color: -jl-hover; }
+.table-row-cell:filled:selected,
+.table-row-cell:filled:selected:hover { -fx-background-color: -jl-selection; }
+.table-row-cell:filled:selected .text { -fx-fill: -jl-text; }
+.table-view .table-cell { -fx-text-fill: -jl-text; -fx-border-color: transparent; }
+.table-view:focused { -fx-background-insets: 0; }
+.table-view .corner-region { -fx-background-color: -jl-pane-header-bg; }
+
+/* ---- Lists ---- */
+.list-view {
+    -fx-background-color: -jl-surface;
+    -fx-background-insets: 0;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+}
+.list-cell { -fx-background-color: -jl-surface; -fx-text-fill: -jl-text; }
+.list-cell:odd { -fx-background-color: derive(-jl-surface, -2.5%); }
+.list-cell:filled:hover { -fx-background-color: -jl-hover; }
+.list-cell:filled:selected { -fx-background-color: -jl-selection; -fx-text-fill: -jl-text; }
+/* Combo/choice popup lists: no outer border (the popup already has one) */
+.combo-box-popup .list-view { -fx-border-color: transparent; -fx-background-radius: 8; -fx-padding: 4; }
+.combo-box-popup .list-cell { -fx-background-radius: 5; -fx-padding: 4 10 4 10; }
+.combo-box-popup .list-cell:filled:selected { -fx-background-color: -jl-accent; -fx-text-fill: -jl-accent-text; }
+
+/* ---- Scroll bars (slim, arrowless) ---- */
+.scroll-bar { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 2; }
+.scroll-bar .track { -fx-background-color: transparent; -fx-border-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: -jl-scroll-thumb; -fx-background-radius: 5; -fx-background-insets: 0; }
+.scroll-bar .thumb:hover, .scroll-bar .thumb:pressed { -fx-background-color: -jl-border-strong; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-background-color: transparent; -fx-padding: 0; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: " "; -fx-padding: 0; }
+.scroll-bar:vertical   { -fx-pref-width: 11; }
+.scroll-bar:horizontal { -fx-pref-height: 11; }
+.corner { -fx-background-color: transparent; }
+
+.scroll-pane { -fx-background-color: -jl-surface; -fx-background-insets: 0; -fx-padding: 0; }
+.scroll-pane .viewport { -fx-background-color: -jl-surface; }
+
+/* ---- Tabs (Setup window) ---- */
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -jl-strip-bg;
+    -fx-border-color: transparent transparent -jl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent transparent transparent transparent;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 5 14 4 14;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab:hover { -fx-background-color: -jl-hover; }
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-border-color: transparent transparent -jl-accent transparent;
+}
+.tab .tab-label { -fx-text-fill: -jl-text-muted; }
+.tab:hover .tab-label { -fx-text-fill: -jl-text; }
+.tab:selected .tab-label { -fx-text-fill: -jl-accent; -fx-font-weight: bold; }
+.tab:selected .focus-indicator { -fx-border-color: transparent; }
+
+/* ---- Tooltips ---- */
+.tooltip {
+    -fx-background-color: rgba(34,40,49,0.95);
+    -fx-text-fill: #e8edf4;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 11px;
+}
+
+/* ---- Progress bars ---- */
+.progress-bar > .track {
+    -fx-background-color: derive(-jl-border, 25%);
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+.progress-bar > .bar {
+    -fx-background-color: -jl-accent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 1;
+    -fx-padding: 6;
+}
+
+/* ---- Split panes ---- */
+.split-pane { -fx-background-color: -jl-bg; -fx-background-insets: 0; -fx-padding: 0; }
+.split-pane > .split-pane-divider { -fx-background-color: -jl-bg; }
+
+/* ================================================================
+   J-LOG SPECIFIC STRUCTURE
+   ================================================================ */
 
 /* ---- Clock bar ---- */
-.clock-bar { -fx-padding: 2 12 2 12; }
-.clock-field { -fx-font-family: monospace; -fx-font-size: 13px; -fx-max-width: 160px; }
-.clock-label { -fx-font-size: 12px; }
+.clock-bar {
+    -fx-padding: 2 12 2 12;
+    -fx-background-color: -jl-strip-bg;
+    -fx-border-color: transparent transparent -jl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.clock-field { -fx-font-family: monospace; -fx-font-size: 13px; -fx-max-width: 160px;
+               -fx-background-color: transparent; -fx-border-color: transparent; }
+.clock-label { -fx-font-size: 12px; -fx-text-fill: -jl-text-muted; }
+.station-call { -fx-font-weight: bold; -fx-font-family: monospace; -fx-text-fill: -jl-accent; }
 
 /* ---- Entry pane ---- */
-.entry-pane .titled-pane-header { -fx-font-weight: bold; }
 .entry-grid { -fx-padding: 8 10 8 10; }
 .callsign-field { -fx-font-size: 15px; -fx-font-weight: bold; -fx-font-family: monospace; }
 .entry-label { -fx-font-weight: bold; -fx-font-size: 12px; }
 .auto-field   { -fx-opacity: 0.7; }
-.serial-display { -fx-font-size: 18px; -fx-font-weight: bold; -fx-font-family: monospace; -fx-padding: 0 8 0 8; }
+.serial-display { -fx-font-size: 18px; -fx-font-weight: bold; -fx-font-family: monospace; -fx-padding: 0 8 0 8;
+                  -fx-text-fill: -jl-accent; }
 
 /* ---- Macro bar ---- */
-.macro-bar { -fx-padding: 2 6 2 6; }
-.macro-button { -fx-font-size: 11px; -fx-min-width: 44px; -fx-padding: 3 6 3 6; }
+.macro-bar {
+    -fx-padding: 3 6 3 6;
+    -fx-background-color: -jl-strip-bg;
+    -fx-border-color: transparent transparent -jl-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.macro-button {
+    -fx-font-size: 11px;
+    -fx-min-width: 44px;
+    -fx-padding: 3 7 3 7;
+    -fx-background-color: -jl-accent-soft;
+    -fx-background-radius: 5;
+    -fx-border-color: transparent;
+    -fx-border-radius: 5;
+    -fx-text-fill: -jl-text;
+}
+.macro-button:hover { -fx-background-color: -jl-accent; -fx-text-fill: -jl-accent-text; }
+.macro-button:armed { -fx-background-color: derive(-jl-accent, -15%); -fx-text-fill: -jl-accent-text; }
 
 /* ---- Plugin pane row ---- */
 /* Height is pinned by ContestLogController (was -fx-min-height:180px,
    which overrode the FXML/code value and clipped tall panes). */
 .pane-content { -fx-padding: 6; }
 .section-grid { -fx-padding: 4; }
-.section-label { -fx-font-family: monospace; -fx-font-size: 13px; -fx-padding: 2 5 2 5; -fx-background-radius: 3; }
+.section-label { -fx-font-family: monospace; -fx-font-size: 13px; -fx-padding: 2 5 2 5;
+                 -fx-background-radius: 4; -fx-background-color: -jl-surface-hi; }
 
 /* ---- Info pane ---- */
 .info-value { -fx-font-weight: bold; }
+.info-pane-row { -fx-background-color: -jl-surface; }
 
 /* ---- Dupe ---- */
-.dupe-status-warn { -fx-text-fill: red; -fx-font-weight: bold; }
-.dupe-status-ok   { -fx-text-fill: #28a745; }
+.dupe-status-warn { -fx-text-fill: -jl-danger; -fx-font-weight: bold; }
+.dupe-status-ok   { -fx-text-fill: -jl-success; }
 .dupe-row { -fx-background-color: #ffcccc; }
 
 /* ---- Tables ---- */
 .qso-table { -fx-font-size: 12px; }
 .spot-table { -fx-font-size: 12px; }
-.table-toolbar { -fx-padding: 4 6 4 6; }
+.table-toolbar { -fx-padding: 4 6 4 6; -fx-background-color: -jl-surface; }
 .section-title { -fx-font-weight: bold; }
-.log-section { -fx-padding: 0; }
+.log-section { -fx-padding: 0; -fx-background-color: -jl-surface; }
 
 /* ---- Stats ---- */
-.stat-label { -fx-font-size: 12px; }
-.stat-value { -fx-font-size: 14px; -fx-font-weight: bold; -fx-font-family: monospace; }
-.score-value { -fx-font-weight: bold; -fx-font-family: monospace; }
+.stat-label { -fx-font-size: 12px; -fx-text-fill: -jl-text-muted; }
+.stat-value { -fx-font-size: 14px; -fx-font-weight: bold; -fx-font-family: monospace; -fx-text-fill: -jl-accent; }
+.score-value { -fx-font-weight: bold; -fx-font-family: monospace; -fx-text-fill: -jl-accent; }
 .qso-count   { -fx-font-weight: bold; }
 
 /* ---- DX panel ---- */
-.dx-panel   { -fx-padding: 0; }
-.dx-toolbar { -fx-padding: 4 6 4 6; }
-.conn-status { -fx-font-style: italic; }
+.dx-panel   { -fx-padding: 0; -fx-background-color: -jl-surface; }
+.dx-toolbar { -fx-padding: 4 6 4 6; -fx-background-color: -jl-surface; }
+.conn-status { -fx-font-style: italic; -fx-text-fill: -jl-text-muted; }
 
 /* ---- Entry grid scroller (horizontal scroll on narrow windows) ---- */
 .entry-scroll, .entry-scroll > .viewport { -fx-background-color: transparent; }
@@ -112,13 +477,15 @@
 /* ---- Per-mode multiplier grid ---- */
 .mult-grid             { -fx-hgap: 4; -fx-vgap: 2; -fx-padding: 4; }
 .mult-grid-header      { -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 6 2 6; }
-.mult-grid-cell        { -fx-font-family: monospace; -fx-font-size: 11px; -fx-padding: 2 6 2 6; -fx-background-radius: 3; -fx-min-width: 28px; -fx-alignment: center; }
+.mult-grid-cell        { -fx-font-family: monospace; -fx-font-size: 11px; -fx-padding: 2 6 2 6;
+                         -fx-background-radius: 4; -fx-min-width: 28px; -fx-alignment: center;
+                         -fx-background-color: -jl-surface-hi; }
 .mult-grid-cell-worked { -fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-weight: bold; }
 
 /* ---- Worked-before indicator ---- */
 .worked-before         { -fx-font-size: 11px; -fx-padding: 4; }
-.worked-before-new     { -fx-text-fill: #2e7d32; -fx-font-weight: bold; }
-.worked-before-dupe    { -fx-text-fill: #c62828; -fx-font-weight: bold; }
+.worked-before-new     { -fx-text-fill: -jl-success; -fx-font-weight: bold; }
+.worked-before-dupe    { -fx-text-fill: -jl-danger; -fx-font-weight: bold; }
 
 /* ---- DXCC list ---- */
 .dxcc-list             { -fx-font-family: monospace; -fx-font-size: 11px; }
@@ -132,33 +499,24 @@
 
 /* ---- Setup ---- */
 .setup-grid  { -fx-padding: 16; }
-.help-text   { -fx-font-size: 11px; -fx-font-style: italic; }
+.help-text   { -fx-font-size: 11px; -fx-font-style: italic; -fx-text-fill: -jl-text-muted; }
 .test-result { -fx-font-weight: bold; }
 .macro-editor { -fx-font-family: monospace; -fx-font-size: 12px; }
 .button-bar  { -fx-padding: 10 16 10 16; }
 
-/* ---- Buttons ---- */
-.primary-button   { -fx-font-weight: bold; }
-.secondary-button { }
-.chooser-button   { -fx-font-size: 14px; -fx-min-height: 44px; }
-.chooser-prompt   { -fx-font-size: 16px; -fx-font-weight: bold; }
-
 /* ---- CIV status ---- */
-.civ-status { -fx-font-size: 11px; -fx-font-style: italic; }
+.civ-status { -fx-font-size: 11px; -fx-font-style: italic; -fx-text-fill: -jl-text-muted; }
 .status-label { -fx-font-size: 12px; }
 
-/* ---- Station callsign in clock bar ---- */
-.station-call { -fx-font-weight: bold; -fx-font-family: monospace; }
-
 /* ---- Field validation ---- */
-.field-invalid { -fx-border-color: #e53935; -fx-border-width: 2; -fx-border-radius: 3; }
+.field-invalid { -fx-border-color: -jl-danger; -fx-border-width: 2; -fx-border-radius: 5; }
 
 /* ---- Band / mode warning bar ---- */
 .band-warning {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-padding: 3 8 3 8;
-    -fx-background-radius: 3;
+    -fx-background-radius: 4;
     -fx-max-width: Infinity;
 }
 
@@ -178,8 +536,13 @@
     -fx-font-size: 30px;
     -fx-font-weight: bold;
     -fx-padding: 6 16 6 16;
-    -fx-background-radius: 5;
+    -fx-background-color: -jl-pane-header-bg;
+    -fx-background-radius: 8;
+    -fx-border-color: -jl-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
     -fx-cursor: hand;
+    -fx-text-fill: -jl-text;
 }
 .id-timer:hover  { -fx-opacity: 0.9; }
 .id-timer:armed  { -fx-opacity: 0.8; }
@@ -187,10 +550,11 @@
 .id-timer-due {
     -fx-text-fill: white;
     -fx-background-color: #c0392b;
+    -fx-border-color: transparent;
 }
 
 /* ---- Band Plan window ---- */
-.bp-header   { -fx-padding: 6 10 6 10; }
+.bp-header   { -fx-padding: 6 10 6 10; -fx-background-color: -jl-pane-header-bg; }
 .bp-key      { -fx-font-size: 11px; -fx-font-style: italic; }
 
 /* Extra-only row: slightly bolder label */
@@ -224,7 +588,7 @@
 }
 .row-split > .split-pane-divider {
     -fx-pref-height: 6;
-    -fx-background-color: -fx-background;
+    -fx-background-color: -jl-bg;
     -fx-background-insets: 0;
 }
 
@@ -279,5 +643,5 @@
                      -fx-min-width: 72px; -fx-pref-width: 72px; -fx-max-width: 72px;
                      -fx-min-height: 26px; -fx-pref-height: 26px; }
 .rig-title-label   { -fx-font-weight: bold; }
-.rig-keypad-active { -fx-background-color: #c84d2a; -fx-text-fill: white; }
+.rig-keypad-active { -fx-background-color: #c84d2a; -fx-text-fill: white; -fx-border-color: transparent; }
 .coming-soon       { -fx-opacity: 0.55; }

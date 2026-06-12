@@ -1,98 +1,60 @@
 /* ================================================================
-   HamLog Dark Theme
+   J-Log Dark Theme — palette + theme-specific state colours.
+   All structural / control styling lives in base.css and reads
+   the -jl-* looked-up colours defined here.
    ================================================================ */
 
 .root {
-    -fx-base: #2b2b2b;
-    -fx-background: #1e1e1e;
-    -fx-control-inner-background: #2d2d2d;
-    -fx-text-fill: #e0e0e0;
+    /* Modena hooks */
+    -fx-base: #232a33;
+    -fx-background: #15191f;
+    -fx-control-inner-background: #1b2027;
     -fx-accent: #4fc3f7;
     -fx-focus-color: #4fc3f7;
     -fx-faint-focus-color: #4fc3f720;
+
+    /* J-Log palette */
+    -jl-bg:             #15191f;
+    -jl-surface:        #1b2027;
+    -jl-surface-hi:     #232a33;
+    -jl-field-bg:       #20262e;
+    -jl-strip-bg:       #11161d;
+    -jl-pane-header-bg: #1c2530;
+    -jl-border:         #323b47;
+    -jl-border-strong:  #46525f;
+    -jl-text:           #dde3ea;
+    -jl-text-muted:     #93a0ae;
+    -jl-accent:         #4fc3f7;
+    -jl-accent-hover:   #71d1fa;
+    -jl-accent-soft:    rgba(79,195,247,0.16);
+    -jl-accent-text:    #0b1620;
+    -jl-selection:      #1f3a52;
+    -jl-hover:          rgba(79,195,247,0.09);
+    -jl-success:        #66bb6a;
+    -jl-danger:         #ef5350;
+    -jl-warning:        #ffa726;
+    -jl-scroll-thumb:   rgba(140,155,172,0.40);
 }
 
-.main-window  { -fx-background-color: #1e1e1e; }
-.setup-window { -fx-background-color: #1e1e1e; }
-
-.label { -fx-text-fill: #e0e0e0; }
-
-/* Menu bar */
-.menu-bar { -fx-background-color: #2d2d2d; }
-.menu-bar .label { -fx-text-fill: #e0e0e0; }
-.context-menu { -fx-background-color: #3a3a3a; }
+.label { -fx-text-fill: -jl-text; }
 
 /* Clock bar */
-.clock-bar { -fx-background-color: #1a2a3a; }
-.clock-field { -fx-text-fill: #80cbc4; -fx-background-color: transparent; -fx-border-color: transparent; }
-.clock-label { -fx-text-fill: #aaaaaa; }
+.clock-field { -fx-text-fill: #80cbc4; }
 
 /* Entry pane */
-.entry-pane { -fx-background-color: #252535; }
-.entry-pane .titled-pane-header { -fx-background-color: #1a2a4a; }
-.entry-pane .title { -fx-text-fill: #90caf9; }
-
-.text-field, .combo-box, .text-area, .password-field {
-    -fx-background-color: #3a3a3a;
-    -fx-text-fill: #e0e0e0;
-    -fx-border-color: #555555;
-    -fx-border-radius: 3;
-}
-.text-field:focused, .combo-box:focused, .text-area:focused {
-    -fx-border-color: #4fc3f7;
-}
+.entry-pane { -fx-background-color: #1d2330; }
+.entry-pane > *.content { -fx-background-color: #1d2330; }
 
 /* Callsign field highlight */
 .callsign-field { -fx-text-fill: #80deea; }
 
-/* Info pane row */
-.info-pane-row { -fx-background-color: #222232; }
-.info-pane-row .titled-pane-header { -fx-background-color: #1a2a3a; }
-
-/* Macro bar */
-.macro-bar { -fx-background-color: #1a2a3a; }
-.macro-button {
-    -fx-background-color: #014479;
-    -fx-text-fill: #b3e5fc;
-    -fx-background-radius: 4;
-}
-.macro-button:hover { -fx-background-color: #0277bd; }
-
-/* Tables */
-.table-view { -fx-background-color: #2a2a2a; -fx-control-inner-background: #2a2a2a; }
-.table-view .column-header { -fx-background-color: #1a2a3a; }
-.table-view .column-header .label { -fx-text-fill: #90caf9; }
-.table-row-cell { -fx-background-color: #2a2a2a; -fx-text-fill: #e0e0e0; }
-.table-row-cell:odd { -fx-background-color: #303030; }
-.table-row-cell:selected { -fx-background-color: #1a3a5a; }
-
-/* Plugin panes */
-.plugin-pane-row .titled-pane-header { -fx-background-color: #1a2a3a; }
-.section-label { -fx-background-color: #2a3a4a; -fx-text-fill: #cce; }
-
-/* DX panel */
-.dx-panel { -fx-background-color: #222222; }
-.dx-toolbar { -fx-background-color: #2a2a2a; }
-.raw-area { -fx-background-color: #1a1a1a; -fx-text-fill: #80cbc4; }
-
-/* Setup */
-.setup-tabs .tab-header-area .tab-header-background { -fx-background-color: #2a2a2a; }
-.tab { -fx-background-color: #383838; }
-.tab:selected { -fx-background-color: #1a3a5a; }
-.tab .tab-label { -fx-text-fill: #e0e0e0; }
-
-/* Buttons */
-.button { -fx-background-color: #3a3a3a; -fx-text-fill: #e0e0e0; }
-.button:hover { -fx-background-color: #4a4a4a; }
-.primary-button {
-    -fx-background-color: #014479;
-    -fx-text-fill: white;
-    -fx-background-radius: 4;
-}
-.primary-button:hover { -fx-background-color: #0277bd; }
+/* DX raw feed — terminal look */
+.raw-area .content { -fx-background-color: #10141a; }
+.raw-area { -fx-text-fill: #80cbc4; -fx-font-family: monospace; }
 
 /* Dupe */
 .dupe-label { -fx-text-fill: #ef9a9a; }
+.dupe-status-warn { -fx-text-fill: #ef9a9a; }
 .dupe-row { -fx-background-color: #4a2020 !important; }
 
 /* Section worked */
@@ -107,14 +69,6 @@
 .splash-title    { -fx-text-fill: #4fc3f7; }
 .splash-subtitle { -fx-text-fill: #80cbc4; }
 .splash-version  { -fx-text-fill: #546e7a; }
-
-/* List / combo */
-.list-view { -fx-background-color: #2a2a2a; }
-.list-cell { -fx-background-color: #2a2a2a; -fx-text-fill: #e0e0e0; }
-.list-cell:selected { -fx-background-color: #1a3a5a; }
-
-.scroll-pane { -fx-background-color: #2a2a2a; }
-.scroll-pane .viewport { -fx-background-color: #2a2a2a; }
 
 /* ── Band warning bar ──────────────────────────────────────── */
 .band-warning-error {
@@ -131,8 +85,6 @@
 }
 
 /* ── Band Plan window rows ─────────────────────────────────── */
-.bp-header { -fx-background-color: #1a2a3a; }
-
 .table-row-cell.bp-cw         { -fx-background-color: #0d2e2e; }
 .table-row-cell.bp-cw:odd     { -fx-background-color: #0f3333; }
 .table-row-cell.bp-cw:selected{ -fx-background-color: #1a5555; }
@@ -181,6 +133,25 @@
 .bp-marker-tri      { -fx-fill: #ffff44; -fx-stroke: transparent; }
 .bp-active-row      { -fx-background-color: rgba(255,255,100,0.07); }
 .bp-band-name-active { -fx-text-fill: #ffff88; }
+
+/* ── Map tiles & multiplier chips — keep labels legible on dark ── */
+.region-tile-unworked  { -fx-fill: #3a4250; }
+.region-tile-label     { -fx-text-fill: #e8edf4; }
+.region-tile-label-inset { -fx-text-fill: #e8edf4; }
+.region-inset-title    { -fx-text-fill: #93a0ae; }
+.dxcc-tile-label       { -fx-text-fill: #c2ccd8; }
+.cq-zone-label         { -fx-text-fill: #e8edf4; }
+.county-tile-label     { -fx-text-fill: #e8edf4; }
+.grid-cell             { -fx-stroke: #46525f; }
+.grid-cell-label       { -fx-text-fill: #c2ccd8; }
+.grid-background       { -fx-fill: #1b2027; -fx-stroke: #46525f; }
+.region-tile           { -fx-stroke: #11161d; }
+/* State strokes must be re-declared AFTER .region-tile above: every tile
+   keeps the base "region-tile" class, and at equal specificity the later
+   declaration in this (later) stylesheet would otherwise override them. */
+.region-tile-worked    { -fx-stroke: #2e7d32; }
+.region-tile-current   { -fx-stroke: #1565c0; -fx-stroke-width: 3; }
+.region-tile-invalid   { -fx-stroke: #c62828; -fx-stroke-width: 3; }
 
 /* ── Section-tracker zone column dividers ────────────────────── */
 .zone-sep:vertical .line { -fx-border-color: rgba(255,255,255,0.25); }
