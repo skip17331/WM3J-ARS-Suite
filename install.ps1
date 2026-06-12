@@ -212,8 +212,16 @@ try {
 
     Section '[3/4] Desktop integration (launchers, icons, Start-Menu shortcuts)'
     Invoke-Mvn 'installer\pom.xml' @('clean', 'package')
-    $installerJar = Join-Path $root 'installer\target\j-installer-1.0.8.jar'
-    if (-not (Test-Path -LiteralPath $installerJar)) { Die "installer jar not built: $installerJar" }
+    # Resolve the built installer jar regardless of version. shade writes the
+    # runnable j-installer-<version>.jar next to the thin original-*.jar; pick
+    # the runnable one with the highest version so a version bump never breaks
+    # this bootstrap.
+    $installerJar = Get-ChildItem -LiteralPath (Join-Path $root 'installer\target') `
+            -Filter 'j-installer-*.jar' -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notlike 'original-*' } |
+        Sort-Object Name -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+    if (-not $installerJar) { Die 'installer jar not built in installer\target' }
     & java -jar $installerJar --root $root
     if ($LASTEXITCODE -ne 0) { Die 'installer run failed' }
 

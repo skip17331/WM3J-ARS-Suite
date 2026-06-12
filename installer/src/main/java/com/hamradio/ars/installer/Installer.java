@@ -121,9 +121,9 @@ public final class Installer {
             String cats   = m.has("categories") ? m.get("categories").getAsString() : "Utility;";
             String cmt    = m.has("comment") ? m.get("comment").getAsString() : title;
 
-            Path jarPath    = sourceRoot.resolve(jar);
+            Path jarPath    = resolveJar(sourceRoot, jar);
             Path launchPath = sourceRoot.resolve(launch);
-            if (!Files.exists(jarPath))    { skipped.add(name + " (missing build: " + jar + ")");    continue; }
+            if (jarPath == null)           { skipped.add(name + " (missing build: " + jar + ")");    continue; }
             if (!Files.exists(launchPath)) { skipped.add(name + " (missing launch: " + launch + ")"); continue; }
 
             try { launchPath.toFile().setExecutable(true, false); } catch (Exception ignored) {}
@@ -188,9 +188,9 @@ public final class Installer {
             String iconR  = m.has("icon")    ? m.get("icon").getAsString()    : null;
             String cmt    = m.has("comment") ? m.get("comment").getAsString() : title;
 
-            Path jarPath    = sourceRoot.resolve(jar);
+            Path jarPath    = resolveJar(sourceRoot, jar);
             Path launchPath = sourceRoot.resolve(launch);
-            if (!Files.exists(jarPath))    { skipped.add(name + " (missing build: " + jar + ")");    continue; }
+            if (jarPath == null)           { skipped.add(name + " (missing build: " + jar + ")");    continue; }
             if (!Files.exists(launchPath)) { skipped.add(name + " (missing launch: " + launch + ")"); continue; }
 
             try { launchPath.toFile().setExecutable(true, false); } catch (Exception ignored) {}
@@ -319,8 +319,8 @@ public final class Installer {
             String launch = m.get("launch").getAsString();      // unix path in manifest
             String jar    = m.get("jar").getAsString();
 
-            Path jarPath = sourceRoot.resolve(jar);
-            if (!Files.exists(jarPath)) {
+            Path jarPath = resolveJar(sourceRoot, jar);
+            if (jarPath == null) {
                 skipped.add(name + " (missing build: " + jar + ")");
                 continue;
             }
@@ -353,6 +353,50 @@ public final class Installer {
             createWindowsShortcut(shortcut, batPath, batPath.getParent(), title, iconIco);
             installed.add(name + " → " + shortcut);
         }
+    }
+
+    /** Resolve a module's built jar from its manifest hint in a
+     *  version-agnostic way. The manifest pins a concrete filename (e.g.
+     *  {@code j-hub/target/j-hub-1.5.0.jar}) but a version bump must never
+     *  strand the installer, so if that exact file is absent we glob the
+     *  module's {@code target/} dir for {@code <artifact>-*.jar}, preferring
+     *  the runnable shaded/fat uber jar and skipping the thin
+     *  {@code original-}/{@code -sources}/{@code -javadoc} artifacts. Returns
+     *  the resolved jar, or {@code null} if no runnable jar is present. */
+    private static Path resolveJar(Path sourceRoot, String jarHint) {
+        Path hint = sourceRoot.resolve(jarHint);
+        if (Files.exists(hint)) return hint;                 // exact manifest match
+
+        Path targetDir = hint.getParent();
+        if (targetDir == null || !Files.isDirectory(targetDir)) return null;
+
+        // Artifact prefix = filename up to the version, e.g.
+        // "j-hub-1.5.0.jar" -> "j-hub", "morse-trainer-1.0.0.jar" -> "morse-trainer".
+        String fileName = hint.getFileName().toString();
+        String prefix   = fileName.replaceFirst("-\\d.*$", "");
+
+        List<Path> candidates = new ArrayList<>();
+        try (var ds = Files.newDirectoryStream(targetDir, prefix + "-*.jar")) {
+            for (Path p : ds) {
+                String n = p.getFileName().toString();
+                if (n.startsWith("original-") || n.endsWith("-sources.jar")
+                        || n.endsWith("-javadoc.jar")) continue;
+                candidates.add(p);
+            }
+        } catch (java.io.IOException e) {
+            return null;
+        }
+        if (candidates.isEmpty()) return null;
+
+        // Prefer the runnable uber jar (shade adds a -shaded/-fat classifier).
+        for (Path p : candidates) {
+            String n = p.getFileName().toString();
+            if (n.endsWith("-shaded.jar") || n.endsWith("-fat.jar")
+                    || n.endsWith("-jar-with-dependencies.jar")) return p;
+        }
+        // Otherwise the highest-versioned plain jar.
+        candidates.sort(Comparator.comparing(p -> p.getFileName().toString()));
+        return candidates.get(candidates.size() - 1);
     }
 
     /** Convert a unix-style launch path (e.g. {@code j-hub/start.sh}) to the
