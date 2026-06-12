@@ -162,10 +162,9 @@ public class ContestLogController implements Initializable, RigControlController
     // roster that includes at least one other station beyond ourselves.
     private boolean      fullSyncRequested = false;
 
-    // Dynamic field map: fieldId -> Control
+    // Dynamic field map: fieldId -> Control. (Fields carry their own identity
+    // as prompt text + tooltip — there are no external per-field labels.)
     private final Map<String, Control> entryFields = new LinkedHashMap<>();
-    // Label that precedes each field, used to hide label + control together.
-    private final Map<String, Label>   entryLabels = new LinkedHashMap<>();
     private TextField tfCallsign;
     private TextField tfOperator;
 
@@ -264,7 +263,6 @@ public class ContestLogController implements Initializable, RigControlController
     private void buildEntryBar() {
         entryBar.getChildren().clear();
         entryFields.clear();
-        entryLabels.clear();
 
         // Column plan: every logical exchange field gets a fixed slot so the
         // Sent row lines up vertically under the Rcvd row — my call under the
@@ -333,29 +331,27 @@ public class ContestLogController implements Initializable, RigControlController
         grid.add(sentTag, 0, 1);
 
         // ---- Received row (gridRow 0) ----
+        // Field identity lives in the box itself (prompt text + tooltip via
+        // tagControl) instead of an external label — one grid column per
+        // field, so the entry bar is roughly half as wide.
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             if (fd.getEntryRow() == 1) continue;
             int slot = order.indexOf(baseKey(fd.getId()));
-            Label lbl = new Label(fd.getLabel() + ":");
-            lbl.getStyleClass().add("entry-label");
-            lbl.setMinWidth(Region.USE_PREF_SIZE);
             Control ctrl = buildFieldControl(fd);
             ctrl.setId(fd.getId());
+            tagControl(ctrl, fd.getLabel());
             entryFields.put(fd.getId(), ctrl);
-            entryLabels.put(fd.getId(), lbl);
-            grid.add(lbl,  slot * 2 + 1, 0);
-            grid.add(ctrl, slot * 2 + 2, 0);
+            grid.add(ctrl, slot + 1, 0);
         }
 
         int opSlot = order.indexOf("operator");
-        Label lblOp = new Label(I18n.get("label.operator"));   // i18n value already carries its colon
-        lblOp.getStyleClass().add("entry-label");
-        lblOp.setMinWidth(Region.USE_PREF_SIZE);
         tfOperator = new TextField(AppConfig.getInstance().getOperatorName());
         tfOperator.setPrefWidth(90);
         forceUpperCase(tfOperator, false);   // operator is logged to the DB
-        grid.add(lblOp,      opSlot * 2 + 1, 0);
-        grid.add(tfOperator, opSlot * 2 + 2, 0);
+        String opTag = I18n.get("label.operator");
+        if (opTag.endsWith(":")) opTag = opTag.substring(0, opTag.length() - 1);
+        tagControl(tfOperator, opTag);
+        grid.add(tfOperator, opSlot + 1, 0);
 
         // ---- Sent row (gridRow 1), aligned column-for-column ----
         int callSlot = order.indexOf("callsign");
@@ -363,10 +359,12 @@ public class ContestLogController implements Initializable, RigControlController
         yourCall.setId("sentCallsign");
         yourCall.getStyleClass().add("sent-callsign");
         yourCall.setMinWidth(Region.USE_PREF_SIZE);
-        grid.add(yourCall, callSlot * 2 + 2, 1);
+        grid.add(yourCall, callSlot + 1, 1);
 
         int serSlot = order.indexOf("serial");
         if (usesSerial) {
+            // The running serial is a display, not an entry box, so it keeps a
+            // compact external tag — there is nowhere to put a prompt.
             Label lblSerial = new Label(I18n.get("label.serial") + ":");
             lblSerial.getStyleClass().add("entry-label");
             lblSerial.setMinWidth(Region.USE_PREF_SIZE);
@@ -374,28 +372,25 @@ public class ContestLogController implements Initializable, RigControlController
             serialDisplay.getStyleClass().add("serial-display");
             serialDisplay.setId("serialDisplay");
             serialDisplay.setMinWidth(Region.USE_PREF_SIZE);
-            grid.add(lblSerial,     serSlot * 2 + 1, 1);
-            grid.add(serialDisplay, serSlot * 2 + 2, 1);
+            HBox serialBox = new HBox(4, lblSerial, serialDisplay);
+            serialBox.setAlignment(Pos.CENTER_LEFT);
+            grid.add(serialBox, serSlot + 1, 1);
         }
 
         for (ContestPlugin.FieldDef fd : plugin.getEntryFields()) {
             if (fd.getEntryRow() != 1) continue;
             int slot = order.indexOf(sentSlotKey.get(fd.getId()));
-            Label lbl = new Label(fd.getLabel() + ":");
-            lbl.getStyleClass().add("entry-label");
-            lbl.setMinWidth(Region.USE_PREF_SIZE);
             Control ctrl = buildFieldControl(fd);
             ctrl.setId(fd.getId());
+            tagControl(ctrl, fd.getLabel());
             entryFields.put(fd.getId(), ctrl);
-            entryLabels.put(fd.getId(), lbl);
             // The Sent row's callsign and serial slots belong to the synthetic
             // my-call / running-serial widgets. A plugin field that maps here
             // (e.g. the redundant serial_sent in ca/pa_qso_party) stays in the
             // field maps for the data & Cabrillo paths but is not drawn, so it
             // cannot overlap the synthetic widget in the same grid cell.
             if (slot == callSlot || slot == serSlot) continue;
-            grid.add(lbl,  slot * 2 + 1, 1);
-            grid.add(ctrl, slot * 2 + 2, 1);
+            grid.add(ctrl, slot + 1, 1);
         }
 
         Button btnSave  = new Button(I18n.get("button.save"));
@@ -406,7 +401,7 @@ public class ContestLogController implements Initializable, RigControlController
         btnClear.setOnAction(e -> doClear());
         HBox btnBox = new HBox(6, btnSave, btnClear);
         btnBox.setAlignment(Pos.CENTER_LEFT);
-        grid.add(btnBox, order.size() * 2 + 1, 0);
+        grid.add(btnBox, order.size() + 1, 0);
 
         // ---- Entry grid in a horizontal scroller: boxes keep their natural
         // size; a narrow window scrolls instead of squeezing them. ----
@@ -475,6 +470,15 @@ public class ContestLogController implements Initializable, RigControlController
         List<String> opts = fd.getOptions();
         if (opts != null && opts.size() == 1) return opts.get(0);
         return null;
+    }
+
+    /** Field identity lives in the box itself: the plugin label becomes prompt
+     *  text (shown while empty) plus a hover tooltip. Fixed-value band/mode
+     *  Labels can't take a prompt — the tooltip alone identifies them. */
+    private static void tagControl(Control ctrl, String tag) {
+        if (ctrl instanceof TextField tf)            tf.setPromptText(tag);
+        else if (ctrl instanceof ComboBoxBase<?> cb) cb.setPromptText(tag);
+        ctrl.setTooltip(new Tooltip(tag));
     }
 
     private Control buildFieldControl(ContestPlugin.FieldDef fd) {
@@ -1186,7 +1190,6 @@ public class ContestLogController implements Initializable, RigControlController
         String region = classifyRegion(callsign);
         for (ContestPlugin.ConditionalField cf : plugin.getConditionalFields()) {
             Control ctrl = entryFields.get(cf.getFieldId());
-            Label   lbl  = entryLabels.get(cf.getFieldId());
             if (ctrl == null) continue;
             boolean show = true;
             if (cf.getShowForRegions() != null && !cf.getShowForRegions().isEmpty()) {
@@ -1196,7 +1199,6 @@ public class ContestLogController implements Initializable, RigControlController
                 show = false;
             }
             ctrl.setVisible(show); ctrl.setManaged(show);
-            if (lbl != null) { lbl.setVisible(show); lbl.setManaged(show); }
         }
     }
 

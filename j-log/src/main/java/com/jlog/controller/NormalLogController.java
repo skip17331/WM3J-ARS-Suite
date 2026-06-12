@@ -491,6 +491,7 @@ public class NormalLogController implements Initializable, RigControlController.
         "DIGITALVOICE","DOMINOEX","FREEDV","ARDOP","VARA");
 
     private void initEntryFields() {
+        initFieldPrompts();
         tfRstSent.setText("599");
         tfRstReceived.setText("599");
         tfPower.setText(AppConfig.getInstance().getDefaultPower());
@@ -517,6 +518,33 @@ public class NormalLogController implements Initializable, RigControlController.
         forceUpperCase(tfNotes);
 
         tfCallsign.textProperty().addListener((obs, o, n) -> refreshSaveButton());
+    }
+
+    /** Field identity lives in the boxes themselves: the i18n label (sans
+     *  trailing colon) becomes prompt text + a hover tooltip, replacing the
+     *  external grid labels removed from NormalLog.fxml. Prompts only show
+     *  while a field is empty, so pre-filled fields (RST, Power) rely on the
+     *  tooltip — their values are self-identifying to an operator anyway. */
+    private void initFieldPrompts() {
+        tagField(tfCallsign,     "label.callsign");
+        tagField(tfBand,         "label.band");
+        tagField(tfMode,         "label.mode");
+        tagField(tfPower,        "label.power");
+        tagField(tfRstSent,      "label.rst.sent");
+        tagField(tfRstReceived,  "label.rst.rcvd");
+        tagField(tfCountry,      "label.country");
+        tagField(tfOperatorName, "label.name");
+        tagField(tfState,        "label.state");
+        tagField(tfCounty,       "label.county");
+        tagField(tfFrequency,    "label.freq");
+        tagField(tfNotes,        "label.notes");
+    }
+
+    private static void tagField(TextField tf, String i18nKey) {
+        String tag = I18n.get(i18nKey);
+        if (tag.endsWith(":")) tag = tag.substring(0, tag.length() - 1);
+        tf.setPromptText(tag);
+        tf.setTooltip(new Tooltip(tag));
     }
 
     /** "20m" → true; "20" → true (accept bare number); case-insensitive. */
