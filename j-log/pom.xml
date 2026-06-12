@@ -257,6 +257,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration>
+                    <!-- j-log is the named module com.jlog.app, but it ships and
+                         runs as a classpath fat jar (JavaFX bundled in). Its map /
+                         dxcc resources under com/jlog/maps and com/jlog/scoring
+                         share package paths with j-log-engine — harmless on the
+                         classpath (how the app actually runs) but a split-package
+                         boot-layer error when surefire auto-selects the module path
+                         because module-info.java is present. Run tests on the
+                         classpath so they match production. -->
+                    <useModulePath>false</useModulePath>
+                </configuration>
             </plugin>
 
             <!-- Shade plugin for fat jar -->
