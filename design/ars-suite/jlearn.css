@@ -1,0 +1,46 @@
+/* J-Learn — reference / learning library layout (scoped to .ars-root). */
+.jl2-body { grid-template-columns:212px minmax(0,1fr) 322px !important; display:grid; }
+
+/* left — categories */
+.jl2-cats { background:var(--surface-1); border-right:1px solid var(--border); padding:13px 9px; overflow:auto; }
+.jl2-cats-h { font-size:9.5px; letter-spacing:1.3px; text-transform:uppercase; color:var(--t3); font-weight:600; padding:0 7px; margin-bottom:9px; }
+.jl2-cat { display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:8px; cursor:pointer; transition:background .12s; }
+.jl2-cat:hover { background:var(--surface-3); }
+.jl2-cat.on { background:color-mix(in oklch,var(--learn) 14%, var(--surface-2)); }
+.jl2-cat .nm { font-size:13px; font-weight:500; color:var(--t2); flex:1; }
+.jl2-cat.on .nm { color:var(--t1); }
+.jl2-cat .ct { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--t4); }
+
+/* center — deck grid */
+.jl2-main { min-width:0; min-height:0; display:flex; flex-direction:column; padding:16px 18px; overflow:hidden; }
+.jl2-h { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.jl2-h .t { font-size:16px; font-weight:700; }
+.jl2-h .meta { font-size:12px; color:var(--t3); }
+.jl2-decks { flex:1; overflow:auto; display:grid; grid-template-columns:repeat(2,1fr); gap:13px; align-content:start; }
+.jl2-deck { background:var(--surface-1); border:1px solid var(--border); border-radius:11px; padding:15px; cursor:pointer; transition:border-color .14s, transform .14s; }
+.jl2-deck:hover { border-color:var(--border-glow); transform:translateY(-2px); }
+.jl2-deck-top { display:flex; align-items:flex-start; gap:10px; margin-bottom:13px; }
+.jl2-deck-ic { width:36px; height:36px; flex:0 0 auto; border-radius:9px; display:flex; align-items:center; justify-content:center; background:color-mix(in oklch,var(--learn) 16%, var(--surface-3)); color:var(--learn); border:1px solid color-mix(in oklch,var(--learn) 26%, transparent); }
+.jl2-deck-kind { margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--t3); border:1px solid var(--border-2); border-radius:99px; padding:3px 9px; }
+.jl2-deck-title { font-size:14.5px; font-weight:600; line-height:1.2; }
+.jl2-deck-sub { font-size:12px; color:var(--t3); margin-top:3px; }
+.jl2-prog { margin-top:14px; }
+.jl2-prog-bar { height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden; }
+.jl2-prog-bar > i { display:block; height:100%; background:var(--learn); border-radius:99px; }
+.jl2-prog-lbl { display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:var(--t3); }
+.jl2-prog-lbl b { font-family:'JetBrains Mono',monospace; color:var(--t1); font-weight:600; }
+.jl2-due { color:var(--learn); font-weight:600; }
+
+/* right — reader */
+.jl2-art-h { font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--learn); font-weight:700; }
+.jl2-art-title { font-size:16px; font-weight:700; margin-top:4px; }
+.jl2-art-meta { font-size:11px; color:var(--t3); margin-top:3px; }
+.jl2-art-body { margin-top:12px; }
+.jl2-art-body p { font-size:12.5px; line-height:1.6; color:var(--t2); margin:0 0 11px; }
+.jl2-art-body h4 { font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:var(--t3); font-weight:700; margin:14px 0 8px; }
+.jl2-qrow { display:grid; grid-template-columns:54px 1fr; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+.jl2-qrow:last-child { border-bottom:none; }
+.jl2-qrow .q { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--learn); }
+.jl2-qrow .d { color:var(--t2); }
+.jl2-reflist .sx-kv { cursor:pointer; }
+.jl2-reflist .sx-kv:hover .k { color:var(--t1); }

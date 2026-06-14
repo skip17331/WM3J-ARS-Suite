@@ -1,0 +1,127 @@
+/* ===========================================================================
+   ARS Suite — synthesized "-jl-" slate design system
+   Dark-first instrument-panel palette. Scoped under .ars-root so it never
+   leaks into the design-canvas chrome. Avoids backdrop-filter / blur so the
+   native (JavaFX) surfaces can translate 1:1 — only solid fills, borders,
+   and simple drop shadows are used.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+.ars-root {
+  /* surfaces — cool neutral slate */
+  --bg:          #0d1117;
+  --surface-1:   #141a22;
+  --surface-2:   #1a212b;
+  --surface-3:   #222b37;
+  --surface-4:   #2b3644;
+  --border:      #28313d;
+  --border-2:    #38434f;
+  --border-glow: #455263;
+
+  /* text */
+  --t1: #e8eef4;
+  --t2: #97a4b2;
+  --t3: #6a7684;
+  --t4: #4d5663;
+
+  /* suite signal accent */
+  --accent:      oklch(0.74 0.12 215);
+  --accent-dim:  oklch(0.74 0.12 215 / 0.14);
+  --accent-line: oklch(0.74 0.12 215 / 0.40);
+
+  /* module signature hues — shared chroma/lightness, varied hue */
+  --log:    oklch(0.80 0.13 78);   /* amber  */
+  --map:    oklch(0.74 0.12 205);  /* cyan   */
+  --digi:   oklch(0.72 0.13 300);  /* violet */
+  --bridge: oklch(0.72 0.12 255);  /* blue   */
+  --sat:    oklch(0.76 0.13 150);  /* green  */
+  --vault:  oklch(0.76 0.09 62);   /* bronze */
+  --learn:  oklch(0.72 0.14 18);   /* coral  */
+  --hub:    oklch(0.80 0.04 220);  /* near-white signal */
+
+  /* status */
+  --ok:    oklch(0.78 0.15 150);
+  --idle:  #6a7684;
+  --warn:  oklch(0.82 0.13 82);
+  --err:   oklch(0.66 0.18 25);
+
+  --radius:   8px;
+  --radius-sm: 5px;
+  --radius-lg: 12px;
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-2: 0 6px 22px rgba(0,0,0,0.45);
+
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--t1);
+  background: var(--bg);
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* light variant — token overrides only */
+.ars-root.ars-light {
+  --bg:          #eef1f5;
+  --surface-1:   #ffffff;
+  --surface-2:   #f4f6f9;
+  --surface-3:   #e9edf2;
+  --surface-4:   #dde3ea;
+  --border:      #d3dae2;
+  --border-2:    #c2cbd6;
+  --border-glow: #aab6c4;
+  --t1: #1a2330;
+  --t2: #4c5868;
+  --t3: #6c7889;
+  --t4: #97a2b0;
+  --accent:      oklch(0.55 0.13 215);
+  --accent-dim:  oklch(0.55 0.13 215 / 0.12);
+  --accent-line: oklch(0.55 0.13 215 / 0.40);
+  --shadow-2: 0 6px 22px rgba(30,45,70,0.12);
+}
+
+.ars-root *, .ars-root *::before, .ars-root *::after { box-sizing: border-box; }
+.ars-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: 'tnum' 1; }
+
+/* ---- desktop window chrome ---------------------------------------------- */
+.ars-win { display: flex; flex-direction: column; height: 100%; background: var(--bg); overflow: hidden; }
+.ars-titlebar {
+  flex: 0 0 auto; height: 38px; display: flex; align-items: center;
+  gap: 10px; padding: 0 12px; background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+}
+.ars-tb-mark { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; letter-spacing: 0.2px; }
+.ars-tb-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.ars-tb-sub { color: var(--t3); font-size: 12px; font-weight: 400; white-space: nowrap; }
+.ars-tb-mark { white-space: nowrap; }
+.ars-tb-spacer { flex: 1; }
+.ars-tb-ctl { display: flex; gap: 14px; color: var(--t3); }
+.ars-tb-ctl span { width: 13px; height: 13px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; cursor: default; }
+
+/* ---- status dot --------------------------------------------------------- */
+.ars-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+.ars-dot.on  { background: var(--ok);  box-shadow: 0 0 7px -1px var(--ok); }
+.ars-dot.off { background: var(--idle); }
+.ars-dot.warn{ background: var(--warn); }
+.ars-dot.err { background: var(--err); box-shadow: 0 0 7px -1px var(--err); }
+
+/* ---- generic small helpers --------------------------------------------- */
+.ars-eyebrow { font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--t3); font-weight: 600; }
+.ars-scroll { scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
+.ars-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.ars-scroll::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 8px; }
+
+/* buttons */
+.ars-btn {
+  font-family: inherit; font-size: 12.5px; font-weight: 600; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-2); background: var(--surface-3); color: var(--t1);
+  padding: 7px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+  transition: background .13s, border-color .13s, color .13s;
+}
+.ars-btn:hover { background: var(--surface-4); border-color: var(--border-glow); }
+.ars-btn.primary { background: var(--accent); border-color: var(--accent); color: #07141b; }
+.ars-btn.primary:hover { filter: brightness(1.08); }
+.ars-btn.ghost { background: transparent; border-color: transparent; color: var(--t2); }
+.ars-btn.ghost:hover { background: var(--surface-3); color: var(--t1); }
+.ars-btn.danger { color: var(--err); border-color: color-mix(in oklch, var(--err) 35%, var(--border-2)); background: transparent; }
+.ars-btn.danger:hover { background: color-mix(in oklch, var(--err) 14%, transparent); }

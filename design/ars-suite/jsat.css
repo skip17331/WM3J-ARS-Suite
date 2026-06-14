@@ -1,0 +1,46 @@
+/* J-Sat — satellite tracking layout (scoped under .ars-root). */
+.js-body { grid-template-columns:264px minmax(0,1fr) 322px !important; display:grid; }
+
+/* left — satellite list */
+.js-satcol { background:var(--surface-1); border-right:1px solid var(--border); display:flex; flex-direction:column; min-height:0; }
+.js-sat-h { flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border); font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--t3); font-weight:600; }
+.js-satlist { flex:1; overflow:auto; padding:8px; display:flex; flex-direction:column; gap:7px; }
+.js-sat { padding:11px 12px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); cursor:pointer; transition:border-color .12s, background .12s; }
+.js-sat:hover { border-color:var(--border-glow); }
+.js-sat.sel { border-color:color-mix(in oklch,var(--sat) 45%, transparent); background:color-mix(in oklch,var(--sat) 8%, var(--surface-2)); }
+.js-sat-top { display:flex; align-items:center; gap:8px; }
+.js-sat-name { font-size:14px; font-weight:700; }
+.js-sat-kind { font-size:10px; color:var(--t3); }
+.js-sat-badge { margin-left:auto; font-size:9px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; padding:3px 7px; border-radius:99px; }
+.js-sat-badge.aos { color:var(--ok); background:color-mix(in oklch,var(--ok) 15%, transparent); border:1px solid color-mix(in oklch,var(--ok) 38%, transparent); }
+.js-sat-badge.next { color:var(--t2); background:var(--surface-3); border:1px solid var(--border-2); }
+.js-sat-badge.los { color:var(--t4); background:transparent; border:1px solid var(--border-2); }
+.js-sat-meta { display:flex; gap:14px; margin-top:9px; font-size:11px; color:var(--t3); }
+.js-sat-meta b { font-family:'JetBrains Mono',monospace; color:var(--t1); font-weight:600; margin-left:4px; }
+
+/* center — sky plot */
+.js-sky { min-width:0; min-height:0; display:flex; flex-direction:column; padding:16px 18px; }
+.js-sky-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.js-sky-title { font-size:15px; font-weight:700; }
+.js-sky-sub { font-size:12px; color:var(--t3); }
+.js-sky-wrap { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; container-type:size; }
+.js-sky-svg { max-width:100%; max-height:100%; }
+.js-elr-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; fill:var(--t4); }
+.js-card-lbl { font-family:'IBM Plex Sans',sans-serif; font-size:12px; font-weight:700; fill:var(--t3); }
+.js-sat-dot-lbl { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; fill:var(--sat); }
+
+/* center bottom — live telemetry */
+.js-tele { flex:0 0 auto; display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px; }
+.js-tele-c { background:var(--surface-1); border:1px solid var(--border); border-radius:8px; padding:9px 11px; }
+.js-tele-k { font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--t3); font-weight:600; }
+.js-tele-v { font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:600; margin-top:3px; }
+.js-tele-v .u { font-size:10px; color:var(--t3); margin-left:2px; }
+
+/* right rail extras */
+.js-vfo { display:flex; flex-direction:column; gap:9px; }
+.js-vfo-row { display:flex; align-items:center; justify-content:space-between; padding:9px 11px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border); }
+.js-vfo-row .lab { font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:var(--t3); font-weight:600; }
+.js-vfo-row .frq { font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:600; }
+.js-vfo-row.dn .frq { color:var(--sat); }
+.js-vfo-row.up .frq { color:var(--accent); }
+.js-doppler { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--t3); }

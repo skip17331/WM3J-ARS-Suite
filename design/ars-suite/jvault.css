@@ -1,0 +1,52 @@
+/* J-Vault — station inventory + estate planning layout (scoped to .ars-root). */
+.jv-body { grid-template-columns:minmax(0,1fr) 322px !important; display:grid; }
+.jv-main { min-width:0; min-height:0; display:flex; flex-direction:column; padding:14px 18px; gap:13px; overflow:hidden; }
+
+/* summary strip */
+.jv-sum { flex:0 0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:11px; }
+.jv-sum-c { background:var(--surface-1); border:1px solid var(--border); border-radius:10px; padding:12px 15px; }
+.jv-sum-k { font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--t3); font-weight:600; }
+.jv-sum-v { font-family:'JetBrains Mono',monospace; font-size:23px; font-weight:600; margin-top:4px; }
+.jv-sum-v .u { font-size:12px; color:var(--t3); }
+
+/* toolbar */
+.jv-tools { flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+.jv-search { flex:1; max-width:300px; display:flex; align-items:center; gap:8px; height:34px; padding:0 12px; border-radius:8px; background:var(--surface-1); border:1px solid var(--border-2); color:var(--t3); font-size:12.5px; }
+.jv-chip { font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:7px; border:1px solid var(--border); background:var(--surface-2); color:var(--t2); cursor:pointer; transition:all .12s; }
+.jv-chip:hover { border-color:var(--border-glow); color:var(--t1); }
+.jv-chip.on { background:color-mix(in oklch,var(--vault) 16%, var(--surface-2)); border-color:color-mix(in oklch,var(--vault) 40%, transparent); color:var(--vault); }
+
+/* inventory table */
+.jv-table { flex:1; min-height:0; display:flex; flex-direction:column; background:var(--surface-1); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.jv-th, .jv-tr { display:grid; grid-template-columns:118px 1fr 86px 92px 1.3fr; gap:12px; align-items:center; padding:10px 16px; }
+.jv-th { flex:0 0 auto; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--t3); font-weight:600; border-bottom:1px solid var(--border); }
+.jv-rows { flex:1; overflow:auto; }
+.jv-tr { font-size:12.5px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
+.jv-tr:last-child { border-bottom:none; }
+.jv-tr:hover { background:var(--surface-2); }
+.jv-tr.sel { background:color-mix(in oklch,var(--vault) 9%, transparent); }
+.jv-cat { font-size:10px; font-weight:600; padding:3px 8px; border-radius:5px; background:var(--surface-3); border:1px solid var(--border); color:var(--t2); justify-self:start; }
+.jv-name { font-weight:600; color:var(--t1); }
+.jv-sn { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--t3); margin-top:1px; }
+.jv-val { font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--t1); }
+.jv-disp { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; }
+.jv-disp .d { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+.jv-disp .d.family { background:var(--sat); } .jv-disp .d.club { background:var(--map); }
+.jv-disp .d.sell { background:var(--warn); } .jv-disp .d.gift { background:var(--digi); }
+
+/* right rail: detail + estate */
+.jv-det-name { font-size:16px; font-weight:700; }
+.jv-det-cat { font-size:11px; color:var(--t3); margin-top:1px; }
+.jv-det-meta { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:12px 0; }
+.jv-det-meta .k { font-size:9px; letter-spacing:.8px; text-transform:uppercase; color:var(--t3); font-weight:600; }
+.jv-det-meta .v { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; margin-top:2px; }
+.jv-det-note { font-size:12px; color:var(--t2); line-height:1.5; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+.jv-disp-box { margin-top:11px; padding:11px 12px; border-radius:8px; border:1px solid color-mix(in oklch,var(--vault) 30%, var(--border)); background:color-mix(in oklch,var(--vault) 7%, var(--surface-1)); }
+.jv-disp-box .lab { font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--vault); font-weight:700; }
+.jv-disp-box .who { font-size:14px; font-weight:600; margin-top:3px; }
+.jv-doc { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+.jv-doc:last-child { border-bottom:none; }
+.jv-doc-ic { width:28px; height:28px; flex:0 0 auto; border-radius:7px; display:flex; align-items:center; justify-content:center; background:color-mix(in oklch,var(--vault) 14%, var(--surface-3)); color:var(--vault); }
+.jv-doc-n { font-size:12.5px; font-weight:600; }
+.jv-doc-t { font-size:10.5px; color:var(--t3); margin-top:1px; }
+.jv-doc-u { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--t4); }
