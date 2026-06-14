@@ -34,6 +34,7 @@ public class Launcher extends Application {
         switch (id) {
             case "log": return com.ars.fx.surface.JLogCockpit.build();
             case "hub": return com.ars.fx.surface.JHubDashboard.build();
+            case "hubcfg": return com.ars.fx.surface.JHubDashboard.buildConfig();
             case "map": return com.ars.fx.surface.JMapView.build();
             case "sat": return com.ars.fx.surface.JSatView.build();
             default: break;

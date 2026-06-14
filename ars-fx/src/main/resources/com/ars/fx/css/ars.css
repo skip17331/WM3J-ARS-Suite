@@ -420,3 +420,10 @@
 .js-np-nm { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .js-np-el { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
 .js-np-t { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+
+/* J-Hub config page extras (shot 09) */
+.jhub-nav-sub.active { -fx-background-color: -ars-accent-dim; -fx-text-fill: -ars-accent; }
+.cfg-title { -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.cfg-link { -fx-font-size: 12px; -fx-text-fill: -ars-t3; -fx-cursor: hand; }
+.cfg-select { -fx-font-size: 13px; -fx-text-fill: -ars-t1; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 11 7 12; -fx-alignment: center-left; }
+.cfg-sval-u { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }

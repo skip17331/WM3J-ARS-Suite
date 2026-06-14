@@ -15,21 +15,22 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class JHubDashboard {
     private JHubDashboard() {}
 
-    public static Region build() {
-        VBox root = new VBox(workspaceBar(), mainRow());
-        root.setStyle("-fx-background-color:-ars-bg;");
+    public static Region build()       { return page("dashboard", dashboardCenter()); }
+    public static Region buildConfig() { return page("rig", configCenter()); }
+
+    private static Region page(String activeConf, Region centerContent) {
+        ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox row = new HBox(hubNav(activeConf), sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;");
         return root;
     }
 
-    private static Region mainRow() {
+    private static Region dashboardCenter() {
         VBox center = new VBox(20, header(), threeCol());
         center.setPadding(new Insets(18, 24, 24, 24));
         center.setStyle("-fx-background-color:-ars-bg;");
-        VBox.setVgrow(threeColRef, Priority.ALWAYS);
-        ScrollPane sp = new ScrollPane(center); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(hubNav(), sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
-        return row;
+        return center;
     }
 
     // ---- top workspace bar -------------------------------------------------
@@ -45,17 +46,21 @@ public final class JHubDashboard {
     }
 
     // ---- left nav ----------------------------------------------------------
-    private static Region hubNav() {
+    private static Region hubNav(String activeConf) {
         VBox nav = new VBox(); nav.getStyleClass().add("jhub-nav"); nav.setMinWidth(256); nav.setPrefWidth(256); nav.setMaxWidth(256);
         HBox head = new HBox(10, lbl("☰", "jhub-bar-ham"), lbl("J-Hub", "jhub-nav-headnm")); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("jhub-nav-head");
         nav.getChildren().addAll(head, lbl("OPERATE", "jhub-nav-sec"));
         for (Mock.Mod m : Mock.MODULES) nav.getChildren().add(navItem(m, m.id().equals("log")));
         nav.getChildren().add(lbl("J-HUB", "jhub-nav-sec"));
-        nav.getChildren().add(confItem("◎", "Dashboard", null, true));
+        nav.getChildren().add(confItem("◎", "Dashboard", null, activeConf.equals("dashboard")));
         nav.getChildren().add(confItem("▣", "Station", "›", false));
         nav.getChildren().add(confItem("◉", "Hardware", "⌄", false));
-        for (String s : new String[]{"Rig control","Rotor control","Amplifier","Antenna switch","Antenna workshop"})
-            nav.getChildren().add(lbl(s, "jhub-nav-sub"));
+        for (String s : new String[]{"Rig control","Rotor control","Amplifier","Antenna switch","Antenna workshop"}) {
+            Label l = lbl(s, "jhub-nav-sub");
+            if (s.equals("Rig control") && activeConf.equals("rig")) l.getStyleClass().add("active");
+            VBox.setMargin(l, new Insets(0, 9, 0, 9));
+            nav.getChildren().add(l);
+        }
         nav.getChildren().add(confItem("▤", "Data", "›", false));
         return nav;
     }
@@ -232,6 +237,76 @@ public final class JHubDashboard {
         for (int i=0;i<pr.length;i++){ Label b = btn(pr[i][0]+" "+pr[i][1]+"°", "sx-ro-preset"); GridPane.setHgrow(b,Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE); g.add(b,i%3,i/3); }
         for (int c=0;c<3;c++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); g.getColumnConstraints().add(cc); }
         return new VBox(11, top, g);
+    }
+
+    // ---- config page (shot 09) --------------------------------------------
+    private static Region configCenter() {
+        HBox crumb = new HBox(7, lbl("J-Hub","jhub-crumb"), lbl("›","jhub-crumb"), lbl("Hardware","jhub-crumb"),
+                lbl("›","jhub-crumb"), lbl("Rig control","cfg-title")); crumb.setAlignment(Pos.BOTTOM_LEFT);
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox top = new HBox(crumb, sp, lbl("← Dashboard","cfg-link")); top.setAlignment(Pos.BOTTOM_LEFT);
+        Label desc = lbl("CAT control for your transceiver — connection, PTT, and how J-Hub follows the radio.","cfg-desc");
+
+        HBox cells = new HBox(0,
+            statCell("STATUS","● CONNECTED","",true), statCell("FREQUENCY","14.074.00","MHz",false),
+            statCell("MODE","USB","",false), statCell("POLL","12","ms",false));
+        cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+
+        VBox conn = section("CONNECTION",
+            cfgRow("Transceiver model", null, select("Icom IC-7610")),
+            cfgRow("Interface", null, seg(new String[]{"USB","Serial","Network"}, 0)),
+            cfgRow("Port", null, select("/dev/cu.SLAB_USBtoUART")),
+            cfgRow("Baud rate", null, select("9600")),
+            cfgRow("CI-V address", "Icom civ address (hex)", input("0x98")),
+            cfgRow("Poll interval", null, cfgSlider(0.15, "12 ms")));
+        VBox ptt = section("PTT & KEYING",
+            cfgRow("PTT method", null, seg(new String[]{"CAT","RTS","DTR","VOX"}, 0)),
+            cfgRow("CW keyer", null, select("Winkeyer USB")),
+            cfgRow("TX delay", null, cfgSlider(0.30, "30 ms")));
+        VBox beh = section("BEHAVIOR", cfgRow("Auto band-follow", null, switchNode(true)));
+
+        VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
+        v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
+        return v;
+    }
+    private static VBox statCell(String k, String val, String unit, boolean ok) {
+        Label v = lbl(val, "cfg-sv"); if (ok) v.getStyleClass().add("ok");
+        HBox vu = new HBox(4, v); vu.setAlignment(Pos.BOTTOM_LEFT); if (!unit.isEmpty()) vu.getChildren().add(lbl(unit, "cfg-sval-u"));
+        VBox cell = new VBox(4, lbl(k, "cfg-sk"), vu); cell.setMinWidth(150); return cell;
+    }
+    private static VBox section(String name, Node... rows) {
+        VBox card = new VBox(rows); card.getStyleClass().add("cfg-card");
+        if (rows.length > 0) rows[rows.length-1].setStyle("-fx-border-width:0;");
+        return new VBox(6, lbl(name, "cfg-sec"), card);
+    }
+    private static HBox cfgRow(String title, String hint, Node control) {
+        VBox lblBox = new VBox(2, lbl(title, "cfg-lt")); if (hint != null) lblBox.getChildren().add(lbl(hint, "cfg-lh"));
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox row = new HBox(20, lblBox, sp, control); row.getStyleClass().add("cfg-row"); row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+    private static Label select(String value) { Label l = lbl(value + "   ▾", "cfg-select"); l.setMinWidth(220); l.setAlignment(Pos.CENTER_LEFT); return l; }
+    private static Label input(String value) { Label l = lbl(value, "cfg-input"); l.setMinWidth(220); l.setAlignment(Pos.CENTER_RIGHT); return l; }
+    private static Region seg(String[] opts, int on) {
+        HBox h = new HBox(2); h.getStyleClass().add("cfg-seg");
+        for (int i=0;i<opts.length;i++){ Label b = lbl(opts[i], "cfg-seg-btn"); if (i==on) b.getStyleClass().add("on"); h.getChildren().add(b); }
+        return h;
+    }
+    private static Region cfgSlider(double frac, String val) {
+        double W = 220;
+        Region track = new Region(); track.setStyle("-fx-background-color:-ars-surface-4;-fx-background-radius:99;"); track.setPrefSize(W,5); track.relocate(0,6);
+        Region fill = new Region(); fill.setStyle("-fx-background-color:-ars-accent;-fx-background-radius:99;"); fill.setPrefSize(W*frac,5); fill.relocate(0,6);
+        Region knob = new Region(); knob.setStyle("-fx-background-color:-ars-accent;-fx-background-radius:99;-fx-border-color:-ars-surface-1;-fx-border-width:2;-fx-border-radius:99;"); knob.setPrefSize(15,15); knob.relocate(W*frac-7,1);
+        Pane bar = new Pane(track, fill, knob); bar.setMinSize(W,16); bar.setPrefSize(W,16); bar.setMaxSize(W,16);
+        Label v = lbl(val, "cfg-sval-u"); v.setMinWidth(46); v.setAlignment(Pos.CENTER_RIGHT);
+        HBox h = new HBox(14, bar, v); h.setAlignment(Pos.CENTER_LEFT); return h;
+    }
+    private static Region switchNode(boolean on) {
+        Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
+        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); if (on) sw.getStyleClass().add("on");
+        sw.setStyle(on ? "-fx-background-color:-ars-accent; -fx-border-color:-ars-accent;" : "");
+        sw.setPadding(new Insets(0,3,0,3)); StackPane.setAlignment(knob, on ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT); sw.setMaxSize(36,20);
+        return sw;
     }
 
     // ---- small helpers -----------------------------------------------------
