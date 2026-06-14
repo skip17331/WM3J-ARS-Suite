@@ -39,6 +39,8 @@ public class Launcher extends Application {
             case "sat": return com.ars.fx.surface.JSatView.build();
             case "digi": return com.ars.fx.surface.JDigiView.build();
             case "bridge": return com.ars.fx.surface.JBridgeView.build();
+            case "vault": return com.ars.fx.surface.JVaultView.build();
+            case "learn": return com.ars.fx.surface.JLearnView.build();
             default: break;
         }
         Region dock = Shell.dock(id);

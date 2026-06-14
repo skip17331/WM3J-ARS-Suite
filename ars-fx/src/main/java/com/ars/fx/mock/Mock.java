@@ -184,4 +184,58 @@ public final class Mock {
     public static final String[][] WSJTX_LINK = {
         {"Status","● Connected","y"},{"Version","2.7.0",""},{"UDP port","2237",""},{"Rig (CAT)","IC-7610",""},{"Auto-log QSO","on → J-Log","y"},
     };
+
+    // ---- J-Vault ----
+    /** Summary cards: {key, value, of, amber}. */
+    public static final String[][] VAULT_SUMMARY = {
+        {"TOTAL VALUE","$18,900","","y"},{"INSURED (≥$500)","$17,850","",""},{"ITEMS","12","",""},{"EST. ASSIGNED","9"," / 12",""},
+    };
+    public static final String[] VAULT_CATS = {"All","Transceiver","Amplifier","Antenna","Rotor","Tower","Tuner","Accessory","Computer"};
+    /** Items: {category, name, sub, value, condition, dispColor, disposition}. */
+    public static final String[][] VAULT_ITEMS = {
+        {"Transceiver","Icom IC-7610","S/N 0203145 · 2021","$2,800","excellent","#67d283","Son — Alex (KC2ABC)"},
+        {"Transceiver","Elecraft K4","S/N K4-1882 · 2023","$4,400","excellent","#26c0cf","Club — keep on air"},
+        {"Amplifier","SPE Expert 1.3K-FA","S/N FA13-771 · 2022","$3,200","excellent","#67d283","Son — Alex (KC2ABC)"},
+        {"Antenna","Hex Beam (6-band)","—  ·  2020","$650","good","#26c0cf","Club — dismantle"},
+        {"Antenna","Mosley PRO-67B","—  ·  2019","$1,500","good","#eebb58","Sell — estate"},
+        {"Rotor","Yaesu G-1000DXA","S/N G1K-44218 · 2019","$600","good","#67d283","Son — Alex (KC2ABC)"},
+        {"Tower","US Towers MA-550","—  ·  2018","$3,800","good","#eebb58","Sell with house"},
+        {"Tuner","Palstar AT2K","S/N AT2K-9912 · 2017","$450","good","#eebb58","Sell — estate"},
+        {"Accessory","Winkeyer USB","—  ·  2016","$120","good","#67d283","Son — Alex (KC2ABC)"},
+        {"Accessory","Bird 43 Wattmeter","S/N B43-5521 · 2015","$280","excellent","#b191ea","Friend — W3LPL"},
+        {"Computer","Shack PC (logging)","—  ·  2022","$900","good","#26c0cf","Family — wipe first"},
+        {"Antenna","Inverted-L (160m)","—  ·  2021","$200","fair","#26c0cf","Club — dismantle"},
+    };
+    /** Estate docs: {title, sub, date}. */
+    public static final String[][] VAULT_DOCS = {
+        {"Station insurance policy","ARRL Equipment Plan","2026-01"},
+        {"Tower permit & engineering","Township file #4471","2018-06"},
+        {"Estate letter to family","What to do with the station","2026-03"},
+        {"Trusted contact","W3LPL · Frank · (610) 555-0148","2025-11"},
+        {"Equipment manuals (PDF)","14 documents","2025-09"},
+    };
+
+    // ---- J-Learn ----
+    /** Topics: {name, count, on}. */
+    public static final String[][] LEARN_TOPICS = {
+        {"All topics","8","y"},{"Licensing & exams","6",""},{"Propagation","5",""},{"Antennas","8",""},
+        {"Operating practice","7",""},{"Rules & regs","4",""},{"Electronics","9",""},
+    };
+    /** Decks: {badge, title, sub, done, total, pct, dueText, dueOk}. */
+    public static final String[][] LEARN_DECKS = {
+        {"FLASHCARDS","Extra Class — Subelement E3","Radio wave propagation","31","42","74","8 due",""},
+        {"GUIDE","Sporadic-E & the gray line","When & where to work DX","18","18","100","up to date","y"},
+        {"FLASHCARDS","Feedlines & SWR","Loss, matching, baluns","12","26","46","14 due",""},
+        {"FLASHCARDS","CW operating procedures","Q-codes, abbreviations, etiquette","47","60","78","6 due",""},
+        {"REFERENCE","Part 97 essentials","Band plans, power, identification","22","30","73","4 due",""},
+        {"GUIDE","Smith chart basics","Impedance matching visually","3","15","20","12 due",""},
+        {"REFERENCE","Contest exchange formats","CQ WW, WPX, SS, Field Day","22","22","100","up to date","y"},
+        {"FLASHCARDS","Yagi design fundamentals","Boom, element spacing, gain","9","34","26","19 due",""},
+    };
+    /** Q-codes: {code, definition}. */
+    public static final String[][] QCODES = {
+        {"QRZ","Who is calling me?"},{"QSB","Your signal is fading."},{"QRM","I have interference (man-made)."},
+        {"QRN","I have static / noise (natural)."},{"QSY","Change frequency to ___."},{"QTH","My location is ___."},
+        {"QSL","I acknowledge receipt."},{"QRP","Reduce power / low power."},
+    };
 }

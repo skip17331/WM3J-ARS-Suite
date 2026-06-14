@@ -473,3 +473,74 @@
 .sx-stat-v.digi { -fx-text-fill: -ars-digi; }
 .sx-stat-v.bridge { -fx-text-fill: -ars-bridge; }
 .sx-stat-v.ok { -fx-text-fill: -ars-ok; }
+
+/* ============================================================================
+   J-VAULT (shot 07)
+   ============================================================================ */
+.jv-sum { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 16 20 16 20; }
+.jv-sum-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jv-sum-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jv-sum-v.amber { -fx-text-fill: -ars-vault; }
+.jv-sum-v-of { -fx-font-family: "JetBrains Mono"; -fx-font-size: 16px; -fx-text-fill: -ars-t3; }
+.jv-search { -fx-font-size: 13px; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 8 12 8 12; }
+.jv-cat { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 6 12 6 12; -fx-cursor: hand; }
+.jv-cat.on { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
+.jv-th { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 11 16 11 16; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jv-row { -fx-padding: 10 16 10 16; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jv-cat-tag { -fx-font-size: 11px; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 5; -fx-border-radius: 5; -fx-padding: 2 8 2 8; }
+.jv-item-nm { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jv-item-sub { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jv-val { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jv-cond { -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.jv-cond.excellent { -fx-text-fill: -ars-ok; }
+.jv-cond.fair { -fx-text-fill: -ars-warn; }
+.jv-disp { -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.jv-disp-dot { -fx-min-width: 8; -fx-pref-width: 8; -fx-min-height: 8; -fx-pref-height: 8; -fx-background-radius: 99; }
+.jv-dk { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jv-dv { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jv-dv.excellent { -fx-text-fill: -ars-ok; }
+.jv-dname { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jv-dsub { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jv-note { -fx-font-size: 12px; -fx-text-fill: -ars-t2; -fx-background-color: -ars-bg; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 9 11 9 11; -fx-wrap-text: true; }
+.jv-dispbox { -fx-background-color: rgba(219,164,117,0.08); -fx-border-color: rgba(219,164,117,0.35); -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 10 12 10 12; }
+.jv-dispbox-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jv-dispbox-v { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-vault; }
+.jv-doc { -fx-padding: 9 0 9 0; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jv-doc-t { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jv-doc-s { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jv-doc-d { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t4; }
+
+/* ============================================================================
+   J-LEARN (shot 08)
+   ============================================================================ */
+.j2-topics { -fx-background-color: -ars-surface-1; -fx-border-color: transparent -ars-border transparent transparent; -fx-border-width: 0 1 0 0; -fx-padding: 14 12 14 12; }
+.j2-sec { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 4 8 10 8; }
+.j2-topic { -fx-padding: 9 10 9 10; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: center-left; }
+.j2-topic:hover { -fx-background-color: -ars-surface-2; }
+.j2-topic.on { -fx-background-color: rgba(239,125,131,0.12); }
+.j2-topic-nm { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.j2-topic.on .j2-topic-nm { -fx-text-fill: -ars-learn; }
+.j2-topic-ct { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.j2-h1 { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.j2-h1-sub { -fx-font-size: 13px; -fx-text-fill: -ars-t3; }
+.j2-deck { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 16 16 16 16; }
+.j2-badge { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 99; -fx-border-radius: 99; -fx-padding: 2 8 2 8; }
+.j2-deck-title { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.j2-deck-sub { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.j2-prog { -fx-min-height: 5; -fx-pref-height: 5; -fx-background-color: -ars-surface-3; -fx-background-radius: 99; }
+.j2-prog-fill { -fx-min-height: 5; -fx-pref-height: 5; -fx-background-color: -ars-learn; -fx-background-radius: 99; }
+.j2-deck-stat { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.j2-deck-due { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-learn; }
+.j2-deck-due.ok { -fx-text-fill: -ars-t4; }
+.j2-ref-eyebrow { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-learn; }
+.j2-ref-title { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.j2-ref-meta { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.j2-ref-body { -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; -fx-wrap-text: true; }
+.j2-ref-sec { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.j2-q { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-learn; }
+.j2-qd { -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.streak-k { -fx-font-size: 9px; -fx-text-fill: -ars-t3; }
+.streak-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+
+.sx-stat-v.vault { -fx-text-fill: -ars-vault; }
+.sx-stat-v.learn { -fx-text-fill: -ars-learn; }
