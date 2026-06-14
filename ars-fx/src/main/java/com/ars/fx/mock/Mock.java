@@ -90,4 +90,35 @@ public final class Mock {
         {"Contest Day","log"},{"Casual DX","map"},{"Digital","digi"},{"Satellite Pass","sat"}
     };
     public static final String[] RIG_BANDS = {"160","80","40","30","20","17","15","12","10","6"};
+
+    // ---- J-Map ----
+    /** Azimuthal spots: {call, bearingDeg, distNorm(0..1), colorHex}. */
+    public static final Object[][] AZ_SPOTS = {
+        {"9M6XRO",340.0,0.86,"#eebb58"}, {"VU2XYZ",30.0,0.76,"#26c0cf"}, {"JA7QVI",312.0,0.60,"#67d283"},
+        {"JA1XYZ",316.0,0.64,"#67d283"}, {"UA9ABC",25.0,0.55,"#26c0cf"}, {"4X1ABC",70.0,0.50,"#67d283"},
+        {"DL8WPX",55.0,0.36,"#26c0cf"}, {"TF3IRA",35.0,0.30,"#eebb58"}, {"G4ABC",50.0,0.33,"#26c0cf"},
+        {"VE7CC",300.0,0.30,"#b191ea"}, {"CN2AA",96.0,0.36,"#eebb58"}, {"5U5R",110.0,0.44,"#eebb58"},
+        {"EA8RKL",105.0,0.42,"#26c0cf"}, {"K1TTT",248.0,0.16,"#26c0cf"}, {"VK9DX",250.0,0.55,"#ec5b57"},
+        {"F05QB",225.0,0.46,"#eebb58"}, {"ZL3ABC",220.0,0.62,"#b191ea"}, {"PY2NY",160.0,0.50,"#ef7d83"},
+        {"ZS6ABC",130.0,0.60,"#26c0cf"}, {"ZD7BG",136.0,0.63,"#67d283"}, {"CE3LU",190.0,0.66,"#67d283"},
+    };
+    /** DX-Spots drawer list: {freq, call, country, bearing, need}. */
+    public static final String[][] DX_LIST = {
+        {"14.182","DL8WPX","Germany","049°",""},
+        {"14.022","VK9DX","Norfolk Is.","262°",""},
+        {"14.025","G4ABC","England","051°",""},
+        {"14.182","ZD7BG","St. Helena","115°","y"},
+        {"14.040","K1TTT","USA","055°",""},
+        {"21.024","EA8RKL","Canary Is.","086°","y"},
+    };
+    /** Left-panel bands: {num, colorHex}. */
+    public static final String[][] MAP_BANDS = {
+        {"160","#ec5b57"},{"80","#ec5b57"},{"40","#eebb58"},{"30","#67d283"},{"20","#26c0cf"},
+        {"17","#26c0cf"},{"15","#b191ea"},{"12","#b191ea"},{"10","#ef7d83"},
+    };
+    /** Overlay toggles: {label, on}. */
+    public static final Object[][] OVERLAYS = {
+        {"Gray line / sun",true},{"Basemap image",true},{"Beam heading",true},
+        {"Range rings",true},{"Callsigns",true},{"Needed only",false},
+    };
 }

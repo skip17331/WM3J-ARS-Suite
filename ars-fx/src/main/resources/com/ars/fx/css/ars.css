@@ -363,3 +363,29 @@
 .cfg-seg { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
 .cfg-seg-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 5 13 5 13; -fx-background-radius: 5; -fx-cursor: hand; }
 .cfg-seg-btn.on { -fx-background-color: -ars-surface-1; -fx-text-fill: -ars-t1; }
+
+/* ============================================================================
+   J-MAP (shot 03)
+   ============================================================================ */
+.jm-panel { -fx-background-color: -ars-surface-1; -fx-border-color: transparent -ars-border transparent transparent; -fx-border-width: 0 1 0 0; -fx-padding: 16; }
+.jm-sec { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 14 0 8 0; }
+.jm-sec-all { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-map; }
+.jm-seg { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
+.jm-seg-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 7 0 7 0; -fx-background-radius: 5; -fx-cursor: hand; -fx-alignment: center; }
+.jm-seg-btn.on { -fx-background-color: -ars-surface-1; -fx-text-fill: -ars-t1; }
+.jm-band { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 8 6 8; -fx-alignment: center-left; }
+.jm-band-n { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jm-band-dot { -fx-min-width: 7; -fx-pref-width: 7; -fx-min-height: 7; -fx-pref-height: 7; -fx-background-radius: 99; }
+.jm-tog-label { -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; }
+.jm-switch { -fx-min-width: 36; -fx-pref-width: 36; -fx-min-height: 20; -fx-pref-height: 20; -fx-background-radius: 99; -fx-background-color: -ars-surface-4; -fx-border-color: -ars-border-2; -fx-border-width: 1; }
+.jm-switch.on { -fx-background-color: -ars-map; -fx-border-color: -ars-map; }
+.jm-switch-knob { -fx-min-width: 14; -fx-pref-width: 14; -fx-min-height: 14; -fx-pref-height: 14; -fx-background-radius: 99; -fx-background-color: -ars-t1; }
+.jm-legend { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jm-legend-b { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jm-legend-card { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 12 14 12 14; }
+.jm-legend-row { -fx-font-size: 11px; -fx-text-fill: -ars-t2; }
+.jm-spot-fq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+.jm-spot-call { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jm-spot-meta { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jm-spot-row { -fx-padding: 9 4 9 4; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jm-spot-dot { -fx-min-width: 9; -fx-pref-width: 9; -fx-min-height: 9; -fx-pref-height: 9; -fx-background-radius: 99; }
