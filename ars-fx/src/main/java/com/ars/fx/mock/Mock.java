@@ -121,4 +121,25 @@ public final class Mock {
         {"Gray line / sun",true},{"Basemap image",true},{"Beam heading",true},
         {"Range rings",true},{"Callsigns",true},{"Needed only",false},
     };
+
+    // ---- J-Sat ----
+    /** Satellites: {name, type, pill, pillClass, maxEl, dur, downlink}. */
+    public static final String[][] SATS = {
+        {"AO-91","FM","AOS","aos","47","11m","145.960"},
+        {"SO-50","FM","+18M","","22","9m","436.795"},
+        {"ISS","APRS/Voice","+42M","","78","10m","145.800"},
+        {"RS-44","Linear","+1H 26M","","34","22m","435.610"},
+        {"AO-7","Linear","LOS","los","12","14m","145.970"},
+        {"CAS-4B","Linear","+2H 11M","","58","16m","145.870"},
+    };
+    /** Next passes: {name, el, time}. */
+    public static final String[][] NEXT_PASSES = {
+        {"SO-50","el 22°","+18m"},{"ISS","el 78°","+42m"},{"RS-44","el 34°","+1h 26m"},
+        {"AO-7","el 12°","+3h 02m"},{"CAS-4B","el 58°","+2h 11m"},
+    };
+    /** Telemetry cells: {key, value, unit, neg}. */
+    public static final String[][] SAT_TELEMETRY = {
+        {"AZIMUTH","096","°",""},{"ELEVATION","31","°",""},{"RANGE","1,842","km",""},
+        {"RANGE RATE","-5.2","km/s","y"},{"PHASE","112","",""},
+    };
 }

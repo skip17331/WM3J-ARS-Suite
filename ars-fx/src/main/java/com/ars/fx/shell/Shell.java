@@ -203,7 +203,7 @@ public final class Shell {
             drawer("Weather · FN20","bridge","bridge","14° NW12", false, wxBody));
     }
 
-    static HBox kv(String k, String v, boolean ok) {
+    public static HBox kv(String k, String v, boolean ok) {
         Label kl = lbl(k); kl.getStyleClass().add("k"); HBox.setHgrow(kl, Priority.ALWAYS); kl.setMaxWidth(Double.MAX_VALUE);
         Label vl = lbl(v); vl.getStyleClass().addAll("ars-mono"); vl.getStyleClass().add("v");
         if (ok) vl.setStyle("-fx-text-fill: -ars-ok;");

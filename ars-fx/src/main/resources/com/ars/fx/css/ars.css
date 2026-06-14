@@ -389,3 +389,34 @@
 .jm-spot-meta { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
 .jm-spot-row { -fx-padding: 9 4 9 4; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
 .jm-spot-dot { -fx-min-width: 9; -fx-pref-width: 9; -fx-min-height: 9; -fx-pref-height: 9; -fx-background-radius: 99; }
+
+/* ============================================================================
+   J-SAT (shot 06)
+   ============================================================================ */
+.js-panel { -fx-background-color: -ars-surface-1; -fx-border-color: transparent -ars-border transparent transparent; -fx-border-width: 0 1 0 0; -fx-padding: 14 14 14 14; }
+.js-sec { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-padding: 4 4 12 4; }
+.js-sat { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 9; -fx-border-radius: 9; -fx-padding: 12 13 12 13; }
+.js-sat.sel { -fx-border-color: -ars-sat; -fx-background-color: rgba(111,200,132,0.06); }
+.js-sat-nm { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.js-sat-type { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.js-pill { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 99; -fx-border-radius: 99; -fx-padding: 2 8 2 8; }
+.js-pill.aos { -fx-text-fill: #07141b; -fx-background-color: -ars-sat; -fx-border-color: -ars-sat; }
+.js-pill.los { -fx-text-fill: -ars-t3; }
+.js-sk { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.js-sv { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.js-title { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-sat; }
+.js-title-sub { -fx-font-size: 13px; -fx-text-fill: -ars-t2; }
+.js-tel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 12 16 12 16; }
+.js-tel-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.js-tel-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.js-tel-v.neg { -fx-text-fill: -ars-sat; }
+.js-tel-u { -fx-font-size: 10px; -fx-text-fill: -ars-t3; }
+/* radio · doppler */
+.js-radio { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 11 14 11 14; }
+.js-radio-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.js-radio-sub { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10.5px; -fx-text-fill: -ars-t3; }
+.js-radio-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -ars-sat; }
+.js-np { -fx-padding: 8 0 8 0; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.js-np-nm { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.js-np-el { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.js-np-t { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
