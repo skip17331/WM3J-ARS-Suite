@@ -184,7 +184,7 @@ public final class JLogCockpit {
             macros.getChildren().add(mb);
         }
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label theme = lbl("◑ Theme","jl-theme");
+        Label theme = lbl("◑ Theme","jl-theme"); theme.setStyle("-fx-cursor:hand;"); theme.setOnMouseClicked(e -> Shell.toggleTheme());
         HBox bar = new HBox(rig, macros, sp, theme); bar.getStyleClass().add("jl-bottom"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }

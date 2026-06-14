@@ -19,10 +19,12 @@ public final class JHubDashboard {
     public static Region buildConfig() { return page("rig", configCenter()); }
 
     private static Region page(String activeConf, Region centerContent) {
+        Region nav = hubNav(activeConf);
+        Runnable toggle = () -> { boolean vis = !nav.isVisible(); nav.setManaged(vis); nav.setVisible(vis); };
         ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(hubNav(activeConf), sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
-        VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;");
+        HBox row = new HBox(nav, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        VBox root = new VBox(workspaceBar(toggle), row); root.setStyle("-fx-background-color:-ars-bg;");
         return root;
     }
 
@@ -34,13 +36,14 @@ public final class JHubDashboard {
     }
 
     // ---- top workspace bar -------------------------------------------------
-    private static Region workspaceBar() {
-        Label ham = lbl("☰", "jhub-bar-ham");
+    private static Region workspaceBar(Runnable onMenu) {
+        Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onMenu.run());
         Region dot = chip("jhub-bar-dot", 9);
         HBox brand = new HBox(8, ham, dot, lbl("J-Hub", "jhub-bar-nm"), lbl("· WM3J", "jhub-bar-sub"));
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox bar = new HBox(brand, sp, lbl("localhost:8081 · up 4h 12m", "jhub-bar-sub"), lbl("◑ Theme", "jhub-theme"));
+        Label theme = lbl("◑ Theme", "jhub-theme"); theme.setStyle("-fx-cursor:hand;"); theme.setOnMouseClicked(e -> Shell.toggleTheme());
+        HBox bar = new HBox(brand, sp, lbl("localhost:8081 · up 4h 12m", "jhub-bar-sub"), theme);
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }
@@ -52,12 +55,15 @@ public final class JHubDashboard {
         nav.getChildren().addAll(head, lbl("OPERATE", "jhub-nav-sec"));
         for (Mock.Mod m : Mock.MODULES) nav.getChildren().add(navItem(m, m.id().equals("log")));
         nav.getChildren().add(lbl("J-HUB", "jhub-nav-sec"));
-        nav.getChildren().add(confItem("◎", "Dashboard", null, activeConf.equals("dashboard")));
+        Region dash = confItem("◎", "Dashboard", null, activeConf.equals("dashboard"));
+        dash.setOnMouseClicked(e -> Shell.navigate("hub"));
+        nav.getChildren().add(dash);
         nav.getChildren().add(confItem("▣", "Station", "›", false));
         nav.getChildren().add(confItem("◉", "Hardware", "⌄", false));
         for (String s : new String[]{"Rig control","Rotor control","Amplifier","Antenna switch","Antenna workshop"}) {
             Label l = lbl(s, "jhub-nav-sub");
             if (s.equals("Rig control") && activeConf.equals("rig")) l.getStyleClass().add("active");
+            if (s.equals("Rig control")) l.setOnMouseClicked(e -> Shell.navigate("hubcfg"));
             VBox.setMargin(l, new Insets(0, 9, 0, 9));
             nav.getChildren().add(l);
         }
@@ -72,6 +78,7 @@ public final class JHubDashboard {
         HBox row = new HBox(11, ic, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jhub-nav-item");
         if (active && m.running()) row.getStyleClass().addAll("active","run");
         VBox.setMargin(row, new Insets(1, 9, 1, 9));
+        row.setOnMouseClicked(e -> Shell.navigate(m.id()));
         return row;
     }
     private static Region confItem(String icon, String name, String caret, boolean active) {

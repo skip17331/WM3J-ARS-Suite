@@ -22,6 +22,13 @@ import java.util.Map;
 public final class Shell {
     private Shell() {}
 
+    /** Navigation + theme hooks, set by the host (Launcher). Dock items and the
+     *  J-Hub nav call navigate(id) to switch surface; toggleTheme() flips light/dark. */
+    public static java.util.function.Consumer<String> onNavigate;
+    public static Runnable onToggleTheme;
+    public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
+    public static void toggleTheme() { if (onToggleTheme != null) onToggleTheme.run(); }
+
     /** Module hue name -> Color (glyph strokes are set in Java; CSS handles tile bg). */
     public static final Map<String,Color> HUE = Map.ofEntries(
         Map.entry("log",   Color.web("#ebb353")), Map.entry("map",    Color.web("#26c0cf")),
@@ -103,6 +110,7 @@ public final class Shell {
         if (!hue.equals("gear")) row.getStyleClass().add(hue);
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
+        if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id));   // dock = navigation
         return row;
     }
 

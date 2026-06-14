@@ -1,31 +1,21 @@
 package com.ars.fx;
 
+import com.ars.fx.shell.Shell;
 import javafx.application.Application;
-import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Dev launcher / surface previewer for the ARS Suite JavaFX rewrite.
- * A picker bar across the top switches the surface shown below; a Theme
- * button toggles light/dark live. Run with: mvn -q javafx:run
+ * ARS Suite preview host. Navigation happens through the shell itself — the
+ * left module dock (and the J-Hub nav) switch surfaces via Shell.navigate; the
+ * top-bar Theme control flips light/dark. Run: mvn -q javafx:run
+ * Start surface: -Dsurface=hub|hubcfg|log|map|sat|digi|bridge|vault|learn.
  */
 public class Launcher extends Application {
 
-    /** {surface id, tab label}. */
-    private static final String[][] SURFACES = {
-        {"hub","J-Hub"}, {"hubcfg","Config"}, {"log","J-Log"}, {"map","J-Map"},
-        {"sat","J-Sat"}, {"digi","J-Digi"}, {"bridge","J-Bridge"}, {"vault","J-Vault"}, {"learn","J-Learn"},
-    };
-
-    private final StackPane host = new StackPane();   // holds the active surface
-    private final List<Button> tabs = new ArrayList<>();
+    private final StackPane host = new StackPane();
     private Scene scene;
     private boolean light = false;
 
@@ -33,54 +23,26 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage stage) {
-        HBox picker = buildPicker();
-        VBox root = new VBox(picker, host);
-        VBox.setVgrow(host, Priority.ALWAYS);
-        root.setStyle("-fx-background-color:-ars-bg;");
+        Shell.onNavigate = this::show;
+        Shell.onToggleTheme = this::toggleTheme;
 
-        scene = new Scene(root, 1460, 900);
+        scene = new Scene(host, 1460, 900);
         Theme.apply(scene, light);
+        show(System.getProperty("surface", "hub"));
 
-        String start = System.getProperty("surface", "hub");
-        show(start);
-
-        stage.setTitle("ARS Suite — JavaFX preview");
+        stage.setTitle("ARS Suite");
         stage.setScene(scene);
         stage.show();
     }
 
-    private HBox buildPicker() {
-        HBox bar = new HBox(8); bar.getStyleClass().add("picker"); bar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        Label brand = new Label("ARS Suite ·"); brand.getStyleClass().add("picker-lbl");
-        bar.getChildren().add(brand);
-        for (String[] s : SURFACES) {
-            Button b = new Button(s[1]); b.getStyleClass().add("picker-btn");
-            b.setOnAction(e -> show(s[0]));
-            tabs.add(b); bar.getChildren().add(b);
-        }
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Button theme = new Button("◑ Theme"); theme.getStyleClass().add("picker-btn");
-        theme.setOnAction(e -> toggleTheme());
-        bar.getChildren().addAll(sp, theme);
-        return bar;
-    }
-
     private void show(String id) {
-        Node surface = buildSurface(id);
-        host.getChildren().setAll(surface);
-        // highlight the active tab
-        int idx = 0;
-        for (int i = 0; i < SURFACES.length; i++) if (SURFACES[i][0].equals(id)) idx = i;
-        for (int i = 0; i < tabs.size(); i++) {
-            tabs.get(i).getStyleClass().remove("on");
-            if (i == idx) tabs.get(i).getStyleClass().add("on");
-        }
+        host.getChildren().setAll(buildSurface(id));
     }
 
     private void toggleTheme() {
         light = !light;
-        if (light) scene.getRoot().getStyleClass().add("ars-light");
-        else scene.getRoot().getStyleClass().remove("ars-light");
+        if (light) host.getStyleClass().add("ars-light");
+        else host.getStyleClass().remove("ars-light");
     }
 
     /** Build a surface frame by id. */
