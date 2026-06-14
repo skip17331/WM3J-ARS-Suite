@@ -142,4 +142,46 @@ public final class Mock {
         {"AZIMUTH","096","°",""},{"ELEVATION","31","°",""},{"RANGE","1,842","km",""},
         {"RANGE RATE","-5.2","km/s","y"},{"PHASE","112","",""},
     };
+
+    // ---- J-Digi ----
+    /** Decode lines: {timestamp, text, cursor("y"|"")}. */
+    public static final String[][] DIGI_DECODE = {
+        {"1438Z","CQ CQ CQ DE DL8WPX DL8WPX DL8WPX K",""},
+        {"1439Z","DL8WPX DE WM3J WM3J K",""},
+        {"1439Z","WM3J DE DL8WPX = GM DR OM TKS FER CALL = UR RST 599 599 = NAME HANS HANS = QTH NR MUNICH MUNICH = HW CPY? WM3J DE DL8WPX KN",""},
+        {"1440Z","DL8WPX DE WM3J = FB HANS TKS RPRT = UR 599 ALSO = NAME JIM QTH NEW JERSEY = ","y"},
+    };
+    public static final String[][] DIGI_MACROS = {{"F1","CQ"},{"F2","Call"},{"F3","RST"},{"F4","QTH"},{"F5","BTU"},{"F6","73"},{"F7","Tune"}};
+    public static final String[] DIGI_SCALE = {"0","500","1000","1500","2000","2500"};
+    /** Decoder drawer: {key, value, green("y"|"")}. */
+    public static final String[][] DIGI_DECODER = {
+        {"Mode","CW",""},{"Speed","28 WPM",""},{"AFC","locked","y"},{"Squelch","on","y"},{"Audio in","-6 dB",""},{"Log to","J-Log",""},
+    };
+
+    // ---- J-Bridge ----
+    /** FT8 decode: {utc, db, dt, hz, msg, type(cq|me|"")}. */
+    public static final String[][] BAND_ACTIVITY = {
+        {"1415","-8","0.2","1577","CQ DL8WPX JO62","cq"},
+        {"1415","-14","0.1","892","K1ABC W2XYZ FN20",""},
+        {"1415","-2","0.3","1230","CQ VK9DX RG29 ●","cq"},
+        {"1415","-16","-0.2","2104","JA7QVI EA5K -11",""},
+        {"1415","-5","0.1","1450","CQ DX 5U5R JN06 ●","cq"},
+        {"1415","-19","0.4","760","CQ PY2NY GG66","cq"},
+        {"1430","-11","0.0","1577","WM3J DL8WPX -08","me"},
+        {"1430","-3","0.2","1230","CQ VK9DX RG29 ●","cq"},
+        {"1430","-22","-0.1","2360","CQ CN2AA IM63 ●","cq"},
+        {"1430","-9","0.1","980","G4ABC W1AW FN31",""},
+        {"1445","-12","0.2","1577","WM3J DL8WPX R-08","me"},
+        {"1445","-7","0.3","1680","CQ JA1XYZ PM95","cq"},
+    };
+    public static final String[][] RX_FREQUENCY = {
+        {"1415","-8","0.2","1577","CQ DL8WPX JO62","cq"},
+        {"1430","-11","0.0","1577","WM3J DL8WPX -08","me"},
+        {"1445","-12","0.2","1577","WM3J DL8WPX R-08","me"},
+    };
+    public static final String[] BRIDGE_SCALE = {"200","700","1200","1700","2200","2800"};
+    /** WSJT-X link drawer: {key, value, green}. */
+    public static final String[][] WSJTX_LINK = {
+        {"Status","● Connected","y"},{"Version","2.7.0",""},{"UDP port","2237",""},{"Rig (CAT)","IC-7610",""},{"Auto-log QSO","on → J-Log","y"},
+    };
 }

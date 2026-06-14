@@ -37,6 +37,8 @@ public class Launcher extends Application {
             case "hubcfg": return com.ars.fx.surface.JHubDashboard.buildConfig();
             case "map": return com.ars.fx.surface.JMapView.build();
             case "sat": return com.ars.fx.surface.JSatView.build();
+            case "digi": return com.ars.fx.surface.JDigiView.build();
+            case "bridge": return com.ars.fx.surface.JBridgeView.build();
             default: break;
         }
         Region dock = Shell.dock(id);

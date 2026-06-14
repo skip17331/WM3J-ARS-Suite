@@ -427,3 +427,49 @@
 .cfg-link { -fx-font-size: 12px; -fx-text-fill: -ars-t3; -fx-cursor: hand; }
 .cfg-select { -fx-font-size: 13px; -fx-text-fill: -ars-t1; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 11 7 12; -fx-alignment: center-left; }
 .cfg-sval-u { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+
+/* ============================================================================
+   J-DIGI (shot 04) + J-BRIDGE (shot 05)
+   ============================================================================ */
+.wf-eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.wf-scale { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9.5px; -fx-text-fill: -ars-t4; }
+.wf-cursor { -fx-min-width: 2; -fx-pref-width: 2; -fx-max-width: 2; -fx-background-color: rgba(232,238,244,0.7); }
+
+.dg-tab { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 7 16 7 16; -fx-cursor: hand; }
+.dg-tab.on { -fx-background-color: rgba(177,145,234,0.14); -fx-border-color: rgba(177,145,234,0.40); -fx-text-fill: -ars-digi; }
+.dg-btn { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 12 6 12; -fx-cursor: hand; }
+.dg-btn.on { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.dg-decode { -fx-background-color: -ars-bg; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 14 16 14 16; }
+.dg-ts { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-text-fill: -ars-t4; }
+.dg-line { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-text-fill: #80cbc4; }
+.dg-cursor-blk { -fx-min-width: 9; -fx-pref-width: 9; -fx-min-height: 16; -fx-pref-height: 16; -fx-background-color: #80cbc4; }
+.dg-tx { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-background-color: -ars-bg; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 11 14 11 14; }
+.dg-send { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-accent-text; -fx-background-color: -ars-accent; -fx-background-radius: 7; -fx-padding: 11 18 11 18; -fx-cursor: hand; }
+
+/* J-Bridge */
+.jb-seq-track { -fx-min-height: 6; -fx-pref-height: 6; -fx-background-color: -ars-surface-3; -fx-background-radius: 99; }
+.jb-seq-fill { -fx-min-height: 6; -fx-pref-height: 6; -fx-background-color: -ars-bridge; -fx-background-radius: 99; }
+.jb-seq-lbl { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jb-seq-b { -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jb-slot { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
+.jb-slot-b { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 5 13 5 13; -fx-background-radius: 5; -fx-cursor: hand; }
+.jb-slot-b.on { -fx-background-color: -ars-surface-1; -fx-text-fill: -ars-t1; }
+.jb-entx-lbl { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+.jb-panel-hd { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 0 0 8 0; }
+.jb-tbl { -fx-background-color: -ars-bg; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; }
+.jb-th { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 9 12 9 12; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jb-row { -fx-padding: 4 12 4 12; }
+.jb-row.cq { -fx-background-color: rgba(103,210,131,0.07); }
+.jb-cell { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jb-msg { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.jb-msg.cq { -fx-text-fill: -ars-ok; }
+.jb-msg.me { -fx-text-fill: -ars-bridge; -fx-font-weight: bold; }
+.jb-noqso { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jb-noqso-sub { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jb-recv { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-ok; -fx-background-color: rgba(103,210,131,0.12); -fx-border-color: rgba(103,210,131,0.40); -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; }
+.jb-txn { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-text-fill: -ars-t1; -fx-background-color: -ars-bg; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 9 12 9 12; }
+.jb-txn-tag { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-bridge; }
+
+.sx-stat-v.digi { -fx-text-fill: -ars-digi; }
+.sx-stat-v.bridge { -fx-text-fill: -ars-bridge; }
+.sx-stat-v.ok { -fx-text-fill: -ars-ok; }
