@@ -46,13 +46,17 @@ public final class Shell {
         return tile;
     }
 
-    // ---- shell frame assembly: dock | (top + [center | rail]) -------------
+    // ---- shell frame assembly: dock | (top + [center | rail] + bottom) ----
     public static Region frame(Region dock, HBox top, Region center, Region rail) {
+        return frame(dock, top, center, rail, null);
+    }
+    public static Region frame(Region dock, HBox top, Region center, Region rail, Region bottom) {
         HBox.setHgrow(center, Priority.ALWAYS);
         Region body = (rail == null) ? center : new HBox(center, rail);
         if (body instanceof HBox hb) hb.setFillHeight(true);
         VBox.setVgrow(body, Priority.ALWAYS);
         VBox modwin = new VBox(top, body); modwin.getStyleClass().add("sx-modwin");
+        if (bottom != null) modwin.getChildren().add(bottom);
         HBox.setHgrow(modwin, Priority.ALWAYS); VBox.setVgrow(modwin, Priority.ALWAYS);
         HBox root = new HBox(dock, modwin); root.getStyleClass().add("sx-shell"); root.setFillHeight(true);
         return root;

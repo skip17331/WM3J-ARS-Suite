@@ -31,6 +31,10 @@ public class Launcher extends Application {
 
     /** Assemble a surface frame. Center content is filled in per-surface as built. */
     public static Region buildSurface(String id) {
+        switch (id) {
+            case "log": return com.ars.fx.surface.JLogCockpit.build();
+            default: break;
+        }
         Region dock = Shell.dock(id);
         HBox top;
         String[][] stats;

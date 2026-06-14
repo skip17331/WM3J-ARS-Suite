@@ -202,3 +202,69 @@
 .scroll-bar .thumb { -fx-background-color: -ars-border-2; -fx-background-radius: 8; }
 .scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; }
 .scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: " "; -fx-padding: 0; }
+
+/* ============================================================================
+   J-LOG cockpit (shot 02)
+   ============================================================================ */
+.sx-clock-sel { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8;
+                -fx-text-fill: -ars-t1; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 6 10 6 12; }
+
+.jl-entry { -fx-background-color: #1f2226; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-padding: 16 18 16 18; }
+.jl-eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jl-runsp { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
+.jl-runsp-btn { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 5 12 5 12; -fx-background-radius: 5; -fx-cursor: hand; }
+.jl-runsp-btn.on { -fx-background-color: -ars-accent; -fx-text-fill: #07141b; }
+.jl-emeta { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jl-flabel { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jl-ein-call { -fx-font-family: "JetBrains Mono"; -fx-font-weight: bold; -fx-font-size: 26px; -fx-text-fill: -ars-t1;
+               -fx-background-color: -ars-bg; -fx-border-color: -ars-border-2; -fx-border-width: 1.5; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 6 12 6 12; }
+.jl-ein-call:focused { -fx-border-color: -ars-log; }
+.jl-snt { -fx-font-family: "JetBrains Mono"; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t2;
+          -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 9 12 9 12; }
+.jl-fin { -fx-font-family: "JetBrains Mono"; -fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: -ars-t1;
+          -fx-background-color: -ars-bg; -fx-border-color: -ars-border-2; -fx-border-width: 1.5; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 9 11 9 11; }
+.jl-fin:focused { -fx-border-color: -ars-log; }
+.jl-logbtn { -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: -ars-log; -fx-text-fill: #1c1402; -fx-background-radius: 8; -fx-padding: 12 22 12 22; -fx-cursor: hand; }
+.jl-cp-empty { -fx-font-size: 12px; -fx-text-fill: -ars-t4; }
+.jl-disc { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 6 11 6 11; -fx-cursor: hand; }
+
+.jl-loghd { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 10 18 10 18; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jl-th { -fx-padding: 7 18 7 18; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jl-th-c { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jl-tr { -fx-padding: 7 18 7 18; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jl-tr-mono { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; }
+.jl-tr-call { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jl-mode { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 4; -fx-padding: 2 6 2 6; }
+.jl-multdot { -fx-min-width: 9; -fx-pref-width: 9; -fx-min-height: 9; -fx-pref-height: 9; -fx-background-radius: 99; -fx-background-color: -ars-warn; }
+
+/* band map */
+.jl-bm-col { -fx-background-color: -ars-bg; -fx-border-color: transparent -ars-border transparent -ars-border; -fx-border-width: 0 1 0 1; }
+.jl-bm-ph { -fx-padding: 10 14 10 14; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jl-bm-tickfq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9.5px; -fx-text-fill: -ars-t4; }
+.jl-bm-tickln { -fx-min-height: 1; -fx-pref-height: 1; -fx-background-color: -ars-border; }
+.jl-bm-dot { -fx-min-width: 7; -fx-pref-width: 7; -fx-min-height: 7; -fx-pref-height: 7; -fx-background-radius: 99; -fx-background-color: -ars-map; }
+.jl-bm-dot.me { -fx-background-color: -ars-accent; }
+.jl-bm-cl { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jl-bm-cl.me { -fx-text-fill: -ars-accent; }
+
+/* zones / mult chips */
+.jl-mchip { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: #373635;
+            -fx-text-fill: -ars-log; -fx-border-color: rgba(235,179,83,0.32); -fx-border-width: 1; -fx-background-radius: 5; -fx-border-radius: 5; -fx-padding: 4 9 4 9; }
+.jl-rate-bar { -fx-background-color: -ars-accent; -fx-background-radius: 2; }
+.jl-rate-foot { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jl-clu-fq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+.jl-clu-cl { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jl-clu-mult { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-warn; }
+.jl-clu-age { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; }
+
+/* bottom bar */
+.jl-bottom { -fx-min-height: 62; -fx-pref-height: 62; -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-padding: 0 14 0 14; -fx-alignment: center-left; }
+.jl-rig-fq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jl-rig-u { -fx-font-size: 11px; -fx-text-fill: -ars-accent; }
+.jl-chip { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 9 5 9; }
+.jl-chip.accent { -fx-background-color: -ars-accent-dim; -fx-text-fill: -ars-accent; -fx-border-color: -ars-accent-line; }
+.jl-macro { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 7 12 7 12; -fx-cursor: hand; -fx-alignment: center-left; }
+.jl-macro:hover { -fx-border-color: -ars-accent-line; -fx-background-color: -ars-surface-3; }
+.jl-macro-fk { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+.jl-macro-ml { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jl-theme { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
