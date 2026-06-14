@@ -1,73 +1,101 @@
 package com.ars.fx;
 
-import com.ars.fx.shell.Shell;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Dev launcher / surface previewer for the ARS Suite JavaFX rewrite.
- * Run with -Dsurface=map|log|sat|hub (default map). Surfaces are added as
- * they are built; until then a surface shows the shared shell skeleton.
+ * A picker bar across the top switches the surface shown below; a Theme
+ * button toggles light/dark live. Run with: mvn -q javafx:run
  */
 public class Launcher extends Application {
+
+    /** {surface id, tab label}. */
+    private static final String[][] SURFACES = {
+        {"hub","J-Hub"}, {"hubcfg","Config"}, {"log","J-Log"}, {"map","J-Map"},
+        {"sat","J-Sat"}, {"digi","J-Digi"}, {"bridge","J-Bridge"}, {"vault","J-Vault"}, {"learn","J-Learn"},
+    };
+
+    private final StackPane host = new StackPane();   // holds the active surface
+    private final List<Button> tabs = new ArrayList<>();
+    private Scene scene;
+    private boolean light = false;
 
     public static void main(String[] args) { launch(args); }
 
     @Override
     public void start(Stage stage) {
-        String surface = System.getProperty("surface", "map");
-        Region root = buildSurface(surface);
-        Scene scene = new Scene(root, 1440, 820);
-        Theme.apply(scene, Boolean.getBoolean("light"));
-        stage.setTitle("ARS Suite — " + surface);
+        HBox picker = buildPicker();
+        VBox root = new VBox(picker, host);
+        VBox.setVgrow(host, Priority.ALWAYS);
+        root.setStyle("-fx-background-color:-ars-bg;");
+
+        scene = new Scene(root, 1460, 900);
+        Theme.apply(scene, light);
+
+        String start = System.getProperty("surface", "hub");
+        show(start);
+
+        stage.setTitle("ARS Suite — JavaFX preview");
         stage.setScene(scene);
         stage.show();
     }
 
-    /** Assemble a surface frame. Center content is filled in per-surface as built. */
+    private HBox buildPicker() {
+        HBox bar = new HBox(8); bar.getStyleClass().add("picker"); bar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Label brand = new Label("ARS Suite ·"); brand.getStyleClass().add("picker-lbl");
+        bar.getChildren().add(brand);
+        for (String[] s : SURFACES) {
+            Button b = new Button(s[1]); b.getStyleClass().add("picker-btn");
+            b.setOnAction(e -> show(s[0]));
+            tabs.add(b); bar.getChildren().add(b);
+        }
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        Button theme = new Button("◑ Theme"); theme.getStyleClass().add("picker-btn");
+        theme.setOnAction(e -> toggleTheme());
+        bar.getChildren().addAll(sp, theme);
+        return bar;
+    }
+
+    private void show(String id) {
+        Node surface = buildSurface(id);
+        host.getChildren().setAll(surface);
+        // highlight the active tab
+        int idx = 0;
+        for (int i = 0; i < SURFACES.length; i++) if (SURFACES[i][0].equals(id)) idx = i;
+        for (int i = 0; i < tabs.size(); i++) {
+            tabs.get(i).getStyleClass().remove("on");
+            if (i == idx) tabs.get(i).getStyleClass().add("on");
+        }
+    }
+
+    private void toggleTheme() {
+        light = !light;
+        if (light) scene.getRoot().getStyleClass().add("ars-light");
+        else scene.getRoot().getStyleClass().remove("ars-light");
+    }
+
+    /** Build a surface frame by id. */
     public static Region buildSurface(String id) {
         switch (id) {
-            case "log": return com.ars.fx.surface.JLogCockpit.build();
-            case "hub": return com.ars.fx.surface.JHubDashboard.build();
+            case "log":    return com.ars.fx.surface.JLogCockpit.build();
+            case "hub":    return com.ars.fx.surface.JHubDashboard.build();
             case "hubcfg": return com.ars.fx.surface.JHubDashboard.buildConfig();
-            case "map": return com.ars.fx.surface.JMapView.build();
-            case "sat": return com.ars.fx.surface.JSatView.build();
-            case "digi": return com.ars.fx.surface.JDigiView.build();
+            case "map":    return com.ars.fx.surface.JMapView.build();
+            case "sat":    return com.ars.fx.surface.JSatView.build();
+            case "digi":   return com.ars.fx.surface.JDigiView.build();
             case "bridge": return com.ars.fx.surface.JBridgeView.build();
-            case "vault": return com.ars.fx.surface.JVaultView.build();
-            case "learn": return com.ars.fx.surface.JLearnView.build();
-            default: break;
+            case "vault":  return com.ars.fx.surface.JVaultView.build();
+            case "learn":  return com.ars.fx.surface.JLearnView.build();
+            default:       return com.ars.fx.surface.JHubDashboard.build();
         }
-        Region dock = Shell.dock(id);
-        HBox top;
-        String[][] stats;
-        Region center = new Region();
-        center.setStyle("-fx-background-color:-ars-bg;");
-        HBox.setHgrow(center, Priority.ALWAYS);
-        Region rail = Shell.rail(Shell.instruments(50).toArray(new Node[0]));
-        switch (id) {
-            case "map" -> {
-                stats = new String[][]{{"SPOTS / HR","342"},{"SHOWN","22"},{"GRAY LINE","SR 11:02 · SS 22:48"},{"BEAM","050°","accent"}};
-                top = Shell.topBar("map","map","J-Map","Propagation & spots · FN20", stats, "17:00:14");
-            }
-            case "sat" -> {
-                stats = new String[][]{{"TRACKING","AO-91","accent"},{"AZ / EL","096° / 31°"},{"NEXT","NOW"},{"ROTOR","auto-track"}};
-                top = Shell.topBar("sat","sat","J-Sat","Satellite tracking · AO-91", stats, "17:00:42");
-            }
-            case "log" -> {
-                stats = new String[][]{{"QSOS","1,284"},{"MULTS","13"},{"SCORE","16,692","amber"}};
-                top = Shell.topBar("log","log","J-Log","CQ WW DX · Zones", stats, "17:00:03");
-            }
-            default -> {
-                stats = new String[][]{{"STATUS","—"}};
-                top = Shell.topBar("hub","hub","J-Hub","WM3J", stats, "14:42:07");
-            }
-        }
-        return Shell.frame(dock, top, center, rail);
     }
 }

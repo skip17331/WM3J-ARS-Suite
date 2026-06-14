@@ -544,3 +544,10 @@
 
 .sx-stat-v.vault { -fx-text-fill: -ars-vault; }
 .sx-stat-v.learn { -fx-text-fill: -ars-learn; }
+
+/* dev surface-picker bar */
+.picker { -fx-background-color: -ars-surface-2; -fx-padding: 7 12 7 12; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.picker-lbl { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; }
+.picker-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; -fx-cursor: hand; }
+.picker-btn:hover { -fx-background-color: -ars-surface-3; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
+.picker-btn.on { -fx-background-color: -ars-accent; -fx-text-fill: -ars-accent-text; -fx-border-color: -ars-accent; }
