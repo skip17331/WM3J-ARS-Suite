@@ -33,6 +33,7 @@ public class Launcher extends Application {
     public static Region buildSurface(String id) {
         switch (id) {
             case "log": return com.ars.fx.surface.JLogCockpit.build();
+            case "hub": return com.ars.fx.surface.JHubDashboard.build();
             default: break;
         }
         Region dock = Shell.dock(id);

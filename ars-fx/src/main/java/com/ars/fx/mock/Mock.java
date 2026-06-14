@@ -61,4 +61,33 @@ public final class Mock {
     public static final String[][] MACROS = {
         {"F1","CQ"},{"F2","Exch"},{"F3","TU"},{"F4","My Call"},{"F5","His Call"},{"F6","Repeat"},{"F7","Fill?"},{"F8","QRZ"},
     };
+
+    // ---- J-Hub dashboard ----
+    /** Mini-logger Today's log: {utc, call, freq, band, mode, rst}. */
+    public static final String[][] TODAY_LOG = {
+        {"14:42","DL8WPX","14.074.00","20m","FT8","-13"},
+        {"14:31","VK9DX","14.074.00","20m","CW","559"},
+        {"14:18","JA1XYZ","14.074.00","20m","SSB","59"},
+        {"14:09","EA5K","14.074.00","20m","FT8","-08"},
+        {"13:57","G4ABC","14.074.00","20m","CW","599"},
+        {"13:44","PY2NY","14.074.00","20m","SSB","57"},
+        {"13:30","VE7CC","14.074.00","20m","FT8","-04"},
+    };
+    /** DX cluster spots: {freq, call, need, mode, band, de, comment, age}. */
+    public static final String[][] HUB_CLUSTER = {
+        {"14.022.0","VK9DX","y","CW","20m","JA1ABC","up 2","1m"},
+        {"21.295.0","ZD7BG","y","SSB","15m","G4XYZ","59 into EU","3m"},
+        {"7.005.0","5U5R","y","CW","40m","W3LPL","ATNO!","4m"},
+        {"14.074.0","DL8WPX","","FT8","20m","EA5K","-13 dB","5m"},
+        {"18.100.0","F05QB","y","CW","17m","VE7CC","","7m"},
+        {"28.495.0","PY2NY","","SSB","10m","K1TTT","strong","9m"},
+        {"10.136.0","JA7QVI","","FT8","30m","N6TR","+02 dB","11m"},
+        {"3.798.0","TF3IRA","","SSB","80m","OH2BH","gray line","14m"},
+        {"24.915.0","EA8RKL","","CW","12m","F6BEE","","18m"},
+    };
+    /** Setup profiles: {name, hue}. */
+    public static final String[][] PROFILES = {
+        {"Contest Day","log"},{"Casual DX","map"},{"Digital","digi"},{"Satellite Pass","sat"}
+    };
+    public static final String[] RIG_BANDS = {"160","80","40","30","20","17","15","12","10","6"};
 }

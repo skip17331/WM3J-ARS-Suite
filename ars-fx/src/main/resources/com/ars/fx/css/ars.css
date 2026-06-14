@@ -268,3 +268,98 @@
 .jl-macro-fk { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
 .jl-macro-ml { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .jl-theme { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+
+/* ============================================================================
+   J-HUB unified workspace (shots 01 + 09)
+   ============================================================================ */
+.jhub-bar { -fx-min-height: 30; -fx-pref-height: 30; -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-padding: 0 14 0 12; -fx-alignment: center-left; }
+.jhub-bar-dot { -fx-min-width: 9; -fx-pref-width: 9; -fx-min-height: 9; -fx-pref-height: 9; -fx-background-radius: 99; -fx-background-color: -ars-accent; }
+.jhub-bar-nm  { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-bar-sub { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jhub-bar-ham { -fx-font-size: 14px; -fx-text-fill: -ars-t2; }
+.jhub-theme   { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 4 9 4 9; }
+
+/* left nav */
+.jhub-nav { -fx-background-color: -ars-surface-1; -fx-border-color: transparent -ars-border transparent transparent; -fx-border-width: 0 1 0 0; }
+.jhub-nav-head { -fx-padding: 14 16 14 16; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jhub-nav-headnm { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-nav-sec { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; -fx-padding: 14 16 6 16; }
+.jhub-nav-item { -fx-padding: 8 12 8 12; -fx-background-radius: 9; -fx-cursor: hand; -fx-alignment: center-left; }
+.jhub-nav-item:hover { -fx-background-color: -ars-surface-2; }
+.jhub-nav-nm  { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-nav-st  { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jhub-nav-st.run { -fx-text-fill: -ars-ok; }
+.jhub-nav-item.active.run { -fx-background-color: #373635; }       /* J-Log running active (amber tint) */
+.jhub-nav-conf { -fx-padding: 8 12 8 12; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: center-left; }
+.jhub-nav-conf:hover { -fx-background-color: -ars-surface-2; }
+.jhub-nav-conf.active { -fx-background-color: -ars-accent-dim; }
+.jhub-nav-conf.active .jhub-nav-cnm { -fx-text-fill: -ars-accent; }
+.jhub-nav-cic { -fx-font-size: 14px; -fx-text-fill: -ars-t2; }
+.jhub-nav-conf.active .jhub-nav-cic { -fx-text-fill: -ars-accent; }
+.jhub-nav-cnm { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-nav-caret { -fx-font-size: 11px; -fx-text-fill: -ars-t4; }
+.jhub-nav-sub { -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; -fx-padding: 7 12 7 30; -fx-cursor: hand; -fx-background-radius: 7; }
+.jhub-nav-sub:hover { -fx-background-color: -ars-surface-2; -fx-text-fill: -ars-t1; }
+
+/* center header */
+.jhub-crumb   { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jhub-crumb-b { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-modrun  { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jhub-prof    { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 99; -fx-border-radius: 99; -fx-padding: 5 11 5 9; -fx-cursor: hand; -fx-alignment: center-left; }
+.jhub-prof-nm { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-mini-dot { -fx-min-width: 8; -fx-pref-width: 8; -fx-min-height: 8; -fx-pref-height: 8; -fx-background-radius: 99; }
+
+/* cards */
+.jhub-card { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; }
+.jhub-card-head { -fx-padding: 14 16 14 16; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-alignment: center-left; }
+.jhub-card-title { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-card-sub { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jhub-open { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+
+/* mini-log entry */
+.jhub-mini-hint { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jhub-mini-field { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-text-fill: -ars-t1; -fx-background-color: -ars-bg; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 8 10 8 10; }
+.jhub-mini-field.call { -fx-font-size: 18px; -fx-font-weight: bold; }
+.jhub-clearbtn { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-cursor: hand; }
+
+/* DX cluster spot */
+.jhub-clu { -fx-padding: 11 16 11 16; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jhub-clu-fq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-log; }
+.jhub-clu-call { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-need { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-warn; -fx-border-color: -ars-warn-soft; -fx-border-width: 1; -fx-background-color: -ars-warn-soft; -fx-background-radius: 4; -fx-border-radius: 4; -fx-padding: 1 5 1 5; }
+.jhub-clu-mode { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-background-color: -ars-surface-3; -fx-background-radius: 4; -fx-padding: 1 6 1 6; }
+.jhub-clu-de { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jhub-clu-age { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; }
+.jhub-clu-flt { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 10 5 10; }
+
+/* rich rig-control drawer */
+.jhub-rig-fq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-rig-u  { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
+.jhub-pill   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 4 9 4 9; }
+.jhub-pill.grey { -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; }
+.jhub-step { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 0 6 0; -fx-alignment: center; }
+.jhub-step.on { -fx-background-color: rgba(49,189,218,0.14); -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.jhub-sm-seg { -fx-min-height: 8; -fx-pref-height: 8; -fx-background-radius: 2; }
+.jhub-sm-seg.on { -fx-background-color: -ars-ok; }
+.jhub-sm-seg.off { -fx-background-color: -ars-surface-4; }
+.jhub-sm-k { -fx-font-family: "JetBrains Mono"; -fx-font-size: 8.5px; -fx-text-fill: -ars-t4; }
+.jhub-pw-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.jhub-pw-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jhub-band { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 0 7 0; -fx-alignment: center; }
+.jhub-band.on { -fx-background-color: rgba(49,189,218,0.14); -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+
+/* config page (shot 09) */
+.cfg-desc { -fx-font-size: 13px; -fx-text-fill: -ars-t2; }
+.cfg-status { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 16 20 16 20; }
+.cfg-sk { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.cfg-sv { -fx-font-family: "JetBrains Mono"; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.cfg-sv.ok { -fx-text-fill: -ars-ok; }
+.cfg-sec { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.cfg-card { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; }
+.cfg-row { -fx-padding: 13 16 13 16; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-alignment: center-left; }
+.cfg-lt { -fx-font-size: 13px; -fx-text-fill: -ars-t1; }
+.cfg-lh { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.cfg-input { -fx-font-size: 13px; -fx-text-fill: -ars-t1; -fx-background-color: -ars-bg; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 11 7 11; }
+.cfg-seg { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
+.cfg-seg-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 5 13 5 13; -fx-background-radius: 5; -fx-cursor: hand; }
+.cfg-seg-btn.on { -fx-background-color: -ars-surface-1; -fx-text-fill: -ars-t1; }
