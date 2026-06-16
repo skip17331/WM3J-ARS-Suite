@@ -111,6 +111,7 @@ public final class JMapView {
         // 1 Hz tick drives the beacon cycle and the live gray line (sun position,
         // az/el and SR/SS in the solar readout track the wall clock).
         beaconTicker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+            updateMapTopbar();                                 // ticking clock + live SPOTS/SHOWN/GRAY-LINE/BEAM
             if (showBeacons || ovGrayline) repaintMap();
         }));
         beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
@@ -205,8 +206,11 @@ public final class JMapView {
         Q_LAT = qdbl(com.ars.fx.data.HubConfig.get("station.lat", "39.7456"), 39.7456);
         Q_LON = qdbl(com.ars.fx.data.HubConfig.get("station.lon", "-76.96"), -76.96);
         myCall = com.ars.fx.data.HubConfig.call();
-        String[][] stats = {{"SPOTS / HR","342"},{"SHOWN","22"},{"GRAY LINE","SR 11:02 · SS 22:48"},{"BEAM","050°","accent"}};
-        HBox top = Shell.topBar("map","map","J-Map","Propagation & spots · " + com.ars.fx.data.HubConfig.grid(), stats, "17:00:14");
+        String[][] stats = {{"SPOTS", String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size())},
+                {"SHOWN", String.valueOf(liveSpots().size())},
+                {"GRAY LINE", grayLineStat()},
+                {"BEAM", String.format("%03d°", (int) beamDeg), "accent"}};
+        HBox top = Shell.topBar("map","map","J-Map","Propagation & spots · " + com.ars.fx.data.HubConfig.grid(), stats, nowUtc());
 
         // projection toggle: azimuthal canvas ⇄ rectangular blue-marble map
         StackPane mapHolder = new StackPane(); HBox.setHgrow(mapHolder, Priority.ALWAYS);
@@ -237,7 +241,31 @@ public final class JMapView {
 
         HBox center = new HBox(leftHolder, mapHolder); center.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(spotsBox));
-        return Shell.frame(dock, top, center, rail, tickerBar());
+        mapFrame = (Region) Shell.frame(dock, top, center, rail, tickerBar());
+        return mapFrame;
+    }
+
+    private static Region mapFrame;
+    private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
+    private static String grayLineStat() {
+        double[] rs = solarRiseSet();
+        return Double.isNaN(rs[0]) ? (rs[2] > 0 ? "sun up all day" : "sun down all day") : "SR " + hhmm(rs[0]) + " · SS " + hhmm(rs[1]);
+    }
+    /** Live topbar: ticking UTC clock + SPOTS / SHOWN / GRAY-LINE / BEAM. */
+    private static void updateMapTopbar() {
+        if (mapFrame == null) return;
+        if (mapFrame.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
+        java.util.List<Label> vs = new java.util.ArrayList<>(); collectStatValues(mapFrame, vs);
+        if (vs.size() >= 4) {
+            vs.get(0).setText(String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));
+            vs.get(1).setText(String.valueOf(liveSpots().size()));
+            vs.get(2).setText(grayLineStat());
+            vs.get(3).setText(String.format("%03d°", (int) beamDeg));
+        }
+    }
+    private static void collectStatValues(Node n, java.util.List<Label> out) {
+        if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
+        if (n instanceof javafx.scene.Parent p) for (Node c : p.getChildrenUnmodifiable()) collectStatValues(c, out);
     }
 
     // ---- bottom alert scroller (port of original J-Map DxScrollerBar) ------
