@@ -33,6 +33,7 @@ public final class JLogCockpit {
     private static TextField dateRef, timeRef;   // QSO date/time fields the ticker keeps "live"
     private static boolean[] manualRef;          // true once the operator overrides date/time
     private static TextField callRef, freqRef, bandRef, modeRef;   // spot-click prefill targets
+    private static Runnable lookupRef;                             // worked-before + callbook lookup for the current call
 
     // skimmer band-activity decodes: {freq, call, mode, wpm/snr}
     private static final String[][] SKIMMER = {
@@ -75,6 +76,7 @@ public final class JLogCockpit {
             if (p.mode() != null && !p.mode().isBlank()) modeRef.setText(p.mode());
             callRef.requestFocus();
             callRef.positionCaret(callRef.getText() == null ? 0 : callRef.getText().length());
+            if (lookupRef != null) lookupRef.run();   // worked-before + callbook autofill for the spotted call
         };
         if (Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
     }
@@ -226,9 +228,9 @@ public final class JLogCockpit {
         clear.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = ""; call.requestFocus(); });
         cancel.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); call.requestFocus(); });
 
-        // Callsign field exit: worked-before/dupe indicator + callbook autofill (both off-thread).
-        call.focusedProperty().addListener((o, was, now) -> {
-            if (now) return;
+        // Worked-before/dupe indicator + callbook autofill for the current call (both off-thread).
+        // Shared by the call-field exit AND the spot-click prefill.
+        Runnable doCallLookup = () -> {
             String c = call.getText() == null ? "" : call.getText().trim().toUpperCase();
             if (c.length() < 3) { b4.setText("Normal log"); b4.setStyle(""); return; }
             if (c.equals(lastLk[0])) return;
@@ -245,7 +247,9 @@ public final class JLogCockpit {
                 });
             }, "callsign-lookup");
             t.setDaemon(true); t.start();
-        });
+        };
+        lookupRef = doCallLookup;
+        call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
         VBox entry = new VBox(0, head, body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
