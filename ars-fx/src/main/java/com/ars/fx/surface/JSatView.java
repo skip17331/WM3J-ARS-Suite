@@ -43,6 +43,39 @@ public final class JSatView {
         if (trackRotor && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().moveTo(f.azDeg());
         if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz());
     }
+
+    private static boolean aosAlarm = false;                              // chirp on AOS / LOS transitions
+    private static final java.util.Set<String> prevInPass = new java.util.HashSet<>();
+    private static boolean alarmInited = false;
+    /** Detect satellites crossing the horizon since the last snapshot and chirp if armed. */
+    private static void checkAlarms(Snapshot snap) {
+        java.util.Set<String> now = new java.util.HashSet<>();
+        for (SatInfo s : snap.sats()) if (s.inPass()) now.add(s.name());
+        if (alarmInited && aosAlarm) {
+            for (String n : now) if (!prevInPass.contains(n)) beep(true);      // AOS (rising chirp)
+            for (String n : prevInPass) if (!now.contains(n)) beep(false);     // LOS (falling chirp)
+        }
+        prevInPass.clear(); prevInPass.addAll(now); alarmInited = true;
+    }
+    /** Two-note chirp (rising = AOS, falling = LOS) via javax.sound; silent if no audio device. */
+    private static void beep(boolean rising) {
+        Thread t = new Thread(() -> {
+            try {
+                int rate = 44100; double dur = 0.16;
+                float[] freqs = rising ? new float[]{784, 1175} : new float[]{784, 523};
+                javax.sound.sampled.AudioFormat fmt = new javax.sound.sampled.AudioFormat(rate, 8, 1, true, false);
+                javax.sound.sampled.SourceDataLine line = javax.sound.sampled.AudioSystem.getSourceDataLine(fmt);
+                line.open(fmt); line.start();
+                for (float fr : freqs) {
+                    byte[] buf = new byte[(int) (rate * dur)];
+                    for (int i = 0; i < buf.length; i++) buf[i] = (byte) (Math.sin(2 * Math.PI * fr * i / rate) * 78);
+                    line.write(buf, 0, buf.length);
+                }
+                line.drain(); line.close();
+            } catch (Throwable ignored) { }
+        }, "sat-alarm");
+        t.setDaemon(true); t.start();
+    }
     private static boolean satCollapsed = false;
     private static StackPane host;
     private static boolean clockStarted = false;
@@ -97,6 +130,7 @@ public final class JSatView {
         Region dock = Shell.dock("sat");
         SatInfo f = focus(snap);
         autoTrack(f);
+        checkAlarms(snap);
         String name = f != null ? f.name() : "—";
         String[][] stats = {
                 {"TRACKING", name, "accent"},
@@ -383,6 +417,7 @@ public final class JSatView {
             doppler = new VBox(9, lbl("No satellite selected", "js-radio-sub"));
         }
         VBox np = new VBox();
+        np.getChildren().add(satToggleRow("AOS / LOS alarm", aosAlarm, () -> { aosAlarm = !aosAlarm; rebuild(); }));
         int shown = 0;
         for (SatInfo s : snap.sats()) {
             if (shown++ >= 6) break;
