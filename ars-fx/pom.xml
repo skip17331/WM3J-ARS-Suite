@@ -14,23 +14,38 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.3</javafx.version>
+        <!-- JavaFX native/platform classifier resolved from Maven (desktop x86_64 = linux). -->
+        <javafx.platform>linux</javafx.platform>
+        <!-- shaded-jar packaging knobs (overridden by -Ppi):
+             dist     = output name suffix (target/ars-fx-<dist>.jar)
+             fx.scope = scope of the JavaFX deps. compile → bundled in the desktop jar;
+                        pi sets it to provided so shade leaves JavaFX out (OpenJFX ships
+                        no ARM-Linux jar to Maven — it comes from a Liberica Full JDK on
+                        the Pi). The transitive JavaFX in j-digi/j-bridge is excluded
+                        below so it can never sneak back in. -->
+        <dist>linux</dist>
+        <fx.scope>compile</fx.scope>
         <!-- start surface; override: mvn javafx:run -Dsurface=map -->
         <surface>hub</surface>
     </properties>
 
     <dependencies>
-        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${javafx.version}</version></dependency>
-        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-graphics</artifactId><version>${javafx.version}</version></dependency>
+        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-base</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope></dependency>
+        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-graphics</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope></dependency>
+        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope></dependency>
         <!-- shares ~/.j-log/j-log.db with the J-Log module (same schema/driver) -->
         <dependency><groupId>org.xerial</groupId><artifactId>sqlite-jdbc</artifactId><version>3.46.0.0</version></dependency>
         <!-- sqlite-jdbc 3.46's JDBC clinit references slf4j; api-only → NOP fallback -->
         <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId><version>2.0.13</version></dependency>
         <!-- J-Sat satellite registry + ~/.j-sat settings JSON parsing -->
         <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.10.1</version></dependency>
-        <!-- J-Digi embeds the real modem engine (ModemService); same JavaFX/gson/slf4j versions -->
-        <dependency><groupId>com.hamradio</groupId><artifactId>j-digi</artifactId><version>1.0.42</version></dependency>
+        <!-- J-Digi embeds the real modem engine (ModemService); same JavaFX/gson/slf4j versions.
+             Exclude its transitive JavaFX so our scoped (compile/provided) JavaFX is the only one. -->
+        <dependency><groupId>com.hamradio</groupId><artifactId>j-digi</artifactId><version>1.0.42</version>
+            <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- J-Bridge embeds the real WSJT-X UDP listener + decode/status models -->
-        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.5.2</version></dependency>
+        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.5.2</version>
+            <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- Solo J-Map/J-Sat ⇄ station J-Hub link (same WS lib the suite's central hub uses) -->
         <dependency><groupId>org.java-websocket</groupId><artifactId>Java-WebSocket</artifactId><version>1.5.6</version></dependency>
     </dependencies>
@@ -56,6 +71,88 @@
                     </options>
                 </configuration>
             </plugin>
+            <!-- Runnable jar: app + all deps in one file.
+                 `mvn -q package`       → target/ars-fx-linux.jar  (desktop x86_64, JavaFX bundled — plain JDK)
+                 `mvn -q -Ppi package`  → target/ars-fx-pi.jar     (no JavaFX — run on a Liberica Full JDK on the Pi) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <finalName>ars-fx-${dist}</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                                <!-- j-digi / j-bridge are published as fat jars that each embed all of
+                                     JavaFX (+natives). Strip that out: the desktop jar supplies JavaFX from
+                                     the openjfx deps, the Pi jar gets it from a Liberica Full JDK. -->
+                                <filter>
+                                    <artifact>com.hamradio:j-digi</artifact>
+                                    <excludes>
+                                        <exclude>javafx/**</exclude>
+                                        <exclude>com/sun/javafx/**</exclude>
+                                        <exclude>com/sun/glass/**</exclude>
+                                        <exclude>com/sun/prism/**</exclude>
+                                        <exclude>com/sun/scenario/**</exclude>
+                                        <exclude>com/sun/webkit/**</exclude>
+                                        <exclude>com/sun/media/**</exclude>
+                                        <exclude>com/sun/marlin/**</exclude>
+                                        <exclude>com/sun/pisces/**</exclude>
+                                        <exclude>**/*.so</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>com.hamradio:j-bridge</artifact>
+                                    <excludes>
+                                        <exclude>javafx/**</exclude>
+                                        <exclude>com/sun/javafx/**</exclude>
+                                        <exclude>com/sun/glass/**</exclude>
+                                        <exclude>com/sun/prism/**</exclude>
+                                        <exclude>com/sun/scenario/**</exclude>
+                                        <exclude>com/sun/webkit/**</exclude>
+                                        <exclude>com/sun/media/**</exclude>
+                                        <exclude>com/sun/marlin/**</exclude>
+                                        <exclude>com/sun/pisces/**</exclude>
+                                        <exclude>**/*.so</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.ars.fx.Main</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Raspberry Pi (64-bit Pi OS / aarch64): mvn -Ppi clean package.
+             OpenJFX publishes no ARM-Linux jar to Maven, so JavaFX is left out of
+             the jar and supplied by a Liberica Full JDK 21 on the Pi (see launch/README). -->
+        <profile>
+            <id>pi</id>
+            <properties>
+                <dist>pi</dist>
+                <fx.scope>provided</fx.scope>
+            </properties>
+        </profile>
+    </profiles>
 </project>

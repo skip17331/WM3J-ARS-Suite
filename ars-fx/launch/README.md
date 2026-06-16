@@ -4,22 +4,38 @@ J-Map and J-Sat can run **on their own** — on a second monitor, a laptop, or a
 shack Raspberry Pi — driven by a small JSON launch file. (J-Log, J-Learn,
 J-Vault and J-Digi stay in the dock.)
 
-## Run
+## Run (dev)
 
 ```bash
-# from the ars-fx module (dev):
 mvn -q javafx:run -Dars.config=launch/j-map-remote.json
-
-# from a built jar:
-java -Dars.config=/path/to/j-map-remote.json -jar ars-fx.jar
-#   or:  java -jar ars-fx.jar --config /path/to/j-map-remote.json
 ```
 
-Generate a starter file without hand-editing:
+## Build a runnable jar
 
 ```bash
-java -jar ars-fx.jar --write-sample map  j-map-solo.json
-java -jar ars-fx.jar --write-sample sat  j-sat-solo.json
+mvn -q package          # → target/ars-fx-linux.jar   desktop x86_64, JavaFX bundled (plain JDK)
+mvn -q -Ppi package     # → target/ars-fx-pi.jar       Raspberry Pi, JavaFX NOT bundled
+./build-pi.sh           # convenience wrapper for the Pi build + next-steps
+```
+
+```bash
+java -jar target/ars-fx-linux.jar --config launch/j-map-remote.json
+java -jar ars-fx.jar --write-sample map j-map-solo.json   # generate a starter file
+```
+
+## On the Raspberry Pi
+
+OpenJFX publishes no ARM-Linux jar to Maven, so `ars-fx-pi.jar` does **not**
+bundle JavaFX — install a **Liberica Full JDK 21** (BellSoft's JDK with JavaFX
+built in; the standard way to run JavaFX on a Pi):
+
+```bash
+# BellSoft tarball: bell-sw.com/pages/downloads → JDK 21 / Full / ARM 64 / Linux
+#   or via apt:     sudo apt install bellsoft-java21-full
+
+# then copy ars-fx-pi.jar + a launch JSON to the Pi and run:
+java -jar ars-fx-pi.jar --config j-map-remote.json
+#   or use the wrapper:  ./run-solo.sh j-map-remote.json
 ```
 
 ## Launch file
