@@ -1,115 +1,192 @@
 package com.ars.fx.surface;
 
-import com.ars.fx.mock.Mock;
+import com.ars.fx.data.BridgeService;
 import com.ars.fx.shell.Shell;
-import com.ars.fx.shell.Waterfall;
+import com.hamradio.jbridge.model.WsjtxDecode;
+import com.hamradio.jbridge.model.WsjtxStatus;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
+import javafx.util.Duration;
 
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.ars.fx.shell.Shell.lbl;
 
-/** J-Bridge WSJT-X/FT8 bridge (handoff shot 05), mock data. */
+/** J-Bridge — live WSJT-X monitor over the real UDP listener (com.hamradio:j-bridge). */
 public final class JBridgeView {
     private JBridgeView() {}
 
+    private static final DateTimeFormatter HMS = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneOffset.UTC);
+
     public static Region build() {
         Region dock = Shell.dock("bridge");
-        String[][] stats = {{"DIAL","14.074","bridge"},{"MODE","FT8"},{"DECODES","12"},{"WSJT-X","● linked","ok"}};
-        HBox top = Shell.topBar("bridge","bridge","J-Bridge","WSJT-X bridge · FT8", stats, "17:00:34");
+        BridgeService.start();
+        WsjtxStatus st0 = BridgeService.status();
 
-        VBox center = new VBox(13, wfHeader(), waterfall(), seqBar(), tables(), footer());
+        String[][] stats = {{"DIAL", dialMHz(st0), "bridge"}, {"MODE", st0 != null ? nz(st0.getMode()) : "—"},
+                {"DECODES", String.valueOf(BridgeService.decodes().size())},
+                {"WSJT-X", BridgeService.connected() ? "● linked" : "○ waiting", BridgeService.connected() ? "ok" : ""}};
+        HBox top = Shell.topBar("bridge", "bridge", "J-Bridge", "WSJT-X bridge · UDP " + BridgeService.port(), stats, null);
+
+        // connection + status line
+        Label conn = lbl("", "jb-seq-lbl");
+        Label seqLbl = lbl("", "jb-seq-lbl");
+        Label nextLbl = lbl("", "jb-seq-lbl");
+        Region prog = progress();
+        Label slotEven = slotBtn("Even"), slotOdd = slotBtn("Odd");
+        Label txState = lbl("RECEIVING", "jb-recv");
+
+        HBox seqLine = new HBox(6, lbl("15 s period ·", "jb-seq-lbl"), seqLbl, nextLbl); seqLine.setAlignment(Pos.CENTER_LEFT);
+        VBox progBox = new VBox(6, prog, seqLine); HBox.setHgrow(progBox, Priority.ALWAYS);
+        HBox slot = new HBox(2, slotEven, slotOdd); slot.getStyleClass().add("jb-slot");
+        HBox seqRow = new HBox(16, progBox, slot, txState); seqRow.setAlignment(Pos.CENTER_LEFT);
+
+        // decode table host (rebuilt on each WSJT-X event)
+        VBox tableHost = new VBox(); VBox.setVgrow(tableHost, Priority.ALWAYS);
+
+        VBox footer = new VBox(); footer.setPadding(new Insets(14, 16, 14, 16));
+        footer.setStyle("-fx-background-color:-ars-surface-1;-fx-border-color:-ars-border;-fx-border-width:1;-fx-background-radius:10;-fx-border-radius:10;");
+
+        VBox linkBody = new VBox();   // rail "WSJT-X link" drawer body (live)
+
+        Runnable refresh = () -> {
+            WsjtxStatus s = BridgeService.status();
+            conn.setText(BridgeService.connected()
+                    ? "● " + (BridgeService.sourceApp().isBlank() ? "WSJT-X" : BridgeService.sourceApp())
+                        + (BridgeService.version().isBlank() ? "" : " " + BridgeService.version()) + " · UDP " + BridgeService.port()
+                    : "○ waiting for WSJT-X on UDP " + BridgeService.port() + " — start WSJT-X (Reporting ▸ accept UDP requests)");
+            conn.setStyle(BridgeService.connected() ? "-fx-text-fill:-ars-ok;" : "-fx-text-fill:-ars-t4;");
+            txState.setText(s != null && s.isTransmitting() ? "TRANSMITTING" : (s != null && s.isTxEnabled() ? "TX ENABLED" : "RECEIVING"));
+            txState.setStyle(s != null && s.isTransmitting() ? "-fx-text-fill:-ars-err;" : "");
+            fillDecodes(tableHost);
+            fillFooter(footer, s);
+            fillLink(linkBody);
+            updateTopStats(top);
+        };
+        BridgeService.setSink(() -> Platform.runLater(refresh));
+        fillLink(linkBody);
+        refresh.run();
+
+        // local FT8 sequence clock (WSJT-X UDP carries no spectrum/period; derive from UTC)
+        Timeline seq = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            long sec = java.time.Instant.now().getEpochSecond();
+            boolean even = (sec % 30) < 15;
+            int into = (int) (sec % 15), left = 15 - into;
+            seqLbl.setText(even ? "EVEN slot" : "ODD slot");
+            nextLbl.setText("· " + left + "s to next");
+            slotEven.getStyleClass().remove("on"); slotOdd.getStyleClass().remove("on");
+            (even ? slotEven : slotOdd).getStyleClass().add("on");
+            ((Region) prog.getChildrenUnmodifiable().get(1)).setMaxWidth(prog.getWidth() * (into / 15.0));
+        }));
+        seq.setCycleCount(Timeline.INDEFINITE); seq.play();
+
+        VBox center = new VBox(13, conn, seqRow, tableHost, footer);
         center.setPadding(new Insets(16, 18, 16, 18)); center.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(center, Priority.ALWAYS);
-        Region rail = Shell.rail(railDrawers());
+        Region rail = Shell.rail(railDrawers(linkBody));
         return Shell.frame(dock, top, center, rail);
     }
 
-    private static Region wfHeader() {
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox h = new HBox(lbl("WATERFALL","wf-eyebrow"), sp, lbl("200–2800 Hz · 14.074 MHz","wf-scale")); h.setAlignment(Pos.CENTER_LEFT);
-        return h;
+    private static void updateTopStats(HBox top) {
+        List<Label> vs = new ArrayList<>(); collectStatValues(top, vs);
+        if (vs.size() < 4) return;
+        WsjtxStatus s = BridgeService.status();
+        vs.get(0).setText(dialMHz(s));
+        vs.get(1).setText(s != null ? nz(s.getMode()) : "—");
+        vs.get(2).setText(String.valueOf(BridgeService.decodes().size()));
+        vs.get(3).setText(BridgeService.connected() ? "● linked" : "○ waiting");
     }
-    private static Region waterfall() {
-        Canvas cv = Waterfall.canvas(1010, 130, "ft8",
-            new double[][]{{0.18,8,0.9},{0.32,8,0.8},{0.45,9,1.0},{0.6,8,0.7},{0.72,8,0.85},{0.85,8,0.6}});
-        StackPane wf = new StackPane(cv); wf.setMaxWidth(Double.MAX_VALUE);
-        HBox scale = new HBox(); for (String s : Mock.BRIDGE_SCALE){ Label l = lbl(s,"wf-scale"); HBox.setHgrow(l,Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); scale.getChildren().add(l); }
-        ((Label)scale.getChildren().get(scale.getChildren().size()-1)).setAlignment(Pos.CENTER_RIGHT);
-        scale.getChildren().add(lbl("Hz","wf-scale"));
-        return new VBox(4, wf, scale);
+    private static void collectStatValues(Node n, List<Label> out) {
+        if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
+        if (n instanceof javafx.scene.Parent p) for (Node c : p.getChildrenUnmodifiable()) collectStatValues(c, out);
     }
-    private static Region seqBar() {
-        Region prog = progress(0.72);
-        VBox lblBox = new VBox(0); HBox.setHgrow(lblBox, Priority.ALWAYS);
-        HBox line = new HBox(6, lbl("15 s FT8 period ·","jb-seq-lbl"), lbl("EVEN","jb-seq-b"), lbl("slot","jb-seq-lbl")); line.setAlignment(Pos.CENTER_LEFT);
+    private static void fillLink(VBox link) {
+        WsjtxStatus s = BridgeService.status();
+        link.getChildren().setAll(
+                JDigiView.kvRow("Listener", BridgeService.running() ? "● UDP " + BridgeService.port() : "stopped", BridgeService.running()),
+                JDigiView.kvRow("Upstream", BridgeService.connected() ? nz2(BridgeService.sourceApp(), "WSJT-X") + " " + BridgeService.version() : "waiting", BridgeService.connected()),
+                JDigiView.kvRow("Dial", s != null ? dialMHz(s) : "—", false),
+                JDigiView.kvRow("Mode", s != null ? nz(s.getMode()) : "—", false),
+                JDigiView.kvRow("Tx enabled", s != null && s.isTxEnabled() ? "yes" : "no", s != null && s.isTxEnabled()));
+    }
+
+    private static final double[] DC = {62, 44, 44, 56};
+    private static void fillDecodes(VBox host) {
+        host.getChildren().clear();
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox under = new HBox(line, sp, lbl("11s to next","jb-seq-lbl")); under.setAlignment(Pos.CENTER_LEFT);
-        lblBox.getChildren().addAll(prog, under); VBox.setMargin(under, new Insets(6,0,0,0));
-        HBox slot = new HBox(2, slotBtn("Even",true), slotBtn("Odd",false)); slot.getStyleClass().add("jb-slot");
-        HBox entx = new HBox(9, switchNode(false), lbl("Enable Tx","jb-entx-lbl")); entx.setAlignment(Pos.CENTER_LEFT);
-        HBox row = new HBox(16, lblBox, slot, entx); row.setAlignment(Pos.CENTER_LEFT);
+        HBox hd = new HBox(8, cell(lbl("UTC", "jb-panel-hd"), 0), cell(lbl("dB", "jb-panel-hd"), 1),
+                cell(lbl("DT", "jb-panel-hd"), 2), cell(lbl("ΔF", "jb-panel-hd"), 3), msgCell(lbl("MESSAGE", "jb-panel-hd")));
+        hd.setAlignment(Pos.CENTER_LEFT);
+        VBox tbl = new VBox(); tbl.getStyleClass().add("jb-tbl"); VBox.setVgrow(tbl, Priority.ALWAYS);
+        List<WsjtxDecode> ds = BridgeService.decodes();
+        if (ds.isEmpty()) {
+            Label none = lbl("No decodes yet — waiting for WSJT-X traffic.", "jb-noqso-sub"); none.setPadding(new Insets(16, 4, 16, 4));
+            tbl.getChildren().add(none);
+        } else {
+            for (WsjtxDecode d : ds) tbl.getChildren().add(decodeRow(d));
+        }
+        host.getChildren().addAll(hd, tbl);
+    }
+    private static HBox decodeRow(WsjtxDecode d) {
+        HBox row = new HBox(8); row.getStyleClass().add("jb-row"); if (d.isCqCall()) row.getStyleClass().add("cq"); row.setAlignment(Pos.CENTER_LEFT);
+        row.getChildren().add(cell(lbl(d.getTimestamp() != null ? HMS.format(d.getTimestamp()) : "—", "jb-cell"), 0));
+        row.getChildren().add(cell(lbl(String.valueOf(d.getSnr()), "jb-cell"), 1));
+        row.getChildren().add(cell(lbl(String.format("%+.1f", d.getDeltaTime()), "jb-cell"), 2));
+        row.getChildren().add(cell(lbl(String.valueOf(d.getDeltaFrequency()), "jb-cell"), 3));
+        Label msg = lbl(nz(d.getMessage()), "jb-msg"); if (d.isCqCall()) msg.getStyleClass().add("cq");
+        HBox.setHgrow(msg, Priority.ALWAYS); msg.setMaxWidth(Double.MAX_VALUE);
+        String tail = (d.getCountry() != null && !d.getCountry().isBlank() ? d.getCountry() : "")
+                + (d.getDistanceKm() > 0 ? "  " + Math.round(d.getDistanceKm()) + " km" : "");
+        HBox m = new HBox(10, msg); m.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(m, Priority.ALWAYS);
+        if (!tail.isBlank()) m.getChildren().add(lbl(tail.trim(), "jb-panel-hd"));
+        row.getChildren().add(m);
         return row;
     }
-    private static Label slotBtn(String t, boolean on){ Label l = lbl(t,"jb-slot-b"); if(on) l.getStyleClass().add("on"); return l; }
 
-    private static Region tables() {
-        HBox h = new HBox(0, tableCard("BAND ACTIVITY", Mock.BAND_ACTIVITY, true), tableCard("RX FREQUENCY", Mock.RX_FREQUENCY, false));
-        h.setSpacing(0); HBox.setMargin(h.getChildren().get(1), new Insets(0,0,0,16)); VBox.setVgrow(h, Priority.ALWAYS); h.setFillHeight(true);
-        return h;
-    }
-    private static final double[] TC = {44,40,40,52};
-    private static Region tableCard(String title, String[][] rows, boolean collapseDash) {
+    private static void fillFooter(VBox footer, WsjtxStatus s) {
+        footer.getChildren().clear();
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox hd = new HBox(lbl(title,"jb-panel-hd"), sp, lbl("UTC · dB · DT · Hz","jb-panel-hd")); hd.setAlignment(Pos.CENTER_LEFT);
-        VBox tbl = new VBox(); tbl.getStyleClass().add("jb-tbl"); VBox.setVgrow(tbl, Priority.ALWAYS);
-        for (String[] r : rows) {
-            HBox row = new HBox(8); row.getStyleClass().add("jb-row"); if (r[5].equals("cq")) row.getStyleClass().add("cq"); row.setAlignment(Pos.CENTER_LEFT);
-            for (int i=0;i<4;i++){ Label c = lbl(r[i],"jb-cell"); c.setMinWidth(TC[i]); row.getChildren().add(c); }
-            Label msg = lbl(r[4],"jb-msg"); if (r[5].equals("cq")) msg.getStyleClass().add("cq"); else if (r[5].equals("me")) msg.getStyleClass().add("me");
-            HBox.setHgrow(msg, Priority.ALWAYS); msg.setMaxWidth(Double.MAX_VALUE); row.getChildren().add(msg);
-            tbl.getChildren().add(row);
-        }
-        VBox card = new VBox(8, hd, tbl); HBox.setHgrow(card, Priority.ALWAYS); card.setMaxWidth(Double.MAX_VALUE);
-        return card;
+        boolean haveDx = s != null && s.getDxCall() != null && !s.getDxCall().isBlank();
+        VBox left = haveDx
+                ? new VBox(2, lbl(s.getDxCall() + (s.getDxGrid() != null && !s.getDxGrid().isBlank() ? "  " + s.getDxGrid() : ""), "jb-noqso"),
+                        lbl("report " + nz(s.getReport()) + (s.getBand() != null ? " · " + s.getBand() : ""), "jb-noqso-sub"))
+                : new VBox(2, lbl("No DX selected", "jb-noqso"), lbl("Double-click a station in WSJT-X to set the DX call", "jb-noqso-sub"));
+        Label rx = lbl(s != null && s.isTransmitting() ? "TRANSMITTING" : "RECEIVING", "jb-recv");
+        HBox topRow = new HBox(left, sp, rx); topRow.setAlignment(Pos.CENTER_LEFT);
+        footer.getChildren().add(topRow);
     }
 
-    private static Region footer() {
-        VBox left = new VBox(2, lbl("No QSO","jb-noqso"), lbl("Double-click a CQ decode to call","jb-noqso-sub"));
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox top = new HBox(left, sp, lbl("RECEIVING","jb-recv")); top.setAlignment(Pos.CENTER_LEFT);
-        HBox tx = new HBox(8, lbl("Tx6","jb-txn-tag"), lbl("CQ WM3J FN…","jb-cell")); tx.getStyleClass().add("jb-txn"); tx.setAlignment(Pos.CENTER_LEFT); tx.setMaxWidth(Double.MAX_VALUE);
-        VBox box = new VBox(11, top, tx);
-        box.setPadding(new Insets(14,16,14,16)); box.setStyle("-fx-background-color:-ars-surface-1; -fx-border-color:-ars-border; -fx-border-width:1; -fx-background-radius:10; -fx-border-radius:10;");
-        return box;
-    }
-
-    private static Node[] railDrawers() {
-        VBox link = new VBox();
-        for (String[] d : Mock.WSJTX_LINK) link.getChildren().add(JDigiView.kvRow(d[0], d[1], d[2].equals("y")));
+    private static Node[] railDrawers(VBox linkBody) {
         List<Node> rail = new ArrayList<>();
-        rail.add(Shell.drawer("WSJT-X link","bridge","bridge","Connected", true, link));
+        rail.add(Shell.drawer("WSJT-X link", "bridge", "bridge", BridgeService.connected() ? "connected" : "waiting", true, linkBody));
         rail.addAll(Shell.instruments(50));
         return rail.toArray(new Node[0]);
     }
 
     // ---- helpers -----------------------------------------------------------
-    private static Region progress(double frac) {
+    private static Pane progress() {
         Region track = new Region(); track.getStyleClass().add("jb-seq-track");
         Region fill = new Region(); fill.getStyleClass().add("jb-seq-fill");
         Pane p = new Pane(track, fill); p.setMinHeight(6); p.setMaxHeight(6); p.setMaxWidth(Double.MAX_VALUE);
-        p.widthProperty().addListener((o,ov,nv)->{ double w=nv.doubleValue(); track.resizeRelocate(0,0,w,6); fill.resizeRelocate(0,0,w*frac,6); });
+        p.widthProperty().addListener((o, ov, nv) -> { double w = nv.doubleValue(); track.resizeRelocate(0, 0, w, 6); fill.resizeRelocate(0, 0, fill.getMaxWidth(), 6); });
+        fill.maxWidthProperty().addListener((o, ov, nv) -> fill.resizeRelocate(0, 0, nv.doubleValue(), 6));
         return p;
     }
-    private static Region switchNode(boolean on) {
-        Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
-        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); if (on) sw.getStyleClass().add("on");
-        sw.setPadding(new Insets(0,3,0,3)); StackPane.setAlignment(knob, on ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT); sw.setMaxSize(36,20);
-        return sw;
+    private static Label slotBtn(String t) { Label l = lbl(t, "jb-slot-b"); return l; }
+    private static Region cell(Node n, int i) {
+        HBox c = new HBox(n); c.setAlignment(Pos.CENTER_LEFT); c.setMinWidth(DC[i]); c.setPrefWidth(DC[i]); c.setMaxWidth(DC[i]); return c;
     }
+    private static Region msgCell(Node n) { HBox c = new HBox(n); c.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(c, Priority.ALWAYS); c.setMaxWidth(Double.MAX_VALUE); return c; }
+    private static String dialMHz(WsjtxStatus s) { return s == null || s.getDialFrequency() <= 0 ? "—" : String.format("%.3f", s.getDialFrequency() / 1_000_000.0); }
+    private static String nz(String s) { return (s == null || s.isBlank()) ? "—" : s; }
+    private static String nz2(String s, String d) { return (s == null || s.isBlank()) ? d : s; }
 }

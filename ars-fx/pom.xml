@@ -29,6 +29,8 @@
         <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.10.1</version></dependency>
         <!-- J-Digi embeds the real modem engine (ModemService); same JavaFX/gson/slf4j versions -->
         <dependency><groupId>com.hamradio</groupId><artifactId>j-digi</artifactId><version>1.0.42</version></dependency>
+        <!-- J-Bridge embeds the real WSJT-X UDP listener + decode/status models -->
+        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.5.2</version></dependency>
     </dependencies>
 
     <build>
