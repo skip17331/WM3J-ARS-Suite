@@ -191,28 +191,37 @@ public final class Shell {
     public static List<Node> instruments(int az) {
         String dir = new String[]{"N","NE","E","SE","S","SW","W","NW"}[(int)Math.round(((az%360+360)%360)/45.0)%8];
         String az3 = String.format("%03d", (az%360+360)%360);
-        // Antenna · Rotor
-        VBox roInfo = new VBox(0); roInfo.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(roInfo, Priority.ALWAYS);
-        HBox head = new HBox(2, lbl(az3, "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
-        Label ccw = btn("◀ CCW","sx-ro-turn-btn"), stop = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW ▶","sx-ro-turn-btn");
-        ccw.setStyle("-fx-cursor:hand;"); stop.setStyle("-fx-cursor:hand;"); cw.setStyle("-fx-cursor:hand;");
-        ccw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(-15));
-        stop.setOnMouseClicked(e -> RotorClient.getInstance().stop());
-        cw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(15));
-        HBox turn = new HBox(5, ccw, stop, cw);
-        for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
-        roInfo.getChildren().addAll(head, lbl(dir + " · short path", "sx-ro-dir"), turn);
-        VBox.setMargin(turn, new Insets(10,0,0,0));
-        HBox roTop = new HBox(13, compass(az, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
-        GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
-        int i = 0; for (Object[] p : Mock.ROTOR_PRESETS) {
-            final int paz = ((Number) p[1]).intValue();
-            Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-            b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> RotorClient.getInstance().moveTo(paz));
-            presets.add(b, i%3, i/3); i++;
-        }
-        for (int col=0; col<3; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); presets.getColumnConstraints().add(cc); }
-        VBox rotorBody = new VBox(11, roTop, presets);
+        // Antenna · Rotor — live RotorClient azimuth (the passed az is the fallback / reference)
+        StackPane roHolder = new StackPane(); roHolder.setAlignment(Pos.TOP_LEFT);
+        java.util.function.Consumer<RotorClient.State> renderRo = st -> {
+            boolean live = st != null && st.connected();
+            int curAz = live ? (int) Math.round(((st.az() % 360) + 360) % 360) : az;
+            String d = new String[]{"N","NE","E","SE","S","SW","W","NW"}[(int) Math.round((curAz % 360) / 45.0) % 8];
+            VBox roInfo = new VBox(0); roInfo.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(roInfo, Priority.ALWAYS);
+            HBox head = new HBox(2, lbl(String.format("%03d", curAz), "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
+            Label ccw = btn("◀ CCW","sx-ro-turn-btn"), stp = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW ▶","sx-ro-turn-btn");
+            ccw.setStyle("-fx-cursor:hand;"); stp.setStyle("-fx-cursor:hand;"); cw.setStyle("-fx-cursor:hand;");
+            ccw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(-15));
+            stp.setOnMouseClicked(e -> RotorClient.getInstance().stop());
+            cw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(15));
+            HBox turn = new HBox(5, ccw, stp, cw); for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+            roInfo.getChildren().addAll(head, lbl(d + (live ? " · live" : " · rotctld offline"), "sx-ro-dir"), turn);
+            VBox.setMargin(turn, new Insets(10,0,0,0));
+            HBox roTop = new HBox(13, compass(curAz, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
+            GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
+            int i = 0; for (Object[] p : Mock.ROTOR_PRESETS) {
+                final int paz = ((Number) p[1]).intValue();
+                Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
+                b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> RotorClient.getInstance().moveTo(paz));
+                presets.add(b, i%3, i/3); i++;
+            }
+            for (int col=0; col<3; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); presets.getColumnConstraints().add(cc); }
+            roHolder.getChildren().setAll(new VBox(11, roTop, presets));
+        };
+        renderRo.accept(null);
+        RotorClient.getInstance().setListener(st -> javafx.application.Platform.runLater(() -> renderRo.accept(st)));
+        RotorClient.getInstance().start();
+        VBox rotorBody = new VBox(roHolder);
 
         // Propagation (live HamQSL)
         SolarData.getInstance().start();
