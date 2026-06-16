@@ -185,9 +185,13 @@ public final class JHubDashboard {
         HBox crumbRow = new HBox(crumb, sp, run); crumbRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox profs = new HBox(12); profs.setAlignment(Pos.CENTER_LEFT);
-        for (String[] p : Mock.PROFILES) {
-            Region d = chip("jhub-mini-dot", 8); d.setStyle("-fx-background-color:-ars-" + p[1] + ";");
-            HBox chip = new HBox(8, d, lbl(p[0], "jhub-prof-nm")); chip.getStyleClass().add("jhub-prof"); chip.setAlignment(Pos.CENTER_LEFT);
+        String activeProfile = com.ars.fx.data.ProfileConfig.active();
+        for (com.ars.fx.data.ProfileConfig.Profile p : com.ars.fx.data.ProfileConfig.profiles()) {
+            boolean on = p.name().equals(activeProfile);
+            Region d = chip("jhub-mini-dot", 8); d.setStyle("-fx-background-color:-ars-" + p.color() + ";");
+            HBox chip = new HBox(8, d, lbl(p.name(), "jhub-prof-nm")); chip.getStyleClass().add("jhub-prof"); chip.setAlignment(Pos.CENTER_LEFT);
+            chip.setStyle("-fx-cursor:hand;" + (on ? "-fx-border-color:-ars-" + p.color() + ";-fx-border-width:1;-fx-border-radius:99;-fx-padding:3 9 3 7;" : ""));
+            chip.setOnMouseClicked(e -> { com.ars.fx.data.ProfileConfig.activate(p.name()); Shell.navigate("hub"); });
             profs.getChildren().add(chip);
         }
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
