@@ -192,9 +192,12 @@ public final class SatService {
             return new double[]{ o.get("qthLat").getAsDouble(), o.get("qthLon").getAsDouble(),
                     o.has("qthAltKm") ? o.get("qthAltKm").getAsDouble() : 0.0 };
         } catch (Exception e) {
-            return new double[]{ 39.745583, -76.959714, 0.0 }; // WM3J / FM19
+            // fall back to the J-Hub station config (then WM3J / FM19)
+            return new double[]{ dbl(HubConfig.get("station.lat", "39.745583"), 39.745583),
+                    dbl(HubConfig.get("station.lon", "-76.959714"), -76.959714), 0.0 };
         }
     }
+    private static double dbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 
     private static Map<Integer, TleSet> loadTles() throws Exception {
         List<String> lines;

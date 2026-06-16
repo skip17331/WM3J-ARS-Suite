@@ -43,7 +43,7 @@ public final class ClusterClient {
 
     private volatile String host  = System.getProperty("cluster.host", "dxc.ve7cc.net");
     private volatile int    port  = Integer.getInteger("cluster.port", 23);
-    private volatile String call  = System.getProperty("cluster.call", "WM3J");
+    private volatile String call  = System.getProperty("cluster.call", HubConfig.call());
 
     private final Deque<Spot> spots = new ArrayDeque<>();
     private volatile Consumer<ClusterClient> listener = c -> {};

@@ -43,7 +43,7 @@ public final class HeardByClient {
 
     private volatile String host = System.getProperty("heardby.host", "telnet.reversebeacon.net");
     private volatile int    port = Integer.getInteger("heardby.port", 7000);
-    private volatile String call = System.getProperty("heardby.call", "WM3J");
+    private volatile String call = System.getProperty("heardby.call", HubConfig.call());
 
     private final Deque<HeardSpot> spots = new ArrayDeque<>();
     private volatile Consumer<HeardByClient> listener = c -> {};

@@ -48,7 +48,7 @@ public final class JLogCockpit {
                 {"TODAY", String.valueOf(JLogDb.countToday())},
                 {"LAST", lastCall()}};
         String utc = java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-        HBox top = Shell.topBar("log", "log", "J-Log", "Normal log · WM3J", stats, utc);
+        HBox top = Shell.topBar("log", "log", "J-Log", "Normal log · " + com.ars.fx.data.HubConfig.call(), stats, utc);
 
         VBox center = entryPane();
         ScrollPane sp = new ScrollPane(center); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);

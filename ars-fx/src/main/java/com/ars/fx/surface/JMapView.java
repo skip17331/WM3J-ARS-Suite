@@ -201,8 +201,12 @@ public final class JMapView {
 
     public static Region build() {
         Region dock = Shell.dock("map");
+        // station QTH + call from the J-Hub config
+        Q_LAT = qdbl(com.ars.fx.data.HubConfig.get("station.lat", "39.7456"), 39.7456);
+        Q_LON = qdbl(com.ars.fx.data.HubConfig.get("station.lon", "-76.96"), -76.96);
+        myCall = com.ars.fx.data.HubConfig.call();
         String[][] stats = {{"SPOTS / HR","342"},{"SHOWN","22"},{"GRAY LINE","SR 11:02 · SS 22:48"},{"BEAM","050°","accent"}};
-        HBox top = Shell.topBar("map","map","J-Map","Propagation & spots · FN20", stats, "17:00:14");
+        HBox top = Shell.topBar("map","map","J-Map","Propagation & spots · " + com.ars.fx.data.HubConfig.grid(), stats, "17:00:14");
 
         // projection toggle: azimuthal canvas ⇄ rectangular blue-marble map
         StackPane mapHolder = new StackPane(); HBox.setHgrow(mapHolder, Priority.ALWAYS);
@@ -540,7 +544,7 @@ public final class JMapView {
         // me (center)
         g.setFill(Color.web("#31bdda")); g.fillOval(cx-5, cy-5, 10, 10);
         g.setStroke(Color.web("#31bdda", 0.35)); g.setLineWidth(3); g.strokeOval(cx-5, cy-5, 10, 10);
-        g.setFill(Color.web("#31bdda")); g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 12)); g.fillText("WM3J", cx+9, cy+4);
+        g.setFill(Color.web("#31bdda")); g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 12)); g.fillText(myCall, cx+9, cy+4);
 
         // NCDXF beacon + "who's hearing me" overlays (azimuthal-equidistant projection)
         Proj azi = (lat, lon) -> { double[] pp = azProject(lat, lon, cx, cy, R); return pp[2] <= 1.0 ? new double[]{pp[0], pp[1]} : null; };
@@ -597,7 +601,9 @@ public final class JMapView {
     }
 
     // ---- rectangular (equirectangular) blue-marble map ---------------------
-    private static final double Q_LAT = 39.7456, Q_LON = -76.96;  // WM3J / FM19
+    private static double Q_LAT = 39.7456, Q_LON = -76.96;  // station QTH (from HubConfig)
+    private static String myCall = "WM3J";
+    private static double qdbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 
     // Fixed-zoom regions for the blue marble: {minLat, maxLat, minLon, maxLon}.
     // Index 0 is the whole world; the rest snap to a continent-sized window.
@@ -710,7 +716,7 @@ public final class JMapView {
         g.setStroke(Color.web("#31bdda", 0.5)); g.setLineWidth(1.3); g.strokeOval(qx - 8, qy - 8, 16, 16);
         g.setFill(Color.web("#31bdda")); g.fillOval(qx - 4.5, qy - 4.5, 9, 9);
         g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 12)); g.setTextAlign(TextAlignment.CENTER);
-        g.fillText("WM3J", qx, qy - 13);
+        g.fillText(myCall, qx, qy - 13);
 
         // NCDXF beacon + "who's hearing me" overlays (equirectangular)
         Proj rect = (lat, lon) -> new double[]{lon2x(lon, RMX, RW), lat2y(lat, RMY, RH)};
