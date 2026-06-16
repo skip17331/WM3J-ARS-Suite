@@ -6,6 +6,8 @@ import com.ars.fx.data.RigClient;
 import com.ars.fx.data.RotorClient;
 import com.ars.fx.mock.Mock;
 import com.ars.fx.shell.Shell;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -23,7 +25,11 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class JHubDashboard {
     private JHubDashboard() {}
 
-    public static Region build()        { return page("dashboard", dashboardCenter()); }
+    private static final long START = System.currentTimeMillis();
+    private static Region dashRoot;
+    private static boolean dashTickerStarted;
+
+    public static Region build()        { dashRoot = page("dashboard", dashboardCenter()); startDashTicker(); return dashRoot; }
     public static Region buildConfig()  { return page("rig", configCenter()); }
     public static Region buildStation() { return page("station", stationCenter()); }
     public static Region buildRotor()   { return page("rotor", rotorCenter()); }
@@ -58,6 +64,21 @@ public final class JHubDashboard {
     }
 
     // ---- top workspace bar -------------------------------------------------
+    private static String uptime() {
+        long m = (System.currentTimeMillis() - START) / 60000;
+        return m < 60 ? m + "m" : (m / 60) + "h " + (m % 60) + "m";
+    }
+    private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
+    private static void startDashTicker() {
+        if (dashTickerStarted) return;
+        dashTickerStarted = true;
+        Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> {
+            if (dashRoot == null) return;
+            if (dashRoot.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
+            if (dashRoot.lookup(".jhub-uptime") instanceof Label l) l.setText("ARS Suite · up " + uptime());
+        }));
+        t.setCycleCount(Timeline.INDEFINITE); t.play();
+    }
     private static Region workspaceBar(Runnable onMenu) {
         Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onMenu.run());
         Region dot = chip("jhub-bar-dot", 9);
@@ -65,7 +86,7 @@ public final class JHubDashboard {
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         Label theme = lbl("◑ Theme", "jhub-theme"); theme.setStyle("-fx-cursor:hand;"); theme.setOnMouseClicked(e -> Shell.toggleTheme());
-        HBox bar = new HBox(brand, sp, lbl("localhost:8081 · up 4h 12m", "jhub-bar-sub"), theme);
+        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), theme);
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }
@@ -158,7 +179,8 @@ public final class JHubDashboard {
         HBox crumb = new HBox(7, lbl("J-Hub", "jhub-crumb"), lbl("›", "jhub-crumb"), lbl("Dashboard", "jhub-crumb-b"));
         crumb.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        VBox run = new VBox(0, lbl("3/7 modules", "jhub-modrun"), lbl("running", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
+        long running = Mock.MODULES.stream().filter(Mock.Mod::running).count();
+        VBox run = new VBox(0, lbl(running + "/" + Mock.MODULES.size() + " modules", "jhub-modrun"), lbl("running", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
         HBox crumbRow = new HBox(crumb, sp, run); crumbRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox profs = new HBox(12); profs.setAlignment(Pos.CENTER_LEFT);
@@ -168,9 +190,10 @@ public final class JHubDashboard {
             profs.getChildren().add(chip);
         }
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle("-fx-background-color:-ars-ok;");
-        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, lbl("342/hr", "jhub-bar-sub"),
-                lbl("UTC", "jhub-crumb"), lbl("14:42:07", "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
+        ClusterClient cc = ClusterClient.getInstance();
+        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle("-fx-background-color:-ars-" + (cc.isConnected() ? "ok" : "t4") + ";");
+        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, lbl(cc.spots().size() + " spots", "jhub-bar-sub"),
+                lbl("UTC", "jhub-crumb"), lbl(nowUtc(), "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
         HBox profRow = new HBox(profs, sp2, clu); profRow.setAlignment(Pos.CENTER_LEFT);
         return new VBox(14, crumbRow, profRow);
     }
