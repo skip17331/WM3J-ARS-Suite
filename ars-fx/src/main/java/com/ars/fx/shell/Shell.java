@@ -112,7 +112,7 @@ public final class Shell {
         dock.getChildren().add(dockItem("hub", "J-Hub", "hub", true, activeId, expandOnly));
         Label sec = lbl("MODULES", "sx-dock-sec"); sec.setManaged(false); sec.setVisible(false); expandOnly.add(sec);
         dock.getChildren().add(sec);
-        for (Mock.Mod m : Mock.MODULES)
+        for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules())
             dock.getChildren().add(dockItem(m.id(), m.name(), m.hue(), m.running(), activeId, expandOnly));
         dock.getChildren().add(spacer());
         // Station settings foot

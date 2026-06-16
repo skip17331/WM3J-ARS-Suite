@@ -37,6 +37,7 @@ public final class JHubDashboard {
     public static Region buildAmp()     { return page("amp", amplifierCenter()); }
     public static Region buildAntSw()   { return page("antsw", antennaSwitchCenter()); }
     public static Region buildData()    { return page("data", dataCenter()); }
+    public static Region buildModules() { return page("modules", modulesCenter()); }
 
     private static Region page(String activeConf, Region centerContent) {
         // Two independent nav behaviours:
@@ -106,7 +107,7 @@ public final class JHubDashboard {
             Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onCollapse.run());
             HBox head = new HBox(ham); head.setAlignment(Pos.CENTER); head.getStyleClass().add("jhub-nav-head");
             nav.getChildren().add(head);
-            for (Mock.Mod m : Mock.MODULES) {
+            for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) {
                 Node ic = Shell.iconTile(m.hue(), m.id(), 18, "sx-dock-ic");
                 HBox row = new HBox(ic); row.setAlignment(Pos.CENTER); row.getStyleClass().add("jhub-nav-item");
                 // modules are separate surfaces; none is the active item while on a J-Hub page
@@ -117,6 +118,7 @@ public final class JHubDashboard {
             nav.getChildren().addAll(
                     collapsedConf("◎", activeConf.equals("dashboard"), () -> Shell.navigate("hub")),
                     collapsedConf("▣", activeConf.equals("station"), () -> Shell.navigate("station")),
+                    collapsedConf("▦", activeConf.equals("modules"), () -> Shell.navigate("hubmods")),
                     collapsedConf("◉", onHardware, () -> Shell.navigate("hubcfg")),
                     collapsedConf("▤", activeConf.equals("data"), () -> Shell.navigate("hubdata")));
             return nav;
@@ -125,7 +127,7 @@ public final class JHubDashboard {
         Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onCollapse.run());
         HBox head = new HBox(10, ham, lbl("J-Hub", "jhub-nav-headnm")); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("jhub-nav-head");
         nav.getChildren().addAll(head, lbl("OPERATE", "jhub-nav-sec"));
-        for (Mock.Mod m : Mock.MODULES) nav.getChildren().add(navItem(m, false));
+        for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) nav.getChildren().add(navItem(m, false));
         nav.getChildren().add(lbl("J-HUB", "jhub-nav-sec"));
         Region dash = confItem("◎", "Dashboard", null, activeConf.equals("dashboard"));
         dash.setOnMouseClicked(e -> Shell.navigate("hub"));
@@ -133,6 +135,9 @@ public final class JHubDashboard {
         Region station = confItem("▣", "Station", "›", activeConf.equals("station"));
         station.setOnMouseClicked(e -> Shell.navigate("station"));
         nav.getChildren().add(station);
+        Region modules = confItem("▦", "Modules", "›", activeConf.equals("modules"));
+        modules.setOnMouseClicked(e -> Shell.navigate("hubmods"));
+        nav.getChildren().add(modules);
         nav.getChildren().add(confItem("◉", "Hardware", "⌄", false));
         String[][] hw = {{"Rig control","hubcfg","rig"},{"Rotor control","hubrotor","rotor"},
                 {"Amplifier","hubamp","amp"},{"Antenna switch","hubant","antsw"},{"Antenna workshop","",""}};
@@ -182,8 +187,8 @@ public final class JHubDashboard {
         HBox crumb = new HBox(7, lbl("J-Hub", "jhub-crumb"), lbl("›", "jhub-crumb"), lbl("Dashboard", "jhub-crumb-b"));
         crumb.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        long running = Mock.MODULES.stream().filter(Mock.Mod::running).count();
-        VBox run = new VBox(0, lbl(running + "/" + Mock.MODULES.size() + " modules", "jhub-modrun"), lbl("running", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
+        int enabledMods = com.ars.fx.data.ModuleConfig.enabledCount();
+        VBox run = new VBox(0, lbl(enabledMods + "/" + Mock.MODULES.size() + " modules", "jhub-modrun"), lbl("enabled", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
         HBox crumbRow = new HBox(crumb, sp, run); crumbRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox profs = new HBox(12); profs.setAlignment(Pos.CENTER_LEFT);
@@ -830,6 +835,27 @@ public final class JHubDashboard {
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
             cells, cluster, wsjt, lookupSection(), logbook, remote, backupSection(), uploadSection(), macroSection());
+    }
+
+    /** J-Hub ▸ Modules — turn each module on or off (reflected live in the dock + nav). */
+    private static Region modulesCenter() {
+        java.util.List<Node> rows = new java.util.ArrayList<>();
+        for (Mock.Mod m : com.ars.fx.data.ModuleConfig.all()) {
+            Node tile = Shell.iconTile(m.hue(), m.id(), 13, "sx-dw-ic");
+            Label nm = lbl(m.name(), "k"); HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
+            VBox txt = new VBox(1, nm, lbl(com.ars.fx.data.ModuleConfig.blurb(m.id()), "jhub-card-sub"));
+            HBox.setHgrow(txt, Priority.ALWAYS); txt.setMaxWidth(Double.MAX_VALUE);
+            HBox left = new HBox(11, tile, txt); left.setAlignment(Pos.CENTER_LEFT);
+            HBox.setHgrow(left, Priority.ALWAYS); left.setMaxWidth(Double.MAX_VALUE);
+            HBox row = new HBox(12, left,
+                    cToggleApply("module." + m.id() + ".enabled", true, on -> Shell.navigate("hubmods")));
+            row.getStyleClass().add("sx-kv"); row.setAlignment(Pos.CENTER_LEFT);
+            rows.add(row);
+        }
+        VBox list = section("MODULES", rows.toArray(new Node[0]));
+        return cfgPage(cfgTop("J-Hub", "Modules"),
+                lbl("Turn modules on or off. Disabled modules are hidden from the dock and the J-Hub nav — J-Hub itself is always on.", "cfg-desc"),
+                list);
     }
     /** Online log upload — LoTW (TQSL-signed), eQSL, QRZ Logbook, Club Log. */
     private static VBox uploadSection() {
