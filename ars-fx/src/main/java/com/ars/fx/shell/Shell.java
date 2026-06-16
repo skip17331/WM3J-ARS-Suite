@@ -1,5 +1,6 @@
 package com.ars.fx.shell;
 
+import com.ars.fx.data.SunImageService;
 import com.ars.fx.mock.Mock;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -8,8 +9,16 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,6 +149,12 @@ public final class Shell {
 
     // ---- collapsible drawer ------------------------------------------------
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
+        return drawer(title, hue, glyphId, summary, open, body, null);
+    }
+    /** As above, but {@code onToggle} fires with the new open-state so callers can
+     *  persist it across rebuilds (surfaces that recreate their rail each tick). */
+    public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body,
+                              java.util.function.Consumer<Boolean> onToggle) {
         VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (open) dw.getStyleClass().add("open");
         StackPane ic = iconTile(hue, glyphId, 14, "sx-dw-ic");
         Label t = lbl(title, "sx-dw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
@@ -154,6 +169,7 @@ public final class Shell {
             dw.getStyleClass().remove("open"); if (nowOpen) dw.getStyleClass().add("open");
             bodyBox.setManaged(nowOpen); bodyBox.setVisible(nowOpen);
             sum.setVisible(!nowOpen); sum.setManaged(!nowOpen); cv.setRotate(nowOpen ? 90 : 0);
+            if (onToggle != null) onToggle.accept(nowOpen);
         });
         dw.getChildren().addAll(head, bodyBox);
         return dw;
@@ -191,15 +207,6 @@ public final class Shell {
         VBox prop = new VBox(kv("Best band now","20m → EU",true), kv("MUF (3000 km)","28.4 MHz",false),
                 kv("Gray line","SR 11:02 · SS 22:48",false), kv("Aurora","quiet",true));
 
-        // Space weather
-        GridPane swx = new GridPane(); swx.setHgap(7); swx.setVgap(7);
-        int j=0; for (String[] s : Mock.SOLAR){ VBox c=new VBox(2,lbl(s[0],"sx-swx-k"),lbl(s[1],"sx-swx-v")); c.getStyleClass().add("sx-swx-c"); GridPane.setHgrow(c,Priority.ALWAYS); c.setMaxWidth(Double.MAX_VALUE); swx.add(c,j%4,j/4); j++; }
-        for (int col=0; col<4; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(25); swx.getColumnConstraints().add(cc); }
-        VBox bands = new VBox(4);
-        for (String[] b : Mock.BANDCOND) bands.getChildren().add(bandRow(b[0],b[1],b[2]));
-        VBox spaceBody = new VBox(9, swx, bands, lbl("NOAA SWPC · 14:30Z","sx-dw-stamp"));
-        VBox.setMargin(swx, new Insets(0,0,2,0));
-
         // Weather
         HBox wxBig = new HBox(8, lbl("14°","sx-ro-head"), lbl("Partly cloudy · feels 12°","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
         VBox wxBody = new VBox(wxBig, kv("Wind","NW 12 · g21",false), kv("Humidity","48%",false), kv("Pressure","1018 hPa ↑",false));
@@ -207,8 +214,81 @@ public final class Shell {
         return List.of(
             drawer("Antenna · Rotor","sat","sat", az3+"° "+dir, false, rotorBody),
             drawer("Propagation","map","map","20m → EU", false, prop),
-            drawer("Space weather","digi","digi","SFI 168 · K2", false, spaceBody),
+            solarSpaceWeatherDrawer(),
+            bandConditionsDrawer(),
             drawer("Weather · FN20","bridge","bridge","14° NW12", false, wxBody));
+    }
+
+    // ---- canonical space-weather drawers (shared so same-named drawers match) ----
+    /** "Solar &amp; space weather": real SDO sun disk + solar cell grid + source stamp. */
+    public static Node solarSpaceWeatherDrawer() {
+        return drawer("Solar & space weather", "digi", "digi", "SFI 168 · K2", false, solarSpaceWeatherBody());
+    }
+    public static VBox solarSpaceWeatherBody() {
+        VBox box = new VBox(9, sunspotDisk(), solarGrid(), lbl("NOAA SWPC · 14:30Z", "sx-dw-stamp"));
+        return box;
+    }
+    /** "Band conditions": band · day · night (good / fair / poor) table. */
+    public static Node bandConditionsDrawer() {
+        return drawer("Band conditions", "map", "map", "20m good", false, bandConditionsBody());
+    }
+    public static VBox bandConditionsBody() {
+        Label hb = lbl("BAND", "sx-bc-bn"); HBox.setHgrow(hb, Priority.ALWAYS); hb.setMaxWidth(Double.MAX_VALUE);
+        Label hd = lbl("DAY", "sx-swx-k"); hd.setMinWidth(60); hd.setAlignment(Pos.CENTER);
+        Label hn = lbl("NIGHT", "sx-swx-k"); hn.setMinWidth(60); hn.setAlignment(Pos.CENTER);
+        VBox box = new VBox(6, new HBox(7, hb, hd, hn));
+        for (String[] b : Mock.BANDCOND) box.getChildren().add(bandRow(b[0], b[1], b[2]));
+        return box;
+    }
+    private static GridPane solarGrid() {
+        GridPane swx = new GridPane(); swx.setHgap(7); swx.setVgap(7);
+        int j=0; for (String[] s : Mock.SOLAR){ VBox c=new VBox(2,lbl(s[0],"sx-swx-k"),lbl(s[1],"sx-swx-v")); c.getStyleClass().add("sx-swx-c"); GridPane.setHgrow(c,Priority.ALWAYS); c.setMaxWidth(Double.MAX_VALUE); swx.add(c,j%4,j/4); j++; }
+        for (int col=0; col<4; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(25); swx.getColumnConstraints().add(cc); }
+        return swx;
+    }
+    /** Real SDO/HMI continuum solar disk; synthetic disk while loading / offline. */
+    private static Region sunspotDisk() {
+        StackPane host = new StackPane(); host.setMaxWidth(Double.MAX_VALUE); host.setMinHeight(158); host.setMaxHeight(158);
+        Runnable render = () -> {
+            Image img = SunImageService.getInstance().image();
+            host.getChildren().setAll(img != null && !img.isError() ? sunReal(img) : syntheticDisk());
+        };
+        SunImageService.getInstance().setListener(render);
+        SunImageService.getInstance().start();
+        render.run();
+        return host;
+    }
+    private static Region sunReal(Image img) {
+        ImageView iv = new ImageView(img); iv.setPreserveRatio(true); iv.setFitHeight(150); iv.setSmooth(true);
+        Label src = lbl("SDO · HMI continuum", "sx-dw-stamp"); StackPane.setAlignment(src, Pos.BOTTOM_LEFT); StackPane.setMargin(src, new Insets(0, 0, 5, 7));
+        Label cr = lbl("NASA/SDO/HMI", "sx-dw-stamp"); StackPane.setAlignment(cr, Pos.BOTTOM_RIGHT); StackPane.setMargin(cr, new Insets(0, 7, 5, 0));
+        StackPane sp = new StackPane(iv, src, cr); sp.setStyle("-fx-background-color:#06090d; -fx-background-radius:8;");
+        sp.setMinHeight(158); sp.setMaxHeight(158); sp.setMaxWidth(Double.MAX_VALUE);
+        return sp;
+    }
+    private static Region syntheticDisk() {
+        double W = 290, H = 150;
+        Canvas cv = new Canvas(W, H);
+        GraphicsContext g = cv.getGraphicsContext2D();
+        double cx = W / 2, cy = H / 2, R = 62;
+        g.setFill(Color.web("#0b0f14")); g.fillRect(0, 0, W, H);
+        RadialGradient rg = new RadialGradient(0, 0, cx, cy, R, false, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.web("#ffe9ad")), new Stop(0.55, Color.web("#ffc15a")),
+                new Stop(0.85, Color.web("#f59331")), new Stop(1, Color.web("#c9641f")));
+        g.setFill(rg); g.fillOval(cx - R, cy - R, 2 * R, 2 * R);
+        g.setStroke(Color.web("#ffd488", 0.5)); g.setLineWidth(1.5); g.strokeOval(cx - R, cy - R, 2 * R, 2 * R);
+        double[][] spots = {{-20, -8, 9}, {-9, 2, 5}, {12, 16, 7}, {28, -18, 5}, {-30, 20, 4}, {18, -3, 3}};
+        for (double[] s : spots) {
+            if (Math.hypot(s[0], s[1]) + s[2] > R - 3) continue;
+            double sx = cx + s[0], sy = cy + s[1], r = s[2];
+            g.setFill(Color.web("#9c5a1e", 0.55)); g.fillOval(sx - r * 1.7, sy - r * 1.4, r * 3.4, r * 2.8);
+            g.setFill(Color.web("#2a1808")); g.fillOval(sx - r, sy - r * 0.8, r * 2, r * 1.6);
+        }
+        g.setFill(Color.web("#8b98a6")); g.setFont(Font.font("JetBrains Mono", 9));
+        g.setTextAlign(TextAlignment.LEFT);  g.fillText("SDO · HMI continuum", 6, H - 7);
+        g.setTextAlign(TextAlignment.RIGHT); g.fillText("SN 142 · 6 groups", W - 6, H - 7);
+        StackPane wrap = new StackPane(cv); wrap.setMaxWidth(Double.MAX_VALUE);
+        return wrap;
     }
 
     public static HBox kv(String k, String v, boolean ok) {
@@ -230,7 +310,15 @@ public final class Shell {
     // ---- rotor compass dial (port of ARSCompass) --------------------------
     public static Canvas compass(double az, double size) {
         Canvas cv = new Canvas(size, size);
+        paintCompass(cv, az);
+        return cv;
+    }
+
+    /** Repaint an existing compass canvas at a new azimuth (for live rotor data). */
+    public static void paintCompass(Canvas cv, double az) {
+        double size = cv.getWidth();
         GraphicsContext g = cv.getGraphicsContext2D();
+        g.clearRect(0, 0, size, size);
         double r = size/2 - 8, cx = size/2, cy = size/2;
         for (int i=0;i<36;i++){
             double a = Math.toRadians(i*10 - 90); boolean major = i%9==0;
@@ -244,6 +332,5 @@ public final class Shell {
         g.strokeLine(cx, cy, nx, ny);
         g.setFill(Color.web("#6fc884")); g.fillOval(nx-3, ny-3, 6, 6);
         g.setFill(Color.web("#6a7684")); g.fillOval(cx-2.5, cy-2.5, 5, 5);
-        return cv;
     }
 }

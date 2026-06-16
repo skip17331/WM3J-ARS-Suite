@@ -229,6 +229,24 @@
 .jl-disc { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 6 11 6 11; -fx-cursor: hand; }
 
 .jl-loghd { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 10 18 10 18; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jl-idtimer { -fx-font-family: "JetBrains Mono"; -fx-font-size: 52px; -fx-font-weight: bold; -fx-text-fill: -ars-ok; }
+.jl-idtimer.warn { -fx-text-fill: -ars-warn; }
+.jl-idtimer.over { -fx-text-fill: -ars-err; }
+.jl-idframe { -fx-border-color: -ars-border-glow; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-background-color: -ars-surface-2; -fx-background-radius: 12; -fx-padding: 22 16 18 16; -fx-cursor: hand; }
+.jl-idframe:hover { -fx-border-color: -ars-ok; -fx-background-color: -ars-surface-3; }
+.jl-idframe.warn { -fx-border-color: -ars-warn; }
+.jl-idframe.warn:hover { -fx-border-color: -ars-warn; }
+.jl-idframe.over { -fx-border-color: -ars-err; -fx-background-color: -ars-err-soft; }
+.jl-idframe.over:hover { -fx-border-color: -ars-err; }
+.jl-skim-fq { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-accent; }
+.jl-skim-cl { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.jl-skim-snr { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-ok; }
+.jl-skim-meta { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.jl-award-chip { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; -fx-background-color: -ars-surface-3; -fx-padding: 3 6 3 6; -fx-background-radius: 4; }
+.jl-award-chip.worked { -fx-text-fill: -ars-ok; -fx-background-color: -ars-ok-soft; }
+.jl-award-bar-track { -fx-background-color: -ars-surface-4; -fx-background-radius: 99; }
+.jl-award-bar-fill { -fx-background-color: -ars-ok; -fx-background-radius: 99; }
+.jl-award-pct { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .jl-th { -fx-padding: 7 18 7 18; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
 .jl-th-c { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .jl-tr { -fx-padding: 7 18 7 18; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
@@ -347,6 +365,8 @@
 .jhub-pw-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .jhub-band { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 0 7 0; -fx-alignment: center; }
 .jhub-band.on { -fx-background-color: rgba(49,189,218,0.14); -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.jhub-conn { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; }
+.jhub-conn.live { -fx-text-fill: -ars-ok; }
 
 /* config page (shot 09) */
 .cfg-desc { -fx-font-size: 13px; -fx-text-fill: -ars-t2; }
@@ -370,6 +390,8 @@
 .jm-panel { -fx-background-color: -ars-surface-1; -fx-border-color: transparent -ars-border transparent transparent; -fx-border-width: 0 1 0 0; -fx-padding: 16; }
 .jm-sec { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 14 0 8 0; }
 .jm-sec-all { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-map; }
+.jm-collapse { -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 0 4 0 4; -fx-background-color: -ars-surface-3; -fx-background-radius: 6; }
+.jm-collapse:hover { -fx-text-fill: -ars-t1; -fx-background-color: -ars-surface-4; }
 .jm-seg { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
 .jm-seg-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 7 0 7 0; -fx-background-radius: 5; -fx-cursor: hand; -fx-alignment: center; }
 .jm-seg-btn.on { -fx-background-color: -ars-surface-1; -fx-text-fill: -ars-t1; }
@@ -539,6 +561,28 @@
 .j2-ref-sec { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .j2-q { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-learn; }
 .j2-qd { -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+/* chapter/section TOC drawer — collapsible, accordion sections (old web-UI layout) */
+.j2-caret { -fx-font-size: 9px; -fx-text-fill: -ars-t3; -fx-min-width: 11; }
+.j2-topic.open .j2-topic-nm { -fx-text-fill: -ars-learn; }
+.j2-topic.open .j2-caret { -fx-text-fill: -ars-learn; }
+.j2-seclink { -fx-font-size: 12px; -fx-text-fill: -ars-t2; -fx-padding: 5 8 5 30; -fx-background-radius: 6; -fx-cursor: hand; }
+.j2-seclink:hover { -fx-background-color: -ars-surface-2; -fx-text-fill: -ars-t1; }
+.j2-seclink.on { -fx-background-color: rgba(239,125,131,0.14); -fx-text-fill: -ars-learn; -fx-font-weight: bold; }
+/* reading window */
+.j2-content-eyebrow { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-learn; }
+.j2-content-h { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-padding: 10 0 0 0; }
+.j2-content-body { -fx-font-size: 13.5px; -fx-text-fill: -ars-t2; -fx-line-spacing: 2.5; }
+.j2-content-meta { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t4; }
+/* fenced code blocks */
+.j2-code-box { -fx-background-color: #0b0f14; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 11 14 11 14; }
+.j2-code { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12.5px; -fx-text-fill: -ars-ok; -fx-line-spacing: 2; }
+/* pipe tables */
+.j2-table { -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 7; -fx-background-radius: 7; }
+.j2-th-cell { -fx-background-color: -ars-surface-3; -fx-padding: 7 11 7 11; -fx-border-color: -ars-border; -fx-border-width: 0 1 1 0; }
+.j2-td-cell { -fx-padding: 7 11 7 11; -fx-border-color: -ars-border; -fx-border-width: 0 1 1 0; }
+.j2-td-cell.alt { -fx-background-color: rgba(127,127,127,0.05); }
+.j2-th { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.j2-td { -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; }
 .streak-k { -fx-font-size: 9px; -fx-text-fill: -ars-t3; }
 .streak-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 
