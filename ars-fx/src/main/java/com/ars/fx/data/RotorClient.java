@@ -28,8 +28,17 @@ public final class RotorClient {
         public static final State OFFLINE = new State(false, 0, 0);
     }
 
-    private final String host = System.getProperty("rotor.host", "127.0.0.1");
-    private final int    port = Integer.getInteger("rotor.port", 4533);
+    // rotctld endpoint: -Drotor.host/-Drotor.port override, else HubConfig, else default
+    private volatile String host = resolveHost();
+    private volatile int    port = resolvePort();
+    private static String resolveHost() { return System.getProperty("rotor.host", HubConfig.get("rotor.host", "127.0.0.1")); }
+    private static int resolvePort() {
+        String p = System.getProperty("rotor.port");
+        try { return p != null ? Integer.parseInt(p.trim()) : Integer.parseInt(HubConfig.get("rotor.rotctldPort", "4533").trim()); }
+        catch (Exception e) { return 4533; }
+    }
+    /** Re-read the endpoint from config and drop the socket so the poll loop reconnects. */
+    public void reconnect() { host = resolveHost(); port = resolvePort(); closeSocket(); }
 
     private volatile Consumer<State> listener = s -> {};
     private volatile State last = State.OFFLINE;

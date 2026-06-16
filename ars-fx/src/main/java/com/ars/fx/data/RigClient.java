@@ -53,8 +53,17 @@ public final class RigClient {
         public static final State OFFLINE = new State(false, 0, "", "", Integer.MIN_VALUE, -1, -1, "");
     }
 
-    private final String host = System.getProperty("rig.host", "127.0.0.1");
-    private final int    port = Integer.getInteger("rig.port", 4532);
+    // rigctld endpoint: -Drig.host/-Drig.port override, else HubConfig (rig.port is the *serial* device), else default
+    private volatile String host = resolveHost();
+    private volatile int    port = resolvePort();
+    private static String resolveHost() { return System.getProperty("rig.host", HubConfig.get("rig.rigctldHost", "127.0.0.1")); }
+    private static int resolvePort() {
+        String p = System.getProperty("rig.port");
+        try { return p != null ? Integer.parseInt(p.trim()) : Integer.parseInt(HubConfig.get("rig.rigctldPort", "4532").trim()); }
+        catch (Exception e) { return 4532; }
+    }
+    /** Re-read the endpoint from config and drop the socket so the poll loop reconnects. */
+    public void reconnect() { host = resolveHost(); port = resolvePort(); closeSocket(); }
 
     private volatile Consumer<State> listener = s -> {};
     private volatile State last = State.OFFLINE;

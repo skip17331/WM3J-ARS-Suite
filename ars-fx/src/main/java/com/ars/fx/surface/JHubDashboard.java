@@ -633,7 +633,9 @@ public final class JHubDashboard {
             cfgRow("Port", null, cInput("rig.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
             cfgRow("CI-V address", "Icom civ address (hex)", cInput("rig.civ", "0x98")),
-            cfgRow("Poll interval", null, cUnit("rig.poll", "12", "ms")));
+            cfgRow("Poll interval", null, cUnit("rig.poll", "12", "ms")),
+            cfgRow("rigctld host", "Hamlib rig daemon J-Hub connects to", cInputApply("rig.rigctldHost", "127.0.0.1", () -> com.ars.fx.data.RigClient.getInstance().reconnect())),
+            cfgRow("rigctld port", null, cInputApply("rig.rigctldPort", "4532", () -> com.ars.fx.data.RigClient.getInstance().reconnect())));
         VBox ptt = section("PTT & KEYING",
             cfgRow("PTT method", null, cSeg("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0)),
             cfgRow("CW keyer", null, cInput("rig.keyer", "Winkeyer USB")),
@@ -702,8 +704,8 @@ public final class JHubDashboard {
             cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
             cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
-            cfgRow("rotctld host", "Hamlib rotor daemon", cInput("rotor.host", "127.0.0.1")),
-            cfgRow("rotctld port", null, cInput("rotor.rotctldPort", "4533")),
+            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply("rotor.host", "127.0.0.1", () -> com.ars.fx.data.RotorClient.getInstance().reconnect())),
+            cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RotorClient.getInstance().reconnect())),
             cfgRow("Start rotctld for me", null, cToggle("rotor.startDaemon", true)));
         VBox beh = section("BEHAVIOR",
             cfgRow("Overlap / wrap", "where the rotor crosses", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
@@ -960,6 +962,13 @@ public final class JHubDashboard {
         TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, def)); t.getStyleClass().add("jhub-mini-field");
         t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);
         t.textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
+        return t;
+    }
+    /** Free-text field bound to a HubConfig key that also runs {@code apply} on commit (focus-lost / Enter). */
+    private static TextField cInputApply(String key, String def, Runnable apply) {
+        TextField t = cInput(key, def);
+        t.focusedProperty().addListener((o, was, now) -> { if (!now) apply.run(); });
+        t.setOnAction(e -> apply.run());
         return t;
     }
     /** Numeric/short field + unit, bound to a HubConfig key. */
