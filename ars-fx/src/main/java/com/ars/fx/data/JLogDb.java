@@ -40,7 +40,15 @@ public final class JLogDb {
             created_at    TEXT DEFAULT (datetime('now')))""";
 
     /** A logged QSO row (the columns the mini-logger displays). */
-    public record Qso(long id, String utc, String callsign, String freq, String band, String mode, String rstRcvd) {}
+    public record Qso(long id, String utc, String callsign, String freq, String band, String mode, String rstRcvd, String name) {}
+
+    /** Every loggable field for one QSO (for editing). qth=country, grid=sig_info, name=operator_name. */
+    public record QsoFull(long id, String datetimeUtc, String call, String freq, String band, String mode,
+                          String rstSent, String rstRcvd, String name, String qth, String grid,
+                          String state, String county, int powerW, String notes) {}
+
+    /** Prior-QSO summary for the worked-before / dupe indicator. */
+    public record Prior(int count, String lastDate, java.util.List<String> bands) {}
 
     private static Path dbPath() { return Paths.get(System.getProperty("user.home"), ".j-log", "j-log.db"); }
 
@@ -63,14 +71,76 @@ public final class JLogDb {
     /** Most recent QSOs, newest first. */
     public static List<Qso> recent(int limit) {
         List<Qso> out = new ArrayList<>();
-        String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_received FROM qso ORDER BY datetime_utc DESC LIMIT " + limit;
+        String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_received,operator_name FROM qso ORDER BY datetime_utc DESC LIMIT " + limit;
         try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next())
                 out.add(new Qso(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
-                        rs.getString(5), rs.getString(6), rs.getString(7)));
+                        rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8)));
         } catch (Throwable t) { /* DB absent / driver missing → empty */ }
         return out;
     }
+
+    /** Full QSO by id (for the edit form), or null. */
+    public static QsoFull byId(long id) {
+        String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_sent,rst_received,operator_name,"
+                + "country,sig_info,state,county,power_watts,notes FROM qso WHERE id=?";
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return new QsoFull(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                        rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9),
+                        rs.getString(10), rs.getString(11), rs.getString(12), rs.getString(13), rs.getInt(14), rs.getString(15));
+            }
+        } catch (Throwable t) { /* not found */ }
+        return null;
+    }
+
+    /** Delete a logged QSO. */
+    public static boolean delete(long id) {
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement("DELETE FROM qso WHERE id=?")) {
+            ps.setLong(1, id); return ps.executeUpdate() > 0;
+        } catch (Throwable t) { return false; }
+    }
+
+    /** Update an existing QSO (same field/column mapping as insert). */
+    public static boolean update(long id, String datetimeUtc, String call, String freq, String band, String mode,
+                                 String rstSent, String rstRcvd, String name, String qth, String grid,
+                                 String comment, String state, String county, int powerW) {
+        if (call == null || call.isBlank()) return false;
+        String sql = "UPDATE qso SET callsign=?,datetime_utc=?,band=?,mode=?,frequency=?,power_watts=?,"
+                + "rst_sent=?,rst_received=?,country=?,operator_name=?,state=?,county=?,notes=?,sig_info=? WHERE id=?";
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, call.toUpperCase().trim());
+            ps.setString(2, (datetimeUtc == null || datetimeUtc.isBlank()) ? LocalDateTime.now(ZoneOffset.UTC).format(FMT) : datetimeUtc.trim());
+            ps.setString(3, nz(band)); ps.setString(4, nz(mode)); ps.setString(5, nz(freq));
+            ps.setInt(6, Math.max(0, powerW));
+            ps.setString(7, nz(rstSent)); ps.setString(8, nz(rstRcvd));
+            ps.setString(9, nz(qth)); ps.setString(10, nz(name)); ps.setString(11, nz(state)); ps.setString(12, nz(county));
+            ps.setString(13, nz(comment)); ps.setString(14, nz(grid));
+            ps.setLong(15, id);
+            return ps.executeUpdate() > 0;
+        } catch (Throwable t) { return false; }
+    }
+
+    /** Prior QSOs with a call: count, most-recent date, and the bands worked. */
+    public static Prior priorWith(String call) {
+        if (call == null || call.isBlank()) return new Prior(0, null, java.util.List.of());
+        String c = call.trim().toUpperCase();
+        int count = 0; String last = null; java.util.LinkedHashSet<String> bands = new java.util.LinkedHashSet<>();
+        String sql = "SELECT band,datetime_utc FROM qso WHERE UPPER(callsign)=? ORDER BY datetime_utc DESC";
+        try (Connection conn = open(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, c);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    count++;
+                    String dt = rs.getString(2); if (last == null && dt != null && dt.length() >= 10) last = dt.substring(0, 10);
+                    String band = rs.getString(1); if (band != null && !band.isBlank()) bands.add(band);
+                }
+            }
+        } catch (Throwable t) { /* none */ }
+        return new Prior(count, last, new ArrayList<>(bands));
+    }
+    public static String dateOf(String dt) { return (dt != null && dt.length() >= 10) ? dt.substring(0, 10) : "—"; }
 
     /** A full QSO row for export (note: qth is stored in country, grid in sig_info). */
     public record QsoExport(String call, String datetimeUtc, String band, String mode, String freq,
@@ -143,17 +213,23 @@ public final class JLogDb {
                                  String grid, String comment) {
         return insert(call, freq, band, mode, rstSent, rstRcvd, name, qth, grid, comment, null, null, 0);
     }
-    /** Full insert with state / county / power (qso table columns). */
+    /** Full insert with state / county / power (qso table columns), timestamped now (UTC). */
     public static boolean insert(String call, String freq, String band, String mode,
                                  String rstSent, String rstRcvd, String name, String qth,
                                  String grid, String comment, String state, String county, int powerW) {
+        return insertAt(null, call, freq, band, mode, rstSent, rstRcvd, name, qth, grid, comment, state, county, powerW);
+    }
+    /** Full insert with an explicit UTC datetime ("yyyy-MM-dd HH:mm:ss"); null/blank → now. */
+    public static boolean insertAt(String datetimeUtc, String call, String freq, String band, String mode,
+                                   String rstSent, String rstRcvd, String name, String qth,
+                                   String grid, String comment, String state, String county, int powerW) {
         if (call == null || call.isBlank()) return false;
         String sql = "INSERT INTO qso(callsign,datetime_utc,band,mode,frequency,power_watts,"
                 + "rst_sent,rst_received,country,operator_name,state,county,notes,"
                 + "qsl_sent,qsl_received,sig,sig_info) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, call.toUpperCase().trim());
-            ps.setString(2, LocalDateTime.now(ZoneOffset.UTC).format(FMT));
+            ps.setString(2, (datetimeUtc == null || datetimeUtc.isBlank()) ? LocalDateTime.now(ZoneOffset.UTC).format(FMT) : datetimeUtc.trim());
             ps.setString(3, nz(band)); ps.setString(4, nz(mode)); ps.setString(5, nz(freq));
             ps.setInt(6, Math.max(0, powerW));
             ps.setString(7, nz(rstSent)); ps.setString(8, nz(rstRcvd));

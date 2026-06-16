@@ -30,6 +30,8 @@ public final class JLogCockpit {
 
     private static boolean tickerStarted = false;
     private static StackPane host;               // for the 1 s clock / ID-timer ticker lookups
+    private static TextField dateRef, timeRef;   // QSO date/time fields the ticker keeps "live"
+    private static boolean[] manualRef;          // true once the operator overrides date/time
 
     // skimmer band-activity decodes: {freq, call, mode, wpm/snr}
     private static final String[][] SKIMMER = {
@@ -63,9 +65,11 @@ public final class JLogCockpit {
         // header
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
         Label sub = lbl(JLogDb.count() + " in log · " + JLogDb.countToday() + " today", "jl-emeta");
-        VBox ttl = new VBox(1, lbl("New QSO", "jhub-card-title"), sub);
+        Label titleLbl = lbl("New QSO", "jhub-card-title");
+        VBox ttl = new VBox(1, titleLbl, sub);
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
-        HBox head = new HBox(11, ic, ttl, hsp, lbl("Normal log", "jl-eyebrow")); head.setAlignment(Pos.CENTER_LEFT);
+        Label b4 = lbl("Normal log", "jl-eyebrow");   // worked-before / dupe / status
+        HBox head = new HBox(11, ic, ttl, hsp, b4); head.setAlignment(Pos.CENTER_LEFT);
 
         TextField call = tf("", "", 210, true);
         TextField freq = tf("MHz", "14.074", 110, false);
@@ -80,6 +84,16 @@ public final class JLogCockpit {
         TextField cnty = tf("county", "", 200, false);
         TextField pwr  = tf("W", "100", 80, false);
         TextField cmt  = tf("notes, QSL info…", "", -1, false);
+
+        // QSO date/time (UTC) — live "now" until you override; ⟳ snaps back to now.
+        TextField dateF = tf("YYYY-MM-DD", nowDate(), 130, false);
+        TextField timeF = tf("HH:MM:SS", nowTime(), 110, false);
+        boolean[] manualTime = {false};
+        dateF.setOnKeyTyped(e -> manualTime[0] = true);
+        timeF.setOnKeyTyped(e -> manualTime[0] = true);
+        Label nowBtn = lbl("⟳ now", "jl-clearbtn"); nowBtn.setStyle("-fx-cursor:hand;");
+        nowBtn.setOnMouseClicked(e -> { manualTime[0] = false; dateF.setText(nowDate()); timeF.setText(nowTime()); });
+        dateRef = dateF; timeRef = timeF; manualRef = manualTime;   // ticker keeps these live
 
         // BAND auto-derives from FREQ (still hand-editable to override).
         freq.textProperty().addListener((o, a, b) -> { String bd = JLogDb.bandFor(b); if (bd != null && !bd.isBlank()) band.setText(bd); });
@@ -104,17 +118,23 @@ public final class JLogCockpit {
             }
         };
 
+        VBox dtCell1 = g("DATE (UTC)", dateF, false), dtCell2 = g("TIME (UTC)", timeF, false);
+        Region dtsp = new Region(); HBox.setHgrow(dtsp, Priority.ALWAYS);
+        HBox dtRow = new HBox(12, dtCell1, dtCell2, dtsp, nowBtn); dtRow.setAlignment(Pos.BOTTOM_LEFT);
+
         VBox body = new VBox(13); body.setPadding(new Insets(14, 18, 16, 18));
         body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
         body.getChildren().add(row(g("CALLSIGN", call, false), g("FREQ (MHZ)", freq, false), g("BAND", band, false), g("MODE", mode, false)));
         body.getChildren().add(row(g("RST SENT", rsnt, false), g("RST RCVD", rrcv, false), g("NAME", name, false), g("GRID", grid, false)));
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
+        body.getChildren().add(dtRow);
 
         VBox cmtF = g("COMMENT", cmt, true);
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
-        Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn");
-        HBox cmtRow = new HBox(12, cmtF, sp2, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
+        Label cancel = lbl("Cancel edit", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;"); cancel.setVisible(false); cancel.setManaged(false);
+        Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
+        HBox cmtRow = new HBox(12, cmtF, sp2, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
         body.getChildren().add(macroRow(fireMacro));
 
@@ -122,40 +142,86 @@ public final class JLogCockpit {
         Label lh = lbl("☰  Recent log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
         Label ln = lbl(""); ln.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;");
         HBox lbar = new HBox(8, lh, ln); lbar.getStyleClass().add("jl-loghd"); lbar.setAlignment(Pos.CENTER_LEFT);
-        VBox tbl = new VBox(); fillLog(tbl, ln);
+        VBox tbl = new VBox();
+
+        TextField[] all = {call, name, grid, qth, stat, cnty, cmt};
+        long[] editId = {-1};
+        String[] lastLk = {""};
+        Runnable[] refresh = new Runnable[1];
+
+        Runnable exitEdit = () -> {
+            editId[0] = -1; titleLbl.setText("New QSO"); logBtn.setText("Log QSO  ⏎");
+            cancel.setVisible(false); cancel.setManaged(false);
+            manualTime[0] = false; dateF.setText(nowDate()); timeF.setText(nowTime());
+        };
+        // Load a logged QSO back into the form for editing.
+        Consumer<Long> onEdit = id -> {
+            JLogDb.QsoFull f = JLogDb.byId(id);
+            if (f == null) return;
+            editId[0] = id;
+            call.setText(z(f.call())); freq.setText(z(f.freq())); band.setText(z(f.band())); mode.setText(z(f.mode()));
+            rsnt.setText(z(f.rstSent())); rrcv.setText(z(f.rstRcvd())); name.setText(z(f.name())); grid.setText(z(f.grid()));
+            qth.setText(z(f.qth())); stat.setText(z(f.state())); cnty.setText(z(f.county()));
+            pwr.setText(f.powerW() > 0 ? String.valueOf(f.powerW()) : ""); cmt.setText(z(f.notes()));
+            String dt = f.datetimeUtc();
+            dateF.setText(dt != null && dt.length() >= 10 ? dt.substring(0, 10) : nowDate());
+            timeF.setText(dt != null && dt.length() >= 19 ? dt.substring(11, 19) : nowTime());
+            manualTime[0] = true;
+            titleLbl.setText("Edit QSO #" + id); logBtn.setText("Update  ⏎");
+            cancel.setVisible(true); cancel.setManaged(true);
+            call.requestFocus();
+        };
+        Consumer<Long> onDelete = id -> {
+            if (JLogDb.delete(id)) {
+                if (editId[0] == id) exitEdit.run();
+                refresh[0].run();
+                sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
+            }
+        };
+        refresh[0] = () -> fillLog(tbl, ln, onEdit, onDelete);
+        refresh[0].run();
 
         Runnable doLog = () -> {
             if (call.getText() == null || call.getText().isBlank()) { call.requestFocus(); return; }
             int p = 0; try { p = Integer.parseInt(pwr.getText().trim()); } catch (Exception ignored) {}
             String bandVal = (band.getText() == null || band.getText().isBlank()) ? JLogDb.bandFor(freq.getText()) : band.getText();
-            boolean ok = JLogDb.insert(call.getText(), freq.getText(), bandVal, mode.getText(),
-                    rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(),
-                    stat.getText(), cnty.getText(), p);
+            String dt = manualTime[0] ? composeDt(dateF.getText(), timeF.getText()) : null;
+            boolean ok = (editId[0] >= 0)
+                    ? JLogDb.update(editId[0], dt, call.getText(), freq.getText(), bandVal, mode.getText(),
+                            rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p)
+                    : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
+                            rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p);
             if (ok) {
-                for (TextField t : new TextField[]{call, name, grid, qth, stat, cnty, cmt}) t.clear();
+                exitEdit.run();
+                for (TextField t : all) t.clear();
+                b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = "";
                 call.requestFocus();
-                fillLog(tbl, ln);
+                refresh[0].run();
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
             }
         };
         logBtn.setOnMouseClicked(e -> doLog.run());
         call.setOnAction(e -> doLog.run());
         cmt.setOnAction(e -> doLog.run());
-        clear.setOnMouseClicked(e -> { for (TextField t : new TextField[]{call, name, grid, qth, stat, cnty, cmt}) t.clear(); call.requestFocus(); });
+        clear.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = ""; call.requestFocus(); });
+        cancel.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); call.requestFocus(); });
 
-        // Callsign lookup: on CALLSIGN field exit, query the configured callbooks
-        // (J-Hub ▸ Data) off-thread and autofill any blank fields.
-        String[] lastLk = {""};
+        // Callsign field exit: worked-before/dupe indicator + callbook autofill (both off-thread).
         call.focusedProperty().addListener((o, was, now) -> {
-            if (now) return;                                   // only when focus leaves the field
+            if (now) return;
             String c = call.getText() == null ? "" : call.getText().trim().toUpperCase();
-            if (c.length() < 3 || c.equals(lastLk[0]) || !com.ars.fx.data.LookupConfig.anyEnabled()) return;
+            if (c.length() < 3) { b4.setText("Normal log"); b4.setStyle(""); return; }
+            if (c.equals(lastLk[0])) return;
             lastLk[0] = c;
+            String curBand = band.getText() == null ? "" : band.getText().trim();
+            boolean lookupOn = com.ars.fx.data.LookupConfig.anyEnabled();
             Thread t = new Thread(() -> {
-                com.ars.fx.data.CallsignLookup.Result r = com.ars.fx.data.CallsignLookup.lookup(c);
-                if (r != null) Platform.runLater(() -> {
-                    fillIfEmpty(name, r.name()); fillIfEmpty(grid, r.grid()); fillIfEmpty(qth, r.city());
-                    fillIfEmpty(stat, r.state()); fillIfEmpty(cnty, r.county());
+                JLogDb.Prior prior = JLogDb.priorWith(c);
+                com.ars.fx.data.CallsignLookup.Result r = lookupOn ? com.ars.fx.data.CallsignLookup.lookup(c) : null;
+                Platform.runLater(() -> {
+                    updateB4(b4, prior, curBand);
+                    if (r != null) { fillIfEmpty(name, r.name()); fillIfEmpty(grid, r.grid()); fillIfEmpty(qth, r.city());
+                        fillIfEmpty(stat, r.state()); fillIfEmpty(cnty, r.county()); }
                 });
             }, "callsign-lookup");
             t.setDaemon(true); t.start();
@@ -262,31 +328,48 @@ public final class JLogCockpit {
     }
     private static HBox row(VBox... cells) { HBox r = new HBox(12, cells); r.setAlignment(Pos.BOTTOM_LEFT); return r; }
 
-    private static final double[] LOGC = {54, -1, 86, 50, 64, 60, -1};
-    private static void fillLog(VBox tbl, Label count) {
+    // columns: DATE, UTC, CALL, FREQ, BAND, MODE, RST, NAME, [edit/del actions]
+    private static final double[] LOGC = {84, 48, -1, 74, 46, 54, 48, -1, 58};
+    private static void fillLog(VBox tbl, Label count, Consumer<Long> onEdit, Consumer<Long> onDelete) {
         tbl.getChildren().clear();
-        tbl.getChildren().add(logRow(new String[]{"UTC", "CALL", "FREQ", "BAND", "MODE", "RST", "NAME"}, true));
+        tbl.getChildren().add(headerRow(new String[]{"DATE", "UTC", "CALL", "FREQ", "BAND", "MODE", "RST", "NAME", ""}));
         List<JLogDb.Qso> rows = JLogDb.recent(12);
         if (rows.isEmpty()) {
             Label none = lbl("No QSOs yet — log one above"); none.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;-fx-padding:14 18 14 18;");
             tbl.getChildren().add(none); count.setText("");
         } else {
-            for (JLogDb.Qso q : rows) tbl.getChildren().add(logRow(new String[]{
-                    JLogDb.hhmm(q.utc()), nv(q.callsign()), nv(q.freq()), nv(q.band()), nv(q.mode()), nv(q.rstRcvd()), "" }, false));
-            count.setText("· " + rows.size() + " shown");
+            for (JLogDb.Qso q : rows) tbl.getChildren().add(dataRow(q, onEdit, onDelete));
+            count.setText("· " + rows.size() + " shown · click a row to edit");
         }
     }
-    private static HBox logRow(String[] c, boolean header) {
-        HBox r = new HBox(10); r.setAlignment(Pos.CENTER_LEFT); r.setPadding(new Insets(header ? 9 : 8, 18, header ? 9 : 8, 18));
+    private static HBox headerRow(String[] c) {
+        HBox r = new HBox(10); r.setAlignment(Pos.CENTER_LEFT); r.setPadding(new Insets(9, 18, 9, 18));
         r.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;");
-        for (int i = 0; i < c.length; i++) {
-            Label l;
-            if (header) { l = lbl(c[i]); l.setStyle("-fx-font-size:9px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;"); }
-            else if (i == 1) l = lbl(c[i], "jl-tr-call");
-            else if (i == 4) { Label m = lbl(c[i], "jl-mode"); col(r, m, i); continue; }
-            else l = lbl(c[i], "jl-tr-mono");
-            col(r, l, i);
-        }
+        for (int i = 0; i < c.length; i++) { Label l = lbl(c[i]); l.setStyle("-fx-font-size:9px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;"); col(r, l, i); }
+        return r;
+    }
+    private static HBox dataRow(JLogDb.Qso q, Consumer<Long> onEdit, Consumer<Long> onDelete) {
+        HBox r = new HBox(10); r.setAlignment(Pos.CENTER_LEFT); r.setPadding(new Insets(8, 18, 8, 18));
+        r.getStyleClass().add("jl-logrow");
+        r.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-cursor:hand;");
+        col(r, lbl(JLogDb.dateOf(q.utc()), "jl-tr-mono"), 0);
+        col(r, lbl(JLogDb.hhmm(q.utc()), "jl-tr-mono"), 1);
+        col(r, lbl(nv(q.callsign()), "jl-tr-call"), 2);
+        col(r, lbl(nv(q.freq()), "jl-tr-mono"), 3);
+        col(r, lbl(nv(q.band()), "jl-tr-mono"), 4);
+        col(r, lbl(nv(q.mode()), "jl-mode"), 5);
+        col(r, lbl(nv(q.rstRcvd()), "jl-tr-mono"), 6);
+        col(r, lbl(nv(q.name()), "jl-tr-mono"), 7);
+        // edit (click row) + delete (two-step ✕)
+        Label del = lbl("✕", "jl-tr-mono"); del.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-t4;-fx-font-size:13px;-fx-padding:0 6 0 6;");
+        boolean[] armed = {false};
+        del.setOnMouseClicked(e -> {
+            if (e != null) e.consume();
+            if (!armed[0]) { armed[0] = true; del.setText("del?"); del.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-err;-fx-font-weight:bold;-fx-font-size:11px;-fx-padding:0 4 0 4;"); }
+            else if (onDelete != null) onDelete.accept(q.id());
+        });
+        col(r, del, 8);
+        r.setOnMouseClicked(e -> { if (onEdit != null) onEdit.accept(q.id()); });
         return r;
     }
     private static void col(HBox r, Node n, int i) {
@@ -441,11 +524,36 @@ public final class JLogCockpit {
         Timeline t = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (host != null && host.lookup(".sx-clock-v") instanceof Label l)
                 l.setText(java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
+            // keep the QSO date/time live until the operator overrides (and not while editing them)
+            if (dateRef != null && manualRef != null && !manualRef[0] && !dateRef.isFocused() && !timeRef.isFocused()) {
+                dateRef.setText(nowDate()); timeRef.setText(nowTime());
+            }
         }));
         t.setCycleCount(Timeline.INDEFINITE); t.play();
     }
 
     // ---- helpers -----------------------------------------------------------
+    private static String nowDate() { return java.time.LocalDate.now(java.time.ZoneOffset.UTC).toString(); }
+    private static String nowTime() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
+    /** Combine date + time fields into "yyyy-MM-dd HH:mm:ss", or null if not a valid timestamp (→ now). */
+    private static String composeDt(String date, String time) {
+        String d = date == null ? "" : date.trim(), t = time == null ? "" : time.trim();
+        if (t.length() == 5) t = t + ":00";
+        String dt = d + " " + t;
+        return dt.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}") ? dt : null;
+    }
+    /** Update the worked-before / dupe indicator from prior-QSO data. */
+    private static void updateB4(Label b4, JLogDb.Prior prior, String curBand) {
+        if (prior == null || prior.count() == 0) {
+            b4.setText("✓ NEW"); b4.setStyle("-fx-text-fill:-ars-ok;-fx-font-weight:bold;");
+        } else if (curBand != null && !curBand.isBlank() && prior.bands().contains(curBand)) {
+            b4.setText("⚠ DUPE " + curBand + " · " + prior.count() + "×"); b4.setStyle("-fx-text-fill:-ars-err;-fx-font-weight:bold;");
+        } else {
+            String bands = prior.bands().isEmpty() ? "" : " · " + String.join(",", prior.bands());
+            b4.setText("● B4 " + prior.count() + "×" + bands); b4.setStyle("-fx-text-fill:-ars-warn;-fx-font-weight:bold;");
+        }
+    }
+    private static String z(String s) { return s == null ? "" : s; }
     private static String nv(String s) { return (s == null || s.isBlank()) ? "—" : s; }
     private static String fmt(int n) { return String.format("%,d", n); }
     private static String lastCall() {
