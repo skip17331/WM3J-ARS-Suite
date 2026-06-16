@@ -653,6 +653,7 @@ public final class JHubDashboard {
 
         VBox conn = section("CONNECTION",
             cfgRow("Transceiver model", null, cInput("rig.model", "Icom IC-7610")),
+            cfgRow("Hamlib model #", "rigctld -m (run: rigctl --list)", cInput("rig.hamlibModel", "")),
             cfgRow("Interface", null, cSeg("rig.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Port", null, cInput("rig.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
@@ -664,7 +665,9 @@ public final class JHubDashboard {
             cfgRow("PTT method", null, cSeg("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0)),
             cfgRow("CW keyer", null, cInput("rig.keyer", "Winkeyer USB")),
             cfgRow("TX delay", null, cUnit("rig.txDelay", "30", "ms")));
-        VBox beh = section("BEHAVIOR", cfgRow("Auto band-follow", null, cToggle("rig.autoBandFollow", true)));
+        VBox beh = section("BEHAVIOR",
+            cfgRow("Auto band-follow", null, cToggle("rig.autoBandFollow", true)),
+            cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.DaemonManager.setEnabled("rig", on))));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
@@ -725,12 +728,13 @@ public final class JHubDashboard {
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
             cfgRow("Rotor model", null, cInput("rotor.model", "Yaesu G-1000DXA")),
+            cfgRow("Hamlib model #", "rotctld -m (run: rotctl --list)", cInput("rotor.hamlibModel", "")),
             cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
             cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
             cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply("rotor.host", "127.0.0.1", () -> com.ars.fx.data.RotorClient.getInstance().reconnect())),
             cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RotorClient.getInstance().reconnect())),
-            cfgRow("Start rotctld for me", null, cToggle("rotor.startDaemon", true)));
+            cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.DaemonManager.setEnabled("rotor", on))));
         VBox beh = section("BEHAVIOR",
             cfgRow("Overlap / wrap", "where the rotor crosses", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
             cfgRow("Park position", null, cUnit("rotor.park", "0", "° az")),
@@ -747,12 +751,13 @@ public final class JHubDashboard {
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
             cfgRow("Amplifier model", null, cInput("amp.model", "Elecraft KPA-1500")),
+            cfgRow("Hamlib model #", "ampctld -m (run: ampctl --list)", cInput("amp.hamlibModel", "")),
             cfgRow("Interface", null, cSeg("amp.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Serial port", null, cInput("amp.port", "/dev/ttyACM0")),
             cfgRow("Baud rate", null, cSelect("amp.baud", "38400", BAUDS)),
             cfgRow("ampctld host", "Hamlib amp daemon", cInputApply("amp.host", "127.0.0.1", () -> AmpClient.getInstance().reconnect())),
             cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> AmpClient.getInstance().reconnect())),
-            cfgRow("Start ampctld for me", null, cToggle("amp.startDaemon", true)));
+            cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.DaemonManager.setEnabled("amp", on))));
         VBox beh = section("BEHAVIOR",
             cfgRow("Follow rig band", "auto band-switch with the radio", cToggle("amp.followBand", true)),
             cfgRow("Max power", null, cUnit("amp.maxPower", "1000", "W")),
@@ -1020,6 +1025,10 @@ public final class JHubDashboard {
     /** Toggle bound to a HubConfig boolean key. */
     private static Region cToggle(String key, boolean def) {
         return switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> com.ars.fx.data.HubConfig.setBool(key, v));
+    }
+    /** Toggle bound to a HubConfig boolean key that also runs {@code apply} with the new state. */
+    private static Region cToggleApply(String key, boolean def, java.util.function.Consumer<Boolean> apply) {
+        return switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> { com.ars.fx.data.HubConfig.setBool(key, v); apply.accept(v); });
     }
 
     // ---- small helpers -----------------------------------------------------

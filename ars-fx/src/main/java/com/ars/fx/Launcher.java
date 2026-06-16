@@ -26,6 +26,9 @@ public class Launcher extends Application {
         Shell.onNavigate = this::show;
         Shell.onToggleTheme = this::toggleTheme;
 
+        // spawn any Hamlib daemons the operator asked J-Hub to manage
+        com.ars.fx.data.DaemonManager.ensureAll();
+
         scene = new Scene(host, 1460, 900);
         Theme.apply(scene, light);
         show(System.getProperty("surface", "hub"));
