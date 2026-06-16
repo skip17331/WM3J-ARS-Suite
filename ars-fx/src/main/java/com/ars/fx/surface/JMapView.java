@@ -73,6 +73,39 @@ public final class JMapView {
     }
     /** "Needed only" — hide spots whose call is already in the log. */
     private static boolean spotHidden(String call) { return ovNeededOnly && workedCalls().contains(call.toUpperCase()); }
+
+    // ---- live DX-cluster spots on the map ---------------------------------
+    private static int spotMode = 0;                                              // 0 All · 1 CW · 2 Phone · 3 Digi
+    private static final java.util.Set<String> spotBands = new java.util.HashSet<>();   // empty = all bands
+    private static int spotAgeMax = 20;                                           // minutes
+    private static Runnable currentSpotsRefresh;
+
+    /** A positioned cluster spot (geo-located via {@link com.ars.fx.data.Geo}). */
+    public record MapSpot(String call, double lat, double lon, String band, String mode, long arrivalMs, long freqHz, Color color) {}
+
+    /** Geo-locate + filter the given raw cluster spots (skips calls with no known location). */
+    public static java.util.List<MapSpot> spotsFrom(java.util.List<com.ars.fx.data.ClusterClient.Spot> raw) {
+        java.util.List<MapSpot> out = new java.util.ArrayList<>();
+        long now = System.currentTimeMillis();
+        for (com.ars.fx.data.ClusterClient.Spot s : raw) {
+            double[] ll = com.ars.fx.data.Geo.of(s.call());
+            if (ll == null) continue;
+            if (!modePass(s.mode()) || !bandPass(s.band()) || (now - s.arrivalMs()) / 60000 > spotAgeMax) continue;
+            out.add(new MapSpot(s.call(), ll[0], ll[1], s.band(), s.mode(), s.arrivalMs(), s.freqHz(), bandColor(s.band())));
+        }
+        return out;
+    }
+    private static java.util.List<MapSpot> liveSpots() { return spotsFrom(com.ars.fx.data.ClusterClient.getInstance().spots()); }
+    private static boolean modePass(String m) {
+        if (spotMode == 0) return true;
+        String u = m == null ? "" : m.toUpperCase();
+        boolean cw = u.equals("CW");
+        boolean phone = u.equals("SSB") || u.equals("USB") || u.equals("LSB") || u.equals("FM") || u.equals("AM") || u.contains("PHONE");
+        return spotMode == 1 ? cw : spotMode == 2 ? phone : (!cw && !phone);   // Digi = everything else
+    }
+    private static boolean bandPass(String b) { return spotBands.isEmpty() || spotBands.contains(b); }
+    private static void refreshSpots() { repaintMap(); if (currentSpotsRefresh != null) currentSpotsRefresh.run(); }
+
     private static void startBeaconTicker() {
         if (beaconTicker != null) return;
         // 1 Hz tick drives the beacon cycle and the live gray line (sun position,
@@ -180,6 +213,14 @@ public final class JMapView {
         com.ars.fx.data.HeardByClient.getInstance().setListener(c -> { if (showHeardBy) repaintMap(); });
         com.ars.fx.data.HeardByClient.getInstance().start();
 
+        // live DX-cluster spots feed the map + the rail spot list
+        VBox spotsBox = new VBox();
+        fillSpots(spotsBox);
+        currentSpotsRefresh = () -> fillSpots(spotsBox);
+        com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
+        cc.setListener(c -> javafx.application.Platform.runLater(JMapView::refreshSpots));
+        cc.start();
+
         // collapsible left controls column
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
         int[] leftCollapsed = {0};
@@ -191,7 +232,7 @@ public final class JMapView {
         rebuildLeft[0].run();
 
         HBox center = new HBox(leftHolder, mapHolder); center.setFillHeight(true);
-        Region rail = Shell.rail(railDrawers());
+        Region rail = Shell.rail(railDrawers(spotsBox));
         return Shell.frame(dock, top, center, rail, tickerBar());
     }
 
@@ -284,19 +325,35 @@ public final class JMapView {
         bandsHead.getChildren().addAll(bsp, lbl("ALL","jm-sec-all")); bandsHead.setAlignment(Pos.CENTER_LEFT);
         p.getChildren().add(bandsHead);
         GridPane bands = new GridPane(); bands.setHgap(6); bands.setVgap(6);
+        java.util.List<HBox> bandChips = new java.util.ArrayList<>(); java.util.List<String> bandKeys = new java.util.ArrayList<>();
+        Runnable restyleBands = () -> {
+            boolean any = !spotBands.isEmpty();
+            for (int i = 0; i < bandChips.size(); i++) {
+                boolean sel = spotBands.contains(bandKeys.get(i));
+                bandChips.get(i).setOpacity(!any || sel ? 1.0 : 0.4);
+            }
+        };
         for (int i=0;i<Mock.MAP_BANDS.length;i++){
             String[] b = Mock.MAP_BANDS[i];
+            String key = b[0] + "m";                          // Mock bands are bare ("20"); cluster bands are "20m"
             Region dot = new Region(); dot.getStyleClass().add("jm-band-dot"); dot.setStyle("-fx-background-color:"+b[1]+";");
             HBox chip = new HBox(7, dot, lbl(b[0],"jm-band-n")); chip.getStyleClass().add("jm-band"); chip.setAlignment(Pos.CENTER_LEFT);
-            GridPane.setHgrow(chip, Priority.ALWAYS); chip.setMaxWidth(Double.MAX_VALUE);
+            GridPane.setHgrow(chip, Priority.ALWAYS); chip.setMaxWidth(Double.MAX_VALUE); chip.setStyle("-fx-cursor:hand;");
+            chip.setOnMouseClicked(e -> { if (!spotBands.remove(key)) spotBands.add(key); restyleBands.run(); refreshSpots(); });
+            bandChips.add(chip); bandKeys.add(key);
             bands.add(chip, i%3, i/3);
         }
         for (int c=0;c<3;c++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); bands.getColumnConstraints().add(cc); }
+        restyleBands.run();
         p.getChildren().add(bands);
         p.getChildren().add(lbl("MODE","jm-sec"));
-        p.getChildren().add(seg(new String[]{"All","CW","Phone","Digi"}, 0));
-        p.getChildren().add(lbl("SPOT AGE ≤ 20 MIN","jm-sec"));
-        p.getChildren().add(slider(0.85));
+        p.getChildren().add(segSel(new String[]{"All","CW","Phone","Digi"}, spotMode, i -> { spotMode = i; refreshSpots(); }));
+        Label ageLbl = lbl("SPOT AGE ≤ " + spotAgeMax + " MIN","jm-sec");
+        p.getChildren().add(ageLbl);
+        p.getChildren().add(sliderI((spotAgeMax - 1) / 59.0, f -> {
+            spotAgeMax = (int) Math.max(1, Math.round(1 + f * 59));
+            ageLbl.setText("SPOT AGE ≤ " + spotAgeMax + " MIN"); refreshSpots();
+        }));
         p.getChildren().add(lbl("OVERLAYS","jm-sec"));
         for (int oi = 0; oi < Mock.OVERLAYS.length; oi++) {
             final int idx = oi;
@@ -362,7 +419,6 @@ public final class JMapView {
         p.getChildren().addAll(expand, vwrap);
         return p;
     }
-    private static Region seg(String[] opts, int on) { return segSel(opts, on, i -> {}); }
     /** Interactive segmented control reporting the chosen index. */
     private static Region segSel(String[] opts, int on, java.util.function.IntConsumer onSelect) {
         HBox h = new HBox(2); h.getStyleClass().add("jm-seg");
@@ -375,23 +431,6 @@ public final class JMapView {
         }
         return h;
     }
-    private static Region toggle(boolean on) {
-        Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
-        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); if(on) sw.getStyleClass().add("on");
-        sw.setPadding(new Insets(0,3,0,3)); StackPane.setAlignment(knob, on ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-        sw.setMaxSize(36,20);
-        return sw;
-    }
-    private static Region slider(double frac) {
-        Region track = new Region(); track.setMinHeight(5); track.setMaxHeight(5); track.setStyle("-fx-background-color:-ars-surface-4; -fx-background-radius:99;"); HBox.setHgrow(track, Priority.ALWAYS); track.setMaxWidth(Double.MAX_VALUE);
-        Region fill = new Region(); fill.setMinHeight(5); fill.setMaxHeight(5); fill.setStyle("-fx-background-color:-ars-map; -fx-background-radius:99;");
-        Region knob = new Region(); knob.setMinSize(15,15); knob.setMaxSize(15,15); knob.setStyle("-fx-background-color:-ars-map; -fx-background-radius:99; -fx-border-color:-ars-surface-1; -fx-border-width:2; -fx-border-radius:99;");
-        Pane bar = new Pane(track, fill, knob); bar.setMinHeight(16); bar.setPrefHeight(16);
-        bar.widthProperty().addListener((o,ov,nv)->{ double w=nv.doubleValue(); track.resizeRelocate(0,6,w,5); fill.resizeRelocate(0,6,w*frac,5); knob.relocate(Math.max(0,w*frac-7),1); });
-        VBox.setMargin(bar, new Insets(8,0,4,0));
-        return bar;
-    }
-
     // ---- azimuthal map -----------------------------------------------------
     private static Region aziArea() {
         Canvas cv = new Canvas();
@@ -481,14 +520,15 @@ public final class JMapView {
             g.closePath(); g.fill();
         }
 
-        // spots
+        // live DX-cluster spots
         double spotA = dimSpots() ? 0.28 : 1.0;
-        for (Object[] s : Mock.AZ_SPOTS){
-            String call=(String)s[0]; double br=(double)s[1], dist=(double)s[2]; Color col=Color.web((String)s[3]);
-            if (spotHidden(call)) continue;
-            double a=Math.toRadians(br-90), x=cx+Math.cos(a)*dist*R, y=cy+Math.sin(a)*dist*R;
-            g.setFill(col.deriveColor(0,1,1,spotA)); g.fillOval(x-4.5, y-4.5, 9, 9);
-            if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(call, x+8, y+4); }
+        for (MapSpot s : liveSpots()){
+            if (spotHidden(s.call())) continue;
+            double[] pp = azProject(s.lat(), s.lon(), cx, cy, R);
+            if (pp[2] > 1.0) continue;                       // off the visible disk
+            double x = pp[0], y = pp[1];
+            g.setFill(s.color().deriveColor(0,1,1,spotA)); g.fillOval(x-4.5, y-4.5, 9, 9);
+            if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x+8, y+4); }
         }
         // the Sun — sub-solar point projected into the azimuthal map (if visible)
         if (ovGrayline) {
@@ -658,14 +698,12 @@ public final class JMapView {
         for (int i = 0; i < rn.length; i++) g.fillText(rn[i], lon2x(regions[i][1], RMX, RW), lat2y(regions[i][0], RMY, RH));
 
         double spotA = dimSpots() ? 0.28 : 1.0;
-        for (Object[] s : Mock.AZ_SPOTS) {
-            String call = (String) s[0]; double br = (double) s[1], dist = (double) s[2]; Color col = Color.web((String) s[3]);
-            if (spotHidden(call)) continue;
-            double[] ll = dest(Q_LAT, Q_LON, br, dist * 15000.0);
-            double x = lon2x(ll[1], RMX, RW), y = lat2y(ll[0], RMY, RH);
+        for (MapSpot s : liveSpots()) {
+            if (spotHidden(s.call())) continue;
+            double x = lon2x(s.lon(), RMX, RW), y = lat2y(s.lat(), RMY, RH);
             g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(x - 4.5, y - 4.5, 9, 9);
-            g.setFill(col.deriveColor(0,1,1,spotA)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
-            if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(call, x + 8, y + 4); }
+            g.setFill(s.color().deriveColor(0,1,1,spotA)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
+            if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x + 8, y + 4); }
         }
 
         double qx = lon2x(Q_LON, RMX, RW), qy = lat2y(Q_LAT, RMY, RH);
@@ -794,22 +832,34 @@ public final class JMapView {
     }
 
     // ---- right rail --------------------------------------------------------
-    private static Node[] railDrawers() {
-        VBox spots = new VBox();
-        for (String[] s : Mock.DX_LIST) {
-            Region dot = new Region(); dot.getStyleClass().add("jm-spot-dot"); dot.setStyle("-fx-background-color:-ars-accent;");
-            Label fq = lbl(s[0], "jm-spot-fq"); fq.setMinWidth(54);
-            VBox txt = new VBox(1, hcall(s[1], s[4]), lbl(s[2] + " · " + s[3], "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
+    /** Rebuild the live DX-spots list (cluster + filters). */
+    private static void fillSpots(VBox spots) {
+        spots.getChildren().clear();
+        java.util.List<MapSpot> list = liveSpots();
+        if (list.isEmpty()) {
+            Label e = lbl(com.ars.fx.data.ClusterClient.getInstance().isConnected() ? "No spots match the filters." : "Connecting to cluster…", "jm-spot-meta");
+            e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
+        }
+        int n = 0;
+        for (MapSpot s : list) {
+            if (n++ >= 40) break;
+            Region dot = new Region(); dot.getStyleClass().add("jm-spot-dot"); dot.setStyle("-fx-background-color:" + toHex(s.color()) + ";");
+            Label fq = lbl(com.ars.fx.data.ClusterClient.fmtFreq(s.freqHz()), "jm-spot-fq"); fq.setMinWidth(54);
+            String need = workedCalls().contains(s.call().toUpperCase()) ? "n" : "y";
+            VBox txt = new VBox(1, hcall(s.call(), need),
+                    lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
             spots.getChildren().add(row);
         }
+    }
+    private static Node[] railDrawers(VBox spots) {
         ScrollPane spotScroll = new ScrollPane(spots); spotScroll.setFitToWidth(true);
         spotScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); spotScroll.setPrefViewportHeight(300);
         spotScroll.setStyle("-fx-background-color:transparent;");
 
         List<Node> inst = Shell.instruments(50);
         List<Node> rail = new ArrayList<>();
-        rail.add(Shell.drawer("DX Spots","map","map","22 spots", true, spotScroll));
+        rail.add(Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll));
         rail.add(Shell.drawer("DX station info","accent","hub","", false, lbl("Select a spot to see DXCC, beam heading & distance.","jm-spot-meta")));
         rail.add(inst.get(0));   // Antenna · Rotor
         rail.add(inst.get(1));   // Propagation
