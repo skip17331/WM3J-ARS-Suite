@@ -5,6 +5,7 @@ import com.ars.fx.data.JLogDb;
 import com.ars.fx.data.RigClient;
 import com.ars.fx.data.RotorClient;
 import com.ars.fx.mock.Mock;
+import com.ars.fx.data.AmpClient;
 import com.ars.fx.shell.Shell;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -517,6 +518,7 @@ public final class JHubDashboard {
         VBox col = new VBox(11, com.ars.fx.shell.IdTimer.drawer(),
                 Shell.drawer("Rig control", "bridge", "bridge", "", true, rigBody()),
                 Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
+                Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.solarSpaceWeatherDrawer(),
                 Shell.bandConditionsDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
@@ -574,6 +576,28 @@ public final class JHubDashboard {
         });
         RigClient.getInstance().start();
         return new VBox(12, fq, chips, steps, sm, power, bands, conn);
+    }
+    private static Region ampBody() {
+        Label stateV = lbl("—", "jhub-pill", "grey");
+        HBox stateRow = new HBox(8, lbl("STATE", "jhub-pw-k"), stateV); stateRow.setAlignment(Pos.CENTER_LEFT);
+        Label swrV = lbl("—", "jhub-pw-v");
+        VBox swr = new VBox(2, lbl("SWR", "jhub-pw-k"), swrV);
+        Region psp = new Region(); HBox.setHgrow(psp, Priority.ALWAYS);
+        Label pwrV = lbl("—", "jhub-pw-v");
+        VBox pwr = new VBox(2, lbl("FWD POWER", "jhub-pw-k"), pwrV); pwr.setAlignment(Pos.CENTER_RIGHT);
+        HBox meters = new HBox(swr, psp, pwr);
+        Label conn = lbl("○ ampctld " + AmpClient.getInstance().endpoint() + " · offline", "jhub-conn");
+        AmpClient.getInstance().setListener(s -> {
+            boolean c = s.connected();
+            conn.getStyleClass().remove("live");
+            if (c) { conn.getStyleClass().add("live"); conn.setText("● ampctld " + AmpClient.getInstance().endpoint()); }
+            else conn.setText("○ ampctld " + AmpClient.getInstance().endpoint() + " · offline");
+            stateV.setText(c ? s.mode() : "—");
+            swrV.setText(c && s.swr() > 0 ? String.format("%.1f:1", s.swr()) : "—");
+            pwrV.setText(c && s.pwr() > 0 ? Math.round(s.pwr()) + " W" : "—");
+        });
+        AmpClient.getInstance().start();
+        return new VBox(12, stateRow, meters, conn);
     }
     private static Region rotorBody() {
         javafx.scene.canvas.Canvas cv = Shell.compass(0, 88);
@@ -726,8 +750,8 @@ public final class JHubDashboard {
             cfgRow("Interface", null, cSeg("amp.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Serial port", null, cInput("amp.port", "/dev/ttyACM0")),
             cfgRow("Baud rate", null, cSelect("amp.baud", "38400", BAUDS)),
-            cfgRow("ampctld host", "Hamlib amp daemon", cInput("amp.host", "127.0.0.1")),
-            cfgRow("ampctld port", null, cInput("amp.ampctldPort", "4534")),
+            cfgRow("ampctld host", "Hamlib amp daemon", cInputApply("amp.host", "127.0.0.1", () -> AmpClient.getInstance().reconnect())),
+            cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> AmpClient.getInstance().reconnect())),
             cfgRow("Start ampctld for me", null, cToggle("amp.startDaemon", true)));
         VBox beh = section("BEHAVIOR",
             cfgRow("Follow rig band", "auto band-switch with the radio", cToggle("amp.followBand", true)),
