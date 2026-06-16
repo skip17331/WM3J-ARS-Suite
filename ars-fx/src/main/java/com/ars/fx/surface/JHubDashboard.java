@@ -688,7 +688,7 @@ public final class JHubDashboard {
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
 
         VBox id = section("IDENTITY",
-            cfgRow("Callsign", null, cInput("station.call", "WM3J")),
+            cfgRow("Callsign", null, cInputApply("station.call", "WM3J", () -> com.ars.fx.data.HeardByClient.getInstance().setCall(com.ars.fx.data.HubConfig.call()))),
             cfgRow("Operator name", null, cInput("station.name", "Mike")),
             cfgRow("Grid square", "6-char Maidenhead locator", cInput("station.grid", "FM19")));
         VBox loc = section("LOCATION",
@@ -790,9 +790,16 @@ public final class JHubDashboard {
         HBox cells = new HBox(0, statCell("CLUSTER","● dxc.ve7cc.net","",true), statCell("RBN","● connected","",true),
                 statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB","~/.j-log","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+        Runnable applyCluster = () -> {
+            String srv = com.ars.fx.data.HubConfig.get("data.clusterServer", "dxc.ve7cc.net:23").trim();
+            String login = com.ars.fx.data.HubConfig.get("data.clusterLogin", com.ars.fx.data.HubConfig.call());
+            String host = srv; int port = 23; int c = srv.lastIndexOf(':');
+            if (c > 0) { host = srv.substring(0, c); try { port = Integer.parseInt(srv.substring(c + 1).trim()); } catch (Exception ignored) {} }
+            ClusterClient.getInstance().setEndpoint(host, port, login);
+        };
         VBox cluster = section("DX CLUSTER",
-            cfgRow("Cluster server", null, cInput("data.clusterServer", "dxc.ve7cc.net:23")),
-            cfgRow("Login callsign", null, cInput("data.clusterLogin", "WM3J")),
+            cfgRow("Cluster server", null, cInputApply("data.clusterServer", "dxc.ve7cc.net:23", applyCluster)),
+            cfgRow("Login callsign", null, cInputApply("data.clusterLogin", "WM3J", applyCluster)),
             cfgRow("Band filter", null, cSeg("data.clusterBand", new String[]{"All","HF","VHF+"}, 0)),
             cfgRow("Mode filter", null, cSeg("data.clusterMode", new String[]{"All","CW","Phone","Digi"}, 0)),
             cfgRow("Reverse Beacon (RBN)", "spots of your own call", cToggle("data.rbn", true)));

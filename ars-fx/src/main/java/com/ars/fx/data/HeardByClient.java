@@ -56,6 +56,12 @@ public final class HeardByClient {
     public boolean isConnected() { return connected; }
     public String endpoint() { return host; }
     public String myCall() { return call; }
+    /** Update the watched call (e.g. from station config) and reconnect to RBN. */
+    public void setCall(String c) {
+        if (c == null || c.isBlank()) return;
+        this.call = c.trim().toUpperCase();
+        backoff = 5; closeSocket();
+    }
     public synchronized List<HeardSpot> spots() { return new ArrayList<>(spots); }
     public void setListener(Consumer<HeardByClient> l) { this.listener = l == null ? c -> {} : l; fire(); }
 
