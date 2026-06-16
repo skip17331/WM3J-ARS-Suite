@@ -17,7 +17,6 @@ public class Launcher extends Application {
 
     private final StackPane host = new StackPane();
     private Scene scene;
-    private boolean light = false;
 
     public static void main(String[] args) {
         // helper: `--write-sample map|sat [file]` emits a starter launch JSON without booting the UI
@@ -36,7 +35,7 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage stage) {
-        Shell.onToggleTheme = this::toggleTheme;
+        Shell.onThemeChanged = () -> Themes.applyTo(host, Shell.currentSurface);
 
         // Solo launch? `-Dars.config=<file>` or `--config <file>` runs one module (J-Map/J-Sat) on its own.
         com.ars.fx.data.SoloConfig cfg = resolveSoloConfig();
@@ -51,7 +50,7 @@ public class Launcher extends Application {
         com.ars.fx.data.RemoteServer.startIfEnabled();
 
         scene = new Scene(host, 1460, 900);
-        Theme.apply(scene, light);
+        Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         show(System.getProperty("surface", "hub"));
 
         stage.setTitle("ARS Suite");
@@ -80,7 +79,7 @@ public class Launcher extends Application {
         if (cfg.isRemote()) com.ars.fx.data.RemoteLink.connect(cfg.remote);   // live feed from the station's J-Hub
 
         scene = new Scene(host, cfg.window.width, cfg.window.height);
-        Theme.apply(scene, light);
+        Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         show(cfg.module);
 
         stage.setTitle(cfg.windowTitle());
@@ -92,12 +91,7 @@ public class Launcher extends Application {
     private void show(String id) {
         Shell.currentSurface = id;
         host.getChildren().setAll(buildSurface(id));
-    }
-
-    private void toggleTheme() {
-        light = !light;
-        if (light) host.getStyleClass().add("ars-light");
-        else host.getStyleClass().remove("ars-light");
+        Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }
 
     /** Build a surface frame by id. */

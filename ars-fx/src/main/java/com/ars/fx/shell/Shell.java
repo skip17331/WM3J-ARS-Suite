@@ -38,13 +38,26 @@ public final class Shell {
     /** Navigation + theme hooks, set by the host (Launcher). Dock items and the
      *  J-Hub nav call navigate(id) to switch surface; toggleTheme() flips light/dark. */
     public static java.util.function.Consumer<String> onNavigate;
-    public static Runnable onToggleTheme;
+    /** Host re-applies the effective scheme to the scene root after a theme change. */
+    public static Runnable onThemeChanged;
     /** Id of the surface currently on screen (set by the host on every show); spot-click prefill checks it. */
     public static volatile String currentSurface = "hub";
     /** Solo mode: a single module launched on its own (J-Map/J-Sat) — no module dock, no cross-nav. */
     public static volatile boolean solo = false;
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
-    public static void toggleTheme() { if (onToggleTheme != null) onToggleTheme.run(); }
+
+    /** Dashboard theme button: advance the suite-wide scheme (clears per-module overrides). */
+    public static com.ars.fx.Themes.Scheme cycleGlobalTheme() {
+        com.ars.fx.Themes.Scheme s = com.ars.fx.Themes.cycleGlobal();
+        if (onThemeChanged != null) onThemeChanged.run();
+        return s;
+    }
+    /** Module theme button: advance the current module's own scheme (remembered until changed). */
+    public static com.ars.fx.Themes.Scheme cycleModuleTheme() {
+        com.ars.fx.Themes.Scheme s = com.ars.fx.Themes.cycleModule(currentSurface);
+        if (onThemeChanged != null) onThemeChanged.run();
+        return s;
+    }
 
     /** Module hue name -> Color (glyph strokes are set in Java; CSS handles tile bg). */
     public static final Map<String,Color> HUE = Map.ofEntries(
@@ -151,6 +164,11 @@ public final class Shell {
             top.getChildren().add(cell);
         }
         top.getChildren().add(hsp());
+        // per-module theme: shows the module's current scheme, cycles just this module on click
+        Label theme = lbl("◑ " + com.ars.fx.Themes.effective(hue).label(), "sx-theme"); theme.setStyle("-fx-cursor:hand;");
+        theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
+        HBox.setMargin(theme, new Insets(0, 16, 0, 0));
+        top.getChildren().add(theme);
         if (clock != null) {
             VBox c = new VBox(1, lbl("UTC", "sx-clock-k"), lbl(clock, "sx-clock-v"));
             c.setAlignment(Pos.CENTER_RIGHT); top.getChildren().add(c);

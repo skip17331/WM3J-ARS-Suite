@@ -73,6 +73,48 @@
     -ars-accent-text: #ffffff;
 }
 
+/* ── extra colour schemes (token-only overrides, cycled by the theme button) ── */
+.ars-ocean {
+    -fx-base: #102036; -fx-background: #081019; -fx-control-inner-background: #0e1c2e;
+    -fx-accent: #3aa3ff; -fx-focus-color: #3aa3ff; -fx-faint-focus-color: #3aa3ff33;
+    -ars-bg: #081019; -ars-surface-1: #0e1c2e; -ars-surface-2: #132840; -ars-surface-3: #1b3553; -ars-surface-4: #244468;
+    -ars-border: #1f3a5a; -ars-border-2: #2c4d72; -ars-border-glow: #3a6090;
+    -ars-t1: #e7f0fb; -ars-t2: #9bb4d4; -ars-t3: #6981a3; -ars-t4: #4a5e7a;
+    -ars-accent: #3aa3ff; -ars-accent-dim: rgba(58,163,255,0.14); -ars-accent-line: rgba(58,163,255,0.40); -ars-accent-text: #06101f;
+}
+.ars-forest {
+    -fx-base: #122017; -fx-background: #0a130d; -fx-control-inner-background: #0f1c14;
+    -fx-accent: #57c87a; -fx-focus-color: #57c87a; -fx-faint-focus-color: #57c87a33;
+    -ars-bg: #0a130d; -ars-surface-1: #0f1c14; -ars-surface-2: #14271b; -ars-surface-3: #1c3526; -ars-surface-4: #254731;
+    -ars-border: #20392a; -ars-border-2: #2e4d39; -ars-border-glow: #3d6349;
+    -ars-t1: #e8f3ec; -ars-t2: #a0bcaa; -ars-t3: #6f8b78; -ars-t4: #506354;
+    -ars-accent: #57c87a; -ars-accent-dim: rgba(87,200,122,0.14); -ars-accent-line: rgba(87,200,122,0.40); -ars-accent-text: #07150c;
+}
+.ars-amber {
+    -fx-base: #221a10; -fx-background: #14100a; -fx-control-inner-background: #1d160d;
+    -fx-accent: #e9b44c; -fx-focus-color: #e9b44c; -fx-faint-focus-color: #e9b44c33;
+    -ars-bg: #14100a; -ars-surface-1: #1d160d; -ars-surface-2: #261d12; -ars-surface-3: #33271a; -ars-surface-4: #443523;
+    -ars-border: #38291a; -ars-border-2: #4d3a26; -ars-border-glow: #634c34;
+    -ars-t1: #f5ecda; -ars-t2: #c9b596; -ars-t3: #8e7c5e; -ars-t4: #685a42;
+    -ars-accent: #e9b44c; -ars-accent-dim: rgba(233,180,76,0.14); -ars-accent-line: rgba(233,180,76,0.40); -ars-accent-text: #1c1404;
+}
+.ars-rose {
+    -fx-base: #221320; -fx-background: #140b12; -fx-control-inner-background: #1d111b;
+    -fx-accent: #e860a0; -fx-focus-color: #e860a0; -fx-faint-focus-color: #e860a033;
+    -ars-bg: #140b12; -ars-surface-1: #1d111b; -ars-surface-2: #261624; -ars-surface-3: #341f31; -ars-surface-4: #452840;
+    -ars-border: #382336; -ars-border-2: #4d3149; -ars-border-glow: #63405d;
+    -ars-t1: #f6e9f1; -ars-t2: #cba0bd; -ars-t3: #8e6a83; -ars-t4: #684e60;
+    -ars-accent: #e860a0; -ars-accent-dim: rgba(232,96,160,0.14); -ars-accent-line: rgba(232,96,160,0.40); -ars-accent-text: #1b0712;
+}
+.ars-nord {
+    -fx-base: #3b4252; -fx-background: #2e3440; -fx-control-inner-background: #353c4a;
+    -fx-accent: #88c0d0; -fx-focus-color: #88c0d0; -fx-faint-focus-color: #88c0d033;
+    -ars-bg: #2e3440; -ars-surface-1: #353c4a; -ars-surface-2: #3b4252; -ars-surface-3: #434c5e; -ars-surface-4: #4c566a;
+    -ars-border: #434c5e; -ars-border-2: #4c566a; -ars-border-glow: #5b6678;
+    -ars-t1: #eceff4; -ars-t2: #c2cbd9; -ars-t3: #98a3b6; -ars-t4: #6d788c;
+    -ars-accent: #88c0d0; -ars-accent-dim: rgba(136,192,208,0.16); -ars-accent-line: rgba(136,192,208,0.45); -ars-accent-text: #11161e;
+}
+
 /* ---- typography ---- */
 .ars-mono { -fx-font-family: "JetBrains Mono"; }
 .label { -fx-text-fill: -ars-t1; }
@@ -130,6 +172,8 @@
 .sx-stat-sep { -fx-min-width: 1; -fx-pref-width: 1; -fx-max-width: 1; -fx-background-color: -ars-border; }
 .sx-clock-k  { -fx-font-size: 9px; -fx-text-fill: -ars-t3; }
 .sx-clock-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.sx-theme    { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 4 9 4 9; }
+.sx-theme:hover { -fx-text-fill: -ars-t1; -fx-border-color: -ars-t3; }
 
 /* per-module brand tile (precomputed mix18_s3 / rgba.28) */
 .sx-brand-ic.log    { -fx-background-color: #424240; -fx-text-fill: -ars-log;    -fx-border-color: rgba(235,179,83,0.28); }

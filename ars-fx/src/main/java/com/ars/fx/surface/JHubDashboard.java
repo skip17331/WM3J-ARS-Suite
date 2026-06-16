@@ -86,7 +86,9 @@ public final class JHubDashboard {
         HBox brand = new HBox(8, ham, dot, lbl("J-Hub", "jhub-bar-nm"), lbl("· WM3J", "jhub-bar-sub"));
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label theme = lbl("◑ Theme", "jhub-theme"); theme.setStyle("-fx-cursor:hand;"); theme.setOnMouseClicked(e -> Shell.toggleTheme());
+        Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "jhub-theme");
+        theme.setStyle("-fx-cursor:hand;");
+        theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
         HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), theme);
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
