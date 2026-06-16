@@ -34,6 +34,15 @@ public final class JSatView {
     // ── view state (persists across the 2 s snapshot rebuilds) ────────────────
     private static String selectedSat = null;   // null = follow the auto-tracked sat
     private static int    viewMode    = 0;      // 0 = polar sky plot, 1 = blue marble
+    private static boolean trackRotor = false;  // feed focus az to the rotor while in pass
+    private static boolean dopplerTune = false; // feed Doppler-corrected downlink to the rig
+
+    /** Each rebuild (~2 s): point the rotor and tune the rig at the focus satellite when enabled. */
+    private static void autoTrack(SatInfo f) {
+        if (f == null) return;
+        if (trackRotor && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().moveTo(f.azDeg());
+        if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz());
+    }
     private static boolean satCollapsed = false;
     private static StackPane host;
     private static boolean clockStarted = false;
@@ -87,6 +96,7 @@ public final class JSatView {
     private static Region frame(Snapshot snap) {
         Region dock = Shell.dock("sat");
         SatInfo f = focus(snap);
+        autoTrack(f);
         String name = f != null ? f.name() : "—";
         String[][] stats = {
                 {"TRACKING", name, "accent"},
@@ -366,7 +376,9 @@ public final class JSatView {
             doppler = new VBox(9,
                     radioBox("DOWNLINK", SatService.mhz(f.downlinkHz()) + "  " + SatService.shiftKHz(f.downlinkCorrHz(), f.downlinkHz()), SatService.mhz4(f.downlinkCorrHz())),
                     radioBox("UPLINK", SatService.mhz(f.uplinkHz()) + "  " + SatService.shiftKHz(f.uplinkCorrHz(), f.uplinkHz()), SatService.mhz4(f.uplinkCorrHz())),
-                    Shell.kv("Mode", f.mode(), false), kvGreen("Doppler track", "full · auto"), kvGreen("TX inhibit < 5° el", "on"));
+                    Shell.kv("Mode", f.mode(), false),
+                    satToggleRow("Track with rotor", trackRotor, () -> { trackRotor = !trackRotor; if (trackRotor && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().moveTo(f.azDeg()); rebuild(); }),
+                    satToggleRow("Doppler-tune rig", dopplerTune, () -> { dopplerTune = !dopplerTune; if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz()); rebuild(); }));
         } else {
             doppler = new VBox(9, lbl("No satellite selected", "js-radio-sub"));
         }
@@ -402,9 +414,12 @@ public final class JSatView {
         HBox box = new HBox(left, sp, lbl(v, "js-radio-v")); box.getStyleClass().add("js-radio"); box.setAlignment(Pos.CENTER_LEFT);
         return box;
     }
-    private static HBox kvGreen(String k, String v) {
+    /** kv-style row whose value is a clickable ON/OFF toggle. */
+    private static HBox satToggleRow(String k, boolean on, Runnable onClick) {
         Label kl = lbl(k); kl.getStyleClass().add("k"); HBox.setHgrow(kl, Priority.ALWAYS); kl.setMaxWidth(Double.MAX_VALUE);
-        Label vl = lbl(v); vl.getStyleClass().addAll("ars-mono", "v"); vl.setStyle("-fx-text-fill:-ars-sat;");
+        Label vl = lbl(on ? "ON" : "OFF"); vl.getStyleClass().addAll("ars-mono", "v");
+        vl.setStyle("-fx-cursor:hand;" + (on ? "-fx-text-fill:-ars-ok;-fx-font-weight:bold;" : "-fx-text-fill:-ars-t4;"));
+        vl.setOnMouseClicked(e -> onClick.run());
         HBox row = new HBox(kl, vl); row.getStyleClass().add("sx-kv"); row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
