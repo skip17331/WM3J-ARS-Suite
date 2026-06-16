@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -604,17 +605,17 @@ public final class JHubDashboard {
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
 
         VBox conn = section("CONNECTION",
-            cfgRow("Transceiver model", null, select("Icom IC-7610")),
-            cfgRow("Interface", null, seg(new String[]{"USB","Serial","Network"}, 0)),
-            cfgRow("Port", null, select("/dev/cu.SLAB_USBtoUART")),
-            cfgRow("Baud rate", null, select("9600")),
-            cfgRow("CI-V address", "Icom civ address (hex)", input("0x98")),
-            cfgRow("Poll interval", null, cfgSlider(0.15, "12 ms")));
+            cfgRow("Transceiver model", null, cInput("rig.model", "Icom IC-7610")),
+            cfgRow("Interface", null, cSeg("rig.interface", new String[]{"USB","Serial","Network"}, 0)),
+            cfgRow("Port", null, cInput("rig.port", "/dev/ttyUSB0")),
+            cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
+            cfgRow("CI-V address", "Icom civ address (hex)", cInput("rig.civ", "0x98")),
+            cfgRow("Poll interval", null, cUnit("rig.poll", "12", "ms")));
         VBox ptt = section("PTT & KEYING",
-            cfgRow("PTT method", null, seg(new String[]{"CAT","RTS","DTR","VOX"}, 0)),
-            cfgRow("CW keyer", null, select("Winkeyer USB")),
-            cfgRow("TX delay", null, cfgSlider(0.30, "30 ms")));
-        VBox beh = section("BEHAVIOR", cfgRow("Auto band-follow", null, switchNode(true)));
+            cfgRow("PTT method", null, cSeg("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0)),
+            cfgRow("CW keyer", null, cInput("rig.keyer", "Winkeyer USB")),
+            cfgRow("TX delay", null, cUnit("rig.txDelay", "30", "ms")));
+        VBox beh = section("BEHAVIOR", cfgRow("Auto band-follow", null, cToggle("rig.autoBandFollow", true)));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
@@ -629,23 +630,24 @@ public final class JHubDashboard {
         Label desc = lbl("Your station identity & location — shared with every module for grids, beam headings and award tracking.","cfg-desc");
 
         HBox cells = new HBox(0,
-            statCell("CALLSIGN","WM3J","",true), statCell("GRID","FM19","",false),
-            statCell("ITU / CQ","8 / 5","",false), statCell("DXCC","291","",false));
+            statCell("CALLSIGN", com.ars.fx.data.HubConfig.call(), "", true), statCell("GRID", com.ars.fx.data.HubConfig.grid(), "", false),
+            statCell("ITU / CQ", com.ars.fx.data.HubConfig.get("station.ituZone","8") + " / " + com.ars.fx.data.HubConfig.get("station.cqZone","5"), "", false),
+            statCell("DXCC","291","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
 
         VBox id = section("IDENTITY",
-            cfgRow("Callsign", null, input("WM3J")),
-            cfgRow("Operator name", null, input("Mike")),
-            cfgRow("Grid square", "6-char Maidenhead locator", input("FM19")));
+            cfgRow("Callsign", null, cInput("station.call", "WM3J")),
+            cfgRow("Operator name", null, cInput("station.name", "Mike")),
+            cfgRow("Grid square", "6-char Maidenhead locator", cInput("station.grid", "FM19")));
         VBox loc = section("LOCATION",
-            cfgRow("Latitude", "decimal degrees (N+)", input("39.745583")),
-            cfgRow("Longitude", "decimal degrees (E+)", input("-76.959714")),
-            cfgRow("Elevation", null, cfgUnit("0","m AMSL")));
+            cfgRow("Latitude", "decimal degrees (N+)", cInput("station.lat", "39.745583")),
+            cfgRow("Longitude", "decimal degrees (E+)", cInput("station.lon", "-76.959714")),
+            cfgRow("Elevation", null, cUnit("station.elev", "0", "m AMSL")));
         VBox zones = section("ZONES & AWARDS",
-            cfgRow("ITU zone", null, input("8")),
-            cfgRow("CQ zone", null, input("5")),
-            cfgRow("IARU region", null, seg(new String[]{"R1","R2","R3"}, 1)),
-            cfgRow("Default TX power", null, cfgUnit("100","W")));
+            cfgRow("ITU zone", null, cInput("station.ituZone", "8")),
+            cfgRow("CQ zone", null, cInput("station.cqZone", "5")),
+            cfgRow("IARU region", null, cSeg("station.iaru", new String[]{"R1","R2","R3"}, 1)),
+            cfgRow("Default TX power", null, cUnit("station.txPower", "100", "W")));
 
         VBox v = new VBox(20, top, desc, cells, id, loc, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
@@ -673,18 +675,18 @@ public final class JHubDashboard {
                 statCell("ELEVATION","12","°",false), statCell("ROTCTLD","127.0.0.1:4533","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
-            cfgRow("Rotor model", null, select("Yaesu G-1000DXA")),
-            cfgRow("Interface", null, seg(new String[]{"USB","Serial","Network"}, 1)),
-            cfgRow("Serial port", null, select("/dev/ttyUSB0")),
-            cfgRow("Baud rate", null, select("9600")),
-            cfgRow("rotctld host", "Hamlib rotor daemon", input("127.0.0.1")),
-            cfgRow("rotctld port", null, input("4533")),
-            cfgRow("Start rotctld for me", null, switchNode(true)));
+            cfgRow("Rotor model", null, cInput("rotor.model", "Yaesu G-1000DXA")),
+            cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
+            cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
+            cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
+            cfgRow("rotctld host", "Hamlib rotor daemon", cInput("rotor.host", "127.0.0.1")),
+            cfgRow("rotctld port", null, cInput("rotor.rotctldPort", "4533")),
+            cfgRow("Start rotctld for me", null, cToggle("rotor.startDaemon", true)));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Overlap / wrap", "where the rotor crosses", seg(new String[]{"North","South"}, 0)),
-            cfgRow("Park position", null, cfgUnit("0","° az")),
-            cfgRow("Dead-band", null, cfgSlider(0.18, "2°")),
-            cfgRow("Auto-track satellites (J-Sat)", null, switchNode(false)));
+            cfgRow("Overlap / wrap", "where the rotor crosses", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
+            cfgRow("Park position", null, cUnit("rotor.park", "0", "° az")),
+            cfgRow("Dead-band", null, cUnit("rotor.deadband", "2", "°")),
+            cfgRow("Auto-track satellites (J-Sat)", null, cToggle("rotor.autoTrack", false)));
         VBox presets = section("BEAM PRESETS", presetRows());
         return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),
             lbl("Az/el rotor control via Hamlib rotctld — connection, presets and park position.","cfg-desc"),
@@ -695,18 +697,18 @@ public final class JHubDashboard {
                 statCell("SWR","1.2:1","",false), statCell("AMPCTLD","127.0.0.1:4534","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
-            cfgRow("Amplifier model", null, select("Elecraft KPA-1500")),
-            cfgRow("Interface", null, seg(new String[]{"USB","Serial","Network"}, 0)),
-            cfgRow("Serial port", null, select("/dev/ttyACM0")),
-            cfgRow("Baud rate", null, select("38400")),
-            cfgRow("ampctld host", "Hamlib amp daemon", input("127.0.0.1")),
-            cfgRow("ampctld port", null, input("4534")),
-            cfgRow("Start ampctld for me", null, switchNode(true)));
+            cfgRow("Amplifier model", null, cInput("amp.model", "Elecraft KPA-1500")),
+            cfgRow("Interface", null, cSeg("amp.interface", new String[]{"USB","Serial","Network"}, 0)),
+            cfgRow("Serial port", null, cInput("amp.port", "/dev/ttyACM0")),
+            cfgRow("Baud rate", null, cSelect("amp.baud", "38400", BAUDS)),
+            cfgRow("ampctld host", "Hamlib amp daemon", cInput("amp.host", "127.0.0.1")),
+            cfgRow("ampctld port", null, cInput("amp.ampctldPort", "4534")),
+            cfgRow("Start ampctld for me", null, cToggle("amp.startDaemon", true)));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Follow rig band", "auto band-switch with the radio", switchNode(true)),
-            cfgRow("Max power", null, cfgSlider(0.66, "1000 W")),
-            cfgRow("Standby on TX inhibit", null, switchNode(true)),
-            cfgRow("Operate / Standby", null, seg(new String[]{"Operate","Standby"}, 1)));
+            cfgRow("Follow rig band", "auto band-switch with the radio", cToggle("amp.followBand", true)),
+            cfgRow("Max power", null, cUnit("amp.maxPower", "1000", "W")),
+            cfgRow("Standby on TX inhibit", null, cToggle("amp.standbyOnInhibit", true)),
+            cfgRow("Operate / Standby", null, cSeg("amp.opStandby", new String[]{"Operate","Standby"}, 1)));
         return cfgPage(cfgTop("J-Hub","Hardware","Amplifier"),
             lbl("Linear amplifier control via Hamlib ampctld — band-follow, power limit and standby.","cfg-desc"),
             cells, conn, beh);
@@ -716,15 +718,15 @@ public final class JHubDashboard {
                 statCell("ANTENNA","20m beam","",false), statCell("PORTS","6","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
-            cfgRow("Switch model", null, select("4O3A Antenna Genius")),
-            cfgRow("Interface", null, seg(new String[]{"USB","Serial","Network"}, 2)),
-            cfgRow("Host / IP", null, input("192.168.1.50")),
-            cfgRow("Port", null, input("9007")),
-            cfgRow("Follow rig band", "select antenna by band", switchNode(true)));
+            cfgRow("Switch model", null, cInput("ant.model", "4O3A Antenna Genius")),
+            cfgRow("Interface", null, cSeg("ant.interface", new String[]{"USB","Serial","Network"}, 2)),
+            cfgRow("Host / IP", null, cInput("ant.host", "192.168.1.50")),
+            cfgRow("Port", null, cInput("ant.port", "9007")),
+            cfgRow("Follow rig band", "select antenna by band", cToggle("ant.followBand", true)));
         String[][] ports = {{"1","160m dipole","160m"},{"2","80m vertical","80m"},{"3","20m beam","20–10m"},
                 {"4","40m delta loop","40m"},{"5","6m yagi","6m"},{"6","RX loop","RX only"}};
         Node[] rows = new Node[ports.length];
-        for (int i = 0; i < ports.length; i++) rows[i] = cfgRow("Port " + ports[i][0] + " · " + ports[i][1], "bands " + ports[i][2], select(ports[i][1]));
+        for (int i = 0; i < ports.length; i++) rows[i] = cfgRow("Port " + ports[i][0], "bands " + ports[i][2], cInput("ant.port" + ports[i][0], ports[i][1]));
         VBox ant = section("ANTENNA PORTS", rows);
         return cfgPage(cfgTop("J-Hub","Hardware","Antenna switch"),
             lbl("Remote antenna switch — port-to-antenna mapping and band-follow selection.","cfg-desc"),
@@ -735,19 +737,19 @@ public final class JHubDashboard {
                 statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB","~/.j-log","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox cluster = section("DX CLUSTER",
-            cfgRow("Cluster server", null, select("dxc.ve7cc.net:23")),
-            cfgRow("Login callsign", null, input("WM3J")),
-            cfgRow("Band filter", null, seg(new String[]{"All","HF","VHF+"}, 0)),
-            cfgRow("Mode filter", null, seg(new String[]{"All","CW","Phone","Digi"}, 0)),
-            cfgRow("Reverse Beacon (RBN)", "spots of your own call", switchNode(true)));
+            cfgRow("Cluster server", null, cInput("data.clusterServer", "dxc.ve7cc.net:23")),
+            cfgRow("Login callsign", null, cInput("data.clusterLogin", "WM3J")),
+            cfgRow("Band filter", null, cSeg("data.clusterBand", new String[]{"All","HF","VHF+"}, 0)),
+            cfgRow("Mode filter", null, cSeg("data.clusterMode", new String[]{"All","CW","Phone","Digi"}, 0)),
+            cfgRow("Reverse Beacon (RBN)", "spots of your own call", cToggle("data.rbn", true)));
         VBox wsjt = section("WSJT-X / DIGITAL",
-            cfgRow("WSJT-X UDP port", null, input("2237")),
-            cfgRow("Auto-log FT8/FT4 QSOs", null, switchNode(true)),
-            cfgRow("PSK Reporter upload", null, switchNode(false)));
+            cfgRow("WSJT-X UDP port", null, cInput("data.wsjtxPort", "2237")),
+            cfgRow("Auto-log FT8/FT4 QSOs", null, cToggle("data.autoLogFt8", true)),
+            cfgRow("PSK Reporter upload", null, cToggle("data.pskReporter", false)));
         VBox logbook = section("LOGBOOK & EXPORT",
-            cfgRow("Log database", null, input("~/.j-log/j-log.db")),
-            cfgRow("Cabrillo / CSV charset", null, seg(new String[]{"UTF-8","ASCII"}, 0)),
-            cfgRow("LoTW / eQSL auto-upload", null, switchNode(false)));
+            cfgRow("Log database", null, cInput("data.logDb", "~/.j-log/j-log.db")),
+            cfgRow("Cabrillo / CSV charset", null, cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
+            cfgRow("LoTW / eQSL auto-upload", null, cToggle("data.lotwAutoUpload", false)));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
             cells, cluster, wsjt, lookupSection(), logbook, backupSection(), uploadSection(), macroSection());
@@ -906,9 +908,9 @@ public final class JHubDashboard {
     }
     private static Region spacer(double w) { Region r = new Region(); r.setMinWidth(w); r.setMaxWidth(w); return r; }
     private static Node[] presetRows() {
-        String[][] pr = {{"Europe","50°"},{"Africa","95°"},{"S. America","155°"},{"Caribbean","135°"},{"Asia (LP)","330°"},{"Oceania","250°"}};
+        String[][] pr = {{"Europe","50"},{"Africa","95"},{"S. America","155"},{"Caribbean","135"},{"Asia (LP)","330"},{"Oceania","250"}};
         Node[] rows = new Node[pr.length];
-        for (int i = 0; i < pr.length; i++) rows[i] = cfgRow(pr[i][0], null, cfgUnit(pr[i][1].replace("°",""), "° az"));
+        for (int i = 0; i < pr.length; i++) rows[i] = cfgRow(pr[i][0], null, cUnit("rotor.preset." + pr[i][0].replaceAll("[^A-Za-z]", ""), pr[i][1], "° az"));
         return rows;
     }
 
@@ -928,32 +930,40 @@ public final class JHubDashboard {
         HBox row = new HBox(20, lblBox, sp, control); row.getStyleClass().add("cfg-row"); row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
-    private static Label select(String value) { Label l = lbl(value + "   ▾", "cfg-select"); l.setMinWidth(220); l.setAlignment(Pos.CENTER_LEFT); return l; }
-    private static Label input(String value) { Label l = lbl(value, "cfg-input"); l.setMinWidth(220); l.setAlignment(Pos.CENTER_RIGHT); return l; }
-    private static Region cfgUnit(String value, String unit) {
-        Label v = lbl(value, "cfg-input"); v.setMinWidth(160); v.setAlignment(Pos.CENTER_RIGHT);
-        HBox h = new HBox(8, v, lbl(unit, "cfg-sval-u")); h.setAlignment(Pos.CENTER_LEFT); return h;
+    // ---- config-bound interactive controls (persist to HubConfig) ----------
+    private static final String[] BAUDS = {"1200","2400","4800","9600","19200","38400","57600","115200"};
+    /** Free-text field bound to a HubConfig key. */
+    private static TextField cInput(String key, String def) {
+        TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, def)); t.getStyleClass().add("jhub-mini-field");
+        t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);
+        t.textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
+        return t;
     }
-    private static Region seg(String[] opts, int on) {
-        HBox h = new HBox(2); h.getStyleClass().add("cfg-seg");
-        for (int i=0;i<opts.length;i++){ Label b = lbl(opts[i], "cfg-seg-btn"); if (i==on) b.getStyleClass().add("on"); h.getChildren().add(b); }
-        return h;
+    /** Numeric/short field + unit, bound to a HubConfig key. */
+    private static Region cUnit(String key, String def, String unit) {
+        TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, def)); t.getStyleClass().add("jhub-mini-field");
+        t.setMinWidth(120); t.setMaxWidth(120); t.setAlignment(Pos.CENTER_RIGHT);
+        t.textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
+        HBox h = new HBox(8, t, lbl(unit, "cfg-sval-u")); h.setAlignment(Pos.CENTER_LEFT); return h;
     }
-    private static Region cfgSlider(double frac, String val) {
-        double W = 220;
-        Region track = new Region(); track.setStyle("-fx-background-color:-ars-surface-4;-fx-background-radius:99;"); track.setPrefSize(W,5); track.relocate(0,6);
-        Region fill = new Region(); fill.setStyle("-fx-background-color:-ars-accent;-fx-background-radius:99;"); fill.setPrefSize(W*frac,5); fill.relocate(0,6);
-        Region knob = new Region(); knob.setStyle("-fx-background-color:-ars-accent;-fx-background-radius:99;-fx-border-color:-ars-surface-1;-fx-border-width:2;-fx-border-radius:99;"); knob.setPrefSize(15,15); knob.relocate(W*frac-7,1);
-        Pane bar = new Pane(track, fill, knob); bar.setMinSize(W,16); bar.setPrefSize(W,16); bar.setMaxSize(W,16);
-        Label v = lbl(val, "cfg-sval-u"); v.setMinWidth(46); v.setAlignment(Pos.CENTER_RIGHT);
-        HBox h = new HBox(14, bar, v); h.setAlignment(Pos.CENTER_LEFT); return h;
+    /** Dropdown bound to a HubConfig key (current value injected if not in the list). */
+    private static Region cSelect(String key, String def, String... opts) {
+        ComboBox<String> c = new ComboBox<>(); c.getItems().addAll(opts);
+        String cur = com.ars.fx.data.HubConfig.get(key, def);
+        if (!c.getItems().contains(cur)) c.getItems().add(0, cur);
+        c.setValue(cur); c.setMinWidth(220); c.setMaxWidth(260);
+        c.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
+        return c;
     }
-    private static Region switchNode(boolean on) {
-        Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
-        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); if (on) sw.getStyleClass().add("on");
-        sw.setStyle(on ? "-fx-background-color:-ars-accent; -fx-border-color:-ars-accent;" : "");
-        sw.setPadding(new Insets(0,3,0,3)); StackPane.setAlignment(knob, on ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT); sw.setMaxSize(36,20);
-        return sw;
+    /** Segmented control bound to a HubConfig key (stores the option string). */
+    private static Region cSeg(String key, String[] opts, int def) {
+        String cur = com.ars.fx.data.HubConfig.get(key, opts[def]);
+        int on = 0; for (int i = 0; i < opts.length; i++) if (opts[i].equals(cur)) on = i;
+        return segSel(opts, on, i -> com.ars.fx.data.HubConfig.set(key, opts[i]));
+    }
+    /** Toggle bound to a HubConfig boolean key. */
+    private static Region cToggle(String key, boolean def) {
+        return switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> com.ars.fx.data.HubConfig.setBool(key, v));
     }
 
     // ---- small helpers -----------------------------------------------------
