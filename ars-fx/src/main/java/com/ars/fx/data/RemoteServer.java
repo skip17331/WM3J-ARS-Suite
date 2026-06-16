@@ -50,6 +50,20 @@ public final class RemoteServer extends WebSocketServer {
         try { return Integer.parseInt(HubConfig.get("remote.port", "8090").trim()); } catch (Exception e) { return 8090; }
     }
 
+    /** Stop the sharing server (idempotent). The broadcast loop exits when it no longer is INSTANCE. */
+    public static synchronized void shutdown() {
+        RemoteServer s = INSTANCE;
+        INSTANCE = null;
+        if (s != null) try { s.stop(1000); } catch (Exception ignored) {}   // inherited WebSocketServer.stop(timeout)
+    }
+
+    /** Re-read config and restart (off the FX thread, since shutdown() blocks briefly) — used by the J-Hub UI. */
+    public static void apply() {
+        Thread t = new Thread(() -> { shutdown(); startIfEnabled(); }, "remote-apply");
+        t.setDaemon(true);
+        t.start();
+    }
+
     private RemoteServer(int port) { super(new InetSocketAddress(port)); }
 
     @Override public void onStart() { setConnectionLostTimeout(30); }
@@ -72,8 +86,9 @@ public final class RemoteServer extends WebSocketServer {
 
     private void beginBroadcast() {
         Thread t = new Thread(() -> {
-            while (true) {
+            while (INSTANCE == this) {                 // exits once stopped/replaced
                 try { Thread.sleep(1000); } catch (InterruptedException e) { return; }
+                if (INSTANCE != this) return;
                 try { String s = snapshot(); if (!getConnections().isEmpty()) broadcast(s); } catch (Exception ignored) {}
             }
         }, "remote-broadcast");

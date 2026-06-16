@@ -820,9 +820,14 @@ public final class JHubDashboard {
             cfgRow("Log database", null, cInput("data.logDb", "~/.j-log/j-log.db")),
             cfgRow("Cabrillo / CSV charset", null, cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
             cfgRow("LoTW / eQSL auto-upload", null, cToggle("data.lotwAutoUpload", false)));
+        VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
+            cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor",
+                    cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteServer.apply())),
+            cfgRow("WebSocket port", "the solo module connects to ws://<this-pc>:<port>",
+                    cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteServer.apply())));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, cluster, wsjt, lookupSection(), logbook, backupSection(), uploadSection(), macroSection());
+            cells, cluster, wsjt, lookupSection(), logbook, remote, backupSection(), uploadSection(), macroSection());
     }
     /** Online log upload — LoTW (TQSL-signed), eQSL, QRZ Logbook, Club Log. */
     private static VBox uploadSection() {
