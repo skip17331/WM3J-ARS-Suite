@@ -39,6 +39,7 @@ public class Launcher extends Application {
     }
 
     private void show(String id) {
+        Shell.currentSurface = id;
         host.getChildren().setAll(buildSurface(id));
     }
 

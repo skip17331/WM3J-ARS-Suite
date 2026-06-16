@@ -39,6 +39,8 @@ public final class Shell {
      *  J-Hub nav call navigate(id) to switch surface; toggleTheme() flips light/dark. */
     public static java.util.function.Consumer<String> onNavigate;
     public static Runnable onToggleTheme;
+    /** Id of the surface currently on screen (set by the host on every show); spot-click prefill checks it. */
+    public static volatile String currentSurface = "hub";
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
     public static void toggleTheme() { if (onToggleTheme != null) onToggleTheme.run(); }
 

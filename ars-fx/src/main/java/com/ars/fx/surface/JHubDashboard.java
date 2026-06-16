@@ -305,9 +305,14 @@ public final class JHubDashboard {
                         : "Cluster offline — reconnecting…");
                 rows.getChildren().add(empty);
             } else {
-                for (ClusterClient.Spot s : shown) rows.getChildren().add(cluRow(new String[]{
-                        ClusterClient.fmtFreq(s.freqHz()), s.call(), isNeeded(s, worked) ? "y" : "", s.mode(), s.band(),
-                        s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) }));
+                for (ClusterClient.Spot s : shown) {
+                    Region row = cluRow(new String[]{
+                            ClusterClient.fmtFreq(s.freqHz()), s.call(), isNeeded(s, worked) ? "y" : "", s.mode(), s.band(),
+                            s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) });
+                    row.setStyle("-fx-cursor:hand;");
+                    row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
+                    rows.getChildren().add(row);
+                }
             }
             fltSummary.setText(filterSummary() + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
             boolean want = cc.wantConnected();

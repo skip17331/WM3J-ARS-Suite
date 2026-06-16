@@ -55,6 +55,22 @@ public final class JMapView {
     /** Dim the regular DX spots while a propagation overlay (beacons / who's-hearing-me) is active. */
     private static boolean dimSpots() { return showBeacons || showHeardBy; }
 
+    /** Point the beam wedge at a heading (e.g. after rotating to a clicked spot). */
+    public static void setBeam(double deg) { beamDeg = ((deg % 360) + 360) % 360; repaintMap(); updateMapTopbar(); }
+
+    // ── clickable map dots: each paint records the on-screen spot positions so a
+    //    click can be hit-tested back to the spot that was drawn there. ──────────
+    private record Dot(double x, double y, MapSpot s) {}
+    private static final java.util.List<Dot> paintedDots = new java.util.ArrayList<>();
+    private static void handleMapClick(Node source, double x, double y) {
+        Dot best = null; double bestD = Double.MAX_VALUE;
+        for (Dot d : paintedDots) { double dd = Math.hypot(d.x() - x, d.y() - y); if (dd < bestD) { bestD = dd; best = d; } }
+        if (best != null && bestD <= 11) {
+            MapSpot s = best.s();
+            SpotAction.onSpot(source, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon());
+        }
+    }
+
     // ── overlay toggles (left panel) ──────────────────────────────────────────
     private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false;
     private static double beamDeg = 50;
@@ -488,6 +504,7 @@ public final class JMapView {
         };
         area.widthProperty().addListener((o, a, b) -> redraw.run());
         area.heightProperty().addListener((o, a, b) -> redraw.run());
+        area.setOnMouseClicked(e -> handleMapClick(area, e.getX(), e.getY()));
         currentMapRepaint = redraw;
         redraw.run();
         return area;
@@ -554,11 +571,13 @@ public final class JMapView {
 
         // live DX-cluster spots
         double spotA = dimSpots() ? 0.28 : 1.0;
+        paintedDots.clear();
         for (MapSpot s : liveSpots()){
             if (spotHidden(s.call())) continue;
             double[] pp = azProject(s.lat(), s.lon(), cx, cy, R);
             if (pp[2] > 1.0) continue;                       // off the visible disk
             double x = pp[0], y = pp[1];
+            paintedDots.add(new Dot(x, y, s));
             g.setFill(s.color().deriveColor(0,1,1,spotA)); g.fillOval(x-4.5, y-4.5, 9, 9);
             if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x+8, y+4); }
         }
@@ -699,6 +718,7 @@ public final class JMapView {
         };
         area.widthProperty().addListener((o, a, b) -> redraw.run());
         area.heightProperty().addListener((o, a, b) -> redraw.run());
+        area.setOnMouseClicked(e -> handleMapClick(area, e.getX(), e.getY()));
         currentMapRepaint = redraw;
         redraw.run();
         return area;
@@ -732,9 +752,11 @@ public final class JMapView {
         for (int i = 0; i < rn.length; i++) g.fillText(rn[i], lon2x(regions[i][1], RMX, RW), lat2y(regions[i][0], RMY, RH));
 
         double spotA = dimSpots() ? 0.28 : 1.0;
+        paintedDots.clear();
         for (MapSpot s : liveSpots()) {
             if (spotHidden(s.call())) continue;
             double x = lon2x(s.lon(), RMX, RW), y = lat2y(s.lat(), RMY, RH);
+            paintedDots.add(new Dot(x, y, s));
             g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(x - 4.5, y - 4.5, 9, 9);
             g.setFill(s.color().deriveColor(0,1,1,spotA)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
             if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x + 8, y + 4); }
@@ -883,6 +905,8 @@ public final class JMapView {
             VBox txt = new VBox(1, hcall(s.call(), need),
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
+            row.setStyle("-fx-cursor:hand;");
+            row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon()));
             spots.getChildren().add(row);
         }
     }

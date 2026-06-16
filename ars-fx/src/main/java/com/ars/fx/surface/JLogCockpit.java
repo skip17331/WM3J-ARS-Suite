@@ -32,6 +32,7 @@ public final class JLogCockpit {
     private static StackPane host;               // for the 1 s clock / ID-timer ticker lookups
     private static TextField dateRef, timeRef;   // QSO date/time fields the ticker keeps "live"
     private static boolean[] manualRef;          // true once the operator overrides date/time
+    private static TextField callRef, freqRef, bandRef, modeRef;   // spot-click prefill targets
 
     // skimmer band-activity decodes: {freq, call, mode, wpm/snr}
     private static final String[][] SKIMMER = {
@@ -57,7 +58,25 @@ public final class JLogCockpit {
         Region rail = Shell.rail(railDrawers());
         host = new StackPane((Region) Shell.frame(dock, top, sp, rail));
         startTicker();
+        // spot-click prefill: register this form as the live log + apply any spot picked elsewhere
+        SpotAction.setLogTarget(JLogCockpit::prefillSpot);
+        SpotAction.Prefill queued = SpotAction.takePending();
+        if (queued != null) prefillSpot(queued);
         return host;
+    }
+
+    /** Fill the new-QSO form from a clicked DX spot (callsign + freq/band/mode), then focus the call field. */
+    static void prefillSpot(SpotAction.Prefill p) {
+        Runnable r = () -> {
+            if (callRef == null || p == null) return;
+            if (p.call() != null) callRef.setText(p.call());
+            if (p.freqMhz() != null) freqRef.setText(p.freqMhz());
+            if (p.band() != null && !p.band().isBlank()) bandRef.setText(p.band());
+            if (p.mode() != null && !p.mode().isBlank()) modeRef.setText(p.mode());
+            callRef.requestFocus();
+            callRef.positionCaret(callRef.getText() == null ? 0 : callRef.getText().length());
+        };
+        if (Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
     }
 
     // ---- complete QSO entry pane + recent log ------------------------------
@@ -75,6 +94,7 @@ public final class JLogCockpit {
         TextField freq = tf("MHz", "14.074", 110, false);
         TextField band = tf("auto", "20m", 80, false);
         TextField mode = tf("", "USB", 80, false);
+        callRef = call; freqRef = freq; bandRef = band; modeRef = mode;   // spot-click prefill
         TextField rsnt = tf("", "59", 70, false);
         TextField rrcv = tf("", "59", 70, false);
         TextField name = tf("name", "", 180, false);
@@ -420,7 +440,8 @@ public final class JLogCockpit {
         String tail = "de " + s.de() + (s.comment().isEmpty() ? "" : " · " + s.comment());
         HBox bot = new HBox(9, lbl(s.band(), "jl-skim-meta"), lbl(tail, "jl-skim-meta")); bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
-        row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;");
+        row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
         return row;
     }
 
@@ -461,7 +482,8 @@ public final class JLogCockpit {
         HBox bot = new HBox(9, lbl("heard you · " + s.band(), "jl-skim-meta"), lbl(s.report(), "jl-skim-snr")); bot.setAlignment(Pos.CENTER_LEFT);
         HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
-        row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;");
+        row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.spotter(), s.freqHz(), s.mode(), s.band()));
         return row;
     }
     /** Awards drawer — collapsible mini-drawers for WAS / WAC / DXCC, computed from the real log. */
