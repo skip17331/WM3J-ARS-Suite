@@ -1,6 +1,10 @@
 package com.ars.fx.shell;
 
+import com.ars.fx.data.HubConfig;
+import com.ars.fx.data.RotorClient;
+import com.ars.fx.data.SolarData;
 import com.ars.fx.data.SunImageService;
+import com.ars.fx.data.WeatherData;
 import com.ars.fx.mock.Mock;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -190,59 +194,108 @@ public final class Shell {
         // Antenna · Rotor
         VBox roInfo = new VBox(0); roInfo.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(roInfo, Priority.ALWAYS);
         HBox head = new HBox(2, lbl(az3, "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
-        HBox turn = new HBox(5, btn("◀ CCW","sx-ro-turn-btn"), btn("Stop","sx-ro-turn-btn","stop"), btn("CW ▶","sx-ro-turn-btn"));
+        Label ccw = btn("◀ CCW","sx-ro-turn-btn"), stop = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW ▶","sx-ro-turn-btn");
+        ccw.setStyle("-fx-cursor:hand;"); stop.setStyle("-fx-cursor:hand;"); cw.setStyle("-fx-cursor:hand;");
+        ccw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(-15));
+        stop.setOnMouseClicked(e -> RotorClient.getInstance().stop());
+        cw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(15));
+        HBox turn = new HBox(5, ccw, stop, cw);
         for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
         roInfo.getChildren().addAll(head, lbl(dir + " · short path", "sx-ro-dir"), turn);
         VBox.setMargin(turn, new Insets(10,0,0,0));
         HBox roTop = new HBox(13, compass(az, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
         GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
         int i = 0; for (Object[] p : Mock.ROTOR_PRESETS) {
-            Label b = btn(p[0]+" "+p[1]+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
+            final int paz = ((Number) p[1]).intValue();
+            Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
+            b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> RotorClient.getInstance().moveTo(paz));
             presets.add(b, i%3, i/3); i++;
         }
         for (int col=0; col<3; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); presets.getColumnConstraints().add(cc); }
         VBox rotorBody = new VBox(11, roTop, presets);
 
-        // Propagation
-        VBox prop = new VBox(kv("Best band now","20m → EU",true), kv("MUF (3000 km)","28.4 MHz",false),
-                kv("Gray line","SR 11:02 · SS 22:48",false), kv("Aurora","quiet",true));
+        // Propagation (live HamQSL)
+        SolarData.getInstance().start();
+        SolarData.Snapshot sd = SolarData.getInstance().snapshot();
+        VBox prop = sd == null
+            ? new VBox(kv("Solar / space weather","loading HamQSL…", false))
+            : new VBox(kv("Best band (day)", bestBand(sd), true),
+                       kv("Geomagnetic", SolarData.geomag(sd.kIndex()) + " · K" + nz(sd.kIndex()), "quiet".equals(SolarData.geomag(sd.kIndex()))),
+                       kv("Aurora", SolarData.auroraDesc(sd.aurora()), "quiet".equals(SolarData.auroraDesc(sd.aurora()))),
+                       kv("Solar wind", nz(sd.solarWind()) + " km/s", false));
 
-        // Weather
-        HBox wxBig = new HBox(8, lbl("14°","sx-ro-head"), lbl("Partly cloudy · feels 12°","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
-        VBox wxBody = new VBox(wxBig, kv("Wind","NW 12 · g21",false), kv("Humidity","48%",false), kv("Pressure","1018 hPa ↑",false));
+        // Weather (live Open-Meteo at the station location)
+        WeatherData.getInstance().start();
+        WeatherData.Snapshot w = WeatherData.getInstance().snapshot();
+        String grid = HubConfig.grid();
+        HBox wxBig; VBox wxBody; String wxSum;
+        if (w == null) {
+            wxBig = new HBox(8, lbl("—°","sx-ro-head"), lbl("loading…","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
+            wxBody = new VBox(wxBig); wxSum = "loading…";
+        } else {
+            wxBig = new HBox(8, lbl(Math.round(w.tempC())+"°","sx-ro-head"), lbl(w.desc()+" · feels "+Math.round(w.feelsC())+"°","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
+            wxBody = new VBox(wxBig, kv("Wind", w.windCompass()+" "+Math.round(w.windKmh())+" · g"+Math.round(w.gustKmh()), false),
+                    kv("Humidity", w.humidity()+"%", false), kv("Pressure", Math.round(w.pressure())+" hPa", false));
+            wxSum = Math.round(w.tempC())+"° "+w.windCompass()+Math.round(w.windKmh());
+        }
 
         return List.of(
             drawer("Antenna · Rotor","sat","sat", az3+"° "+dir, false, rotorBody),
-            drawer("Propagation","map","map","20m → EU", false, prop),
+            drawer("Propagation","map","map", sd == null ? "loading…" : bestBand(sd), false, prop),
             solarSpaceWeatherDrawer(),
             bandConditionsDrawer(),
-            drawer("Weather · FN20","bridge","bridge","14° NW12", false, wxBody));
+            drawer("Weather · " + grid,"bridge","bridge", wxSum, false, wxBody));
     }
+    /** Highest band group rated Good for daytime, from the HamQSL conditions. */
+    private static String bestBand(SolarData.Snapshot s) {
+        if (s == null || s.bands().isEmpty()) return "—";
+        for (int i = s.bands().size() - 1; i >= 0; i--) {            // higher bands listed last
+            SolarData.Band b = s.bands().get(i);
+            if ("Good".equalsIgnoreCase(b.day())) return b.group() + " good";
+        }
+        return s.bands().get(0).group() + " " + s.bands().get(0).day().toLowerCase();
+    }
+    private static String nz(String s) { return (s == null || s.isBlank()) ? "—" : s.trim(); }
 
     // ---- canonical space-weather drawers (shared so same-named drawers match) ----
     /** "Solar &amp; space weather": real SDO sun disk + solar cell grid + source stamp. */
     public static Node solarSpaceWeatherDrawer() {
-        return drawer("Solar & space weather", "digi", "digi", "SFI 168 · K2", false, solarSpaceWeatherBody());
+        SolarData.getInstance().start();
+        SolarData.Snapshot s = SolarData.getInstance().snapshot();
+        String sum = s == null ? "loading…" : "SFI " + nz(s.sfi()) + " · K" + nz(s.kIndex());
+        return drawer("Solar & space weather", "digi", "digi", sum, false, solarSpaceWeatherBody());
     }
     public static VBox solarSpaceWeatherBody() {
-        VBox box = new VBox(9, sunspotDisk(), solarGrid(), lbl("NOAA SWPC · 14:30Z", "sx-dw-stamp"));
-        return box;
+        SolarData.getInstance().start();
+        SolarData.Snapshot s = SolarData.getInstance().snapshot();
+        String stamp = s != null ? "HamQSL · N0NBH · " + nz(s.updated()) : "HamQSL · N0NBH · loading…";
+        return new VBox(9, sunspotDisk(), solarGrid(), lbl(stamp, "sx-dw-stamp"));
     }
-    /** "Band conditions": band · day · night (good / fair / poor) table. */
+    /** "Band conditions": band · day · night (good / fair / poor) table from HamQSL. */
     public static Node bandConditionsDrawer() {
-        return drawer("Band conditions", "map", "map", "20m good", false, bandConditionsBody());
+        SolarData.getInstance().start();
+        SolarData.Snapshot s = SolarData.getInstance().snapshot();
+        return drawer("Band conditions", "map", "map", s == null ? "loading…" : bestBand(s), false, bandConditionsBody());
     }
     public static VBox bandConditionsBody() {
+        SolarData.getInstance().start();
         Label hb = lbl("BAND", "sx-bc-bn"); HBox.setHgrow(hb, Priority.ALWAYS); hb.setMaxWidth(Double.MAX_VALUE);
         Label hd = lbl("DAY", "sx-swx-k"); hd.setMinWidth(60); hd.setAlignment(Pos.CENTER);
         Label hn = lbl("NIGHT", "sx-swx-k"); hn.setMinWidth(60); hn.setAlignment(Pos.CENTER);
         VBox box = new VBox(6, new HBox(7, hb, hd, hn));
-        for (String[] b : Mock.BANDCOND) box.getChildren().add(bandRow(b[0], b[1], b[2]));
+        SolarData.Snapshot s = SolarData.getInstance().snapshot();
+        if (s == null || s.bands().isEmpty()) box.getChildren().add(lbl("loading HamQSL band conditions…", "sx-swx-k"));
+        else for (SolarData.Band b : s.bands()) box.getChildren().add(bandRow(b.group(), b.day(), b.night()));
         return box;
     }
     private static GridPane solarGrid() {
         GridPane swx = new GridPane(); swx.setHgap(7); swx.setVgap(7);
-        int j=0; for (String[] s : Mock.SOLAR){ VBox c=new VBox(2,lbl(s[0],"sx-swx-k"),lbl(s[1],"sx-swx-v")); c.getStyleClass().add("sx-swx-c"); GridPane.setHgrow(c,Priority.ALWAYS); c.setMaxWidth(Double.MAX_VALUE); swx.add(c,j%4,j/4); j++; }
+        SolarData.Snapshot s = SolarData.getInstance().snapshot();
+        String[][] cells = s == null
+            ? new String[][]{{"SFI","—"},{"SSN","—"},{"A-idx","—"},{"K-idx","—"},{"X-ray","—"},{"Aurora","—"},{"Sol wind","—"},{"Mag","—"}}
+            : new String[][]{{"SFI",nz(s.sfi())},{"SSN",nz(s.sunspots())},{"A-idx",nz(s.aIndex())},{"K-idx",nz(s.kIndex())},
+                             {"X-ray",nz(s.xray())},{"Aurora",nz(s.aurora())},{"Sol wind",nz(s.solarWind())},{"Mag",nz(s.magField())}};
+        int j=0; for (String[] c2 : cells){ VBox c=new VBox(2,lbl(c2[0],"sx-swx-k"),lbl(c2[1],"sx-swx-v")); c.getStyleClass().add("sx-swx-c"); GridPane.setHgrow(c,Priority.ALWAYS); c.setMaxWidth(Double.MAX_VALUE); swx.add(c,j%4,j/4); j++; }
         for (int col=0; col<4; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(25); swx.getColumnConstraints().add(cc); }
         return swx;
     }
