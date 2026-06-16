@@ -144,6 +144,7 @@ public final class Shell {
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
         if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id));   // dock = navigation
+        else { row.setStyle("-fx-cursor:hand;"); row.setOnMouseClicked(e -> navigate("station")); }   // gear → Station settings
         return row;
     }
 
