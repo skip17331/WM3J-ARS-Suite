@@ -41,6 +41,8 @@ public final class Shell {
     public static Runnable onToggleTheme;
     /** Id of the surface currently on screen (set by the host on every show); spot-click prefill checks it. */
     public static volatile String currentSurface = "hub";
+    /** Solo mode: a single module launched on its own (J-Map/J-Sat) — no module dock, no cross-nav. */
+    public static volatile boolean solo = false;
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
     public static void toggleTheme() { if (onToggleTheme != null) onToggleTheme.run(); }
 
@@ -80,12 +82,15 @@ public final class Shell {
         VBox modwin = new VBox(top, body); modwin.getStyleClass().add("sx-modwin");
         if (bottom != null) modwin.getChildren().add(bottom);
         HBox.setHgrow(modwin, Priority.ALWAYS); VBox.setVgrow(modwin, Priority.ALWAYS);
-        HBox root = new HBox(dock, modwin); root.getStyleClass().add("sx-shell"); root.setFillHeight(true);
+        // solo mode (J-Map/J-Sat on their own) builds without the module dock
+        HBox root = (dock == null) ? new HBox(modwin) : new HBox(dock, modwin);
+        root.getStyleClass().add("sx-shell"); root.setFillHeight(true);
         return root;
     }
 
     // ---- module dock (collapsed icon rail, hover-expands) ------------------
     public static Region dock(String activeId) {
+        if (solo) return null;   // solo module windows have no dock
         VBox dock = new VBox(); dock.getStyleClass().add("sx-dock");
         dock.setMinWidth(58); dock.setPrefWidth(58); dock.setMaxWidth(58);
         List<Node> expandOnly = new ArrayList<>();   // names + section labels + dots

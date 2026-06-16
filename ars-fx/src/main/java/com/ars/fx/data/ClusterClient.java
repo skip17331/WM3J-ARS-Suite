@@ -68,9 +68,20 @@ public final class ClusterClient {
     public synchronized void start() {
         if (started) return;
         started = true;
+        if (RemoteLink.isActive()) return;   // solo-remote: spots arrive via injectSpots(), no local telnet
         Thread t = new Thread(this::loop, "cluster");
         t.setDaemon(true);
         t.start();
+    }
+
+    /** Replace the feed with spots pushed from the station (solo-remote mode). */
+    public void injectSpots(List<Spot> incoming) {
+        synchronized (this) {
+            spots.clear();
+            if (incoming != null) for (Spot s : incoming) { spots.addLast(s); if (spots.size() >= MAX_SPOTS) break; }
+        }
+        connected = true;
+        fire();
     }
 
     /** Operator Disconnect — stop reading and don't auto-reconnect. */

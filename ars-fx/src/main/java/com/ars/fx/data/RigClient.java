@@ -81,10 +81,14 @@ public final class RigClient {
     public synchronized void start() {
         if (started) return;
         started = true;
+        if (RemoteLink.isActive()) return;   // solo-remote: state arrives via applyRemote(), no local rigctld
         Thread t = new Thread(this::loop, "rig-poll");
         t.setDaemon(true);
         t.start();
     }
+
+    /** Push a rig state received from the station (solo-remote mode). */
+    public void applyRemote(State s) { if (s != null) emit(s); }
 
     private void loop() {
         while (true) {
@@ -118,9 +122,15 @@ public final class RigClient {
     }
 
     // ── Commands (run on the poll thread to serialise socket access) ──────────
-    public void setFreqHz(long hz) { runCmd("F " + hz); }
+    public void setFreqHz(long hz) {
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRigFreq(hz); return; }   // forward to the station
+        runCmd("F " + hz);
+    }
     public void setBand(String band) { Long hz = bandHz(band); if (hz != null) setFreqHz(hz); }
-    public void setMode(String mode) { runCmd("M " + mode + " 0"); }
+    public void setMode(String mode) {
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRigMode(mode); return; }
+        runCmd("M " + mode + " 0");
+    }
 
     private void runCmd(String cmd) {
         Thread t = new Thread(() -> { try { send(cmd); } catch (IOException ignored) {} }, "rig-cmd");

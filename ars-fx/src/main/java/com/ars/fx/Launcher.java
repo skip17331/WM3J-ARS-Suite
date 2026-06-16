@@ -19,15 +19,36 @@ public class Launcher extends Application {
     private Scene scene;
     private boolean light = false;
 
-    public static void main(String[] args) { launch(args); }
+    public static void main(String[] args) {
+        // helper: `--write-sample map|sat [file]` emits a starter launch JSON without booting the UI
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("--write-sample")) {
+                String mod = (i + 1 < args.length && args[i + 1].equalsIgnoreCase("sat")) ? "sat" : "map";
+                String out = (i + 2 < args.length) ? args[i + 2] : ("j-" + mod + "-solo.json");
+                try { java.nio.file.Files.writeString(java.nio.file.Path.of(out), com.ars.fx.data.SoloConfig.sample(mod));
+                      System.out.println("wrote sample launch file: " + out); }
+                catch (Exception e) { System.err.println("could not write sample: " + e.getMessage()); }
+                return;
+            }
+        }
+        launch(args);
+    }
 
     @Override
     public void start(Stage stage) {
-        Shell.onNavigate = this::show;
         Shell.onToggleTheme = this::toggleTheme;
+
+        // Solo launch? `-Dars.config=<file>` or `--config <file>` runs one module (J-Map/J-Sat) on its own.
+        com.ars.fx.data.SoloConfig cfg = resolveSoloConfig();
+        if (cfg != null) { startSolo(stage, cfg); return; }
+
+        // ── full dock app ──
+        Shell.onNavigate = this::show;
 
         // spawn any Hamlib daemons the operator asked J-Hub to manage
         com.ars.fx.data.DaemonManager.ensureAll();
+        // share live state with any solo J-Map / J-Sat on the LAN (Pi, 2nd PC)
+        com.ars.fx.data.RemoteServer.startIfEnabled();
 
         scene = new Scene(host, 1460, 900);
         Theme.apply(scene, light);
@@ -35,6 +56,36 @@ public class Launcher extends Application {
 
         stage.setTitle("ARS Suite");
         stage.setScene(scene);
+        stage.show();
+    }
+
+    /** Resolve a solo launch descriptor from -Dars.config / --config, or null for the normal dock app. */
+    private com.ars.fx.data.SoloConfig resolveSoloConfig() {
+        String path = System.getProperty("ars.config");
+        if (path == null) {
+            java.util.List<String> raw = getParameters().getRaw();
+            for (int i = 0; i < raw.size() - 1; i++) if (raw.get(i).equals("--config")) { path = raw.get(i + 1); break; }
+        }
+        if (path == null || path.isBlank()) return null;
+        try { return com.ars.fx.data.SoloConfig.load(java.nio.file.Path.of(path)); }
+        catch (IllegalArgumentException e) { System.err.println("[solo] " + e.getMessage()); javafx.application.Platform.exit(); return null; }
+    }
+
+    /** Boot a single module (J-Map or J-Sat) in its own window per the launch descriptor. */
+    private void startSolo(Stage stage, com.ars.fx.data.SoloConfig cfg) {
+        Shell.solo = !cfg.dock;
+        Shell.onNavigate = this::show;                 // single surface; dock is gone so this rarely fires
+        cfg.applyStation();                            // QTH/call overrides for the module's backends
+
+        if (cfg.isRemote()) com.ars.fx.data.RemoteLink.connect(cfg.remote);   // live feed from the station's J-Hub
+
+        scene = new Scene(host, cfg.window.width, cfg.window.height);
+        Theme.apply(scene, light);
+        show(cfg.module);
+
+        stage.setTitle(cfg.windowTitle());
+        stage.setScene(scene);
+        stage.setMaximized(cfg.window.maximized);
         stage.show();
     }
 

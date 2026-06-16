@@ -1,0 +1,8 @@
+{
+  "module": "sat",
+  "title": "J-Sat · shack",
+  "window": { "width": 1500, "height": 950, "maximized": false },
+  "dock": false,
+  "remote": "ws://192.168.1.50:8090",
+  "station": { "call": "WM3J", "grid": "FM19", "lat": 39.7456, "lon": -76.96 }
+}

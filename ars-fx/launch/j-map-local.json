@@ -1,0 +1,7 @@
+{
+  "module": "map",
+  "title": "J-Map",
+  "window": { "width": 1600, "height": 1000, "maximized": false },
+  "dock": false,
+  "station": { "call": "WM3J", "grid": "FM19", "lat": 39.7456, "lon": -76.96 }
+}

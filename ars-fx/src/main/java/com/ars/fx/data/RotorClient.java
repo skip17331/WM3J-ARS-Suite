@@ -54,10 +54,14 @@ public final class RotorClient {
     public synchronized void start() {
         if (started) return;
         started = true;
+        if (RemoteLink.isActive()) return;   // solo-remote: az/el arrives via applyRemote(), no local rotctld
         Thread t = new Thread(this::loop, "rotor-poll");
         t.setDaemon(true);
         t.start();
     }
+
+    /** Push a rotor state received from the station (solo-remote mode). */
+    public void applyRemote(State s) { if (s != null) emit(s); }
 
     private void loop() {
         while (true) {
@@ -76,6 +80,7 @@ public final class RotorClient {
     /** Slew to azimuth (elevation held at current reading). */
     public void moveTo(double az) {
         targetAz = ((az % 360) + 360) % 360;
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz); return; }   // forward to the station
         double el = Math.max(0, last.el());
         runCmd(String.format("P %.1f %.1f", targetAz, el));
     }
