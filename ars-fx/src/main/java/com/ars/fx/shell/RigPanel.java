@@ -49,17 +49,19 @@ public final class RigPanel {
         RigClient rig = RigClient.getInstance();
 
         // ── header (pinned) ─────────────────────────────────────────────────
-        StackPane ic = Shell.iconTile("bridge", "bridge", 15, "rc-ic", "bridge");
-        Label title = lbl("Rig Control", "rc-title");
-        Label sub = lbl("Icom IC-7610 · CI-V", "rc-sub");
-        VBox titleBox = new VBox(1, title, sub); titleBox.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(titleBox, Priority.ALWAYS); titleBox.setMaxWidth(Double.MAX_VALUE);
+        // header matches the other rail drawers (sx-dw): icon · title · summary-when-collapsed · chevron
+        StackPane ic = Shell.iconTile("bridge", "bridge", 14, "sx-dw-ic", "bridge");
+        Label title = lbl("Rig control", "sx-dw-t"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
+        Label headSum = lbl("", "sx-dw-sum");
+        Label cv = lbl("›", "sx-dw-cv");
+        HBox header = new HBox(9, ic, title, headSum, cv);
+        header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("sx-dw-head");
+        // rig model + CAT status sits at the top of the body
         Region connDot = new Region(); connDot.getStyleClass().add("rc-conn-d");
         Label connTx = lbl("CAT", "rc-conn-t");
-        HBox conn = new HBox(6, connDot, connTx); conn.setAlignment(Pos.CENTER); conn.getStyleClass().add("rc-conn");
-        Label collapse = lbl("›", "rc-collapse"); collapse.setStyle("-fx-cursor:hand;");   // wired to collapse the body below
-        HBox header = new HBox(9, ic, titleBox, conn, collapse);
-        header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("rc-head");
+        Region connSp = new Region(); HBox.setHgrow(connSp, Priority.ALWAYS);
+        HBox statusRow = new HBox(6, lbl("Icom IC-7610 · CI-V", "rc-sub"), connSp, connDot, connTx);
+        statusRow.setAlignment(Pos.CENTER_LEFT);
 
         // ── meters strip ────────────────────────────────────────────────────
         Label sK = lbl("S-meter", "rc-meter-k");
@@ -203,16 +205,22 @@ public final class RigPanel {
         for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(fw[c]); foot.getColumnConstraints().add(cc); }
         foot.add(atuB, 0, 0); foot.add(tuneB, 1, 0); foot.add(pttB, 2, 0);
 
-        // ── assemble as a rail drawer: header collapses the body; rail scrolls ──
-        VBox body = new VBox(11, metstrip, vfoCard, sub1, sub2, sub3, foot); body.getStyleClass().add("rc-body");
-        boolean open = SUB_STATE.getOrDefault("Rig Control", true);
-        collapse.setRotate(open ? 90 : 0); body.setManaged(open); body.setVisible(open);
-        collapse.setOnMouseClicked(e -> {
-            boolean now = !body.isManaged();
-            body.setManaged(now); body.setVisible(now); collapse.setRotate(now ? 90 : 0);
-            SUB_STATE.put("Rig Control", now);
+        // ── assemble as a rail drawer (sx-dw idiom): click header to open/collapse ──
+        VBox content = new VBox(11, statusRow, metstrip, vfoCard, sub1, sub2, sub3, foot);
+        VBox bodyBox = new VBox(content); bodyBox.getStyleClass().add("sx-dw-body");
+        VBox panel = new VBox(header, bodyBox); panel.getStyleClass().add("sx-dw"); panel.setMaxWidth(Double.MAX_VALUE);
+
+        boolean open = SUB_STATE.getOrDefault("Rig control", true);
+        if (open) panel.getStyleClass().add("open");
+        cv.setRotate(open ? 90 : 0); headSum.setVisible(!open); headSum.setManaged(!open);
+        bodyBox.setManaged(open); bodyBox.setVisible(open);
+        header.setOnMouseClicked(e -> {
+            boolean now = !panel.getStyleClass().contains("open");
+            panel.getStyleClass().remove("open"); if (now) panel.getStyleClass().add("open");
+            bodyBox.setManaged(now); bodyBox.setVisible(now);
+            headSum.setVisible(!now); headSum.setManaged(!now); cv.setRotate(now ? 90 : 0);
+            SUB_STATE.put("Rig control", now);
         });
-        VBox panel = new VBox(header, body); panel.getStyleClass().add("rig-panel"); panel.setMaxWidth(Double.MAX_VALUE);
 
         // ── live render ─────────────────────────────────────────────────────
         Consumer<RigClient.State> render = st -> {
@@ -244,6 +252,7 @@ public final class RigPanel {
             String mode = live && st.mode() != null && !st.mode().isBlank() ? st.mode() : null;
             highlight(modeBtns, mode == null ? null : uiMode(mode));
             bmSum.setText((band != null ? band : "—") + " · " + (mode != null ? uiMode(mode) : "—"));
+            headSum.setText(live && hz > 0 ? RigClient.fmtFreqShort(hz) + " · " + (mode != null ? uiMode(mode) : "—") : "offline");
 
             // tx state: split tag, PTT, ATU
             toggleClass(splitTag, live && st.split());

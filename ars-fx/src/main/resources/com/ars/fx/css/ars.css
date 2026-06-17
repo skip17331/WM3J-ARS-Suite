@@ -666,27 +666,16 @@
 .picker-btn.on { -fx-background-color: -ars-accent; -fx-text-fill: -ars-accent-text; -fx-border-color: -ars-accent; }
 
 /* =========================================================================
-   Rig Control panel — 1:1 with design/ars-suite/Rig Control Drawer.html
+   Rig Control panel — content for the rail drawer (sx-dw chrome wraps it)
    ========================================================================= */
-.rig-panel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 9; -fx-border-radius: 9; }
-
-/* header (pinned) */
-.rc-head    { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
-.rc-ic      { -fx-min-width: 28; -fx-pref-width: 28; -fx-max-width: 28; -fx-min-height: 28; -fx-pref-height: 28; -fx-background-radius: 7; -fx-alignment: center;
-              -fx-background-color: #2e3d51; -fx-border-color: rgba(111,167,238,0.30); -fx-border-width: 1; -fx-border-radius: 7; }
-.rc-title   { -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+/* rig model + CAT status row at the top of the body */
 .rc-sub     { -fx-font-size: 10.5px; -fx-text-fill: -ars-t3; }
 .rc-conn-d  { -fx-min-width: 7; -fx-pref-width: 7; -fx-max-width: 7; -fx-min-height: 7; -fx-pref-height: 7; -fx-background-radius: 4; -fx-background-color: -ars-ok; -fx-effect: dropshadow(gaussian, -ars-ok, 6, 0.3, 0, 0); }
 .rc-conn-d.off { -fx-background-color: -ars-idle; -fx-effect: null; }
 .rc-conn-t  { -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: -ars-ok; }
 .rc-conn-t.off { -fx-text-fill: -ars-t3; }
-.rc-collapse { -fx-min-width: 26; -fx-pref-width: 26; -fx-max-width: 26; -fx-min-height: 26; -fx-pref-height: 26; -fx-alignment: center; -fx-font-size: 15px;
-               -fx-text-fill: -ars-t3; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; }
-.rc-collapse:hover { -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
 
-/* scrolling middle + cards */
-.rc-scroll, .rc-scroll > .viewport { -fx-background-color: transparent; -fx-background: transparent; }
-.rc-body    { -fx-padding: 12; }
+/* cards */
 .rc-card    { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10 12 10 12; }
 .rc-sec-lbl { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 
