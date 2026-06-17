@@ -23,7 +23,21 @@ public final class SolarData {
 
     public record Band(String group, String day, String night) {}
     public record Snapshot(String sfi, String aIndex, String kIndex, String sunspots, String xray,
-                           String aurora, String solarWind, String magField, String updated, List<Band> bands) {}
+                           String aurora, String solarWind, String magField, String updated, List<Band> bands,
+                           String muf, String fof2) {}
+
+    /** Reported path MUF in MHz, or NaN when the ionosonde isn't reporting ("NoRpt"/blank). */
+    public static double mufMhz(Snapshot s) { return s == null ? Double.NaN : parseMhz(s.muf()); }
+    /** Frequency of Optimum Transmission ≈ 0.85 × MUF (NaN when MUF is unavailable). */
+    public static double fotMhz(Snapshot s) { double m = mufMhz(s); return Double.isNaN(m) ? Double.NaN : m * 0.85; }
+    /** Critical frequency foF2 in MHz, or NaN when not reported. */
+    public static double fof2Mhz(Snapshot s) { return s == null ? Double.NaN : parseMhz(s.fof2()); }
+    private static double parseMhz(String v) {
+        if (v == null) return Double.NaN;
+        String t = v.trim();
+        if (t.isEmpty() || t.equalsIgnoreCase("NoRpt")) return Double.NaN;
+        try { return Double.parseDouble(t.replaceAll("[^0-9.]", "")); } catch (Exception e) { return Double.NaN; }
+    }
 
     private volatile Snapshot snap;
     private volatile boolean started;
@@ -54,7 +68,8 @@ public final class SolarData {
         List<Band> bands = parseBands(xml);
         snap = new Snapshot(tag(xml, "solarflux"), tag(xml, "aindex"), tag(xml, "kindex"),
                 tag(xml, "sunspots"), tag(xml, "xray"), tag(xml, "aurora"),
-                tag(xml, "solarwind"), tag(xml, "magneticfield"), tag(xml, "updated"), bands);
+                tag(xml, "solarwind"), tag(xml, "magneticfield"), tag(xml, "updated"), bands,
+                tag(xml, "muf"), tag(xml, "fof2"));
     }
 
     private static List<Band> parseBands(String xml) {

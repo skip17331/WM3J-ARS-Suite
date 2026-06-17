@@ -221,6 +221,13 @@
 .sx-bc-c.good { -fx-text-fill: -ars-ok;   -fx-background-color: -ars-ok-soft; }
 .sx-bc-c.fair { -fx-text-fill: -ars-warn; -fx-background-color: -ars-warn-soft; }
 .sx-bc-c.poor { -fx-text-fill: -ars-err;  -fx-background-color: -ars-err-soft; }
+/* DX-cluster band-activity heat map */
+.sx-bc-hh   { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.sx-bc-na   { -fx-font-size: 10px; -fx-text-fill: -ars-t3; -fx-font-style: italic; -fx-padding: 2 0 4 0; }
+.sx-heat    { -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 4; }
+.sx-heat-b  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.sx-heat-c  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: #f3f7fb; }
+.sx-heat-c0 { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9px; -fx-text-fill: -ars-t4; }
 .sx-ro-head { -fx-font-family: "JetBrains Mono"; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .sx-ro-dir  { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
 .sx-ro-turn-btn { -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 6 0 6 0; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-width: 1;
