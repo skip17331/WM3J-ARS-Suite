@@ -107,6 +107,13 @@ public final class JHubDashboard {
             Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onCollapse.run());
             HBox head = new HBox(ham); head.setAlignment(Pos.CENTER); head.getStyleClass().add("jhub-nav-head");
             nav.getChildren().add(head);
+            // J-Hub home icon at the top of the rail → back to the dashboard
+            HBox hubRow = new HBox(Shell.iconTile("hub", "hub", 18, "sx-dock-ic"));
+            hubRow.setAlignment(Pos.CENTER); hubRow.getStyleClass().add("jhub-nav-item");
+            if (activeConf.equals("dashboard")) hubRow.getStyleClass().add("active");
+            hubRow.setStyle("-fx-cursor:hand;"); VBox.setMargin(hubRow, new Insets(1, 9, 1, 9));
+            hubRow.setOnMouseClicked(e -> Shell.navigate("hub"));
+            nav.getChildren().add(hubRow);
             for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) {
                 Node ic = Shell.iconTile(m.hue(), m.id(), 18, "sx-dock-ic");
                 HBox row = new HBox(ic); row.setAlignment(Pos.CENTER); row.getStyleClass().add("jhub-nav-item");
@@ -125,7 +132,10 @@ public final class JHubDashboard {
         }
 
         Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onCollapse.run());
-        HBox head = new HBox(10, ham, lbl("J-Hub", "jhub-nav-headnm")); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("jhub-nav-head");
+        HBox hubHome = new HBox(8, Shell.iconTile("hub", "hub", 16, "sx-dock-ic"), lbl("J-Hub", "jhub-nav-headnm"));
+        hubHome.setAlignment(Pos.CENTER_LEFT); hubHome.setStyle("-fx-cursor:hand;");
+        hubHome.setOnMouseClicked(e -> Shell.navigate("hub"));   // J-Hub icon = home / dashboard
+        HBox head = new HBox(10, ham, hubHome); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("jhub-nav-head");
         nav.getChildren().addAll(head, lbl("OPERATE", "jhub-nav-sec"));
         for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) nav.getChildren().add(navItem(m, false));
         nav.getChildren().add(lbl("J-HUB", "jhub-nav-sec"));
