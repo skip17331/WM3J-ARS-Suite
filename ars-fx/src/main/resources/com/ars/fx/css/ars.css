@@ -668,7 +668,7 @@
 /* =========================================================================
    Rig Control panel — 1:1 with design/ars-suite/Rig Control Drawer.html
    ========================================================================= */
-.rig-panel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 26, 0, -6, 8); }
+.rig-panel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 9; -fx-border-radius: 9; }
 
 /* header (pinned) */
 .rc-head    { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
@@ -788,9 +788,3 @@
 .rc-act.tune:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
 .rc-act.ptt  { -fx-background-color: -ars-err; -fx-border-color: -ars-err; -fx-text-fill: white; }
 .rc-act.ptt.tx { -fx-effect: dropshadow(gaussian, -ars-err, 10, 0.35, 0, 0); }
-
-/* top-bar RIG button (shows live freq) */
-.sx-rigbtn { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3;
-             -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 6 12 6 12; }
-.sx-rigbtn:hover { -fx-background-color: -ars-surface-4; -fx-border-color: -ars-border-glow; -fx-text-fill: -ars-t1; }
-.sx-rigbtn.live { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }

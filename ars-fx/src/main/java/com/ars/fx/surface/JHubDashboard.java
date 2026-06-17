@@ -90,7 +90,7 @@ public final class JHubDashboard {
         Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "jhub-theme");
         theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
-        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), Shell.rigButton(), theme);
+        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), theme);
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }
@@ -537,7 +537,7 @@ public final class JHubDashboard {
     // ---- drawer rail (rig + rotor + space wx) ------------------------------
     private static Region railCol() {
         VBox col = new VBox(11, com.ars.fx.shell.IdTimer.drawer(),
-                Shell.drawer("Rig control", "bridge", "bridge", "", true, rigBody()),
+                com.ars.fx.shell.RigPanel.build(),
                 Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
@@ -545,61 +545,6 @@ public final class JHubDashboard {
                 Shell.bandConditionsDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
         return col;
-    }
-    private static Region rigBody() {
-        Label freq = lbl("—.—.—", "jhub-rig-fq");
-        HBox fq = new HBox(6, freq, lbl("MHz", "jhub-rig-u")); fq.setAlignment(Pos.BOTTOM_LEFT);
-        Label modeChip = lbl("—", "jhub-pill");
-        Label bandChip = lbl("—", "jhub-pill", "grey");
-        Label vfoChip  = lbl("VFO A", "jhub-pill", "grey");
-        HBox chips = new HBox(8, modeChip, bandChip, vfoChip);
-        HBox steps = new HBox(0); String[] st = {"‹","10","100","1k","5k","›"};
-        for (int i=0;i<st.length;i++){ Label b = lbl(st[i], "jhub-step"); if (st[i].equals("1k")) b.getStyleClass().add("on"); HBox.setHgrow(b,Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE); HBox.setMargin(b,new Insets(0,2,0,2)); steps.getChildren().add(b); }
-        // s-meter
-        Region[] segs = new Region[16];
-        HBox seg = new HBox(2); seg.setAlignment(Pos.CENTER_LEFT);
-        for (int i=0;i<16;i++){ Region s = new Region(); s.getStyleClass().addAll("jhub-sm-seg", "off"); HBox.setHgrow(s,Priority.ALWAYS); s.setMaxWidth(Double.MAX_VALUE); segs[i]=s; seg.getChildren().add(s); }
-        HBox scale = new HBox(); for (String k : new String[]{"S1","","","55","","59","","+20","","+40"}){ Label l=lbl(k,"jhub-sm-k"); HBox.setHgrow(l,Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); scale.getChildren().add(l);}
-        VBox sm = new VBox(3, seg, scale);
-        Label pwV = lbl("—","jhub-pw-v");
-        VBox pw = new VBox(2, lbl("POWER","jhub-pw-k"), pwV);
-        Region psp = new Region(); HBox.setHgrow(psp, Priority.ALWAYS);
-        Label swrV = lbl("—","jhub-pw-v");
-        VBox swr = new VBox(2, lbl("SWR","jhub-pw-k"), swrV); swr.setAlignment(Pos.CENTER_RIGHT);
-        HBox power = new HBox(pw, psp, swr);
-        GridPane bands = new GridPane(); bands.setHgap(5); bands.setVgap(5);
-        Label[] bandBtns = new Label[Mock.RIG_BANDS.length];
-        for (int i=0;i<Mock.RIG_BANDS.length;i++){
-            final String band = Mock.RIG_BANDS[i];
-            Label b = lbl(band, "jhub-band"); GridPane.setHgrow(b,Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-            b.setOnMouseClicked(e -> RigClient.getInstance().setBand(band));
-            bandBtns[i]=b; bands.add(b, i%5, i/5);
-        }
-        for (int c=0;c<5;c++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(20); bands.getColumnConstraints().add(cc); }
-
-        Label conn = lbl("○ rigctld " + RigClient.getInstance().endpoint() + " · offline", "jhub-conn");
-
-        // live updater
-        java.util.function.Consumer<RigClient.State> rigUpd = s -> {
-            boolean c = s.connected();
-            conn.getStyleClass().remove("live");
-            if (c) { conn.getStyleClass().add("live"); conn.setText("● rigctld " + RigClient.getInstance().endpoint()); }
-            else conn.setText("○ rigctld " + RigClient.getInstance().endpoint() + " · offline");
-            freq.setText(c && s.freqHz() > 0 ? RigClient.fmtFreq(s.freqHz()) : "—.—.—");
-            modeChip.setText(c && !s.mode().isEmpty() ? s.mode() : "—");
-            String band = c && s.freqHz() > 0 ? JLogDb.bandFor(String.valueOf(s.freqHz()/1_000_000.0)) : null;
-            bandChip.setText(band != null ? band : "—");
-            if (c && s.vfo() != null && !s.vfo().isEmpty()) vfoChip.setText(s.vfo());
-            int lit = c ? RigClient.sMeterSegments(s.sMeterDb()) : 0;
-            for (int i=0;i<segs.length;i++){ segs[i].getStyleClass().removeAll("on","off"); segs[i].getStyleClass().add(i<lit?"on":"off"); }
-            pwV.setText(c && s.rfPowerFrac() >= 0 ? Math.round(s.rfPowerFrac()*100) + "%" : "—");
-            swrV.setText(c && s.swr() >= 0 ? String.format("%.1f:1", s.swr()) : "—");
-            for (Label b : bandBtns){ b.getStyleClass().remove("on"); if ((b.getText()+"m").equals(band)) b.getStyleClass().add("on"); }
-        };
-        RigClient.getInstance().addListener(rigUpd);
-        conn.sceneProperty().addListener((o,a,b) -> { if (b == null) RigClient.getInstance().removeListener(rigUpd); });
-        RigClient.getInstance().start();
-        return new VBox(12, fq, chips, steps, sm, power, bands, conn);
     }
     private static Region ampBody() {
         Label stateV = lbl("—", "jhub-pill", "grey");

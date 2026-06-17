@@ -166,9 +166,6 @@ public final class Shell {
             top.getChildren().add(cell);
         }
         top.getChildren().add(hsp());
-        // canonical rig panel: drops down from this top-right button (replaces the rail rig drawer)
-        Label rig = rigButton(); HBox.setMargin(rig, new Insets(0, 14, 0, 0));
-        top.getChildren().add(rig);
         // per-module theme: shows the module's current scheme, cycles just this module on click
         Label theme = lbl("◑ " + com.ars.fx.Themes.effective(hue).label(), "sx-theme"); theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
@@ -249,45 +246,9 @@ public final class Shell {
     /** Station-ID timer drawer — the first standard drawer on every operating module. */
     public static Node idDrawer() { return com.ars.fx.shell.IdTimer.drawer(); }
 
-    /** Lead drawers shown first on every operating module: Station ID, Rotor control.
-     *  Rig control is no longer a rail drawer — it drops down from the top-bar RIG button
-     *  ({@link #rigButton()} / {@link RigPanel}). */
-    public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), rotorControlDrawer(az)); }
-
-    /** Top-right RIG button that toggles the canonical {@link RigPanel} drop-down and shows the
-     *  live frequency. Shared by the module top bar ({@link #topBar}) and the J-Hub dashboard bar. */
-    public static Label rigButton() {
-        Label b = lbl("⚡ RIG  —.———", "sx-rigbtn"); b.setStyle("-fx-cursor:hand;");
-        b.setOnMouseClicked(e -> toggleRigOverlay(b));
-        java.util.function.Consumer<com.ars.fx.data.RigClient.State> upd = s -> {
-            boolean live = s != null && s.connected() && s.freqHz() > 0;
-            b.setText("⚡ RIG  " + (live ? com.ars.fx.data.RigClient.fmtFreqShort(s.freqHz()) : "—.———"));
-            b.getStyleClass().remove("live"); if (live) b.getStyleClass().add("live");
-        };
-        com.ars.fx.data.RigClient.getInstance().addListener(upd);
-        com.ars.fx.data.RigClient.getInstance().start();
-        b.sceneProperty().addListener((o, a, sc) -> { if (sc == null) com.ars.fx.data.RigClient.getInstance().removeListener(upd); });
-        return b;
-    }
-
-    private static final String RIG_OVERLAY_ID = "rig-overlay";
-    /** Show (or hide, if already open) the rig panel as a top-right drop-down over the current surface. */
-    public static void toggleRigOverlay(Node source) {
-        javafx.scene.Scene sc = source == null ? null : source.getScene();
-        if (sc == null || !(sc.getRoot() instanceof Pane root)) return;
-        for (Node n : new ArrayList<>(root.getChildrenUnmodifiable()))
-            if (RIG_OVERLAY_ID.equals(n.getId())) { root.getChildren().remove(n); return; }   // toggle off
-
-        // the panel pins its own header/footer and scrolls internally; just cap its height
-        Region panel = RigPanel.build(() -> root.getChildren().removeIf(n -> RIG_OVERLAY_ID.equals(n.getId())));
-        panel.maxHeightProperty().bind(root.heightProperty().subtract(64));
-        StackPane veil = new StackPane(panel); veil.setId(RIG_OVERLAY_ID);
-        veil.setStyle("-fx-background-color: transparent;"); veil.setPickOnBounds(true);
-        veil.prefWidthProperty().bind(root.widthProperty()); veil.prefHeightProperty().bind(root.heightProperty());
-        StackPane.setAlignment(panel, Pos.TOP_RIGHT); StackPane.setMargin(panel, new Insets(52, 12, 12, 0));
-        veil.setOnMouseClicked(e -> { if (e.getTarget() == veil) root.getChildren().remove(veil); });   // click-outside dismiss
-        root.getChildren().add(veil);
-    }
+    /** Lead drawers shown first on every operating module, in order: Station ID, Rig control
+     *  ({@link RigPanel}), Rotor control. */
+    public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), RigPanel.build(), rotorControlDrawer(az)); }
 
     /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */
     public static Node rotorControlDrawer(int az) {

@@ -10,7 +10,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
@@ -34,7 +33,6 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class RigPanel {
     private RigPanel() {}
 
-    public static final double WIDTH = 322;            // matches the existing rail/drawer column
     private static final long FAST_HZ = 1_000, SLOW_HZ = 10;
     private static final String[] BANDS = {"160","80","60","40","30","20","17","15","12","10","6","GEN"};
     private static final String[] MODES = {"USB","LSB","CW","CW-R","RTTY","FT8","AM","FM"};
@@ -46,10 +44,8 @@ public final class RigPanel {
     /** Persisted open/closed state per sub-drawer title (survives panel rebuilds). */
     private static final Map<String,Boolean> SUB_STATE = new java.util.HashMap<>();
 
-    public static Region build() { return build(null); }
-
-    /** @param onClose optional handler for the header collapse chevron (dropdown dismiss). */
-    public static Region build(Runnable onClose) {
+    /** Build the rig-control rail drawer (header + collapsible body). */
+    public static Region build() {
         RigClient rig = RigClient.getInstance();
 
         // ── header (pinned) ─────────────────────────────────────────────────
@@ -61,8 +57,7 @@ public final class RigPanel {
         Region connDot = new Region(); connDot.getStyleClass().add("rc-conn-d");
         Label connTx = lbl("CAT", "rc-conn-t");
         HBox conn = new HBox(6, connDot, connTx); conn.setAlignment(Pos.CENTER); conn.getStyleClass().add("rc-conn");
-        Label collapse = lbl("‹", "rc-collapse"); collapse.setStyle("-fx-cursor:hand;");
-        if (onClose != null) collapse.setOnMouseClicked(e -> onClose.run());
+        Label collapse = lbl("›", "rc-collapse"); collapse.setStyle("-fx-cursor:hand;");   // wired to collapse the body below
         HBox header = new HBox(9, ic, titleBox, conn, collapse);
         header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("rc-head");
 
@@ -197,13 +192,7 @@ public final class RigPanel {
         Label dlSum = lbl("—", "rc-subdw-sum");
         VBox sub3 = subdw("DSP & Levels", dlSum, false, dspBody);
 
-        // ── scrolling middle ────────────────────────────────────────────────
-        VBox body = new VBox(11, metstrip, vfoCard, sub1, sub2, sub3); body.getStyleClass().add("rc-body");
-        ScrollPane scroll = new ScrollPane(body); scroll.getStyleClass().add("rc-scroll");
-        scroll.setFitToWidth(true); scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-
-        // ── footer (pinned) ─────────────────────────────────────────────────
+        // ── footer action bar (ATU · TUNE · PTT) ────────────────────────────
         Label atuB = actBtn("ATU", "atu", null);
         atuB.setOnMouseClicked(e -> rig.setFunc("TUNER", !atuB.getStyleClass().contains("on")));
         Label tuneB = actBtn("TUNE", "tune", rig::antTune);
@@ -214,8 +203,16 @@ public final class RigPanel {
         for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(fw[c]); foot.getColumnConstraints().add(cc); }
         foot.add(atuB, 0, 0); foot.add(tuneB, 1, 0); foot.add(pttB, 2, 0);
 
-        VBox panel = new VBox(header, scroll, foot); panel.getStyleClass().add("rig-panel");
-        panel.setMinWidth(WIDTH); panel.setPrefWidth(WIDTH); panel.setMaxWidth(WIDTH);
+        // ── assemble as a rail drawer: header collapses the body; rail scrolls ──
+        VBox body = new VBox(11, metstrip, vfoCard, sub1, sub2, sub3, foot); body.getStyleClass().add("rc-body");
+        boolean open = SUB_STATE.getOrDefault("Rig Control", true);
+        collapse.setRotate(open ? 90 : 0); body.setManaged(open); body.setVisible(open);
+        collapse.setOnMouseClicked(e -> {
+            boolean now = !body.isManaged();
+            body.setManaged(now); body.setVisible(now); collapse.setRotate(now ? 90 : 0);
+            SUB_STATE.put("Rig Control", now);
+        });
+        VBox panel = new VBox(header, body); panel.getStyleClass().add("rig-panel"); panel.setMaxWidth(Double.MAX_VALUE);
 
         // ── live render ─────────────────────────────────────────────────────
         Consumer<RigClient.State> render = st -> {
