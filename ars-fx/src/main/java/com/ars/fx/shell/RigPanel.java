@@ -210,7 +210,7 @@ public final class RigPanel {
         VBox bodyBox = new VBox(content); bodyBox.getStyleClass().add("sx-dw-body");
         VBox panel = new VBox(header, bodyBox); panel.getStyleClass().add("sx-dw"); panel.setMaxWidth(Double.MAX_VALUE);
 
-        boolean open = SUB_STATE.getOrDefault("Rig control", true);
+        boolean open = SUB_STATE.getOrDefault("Rig control", false);
         if (open) panel.getStyleClass().add("open");
         cv.setRotate(open ? 90 : 0); headSum.setVisible(!open); headSum.setManaged(!open);
         bodyBox.setManaged(open); bodyBox.setVisible(open);
