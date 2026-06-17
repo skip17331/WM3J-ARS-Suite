@@ -178,27 +178,32 @@ public final class Shell {
     }
 
     // ---- collapsible drawer ------------------------------------------------
+    // Remembered open/closed state by title, so a drawer the operator opened stays
+    // open when its surface rebuilds (e.g. J-Sat recreates its rail every ~2 s).
+    private static final Map<String, Boolean> DRAWER_STATE = new java.util.HashMap<>();
+
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
     }
-    /** As above, but {@code onToggle} fires with the new open-state so callers can
-     *  persist it across rebuilds (surfaces that recreate their rail each tick). */
+    /** As above, with an optional {@code onToggle}. Open/closed state is remembered by title across rebuilds. */
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body,
                               java.util.function.Consumer<Boolean> onToggle) {
-        VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (open) dw.getStyleClass().add("open");
+        boolean initOpen = DRAWER_STATE.getOrDefault(title, open);
+        VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (initOpen) dw.getStyleClass().add("open");
         StackPane ic = iconTile(hue, glyphId, 14, "sx-dw-ic");
         Label t = lbl(title, "sx-dw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
         Label sum = lbl(summary == null ? "" : summary, "sx-dw-sum");
         Label cv = lbl("›", "sx-dw-cv");   // ›
         HBox head = new HBox(9, ic, t, sum, cv); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("sx-dw-head");
         VBox bodyBox = new VBox(); bodyBox.getStyleClass().add("sx-dw-body"); bodyBox.getChildren().add(body);
-        cv.setRotate(open ? 90 : 0); sum.setVisible(!open); sum.setManaged(!open);
-        bodyBox.setManaged(open); bodyBox.setVisible(open);
+        cv.setRotate(initOpen ? 90 : 0); sum.setVisible(!initOpen); sum.setManaged(!initOpen);
+        bodyBox.setManaged(initOpen); bodyBox.setVisible(initOpen);
         head.setOnMouseClicked(e -> {
             boolean nowOpen = !dw.getStyleClass().contains("open");
             dw.getStyleClass().remove("open"); if (nowOpen) dw.getStyleClass().add("open");
             bodyBox.setManaged(nowOpen); bodyBox.setVisible(nowOpen);
             sum.setVisible(!nowOpen); sum.setManaged(!nowOpen); cv.setRotate(nowOpen ? 90 : 0);
+            DRAWER_STATE.put(title, nowOpen);
             if (onToggle != null) onToggle.accept(nowOpen);
         });
         dw.getChildren().addAll(head, bodyBox);
