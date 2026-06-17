@@ -33,6 +33,8 @@ public final class DaemonManager {
 
     /** Spawn any enabled daemon not already running (e.g. at app start). */
     public static void ensureAll() { for (Spec s : SPECS) ensure(s.kind()); }
+    /** Kill every daemon we spawned (called on app shutdown so none are left orphaned). */
+    public static void stopAll() { for (Spec s : SPECS) stop(s.kind()); }
 
     /** Spawn the daemon for {@code kind} if its toggle is on, the binary exists, and it isn't already running. */
     public static synchronized void ensure(String kind) {

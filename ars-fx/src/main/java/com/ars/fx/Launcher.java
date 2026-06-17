@@ -94,6 +94,17 @@ public class Launcher extends Application {
         Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }
 
+    /** Clean shutdown when the window closes: stop the sharing server + spawned daemons, then force the
+     *  JVM down. Several deps (the Java-WebSocket server, the embedded modem/WSJT-X engines, logback)
+     *  run non-daemon threads that would otherwise keep the process alive after the last window closes. */
+    @Override
+    public void stop() {
+        try { com.ars.fx.data.RemoteServer.shutdown(); } catch (Exception ignored) {}
+        try { com.ars.fx.data.DaemonManager.stopAll(); } catch (Exception ignored) {}
+        javafx.application.Platform.exit();
+        System.exit(0);
+    }
+
     /** Build a surface frame by id. */
     public static Region buildSurface(String id) {
         switch (id) {
