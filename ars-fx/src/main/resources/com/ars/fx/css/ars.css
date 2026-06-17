@@ -277,7 +277,7 @@
 .sx-clock-sel { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8;
                 -fx-text-fill: -ars-t1; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 6 10 6 12; }
 
-.jl-entry { -fx-background-color: #1f2226; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-padding: 16 18 16 18; }
+.jl-entry { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-padding: 16 18 16 18; }
 .jl-eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .jl-runsp { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
 .jl-runsp-btn { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 5 12 5 12; -fx-background-radius: 5; -fx-cursor: hand; }
