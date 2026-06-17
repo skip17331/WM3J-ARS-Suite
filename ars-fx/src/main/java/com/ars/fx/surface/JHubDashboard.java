@@ -427,6 +427,11 @@ public final class JHubDashboard {
         cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
 
+        // F1–F8 station macros (shared with J-Log normal + contest)
+        Label txEcho = lbl("", "jhub-mini-hint");
+        body.getChildren().add(MacroBar.row(MacroBar.fire(() -> tMode.getText(), () -> tCall.getText(), msg -> txEcho.setText("▶ " + msg))));
+        body.getChildren().add(txEcho);
+
         // today's log — read back from the DB
         Label tlh = lbl("☰  Recent log"); tlh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
         Label tln = lbl(""); tln.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;");

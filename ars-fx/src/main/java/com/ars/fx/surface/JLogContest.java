@@ -166,6 +166,10 @@ public final class JLogContest {
         HBox actions = new HBox(12, b4, gap, clear, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
 
+        // F1–F8 station macros (shared with normal log + dashboard)
+        body.getChildren().add(MacroBar.row(MacroBar.fire(
+                () -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"))));
+
         Runnable doLog = () -> { if (logQso(plugin)) clearForm(); };   // recompute → listeners refresh log + trackers
         logBtn.setOnMouseClicked(e -> doLog.run());
         clear.setOnMouseClicked(e -> clearForm());

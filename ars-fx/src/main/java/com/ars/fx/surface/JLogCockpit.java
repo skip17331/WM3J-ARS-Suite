@@ -160,7 +160,7 @@ public final class JLogCockpit {
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
         HBox cmtRow = new HBox(12, cmtF, sp2, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
-        body.getChildren().add(macroRow(fireMacro));
+        body.getChildren().add(MacroBar.row(fireMacro));
 
         // recent log table
         Label lh = lbl("☰  Recent log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
@@ -285,18 +285,6 @@ public final class JLogCockpit {
         if (path == null) return "";
         int s = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
         return s >= 0 ? path.substring(s + 1) : path;
-    }
-    private static HBox macroRow(java.util.function.IntConsumer fire) {
-        HBox m = new HBox(6); m.setAlignment(Pos.CENTER_LEFT);
-        for (int i = 0; i < com.ars.fx.data.MacroConfig.count(); i++) {
-            final int idx = i;
-            VBox mb = new VBox(2, lbl("F" + (i + 1), "jl-macro-fk"), lbl(com.ars.fx.data.MacroConfig.get(i).label(), "jl-macro-ml"));
-            mb.getStyleClass().add("jl-macro");
-            mb.setStyle("-fx-cursor:hand;"); HBox.setHgrow(mb, Priority.ALWAYS); mb.setMaxWidth(Double.MAX_VALUE);
-            mb.setOnMouseClicked(e -> fire.accept(idx));
-            m.getChildren().add(mb);
-        }
-        return m;
     }
     // ---- RTTY / CW transmit & receive drawer (between entry pane and log) ---
     // digital TX mode chips: {label, rate descriptor}
