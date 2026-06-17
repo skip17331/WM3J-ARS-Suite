@@ -118,9 +118,22 @@
                                         <exclude>com/sun/marlin/**</exclude>
                                         <exclude>com/sun/pisces/**</exclude>
                                         <exclude>**/*.so</exclude>
-                                        <!-- strip the embedded j-log-engine so the pinned standalone
-                                             com.jlog:j-log-engine:1.5.2 is the single authoritative copy -->
+                                        <!-- These fat jars also embed every shared library (engine, gson,
+                                             jackson, sqlite, logback, websocket, pdfbox, byte-buddy, jssc…).
+                                             Strip them all so the pinned standalone copies are authoritative;
+                                             only com/hamradio/** (the module's own code) is kept. -->
                                         <exclude>com/jlog/**</exclude>
+                                        <exclude>ch/qos/**</exclude>
+                                        <exclude>com/fasterxml/**</exclude>
+                                        <exclude>com/google/**</exclude>
+                                        <exclude>net/bytebuddy/**</exclude>
+                                        <exclude>org/apache/**</exclude>
+                                        <exclude>org/java_websocket/**</exclude>
+                                        <exclude>org/scijava/**</exclude>
+                                        <exclude>org/sqlite/**</exclude>
+                                        <exclude>org/slf4j/**</exclude>
+                                        <exclude>jssc/**</exclude>
+                                        <exclude>natives/**</exclude>
                                     </excludes>
                                 </filter>
                                 <filter>
@@ -136,9 +149,22 @@
                                         <exclude>com/sun/marlin/**</exclude>
                                         <exclude>com/sun/pisces/**</exclude>
                                         <exclude>**/*.so</exclude>
-                                        <!-- strip the embedded j-log-engine so the pinned standalone
-                                             com.jlog:j-log-engine:1.5.2 is the single authoritative copy -->
+                                        <!-- These fat jars also embed every shared library (engine, gson,
+                                             jackson, sqlite, logback, websocket, pdfbox, byte-buddy, jssc…).
+                                             Strip them all so the pinned standalone copies are authoritative;
+                                             only com/hamradio/** (the module's own code) is kept. -->
                                         <exclude>com/jlog/**</exclude>
+                                        <exclude>ch/qos/**</exclude>
+                                        <exclude>com/fasterxml/**</exclude>
+                                        <exclude>com/google/**</exclude>
+                                        <exclude>net/bytebuddy/**</exclude>
+                                        <exclude>org/apache/**</exclude>
+                                        <exclude>org/java_websocket/**</exclude>
+                                        <exclude>org/scijava/**</exclude>
+                                        <exclude>org/sqlite/**</exclude>
+                                        <exclude>org/slf4j/**</exclude>
+                                        <exclude>jssc/**</exclude>
+                                        <exclude>natives/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
