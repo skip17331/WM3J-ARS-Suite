@@ -181,7 +181,10 @@ public final class Shell {
     // ---- collapsible drawer ------------------------------------------------
     // Remembered open/closed state by title, so a drawer the operator opened stays
     // open when its surface rebuilds (e.g. J-Sat recreates its rail every ~2 s).
+    // Drawers default closed (see drawer()); the few seeded here start open instead,
+    // until the operator collapses them.
     private static final Map<String, Boolean> DRAWER_STATE = new java.util.HashMap<>();
+    static { DRAWER_STATE.put("Station ID", true); }   // the ID timer stays open by default
 
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
