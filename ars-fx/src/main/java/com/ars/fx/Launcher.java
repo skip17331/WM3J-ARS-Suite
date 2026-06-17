@@ -109,6 +109,7 @@ public class Launcher extends Application {
     public static Region buildSurface(String id) {
         switch (id) {
             case "log":    return com.ars.fx.surface.JLogCockpit.build();
+            case "logc":   return com.ars.fx.surface.JLogContest.build();
             case "hub":      return com.ars.fx.surface.JHubDashboard.build();
             case "hubcfg":   return com.ars.fx.surface.JHubDashboard.buildConfig();
             case "station":  return com.ars.fx.surface.JHubDashboard.buildStation();

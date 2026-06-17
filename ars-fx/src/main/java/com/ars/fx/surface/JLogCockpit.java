@@ -89,8 +89,10 @@ public final class JLogCockpit {
         Label titleLbl = lbl("New QSO", "jhub-card-title");
         VBox ttl = new VBox(1, titleLbl, sub);
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
+        Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
+        contestChip.setOnMouseClicked(e -> Shell.navigate("logc"));
         Label b4 = lbl("Normal log", "jl-eyebrow");   // worked-before / dupe / status
-        HBox head = new HBox(11, ic, ttl, hsp, b4); head.setAlignment(Pos.CENTER_LEFT);
+        HBox head = new HBox(11, ic, ttl, hsp, contestChip, b4); head.setAlignment(Pos.CENTER_LEFT);
 
         TextField call = tf("", "", 210, true);
         TextField freq = tf("MHz", "14.074", 110, false);

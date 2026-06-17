@@ -170,6 +170,14 @@
 .sx-stat-v.accent { -fx-text-fill: -ars-accent; }
 .sx-stat-v.amber  { -fx-text-fill: -ars-log; }
 .sx-stat-sep { -fx-min-width: 1; -fx-pref-width: 1; -fx-max-width: 1; -fx-background-color: -ars-border; }
+/* contest mode: recent-log table + dupe indicator + chooser cards */
+.jl-logc-h  { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 6 0 6 0; }
+.jl-logc    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-text-fill: -ars-t2; }
+.jl-logrow  { -fx-padding: 3 0 3 0; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.jl-eyebrow.new  { -fx-text-fill: -ars-ok; }
+.jl-eyebrow.b4   { -fx-text-fill: -ars-warn; }
+.jl-eyebrow.dupe { -fx-text-fill: -ars-err; }
+.jl-pick:hover   { -fx-border-color: -ars-accent-line; }
 .sx-clock-k  { -fx-font-size: 9px; -fx-text-fill: -ars-t3; }
 .sx-clock-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .sx-theme    { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 4 9 4 9; }

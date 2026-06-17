@@ -835,9 +835,20 @@ public final class JHubDashboard {
                     cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteServer.apply())),
             cfgRow("WebSocket port", "the solo module connects to ws://<this-pc>:<port>",
                     cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteServer.apply())));
+        VBox contest = section("CONTEST / CABRILLO",
+            cfgRow("Operator category", null, cSelect("contest.cab.operator", "SINGLE-OP", new String[]{"SINGLE-OP","MULTI-OP","CHECKLOG"})),
+            cfgRow("Power", null, cSelect("contest.cab.power", "HIGH", new String[]{"HIGH","LOW","QRP"})),
+            cfgRow("Assisted", null, cSelect("contest.cab.assisted", "NON-ASSISTED", new String[]{"NON-ASSISTED","ASSISTED"})),
+            cfgRow("Band category", null, cInput("contest.cab.band", "ALL")),
+            cfgRow("Mode category", null, cInput("contest.cab.mode", "MIXED")),
+            cfgRow("Station", null, cInput("contest.cab.station", "FIXED")),
+            cfgRow("Club", null, cInput("contest.cab.club", "")),
+            cfgRow("Sweepstakes precedence", "your sent SS precedence (A/B/U/M/Q/S)", cInput("contest.ss.precedence", "")),
+            cfgRow("Sweepstakes check", "year first licensed (2 digits)", cInput("contest.ss.check", "")),
+            cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, cluster, wsjt, lookupSection(), logbook, remote, backupSection(), uploadSection(), macroSection());
+            cells, cluster, wsjt, lookupSection(), logbook, contest, remote, backupSection(), uploadSection(), macroSection());
     }
 
     /** J-Hub ▸ Modules — turn each module on or off (reflected live in the dock + nav). */
