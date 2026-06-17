@@ -160,8 +160,9 @@ public final class Shell {
         HBox brand = new HBox(10, bic, bt); brand.setAlignment(Pos.CENTER_LEFT); brand.setPadding(new Insets(0, 20, 0, 0));
         top.getChildren().add(brand);
         for (String[] s : stats) {   // {key, value, optional class}
+            boolean hasCls = s.length > 2 && s[2] != null && !s[2].isBlank();
             VBox cell = new VBox(2, lbl(s[0], "sx-stat-k"),
-                    lbl(s[1], s.length > 2 ? new String[]{"sx-stat-v", s[2]} : new String[]{"sx-stat-v"}));
+                    lbl(s[1], hasCls ? new String[]{"sx-stat-v", s[2]} : new String[]{"sx-stat-v"}));
             cell.getStyleClass().add("sx-stat"); cell.setAlignment(Pos.CENTER_LEFT);
             top.getChildren().add(cell);
         }

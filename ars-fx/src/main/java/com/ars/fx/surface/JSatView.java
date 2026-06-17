@@ -126,6 +126,18 @@ public final class JSatView {
         return snap.tracked();
     }
 
+    /** How long the focus sat is reachable: time-left while in a pass, else the next pass window. */
+    private static String reachable(SatInfo f) {
+        if (f == null) return "—";
+        long window = (f.losEpoch() > f.aosEpoch() && f.aosEpoch() > 0) ? f.losEpoch() - f.aosEpoch() : f.nextDurSec();
+        if (window <= 0) return "—";
+        if (f.inPass()) {
+            long left = f.losEpoch() - java.time.Instant.now().getEpochSecond();
+            if (left > 0) return SatService.compact(left) + " left";
+        }
+        return SatService.compact(window);
+    }
+
     private static Region frame(Snapshot snap) {
         Region dock = Shell.dock("sat");
         SatInfo f = focus(snap);
@@ -137,6 +149,7 @@ public final class JSatView {
                 {"AZ / EL", f != null ? String.format("%03.0f° / %.0f°", f.azDeg(), f.elDeg()) : "—"},
                 {"AOS", f != null ? SatService.hhmmUtc(f.aosEpoch()) : "—"},
                 {"LOS", f != null ? SatService.hhmmUtc(f.losEpoch()) : "—"},
+                {"REACHABLE", reachable(f), f != null && f.inPass() ? "accent" : null},
                 {"APOGEE", f != null ? Math.round(f.apogeeKm()) + " km" : "—"},
                 {"PERIGEE", f != null ? Math.round(f.perigeeKm()) + " km" : "—"}};
         String utc = java.time.LocalTime.now(java.time.ZoneOffset.UTC)
