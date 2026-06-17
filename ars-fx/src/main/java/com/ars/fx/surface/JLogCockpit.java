@@ -406,13 +406,12 @@ public final class JLogCockpit {
     // ---- right rail --------------------------------------------------------
     private static Node[] railDrawers() {
         List<Node> rail = new ArrayList<>();
-        rail.add(com.ars.fx.shell.IdTimer.drawer());
+        rail.addAll(Shell.leadDrawers(50));     // Station ID, Rig control, Rotor control
         rail.add(spotterDrawer());
         rail.add(heardByDrawer());
         rail.add(awardsDrawer());
         rail.add(Shell.drawer("Skimmer", "digi", "digi", SKIMMER.length + " decodes", true, skimmerBody()));
-        List<Node> inst = Shell.instruments(50);
-        rail.add(inst.get(0)); rail.add(inst.get(1)); rail.add(inst.get(2)); rail.add(inst.get(3)); // rotor, prop, solar+spacewx, band
+        rail.addAll(Shell.instruments(50));      // propagation, solar, band conditions, weather
         return rail.toArray(new Node[0]);
     }
     /** Spotter / DX cluster drawer — live DX spots from the shared ClusterClient. */

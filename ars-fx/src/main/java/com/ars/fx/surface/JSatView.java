@@ -432,9 +432,10 @@ public final class JSatView {
         String passSummary = !snap.sats().isEmpty() ? snap.sats().get(0).name() + " " +
                 (snap.sats().get(0).inPass() ? "now" : SatService.compactLower(snap.sats().get(0).secsToAos())) : "—";
         List<Node> rail = new ArrayList<>();
+        rail.addAll(Shell.leadDrawers(f != null ? (int) Math.round(f.azDeg()) : 0));   // Station ID, Rig control, Rotor control
         rail.add(drawer("Radio · Doppler", "bridge", "bridge", dopSummary, true, doppler));
         rail.add(drawer("Next passes", "sat", "sat", passSummary, true, np));
-        rail.addAll(Shell.instruments(f != null ? (int) Math.round(f.azDeg()) : 0));
+        rail.addAll(Shell.instruments(0));   // propagation, solar, band conditions, weather
         return rail.toArray(new Node[0]);
     }
     /** Drawer whose open/closed state survives the 2 s frame rebuilds (keyed by title). */

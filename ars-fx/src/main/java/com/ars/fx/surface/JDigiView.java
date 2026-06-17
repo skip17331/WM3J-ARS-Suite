@@ -132,6 +132,7 @@ public final class JDigiView {
         dec.getChildren().add(kvRow("SNR", s != null ? String.format("%.0f dB", s.getSnr()) : "—", false));
         dec.getChildren().add(kvRow("Engine", svc != null ? "running" : "unavailable", svc != null));
         List<Node> rail = new ArrayList<>();
+        rail.addAll(Shell.leadDrawers(50));     // Station ID, Rig control, Rotor control
         rail.add(Shell.drawer("Decoder", "digi", "digi", s != null ? s.getMode().name() : "—", true, dec));
         rail.addAll(Shell.instruments(50));
         return rail.toArray(new Node[0]);

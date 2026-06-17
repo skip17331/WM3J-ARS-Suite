@@ -916,14 +916,11 @@ public final class JMapView {
         spotScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); spotScroll.setPrefViewportHeight(300);
         spotScroll.setStyle("-fx-background-color:transparent;");
 
-        List<Node> inst = Shell.instruments(50);
         List<Node> rail = new ArrayList<>();
+        rail.addAll(Shell.leadDrawers((int) beamDeg));    // Station ID, Rig control, Rotor control
         rail.add(Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll));
         rail.add(Shell.drawer("DX station info","accent","hub","", false, lbl("Select a spot to see DXCC, beam heading & distance.","jm-spot-meta")));
-        rail.add(inst.get(0));   // Antenna · Rotor
-        rail.add(inst.get(1));   // Propagation
-        rail.add(inst.get(2));   // Solar & space weather (shared)
-        rail.add(inst.get(3));   // Band conditions (shared)
+        rail.addAll(Shell.instruments(50));               // propagation, solar, band conditions, weather
         return rail.toArray(new Node[0]);
     }
     private static Node hcall(String call, String need){

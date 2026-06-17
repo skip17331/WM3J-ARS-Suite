@@ -1,6 +1,7 @@
 package com.ars.fx.shell;
 
 import com.ars.fx.data.HubConfig;
+import com.ars.fx.data.RigClient;
 import com.ars.fx.data.RotorClient;
 import com.ars.fx.data.SolarData;
 import com.ars.fx.data.SunImageService;
@@ -220,9 +221,62 @@ public final class Shell {
 
     // ---- standard instrument drawers --------------------------------------
     public static List<Node> instruments(int az) {
+        // Weather (live Open-Meteo at the station location)
+        WeatherData.getInstance().start();
+        WeatherData.Snapshot w = WeatherData.getInstance().snapshot();
+        String grid = HubConfig.grid();
+        HBox wxBig; VBox wxBody; String wxSum;
+        if (w == null) {
+            wxBig = new HBox(8, lbl("—°","sx-ro-head"), lbl("loading…","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
+            wxBody = new VBox(wxBig); wxSum = "loading…";
+        } else {
+            wxBig = new HBox(8, lbl(Math.round(w.tempC())+"°","sx-ro-head"), lbl(w.desc()+" · feels "+Math.round(w.feelsC())+"°","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
+            wxBody = new VBox(wxBig, kv("Wind", w.windCompass()+" "+Math.round(w.windKmh())+" · g"+Math.round(w.gustKmh()), false),
+                    kv("Humidity", w.humidity()+"%", false), kv("Pressure", Math.round(w.pressure())+" hPa", false));
+            wxSum = Math.round(w.tempC())+"° "+w.windCompass()+Math.round(w.windKmh());
+        }
+
+        return List.of(
+            propagationDrawer(),
+            solarSpaceWeatherDrawer(),
+            bandConditionsDrawer(),
+            drawer("Weather · " + grid,"bridge","bridge", wxSum, false, wxBody));
+    }
+
+    /** Station-ID timer drawer — the first standard drawer on every operating module. */
+    public static Node idDrawer() { return com.ars.fx.shell.IdTimer.drawer(); }
+
+    /** Lead drawers shown first on every operating module, in order: Station ID, Rig control, Rotor control. */
+    public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), rigControlDrawer(), rotorControlDrawer(az)); }
+
+    /** Live rig-control drawer: frequency + mode + status + a band keypad. Shared across modules. */
+    public static Node rigControlDrawer() {
+        StackPane holder = new StackPane(); holder.setAlignment(Pos.TOP_LEFT);
+        java.util.function.Consumer<RigClient.State> render = st -> {
+            boolean live = st != null && st.connected();
+            String freq = live && st.freqHz() > 0 ? RigClient.fmtFreq(st.freqHz()) : "—.—.—";
+            String mode = live && st.mode() != null && !st.mode().isBlank() ? st.mode() : "—";
+            HBox big = new HBox(8, lbl(freq, "sx-ro-head"), lbl("MHz", "sx-ro-dir")); big.setAlignment(Pos.BOTTOM_LEFT);
+            GridPane bands = new GridPane(); bands.setHgap(5); bands.setVgap(5);
+            for (int col = 0; col < 5; col++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(20); bands.getColumnConstraints().add(cc); }
+            int i = 0; for (String b : Mock.RIG_BANDS) {
+                Label bl = btn(b + "m", "sx-ro-preset"); GridPane.setHgrow(bl, Priority.ALWAYS); bl.setMaxWidth(Double.MAX_VALUE);
+                bl.setStyle("-fx-cursor:hand;"); bl.setOnMouseClicked(e -> RigClient.getInstance().setBand(b));
+                bands.add(bl, i % 5, i / 5); i++;
+            }
+            holder.getChildren().setAll(new VBox(10, big, kv("Mode", mode, false),
+                    kv("Status", live ? "rigctld · live" : "rigctld offline", live), bands));
+        };
+        render.accept(RigClient.getInstance().last());
+        RigClient.getInstance().setListener(s -> javafx.application.Platform.runLater(() -> render.accept(s)));
+        RigClient.getInstance().start();
+        return drawer("Rig control", "bridge", "bridge", "", false, new VBox(holder));
+    }
+
+    /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */
+    public static Node rotorControlDrawer(int az) {
         String dir = new String[]{"N","NE","E","SE","S","SW","W","NW"}[(int)Math.round(((az%360+360)%360)/45.0)%8];
         String az3 = String.format("%03d", (az%360+360)%360);
-        // Antenna · Rotor — live RotorClient azimuth (the passed az is the fallback / reference)
         StackPane roHolder = new StackPane(); roHolder.setAlignment(Pos.TOP_LEFT);
         java.util.function.Consumer<RotorClient.State> renderRo = st -> {
             boolean live = st != null && st.connected();
@@ -252,29 +306,7 @@ public final class Shell {
         renderRo.accept(null);
         RotorClient.getInstance().setListener(st -> javafx.application.Platform.runLater(() -> renderRo.accept(st)));
         RotorClient.getInstance().start();
-        VBox rotorBody = new VBox(roHolder);
-
-        // Weather (live Open-Meteo at the station location)
-        WeatherData.getInstance().start();
-        WeatherData.Snapshot w = WeatherData.getInstance().snapshot();
-        String grid = HubConfig.grid();
-        HBox wxBig; VBox wxBody; String wxSum;
-        if (w == null) {
-            wxBig = new HBox(8, lbl("—°","sx-ro-head"), lbl("loading…","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
-            wxBody = new VBox(wxBig); wxSum = "loading…";
-        } else {
-            wxBig = new HBox(8, lbl(Math.round(w.tempC())+"°","sx-ro-head"), lbl(w.desc()+" · feels "+Math.round(w.feelsC())+"°","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
-            wxBody = new VBox(wxBig, kv("Wind", w.windCompass()+" "+Math.round(w.windKmh())+" · g"+Math.round(w.gustKmh()), false),
-                    kv("Humidity", w.humidity()+"%", false), kv("Pressure", Math.round(w.pressure())+" hPa", false));
-            wxSum = Math.round(w.tempC())+"° "+w.windCompass()+Math.round(w.windKmh());
-        }
-
-        return List.of(
-            drawer("Antenna · Rotor","sat","sat", az3+"° "+dir, false, rotorBody),
-            propagationDrawer(),
-            solarSpaceWeatherDrawer(),
-            bandConditionsDrawer(),
-            drawer("Weather · " + grid,"bridge","bridge", wxSum, false, wxBody));
+        return drawer("Rotor control","sat","sat", az3+"° "+dir, false, new VBox(roHolder));
     }
     /** "Propagation": best band, MUF / FOT, geomagnetic, aurora, solar wind (shared so same-named drawers match). */
     public static Node propagationDrawer() {
