@@ -32,15 +32,24 @@ public final class ContestMapPane extends Pane {
     private final Canvas cv = new Canvas();
     private final Map<String, List<double[]>> polys = new HashMap<>();   // region id -> subpath polygons
     private final Map<String, String> aliasToPrimary = new HashMap<>();  // plugin id -> rendered region id
+    // DXCC map: multiplier is callsign-derived (not a logged field), so resolve each QSO's
+    // callsign to a DXCC number, then to the map's entity key.
+    private final boolean callsignDerived;
+    private final Map<String, String> numToKey = new HashMap<>();        // DXCC number -> map entity key
 
     public ContestMapPane(String mapName, String fieldId) {
         this.map = MapGeometry.load(mapName);
         this.fieldId = fieldId;
+        this.callsignDerived = "dxcc-entities".equals(mapName);
         getChildren().add(cv);
         setMinSize(220, 150); setPrefSize(320, 200);
         if (map != null) {
             for (var e : map.regions.entrySet()) polys.put(e.getKey(), SvgPathParser.parse(e.getValue().svgPath()));
             for (var e : map.aliasTargets.entrySet()) for (String alias : e.getValue()) aliasToPrimary.put(alias.toUpperCase(), e.getKey().toUpperCase());
+            if (callsignDerived) {
+                com.jlog.scoring.DxccResolver r = com.jlog.scoring.DxccResolver.getInstance();
+                for (String k : map.regions.keySet()) { String num = r.entityOf(k + "1AA"); if (num != null) numToKey.putIfAbsent(num, k.toUpperCase()); }
+            }
         }
         cv.setOnMouseClicked(this::onClick);
         widthProperty().addListener((o, a, b) -> repaint());
@@ -56,6 +65,14 @@ public final class ContestMapPane extends Pane {
     private Set<String> workedPrimaries() {
         Set<String> out = new HashSet<>();
         if (map == null) return out;
+        if (callsignDerived) {                          // DXCC: resolve each QSO's callsign → entity key
+            com.jlog.scoring.DxccResolver r = com.jlog.scoring.DxccResolver.getInstance();
+            for (var q : ContestState.qsos()) {
+                String num = r.entityOf(q.getCallsign());
+                if (num != null) { String key = numToKey.get(num); if (key != null) out.add(key); }
+            }
+            return out;
+        }
         for (String t : ContestState.workedMults()) {
             String u = t.toUpperCase();
             out.add(aliasToPrimary.getOrDefault(u, u));
