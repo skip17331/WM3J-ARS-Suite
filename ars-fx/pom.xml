@@ -118,6 +118,9 @@
                                         <exclude>com/sun/marlin/**</exclude>
                                         <exclude>com/sun/pisces/**</exclude>
                                         <exclude>**/*.so</exclude>
+                                        <!-- strip the embedded j-log-engine so the pinned standalone
+                                             com.jlog:j-log-engine:1.5.2 is the single authoritative copy -->
+                                        <exclude>com/jlog/**</exclude>
                                     </excludes>
                                 </filter>
                                 <filter>
@@ -133,6 +136,9 @@
                                         <exclude>com/sun/marlin/**</exclude>
                                         <exclude>com/sun/pisces/**</exclude>
                                         <exclude>**/*.so</exclude>
+                                        <!-- strip the embedded j-log-engine so the pinned standalone
+                                             com.jlog:j-log-engine:1.5.2 is the single authoritative copy -->
+                                        <exclude>com/jlog/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
