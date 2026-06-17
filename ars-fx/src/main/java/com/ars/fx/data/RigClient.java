@@ -65,7 +65,7 @@ public final class RigClient {
     /** Re-read the endpoint from config and drop the socket so the poll loop reconnects. */
     public void reconnect() { host = resolveHost(); port = resolvePort(); closeSocket(); }
 
-    private volatile Consumer<State> listener = s -> {};
+    private final java.util.List<Consumer<State>> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private volatile State last = State.OFFLINE;
     private volatile boolean started = false;
 
@@ -74,8 +74,11 @@ public final class RigClient {
     public State last() { return last; }
     public String endpoint() { return host + ":" + port; }
 
-    /** Register the drawer's callback. Replaces any previous one (drawer rebuilds). */
-    public void setListener(Consumer<State> l) { this.listener = l == null ? s -> {} : l; emit(last); }
+    /** Subscribe to rig state — the panel, the top-bar RIG readout and the dashboard card
+     *  can all listen at once. The last state is delivered immediately. Pair with
+     *  {@link #removeListener} (e.g. when the node leaves the scene) to avoid leaks. */
+    public void addListener(Consumer<State> l) { if (l != null) { listeners.add(l); l.accept(last); } }
+    public void removeListener(Consumer<State> l) { listeners.remove(l); }
 
     /** Start the poll thread (idempotent). */
     public synchronized void start() {
@@ -173,9 +176,10 @@ public final class RigClient {
 
     private void emit(State s) {
         last = s;
-        Consumer<State> l = listener;
-        try { javafx.application.Platform.runLater(() -> l.accept(s)); }
-        catch (IllegalStateException noFx) { /* toolkit not up (tests) */ }
+        for (Consumer<State> l : listeners) {
+            try { javafx.application.Platform.runLater(() -> l.accept(s)); }
+            catch (IllegalStateException noFx) { /* toolkit not up (tests) */ }
+        }
     }
 
     // ── Socket I/O ────────────────────────────────────────────────────────────
@@ -260,6 +264,14 @@ public final class RigClient {
     public static String fmtFreq(long hz) {
         long mhz = hz / 1_000_000, khz = (hz / 1000) % 1000, tens = (hz / 10) % 100;
         return String.format("%d.%03d.%02d", mhz, khz, tens);
+    }
+    /** 14074000 → "14.074.000" (MHz.kHz.Hz) — the rig panel's full direct-entry form. */
+    public static String fmtFreqFull(long hz) {
+        return String.format("%d.%03d.%03d", hz / 1_000_000, (hz / 1000) % 1000, hz % 1000);
+    }
+    /** 14074000 → "14.074" (MHz.kHz) — the compact top-bar RIG readout. */
+    public static String fmtFreqShort(long hz) {
+        return String.format("%d.%03d", hz / 1_000_000, (hz / 1000) % 1000);
     }
     /** Segments lit (0..16) for a STRENGTH reading in dB relative to S9 (S0≈-54, S9+40≈+40). */
     public static int sMeterSegments(int db) {

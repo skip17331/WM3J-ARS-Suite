@@ -254,11 +254,19 @@ public final class Shell {
      *  ({@link #rigButton()} / {@link RigPanel}). */
     public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), rotorControlDrawer(az)); }
 
-    /** Top-right RIG button that toggles the canonical {@link RigPanel} drop-down. Shared by
-     *  the module top bar ({@link #topBar}) and the J-Hub dashboard bar. */
+    /** Top-right RIG button that toggles the canonical {@link RigPanel} drop-down and shows the
+     *  live frequency. Shared by the module top bar ({@link #topBar}) and the J-Hub dashboard bar. */
     public static Label rigButton() {
-        Label b = lbl("⏚ RIG", "sx-rigbtn"); b.setStyle("-fx-cursor:hand;");
+        Label b = lbl("⚡ RIG  —.———", "sx-rigbtn"); b.setStyle("-fx-cursor:hand;");
         b.setOnMouseClicked(e -> toggleRigOverlay(b));
+        java.util.function.Consumer<com.ars.fx.data.RigClient.State> upd = s -> {
+            boolean live = s != null && s.connected() && s.freqHz() > 0;
+            b.setText("⚡ RIG  " + (live ? com.ars.fx.data.RigClient.fmtFreqShort(s.freqHz()) : "—.———"));
+            b.getStyleClass().remove("live"); if (live) b.getStyleClass().add("live");
+        };
+        com.ars.fx.data.RigClient.getInstance().addListener(upd);
+        com.ars.fx.data.RigClient.getInstance().start();
+        b.sceneProperty().addListener((o, a, sc) -> { if (sc == null) com.ars.fx.data.RigClient.getInstance().removeListener(upd); });
         return b;
     }
 
@@ -270,16 +278,13 @@ public final class Shell {
         for (Node n : new ArrayList<>(root.getChildrenUnmodifiable()))
             if (RIG_OVERLAY_ID.equals(n.getId())) { root.getChildren().remove(n); return; }   // toggle off
 
+        // the panel pins its own header/footer and scrolls internally; just cap its height
         Region panel = RigPanel.build(() -> root.getChildren().removeIf(n -> RIG_OVERLAY_ID.equals(n.getId())));
-        ScrollPane sp = new ScrollPane(panel); sp.getStyleClass().add("rig-overlay-scroll");
-        sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        sp.setMinWidth(RigPanel.WIDTH + 2); sp.setMaxWidth(RigPanel.WIDTH + 2);
-        sp.maxHeightProperty().bind(root.heightProperty().subtract(72));
-
-        StackPane veil = new StackPane(sp); veil.setId(RIG_OVERLAY_ID);
+        panel.maxHeightProperty().bind(root.heightProperty().subtract(64));
+        StackPane veil = new StackPane(panel); veil.setId(RIG_OVERLAY_ID);
         veil.setStyle("-fx-background-color: transparent;"); veil.setPickOnBounds(true);
         veil.prefWidthProperty().bind(root.widthProperty()); veil.prefHeightProperty().bind(root.heightProperty());
-        StackPane.setAlignment(sp, Pos.TOP_RIGHT); StackPane.setMargin(sp, new Insets(58, 12, 0, 0));
+        StackPane.setAlignment(panel, Pos.TOP_RIGHT); StackPane.setMargin(panel, new Insets(52, 12, 12, 0));
         veil.setOnMouseClicked(e -> { if (e.getTarget() == veil) root.getChildren().remove(veil); });   // click-outside dismiss
         root.getChildren().add(veil);
     }

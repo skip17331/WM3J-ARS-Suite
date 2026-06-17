@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rig Control Drawer — layout</title>
+<link rel="stylesheet" href="ars-tokens.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  /* stage: a dim shack screen with a top bar; the drawer drops from the RIG button */
+  .stage { height: 100vh; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+  .stage-top { flex: 0 0 auto; height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 14px;
+    background: var(--surface-1); border-bottom: 1px solid var(--border); z-index: 2; }
+  .stage-brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14px; }
+  .stage-brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .stage-sp { flex: 1; }
+  .stage-tool { display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 13px; border-radius: 8px;
+    border: 1px solid var(--border-2); background: var(--surface-3); color: var(--t2); font-size: 12.5px; font-weight: 600; }
+  .stage-tool.active { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+  .stage-tool .mn { font-family: 'JetBrains Mono', monospace; }
+  .stage-body { flex: 1; position: relative; }
+  .stage-hint { position: absolute; left: 32px; top: 28px; color: var(--t4); font-size: 13px; max-width: 360px; line-height: 1.6; }
+  .stage-hint b { color: var(--t3); }
+
+  /* ============ THE DRAWER ============ */
+  /* drops down from top-right, ~1/4 screen width */
+  .rc { position: absolute; top: 0; right: 0; width: 26%; min-width: 348px; max-width: 392px; height: 100%;
+    background: var(--surface-1); border-left: 1px solid var(--border); display: flex; flex-direction: column;
+    box-shadow: -16px 0 44px -20px rgba(0,0,0,.6); overflow: hidden; }
+  .rc-scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
+  .rc-scroll::-webkit-scrollbar { width: 7px; } .rc-scroll::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 7px; }
+
+  /* header */
+  .rc-head { flex: 0 0 auto; display: flex; align-items: center; gap: 9px; padding: 11px 13px; border-bottom: 1px solid var(--border); }
+  .rc-ic { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    background: color-mix(in oklch, var(--bridge) 18%, var(--surface-3)); color: var(--bridge); border: 1px solid color-mix(in oklch, var(--bridge) 28%, transparent); }
+  .rc-title { font-size: 13.5px; font-weight: 700; }
+  .rc-sub { font-size: 10.5px; color: var(--t3); margin-top: 1px; }
+  .rc-conn { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 600; color: var(--ok); }
+  .rc-conn .d { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 6px -1px var(--ok); }
+  .rc-collapse { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border-2); background: var(--surface-3); color: var(--t3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+  .rc-body { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 11px; }
+  .sec-lbl { font-size: 8.5px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--t3); font-weight: 700; margin-bottom: 6px; }
+
+  /* VFO + frequency */
+  .rc-vfo { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; }
+  .rc-vfo-top { display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
+  .rc-vfobtn { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 5px;
+    border: 1px solid var(--border-2); background: var(--surface-3); color: var(--t3); cursor: pointer; }
+  .rc-vfobtn.on { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+  .rc-vfo-sp { flex: 1; }
+  .rc-tag { font-size: 9.5px; font-weight: 700; letter-spacing: .4px; padding: 3px 7px; border-radius: 4px; background: var(--surface-3); border: 1px solid var(--border); color: var(--t2); }
+  .rc-tag.split { color: var(--warn); border-color: color-mix(in oklch, var(--warn) 35%, transparent); background: color-mix(in oklch, var(--warn) 12%, transparent); }
+
+  .rc-freq { font-family: 'JetBrains Mono', monospace; font-size: 33px; font-weight: 600; letter-spacing: -.5px; line-height: 1;
+    color: var(--t1); display: flex; align-items: baseline; justify-content: center; gap: 3px; }
+  .rc-freq .mhz { color: var(--t1); }
+  .rc-freq .khz { color: var(--accent); }
+  .rc-freq .hz { color: var(--t3); font-size: 22px; }
+  .rc-freq .u { font-size: 12px; color: var(--t3); margin-left: 5px; font-weight: 500; }
+
+  /* frequency row: arrow stack | freq (direct entry) | arrow stack */
+  .rc-freqrow { display: flex; align-items: stretch; gap: 8px; }
+  .rc-nudge2 { display: flex; flex-direction: column; gap: 4px; flex: 0 0 auto; width: 42px; }
+  .rc-nudge2 .lbl { font-size: 7.5px; letter-spacing: .6px; text-transform: uppercase; color: var(--t4); font-weight: 700; text-align: center; }
+  .rc-arr { flex: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px;
+    border: 1px solid var(--border-2); background: var(--surface-3); color: var(--t2); cursor: pointer; }
+  .rc-arr:hover { background: var(--surface-4); border-color: var(--border-glow); color: var(--t1); }
+  .rc-arr:active { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+  .rc-arr.fast { color: var(--accent); }
+  .rc-freqmid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; }
+  /* direct-entry frequency input */
+  .rc-freqin { width: 100%; text-align: center; background: transparent; border: none; outline: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 31px; font-weight: 600; letter-spacing: -.5px; color: var(--t1);
+    border-bottom: 1px dashed transparent; padding: 0 2px 2px; }
+  .rc-freqmid:hover .rc-freqin { border-bottom-color: var(--border-2); }
+  .rc-freqin:focus { border-bottom-color: var(--accent); }
+  .rc-freqin::placeholder { color: var(--t4); }
+  .rc-freq-u { font-size: 11px; color: var(--t3); margin-top: 3px; }
+  .rc-rate { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; }
+  .rc-rate .leg { font-size: 9px; color: var(--t4); display: flex; align-items: center; gap: 5px; }
+  .rc-rate .leg b { font-family: 'JetBrains Mono', monospace; color: var(--t3); font-weight: 600; }
+  .rc-vfo-b { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); margin-top: 6px; }
+  .rc-vfo-b b { color: var(--t2); font-weight: 600; }
+
+  /* tuning step row */
+  .rc-step { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .rc-step .nudge { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; height: 28px; border-radius: 6px;
+    border: 1px solid var(--border-2); background: var(--surface-3); color: var(--t2); font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .rc-stepsel { display: flex; gap: 2px; padding: 2px; background: var(--surface-3); border: 1px solid var(--border); border-radius: 6px; }
+  .rc-stepsel button { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; padding: 4px 6px; border-radius: 4px; border: none; background: transparent; color: var(--t3); cursor: pointer; }
+  .rc-stepsel button.on { background: var(--surface-1); color: var(--t1); }
+
+  /* band grid */
+  .grid-bands { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+  .band { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; padding: 7px 0; text-align: center;
+    border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); color: var(--t2); cursor: pointer; }
+  .band.on { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+
+  /* mode grid */
+  .grid-modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .mode { font-size: 11px; font-weight: 600; padding: 7px 0; text-align: center; border-radius: 6px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--t2); cursor: pointer; }
+  .mode.on { background: color-mix(in oklch, var(--bridge) 16%, var(--surface-2)); border-color: color-mix(in oklch, var(--bridge) 40%, transparent); color: var(--bridge); }
+
+  /* meters */
+  .rc-meters { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .meter + .meter { margin-top: 9px; }
+  .meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .meter-k { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); font-weight: 700; }
+  .meter-v { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--t1); }
+  .meter-v .u { font-size: 9px; color: var(--t3); margin-left: 1px; }
+  .seg { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+  .seg i { flex: 1; border-radius: 1px; background: var(--surface-4); }
+  .seg i.lit { background: var(--ok); } .seg i.lit.hi { background: var(--warn); }
+  .seg-lbl { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--t4); margin-top: 3px; }
+  .bar { height: 6px; border-radius: 99px; background: var(--surface-4); overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 99px; }
+
+  /* function toggles */
+  .grid-fn { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .fn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px; border-radius: 6px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--t3); cursor: pointer; }
+  .fn .t { font-size: 10.5px; font-weight: 700; }
+  .fn .s { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--t4); }
+  .fn.on { background: var(--accent-dim); border-color: var(--accent-line); color: var(--accent); }
+  .fn.on .s { color: color-mix(in oklch, var(--accent) 70%, var(--t3)); }
+
+  /* dsp row */
+  .grid-dsp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+  .dsp { display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--t2); cursor: pointer; font-size: 11px; font-weight: 600; }
+  .dsp .v { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t4); }
+  .dsp.on { background: color-mix(in oklch, var(--sat) 14%, var(--surface-2)); border-color: color-mix(in oklch, var(--sat) 38%, transparent); color: var(--sat); }
+  .dsp.on .v { color: color-mix(in oklch, var(--sat) 75%, var(--t2)); }
+
+  /* passband / filter */
+  .rc-filter { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .pb { position: relative; height: 30px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin: 7px 0 4px; }
+  .pb-pass { position: absolute; top: 4px; bottom: 4px; background: color-mix(in oklch, var(--accent) 22%, transparent); border: 1px solid var(--accent-line); border-radius: 3px; }
+  .pb-carrier { position: absolute; top: 0; bottom: 0; width: 1.5px; background: var(--warn); }
+  .filt-row { display: flex; gap: 6px; }
+  .filt { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; border-radius: 6px; background: var(--surface-3); border: 1px solid var(--border); cursor: pointer; }
+  .filt .k { font-size: 8.5px; letter-spacing: .6px; text-transform: uppercase; color: var(--t3); font-weight: 700; }
+  .filt .v { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--t1); }
+
+  /* sliders */
+  .ctrl { display: flex; align-items: center; gap: 10px; }
+  .ctrl .k { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); font-weight: 700; width: 34px; flex: 0 0 auto; }
+  .ctrl .track { flex: 1; height: 5px; border-radius: 99px; background: var(--surface-4); position: relative; }
+  .ctrl .track > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--accent); }
+  .ctrl .track > .knob { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 13px; height: 13px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-1); }
+  .ctrl .v { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--t1); width: 44px; text-align: right; flex: 0 0 auto; }
+
+  /* footer action bar */
+  .rc-foot { flex: 0 0 auto; display: flex; gap: 8px; padding: 11px 12px; border-top: 1px solid var(--border); background: var(--surface-1); }
+  .act { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .act.tune { background: var(--surface-3); border: 1px solid var(--border-2); color: var(--t2); }
+  .act.ptt { background: var(--err); border: 1px solid var(--err); color: #fff; flex: 1.4; }
+  .act.atu { background: color-mix(in oklch, var(--sat) 16%, var(--surface-3)); border: 1px solid color-mix(in oklch, var(--sat) 40%, transparent); color: var(--sat); }
+
+  .card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+
+  /* meters strip above frequency */
+  .rc-metstrip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; }
+  .rc-mini3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 9px; }
+  .mini-k { font-size: 8.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); font-weight: 700; }
+  .mini-v { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--t1); }
+  .mini-v .u { font-size: 8px; color: var(--t3); }
+  .mini-bar { height: 5px; border-radius: 99px; background: var(--surface-4); overflow: hidden; margin-top: 4px; }
+  .mini-bar > i { display: block; height: 100%; border-radius: 99px; }
+
+  /* sub-drawer (collapsible section inside the rig drawer) */
+  .subdw { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .subdw + .subdw { margin-top: 0; }
+  .subdw-head { display: flex; align-items: center; gap: 8px; padding: 9px 11px; cursor: pointer; user-select: none; }
+  .subdw-head:hover { background: var(--surface-3); }
+  .subdw-head .t { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--t2); font-weight: 700; flex: 1; }
+  .subdw-head .sum { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t4); }
+  .subdw-head .cv { color: var(--t4); transition: transform .18s; display: flex; }
+  .subdw.open .subdw-head .cv { transform: rotate(90deg); }
+  .subdw-wrap { overflow: hidden; max-height: 0; transition: max-height .22s ease; }
+  .subdw.open .subdw-wrap { max-height: 460px; }
+  .subdw-inner { overflow: hidden; }
+  .subdw-body { padding: 2px 11px 11px; display: flex; flex-direction: column; gap: 11px; border-top: 1px solid var(--border); }
+  .subdw-body .sec-lbl { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="ars-root">
+  <div class="stage">
+    <!-- top bar with the trigger -->
+    <div class="stage-top">
+      <div class="stage-brand"><span class="dot"></span>J-Hub</div>
+      <div class="stage-sp"></div>
+      <div class="stage-tool"><span>ROTOR</span><span class="mn">045°</span></div>
+      <div class="stage-tool active">⚡ RIG <span class="mn">14.074</span></div>
+    </div>
+
+    <div class="stage-body">
+      <div class="stage-hint">
+        <b>Rig Control</b> drops down from the RIG button and expands to ≈¼ of the screen width.<br>
+        Compact, feature-rich, scrollable. Layout only — wire to CAT in Claude Code.
+      </div>
+
+      <!-- ============ DRAWER ============ -->
+      <aside class="rc">
+        <div class="rc-head">
+          <div class="rc-ic">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="8" cy="12" r="2.2"/><line x1="13" y1="10" x2="18" y2="10"/><line x1="13" y1="14" x2="18" y2="14"/></svg>
+          </div>
+          <div><div class="rc-title">Rig Control</div><div class="rc-sub">Icom IC-7610 · CI-V</div></div>
+          <div class="rc-conn"><span class="d"></span>CAT</div>
+          <div class="rc-collapse" title="Collapse">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+        </div>
+
+        <div class="rc-body rc-scroll">
+          <!-- meters strip (S-meter + SWR above the frequency pane) -->
+          <div class="rc-metstrip">
+            <div class="meter">
+              <div class="meter-top"><span class="meter-k">S-meter</span><span class="meter-v">S9<span class="u">+10</span></span></div>
+              <div class="seg" id="smeter"></div>
+              <div class="seg-lbl"><span>1</span><span>3</span><span>5</span><span>7</span><span>9</span><span>+20</span><span>+40</span></div>
+            </div>
+            <div class="rc-mini3">
+              <div><div class="mini-k">SWR</div><div class="mini-v" style="color:var(--ok)">1.2<span class="u">:1</span></div><div class="mini-bar"><i style="width:16%;background:var(--ok)"></i></div></div>
+              <div><div class="mini-k">PWR</div><div class="mini-v">92<span class="u">W</span></div><div class="mini-bar"><i style="width:62%;background:var(--accent)"></i></div></div>
+              <div><div class="mini-k">ALC</div><div class="mini-v">—</div><div class="mini-bar"><i style="width:38%;background:var(--warn)"></i></div></div>
+            </div>
+          </div>
+
+          <!-- VFO + frequency -->
+          <div class="rc-vfo">
+            <div class="rc-vfo-top">
+              <button class="rc-vfobtn on">VFO A</button>
+              <button class="rc-vfobtn">VFO B</button>
+              <div class="rc-vfo-sp"></div>
+              <span class="rc-tag split">SPLIT</span>
+            </div>
+            <div class="rc-freqrow">
+              <!-- fast tuning (left) -->
+              <div class="rc-nudge2">
+                <span class="lbl">Fast</span>
+                <div class="rc-arr fast" title="Fast up · 1 kHz"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 14 12 8 18 14"/></svg></div>
+                <div class="rc-arr fast" title="Fast down · 1 kHz"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 10 12 16 18 10"/></svg></div>
+              </div>
+              <!-- frequency · direct entry -->
+              <div class="rc-freqmid">
+                <input class="rc-freqin" value="14.074.000" inputmode="decimal" aria-label="Frequency — type to set" spellcheck="false">
+                <div class="rc-freq-u">MHz</div>
+              </div>
+              <!-- slow tuning (right) -->
+              <div class="rc-nudge2">
+                <span class="lbl">Slow</span>
+                <div class="rc-arr" title="Slow up · 10 Hz"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 14 12 8 18 14"/></svg></div>
+                <div class="rc-arr" title="Slow down · 10 Hz"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 10 12 16 18 10"/></svg></div>
+              </div>
+            </div>
+            <div class="rc-vfo-b">B&nbsp; <b>14.077.000</b> &nbsp;·&nbsp; TX</div>
+            <div class="rc-rate">
+              <span class="leg">Fast step <b>1 kHz</b></span>
+              <span class="leg">Slow step <b>10 Hz</b></span>
+            </div>
+          </div>
+
+          <!-- SUB-DRAWER: Band & Mode -->
+          <div class="subdw open">
+            <div class="subdw-head"><span class="t">Band &amp; Mode</span><span class="sum">20m · USB</span><span class="cv"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></span></div>
+            <div class="subdw-wrap"><div class="subdw-inner"><div class="subdw-body">
+              <div>
+                <div class="sec-lbl">Band</div>
+                <div class="grid-bands">
+                  <div class="band">160</div><div class="band">80</div><div class="band">60</div><div class="band">40</div><div class="band">30</div><div class="band on">20</div>
+                  <div class="band">17</div><div class="band">15</div><div class="band">12</div><div class="band">10</div><div class="band">6</div><div class="band">GEN</div>
+                </div>
+              </div>
+              <div>
+                <div class="sec-lbl">Mode</div>
+                <div class="grid-modes">
+                  <div class="mode on">USB</div><div class="mode">LSB</div><div class="mode">CW</div><div class="mode">CW-R</div>
+                  <div class="mode">RTTY</div><div class="mode">FT8</div><div class="mode">AM</div><div class="mode">FM</div>
+                </div>
+              </div>
+            </div></div></div>
+          </div>
+
+          <!-- SUB-DRAWER: Filter & Functions -->
+          <div class="subdw">
+            <div class="subdw-head"><span class="t">Filter &amp; Functions</span><span class="sum">2.4k · SPLIT</span><span class="cv"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></span></div>
+            <div class="subdw-wrap"><div class="subdw-inner"><div class="subdw-body">
+              <div>
+                <div class="sec-lbl">Filter · passband</div>
+                <div class="pb">
+                  <div class="pb-pass" style="left:30%;right:28%"></div>
+                  <div class="pb-carrier" style="left:30%"></div>
+                </div>
+                <div class="filt-row">
+                  <div class="filt"><span class="k">BW</span><span class="v">2.4k</span></div>
+                  <div class="filt"><span class="k">Shift</span><span class="v">+120</span></div>
+                  <div class="filt"><span class="k">NR</span><span class="v">3</span></div>
+                  <div class="filt"><span class="k">Notch</span><span class="v">Auto</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="sec-lbl">Functions</div>
+                <div class="grid-fn">
+                  <div class="fn on"><span class="t">SPLIT</span><span class="s">+3k</span></div>
+                  <div class="fn"><span class="t">RIT</span><span class="s">0</span></div>
+                  <div class="fn"><span class="t">XIT</span><span class="s">0</span></div>
+                  <div class="fn"><span class="t">A=B</span><span class="s">copy</span></div>
+                  <div class="fn"><span class="t">A/B</span><span class="s">swap</span></div>
+                  <div class="fn on"><span class="t">VOX</span><span class="s">on</span></div>
+                  <div class="fn"><span class="t">SPOT</span><span class="s">CW</span></div>
+                  <div class="fn"><span class="t">LOCK</span><span class="s">VFO</span></div>
+                </div>
+              </div>
+            </div></div></div>
+          </div>
+
+          <!-- SUB-DRAWER: DSP & Levels -->
+          <div class="subdw">
+            <div class="subdw-head"><span class="t">DSP &amp; Levels</span><span class="sum">AGC-M · 92W</span><span class="cv"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></span></div>
+            <div class="subdw-wrap"><div class="subdw-inner"><div class="subdw-body">
+              <div>
+                <div class="sec-lbl">DSP &amp; front end</div>
+                <div class="grid-dsp">
+                  <div class="dsp on">AGC<span class="v">MID</span></div>
+                  <div class="dsp on">PRE<span class="v">1</span></div>
+                  <div class="dsp">ATT<span class="v">off</span></div>
+                  <div class="dsp on">NB<span class="v">5</span></div>
+                  <div class="dsp on">NR<span class="v">3</span></div>
+                  <div class="dsp">NOTCH<span class="v">off</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="sec-lbl">Levels</div>
+                <div class="ctrl" style="margin-bottom:9px"><span class="k">PWR</span><div class="track"><i style="width:62%"></i><span class="knob" style="left:62%"></span></div><span class="v">92 W</span></div>
+                <div class="ctrl" style="margin-bottom:9px"><span class="k">MIC</span><div class="track"><i style="width:48%"></i><span class="knob" style="left:48%"></span></div><span class="v">48</span></div>
+                <div class="ctrl" style="margin-bottom:9px"><span class="k">RF&nbsp;G</span><div class="track"><i style="width:80%"></i><span class="knob" style="left:80%"></span></div><span class="v">80</span></div>
+                <div class="ctrl"><span class="k">AF</span><div class="track"><i style="width:35%"></i><span class="knob" style="left:35%"></span></div><span class="v">35</span></div>
+              </div>
+            </div></div></div>
+          </div>
+        </div>
+
+        <!-- footer actions -->
+        <div class="rc-foot">
+          <div class="act atu">ATU</div>
+          <div class="act tune">TUNE</div>
+          <div class="act ptt">● PTT</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+<script>
+  // build S-meter segments (layout fill only)
+  const sm = document.getElementById('smeter');
+  for (let i = 0; i < 22; i++) {
+    const b = document.createElement('i');
+    if (i < 17) b.classList.add('lit'); if (i >= 15) b.classList.add('hi');
+    b.style.height = (35 + i * 3) + '%';
+    if (i >= 17) b.classList.remove('lit');
+    sm.appendChild(b);
+  }
+  // sub-drawer expand/collapse
+  document.querySelectorAll('.subdw-head').forEach(h => {
+    h.addEventListener('click', () => h.closest('.subdw').classList.toggle('open'));
+  });
+</script>
+</body>
+</html>

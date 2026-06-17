@@ -580,7 +580,7 @@ public final class JHubDashboard {
         Label conn = lbl("○ rigctld " + RigClient.getInstance().endpoint() + " · offline", "jhub-conn");
 
         // live updater
-        RigClient.getInstance().setListener(s -> {
+        java.util.function.Consumer<RigClient.State> rigUpd = s -> {
             boolean c = s.connected();
             conn.getStyleClass().remove("live");
             if (c) { conn.getStyleClass().add("live"); conn.setText("● rigctld " + RigClient.getInstance().endpoint()); }
@@ -595,7 +595,9 @@ public final class JHubDashboard {
             pwV.setText(c && s.rfPowerFrac() >= 0 ? Math.round(s.rfPowerFrac()*100) + "%" : "—");
             swrV.setText(c && s.swr() >= 0 ? String.format("%.1f:1", s.swr()) : "—");
             for (Label b : bandBtns){ b.getStyleClass().remove("on"); if ((b.getText()+"m").equals(band)) b.getStyleClass().add("on"); }
-        });
+        };
+        RigClient.getInstance().addListener(rigUpd);
+        conn.sceneProperty().addListener((o,a,b) -> { if (b == null) RigClient.getInstance().removeListener(rigUpd); });
         RigClient.getInstance().start();
         return new VBox(12, fq, chips, steps, sm, power, bands, conn);
     }

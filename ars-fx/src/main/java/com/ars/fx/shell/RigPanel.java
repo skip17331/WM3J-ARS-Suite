@@ -5,343 +5,414 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.ars.fx.shell.Shell.lbl;
 
 /**
- * Canonical rig-control panel — one pinned outer drawer holding three
- * independently collapsible sub-drawers (Band &amp; Mode, Filter &amp; Functions,
- * DSP &amp; Levels). Drops down from the top-right RIG button at the standard
- * drawer width; replaces the old simple rig-control rail drawer.
+ * Canonical rig-control panel — a 1:1 build of {@code design/ars-suite/Rig Control Drawer.html}.
+ * One outer drawer (pinned header + pinned ATU/TUNE/PTT footer, scrolling middle) holding three
+ * independently collapsible sub-drawers: Band &amp; Mode, Filter &amp; Functions, DSP &amp; Levels.
  *
- * <p>Outer, always visible: header → meters strip (S-meter + SWR/PWR/ALC) →
- * frequency pane (FAST ▲▼ left · direct-entry centre · SLOW ▲▼ right, then
- * VFO A/B + SPLIT) → pinned ATU · TUNE · PTT footer. All readouts are
- * monospace; no blur/filters (JavaFX-safe). Live state comes from
- * {@link RigClient}; controls send best-effort CAT through it.
+ * <p>Middle, top→bottom: meters strip (segmented S-meter + SWR/PWR/ALC mini-bars) → VFO/frequency
+ * pane (VFO A/B + SPLIT, FAST ▲▼ left · colored monospace direct-entry centre · SLOW ▲▼ right,
+ * VFO-B line + step legend) → the three sub-drawers. Tokens/monospace only; no blur/filters.
+ * Live state + commands go through {@link RigClient}.
  */
 public final class RigPanel {
     private RigPanel() {}
 
-    public static final double WIDTH = 322;            // matches the rail/drawer column
-    private static final long FAST_HZ = 1_000, SLOW_HZ = 100;
-    private static final String[] BANDS  = {"160","80","40","30","20","17","15","12","10","6"};
-    private static final String[] MODES  = {"LSB","USB","CW","CW-R","RTTY","DATA","AM","FM"};
-    private static final String[] FILTERS = {"3.0k","2.4k","1.8k","500","250"};
-    private static final String[] FUNCS   = {"NB","NR","ANF","COMP"};
-    private static final String[] AGC     = {"FAST","MID","SLOW"};
+    public static final double WIDTH = 322;            // matches the existing rail/drawer column
+    private static final long FAST_HZ = 1_000, SLOW_HZ = 10;
+    private static final String[] BANDS = {"160","80","60","40","30","20","17","15","12","10","6","GEN"};
+    private static final String[] MODES = {"USB","LSB","CW","CW-R","RTTY","FT8","AM","FM"};
+    private static final String[] FUNCS = {"SPLIT","RIT","XIT","A=B","A/B","VOX","SPOT","LOCK"};
+    private static final String[] FUNC_SUB = {"+3k","0","0","copy","swap","on","CW","VFO"};
+    private static final String[] DSP = {"AGC","PRE","ATT","NB","NR","NOTCH"};
+    private static final String[] DSP_VAL = {"MID","1","off","5","3","off"};
+
+    /** Persisted open/closed state per sub-drawer title (survives panel rebuilds). */
+    private static final Map<String,Boolean> SUB_STATE = new java.util.HashMap<>();
 
     public static Region build() { return build(null); }
 
-    /** @param onClose optional handler for the header ✕ (used by the dropdown overlay). */
+    /** @param onClose optional handler for the header collapse chevron (dropdown dismiss). */
     public static Region build(Runnable onClose) {
         RigClient rig = RigClient.getInstance();
 
-        // ── header ──────────────────────────────────────────────────────────
-        StackPane hic = Shell.iconTile("bridge", "bridge", 14, "sx-dw-ic", "bridge");
-        Label htitle = lbl("Rig Control", "rig-h-title"); HBox.setHgrow(htitle, Priority.ALWAYS); htitle.setMaxWidth(Double.MAX_VALUE);
-        Region statusDot = new Region(); statusDot.getStyleClass().add("rig-dot");
-        Label statusTx = lbl("offline", "rig-h-status");
-        HBox header = new HBox(9, hic, htitle, statusDot, statusTx);
-        header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("rig-head");
-        if (onClose != null) {
-            Label x = lbl("✕", "rig-x"); x.setStyle("-fx-cursor:hand;");
-            x.setOnMouseClicked(e -> onClose.run());
-            header.getChildren().add(x);
-        }
+        // ── header (pinned) ─────────────────────────────────────────────────
+        StackPane ic = Shell.iconTile("bridge", "bridge", 15, "rc-ic", "bridge");
+        Label title = lbl("Rig Control", "rc-title");
+        Label sub = lbl("Icom IC-7610 · CI-V", "rc-sub");
+        VBox titleBox = new VBox(1, title, sub); titleBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(titleBox, Priority.ALWAYS); titleBox.setMaxWidth(Double.MAX_VALUE);
+        Region connDot = new Region(); connDot.getStyleClass().add("rc-conn-d");
+        Label connTx = lbl("CAT", "rc-conn-t");
+        HBox conn = new HBox(6, connDot, connTx); conn.setAlignment(Pos.CENTER); conn.getStyleClass().add("rc-conn");
+        Label collapse = lbl("‹", "rc-collapse"); collapse.setStyle("-fx-cursor:hand;");
+        if (onClose != null) collapse.setOnMouseClicked(e -> onClose.run());
+        HBox header = new HBox(9, ic, titleBox, conn, collapse);
+        header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("rc-head");
 
         // ── meters strip ────────────────────────────────────────────────────
-        Region[] seg = new Region[16];
-        HBox segBox = new HBox(2);
+        Label sK = lbl("S-meter", "rc-meter-k");
+        Label sV = lbl("—", "rc-meter-v");
+        Region sSp = new Region(); HBox.setHgrow(sSp, Priority.ALWAYS);
+        HBox sTop = new HBox(sK, sSp, sV); sTop.setAlignment(Pos.BOTTOM_LEFT);
+        Region[] seg = new Region[22];
+        HBox segBox = new HBox(2); segBox.setAlignment(Pos.BOTTOM_LEFT); segBox.getStyleClass().add("rc-seg");
         for (int i = 0; i < seg.length; i++) {
-            seg[i] = new Region(); seg[i].getStyleClass().add("rig-seg");
-            if (i >= 9) seg[i].getStyleClass().add("hi");        // S9+ segments tint red
+            double h = 6 + (i / 21.0) * 10;             // ramped S-meter scale
+            seg[i] = new Region(); seg[i].getStyleClass().add("rc-seg-i");
+            seg[i].setMinHeight(h); seg[i].setPrefHeight(h); seg[i].setMaxHeight(h);
             HBox.setHgrow(seg[i], Priority.ALWAYS); seg[i].setMaxWidth(Double.MAX_VALUE);
             segBox.getChildren().add(seg[i]);
         }
-        HBox.setHgrow(segBox, Priority.ALWAYS);
-        Label sRead = lbl("—", "rig-s-read");
-        HBox sRow = new HBox(8, lbl("S", "rig-s-k"), segBox, sRead); sRow.setAlignment(Pos.CENTER_LEFT);
-        Bar swr = new Bar("warn"), pwr = new Bar("ok"), alc = new Bar("accent");
-        HBox meterBars = new HBox(10, barCell("SWR", swr), barCell("PWR", pwr), barCell("ALC", alc));
-        VBox meters = new VBox(8, sRow, meterBars); meters.getStyleClass().add("rig-meters");
+        HBox segLbl = new HBox(); segLbl.getStyleClass().add("rc-seg-lbl");
+        String[] ticks = {"1","3","5","7","9","+20","+40"};
+        for (int i = 0; i < ticks.length; i++) { if (i > 0) { Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS); segLbl.getChildren().add(sp); } segLbl.getChildren().add(lbl(ticks[i], "rc-seg-tick")); }
+        VBox meter = new VBox(4, sTop, segBox, segLbl);
 
-        // ── frequency pane ──────────────────────────────────────────────────
-        TextField freqField = new TextField("—.—.—");
-        freqField.getStyleClass().add("rig-freq-field"); freqField.setAlignment(Pos.CENTER);
-        Label mhz = lbl("MHz", "rig-freq-unit");
-        Label modeChip = lbl("—", "rig-mode-chip");
-        HBox freqSub = new HBox(8, mhz, Shell.lbl("", "rig-freq-unit"), modeChip);
-        freqSub.setAlignment(Pos.CENTER); HBox.setHgrow(freqSub.getChildren().get(1), Priority.ALWAYS);
-        ((Label) freqSub.getChildren().get(1)).setMaxWidth(Double.MAX_VALUE);
-        VBox freqCenter = new VBox(4, freqField, freqSub); freqCenter.setAlignment(Pos.CENTER);
-        HBox.setHgrow(freqCenter, Priority.ALWAYS);
-        freqField.setOnAction(e -> { long hz = parseFreqInput(freqField.getText()); if (hz > 0) rig.setFreqHz(hz); });
-        // don't select-all on focus (it would paint the whole readout as a highlight block)
-        freqField.focusedProperty().addListener((o, was, is) -> { if (is) Platform.runLater(freqField::deselect); });
+        MiniBar swr = new MiniBar("ok"), pwr = new MiniBar("accent"), alc = new MiniBar("warn");
+        GridPane mini3 = new GridPane(); mini3.setHgap(10);
+        for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(100.0 / 3); mini3.getColumnConstraints().add(cc); }
+        mini3.add(miniCell("SWR", swr), 0, 0); mini3.add(miniCell("PWR", pwr), 1, 0); mini3.add(miniCell("ALC", alc), 2, 0);
+        VBox.setMargin(mini3, new Insets(9, 0, 0, 0));
+        VBox metstrip = new VBox(meter, mini3); metstrip.getStyleClass().add("rc-card");
 
-        VBox fast = stepCol("FAST", () -> rig.nudgeFreq(FAST_HZ), () -> rig.nudgeFreq(-FAST_HZ));
-        VBox slow = stepCol("SLOW", () -> rig.nudgeFreq(SLOW_HZ), () -> rig.nudgeFreq(-SLOW_HZ));
-        HBox freqRow = new HBox(8, fast, freqCenter, slow); freqRow.setAlignment(Pos.CENTER);
+        // ── VFO + frequency pane ────────────────────────────────────────────
+        Label vfoA = vfoBtn("VFO A"), vfoB = vfoBtn("VFO B");
+        Label splitTag = lbl("SPLIT", "rc-tag", "split");
+        Region vfoSp = new Region(); HBox.setHgrow(vfoSp, Priority.ALWAYS);
+        HBox vfoTop = new HBox(6, vfoA, vfoB, vfoSp, splitTag); vfoTop.setAlignment(Pos.CENTER_LEFT);
+        vfoA.setOnMouseClicked(e -> rig.setVfo("VFOA"));
+        vfoB.setOnMouseClicked(e -> rig.setVfo("VFOB"));
+        boolean[] split = {true};   // mock default
+        splitTag.getStyleClass().add("on");
+        splitTag.setStyle("-fx-cursor:hand;");
+        splitTag.setOnMouseClicked(e -> { split[0] = !split[0]; rig.setSplit(split[0]); splitTag.getStyleClass().remove("on"); if (split[0]) splitTag.getStyleClass().add("on"); });
 
-        Label vfoA = toggle("VFO A", () -> rig.setVfo("VFOA"));
-        Label vfoB = toggle("VFO B", () -> rig.setVfo("VFOB"));
-        boolean[] split = {false};
-        Label splitB = toggle("SPLIT", null);
-        splitB.setOnMouseClicked(e -> { split[0] = !split[0]; rig.setSplit(split[0]); splitB.getStyleClass().remove("on"); if (split[0]) splitB.getStyleClass().add("on"); });
-        HBox vfoRow = new HBox(6, vfoA, vfoB, splitB);
-        for (Node n : vfoRow.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        Label fMhz = lbl("—", "rc-freq-mhz"), fDot1 = lbl(".", "rc-freq-dot"), fKhz = lbl("—", "rc-freq-khz"),
+              fDot2 = lbl(".", "rc-freq-dot"), fHz = lbl("—", "rc-freq-hz");
+        HBox freqDisp = new HBox(2, fMhz, fDot1, fKhz, fDot2, fHz); freqDisp.setAlignment(Pos.BASELINE_CENTER);
+        freqDisp.setStyle("-fx-cursor:text;");
+        TextField freqEdit = new TextField(); freqEdit.getStyleClass().add("rc-freqin"); freqEdit.setAlignment(Pos.CENTER);
+        freqEdit.setManaged(false); freqEdit.setVisible(false);
+        StackPane freqStack = new StackPane(freqDisp, freqEdit);
+        Label freqUnit = lbl("MHz", "rc-freq-u");
+        VBox freqMid = new VBox(3, freqStack, freqUnit); freqMid.setAlignment(Pos.CENTER); HBox.setHgrow(freqMid, Priority.ALWAYS);
 
-        VBox freqPane = new VBox(9, freqRow, vfoRow); freqPane.getStyleClass().add("rig-freq");
+        Runnable enterEdit = () -> {
+            long hz = rig.last().freqHz();
+            freqEdit.setText(hz > 0 ? RigClient.fmtFreqFull(hz) : "");
+            freqDisp.setVisible(false); freqDisp.setManaged(false);
+            freqEdit.setManaged(true); freqEdit.setVisible(true);
+            freqEdit.requestFocus(); freqEdit.positionCaret(freqEdit.getText().length());
+        };
+        Runnable exitEdit = () -> { freqEdit.setManaged(false); freqEdit.setVisible(false); freqDisp.setVisible(true); freqDisp.setManaged(true); };
+        Runnable commit = () -> { long hz = parseFreqInput(freqEdit.getText()); if (hz > 0) rig.setFreqHz(hz); exitEdit.run(); };
+        freqDisp.setOnMouseClicked(e -> enterEdit.run());
+        freqEdit.setOnAction(e -> commit.run());
+        freqEdit.focusedProperty().addListener((o, was, is) -> { if (!is) commit.run(); });
 
-        // ── pinned ATU · TUNE · PTT footer ──────────────────────────────────
-        boolean[] atu = {false};
-        Label atuB = footBtn("ATU", null);
-        atuB.setOnMouseClicked(e -> { atu[0] = !atu[0]; rig.setFunc("TUNER", atu[0]); atuB.getStyleClass().remove("on"); if (atu[0]) atuB.getStyleClass().add("on"); });
-        Label tuneB = footBtn("TUNE", rig::antTune);
-        boolean[] ptt = {false};
-        Label pttB = footBtn("PTT", null); pttB.getStyleClass().add("ptt");
-        pttB.setOnMouseClicked(e -> { ptt[0] = !ptt[0]; rig.setPtt(ptt[0]); pttB.getStyleClass().remove("tx"); if (ptt[0]) pttB.getStyleClass().add("tx"); });
-        HBox foot = new HBox(6, atuB, tuneB, pttB); foot.getStyleClass().add("rig-foot");
-        for (Node n : foot.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        VBox fastCol = nudgeCol("Fast", true, () -> rig.nudgeFreq(FAST_HZ), () -> rig.nudgeFreq(-FAST_HZ));
+        VBox slowCol = nudgeCol("Slow", false, () -> rig.nudgeFreq(SLOW_HZ), () -> rig.nudgeFreq(-SLOW_HZ));
+        HBox freqRow = new HBox(8, fastCol, freqMid, slowCol); freqRow.setAlignment(Pos.CENTER);
+
+        Label vfoBLine = lbl("", "rc-vfo-b"); vfoBLine.setMaxWidth(Double.MAX_VALUE);
+        Region rateSp = new Region(); HBox.setHgrow(rateSp, Priority.ALWAYS);
+        HBox rate = new HBox(legend("Fast step", "1 kHz"), rateSp, legend("Slow step", "10 Hz"));
+        VBox.setMargin(vfoBLine, new Insets(6, 0, 0, 0)); VBox.setMargin(rate, new Insets(9, 0, 0, 0));
+        VBox vfoCard = new VBox(9, vfoTop, freqRow, vfoBLine, rate); vfoCard.getStyleClass().add("rc-card");
 
         // ── sub-drawer 1: Band & Mode ───────────────────────────────────────
         Map<String,Label> bandBtns = new LinkedHashMap<>();
-        GridPane bandGrid = grid(5);
-        int i = 0; for (String b : BANDS) { Label l = keyBtn(b + "m", () -> rig.setBand(b)); bandBtns.put(b, l); bandGrid.add(l, i % 5, i / 5); i++; }
+        GridPane bandGrid = grid(6, 5);
+        for (int i = 0; i < BANDS.length; i++) { String b = BANDS[i]; Label l = cellBtn(b, "rc-band", () -> rig.setBand(b)); bandBtns.put(b, l); bandGrid.add(l, i % 6, i / 6); }
         Map<String,Label> modeBtns = new LinkedHashMap<>();
-        GridPane modeGrid = grid(4);
-        i = 0; for (String m : MODES) { Label l = keyBtn(m, () -> rig.setMode(catMode(m))); modeBtns.put(m, l); modeGrid.add(l, i % 4, i / 4); i++; }
-        VBox bmBody = new VBox(9, lbl("BAND", "rig-sec-k"), bandGrid, lbl("MODE", "rig-sec-k"), modeGrid);
-        Label bmSum = lbl("", "rig-sub-sum");
-        VBox sub1 = sub("Band & Mode", "log", bmSum, true, bmBody);
+        GridPane modeGrid = grid(4, 5);
+        for (int i = 0; i < MODES.length; i++) { String m = MODES[i]; Label l = cellBtn(m, "rc-mode", () -> rig.setMode(catMode(m))); modeBtns.put(m, l); modeGrid.add(l, i % 4, i / 4); }
+        VBox bmBody = new VBox(11, section("Band", bandGrid), section("Mode", modeGrid));
+        Label bmSum = lbl("20m · USB", "rc-subdw-sum");
+        VBox sub1 = subdw("Band & Mode", bmSum, true, bmBody);
 
         // ── sub-drawer 2: Filter & Functions ────────────────────────────────
-        Map<String,Label> filtBtns = new LinkedHashMap<>();
-        String[] filtSel = {"2.4k"};
-        GridPane filtGrid = grid(5);
-        i = 0; for (String f : FILTERS) { Label l = keyBtn(f, null); filtBtns.put(f, l);
-            l.setOnMouseClicked(e -> { filtSel[0] = f; filtBtns.forEach((k, v) -> { v.getStyleClass().remove("on"); if (k.equals(f)) v.getStyleClass().add("on"); }); });
-            filtGrid.add(l, i % 5, i / 5); i++; }
-        Map<String,Label> funcBtns = new LinkedHashMap<>();
+        Pane pb = passband();
+        GridPane filt = grid(4, 6);
+        String[][] filtTiles = {{"BW","2.4k"},{"Shift","+120"},{"NR","3"},{"Notch","Auto"}};
+        for (int i = 0; i < filtTiles.length; i++) filt.add(filtTile(filtTiles[i][0], filtTiles[i][1]), i, 0);
+        VBox filterSec = section("Filter · passband", new VBox(7, pb, filt));
+        GridPane fnGrid = grid(4, 5);
         java.util.Set<String> funcsOn = new java.util.LinkedHashSet<>();
-        GridPane funcGrid = grid(4);
-        i = 0; for (String fn : FUNCS) { Label l = keyBtn(fn, null); funcBtns.put(fn, l);
-            l.setOnMouseClicked(e -> { boolean on = !funcsOn.contains(fn); if (on) funcsOn.add(fn); else funcsOn.remove(fn);
-                l.getStyleClass().remove("on"); if (on) l.getStyleClass().add("on"); rig.setFunc(fn, on); });
-            funcGrid.add(l, i % 4, i / 4); i++; }
-        VBox ffBody = new VBox(9, lbl("FILTER WIDTH", "rig-sec-k"), filtGrid, lbl("FUNCTIONS", "rig-sec-k"), funcGrid);
-        Label ffSum = lbl("", "rig-sub-sum");
-        VBox sub2 = sub("Filter & Functions", "digi", ffSum, false, ffBody);
+        for (int i = 0; i < FUNCS.length; i++) {
+            String fn = FUNCS[i]; Label l = fnTile(fn, FUNC_SUB[i]);
+            l.setOnMouseClicked(e -> { boolean on = !funcsOn.contains(fn); if (on) funcsOn.add(fn); else funcsOn.remove(fn); l.getStyleClass().remove("on"); if (on) l.getStyleClass().add("on"); rig.setFunc(catFunc(fn), on); });
+            fnGrid.add(l, i % 4, i / 4);
+            if (fn.equals("SPLIT") || fn.equals("VOX")) { funcsOn.add(fn); l.getStyleClass().add("on"); }
+        }
+        VBox ffBody = new VBox(11, filterSec, section("Functions", fnGrid));
+        Label ffSum = lbl("2.4k · SPLIT", "rc-subdw-sum");
+        VBox sub2 = subdw("Filter & Functions", ffSum, false, ffBody);
 
         // ── sub-drawer 3: DSP & Levels ──────────────────────────────────────
-        String[] agcSel = {"MID"};
-        Map<String,Label> agcBtns = new LinkedHashMap<>();
-        GridPane agcGrid = grid(3);
-        i = 0; for (String a : AGC) { Label l = keyBtn(a, null); agcBtns.put(a, l);
-            l.setOnMouseClicked(e -> { agcSel[0] = a; agcBtns.forEach((k, v) -> { v.getStyleClass().remove("on"); if (k.equals(a)) v.getStyleClass().add("on"); }); });
-            agcGrid.add(l, i, 0); i++; }
-        agcBtns.get("MID").getStyleClass().add("on");
-        VBox levels = new VBox(7,
-                levelRow(rig, "AF",  "AF",       35),
-                levelRow(rig, "RF",  "RF",       100),
-                levelRow(rig, "SQL", "SQL",      0),
-                levelRow(rig, "MIC", "MICGAIN",  40),
-                levelRow(rig, "PWR", "RFPOWER",  100));
-        VBox dspBody = new VBox(9, lbl("AGC", "rig-sec-k"), agcGrid, lbl("LEVELS", "rig-sec-k"), levels);
-        Label dlSum = lbl("", "rig-sub-sum");
-        VBox sub3 = sub("DSP & Levels", "sat", dlSum, false, dspBody);
+        GridPane dspGrid = grid(3, 5);
+        for (int i = 0; i < DSP.length; i++) {
+            Label l = dspTile(DSP[i], DSP_VAL[i]);
+            l.setOnMouseClicked(e -> l.getStyleClass().remove("on"));   // toggle visual; CAT per-control later
+            if (!DSP_VAL[i].equals("off")) l.getStyleClass().add("on");
+            dspGrid.add(l, i % 3, i / 3);
+        }
+        VBox levels = new VBox(9,
+                level(rig, "PWR", "RFPOWER", 0.62, "92 W"),
+                level(rig, "MIC", "MICGAIN", 0.48, "48"),
+                level(rig, "RF G", "RF", 0.80, "80"),
+                level(rig, "AF", "AF", 0.35, "35"));
+        VBox dspBody = new VBox(11, section("DSP & front end", dspGrid), section("Levels", levels));
+        Label dlSum = lbl("AGC-M · 92W", "rc-subdw-sum");
+        VBox sub3 = subdw("DSP & Levels", dlSum, false, dspBody);
 
-        // ── assemble ────────────────────────────────────────────────────────
-        VBox panel = new VBox(0, header, meters, freqPane, foot, sub1, sub2, sub3);
-        panel.getStyleClass().add("rig-panel");
+        // ── scrolling middle ────────────────────────────────────────────────
+        VBox body = new VBox(11, metstrip, vfoCard, sub1, sub2, sub3); body.getStyleClass().add("rc-body");
+        ScrollPane scroll = new ScrollPane(body); scroll.getStyleClass().add("rc-scroll");
+        scroll.setFitToWidth(true); scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+
+        // ── footer (pinned) ─────────────────────────────────────────────────
+        boolean[] atu = {false};
+        Label atuB = actBtn("ATU", "atu", null);
+        atuB.setOnMouseClicked(e -> { atu[0] = !atu[0]; rig.setFunc("TUNER", atu[0]); });
+        Label tuneB = actBtn("TUNE", "tune", rig::antTune);
+        boolean[] ptt = {false};
+        Label pttB = actBtn("● PTT", "ptt", null);
+        pttB.setOnMouseClicked(e -> { ptt[0] = !ptt[0]; rig.setPtt(ptt[0]); pttB.getStyleClass().remove("tx"); if (ptt[0]) pttB.getStyleClass().add("tx"); });
+        GridPane foot = new GridPane(); foot.setHgap(8); foot.getStyleClass().add("rc-foot");
+        double[] fw = {29, 29, 42};
+        for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(fw[c]); foot.getColumnConstraints().add(cc); }
+        foot.add(atuB, 0, 0); foot.add(tuneB, 1, 0); foot.add(pttB, 2, 0);
+
+        VBox panel = new VBox(header, scroll, foot); panel.getStyleClass().add("rig-panel");
         panel.setMinWidth(WIDTH); panel.setPrefWidth(WIDTH); panel.setMaxWidth(WIDTH);
 
         // ── live render ─────────────────────────────────────────────────────
-        Runnable render = () -> {
-            RigClient.State st = rig.last();
+        Consumer<RigClient.State> render = st -> {
             boolean live = st != null && st.connected();
-            statusDot.getStyleClass().removeAll("on"); if (live) statusDot.getStyleClass().add("on");
-            statusTx.setText(live ? "rigctld · live" : "offline");
+            connDot.getStyleClass().remove("off"); if (!live) connDot.getStyleClass().add("off");
+            connTx.getStyleClass().remove("off"); if (!live) connTx.getStyleClass().add("off");
+            connTx.setText(live ? "CAT" : "no CAT");
 
-            String freq = live && st.freqHz() > 0 ? RigClient.fmtFreq(st.freqHz()) : "—.—.—";
-            if (!freqField.isFocused()) freqField.setText(freq);
-            String mode = live && st.mode() != null && !st.mode().isBlank() ? st.mode() : "—";
-            modeChip.setText(mode);
+            long hz = live ? st.freqHz() : 0;
+            if (!freqEdit.isVisible()) {
+                if (hz > 0) { fMhz.setText(String.valueOf(hz / 1_000_000)); fKhz.setText(String.format("%03d", (hz / 1000) % 1000)); fHz.setText(String.format("%03d", hz % 1000)); }
+                else { fMhz.setText("—"); fKhz.setText("—"); fHz.setText("—"); }
+            }
+            vfoBLine.setText(live && st.vfo() != null && !st.vfo().isBlank() ? "B  " + (hz > 0 ? RigClient.fmtFreqFull(hz) : "—") + "  ·  RX" : "B  —");
 
-            int lit = live ? RigClient.sMeterSegments(st.sMeterDb()) : 0;
-            for (int s = 0; s < seg.length; s++) { seg[s].getStyleClass().remove("on"); if (s < lit) seg[s].getStyleClass().add("on"); }
-            sRead.setText(live ? RigClient.sMeterText(st.sMeterDb()) : "—");
-            swr.set(live && st.swr() >= 1 ? Math.min(1, (st.swr() - 1) / 2.0) : 0, live && st.swr() >= 1 ? trim(st.swr()) + ":1" : "—");
-            pwr.set(live && st.rfPowerFrac() >= 0 ? st.rfPowerFrac() : 0, live && st.rfPowerFrac() >= 0 ? Math.round(st.rfPowerFrac() * 100) + "%" : "—");
-            alc.set(0, "—");   // no CAT source yet — honest placeholder
+            int lit = live ? (int) Math.round(Math.max(0, Math.min(22, (st.sMeterDb() + 54.0) / 94.0 * 22))) : 0;
+            for (int s = 0; s < seg.length; s++) { seg[s].getStyleClass().removeAll("lit", "hi"); if (s < lit) { seg[s].getStyleClass().add("lit"); if (s >= 15) seg[s].getStyleClass().add("hi"); } }
+            sV.setText(live ? RigClient.sMeterText(st.sMeterDb()) : "—");
+            swr.set(live && st.swr() >= 1 ? Math.min(1, (st.swr() - 1) / 2.0) : 0, live && st.swr() >= 1 ? String.format("%.1f:1", st.swr()) : "—");
+            pwr.set(live && st.rfPowerFrac() >= 0 ? st.rfPowerFrac() : 0, live && st.rfPowerFrac() >= 0 ? Math.round(st.rfPowerFrac() * 100) + "W" : "—");
+            alc.set(0, "—");
 
-            String band = live && st.freqHz() > 0 ? bandOf(st.freqHz()) : null;
+            String band = live && hz > 0 ? bandOf(hz) : null;
             highlight(bandBtns, band);
-            highlight(modeBtns, uiMode(mode));
-            bmSum.setText((band != null ? band + "m" : "—") + " · " + mode);
-            ffSum.setText(filtSel[0] + (funcsOn.isEmpty() ? "" : " · " + String.join(" ", funcsOn)));
-            dlSum.setText("AGC " + agcSel[0]);
+            String mode = live && st.mode() != null && !st.mode().isBlank() ? st.mode() : null;
+            highlight(modeBtns, mode == null ? null : uiMode(mode));
+            bmSum.setText((band != null ? band : "—") + " · " + (mode != null ? uiMode(mode) : "—"));
         };
-        rig.setListener(s -> Platform.runLater(render));
+        // subscribe; drop our listener when the panel leaves the scene (overlay closed)
+        Consumer<RigClient.State> l = s -> Platform.runLater(() -> render.accept(s));
+        panel.sceneProperty().addListener((o, a, b) -> { if (b == null) rig.removeListener(l); });
+        rig.addListener(l);
         rig.start();
-        render.run();
         return panel;
     }
 
-    // ── small builders ──────────────────────────────────────────────────────
-    /** A vertical FAST/SLOW stepper: ▲ up + ▼ down, each press-and-hold repeats. */
-    private static VBox stepCol(String label, Runnable up, Runnable down) {
-        Label u = holdBtn("▲", up), d = holdBtn("▼", down);
-        VBox v = new VBox(4, u, lbl(label, "rig-step-k"), d); v.setAlignment(Pos.CENTER);
-        return v;
+    // ── builders ────────────────────────────────────────────────────────────
+    private static Label vfoBtn(String t) { Label l = lbl(t, "rc-vfobtn"); l.setStyle("-fx-cursor:hand;"); return l; }
+    private static VBox nudgeCol(String label, boolean fast, Runnable up, Runnable down) {
+        Label l = lbl(label, "rc-nudge-lbl");
+        Label u = arrow("▲", fast, up), d = arrow("▼", fast, down);
+        VBox.setVgrow(u, Priority.ALWAYS); VBox.setVgrow(d, Priority.ALWAYS);
+        VBox col = new VBox(4, l, u, d); col.setAlignment(Pos.TOP_CENTER);
+        col.setMinWidth(42); col.setPrefWidth(42); col.setMaxWidth(42);
+        return col;
     }
-    private static Label holdBtn(String text, Runnable action) {
-        Label b = lbl(text, "rig-step"); b.setStyle("-fx-cursor:hand;");
-        Timeline t = new Timeline(new KeyFrame(Duration.millis(90), e -> action.run()));
-        t.setCycleCount(Animation.INDEFINITE);
+    private static Label arrow(String glyph, boolean fast, Runnable action) {
+        Label b = lbl(glyph, "rc-arr"); if (fast) b.getStyleClass().add("fast");
+        b.setAlignment(Pos.CENTER); b.setMaxWidth(Double.MAX_VALUE); b.setMaxHeight(Double.MAX_VALUE); b.setStyle("-fx-cursor:hand;");
+        Timeline t = new Timeline(new KeyFrame(Duration.millis(90), e -> action.run())); t.setCycleCount(Animation.INDEFINITE);
         b.setOnMousePressed(e -> { action.run(); t.playFromStart(); });
-        b.setOnMouseReleased(e -> t.stop());
-        b.setOnMouseExited(e -> t.stop());
+        b.setOnMouseReleased(e -> t.stop()); b.setOnMouseExited(e -> t.stop());
         return b;
     }
-    private static Label toggle(String text, Runnable action) {
-        Label b = lbl(text, "rig-vfo"); b.setAlignment(Pos.CENTER); b.setMaxWidth(Double.MAX_VALUE); b.setStyle("-fx-cursor:hand;");
-        if (action != null) b.setOnMouseClicked(e -> action.run());
-        return b;
+    private static HBox legend(String k, String v) {
+        HBox h = new HBox(5, lbl(k, "rc-leg-k"), lbl(v, "rc-leg-v")); h.setAlignment(Pos.CENTER_LEFT); return h;
     }
-    private static Label footBtn(String text, Runnable action) {
-        Label b = lbl(text, "rig-foot-btn"); b.setAlignment(Pos.CENTER); b.setMaxWidth(Double.MAX_VALUE); b.setStyle("-fx-cursor:hand;");
-        if (action != null) b.setOnMouseClicked(e -> action.run());
-        return b;
+    private static VBox section(String label, Node body) {
+        VBox v = new VBox(6, lbl(label, "rc-sec-lbl"), body); return v;
     }
-    private static Label keyBtn(String text, Runnable action) {
-        Label b = lbl(text, "rig-key"); b.setAlignment(Pos.CENTER); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE); b.setStyle("-fx-cursor:hand;");
-        if (action != null) b.setOnMouseClicked(e -> action.run());
-        return b;
-    }
-    private static GridPane grid(int cols) {
-        GridPane g = new GridPane(); g.setHgap(5); g.setVgap(5);
+    private static GridPane grid(int cols, double hvgap) {
+        GridPane g = new GridPane(); g.setHgap(hvgap); g.setVgap(hvgap);
         for (int c = 0; c < cols; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(100.0 / cols); g.getColumnConstraints().add(cc); }
         return g;
     }
-    private static HBox levelRow(RigClient rig, String label, String catName, double init) {
-        Label k = lbl(label, "rig-lvl-k"); k.setMinWidth(34);
-        Slider s = new Slider(0, 100, init); s.getStyleClass().add("rig-slider"); HBox.setHgrow(s, Priority.ALWAYS); s.setMaxWidth(Double.MAX_VALUE);
-        Label v = lbl((int) init + "", "rig-lvl-v"); v.setMinWidth(30); v.setAlignment(Pos.CENTER_RIGHT);
-        s.valueProperty().addListener((o, a, b) -> v.setText(String.valueOf((int) Math.round(b.doubleValue()))));
-        s.setOnMouseReleased(e -> rig.setLevel(catName, s.getValue() / 100.0));
-        HBox row = new HBox(8, k, s, v); row.setAlignment(Pos.CENTER_LEFT);
+    private static Label cellBtn(String text, String styleClass, Runnable action) {
+        Label b = lbl(text, styleClass); b.setAlignment(Pos.CENTER); b.setMaxWidth(Double.MAX_VALUE); GridPane.setHgrow(b, Priority.ALWAYS); b.setStyle("-fx-cursor:hand;");
+        if (action != null) b.setOnMouseClicked(e -> action.run());
+        return b;
+    }
+    private static VBox filtTile(String k, String v) {
+        VBox t = new VBox(2, lbl(k, "rc-filt-k"), lbl(v, "rc-filt-v")); t.setAlignment(Pos.CENTER); t.getStyleClass().add("rc-filt");
+        GridPane.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE); t.setStyle("-fx-cursor:hand;");
+        return t;
+    }
+    private static Label fnTile(String name, String subLabel) {
+        Label t = lbl(name, "rc-fn-t"); Label s = lbl(subLabel, "rc-fn-s");
+        VBox box = new VBox(3, t, s); box.setAlignment(Pos.CENTER);
+        // a Label host is convenient for style toggling; wrap via graphic
+        Label host = new Label(); host.setGraphic(box); host.getStyleClass().add("rc-fn"); host.setAlignment(Pos.CENTER);
+        host.setMaxWidth(Double.MAX_VALUE); GridPane.setHgrow(host, Priority.ALWAYS); host.setStyle("-fx-cursor:hand;");
+        return host;
+    }
+    private static Label dspTile(String name, String value) {
+        Label n = lbl(name, "rc-dsp-n"); Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        Label v = lbl(value, "rc-dsp-v");
+        HBox row = new HBox(n, sp, v); row.setAlignment(Pos.CENTER_LEFT);
+        Label host = new Label(); host.setGraphic(row); host.getStyleClass().add("rc-dsp"); host.setMaxWidth(Double.MAX_VALUE);
+        host.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
+        GridPane.setHgrow(host, Priority.ALWAYS); host.setStyle("-fx-cursor:hand;");
+        // make the graphic fill the host width
+        row.prefWidthProperty().bind(host.widthProperty().subtract(20));
+        return host;
+    }
+    private static HBox level(RigClient rig, String label, String catName, double frac, String valText) {
+        Label k = lbl(label, "rc-lvl-k"); k.setMinWidth(34);
+        Slider s = new Slider(frac, valText);
+        Label v = lbl(valText, "rc-lvl-v"); v.setMinWidth(44); v.setAlignment(Pos.CENTER_RIGHT);
+        s.node.setOnMouseReleased(e -> rig.setLevel(catName, s.frac.get()));
+        HBox row = new HBox(10, k, s.node, v); row.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(s.node, Priority.ALWAYS);
         return row;
     }
+    private static Pane passband() {
+        Pane pb = new Pane(); pb.getStyleClass().add("rc-pb"); pb.setMinHeight(30); pb.setPrefHeight(30); pb.setMaxHeight(30);
+        Region pass = new Region(); pass.getStyleClass().add("rc-pb-pass");
+        Region carrier = new Region(); carrier.getStyleClass().add("rc-pb-carrier");
+        pb.getChildren().addAll(pass, carrier);
+        pb.widthProperty().addListener((o, a, w) -> {
+            double W = w.doubleValue();
+            pass.setPrefSize(W * 0.42, 22); pass.setMinSize(W * 0.42, 22); pass.setMaxSize(W * 0.42, 22); pass.relocate(W * 0.30, 4);
+            carrier.setPrefSize(1.5, 30); carrier.setMinSize(1.5, 30); carrier.setMaxSize(1.5, 30); carrier.relocate(W * 0.30, 0);
+        });
+        return pb;
+    }
 
-    /** A nested collapsible sub-drawer with a one-line summary shown when closed. */
-    private static VBox sub(String title, String hue, Label summary, boolean open, Node body) {
-        VBox dw = new VBox(); dw.getStyleClass().add("rig-sub"); if (open) dw.getStyleClass().add("open");
-        StackPane ic = Shell.iconTile(hue, hue, 12, "rig-sub-ic", hue);
-        Label t = lbl(title, "rig-sub-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
-        Label cv = lbl("›", "rig-sub-cv"); cv.setRotate(open ? 90 : 0);
-        HBox head = new HBox(8, ic, t, summary, cv); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("rig-sub-head");
-        VBox bodyBox = new VBox(body); bodyBox.getStyleClass().add("rig-sub-body");
+    /** Collapsible nested sub-drawer; the one-line summary stays visible in both states. */
+    private static VBox subdw(String title, Label summary, boolean openDefault, Node body) {
+        boolean open = SUB_STATE.getOrDefault(title, openDefault);
+        VBox dw = new VBox(); dw.getStyleClass().add("rc-subdw"); if (open) dw.getStyleClass().add("open");
+        Label t = lbl(title.toUpperCase(), "rc-subdw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
+        Label cv = lbl("›", "rc-subdw-cv"); cv.setRotate(open ? 90 : 0);
+        HBox head = new HBox(8, t, summary, cv); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("rc-subdw-head");
+        VBox bodyBox = new VBox(body); bodyBox.getStyleClass().add("rc-subdw-body");
         bodyBox.setManaged(open); bodyBox.setVisible(open);
-        summary.setVisible(!open); summary.setManaged(!open);
         head.setOnMouseClicked(e -> {
             boolean now = !dw.getStyleClass().contains("open");
             dw.getStyleClass().remove("open"); if (now) dw.getStyleClass().add("open");
-            bodyBox.setManaged(now); bodyBox.setVisible(now);
-            summary.setVisible(!now); summary.setManaged(!now); cv.setRotate(now ? 90 : 0);
+            bodyBox.setManaged(now); bodyBox.setVisible(now); cv.setRotate(now ? 90 : 0);
+            SUB_STATE.put(title, now);
         });
         dw.getChildren().addAll(head, bodyBox);
         return dw;
     }
-    private static HBox barCell(String k, Bar bar) {
-        VBox v = new VBox(2, lbl(k, "rig-bar-k"), bar.node, bar.val); v.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(v, Priority.ALWAYS); return new HBox(v);
+    private static VBox miniCell(String k, MiniBar bar) {
+        VBox v = new VBox(4, lbl(k, "rc-mini-k"), bar.val, bar.node); v.setAlignment(Pos.TOP_LEFT);
+        GridPane.setHgrow(v, Priority.ALWAYS); return v;
+    }
+    private static Label actBtn(String text, String kind, Runnable action) {
+        Label b = lbl(text, "rc-act", kind); b.setAlignment(Pos.CENTER); b.setMaxWidth(Double.MAX_VALUE); GridPane.setHgrow(b, Priority.ALWAYS); b.setStyle("-fx-cursor:hand;");
+        if (action != null) b.setOnMouseClicked(e -> action.run());
+        return b;
     }
     private static void highlight(Map<String,Label> btns, String on) {
         btns.forEach((k, v) -> { v.getStyleClass().remove("on"); if (k.equals(on)) v.getStyleClass().add("on"); });
     }
 
-    /** A thin horizontal bar (track + left-anchored fill) with a value caption. */
-    private static final class Bar {
-        final StackPane node; final Region fill; final Label val;
-        Bar(String fillHue) {
-            Region track = new Region(); track.getStyleClass().add("rig-bar-track");
-            fill = new Region(); fill.getStyleClass().addAll("rig-bar-fill", fillHue); fill.setMinWidth(0); fill.setPrefWidth(0); fill.setMaxWidth(0);
-            node = new StackPane(track, fill); node.setAlignment(Pos.CENTER_LEFT);
-            node.setMinHeight(6); node.setMaxHeight(6); node.setMaxWidth(Double.MAX_VALUE);
-            val = lbl("—", "rig-bar-v");
-        }
-        void set(double frac, String text) {
-            double w = node.getWidth() > 0 ? node.getWidth() : 84;
-            double f = Math.max(0, Math.min(1, frac)) * w;
-            fill.setMinWidth(f); fill.setPrefWidth(f); fill.setMaxWidth(f);
-            val.setText(text);
+    /** A thin track + accent fill + knob, fraction-driven. */
+    private static final class Slider {
+        final StackPane node; final SimpleDoubleProperty frac;
+        Slider(double f, String valText) {
+            frac = new SimpleDoubleProperty(f);
+            Region track = new Region(); track.getStyleClass().add("rc-lvl-track");
+            Region fill = new Region(); fill.getStyleClass().add("rc-lvl-fill");
+            Region knob = new Region(); knob.getStyleClass().add("rc-lvl-knob"); knob.setMinSize(13, 13); knob.setMaxSize(13, 13);
+            node = new StackPane(track, fill, knob); node.setAlignment(Pos.CENTER_LEFT); node.setMinHeight(13); node.setMaxHeight(13); node.setMaxWidth(Double.MAX_VALUE);
+            fill.maxWidthProperty().bind(node.widthProperty().multiply(frac)); fill.minWidthProperty().bind(fill.maxWidthProperty()); fill.prefWidthProperty().bind(fill.maxWidthProperty());
+            fill.setMaxHeight(5); fill.setMinHeight(5);
+            StackPane.setMargin(knob, new Insets(0)); knob.translateXProperty().bind(node.widthProperty().multiply(frac).subtract(6.5));
+            node.setOnMouseClicked(e -> { double v = Math.max(0, Math.min(1, e.getX() / node.getWidth())); frac.set(v); });
+            node.setOnMouseDragged(e -> { double v = Math.max(0, Math.min(1, e.getX() / node.getWidth())); frac.set(v); });
         }
     }
 
+    /** Fraction-driven mini-bar (S-strip SWR/PWR/ALC). */
+    private static final class MiniBar {
+        final StackPane node; final SimpleDoubleProperty frac = new SimpleDoubleProperty(0); final Label val;
+        MiniBar(String fillHue) {
+            Region track = new Region(); track.getStyleClass().add("rc-minibar-track");
+            Region fill = new Region(); fill.getStyleClass().addAll("rc-minibar-fill", fillHue);
+            node = new StackPane(track, fill); node.setAlignment(Pos.CENTER_LEFT); node.setMaxWidth(Double.MAX_VALUE); node.setMinHeight(5); node.setMaxHeight(5);
+            fill.maxWidthProperty().bind(node.widthProperty().multiply(frac)); fill.minWidthProperty().bind(fill.maxWidthProperty()); fill.prefWidthProperty().bind(fill.maxWidthProperty());
+            val = lbl("—", "rc-mini-v");
+        }
+        void set(double f, String text) { frac.set(Math.max(0, Math.min(1, f))); val.setText(text); }
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────
-    /** Parse "14.074.00" / "14.074" (MHz) / "14074" (kHz) / "14074000" (Hz) → Hz, or -1. */
     static long parseFreqInput(String raw) {
         if (raw == null) return -1;
         String s = raw.trim().replace(" ", "");
         if (s.isEmpty() || s.contains("—")) return -1;
         int dots = (int) s.chars().filter(c -> c == '.').count();
         try {
-            if (dots >= 2) {                                   // MHz.kHz.tens display form
+            if (dots >= 2) {
                 String[] p = s.split("\\.");
                 long mhz = Long.parseLong(p[0]);
                 long khz = p.length > 1 && !p[1].isEmpty() ? Long.parseLong(p[1]) : 0;
-                long tens = p.length > 2 && !p[2].isEmpty() ? Long.parseLong((p[2] + "00").substring(0, 2)) : 0;
-                return mhz * 1_000_000 + khz * 1_000 + tens * 10;
+                long hz = p.length > 2 && !p[2].isEmpty() ? Long.parseLong((p[2] + "000").substring(0, 3)) : 0;
+                return mhz * 1_000_000 + khz * 1_000 + hz;
             }
             double d = Double.parseDouble(s);
-            if (dots == 1) return Math.round(d * 1_000_000);   // MHz
-            if (d < 1_000) return Math.round(d * 1_000_000);   // bare MHz (e.g. "14")
-            if (d < 100_000) return Math.round(d * 1_000);     // kHz
-            return Math.round(d);                              // Hz
+            if (dots == 1) return Math.round(d * 1_000_000);
+            if (d < 1_000) return Math.round(d * 1_000_000);
+            if (d < 100_000) return Math.round(d * 1_000);
+            return Math.round(d);
         } catch (NumberFormatException e) { return -1; }
     }
-    private static String trim(double swr) { return String.format("%.1f", swr); }
-    /** UI mode token → Hamlib mode passed to {@code M}. */
-    private static String catMode(String ui) {
-        return switch (ui) { case "CW-R" -> "CWR"; case "DATA" -> "PKTUSB"; default -> ui; };
-    }
-    /** Live rig mode → the UI button it should light. */
+    private static String catMode(String ui) { return switch (ui) { case "CW-R" -> "CWR"; case "FT8" -> "PKTUSB"; default -> ui; }; }
+    private static String catFunc(String ui) { return switch (ui) { case "A=B" -> "A_EQ_B"; case "A/B" -> "AB"; default -> ui; }; }
     private static String uiMode(String m) {
         if (m == null) return "";
         String u = m.trim().toUpperCase();
-        return switch (u) {
-            case "CWR" -> "CW-R";
-            case "PKTUSB", "PKTLSB", "PKT", "FT8", "FT4", "DIGI" -> "DATA";
-            case "FSK", "FSKR" -> "RTTY";
-            default -> u;
-        };
+        return switch (u) { case "CWR" -> "CW-R"; case "PKTUSB", "PKTLSB", "PKT", "FT4", "DIGI" -> "FT8"; case "FSK", "FSKR" -> "RTTY"; default -> u; };
     }
-    /** Frequency (Hz) → ham band token ("20"), or null off-band. */
     private static String bandOf(long hz) {
         double m = hz / 1_000_000.0;
-        if (m >= 1.8 && m <= 2.0)     return "160";
-        if (m >= 3.5 && m <= 4.0)     return "80";
-        if (m >= 7.0 && m <= 7.3)     return "40";
-        if (m >= 10.1 && m <= 10.15)  return "30";
-        if (m >= 14.0 && m <= 14.35)  return "20";
-        if (m >= 18.068 && m <= 18.168) return "17";
-        if (m >= 21.0 && m <= 21.45)  return "15";
-        if (m >= 24.89 && m <= 24.99) return "12";
-        if (m >= 28.0 && m <= 29.7)   return "10";
-        if (m >= 50.0 && m <= 54.0)   return "6";
-        return null;
+        if (m >= 1.8 && m <= 2.0) return "160"; if (m >= 3.5 && m <= 4.0) return "80"; if (m >= 5.3 && m <= 5.4) return "60";
+        if (m >= 7.0 && m <= 7.3) return "40"; if (m >= 10.1 && m <= 10.15) return "30"; if (m >= 14.0 && m <= 14.35) return "20";
+        if (m >= 18.068 && m <= 18.168) return "17"; if (m >= 21.0 && m <= 21.45) return "15"; if (m >= 24.89 && m <= 24.99) return "12";
+        if (m >= 28.0 && m <= 29.7) return "10"; if (m >= 50.0 && m <= 54.0) return "6"; return null;
     }
 }

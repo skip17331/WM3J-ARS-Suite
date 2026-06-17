@@ -666,84 +666,131 @@
 .picker-btn.on { -fx-background-color: -ars-accent; -fx-text-fill: -ars-accent-text; -fx-border-color: -ars-accent; }
 
 /* =========================================================================
-   Rig Control panel — canonical drop-down (outer drawer + 3 sub-drawers)
+   Rig Control panel — 1:1 with design/ars-suite/Rig Control Drawer.html
    ========================================================================= */
-.rig-panel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 11; -fx-border-radius: 11; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 22, 0, 0, 6); }
+.rig-panel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 26, 0, -6, 8); }
 
-/* header */
-.rig-head   { -fx-padding: 11 12 11 12; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
-.rig-h-title { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
-.rig-h-status { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t3; }
-.rig-dot    { -fx-min-width: 8; -fx-pref-width: 8; -fx-max-width: 8; -fx-min-height: 8; -fx-pref-height: 8; -fx-background-radius: 4; -fx-background-color: -ars-idle; }
-.rig-dot.on { -fx-background-color: -ars-ok; -fx-effect: dropshadow(gaussian, -ars-ok, 7, 0.3, 0, 0); }
-.rig-x      { -fx-font-size: 12px; -fx-text-fill: -ars-t3; -fx-padding: 0 0 0 4; }
-.rig-x:hover { -fx-text-fill: -ars-t1; }
+/* header (pinned) */
+.rc-head    { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.rc-ic      { -fx-min-width: 28; -fx-pref-width: 28; -fx-max-width: 28; -fx-min-height: 28; -fx-pref-height: 28; -fx-background-radius: 7; -fx-alignment: center;
+              -fx-background-color: #2e3d51; -fx-border-color: rgba(111,167,238,0.30); -fx-border-width: 1; -fx-border-radius: 7; }
+.rc-title   { -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.rc-sub     { -fx-font-size: 10.5px; -fx-text-fill: -ars-t3; }
+.rc-conn-d  { -fx-min-width: 7; -fx-pref-width: 7; -fx-max-width: 7; -fx-min-height: 7; -fx-pref-height: 7; -fx-background-radius: 4; -fx-background-color: -ars-ok; -fx-effect: dropshadow(gaussian, -ars-ok, 6, 0.3, 0, 0); }
+.rc-conn-d.off { -fx-background-color: -ars-idle; -fx-effect: null; }
+.rc-conn-t  { -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: -ars-ok; }
+.rc-conn-t.off { -fx-text-fill: -ars-t3; }
+.rc-collapse { -fx-min-width: 26; -fx-pref-width: 26; -fx-max-width: 26; -fx-min-height: 26; -fx-pref-height: 26; -fx-alignment: center; -fx-font-size: 15px;
+               -fx-text-fill: -ars-t3; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; }
+.rc-collapse:hover { -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
+
+/* scrolling middle + cards */
+.rc-scroll, .rc-scroll > .viewport { -fx-background-color: transparent; -fx-background: transparent; }
+.rc-body    { -fx-padding: 12; }
+.rc-card    { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10 12 10 12; }
+.rc-sec-lbl { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 
 /* meters strip */
-.rig-meters { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
-.rig-s-k    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
-.rig-s-read { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-min-width: 46; -fx-alignment: center-right; }
-.rig-seg    { -fx-min-height: 11; -fx-pref-height: 11; -fx-background-color: -ars-surface-3; -fx-background-radius: 2; }
-.rig-seg.on   { -fx-background-color: -ars-ok; }
-.rig-seg.hi.on { -fx-background-color: -ars-err; }
-.rig-bar-k  { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
-.rig-bar-track { -fx-background-color: -ars-surface-3; -fx-background-radius: 3; -fx-min-height: 6; -fx-pref-height: 6; -fx-max-height: 6; }
-.rig-bar-fill  { -fx-background-radius: 3; -fx-min-height: 6; -fx-pref-height: 6; -fx-max-height: 6; }
-.rig-bar-fill.ok     { -fx-background-color: -ars-ok; }
-.rig-bar-fill.warn   { -fx-background-color: -ars-warn; }
-.rig-bar-fill.accent { -fx-background-color: -ars-accent; }
-.rig-bar-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+.rc-meter-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rc-meter-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.rc-seg-i   { -fx-background-color: -ars-surface-4; -fx-background-radius: 1; }
+.rc-seg-i.lit    { -fx-background-color: -ars-ok; }
+.rc-seg-i.lit.hi { -fx-background-color: -ars-warn; }
+.rc-seg-tick { -fx-font-family: "JetBrains Mono"; -fx-font-size: 8px; -fx-text-fill: -ars-t4; }
+.rc-mini-k  { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rc-mini-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.rc-minibar-track { -fx-background-color: -ars-surface-4; -fx-background-radius: 99; -fx-min-height: 5; -fx-pref-height: 5; -fx-max-height: 5; }
+.rc-minibar-fill  { -fx-background-radius: 99; -fx-min-height: 5; -fx-pref-height: 5; -fx-max-height: 5; }
+.rc-minibar-fill.ok     { -fx-background-color: -ars-ok; }
+.rc-minibar-fill.accent { -fx-background-color: -ars-accent; }
+.rc-minibar-fill.warn   { -fx-background-color: -ars-warn; }
 
-/* frequency pane */
-.rig-freq   { -fx-padding: 12 13 12 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
-.rig-freq-field { -fx-font-family: "JetBrains Mono"; -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: -ars-t1;
-                  -fx-background-color: -ars-surface-3; -fx-background-radius: 7; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-border-radius: 7;
-                  -fx-padding: 4 6 4 6; -fx-prompt-text-fill: -ars-t4; }
-.rig-freq-field:focused { -fx-border-color: -ars-accent; -fx-background-color: -ars-surface-2; }
-.rig-freq-unit  { -fx-font-size: 10px; -fx-text-fill: -ars-t3; }
-.rig-mode-chip  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-accent;
-                  -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-border-width: 1; -fx-background-radius: 4; -fx-border-radius: 4; -fx-padding: 1 7 1 7; }
-.rig-step   { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1;
-              -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; -fx-alignment: center; }
-.rig-step:hover  { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
-.rig-step:pressed { -fx-background-color: -ars-accent; -fx-text-fill: -ars-accent-text; -fx-border-color: -ars-accent; }
-.rig-step-k { -fx-font-size: 8px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; }
-.rig-vfo    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3;
-              -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 0 6 0; }
-.rig-vfo:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
-.rig-vfo.on { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+/* VFO + frequency */
+.rc-vfobtn  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-background-color: -ars-surface-3;
+              -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 5; -fx-border-radius: 5; -fx-padding: 4 9 4 9; }
+.rc-vfobtn:hover { -fx-text-fill: -ars-t1; }
+.rc-vfobtn.on { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.rc-tag     { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 3 7 3 7; -fx-background-radius: 4; -fx-border-radius: 4; -fx-border-width: 1; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-text-fill: -ars-t3; }
+.rc-tag.split.on { -fx-text-fill: -ars-warn; -fx-background-color: -ars-warn-soft; -fx-border-color: rgba(238,187,88,0.35); }
+.rc-freq-mhz { -fx-font-family: "JetBrains Mono"; -fx-font-size: 33px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; }
+.rc-freq-dot { -fx-font-family: "JetBrains Mono"; -fx-font-size: 33px; -fx-font-weight: 600; -fx-text-fill: -ars-t3; }
+.rc-freq-khz { -fx-font-family: "JetBrains Mono"; -fx-font-size: 33px; -fx-font-weight: 600; -fx-text-fill: -ars-accent; }
+.rc-freq-hz  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 22px; -fx-font-weight: 600; -fx-text-fill: -ars-t3; }
+.rc-freqin  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 31px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; -fx-highlight-fill: -ars-accent-dim; }
+.rc-freq-u  { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.rc-nudge-lbl { -fx-font-size: 7.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; }
+.rc-arr     { -fx-font-size: 12px; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-min-height: 26; }
+.rc-arr.fast { -fx-text-fill: -ars-accent; }
+.rc-arr:hover { -fx-background-color: -ars-surface-4; -fx-border-color: -ars-border-glow; -fx-text-fill: -ars-t1; }
+.rc-arr:pressed { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.rc-vfo-b   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t2; -fx-alignment: center; -fx-max-width: 999999; }
+.rc-leg-k   { -fx-font-size: 9px; -fx-text-fill: -ars-t4; }
+.rc-leg-v   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 9px; -fx-text-fill: -ars-t3; }
 
-/* pinned footer */
-.rig-foot   { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
-.rig-foot-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1;
-                -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 9 0 9 0; }
-.rig-foot-btn:hover { -fx-background-color: -ars-surface-4; -fx-border-color: -ars-border-glow; }
-.rig-foot-btn.on    { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
-.rig-foot-btn.ptt   { -fx-text-fill: -ars-t1; -fx-border-color: -ars-err-line; }
-.rig-foot-btn.ptt.tx { -fx-background-color: -ars-err; -fx-text-fill: white; -fx-border-color: -ars-err; -fx-effect: dropshadow(gaussian, -ars-err, 9, 0.3, 0, 0); }
+/* band + mode grids */
+.rc-band    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: -ars-t2; -fx-padding: 7 0 7 0;
+              -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; }
+.rc-band:hover { -fx-background-color: -ars-surface-3; -fx-text-fill: -ars-t1; }
+.rc-band.on { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.rc-mode    { -fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: -ars-t2; -fx-padding: 7 0 7 0;
+              -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; }
+.rc-mode:hover { -fx-background-color: -ars-surface-3; -fx-text-fill: -ars-t1; }
+.rc-mode.on { -fx-background-color: #243443; -fx-border-color: rgba(111,167,238,0.40); -fx-text-fill: -ars-bridge; }
+
+/* filter passband + tiles */
+.rc-pb      { -fx-background-color: -ars-bg; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; }
+.rc-pb-pass { -fx-background-color: rgba(49,189,218,0.22); -fx-border-color: -ars-accent-line; -fx-border-width: 1; -fx-background-radius: 3; -fx-border-radius: 3; }
+.rc-pb-carrier { -fx-background-color: -ars-warn; }
+.rc-filt    { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 0 6 0; }
+.rc-filt:hover { -fx-border-color: -ars-border-glow; }
+.rc-filt-k  { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rc-filt-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; }
+
+/* function toggles */
+.rc-fn      { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 2 7 2; }
+.rc-fn:hover { -fx-border-color: -ars-border-glow; }
+.rc-fn-t    { -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rc-fn-s    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 8.5px; -fx-text-fill: -ars-t4; }
+.rc-fn.on   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; }
+.rc-fn.on .rc-fn-t { -fx-text-fill: -ars-accent; }
+.rc-fn.on .rc-fn-s { -fx-text-fill: -ars-accent; }
+
+/* dsp grid */
+.rc-dsp     { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 9 6 9; }
+.rc-dsp:hover { -fx-border-color: -ars-border-glow; }
+.rc-dsp-n   { -fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: -ars-t2; }
+.rc-dsp-v   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; }
+.rc-dsp.on  { -fx-background-color: rgba(111,200,132,0.14); -fx-border-color: rgba(111,200,132,0.38); }
+.rc-dsp.on .rc-dsp-n { -fx-text-fill: -ars-sat; }
+.rc-dsp.on .rc-dsp-v { -fx-text-fill: -ars-sat; }
+
+/* level sliders */
+.rc-lvl-k   { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rc-lvl-v   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; }
+.rc-lvl-track { -fx-background-color: -ars-surface-4; -fx-background-radius: 99; -fx-min-height: 5; -fx-max-height: 5; }
+.rc-lvl-fill  { -fx-background-color: -ars-accent; -fx-background-radius: 99; }
+.rc-lvl-knob  { -fx-background-color: -ars-accent; -fx-background-radius: 99; -fx-border-color: -ars-surface-1; -fx-border-width: 2; -fx-border-radius: 99; }
 
 /* nested sub-drawers */
-.rig-sub      { -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
-.rig-sub-head { -fx-padding: 10 13 10 13; -fx-cursor: hand; -fx-alignment: center-left; }
-.rig-sub-head:hover { -fx-background-color: -ars-surface-2; }
-.rig-sub-ic   { -fx-min-width: 22; -fx-pref-width: 22; -fx-max-width: 22; -fx-min-height: 22; -fx-pref-height: 22; -fx-background-radius: 6; -fx-alignment: center; }
-.rig-sub-t    { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
-.rig-sub-sum  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10.5px; -fx-text-fill: -ars-t2; }
-.rig-sub-cv   { -fx-text-fill: -ars-t4; }
-.rig-sub-body { -fx-padding: 4 13 13 13; }
-.rig-sec-k    { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
-.rig-key      { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3;
-                -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 2 7 2; }
-.rig-key:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
-.rig-key.on   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
-.rig-lvl-k    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
-.rig-lvl-v    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
-.rig-slider .track { -fx-background-color: -ars-surface-3; -fx-background-radius: 3; -fx-pref-height: 4; }
-.rig-slider .thumb { -fx-background-color: -ars-accent; -fx-background-radius: 8; -fx-pref-width: 13; -fx-pref-height: 13; }
+.rc-subdw      { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; }
+.rc-subdw-head { -fx-padding: 9 11 9 11; -fx-cursor: hand; -fx-alignment: center-left; -fx-background-radius: 10; }
+.rc-subdw-head:hover { -fx-background-color: -ars-surface-3; }
+.rc-subdw-t    { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+.rc-subdw-sum  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; }
+.rc-subdw-cv   { -fx-text-fill: -ars-t4; -fx-font-size: 13px; }
+.rc-subdw-body { -fx-padding: 2 11 11 11; -fx-border-color: -ars-border transparent transparent transparent; -fx-border-width: 1 0 0 0; }
 
-/* top-bar RIG button + drop-down overlay container */
-.sx-rigbtn { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-bridge; -fx-background-color: -ars-surface-2;
-             -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; }
-.sx-rigbtn:hover { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-glow; -fx-text-fill: -ars-t1; }
-.rig-overlay-scroll, .rig-overlay-scroll > .viewport { -fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0; }
-.rig-overlay-scroll { -fx-border-color: transparent; }
+/* pinned footer action bar */
+.rc-foot    { -fx-padding: 11 12 11 12; -fx-border-color: -ars-border transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-background-color: -ars-surface-1; }
+.rc-act     { -fx-font-size: 13px; -fx-font-weight: bold; -fx-min-height: 40; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; }
+.rc-act.atu  { -fx-background-color: rgba(111,200,132,0.16); -fx-border-color: rgba(111,200,132,0.40); -fx-text-fill: -ars-sat; }
+.rc-act.tune { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-text-fill: -ars-t2; }
+.rc-act.tune:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
+.rc-act.ptt  { -fx-background-color: -ars-err; -fx-border-color: -ars-err; -fx-text-fill: white; }
+.rc-act.ptt.tx { -fx-effect: dropshadow(gaussian, -ars-err, 10, 0.35, 0, 0); }
+
+/* top-bar RIG button (shows live freq) */
+.sx-rigbtn { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3;
+             -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 6 12 6 12; }
+.sx-rigbtn:hover { -fx-background-color: -ars-surface-4; -fx-border-color: -ars-border-glow; -fx-text-fill: -ars-t1; }
+.sx-rigbtn.live { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
