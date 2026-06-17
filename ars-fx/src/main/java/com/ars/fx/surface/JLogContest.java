@@ -88,7 +88,7 @@ public final class JLogContest {
         strip.setPadding(new Insets(0, 18, 4, 18));
         ScrollPane sp = new ScrollPane(strip); sp.setFitToHeight(true);
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setStyle("-fx-background-color:transparent;");
-        sp.setMinHeight(130); sp.setPrefHeight(150); sp.setMaxHeight(220);
+        sp.setMinHeight(140); sp.setPrefHeight(280); sp.setMaxHeight(300);
         return sp;
     }
 
@@ -388,6 +388,16 @@ public final class JLogContest {
         return "";
     }
     private static void focus(String id) { Control c = fieldControls.get(id); if (c != null) c.requestFocus(); }
+
+    /** Fill an exchange field from a clicked map region, then focus the call field. Called by ContestMapPane. */
+    @SuppressWarnings("unchecked")
+    public static void fillField(String fieldId, String value) {
+        if (fieldControls == null || fieldId == null) return;
+        Control c = fieldControls.get(fieldId);
+        if (c instanceof TextField t) t.setText(value);
+        else if (c instanceof ComboBox<?> cb) ((ComboBox<String>) cb).setValue(value);
+        Control call = fieldControls.get("callsign"); if (call != null) call.requestFocus();
+    }
 
     private static TextField tf(String prompt, String init, double w) {
         TextField t = new TextField(init == null ? "" : init);

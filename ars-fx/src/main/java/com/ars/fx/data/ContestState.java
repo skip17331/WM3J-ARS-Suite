@@ -59,6 +59,28 @@ public final class ContestState {
         return StationContext.of(HubConfig.call(), HubConfig.grid(), HubConfig.get("contest.ss.section", ""));
     }
 
+    /**
+     * The set of worked multiplier values for lighting trackers/maps. Unions what
+     * the engine reports (sections/zones/per-mode/per-band) with the distinct
+     * logged values of the multiplier field column (states/counties/grids/etc.) —
+     * the latter covers contests whose painter is NONE (count only).
+     */
+    public static java.util.Set<String> workedMults() {
+        java.util.Set<String> w = new java.util.HashSet<>();
+        if (plugin == null) return w;
+        ContestScore s = score;
+        w.addAll(s.worked());
+        s.workedByMode().values().forEach(w::addAll);
+        s.workedByBand().values().forEach(w::addAll);
+        w.addAll(s.zonesWorked());
+        try {
+            String col = plugin.computeMultiplierDbColumn();
+            if (col != null && col.startsWith("field"))
+                w.addAll(ContestQsoDao.getInstance().distinctFieldByColumn(plugin.getContestId(), col));
+        } catch (Exception ignored) {}
+        return w;
+    }
+
     public static int nextSerial() {
         if (plugin == null) return 1;
         try { return ContestQsoDao.getInstance().maxSerialSent(plugin.getContestId()) + 1; }

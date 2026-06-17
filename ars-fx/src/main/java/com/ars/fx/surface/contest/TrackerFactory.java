@@ -15,9 +15,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.ars.fx.shell.Shell.lbl;
 
@@ -44,27 +42,25 @@ public final class TrackerFactory {
             case "worked_before"          -> note("Worked-before shows by the call field.");
             case "dupe_checker"           -> note("Dupe check shows by the call field.");
             case "qtc"                    -> note("WAE QTC entry — not yet in ars-fx.");
-            default                       -> null;     // maps → Phase C
+            case "us_state_map", "canada_map" -> mapPane("us-states", plugin);
+            case "dxcc_map"               -> mapPane("dxcc-entities", plugin);
+            case "grid_map"               -> mapPane("maidenhead-grids", plugin);
+            case "cq_zone_map", "cq_zones_map" -> mapPane("cq-zones", plugin);
+            case "ss_section_map"         -> mapPane("arrl-sections", plugin);
+            default                       -> null;
         };
-        return inner == null ? null : card(title, inner);
+        if (inner == null) return null;
+        boolean isMap = inner instanceof com.ars.fx.surface.contest.map.ContestMapPane;
+        return isMap ? mapCard(title, inner) : card(title, inner);
     }
 
     // ---- score-driven lightbox -------------------------------------------
     private static Region lightbox(List<String> universe) {
         Lightbox box = new Lightbox();
-        Runnable upd = () -> box.set(universe, allWorked(ContestState.score()));
+        Runnable upd = () -> box.set(universe, ContestState.workedMults());
         ContestState.addListener(() -> Platform.runLater(upd));
         upd.run();
         return box;
-    }
-
-    /** Union of every worked-multiplier collection so the chips light regardless of painter. */
-    public static Set<String> allWorked(ContestScore s) {
-        Set<String> w = new HashSet<>(s.worked());
-        s.workedByMode().values().forEach(w::addAll);
-        s.workedByBand().values().forEach(w::addAll);
-        w.addAll(s.zonesWorked());
-        return w;
     }
 
     private static List<String> universeFor(ContestPlugin p) {
@@ -99,6 +95,21 @@ public final class TrackerFactory {
     private static Region note(String text) {
         Label l = lbl(text, "ct-note"); l.setWrapText(true); l.setMaxWidth(220);
         return new VBox(l);
+    }
+
+    // ---- geographic map pane ---------------------------------------------
+    private static Region mapPane(String mapName, ContestPlugin plugin) {
+        String field = plugin.getMultiplierModel() != null ? plugin.getMultiplierModel().getField() : null;
+        var mp = new com.ars.fx.surface.contest.map.ContestMapPane(mapName, field);
+        mp.setPrefSize(400, 250); mp.setMinHeight(230);
+        return mp;
+    }
+    private static Region mapCard(String title, Region body) {
+        VBox card = new VBox(7, lbl(title.toUpperCase(), "ct-card-h"), body);
+        card.getStyleClass().add("ct-card"); card.setPadding(new Insets(10, 12, 12, 12));
+        card.setMinWidth(380); card.setPrefWidth(420);
+        VBox.setVgrow(body, Priority.ALWAYS);
+        return card;
     }
 
     // ---- titled card -----------------------------------------------------
