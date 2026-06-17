@@ -42,11 +42,14 @@ public final class SpotAction {
     /** A new-QSO prefill the active log form applies. {@code freqMhz}/{@code mode} may be null/blank. */
     public record Prefill(String call, String freqMhz, String band, String mode) {}
 
-    private static volatile Consumer<Prefill> logTarget;   // set by the live J-Log form
-    private static volatile Prefill pending;               // queued when J-Log is not on screen
+    private static volatile Consumer<Prefill> logTarget;     // set by the live J-Log normal form
+    private static volatile Consumer<Prefill> contestTarget; // set by the live J-Log contest form
+    private static volatile Prefill pending;                 // queued when neither log form is on screen
 
     /** The J-Log form registers how to fill itself (called each time it is built). */
     public static void setLogTarget(Consumer<Prefill> t) { logTarget = t; }
+    /** The J-Log contest form registers how to fill itself. */
+    public static void setContestTarget(Consumer<Prefill> t) { contestTarget = t; }
     /** J-Log build() pulls (and clears) a queued prefill so a spot picked elsewhere lands in the fresh form. */
     public static Prefill takePending() { Prefill p = pending; pending = null; return p; }
 
@@ -66,8 +69,8 @@ public final class SpotAction {
                 freqHz > 0 ? String.format(Locale.US, "%.3f", freqHz / 1e6) : null,
                 (band == null || band.isBlank()) ? null : band,
                 logMode(mode, freqHz));
-        Consumer<Prefill> t = logTarget;
-        if ("log".equals(Shell.currentSurface) && t != null) t.accept(pf);
+        if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
+        else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
         else pending = pf;
 
         // 2. tune the radio

@@ -77,7 +77,26 @@ public final class JLogContest {
         ContestState.addListener(() -> Platform.runLater(JLogContest::refreshScoreStats));
         ContestState.recompute();
         startTicker();
+
+        // DX spot click → prefill the contest call/band/mode (live + queued)
+        SpotAction.setContestTarget(JLogContest::prefillSpot);
+        SpotAction.Prefill queued = SpotAction.takePending();
+        if (queued != null) prefillSpot(queued);
         return host;
+    }
+
+    /** Fill the contest entry from a clicked DX spot (callsign + band/mode), then focus the call + run dupe. */
+    public static void prefillSpot(SpotAction.Prefill p) {
+        Runnable r = () -> {
+            if (fieldControls == null || p == null) return;
+            Control call = fieldControls.get("callsign");
+            if (call instanceof TextField t && p.call() != null) { t.setText(p.call()); t.positionCaret(t.getText().length()); }
+            if (p.band() != null && !p.band().isBlank() && bandF != null) bandF.setText(p.band());
+            if (p.mode() != null && !p.mode().isBlank() && modeF != null) modeF.setText(p.mode());
+            if (call != null) call.requestFocus();
+            if (ContestState.plugin() != null) updateDupe(ContestState.plugin());
+        };
+        if (Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
     }
 
     // ---- tracker strip (row-placement multiplier panes) -------------------
