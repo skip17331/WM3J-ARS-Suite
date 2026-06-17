@@ -189,7 +189,8 @@ public final class Shell {
     /** As above, with an optional {@code onToggle}. Open/closed state is remembered by title across rebuilds. */
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body,
                               java.util.function.Consumer<Boolean> onToggle) {
-        boolean initOpen = DRAWER_STATE.getOrDefault(title, open);
+        // default closed on first sight; the operator's open/closed choice is then remembered by title
+        boolean initOpen = DRAWER_STATE.getOrDefault(title, false);
         VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (initOpen) dw.getStyleClass().add("open");
         StackPane ic = iconTile(hue, glyphId, 14, "sx-dw-ic");
         Label t = lbl(title, "sx-dw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);

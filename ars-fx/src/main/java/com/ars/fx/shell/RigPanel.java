@@ -143,7 +143,7 @@ public final class RigPanel {
         for (int i = 0; i < MODES.length; i++) { String m = MODES[i]; Label l = cellBtn(m, "rc-mode", () -> rig.setMode(catMode(m))); modeBtns.put(m, l); modeGrid.add(l, i % 4, i / 4); }
         VBox bmBody = new VBox(11, section("Band", bandGrid), section("Mode", modeGrid));
         Label bmSum = lbl("20m · USB", "rc-subdw-sum");
-        VBox sub1 = subdw("Band & Mode", bmSum, true, bmBody);
+        VBox sub1 = subdw("Band & Mode", bmSum, false, bmBody);
 
         // ── sub-drawer 2: Filter & Functions ────────────────────────────────
         Region pbPass = new Region(); pbPass.getStyleClass().add("rc-pb-pass");

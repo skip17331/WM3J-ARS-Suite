@@ -43,12 +43,15 @@ public final class JHubDashboard {
         // Two independent nav behaviours:
         //   • workspace-bar ☰ fully closes the drawer (toggle the holder),
         //   • nav-head ☰ collapses the drawer to an icon rail (rebuild nav).
-        boolean[] collapsed = {false};
+        boolean[] collapsed = {true};   // default to the icon rail, like the operating-module dock
         StackPane navHolder = new StackPane();
         Runnable[] rebuild = new Runnable[1];
         rebuild[0] = () -> navHolder.getChildren().setAll(
                 hubNav(activeConf, collapsed[0], () -> { collapsed[0] = !collapsed[0]; rebuild[0].run(); }));
         rebuild[0].run();
+        // auto open on hover, auto close on exit — matching Shell.dock on the other surfaces
+        navHolder.setOnMouseEntered(e -> { if (collapsed[0]) { collapsed[0] = false; rebuild[0].run(); } });
+        navHolder.setOnMouseExited(e -> { if (!collapsed[0]) { collapsed[0] = true; rebuild[0].run(); } });
         Runnable close = () -> { boolean vis = !navHolder.isVisible(); navHolder.setManaged(vis); navHolder.setVisible(vis); };
 
         ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
