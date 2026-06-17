@@ -454,10 +454,13 @@ public final class JLogCockpit {
         com.ars.fx.data.HeardByClient hb = com.ars.fx.data.HeardByClient.getInstance();
         Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
         cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
-        HBox src = new HBox(6, cdot, lbl(hb.endpoint(), "jl-skim-meta")); src.setAlignment(Pos.CENTER_LEFT);
+        Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
+        Label act = lbl(hb.wantConnected() ? "Disconnect" : "Connect", "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
+        act.setOnMouseClicked(e -> { if (hb.wantConnected()) hb.disconnect(); else hb.connect(); act.setText(hb.wantConnected() ? "Disconnect" : "Connect"); });
+        HBox src = new HBox(6, cdot, lbl(hb.endpoint(), "jl-skim-meta"), ssp, act); src.setAlignment(Pos.CENTER_LEFT);
 
         VBox rows = new VBox();
-        Label empty = lbl("Listening for skimmer spots of " + hb.myCall() + "…", "jl-skim-meta"); empty.setWrapText(true);
+        Label empty = lbl(hb.wantConnected() ? "Listening for skimmer spots of " + hb.myCall() + "…" : "RBN off — Connect above to see who's hearing you", "jl-skim-meta"); empty.setWrapText(true);
         empty.setPadding(new Insets(8, 2, 8, 2));
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
@@ -468,7 +471,8 @@ public final class JLogCockpit {
             List<com.ars.fx.data.HeardByClient.HeardSpot> list = c.spots();
             if (list.isEmpty()) {
                 empty.setText(c.isConnected() ? "Connected to RBN — waiting to be heard…"
-                        : "Listening for skimmer spots of " + c.myCall() + "…");
+                        : c.wantConnected() ? "Listening for skimmer spots of " + c.myCall() + "…"
+                        : "RBN off — Connect above to see who's hearing you");
                 rows.getChildren().add(empty);
             } else {
                 for (com.ars.fx.data.HeardByClient.HeardSpot s : list) rows.getChildren().add(heardRow(s));

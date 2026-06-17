@@ -49,11 +49,19 @@ public final class HeardByClient {
     private volatile Consumer<HeardByClient> listener = c -> {};
     private volatile boolean connected = false;
     private volatile boolean started = false;
+    // Don't auto-connect on start unless the operator opted in (J-Hub ▸ Data ▸ DX Cluster).
+    private volatile boolean paused = !HubConfig.getBool("data.rbnAutoConnect", false);
     private int backoff = 5;
 
     private Socket socket; private BufferedReader reader; private PrintWriter writer;
 
     public boolean isConnected() { return connected; }
+    /** True when the operator wants the RBN feed connected (not paused). */
+    public boolean wantConnected() { return !paused; }
+    /** Stop the RBN feed and don't auto-reconnect. */
+    public void disconnect() { paused = true; closeSocket(); fire(); }
+    /** Start/resume the RBN feed; the loop connects within ~300ms. */
+    public void connect() { backoff = 5; paused = false; }
     public String endpoint() { return host; }
     public String myCall() { return call; }
     /** Update the watched call (e.g. from station config) and reconnect to RBN. */
@@ -86,15 +94,21 @@ public final class HeardByClient {
 
     private void loop() {
         while (true) {
+            if (paused) {
+                if (connected) { connected = false; closeSocket(); fire(); }
+                sleepMs(300);
+                continue;
+            }
             try {
                 openAndLogin();
                 connected = true; backoff = 5; fire();
                 String line;
-                while ((line = reader.readLine()) != null) processLine(line.trim());
+                while (!paused && (line = reader.readLine()) != null) processLine(line.trim());
             } catch (Exception e) { /* connect/read failure → back off */ }
             connected = false;
             closeSocket();
             fire();
+            if (paused) continue;
             sleepMs(backoff * 1000L);
             backoff = Math.min(backoff * 2, MAX_BACKOFF);
         }
