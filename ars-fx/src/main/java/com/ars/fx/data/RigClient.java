@@ -132,6 +132,30 @@ public final class RigClient {
         runCmd("M " + mode + " 0");
     }
 
+    /** Step the dial by {@code deltaHz} from the last known frequency (fast/slow tuning, hold-to-repeat).
+     *  Routes through {@link #setFreqHz} so it is forwarded in solo-remote mode too. */
+    public void nudgeFreq(long deltaHz) {
+        long base = last.freqHz();
+        if (base <= 0) return;
+        setFreqHz(Math.max(0, base + deltaHz));
+    }
+
+    // ── Best-effort CAT for the rig panel's extra controls. These have no
+    //    solo-remote forwarder yet, so they no-op over a RemoteLink; locally they
+    //    use the Hamlib short verbs (V/S/T/U/L). An unsupported verb just RPRTs. ──
+    /** Select the active VFO (Hamlib {@code V}: "VFOA" / "VFOB"). */
+    public void setVfo(String vfo)        { if (RemoteLink.isActive()) return; runCmd("V " + vfo); }
+    /** Enable/disable split (Hamlib {@code S}: on → TX on VFOB, off → VFOA). */
+    public void setSplit(boolean on)      { if (RemoteLink.isActive()) return; runCmd(on ? "S 1 VFOB" : "S 0 VFOA"); }
+    /** Key/unkey the transmitter (Hamlib {@code T}). */
+    public void setPtt(boolean on)        { if (RemoteLink.isActive()) return; runCmd(on ? "T 1" : "T 0"); }
+    /** Toggle a named function — NB, NR, ANF, COMP, … (Hamlib {@code U <name> 0|1}). */
+    public void setFunc(String name, boolean on) { if (RemoteLink.isActive()) return; runCmd("U " + name + " " + (on ? 1 : 0)); }
+    /** Set a named level — RFPOWER, AF, RF, SQL, MICGAIN, … 0..1 (Hamlib {@code L <name> <val>}). */
+    public void setLevel(String name, double val) { if (RemoteLink.isActive()) return; runCmd("L " + name + " " + val); }
+    /** Trigger the antenna tuner / start a tune cycle (Hamlib {@code U TUNER 1}). */
+    public void antTune()                 { if (RemoteLink.isActive()) return; runCmd("U TUNER 1"); }
+
     private void runCmd(String cmd) {
         Thread t = new Thread(() -> { try { send(cmd); } catch (IOException ignored) {} }, "rig-cmd");
         t.setDaemon(true); t.start();
@@ -242,5 +266,12 @@ public final class RigClient {
         if (db == Integer.MIN_VALUE) return 0;
         double f = (db + 54.0) / 94.0;
         return (int) Math.max(0, Math.min(16, Math.round(f * 16)));
+    }
+    /** STRENGTH dB (relative to S9) → "S7" / "S9" / "S9+20" reading; "—" when unknown. */
+    public static String sMeterText(int db) {
+        if (db == Integer.MIN_VALUE) return "—";
+        if (db >= 0) return db < 3 ? "S9" : "S9+" + (int) (Math.round(db / 10.0) * 10);
+        int s = (int) Math.max(0, Math.min(9, 9 + Math.floor(db / 6.0)));   // 6 dB per S-unit below S9
+        return "S" + s;
     }
 }

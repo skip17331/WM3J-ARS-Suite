@@ -1,7 +1,6 @@
 package com.ars.fx.shell;
 
 import com.ars.fx.data.HubConfig;
-import com.ars.fx.data.RigClient;
 import com.ars.fx.data.RotorClient;
 import com.ars.fx.data.SolarData;
 import com.ars.fx.data.SunImageService;
@@ -167,6 +166,9 @@ public final class Shell {
             top.getChildren().add(cell);
         }
         top.getChildren().add(hsp());
+        // canonical rig panel: drops down from this top-right button (replaces the rail rig drawer)
+        Label rig = rigButton(); HBox.setMargin(rig, new Insets(0, 14, 0, 0));
+        top.getChildren().add(rig);
         // per-module theme: shows the module's current scheme, cycles just this module on click
         Label theme = lbl("◑ " + com.ars.fx.Themes.effective(hue).label(), "sx-theme"); theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
@@ -247,31 +249,39 @@ public final class Shell {
     /** Station-ID timer drawer — the first standard drawer on every operating module. */
     public static Node idDrawer() { return com.ars.fx.shell.IdTimer.drawer(); }
 
-    /** Lead drawers shown first on every operating module, in order: Station ID, Rig control, Rotor control. */
-    public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), rigControlDrawer(), rotorControlDrawer(az)); }
+    /** Lead drawers shown first on every operating module: Station ID, Rotor control.
+     *  Rig control is no longer a rail drawer — it drops down from the top-bar RIG button
+     *  ({@link #rigButton()} / {@link RigPanel}). */
+    public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), rotorControlDrawer(az)); }
 
-    /** Live rig-control drawer: frequency + mode + status + a band keypad. Shared across modules. */
-    public static Node rigControlDrawer() {
-        StackPane holder = new StackPane(); holder.setAlignment(Pos.TOP_LEFT);
-        java.util.function.Consumer<RigClient.State> render = st -> {
-            boolean live = st != null && st.connected();
-            String freq = live && st.freqHz() > 0 ? RigClient.fmtFreq(st.freqHz()) : "—.—.—";
-            String mode = live && st.mode() != null && !st.mode().isBlank() ? st.mode() : "—";
-            HBox big = new HBox(8, lbl(freq, "sx-ro-head"), lbl("MHz", "sx-ro-dir")); big.setAlignment(Pos.BOTTOM_LEFT);
-            GridPane bands = new GridPane(); bands.setHgap(5); bands.setVgap(5);
-            for (int col = 0; col < 5; col++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(20); bands.getColumnConstraints().add(cc); }
-            int i = 0; for (String b : Mock.RIG_BANDS) {
-                Label bl = btn(b + "m", "sx-ro-preset"); GridPane.setHgrow(bl, Priority.ALWAYS); bl.setMaxWidth(Double.MAX_VALUE);
-                bl.setStyle("-fx-cursor:hand;"); bl.setOnMouseClicked(e -> RigClient.getInstance().setBand(b));
-                bands.add(bl, i % 5, i / 5); i++;
-            }
-            holder.getChildren().setAll(new VBox(10, big, kv("Mode", mode, false),
-                    kv("Status", live ? "rigctld · live" : "rigctld offline", live), bands));
-        };
-        render.accept(RigClient.getInstance().last());
-        RigClient.getInstance().setListener(s -> javafx.application.Platform.runLater(() -> render.accept(s)));
-        RigClient.getInstance().start();
-        return drawer("Rig control", "bridge", "bridge", "", false, new VBox(holder));
+    /** Top-right RIG button that toggles the canonical {@link RigPanel} drop-down. Shared by
+     *  the module top bar ({@link #topBar}) and the J-Hub dashboard bar. */
+    public static Label rigButton() {
+        Label b = lbl("⏚ RIG", "sx-rigbtn"); b.setStyle("-fx-cursor:hand;");
+        b.setOnMouseClicked(e -> toggleRigOverlay(b));
+        return b;
+    }
+
+    private static final String RIG_OVERLAY_ID = "rig-overlay";
+    /** Show (or hide, if already open) the rig panel as a top-right drop-down over the current surface. */
+    public static void toggleRigOverlay(Node source) {
+        javafx.scene.Scene sc = source == null ? null : source.getScene();
+        if (sc == null || !(sc.getRoot() instanceof Pane root)) return;
+        for (Node n : new ArrayList<>(root.getChildrenUnmodifiable()))
+            if (RIG_OVERLAY_ID.equals(n.getId())) { root.getChildren().remove(n); return; }   // toggle off
+
+        Region panel = RigPanel.build(() -> root.getChildren().removeIf(n -> RIG_OVERLAY_ID.equals(n.getId())));
+        ScrollPane sp = new ScrollPane(panel); sp.getStyleClass().add("rig-overlay-scroll");
+        sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.setMinWidth(RigPanel.WIDTH + 2); sp.setMaxWidth(RigPanel.WIDTH + 2);
+        sp.maxHeightProperty().bind(root.heightProperty().subtract(72));
+
+        StackPane veil = new StackPane(sp); veil.setId(RIG_OVERLAY_ID);
+        veil.setStyle("-fx-background-color: transparent;"); veil.setPickOnBounds(true);
+        veil.prefWidthProperty().bind(root.widthProperty()); veil.prefHeightProperty().bind(root.heightProperty());
+        StackPane.setAlignment(sp, Pos.TOP_RIGHT); StackPane.setMargin(sp, new Insets(58, 12, 0, 0));
+        veil.setOnMouseClicked(e -> { if (e.getTarget() == veil) root.getChildren().remove(veil); });   // click-outside dismiss
+        root.getChildren().add(veil);
     }
 
     /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */

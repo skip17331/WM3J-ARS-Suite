@@ -664,3 +664,86 @@
 .picker-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; -fx-cursor: hand; }
 .picker-btn:hover { -fx-background-color: -ars-surface-3; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
 .picker-btn.on { -fx-background-color: -ars-accent; -fx-text-fill: -ars-accent-text; -fx-border-color: -ars-accent; }
+
+/* =========================================================================
+   Rig Control panel — canonical drop-down (outer drawer + 3 sub-drawers)
+   ========================================================================= */
+.rig-panel { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 11; -fx-border-radius: 11; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 22, 0, 0, 6); }
+
+/* header */
+.rig-head   { -fx-padding: 11 12 11 12; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.rig-h-title { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.rig-h-status { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t3; }
+.rig-dot    { -fx-min-width: 8; -fx-pref-width: 8; -fx-max-width: 8; -fx-min-height: 8; -fx-pref-height: 8; -fx-background-radius: 4; -fx-background-color: -ars-idle; }
+.rig-dot.on { -fx-background-color: -ars-ok; -fx-effect: dropshadow(gaussian, -ars-ok, 7, 0.3, 0, 0); }
+.rig-x      { -fx-font-size: 12px; -fx-text-fill: -ars-t3; -fx-padding: 0 0 0 4; }
+.rig-x:hover { -fx-text-fill: -ars-t1; }
+
+/* meters strip */
+.rig-meters { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.rig-s-k    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rig-s-read { -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-min-width: 46; -fx-alignment: center-right; }
+.rig-seg    { -fx-min-height: 11; -fx-pref-height: 11; -fx-background-color: -ars-surface-3; -fx-background-radius: 2; }
+.rig-seg.on   { -fx-background-color: -ars-ok; }
+.rig-seg.hi.on { -fx-background-color: -ars-err; }
+.rig-bar-k  { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rig-bar-track { -fx-background-color: -ars-surface-3; -fx-background-radius: 3; -fx-min-height: 6; -fx-pref-height: 6; -fx-max-height: 6; }
+.rig-bar-fill  { -fx-background-radius: 3; -fx-min-height: 6; -fx-pref-height: 6; -fx-max-height: 6; }
+.rig-bar-fill.ok     { -fx-background-color: -ars-ok; }
+.rig-bar-fill.warn   { -fx-background-color: -ars-warn; }
+.rig-bar-fill.accent { -fx-background-color: -ars-accent; }
+.rig-bar-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+
+/* frequency pane */
+.rig-freq   { -fx-padding: 12 13 12 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.rig-freq-field { -fx-font-family: "JetBrains Mono"; -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: -ars-t1;
+                  -fx-background-color: -ars-surface-3; -fx-background-radius: 7; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-border-radius: 7;
+                  -fx-padding: 4 6 4 6; -fx-prompt-text-fill: -ars-t4; }
+.rig-freq-field:focused { -fx-border-color: -ars-accent; -fx-background-color: -ars-surface-2; }
+.rig-freq-unit  { -fx-font-size: 10px; -fx-text-fill: -ars-t3; }
+.rig-mode-chip  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-accent;
+                  -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-border-width: 1; -fx-background-radius: 4; -fx-border-radius: 4; -fx-padding: 1 7 1 7; }
+.rig-step   { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1;
+              -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; -fx-alignment: center; }
+.rig-step:hover  { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
+.rig-step:pressed { -fx-background-color: -ars-accent; -fx-text-fill: -ars-accent-text; -fx-border-color: -ars-accent; }
+.rig-step-k { -fx-font-size: 8px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; }
+.rig-vfo    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3;
+              -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 0 6 0; }
+.rig-vfo:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
+.rig-vfo.on { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+
+/* pinned footer */
+.rig-foot   { -fx-padding: 11 13 11 13; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.rig-foot-btn { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1;
+                -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 9 0 9 0; }
+.rig-foot-btn:hover { -fx-background-color: -ars-surface-4; -fx-border-color: -ars-border-glow; }
+.rig-foot-btn.on    { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.rig-foot-btn.ptt   { -fx-text-fill: -ars-t1; -fx-border-color: -ars-err-line; }
+.rig-foot-btn.ptt.tx { -fx-background-color: -ars-err; -fx-text-fill: white; -fx-border-color: -ars-err; -fx-effect: dropshadow(gaussian, -ars-err, 9, 0.3, 0, 0); }
+
+/* nested sub-drawers */
+.rig-sub      { -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }
+.rig-sub-head { -fx-padding: 10 13 10 13; -fx-cursor: hand; -fx-alignment: center-left; }
+.rig-sub-head:hover { -fx-background-color: -ars-surface-2; }
+.rig-sub-ic   { -fx-min-width: 22; -fx-pref-width: 22; -fx-max-width: 22; -fx-min-height: 22; -fx-pref-height: 22; -fx-background-radius: 6; -fx-alignment: center; }
+.rig-sub-t    { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.rig-sub-sum  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10.5px; -fx-text-fill: -ars-t2; }
+.rig-sub-cv   { -fx-text-fill: -ars-t4; }
+.rig-sub-body { -fx-padding: 4 13 13 13; }
+.rig-sec-k    { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rig-key      { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3;
+                -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 7 2 7 2; }
+.rig-key:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border-glow; }
+.rig-key.on   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
+.rig-lvl-k    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.rig-lvl-v    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.rig-slider .track { -fx-background-color: -ars-surface-3; -fx-background-radius: 3; -fx-pref-height: 4; }
+.rig-slider .thumb { -fx-background-color: -ars-accent; -fx-background-radius: 8; -fx-pref-width: 13; -fx-pref-height: 13; }
+
+/* top-bar RIG button + drop-down overlay container */
+.sx-rigbtn { -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: -ars-bridge; -fx-background-color: -ars-surface-2;
+             -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 5 11 5 11; }
+.sx-rigbtn:hover { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-glow; -fx-text-fill: -ars-t1; }
+.rig-overlay-scroll, .rig-overlay-scroll > .viewport { -fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0; }
+.rig-overlay-scroll { -fx-border-color: transparent; }
