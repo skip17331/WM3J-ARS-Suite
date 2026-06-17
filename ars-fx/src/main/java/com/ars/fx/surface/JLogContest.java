@@ -57,22 +57,49 @@ public final class JLogContest {
         ContestPlugin plugin = ContestState.plugin();
         if (plugin == null) return ContestPicker.build();   // no contest chosen yet → chooser
 
+        ContestState.clearListeners();   // before building panes that self-register as listeners
+
         Region dock = Shell.dock("log");
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
 
-        VBox center = new VBox(0, toolbar(plugin), entryPane(plugin));
+        VBox center = new VBox(12, toolbar(plugin), entryPane(plugin));
+        Region strip = trackerStrip(plugin);
+        if (strip != null) center.getChildren().add(strip);
+        center.getChildren().add(recentLogPane());
         ScrollPane sp = new ScrollPane(center); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
 
-        Region rail = Shell.rail(Shell.leadDrawers(0).toArray(new Node[0]));
+        List<Node> railNodes = new ArrayList<>(Shell.leadDrawers(0));
+        railNodes.addAll(com.ars.fx.surface.contest.TrackerFactory.columnPanes(plugin));
+        Region rail = Shell.rail(railNodes.toArray(new Node[0]));
         host = new StackPane((Region) Shell.frame(dock, top, sp, rail));
 
-        // live score readout: register a listener that updates the topbar stats
-        ContestState.clearListeners();
         ContestState.addListener(() -> Platform.runLater(JLogContest::refreshScoreStats));
         ContestState.recompute();
         startTicker();
         return host;
+    }
+
+    // ---- tracker strip (row-placement multiplier panes) -------------------
+    private static Region trackerStrip(ContestPlugin plugin) {
+        List<Region> panes = com.ars.fx.surface.contest.TrackerFactory.rowPanes(plugin);
+        if (panes.isEmpty()) return null;
+        HBox strip = new HBox(12); strip.setAlignment(Pos.TOP_LEFT); strip.getChildren().addAll(panes);
+        strip.setPadding(new Insets(0, 18, 4, 18));
+        ScrollPane sp = new ScrollPane(strip); sp.setFitToHeight(true);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setStyle("-fx-background-color:transparent;");
+        sp.setMinHeight(130); sp.setPrefHeight(150); sp.setMaxHeight(220);
+        return sp;
+    }
+
+    // ---- recent contest-log pane (refreshed on every score recompute) -----
+    private static VBox recentLogPane() {
+        Label lh = lbl("☰  Recent contest log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
+        VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
+        fillLog(tbl);
+        ContestState.addListener(() -> Platform.runLater(() -> fillLog(tbl)));
+        VBox v = new VBox(6, lh, tbl); v.setMaxWidth(1100); v.setPadding(new Insets(0, 18, 18, 18));
+        return v;
     }
 
     // ---- top toolbar: contest name + pick / normal / export ----------------
@@ -139,13 +166,7 @@ public final class JLogContest {
         HBox actions = new HBox(12, b4, gap, clear, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
 
-        // recent contest-log table
-        Label lh = lbl("☰  Recent contest log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
-        VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
-        Runnable refresh = () -> fillLog(tbl);
-        refresh.run();
-
-        Runnable doLog = () -> { if (logQso(plugin)) { refresh.run(); clearForm(); } };
+        Runnable doLog = () -> { if (logQso(plugin)) clearForm(); };   // recompute → listeners refresh log + trackers
         logBtn.setOnMouseClicked(e -> doLog.run());
         clear.setOnMouseClicked(e -> clearForm());
 
@@ -156,8 +177,8 @@ public final class JLogContest {
             cf.focusedProperty().addListener((o, was, now) -> { if (!now) updateDupe(plugin); });
         }
 
-        VBox wrap = new VBox(10, body, new VBox(6, lh, tbl)); wrap.setMaxWidth(1100);
-        return wrap;
+        body.setMaxWidth(1100);
+        return body;
     }
 
     private static HBox wrapRow(String tag, List<Node> cells) {
