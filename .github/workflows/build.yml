@@ -32,8 +32,11 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # j-log-engine is the shared library — every other module depends on it
-      # via the local .m2 repository, so it has to be installed first.
+      # j-log-common + j-log-engine are the shared libraries — every other module
+      # depends on them via the local .m2 repository, so they install first
+      # (engine depends on common, so common goes first).
+      - name: Build j-log-common (shared library)
+        run: mvn -B -DskipTests -f j-log-common/pom.xml install
       - name: Build j-log-engine (shared library)
         run: mvn -B -DskipTests -f j-log-engine/pom.xml install
 

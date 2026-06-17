@@ -189,7 +189,7 @@ public class MainWindow {
 
         Button reportBtn = toolBtn("🐛 Report Issue");
         reportBtn.setTooltip(new Tooltip(I18n.get("tooltip.report")));
-        reportBtn.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
+        reportBtn.setOnAction(e -> com.jlog.support.IssueReporter.openGitHubIssue(
             "j-bridge", "1.5.0",
             System.getProperty("user.home", "") + "/.hamlog/logs/j-bridge.log"));
 

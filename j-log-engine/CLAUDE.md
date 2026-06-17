@@ -17,14 +17,25 @@ This installs `j-log-engine-1.0.0.jar` to the local Maven repo. **Must be built 
 | Package | Responsibility |
 |---------|---------------|
 | `com.jlog.db` | DatabaseManager, QsoDao, ContestQsoDao, MacroDao — SQLite in `~/.j-log/` |
-| `com.jlog.civ` | CivEngine, CivConfig — Icom CI-V over serial (JSSC) |
 | `com.jlog.cluster` | HubEngine, HubDiscoveryListener — WebSocket client to j-hub |
-| `com.jlog.model` | DxSpot, QsoRecord, Macro, StationInfo — shared data objects |
 | `com.jlog.plugin` | PluginLoader, ContestPlugin — JSON contest definitions |
-| `com.jlog.bandplan` | Bandplan, BandRange, BandSegment, Activity, BandplanLoader — shared IARU R1/R2/R3 + per-country overlay lookup (j-digi/j-bridge/j-map consumers) |
+| `com.jlog.scoring` | ContestScorer, DxccResolver, distance scoring |
 | `com.jlog.export` | AdifExporter, CabrilloExporter, AdifImporter, ColoniesLogSheetPdf |
-| `com.jlog.util` | LoggingConfigurator, AppConfig, QrzLookup |
-| `com.jlog.i18n` | I18n — resource bundle loader |
+| `com.jlog.award` | award trackers (JSON-backed) |
+| `com.jlog.util` | LoggingConfigurator, AppConfig, QrzLookup, MacroVariableEngine, Maidenhead |
+
+## What's in j-log-common (not here)
+
+The DB-free primitives were split into the sibling **`j-log-common`** module
+(`com.jlog.common`) so non-logging consumers (j-bridge needs only the bandplan)
+don't drag in SQLite/scoring/plugins/PDFBox. The engine `requires transitive
+com.jlog.common`, so engine consumers still see these through us unchanged:
+
+- `com.jlog.model` — DxSpot, QsoRecord, Macro, StationInfo
+- `com.jlog.bandplan` — BandplanLoader + IARU R1/R2/R3 / per-country overlay
+- `com.jlog.civ` — CivEngine, CivConfig (Icom CI-V over serial, JSSC)
+- `com.jlog.i18n` — I18n resource-bundle loader
+- `com.jlog.support` — IssueReporter (GitHub-issue browser launcher)
 
 ## What's NOT Here
 
@@ -34,9 +45,10 @@ This installs `j-log-engine-1.0.0.jar` to the local Maven repo. **Must be built 
 
 ## Module
 
-JPMS named module: `com.jlog.engine`
+JPMS named module: `com.jlog.engine` (requires transitive `com.jlog.common`).
 
 Consumers that use JPMS must `requires com.jlog.engine` in their `module-info.java`.
+**Build order:** `j-log-common` must be installed before `j-log-engine`.
 Consumers that don't use JPMS (j-digi, j-bridge) simply add the Maven dependency.
 
 ## Data Storage

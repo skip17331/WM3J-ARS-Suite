@@ -1,4 +1,4 @@
-package com.jlog.util;
+package com.jlog.support;
 
 import java.awt.Desktop;
 import java.net.URI;

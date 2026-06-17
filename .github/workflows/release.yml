@@ -42,15 +42,17 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Gate the release on green tests. j-log-engine is installed first (its
-      # consumers resolve it from the local .m2), then every test-bearing module
-      # is exercised. installer has no tests, so it's excluded.
+      # Gate the release on green tests. j-log-common then j-log-engine are
+      # installed first (consumers resolve them from the local .m2; engine
+      # depends on common), then every test-bearing module is exercised.
+      # installer has no tests, so it's excluded.
       - name: Run full test suite
         shell: bash
         run: |
           set -e
+          mvn -B -q -DskipTests -f j-log-common/pom.xml install
           mvn -B -q -DskipTests -f j-log-engine/pom.xml install
-          for m in j-log-engine j-hub j-log j-map j-digi j-bridge j-sat morse-trainer j-learn j-vault; do
+          for m in j-log-common j-log-engine j-hub j-log j-map j-digi j-bridge j-sat morse-trainer j-learn j-vault; do
             echo "::group::test $m"
             mvn -B -f "$m/pom.xml" test
             echo "::endgroup::"

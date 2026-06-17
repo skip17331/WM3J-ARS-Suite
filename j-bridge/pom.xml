@@ -30,10 +30,12 @@
     </properties>
 
     <dependencies>
-        <!-- j-log engine (QSO DB, CI-V, hub client, models) -->
+        <!-- j-log common — bandplan caption only (StatusPanels.setFrequency).
+             j-bridge writes no QSOs, so it depends on the DB-free common module
+             instead of the whole engine (no SQLite/scoring/plugins/PDFBox). -->
         <dependency>
             <groupId>com.jlog</groupId>
-            <artifactId>j-log-engine</artifactId>
+            <artifactId>j-log-common</artifactId>
             <version>1.5.2</version>
         </dependency>
 

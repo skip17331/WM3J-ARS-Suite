@@ -73,7 +73,8 @@ j-log's HubDiscoveryListener.
 `com.jlog.bandplan.BandplanLoader` and appends the segment description
 (e.g. `14.074 MHz   DATA — Digimodes / FT8 14074 (IARU-R2)`) so the
 operator immediately sees what kind of activity belongs at that
-frequency. Shared library lives in j-log-engine. Region/country come
+frequency. Shared library lives in j-log-common (j-bridge depends on
+that DB-free module, not the whole engine). Region/country come
 from j-hub's Station settings (Regional Settings card) — delivered via
 `JHUB_WELCOME` and live `STATION_CONFIG` broadcasts, then mirrored into
 `j-bridge-config.json` under `"operator": {"region", "country"}` for

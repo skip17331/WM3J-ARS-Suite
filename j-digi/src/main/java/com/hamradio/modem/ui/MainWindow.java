@@ -277,7 +277,7 @@ public class MainWindow {
         MenuItem learnItem = new MenuItem(I18n.get("menu.help.learn"));
         learnItem.setOnAction(e -> openJLearn());
         MenuItem reportItem = new MenuItem(I18n.get("menu.help.report"));
-        reportItem.setOnAction(e -> com.jlog.util.IssueReporter.openGitHubIssue(
+        reportItem.setOnAction(e -> com.jlog.support.IssueReporter.openGitHubIssue(
             "j-digi", com.hamradio.modem.ModemMain.version(),
             System.getProperty("user.home", "") + "/ARS_Suite/j-digi/logs/j-digi.log"));
         helpMenu.getItems().addAll(learnItem, new SeparatorMenuItem(), reportItem);

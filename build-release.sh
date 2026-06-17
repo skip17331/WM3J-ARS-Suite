@@ -91,6 +91,7 @@ verify_host_jars() {
 # Rebuild just the host-arch bare jars (default OS-activated profile). The quick fix.
 restore_host_jars() {
   echo "==> Restoring host-arch bare jars for JavaFX modules"
+  ( cd j-log-common && $MVN clean install )   # engine + j-bridge depend on it in .m2
   ( cd j-log-engine && $MVN clean install )   # j-log/j-digi depend on it in .m2
   local m
   for m in "${JAVAFX_MODULES[@]}"; do
@@ -125,7 +126,8 @@ full_release() {
   echo "==> Clean dist/"
   rm -rf "$DIST"; mkdir -p "$DIST"
 
-  echo "==> Installing shared library j-log-engine to local repo"
+  echo "==> Installing shared libraries j-log-common + j-log-engine to local repo"
+  ( cd j-log-common && $MVN clean install )   # engine depends on common
   ( cd j-log-engine && $MVN clean install )
 
   local m jar base
