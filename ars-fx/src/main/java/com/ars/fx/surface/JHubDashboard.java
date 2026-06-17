@@ -545,6 +545,7 @@ public final class JHubDashboard {
                 Shell.drawer("Rig control", "bridge", "bridge", "", true, rigBody()),
                 Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
+                Shell.propagationDrawer(),
                 Shell.solarSpaceWeatherDrawer(),
                 Shell.bandConditionsDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);

@@ -254,24 +254,6 @@ public final class Shell {
         RotorClient.getInstance().start();
         VBox rotorBody = new VBox(roHolder);
 
-        // Propagation (live HamQSL)
-        SolarData.getInstance().start();
-        SolarData.Snapshot sd = SolarData.getInstance().snapshot();
-        VBox prop;
-        if (sd == null) {
-            prop = new VBox(kv("Solar / space weather", "loading HamQSL…", false));
-        } else {
-            double muf = SolarData.mufMhz(sd), fot = SolarData.fotMhz(sd);
-            String mufStr = Double.isNaN(muf) ? "unavailable" : String.format("%.1f MHz", muf);
-            String fotStr = Double.isNaN(fot) ? "—" : String.format("%.1f MHz", fot);
-            prop = new VBox(kv("Best band (day)", bestBand(sd), true),
-                       kv("MUF (3000 km)", mufStr, !Double.isNaN(muf)),
-                       kv("FOT", fotStr, !Double.isNaN(fot)),
-                       kv("Geomagnetic", SolarData.geomag(sd.kIndex()) + " · K" + nz(sd.kIndex()), "quiet".equals(SolarData.geomag(sd.kIndex()))),
-                       kv("Aurora", SolarData.auroraDesc(sd.aurora()), "quiet".equals(SolarData.auroraDesc(sd.aurora()))),
-                       kv("Solar wind", nz(sd.solarWind()) + " km/s", false));
-        }
-
         // Weather (live Open-Meteo at the station location)
         WeatherData.getInstance().start();
         WeatherData.Snapshot w = WeatherData.getInstance().snapshot();
@@ -289,11 +271,30 @@ public final class Shell {
 
         return List.of(
             drawer("Antenna · Rotor","sat","sat", az3+"° "+dir, false, rotorBody),
-            drawer("Propagation","map","map", sd == null ? "loading…" : bestBand(sd), false, prop),
+            propagationDrawer(),
             solarSpaceWeatherDrawer(),
             bandConditionsDrawer(),
             drawer("Weather · " + grid,"bridge","bridge", wxSum, false, wxBody));
     }
+    /** "Propagation": best band, MUF / FOT, geomagnetic, aurora, solar wind (shared so same-named drawers match). */
+    public static Node propagationDrawer() {
+        SolarData.getInstance().start();
+        SolarData.Snapshot sd = SolarData.getInstance().snapshot();
+        return drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, propagationBody(sd));
+    }
+    private static VBox propagationBody(SolarData.Snapshot sd) {
+        if (sd == null) return new VBox(kv("Solar / space weather", "loading HamQSL…", false));
+        double muf = SolarData.mufMhz(sd), fot = SolarData.fotMhz(sd);
+        String mufStr = Double.isNaN(muf) ? "unavailable" : String.format("%.1f MHz", muf);
+        String fotStr = Double.isNaN(fot) ? "—" : String.format("%.1f MHz", fot);
+        return new VBox(kv("Best band (day)", bestBand(sd), true),
+                   kv("MUF (3000 km)", mufStr, !Double.isNaN(muf)),
+                   kv("FOT", fotStr, !Double.isNaN(fot)),
+                   kv("Geomagnetic", SolarData.geomag(sd.kIndex()) + " · K" + nz(sd.kIndex()), "quiet".equals(SolarData.geomag(sd.kIndex()))),
+                   kv("Aurora", SolarData.auroraDesc(sd.aurora()), "quiet".equals(SolarData.auroraDesc(sd.aurora()))),
+                   kv("Solar wind", nz(sd.solarWind()) + " km/s", false));
+    }
+
     /** Highest band group rated Good for daytime, from the HamQSL conditions. */
     private static String bestBand(SolarData.Snapshot s) {
         if (s == null || s.bands().isEmpty()) return "—";
