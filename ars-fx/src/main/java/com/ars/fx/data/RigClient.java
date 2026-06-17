@@ -47,10 +47,19 @@ public final class RigClient {
     }
     public static Long bandHz(String band) { return BAND_HZ.get(band); }
 
-    /** Immutable rig snapshot. Unknown numerics use sentinel values. */
-    public record State(boolean connected, long freqHz, String mode, String vfo,
-                        int sMeterDb, double swr, double rfPowerFrac, String error) {
-        public static final State OFFLINE = new State(false, 0, "", "", Integer.MIN_VALUE, -1, -1, "");
+    /** Immutable rig snapshot. Unknown numerics use sentinel values; {@code levels}/{@code funcs}
+     *  hold whatever the rig reported this poll (RFPOWER/AF/RF/MICGAIN/SQL/NR/PREAMP/ATT/AGC and
+     *  NB/ANF/NR/VOX/LOCK/TUNER/COMP) — absent keys mean the rig didn't answer. */
+    public record State(boolean connected, long freqHz, String mode, String vfo, long vfoBHz, boolean split, boolean ptt,
+                        long passbandHz, int sMeterDb, double swr, double alc, double rfPowerFrac,
+                        java.util.Map<String,Double> levels, java.util.Map<String,Boolean> funcs, String error) {
+        public static final State OFFLINE = new State(false, 0, "", "", 0, false, false, 0,
+                Integer.MIN_VALUE, -1, -1, -1, java.util.Map.of(), java.util.Map.of(), "");
+        /** A reported level (0..1, or rig units for AGC/PREAMP/ATT), or NaN if unknown. */
+        public double level(String k) { Double v = levels == null ? null : levels.get(k); return v == null ? Double.NaN : v; }
+        /** A reported function on/off, false if unknown. */
+        public boolean func(String k) { return funcs != null && Boolean.TRUE.equals(funcs.get(k)); }
+        public boolean has(String k) { return funcs != null && funcs.containsKey(k); }
     }
 
     // rigctld endpoint: -Drig.host/-Drig.port override, else HubConfig (rig.port is the *serial* device), else default
@@ -98,30 +107,55 @@ public final class RigClient {
             try { pollOnce(); }
             catch (Exception e) {
                 closeSocket();
-                emit(new State(false, 0, "", "", Integer.MIN_VALUE, -1, -1, e.getMessage() == null ? "offline" : e.getMessage()));
+                emit(new State(false, 0, "", "", 0, false, false, 0, Integer.MIN_VALUE, -1, -1, -1,
+                        java.util.Map.of(), java.util.Map.of(), e.getMessage() == null ? "offline" : e.getMessage()));
             }
             try { Thread.sleep(POLL_MS); } catch (InterruptedException ie) { return; }
         }
     }
 
+    // levels/funcs read on the slow cadence (every SLOW_EVERY-th poll) — they change rarely
+    private static final String[] LEVEL_NAMES = {"AF","RF","RFPOWER","MICGAIN","SQL","NR","PREAMP","ATT","AGC","COMP"};
+    private static final String[] FUNC_NAMES  = {"NB","ANF","NR","VOX","LOCK","TUNER","COMP"};
+    private static final int SLOW_EVERY = 4;
+    private int cycle = 0;
+    private volatile java.util.Map<String,Double> slowLevels = java.util.Map.of();
+    private volatile java.util.Map<String,Boolean> slowFuncs = java.util.Map.of();
+    private volatile boolean slowSplit = false;
+
     private void pollOnce() throws IOException {
-        long freq; String mode = ""; String vfo = "";
-        // Structural read — get_rig_info gives freq+mode+vfo in one round-trip;
+        long freq, pb = 0, vfoB = 0; String mode = "", vfo = "";
+        // Structural read — get_rig_info gives freq+mode+vfo+width (+VFO-B freq) in one round-trip;
         // fall back to f/m on older Hamlib that rejects it.
         try {
             String info = send("\\get_rig_info");
-            long[] fm = new long[]{0};
+            long[] fm = new long[]{0, 0, 0};
             String[] mv = parseRigInfo(info, fm);
-            freq = fm[0]; mode = mv[0]; vfo = mv[1];
+            freq = fm[0]; pb = fm[1]; vfoB = fm[2]; mode = mv[0]; vfo = mv[1];
         } catch (IOException rpt) {
             if (!isRprt(rpt)) throw rpt;
             freq = parseFreq(send("f"));
             mode = parseMode(send("m"));
         }
+        // every poll: the fast-moving meters + TX state
         int sMeter = optInt("\\get_level STRENGTH");
         double swr = optDouble("\\get_level SWR");
         double pwr = optDouble("\\get_level RFPOWER");
-        emit(new State(true, freq, mode, vfo, sMeter, swr, pwr, ""));
+        double alc = optDouble("\\get_level ALC");
+        boolean ptt = optBool("t");
+
+        // slow cadence: the level/func banks + split (rarely change; keep last between refreshes)
+        if (cycle % SLOW_EVERY == 0) {
+            java.util.Map<String,Double> lv = new java.util.LinkedHashMap<>();
+            for (String n : LEVEL_NAMES) { double v = optDouble("\\get_level " + n); if (v >= 0) lv.put(n, v); }
+            java.util.Map<String,Boolean> fn = new java.util.LinkedHashMap<>();
+            for (String n : FUNC_NAMES) { Boolean b = optBoolOrNull("\\get_func " + n); if (b != null) fn.put(n, b); }
+            slowLevels = lv; slowFuncs = fn; slowSplit = Boolean.TRUE.equals(parseBool(sendOpt("\\get_split_vfo")));
+        }
+        cycle++;
+        java.util.Map<String,Double> levels = new java.util.LinkedHashMap<>(slowLevels);
+        if (pwr >= 0) levels.put("RFPOWER", pwr);   // freshen the fast-read power
+        emit(new State(true, freq, mode, vfo, vfoB, slowSplit, ptt, pb, sMeter, swr, alc, pwr, levels, slowFuncs, ""));
     }
 
     // ── Commands (run on the poll thread to serialise socket access) ──────────
@@ -148,6 +182,8 @@ public final class RigClient {
     //    use the Hamlib short verbs (V/S/T/U/L). An unsupported verb just RPRTs. ──
     /** Select the active VFO (Hamlib {@code V}: "VFOA" / "VFOB"). */
     public void setVfo(String vfo)        { if (RemoteLink.isActive()) return; runCmd("V " + vfo); }
+    /** A momentary VFO operation (Hamlib {@code \\vfo_op}: "CPY" = A=B, "XCHG" = A/B swap, …). */
+    public void vfoOp(String op)          { if (RemoteLink.isActive()) return; runCmd("\\vfo_op " + op); }
     /** Enable/disable split (Hamlib {@code S}: on → TX on VFOB, off → VFOA). */
     public void setSplit(boolean on)      { if (RemoteLink.isActive()) return; runCmd(on ? "S 1 VFOB" : "S 0 VFOA"); }
     /** Key/unkey the transmitter (Hamlib {@code T}). */
@@ -173,6 +209,18 @@ public final class RigClient {
         try { return parseLevel(send(cmd)); }
         catch (IOException e) { return -1; }
     }
+    /** A get_ptt / get-style boolean — true iff the rig answered "1"; false on any error. */
+    private boolean optBool(String cmd) {
+        try { Boolean b = parseBool(send(cmd)); return Boolean.TRUE.equals(b); }
+        catch (IOException e) { return false; }
+    }
+    /** A get_func boolean — null when the rig doesn't support it (RPRT), so it isn't recorded. */
+    private Boolean optBoolOrNull(String cmd) {
+        try { return parseBool(send(cmd)); }
+        catch (IOException e) { return null; }
+    }
+    /** Send, returning "" on any error (for optional structural reads like get_split_vfo). */
+    private String sendOpt(String cmd) { try { return send(cmd); } catch (IOException e) { return ""; } }
 
     private void emit(State s) {
         last = s;
@@ -232,7 +280,7 @@ public final class RigClient {
         for (String raw : r.split("\n")) { String s = raw.trim(); if (!s.isEmpty() && !s.endsWith(":")) return s; }
         return "";
     }
-    /** Fills freqOut[0]; returns {mode, vfo}. */
+    /** Fills freqOut[0]=RX freq, [1]=passband width (Hz), [2]=VFO-B freq; returns {mode, vfo}. */
     private static String[] parseRigInfo(String body, long[] freqOut) {
         String mode = "", vfo = "";
         for (String raw : body.split("\n")) {
@@ -240,14 +288,31 @@ public final class RigClient {
             if (line.startsWith("VFO=")) {
                 Map<String,String> kv = new HashMap<>();
                 for (String tok : line.split("\\s+")) { int eq = tok.indexOf('='); if (eq > 0) kv.put(tok.substring(0, eq), tok.substring(eq + 1)); }
+                if (freqOut.length > 2 && "VFOB".equalsIgnoreCase(kv.get("VFO")))
+                    try { freqOut[2] = (long) Double.parseDouble(kv.getOrDefault("Freq", "0")); } catch (NumberFormatException ig) {}
                 if ("1".equals(kv.get("RX"))) {
                     try { freqOut[0] = (long) Double.parseDouble(kv.getOrDefault("Freq", "0")); } catch (NumberFormatException ig) {}
+                    if (freqOut.length > 1) try { freqOut[1] = (long) Double.parseDouble(kv.getOrDefault("Width", "0")); } catch (NumberFormatException ig) {}
                     mode = kv.getOrDefault("Mode", "");
                     vfo = kv.getOrDefault("VFO", "");
                 }
             }
         }
         return new String[]{mode, vfo};
+    }
+    /** A 0/1 status from a get_func / get_ptt / get_split_vfo reply ("1", "PTT: 1", "Split: 1");
+     *  null when no 0/1 token is present. */
+    private static Boolean parseBool(String body) {
+        Boolean result = null;
+        for (String raw : body.split("\n")) {
+            String s = raw.trim();
+            if (s.isEmpty() || s.regionMatches(true, 0, "get_", 0, 4)) continue;
+            if (s.contains(":")) s = s.substring(s.indexOf(':') + 1).trim();
+            String tok = s.isEmpty() ? "" : s.split("\\s+")[0];
+            if (tok.equals("1")) result = Boolean.TRUE;
+            else if (tok.equals("0")) result = Boolean.FALSE;
+        }
+        return result;
     }
     private static double parseLevel(String body) {
         double val = Double.NaN;

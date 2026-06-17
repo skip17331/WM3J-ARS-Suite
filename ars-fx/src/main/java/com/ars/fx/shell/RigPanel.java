@@ -149,38 +149,52 @@ public final class RigPanel {
         VBox sub1 = subdw("Band & Mode", bmSum, true, bmBody);
 
         // ── sub-drawer 2: Filter & Functions ────────────────────────────────
-        Pane pb = passband();
+        Region pbPass = new Region(); pbPass.getStyleClass().add("rc-pb-pass");
+        javafx.beans.property.DoubleProperty pbFrac = new SimpleDoubleProperty(0.42);
+        Pane pb = passband(pbPass, pbFrac);
+        Label bwVal = lbl("—", "rc-filt-v"), shiftVal = lbl("—", "rc-filt-v"), nrVal = lbl("—", "rc-filt-v"), notchVal = lbl("—", "rc-filt-v");
         GridPane filt = grid(4, 6);
-        String[][] filtTiles = {{"BW","2.4k"},{"Shift","+120"},{"NR","3"},{"Notch","Auto"}};
-        for (int i = 0; i < filtTiles.length; i++) filt.add(filtTile(filtTiles[i][0], filtTiles[i][1]), i, 0);
+        filt.add(filtTile("BW", bwVal), 0, 0); filt.add(filtTile("Shift", shiftVal), 1, 0);
+        filt.add(filtTile("NR", nrVal), 2, 0); filt.add(filtTile("Notch", notchVal), 3, 0);
         VBox filterSec = section("Filter · passband", new VBox(7, pb, filt));
+        Map<String,Label> fnBtns = new LinkedHashMap<>();
+        java.util.Set<String> fnLocal = new java.util.LinkedHashSet<>();   // local visual for funcs we can't read back
         GridPane fnGrid = grid(4, 5);
-        java.util.Set<String> funcsOn = new java.util.LinkedHashSet<>();
         for (int i = 0; i < FUNCS.length; i++) {
-            String fn = FUNCS[i]; Label l = fnTile(fn, FUNC_SUB[i]);
-            l.setOnMouseClicked(e -> { boolean on = !funcsOn.contains(fn); if (on) funcsOn.add(fn); else funcsOn.remove(fn); l.getStyleClass().remove("on"); if (on) l.getStyleClass().add("on"); rig.setFunc(catFunc(fn), on); });
+            String fn = FUNCS[i]; Label l = fnTile(fn, FUNC_SUB[i]); fnBtns.put(fn, l);
+            l.setOnMouseClicked(e -> {
+                boolean on = !l.getStyleClass().contains("on");
+                switch (fn) {
+                    case "SPLIT" -> rig.setSplit(on);
+                    case "VOX", "LOCK" -> rig.setFunc(fn, on);
+                    case "RIT", "XIT" -> { rig.setFunc(fn, on); toggleClass(l, on); fnLocal.remove(fn); if (on) fnLocal.add(fn); }
+                    case "A=B" -> rig.vfoOp("CPY");
+                    case "A/B" -> rig.vfoOp("XCHG");
+                    default -> { toggleClass(l, on); fnLocal.remove(fn); if (on) fnLocal.add(fn); }   // SPOT: local
+                }
+            });
             fnGrid.add(l, i % 4, i / 4);
-            if (fn.equals("SPLIT") || fn.equals("VOX")) { funcsOn.add(fn); l.getStyleClass().add("on"); }
         }
         VBox ffBody = new VBox(11, filterSec, section("Functions", fnGrid));
-        Label ffSum = lbl("2.4k · SPLIT", "rc-subdw-sum");
+        Label ffSum = lbl("—", "rc-subdw-sum");
         VBox sub2 = subdw("Filter & Functions", ffSum, false, ffBody);
 
         // ── sub-drawer 3: DSP & Levels ──────────────────────────────────────
+        Map<String,Label> dspHosts = new LinkedHashMap<>(), dspVals = new LinkedHashMap<>();
         GridPane dspGrid = grid(3, 5);
         for (int i = 0; i < DSP.length; i++) {
-            Label l = dspTile(DSP[i], DSP_VAL[i]);
-            l.setOnMouseClicked(e -> l.getStyleClass().remove("on"));   // toggle visual; CAT per-control later
-            if (!DSP_VAL[i].equals("off")) l.getStyleClass().add("on");
-            dspGrid.add(l, i % 3, i / 3);
+            Label v = lbl("—", "rc-dsp-v"); Label host = dspTile(DSP[i], v);
+            dspHosts.put(DSP[i], host); dspVals.put(DSP[i], v);
+            dspGrid.add(host, i % 3, i / 3);
         }
+        Map<String,Slider> sliders = new LinkedHashMap<>(); Map<String,Label> sliderVals = new LinkedHashMap<>();
         VBox levels = new VBox(9,
-                level(rig, "PWR", "RFPOWER", 0.62, "92 W"),
-                level(rig, "MIC", "MICGAIN", 0.48, "48"),
-                level(rig, "RF G", "RF", 0.80, "80"),
-                level(rig, "AF", "AF", 0.35, "35"));
+                level(rig, "PWR", "RFPOWER", sliders, sliderVals),
+                level(rig, "MIC", "MICGAIN", sliders, sliderVals),
+                level(rig, "RF G", "RF", sliders, sliderVals),
+                level(rig, "AF", "AF", sliders, sliderVals));
         VBox dspBody = new VBox(11, section("DSP & front end", dspGrid), section("Levels", levels));
-        Label dlSum = lbl("AGC-M · 92W", "rc-subdw-sum");
+        Label dlSum = lbl("—", "rc-subdw-sum");
         VBox sub3 = subdw("DSP & Levels", dlSum, false, dspBody);
 
         // ── scrolling middle ────────────────────────────────────────────────
@@ -190,13 +204,11 @@ public final class RigPanel {
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
         // ── footer (pinned) ─────────────────────────────────────────────────
-        boolean[] atu = {false};
         Label atuB = actBtn("ATU", "atu", null);
-        atuB.setOnMouseClicked(e -> { atu[0] = !atu[0]; rig.setFunc("TUNER", atu[0]); });
+        atuB.setOnMouseClicked(e -> rig.setFunc("TUNER", !atuB.getStyleClass().contains("on")));
         Label tuneB = actBtn("TUNE", "tune", rig::antTune);
-        boolean[] ptt = {false};
         Label pttB = actBtn("● PTT", "ptt", null);
-        pttB.setOnMouseClicked(e -> { ptt[0] = !ptt[0]; rig.setPtt(ptt[0]); pttB.getStyleClass().remove("tx"); if (ptt[0]) pttB.getStyleClass().add("tx"); });
+        pttB.setOnMouseClicked(e -> rig.setPtt(!pttB.getStyleClass().contains("tx")));
         GridPane foot = new GridPane(); foot.setHgap(8); foot.getStyleClass().add("rc-foot");
         double[] fw = {29, 29, 42};
         for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(fw[c]); foot.getColumnConstraints().add(cc); }
@@ -217,20 +229,61 @@ public final class RigPanel {
                 if (hz > 0) { fMhz.setText(String.valueOf(hz / 1_000_000)); fKhz.setText(String.format("%03d", (hz / 1000) % 1000)); fHz.setText(String.format("%03d", hz % 1000)); }
                 else { fMhz.setText("—"); fKhz.setText("—"); fHz.setText("—"); }
             }
-            vfoBLine.setText(live && st.vfo() != null && !st.vfo().isBlank() ? "B  " + (hz > 0 ? RigClient.fmtFreqFull(hz) : "—") + "  ·  RX" : "B  —");
+            boolean tx = live && st.ptt();
+            long bHz = live ? st.vfoBHz() : 0;
+            vfoBLine.setText(live ? "B  " + (bHz > 0 ? RigClient.fmtFreqFull(bHz) : "—") + "  ·  " + (st.split() ? "TX" : tx ? "TX" : "RX") : "B  —");
 
+            // meters
             int lit = live ? (int) Math.round(Math.max(0, Math.min(22, (st.sMeterDb() + 54.0) / 94.0 * 22))) : 0;
             for (int s = 0; s < seg.length; s++) { seg[s].getStyleClass().removeAll("lit", "hi"); if (s < lit) { seg[s].getStyleClass().add("lit"); if (s >= 15) seg[s].getStyleClass().add("hi"); } }
             sV.setText(live ? RigClient.sMeterText(st.sMeterDb()) : "—");
             swr.set(live && st.swr() >= 1 ? Math.min(1, (st.swr() - 1) / 2.0) : 0, live && st.swr() >= 1 ? String.format("%.1f:1", st.swr()) : "—");
             pwr.set(live && st.rfPowerFrac() >= 0 ? st.rfPowerFrac() : 0, live && st.rfPowerFrac() >= 0 ? Math.round(st.rfPowerFrac() * 100) + "W" : "—");
-            alc.set(0, "—");
+            double a = live ? st.alc() : -1; alc.set(a > 0 ? a : 0, a > 0 ? String.valueOf(Math.round(a * 100)) : "—");
 
+            // band + mode
             String band = live && hz > 0 ? bandOf(hz) : null;
             highlight(bandBtns, band);
             String mode = live && st.mode() != null && !st.mode().isBlank() ? st.mode() : null;
             highlight(modeBtns, mode == null ? null : uiMode(mode));
             bmSum.setText((band != null ? band : "—") + " · " + (mode != null ? uiMode(mode) : "—"));
+
+            // tx state: split tag, PTT, ATU
+            toggleClass(splitTag, live && st.split());
+            pttB.getStyleClass().remove("tx"); if (tx) pttB.getStyleClass().add("tx");
+            toggleClass(atuB, live && st.func("TUNER"));
+
+            // readable function toggles
+            toggleClass(fnBtns.get("SPLIT"), live && st.split());
+            toggleClass(fnBtns.get("VOX"), live && st.func("VOX"));
+            toggleClass(fnBtns.get("LOCK"), live && st.func("LOCK"));
+
+            // filter / passband
+            long pbHz = live ? st.passbandHz() : 0;
+            bwVal.setText(pbHz > 0 ? fmtBw(pbHz) : "—");
+            pbFrac.set(pbHz > 0 ? Math.max(0.08, Math.min(0.92, pbHz / 5000.0)) : 0.42);
+            nrVal.setText(live && st.func("NR") ? lvlInt(st, "NR", "on") : "off");
+            notchVal.setText(live && st.func("ANF") ? "auto" : "off");
+            shiftVal.setText("—");
+
+            // DSP grid
+            dspSet(dspHosts, dspVals, "AGC", live && st.level("AGC") > 0, live ? agcShort(st.level("AGC")) : "—");
+            dspSet(dspHosts, dspVals, "PRE", live && st.level("PREAMP") > 0, live && st.level("PREAMP") > 0 ? String.valueOf((int) st.level("PREAMP")) : "off");
+            dspSet(dspHosts, dspVals, "ATT", live && st.level("ATT") > 0, live && st.level("ATT") > 0 ? (int) st.level("ATT") + "" : "off");
+            dspSet(dspHosts, dspVals, "NB", live && st.func("NB"), live && st.func("NB") ? "on" : "off");
+            dspSet(dspHosts, dspVals, "NR", live && st.func("NR"), live && st.func("NR") ? lvlInt(st, "NR", "on") : "off");
+            dspSet(dspHosts, dspVals, "NOTCH", live && st.func("ANF"), live && st.func("ANF") ? "auto" : "off");
+
+            // level sliders (skip ones the user is dragging)
+            levelSet(sliders, sliderVals, "PWR", live ? st.level("RFPOWER") : Double.NaN, true);
+            levelSet(sliders, sliderVals, "MIC", live ? st.level("MICGAIN") : Double.NaN, false);
+            levelSet(sliders, sliderVals, "RF G", live ? st.level("RF") : Double.NaN, false);
+            levelSet(sliders, sliderVals, "AF", live ? st.level("AF") : Double.NaN, false);
+
+            // summaries
+            ffSum.setText((pbHz > 0 ? fmtBw(pbHz) : "—") + " · " + (live && st.split() ? "SPLIT" : live && st.func("VOX") ? "VOX" : "—"));
+            double pw = live ? st.level("RFPOWER") : Double.NaN;
+            dlSum.setText("AGC " + (live ? agcShort(st.level("AGC")) : "—") + " · " + (Double.isNaN(pw) ? "—" : Math.round(pw * 100) + "W"));
         };
         // subscribe; drop our listener when the panel leaves the scene (overlay closed)
         Consumer<RigClient.State> l = s -> Platform.runLater(() -> render.accept(s));
@@ -274,8 +327,8 @@ public final class RigPanel {
         if (action != null) b.setOnMouseClicked(e -> action.run());
         return b;
     }
-    private static VBox filtTile(String k, String v) {
-        VBox t = new VBox(2, lbl(k, "rc-filt-k"), lbl(v, "rc-filt-v")); t.setAlignment(Pos.CENTER); t.getStyleClass().add("rc-filt");
+    private static VBox filtTile(String k, Label vLabel) {
+        VBox t = new VBox(2, lbl(k, "rc-filt-k"), vLabel); t.setAlignment(Pos.CENTER); t.getStyleClass().add("rc-filt");
         GridPane.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE); t.setStyle("-fx-cursor:hand;");
         return t;
     }
@@ -287,35 +340,39 @@ public final class RigPanel {
         host.setMaxWidth(Double.MAX_VALUE); GridPane.setHgrow(host, Priority.ALWAYS); host.setStyle("-fx-cursor:hand;");
         return host;
     }
-    private static Label dspTile(String name, String value) {
+    private static Label dspTile(String name, Label vLabel) {
         Label n = lbl(name, "rc-dsp-n"); Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label v = lbl(value, "rc-dsp-v");
-        HBox row = new HBox(n, sp, v); row.setAlignment(Pos.CENTER_LEFT);
+        HBox row = new HBox(n, sp, vLabel); row.setAlignment(Pos.CENTER_LEFT);
         Label host = new Label(); host.setGraphic(row); host.getStyleClass().add("rc-dsp"); host.setMaxWidth(Double.MAX_VALUE);
         host.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
         GridPane.setHgrow(host, Priority.ALWAYS); host.setStyle("-fx-cursor:hand;");
-        // make the graphic fill the host width
         row.prefWidthProperty().bind(host.widthProperty().subtract(20));
         return host;
     }
-    private static HBox level(RigClient rig, String label, String catName, double frac, String valText) {
+    private static HBox level(RigClient rig, String label, String catName, Map<String,Slider> sliders, Map<String,Label> vals) {
         Label k = lbl(label, "rc-lvl-k"); k.setMinWidth(34);
-        Slider s = new Slider(frac, valText);
-        Label v = lbl(valText, "rc-lvl-v"); v.setMinWidth(44); v.setAlignment(Pos.CENTER_RIGHT);
-        s.node.setOnMouseReleased(e -> rig.setLevel(catName, s.frac.get()));
+        Slider s = new Slider();
+        Label v = lbl("—", "rc-lvl-v"); v.setMinWidth(44); v.setAlignment(Pos.CENTER_RIGHT);
+        s.onCommit = () -> rig.setLevel(catName, s.frac.get());
+        sliders.put(label, s); vals.put(label, v);
         HBox row = new HBox(10, k, s.node, v); row.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(s.node, Priority.ALWAYS);
         return row;
     }
-    private static Pane passband() {
+    /** Passband visualizer — carrier marker on the left with the passband block extending right,
+     *  width driven by {@code wfrac} (filter bandwidth fraction). */
+    private static Pane passband(Region pass, javafx.beans.property.DoubleProperty wfrac) {
         Pane pb = new Pane(); pb.getStyleClass().add("rc-pb"); pb.setMinHeight(30); pb.setPrefHeight(30); pb.setMaxHeight(30);
-        Region pass = new Region(); pass.getStyleClass().add("rc-pb-pass");
         Region carrier = new Region(); carrier.getStyleClass().add("rc-pb-carrier");
         pb.getChildren().addAll(pass, carrier);
-        pb.widthProperty().addListener((o, a, w) -> {
-            double W = w.doubleValue();
-            pass.setPrefSize(W * 0.42, 22); pass.setMinSize(W * 0.42, 22); pass.setMaxSize(W * 0.42, 22); pass.relocate(W * 0.30, 4);
-            carrier.setPrefSize(1.5, 30); carrier.setMinSize(1.5, 30); carrier.setMaxSize(1.5, 30); carrier.relocate(W * 0.30, 0);
-        });
+        Runnable lay = () -> {
+            double W = pb.getWidth(); if (W <= 0) return;
+            double cx = W * 0.28;
+            double passW = Math.max(8, Math.min(W * Math.max(0.08, Math.min(0.92, wfrac.get())), W - cx - W * 0.05));
+            pass.setPrefSize(passW, 22); pass.setMinSize(passW, 22); pass.setMaxSize(passW, 22); pass.relocate(cx, 4);
+            carrier.setPrefSize(1.5, 30); carrier.setMinSize(1.5, 30); carrier.setMaxSize(1.5, 30); carrier.relocate(cx, 0);
+        };
+        pb.widthProperty().addListener((o, a, w) -> lay.run());
+        wfrac.addListener((o, a, w) -> lay.run());
         return pb;
     }
 
@@ -349,12 +406,31 @@ public final class RigPanel {
     private static void highlight(Map<String,Label> btns, String on) {
         btns.forEach((k, v) -> { v.getStyleClass().remove("on"); if (k.equals(on)) v.getStyleClass().add("on"); });
     }
+    private static void toggleClass(javafx.scene.Node n, boolean on) { if (n == null) return; n.getStyleClass().remove("on"); if (on) n.getStyleClass().add("on"); }
+    private static void dspSet(Map<String,Label> hosts, Map<String,Label> vals, String key, boolean on, String val) {
+        toggleClass(hosts.get(key), on); Label v = vals.get(key); if (v != null) v.setText(val);
+    }
+    private static void levelSet(Map<String,Slider> sliders, Map<String,Label> vals, String key, double v, boolean watts) {
+        Slider s = sliders.get(key); Label vl = vals.get(key);
+        boolean ok = !Double.isNaN(v) && v >= 0;
+        if (s != null && ok && !s.held) s.frac.set(Math.max(0, Math.min(1, v)));
+        if (vl != null) vl.setText(ok ? (watts ? Math.round(v * 100) + " W" : String.valueOf(Math.round(v * 100))) : "—");
+    }
+    private static String fmtBw(long hz) { return hz >= 1000 ? String.format("%.1fk", hz / 1000.0) : hz + ""; }
+    private static String lvlInt(RigClient.State st, String level, String fallback) {
+        double v = st.level(level); if (Double.isNaN(v)) return fallback;
+        return String.valueOf((int) Math.round(v <= 1 ? v * 15 : v));
+    }
+    private static String agcShort(double agc) {
+        if (Double.isNaN(agc) || agc <= 0) return "off";
+        return switch ((int) Math.round(agc)) { case 1, 2 -> "FST"; case 3 -> "MID"; case 4 -> "SLW"; case 5 -> "AUT"; default -> "ON"; };
+    }
 
-    /** A thin track + accent fill + knob, fraction-driven. */
+    /** A thin track + accent fill + knob, fraction-driven; {@code held} is true while the user drags. */
     private static final class Slider {
-        final StackPane node; final SimpleDoubleProperty frac;
-        Slider(double f, String valText) {
-            frac = new SimpleDoubleProperty(f);
+        final StackPane node; final SimpleDoubleProperty frac = new SimpleDoubleProperty(0);
+        volatile boolean held; Runnable onCommit = () -> {};
+        Slider() {
             Region track = new Region(); track.getStyleClass().add("rc-lvl-track");
             Region fill = new Region(); fill.getStyleClass().add("rc-lvl-fill");
             Region knob = new Region(); knob.getStyleClass().add("rc-lvl-knob"); knob.setMinSize(13, 13); knob.setMaxSize(13, 13);
@@ -362,9 +438,11 @@ public final class RigPanel {
             fill.maxWidthProperty().bind(node.widthProperty().multiply(frac)); fill.minWidthProperty().bind(fill.maxWidthProperty()); fill.prefWidthProperty().bind(fill.maxWidthProperty());
             fill.setMaxHeight(5); fill.setMinHeight(5);
             StackPane.setMargin(knob, new Insets(0)); knob.translateXProperty().bind(node.widthProperty().multiply(frac).subtract(6.5));
-            node.setOnMouseClicked(e -> { double v = Math.max(0, Math.min(1, e.getX() / node.getWidth())); frac.set(v); });
-            node.setOnMouseDragged(e -> { double v = Math.max(0, Math.min(1, e.getX() / node.getWidth())); frac.set(v); });
+            node.setOnMousePressed(e -> { held = true; setFromX(e.getX()); });
+            node.setOnMouseDragged(e -> setFromX(e.getX()));
+            node.setOnMouseReleased(e -> { setFromX(e.getX()); held = false; onCommit.run(); });
         }
+        private void setFromX(double x) { frac.set(Math.max(0, Math.min(1, x / Math.max(1, node.getWidth())))); }
     }
 
     /** Fraction-driven mini-bar (S-strip SWR/PWR/ALC). */
