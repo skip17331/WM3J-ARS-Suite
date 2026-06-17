@@ -93,6 +93,35 @@ public final class ContestState {
         catch (Exception e) { return List.of(); }
     }
 
+    /**
+     * "Start fresh": export the current contest log to Cabrillo as a backup, then
+     * clear this contest's rows (raw two-table delete — the engine's
+     * deleteAllForContest references a non-existent contest_qtc.qso_id column).
+     */
+    public static void backupAndStartFresh() {
+        if (plugin == null) return;
+        // backup → Cabrillo
+        try {
+            ContestConfigBridge.syncStationToEngine();
+            java.nio.file.Path dir = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-log", "exports");
+            java.nio.file.Files.createDirectories(dir);
+            String ts = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+            com.jlog.export.CabrilloExporter.export(plugin,
+                    dir.resolve(plugin.getContestId() + "_" + ts + "_backup.cbr"));
+        } catch (Exception e) {
+            System.err.println("[contest] backup before clear failed: " + e.getMessage());
+        }
+        // clear this contest's rows
+        try {
+            java.sql.Connection c = com.jlog.db.DatabaseManager.getInstance().getContestConnection();
+            try (java.sql.PreparedStatement ps = c.prepareStatement("DELETE FROM contest_qtc WHERE contest_id=?")) { ps.setString(1, plugin.getContestId()); ps.executeUpdate(); }
+            try (java.sql.PreparedStatement ps = c.prepareStatement("DELETE FROM contest_qso WHERE contest_id=?")) { ps.setString(1, plugin.getContestId()); ps.executeUpdate(); }
+        } catch (Exception e) {
+            System.err.println("[contest] clear failed: " + e.getMessage());
+        }
+        recompute();
+    }
+
     /** Recompute the aggregate score from the contest log and notify listeners. */
     public static synchronized void recompute() {
         if (plugin == null) { score = ContestScore.of(0, 0, 0, 0); fire(); return; }

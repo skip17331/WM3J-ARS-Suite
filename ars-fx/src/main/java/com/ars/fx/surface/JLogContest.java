@@ -82,7 +82,24 @@ public final class JLogContest {
         SpotAction.setContestTarget(JLogContest::prefillSpot);
         SpotAction.Prefill queued = SpotAction.takePending();
         if (queued != null) prefillSpot(queued);
+
+        maybePromptDb(plugin);   // on entering a contest with existing QSOs: continue or start fresh
         return host;
+    }
+
+    // Prompt once per entry into a contest that already has QSOs.
+    private static String lastPromptedId = null;
+    private static void maybePromptDb(ContestPlugin plugin) {
+        String id = plugin.getContestId();
+        if (id.equals(lastPromptedId)) return;
+        lastPromptedId = id;
+        int n = ContestState.qsos().size();
+        if (n == 0) return;   // fresh contest — nothing to continue or clear
+        Platform.runLater(() -> Confirm.show(host, "Contest log · " + plugin.getContestName(),
+                "This contest already has " + n + " QSOs. Continue logging, or start fresh? Starting fresh "
+                        + "exports the current log to Cabrillo (a backup) first, then clears it.",
+                new Confirm.Choice("Continue", false, null),
+                new Confirm.Choice("Start fresh", true, () -> { ContestState.backupAndStartFresh(); Shell.navigate("logc"); })));
     }
 
     /** Fill the contest entry from a clicked DX spot (callsign + band/mode), then focus the call + run dupe. */
@@ -130,9 +147,15 @@ public final class JLogContest {
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
 
         Label pick = lbl("Change contest", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
-        pick.setOnMouseClicked(e -> { ContestState.setActive(null); Shell.navigate("logc"); });
+        pick.setOnMouseClicked(e -> Confirm.show(pick, "Change contest?",
+                "Pick a different contest? The current contest's QSOs stay logged.",
+                new Confirm.Choice("Cancel", false, null),
+                new Confirm.Choice("Change", true, () -> { lastPromptedId = null; ContestState.setActive(null); Shell.navigate("logc"); })));
         Label normal = lbl("Normal log", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
-        normal.setOnMouseClicked(e -> Shell.navigate("log"));
+        normal.setOnMouseClicked(e -> Confirm.show(normal, "Leave contest mode?",
+                "Switch back to normal logging? Your contest log is saved.",
+                new Confirm.Choice("Stay", false, null),
+                new Confirm.Choice("Leave", true, () -> { lastPromptedId = null; Shell.navigate("log"); })));
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
         export.setOnMouseClicked(e -> exportCabrillo(plugin));
 
