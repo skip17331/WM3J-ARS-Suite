@@ -826,6 +826,7 @@ public final class JHubDashboard {
         VBox cluster = section("DX CLUSTER",
             cfgRow("Cluster server", null, cInputApply("data.clusterServer", "dxc.ve7cc.net:23", applyCluster)),
             cfgRow("Login callsign", null, cInputApply("data.clusterLogin", "WM3J", applyCluster)),
+            cfgRow("Auto-connect on start", "off by default — connect from the cluster panel when you want spots", cToggle("data.clusterAutoConnect", false)),
             cfgRow("Band filter", null, cSeg("data.clusterBand", new String[]{"All","HF","VHF+"}, 0)),
             cfgRow("Mode filter", null, cSeg("data.clusterMode", new String[]{"All","CW","Phone","Digi"}, 0)),
             cfgRow("Reverse Beacon (RBN)", "spots of your own call", cToggle("data.rbn", true)));

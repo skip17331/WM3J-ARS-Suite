@@ -49,7 +49,9 @@ public final class ClusterClient {
     private volatile Consumer<ClusterClient> listener = c -> {};
     private volatile boolean connected = false;
     private volatile boolean started = false;
-    private volatile boolean paused = false;   // operator pressed Disconnect
+    // Don't auto-connect on start unless the operator opted in (J-Hub ▸ Data ▸ DX Cluster).
+    // paused == "we don't want a connection right now" (startup default OR operator pressed Disconnect).
+    private volatile boolean paused = !HubConfig.getBool("data.clusterAutoConnect", false);
     private int backoff = 5;
 
     private Socket socket; private BufferedReader reader; private PrintWriter writer;

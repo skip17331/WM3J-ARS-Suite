@@ -893,7 +893,8 @@ public final class JMapView {
         spots.getChildren().clear();
         java.util.List<MapSpot> list = liveSpots();
         if (list.isEmpty()) {
-            Label e = lbl(com.ars.fx.data.ClusterClient.getInstance().isConnected() ? "No spots match the filters." : "Connecting to cluster…", "jm-spot-meta");
+            com.ars.fx.data.ClusterClient ccc = com.ars.fx.data.ClusterClient.getInstance();
+            Label e = lbl(ccc.isConnected() ? "No spots match the filters." : ccc.wantConnected() ? "Connecting to cluster…" : "Cluster off — Connect in J-Hub", "jm-spot-meta");
             e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
         }
         int n = 0;

@@ -429,7 +429,7 @@ public final class JLogCockpit {
             cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
             rows.getChildren().clear();
             List<com.ars.fx.data.ClusterClient.Spot> list = c.spots();
-            if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : "Cluster offline — reconnecting…"); rows.getChildren().add(empty); }
+            if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : c.wantConnected() ? "Cluster offline — reconnecting…" : "Cluster off — Connect in J-Hub ▸ Data"); rows.getChildren().add(empty); }
             else { int n = 0; for (com.ars.fx.data.ClusterClient.Spot s : list) { if (n++ >= 12) break; rows.getChildren().add(spotRow(s)); } }
         });
         cc.start();
