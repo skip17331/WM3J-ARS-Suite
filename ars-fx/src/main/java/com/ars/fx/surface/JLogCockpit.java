@@ -419,16 +419,19 @@ public final class JLogCockpit {
         com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
         Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
         cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
-        HBox src = new HBox(6, cdot, lbl(cc.endpoint(), "jl-skim-meta")); src.setAlignment(Pos.CENTER_LEFT);
+        Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
+        Label act = lbl(cc.wantConnected() ? "Disconnect" : "Connect", "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
+        act.setOnMouseClicked(e -> { if (cc.wantConnected()) cc.disconnect(); else cc.connect(); act.setText(cc.wantConnected() ? "Disconnect" : "Connect"); });
+        HBox src = new HBox(6, cdot, lbl(cc.endpoint(), "jl-skim-meta"), ssp, act); src.setAlignment(Pos.CENTER_LEFT);
         VBox rows = new VBox();
-        Label empty = lbl("Connecting to cluster…", "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2));
+        Label empty = lbl("Cluster off — Connect above for DX spots", "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2));
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
         cc.setListener(c -> {
             cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
             rows.getChildren().clear();
             List<com.ars.fx.data.ClusterClient.Spot> list = c.spots();
-            if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : c.wantConnected() ? "Cluster offline — reconnecting…" : "Cluster off — Connect in J-Hub ▸ Data"); rows.getChildren().add(empty); }
+            if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : c.wantConnected() ? "Cluster offline — reconnecting…" : "Cluster off — Connect above for DX spots"); rows.getChildren().add(empty); }
             else { int n = 0; for (com.ars.fx.data.ClusterClient.Spot s : list) { if (n++ >= 12) break; rows.getChildren().add(spotRow(s)); } }
         });
         cc.start();
