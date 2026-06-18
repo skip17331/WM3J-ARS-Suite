@@ -54,7 +54,7 @@ One app, these modules — each a surface you can dock or float in its own windo
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
 | **J‑Sat** | Satellite tracker with Doppler correction and rotor control. |
-| **J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed. |
+| **J‑Vault** | Shack inventory + **first‑call contacts** so your family knows who to call when you're SK, with CSV export. SQLite‑backed. |
 | **J‑Learn** | Embedded amateur‑radio reference library — ~200 sections covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; markdown source seeds to `~/.j-learn/content/` so you can edit content without rebuilding. |
 | **Morse Trainer** | Learning and practicing CW — Koch‑method letter trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. |
 
@@ -88,12 +88,11 @@ pre‑filled with sane defaults.
 ### J‑Vault — the SK problem, solved
 
 When an operator becomes a Silent Key, families inherit a shack of expensive
-gear they don't recognize. J‑Vault turns your inventory into a
-**printable handoff document** — cover page, personal note, first‑call
-contacts (priority‑sorted), full equipment inventory grouped by type,
-sale‑recommendation matrix (HRO / DXE / R&L / Universal / GigaParts), an
-11‑step plain‑language checklist, and a glossary for non‑hams — exported as a
-printable handoff document.
+gear they don't recognize. J‑Vault keeps a categorized **equipment inventory**
+(make / model / serial / value / disposition / location) alongside
+**first‑call contacts** — the people who should be called, priority‑sorted, and
+the gear each is interested in — and **exports it to CSV** for sharing or print.
+(A one‑click formatted estate‑handoff document is on the roadmap.)
 
 ### J‑Learn — your reference library, in‑app
 
