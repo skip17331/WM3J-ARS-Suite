@@ -9,8 +9,8 @@
 
     1. Toolchain  - ensures Git + Temurin 21 JDK (winget if missing) and
                     Maven (genuine Apache zip, SHA-512 verified)
-    2. Build      - mvn install j-log-engine/j-learn/j-vault, then
-                    mvn package the remaining modules
+    2. Build      - mvn install the shared libraries (j-log-common, j-log-engine,
+                    j-digi, j-bridge), then mvn -Pwin package the ars-fx app
     3. Integrate  - builds + runs the Java installer, which writes per-module
                     .bat launchers, generates .ico icons, and creates
                     Start-Menu shortcuts under "ARS Suite"
@@ -197,15 +197,13 @@ try {
     }
 
     if (-not $SkipBuild) {
-        Section '[2/4] Build all modules (first run downloads deps, ~5-10 min)'
-        # Library/engine modules other modules depend on - install to local repo.
-        Invoke-Mvn 'j-log-engine\pom.xml' 'install'
-        Invoke-Mvn 'j-learn\pom.xml'      'install'
-        Invoke-Mvn 'j-vault\pom.xml'      'install'
-        # Remaining user-facing modules - fat-jar package.
-        foreach ($mod in 'j-hub', 'j-log', 'j-map', 'j-digi', 'j-bridge', 'j-sat', 'morse-trainer') {
-            Invoke-Mvn "$mod\pom.xml" 'package'
+        Section '[2/4] Build the ARS Suite app (first run downloads deps, ~5-10 min)'
+        # Shared libraries the app depends on - install to the local repo first.
+        foreach ($lib in 'j-log-common', 'j-log-engine', 'j-digi', 'j-bridge') {
+            Invoke-Mvn "$lib\pom.xml" 'install'
         }
+        # The unified ars-fx app - Windows fat jar (JavaFX bundled, win natives).
+        Invoke-Mvn 'ars-fx\pom.xml' @('-Pwin', 'clean', 'package')
     } else {
         Section '[2/4] Build - skipped (-SkipBuild)'
     }

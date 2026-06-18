@@ -5,13 +5,14 @@
 # Assumes:
 #   - Java 21 is installed          (java --version)
 #   - Maven is installed            (mvn --version)
-#   - The ars-fx app has been built (mvn -f ars-fx/pom.xml -DskipTests package),
-#     which produces ars-fx/target/ars-fx-linux.jar — the single jar all the
-#     suite shortcuts run.
 #
 # What this script does:
-#   1. Builds the installer jar if it isn't present.
-#   2. Runs the installer, which detects the platform and writes shortcuts for
+#   1. Builds the ars-fx app: the shared libraries (j-log-common, j-log-engine,
+#      j-digi, j-bridge) into the local repo, then ars-fx/target/ars-fx-linux.jar
+#      — the single jar all the suite shortcuts run. Pass --skip-build to skip
+#      this if the jars are already built.
+#   2. Builds the installer jar if it isn't present.
+#   3. Runs the installer, which detects the platform and writes shortcuts for
 #      the ARS Suite (one jar, launched different ways):
 #        - "ARS Suite"      — the docked app (J-Hub + all modules in one window)
 #        - J-Log / J-Map / J-Sat / J-Digi / J-Vault / J-Learn — each module in
@@ -22,13 +23,17 @@
 #                  + icons in ~/.local/share/icons/
 #        - macOS : .app bundles in ~/Applications/
 #                  (log output goes to ~/Library/Logs/ARS-Suite/)
-#   3. Leaves all existing files (j-hub.json, logs, databases) untouched —
+#   4. Leaves all existing files (j-hub.json, logs, databases) untouched —
 #      safe to run any number of times as an upgrade.
 
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INSTALLER_TARGET="$SCRIPT_DIR/installer/target"
+
+# Build the ars-fx app by default; pass --skip-build if the jars already exist.
+BUILD_APP=1
+if [[ "${1:-}" == "--skip-build" ]]; then BUILD_APP=0; shift; fi
 
 # Resolve the built installer jar regardless of version. The shade plugin
 # writes the runnable j-installer-<version>.jar next to the thin
@@ -44,6 +49,20 @@ command -v java >/dev/null 2>&1 || {
     echo "       Install it first, then re-run $0"
     exit 1
 }
+
+# Build the ARS Suite app: shared libraries to the local repo, then the desktop jar.
+if [[ "$BUILD_APP" == "1" ]]; then
+    command -v mvn >/dev/null 2>&1 || {
+        echo "error: Maven is required to build the app. Install it, or pass --skip-build"
+        echo "       if ars-fx is already built (ars-fx/target/ars-fx-*.jar)."
+        exit 1
+    }
+    echo "[bootstrap] Building the ARS Suite app (ars-fx)…"
+    for lib in j-log-common j-log-engine j-digi j-bridge; do
+        mvn -q -DskipTests -f "$SCRIPT_DIR/$lib/pom.xml" install
+    done
+    mvn -q -DskipTests -f "$SCRIPT_DIR/ars-fx/pom.xml" clean package
+fi
 
 INSTALLER_JAR="$( find_installer_jar )"
 
