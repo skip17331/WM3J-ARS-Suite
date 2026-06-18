@@ -77,6 +77,11 @@ public final class JSatView {
         t.setDaemon(true); t.start();
     }
     private static boolean satCollapsed = false;
+    // J-Sat carries an extra ~310px satellite column on top of the usual dock+rail, so it needs a
+    // wide window. Below this logical width auto-collapse the list to an icon strip so the plot +
+    // rail stay on screen instead of being pushed off (the "cramped" open).
+    private static final double NARROW_W = 1240;
+    private static boolean narrow() { return host != null && host.getWidth() > 1 && host.getWidth() < NARROW_W; }
     private static StackPane host;
     private static boolean clockStarted = false;
     private static final java.time.format.DateTimeFormatter HMS = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -84,6 +89,8 @@ public final class JSatView {
     public static Region build() {
         host = new StackPane();
         host.getChildren().add(placeholder("Acquiring TLEs & computing passes…"));
+        // re-layout when the window crosses the narrow threshold (auto-collapse the sat list)
+        host.widthProperty().addListener((o, a, b) -> { if ((a.doubleValue() < NARROW_W) != (b.doubleValue() < NARROW_W)) rebuild(); });
         SatService.getInstance().setListener(s -> rebuild());
         SatService.getInstance().start();
         // tick the UTC clock once a second (updates just the clock label, not the whole frame)
@@ -172,7 +179,7 @@ public final class JSatView {
 
     // ---- left satellite list (collapsible drawer) --------------------------
     private static Region satColumn(Snapshot snap, SatInfo f) {
-        if (satCollapsed) {
+        if (satCollapsed || narrow()) {
             VBox p = new VBox(0); p.getStyleClass().add("js-panel"); p.setMinWidth(40); p.setPrefWidth(40); p.setMaxWidth(40);
             p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(14, 0, 14, 0));
             Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;");
@@ -182,7 +189,7 @@ public final class JSatView {
             p.getChildren().addAll(expand, vwrap);
             return p;
         }
-        VBox p = new VBox(9); p.getStyleClass().add("js-panel"); p.setMinWidth(310); p.setPrefWidth(310); p.setMaxWidth(310);
+        VBox p = new VBox(9); p.getStyleClass().add("js-panel"); p.setMinWidth(272); p.setPrefWidth(310); p.setMaxWidth(310);
         Label title = lbl("SATELLITES · " + snap.sats().size(), "js-sec"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;");
         collapse.setOnMouseClicked(e -> { satCollapsed = true; rebuild(); });
@@ -220,9 +227,11 @@ public final class JSatView {
         HBox title = new HBox(10, titleL, tsp, toggle); title.setAlignment(Pos.CENTER_LEFT); title.setPadding(new Insets(14, 4, 8, 0));
 
         boolean dim = selectedSat != null;
-        // the plot canvas fills the available area and repaints on resize
-        Canvas cv = new Canvas();
-        StackPane sky = new StackPane(cv); sky.setStyle("-fx-background-color:-ars-bg;"); VBox.setVgrow(sky, Priority.ALWAYS); sky.setMinSize(0, 0);
+        // the plot canvas fills the available area and repaints on resize. unmanaged so its
+        // width never feeds back as the pane's pref/min — otherwise the plot ratchets wider and
+        // squeezes the satellite list + rail to slivers on a narrow window.
+        Canvas cv = new Canvas(); cv.setManaged(false);
+        StackPane sky = new StackPane(cv); sky.setStyle("-fx-background-color:-ars-bg;"); VBox.setVgrow(sky, Priority.ALWAYS); sky.setMinSize(0, 0); sky.setPrefSize(0, 0);
         Runnable repaint = () -> {
             double aw = sky.getWidth(), ah = sky.getHeight();
             if (aw <= 1 || ah <= 1) return;
@@ -246,7 +255,7 @@ public final class JSatView {
         for (String[] c : cells) {
             Label v = lbl(c[1], "js-tel-v"); if (c[3].equals("y")) v.getStyleClass().add("neg");
             HBox vu = new HBox(3, v, lbl(c[2], "js-tel-u")); vu.setAlignment(Pos.BOTTOM_LEFT);
-            VBox cell = new VBox(3, lbl(c[0], "js-tel-k"), vu); cell.getStyleClass().add("js-tel"); cell.setMinWidth(108);
+            VBox cell = new VBox(3, lbl(c[0], "js-tel-k"), vu); cell.getStyleClass().add("js-tel"); cell.setMinWidth(72);   // was 108; lower min lets the row shrink on narrow windows (values still size to content)
             tel.getChildren().add(cell);
         }
         VBox col = new VBox(0, title, sky, tel); col.setAlignment(Pos.TOP_CENTER); col.setStyle("-fx-background-color:-ars-bg;");
