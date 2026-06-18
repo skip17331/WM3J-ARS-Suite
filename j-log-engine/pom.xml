@@ -7,7 +7,7 @@
 
     <groupId>com.jlog</groupId>
     <artifactId>j-log-engine</artifactId>
-    <version>1.5.2</version>
+    <version>1.8.0</version>
     <packaging>jar</packaging>
     <name>j-Log Engine</name>
     <description>QSO logging engine — DB, CI-V, hub, plugins, export. No JavaFX.</description>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-common</artifactId>
-            <version>1.5.2</version>
+            <version>1.8.0</version>
         </dependency>
 
         <!-- SQLite JDBC -->

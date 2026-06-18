@@ -914,7 +914,7 @@ auto-launch, and crash-recovery, see
 
 ### J-Digi — native digital modem
 
-*JavaFX desktop · WebSocket client (8080) · audio devices · version 1.0.42 (kept separate from the rest of the suite)*
+*JavaFX desktop · WebSocket client (8080) · audio devices · version 1.8.0*
 
 A soundcard digital modem with a waterfall, per-mode decoders, and an
 integrated log / contest panel. It needs working **audio in/out** (pick devices

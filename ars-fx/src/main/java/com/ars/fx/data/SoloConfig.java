@@ -35,6 +35,32 @@ public final class SoloConfig {
     public boolean dock = false;
     public String remote;                 // ws:// url of the station J-Hub, or null/blank for local
     public Station station;               // optional QTH/call overrides applied at startup
+    public transient boolean autoHub;     // local loose launch: ensure a background HubServer is up first
+
+    /** Loose-capable module ids → display name. Drives validation and window titles. */
+    private static final java.util.Map<String, String> NAMES = java.util.Map.ofEntries(
+        java.util.Map.entry("log",    "J-Log"),
+        java.util.Map.entry("logc",   "J-Log · Contest"),
+        java.util.Map.entry("map",    "J-Map"),
+        java.util.Map.entry("sat",    "J-Sat"),
+        java.util.Map.entry("digi",   "J-Digi"),
+        java.util.Map.entry("vault",  "J-Vault"),
+        java.util.Map.entry("learn",  "J-Learn"),
+        java.util.Map.entry("bridge", "J-Bridge"));
+
+    /** Display name for a module id (e.g. "log" → "J-Log"); falls back to "module" for unknown ids. */
+    public static String name(String moduleId) {
+        String m = moduleId == null ? "" : moduleId.trim().toLowerCase();
+        return NAMES.getOrDefault(m, "module");
+    }
+
+    /** Normalise + validate a module id against {@link #NAMES}; throws with the valid set on a bad id. */
+    private static String canonical(String id) {
+        String m = id == null ? "" : id.trim().toLowerCase();
+        if (!NAMES.containsKey(m))
+            throw new IllegalArgumentException("\"module\" must be one of " + NAMES.keySet() + " (got \"" + m + "\")");
+        return m;
+    }
 
     public static final class Window {
         public double width = 1360;
@@ -51,7 +77,18 @@ public final class SoloConfig {
     public boolean isRemote() { return remote != null && !remote.isBlank(); }
     public String windowTitle() {
         if (title != null && !title.isBlank()) return title;
-        return ("sat".equals(module) ? "J-Sat" : "J-Map") + (isRemote() ? " · remote" : "");
+        String base = NAMES.getOrDefault(module, "ARS Suite");
+        return base + (isRemote() && !autoHub ? " · remote" : "");   // a local hub attach isn't "remote"
+    }
+
+    /** A loose local launch of one module, attached to the background HubServer on this machine. */
+    public static SoloConfig local(String moduleId) {
+        SoloConfig c = new SoloConfig();
+        c.module = canonical(moduleId);
+        c.dock = false;
+        c.autoHub = true;
+        c.remote = "ws://127.0.0.1:" + RemoteServer.port();
+        return c;
     }
 
     /** Load + validate a launch file; throws IllegalArgumentException with a clear message on bad input. */
@@ -66,9 +103,7 @@ public final class SoloConfig {
         if (cfg == null) throw new IllegalArgumentException("empty launch file " + file);
         if (cfg.window == null) cfg.window = new Window();
 
-        cfg.module = cfg.module == null ? "" : cfg.module.trim().toLowerCase();
-        if (!cfg.module.equals("map") && !cfg.module.equals("sat"))
-            throw new IllegalArgumentException("\"module\" must be \"map\" or \"sat\" (got \"" + cfg.module + "\")");
+        cfg.module = canonical(cfg.module);
         return cfg;
     }
 

@@ -41,14 +41,31 @@ public final class JHubDashboard {
 
     private static Region page(String activeConf, Region centerContent) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
-        // expand-only tail so they stay reachable without changing the collapsed rail.
-        Region dock = Shell.dock("hub", hubConfigSection(activeConf));
+        // expand-only tail so they stay reachable without changing the collapsed rail. In a solo
+        // window there is no dock, so the same links become a fixed left nav column instead.
+        Region nav = Shell.solo ? soloNav(activeConf) : Shell.dock("hub", hubConfigSection(activeConf));
 
         ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(dock, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        HBox row = new HBox(nav, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
         VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;");
         return root;
+    }
+
+    /** Solo settings nav: the dock's config links as a static left column, topped by a link back to the
+     *  operating module this window hosts (there is no dock to navigate back through). */
+    private static Region soloNav(String activeConf) {
+        VBox col = new VBox(4); col.getStyleClass().add("sx-dock");
+        col.setMinWidth(208); col.setPrefWidth(208); col.setMaxWidth(208);
+        col.setPadding(new Insets(10, 8, 10, 8));
+        String back = Shell.soloModule;
+        Label backLink = lbl("← Back to " + com.ars.fx.data.SoloConfig.name(back), "jhub-nav-sub");
+        backLink.setStyle("-fx-cursor:hand;");
+        backLink.setOnMouseClicked(e -> Shell.navigate(back));
+        VBox.setMargin(backLink, new Insets(2, 9, 10, 9));
+        col.getChildren().add(backLink);
+        col.getChildren().addAll(hubConfigSection(activeConf));
+        return col;
     }
 
     private static Region dashboardCenter() {

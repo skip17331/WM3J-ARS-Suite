@@ -70,14 +70,20 @@ public final class Installer {
         JsonArray modules = manifest.getAsJsonArray("modules");
         List<String> installed = new ArrayList<>();
         List<String> skipped   = new ArrayList<>();
+        List<String> pruned    = new ArrayList<>();
 
-        if      (WINDOWS) installWindows(sourceRoot, modules, installed, skipped);
-        else if (MAC)     installMac    (sourceRoot, home, modules, installed, skipped);
-        else              installLinux  (sourceRoot, home, modules, installed, skipped);
+        if      (WINDOWS) installWindows(sourceRoot, modules, installed, skipped, pruned);
+        else if (MAC)     installMac    (sourceRoot, home, modules, installed, skipped, pruned);
+        else              installLinux  (sourceRoot, home, modules, installed, skipped, pruned);
 
         System.out.println();
         info("Installed shortcuts:");
         for (String s : installed) System.out.println("  + " + s);
+        if (!pruned.isEmpty()) {
+            System.out.println();
+            info("Removed stale shortcuts from earlier installs:");
+            for (String s : pruned) System.out.println("  x " + s);
+        }
         if (!skipped.isEmpty()) {
             System.out.println();
             warn("Skipped (build the module first, then re-run installer):");
@@ -90,12 +96,15 @@ public final class Installer {
         System.out.println();
         info("Done. Launch via your system menu, or directly:");
         if (WINDOWS) {
-            System.out.println("    " + sourceRoot.resolve("j-hub\\start.bat"));
+            System.out.println("    " + sourceRoot.resolve("ars-fx\\ars-fx.bat") + "              (docked)");
+            System.out.println("    " + sourceRoot.resolve("ars-fx\\ars-fx.bat") + " --module log  (loose)");
         } else if (MAC) {
-            System.out.println("    open ~/Applications/WM3J\\ J-Hub.app");
-            System.out.println("    " + sourceRoot.resolve("j-hub/start.sh"));
+            System.out.println("    open ~/Applications/ARS\\ Suite.app");
+            System.out.println("    " + sourceRoot.resolve("ars-fx/ars-fx.sh") + "              (docked)");
+            System.out.println("    " + sourceRoot.resolve("ars-fx/ars-fx.sh") + " --module log  (loose)");
         } else {
-            System.out.println("    " + sourceRoot.resolve("j-hub/start.sh"));
+            System.out.println("    " + sourceRoot.resolve("ars-fx/ars-fx.sh") + "              (docked)");
+            System.out.println("    " + sourceRoot.resolve("ars-fx/ars-fx.sh") + " --module log  (loose)");
         }
     }
 
@@ -105,11 +114,17 @@ public final class Installer {
 
     private static void installLinux(Path sourceRoot, Path home,
                                      JsonArray modules,
-                                     List<String> installed, List<String> skipped) throws Exception {
+                                     List<String> installed, List<String> skipped,
+                                     List<String> pruned) throws Exception {
         Path appsDir = home.resolve(".local/share/applications");
         Path iconDir = home.resolve(".local/share/icons");
         Files.createDirectories(appsDir);
         Files.createDirectories(iconDir);
+
+        // Track what we write this run so we can prune suite shortcuts left by
+        // earlier installs (e.g. the old per-program ars-j-*.desktop entries).
+        Set<String> keptDesktops = new HashSet<>();
+        Set<String> keptIcons    = new HashSet<>();
 
         for (var el : modules) {
             JsonObject m = el.getAsJsonObject();
@@ -120,6 +135,7 @@ public final class Installer {
             String iconR  = m.has("icon") ? m.get("icon").getAsString() : null;
             String cats   = m.has("categories") ? m.get("categories").getAsString() : "Utility;";
             String cmt    = m.has("comment") ? m.get("comment").getAsString() : title;
+            String args   = m.has("args") ? m.get("args").getAsString() : null;
 
             Path jarPath    = resolveJar(sourceRoot, jar);
             Path launchPath = sourceRoot.resolve(launch);
@@ -135,17 +151,51 @@ public final class Installer {
                     Path dst = iconDir.resolve("ars-" + name + ".png");
                     Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
                     iconField = dst.toString();
+                    keptIcons.add(dst.getFileName().toString());
                 }
             }
 
             Path desktop = appsDir.resolve("ars-" + name + ".desktop");
-            writeDesktopEntry(desktop, title, cmt, launchPath, iconField, cats);
+            writeDesktopEntry(desktop, title, cmt, launchPath, args, iconField, cats);
+            keptDesktops.add(desktop.getFileName().toString());
             installed.add(name + " → " + desktop);
         }
+
+        // Prune stale suite shortcuts/icons, but ONLY ones we own: the old per-program
+        // entries from the pre-ars-fx installer (LEGACY_NAMES), plus any ars-fx* file
+        // this run did not write. Never the broad ars-* glob — that would clobber
+        // unrelated third-party apps (e.g. the standalone ARS Plugin Builder).
+        for (String n : LEGACY_NAMES) {
+            removeIfPresent(appsDir.resolve("ars-" + n + ".desktop"), pruned);
+            removeIfPresent(iconDir.resolve("ars-" + n + ".png"),     pruned);
+        }
+        pruneStale(appsDir, "ars-fx*.desktop", keptDesktops, pruned);
+        pruneStale(iconDir, "ars-fx*.png",     keptIcons,    pruned);
+    }
+
+    /** Shortcut/icon basenames written by the old per-program installer (pre-ars-fx), so the new
+     *  unified app can clear them. Deliberately explicit — NOT a glob — so unrelated ars-* apps survive. */
+    private static final Set<String> LEGACY_NAMES = Set.of(
+        "j-hub", "j-log", "j-map", "j-digi", "j-bridge", "j-sat", "j-vault", "j-learn", "morse-trainer");
+
+    private static void removeIfPresent(Path p, List<String> pruned) {
+        try { if (Files.deleteIfExists(p)) pruned.add(p.toString()); } catch (Exception ignored) {}
+    }
+
+    /** Delete files matching {@code glob} in {@code dir} whose names are not in {@code keep}. Used to
+     *  clear our own (ars-fx*) shortcuts that a later run no longer writes. */
+    private static void pruneStale(Path dir, String glob, Set<String> keep, List<String> pruned) {
+        if (!Files.isDirectory(dir)) return;
+        try (var ds = Files.newDirectoryStream(dir, glob)) {
+            for (Path p : ds) {
+                if (keep.contains(p.getFileName().toString())) continue;
+                try { Files.deleteIfExists(p); pruned.add(p.toString()); } catch (Exception ignored) {}
+            }
+        } catch (Exception ignored) {}
     }
 
     private static void writeDesktopEntry(Path path, String title, String comment,
-                                          Path launchScript, String iconPath, String categories)
+                                          Path launchScript, String args, String iconPath, String categories)
             throws java.io.IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("[Desktop Entry]\n");
@@ -153,7 +203,9 @@ public final class Installer {
         sb.append("Version=1.0\n");
         sb.append("Name=").append(title).append('\n');
         sb.append("Comment=").append(comment).append('\n');
-        sb.append("Exec=bash \"").append(launchScript).append("\"\n");
+        sb.append("Exec=bash \"").append(launchScript).append('"');
+        if (args != null && !args.isBlank()) sb.append(' ').append(args);
+        sb.append('\n');
         sb.append("Path=").append(launchScript.getParent()).append('\n');
         sb.append("Terminal=false\n");
         if (iconPath != null) sb.append("Icon=").append(iconPath).append('\n');
@@ -175,7 +227,8 @@ public final class Installer {
 
     private static void installMac(Path sourceRoot, Path home,
                                    JsonArray modules,
-                                   List<String> installed, List<String> skipped) throws Exception {
+                                   List<String> installed, List<String> skipped,
+                                   List<String> pruned) throws Exception {
         Path appsDir = home.resolve("Applications");
         Files.createDirectories(appsDir);
 
@@ -187,6 +240,7 @@ public final class Installer {
             String jar    = m.get("jar").getAsString();
             String iconR  = m.has("icon")    ? m.get("icon").getAsString()    : null;
             String cmt    = m.has("comment") ? m.get("comment").getAsString() : title;
+            String args   = m.has("args")    ? m.get("args").getAsString()    : null;
 
             Path jarPath    = resolveJar(sourceRoot, jar);
             Path launchPath = sourceRoot.resolve(launch);
@@ -229,9 +283,28 @@ public final class Installer {
             // Launcher script under Contents/MacOS/.  Must be executable
             // and match CFBundleExecutable in Info.plist.
             Path launcher = macosDir.resolve(name);
-            writeMacLauncher(launcher, launchPath);
+            writeMacLauncher(launcher, launchPath, args);
 
             installed.add(name + " → " + appBundle);
+        }
+
+        // Prune legacy per-program bundles from earlier installs (old "WM3J …" naming).
+        if (Files.isDirectory(appsDir)) {
+            try (var ds = Files.newDirectoryStream(appsDir, "WM3J *.app")) {
+                for (Path p : ds) {
+                    try { deleteRecursive(p); pruned.add(p.toString()); } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /** Recursively delete a directory tree (used to remove a stale .app bundle). */
+    private static void deleteRecursive(Path root) throws java.io.IOException {
+        if (!Files.exists(root)) return;
+        try (var walk = Files.walk(root)) {
+            walk.sorted(Comparator.reverseOrder()).forEach(p -> {
+                try { Files.deleteIfExists(p); } catch (Exception ignored) {}
+            });
         }
     }
 
@@ -269,11 +342,12 @@ public final class Installer {
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    private static void writeMacLauncher(Path launcherPath, Path moduleLaunchScript)
+    private static void writeMacLauncher(Path launcherPath, Path moduleLaunchScript, String args)
             throws java.io.IOException {
         // Launchd / Finder set CWD to /, so we always cd into the module
         // directory before delegating.  Logs go to ~/Library/Logs/ARS-Suite/
-        // because Finder swallows stdout/stderr from .app bundles.
+        // because Finder swallows stdout/stderr from .app bundles.  Finder passes
+        // no args to a .app, so any per-shortcut args are baked in here.
         StringBuilder sb = new StringBuilder();
         sb.append("#!/bin/bash\n");
         sb.append("# Auto-generated by ARS Suite installer. Do not edit — re-run install.sh.\n");
@@ -281,8 +355,9 @@ public final class Installer {
         sb.append("mkdir -p \"$LOG_DIR\"\n");
         sb.append("LOG_FILE=\"$LOG_DIR/").append(launcherPath.getFileName()).append(".log\"\n");
         sb.append("cd \"").append(moduleLaunchScript.getParent()).append("\" || exit 1\n");
-        sb.append("exec bash \"").append(moduleLaunchScript).append("\" \"$@\" ")
-          .append(">>\"$LOG_FILE\" 2>&1\n");
+        sb.append("exec bash \"").append(moduleLaunchScript).append("\" ");
+        if (args != null && !args.isBlank()) sb.append(args).append(' ');
+        sb.append("\"$@\" >>\"$LOG_FILE\" 2>&1\n");
         Files.writeString(launcherPath, sb.toString(), StandardCharsets.UTF_8,
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         try { launcherPath.toFile().setExecutable(true, false); } catch (Exception ignored) {}
@@ -301,7 +376,8 @@ public final class Installer {
     // -----------------------------------------------------------------
 
     private static void installWindows(Path sourceRoot, JsonArray modules,
-                                       List<String> installed, List<String> skipped) throws Exception {
+                                       List<String> installed, List<String> skipped,
+                                       List<String> pruned) throws Exception {
         // Start Menu folder: %APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite
         String appData = System.getenv("APPDATA");
         if (appData == null || appData.isBlank()) {
@@ -312,12 +388,17 @@ public final class Installer {
             "Microsoft", "Windows", "Start Menu", "Programs", "ARS Suite");
         Files.createDirectories(startMenu);
 
+        // The whole "ARS Suite" Start-Menu folder is ours, so any .lnk this run
+        // does not write is a leftover from an earlier install — prune it below.
+        Set<String> keptLnks = new HashSet<>();
+
         for (var el : modules) {
             JsonObject m = el.getAsJsonObject();
             String name   = m.get("name").getAsString();
             String title  = m.get("title").getAsString();
             String launch = m.get("launch").getAsString();      // unix path in manifest
             String jar    = m.get("jar").getAsString();
+            String args   = m.has("args") ? m.get("args").getAsString() : null;
 
             Path jarPath = resolveJar(sourceRoot, jar);
             if (jarPath == null) {
@@ -350,9 +431,13 @@ public final class Installer {
             }
 
             Path shortcut = startMenu.resolve(title + ".lnk");
-            createWindowsShortcut(shortcut, batPath, batPath.getParent(), title, iconIco);
+            createWindowsShortcut(shortcut, batPath, batPath.getParent(), title, args, iconIco);
+            keptLnks.add(shortcut.getFileName().toString());
             installed.add(name + " → " + shortcut);
         }
+
+        // Prune stale Start-Menu shortcuts from an earlier install.
+        pruneStale(startMenu, "*.lnk", keptLnks, pruned);
     }
 
     /** Resolve a module's built jar from its manifest hint in a
@@ -450,7 +535,7 @@ public final class Installer {
 
     /** Create a Windows .lnk file via a PowerShell WScript.Shell snippet. */
     private static void createWindowsShortcut(Path lnk, Path target, Path workDir,
-                                              String title, Path iconFile)
+                                              String title, String args, Path iconFile)
             throws Exception {
         // Build a single-liner PowerShell command that creates the shortcut.
         // Backtick-quote is PS-style; we pass via -Command so no script file
@@ -459,6 +544,11 @@ public final class Installer {
         String escTarget  = target.toString().replace("\"", "`\"");
         String escWorkDir = workDir.toString().replace("\"", "`\"");
         String escTitle   = title.replace("\"", "`\"");
+        String argLine    = "";
+        if (args != null && !args.isBlank()) {
+            String escArgs = args.replace("\"", "`\"");
+            argLine = "$s.Arguments=\"" + escArgs + "\";";
+        }
         String iconLine   = "";
         if (iconFile != null && Files.exists(iconFile)) {
             String escIcon = iconFile.toString().replace("\"", "`\"");
@@ -470,6 +560,7 @@ public final class Installer {
             "$s.TargetPath=\"" + escTarget + "\";" +
             "$s.WorkingDirectory=\"" + escWorkDir + "\";" +
             "$s.Description=\"" + escTitle + "\";" +
+            argLine +
             iconLine +
             "$s.Save();";
 

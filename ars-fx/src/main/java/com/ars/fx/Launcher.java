@@ -58,24 +58,38 @@ public class Launcher extends Application {
         stage.show();
     }
 
-    /** Resolve a solo launch descriptor from -Dars.config / --config, or null for the normal dock app. */
+    /** Resolve a solo launch descriptor, or null for the normal dock app. Two forms:
+     *  {@code --module <id>} / {@code -Dars.module=<id>} → a loose window attached to the local background hub;
+     *  {@code --config <file>} / {@code -Dars.config=<file>} → a full JSON descriptor (local or LAN-remote). */
     private com.ars.fx.data.SoloConfig resolveSoloConfig() {
-        String path = System.getProperty("ars.config");
-        if (path == null) {
-            java.util.List<String> raw = getParameters().getRaw();
-            for (int i = 0; i < raw.size() - 1; i++) if (raw.get(i).equals("--config")) { path = raw.get(i + 1); break; }
+        String module = argValue("ars.module", "--module");
+        if (module != null && !module.isBlank()) {
+            try { return com.ars.fx.data.SoloConfig.local(module); }
+            catch (IllegalArgumentException e) { System.err.println("[solo] " + e.getMessage()); javafx.application.Platform.exit(); return null; }
         }
+        String path = argValue("ars.config", "--config");
         if (path == null || path.isBlank()) return null;
         try { return com.ars.fx.data.SoloConfig.load(java.nio.file.Path.of(path)); }
         catch (IllegalArgumentException e) { System.err.println("[solo] " + e.getMessage()); javafx.application.Platform.exit(); return null; }
     }
 
+    /** A system property, else the value following {@code flag} in the raw args. */
+    private String argValue(String sysProp, String flag) {
+        String v = System.getProperty(sysProp);
+        if (v != null) return v;
+        java.util.List<String> raw = getParameters().getRaw();
+        for (int i = 0; i < raw.size() - 1; i++) if (raw.get(i).equals(flag)) return raw.get(i + 1);
+        return null;
+    }
+
     /** Boot a single module (J-Map or J-Sat) in its own window per the launch descriptor. */
     private void startSolo(Stage stage, com.ars.fx.data.SoloConfig cfg) {
         Shell.solo = !cfg.dock;
+        Shell.soloModule = cfg.module;                 // so J-Hub settings pages can offer "← Back to <module>"
         Shell.onNavigate = this::show;                 // single surface; dock is gone so this rarely fires
         cfg.applyStation();                            // QTH/call overrides for the module's backends
 
+        if (cfg.autoHub) com.ars.fx.HubServer.ensureRunning();                // bring up the local background hub
         if (cfg.isRemote()) com.ars.fx.data.RemoteLink.connect(cfg.remote);   // live feed from the station's J-Hub
 
         scene = new Scene(host, cfg.window.width, cfg.window.height);

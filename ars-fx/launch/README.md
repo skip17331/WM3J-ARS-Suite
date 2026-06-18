@@ -1,8 +1,35 @@
-# Solo J-Map / J-Sat
+# Loose (un-docked) mode + solo J-Map / J-Sat
 
-J-Map and J-Sat can run **on their own** — on a second monitor, a laptop, or a
-shack Raspberry Pi — driven by a small JSON launch file. (J-Log, J-Learn,
-J-Vault and J-Digi stay in the dock.)
+The ARS Suite runs two ways from the **same jar**:
+
+- **Docked** — one window, all modules in a left dock (the default; see `run.sh`).
+- **Loose** — each module in its own window, all sharing a **background hub**.
+
+## Loose mode (any module, un-docked)
+
+```bash
+./run-loose.sh log      # open J-Log in its own window
+./run-loose.sh map      # log | logc | map | sat | digi | vault | learn | bridge
+./run-loose.sh hub      # start ONLY the background hub (tray), open nothing
+```
+
+A small headless **hub** (`com.ars.fx.HubServer`) owns the Hamlib daemons and the
+live data feeds (DX cluster, RBN, rig, rotor) and publishes them on
+`ws://127.0.0.1:8090`; each loose window attaches to it. The hub shows a
+**system-tray icon** (Open ▸ each module, Quit) but never opens a window of its
+own — opening a module just opens that app. The first module you launch brings
+the hub up automatically (`HubServer.ensureRunning()`); closing the last window
+leaves the hub in the tray until you quit it there. On desktops with no usable
+tray (e.g. GNOME/Wayland) the hub runs headless — stop it with Ctrl-C / `kill`.
+
+Loose windows reach **J-Hub / Station settings** via the ⚙ gear in their top bar
+(there is no dock); the settings pages offer a "← Back to <module>" link.
+
+## Solo J-Map / J-Sat (JSON-driven, incl. remote over the LAN)
+
+J-Map and J-Sat can also run from a small JSON launch file — handy on a second
+monitor, a laptop, or a shack Raspberry Pi, and the only way to point a window at
+a **remote** station's hub over the LAN (`remote: ws://192.168.1.50:8090`).
 
 ## Run (dev)
 

@@ -47,6 +47,9 @@ public final class Shell {
     public static volatile String lastLogSurface = "log";
     /** Solo mode: a single module launched on its own (J-Map/J-Sat) — no module dock, no cross-nav. */
     public static volatile boolean solo = false;
+    /** In solo mode, the operating module this window hosts — so the J-Hub settings pages can offer a
+     *  "← Back to <module>" link (there is no dock to navigate back through). Set by the host on startup. */
+    public static volatile String soloModule = "map";
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
 
     /** Dashboard theme button: advance the suite-wide scheme (clears per-module overrides). */
@@ -177,6 +180,14 @@ public final class Shell {
             top.getChildren().add(cell);
         }
         top.getChildren().add(hsp());
+        // solo windows have no dock, so the gear that reaches J-Hub / Station settings lives in the top bar
+        if (solo) {
+            Label gear = lbl("⚙", "sx-theme"); gear.setStyle("-fx-cursor:hand;");
+            javafx.scene.control.Tooltip.install(gear, new javafx.scene.control.Tooltip("J-Hub · Station settings"));
+            gear.setOnMouseClicked(e -> navigate("hub"));
+            HBox.setMargin(gear, new Insets(0, 14, 0, 0));
+            top.getChildren().add(gear);
+        }
         // per-module theme: shows the module's current scheme, cycles just this module on click
         Label theme = lbl("◑ " + com.ars.fx.Themes.effective(hue).label(), "sx-theme"); theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));

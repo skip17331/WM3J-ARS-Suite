@@ -6,7 +6,7 @@
 
     <groupId>com.ars</groupId>
     <artifactId>ars-fx</artifactId>
-    <version>0.1.0</version>
+    <version>1.8.0</version>
     <packaging>jar</packaging>
     <name>ARS Suite — JavaFX shell + core surfaces</name>
 
@@ -41,16 +41,16 @@
         <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.10.1</version></dependency>
         <!-- J-Digi embeds the real modem engine (ModemService); same JavaFX/gson/slf4j versions.
              Exclude its transitive JavaFX so our scoped (compile/provided) JavaFX is the only one. -->
-        <dependency><groupId>com.hamradio</groupId><artifactId>j-digi</artifactId><version>1.0.42</version>
+        <dependency><groupId>com.hamradio</groupId><artifactId>j-digi</artifactId><version>1.8.0</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- J-Bridge embeds the real WSJT-X UDP listener + decode/status models -->
-        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.5.2</version>
+        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.8.0</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- Solo J-Map/J-Sat ⇄ station J-Hub link (same WS lib the suite's central hub uses) -->
         <dependency><groupId>org.java-websocket</groupId><artifactId>Java-WebSocket</artifactId><version>1.5.6</version></dependency>
         <!-- Contest mode reuses the pure scoring/plugin/Cabrillo engine. Pinned explicitly (rather than
              relying on the copy embedded in the j-digi/j-bridge fat jars) so the API version is deterministic. -->
-        <dependency><groupId>com.jlog</groupId><artifactId>j-log-engine</artifactId><version>1.5.2</version>
+        <dependency><groupId>com.jlog</groupId><artifactId>j-log-engine</artifactId><version>1.8.0</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- PluginLoader/ContestPlugin parse contest JSON with Jackson; pin so the shade keeps it. -->
         <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId><version>2.17.0</version></dependency>

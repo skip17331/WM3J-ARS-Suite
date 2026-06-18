@@ -5,22 +5,19 @@
 # Assumes:
 #   - Java 21 is installed          (java --version)
 #   - Maven is installed            (mvn --version)
-#   - j-log-engine has been installed first (mvn install) — shared library
-#   - All nine user-facing modules have been built (mvn package each):
-#       j-hub
-#       j-log
-#       j-map
-#       j-digi
-#       j-bridge
-#       j-sat
-#       j-vault         (shack inventory + estate handoff PDF)
-#       j-learn         (standalone reference library web app, port 8082)
-#       morse-trainer   (Morse code learning + sending practice)
+#   - The ars-fx app has been built (mvn -f ars-fx/pom.xml -DskipTests package),
+#     which produces ars-fx/target/ars-fx-linux.jar — the single jar all the
+#     suite shortcuts run.
 #
 # What this script does:
 #   1. Builds the installer jar if it isn't present.
-#   2. Runs the installer, which detects the platform and writes
-#      appropriate shortcuts:
+#   2. Runs the installer, which detects the platform and writes shortcuts for
+#      the ARS Suite (one jar, launched different ways):
+#        - "ARS Suite"      — the docked app (J-Hub + all modules in one window)
+#        - J-Log / J-Map / J-Sat / J-Digi / J-Vault / J-Learn — each module in
+#          its own window (loose), attached to the background hub
+#        - "ARS Suite Hub"  — the background hub (system tray)
+#      Platform targets:
 #        - Linux : .desktop entries in ~/.local/share/applications/
 #                  + icons in ~/.local/share/icons/
 #        - macOS : .app bundles in ~/Applications/

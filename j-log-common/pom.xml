@@ -7,7 +7,7 @@
 
     <groupId>com.jlog</groupId>
     <artifactId>j-log-common</artifactId>
-    <version>1.5.2</version>
+    <version>1.8.0</version>
     <packaging>jar</packaging>
     <name>j-Log Common</name>
     <description>Shared, DB-free primitives: QSO/spot model, bandplan, CI-V serial, i18n.

@@ -6,7 +6,7 @@
 
     <groupId>com.hamradio.jlearn</groupId>
     <artifactId>j-learn</artifactId>
-    <version>1.5.2</version>
+    <version>1.8.0</version>
     <packaging>jar</packaging>
     <name>J-Learn</name>
     <description>WM3J ARS Suite — standalone amateur radio learning and reference library</description>
