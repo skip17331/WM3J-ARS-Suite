@@ -36,7 +36,7 @@ public final class Confirm {
         HBox btns = new HBox(10, gap); btns.setAlignment(Pos.CENTER_RIGHT);
         VBox card = new VBox(12, t, m, btns);
         card.setPadding(new Insets(20, 22, 18, 22)); card.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        card.setStyle("-fx-background-color:-ars-surface;-fx-background-radius:12;"
+        card.setStyle("-fx-background-color:-ars-surface-1;-fx-background-radius:12;"
                 + "-fx-border-color:-ars-border;-fx-border-width:1;-fx-border-radius:12;");
 
         StackPane veil = new StackPane(card); veil.setMinSize(0, 0);

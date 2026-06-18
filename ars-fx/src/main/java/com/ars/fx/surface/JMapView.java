@@ -355,7 +355,7 @@ public final class JMapView {
                 boolean on = i == mapRegion;
                 rchips[i].setStyle("-fx-cursor:hand; -fx-padding:4 10 4 10; -fx-background-radius:6; -fx-font-size:11px;"
                         + (on ? "-fx-background-color:-ars-map; -fx-text-fill:#06121a; -fx-font-weight:bold;"
-                              : "-fx-background-color:-ars-surface-4; -fx-text-fill:-ars-text-2;"));
+                              : "-fx-background-color:-ars-surface-4; -fx-text-fill:-ars-t2;"));
             }
         };
         for (int i = 0; i < REGION_NAMES.length; i++) {

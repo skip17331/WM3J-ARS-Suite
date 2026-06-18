@@ -104,7 +104,7 @@ public final class SpotAction {
 
         VBox card = new VBox(12, title, body, btns);
         card.setPadding(new Insets(20, 22, 18, 22)); card.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        card.setStyle("-fx-background-color:-ars-surface;-fx-background-radius:12;"
+        card.setStyle("-fx-background-color:-ars-surface-1;-fx-background-radius:12;"
                 + "-fx-border-color:-ars-border;-fx-border-width:1;-fx-border-radius:12;");
 
         StackPane veil = new StackPane(card);
