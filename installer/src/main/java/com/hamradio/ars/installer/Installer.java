@@ -166,8 +166,14 @@ public final class Installer {
         // this run did not write. Never the broad ars-* glob — that would clobber
         // unrelated third-party apps (e.g. the standalone ARS Plugin Builder).
         for (String n : LEGACY_NAMES) {
+            // Two generations of old shortcuts: the pre-ars-fx installer wrote
+            // "ars-<name>", but an even older (pre hub->j-hub rename) installer
+            // wrote bare "<name>". Clear both forms — LEGACY_NAMES is an explicit
+            // suite-owned allowlist, so neither match can touch a 3rd-party app.
             removeIfPresent(appsDir.resolve("ars-" + n + ".desktop"), pruned);
             removeIfPresent(iconDir.resolve("ars-" + n + ".png"),     pruned);
+            removeIfPresent(appsDir.resolve(n + ".desktop"),          pruned);
+            removeIfPresent(iconDir.resolve(n + ".png"),              pruned);
         }
         pruneStale(appsDir, "ars-fx*.desktop", keptDesktops, pruned);
         pruneStale(iconDir, "ars-fx*.png",     keptIcons,    pruned);
