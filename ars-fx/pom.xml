@@ -30,9 +30,17 @@
     </properties>
 
     <dependencies>
-        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-base</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope></dependency>
-        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-graphics</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope></dependency>
-        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope></dependency>
+        <!-- JavaFX with the per-OS native classifier (set by ${javafx.platform}; default linux,
+             overridden by the win/mac/mac-aarch64 profiles). OpenJFX's classified POMs are
+             self-referential — javafx-base:win transitively pulls javafx-base:linux etc. — so we
+             exclude transitive org.openjfx and keep only these three explicit, correctly-classified
+             jars. Without this every per-OS build leaks the linux natives into its fat jar. -->
+        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-base</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope>
+            <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-graphics</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope>
+            <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+        <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${javafx.version}</version><classifier>${javafx.platform}</classifier><scope>${fx.scope}</scope>
+            <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- shares ~/.j-log/j-log.db with the J-Log module (same schema/driver) -->
         <dependency><groupId>org.xerial</groupId><artifactId>sqlite-jdbc</artifactId><version>3.46.0.0</version></dependency>
         <!-- sqlite-jdbc 3.46's JDBC clinit references slf4j; api-only → NOP fallback -->
@@ -182,6 +190,25 @@
     </build>
 
     <profiles>
+        <!-- Per-desktop-OS builds. Each overrides the JavaFX native classifier and the
+             output jar suffix; JavaFX stays bundled (fx.scope=compile) so the jar runs on
+             a plain JDK. Build: mvn -P<id> clean package → target/ars-fx-<dist>.jar
+                 (default, no -P)  → ars-fx-linux.jar         desktop Linux x86-64
+                 -Pwin             → ars-fx-windows.jar       Windows x86-64
+                 -Pmac             → ars-fx-mac.jar           macOS Intel
+                 -Pmac-aarch64     → ars-fx-mac-aarch64.jar   macOS Apple Silicon -->
+        <profile>
+            <id>win</id>
+            <properties><dist>windows</dist><javafx.platform>win</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <properties><dist>mac</dist><javafx.platform>mac</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac-aarch64</id>
+            <properties><dist>mac-aarch64</dist><javafx.platform>mac-aarch64</javafx.platform></properties>
+        </profile>
         <!-- Raspberry Pi (64-bit Pi OS / aarch64): mvn -Ppi clean package.
              OpenJFX publishes no ARM-Linux jar to Maven, so JavaFX is left out of
              the jar and supplied by a Liberica Full JDK 21 on the Pi (see launch/README). -->

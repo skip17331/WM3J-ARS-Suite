@@ -41,7 +41,7 @@ mapfile -t JAVAFX_MODULES < <(grep -l '<id>arm-release</id>' */pom.xml 2>/dev/nu
 # Platform-independent modules (pure Java/Jetty) — one jar each. `installer` -> j-installer-*.jar.
 PLAIN_MODULES=(j-learn j-vault installer)
 
-MVN="mvn -q -DskipTests"
+MVN="${MVN:-mvn -q -DskipTests}"   # override-able, e.g. MVN="mvn -o -q -DskipTests" for offline
 
 # Path to a module's bare shaded jar in target/ (classified -mac-aarch64 /
 # -linux-aarch64 jars only ever live in dist/, never target/, so they need no
@@ -121,10 +121,31 @@ preflight() {
   [ "$fail" = 0 ] || { echo "PREFLIGHT FAILED — fix the ARM JavaFX version override(s) above before releasing."; exit 1; }
 }
 
+# Build the ars-fx app (the unified docked/loose suite) — one fat jar per desktop
+# OS plus the JavaFX-less Pi jar, dropped into dist/ with classified names. Unlike
+# the legacy modules each profile writes a DISTINCT finalName (ars-fx-<dist>.jar),
+# so there's no same-name "last profile wins" trap; we still rebuild the linux
+# desktop jar LAST so target/ holds the host-runnable one.
+build_ars_fx() {
+  local ver; ver="$(grep -m1 '<version>' ars-fx/pom.xml | sed -E 's/.*<version>([^<]+)<.*/\1/')"
+  echo "==> [ars-fx] installing shared libs to local repo (common, engine, j-digi, j-bridge)"
+  for lib in j-log-common j-log-engine j-digi j-bridge; do ( cd "$lib" && $MVN clean install ); done
+  echo "==> [ars-fx] per-platform fat jars (v$ver)"
+  ( cd ars-fx && $MVN clean package );            cp ars-fx/target/ars-fx-linux.jar       "$DIST/ars-fx-${ver}-linux-x86_64.jar"
+  ( cd ars-fx && $MVN -Pwin clean package );      cp ars-fx/target/ars-fx-windows.jar     "$DIST/ars-fx-${ver}-windows-x86_64.jar"
+  ( cd ars-fx && $MVN -Pmac clean package );      cp ars-fx/target/ars-fx-mac.jar         "$DIST/ars-fx-${ver}-macos-x86_64.jar"
+  ( cd ars-fx && $MVN -Pmac-aarch64 clean package ); cp ars-fx/target/ars-fx-mac-aarch64.jar "$DIST/ars-fx-${ver}-macos-aarch64.jar"
+  ( cd ars-fx && $MVN -Ppi clean package );       cp ars-fx/target/ars-fx-pi.jar          "$DIST/ars-fx-${ver}-linux-aarch64.jar"
+  ( cd ars-fx && $MVN clean package )             # LAST → host-runnable linux jar stays in target/
+}
+
 full_release() {
   preflight
   echo "==> Clean dist/"
   rm -rf "$DIST"; mkdir -p "$DIST"
+
+  echo "==> Building the ars-fx app (docked/loose suite)"
+  build_ars_fx
 
   echo "==> Installing shared libraries j-log-common + j-log-engine to local repo"
   ( cd j-log-common && $MVN clean install )   # engine depends on common
@@ -166,6 +187,7 @@ full_release() {
 case "${1:-}" in
   --verify)        verify_host_jars ;;
   --restore-host)  restore_host_jars ;;
+  --ars-fx)        mkdir -p "$DIST"; build_ars_fx; echo "==> ars-fx jars in $DIST :"; ls -1 "$DIST"/ars-fx-* ;;
   "" )             full_release ;;
-  *) echo "usage: $0 [--verify | --restore-host]"; exit 2 ;;
+  *) echo "usage: $0 [--verify | --restore-host | --ars-fx]"; exit 2 ;;
 esac

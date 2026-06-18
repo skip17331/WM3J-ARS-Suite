@@ -40,9 +40,13 @@ mvn -q javafx:run -Dars.config=launch/j-map-remote.json
 ## Build a runnable jar
 
 ```bash
-mvn -q package          # → target/ars-fx-linux.jar   desktop x86_64, JavaFX bundled (plain JDK)
-mvn -q -Ppi package     # → target/ars-fx-pi.jar       Raspberry Pi, JavaFX NOT bundled
-./build-pi.sh           # convenience wrapper for the Pi build + next-steps
+mvn -q package               # → target/ars-fx-linux.jar        desktop Linux x86_64 (JavaFX bundled)
+mvn -q -Pwin package         # → target/ars-fx-windows.jar      Windows x86_64
+mvn -q -Pmac package         # → target/ars-fx-mac.jar          macOS Intel
+mvn -q -Pmac-aarch64 package # → target/ars-fx-mac-aarch64.jar  macOS Apple Silicon
+mvn -q -Ppi package          # → target/ars-fx-pi.jar           Raspberry Pi, JavaFX NOT bundled
+./build-pi.sh                # convenience wrapper for the Pi build + next-steps
+# all desktop+pi jars at once, classified into dist/:  ../build-release.sh --ars-fx
 ```
 
 ```bash
