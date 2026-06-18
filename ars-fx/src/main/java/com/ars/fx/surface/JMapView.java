@@ -74,6 +74,11 @@ public final class JMapView {
     // ── overlay toggles (left panel) ──────────────────────────────────────────
     private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false;
     private static double beamDeg = 50;
+    // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
+    // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
+    // icon strip (same idea as J-Sat's satellite list).
+    private static final double NARROW_W = 1240;
+    private static boolean narrow() { return mapFrame != null && mapFrame.getWidth() > 1 && mapFrame.getWidth() < NARROW_W; }
     private static boolean overlayFlag(int i) {
         return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; default -> ovNeededOnly; };
     }
@@ -250,7 +255,7 @@ public final class JMapView {
         int[] leftCollapsed = {0};
         java.util.function.IntConsumer onProj = i -> { proj[0] = i; renderMap.run(); };
         Runnable[] rebuildLeft = new Runnable[1];
-        rebuildLeft[0] = () -> leftHolder.getChildren().setAll(leftCollapsed[0] == 1
+        rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed[0] == 1 || narrow())
                 ? leftRail(() -> { leftCollapsed[0] = 0; rebuildLeft[0].run(); })
                 : leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); }));
         rebuildLeft[0].run();
@@ -258,6 +263,8 @@ public final class JMapView {
         HBox center = new HBox(leftHolder, mapHolder); center.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(spotsBox));
         mapFrame = (Region) Shell.frame(dock, top, center, rail, tickerBar());
+        // re-collapse / expand the controls when the window crosses the narrow threshold
+        mapFrame.widthProperty().addListener((o, a, b) -> { if ((a.doubleValue() < NARROW_W) != (b.doubleValue() < NARROW_W)) rebuildLeft[0].run(); });
         return mapFrame;
     }
 
