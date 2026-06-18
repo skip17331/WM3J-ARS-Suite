@@ -1,12 +1,13 @@
 name: Release
 
 # Cut a published GitHub Release when a v* tag is pushed (or run manually via
-# the Actions tab for an existing tag). Gates on the full test suite, then runs
-# build-release.sh — which builds every per-arch artifact into dist/ and runs
-# the host-arch guard — then uploads dist/*.jar to the release.
+# the Actions tab for an existing tag). Gates on the tests for the ars-fx app +
+# its embedded libraries, then runs build-release.sh — which builds the five
+# ars-fx jars into dist/ and runs the native-leak guard — then uploads
+# dist/*.jar to the release.
 #
-# Replaces the manual `./build-release.sh` + `gh release create` dance and the
-# wrong-arch-jar footgun it was prone to. Tag and push to trigger:
+# Replaces the manual `./build-release.sh` + `gh release create` dance. Tag and
+# push to trigger:
 #   git tag -a v1.8.0 -m "…" && git push origin v1.8.0
 on:
   push:
@@ -23,7 +24,7 @@ permissions:
 jobs:
   release:
     name: Build + publish release
-    runs-on: ubuntu-latest      # x86-64 — required by build-release.sh preflight
+    runs-on: ubuntu-latest      # x86-64; JavaFX win/mac/linux classifiers resolve from Maven
     steps:
       - name: Resolve tag
         id: tag
@@ -42,26 +43,27 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Gate the release on green tests. j-log-common then j-log-engine are
-      # installed first (consumers resolve them from the local .m2; engine
-      # depends on common), then every test-bearing module is exercised.
-      # installer has no tests, so it's excluded.
-      - name: Run full test suite
+      # Gate the release on green tests for what actually ships: the ars-fx app
+      # and the shared libraries it embeds. Install the libs first (consumers
+      # resolve them from the local .m2; engine depends on common), then test.
+      # ars-fx itself has no tests, so its `test` is a compile/pass.
+      - name: Run tests
         shell: bash
         run: |
           set -e
-          mvn -B -q -DskipTests -f j-log-common/pom.xml install
-          mvn -B -q -DskipTests -f j-log-engine/pom.xml install
-          for m in j-log-common j-log-engine j-hub j-log j-map j-digi j-bridge j-sat morse-trainer j-learn j-vault; do
+          for lib in j-log-common j-log-engine j-digi j-bridge; do
+            mvn -B -q -DskipTests -f "$lib/pom.xml" install
+          done
+          for m in j-log-common j-log-engine j-digi j-bridge ars-fx; do
             echo "::group::test $m"
             mvn -B -f "$m/pom.xml" test
             echo "::endgroup::"
           done
 
-      # Builds the 24 artifacts into dist/ (universal + -mac-aarch64 +
-      # -linux-aarch64 per JavaFX module, plus the platform-independent jars)
-      # and FAILS if the final host-arch guard or the ARM-version preflight trips.
-      - name: Build release artifacts (+ arch guard)
+      # Builds the five ars-fx jars into dist/ (linux-x86_64 / windows-x86_64 /
+      # macos-x86_64 / macos-aarch64 / linux-aarch64-pi) and FAILS if the native
+      # guard finds a jar carrying a foreign/absent JavaFX native.
+      - name: Build release artifacts (+ native guard)
         run: ./build-release.sh
 
       - name: Publish GitHub Release
