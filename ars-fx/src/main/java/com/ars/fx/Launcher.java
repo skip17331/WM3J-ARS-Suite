@@ -90,6 +90,7 @@ public class Launcher extends Application {
 
     private void show(String id) {
         Shell.currentSurface = id;
+        if (id.equals("log") || id.equals("logc")) Shell.lastLogSurface = id;   // remember J-Log's mode
         host.getChildren().setAll(buildSurface(id));
         Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }

@@ -42,6 +42,9 @@ public final class Shell {
     public static Runnable onThemeChanged;
     /** Id of the surface currently on screen (set by the host on every show); spot-click prefill checks it. */
     public static volatile String currentSurface = "hub";
+    /** Last J-Log sub-surface shown (log vs logc), so the dock returns the operator to contest mode
+     *  if that's where they were when they hopped to another module. Updated by the host on show. */
+    public static volatile String lastLogSurface = "log";
     /** Solo mode: a single module launched on its own (J-Map/J-Sat) — no module dock, no cross-nav. */
     public static volatile boolean solo = false;
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
@@ -150,7 +153,8 @@ public final class Shell {
         if (!hue.equals("gear")) row.getStyleClass().add(hue);
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
-        if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id));   // dock = navigation
+        // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
+        if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id.equals("log") ? lastLogSurface : id));
         else { row.setStyle("-fx-cursor:hand;"); row.setOnMouseClicked(e -> navigate("station")); }   // gear → Station settings
         return row;
     }
