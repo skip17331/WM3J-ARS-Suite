@@ -459,6 +459,10 @@ public final class Installer {
         // "j-hub-1.5.0.jar" -> "j-hub", "morse-trainer-1.0.0.jar" -> "morse-trainer".
         String fileName = hint.getFileName().toString();
         String prefix   = fileName.replaceFirst("-\\d.*$", "");
+        // Classifier-suffixed names carry no version (e.g. "ars-fx-linux.jar"), so the
+        // version strip is a no-op — fall back to stripping the trailing -<classifier> so
+        // the glob still finds a sibling built for another platform ("ars-fx-windows.jar").
+        if (prefix.equals(fileName)) prefix = fileName.replaceFirst("-[^-]+\\.jar$", "");
 
         List<Path> candidates = new ArrayList<>();
         try (var ds = Files.newDirectoryStream(targetDir, prefix + "-*.jar")) {
