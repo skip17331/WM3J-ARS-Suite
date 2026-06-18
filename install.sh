@@ -61,7 +61,16 @@ if [[ "$BUILD_APP" == "1" ]]; then
     for lib in j-log-common j-log-engine j-digi j-bridge; do
         mvn -q -DskipTests -f "$SCRIPT_DIR/$lib/pom.xml" install
     done
-    mvn -q -DskipTests -f "$SCRIPT_DIR/ars-fx/pom.xml" clean package
+    # Pick the JavaFX-native build profile for this OS/arch so the jar runs here.
+    FX_PROFILE=""
+    case "$(uname -s)" in
+        Darwin) case "$(uname -m)" in arm64) FX_PROFILE="-Pmac-aarch64";; *) FX_PROFILE="-Pmac";; esac ;;
+        Linux)  case "$(uname -m)" in
+                    aarch64|arm64) FX_PROFILE="-Ppi"   # 64-bit ARM Linux: JavaFX-less jar (run on a Liberica Full JDK)
+                        echo "[bootstrap] aarch64 Linux — building the JavaFX-less -Ppi jar; run it on a Liberica Full JDK 21." ;;
+                esac ;;
+    esac
+    mvn -q -DskipTests $FX_PROFILE -f "$SCRIPT_DIR/ars-fx/pom.xml" clean package
 fi
 
 INSTALLER_JAR="$( find_installer_jar )"

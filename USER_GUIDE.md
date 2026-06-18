@@ -17,12 +17,10 @@ See [README.md](README.md) for the project's purpose and license, and
 1. [Overview](#1-overview)
 2. [Installation](#2-installation)
    - [All platforms — prerequisites](#21-all-platforms--prerequisites)
-   - [Build order matters](#22-build-order-matters)
-   - [Linux quick build](#23-linux-quick-build)
+   - [Quick install (all platforms)](#22-quick-install-all-platforms)
+   - [Building by hand](#23-building-by-hand)
    - [Install to a non-default location](#24-install-to-a-non-default-location)
-   - [Windows JavaFX](#25-windows-javafx)
-   - [macOS](#26-macos)
-   - [Optional dependencies — Hamlib and WSJT-X](#27-optional-dependencies--hamlib-and-wsjt-x)
+   - [Optional dependencies — Hamlib and WSJT-X](#25-optional-dependencies--hamlib-and-wsjt-x)
 3. [First-run setup](#3-first-run-setup)
 4. [J-Hub control panel](#4-j-hub-control-panel)
 5. [Per-app notes](#5-per-app-notes)
@@ -33,59 +31,49 @@ See [README.md](README.md) for the project's purpose and license, and
 
 ## 1. Overview
 
-The suite is not one program — it's **J-Hub plus a set of independent apps that connect to it.** Understanding that hub-and-spoke shape explains everything else, including the most common new-user question: *"why does J-Hub always have to be running?"*
+The suite is **one JavaFX application** (`ars-fx`). The same jar runs two ways, and you pick per launch:
 
-### The shape: one hub, many spokes
+- **Docked** — J-Hub and every module in a single window with a left dock. One process; everything shares live state in-memory.
+- **Loose** — each module in its own window, sharing live state through a small **background hub** that lives in the system tray.
+
+### Docked vs loose
 
 ```
-                         ┌─────────────────────────────────────┐
-                         │               J-HUB                  │
-   browser ── :8081 ───▶ │  • Web control surface (config UI)   │
-   (you configure here)  │  • WebSocket broker      :8080       │
-                         │  • Shared StateCache (rig, spots,    │
-                         │    logger session, station config)   │
-                         │  • DX-cluster / RBN / skimmer feeds   │
-                         │  • Launches the apps (child procs)    │
-                         └───────▲───────────────▲──────────────┘
-                                 │  WebSocket :8080 (one per app) │
-        ┌──────────┬──────────┬──┴───┬──────────┬───────┴───┬──────────┐
-     J-Log      J-Map     J-Digi   J-Bridge   J-Sat    morse-trainer  …
-   (logger)   (DX map)  (modem)  (WSJT-X)  (sats)     (CW practice)
+   DOCKED (one window, one process)        LOOSE (a window per module + a tray hub)
 
-   Web apps J-Hub launches and iframes into its own UI (also reachable directly):
-     J-Learn  :8082   (reference library)      J-Vault  :8083  (inventory / estate)
+   ┌───┬───────────────────────────┐       ┌──────────┐ ┌──────────┐ ┌──────────┐
+   │ d │                           │       │  J-Log   │ │  J-Map   │ │  J-Sat   │
+   │ o │      module surface       │       └────┬─────┘ └────┬─────┘ └────┬─────┘
+   │ c │   (J-Hub / J-Log / …)     │            │  ws://127.0.0.1:8090   │
+   │ k │                           │       ┌────┴────────────┴───────────┴────┐
+   └───┴───────────────────────────┘       │  background hub (system tray)     │
+        switch surfaces via the dock        │  Hamlib daemons + live feeds      │
+                                            └───────────────────────────────────┘
 ```
 
-Every app — J-Log, J-Map, J-Digi, J-Bridge, J-Sat — is its **own process** and opens a WebSocket to J-Hub on port **8080**. They do **not** talk to each other directly; J-Hub is the switchboard in the middle.
+The first loose window you open starts the hub automatically; closing the last window leaves it in the tray until you quit it there. (Where there's no usable tray — e.g. GNOME/Wayland — the hub runs headless.) The installer's shortcuts are **ARS Suite** (docked), one per module (loose), and **ARS Suite Hub** (the tray hub on its own).
 
-### Why J-Hub is always running
+### J-Hub — the control surface
 
-J-Hub isn't "the launcher you can close once the apps are up." It is the thing the apps *depend on the whole time*. It plays four roles at once:
+J-Hub is the dashboard and the home of all settings: callsign, grid, IARU region/country, Hamlib (rig/rotor/amp) endpoints, PTT/keyer, DX cluster, log uploaders, macros, and the Antenna Workshop. Everything lives in **one file** (`~/.j-hub/j-hub.json`) — there are no per-module config files to keep in sync. Reach J-Hub from the **dock** (docked) or the **⚙ gear** in any window's top bar (loose).
 
-1. **Message broker.** All inter-app traffic flows through it. When J-Map gets a DX spot, J-Bridge gets a WSJT-X decode, or the rig changes frequency, that event goes to J-Hub and J-Hub re-broadcasts it to every other connected app. Close J-Hub and the apps go silent to each other.
-2. **Configuration authority.** Your callsign, grid, IARU region/country, Hamlib (rig/rotor/amp) endpoints, PTT/keyer, DX cluster, log uploaders, macros — all live in **one file** (`~/.j-hub/j-hub.json`) and are edited in J-Hub's web UI. J-Hub pushes them to the apps live over the broker (`STATION_CONFIG`, and per-app messages like `JMAP_CONFIG`). There are no per-app config files to keep in sync.
-3. **Shared state cache.** J-Hub remembers the last rig status, the active logging session, and a buffer of recent spots. An app that starts late (or reconnects) gets the current picture replayed to it immediately on connect — so opening J-Map mid-session shows the spots that already arrived.
-4. **Service manager + control surface.** J-Hub launches the apps as child processes (the **Modules** tab), serves the whole web UI at `http://localhost:8081`, and hosts the **Antenna Workshop** (recommender + calculators). It also iframes the two web apps (J-Learn, J-Vault) so everything lives in one window.
+### The modules at a glance
 
-> **The handshake.** An app starts → opens the WebSocket → sends `APP_CONNECTED` → J-Hub replies `JHUB_WELCOME` and replays cached state + the current station config → the app is now live on the shared bus. This is why apps can be opened in any order and still end up consistent.
->
-> **If the hub goes away**, the apps don't crash — each caches the last config it received and keeps working stand-alone — but they stop seeing each other's events and stop getting config updates until J-Hub is back.
+| Module | What it does |
+|--------|--------------|
+| **J-Hub** | Dashboard + all settings (station, rig/rotor/amp, cluster, uploaders, macros, Antenna Workshop) |
+| **J-Log** | QSO logger — Normal + contest (68+ plugins) + awards |
+| **J-Map** | DX map: grayline, propagation, satellite / lunar / aurora overlays |
+| **J-Digi** | Native digital modem — CW, RTTY, PSK31, Olivia, MFSK16, DominoEX, AX.25 (decode) |
+| **J-Bridge** | Bridges WSJT-X into the suite (UDP **2237**) |
+| **J-Sat** | Satellite pass tracker; rig/rotor auto-tune during passes |
+| **J-Vault** | Shack inventory + Estate-Handoff document (own DB at `~/.j-vault/inventory.db`) |
+| **J-Learn** | Embedded reference library (300+ sections; markdown at `~/.j-learn/content/`) |
+| **Morse Trainer** | CW trainer — letter/group/QSO drills + sending practice |
 
-### The apps at a glance
+### Sharing state in loose mode
 
-| Name | Type | What it does | Ports |
-|------|------|--------------|-------|
-| `j-hub` | broker + web UI (JavaFX tray + Jetty) | Switchboard, config authority, state cache, app launcher, Antenna Workshop | **8080** WS, **8081** HTTP |
-| `j-log` | JavaFX desktop | QSO logger — Normal + contest (68+ plugins) + awards | — (WS client) |
-| `j-map` | JavaFX desktop | DX map: grayline, propagation, satellite / lunar / aurora overlays | — (WS client) |
-| `j-digi` | JavaFX desktop | Native digital modem — CW, RTTY, PSK31, Olivia, MFSK16, DominoEX, AX.25 | — (audio devices) |
-| `j-bridge` | JavaFX desktop | Bridges WSJT-X into the suite | **2237** UDP (WSJT-X) |
-| `j-sat` | JavaFX desktop | Satellite pass tracker; rig/rotor auto-tune during passes | 4540 (TLE API) |
-| `morse-trainer` | JavaFX desktop | CW trainer — letter/group/QSO drills + sending practice | — |
-| `j-learn` | **web app** (Jetty) | Reference library (300+ sections); iframed as the J-Learn tab, also at `:8082` | **8082** HTTP |
-| `j-vault` | **web app** (Jetty + SQLite) | Shack inventory + Estate-Handoff PDF; iframed as J-Vault, also at `:8083` | **8083** HTTP |
-
-The two **web apps** (J-Learn, J-Vault) are the only ones you can also open straight from a browser on the LAN — phone, tablet, shack laptop — at their ports. J-Vault keeps its own database (`~/.j-vault/inventory.db`) because inventory/estate data is sensitive enough to warrant a separate, isolated file.
+In **docked** mode everything is one process and shares state in-memory. In **loose** mode the separate windows coordinate over the background hub on **port 8090** (the suite's only network port): DX-cluster + RBN spots, rig freq/mode, rotor az/el, and station identity push from the hub to every window; tune-rig and rotate-antenna commands go back. The same mechanism lets a **J-Map or J-Sat run on a second machine** pointed at your station — see [INSTALL.md § Second-machine display](INSTALL.md#second-machine-display). If a window loses the hub it keeps its last-known values and reconnects automatically.
 
 ---
 
@@ -118,68 +106,49 @@ java --version
 # Expected: openjdk 21.x.x ...   or similar
 ```
 
-### 2.2 Build order matters
+### 2.2 Quick install (all platforms)
 
-The suite has dependencies between modules. Build in this order:
-
-```
-j-log-engine    (shared library — install first)
-j-learn         (standalone web app — install so J-Hub can launch it)
-j-vault         (standalone web app — install so J-Hub can launch it)
-j-hub, j-log, j-map, j-digi, j-bridge, j-sat, morse-trainer   (any order)
-```
-
-The `j-log-engine`, `j-learn`, and `j-vault` modules need `mvn install`
-(not just `package`) so their jars land in your local `.m2` cache. The
-others just need `mvn package`.
-
-### 2.3 Linux quick build
+One command builds the app and writes the menu shortcuts:
 
 ```bash
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
 cd ~/ARS_Suite
-mvn -q -DskipTests -f j-log-engine/pom.xml install
-mvn -q -DskipTests -f j-learn/pom.xml install
-mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
-  mvn -q -DskipTests -f "$m/pom.xml" package
-done
-./install.sh
-./j-hub/start.sh
+./install.sh            # Linux / macOS  (auto-detects macOS Intel/Apple-Silicon and Pi)
+# .\install.bat         # Windows
+./ars-fx/ars-fx.sh      # launch docked; or  --module log  (loose) / --hub (tray)
 ```
+
+No JavaFX SDK to download — the build bundles the right JavaFX native for your
+OS into the jar (the Pi runs the JavaFX-less jar on a Liberica Full JDK).
+
+### 2.3 Building by hand
+
+Install the shared libraries to your local `~/.m2`, then build `ars-fx` with the
+profile for your platform:
+
+```bash
+for lib in j-log-common j-log-engine j-digi j-bridge; do
+  mvn -q -DskipTests -f "$lib/pom.xml" install
+done
+mvn -q -DskipTests -f ars-fx/pom.xml package          # Linux x86-64 → ars-fx-linux.jar
+#   -Pwin / -Pmac / -Pmac-aarch64 / -Ppi  for Windows / macOS Intel / Apple Silicon / Pi
+./install.sh --skip-build                             # write shortcuts for the jar you built
+```
+
+`./build-release.sh` builds every platform's jar into `dist/` at once.
 
 ### 2.4 Install to a non-default location?
 
-```bash
-export ARS_SUITE_HOME=/opt/ars-suite   # Linux/macOS
-setx ARS_SUITE_HOME C:\opt\ars-suite   # Windows (System Properties → Env Vars)
-```
-
-All apps honor this when launched from a child process by J-Hub.
-
-### 2.5 Windows JavaFX
-
-The repo's `lib/javafx` symlinks point at a Linux SDK. On Windows, copy
-the Windows JavaFX 21 SDK into each module's `lib\javafx\` after cloning.
-Step-by-step PowerShell loop in **[INSTALL.md § Step 3](INSTALL.md)**.
-
-### 2.6 macOS
+The installer resolves the repo root from `--root <path>` or the `ARS_SUITE_HOME`
+environment variable (else the current directory):
 
 ```bash
-brew install --cask temurin21
-brew install maven git
-# then the same source/build flow as Linux
+ARS_SUITE_HOME=/opt/ars-suite ./install.sh   # Linux/macOS
 ```
 
-If Gatekeeper complains about an unsigned JAR, run once:
+### 2.5 Optional dependencies — Hamlib and WSJT-X
 
-```bash
-xattr -dr com.apple.quarantine ~/ARS_Suite
-```
-
-### 2.7 Optional dependencies — Hamlib and WSJT-X
-
-The suite does not auto-install these. Open j-hub's web UI after startup —
+The suite does not auto-install these. Open **J-Hub** in the app after startup —
 the Dashboard has a **System Dependencies** card that detects both and shows
 the correct install command for your OS if either is missing. The **Re-check**
 button re-probes after you install them.
@@ -208,62 +177,55 @@ button re-probes after you install them.
 
 ## 3. First-run setup
 
-1. Launch `j-hub` (`./start.sh` on Linux/macOS, `start.bat` on Windows).
-   A small status window (the **Mini UI**) opens showing uptime, ports,
-   connected apps, and Launch/Stop buttons for every managed module.
-   Click **Open Web Config UI** to launch the browser-based configurator.
-2. In the web UI, go to the **Station** tab and fill in:
-   - **Callsign** and **Operator Name** (top row)
-   - **Rig (Model)** and **Alias / Friendly Name** — these are independent.
-     Model is the actual transceiver (e.g. `IC-746pro`); alias is the short
-     nickname shown wherever a rig label appears (e.g. `Main`, `Backup`).
-   - **Rig Operator** — leave blank to default to the operator name above;
-     override for shared / club / multi-op stations.
+1. **Launch the app.** Open **ARS Suite** (docked) from your menu, or run
+   `./ars-fx/ars-fx.sh`. It opens on the J-Hub dashboard. (Prefer loose
+   windows? Open any module and click the **⚙ gear** in its top bar to reach
+   J-Hub.)
+2. **J-Hub ▸ Station** — fill in:
+   - **Callsign** and **Operator Name**.
+   - **Rig (Model)** and **Alias / Friendly Name** — independent. Model is the
+     actual transceiver (e.g. `IC-746pro`); alias is the short label shown
+     wherever a rig name appears (`Main`, `Backup`).
+   - **Rig Operator** — blank → the operator name above; override for shared /
+     club / multi-op stations.
    - **QTH**, **Grid Square**, **lat/lon**, **timezone**, **language**.
-   - **IARU Region** (R1 / R2 / R3) and **Country Overlay** (default
-     US FCC; leave blank for region-only). Drives the bandplan caption
-     shown in J-Digi, J-Bridge, and J-Map's DX Info window.
-   Save.
-3. Go to the **Modules** tab. For each app you want to auto-launch when
-   J-Hub starts, paste the launch command and tick **Auto-launch**. Example
-   commands (Linux, default layout):
-   - `j-log`:    `bash /home/$USER/ARS_Suite/j-log/j-log.sh`
-   - `j-map`:    `bash /home/$USER/ARS_Suite/j-map/j-map.sh`
-   - `j-bridge`: `bash /home/$USER/ARS_Suite/j-bridge/j-bridge.sh`
-   - `j-digi`:   `bash /home/$USER/ARS_Suite/j-digi/j-digi.sh`
-   - `j-sat`:    `bash /home/$USER/ARS_Suite/j-sat/j-sat.sh --launched-by-hub`
-   - `j-vault`:  `bash /home/$USER/ARS_Suite/j-vault/j-vault.sh`
-
-   J-Vault is launched the same way as the others but lives on its own port
-   (8083) and keeps its own data directory. It does **not** join the
-   broker WebSocket; J-Hub just spawns the process and embeds its UI in
-   the J-Vault tab.
-4. Optional but recommended: under **Rig Control**, configure either CI-V
-   (serial port, baud, hex address) or Hamlib (pick your rig from the
-   dropdown + serial port + baud — J-Hub spawns `rigctld` for you). Under
-   **Rotor Control** do the same if you run a rotator (J-Hub spawns
-   `rotctld`). Under **Amp Control** likewise (J-Hub spawns `ampctld`).
-   If you already run the daemons yourself (e.g. on a separate machine),
-   turn off the "Start &lt;daemon&gt; for me" toggle and just point Host/Port
-   at them.
-5. Under **DX Cluster**, pick a network (e.g. `dx.middlebrook.ca:8000`), enter
+   - **IARU Region** (R1 / R2 / R3) and **Country Overlay** (default US FCC;
+     blank for region-only). Drives the bandplan caption in J-Digi, J-Bridge,
+     and J-Map's DX Info. Save.
+3. **J-Hub ▸ Rig / Rotor / Amp** — configure either CI-V (serial port, baud,
+   hex address) or Hamlib (pick your rig + serial port + baud — the app spawns
+   `rigctld` for you). Same for a rotator (`rotctld`) and amplifier (`ampctld`).
+   Already run the daemons yourself? Turn off the "Start &lt;daemon&gt; for me"
+   toggle and just point Host/Port at them.
+4. **J-Hub ▸ Cluster** — pick a network (e.g. `dx.middlebrook.ca:8000`), enter
    your login callsign, tick **Auto-connect**, save.
-6. Restart J-Hub. Auto-launched modules come up, register on the hub, and
-   start sharing state. J-Vault opens in your browser on first launch
-   (a tab at `http://localhost:8083`; J-Hub also frames it as the J-Vault tab).
+5. **Done.** The modules use these settings immediately. In **docked** mode,
+   switch to any module from the left dock. In **loose** mode, open the module
+   windows you want — they attach to the background hub and share this config.
 
 ---
 
 ## 4. J-Hub control panel
 
-Every tab, card by card. J-Hub's web UI at **http://localhost:8081** is the single place you configure the whole suite. J-Hub must be running to reach it (see §1). The left-hand nav has **20 tabs**; each tab is built from **cards**, and most editable cards have their own **Save** button.
+J-Hub is the single place you configure the whole suite. It's the dashboard
+**inside the app** — reach it from the left **dock** (docked) or the **⚙ gear**
+in any window's top bar (loose). Its nav has a page per area (Station, Rig,
+Rotor, Amp, Antenna, Cluster, Data, Modules, …), each built from **cards** with
+their own **Save** button.
 
-How saving works (verified in `config.js` / `WebConfigServer`):
-- Editable settings are written to **`~/.j-hub/j-hub.json`** and pushed **live** to the running apps over the broker — no restart needed (the per-app config tabs note where a restart *is* required).
+How saving works:
+- Editable settings are written to **`~/.j-hub/j-hub.json`** and applied to the
+  modules immediately — in loose mode the change reaches every window through
+  the background hub.
 - A small status line next to each Save button confirms the write.
-- Read-only tabs (Dashboard) only display state streamed from the apps; nothing to save.
+- The Dashboard is read-only — it only displays live station state.
 
-> 📷 *Screenshots:* each tab below shows a capture under `docs/images/`. Taller tabs (Rig, Rotor, Amp, Modules, J-Map, J-Sat, …) are shown as two or three scrolled views.
+> ⚠️ **Heads-up on this section.** The card-by-card descriptions below are
+> accurate to the *settings*, but they were written for the earlier
+> browser-based J-Hub: any mention of a "web UI", `http://localhost:8081`, a
+> port, an iframe, or "Open in New Tab" now refers to a **surface inside the one
+> app**. The screenshots under `docs/images/` predate the JavaFX UI and are
+> being re-captured.
 
 ---
 
@@ -633,17 +595,17 @@ Independent of the tabs, a right-hand **Operator Intel** pane is always on scree
 
 ## 5. Per-app notes
 
-Each app is its own process. The five JavaFX apps (J-Log, J-Map, J-Digi,
-J-Bridge, J-Sat) are **WebSocket clients of J-Hub** on port 8080 — they take
-their station identity and settings from the hub and need almost no local
-setup. Morse Trainer is fully standalone. J-Vault and J-Learn are
-browser-based web apps. What follows is the per-app detail beyond the J-Hub
-tabs covered in §4.
+Every module here is a **surface of the one app** — shown in the dock (docked)
+or floated in its own window (loose). What follows is the per-module detail
+beyond the J-Hub settings in §4.
 
-> **The common launch flag.** Every app J-Hub starts gets `--launched-by-hub`,
-> which suppresses that app's own splash / auto-browser-open and hands lifecycle
-> control to the hub. You only pass flags yourself when launching an app by hand
-> (for example a second-machine J-Map — see below).
+> ⚠️ **Heads-up on this section.** Like §4, these per-module notes were written
+> for the earlier multi-process suite. The subtitle lines (e.g. "JavaFX desktop ·
+> WebSocket client (8080)", "Browser web app · port 8083") describe that old
+> model — in the current app the modules share state **in-process** when docked,
+> and over the **background hub on `127.0.0.1:8090`** when loose; J-Vault and
+> J-Learn are **JavaFX surfaces**, not browser apps. The *features* described are
+> current; the access/transport details are being refreshed.
 
 ### J-Log — logger (Normal + Contest)
 
@@ -1251,6 +1213,13 @@ lifecycle.
 ---
 
 ## 6. Troubleshooting
+
+> ⚠️ Some items below predate the single-app UI and reference the old per-process
+> ports (8080/8081/8082/8083). In the current app there is **one** network port,
+> **8090**, used only in loose mode and for a second-machine display. The most
+> common loose-mode issue: a window can't reach the hub — launch **ARS Suite
+> Hub** (or `ars-fx.sh --hub`), or just open any module (the first one starts the
+> hub), and confirm with `ss -ltn | grep 8090`.
 
 ### Nothing connects to j-hub
 

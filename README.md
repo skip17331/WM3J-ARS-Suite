@@ -9,23 +9,23 @@
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20%7C%20macOS-success.svg)](#)
 
 > **A modern, modular, operator‑first amateur radio suite.**
-> Nine purpose‑built apps that share one config, one cluster connection,
-> and one set of operator credentials — so your shack stops being nine
-> programs glued together with sticky tape.
+> One JavaFX application that runs your whole shack — **docked** in a single
+> window, or with each module **loose** in its own window sharing one
+> background hub. One config, one cluster connection, one set of credentials.
 
 WM3J‑ARS‑Suite is a complete, integrated software ecosystem for the modern
 ham. Logging, mapping, digital modes, WSJT‑X integration, satellite tracking,
-inventory, an in‑app reference library, antenna design, and a brokered web
-control hub — all written in Java, all GPLv3, all designed to feel like
-**one application** instead of seven.
+inventory, an in‑app reference library, and antenna design — all written in
+Java, all GPLv3, all in **one application** instead of a dozen separate
+programs.
 
 ---
 
 **Just want to install it?** → **[INSTALL.md](INSTALL.md)** — focused
 step‑by‑step setup for Linux and Windows (git, Java, Maven, build, run).
 
-**Already installed?** → **[USER_GUIDE.md](USER_GUIDE.md)** — web UI
-walkthrough, per‑app setup notes, troubleshooting, and an architecture map.
+**Already installed?** → **[USER_GUIDE.md](USER_GUIDE.md)** — app
+walkthrough, per‑module setup notes, troubleshooting, and an architecture map.
 
 **Wiring your radio, rotator, amp, or antenna switch?** →
 **[docs/HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md)** — beginner‑friendly
@@ -44,22 +44,25 @@ examples for both surfaces. No code, no rebuild.
 
 ## What's in the box
 
-Ten Maven modules. Built once, work together.
+One app, these modules — each a surface you can dock or float in its own window.
 
 | Module | What it does |
 |---|---|
-| **J‑Hub** | Central broker + browser‑based control surface (port 8081). Dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop — all in one web UI. Embeds J‑Vault and J‑Learn as iframed tabs. |
+| **J‑Hub** | The control surface: dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop, and all settings. Reached from the dock (docked) or the ⚙ gear (loose). |
 | **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
 | **J‑Map** | Real‑time DX map with grayline, propagation overlays, weather, aurora, and great‑circle paths to spotted DX. |
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
-| **J‑Sat** | Satellite tracker with Doppler correction and rotor control through J‑Hub. |
-| **J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed; runs as its own web app on port 8083. |
-| **J‑Learn** | Standalone amateur‑radio reference library web app on port 8082. ~200 chapters covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; per‑chapter "Open in Workshop" deep‑links to the matching calculators. Markdown source seeds to `~/.j-learn/content/` so users can edit content without rebuilding. |
-| **Morse Trainer** | Standalone JavaFX app for learning and practicing CW. Letter trainer (Koch‑method progression), letter‑group trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. Launchable from J‑Hub. |
+| **J‑Sat** | Satellite tracker with Doppler correction and rotor control. |
+| **J‑Vault** | Shack inventory + first‑call contacts + a one‑click **Estate Handoff PDF wizard** so your family knows who to call when you're SK. SQLite‑backed. |
+| **J‑Learn** | Embedded amateur‑radio reference library — ~200 sections covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; markdown source seeds to `~/.j-learn/content/` so you can edit content without rebuilding. |
+| **Morse Trainer** | Learning and practicing CW — Koch‑method letter trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. |
 
 A shared **j‑log‑engine** library underpins logging across J‑Log, J‑Digi,
 and J‑Bridge so everything writes to one set of databases under `~/.j‑log/`.
+In **loose** mode the per‑module windows share live state (spots, rig, rotor,
+station identity) through a small **background hub** in the system tray; in
+**docked** mode they all share one process.
 
 ---
 
@@ -89,8 +92,8 @@ gear they don't recognize. J‑Vault turns your inventory into a
 **printable handoff document** — cover page, personal note, first‑call
 contacts (priority‑sorted), full equipment inventory grouped by type,
 sale‑recommendation matrix (HRO / DXE / R&L / Universal / GigaParts), an
-11‑step plain‑language checklist, and a glossary for non‑hams. Real PDF
-output via bundled jsPDF — no print dialog, no copy‑paste.
+11‑step plain‑language checklist, and a glossary for non‑hams — exported as a
+printable handoff document.
 
 ### J‑Learn — your reference library, in‑app
 
@@ -101,13 +104,12 @@ you need. Bundled into J‑Hub — no separate install, no internet required.
 
 ### One settings surface
 
-Every operator preference lives in **J‑Hub's web UI** — callsign, grid,
-rig backend, Hamlib host/port, IARU region + country (for bandplan
-captions), PTT method, CW WPM, DX cluster, log uploaders, macros.
-When you save a setting, the change rides over the broker to every
-connected module live — no restart, no per‑app duplicate config files.
-Modules cache the last‑known values locally so they can still run
-stand‑alone after a hub disconnect.
+Every operator preference lives in **J‑Hub inside the app** — callsign, grid,
+rig backend, Hamlib host/port, IARU region + country (for bandplan captions),
+PTT method, CW WPM, DX cluster, log uploaders, macros. Reach it from the dock
+(docked) or the ⚙ gear in any window's top bar (loose). One place, no per‑app
+duplicate config files; in loose mode the change reaches every window through
+the background hub.
 
 ### Six languages, suite-wide
 
@@ -134,14 +136,14 @@ so subsequent runs only push the new ones.
 ### J‑Map
 
 Real‑time grayline + DX spots + ITU/CQ zones + Skywarn / aurora /
-geomagnetic alerts + tropo + lightning + weather radar. Pulls spots from
-the brokered J‑Hub feed (one telnet connection serves the whole suite).
+geomagnetic alerts + tropo + lightning + weather radar. Shares one DX‑cluster
+connection with the rest of the suite (one telnet connection serves every
+module). Runs loose on a second machine as a dedicated shack display.
 
 ### J‑Sat
 
-Doppler‑corrected satellite tracking with rotor control through J‑Hub.
-ISS APRS, FM birds, linear birds. Pass prediction with editable
-keplerian elements.
+Doppler‑corrected satellite tracking with rotor control. ISS APRS, FM birds,
+linear birds. Pass prediction with editable keplerian elements.
 
 ---
 
@@ -158,11 +160,11 @@ Most existing amateur‑radio applications are:
 - built on aging UI frameworks
 - not designed for contest‑grade workflows
 
-WM3J‑ARS‑Suite takes a different approach: **modular Java applications
-with cockpit‑style UIs, unified configuration, and universal backend
-support.** One DX cluster connection broadcast to every app. One station
-identity. One macro engine. One inventory. One reference library.
-Everything else is a tab.
+WM3J‑ARS‑Suite takes a different approach: **one Java application with
+cockpit‑style module surfaces, unified configuration, and universal backend
+support.** One DX cluster connection shared by every module. One station
+identity. One macro engine. One inventory. One reference library. Dock it all
+in a single window, or float the modules you want — your choice.
 
 ---
 
@@ -171,42 +173,21 @@ Everything else is a tab.
 **Full step‑by‑step instructions are in [INSTALL.md](INSTALL.md).**
 The 30‑second version:
 
-### Linux — Debian family (Debian / Ubuntu / Mint / Pop!_OS / Raspberry Pi OS)
+### Linux
 
 ```bash
-sudo apt update
-sudo apt install -y git openjdk-21-jdk maven
+# Debian family:  sudo apt update && sudo apt install -y git openjdk-21-jdk maven
+# Fedora family:  sudo dnf install -y git java-21-openjdk-devel maven
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
 cd ~/ARS_Suite
-mvn -q -DskipTests -f j-log-engine/pom.xml install
-mvn -q -DskipTests -f j-learn/pom.xml install
-mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
-    mvn -q -DskipTests -f "$m/pom.xml" package
-done
-./install.sh
-./j-hub/start.sh   # then open http://localhost:8081/
+./install.sh                       # builds the app + adds menu shortcuts
+./ars-fx/ars-fx.sh                 # docked; or  --module log  (loose) / --hub (tray)
 ```
 
-### Linux — Fedora family (Fedora / RHEL / Rocky / AlmaLinux / CentOS Stream)
-
-```bash
-sudo dnf install -y git java-21-openjdk-devel maven
-git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
-cd ~/ARS_Suite
-mvn -q -DskipTests -f j-log-engine/pom.xml install
-mvn -q -DskipTests -f j-learn/pom.xml install
-mvn -q -DskipTests -f j-vault/pom.xml install
-for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
-    mvn -q -DskipTests -f "$m/pom.xml" package
-done
-./install.sh
-./j-hub/start.sh   # then open http://localhost:8081/
-```
-
-In both cases, apps appear in your system menu under **Network / HamRadio**.
-Arch / openSUSE / other distros — same flow, see [INSTALL.md](INSTALL.md)
-for the package-manager line.
+Shortcuts appear in your system menu under **Network / HamRadio** — **ARS
+Suite** (docked) plus a window per module and **ARS Suite Hub**. Arch /
+openSUSE / other distros — same flow, see [INSTALL.md](INSTALL.md) for the
+package-manager line.
 
 ### Windows
 
@@ -221,11 +202,11 @@ cd $HOME\ARS_Suite
 .\install.bat                          # ~5–10 min first run; or double-click it
 ```
 
-Then press the Windows key, type **WM3J J-Hub**, Enter, and open
-<http://localhost:8081/>. Re-running `install.bat` after a `git pull`
-is the upgrade path. JavaFX is bundled into each jar automatically — no
-SDK download. If anything fails it writes `install-log.txt` — attach
-that to a GitHub issue. Full walkthrough in [INSTALL.md](INSTALL.md).
+Then press the Windows key, type **ARS Suite**, and press Enter (or open a
+single module's shortcut). Re-running `install.bat` after a `git pull` is the
+upgrade path. JavaFX is bundled into the jar automatically — no SDK download.
+If anything fails it writes `install-log.txt` — attach that to a GitHub issue.
+Full walkthrough in [INSTALL.md](INSTALL.md).
 
 ### macOS
 
@@ -234,27 +215,15 @@ brew install --cask temurin@21
 brew install maven git
 git clone https://github.com/skip17331/WM3J-ARS-Suite.git ~/ARS_Suite
 cd ~/ARS_Suite
-./bootstrap-mac.sh
-open ~/Applications/WM3J\ J-Hub.app
+./install.sh                              # detects Apple Silicon vs Intel
+open ~/Applications/ARS\ Suite.app
 ```
 
-`bootstrap-mac.sh` is the macOS equivalent of `install.sh` — one
-command that:
-
-1. Detects Apple Silicon vs Intel.
-2. Downloads the matching macOS JavaFX 21 SDK (cached under
-   `~/.cache/ars-suite/` so re-runs are fast).
-3. Drops it into every module's `lib/javafx/`.
-4. Builds the engine, the web apps, and packages every module.
-5. Runs `install.sh`, which plants `.app` bundles in
-   `~/Applications/`.
-6. Clears the Gatekeeper quarantine bit on every bundle so first
-   double-click just works — no per-module right-click dance.
-
-Re-run `./bootstrap-mac.sh` after any `git pull` to refresh everything
-in one shot. Log output from each module goes to
-`~/Library/Logs/ARS-Suite/<module>.log` (Finder swallows stdout from
-`.app` bundles).
+`./install.sh` builds the matching jar for your Mac and plants a `.app` bundle
+per shortcut in `~/Applications/` (**ARS Suite.app**, **J-Log.app**, …). First
+launch may need a Gatekeeper unblock — see [INSTALL.md](INSTALL.md#macos).
+Re-run after any `git pull` to upgrade. Per-window logs go to
+`~/Library/Logs/ARS-Suite/`.
 
 ---
 
@@ -276,27 +245,27 @@ compatibility, long‑term openness.
 ## Technology Overview
 
 - **Java 21+** — the suite is pure Java; no native code.
-- **JavaFX 21** — clean, responsive, cross‑platform UI.
-- **Maven** — modular builds with one shared engine library
-  (`j-log-engine`).
-- **Embedded Jetty** — J‑Hub serves the web control surface on
-  port 8081; J‑Vault serves its own UI on port 8083.
-- **Java‑WebSocket** — J‑Hub fans out a single broker connection to all
-  the desktop apps so they stay in sync without polling.
+- **JavaFX 21** — clean, responsive, cross‑platform UI; one app, all modules.
+- **Maven** — one shaded jar per OS, built from the `ars-fx` module over the
+  shared engine library (`j-log-engine`).
+- **Java‑WebSocket** — in **loose** mode a small background hub (port 8090)
+  shares live state (spots, rig, rotor, station) with each module window, and
+  with a J‑Map/J‑Sat display on a second machine.
 - **SQLite** — local persistence for QSOs, contests, macros, inventory,
   callsign cache.
-- **Hamlib** (`rigctld` / `rotctld`) — universal rig and rotor backend.
+- **Hamlib** (`rigctld` / `rotctld` / `ampctld`) — universal rig / rotor / amp
+  backend.
 - **WSJT‑X** integration via **J‑Bridge** UDP listener.
 - **JSON contest modules** — drop‑in plug‑ins for new contests.
-- **jsPDF + jspdf‑autotable** — bundled inside J‑Vault for real,
-  client‑side PDF generation.
+- **Estate handoff** — J‑Vault produces a printable inventory + first‑call
+  contacts document for your family.
 
 Runs on:
 
 - Linux (every flavor with Java 21+)
 - Windows 10 / 11
 - macOS (Apple Silicon and Intel)
-- Raspberry Pi 4 / 5 (J‑Hub headless mode is great here)
+- Raspberry Pi 4 / 5 (great as a loose J‑Map shack display)
 
 ---
 
@@ -312,7 +281,7 @@ Runs on:
 - Offer **a single logging solution** (J‑Log) for both everyday QSOs
   and high‑speed contest operation.
 - Treat the **station as one system** — not a binder full of incompatible
-  tools — through brokered J‑Hub state.
+  tools — through one shared configuration and live state.
 - Ensure the entire suite remains **free and open‑source** under GPLv3.
 
 ---
