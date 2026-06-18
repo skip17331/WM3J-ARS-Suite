@@ -102,7 +102,11 @@ public final class Shell {
     }
 
     // ---- module dock (collapsed icon rail, hover-expands) ------------------
-    public static Region dock(String activeId) {
+    public static Region dock(String activeId) { return dock(activeId, null); }
+
+    /** @param tailExpandOnly extra rows (e.g. the J-Hub config links) shown only when the dock is
+     *  expanded, appended after the modules and before the Station-settings foot. */
+    public static Region dock(String activeId, List<Node> tailExpandOnly) {
         if (solo) return null;   // solo module windows have no dock
         VBox dock = new VBox(); dock.getStyleClass().add("sx-dock");
         dock.setMinWidth(58); dock.setPrefWidth(58); dock.setMaxWidth(58);
@@ -114,6 +118,9 @@ public final class Shell {
         dock.getChildren().add(sec);
         for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules())
             dock.getChildren().add(dockItem(m.id(), m.name(), m.hue(), m.running(), activeId, expandOnly));
+        if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
+            n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
+        }
         dock.getChildren().add(spacer());
         // Station settings foot
         VBox foot = new VBox(dockItemRaw("gear", "Station settings", "gear", false, activeId, expandOnly));

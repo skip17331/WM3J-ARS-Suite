@@ -40,24 +40,14 @@ public final class JHubDashboard {
     public static Region buildModules() { return page("modules", modulesCenter()); }
 
     private static Region page(String activeConf, Region centerContent) {
-        // Two independent nav behaviours:
-        //   • workspace-bar ☰ fully closes the drawer (toggle the holder),
-        //   • nav-head ☰ collapses the drawer to an icon rail (rebuild nav).
-        boolean[] collapsed = {true};   // default to the icon rail, like the operating-module dock
-        StackPane navHolder = new StackPane();
-        Runnable[] rebuild = new Runnable[1];
-        rebuild[0] = () -> navHolder.getChildren().setAll(
-                hubNav(activeConf, collapsed[0], () -> { collapsed[0] = !collapsed[0]; rebuild[0].run(); }));
-        rebuild[0].run();
-        // auto open on hover, auto close on exit — matching Shell.dock on the other surfaces
-        navHolder.setOnMouseEntered(e -> { if (collapsed[0]) { collapsed[0] = false; rebuild[0].run(); } });
-        navHolder.setOnMouseExited(e -> { if (!collapsed[0]) { collapsed[0] = true; rebuild[0].run(); } });
-        Runnable close = () -> { boolean vis = !navHolder.isVisible(); navHolder.setManaged(vis); navHolder.setVisible(vis); };
+        // Same icon dock as every operating module; the J-Hub config links ride along as an
+        // expand-only tail so they stay reachable without changing the collapsed rail.
+        Region dock = Shell.dock("hub", hubConfigSection(activeConf));
 
         ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(navHolder, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
-        VBox root = new VBox(workspaceBar(close), row); root.setStyle("-fx-background-color:-ars-bg;");
+        HBox row = new HBox(dock, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;");
         return root;
     }
 
@@ -84,10 +74,9 @@ public final class JHubDashboard {
         }));
         t.setCycleCount(Timeline.INDEFINITE); t.play();
     }
-    private static Region workspaceBar(Runnable onMenu) {
-        Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onMenu.run());
+    private static Region workspaceBar() {
         Region dot = chip("jhub-bar-dot", 9);
-        HBox brand = new HBox(8, ham, dot, lbl("J-Hub", "jhub-bar-nm"), lbl("· WM3J", "jhub-bar-sub"));
+        HBox brand = new HBox(8, dot, lbl("J-Hub", "jhub-bar-nm"), lbl("· WM3J", "jhub-bar-sub"));
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "jhub-theme");
@@ -98,60 +87,19 @@ public final class JHubDashboard {
         return bar;
     }
 
-    // ---- left nav ----------------------------------------------------------
-    private static Region hubNav(String activeConf, boolean collapsed, Runnable onCollapse) {
-        VBox nav = new VBox(); nav.getStyleClass().add("jhub-nav");
-        double w = collapsed ? 66 : 256;
-        nav.setMinWidth(w); nav.setPrefWidth(w); nav.setMaxWidth(w);
-
+    // ---- J-Hub config links (ride along in the dock as an expand-only tail) -----
+    private static java.util.List<Node> hubConfigSection(String activeConf) {
         boolean onHardware = activeConf.equals("rig") || activeConf.equals("rotor")
                 || activeConf.equals("amp") || activeConf.equals("antsw");
-        if (collapsed) {
-            Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onCollapse.run());
-            HBox head = new HBox(ham); head.setAlignment(Pos.CENTER); head.getStyleClass().add("jhub-nav-head");
-            nav.getChildren().add(head);
-            // J-Hub home icon at the top of the rail → back to the dashboard
-            HBox hubRow = new HBox(Shell.iconTile("hub", "hub", 18, "sx-dock-ic"));
-            hubRow.setAlignment(Pos.CENTER); hubRow.getStyleClass().add("jhub-nav-item");
-            if (activeConf.equals("dashboard")) hubRow.getStyleClass().add("active");
-            hubRow.setStyle("-fx-cursor:hand;"); VBox.setMargin(hubRow, new Insets(1, 9, 1, 9));
-            hubRow.setOnMouseClicked(e -> Shell.navigate("hub"));
-            nav.getChildren().add(hubRow);
-            for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) {
-                Node ic = Shell.iconTile(m.hue(), m.id(), 18, "sx-dock-ic");
-                HBox row = new HBox(ic); row.setAlignment(Pos.CENTER); row.getStyleClass().add("jhub-nav-item");
-                // modules are separate surfaces; none is the active item while on a J-Hub page
-                row.setStyle("-fx-cursor:hand;"); VBox.setMargin(row, new Insets(1, 9, 1, 9));
-                row.setOnMouseClicked(e -> Shell.navigate(m.id()));
-                nav.getChildren().add(row);
-            }
-            nav.getChildren().addAll(
-                    collapsedConf("◎", activeConf.equals("dashboard"), () -> Shell.navigate("hub")),
-                    collapsedConf("▣", activeConf.equals("station"), () -> Shell.navigate("station")),
-                    collapsedConf("▦", activeConf.equals("modules"), () -> Shell.navigate("hubmods")),
-                    collapsedConf("◉", onHardware, () -> Shell.navigate("hubcfg")),
-                    collapsedConf("▤", activeConf.equals("data"), () -> Shell.navigate("hubdata")));
-            return nav;
-        }
-
-        Label ham = lbl("☰", "jhub-bar-ham"); ham.setStyle("-fx-cursor:hand;"); ham.setOnMouseClicked(e -> onCollapse.run());
-        HBox hubHome = new HBox(8, Shell.iconTile("hub", "hub", 16, "sx-dock-ic"), lbl("J-Hub", "jhub-nav-headnm"));
-        hubHome.setAlignment(Pos.CENTER_LEFT); hubHome.setStyle("-fx-cursor:hand;");
-        hubHome.setOnMouseClicked(e -> Shell.navigate("hub"));   // J-Hub icon = home / dashboard
-        HBox head = new HBox(10, ham, hubHome); head.setAlignment(Pos.CENTER_LEFT); head.getStyleClass().add("jhub-nav-head");
-        nav.getChildren().addAll(head, lbl("OPERATE", "jhub-nav-sec"));
-        for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) nav.getChildren().add(navItem(m, false));
-        nav.getChildren().add(lbl("J-HUB", "jhub-nav-sec"));
+        java.util.List<Node> out = new java.util.ArrayList<>();
+        out.add(lbl("J-HUB", "jhub-nav-sec"));
         Region dash = confItem("◎", "Dashboard", null, activeConf.equals("dashboard"));
-        dash.setOnMouseClicked(e -> Shell.navigate("hub"));
-        nav.getChildren().add(dash);
+        dash.setOnMouseClicked(e -> Shell.navigate("hub")); out.add(dash);
         Region station = confItem("▣", "Station", "›", activeConf.equals("station"));
-        station.setOnMouseClicked(e -> Shell.navigate("station"));
-        nav.getChildren().add(station);
+        station.setOnMouseClicked(e -> Shell.navigate("station")); out.add(station);
         Region modules = confItem("▦", "Modules", "›", activeConf.equals("modules"));
-        modules.setOnMouseClicked(e -> Shell.navigate("hubmods"));
-        nav.getChildren().add(modules);
-        nav.getChildren().add(confItem("◉", "Hardware", "⌄", false));
+        modules.setOnMouseClicked(e -> Shell.navigate("hubmods")); out.add(modules);
+        out.add(confItem("◉", "Hardware", "⌄", onHardware));
         String[][] hw = {{"Rig control","hubcfg","rig"},{"Rotor control","hubrotor","rotor"},
                 {"Amplifier","hubamp","amp"},{"Antenna switch","hubant","antsw"},{"Antenna workshop","",""}};
         for (String[] s : hw) {
@@ -159,31 +107,11 @@ public final class JHubDashboard {
             if (!s[2].isEmpty() && activeConf.equals(s[2])) l.getStyleClass().add("active");
             if (!s[1].isEmpty()) { l.setStyle("-fx-cursor:hand;"); l.setOnMouseClicked(e -> Shell.navigate(s[1])); }
             VBox.setMargin(l, new Insets(0, 9, 0, 9));
-            nav.getChildren().add(l);
+            out.add(l);
         }
         Region data = confItem("▤", "Data", "›", activeConf.equals("data"));
-        data.setOnMouseClicked(e -> Shell.navigate("hubdata"));
-        nav.getChildren().add(data);
-        return nav;
-    }
-    private static Region collapsedConf(String glyph, boolean active, Runnable onClick) {
-        Label ic = lbl(glyph, "jhub-nav-cic");
-        HBox row = new HBox(ic); row.setAlignment(Pos.CENTER); row.getStyleClass().add("jhub-nav-conf");
-        if (active) row.getStyleClass().add("active");
-        row.setStyle("-fx-cursor:hand;"); VBox.setMargin(row, new Insets(1, 9, 1, 9));
-        row.setOnMouseClicked(e -> onClick.run());
-        return row;
-    }
-    private static Region navItem(Mock.Mod m, boolean active) {
-        Node ic = Shell.iconTile(m.hue(), m.id(), 18, "sx-dock-ic");
-        Label nm = lbl(m.name(), "jhub-nav-nm");
-        Label st = lbl(m.running() ? "running" : m.sub(), "jhub-nav-st"); if (m.running()) st.getStyleClass().add("run");
-        VBox txt = new VBox(1, nm, st);
-        HBox row = new HBox(11, ic, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jhub-nav-item");
-        if (active && m.running()) row.getStyleClass().addAll("active","run");
-        VBox.setMargin(row, new Insets(1, 9, 1, 9));
-        row.setOnMouseClicked(e -> Shell.navigate(m.id()));
-        return row;
+        data.setOnMouseClicked(e -> Shell.navigate("hubdata")); out.add(data);
+        return out;
     }
     private static Region confItem(String icon, String name, String caret, boolean active) {
         Label ic = lbl(icon, "jhub-nav-cic");
