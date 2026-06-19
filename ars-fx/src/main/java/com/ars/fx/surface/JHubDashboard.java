@@ -576,15 +576,15 @@ public final class JHubDashboard {
             cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
             cfgRow("CI-V address", "Icom civ address (hex)", cInput("rig.civ", "0x98")),
             cfgRow("Poll interval", null, cUnit("rig.poll", "12", "ms")),
-            cfgRow("rigctld host", "Hamlib rig daemon J-Hub connects to", cInputApply("rig.rigctldHost", "127.0.0.1", () -> com.ars.fx.data.RigClient.getInstance().reconnect())),
-            cfgRow("rigctld port", null, cInputApply("rig.rigctldPort", "4532", () -> com.ars.fx.data.RigClient.getInstance().reconnect())));
+            cfgRow("rigctld host", "Hamlib rig daemon J-Hub connects to", cInputApply("rig.rigctldHost", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("rigctld port", null, cInputApply("rig.rigctldPort", "4532", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox ptt = section("PTT & KEYING",
             cfgRow("PTT method", null, cSeg("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0)),
             cfgRow("CW keyer", null, cInput("rig.keyer", "Winkeyer USB")),
             cfgRow("TX delay", null, cUnit("rig.txDelay", "30", "ms")));
         VBox beh = section("BEHAVIOR",
             cfgRow("Auto band-follow", null, cToggle("rig.autoBandFollow", true)),
-            cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.DaemonManager.setEnabled("rig", on))));
+            cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
@@ -605,7 +605,7 @@ public final class JHubDashboard {
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
 
         VBox id = section("IDENTITY",
-            cfgRow("Callsign", null, cInputApply("station.call", "WM3J", () -> com.ars.fx.data.HeardByClient.getInstance().setCall(com.ars.fx.data.HubConfig.call()))),
+            cfgRow("Callsign", null, cInputApply("station.call", "WM3J", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Operator name", null, cInput("station.name", "Mike")),
             cfgRow("Grid square", "6-char Maidenhead locator", cInput("station.grid", "FM19")));
         VBox loc = section("LOCATION",
@@ -649,9 +649,9 @@ public final class JHubDashboard {
             cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
             cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
-            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply("rotor.host", "127.0.0.1", () -> com.ars.fx.data.RotorClient.getInstance().reconnect())),
-            cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RotorClient.getInstance().reconnect())),
-            cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.DaemonManager.setEnabled("rotor", on))));
+            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply("rotor.host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox beh = section("BEHAVIOR",
             cfgRow("Overlap / wrap", "where the rotor crosses", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
             cfgRow("Park position", null, cUnit("rotor.park", "0", "° az")),
@@ -672,9 +672,9 @@ public final class JHubDashboard {
             cfgRow("Interface", null, cSeg("amp.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Serial port", null, cInput("amp.port", "/dev/ttyACM0")),
             cfgRow("Baud rate", null, cSelect("amp.baud", "38400", BAUDS)),
-            cfgRow("ampctld host", "Hamlib amp daemon", cInputApply("amp.host", "127.0.0.1", () -> AmpClient.getInstance().reconnect())),
-            cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> AmpClient.getInstance().reconnect())),
-            cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.DaemonManager.setEnabled("amp", on))));
+            cfgRow("ampctld host", "Hamlib amp daemon", cInputApply("amp.host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox beh = section("BEHAVIOR",
             cfgRow("Follow rig band", "auto band-switch with the radio", cToggle("amp.followBand", true)),
             cfgRow("Max power", null, cUnit("amp.maxPower", "1000", "W")),
@@ -732,9 +732,9 @@ public final class JHubDashboard {
             cfgRow("LoTW / eQSL auto-upload", null, cToggle("data.lotwAutoUpload", false)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
             cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor",
-                    cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteServer.apply())),
+                    cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("WebSocket port", "the solo module connects to ws://<this-pc>:<port>",
-                    cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteServer.apply())));
+                    cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox contest = section("CONTEST / CABRILLO",
             cfgRow("Operator category", null, cSelect("contest.cab.operator", "SINGLE-OP", new String[]{"SINGLE-OP","MULTI-OP","CHECKLOG"})),
             cfgRow("Power", null, cSelect("contest.cab.power", "HIGH", new String[]{"HIGH","LOW","QRP"})),

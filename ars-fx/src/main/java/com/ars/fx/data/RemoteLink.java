@@ -31,37 +31,70 @@ public final class RemoteLink {
     public static boolean isActive() { return INSTANCE != null; }
     public static RemoteLink get() { return INSTANCE; }
 
-    /** Begin the link to a station J-Hub (idempotent). Bad URLs fail quietly to local behaviour. */
-    public static synchronized void connect(String url) {
+    /** Begin the link to a station J-Hub (idempotent). Bad URLs fail quietly to local behaviour.
+     *  {@code identity} is the module label sent in the {@code hello} so the hub can list/track clients
+     *  (e.g. "log", "map", or "dock" for the docked app). */
+    public static synchronized void connect(String url, String identity) {
         if (INSTANCE != null) return;
-        try { RemoteLink l = new RemoteLink(new URI(url)); INSTANCE = l; l.open(); }
+        try { RemoteLink l = new RemoteLink(new URI(url), identity); INSTANCE = l; l.open(); }
         catch (Exception e) { System.err.println("[remote] bad station url \"" + url + "\": " + e.getMessage()); INSTANCE = null; }
     }
 
+    /** Close the link (idempotent). The window is exiting, so suppress the reconnect; the hub sees the
+     *  drop and decrements its client refcount. */
+    public static synchronized void disconnect() {
+        RemoteLink l = INSTANCE;
+        INSTANCE = null;
+        if (l != null) l.close();
+    }
+
+    /** Tell the hub to re-read config from disk and reconcile its backends (daemons, rig/rotor/amp links,
+     *  LAN-share bind). Sent after a client edits config, since each JVM caches config independently. */
+    public static void nudgeReconfig() {
+        RemoteLink l = INSTANCE;
+        if (l == null) return;
+        JsonObject o = new JsonObject(); o.addProperty("t", "hub.reconfig"); l.send(o);
+    }
+
     private final URI uri;
+    private final String identity;
     private volatile WebSocketClient ws;
     private volatile boolean connected = false;
+    private volatile boolean closing = false;
 
-    private RemoteLink(URI uri) { this.uri = uri; }
+    private RemoteLink(URI uri, String identity) { this.uri = uri; this.identity = identity; }
     public boolean isConnected() { return connected; }
     public String endpoint() { return uri.toString(); }
 
     private void open() {
         ws = new WebSocketClient(uri) {
-            @Override public void onOpen(ServerHandshake h) { connected = true; }
+            @Override public void onOpen(ServerHandshake h) { connected = true; sendHello(); }
             @Override public void onMessage(String message) { handle(message); }
-            @Override public void onClose(int code, String reason, boolean remote) { connected = false; scheduleReconnect(); }
+            @Override public void onClose(int code, String reason, boolean remote) { connected = false; if (!closing) scheduleReconnect(); }
             @Override public void onError(Exception ex) { /* reconnect handles it */ }
         };
         ws.setConnectionLostTimeout(30);
         try { ws.connect(); } catch (Exception e) { scheduleReconnect(); }
     }
 
+    private void close() {
+        closing = true;
+        WebSocketClient c = ws;
+        if (c != null) try { c.close(); } catch (Exception ignored) {}
+    }
+
+    private void sendHello() {
+        JsonObject o = new JsonObject();
+        o.addProperty("t", "hello");
+        o.addProperty("module", identity == null || identity.isBlank() ? "?" : identity);
+        send(o);
+    }
+
     private void scheduleReconnect() {
         Thread t = new Thread(() -> {
             try { Thread.sleep(3000); } catch (InterruptedException e) { return; }
             WebSocketClient c = ws;
-            if (c != null && !connected) { try { c.reconnect(); } catch (Exception ignored) {} }
+            if (c != null && !connected && !closing) { try { c.reconnect(); } catch (Exception ignored) {} }
         }, "remote-reconnect");
         t.setDaemon(true);
         t.start();

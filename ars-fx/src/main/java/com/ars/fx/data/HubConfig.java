@@ -28,6 +28,11 @@ public final class HubConfig {
         } catch (Exception e) { root = new JsonObject(); }
     }
 
+    /** Drop the in-memory cache so the next read re-loads {@code config.json} from disk. The store is a
+     *  per-process cache (loaded once), so the background hub calls this when a client edits config in
+     *  another JVM and nudges a reconcile — see {@code HubServer.reconcile()}. */
+    public static synchronized void reload() { root = null; ensure(); }
+
     public static synchronized String get(String key, String def) {
         ensure();
         return root.has(key) && !root.get(key).isJsonNull() ? root.get(key).getAsString() : def;

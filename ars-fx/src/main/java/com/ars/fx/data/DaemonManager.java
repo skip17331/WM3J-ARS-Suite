@@ -1,5 +1,7 @@
 package com.ars.fx.data;
 
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -35,6 +37,9 @@ public final class DaemonManager {
     public static void ensureAll() { for (Spec s : SPECS) ensure(s.kind()); }
     /** Kill every daemon we spawned (called on app shutdown so none are left orphaned). */
     public static void stopAll() { for (Spec s : SPECS) stop(s.kind()); }
+    /** Reconcile every daemon to its current config toggle: spawn the enabled ones, stop the disabled ones.
+     *  The hub calls this after re-loading config on a client's {@code hub.reconfig} nudge. */
+    public static void applyAll() { for (Spec s : SPECS) setEnabled(s.kind(), HubConfig.getBool(s.startKey(), false)); }
 
     /** Spawn the daemon for {@code kind} if its toggle is on, the binary exists, and it isn't already running. */
     public static synchronized void ensure(String kind) {
@@ -42,6 +47,10 @@ public final class DaemonManager {
         if (s == null || !HubConfig.getBool(s.startKey(), false)) return;
         Process p = PROCS.get(kind);
         if (p != null && p.isAlive()) return;
+        // Cross-process backstop: if something is already listening on the daemon's endpoint (our own daemon
+        // owned by another JVM, or an externally-run daemon), never spawn a second one to fight over the port.
+        String host = HubConfig.get(s.hostKey(), "127.0.0.1").trim();
+        if (portOpen(host, parsePort(HubConfig.get(s.portKey(), s.defaultPort()), s.defaultPort()))) return;
         String bin = resolveBinary(s.daemon());
         if (bin == null) return;                                  // not installed — leave it to the operator
         String model = HubConfig.get(s.modelKey(), "").trim();
@@ -72,6 +81,14 @@ public final class DaemonManager {
     public static void setEnabled(String kind, boolean on) { if (on) ensure(kind); else stop(kind); }
 
     private static Spec spec(String kind) { for (Spec s : SPECS) if (s.kind().equals(kind)) return s; return null; }
+
+    private static int parsePort(String v, String def) {
+        try { return Integer.parseInt(v.trim()); } catch (Exception e) { return Integer.parseInt(def); }
+    }
+    private static boolean portOpen(String host, int port) {
+        try (Socket s = new Socket()) { s.connect(new InetSocketAddress(host, port), 200); return true; }
+        catch (Exception e) { return false; }
+    }
 
     /** Locate a hamlib daemon: explicit override, common install dirs, then PATH. */
     static String resolveBinary(String daemon) {
