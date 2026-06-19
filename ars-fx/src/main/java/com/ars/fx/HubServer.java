@@ -24,6 +24,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Headless background "hub" for loose (un-docked) operation. It owns the things a
@@ -57,8 +61,17 @@ public final class HubServer {
 
     private static final CountDownLatch ALIVE = new CountDownLatch(1);
 
+    /** Auto-spawned hubs (via {@link #ensureRunning()}) shut down when the last client leaves; a hub launched
+     *  directly ({@code ars-fx --hub}) is "sticky" and only stops on Quit. Set from {@code -Dars.hub.auto}. */
+    private static volatile boolean auto;
+    private static volatile boolean hadClient = false;
+    private static final ScheduledExecutorService LINGER =
+            Executors.newSingleThreadScheduledExecutor(r -> { Thread t = new Thread(r, "hub-linger"); t.setDaemon(true); return t; });
+    private static volatile ScheduledFuture<?> pendingShutdown;
+
     public static void main(String[] args) {
         int port = RemoteServer.port();
+        auto = Boolean.getBoolean("ars.hub.auto");
 
         // Refuse to start a second hub on the same machine — the daemons/port are single-owner.
         if (portOpen(port)) {
@@ -67,19 +80,21 @@ public final class HubServer {
         }
 
         // Own the shared backends: daemons first (so the rig/rotor clients find them), then the clients,
-        // then publish state. Mirrors what the dock app does, minus any UI.
+        // then publish state. This process is the sole owner; every window (loose or docked) is a client.
         try { DaemonManager.ensureAll(); } catch (Exception e) { System.err.println("[hub] daemons: " + e.getMessage()); }
         ClusterClient.getInstance().start();
         HeardByClient.getInstance().start();
         RigClient.getInstance().start();
         RotorClient.getInstance().start();
-        RemoteServer.startIfEnabled();
+        RemoteServer.onClientCount = HubServer::onClientCount;   // wire refcount before the server accepts clients
+        RemoteServer.onReconfig    = HubServer::reconcile;
+        RemoteServer.startHub();
 
         Runtime.getRuntime().addShutdownHook(new Thread(HubServer::cleanup, "hub-shutdown"));
 
         if (!installTray(port)) {
             System.out.println("[hub] no system tray available — running headless on :" + port
-                    + " (stop with Ctrl-C)");
+                    + " (stop with Ctrl-C)" + (auto ? " — auto: exits when the last client closes" : ""));
         }
 
         try { ALIVE.await(); } catch (InterruptedException ignored) {}
@@ -87,12 +102,16 @@ public final class HubServer {
         System.exit(0);
     }
 
-    /** Ensure a hub is listening on the sharing port, spawning one (detached) if not. Used by loose launchers. */
+    /** Ensure a hub is listening on the sharing port, spawning one (detached) if not. Used by every client
+     *  window at launch. The spawn is tagged {@code -Dars.hub.auto=true} so it self-terminates once the last
+     *  client disconnects (vs. a hub launched directly, which stays up until Quit). */
     public static void ensureRunning() {
         int port = RemoteServer.port();
         if (portOpen(port)) return;
         try {
-            new ProcessBuilder(javaCmd("com.ars.fx.HubServer"))
+            List<String> cmd = javaCmd("com.ars.fx.HubServer");
+            cmd.add(cmd.size() - 1, "-Dars.hub.auto=true");   // JVM arg, before the main class
+            new ProcessBuilder(cmd)
                     .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                     .redirectError(ProcessBuilder.Redirect.DISCARD)
                     .start();
@@ -103,6 +122,45 @@ public final class HubServer {
         for (int i = 0; i < 30 && !portOpen(port); i++) {   // wait up to ~3 s for the port to come up
             try { Thread.sleep(100); } catch (InterruptedException e) { return; }
         }
+    }
+
+    // ── client refcount → linger shutdown ─────────────────────────────────────
+
+    /** Driven by {@link RemoteServer} on every connect/disconnect. An auto hub starts a short linger timer
+     *  when its last client leaves, and cancels it if one returns — so swapping modules doesn't churn the
+     *  daemons. A sticky hub ignores this and runs until Quit. */
+    private static synchronized void onClientCount(int n) {
+        if (n > 0) { hadClient = true; cancelLinger(); }
+        else if (auto && hadClient) scheduleLinger();
+    }
+    private static synchronized void scheduleLinger() {
+        cancelLinger();
+        int grace = lingerSeconds();
+        System.out.println("[hub] last client left — stopping in " + grace + "s unless one returns");
+        pendingShutdown = LINGER.schedule(() -> {
+            if (RemoteServer.clientCount() == 0) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
+        }, grace, TimeUnit.SECONDS);
+    }
+    private static void cancelLinger() {
+        ScheduledFuture<?> f = pendingShutdown;
+        pendingShutdown = null;
+        if (f != null) f.cancel(false);
+    }
+    private static int lingerSeconds() {
+        try { return Math.max(0, Integer.parseInt(HubConfig.get("hub.lingerSeconds", "8").trim())); }
+        catch (Exception e) { return 8; }
+    }
+
+    /** A client edited config in its own JVM and nudged us: re-read config from disk, then reconcile the
+     *  backends we own — managed daemons, the rig/rotor/amp client connections, and the LAN-share bind. */
+    private static void reconcile() {
+        HubConfig.reload();
+        try { DaemonManager.applyAll(); } catch (Exception e) { System.err.println("[hub] daemons: " + e.getMessage()); }
+        RigClient.getInstance().reconnect();
+        RotorClient.getInstance().reconnect();
+        com.ars.fx.data.AmpClient.getInstance().reconnect();
+        HeardByClient.getInstance().setCall(HubConfig.call());
+        RemoteServer.applyIfBindChanged();
     }
 
     // ── tray ────────────────────────────────────────────────────────────────

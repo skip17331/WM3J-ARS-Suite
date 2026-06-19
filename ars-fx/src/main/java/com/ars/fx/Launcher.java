@@ -44,10 +44,12 @@ public class Launcher extends Application {
         // ── full dock app ──
         Shell.onNavigate = this::show;
 
-        // spawn any Hamlib daemons the operator asked J-Hub to manage
-        com.ars.fx.data.DaemonManager.ensureAll();
-        // share live state with any solo J-Map / J-Sat on the LAN (Pi, 2nd PC)
-        com.ars.fx.data.RemoteServer.startIfEnabled();
+        // The docked app is a CLIENT of the local background hub — the single owner of the Hamlib daemons
+        // and the live feeds. Open the link first so the data clients see it and stay passive (their start()
+        // calls no-op under an active RemoteLink); bring the hub up off-thread so a cold spawn doesn't stall
+        // the UI — RemoteLink reconnects to it as soon as it is listening.
+        com.ars.fx.data.RemoteLink.connect("ws://127.0.0.1:" + com.ars.fx.data.RemoteServer.port(), "dock");
+        new Thread(com.ars.fx.HubServer::ensureRunning, "hub-ensure").start();
 
         scene = new Scene(host, 1460, 900);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
@@ -89,8 +91,10 @@ public class Launcher extends Application {
         Shell.onNavigate = this::show;                 // single surface; dock is gone so this rarely fires
         cfg.applyStation();                            // QTH/call overrides for the module's backends
 
-        if (cfg.autoHub) com.ars.fx.HubServer.ensureRunning();                // bring up the local background hub
-        if (cfg.isRemote()) com.ars.fx.data.RemoteLink.connect(cfg.remote);   // live feed from the station's J-Hub
+        // Attach as a client: open the link first (so the data clients stay passive), then ensure the local
+        // hub is up off-thread. A LAN config points at the station's J-Hub; a local --module points at ours.
+        if (cfg.isRemote()) com.ars.fx.data.RemoteLink.connect(cfg.remote, cfg.module);
+        if (cfg.autoHub)    new Thread(com.ars.fx.HubServer::ensureRunning, "hub-ensure").start();
 
         scene = new Scene(host, cfg.window.width, cfg.window.height);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
@@ -109,13 +113,13 @@ public class Launcher extends Application {
         Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }
 
-    /** Clean shutdown when the window closes: stop the sharing server + spawned daemons, then force the
-     *  JVM down. Several deps (the Java-WebSocket server, the embedded modem/WSJT-X engines, logback)
-     *  run non-daemon threads that would otherwise keep the process alive after the last window closes. */
+    /** Clean shutdown when the window closes: drop the hub link (so the hub's client refcount falls, and an
+     *  auto hub can shut itself down once we were the last one), then force the JVM down. Several deps (the
+     *  Java-WebSocket client, the embedded modem/WSJT-X engines, logback) run non-daemon threads that would
+     *  otherwise keep the process alive after the last window closes. Daemons/server belong to the hub, not us. */
     @Override
     public void stop() {
-        try { com.ars.fx.data.RemoteServer.shutdown(); } catch (Exception ignored) {}
-        try { com.ars.fx.data.DaemonManager.stopAll(); } catch (Exception ignored) {}
+        try { com.ars.fx.data.RemoteLink.disconnect(); } catch (Exception ignored) {}
         javafx.application.Platform.exit();
         System.exit(0);
     }
