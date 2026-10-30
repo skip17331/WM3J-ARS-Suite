@@ -21,7 +21,7 @@
              fx.scope = scope of the JavaFX deps. compile → bundled in the desktop jar;
                         pi sets it to provided so shade leaves JavaFX out (OpenJFX ships
                         no ARM-Linux jar to Maven — it comes from a Liberica Full JDK on
-                        the Pi). The transitive JavaFX in j-digi/j-bridge is excluded
+                        the Pi). The transitive JavaFX in j-digi is excluded
                         below so it can never sneak back in. -->
         <dist>linux</dist>
         <fx.scope>compile</fx.scope>
@@ -48,8 +48,8 @@
         <!-- J-Sat satellite registry + ~/.j-sat settings JSON parsing -->
         <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.10.1</version></dependency>
         <!-- Contest mode reuses the pure scoring/plugin/Cabrillo engine. Pinned explicitly (rather than
-             relying on the copy embedded in the j-digi/j-bridge fat jars) so the API version is deterministic.
-             It is declared BEFORE j-digi/j-bridge on purpose: those fat jars carry an older copy of the same com.jlog
+             relying on the copy embedded in the j-digi fat jar) so the API version is deterministic.
+             It is declared BEFORE j-digi on purpose: that fat jar carries an older copy of the same com.jlog
              classes, and classpath/shade order decides which copy wins — the engine must win. -->
         <dependency><groupId>com.jlog</groupId><artifactId>j-log-engine</artifactId><version>1.9.3</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
@@ -57,9 +57,8 @@
              Exclude its transitive JavaFX so our scoped (compile/provided) JavaFX is the only one. -->
         <dependency><groupId>com.hamradio</groupId><artifactId>j-digi</artifactId><version>1.9.3</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
-        <!-- J-Bridge embeds the real WSJT-X UDP listener + decode/status models -->
-        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.9.3</version>
-            <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
+        <!-- J-Bridge: the WSJT-X UDP listener + decode/status models (a thin library) -->
+        <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.9.3</version></dependency>
         <!-- Solo J-Map/J-Sat ⇄ station J-Hub link (same WS lib the suite's central hub uses) -->
         <dependency><groupId>org.java-websocket</groupId><artifactId>Java-WebSocket</artifactId><version>1.5.6</version></dependency>
         <!-- PluginLoader/ContestPlugin parse contest JSON with Jackson; pin so the shade keeps it. -->
@@ -131,42 +130,11 @@
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
                                 </filter>
-                                <!-- j-digi / j-bridge are published as fat jars that each embed all of
-                                     JavaFX (+natives). Strip that out: the desktop jar supplies JavaFX from
-                                     the openjfx deps, the Pi jar gets it from a Liberica Full JDK. -->
+                                <!-- j-digi is published as a fat jar that embeds all of JavaFX (+natives).
+                                     Strip that out: the desktop jar supplies JavaFX from the openjfx deps,
+                                     the Pi jar gets it from a Liberica Full JDK. -->
                                 <filter>
                                     <artifact>com.hamradio:j-digi</artifact>
-                                    <excludes>
-                                        <exclude>javafx/**</exclude>
-                                        <exclude>com/sun/javafx/**</exclude>
-                                        <exclude>com/sun/glass/**</exclude>
-                                        <exclude>com/sun/prism/**</exclude>
-                                        <exclude>com/sun/scenario/**</exclude>
-                                        <exclude>com/sun/webkit/**</exclude>
-                                        <exclude>com/sun/media/**</exclude>
-                                        <exclude>com/sun/marlin/**</exclude>
-                                        <exclude>com/sun/pisces/**</exclude>
-                                        <exclude>**/*.so</exclude>
-                                        <!-- These fat jars also embed every shared library (engine, gson,
-                                             jackson, sqlite, logback, websocket, pdfbox, byte-buddy, jssc…).
-                                             Strip them all so the pinned standalone copies are authoritative;
-                                             only com/hamradio/** (the module's own code) is kept. -->
-                                        <exclude>com/jlog/**</exclude>
-                                        <exclude>ch/qos/**</exclude>
-                                        <exclude>com/fasterxml/**</exclude>
-                                        <exclude>com/google/**</exclude>
-                                        <exclude>net/bytebuddy/**</exclude>
-                                        <exclude>org/apache/**</exclude>
-                                        <exclude>org/java_websocket/**</exclude>
-                                        <exclude>org/scijava/**</exclude>
-                                        <exclude>org/sqlite/**</exclude>
-                                        <exclude>org/slf4j/**</exclude>
-                                        <exclude>jssc/**</exclude>
-                                        <exclude>natives/**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.hamradio:j-bridge</artifact>
                                     <excludes>
                                         <exclude>javafx/**</exclude>
                                         <exclude>com/sun/javafx/**</exclude>

@@ -63,6 +63,6 @@ com.hamradio.jbridge/
 
 ## Dependencies
 
-Java 21, `j-log-common`, Gson, SLF4J + Logback, and (kept from the former app) JavaFX and Java-WebSocket in the
-`pom.xml`. The shade plugin still builds a fat jar; `ars-fx` depends on this module's classpath, so check `ars-fx`
-still builds and runs before trimming any dependency.
+Java 21, `j-log-common` (the band plan) and `slf4j-api`; JUnit 5 for tests. It is a thin jar (about 20 KB) with no
+JavaFX, WebSocket, JSON or logging backend — `ars-fx` supplies those. `ars-fx` reads the decode `country` and
+`distanceKm` fields, which this module leaves empty (see the model Javadoc), so those parts of its decode rows stay blank.

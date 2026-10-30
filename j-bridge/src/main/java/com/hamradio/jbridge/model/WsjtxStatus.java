@@ -3,12 +3,11 @@ package com.hamradio.jbridge.model;
 /**
  * WsjtxStatus — WSJT-X Status message (UDP type 1).
  *
- * Published to j-hub as WSJTX_STATUS whenever WSJT-X status changes.
- * Frequency is in Hz to match j-hub wire conventions (same as RigStatus).
+ * Reported by WsjtxUdpListener whenever WSJT-X status changes. Frequencies are in Hz.
  */
 public class WsjtxStatus {
 
-    private long    dialFrequency;   // Hz — matches j-hub RigStatus.frequency convention
+    private long    dialFrequency;   // Hz
     private String  mode;
     private String  dxCall;
     private String  report;

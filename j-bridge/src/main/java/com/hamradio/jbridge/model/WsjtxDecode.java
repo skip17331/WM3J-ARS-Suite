@@ -5,13 +5,8 @@ import java.time.Instant;
 /**
  * WsjtxDecode — a signal decoded by WSJT-X (UDP message type 2).
  *
- * Raw fields come from the WSJT-X binary protocol.
- * Enrichment fields (country, bearing, etc.) are populated by j-hub's
- * SpotEnricher after the WSJTX_DECODE message is published — J-Bridge
- * does NOT compute these locally; it receives them back via the hub broadcast.
- *
- * Wire-protocol field names match the j-hub WSJTX_DECODE JSON schema so that
- * MessageRouter can rebroadcast to j-log without transformation.
+ * Raw fields come from the WSJT-X binary protocol. The enrichment fields (country, bearing, distance, etc.)
+ * are not filled in by J-Bridge; the host application sets them if it wants them shown.
  */
 public class WsjtxDecode {
 
@@ -38,7 +33,7 @@ public class WsjtxDecode {
     /** Decoded during off-period flag */
     private boolean offAir;
 
-    // ── Fields set by J-Bridge before publishing ─────────────────────────────
+    // ── Fields set by J-Bridge from the last Status message and the decode text ──
 
     /** RF dial frequency in Hz (from last WSJT-X Status message) */
     private long frequency;
@@ -55,7 +50,7 @@ public class WsjtxDecode {
     /** Worked status: "worked" | "needed" | "unknown" */
     private String workedStatus = "unknown";
 
-    // ── Enrichment fields — populated by j-hub, read back from broadcast ─────
+    // ── Enrichment fields — left empty by J-Bridge; set by the host if wanted ──
 
     private String country;
     private String continent;

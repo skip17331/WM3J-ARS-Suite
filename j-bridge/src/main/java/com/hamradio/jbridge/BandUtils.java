@@ -5,7 +5,7 @@ package com.hamradio.jbridge;
  *
  * The band edges live in one place — the shared band plan in j-log-common.
  *
- * Input is always Hz (j-hub wire convention).
+ * Input is always Hz.
  */
 public final class BandUtils {
 

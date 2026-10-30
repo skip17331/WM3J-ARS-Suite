@@ -5,8 +5,7 @@ import java.time.Instant;
 /**
  * WsjtxQsoLogged — WSJT-X QSO Logged message (UDP type 5).
  *
- * Published to j-hub as WSJTX_QSO_LOGGED.  Also used to add the callsign
- * to the local worked list so decode rows update their colour immediately.
+ * Reported by WsjtxUdpListener when WSJT-X logs a contact.
  */
 public class WsjtxQsoLogged {
 
@@ -30,7 +29,7 @@ public class WsjtxQsoLogged {
     private String  exchangeReceived;
     private String  propagationMode;
 
-    // Enrichment set locally before publish
+    // Enrichment fields — left empty by J-Bridge; set by the host if wanted
     private String country;
     private String continent;
     private int    dxcc;
