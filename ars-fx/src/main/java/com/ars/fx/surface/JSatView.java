@@ -166,12 +166,24 @@ public final class JSatView {
 
         Region center = snap.ready() && f != null
                 ? new HBox(satColumn(snap, f), plotCol(snap, f))
+                : snap.ready() && snap.sats().isEmpty() ? emptyPlaceholder()
                 : placeholder(snap.error().isEmpty() ? "Computing…" : snap.error());
         if (center instanceof HBox hb) hb.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(snap, f));
         return (Region) Shell.frame(dock, top, center, rail);
     }
 
+    /** Nothing selected (or nothing selected has elements): say so and point at the picker. */
+    private static Region emptyPlaceholder() {
+        java.util.List<String> missing = SatService.getInstance().missingNames();
+        Label l = lbl(missing.isEmpty() ? "No satellites selected." : "None of the selected satellites has orbital data yet.");
+        l.setStyle("-fx-font-size:14px;-fx-text-fill:-ars-t2;");
+        Label go = lbl("Choose satellites and refresh orbital data in J-Hub ›", "jl-logbtn"); go.setStyle("-fx-cursor:hand;-fx-padding:8 16;");
+        go.setOnMouseClicked(e -> Shell.navigate("hubsat"));
+        VBox v = new VBox(14, l, go); v.setAlignment(Pos.CENTER);
+        StackPane sp = new StackPane(v); sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
+        return sp;
+    }
     private static Region placeholder(String msg) {
         Label l = lbl(msg); l.setStyle("-fx-font-size:13px;-fx-text-fill:-ars-t3;");
         StackPane sp = new StackPane(l); sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
@@ -196,6 +208,16 @@ public final class JSatView {
         collapse.setOnMouseClicked(e -> { satCollapsed = true; rebuild(); });
         p.getChildren().add(new HBox(8, title, collapse));
         java.util.Map<String, Color> cm = colorMap(snap);
+        Label pick = lbl("Choose satellites in J-Hub ›", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
+        pick.setOnMouseClicked(e -> Shell.navigate("hubsat"));
+        p.getChildren().add(pick);
+        java.util.List<String> missing = SatService.getInstance().missingNames();
+        if (!missing.isEmpty()) {
+            Label warn = lbl("⚠ No orbital data for " + missing.size() + " selected: " + String.join(", ", missing)
+                    + ". Refresh elements in J-Hub ▸ Satellites.", "jm-spot-meta");
+            warn.setWrapText(true); warn.setMaxWidth(280);
+            p.getChildren().add(warn);
+        }
         for (SatInfo s : snap.sats()) p.getChildren().add(satCard(s, s == f, cm.get(s.name())));
         // more satellites than fit the window must scroll, not run off the bottom edge
         ScrollPane sp = new ScrollPane(p); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);

@@ -139,6 +139,7 @@ public class Launcher extends Application {
             case "hubant":   return com.ars.fx.surface.JHubDashboard.buildAntSw();
             case "hubdata":  return com.ars.fx.surface.JHubDashboard.buildData();
             case "hubmods":  return com.ars.fx.surface.JHubDashboard.buildModules();
+            case "hubsat":   return com.ars.fx.surface.JHubDashboard.buildSatellites();
             case "map":    return com.ars.fx.surface.JMapView.build();
             case "sat":    return com.ars.fx.surface.JSatView.build();
             case "digi":   return com.ars.fx.surface.JDigiView.build();

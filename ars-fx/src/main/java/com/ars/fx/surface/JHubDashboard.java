@@ -38,6 +38,7 @@ public final class JHubDashboard {
     public static Region buildAntSw()   { return page("antsw", antennaSwitchCenter()); }
     public static Region buildData()    { return page("data", dataCenter()); }
     public static Region buildModules() { return page("modules", modulesCenter()); }
+    public static Region buildSatellites() { return page("sat", JHubSatellites.center()); }
 
     private static Region page(String activeConf, Region centerContent) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
@@ -128,6 +129,8 @@ public final class JHubDashboard {
         }
         Region data = confItem("▤", "Data", "›", activeConf.equals("data"));
         data.setOnMouseClicked(e -> Shell.navigate("hubdata")); out.add(data);
+        Region sats = confItem("✦", "Satellites", "›", activeConf.equals("sat"));
+        sats.setOnMouseClicked(e -> Shell.navigate("hubsat")); out.add(sats);
         return out;
     }
     private static Region confItem(String icon, String name, String caret, boolean active) {
@@ -313,7 +316,7 @@ public final class JHubDashboard {
         return b[cluBandSel] + " · " + m[cluModeSel];
     }
     /** Interactive segmented control: highlights the chosen option and reports its index. */
-    private static Region segSel(String[] opts, int on, java.util.function.IntConsumer onSelect) {
+    static Region segSel(String[] opts, int on, java.util.function.IntConsumer onSelect) {
         HBox h = new HBox(2); h.getStyleClass().add("cfg-seg");
         Label[] btns = new Label[opts.length];
         for (int i = 0; i < opts.length; i++) {
@@ -326,11 +329,14 @@ public final class JHubDashboard {
         return h;
     }
     /** Interactive toggle switch that reports its new state. */
-    private static Region switchToggle(boolean initial, java.util.function.Consumer<Boolean> onChange) {
+    static Region switchToggle(boolean initial, java.util.function.Consumer<Boolean> onChange) {
         boolean[] on = {initial};
         Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
         StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); sw.setStyle("-fx-cursor:hand;");
+        sw.setMinSize(36, 20); sw.setPrefSize(36, 20); sw.setMaxSize(36, 20);   // the row would otherwise stretch it into a circle
+        StackPane.setMargin(knob, new Insets(0, 3, 0, 3));
         Runnable paint = () -> {
+            StackPane.setAlignment(knob, on[0] ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
             sw.getStyleClass().remove("on"); if (on[0]) sw.getStyleClass().add("on");
             sw.setStyle("-fx-cursor:hand;" + (on[0] ? "-fx-background-color:-ars-accent;-fx-border-color:-ars-accent;" : ""));
         };
@@ -623,7 +629,7 @@ public final class JHubDashboard {
         return v;
     }
     // ---- shared config-page chrome ----------------------------------------
-    private static HBox cfgTop(String... crumbs) {
+    static HBox cfgTop(String... crumbs) {
         HBox crumb = new HBox(7); crumb.setAlignment(Pos.BOTTOM_LEFT);
         for (int i = 0; i < crumbs.length; i++) {
             crumb.getChildren().add(lbl(crumbs[i], i == crumbs.length - 1 ? "cfg-title" : "jhub-crumb"));
@@ -634,7 +640,7 @@ public final class JHubDashboard {
         HBox top = new HBox(crumb, sp, back); top.setAlignment(Pos.BOTTOM_LEFT);
         return top;
     }
-    private static Region cfgPage(Node... rows) {
+    static Region cfgPage(Node... rows) {
         VBox v = new VBox(20, rows); v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
@@ -898,7 +904,7 @@ public final class JHubDashboard {
         card.getChildren().add(statusRow);
         return new VBox(6, lbl("BACKUP & EXPORT", "cfg-sec"), card);
     }
-    private static Label cfgBtn(String text) {
+    static Label cfgBtn(String text) {
         Label b = lbl(text, "cfg-select"); b.setStyle("-fx-cursor:hand; -fx-padding:6 14 6 14; -fx-background-color:-ars-accent; -fx-text-fill:#06121a; -fx-font-weight:bold; -fx-background-radius:7;");
         return b;
     }
@@ -957,17 +963,17 @@ public final class JHubDashboard {
         return rows;
     }
 
-    private static VBox statCell(String k, String val, String unit, boolean ok) {
+    static VBox statCell(String k, String val, String unit, boolean ok) {
         Label v = lbl(val, "cfg-sv"); if (ok) v.getStyleClass().add("ok");
         HBox vu = new HBox(4, v); vu.setAlignment(Pos.BOTTOM_LEFT); if (!unit.isEmpty()) vu.getChildren().add(lbl(unit, "cfg-sval-u"));
         VBox cell = new VBox(4, lbl(k, "cfg-sk"), vu); cell.setMinWidth(150); return cell;
     }
-    private static VBox section(String name, Node... rows) {
+    static VBox section(String name, Node... rows) {
         VBox card = new VBox(rows); card.getStyleClass().add("cfg-card");
         if (rows.length > 0) rows[rows.length-1].setStyle("-fx-border-width:0;");
         return new VBox(6, lbl(name, "cfg-sec"), card);
     }
-    private static HBox cfgRow(String title, String hint, Node control) {
+    static HBox cfgRow(String title, String hint, Node control) {
         VBox lblBox = new VBox(2, lbl(title, "cfg-lt")); if (hint != null) lblBox.getChildren().add(lbl(hint, "cfg-lh"));
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox row = new HBox(20, lblBox, sp, control); row.getStyleClass().add("cfg-row"); row.setAlignment(Pos.CENTER_LEFT);
