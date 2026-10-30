@@ -57,26 +57,20 @@ fi
 ok "Java ${JAVA_MAJOR}"
 echo
 
-# ── Step 2: Build the engine + shared web apps (mvn install) ──────
-info "Step 2 / 5 — installing shared engine + web apps to local Maven repo"
-mvn -q -DskipTests -f "$SCRIPT_DIR/j-log-engine/pom.xml" install \
-    || die "j-log-engine build failed"
-ok "j-log-engine"
-mvn -q -DskipTests -f "$SCRIPT_DIR/j-learn/pom.xml" install \
-    || die "j-learn build failed"
-ok "j-learn"
-mvn -q -DskipTests -f "$SCRIPT_DIR/j-vault/pom.xml" install \
-    || die "j-vault build failed"
-ok "j-vault"
+# ── Step 2: Build the shared libraries (mvn install) ──────────────
+info "Step 2 / 5 — installing the shared libraries to the local Maven repo"
+for lib in j-log-common j-log-engine j-digi j-bridge; do
+    mvn -q -DskipTests -f "$SCRIPT_DIR/$lib/pom.xml" install \
+        || die "$lib build failed"
+    ok "$lib"
+done
 echo
 
-# ── Step 3: Package each user-facing module ────────────────────────
-info "Step 3 / 5 — packaging modules"
-for m in j-hub j-log j-map j-digi j-bridge j-sat morse-trainer; do
-    mvn -q -DskipTests -f "$SCRIPT_DIR/$m/pom.xml" package \
-        || die "$m build failed"
-    ok "$m"
-done
+# ── Step 3: Package the app ────────────────────────────────────────
+info "Step 3 / 5 — packaging ars-fx"
+mvn -q -DskipTests -f "$SCRIPT_DIR/ars-fx/pom.xml" package \
+    || die "ars-fx build failed"
+ok "ars-fx"
 echo
 
 # ── Step 4: Run the installer (writes .app bundles) ────────────────

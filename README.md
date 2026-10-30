@@ -110,13 +110,10 @@ PTT method, CW WPM, DX cluster, log uploaders, macros. Reach it from the dock
 duplicate config files; in loose mode the change reaches every window through
 the background hub.
 
-### Six languages, suite-wide
+### Languages
 
-UI strings across every module are translatable — English, Spanish,
-German, French, Italian, Portuguese. EN + ES ship embedded; the
-other four ride as drop-in `.properties` packs under `i18n-packs/`
-so native speakers can polish translations without rebuilding Java.
-See `i18n-packs/README.md` for details.
+The app's screens are in English. The J-Log translator (QSO phrases with a pronunciation guide) covers
+Spanish, German, French, Italian and Portuguese.
 
 ### Macros that share state
 
