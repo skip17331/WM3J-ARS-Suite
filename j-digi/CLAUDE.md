@@ -2,118 +2,125 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Role in the suite
+
+`j-digi` is the modem library behind the **J-Digi** surface of `ars-fx` (see `../ars-fx/CLAUDE.md`). It also
+builds a standalone JavaFX window (`ModemMain` / `Launcher`). `ars-fx` depends on this module and drives it through
+`com.ars.fx.data.DigiEngine`, which calls `ModemService.startupEmbedded()`.
+
+- **Embedded** (normal): `startupEmbedded()` starts audio capture only and reports audio failures to the decode log.
+  There is no hub connection; `ars-fx` supplies station identity, macros and rig control itself.
+- **Standalone**: `startup()` first connects `HubClient` to a WebSocket hub (default `ws://127.0.0.1:8080`, pref
+  `hub.url`) and only then starts audio. That hub was the old standalone J-Hub, which has been retired, so on its
+  own the connect fails. Keep the code path working for tests, but do not build new features on it.
+
 ## Build & Run
 
 ```bash
-./run.sh
-# which runs:
-mvn clean install -f pom.xml
-java --module-path ./lib/javafx \
-     --add-modules javafx.controls,javafx.graphics \
-     -Dfile.encoding=UTF-8 \
-     -jar target/j-digi-0.2.0-jar-with-dependencies.jar
+./run.sh                # mvn clean install, then java -jar on the newest target/j-digi-*.jar
 ```
 
-JavaFX 21 must be on the module path at `./lib/javafx`. Java 17+ at runtime.
+Java 21, Maven. `j-log-common` and `j-log-engine` must be in `~/.m2` first (`../build-release.sh` installs them).
+The fat jar carries JavaFX, so no `--module-path` is needed.
 
 ## Status
 
-**Version 0.2.0 — pre-1.0 but no longer "Phase 1".** Decode side is implemented and audio-loopback validated across all bundled modes. Transmit side is real with three selectable keying paths (see "PTT / rig keying" below). Bump to 1.0 gates on on-air QSO testing of the per-mode decoders against real signals.
+Decode is implemented and audio-loopback validated for every bundled mode. Transmit exists for CW, RTTY, PSK31,
+Olivia, MFSK16 and Domino-EX. **AX.25 is decode-only** (`ModemService` throws `UnsupportedOperationException` for
+AX.25 WAV export). Bump to 1.0-quality claims gates on on-air testing against real signals.
 
 ## Architecture
 
-JavaFX desktop app, single window. `ModemService` is the central singleton; it owns:
+`ModemService` is the central singleton; it owns:
 
 | Component | Role |
 |---|---|
 | `AudioEngine` | Opens the chosen `TargetDataLine`, runs a capture thread, delivers `float[]` frames to listeners |
 | `FftAnalyzer` | Real-time FFT for the waterfall + per-mode demodulators |
-| `ModeManager` | EnumMap of mode decoders; `process()` dispatches each frame to whichever mode is active |
-| `SignalClassifier` | Rolling ~16 s audio buffer; classifies "what mode is this?" when the operator clicks a signal in the waterfall |
-| `AudioTxEngine` | TX-side state machine; emits PCM samples for outbound CW/RTTY/PSK31 (rig keying is `NoOpRigControl` for now) |
-| `HubClient` | WebSocket to J-Hub on 8080; sends `WSJTX_DECODE`/equivalent messages, receives `RIG_STATUS` |
+| `ModeManager` | EnumMap of mode decoders; `process()` dispatches each frame to the active mode |
+| `SignalClassifier` | Rolling ~16 s audio buffer; classifies the mode when the operator clicks a signal in the waterfall |
+| `LocalSkimmer` / `SkimmerSpotPublisher` | Local CW skimmer that publishes spots |
+| `AudioTxEngine` | TX state machine; emits PCM for outbound CW/RTTY/PSK31/Olivia/MFSK16/Domino-EX |
+| `HubClient` | Legacy WebSocket link used only by standalone `startup()` |
 
 Decoders run on the audio thread; the UI receives decoded text on the JavaFX Application Thread via `Platform.runLater`.
 
 ## PTT / rig keying
 
-Two keying methods ship out of the box; pick one in Preferences.
+Two keying methods; pick one in Preferences (embedded: in the suite's J-Hub pages).
 
 | Method | What happens | Use when |
 |---|---|---|
-| **VOX** (default) | j-digi outputs audio with no key command. The rig's VOX, or an audio-sense interface like SignaLink / DigiRig, handles PTT itself | Simplest setup, no CAT cable required. Works for any digital mode that puts audio out at a reasonable level |
-| **HAMLIB** | j-digi opens a TCP socket to `rigctld` and sends `T 1\n` / `T 0\n` for PTT. Reconnects each toggle so a daemon restart isn't sticky | Any rig Hamlib supports (Yaesu, Kenwood, Elecraft, Icom, etc.). Required for pure CW where there's no audio for VOX to sense |
+| **VOX** (default) | Audio only, no key command. The rig's VOX or an audio-sense interface (SignaLink, DigiRig) keys PTT | Simplest; no CAT cable. Not usable for pure CW |
+| **HAMLIB** | Opens a TCP socket to `rigctld` and sends `T 1\n` / `T 0\n` (`HamlibRigControl`). Reconnects each toggle | Any rig Hamlib supports. Required for pure CW with no audio to sense |
 
-A third option, `CivRigControl`, is built (direct CI-V to Icom via `CivEngine` from j-log-engine) but not wired into `ModemService` — Hamlib's `icom` backend covers Icom rigs without a second serial allocation. The class is there if a future demand justifies plumbing it in.
-
-**Where the settings live**: j-hub's web UI (J-Digi tab → Transmit & CW card) owns `ptt.method` and the CW prefs. j-digi receives them via `CONFIG_UPDATE` and persists the chosen values to local Java Preferences (`com.hamradio.modem.ModemService`) as a fallback for stand-alone use before a hub connection is established. The Hamlib host/port for `HAMLIB` mode come from the station-level **Rig Control** tab in j-hub — delivered to j-digi inside `JHUB_WELCOME` / `STATION_CONFIG` as `rigHamlibHost` / `rigHamlibPort` — so j-digi reuses the station's `rigctld` endpoint instead of carrying duplicate prefs.
-
-| Pref | Values | Default | Source of truth |
-|---|---|---|---|
-| `ptt.method` | `VOX` / `HAMLIB` | `VOX` | j-hub J-Digi tab |
-| `ptt.hamlib.host` | hostname / IP | `127.0.0.1` | j-hub Rig Control tab (mirrored locally) |
-| `ptt.hamlib.port` | TCP port | `4532` | j-hub Rig Control tab (mirrored locally) |
-
-The legacy value `NONE` (from earlier builds) is still accepted as a synonym for `VOX`.
-
-Wire protocol for HAMLIB uses the plain rigctld command set — `T 1\n` / `T 0\n`, expecting `RPRT 0\n` on success. Any non-zero `RPRT` is surfaced as an `IOException` that bubbles up through `AudioTxEngine`'s `onError` callback.
-
-## CW keyer — audio vs CAT
-
-For CW specifically there's a separate choice: should j-digi generate the dots and dashes as audio, or hand the text to the rig's built-in keyer over CAT?
-
-| Pref | What happens | Use when |
-|---|---|---|
-| `cw.keyer = AUDIO` (default) | `CwTransmitter` synthesises sidetone audio with raised-cosine keying; goes through `AudioTxEngine` with PTT toggled per the `ptt.method` setting | Most setups — works without CAT, gives you full control over sidetone frequency and key-click filtering. Required if you're using VOX |
-| `cw.keyer = HAMLIB` | `HamlibCwKeyer` sends `b <text>\n` to `rigctld`; the rig's own keyer plays the Morse at its configured WPM. No audio path used | Cleanest timing — rig handles keying internally with no soundcard routing. Required if you have no audio path to the rig but do have CAT |
-
-Additional pref `cw.wpm` (default 20) sets the WPM for **both** paths. The audio transmitter is rebuilt from the pref on every CW transmit, so a change takes effect on the next TX with no restart needed. Both `cw.keyer` and `cw.wpm` are edited in j-hub's J-Digi tab and delivered via `CONFIG_UPDATE`; the Java Preferences are a fallback cache.
-
-Cancel works on both paths — audio cancels the `SourceDataLine`, CAT sends `\stop_morse\n`. Both fire the same `onCancelled` callback shape.
-
-Completion timing for the CAT path is estimated from PARIS formula (`length × 10 × 1200/wpm` ms + 200 ms baseline) since `rigctld` returns `RPRT 0` as soon as it queues the command — the rig is still keying. A future polish could poll `\get_ptt` for real end-of-transmission detection.
-
-## Bandplan caption
-
-When J-Hub sends a `RIG_STATUS` or `SPOT_SELECTED` message with a frequency, `ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-engine) and writes a "20m / CW — CW (US)" style string into `ModemStatus.bandplanCaption`. The UI status bar can bind to that field directly — no per-mode wiring needed.
-
-**Region/country prefs**:
+`NoOpRigControl` is the VOX implementation. The legacy value `NONE` is accepted as a synonym for `VOX`. Direct
+CI-V control (`CivRigControl`/`CivEngine`) was removed; Hamlib's `icom` backend covers Icom rigs.
 
 | Pref | Values | Default |
 |---|---|---|
-| `bandplan.region`  | `IARU-R1` / `IARU-R2` / `IARU-R3` | `IARU-R2` |
-| `bandplan.country` | country code with an overlay (today: `US`) or blank | `US` |
+| `ptt.method` | `VOX` / `HAMLIB` | `VOX` |
+| `ptt.hamlib.host` | hostname / IP | `127.0.0.1` |
+| `ptt.hamlib.port` | TCP port | `4532` |
 
-Operators outside R2 should set `bandplan.region` so the caption picks the right band edges (R1 stops at 7.200 on 40m, etc.).
+Embedded, `ars-fx` supplies these from its J-Hub settings; the Java Preferences
+(`com.hamradio.modem.ModemService`) are the standalone store. Wire protocol is the plain rigctld set; a non-zero
+`RPRT` surfaces as an `IOException` through `AudioTxEngine`'s `onError`.
 
-## Mode selection
+## CW keyer — audio vs CAT
 
-Persisted via Java `Preferences` (typically `~/.java/.userPrefs/com/hamradio/modem`) — **not** a file in `~/.j-digi/`. `ModemService` reads `PREF_MODE` on init and writes it on every mode switch.
+| Pref | What happens | Use when |
+|---|---|---|
+| `cw.keyer = AUDIO` (default) | `CwTransmitter` synthesises sidetone audio with raised-cosine keying through `AudioTxEngine` | Most setups; required with VOX |
+| `cw.keyer = HAMLIB` | `HamlibCwKeyer` sends `b <text>\n` to `rigctld`; the rig's keyer plays the Morse | No audio path to the rig but CAT works |
+
+`cw.wpm` (default 20) applies to both paths and is re-read on every CW transmit. Cancel works on both (audio cancels
+the `SourceDataLine`; CAT sends `\stop_morse\n`). CAT completion timing is estimated from PARIS
+(`length × 10 × 1200/wpm` ms + 200 ms) because `rigctld` returns `RPRT 0` as soon as it queues the command.
+
+## Macros
+
+`MacroBar` and `HubMacro` carry the F1–F8 macros. In the suite they are the same editable macros as J-Log, built from
+station data with `{TAGS}` (see `ars-fx` `MacroConfig`), plus a DX call box for `{CALL}`.
+
+## Band plan caption
+
+`ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-common) and writes e.g. "20m / CW — CW (US)"
+into `ModemStatus.bandplanCaption`; `bandFromRigHz` also delegates to it, so band names match the log and cluster.
+Region and country prefs: `bandplan.region` (`IARU-R1/R2/R3`, default `IARU-R2`) and `bandplan.country` (`US` or blank).
+In the suite the region comes from the Station "IARU region" setting.
+
+## State and persistence
+
+Mode, audio devices, PTT and keyer settings persist via Java `Preferences` (typically `~/.java/.userPrefs/com/hamradio/modem`),
+**not** a file in `~/.j-digi/`. `ModemService` reads `PREF_MODE` on init and writes it on each mode switch.
 
 ## Packages
 
 | Package | Responsibility |
 |---|---|
-| `com.hamradio.modem` | `ModemMain` (Application entry), `ModemService`, `ConfigManager`, `CrashHandler` |
-| `com.hamradio.modem.audio` | Audio device discovery, `AudioEngine` capture thread, sample-rate handling |
-| `com.hamradio.modem.dsp` | FFT, waterfall rendering, `SignalClassifier`, signal-metrics |
+| `com.hamradio.modem` | `ModemMain`, `Launcher`, `ModemService`, `CrashHandler` |
+| `com.hamradio.modem.audio` | Audio device discovery, `AudioEngine` capture thread |
+| `com.hamradio.modem.dsp` | FFT, window functions, Goertzel, Viterbi, `SignalClassifier`, `LocalSkimmer`, `MultiCarrierDecoder` |
 | `com.hamradio.modem.mode` | One class per mode — CW, RTTY, PSK31, Olivia, MFSK16, Domino-EX, AX.25 |
-| `com.hamradio.modem.tx` | CW/RTTY/PSK31 transmitters, WAV file writer, `NoOpRigControl` placeholder |
-| `com.hamradio.modem.hub` | `HubClient` WebSocket wrapper to J-Hub |
-| `com.hamradio.modem.ui` | `MainWindow`, `WaterfallPane`, `SpectrumPane`, settings dialogs |
+| `com.hamradio.modem.tx` | Transmitters, `AudioTxEngine`, `HamlibRigControl`, `HamlibCwKeyer`, `NoOpRigControl`, `WavFileWriter` |
+| `com.hamradio.modem.hub` | `HubClient` legacy WebSocket wrapper |
+| `com.hamradio.modem.i18n` | `I18n` |
+| `com.hamradio.modem.ui` | `MainWindow`, `WaterfallPane`, `SpectrumPane`, `MacroBar`, `LogEntryPane`, `ContestEntryPane`, `DxSpotPane`, `RightPanel`, `SplashScreen` |
 | `com.hamradio.modem.model` | Decode/spot/rig-status POJOs |
 
 ## Loopback testing
 
-The decoder suite is exercised by routing tone output through a PulseAudio loopback device (`jdigi_loop` is the conventional name). Capture device is the monitor of that loopback. See `reference_jdigi_testing.md` in memory for the exact setup. Most decoders have per-mode DEBUG toggles in their respective classes.
+Route tone output through a PulseAudio loopback device (`jdigi_loop` by convention) and capture from its monitor.
+`generate_*_test_suite.py` and the `*_test_suite/` folders at the module root hold generated test signals for each
+mode. Most decoders have per-mode DEBUG toggles.
 
-## External integrations
+## Dependencies
 
-- WebSocket to J-Hub (port 8080) — RIG_STATUS in, decode messages out.
-- Depends on `j-log-engine` for shared types (QSO records, hub-client primitives). Build `j-log-engine` first if it's missing from `.m2`.
+Depends on `j-log-engine` and `j-log-common` for shared types. Build them first if missing from `.m2`.
 
 ## What's NOT here
 
-- No `~/.j-digi/` directory — all state lives in Java Preferences.
-- No FXML — UI is built programmatically.
-- No bundled data files (no plugins, no JSON resources beyond logback.xml + icons).
+- No `~/.j-digi/` directory — state lives in Java Preferences.
+- No FXML — the UI is built programmatically.
+- No bundled data files beyond `logback.xml` and icons.

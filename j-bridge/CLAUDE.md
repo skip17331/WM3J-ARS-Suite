@@ -1,38 +1,29 @@
 # CLAUDE.md — J-Bridge
 
-Guidance for Claude Code when working in this repository.
+Guidance for Claude Code when working in this module.
+
+## Role in the suite
+
+J-Bridge reads the UDP feed of weak-signal digital-mode apps (WSJT-X **and JTDX**) and decodes it. `ars-fx` embeds
+it: `com.ars.fx.data.BridgeService` creates a `WsjtxUdpListener` (port 2237, `-Dwsjtx.port` to override) and shows
+decodes, status and the connected source app on the J-Bridge surface. `ars-fx` uses only `WsjtxUdpListener` and the
+`model` classes from this module. The rest (`JBridgeMain`, `HubClient`, `MessagePublisher`, `ui/`) is the **standalone**
+app, which publishes to a legacy hub (see below).
+
+MSHV is intentionally **not** supported — it is closed-source freeware with no native macOS build, which fails the
+suite's "open source + Linux/Windows/macOS" constraint.
 
 ## Build & Run
 
 ```bash
-# Build fat jar
-./build.sh
-# or
-mvn clean package -DskipTests
-
-# Run (JavaFX runtime in ./lib/javafx — same as j-log)
-./run.sh
-# or manually
-java --module-path ./lib/javafx \
-     --add-modules javafx.controls,javafx.fxml \
-     -Dfile.encoding=UTF-8 \
-     -jar target/j-bridge-1.0.0-shaded.jar
+./build.sh             # mvn clean package -DskipTests -> target/j-bridge-<version>.jar (shaded fat jar)
+./run.sh               # runs the newest target/j-bridge-*.jar, building first if there is none
 ```
 
-## Architecture Overview
+Java 21, Maven. The jar carries JavaFX, so no `--module-path` is needed. `j-log-common` must be in `~/.m2`
+(`../build-release.sh` installs the libraries).
 
-J-Bridge is a **standalone** Java 21 + JavaFX 21 app in the WM3j ARS Suite.
-It acts as a bridge between weak-signal digital-mode apps (WSJT-X **and JTDX**)
-and j-hub.
-
-The two upstream apps share the same UDP protocol family; J-Bridge auto-detects
-which one is feeding it from the heartbeat `id` field and surfaces the source
-in both the status panel ("App: JTDX") and the published `WSJTX_CONNECTION`
-JSON message (`sourceApp` field).
-
-MSHV is intentionally **not** supported — it is closed-source freeware with no
-native macOS build, which fails the suite's "open source + Linux/Windows/macOS"
-constraint.
+## Architecture
 
 ```
 WSJT-X / JTDX  ──UDP 2237──►  WsjtxUdpListener
@@ -44,89 +35,60 @@ WSJT-X / JTDX  ──UDP 2237──►  WsjtxUdpListener
                     │                    │
                CallsignParser     BandUtils.frequencyToBand()
                     │
-                    ▼
-              MessagePublisher  ──WebSocket──►  j-hub
-                                                  │
-                                         broadcastToAll()
-                                                  │
-                                    ┌─────────────┴──────────┐
-                                    │                        │
-                                 j-log                   HamClock
+        embedded:   BridgeService ──► ars-fx J-Bridge surface
+        standalone: MessagePublisher ──WebSocket──► legacy hub
 ```
 
-## Key Design Decisions
+The two upstream apps share the same UDP protocol family; J-Bridge auto-detects which one is feeding it from the
+heartbeat `id` field (`UpstreamAppConnectionListener`) and surfaces it as "App: JTDX" in the status panel.
 
-**No local DXCC enrichment** — j-hub's SpotEnricher does all geo enrichment
-server-side from its `/dxcc/prefixes.json`. J-Bridge publishes a raw
-WSJTX_DECODE and the hub rebroadcasts. Local enrichment was removed to avoid
-duplicating j-hub's prefix table and to keep J-Bridge thin.
+## Standalone mode and the legacy hub
 
-**Gson only for hub messages** — j-hub's wire protocol uses Gson (ConfigManager.gson()).
-J-Bridge uses Gson for all JSON it sends/receives with the hub. This matches
-j-log's HubEngine.java which also uses Jackson internally but Gson on the wire.
+Standalone `JBridgeMain` registers with a WebSocket hub: `HubClient` listens for a UDP `HUB_BEACON` on port 9999,
+connects to `ws://<sender>:<wsPort>` (default 8080), sends `{"type":"APP_CONNECTED","appName":"jBridge",...}` and
+publishes `WSJTX_DECODE` / `WSJTX_CONNECTION` messages through `MessagePublisher` (Gson). That hub was the old
+standalone J-Hub, which has been retired; `ars-fx` has its own hub (`HubServer`, port 8090) with a different
+protocol that this module does not speak. Keep the standalone path compiling, but new work belongs in `ars-fx`.
 
-**Hub discovery** — listens UDP 9999 for HUB_BEACON from j-hub's HubDiscovery.
-On beacon receipt, connects to ws://[sender-ip]:[wsPort]. Same mechanism as
-j-log's HubDiscoveryListener.
+## Key design decisions
 
-**Bandplan caption** — `StatusPanels.setFrequency(hz)` consults
-`com.jlog.bandplan.BandplanLoader` and appends the segment description
-(e.g. `14.074 MHz   DATA — Digimodes / FT8 14074 (IARU-R2)`) so the
-operator immediately sees what kind of activity belongs at that
-frequency. Shared library lives in j-log-common (j-bridge depends on
-that DB-free module, not the whole engine). Region/country come
-from j-hub's Station settings (Regional Settings card) — delivered via
-`JHUB_WELCOME` and live `STATION_CONFIG` broadcasts, then mirrored into
-`j-bridge-config.json` under `"operator": {"region", "country"}` for
-stand-alone use. Defaults are `IARU-R2` + `US`.
+- **No local DXCC enrichment.** J-Bridge publishes raw decodes; enrichment happens in the consumer.
+- **Band names** come from the shared band plan: `BandUtils.frequencyToBand(hz)` delegates to
+  `com.jlog.bandplan.BandplanLoader` (j-log-common), so WSJT-X decodes get the same band names as the log and the
+  cluster. Returns `"OOB"` outside every amateur band. Input is always Hz.
+- **Region / country** for the band plan come from the Station "IARU region" setting in the suite; standalone mirrors
+  them in `j-bridge-config.json` under `"operator": {"region", "country"}` (defaults `IARU-R2` + `US`).
+- **`StatusPanels.setFrequency(hz)`** appends the band-plan segment description
+  (e.g. `14.074 MHz   DATA — Digimodes / FT8 14074 (IARU-R2)`).
 
-**Registration** — sends `{"type":"APP_CONNECTED","appName":"jBridge","version":"1.0.0"}`
-immediately on WebSocket open. Required by HubServer.handleRegistration().
-
-**j-hub shutdown behaviour** — HubServer.onClose() calls System.exit(0) when the
-last registered app disconnects. J-Bridge must maintain its connection and
-disconnect cleanly on window close.
-
-## Package Structure
+## Package structure
 
 ```
 com.hamradio.jbridge/
-  JBridgeMain.java             Application entry point
-  ConfigManager.java           JSON config (j-bridge-config.json)
-  LoggingConfigurator.java     Logback setup (logs to ~/.hamlog/logs/)
-  BandUtils.java               Frequency→band, matches j-hub ClusterManager
-  CallsignParser.java          WSJT-X message text → DX callsign
-  WorkedListManager.java       Thread-safe worked callsign set
-  HubClient.java               WebSocket client + hub discovery (UDP 9999)
-  WsjtxUdpListener.java        WSJT-X UDP listener (port 2237)
-  WsjtxProtocolDecoder.java    Binary protocol per NetworkMessage.hpp
-  MessagePublisher.java        Gson JSON → j-hub wire messages
-  model/
-    WsjtxDecode.java
-    WsjtxStatus.java
-    WsjtxQsoLogged.java
-    BandActivity.java
-  ui/
-    MainWindow.java             Primary BorderPane layout + callback wiring
-    DecodeTableView.java        Colour-coded decode list (TableView)
-    StatusPanels.java           BandActivityPanel, WsjtxStatusPanel, HubStatusPanel
-    SettingsWindow.java         Modal settings dialog
+  JBridgeMain.java                 Standalone entry point
+  Launcher.java                    Fat-jar main (starts JBridgeMain)
+  ConfigManager.java               JSON config (j-bridge-config.json)
+  LoggingConfigurator.java         Logback setup (logs to ~/.hamlog/logs/)
+  CrashHandler.java
+  BandUtils.java                   Frequency -> band via the shared band plan
+  CallsignParser.java              WSJT-X message text -> DX callsign
+  WorkedListManager.java           Thread-safe worked callsign set
+  HubClient.java                   Legacy hub WebSocket client + UDP 9999 discovery
+  WsjtxUdpListener.java            WSJT-X / JTDX UDP listener (port 2237)  [used by ars-fx]
+  WsjtxProtocolDecoder.java        Binary protocol per NetworkMessage.hpp
+  UpstreamAppConnectionListener.java
+  MessagePublisher.java            Gson JSON -> hub wire messages
+  i18n/I18n.java
+  model/                           WsjtxDecode, WsjtxStatus, WsjtxQsoLogged, BandActivity  [used by ars-fx]
+  ui/                              MainWindow, DecodeTableView, StatusPanels, SettingsWindow,
+                                   JBridgeFontScaler, SplashJBridge
 ```
 
-## Logging
+## Logging and config
 
-Logs go to `~/.hamlog/logs/j-bridge.log` (shared directory with j-log).
-7-day daily rotation. Matches j-log LoggingConfigurator pattern exactly.
-
-## Config File
-
-`j-bridge-config.json` lives in the working directory alongside `hub.json`.
-Created with defaults on first run.
+Standalone logs go to `~/.hamlog/logs/j-bridge.log` (7-day daily rotation). `j-bridge-config.json` lives in the
+working directory and is created with defaults on first run. The copy committed in this module is a sample.
 
 ## Dependencies
 
-Versions locked to j-log pom.xml:
-- Java 21 + JavaFX 21.0.2
-- Java-WebSocket 1.5.4
-- Gson 2.10.1 (j-hub wire protocol)
-- SLF4J 2.0.12 + Logback 1.5.3
+Java 21, JavaFX 21.0.2, Java-WebSocket 1.5.4, Gson 2.10.1, SLF4J 2.0.12 + Logback 1.5.3, and `j-log-common`.

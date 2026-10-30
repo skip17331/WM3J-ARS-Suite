@@ -1,53 +1,56 @@
-# J-Digi — ARS Digital Modem Client
+# J-Digi — ARS Digital Modem
 
-This is a first milestone JavaFX modem client for the ARS Suite hub.
+The digital-modes engine of the WM3J ARS Suite: soundcard capture, FFT/waterfall,
+decoders and transmitters for CW, RTTY, PSK31, Olivia, MFSK16, Domino-EX and AX.25.
 
-## What works
-- JavaFX GUI
-- Hub-compatible WebSocket client
-- Required `APP_CONNECTED` handshake
-- Receives `RIG_STATUS`, `SPOT_SELECTED`, `APP_LIST`, `HUB_WELCOME`
-- Soundcard audio capture via Java Sound
-- FFT/spectrum + simple waterfall rendering
-- Signal metrics: RMS, peak frequency
-- Mode selection UI: RTTY, PSK31, AX.25
-- Decoder skeletons with basic tone/energy analysis
-- Sends `MODEM_DECODE` messages to the hub
+Most operators use it **inside the ARS Suite app** (`ars-fx`), which embeds this
+module as its J-Digi surface — see the [User Guide](../USER_GUIDE.md). This
+directory is the modem library plus a standalone JavaFX window.
 
-## What is intentionally incomplete
-- Full protocol-grade PSK31 decode
-- Full protocol-grade RTTY decode
-- Full AX.25 frame extraction / CRC validation
-- TX path
-- Shared config screen integration beyond hub connection settings
+## Modes
 
-## Run
+| Mode | Decode | Transmit |
+|---|---|---|
+| CW | yes | yes (audio keyer, or the rig's own keyer over Hamlib) |
+| RTTY | yes | yes |
+| PSK31 | yes | yes |
+| Olivia | yes | yes |
+| MFSK16 | yes | yes |
+| Domino-EX | yes | yes |
+| AX.25 | yes | **no** — decode-only |
+
+Push-to-talk is VOX (default) or Hamlib `rigctld`. Decoders are validated by audio
+loopback; on-air testing against real signals is still outstanding.
+
+## Build and run
+
+Needs Java 21 and Maven.
+
 ```bash
-mvn javafx:run
+./run.sh          # builds, then runs the newest target/j-digi-*.jar
 ```
 
-Or build a fat jar:
+or:
+
 ```bash
 mvn package
-java -jar target/j-digi-0.2.0-jar-with-dependencies.jar
+java -jar target/j-digi-<version>-jar-with-dependencies.jar
 ```
 
-## Default hub endpoint
-`ws://127.0.0.1:8080`
+Shared libraries (`j-log-common`, `j-log-engine`) must be installed in your local
+Maven repository first; `../build-release.sh` does that.
 
-## Hub integration
-On connect the app sends:
-```json
-{"type":"APP_CONNECTED","appName":"j-digi","version":"0.2.0"}
-```
+## Standalone vs embedded
 
-The app currently emits `MODEM_DECODE` messages with:
-- mode
-- text
-- frequency
-- offsetHz
-- snr
-- confidence
-- timestamp
+- **Embedded (normal):** `ars-fx` calls `ModemService.startupEmbedded()`, which
+  starts audio capture only. The suite supplies station data, rig control and macros.
+- **Standalone:** `ModemService.startup()` also opens a WebSocket to a legacy hub
+  (default `ws://127.0.0.1:8080`, saved as the `hub.url` preference). The old
+  standalone J-Hub that listened there has been retired, so with nothing on that
+  port the hub link fails and standalone mode runs without station data. For
+  day-to-day use run the full app instead.
 
-You can add handling for `MODEM_DECODE` to the hub router or just let other apps listen for it directly.
+The standalone window keeps its own settings (mode, audio devices, PTT, CW
+keyer) in Java Preferences, not in a file under `~/.j-digi/`.
+
+See [CLAUDE.md](CLAUDE.md) for the architecture and keying details.

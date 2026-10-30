@@ -7,5 +7,5 @@ cd "$(dirname "$0")"
 echo "Building J-Bridge with Maven..."
 mvn clean package -DskipTests
 echo ""
-echo "Build complete: target/j-bridge-1.0.17-shaded.jar"
+echo "Build complete: $(ls -t target/j-bridge-*.jar | grep -v '/original-' | head -n1)"
 echo "Run with: ./run.sh"

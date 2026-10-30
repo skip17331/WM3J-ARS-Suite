@@ -27,4 +27,4 @@ Parked 2026-05-16 — "niche + VHF+/EME + RAC" bucket (16):
 2. Add `"/com/jlog/plugins/<name>.json"` back to the `BUNDLED` list in
    `j-log-engine/src/main/java/com/jlog/plugin/PluginLoader.java`
 3. Validate it against official rules, then rebuild
-   (`mvn clean install` in j-log-engine, then `mvn clean package` in j-log).
+   (`mvn clean install` in j-log-engine, then `mvn clean package` in ars-fx).
