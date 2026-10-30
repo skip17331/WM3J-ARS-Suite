@@ -1,7 +1,7 @@
 # WM3J ARS Suite — User Guide
 
 How to set up and operate the suite. To install it, see **[INSTALL.md](INSTALL.md)**. The project's purpose and
-licence are in [README.md](README.md); planned work is in [docs/ROADMAP.md](docs/ROADMAP.md).
+licence are in [README.md](README.md).
 
 > **Wiring up real radio gear?** Read [docs/HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md) first. It covers cables,
 > USB-to-serial adapters, USB hubs and stable port names. This guide assumes your radio is already plugged in and shows

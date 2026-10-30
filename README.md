@@ -25,20 +25,12 @@ programs.
 step‑by‑step setup for Linux and Windows (git, Java, Maven, build, run).
 
 **Already installed?** → **[USER_GUIDE.md](USER_GUIDE.md)** — app
-walkthrough, per‑module setup notes, troubleshooting, and an architecture map.
+walkthrough, per‑module setup notes and troubleshooting.
 
 **Wiring your radio, rotator, amp, or antenna switch?** →
 **[docs/HARDWARE_GUIDE.md](docs/HARDWARE_GUIDE.md)** — beginner‑friendly
 guide to USB‑to‑serial adapters, Hamlib daemons, USB hubs, stable port
 names, and common gotchas.
-
-**Curious what's coming next?** → **[docs/ROADMAP.md](docs/ROADMAP.md)** —
-phased plan of work in flight + features explicitly *not* on the
-roadmap, with reasons.
-
-**Want to write a contest or award plug-in?** →
-**[docs/PLUGINS.md](docs/PLUGINS.md)** — JSON schemas with worked
-examples for both surfaces. No code, no rebuild.
 
 ---
 
@@ -288,8 +280,5 @@ Pull requests, issue reports, contest plug‑ins, antenna calculators, and
 documentation tweaks are all welcome. The codebase is intentionally
 modular: pick a module, build it, hack on it independently. See
 [CodeOfConduct.md](CodeOfConduct.md).
-
-For broader context on what's planned next and what's in flight, see
-**[docs/ROADMAP.md](docs/ROADMAP.md)**.
 
 73 — **WM3J**
