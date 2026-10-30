@@ -290,7 +290,6 @@ modular: pick a module, build it, hack on it independently. See
 [CodeOfConduct.md](CodeOfConduct.md).
 
 For broader context on what's planned next and what's in flight, see
-**[docs/ROADMAP.md](docs/ROADMAP.md)** — and the architecture appendix
-in [USER_GUIDE.md § Interconnection Map](USER_GUIDE.md#7-appendix-interconnection-map).
+**[docs/ROADMAP.md](docs/ROADMAP.md)**.
 
 73 — **WM3J**
