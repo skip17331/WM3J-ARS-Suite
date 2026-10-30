@@ -21,7 +21,9 @@ public class Translation {
     private String spanish;
     private String german;
     private String portuguese;
-    private String phonetic;
+    private String phonetic;      // Spanish pronunciation guide (the original single column)
+    private String phoneticDe;    // German
+    private String phoneticPt;    // Portuguese
 
     public Translation() {}
 
@@ -43,6 +45,8 @@ public class Translation {
     public String getGerman()     { return german; }
     public String getPortuguese() { return portuguese; }
     public String getPhonetic()   { return phonetic; }
+    public String getPhoneticDe() { return phoneticDe; }
+    public String getPhoneticPt() { return phoneticPt; }
 
     public void setId(long id)               { this.id = id; }
     public void setCategory(String s)        { this.category = s; }
@@ -51,6 +55,8 @@ public class Translation {
     public void setGerman(String s)          { this.german = s; }
     public void setPortuguese(String s)      { this.portuguese = s; }
     public void setPhonetic(String s)        { this.phonetic = s; }
+    public void setPhoneticDe(String s)      { this.phoneticDe = s; }
+    public void setPhoneticPt(String s)      { this.phoneticPt = s; }
 
     /**
      * Generic accessor used by the JavaFX TableView columns so a single

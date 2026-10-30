@@ -39,7 +39,7 @@ public class TranslationDao {
 
     public List<Translation> getAll() {
         List<Translation> out = new ArrayList<>();
-        String sql = "SELECT phrase_id, category, english, spanish, german, portuguese, phonetic " +
+        String sql = "SELECT phrase_id, category, english, spanish, german, portuguese, phonetic, phonetic_de, phonetic_pt " +
                      "FROM translations ORDER BY category, english";
         try (Statement st = conn().createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -58,7 +58,7 @@ public class TranslationDao {
     public List<Translation> getByCategories(List<String> categories) {
         if (categories == null || categories.isEmpty()) return getAll();
         StringBuilder sql = new StringBuilder(
-            "SELECT phrase_id, category, english, spanish, german, portuguese, phonetic " +
+            "SELECT phrase_id, category, english, spanish, german, portuguese, phonetic, phonetic_de, phonetic_pt " +
             "FROM translations WHERE ");
         for (int i = 0; i < categories.size(); i++) {
             if (i > 0) sql.append(" OR ");
@@ -86,8 +86,8 @@ public class TranslationDao {
 
     /** Insert a new phrase; returns the new row id. */
     public long insert(Translation t) {
-        String sql = "INSERT INTO translations(category, english, spanish, german, portuguese, phonetic) " +
-                     "VALUES(?,?,?,?,?,?)";
+        String sql = "INSERT INTO translations(category, english, spanish, german, portuguese, phonetic, phonetic_de, phonetic_pt) " +
+                     "VALUES(?,?,?,?,?,?,?,?)";
         try (PreparedStatement ps = conn().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, blankToNull(t.getCategory()));
             ps.setString(2, t.getEnglish());
@@ -95,6 +95,8 @@ public class TranslationDao {
             ps.setString(4, blankToNull(t.getGerman()));
             ps.setString(5, blankToNull(t.getPortuguese()));
             ps.setString(6, blankToNull(t.getPhonetic()));
+            ps.setString(7, blankToNull(t.getPhoneticDe()));
+            ps.setString(8, blankToNull(t.getPhoneticPt()));
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
@@ -144,7 +146,7 @@ public class TranslationDao {
     // ---------------------------------------------------------------
 
     private static Translation map(ResultSet rs) throws SQLException {
-        return new Translation(
+        Translation t = new Translation(
             rs.getLong("phrase_id"),
             rs.getString("category"),
             rs.getString("english"),
@@ -153,6 +155,9 @@ public class TranslationDao {
             rs.getString("portuguese"),
             rs.getString("phonetic")
         );
+        t.setPhoneticDe(rs.getString("phonetic_de"));
+        t.setPhoneticPt(rs.getString("phonetic_pt"));
+        return t;
     }
 
     private static String mapColumn(String code) {
@@ -162,7 +167,9 @@ public class TranslationDao {
             case "es": case "spanish":    return "spanish";
             case "de": case "german":     return "german";
             case "pt": case "portuguese": return "portuguese";
-            case "phonetic":              return "phonetic";
+            case "phonetic": case "phonetic_es": return "phonetic";      // Spanish guide (the original column)
+            case "phonetic_de":           return "phonetic_de";
+            case "phonetic_pt":           return "phonetic_pt";
             case "category":              return "category";
             default: return null;
         }

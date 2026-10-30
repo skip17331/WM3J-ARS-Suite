@@ -93,9 +93,13 @@ public final class JLogCockpit {
         Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
         contestChip.setOnMouseClicked(e -> JLogContest.promptEnter(contestChip));
         Label b4 = lbl("Normal log", "jl-eyebrow");   // worked-before / dupe / status
-        HBox head = new HBox(11, ic, ttl, hsp, contestChip, b4); head.setAlignment(Pos.CENTER_LEFT);
+        Label translatorChip = lbl("Translator", "jl-clearbtn"); translatorChip.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(translatorChip, "QSO phrases in other languages — follows the country of the callsign you are logging");
+        HBox head = new HBox(11, ic, ttl, hsp, translatorChip, contestChip, b4); head.setAlignment(Pos.CENTER_LEFT);
 
         TextField call = tf("", "", 210, true);
+        call.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));        // the translator (if open) follows the call's country
+        translatorChip.setOnMouseClicked(e -> TranslatorWindow.show(translatorChip, call.getText()));
         TextField freq = tf("MHz", "14.074", 110, false);
         TextField band = tf("auto", "20m", 80, false);
         TextField mode = tf("", "USB", 80, false);
@@ -150,6 +154,7 @@ public final class JLogCockpit {
         VBox body = new VBox(13); body.setPadding(new Insets(14, 18, 16, 18));
         body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
         body.getChildren().add(row(g("CALLSIGN", call, false), g("FREQ (MHZ)", freq, false), g("BAND", band, false), g("MODE", mode, false)));
+        body.getChildren().add(Shell.bandCaption(freq));        // "20m · CW segment" from the shared band plan
         body.getChildren().add(row(g("RST SENT", rsnt, false), g("RST RCVD", rrcv, false), g("NAME", name, false), g("GRID", grid, false)));
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
         body.getChildren().add(dtRow);

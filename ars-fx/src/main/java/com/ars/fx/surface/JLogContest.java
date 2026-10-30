@@ -183,7 +183,13 @@ public final class JLogContest {
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
         export.setOnMouseClicked(e -> exportCabrillo(plugin));
 
-        HBox bar = new HBox(11, ic, ttl, gap, normal, pick, export);
+        Label translator = lbl("Translator", "jl-clearbtn"); translator.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(translator, "QSO phrases in other languages — follows the country of the callsign you are logging");
+        translator.setOnMouseClicked(e -> {
+            Control cf = fieldControls == null ? null : fieldControls.get("callsign");
+            TranslatorWindow.show(translator, cf instanceof TextField t ? t.getText() : "");
+        });
+        HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, export);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(14, 18, 6, 18));
         return bar;
     }
@@ -214,6 +220,8 @@ public final class JLogContest {
             if ("band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;   // dedicated selectors above
             Control c = controlFor(fd);
             fieldControls.put(fd.getId(), c);
+            if ("callsign".equals(fd.getId()) && c instanceof TextField cf)
+                cf.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));     // the translator (if open) follows the country
             (fd.getEntryRow() == 1 ? sent : rcvd).add(g(fd.getLabel(), c));
         }
         // running serial display in the sent row

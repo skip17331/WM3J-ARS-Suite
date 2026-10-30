@@ -282,17 +282,64 @@ public class DatabaseManager {
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_tr_english  ON translations(english)");
             st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_tr_category ON translations(category)");
 
+            // Per-language pronunciation guides: `phonetic` is the Spanish one (its original meaning); German and Portuguese
+            // get their own columns. Added to existing databases without touching what is already there.
+            for (String col : new String[]{"phonetic_de", "phonetic_pt"}) {
+                boolean have = false;
+                try (ResultSet cols = st.executeQuery("PRAGMA table_info(translations)")) {
+                    while (cols.next()) if (col.equalsIgnoreCase(cols.getString("name"))) have = true;
+                }
+                if (!have) st.executeUpdate("ALTER TABLE translations ADD COLUMN " + col + " TEXT");
+            }
+
             // Seed only when empty so operator edits survive restarts.
             try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM translations")) {
                 if (rs.next() && rs.getInt(1) == 0) {
                     seedTranslations();
                     log.info("Translations DB seeded with starter phrases");
                 }
+                backfillPhonetics();
             }
         }
     }
 
     /** Built-in 20+ phrase QSO starter set. */
+    /** English-speaker pronunciation guides for the German and Portuguese starter phrases, keyed by the English phrase.
+     *  Only fills a cell that is empty, so a guide the operator wrote or corrected is never overwritten. */
+    private void backfillPhonetics() throws SQLException {
+        String[][] g = {
+            {"Good morning", "GOO-ten MOR-gen", "bohm JEE-ah"},
+            {"Good afternoon", "GOO-ten TAHK", "BOH-ah TAR-jee"},
+            {"Good evening", "GOO-ten AH-bent", "BOH-ah NOY-chee"},
+            {"Hello", "HAH-loh", "oh-LAH"},
+            {"Goodbye", "owf VEE-der-zayn", "ah-DAY-oosh"},
+            {"73", "DRY-oont-ZEEP-tsikh", "seh-TEN-tah ee TRAYSH"},
+            {"Thank you for the contact", "DAHN-keh fewr dayn kon-TAKT", "oh-bree-GAH-doo PAY-loo kon-TAH-too"},
+            {"Your signal report is", "dine rah-PORT ist", "SAY-oo heh-lah-TOR-yoo eh"},
+            {"Please repeat", "BIT-teh vee-der-HOH-len", "poor fah-VOR heh-PEE-tah"},
+            {"Roger that", "fer-SHTAHN-den", "en-ten-DEE-doo"},
+            {"Copy that", "fer-SHTAHN-den", "koh-pee-AH-doo"},
+            {"Calling CQ", "AHL-geh-my-ner AHN-roof CQ", "shah-MAHN-doo CQ"},
+            {"Standing by", "OWF-nah-meh-beh-RITE", "ah-gwar-DAHN-doo"},
+            {"Please QSL", "Q-S-L BIT-teh", "Q-S-L poor fah-VOR"},
+            {"Confirm", "beh-SHTAY-tih-gen", "kon-feer-MAR"},
+            {"What is your QTH?", "vee ist eer Q-T-H", "kwahl eh oo SAY-oo Q-T-H"},
+            {"My location is", "mine SHTAHNT-ort ist", "MEEN-yah loh-kah-lee-zah-SOWN eh"},
+            {"My name is", "mine NAH-meh ist", "MAY-oo NOH-mee eh"},
+            {"What is your name?", "vee HY-sen zee", "kwahl eh oo SAY-oo NOH-mee"},
+            {"The weather is good", "dahs VET-ter ist goot", "oo TEM-poo ish-TAH bohm"},
+            {"It is raining", "es RAYG-net", "ish-TAH shoh-VEN-doo"},
+            {"What antenna are you using?", "VEL-kheh ahn-TEN-neh beh-NOOT-sen zee", "kee ahn-TEH-nah voh-SAY ish-TAH oo-ZAHN-doo"},
+            {"How much power?", "vee feel LICE-toong", "KWAHN-tah poh-TEN-syah"},
+            {"Please send again", "BIT-teh NOKH-mahl ZEN-den", "poor fah-VOR EN-vee-eh noh-vah-MEN-chee"},
+            {"Contest exchange", "kon-TEST-ows-towsh", "TROH-kah jee kon-KOOR-soo"}};
+        try (PreparedStatement ps = translationsConn.prepareStatement(
+                "UPDATE translations SET phonetic_de = COALESCE(NULLIF(phonetic_de,''), ?), phonetic_pt = COALESCE(NULLIF(phonetic_pt,''), ?) WHERE english = ?")) {
+            for (String[] r : g) { ps.setString(1, r[1]); ps.setString(2, r[2]); ps.setString(3, r[0]); ps.addBatch(); }
+            ps.executeBatch();
+        }
+    }
+
     private void seedTranslations() throws SQLException {
         String sql = "INSERT INTO translations(category,english,spanish,german,portuguese,phonetic) " +
                      "VALUES(?,?,?,?,?,?)";
