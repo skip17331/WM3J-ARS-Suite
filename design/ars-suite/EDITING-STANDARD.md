@@ -6,7 +6,7 @@ Use this whenever you (or Claude Code) add or adjust **cards, chiclets, drawers,
 
 ## 1. Non-negotiable rules
 1. **Tokens only.** Never hard-code a color, radius, or shadow. Use the CSS custom properties from `ars-tokens.css` (`--surface-*`, `--border*`, `--t1..t4`, `--accent*`, status, radius, shadow). New colors → derive with `color-mix(in oklch, …)` or `oklch()` at the existing chroma/lightness. No raw hex in components.
-2. **JavaFX-safe.** Solid fills, ≤1px borders, the two defined drop shadows. **No** `backdrop-filter`, blur, or heavy filters on native surfaces (Launcher, J-Log).
+2. **JavaFX-safe.** Solid fills, ≤1px borders, the two defined drop shadows. **No** `backdrop-filter`, blur, or heavy filters on native surfaces (J-Hub, J-Log).
 3. **Telemetry is monospace.** Any number a radio produces — frequency, azimuth, SWR, dB, serial, score, clock — uses `.ars-mono` (JetBrains Mono, tabular figures). Labels/prose stay IBM Plex Sans.
 4. **The `--h` hue convention.** A card/chiclet/drawer tied to a module sets one local variable and derives everything from it:
    ```html
@@ -32,7 +32,7 @@ container         background: var(--surface-2);  border: 1px solid var(--border)
   └ footer        state label (uppercase, 11px, var(--ok) when running) + action button
 hover             border-color: var(--border-glow);  (tiles may translateY(-2px))
 ```
-Reference implementations to copy from: `dir-a.jsx` `.a-card`, `dir-b.jsx` `.b-tile`, `dir-a-drawer.jsx` `.ad-chic`, `jlearn.css` `.jl2-deck`, `jvault.css` `.jv-*`.
+Reference implementations to copy from: `jlearn.css` `.jl2-deck`, `jvault.css` `.jv-*`, `ws.css` and `jlog.css`.
 
 ## 3. Chiclet (module tile) rules
 - Square-ish, icon + name + status; the icon tile is the hue anchor.
@@ -67,7 +67,7 @@ Any collapsible right-rail panel = `SuiteDrawer` (`suite-shell.jsx`):
 > - Build it from the card/chiclet anatomy in §2/§3; set `--h: var(--<module>)` and derive tints via `color-mix`.
 > - Telemetry values in `.ars-mono`; labels in IBM Plex Sans.
 > - Status conveyed by tint + bar/dot + label, not color alone.
-> - JavaFX-safe (no blur/filters) if this lands on the Launcher or J-Log.
+> - JavaFX-safe (no blur/filters) if this lands on J-Hub or J-Log.
 > - Must read in both dark and `.ars-light`.
 > - If it's a collapsible panel, use `SuiteDrawer`; if a standard metric row, use `.sx-kv`.
 > - Don't introduce new hex colors, radii, or shadows — reuse tokens.

@@ -55,7 +55,7 @@ Open any of the 8 screenshots: same skeleton.
 ---
 
 ## Build instructions (JavaFX rewrite)
-1. **Read** `CLAUDE-CODE-PROMPT.md` (per-screen source-of-truth table + JavaFX translation rules) and `EDITING-STANDARD.md` (card/chiclet conventions).
+1. **Read** `EDITING-STANDARD.md` (card/chiclet conventions). The per-screen build prompt that used to be here (`CLAUDE-CODE-PROMPT.md`) was removed once the screens were built; it is in git history.
 2. **Build the shared shell FIRST** — token stylesheet (from `ars-tokens.css`), the dock, the drawer component, the instrument drawers, the top bar. Everything depends on it.
 3. **Then build each surface** to match its screenshot + code. Order: J-Log → J-Hub Workspace (dashboard + a config page) → J-Map → J-Digi/J-Bridge → J-Sat → J-Vault → J-Learn.
 4. These references are **JavaFX-safe** (no blur/filters). Solid fills, ≤1px borders, two defined shadows. Monospace on every numeric readout. Dark + light themes via the token stylesheet.

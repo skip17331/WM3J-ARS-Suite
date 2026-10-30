@@ -4,7 +4,7 @@
 A complete set of **high-fidelity HTML/CSS/JS design references** for the ARS Suite (J-Hub + 7 modules). These are **prototypes that show intended look and behavior** — not production code to ship as-is. The task in your distro is to **recreate these designs using your real stack** (JavaFX scenes for the native windows, your embedded web UI framework for the J-Hub web surface), reusing the tokens and component conventions documented here.
 
 Two render targets (as in the product):
-- **Native JavaFX windows** — J-Hub Launcher, J-Log cockpit. Everything here is deliberately **JavaFX-safe**: solid fills, 1px borders, simple drop shadows, `oklch`/hex colors, no `backdrop-filter`, no blur, no heavy CSS filters. Translate 1:1 to JavaFX CSS + scene nodes.
+- **Native JavaFX windows** — J-Hub, J-Log cockpit. Everything here is deliberately **JavaFX-safe**: solid fills, 1px borders, simple drop shadows, `oklch`/hex colors, no `backdrop-filter`, no blur, no heavy CSS filters. Translate 1:1 to JavaFX CSS + scene nodes.
 - **Embedded web UI (localhost:8081)** — J-Hub config/dashboard and the module web surfaces. React-ready; recreate in your web framework.
 
 Fidelity: **hi-fi.** Colors, type, spacing, and interactions are final-intent. Match them.
@@ -40,7 +40,6 @@ Each module = one `J-*.html` loader + `<name>-app.jsx` + `<name>.css` (+ `<name>
 ## File map
 | Module | Loader | App | CSS | Data |
 |---|---|---|---|---|
-| Launcher exploration (3 directions) | `J-Hub Launcher.html` | `dir-a.jsx` `dir-b.jsx` `dir-c.jsx` `dir-a-drawer.jsx` | inline | `ars-shared.jsx` |
 | J-Hub Workspace (launcher+config+dashboard) | `J-Hub Workspace.html` | `ws-ui.jsx` `ws-dashboard.jsx` | `ws-*` inline | `ws-data.jsx` |
 | J-Log cockpit | `J-Log Cockpit.html` | `jlog-app.jsx` | `jlog.css` | `jlog-data.jsx` |
 | J-Map | `J-Map.html` | `jmap-app.jsx` | `jmap.css` | `jmap-data.jsx` (+ `bluemarble.jpg`, `image-slot.js`) |
