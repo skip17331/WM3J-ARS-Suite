@@ -60,8 +60,10 @@ public class Launcher extends Application {
         show(System.getProperty("surface", "hub"));
 
         stage.setTitle("ARS Suite");
+        AppIcons.apply(stage, null);                    // the app mark — without it the panel shows a generic gear
         stage.setScene(scene);
         stage.show();
+        AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
     }
 
     /** Resolve a solo launch descriptor, or null for the normal dock app. Two forms:
@@ -108,9 +110,11 @@ public class Launcher extends Application {
         show(cfg.module);
 
         stage.setTitle(cfg.windowTitle());
+        AppIcons.apply(stage, cfg.module);              // a loose module window carries its own module's icon
         stage.setScene(scene);
         stage.setMaximized(cfg.window.maximized);
         stage.show();
+        AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
     }
 
     private void show(String id) {

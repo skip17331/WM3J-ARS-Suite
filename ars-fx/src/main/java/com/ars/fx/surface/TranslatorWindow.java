@@ -168,7 +168,7 @@ final class TranslatorWindow {
         Scene scene = new Scene(root, 1100, 560);
         Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
         Themes.applyTo(root, "log");
-        Stage st = new Stage(); st.setTitle("QSO phrase translator"); st.setScene(scene);
+        Stage st = new Stage(); st.setTitle("QSO phrase translator"); st.setScene(scene); com.ars.fx.AppIcons.apply(st, null);
         if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
         st.setOnHidden(e -> { stage = null; refreshColumns = null; refreshCountryLabel = null; });
         stage = st;

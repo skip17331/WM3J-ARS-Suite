@@ -105,6 +105,7 @@ final class ClusterConsole {
 
         Stage st = new Stage();
         st.setTitle("DX Cluster — raw console");
+        com.ars.fx.AppIcons.apply(st, null);
         st.setScene(scene);
         if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
         stage = st;

@@ -82,6 +82,7 @@ public final class HubServer {
         // Own the shared backends: daemons first (so the rig/rotor clients find them), then the clients,
         // then publish state. This process is the sole owner; every window (loose or docked) is a client.
         com.ars.fx.data.Bands.applyRegion();
+        AppIcons.closeSplash();                          // a headless hub shows no window, so never leave a splash up
         try { DaemonManager.ensureAll(); } catch (Exception e) { System.err.println("[hub] daemons: " + e.getMessage()); }
         ClusterClient.getInstance().applyConfig();   // server + login from J-Hub ▸ Data (was: hard-coded defaults only)
         ClusterClient.getInstance().start();
@@ -189,7 +190,8 @@ public final class HubServer {
             quit.addActionListener(e -> ALIVE.countDown());
             menu.add(quit);
 
-            TrayIcon icon = new TrayIcon(trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);
+            java.awt.Image mark = AppIcons.tray(tray.getTrayIconSize().width);
+            TrayIcon icon = new TrayIcon(mark != null ? mark : trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);
             icon.setImageAutoSize(true);
             tray.add(icon);
             System.out.println("[hub] tray icon installed — sharing on :" + port);
@@ -200,7 +202,7 @@ public final class HubServer {
         }
     }
 
-    /** A small rounded badge with a "J" — no bundled asset needed. */
+    /** Fallback only (the app mark could not be read): a small rounded badge with a "J". */
     private static BufferedImage trayImage(SystemTray tray) {
         Dimension d = tray.getTrayIconSize();
         int w = Math.max(16, d.width), h = Math.max(16, d.height);

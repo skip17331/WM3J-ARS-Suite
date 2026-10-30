@@ -6,8 +6,8 @@
       "title": "ARS Suite",
       "comment": "ARS Suite — docked: J-Hub and all modules in one window",
       "launch": "ars-fx/ars-fx.sh",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-hub/src/main/resources/icons/icon.png",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/suite.png",
       "primary": true,
       "categories": "Network;HamRadio;"
     },
@@ -16,9 +16,9 @@
       "title": "J-Log",
       "comment": "ARS Suite — J-Log in its own window (loose), attached to the hub",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--module log",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-log/src/main/resources/com/jlog/icons/icon.png",
+      "args": "--module log",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/log.png",
       "categories": "HamRadio;Database;"
     },
     {
@@ -26,9 +26,9 @@
       "title": "J-Map",
       "comment": "ARS Suite — J-Map in its own window (loose), attached to the hub",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--module map",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-map/src/main/resources/icons/icon.png",
+      "args": "--module map",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/map.png",
       "categories": "HamRadio;Geography;"
     },
     {
@@ -36,9 +36,9 @@
       "title": "J-Sat",
       "comment": "ARS Suite — J-Sat in its own window (loose), attached to the hub",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--module sat",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-sat/src/main/resources/icons/icon.png",
+      "args": "--module sat",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/sat.png",
       "categories": "HamRadio;Science;"
     },
     {
@@ -46,9 +46,9 @@
       "title": "J-Digi",
       "comment": "ARS Suite — J-Digi in its own window (loose), attached to the hub",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--module digi",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-digi/src/main/resources/com/hamradio/modem/icons/icon.png",
+      "args": "--module digi",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/digi.png",
       "categories": "HamRadio;AudioVideo;"
     },
     {
@@ -56,9 +56,9 @@
       "title": "J-Vault",
       "comment": "ARS Suite — J-Vault in its own window (loose), attached to the hub",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--module vault",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-vault/src/main/resources/icons/icon.png",
+      "args": "--module vault",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/vault.png",
       "categories": "HamRadio;Office;"
     },
     {
@@ -66,9 +66,9 @@
       "title": "J-Learn",
       "comment": "ARS Suite — J-Learn in its own window (loose), attached to the hub",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--module learn",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-hub/src/main/resources/icons/icon.png",
+      "args": "--module learn",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/learn.png",
       "categories": "HamRadio;Education;"
     },
     {
@@ -76,9 +76,9 @@
       "title": "ARS Suite Hub",
       "comment": "ARS Suite — background hub (system tray): owns the daemons + live feeds for loose windows",
       "launch": "ars-fx/ars-fx.sh",
-      "args":   "--hub",
-      "jar":    "ars-fx/target/ars-fx-linux.jar",
-      "icon":   "j-hub/src/main/resources/icons/icon.png",
+      "args": "--hub",
+      "jar": "ars-fx/target/ars-fx-linux.jar",
+      "icon": "ars-fx/src/main/resources/com/ars/fx/icons/suite.png",
       "categories": "Network;HamRadio;"
     }
   ]
