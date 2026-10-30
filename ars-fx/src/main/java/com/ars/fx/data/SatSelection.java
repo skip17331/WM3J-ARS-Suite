@@ -21,8 +21,6 @@ public final class SatSelection {
     private static final String KEY = "sat.enabled";
     private static final String UNSET = "\u0001";
 
-    public static boolean configured() { return !UNSET.equals(HubConfig.get(KEY, UNSET)); }
-
     public static Set<Integer> selected() {
         String v = HubConfig.get(KEY, UNSET);
         if (!UNSET.equals(v)) {

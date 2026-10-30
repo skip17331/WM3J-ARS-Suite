@@ -26,13 +26,6 @@ public final class DopplerCalculator {
     }
 
     /**
-     * Doppler shift in Hz (positive = upshift, negative = downshift).
-     */
-    public static long dopplerShiftHz(long nominalHz, double rangeRateKmSec) {
-        return Math.round(-(double) nominalHz * rangeRateKmSec / C);
-    }
-
-    /**
      * For a linear transponder (inverting), the uplink Doppler is reversed.
      * Pass-band center for inverting transponder:
      *   downlink_corrected = downlink_nominal + rangeRate × downlink_nominal / c

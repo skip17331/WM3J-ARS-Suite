@@ -1,15 +1,10 @@
 package com.ars.fx.data;
 
 import com.ars.fx.sat.*;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -233,13 +228,6 @@ public final class SatService {
         }
     }
     private static double dbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
-
-    private static List<String> readResourceLines(String res) throws Exception {
-        try (InputStream in = SatService.class.getResourceAsStream(res)) {
-            if (in == null) return List.of();
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8).lines().toList();
-        }
-    }
 
     // ── display helpers ───────────────────────────────────────────────────────
     /** seconds → "18M" / "1H 26M". */

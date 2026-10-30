@@ -486,7 +486,6 @@ public final class RigPanel {
         } catch (NumberFormatException e) { return -1; }
     }
     private static String catMode(String ui) { return switch (ui) { case "CW-R" -> "CWR"; case "FT8" -> "PKTUSB"; default -> ui; }; }
-    private static String catFunc(String ui) { return switch (ui) { case "A=B" -> "A_EQ_B"; case "A/B" -> "AB"; default -> ui; }; }
     private static String uiMode(String m) {
         if (m == null) return "";
         String u = m.trim().toUpperCase();

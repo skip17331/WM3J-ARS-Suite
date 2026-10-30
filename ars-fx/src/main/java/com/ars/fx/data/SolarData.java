@@ -30,8 +30,6 @@ public final class SolarData {
     public static double mufMhz(Snapshot s) { return s == null ? Double.NaN : parseMhz(s.muf()); }
     /** Frequency of Optimum Transmission ≈ 0.85 × MUF (NaN when MUF is unavailable). */
     public static double fotMhz(Snapshot s) { double m = mufMhz(s); return Double.isNaN(m) ? Double.NaN : m * 0.85; }
-    /** Critical frequency foF2 in MHz, or NaN when not reported. */
-    public static double fof2Mhz(Snapshot s) { return s == null ? Double.NaN : parseMhz(s.fof2()); }
     private static double parseMhz(String v) {
         if (v == null) return Double.NaN;
         String t = v.trim();
@@ -97,13 +95,6 @@ public final class SolarData {
         try {
             int v = Integer.parseInt(k.trim());
             return v <= 1 ? "quiet" : v <= 3 ? "unsettled" : v == 4 ? "active" : "storm";
-        } catch (Exception e) { return "—"; }
-    }
-    /** Aurora-activity descriptor from the aurora index. */
-    public static String auroraDesc(String a) {
-        try {
-            int v = Integer.parseInt(a.trim());
-            return v <= 2 ? "quiet" : v <= 5 ? "active" : "high";
         } catch (Exception e) { return "—"; }
     }
 }

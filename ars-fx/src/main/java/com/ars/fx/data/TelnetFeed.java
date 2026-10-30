@@ -345,8 +345,6 @@ public abstract class TelnetFeed {
     public synchronized long rawSeq() { return rawSeq; }
     /** Bumps when the raw log was cleared/replaced; a console that sees it change starts over. */
     public int rawResets() { return rawResets; }
-    public synchronized void clearRaw() { raw.clear(); rawResets++; }
-
     // ── hub ⇄ window mirroring ──────────────────────────────────────────────
     /** Hub side: this feed's status for the broadcast snapshot. */
     public JsonObject statusJson() {

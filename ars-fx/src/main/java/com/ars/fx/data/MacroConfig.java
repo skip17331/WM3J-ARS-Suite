@@ -187,17 +187,4 @@ public final class MacroConfig {
         return new File(p);
     }
 
-    /** Play a voice-keyer WAV/AIFF/AU file via javax.sound (no extra deps). Returns true if it started. */
-    public static boolean playVoice(String path) {
-        File f = resolve(path);
-        if (f == null || !f.isFile()) return false;
-        try {
-            javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
-            clip.open(javax.sound.sampled.AudioSystem.getAudioInputStream(f));
-            clip.start();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }

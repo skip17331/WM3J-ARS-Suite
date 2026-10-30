@@ -280,11 +280,6 @@ public final class JLogCockpit {
         return m.equals("USB") || m.equals("LSB") || m.contains("SSB") || m.equals("AM") || m.equals("FM")
                 || m.contains("PHONE") || m.contains("VOICE");
     }
-    private static String shortName(String path) {
-        if (path == null) return "";
-        int s = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-        return s >= 0 ? path.substring(s + 1) : path;
-    }
     // ---- RTTY / CW transmit & receive drawer (between entry pane and log) ---
     // digital TX mode chips: {label, rate descriptor}
     private static final String[][] TX_MODES = {{"CW","25 wpm"},{"RTTY","45 baud · 170 Hz"},{"PSK31","31 baud"}};

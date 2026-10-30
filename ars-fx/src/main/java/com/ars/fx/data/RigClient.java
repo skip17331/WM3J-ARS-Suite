@@ -345,12 +345,6 @@ public final class RigClient {
     public static String fmtFreqShort(long hz) {
         return String.format("%d.%03d", hz / 1_000_000, (hz / 1000) % 1000);
     }
-    /** Segments lit (0..16) for a STRENGTH reading in dB relative to S9 (S0≈-54, S9+40≈+40). */
-    public static int sMeterSegments(int db) {
-        if (db == Integer.MIN_VALUE) return 0;
-        double f = (db + 54.0) / 94.0;
-        return (int) Math.max(0, Math.min(16, Math.round(f * 16)));
-    }
     /** STRENGTH dB (relative to S9) → "S7" / "S9" / "S9+20" reading; "—" when unknown. */
     public static String sMeterText(int db) {
         if (db == Integer.MIN_VALUE) return "—";

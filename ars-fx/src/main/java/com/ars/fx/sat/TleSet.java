@@ -84,14 +84,4 @@ public class TleSet {
         long epochSec = epochDate.toEpochDay() * 86400L + (long)(fracDay * 86400.0);
         return Instant.ofEpochSecond(epochSec);
     }
-
-    /** Freshness indicator: GREEN < 3 days, YELLOW < 7 days, RED >= 7 days. */
-    public TleFreshness freshness() {
-        double age = ageInDays();
-        if (age < 3)  return TleFreshness.GREEN;
-        if (age < 7)  return TleFreshness.YELLOW;
-        return TleFreshness.RED;
-    }
-
-    public enum TleFreshness { GREEN, YELLOW, RED }
 }
