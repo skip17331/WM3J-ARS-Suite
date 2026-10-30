@@ -25,12 +25,12 @@ public final class DigiEngine {
         return svc;
     }
 
-    /** Start audio capture + hub connection once (off the UI thread). */
+    /** Start audio capture once (off the UI thread). ars-fx is itself the hub, so the modem's legacy hub link is skipped. */
     public static synchronized void start() {
         ModemService s = get();
         if (s == null || started) return;
         started = true;
-        Thread t = new Thread(() -> { try { s.startupSafe(); } catch (Throwable ignored) { } }, "digi-modem");
+        Thread t = new Thread(() -> { try { s.startupEmbedded(); } catch (Throwable ignored) { } }, "digi-modem");
         t.setDaemon(true);
         t.start();
     }

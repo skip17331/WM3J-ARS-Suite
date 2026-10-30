@@ -268,6 +268,20 @@ public class ModemService implements HubMessageListener {
         }
     }
 
+    /**
+     * Start without the legacy central-hub WebSocket: audio capture only. For hosts that embed the modem and are
+     * themselves the hub (the ARS Suite app), where nothing listens on the old hub URL — connecting would only
+     * fail, post "Hub connection failed" into the decode log, and (in {@link #startup()}) skip audio start.
+     */
+    public void startupEmbedded() {
+        try {
+            startAudio();
+        } catch (Exception e) {
+            postDecodeLine("Audio start failed: " + e.getMessage());
+            log.warn("Embedded startup failed: {}", e.getMessage());
+        }
+    }
+
     public void shutdown() {
         shuttingDown = true;
         cancelTransmit();
