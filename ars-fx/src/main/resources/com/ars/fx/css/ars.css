@@ -777,3 +777,15 @@
 .rc-act.tune:hover { -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
 .rc-act.ptt  { -fx-background-color: -ars-err; -fx-border-color: -ars-err; -fx-text-fill: white; }
 .rc-act.ptt.tx { -fx-effect: dropshadow(gaussian, -ars-err, 10, 0.35, 0, 0); }
+
+/* ---- Morse Trainer (J-Learn): plain JavaFX controls in the app's colours ---- */
+.mt-root { -fx-background-color: -ars-bg; }
+.mt-root .label { -fx-text-fill: -ars-t1; }
+.mt-root .check-box { -fx-text-fill: -ars-t1; }
+.mt-root .button { -fx-background-color: -ars-surface-2; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 6 12 6 12; -fx-cursor: hand; }
+.mt-root .button:hover { -fx-background-color: -ars-surface-3; }
+.mt-root .text-field, .mt-root .text-area, .mt-root .combo-box-base, .mt-root .spinner { -fx-control-inner-background: -ars-surface-1; -fx-background-color: -ars-surface-1; -fx-text-fill: -ars-t1; -fx-border-color: -ars-border; -fx-border-radius: 6; -fx-background-radius: 6; }
+.mt-root .text-area .content { -fx-background-color: -ars-surface-1; }
+.mt-root .spinner .text-field { -fx-border-width: 0; }
+.mt-root .combo-box .list-cell { -fx-text-fill: -ars-t1; -fx-background-color: transparent; }
+.mt-root .slider .track { -fx-background-color: -ars-surface-3; }

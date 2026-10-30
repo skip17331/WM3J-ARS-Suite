@@ -35,8 +35,17 @@ public final class JLearnView {
         // reading window (main content area)
         StackPane window = new StackPane(); window.setAlignment(Pos.TOP_LEFT); HBox.setHgrow(window, Priority.ALWAYS);
         window.setStyle("-fx-background-color:-ars-bg;");
-        Consumer<Section> open = s -> window.getChildren().setAll(contentWindow(s));
+        boolean[] selectedMorse = {false};          // true while the Morse Trainer, not a chapter section, is showing
+        Consumer<Section> open = s -> { selectedMorse[0] = false; window.getChildren().setAll(contentWindow(s)); };
         window.getChildren().setAll(welcome());
+
+        // the Morse Trainer lives in J-Learn too: its entry sits above the chapters and opens in the reading window
+        Runnable[] rebuildRef = new Runnable[1];
+        Runnable openMorse = () -> {
+            selectedMorse[0] = true;
+            window.getChildren().setAll(com.ars.fx.morse.ui.MorseHome.build(pane -> window.getChildren().setAll(pane)));
+            if (rebuildRef[0] != null) rebuildRef[0].run();
+        };
 
         // collapsible left chapter/section TOC drawer
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
@@ -46,8 +55,9 @@ public final class JLearnView {
         Runnable[] rebuild = new Runnable[1];
         rebuild[0] = () -> leftHolder.getChildren().setAll(collapsed[0] == 1
                 ? collapsedRail(() -> { collapsed[0] = 0; rebuild[0].run(); })
-                : chapterDrawer(chapters, expanded, selected, open, rebuild[0],
+                : chapterDrawer(chapters, expanded, selected, selectedMorse, open, openMorse, rebuild[0],
                         () -> { collapsed[0] = 1; rebuild[0].run(); }));
+        rebuildRef[0] = rebuild[0];
         rebuild[0].run();
 
         HBox center = new HBox(leftHolder, window); center.setFillHeight(true);
@@ -55,8 +65,8 @@ public final class JLearnView {
     }
 
     // ---- left collapsible TOC ---------------------------------------------
-    private static Region chapterDrawer(List<Chapter> chapters, String[] expanded, String[] selected,
-                                        Consumer<Section> open, Runnable rebuild, Runnable onCollapse) {
+    private static Region chapterDrawer(List<Chapter> chapters, String[] expanded, String[] selected, boolean[] morseOn,
+                                        Consumer<Section> open, Runnable openMorse, Runnable rebuild, Runnable onCollapse) {
         VBox p = new VBox(0); p.getStyleClass().add("j2-topics"); p.setMinWidth(272); p.setPrefWidth(272); p.setMaxWidth(272);
         Label title = lbl("CHAPTERS", "j2-sec"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;"); collapse.setOnMouseClicked(e -> onCollapse.run());
@@ -64,6 +74,12 @@ public final class JLearnView {
         p.getChildren().add(header);
 
         VBox list = new VBox(2);
+        Label morseNm = lbl("Morse Trainer", "j2-topic-nm"); HBox.setHgrow(morseNm, Priority.ALWAYS); morseNm.setMaxWidth(Double.MAX_VALUE);
+        HBox morseRow = new HBox(8, lbl("♪", "j2-caret"), morseNm, lbl("practice", "j2-topic-ct"));
+        morseRow.setAlignment(Pos.CENTER_LEFT); morseRow.getStyleClass().add("j2-topic"); if (morseOn[0]) morseRow.getStyleClass().add("open");
+        com.ars.fx.shell.Tips.tip(morseRow, "Practise CW: letters, groups, QSOs and sending with a key");
+        morseRow.setOnMouseClicked(e -> openMorse.run());
+        list.getChildren().add(morseRow);
         for (Chapter c : chapters) {
             boolean openCh = c.num().equals(expanded[0]);
             Label nm = lbl(c.num() + " · " + c.title(), "j2-topic-nm"); HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);

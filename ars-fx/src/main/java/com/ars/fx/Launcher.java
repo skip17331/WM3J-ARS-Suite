@@ -125,6 +125,7 @@ public class Launcher extends Application {
      *  otherwise keep the process alive after the last window closes. Daemons/server belong to the hub, not us. */
     @Override
     public void stop() {
+        try { com.ars.fx.morse.ui.MorseHome.shutdown(); } catch (Exception ignored) {}
         try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
         try { com.ars.fx.data.RemoteLink.disconnect(); } catch (Exception ignored) {}
         javafx.application.Platform.exit();

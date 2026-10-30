@@ -1,0 +1,183 @@
+{
+  "_meta": {
+    "description": "Fragment pool for QsoGenerator. Each list is sampled independently when assembling a turn; mixing produces ~hundreds of unique exchange variations.",
+    "tokens": {
+      "{dx}":   "DX callsign for this QSO",
+      "{you}":  "User's callsign",
+      "{name}": "Sampled from names",
+      "{qth}":  "Sampled from qths",
+      "{rig}":  "Sampled from rigs",
+      "{ant}":  "Sampled from antennas",
+      "{wx}":   "Sampled from weather_adj",
+      "{rst}":  "Random RST (e.g. 599, 579)",
+      "{temp}": "Random temperature in C"
+    }
+  },
+
+  "cq_openers": [
+    "CQ CQ CQ DE {dx} {dx} K",
+    "CQ CQ DE {dx} {dx} PSE K",
+    "CQ DE {dx} {dx} K",
+    "CQ DX DE {dx} {dx} K",
+    "CQ CQ DE {dx} K",
+    "QRZ DE {dx} K",
+    "CQ CQ CQ DE {dx} PSE K",
+    "CQ TEST {dx} TEST"
+  ],
+
+  "callbacks": [
+    "{dx} DE {you} K",
+    "{dx} DE {you} {you} K",
+    "{dx} {dx} DE {you} {you} K",
+    "{dx} DE {you} KN",
+    "{dx} DE {you} PSE K"
+  ],
+
+  "greetings": [
+    "GE OM TNX FER CALL",
+    "GM DR OM TNX FER NICE CALL",
+    "GA OM TNX FER CALL",
+    "GE DR FRIEND",
+    "HELLO ES TNX FER CALL",
+    "TNX FER CALL OM",
+    "TNX FER NICE CALL",
+    "GE GE TNX FER CALL",
+    "HI OM GLAD TO MEET U",
+    "GE OM PLSD TO MEET U"
+  ],
+
+  "signal_reports": [
+    "UR RST {rst} {rst}",
+    "UR RST {rst}",
+    "UR SIGS {rst}",
+    "UR RPRT {rst}",
+    "RST HR {rst}",
+    "GOT U {rst}",
+    "UR 5NN 5NN",
+    "U R {rst}"
+  ],
+
+  "name_intros": [
+    "NAME {name}",
+    "NAME HR {name}",
+    "NAME IS {name}",
+    "MY NAME {name}",
+    "ES NAME {name}",
+    "OP {name}",
+    "NAME HR IS {name}"
+  ],
+
+  "qth_intros": [
+    "QTH {qth}",
+    "QTH HR {qth}",
+    "QTH IS {qth}",
+    "MY QTH {qth}",
+    "ES QTH {qth}",
+    "LOC {qth}",
+    "QTH HR IS {qth}"
+  ],
+
+  "rig_intros": [
+    "RIG HR {rig}",
+    "RIG IS {rig}",
+    "MY RIG {rig}",
+    "RIG {rig} 5W",
+    "RIG {rig} 100W",
+    "RIG HR IS {rig} RNG 5W",
+    "TX HR {rig}",
+    "RIG {rig} ES PWR 50W"
+  ],
+
+  "antennas": [
+    "ANT IS DIPOLE",
+    "ANT IS VERTICAL",
+    "ANT HR IS LOOP",
+    "ANT 40M DIPOLE",
+    "ANT IS YAGI",
+    "ANT IS END FED",
+    "ANT HF VERTICAL",
+    "ANT G5RV",
+    "ANT HEX BEAM",
+    "ANT IS INV V",
+    "ANT IS WINDOM",
+    "ANT IS MAG LOOP"
+  ],
+
+  "weather_intros": [
+    "WX HR {wx}",
+    "WX {wx}",
+    "WX IS {wx}",
+    "WX SE {wx}",
+    "WX HR IS {wx}"
+  ],
+
+  "weather_adj": [
+    "SUNNY", "CLOUDY", "RAINY", "SNOWY", "FOGGY",
+    "WINDY", "CLEAR", "WARM", "COLD", "HOT",
+    "MILD", "OVERCAST", "STORMY", "HUMID", "DRY"
+  ],
+
+  "temp_intros": [
+    "TEMP {temp} C",
+    "TEMP IS {temp} C",
+    "TEMP HR {temp} C",
+    "{temp} C HR"
+  ],
+
+  "hw_checks": [
+    "HW CPY?",
+    "HW?",
+    "HW CPY OM?",
+    "HW DID U CPY?",
+    "BK",
+    "HW CPY DR OM?"
+  ],
+
+  "signoffs_73": [
+    "73 GL",
+    "73 GL ES TNX",
+    "73 ES GD DX",
+    "TNX FER QSO 73",
+    "TNX FB QSO 73",
+    "VY 73 GL",
+    "BEST 73 ES GL",
+    "TNX OM 73",
+    "GL ES TNX AGN",
+    "73 ES GUD LUCK",
+    "73 73 ES CUL"
+  ],
+
+  "end_sk": [
+    "{dx} DE {you} SK",
+    "{dx} DE {you} TU E E",
+    "{dx} DE {you} SK E E",
+    "{dx} DE {you} TU 73 SK"
+  ],
+
+  "names": [
+    "JOHN", "MIKE", "DAVE", "SARAH", "ANNA", "TOM", "BILL", "JIM",
+    "ALEX", "CHRIS", "PAT", "LEE", "SAM", "PETER", "KARL", "HANS",
+    "OLAF", "GEORGE", "FRED", "ANDY", "NICK", "CARL", "MARK", "JOE",
+    "DAVID", "RICK", "PHIL", "BOB", "RICH", "STEVE", "GREG", "JEFF",
+    "KEVIN", "PAUL", "STAN", "ED"
+  ],
+
+  "qths": [
+    "DENVER CO", "AUSTIN TX", "SEATTLE WA", "MUNICH", "TOKYO",
+    "MELBOURNE", "TORONTO", "BERLIN", "PARIS", "LONDON",
+    "STOCKHOLM", "HELSINKI", "OSLO", "AMSTERDAM", "ROME",
+    "MADRID", "ZURICH", "VIENNA", "PRAGUE", "WARSAW",
+    "BUDAPEST", "ATHENS", "DUBLIN", "EDINBURGH", "BOSTON MA",
+    "MIAMI FL", "CHICAGO IL", "DALLAS TX", "PORTLAND OR",
+    "NASHVILLE TN", "BOULDER CO", "PHOENIX AZ", "SAN DIEGO CA",
+    "OAKLAND CA", "SYDNEY", "BRISBANE", "AUCKLAND", "OSAKA",
+    "SEOUL", "RIGA", "TALLINN", "VILNIUS", "LISBON", "BARCELONA"
+  ],
+
+  "rigs": [
+    "FT-991", "K3", "IC-7300", "FT-857", "TS-590", "KX3", "FTDX10",
+    "QCX MINI", "IC-705", "K4", "FT-DX101", "FT-818", "IC-7600",
+    "KX2", "TS-890", "FT-991A", "IC-7610", "FT-450D", "ELECRAFT K1",
+    "OHR-100", "IC-718", "TS-2000", "FT-450"
+  ]
+}
