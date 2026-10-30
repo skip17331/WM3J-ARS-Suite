@@ -940,15 +940,40 @@ public final class JHubDashboard {
         Label csv = cfgBtn("Export CSV");  csv.setOnMouseClicked(e -> report.accept(com.ars.fx.data.LogExport.backup(dir.getText(), "csv")));
         HBox btns = new HBox(10, adi, csv); btns.setAlignment(Pos.CENTER_LEFT);
 
+        Label imp = cfgBtn("Import ADIF…");
+        boolean[] busy = {false};
+        imp.setOnMouseClicked(e -> {
+            if (busy[0]) return;
+            FileChooser fc = new FileChooser(); fc.setTitle("Import ADIF into the normal log");
+            fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("ADIF files", "*.adi", "*.adif", "*.ADI", "*.ADIF"), new FileChooser.ExtensionFilter("All files", "*.*"));
+            java.io.File f = fc.showOpenDialog(imp.getScene().getWindow());
+            if (f == null) return;
+            busy[0] = true; status.setText("Importing " + f.getName() + " …");
+            Thread t = new Thread(() -> {
+                com.ars.fx.data.LogImport.Result r = com.ars.fx.data.LogImport.importAdif(f.toPath());
+                javafx.application.Platform.runLater(() -> { busy[0] = false;
+                    status.setText(!r.ok() ? "✗ Import failed: " + r.error()
+                            : "✓ Imported " + r.imported() + " QSO" + (r.imported() == 1 ? "" : "s") + " from " + f.getName()
+                              + (r.duplicates() > 0 ? " · " + r.duplicates() + " already in the log, skipped" : "")
+                              + (r.failed() > 0 ? " · " + r.failed() + " records unreadable" : "")); });
+            }, "adif-import");
+            t.setDaemon(true); t.start();
+        });
+        com.ars.fx.shell.Tips.tip(imp, "Add the QSOs from an ADIF file to the normal log; ones already logged are skipped");
+
         VBox card = new VBox(); card.getStyleClass().add("cfg-card");
         card.getChildren().add(cfgRow("Backup folder", "timestamped j-log-YYYYMMDD-HHMMSS files", dir));
         HBox exportRow = new HBox(20, new VBox(2, lbl("Export now", "cfg-lt"), lbl("ADIF for LoTW / eQSL / QRZ / Club Log · CSV for spreadsheets", "cfg-lh")));
         Region esp = new Region(); HBox.setHgrow(esp, Priority.ALWAYS); exportRow.getChildren().addAll(esp, btns);
         exportRow.getStyleClass().add("cfg-row"); exportRow.setAlignment(Pos.CENTER_LEFT);
         card.getChildren().add(exportRow);
+        HBox importRow = new HBox(20, new VBox(2, lbl("Import", "cfg-lt"), lbl("ADIF from another logger or a backup → the normal log (duplicates are skipped)", "cfg-lh")));
+        Region isp = new Region(); HBox.setHgrow(isp, Priority.ALWAYS); importRow.getChildren().addAll(isp, imp);
+        importRow.getStyleClass().add("cfg-row"); importRow.setAlignment(Pos.CENTER_LEFT);
+        card.getChildren().add(importRow);
         HBox statusRow = new HBox(status); statusRow.getStyleClass().add("cfg-row"); statusRow.setStyle("-fx-border-width:0;");
         card.getChildren().add(statusRow);
-        return new VBox(6, lbl("BACKUP & EXPORT", "cfg-sec"), card);
+        return new VBox(6, lbl("BACKUP, EXPORT & IMPORT", "cfg-sec"), card);
     }
     static Label cfgBtn(String text) {
         Label b = lbl(text, "cfg-select"); b.setStyle("-fx-cursor:hand; -fx-padding:6 14 6 14; -fx-background-color:-ars-accent; -fx-text-fill:#06121a; -fx-font-weight:bold; -fx-background-radius:7;");
