@@ -16,6 +16,13 @@ public final class HubConfig {
     private HubConfig() {}
 
     private static JsonObject root;
+    private static final java.util.List<java.util.function.Consumer<String>> LISTENERS =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    /** Be told when a setting changes: the key, or {@code "*"} after {@link #reload()} replaced them all.
+     *  Runs on the thread that made the change. */
+    public static void addChangeListener(java.util.function.Consumer<String> l) { LISTENERS.add(l); }
+    private static void changed(String key) { for (var l : LISTENERS) { try { l.accept(key); } catch (RuntimeException ignored) { } } }
 
     private static Path file() { return Paths.get(System.getProperty("user.home"), ".j-hub", "config.json"); }
 
@@ -31,7 +38,7 @@ public final class HubConfig {
     /** Drop the in-memory cache so the next read re-loads {@code config.json} from disk. The store is a
      *  per-process cache (loaded once), so the background hub calls this when a client edits config in
      *  another JVM and nudges a reconcile — see {@code HubServer.reconcile()}. */
-    public static synchronized void reload() { root = null; ensure(); }
+    public static synchronized void reload() { root = null; ensure(); changed("*"); }
 
     public static synchronized String get(String key, String def) {
         ensure();
@@ -41,10 +48,10 @@ public final class HubConfig {
         ensure();
         try { return root.has(key) ? root.get(key).getAsBoolean() : def; } catch (Exception e) { return def; }
     }
-    public static synchronized void set(String key, String val) { ensure(); root.addProperty(key, val == null ? "" : val); save(); }
+    public static synchronized void set(String key, String val) { ensure(); root.addProperty(key, val == null ? "" : val); save(); changed(key); }
     /** Drop a key entirely, so readers fall back to their defaults. */
-    public static synchronized void remove(String key) { ensure(); root.remove(key); save(); }
-    public static synchronized void setBool(String key, boolean val) { ensure(); root.addProperty(key, val); save(); }
+    public static synchronized void remove(String key) { ensure(); root.remove(key); save(); changed(key); }
+    public static synchronized void setBool(String key, boolean val) { ensure(); root.addProperty(key, val); save(); changed(key); }
 
     // convenience accessors for the most-shared identity fields
     public static String call() { return get("station.call", "WM3J"); }

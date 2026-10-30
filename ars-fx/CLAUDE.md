@@ -50,7 +50,7 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 
 | Library | How ars-fx uses it |
 |---|---|
-| `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only); a library with no window or launcher of its own |
+| `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only) and keeps the modem's PTT in step with the J-Hub rig settings (`rig.ptt`, `rig.rigctldHost`, `rig.rigctldPort`) via `HubConfig.addChangeListener`; a library with no window or launcher of its own |
 | `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`); a library with no standalone app |
 | `j-log-engine` | SQLite DAOs, contest plugins/scoring, Cabrillo export, `DxccResolver` |
 | `j-log-common` | Shared models and `BandplanLoader` |

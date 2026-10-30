@@ -57,7 +57,11 @@ CI-V control (`CivRigControl`/`CivEngine`) was removed; Hamlib's `icom` backend 
 | `ptt.hamlib.host` | hostname / IP | `127.0.0.1` |
 | `ptt.hamlib.port` | TCP port | `4532` |
 
-These live in Java Preferences (`com.hamradio.modem.ModemService`). Wire protocol is the plain rigctld set; a non-zero
+These live in Java Preferences (`com.hamradio.modem.ModemService`). A host application sets them with
+`ModemService.applyPttSettings(method, host, port)`, which saves them and rebuilds the PTT implementation (deferred if a
+transmission is under way). `ars-fx` calls it from `DigiEngine.syncPtt()` so J-Digi follows the J-Hub rig settings:
+`rig.ptt` `VOX` → `VOX`; `CAT`, `RTS` or `DTR` → `HAMLIB` (the rigctld daemon does the keying); host and port from
+`rig.rigctldHost` / `rig.rigctldPort`. The Hamlib CW keyer reads the same host and port. Wire protocol is the plain rigctld set; a non-zero
 `RPRT` surfaces as an `IOException` through `AudioTxEngine`'s `onError`.
 
 ## CW keyer — audio vs CAT

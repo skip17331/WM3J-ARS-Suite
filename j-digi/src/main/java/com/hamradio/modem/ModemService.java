@@ -303,6 +303,9 @@ public class ModemService {
         postDecodeLine("RTTY reverse " + (reverse ? "enabled" : "disabled"));
     }
 
+    /** The saved PTT method, {@code VOX} or {@code HAMLIB}. */
+    public String getPttMethod() { return PREFS.get(PREF_PTT_METHOD, "VOX").toUpperCase(); }
+
     public boolean isTransmitting() {
         return status.isTransmitting();
     }
@@ -495,6 +498,26 @@ public class ModemService {
                 wpm,
                 /*carrierHz=*/700.0,
                 /*amplitude=*/0.50);
+    }
+
+    /**
+     * Set the PTT method and rigctld endpoint from the host application's rig settings, save them, and apply them.
+     * The same host and port are used by the Hamlib CW keyer. A blank method keeps the saved one; a blank host or an
+     * out-of-range port is ignored. If a transmission is under way the new settings are saved but only take effect
+     * on the next call, because the PTT implementation cannot be swapped mid-flight.
+     *
+     * @param method {@code VOX} or {@code HAMLIB}
+     */
+    public void applyPttSettings(String method, String host, int port) {
+        if (method != null && !method.isBlank()) PREFS.put(PREF_PTT_METHOD, method.trim().toUpperCase());
+        if (host != null && !host.isBlank()) PREFS.put(PREF_PTT_HAMLIB_HOST, host.trim());
+        if (port > 0 && port < 65536) PREFS.putInt(PREF_PTT_HAMLIB_PORT, port);
+        flushPrefsQuietly("PTT settings");
+        try {
+            audioTxEngine.setRigControl(buildConfiguredRigControl());
+        } catch (IllegalStateException transmitting) {
+            log.info("PTT settings saved; they apply after the current transmission");
+        }
     }
 
     /**
