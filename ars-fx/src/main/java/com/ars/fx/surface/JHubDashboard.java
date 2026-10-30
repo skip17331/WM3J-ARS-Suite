@@ -963,6 +963,8 @@ public final class JHubDashboard {
         dev.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set("tx.voiceDevice", b == null || b.equals("System default") ? "" : b));
         return section("TRANSMIT (F-KEY MACROS)",
             cfgRow("CW speed", "sent to the rig's own keyer (Hamlib send_morse) — the rig must support it", cUnit("tx.cwWpm", "25", "wpm")),
+            cfgRow("PTT delay", "seconds between keying the rig and the audio starting, and again between the audio ending and dropping the key (0 – 2, e.g. 0.3)",
+                    cUnit("tx.pttDelay", "0.2", "s")),
             cfgRow("Voice audio output", "where voice macros play — choose the sound card that feeds the radio. PTT is keyed through the rig (Rig control)", dev));
     }
 

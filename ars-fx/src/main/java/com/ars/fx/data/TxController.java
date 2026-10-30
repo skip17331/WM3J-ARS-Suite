@@ -40,7 +40,14 @@ import java.util.function.Consumer;
 public final class TxController {
     private TxController() {}
 
-    private static final int PTT_LEAD_MS = 150, PTT_TAIL_MS = 100, PTT_MARGIN_MS = 3000, MAX_VOICE_MS = 120_000;
+    private static final int PTT_MARGIN_MS = 3000, MAX_VOICE_MS = 120_000;
+
+    /** Seconds between keying the rig and the audio starting, and between the audio ending and releasing the key.
+     *  One number for both ({@code tx.pttDelay}, J-Hub ▸ Data ▸ Transmit), clamped to 0–2 s. Default 0.2 s. */
+    public static double pttDelaySec() {
+        try { return Math.max(0.0, Math.min(2.0, Double.parseDouble(HubConfig.get("tx.pttDelay", "0.2").trim()))); }
+        catch (Exception e) { return 0.2; }
+    }
 
     // ── the "transmitting" state the red light follows ───────────────────────
     private static final ReadOnlyBooleanWrapper TX = new ReadOnlyBooleanWrapper(false);
@@ -180,9 +187,11 @@ public final class TxController {
             Clip clip = openClip(in);
             long fileMs = Math.min(MAX_VOICE_MS, clip.getMicrosecondLength() / 1000);
             playing = clip;
-            pttOn(fileMs + PTT_MARGIN_MS); keyed = true;
-            post(report, "▶ voice — transmitting " + f.getName() + " (" + String.format(Locale.US, "%.1f", fileMs / 1000.0) + " s)");
-            sleepInterruptibly(PTT_LEAD_MS);
+            long delayMs = Math.round(pttDelaySec() * 1000);
+            pttOn(fileMs + 2 * delayMs + PTT_MARGIN_MS); keyed = true;
+            post(report, "▶ voice — keyed, " + String.format(Locale.US, "%.2f", delayMs / 1000.0) + " s, then playing " + f.getName()
+                    + " (" + String.format(Locale.US, "%.1f", fileMs / 1000.0) + " s)");
+            sleepInterruptibly(delayMs);                          // key → pause → audio
             if (!aborted) {
                 CountDownLatch done = new CountDownLatch(1);
                 clip.addLineListener(ev -> { if (ev.getType() == LineEvent.Type.STOP) done.countDown(); });
@@ -190,7 +199,7 @@ public final class TxController {
                 done.await(fileMs + PTT_MARGIN_MS, TimeUnit.MILLISECONDS);
             }
             clip.stop(); clip.close();
-            sleepInterruptibly(PTT_TAIL_MS);
+            if (!aborted) sleepInterruptibly(delayMs);            // audio → pause → drop the key
             post(report, aborted ? "■ voice stopped" : "✓ voice sent — back to receive");
         } catch (InterruptedException e) {
             post(report, "■ voice stopped");
