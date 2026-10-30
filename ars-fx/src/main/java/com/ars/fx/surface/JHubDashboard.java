@@ -798,7 +798,7 @@ public final class JHubDashboard {
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, logDatabaseSection(), JHubContestDbs.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, txSection(), macroSection());
+            cells, logDatabaseSection(), JHubContestDbs.build(), JHubLearnContent.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, txSection(), macroSection());
     }
 
     /** Which database files J-Log writes to, with their sizes and a way to open the folder. The export and

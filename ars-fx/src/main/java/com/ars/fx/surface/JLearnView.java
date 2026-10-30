@@ -24,6 +24,7 @@ public final class JLearnView {
     private JLearnView() {}
 
     public static Region build() {
+        com.ars.fx.data.LearnContent.seedIfMissing();   // first use: copy the chapters bundled in the jar to ~/.j-learn/content
         Region dock = Shell.dock("learn");
         List<Chapter> chapters = JLearnLibrary.chapters();
         int adv = 0; for (Chapter c : chapters) for (Section s : c.sections()) if (s.advanced()) adv++;
@@ -131,7 +132,7 @@ public final class JLearnView {
         v.getChildren().add(wrap(lbl(s.title(), "j2-h1")));
         String md = JLearnLibrary.body(s);
         if (md == null || md.isBlank()) {
-            v.getChildren().add(wrap(lbl("This section's text isn't on disk yet — run J-Learn once to seed the content library (~/.j-learn/content).", "j2-content-body")));
+            v.getChildren().add(wrap(lbl("This section's text isn't available. Open J-Hub ▸ Data ▸ J-LEARN CONTENT and press Update files (or Restore bundled copy) to refresh the library.", "j2-content-body")));
             v.getChildren().add(lbl(s.path(), "j2-content-meta"));
         } else {
             for (Block b : parse(md)) v.getChildren().add(renderBlock(b));

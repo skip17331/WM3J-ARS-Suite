@@ -31,6 +31,9 @@ public final class JLearnLibrary {
 
     private static List<Chapter> cache;
 
+    /** Forget the parsed index so the next read picks up new files (after a content update). */
+    public static synchronized void reload() { cache = null; }
+
     public static synchronized List<Chapter> chapters() {
         if (cache == null) cache = load();
         return cache;
@@ -77,7 +80,7 @@ public final class JLearnLibrary {
             if (Files.isReadable(disk)) return Files.readAllLines(disk, StandardCharsets.UTF_8);
         } catch (Exception ignored) { /* fall through */ }
         // 2) bundled fallback
-        try (InputStream in = JLearnLibrary.class.getResourceAsStream("/com/ars/fx/learn/manifest.md")) {
+        try (InputStream in = JLearnLibrary.class.getResourceAsStream("/com/ars/fx/learn/content/manifest.md")) {
             if (in != null) {
                 List<String> out = new ArrayList<>();
                 BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -93,8 +96,12 @@ public final class JLearnLibrary {
         if (s == null || s.path() == null || s.path().isBlank()) return null;
         Path p = Paths.get(System.getProperty("user.home"), ".j-learn", "content", s.path());
         try {
-            if (!Files.isReadable(p)) return null;
-            String raw = Files.readString(p, StandardCharsets.UTF_8);
+            String raw;
+            if (Files.isReadable(p)) raw = Files.readString(p, StandardCharsets.UTF_8);
+            else try (InputStream in = JLearnLibrary.class.getResourceAsStream("/com/ars/fx/learn/content/" + s.path())) {   // the copy bundled in the jar
+                if (in == null) return null;
+                raw = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            }
             return stripFrontMatter(raw);
         } catch (Exception e) {
             return null;

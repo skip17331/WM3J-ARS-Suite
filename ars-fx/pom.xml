@@ -75,6 +75,12 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource><directory>src/main/resources</directory></resource>
+            <!-- the J-Learn chapters live in their own repo folder (so they can be updated on their own); a copy ships in
+                 the jar so a fresh install has content and can restore it -->
+            <resource><directory>${project.basedir}/../j-learn-content</directory><targetPath>com/ars/fx/learn/content</targetPath></resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -194,6 +200,11 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.ars.fx.Main</mainClass>
+                                    <manifestEntries>
+                                        <!-- shown natively by the JVM the instant `java -jar` starts, before JavaFX is up; the
+                                             app closes it once its first window shows (AppIcons.closeSplash) -->
+                                        <SplashScreen-Image>com/ars/fx/icons/splash.png</SplashScreen-Image>
+                                    </manifestEntries>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
