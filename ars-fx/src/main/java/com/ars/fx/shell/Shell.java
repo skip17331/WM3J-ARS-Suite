@@ -211,6 +211,7 @@ public final class Shell {
         Tips.tip(theme, "Switch this module's colour scheme");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
         HBox.setMargin(theme, new Insets(0, 16, 0, 0));
+        top.getChildren().add(TxIndicator.build());
         top.getChildren().add(theme);
         if (clock != null) {
             VBox c = new VBox(1, lbl("UTC", "sx-clock-k"), lbl(clock, "sx-clock-v"));

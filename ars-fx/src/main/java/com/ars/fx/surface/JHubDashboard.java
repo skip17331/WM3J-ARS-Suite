@@ -401,6 +401,7 @@ public final class JHubDashboard {
 
         // F1–F8 station macros (shared with J-Log normal + contest)
         Label txEcho = lbl("", "jhub-mini-hint");
+        body.getChildren().add(MacroBar.sendAsRow(tMode));
         body.getChildren().add(MacroBar.row(MacroBar.fire(() -> tMode.getText(), () -> tCall.getText(), msg -> txEcho.setText("▶ " + msg))));
         body.getChildren().add(txEcho);
 
@@ -795,7 +796,7 @@ public final class JHubDashboard {
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, logDatabaseSection(), JHubContestDbs.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, macroSection());
+            cells, logDatabaseSection(), JHubContestDbs.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, txSection(), macroSection());
     }
 
     /** Which database files J-Log writes to, with their sizes and a way to open the folder. The export and
@@ -952,6 +953,19 @@ public final class JHubDashboard {
         return b;
     }
     /** F1–F8 station macros used by J-Log: CW/RTTY/digital send the text, phone plays the audio file. */
+    /** What the F-key macros need to key the radio: CW speed, and the sound output voice macros play to. */
+    private static VBox txSection() {
+        javafx.scene.control.ComboBox<String> dev = new javafx.scene.control.ComboBox<>();
+        dev.getItems().add("System default"); dev.getItems().addAll(com.ars.fx.data.TxController.outputDevices());
+        String cur = com.ars.fx.data.HubConfig.get("tx.voiceDevice", "").trim();
+        dev.setValue(cur.isEmpty() || !dev.getItems().contains(cur) ? "System default" : cur);
+        dev.setMinWidth(260); dev.setMaxWidth(320);
+        dev.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set("tx.voiceDevice", b == null || b.equals("System default") ? "" : b));
+        return section("TRANSMIT (F-KEY MACROS)",
+            cfgRow("CW speed", "sent to the rig's own keyer (Hamlib send_morse) — the rig must support it", cUnit("tx.cwWpm", "25", "wpm")),
+            cfgRow("Voice audio output", "where voice macros play — choose the sound card that feeds the radio. PTT is keyed through the rig (Rig control)", dev));
+    }
+
     private static VBox macroSection() {
         VBox card = new VBox(); card.getStyleClass().add("cfg-card");
         // column header

@@ -195,6 +195,13 @@ public final class RigClient {
     /** Trigger the antenna tuner / start a tune cycle (Hamlib {@code U TUNER 1}). */
     public void antTune()                 { if (RemoteLink.isActive()) return; runCmd("U TUNER 1"); }
 
+    /** A raw Hamlib command, waiting for the rig's reply (throws if it refuses). Only the process that owns the rig
+     *  can use it — a window attached to the hub asks the hub instead (see {@link TxController}). */
+    public String command(String cmd) throws IOException {
+        if (RemoteLink.isActive()) throw new IOException("this window does not own the rig");
+        return send(cmd);
+    }
+
     private void runCmd(String cmd) {
         Thread t = new Thread(() -> { try { send(cmd); } catch (IOException ignored) {} }, "rig-cmd");
         t.setDaemon(true); t.start();

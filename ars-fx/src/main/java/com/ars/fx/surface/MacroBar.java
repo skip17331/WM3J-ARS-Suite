@@ -36,19 +36,68 @@ public final class MacroBar {
         return m;
     }
 
-    /** Standard fire: phone modes play the voice file; CW/RTTY/digital send the {CALL}-expanded text. */
+    private static final String SEND_AS = "macro.sendAs";   // "auto" (from the mode field) | "cw" | "voice"
+
+    /** Should the F-keys play the voice file (true) or send text (false)? The operator's "send as" choice wins;
+     *  with neither box ticked it follows the mode field (phone modes → voice). */
+    public static boolean usePhone(String mode) {
+        return switch (com.ars.fx.data.HubConfig.get(SEND_AS, "auto")) {
+            case "voice" -> true;
+            case "cw" -> false;
+            default -> isPhone(mode);
+        };
+    }
+
+    /** "Macros send as: ☐ CW / data ☐ Voice" — two boxes that act as a choice. Neither ticked = automatic from the mode
+     *  field; ticking one forces it; ticking the other switches; unticking returns to automatic. The choice is shared
+     *  by every J-Log screen. {@code modeField} is the screen's MODE field, so the hint can name what a press will do. */
+    public static javafx.scene.layout.FlowPane sendAsRow(javafx.scene.control.TextField modeField) {
+        javafx.scene.control.CheckBox cw = new javafx.scene.control.CheckBox("CW / data"), voice = new javafx.scene.control.CheckBox("Voice");
+        for (javafx.scene.control.CheckBox cb : new javafx.scene.control.CheckBox[]{cw, voice})
+            cb.setStyle("-fx-text-fill:-ars-t1;-fx-font-size:12px;-fx-cursor:hand;");   // the default text colour is invisible on this theme
+        String cur = com.ars.fx.data.HubConfig.get(SEND_AS, "auto");
+        cw.setSelected(cur.equals("cw")); voice.setSelected(cur.equals("voice"));
+        javafx.scene.control.Label hint = lbl("", "jl-skim-meta");
+        Runnable paint = () -> {
+            String mode = modeField == null ? "" : modeField.getText();
+            String how = com.ars.fx.data.HubConfig.get(SEND_AS, "auto");
+            boolean phone = usePhone(mode);
+            hint.setText(how.equals("auto") ? "auto → " + (phone ? "voice" : "text") + (mode == null || mode.isBlank() ? "" : " (" + mode.trim().toUpperCase() + ")")
+                                            : "→ " + (phone ? "voice file" : "text"));
+        };
+        boolean[] busy = {false};
+        cw.selectedProperty().addListener((o, a, on) -> {
+            if (busy[0]) return; busy[0] = true;
+            if (on) voice.setSelected(false);
+            com.ars.fx.data.HubConfig.set(SEND_AS, on ? "cw" : (voice.isSelected() ? "voice" : "auto")); busy[0] = false; paint.run();
+        });
+        voice.selectedProperty().addListener((o, a, on) -> {
+            if (busy[0]) return; busy[0] = true;
+            if (on) cw.setSelected(false);
+            com.ars.fx.data.HubConfig.set(SEND_AS, on ? "voice" : (cw.isSelected() ? "cw" : "auto")); busy[0] = false; paint.run();
+        });
+        if (modeField != null) modeField.textProperty().addListener((o, a, b) -> paint.run());
+        com.ars.fx.shell.Tips.tip(cw, "Send the macro text (CW or data modes) — whatever the mode field says");
+        com.ars.fx.shell.Tips.tip(voice, "Play the macro's voice file — whatever the mode field says");
+        com.ars.fx.shell.Tips.tip(hint, "Leave both unticked and the F-keys follow the mode: SSB / USB / LSB / AM / FM play the voice file, anything else sends the text");
+        paint.run();
+        javafx.scene.layout.FlowPane row = new javafx.scene.layout.FlowPane(12, 4); row.setAlignment(Pos.CENTER_LEFT);
+        row.getChildren().addAll(lbl("Macros send as", "jl-skim-meta"), cw, voice, hint);
+        return row;
+    }
+
+    /** Standard fire: voice file or text per {@link #usePhone}; text is {CALL}-expanded. */
     public static IntConsumer fire(Supplier<String> modeSup, Supplier<String> callSup, Consumer<String> sendText) {
         return i -> {
             MacroConfig.Macro m = MacroConfig.get(i);
-            if (isPhone(modeSup.get())) {
+            if (usePhone(modeSup.get())) {
                 if (m.audio() != null && !m.audio().isBlank()) {
-                    boolean played = MacroConfig.playVoice(m.audio());
-                    sendText.accept("▶ voice " + m.label() + (played ? "" : " (file not found)"));
+                    com.ars.fx.data.TxController.macroVoice(m.audio(), sendText);      // keys the rig, plays the file, unkeys
                 } else {
                     sendText.accept("▶ voice " + m.label() + " — no audio set (J-Hub ▸ Data ▸ Macros)");
                 }
             } else {
-                sendText.accept(expand(m.text(), callSup.get()));
+                com.ars.fx.data.TxController.macroText(modeSup.get(), expand(m.text(), callSup.get()), sendText);   // CW via the rig keyer
             }
         };
     }

@@ -104,6 +104,7 @@ public final class RemoteServer extends WebSocketServer {
     @Override public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         clients.remove(conn);
         rawCursor.remove(conn);
+        TxController.hubClientGone(conn);                       // never leave PTT keyed for a window that vanished
         fireCount();
     }
     @Override public void onError(WebSocket conn, Exception ex) {}
@@ -121,6 +122,7 @@ public final class RemoteServer extends WebSocketServer {
                     System.out.println("[hub] " + clients.get(conn) + " attached (" + clients.size()
                             + " client" + (clients.size() == 1 ? "" : "s") + ")");
                 }
+                case "tx"           -> TxController.hubCommand(o.get("op").getAsString(), o, conn);   // cw / ptt / stop for a window
                 case "feed"         -> {                                   // connect / disconnect / endpoint / cmd for a telnet feed
                     TelnetFeed f = TelnetFeed.byKey(o.get("key").getAsString());
                     if (f != null) f.applyCommand(o.get("op").getAsString(), o);
@@ -193,6 +195,7 @@ public final class RemoteServer extends WebSocketServer {
         feeds.add("cluster", ClusterClient.getInstance().statusJson());
         feeds.add("rbn", HeardByClient.getInstance().statusJson());
         o.add("feeds", feeds);
+        o.addProperty("tx", TxController.hubTransmitting());
         o.add("activity", GSON.toJsonTree(ClusterClient.getInstance().activityFlat()));
         JsonObject st = new JsonObject();
         st.addProperty("call", HubConfig.call());

@@ -263,6 +263,7 @@ public final class HubServer {
     }
 
     private static synchronized void cleanup() {
+        try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
         try { RemoteServer.shutdown(); } catch (Exception ignored) {}
         try { DaemonManager.stopAll(); } catch (Exception ignored) {}
     }

@@ -131,15 +131,13 @@ public final class JLogCockpit {
         // the voice-keyer audio file; in CW/RTTY/digital it sends the text message.
         java.util.function.IntConsumer fireMacro = i -> {
             com.ars.fx.data.MacroConfig.Macro m = com.ars.fx.data.MacroConfig.get(i);
-            if (isPhone(mode.getText())) {
+            if (MacroBar.usePhone(mode.getText())) {
                 if (m.audio() == null || m.audio().isBlank())
                     rx.appendText("▶ voice " + m.label() + " — no audio file set (Dashboard ▸ Data ▸ Macros)\n");
-                else {
-                    boolean played = com.ars.fx.data.MacroConfig.playVoice(m.audio());
-                    rx.appendText("▶ voice " + m.label() + " — " + shortName(m.audio()) + (played ? "" : " (file not found)") + "\n");
-                }
+                else
+                    com.ars.fx.data.TxController.macroVoice(m.audio(), msg -> rx.appendText(msg + "\n"));   // keys the rig, plays the file, unkeys
             } else {
-                transmit.accept(expandMacro(m.text(), call.getText()));
+                com.ars.fx.data.TxController.macroText(mode.getText(), expandMacro(m.text(), call.getText()), msg -> rx.appendText(msg + "\n"));   // CW via the rig keyer
             }
         };
 
@@ -162,6 +160,7 @@ public final class JLogCockpit {
         Label printQsl = Shell.placeholderButton("Print QSL label", "jl-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
         HBox cmtRow = new HBox(12, cmtF, sp2, printQsl, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
+        body.getChildren().add(MacroBar.sendAsRow(mode));
         body.getChildren().add(MacroBar.row(fireMacro));
 
         // recent log table

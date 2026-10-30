@@ -233,6 +233,7 @@ public final class JLogContest {
         body.getChildren().add(actions);
 
         // F1–F8 station macros (shared with normal log + dashboard)
+        body.getChildren().add(MacroBar.sendAsRow(modeF));
         body.getChildren().add(MacroBar.row(MacroBar.fire(
                 () -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"))));
 

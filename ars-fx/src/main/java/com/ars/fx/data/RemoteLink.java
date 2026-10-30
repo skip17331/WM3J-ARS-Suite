@@ -72,6 +72,7 @@ public final class RemoteLink {
             @Override public void onMessage(String message) { handle(message); }
             @Override public void onClose(int code, String reason, boolean remote) {
                 connected = false;
+                TxController.applyRemoteTx(false);
                 ClusterClient.getInstance().linkLost(); HeardByClient.getInstance().linkLost();   // their real state is unknown until we are back
                 if (!closing) scheduleReconnect();
             }
@@ -116,6 +117,7 @@ public final class RemoteLink {
                 return;
             }
             if (!"state".equals(type)) return;
+            if (o.has("tx")) TxController.applyRemoteTx(o.get("tx").getAsBoolean());
             if (o.has("activity") && o.get("activity").isJsonArray()) {
                 com.google.gson.JsonArray ja = o.getAsJsonArray("activity"); int[] flat = new int[ja.size()];
                 for (int i = 0; i < flat.length; i++) flat[i] = ja.get(i).getAsInt();
@@ -165,6 +167,12 @@ public final class RemoteLink {
     public void sendFeed(String key, String op, JsonObject extra) {
         JsonObject o = extra == null ? new JsonObject() : extra.deepCopy();
         o.addProperty("t", "feed"); o.addProperty("key", key); o.addProperty("op", op);
+        send(o);
+    }
+    /** Ask the hub to transmit for us: cw / ptt / stop (see {@link TxController}). */
+    public void sendTx(String op, JsonObject extra) {
+        JsonObject o = extra == null ? new JsonObject() : extra.deepCopy();
+        o.addProperty("t", "tx"); o.addProperty("op", op);
         send(o);
     }
     public void sendRigFreq(long hz)  { JsonObject o = new JsonObject(); o.addProperty("t", "rig.freq"); o.addProperty("hz", hz);   send(o); }

@@ -54,6 +54,7 @@ public class Launcher extends Application {
         scene = new Scene(host, 1460, 900);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.shell.TxIndicator.installEscStop(scene);
         Shell.installPageKeys(scene);
         show(System.getProperty("surface", "hub"));
 
@@ -101,6 +102,7 @@ public class Launcher extends Application {
         scene = new Scene(host, cfg.window.width, cfg.window.height);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.shell.TxIndicator.installEscStop(scene);
         Shell.installPageKeys(scene);
         show(cfg.module);
 
@@ -123,6 +125,7 @@ public class Launcher extends Application {
      *  otherwise keep the process alive after the last window closes. Daemons/server belong to the hub, not us. */
     @Override
     public void stop() {
+        try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
         try { com.ars.fx.data.RemoteLink.disconnect(); } catch (Exception ignored) {}
         javafx.application.Platform.exit();
         System.exit(0);
