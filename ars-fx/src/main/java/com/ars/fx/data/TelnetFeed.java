@@ -56,6 +56,7 @@ public abstract class TelnetFeed {
     private volatile boolean started;
     private int backoff = 5;
     private final Object wake = new Object();
+    private int attempts;                            // failed attempts since the operator last pressed Connect (or a success)
     private volatile boolean kick;                   // set by connect()/setEndpoint(): skip any back-off and retry now
 
     private volatile Socket socket;
@@ -93,6 +94,12 @@ public abstract class TelnetFeed {
     public String loginCall() { return call; }
     public String key() { return key; }
 
+    /** Most failed attempts before giving up, from J-Hub ▸ Data ({@code data.<key>MaxTries}); 0 = never give up. */
+    public int maxTries() {
+        try { return Math.max(0, Integer.parseInt(HubConfig.get("data." + key + "MaxTries", "5").trim())); }
+        catch (Exception e) { return 5; }
+    }
+
     private void setStatus(Status s, String d) {
         boolean changed = status != s || !d.equals(detail);
         status = s; detail = d;
@@ -125,7 +132,7 @@ public abstract class TelnetFeed {
             paused = false; setStatus(Status.CONNECTING, "asking the hub to connect…");
             return;
         }
-        backoff = 5; paused = false; kick = true;
+        backoff = 5; attempts = 0; paused = false; kick = true;
         setStatus(Status.CONNECTING, "connecting to " + host + ":" + port + "…");
         wakeUp();
     }
@@ -157,7 +164,7 @@ public abstract class TelnetFeed {
         if (nh.equals(host) && np == port && nc.equals(call)) return;
         host = nh; port = np; call = nc;
         onEndpointChanged();
-        backoff = 5;
+        backoff = 5; attempts = 0;
         addRaw("* endpoint now " + host + ":" + port + " as " + call);
         kick = true;
         closeSocket();                       // the loop reconnects if a connection is wanted
@@ -197,10 +204,21 @@ public abstract class TelnetFeed {
             }
             closeSocket();
             if (paused) continue;
+            attempts++;
+            int max = maxTries();
+            if (max > 0 && attempts >= max) {                    // out of tries: stop, and say so plainly
+                paused = true;
+                String msg = "gave up after " + attempts + " tries (" + why + ") — press Connect to try again";
+                addRaw("* " + msg);
+                setStatus(Status.DISCONNECTED, msg);
+                attempts = 0;
+                continue;
+            }
             int wait = backoff;
-            addRaw("* " + why + " — retrying in " + wait + " s");
+            String of = max > 0 ? " (try " + attempts + " of " + max + ")" : " (try " + attempts + ")";
+            addRaw("* " + why + " — retrying in " + wait + " s" + of);
             for (int left = wait; left > 0 && !paused && !kick; left--) {
-                setStatus(Status.CONNECTING, why + " — retrying in " + left + " s");
+                setStatus(Status.CONNECTING, why + " — retrying in " + left + " s" + of);
                 waitMs(1000);
             }
             kick = false;
@@ -211,9 +229,11 @@ public abstract class TelnetFeed {
     /** One connection: connect, wait for the login prompt, log in, then read until closed or paused. */
     private void session() throws IOException {
         Socket s = new Socket();
+        socket = s;                         // published BEFORE connecting, so Stop/Disconnect can abort an attempt in flight
         s.connect(new InetSocketAddress(host, port), 8000);
+        if (paused || socket != s) { try { s.close(); } catch (Exception ignored) {} return; }
         s.setSoTimeout(READ_TICK_MS);
-        socket = s; out = s.getOutputStream();
+        out = s.getOutputStream();
         InputStream in = s.getInputStream();
         addRaw("* connected to " + host + ":" + port + " — waiting for the login prompt");
         setStatus(Status.CONNECTING, "logging in as " + call + "…");
@@ -235,7 +255,7 @@ public abstract class TelnetFeed {
                     if (!p.isEmpty()) {
                         addRaw(p);
                         if (looksLikePrompt(p) && logins < 3) { sendLogin(); logins++; loginAt = now; answered = false; }
-                        else if (logins > 0) { if (!answered) { answered = true; backoff = 5; setStatus(Status.CONNECTED, ""); } onLine(p.trim()); }
+                        else if (logins > 0) { if (!answered) { answered = true; backoff = 5; attempts = 0; setStatus(Status.CONNECTED, ""); } onLine(p.trim()); }
                     }
                 }
                 if (logins == 0 && now - t0 > PROMPT_WAIT_MS) { sendLogin(); logins++; loginAt = now; answered = false; }   // silent server: send the call anyway
@@ -253,10 +273,10 @@ public abstract class TelnetFeed {
                     addRaw(line);
                     if (line.regionMatches(true, 0, "DX de", 0, 5)) {                      // a spot: we are certainly logged in and live
                         answered = true; if (logins == 0) logins = 1;
-                        if (status != Status.CONNECTED) { backoff = 5; setStatus(Status.CONNECTED, ""); }
+                        if (status != Status.CONNECTED) { backoff = 5; attempts = 0; setStatus(Status.CONNECTED, ""); }
                         onLine(line.trim());
                     } else if (looksLikePrompt(line) && logins < 3) { sendLogin(); logins++; loginAt = System.currentTimeMillis(); answered = false; }
-                    else if (logins > 0) { if (!answered) { answered = true; backoff = 5; setStatus(Status.CONNECTED, ""); } onLine(line.trim()); }
+                    else if (logins > 0) { if (!answered) { answered = true; backoff = 5; attempts = 0; setStatus(Status.CONNECTED, ""); } onLine(line.trim()); }
                 } else if (b != '\r') cur.append((char) b);
             }
         }

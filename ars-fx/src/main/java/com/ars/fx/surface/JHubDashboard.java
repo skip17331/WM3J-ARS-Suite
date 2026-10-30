@@ -218,7 +218,7 @@ public final class JHubDashboard {
         return !worked.contains(s.call() + "|" + s.band());
     }
 
-    private static Region headerDot; private static Label headerTxt;
+    private static Region headerDot; private static Label headerTxt; private static Label headActRef;
 
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     private static Region clusterCol() {
@@ -230,9 +230,15 @@ public final class JHubDashboard {
         Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
         Label cluState = lbl(com.ars.fx.shell.FeedUi.line(cc), "jhub-clu-de");
         HBox src = new HBox(6, cdot, cluState); src.setAlignment(Pos.CENTER_LEFT);
-        Label consoleBtn = lbl("Console ⌨", "jhub-clearbtn"); consoleBtn.setStyle("-fx-cursor:hand;");   // raw feed + command line
+        Label consoleBtn = lbl("Console", "jhub-clearbtn"); consoleBtn.setStyle("-fx-cursor:hand;");   // raw feed + command line
         consoleBtn.setOnMouseClicked(e -> ClusterConsole.show(consoleBtn));
-        HBox head = new HBox(11, ic, lbl("DX Cluster", "jhub-card-title"), hsp, src, consoleBtn); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
+        Label headAct = lbl(com.ars.fx.shell.FeedUi.action(cc), "jhub-clearbtn"); headAct.setStyle("-fx-cursor:hand;");   // Connect / Stop / Disconnect, always visible
+        headAct.setOnMouseClicked(e -> com.ars.fx.shell.FeedUi.toggle(cc));
+        headActRef = headAct;
+        Label cluTitle = lbl("DX Cluster", "jhub-card-title");
+        for (Label l : new Label[]{cluTitle, headAct, consoleBtn}) l.setMinWidth(Region.USE_PREF_SIZE);   // never truncated; the server text gives way instead
+        cluState.setMinWidth(0); src.setMinWidth(0); HBox.setHgrow(src, Priority.SOMETIMES);
+        HBox head = new HBox(11, ic, cluTitle, hsp, src, headAct, consoleBtn); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
 
         Label fltSummary = lbl("", "jhub-clu-flt");
         HBox flt = new HBox(8, fltSummary);
@@ -259,6 +265,7 @@ public final class JHubDashboard {
             boolean conn = cc.isConnected();
             cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
             cluState.setText(com.ars.fx.shell.FeedUi.line(cc));
+            if (headActRef != null) headActRef.setText(com.ars.fx.shell.FeedUi.action(cc));
             if (headerDot != null) headerDot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
             if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             java.util.Set<String> worked = workedSet();
@@ -733,8 +740,12 @@ public final class JHubDashboard {
             cfgRow("Cluster server", null, cInputApply("data.clusterServer", "dxc.ve7cc.net:23", applyCluster)),
             cfgRow("Login callsign", null, cInputApply("data.clusterLogin", "WM3J", applyCluster)),
             cfgRow("Auto-connect on start", "off by default — connect from the cluster panel when you want spots", cToggle("data.clusterAutoConnect", false)),
+            cfgRow("Connection tries", "give up after this many failed attempts (0 = keep trying); Connect starts a fresh count",
+                    cInputApply("data.clusterMaxTries", "5", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Band filter", null, cSeg("data.clusterBand", new String[]{"All","HF","VHF+"}, 0)),
             cfgRow("Mode filter", null, cSeg("data.clusterMode", new String[]{"All","CW","Phone","Digi"}, 0)),
+            cfgRow("RBN connection tries", "give up after this many failed attempts (0 = keep trying)",
+                    cInputApply("data.rbnMaxTries", "5", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("RBN auto-connect on start", "off by default — \"who's hearing me\" skimmer spots; Connect from the Heard By panel",
                     cToggle("data.rbnAutoConnect", false)));
         VBox wsjt = section("WSJT-X / DIGITAL",
