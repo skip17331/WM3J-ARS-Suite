@@ -7,7 +7,7 @@
 
     <groupId>com.hamradio</groupId>
     <artifactId>j-bridge</artifactId>
-    <version>1.9.2</version>
+    <version>1.9.3</version>
     <packaging>jar</packaging>
     <name>J-Bridge</name>
     <description>WSJT-X / JTDX UDP listener and decoder — WM3j ARS Suite (library used by ars-fx)</description>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-common</artifactId>
-            <version>1.9.2</version>
+            <version>1.9.3</version>
         </dependency>
 
         <!-- JavaFX — same version as j-log; OS-specific classifier so the
