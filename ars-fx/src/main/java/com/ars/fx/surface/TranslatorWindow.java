@@ -185,26 +185,7 @@ final class TranslatorWindow {
         String entity;
         try { entity = DxccResolver.getInstance().entityOf(c); } catch (Exception e) { entity = null; }
         if (entity == null) return;
-        applyCountry(countryName(entity));
-    }
-
-    private static volatile java.util.Map<String, String> countryById;
-
-    /** The resolver reports a DXCC entity by number ("230"); the language table is keyed by country name ("Germany"). Both
-     *  come from the engine's prefix data, so read the number → name pairs from it once. A name passes through unchanged. */
-    private static String countryName(String entityId) {
-        java.util.Map<String, String> m = countryById;
-        if (m == null) {
-            m = new java.util.HashMap<>();
-            try (java.io.InputStream in = DxccResolver.class.getResourceAsStream("/com/jlog/scoring/dxcc-prefixes.json")) {
-                if (in != null) for (com.fasterxml.jackson.databind.JsonNode n : new com.fasterxml.jackson.databind.ObjectMapper().readTree(in)) {
-                    String id = n.path("dxcc").asText(""), name = n.path("country").asText("");
-                    if (!id.isEmpty() && !name.isEmpty()) m.putIfAbsent(id, name);
-                }
-            } catch (Exception ignored) { /* fall back to the raw id */ }
-            countryById = m;
-        }
-        return m.getOrDefault(entityId, entityId);
+        applyCountry(com.ars.fx.data.DxccInfo.countryName(entity));
     }
 
     private static void applyCountry(String entity) {

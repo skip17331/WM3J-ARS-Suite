@@ -64,5 +64,12 @@ com.hamradio.jbridge/
 ## Dependencies
 
 Java 21, `j-log-common` (the band plan) and `slf4j-api`; JUnit 5 for tests. It is a thin jar (about 20 KB) with no
-JavaFX, WebSocket, JSON or logging backend — `ars-fx` supplies those. `ars-fx` reads the decode `country` and
-`distanceKm` fields, which this module leaves empty (see the model Javadoc), so those parts of its decode rows stay blank.
+JavaFX, WebSocket, JSON or logging backend — `ars-fx` supplies those.
+
+## What the host adds
+
+The listener hands over raw decodes. `ars-fx` (`BridgeService.enrich`) fills in the rest of `WsjtxDecode`: the DX
+callsign (`CallsignParser`), the dial frequency, mode and band from the latest status (`BandUtils`), and from the callsign
+its DXCC country, continent, a position, and the distance and bearing from the station. A decode that ends in a 4-character
+grid uses that grid as the far end; otherwise the middle of the country is used. The station position comes from J-Hub ▸
+Station (latitude/longitude, else the grid square); with neither set, distance and bearing stay at zero.
