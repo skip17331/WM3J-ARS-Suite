@@ -37,7 +37,15 @@ public final class ClusterClient extends TelnetFeed {
     /** One cluster spot. {@code arrivalMs} is local receive time, for the age column. */
     public record Spot(long freqHz, String call, String mode, String band, String de, String comment, long arrivalMs) {}
 
+    /** Bands and mode groups of the activity heat map (see {@link #activity(long)}). */
+    public static final String[] HEAT_BANDS = {"160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m"};
+    public static final String[] HEAT_MODES = {"CW", "Phone", "Digi"};
+    private static final int ACTIVITY_KEEP_MS = 60 * 60_000, ACTIVITY_MAX = 6000;
+
     private final Deque<Spot> spots = new ArrayDeque<>();
+    /** Every spot heard in the last hour as {arrivalMs, bandIndex, modeGroup} — longer memory than the 40-spot list. */
+    private final Deque<long[]> activityLog = new ArrayDeque<>();
+    private volatile int[][] remoteActivity;           // window side: what the hub last sent
     private volatile Consumer<ClusterClient> listener = c -> {};
 
     /** Snapshot of recent spots, newest first. */
@@ -59,6 +67,41 @@ public final class ClusterClient extends TelnetFeed {
         setEndpoint(h, p, login.isEmpty() ? HubConfig.call() : login);
     }
 
+    /** Spot counts per band (rows, {@link #HEAT_BANDS}) and mode group (columns, {@link #HEAT_MODES}) over the last
+     *  {@code windowMs}. A window attached to the hub shows what the hub counted (it always uses the hub's 30 min). */
+    public int[][] activity(long windowMs) {
+        int[][] remote = remoteActivity;
+        if (RemoteLink.isActive()) return remote != null ? remote : new int[HEAT_BANDS.length][HEAT_MODES.length];
+        int[][] out = new int[HEAT_BANDS.length][HEAT_MODES.length];
+        long cutoff = System.currentTimeMillis() - windowMs;
+        synchronized (this) { for (long[] a : activityLog) if (a[0] >= cutoff) out[(int) a[1]][(int) a[2]]++; }
+        return out;
+    }
+    /** Hub side: the 30-minute counts flattened row by row, for the snapshot sent to windows. */
+    public int[] activityFlat() {
+        int[][] a = activity(30 * 60_000L); int[] f = new int[HEAT_BANDS.length * HEAT_MODES.length];
+        for (int i = 0; i < a.length; i++) for (int j = 0; j < a[i].length; j++) f[i * HEAT_MODES.length + j] = a[i][j];
+        return f;
+    }
+    /** Window side: adopt the hub's counts. */
+    public void applyRemoteActivity(int[] flat) {
+        if (flat == null || flat.length != HEAT_BANDS.length * HEAT_MODES.length) return;
+        int[][] a = new int[HEAT_BANDS.length][HEAT_MODES.length];
+        for (int i = 0; i < flat.length; i++) a[i / HEAT_MODES.length][i % HEAT_MODES.length] = flat[i];
+        remoteActivity = a;
+    }
+    private static int modeGroup(String mode) {
+        if (mode == null) return 1;
+        return switch (mode.toUpperCase()) { case "CW" -> 0; case "SSB", "USB", "LSB", "FM", "AM" -> 1; default -> 2; };
+    }
+    private synchronized void recordActivity(Spot s) {
+        int b = -1; for (int i = 0; i < HEAT_BANDS.length; i++) if (HEAT_BANDS[i].equals(s.band())) { b = i; break; }
+        if (b < 0) return;
+        activityLog.addLast(new long[]{s.arrivalMs(), b, modeGroup(s.mode())});
+        long cutoff = s.arrivalMs() - ACTIVITY_KEEP_MS;
+        while (!activityLog.isEmpty() && (activityLog.peekFirst()[0] < cutoff || activityLog.size() > ACTIVITY_MAX)) activityLog.removeFirst();
+    }
+
     /** Replace the feed with spots pushed from the hub (window side). Status arrives separately. */
     public void injectSpots(List<Spot> incoming) {
         synchronized (this) {
@@ -68,13 +111,14 @@ public final class ClusterClient extends TelnetFeed {
         fire();
     }
 
-    @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); } }
+    @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); activityLog.clear(); } }
 
     @Override protected void onLine(String line) {
         Matcher m = SPOT.matcher(line);
         if (!m.find()) return;
         Spot spot = parse(m);
         if (spot == null) return;
+        recordActivity(spot);
         synchronized (this) {
             spots.addFirst(spot);
             while (spots.size() > MAX_SPOTS) spots.removeLast();

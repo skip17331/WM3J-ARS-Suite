@@ -1,5 +1,6 @@
 package com.ars.fx.shell;
 
+import com.ars.fx.data.ClusterClient;
 import com.ars.fx.data.HubConfig;
 import com.ars.fx.data.RotorClient;
 import com.ars.fx.data.SolarData;
@@ -79,6 +80,13 @@ public final class Shell {
     private static final java.util.Set<String> BUTTON_CLASSES = java.util.Set.of(
             "jl-clearbtn", "jl-logbtn", "jhub-clearbtn", "jhub-open", "cfg-select", "cfg-seg-btn", "jm-seg-btn",
             "sx-ro-turn-btn", "rc-vfobtn", "dg-send", "jm-collapse", "sx-theme", "js-pill");
+    /** A button that is not wired up yet: shown greyed out, does nothing when clicked, and says so in its tooltip. */
+    public static Label placeholderButton(String text, String styleClass, String tooltip) {
+        Label b = lbl(text, styleClass);
+        b.setOpacity(0.4); b.setStyle("-fx-cursor:default;");
+        Tips.tip(b, tooltip);
+        return b;
+    }
     public static Label lbl(String text, String... classes) {
         Label l = new Label(text); l.getStyleClass().addAll(classes);
         for (String c : classes) if (BUTTON_CLASSES.contains(c)) { l.setMinWidth(Region.USE_PREF_SIZE); break; }
@@ -340,7 +348,6 @@ public final class Shell {
         return List.of(
             propagationDrawer(),
             solarSpaceWeatherDrawer(),
-            bandConditionsDrawer(),
             drawer("Weather · " + grid,"bridge","bridge", wxSum, false, wxBody));
     }
 
@@ -386,23 +393,106 @@ public final class Shell {
         RotorClient.getInstance().start();
         return drawer("Rotor control","sat","sat", az3+"° "+dir, false, new VBox(roHolder));
     }
-    /** "Propagation": best band, MUF / FOT, geomagnetic, aurora, solar wind (shared so same-named drawers match). */
+    /** "Propagation" — one drawer for everything about what the bands are doing: MUF / FOT and geomagnetic state, then a
+     *  single table of HF bands with HamQSL's day / night rating and live DX-cluster activity (heat map). The raw solar
+     *  indices (SFI, K, aurora, solar wind …) are in "Solar &amp; space weather", not repeated here. */
     public static Node propagationDrawer() {
         SolarData.getInstance().start();
+        ClusterClient.getInstance().start();
+        VBox body = new VBox(7);
+        String[] sig = {null};
+        Runnable fill = () -> {
+            String now = propagationSignature();
+            if (now.equals(sig[0])) return;               // nothing changed: leave the rows (and the operator's scroll) alone
+            sig[0] = now;
+            body.getChildren().setAll(propagationRows());
+        };
+        fill.run();
+        // keep the heat map live while the drawer is on screen; the timer stops once the drawer has been removed
+        boolean[] attached = {false};
+        javafx.animation.Timeline tick = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(4), e -> {
+            if (body.getScene() != null) attached[0] = true;
+            else if (attached[0]) { return; }
+            fill.run();
+        }));
+        tick.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        body.sceneProperty().addListener((o, was, now) -> { if (now == null) tick.stop(); else tick.play(); });
         SolarData.Snapshot sd = SolarData.getInstance().snapshot();
-        return drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, propagationBody(sd));
+        return drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, body);
     }
-    private static VBox propagationBody(SolarData.Snapshot sd) {
-        if (sd == null) return new VBox(kv("Solar / space weather", "loading HamQSL…", false));
-        double muf = SolarData.mufMhz(sd), fot = SolarData.fotMhz(sd);
-        String mufStr = Double.isNaN(muf) ? "unavailable" : String.format("%.1f MHz", muf);
-        String fotStr = Double.isNaN(fot) ? "—" : String.format("%.1f MHz", fot);
-        return new VBox(kv("Best band (day)", bestBand(sd), true),
-                   kv("MUF (3000 km)", mufStr, !Double.isNaN(muf)),
-                   kv("FOT", fotStr, !Double.isNaN(fot)),
-                   kv("Geomagnetic", SolarData.geomag(sd.kIndex()) + " · K" + nz(sd.kIndex()), "quiet".equals(SolarData.geomag(sd.kIndex()))),
-                   kv("Aurora", SolarData.auroraDesc(sd.aurora()), "quiet".equals(SolarData.auroraDesc(sd.aurora()))),
-                   kv("Solar wind", nz(sd.solarWind()) + " km/s", false));
+
+    private static String propagationSignature() {
+        SolarData.Snapshot sd = SolarData.getInstance().snapshot();
+        ClusterClient cc = ClusterClient.getInstance();
+        return System.identityHashCode(sd) + "|" + cc.status() + "|" + java.util.Arrays.deepToString(cc.activity(30 * 60_000L))
+                + "|" + com.ars.fx.data.Units.system();
+    }
+
+    private static List<Node> propagationRows() {
+        SolarData.Snapshot sd = SolarData.getInstance().snapshot();
+        List<Node> out = new ArrayList<>();
+        if (sd == null) { out.add(kv("Propagation", "loading HamQSL…", false)); }
+        else {
+            double muf = SolarData.mufMhz(sd), fot = SolarData.fotMhz(sd);
+            out.add(kv("MUF (3000 km)", Double.isNaN(muf) ? "not reported" : String.format("%.1f MHz", muf), !Double.isNaN(muf)));
+            if (!Double.isNaN(fot)) out.add(kv("FOT", String.format("%.1f MHz", fot), true));
+            out.add(kv("Geomagnetic", SolarData.geomag(sd.kIndex()), "quiet".equals(SolarData.geomag(sd.kIndex()))));
+        }
+
+        // ── one table: band · day · night · DX activity ──
+        Label hb = lbl("BAND", "sx-bc-hh"); hb.setMinWidth(34);
+        Label hd = lbl("DAY", "sx-bc-hh"); hd.setMinWidth(44); hd.setAlignment(Pos.CENTER);
+        Label hn = lbl("NIGHT", "sx-bc-hh"); hn.setMinWidth(44); hn.setAlignment(Pos.CENTER);
+        Label hx = lbl("DX SPOTS · 30 MIN", "sx-bc-hh"); HBox.setHgrow(hx, Priority.ALWAYS); hx.setMaxWidth(Double.MAX_VALUE); hx.setAlignment(Pos.CENTER);
+        Tips.tip(hx, "DX spots heard on the cluster in the last 30 minutes. Green = few, red = the busiest band. Hover a row for the CW / Phone / Digi split.");
+        Tips.tip(hd, "HamQSL daytime rating for this band's group"); Tips.tip(hn, "HamQSL night-time rating for this band's group");
+        HBox head = new HBox(5, hb, hd, hn, hx); head.setAlignment(Pos.CENTER_LEFT); VBox.setMargin(head, new Insets(5, 0, 0, 0));
+        out.add(head);
+
+        ClusterClient cc = ClusterClient.getInstance();
+        int[][] act = cc.activity(30 * 60_000L);
+        int max = 0; for (int[] r : act) { int t = r[0] + r[1] + r[2]; if (t > max) max = t; }
+        boolean live = cc.isConnected();
+        for (int i = 0; i < ClusterClient.HEAT_BANDS.length; i++) {
+            String band = ClusterClient.HEAT_BANDS[i];
+            SolarData.Band grp = sd == null ? null : groupFor(sd, band);
+            int total = act[i][0] + act[i][1] + act[i][2];
+            Label bn = lbl(band, "sx-bc-bn"); bn.setMinWidth(34);
+            Label d = rateChip(grp == null ? null : grp.day()), n = rateChip(grp == null ? null : grp.night());
+            Label heat = lbl(total > 0 ? String.valueOf(total) : (live ? "·" : "—"), total > 0 ? "sx-heat-c" : "sx-heat-c0");
+            heat.setMaxWidth(Double.MAX_VALUE); heat.setAlignment(Pos.CENTER); HBox.setHgrow(heat, Priority.ALWAYS);
+            heat.setStyle("-fx-background-color:" + heatColor(max <= 0 ? 0 : (double) total / max, total) + ";-fx-background-radius:4;-fx-padding:3 2 3 2;");
+            HBox row = new HBox(5, bn, d, n, heat); row.setAlignment(Pos.CENTER_LEFT);
+            Tips.tip(row, band + (grp == null ? "" : " — " + grp.group() + " group: day " + grp.day().toLowerCase() + ", night " + grp.night().toLowerCase())
+                    + (total > 0 ? "\n" + total + " DX spots in the last 30 min — CW " + act[i][0] + " · Phone " + act[i][1] + " · Digi " + act[i][2]
+                                 : live ? "\nNo DX spots in the last 30 min" : "\nConnect the DX cluster for live activity"));
+            out.add(row);
+        }
+
+        out.add(lbl("HamQSL ratings · cluster spots", "sx-dw-stamp"));
+        if (!live) {
+            Label go = lbl(cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING ? "Connecting to the DX cluster…" : "Connect the DX cluster for live activity ›",
+                    cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING ? "sx-bc-na" : "jl-clearbtn");
+            if (cc.status() != com.ars.fx.data.TelnetFeed.Status.CONNECTING) { go.setStyle("-fx-cursor:hand;"); go.setOnMouseClicked(e -> FeedUi.toggle(cc)); }
+            out.add(go);
+        }
+        return out;
+    }
+
+    private static Label rateChip(String rating) {
+        String text = rating == null || rating.isBlank() ? "—" : rating;
+        Label c = lbl(text, "sx-bc-c", rate(text)); c.setMinWidth(44); c.setAlignment(Pos.CENTER);
+        return c;
+    }
+
+    /** The HamQSL group ("80m-40m", "30m-20m", …) that covers an individual band, or null (160 m and 6 m have none). */
+    private static SolarData.Band groupFor(SolarData.Snapshot sd, String band) {
+        int w; try { w = Integer.parseInt(band.replace("m", "")); } catch (Exception e) { return null; }
+        for (SolarData.Band g : sd.bands()) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)\\s*m?\\s*-\\s*(\\d+)").matcher(g.group());
+            if (m.find()) { int x = Integer.parseInt(m.group(1)), y = Integer.parseInt(m.group(2)); if (w >= Math.min(x, y) && w <= Math.max(x, y)) return g; }
+        }
+        return null;
     }
 
     /** Highest band group rated Good for daytime, from the HamQSL conditions. */
@@ -429,59 +519,6 @@ public final class Shell {
         SolarData.Snapshot s = SolarData.getInstance().snapshot();
         String stamp = s != null ? "HamQSL · N0NBH · " + nz(s.updated()) : "HamQSL · N0NBH · loading…";
         return new VBox(9, sunspotDisk(), solarGrid(), lbl(stamp, "sx-dw-stamp"));
-    }
-    /** "Band conditions": band · day · night (good / fair / poor) table from HamQSL. */
-    public static Node bandConditionsDrawer() {
-        SolarData.getInstance().start();
-        SolarData.Snapshot s = SolarData.getInstance().snapshot();
-        return drawer("Band conditions", "map", "map", s == null ? "loading…" : bestBand(s), false, bandConditionsBody());
-    }
-    public static VBox bandConditionsBody() {
-        SolarData.getInstance().start();
-        Label hb = lbl("BAND", "sx-bc-bn"); HBox.setHgrow(hb, Priority.ALWAYS); hb.setMaxWidth(Double.MAX_VALUE);
-        Label hd = lbl("DAY", "sx-swx-k"); hd.setMinWidth(60); hd.setAlignment(Pos.CENTER);
-        Label hn = lbl("NIGHT", "sx-swx-k"); hn.setMinWidth(60); hn.setAlignment(Pos.CENTER);
-        VBox box = new VBox(6, new HBox(7, hb, hd, hn));
-        SolarData.Snapshot s = SolarData.getInstance().snapshot();
-        if (s == null || s.bands().isEmpty()) box.getChildren().add(lbl("loading HamQSL band conditions…", "sx-swx-k"));
-        else for (SolarData.Band b : s.bands()) box.getChildren().add(bandRow(b.group(), b.day(), b.night()));
-        box.getChildren().add(bandHeatMap());
-        return box;
-    }
-
-    /** DX-cluster activity heat map per band: cell colour scales with spot count.
-     *  Marked unavailable when the cluster isn't loaded (we don't auto-connect). */
-    public static Node bandHeatMap() {
-        String[] bands = {"160m","80m","40m","30m","20m","17m","15m","12m","10m","6m"};
-        com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
-        List<com.ars.fx.data.ClusterClient.Spot> spots = cc.spots();
-        boolean available = cc.isConnected() || !spots.isEmpty();
-
-        VBox sec = new VBox(6); VBox.setMargin(sec, new Insets(4, 0, 0, 0));
-        sec.getChildren().add(lbl("DX ACTIVITY · " + (available ? spots.size() + " spots" : cc.status().label().toLowerCase()), "sx-bc-hh"));
-        if (!available) {
-            sec.getChildren().add(lbl(cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING
-                    ? "Connecting to the DX cluster…" : "Connect the DX cluster for live band activity", "sx-bc-na"));
-            return sec;
-        }
-        int[] counts = new int[bands.length]; int max = 0;
-        for (com.ars.fx.data.ClusterClient.Spot sp : spots)
-            for (int i = 0; i < bands.length; i++)
-                if (bands[i].equals(sp.band())) { counts[i]++; if (counts[i] > max) max = counts[i]; }
-        HBox r1 = new HBox(4), r2 = new HBox(4);
-        for (int i = 0; i < bands.length; i++) (i < 5 ? r1 : r2).getChildren().add(heatCell(bands[i], counts[i], max));
-        sec.getChildren().addAll(r1, r2);
-        return sec;
-    }
-    private static Node heatCell(String band, int count, int max) {
-        VBox cell = new VBox(1); cell.setAlignment(Pos.CENTER); cell.getStyleClass().add("sx-heat");
-        HBox.setHgrow(cell, Priority.ALWAYS); cell.setMaxWidth(Double.MAX_VALUE);
-        double frac = max <= 0 ? 0 : (double) count / max;
-        cell.setStyle("-fx-background-color:" + heatColor(frac, count) + "; -fx-background-radius:4; -fx-padding:4 2 4 2;");
-        Label bl = lbl(band.replace("m", ""), "sx-heat-b");
-        Label cl = lbl(count > 0 ? String.valueOf(count) : "·", count > 0 ? "sx-heat-c" : "sx-heat-c0");
-        cell.getChildren().addAll(bl, cl);
-        return cell;
     }
     private static String heatColor(double frac, int count) {
         if (count <= 0) return "-ars-surface-2";
@@ -550,13 +587,6 @@ public final class Shell {
         Label vl = lbl(v); vl.getStyleClass().addAll("ars-mono"); vl.getStyleClass().add("v");
         if (ok) vl.setStyle("-fx-text-fill: -ars-ok;");
         HBox row = new HBox(kl, vl); row.getStyleClass().add("sx-kv"); row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-    static HBox bandRow(String band, String day, String night) {
-        Label b = lbl(band, "sx-bc-bn"); HBox.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-        Label d = lbl(day, "sx-bc-c", rate(day)); d.setMinWidth(60); d.setAlignment(Pos.CENTER);
-        Label n = lbl(night, "sx-bc-c", rate(night)); n.setMinWidth(60); n.setAlignment(Pos.CENTER);
-        HBox row = new HBox(7, b, d, n); row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
     // HamQSL ratings are "Good"/"Fair"/"Poor"; the CSS classes are lowercase.

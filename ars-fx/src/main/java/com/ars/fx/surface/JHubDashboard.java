@@ -394,7 +394,8 @@ public final class JHubDashboard {
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         Label clear = lbl("Clear", "jhub-clearbtn");
         Label logBtn = lbl("Log QSO ⏎", "jl-logbtn");
-        HBox cmtRow = new HBox(12, cmt, sp2, clear, logBtn);
+        Label printQsl = Shell.placeholderButton("Print QSL label", "jhub-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
+        HBox cmtRow = new HBox(12, cmt, sp2, printQsl, clear, logBtn);
         cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
 
@@ -512,8 +513,7 @@ public final class JHubDashboard {
                 Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
-                Shell.solarSpaceWeatherDrawer(),
-                Shell.bandConditionsDrawer());
+                Shell.solarSpaceWeatherDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
         return col;
     }

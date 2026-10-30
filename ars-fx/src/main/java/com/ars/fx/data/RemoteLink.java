@@ -116,6 +116,11 @@ public final class RemoteLink {
                 return;
             }
             if (!"state".equals(type)) return;
+            if (o.has("activity") && o.get("activity").isJsonArray()) {
+                com.google.gson.JsonArray ja = o.getAsJsonArray("activity"); int[] flat = new int[ja.size()];
+                for (int i = 0; i < flat.length; i++) flat[i] = ja.get(i).getAsInt();
+                ClusterClient.getInstance().applyRemoteActivity(flat);
+            }
             if (o.has("feeds") && o.get("feeds").isJsonObject()) {
                 JsonObject f = o.getAsJsonObject("feeds");
                 if (f.has("cluster")) ClusterClient.getInstance().applyRemoteStatus(f.getAsJsonObject("cluster"));

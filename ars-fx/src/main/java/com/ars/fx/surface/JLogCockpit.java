@@ -159,7 +159,8 @@ public final class JLogCockpit {
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
         Label cancel = lbl("Cancel edit", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;"); cancel.setVisible(false); cancel.setManaged(false);
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
-        HBox cmtRow = new HBox(12, cmtF, sp2, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
+        Label printQsl = Shell.placeholderButton("Print QSL label", "jl-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
+        HBox cmtRow = new HBox(12, cmtF, sp2, printQsl, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
         body.getChildren().add(MacroBar.row(fireMacro));
 
