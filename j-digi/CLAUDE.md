@@ -77,10 +77,11 @@ the `SourceDataLine`; CAT sends `\stop_morse\n`). CAT completion timing is estim
 
 ## Band plan caption
 
-`ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-common) and writes e.g. "20m / CW — CW (US)"
-into `ModemStatus.bandplanCaption`; `bandFromRigHz` also delegates to it, so band names match the log and cluster.
+`ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-common) and builds a "20m / CW — CW (US)"
+string for `ModemStatus.bandplanCaption`; `bandFromRigHz()` also delegates to the band plan. Both work from
+`ModemStatus.getRigFrequencyHz()`, which only the removed hub link used to set. **Nothing in the embedded app feeds the
+rig frequency or mode into the modem today**, so the caption stays empty and `ars-fx`'s J-Digi "Rig freq" shows "—".
 Region and country prefs: `bandplan.region` (`IARU-R1/R2/R3`, default `IARU-R2`) and `bandplan.country` (`US` or blank).
-The suite's own band plan region is set by `ars-fx` (Station ▸ IARU region); this module reads its own `bandplan.region` pref.
 
 ## State and persistence
 

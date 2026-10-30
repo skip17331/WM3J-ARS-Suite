@@ -50,7 +50,6 @@ public class ModemService {
     private static final String PREF_RTTY_REVERSE = "rtty.reverse";
     private static final String PREF_AUDIO_INPUT  = "audio.input.device";
     private static final String PREF_AUDIO_OUTPUT = "audio.output.device";
-    private static final String PREF_MY_CALL      = "station.callsign";
     private static final String PREF_PTT_METHOD   = "ptt.method";          // VOX | HAMLIB
     private static final String PREF_PTT_HAMLIB_HOST = "ptt.hamlib.host";
     private static final String PREF_PTT_HAMLIB_PORT = "ptt.hamlib.port";
@@ -95,7 +94,6 @@ public class ModemService {
     private Consumer<SignalSnapshot> spectrumListener     = s -> {};
     private Consumer<String>        decodeListener       = s -> {};
     private Consumer<ModemStatus>   statusListener       = s -> {};
-    private boolean shuttingDown = false;
 
     private String lastPublishedDecodeLine = "";
     private long lastPublishedDecodeAtMs = 0L;
@@ -150,7 +148,6 @@ public class ModemService {
     }
 
     public void shutdown() {
-        shuttingDown = true;
         cancelTransmit();
         stopAudio();
     }
@@ -171,19 +168,10 @@ public class ModemService {
         this.statusListener = statusListener != null ? statusListener : s -> {};
     }
 
-    /** The operator callsign from the saved preferences. */
-    public String getMyCall() {
-        return PREFS.get(PREF_MY_CALL, "NOCALL");
-    }
-
     /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
     public String bandFromRigHz() {
         String b = com.jlog.bandplan.BandplanLoader.getInstance().bandName(status.getRigFrequencyHz());   // the shared band plan
         return b == null ? "" : b;
-    }
-    public void   setMyCall(String call) {
-        PREFS.put(PREF_MY_CALL, call != null ? call.trim().toUpperCase() : "NOCALL");
-        flushPrefsQuietly("myCall");
     }
     public void transmitMacro(String text) { transmitText(text); }
 

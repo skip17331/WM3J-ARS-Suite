@@ -113,7 +113,7 @@ This is the easy case. Examples:
 3. If it does not appear on Windows, go to the radio's manufacturer website and download the USB driver. Install it, then plug in the radio again.
 4. In the radio's menu, set the CAT speed (sometimes called "baud rate"). 19200 or 38400 are common. Write down what you pick — you will need it again.
 5. In the radio's menu, set the CAT address if it asks. Icom default is `94`. Yaesu and Kenwood do not ask.
-6. Open the J-Hub web page (http://localhost:8081), go to the **Rig Control** tab and set the backend to **Hamlib rigctld**.
+6. Open **J-Hub ▸ Rig control** and set the backend to **Hamlib rigctld**.
 7. Leave **Start rigctld for me** turned on (default). Pick your radio from the **Rig Model** dropdown, fill in the **Serial Port** from step 2 (`/dev/ttyUSB0` on Linux, `COM4` on Windows, etc.), pick the **Baud Rate** from step 4, and click **Save**. Within a few seconds you should see a frequency reading appear.
 
    J-Hub will start `rigctld` for you with the right arguments. If your rig isn't in the dropdown, choose **Other / Custom** and enter the Hamlib model number — run `rigctld -l` (or `rigctld.exe -l` on Windows) to find it.
@@ -130,7 +130,7 @@ Examples: many older Yaesu, Kenwood, and Ten-Tec rigs. Also Icom rigs that come 
 2. Connect the adapter's serial end to the radio's CAT port using the cable that came with the radio (or a 9-pin straight-through cable).
 3. Plug the USB end into your PC.
 4. The PC sees a new serial port. On Linux it is usually `/dev/ttyUSB0`. On Windows it is `COMn` where n is some number.
-5. Continue with steps 4–7 from section 4.1 (set CAT speed/address on the radio; configure rig in the J-Hub web UI).
+5. Continue with steps 4–7 from section 4.1 (set CAT speed/address on the radio; configure the rig in J-Hub ▸ Rig control).
 
 ### 4.3 Icom rigs with only a CI-V (3.5 mm) jack
 
@@ -176,7 +176,7 @@ Most rotators have a separate **controller box** that sits on your desk. The rot
 
 1. The GS-232 box (sometimes built into the controller) has a DB-9 serial port labeled "Computer."
 2. Connect a USB-to-serial adapter from your PC to that port.
-3. Open the J-Hub web UI, go to **Rotor Control** and set backend to **Hamlib rotctld**.
+3. Open **J-Hub ▸ Rotor control** and set the backend to **Hamlib rotctld**.
 4. Leave **Start rotctld for me** turned on (default). Pick **Yaesu GS-232A**, **GS-232B**, or **GS-232** from the **Rotor Model** dropdown (whichever your controller actually speaks — check the menu), fill in **Serial Port** (`/dev/ttyUSB1`, `COM5`, etc.), **Baud Rate** (usually 9600), and click **Save**. The compass display should start showing your current heading.
 
    *Power user:* turn the toggle off and use Host/Port if you already run `rotctld` yourself.
@@ -282,7 +282,7 @@ Plug it in. It shows up as **"USB Audio CODEC"** (yes, identical to a built-in U
 **Settings:**
 - Set the SignaLink's **DLY** knob just past minimum so PTT releases promptly after each transmission.
 - Set **RX** and **TX** knobs to roughly 9 o'clock as a starting point; adjust by watching levels in J-Digi's spectrum/decoder.
-- PTT in J-Digi: leave at **VOX** (the default). The SignaLink keys the rig when it sees audio; you don't need Hamlib PTT.
+- PTT in J-Digi: set **PTT method** to **VOX** in **J-Hub ▸ Rig control** (J-Hub's default is CAT, and J-Digi follows it). The SignaLink keys the rig when it sees audio; you don't need Hamlib PTT.
 
 ### 8.3 DigiRig Mobile / DigiRig Lite
 
@@ -293,8 +293,8 @@ After plugging in, you'll see:
 - A sound card called **"USB Audio CODEC"** — pick it in J-Digi / WSJT-X
 
 PTT options:
-- **VOX** (default in J-Digi) — DigiRig keys the rig when audio appears. Simplest.
-- **HAMLIB** — J-Digi sends `T 1` / `T 0` to `rigctld`, which keys DigiRig's PTT line. Required for pure CW since there's no audio for VOX to sense. Set in **J-Hub → J-Digi → Transmit & CW → PTT Method**.
+- **VOX** — DigiRig keys the rig when audio appears. Simplest. Set **PTT method** to **VOX** in **J-Hub ▸ Rig control**.
+- **CAT / Hamlib** — J-Digi sends `T 1` / `T 0` to `rigctld`, which keys DigiRig's PTT line. Required for pure CW since there's no audio for VOX to sense. Set **PTT method** to **CAT** in **J-Hub ▸ Rig control**.
 
 ### 8.4 RIGblaster / microHAM USB Interface III
 
@@ -540,6 +540,6 @@ For a typical small station with one rig, one rotator, one amp, and one antenna 
 
 ## You are done
 
-If you can plug in a USB cable, install a small driver, and edit one text file with stable port names, you are 90% of the way to a working station. The rest is in the J-Hub web UI, where you fill in the host and port for each daemon and click Save. The User Guide covers that part.
+If you can plug in a USB cable, install a small driver, and edit one text file with stable port names, you are 90% of the way to a working station. The rest is in J-Hub, where you fill in the host and port for each daemon and click Save. The User Guide covers that part.
 
 Welcome to the hobby. Have fun.

@@ -79,5 +79,5 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 
 ## Testing
 
-JUnit 5 under `src/test/java/com/ars/fx` (the Morse Trainer, its Arduino keyer parser, and one `data` test). Run `mvn test`.
+JUnit 5 under `src/test/java/com/ars/fx` (the Morse Trainer and its Arduino keyer parser, plus `data` tests for `HubConfig` and ADIF import). Run `mvn test`.
 Libraries have their own tests in each module.
