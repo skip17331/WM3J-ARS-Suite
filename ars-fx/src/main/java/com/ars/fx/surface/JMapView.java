@@ -909,7 +909,8 @@ public final class JMapView {
         java.util.List<MapSpot> list = liveSpots();
         if (list.isEmpty()) {
             com.ars.fx.data.ClusterClient ccc = com.ars.fx.data.ClusterClient.getInstance();
-            Label e = lbl(ccc.isConnected() ? "No spots match the filters." : ccc.wantConnected() ? "Connecting to cluster…" : "Cluster off — Connect in J-Hub", "jm-spot-meta");
+            Label e = lbl(ccc.isConnected() ? "Connected — no spots match the filters." : com.ars.fx.shell.FeedUi.emptyList(ccc, "cluster").replace("press Connect", "Connect in J-Hub"), "jm-spot-meta");
+            e.setWrapText(true);
             e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
         }
         int n = 0;

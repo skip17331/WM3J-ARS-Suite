@@ -154,8 +154,10 @@ public final class JHubDashboard {
 
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         ClusterClient cc = ClusterClient.getInstance();
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle("-fx-background-color:-ars-" + (cc.isConnected() ? "ok" : "t4") + ";");
-        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, lbl(cc.spots().size() + " spots", "jhub-bar-sub"),
+        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
+        headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
+        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
                 lbl("UTC", "jhub-crumb"), lbl(nowUtc(), "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
         HBox profRow = new HBox(sp2, clu); profRow.setAlignment(Pos.CENTER_LEFT);
         return new VBox(14, crumbRow, profRow);
@@ -216,6 +218,8 @@ public final class JHubDashboard {
         return !worked.contains(s.call() + "|" + s.band());
     }
 
+    private static Region headerDot; private static Label headerTxt;
+
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     private static Region clusterCol() {
         ClusterClient cc = ClusterClient.getInstance();
@@ -223,9 +227,12 @@ public final class JHubDashboard {
         // ---- DX spot panel ----
         Node ic = Shell.iconTile("hub", "hub", 16, "sx-dw-ic");
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle("-fx-background-color:-ars-t4;");
-        HBox src = new HBox(6, cdot, lbl(cc.endpoint(), "jhub-clu-de")); src.setAlignment(Pos.CENTER_LEFT);
-        HBox head = new HBox(11, ic, lbl("DX Cluster", "jhub-card-title"), hsp, src); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
+        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Label cluState = lbl(com.ars.fx.shell.FeedUi.line(cc), "jhub-clu-de");
+        HBox src = new HBox(6, cdot, cluState); src.setAlignment(Pos.CENTER_LEFT);
+        Label consoleBtn = lbl("Console ⌨", "jhub-clearbtn"); consoleBtn.setStyle("-fx-cursor:hand;");   // raw feed + command line
+        consoleBtn.setOnMouseClicked(e -> ClusterConsole.show(consoleBtn));
+        HBox head = new HBox(11, ic, lbl("DX Cluster", "jhub-card-title"), hsp, src, consoleBtn); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
 
         Label fltSummary = lbl("", "jhub-clu-flt");
         HBox flt = new HBox(8, fltSummary);
@@ -233,7 +240,7 @@ public final class JHubDashboard {
         flt.setAlignment(Pos.CENTER_LEFT); flt.setPadding(new Insets(12, 16, 12, 16));
 
         VBox rows = new VBox();
-        Label empty = lbl("Connecting to cluster…"); empty.setStyle("-fx-font-size:12px;-fx-text-fill:-ars-t4;-fx-padding:18 16 18 16;");
+        Label empty = lbl(com.ars.fx.shell.FeedUi.emptyList(cc, "cluster")); empty.setStyle("-fx-font-size:12px;-fx-text-fill:-ars-t4;-fx-padding:18 16 18 16;"); empty.setWrapText(true);
         rows.getChildren().add(empty);
         ScrollPane rsp = new ScrollPane(rows); rsp.setFitToWidth(true); rsp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); rsp.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(rsp, Priority.ALWAYS);
         VBox card = new VBox(head, flt, rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
@@ -250,7 +257,10 @@ public final class JHubDashboard {
         // single render: applies filters to the live feed + refreshes status everywhere
         Runnable render = () -> Shell.keepScroll(rsp, () -> {
             boolean conn = cc.isConnected();
-            cdot.setStyle("-fx-background-color:" + (conn ? "-ars-ok" : "-ars-t4") + ";");
+            cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            cluState.setText(com.ars.fx.shell.FeedUi.line(cc));
+            if (headerDot != null) headerDot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             java.util.Set<String> worked = workedSet();
             java.util.List<ClusterClient.Spot> all = cc.spots();
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
@@ -258,9 +268,7 @@ public final class JHubDashboard {
                 if (bandOk(s) && modeOk(s) && (!cluNeededOnly || isNeeded(s, worked))) shown.add(s);
             rows.getChildren().clear();
             if (shown.isEmpty()) {
-                empty.setText(!cc.wantConnected() ? "Disconnected"
-                        : conn ? (all.isEmpty() ? "Connected — waiting for spots…" : "No spots match the current filter")
-                        : "Cluster offline — reconnecting…");
+                empty.setText(conn && !all.isEmpty() ? "No spots match the current filter" : com.ars.fx.shell.FeedUi.emptyList(cc, "cluster"));
                 rows.getChildren().add(empty);
             } else {
                 for (ClusterClient.Spot s : shown) {
@@ -275,9 +283,9 @@ public final class JHubDashboard {
             fltSummary.setText(filterSummary() + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
             boolean want = cc.wantConnected();
             statusLbl.getStyleClass().remove("live");
-            if (conn) { statusLbl.getStyleClass().add("live"); statusLbl.setText("● connected · " + cc.endpoint()); }
-            else statusLbl.setText((want ? "○ connecting · " : "○ disconnected · ") + cc.endpoint());
-            act.setText(want ? "Disconnect" : "Connect");
+            statusLbl.setText(com.ars.fx.shell.FeedUi.symbolLine(cc) + (cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING && !cc.detail().isEmpty() ? " — " + cc.detail() : ""));
+            if (conn) statusLbl.getStyleClass().add("live");
+            act.setText(com.ars.fx.shell.FeedUi.action(cc));
         });
 
         VBox bandsF = labeled("BANDS", segSel(new String[]{"All","HF","VHF+"}, cluBandSel, i -> { cluBandSel = i; render.run(); }));
@@ -290,7 +298,7 @@ public final class JHubDashboard {
 
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { if (cc.wantConnected()) cc.disconnect(); else cc.connect(); render.run(); });
+        act.setOnMouseClicked(e -> { com.ars.fx.shell.FeedUi.toggle(cc); render.run(); });
         Label apply = lbl("Apply server", "jhub-clearbtn"); apply.setStyle("-fx-cursor:hand;");
         apply.setOnMouseClicked(e -> {
             String txt = server.getText().trim(); String h = txt; int p = -1;
@@ -710,7 +718,8 @@ public final class JHubDashboard {
             cells, conn, ant);
     }
     private static Region dataCenter() {
-        HBox cells = new HBox(0, statCell("CLUSTER","● dxc.ve7cc.net","",true), statCell("RBN","● connected","",true),
+        HBox cells = new HBox(0, statCell("CLUSTER", com.ars.fx.data.ClusterClient.getInstance().status().label(), com.ars.fx.data.ClusterClient.getInstance().endpoint(), com.ars.fx.data.ClusterClient.getInstance().isConnected()),
+                statCell("RBN", com.ars.fx.data.HeardByClient.getInstance().status().label(), com.ars.fx.data.HeardByClient.getInstance().endpoint(), com.ars.fx.data.HeardByClient.getInstance().isConnected()),
                 statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB", com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir()), "", false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         Runnable applyCluster = () -> {

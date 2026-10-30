@@ -447,9 +447,10 @@ public final class Shell {
         boolean available = cc.isConnected() || !spots.isEmpty();
 
         VBox sec = new VBox(6); VBox.setMargin(sec, new Insets(4, 0, 0, 0));
-        sec.getChildren().add(lbl("DX ACTIVITY · " + (available ? spots.size() + " spots" : "cluster off"), "sx-bc-hh"));
+        sec.getChildren().add(lbl("DX ACTIVITY · " + (available ? spots.size() + " spots" : cc.status().label().toLowerCase()), "sx-bc-hh"));
         if (!available) {
-            sec.getChildren().add(lbl("Connect the DX cluster for live band activity", "sx-bc-na"));
+            sec.getChildren().add(lbl(cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING
+                    ? "Connecting to the DX cluster…" : "Connect the DX cluster for live band activity", "sx-bc-na"));
             return sec;
         }
         int[] counts = new int[bands.length]; int max = 0;

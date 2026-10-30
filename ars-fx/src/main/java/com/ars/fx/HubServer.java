@@ -82,6 +82,7 @@ public final class HubServer {
         // Own the shared backends: daemons first (so the rig/rotor clients find them), then the clients,
         // then publish state. This process is the sole owner; every window (loose or docked) is a client.
         try { DaemonManager.ensureAll(); } catch (Exception e) { System.err.println("[hub] daemons: " + e.getMessage()); }
+        ClusterClient.getInstance().applyConfig();   // server + login from J-Hub ▸ Data (was: hard-coded defaults only)
         ClusterClient.getInstance().start();
         HeardByClient.getInstance().start();
         RigClient.getInstance().start();
@@ -159,6 +160,7 @@ public final class HubServer {
         RigClient.getInstance().reconnect();
         RotorClient.getInstance().reconnect();
         com.ars.fx.data.AmpClient.getInstance().reconnect();
+        ClusterClient.getInstance().applyConfig();
         HeardByClient.getInstance().setCall(HubConfig.call());
         RemoteServer.applyIfBindChanged();
     }

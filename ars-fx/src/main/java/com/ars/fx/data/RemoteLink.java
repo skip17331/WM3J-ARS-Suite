@@ -70,7 +70,11 @@ public final class RemoteLink {
         ws = new WebSocketClient(uri) {
             @Override public void onOpen(ServerHandshake h) { connected = true; sendHello(); }
             @Override public void onMessage(String message) { handle(message); }
-            @Override public void onClose(int code, String reason, boolean remote) { connected = false; if (!closing) scheduleReconnect(); }
+            @Override public void onClose(int code, String reason, boolean remote) {
+                connected = false;
+                ClusterClient.getInstance().linkLost(); HeardByClient.getInstance().linkLost();   // their real state is unknown until we are back
+                if (!closing) scheduleReconnect();
+            }
             @Override public void onError(Exception ex) { /* reconnect handles it */ }
         };
         ws.setConnectionLostTimeout(30);
@@ -104,7 +108,19 @@ public final class RemoteLink {
     private void handle(String message) {
         try {
             JsonObject o = JsonParser.parseString(message).getAsJsonObject();
-            if (!"state".equals(o.has("t") ? o.get("t").getAsString() : "")) return;
+            String type = o.has("t") ? o.get("t").getAsString() : "";
+            if ("raw".equals(type)) {
+                List<String> lines = new ArrayList<>();
+                for (JsonElement e : o.getAsJsonArray("lines")) lines.add(e.getAsString());
+                ClusterClient.getInstance().injectRaw(o.get("epoch").getAsLong(), o.get("seq").getAsLong(), lines);
+                return;
+            }
+            if (!"state".equals(type)) return;
+            if (o.has("feeds") && o.get("feeds").isJsonObject()) {
+                JsonObject f = o.getAsJsonObject("feeds");
+                if (f.has("cluster")) ClusterClient.getInstance().applyRemoteStatus(f.getAsJsonObject("cluster"));
+                if (f.has("rbn"))     HeardByClient.getInstance().applyRemoteStatus(f.getAsJsonObject("rbn"));
+            }
 
             ClusterClient.getInstance().injectSpots(listOf(o.get("spots"), ClusterClient.Spot.class));
             HeardByClient.getInstance().injectSpots(listOf(o.get("heard"), HeardByClient.HeardSpot.class));
@@ -139,6 +155,12 @@ public final class RemoteLink {
     private void send(JsonObject o) {
         WebSocketClient c = ws;
         if (c != null && connected) { try { c.send(o.toString()); } catch (Exception ignored) {} }
+    }
+    /** Ask the hub to act on a telnet feed: connect / disconnect / endpoint / cmd. */
+    public void sendFeed(String key, String op, JsonObject extra) {
+        JsonObject o = extra == null ? new JsonObject() : extra.deepCopy();
+        o.addProperty("t", "feed"); o.addProperty("key", key); o.addProperty("op", op);
+        send(o);
     }
     public void sendRigFreq(long hz)  { JsonObject o = new JsonObject(); o.addProperty("t", "rig.freq"); o.addProperty("hz", hz);   send(o); }
     public void sendRigMode(String m) { JsonObject o = new JsonObject(); o.addProperty("t", "rig.mode"); o.addProperty("mode", m);  send(o); }

@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.JLogDb;
+import com.ars.fx.shell.FeedUi;
 import com.ars.fx.shell.Shell;
 import javafx.application.Platform;
 import javafx.animation.KeyFrame;
@@ -410,18 +411,22 @@ public final class JLogCockpit {
         Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
         cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
         Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
-        Label act = lbl(cc.wantConnected() ? "Disconnect" : "Connect", "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { if (cc.wantConnected()) cc.disconnect(); else cc.connect(); act.setText(cc.wantConnected() ? "Disconnect" : "Connect"); });
-        HBox src = new HBox(6, cdot, lbl(cc.endpoint(), "jl-skim-meta"), ssp, act); src.setAlignment(Pos.CENTER_LEFT);
+        Label act = lbl(FeedUi.action(cc), "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
+        act.setOnMouseClicked(e -> { FeedUi.toggle(cc); act.setText(FeedUi.action(cc)); });
+        Label console = lbl("Console", "jl-clearbtn"); console.setStyle("-fx-cursor:hand;");
+        console.setOnMouseClicked(e -> ClusterConsole.show(console));
+        Label state = lbl(FeedUi.line(cc), "jl-skim-meta");
+        HBox src = new HBox(6, cdot, state, ssp, console, act); src.setAlignment(Pos.CENTER_LEFT);
         VBox rows = new VBox();
-        Label empty = lbl("Cluster off — Connect above for DX spots", "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2));
+        Label empty = lbl(FeedUi.emptyList(cc, "cluster"), "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2)); empty.setWrapText(true);
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
         cc.setListener(c -> Shell.keepScroll(rows, () -> {
-            cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
+            cdot.setStyle(FeedUi.dot(c.status()));
+            state.setText(FeedUi.line(c)); act.setText(FeedUi.action(c));
             rows.getChildren().clear();
             List<com.ars.fx.data.ClusterClient.Spot> list = c.spots();
-            if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : c.wantConnected() ? "Cluster offline — reconnecting…" : "Cluster off — Connect above for DX spots"); rows.getChildren().add(empty); }
+            if (list.isEmpty()) { empty.setText(FeedUi.emptyList(c, "cluster")); rows.getChildren().add(empty); }
             else { int n = 0; for (com.ars.fx.data.ClusterClient.Spot s : list) { if (n++ >= 12) break; rows.getChildren().add(spotRow(s)); } }
         }));
         cc.start();
@@ -447,24 +452,24 @@ public final class JLogCockpit {
         Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
         cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
         Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
-        Label act = lbl(hb.wantConnected() ? "Disconnect" : "Connect", "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { if (hb.wantConnected()) hb.disconnect(); else hb.connect(); act.setText(hb.wantConnected() ? "Disconnect" : "Connect"); });
-        HBox src = new HBox(6, cdot, lbl(hb.endpoint(), "jl-skim-meta"), ssp, act); src.setAlignment(Pos.CENTER_LEFT);
+        Label act = lbl(FeedUi.action(hb), "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
+        act.setOnMouseClicked(e -> { FeedUi.toggle(hb); act.setText(FeedUi.action(hb)); });
+        Label state = lbl(FeedUi.line(hb), "jl-skim-meta");
+        HBox src = new HBox(6, cdot, state, ssp, act); src.setAlignment(Pos.CENTER_LEFT);
 
         VBox rows = new VBox();
-        Label empty = lbl(hb.wantConnected() ? "Listening for skimmer spots of " + hb.myCall() + "…" : "RBN off — Connect above to see who's hearing you", "jl-skim-meta"); empty.setWrapText(true);
+        Label empty = lbl(FeedUi.emptyList(hb, "RBN"), "jl-skim-meta"); empty.setWrapText(true);
         empty.setPadding(new Insets(8, 2, 8, 2));
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
 
         hb.setListener(c -> Shell.keepScroll(rows, () -> {
-            cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
+            cdot.setStyle(FeedUi.dot(c.status()));
+            state.setText(FeedUi.line(c)); act.setText(FeedUi.action(c));
             rows.getChildren().clear();
             List<com.ars.fx.data.HeardByClient.HeardSpot> list = c.spots();
             if (list.isEmpty()) {
-                empty.setText(c.isConnected() ? "Connected to RBN — waiting to be heard…"
-                        : c.wantConnected() ? "Listening for skimmer spots of " + c.myCall() + "…"
-                        : "RBN off — Connect above to see who's hearing you");
+                empty.setText(c.isConnected() ? "Connected to RBN — waiting to be heard (" + c.myCall() + ")…" : FeedUi.emptyList(c, "RBN"));
                 rows.getChildren().add(empty);
             } else {
                 for (com.ars.fx.data.HeardByClient.HeardSpot s : list) rows.getChildren().add(heardRow(s));
