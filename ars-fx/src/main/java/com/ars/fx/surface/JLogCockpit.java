@@ -90,7 +90,7 @@ public final class JLogCockpit {
         VBox ttl = new VBox(1, titleLbl, sub);
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
         Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
-        contestChip.setOnMouseClicked(e -> Shell.navigate("logc"));
+        contestChip.setOnMouseClicked(e -> JLogContest.promptEnter(contestChip));
         Label b4 = lbl("Normal log", "jl-eyebrow");   // worked-before / dupe / status
         HBox head = new HBox(11, ic, ttl, hsp, contestChip, b4); head.setAlignment(Pos.CENTER_LEFT);
 
@@ -253,7 +253,7 @@ public final class JLogCockpit {
         lookupRef = doCallLookup;
         call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
-        VBox entry = new VBox(0, head, body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
+        VBox entry = new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
         entry.sceneProperty().addListener((o, oldS, s) -> {
             if (s == null) return;

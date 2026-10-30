@@ -50,6 +50,8 @@ public final class JLogDb {
     /** Prior-QSO summary for the worked-before / dupe indicator. */
     public record Prior(int count, String lastDate, java.util.List<String> bands) {}
 
+    /** The normal-log database file (shared with the full J-Log). */
+    public static Path path() { return dbPath(); }
     private static Path dbPath() { return Paths.get(System.getProperty("user.home"), ".j-log", "j-log.db"); }
 
     private static Connection open() throws Exception {

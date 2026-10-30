@@ -32,8 +32,8 @@ public final class Confirm {
         }
         Label t = lbl(title, "jhub-card-title");
         Label m = lbl(message, "jl-emeta"); m.setWrapText(true); m.setMaxWidth(380);
-        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
-        HBox btns = new HBox(10, gap); btns.setAlignment(Pos.CENTER_RIGHT);
+        javafx.scene.layout.FlowPane btns = new javafx.scene.layout.FlowPane(10, 8);   // wraps when there are many choices
+        btns.setAlignment(Pos.CENTER_RIGHT); btns.setPrefWrapLength(540);
         VBox card = new VBox(12, t, m, btns);
         card.setPadding(new Insets(20, 22, 18, 22)); card.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         card.setStyle("-fx-background-color:-ars-surface-1;-fx-background-radius:12;"

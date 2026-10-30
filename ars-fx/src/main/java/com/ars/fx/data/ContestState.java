@@ -45,6 +45,7 @@ public final class ContestState {
 
     /** Resolve the plugin from the persisted active id if not already loaded. */
     public static void ensureLoaded() {
+        ContestConfigBridge.bootstrap();   // idempotent; AppConfig/DatabaseManager must be up before reading the active id
         if (plugin == null) {
             String id = activeId();
             if (!id.isBlank()) plugin = PluginLoader.getInstance().getById(id);

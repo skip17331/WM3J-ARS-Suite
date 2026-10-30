@@ -343,9 +343,9 @@ public final class JHubDashboard {
         // header — live count from the real ~/.j-log/j-log.db
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
         Label sub = lbl(JLogDb.count() + " in log · live", "jhub-card-sub");
-        VBox ttl = new VBox(1, lbl("J-Log · new QSO", "jhub-card-title"), sub);
+        VBox ttl = new VBox(1, lbl("J-Log-Quick", "jhub-card-title"), sub);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label open = lbl("Open full J-Log →", "jhub-open");
+        Label open = lbl("Open J-Log →", "jhub-open");
         open.setOnMouseClicked(e -> Shell.navigate("log"));
         HBox head = new HBox(11, ic, ttl, sp, open); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
 
@@ -705,7 +705,7 @@ public final class JHubDashboard {
     }
     private static Region dataCenter() {
         HBox cells = new HBox(0, statCell("CLUSTER","● dxc.ve7cc.net","",true), statCell("RBN","● connected","",true),
-                statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB","~/.j-log","",false));
+                statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB", com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir()), "", false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         Runnable applyCluster = () -> {
             String srv = com.ars.fx.data.HubConfig.get("data.clusterServer", "dxc.ve7cc.net:23").trim();
@@ -727,7 +727,6 @@ public final class JHubDashboard {
             cfgRow("Auto-log FT8/FT4 QSOs", null, cToggle("data.autoLogFt8", true)),
             cfgRow("PSK Reporter upload", null, cToggle("data.pskReporter", false)));
         VBox logbook = section("LOGBOOK & EXPORT",
-            cfgRow("Log database", null, cInput("data.logDb", "~/.j-log/j-log.db")),
             cfgRow("Cabrillo / CSV charset", null, cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
             cfgRow("LoTW / eQSL auto-upload", null, cToggle("data.lotwAutoUpload", false)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
@@ -748,7 +747,34 @@ public final class JHubDashboard {
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, cluster, wsjt, lookupSection(), logbook, contest, remote, backupSection(), uploadSection(), macroSection());
+            cells, logDatabaseSection(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, macroSection());
+    }
+
+    /** Which database files J-Log writes to, with their sizes and a way to open the folder. The export and
+     *  upload tools follow directly below on this page. */
+    private static VBox logDatabaseSection() {
+        java.nio.file.Path normal = com.ars.fx.data.LogDbInfo.normalPath(), contest = com.ars.fx.data.LogDbInfo.contestPath();
+        Label nCount = lbl(JLogDb.count() + " QSOs · " + com.ars.fx.data.LogDbInfo.size(normal), "cfg-lt");
+        com.ars.fx.data.ContestState.ensureLoaded();
+        var plug = com.ars.fx.data.ContestState.plugin();
+        Label cCount = lbl((plug == null ? "no contest selected" : plug.getContestName() + " · " + com.ars.fx.data.ContestState.qsos().size() + " QSOs")
+                + " · " + com.ars.fx.data.LogDbInfo.size(contest), "cfg-lt");
+        Label status = lbl("", "cfg-lh"); status.setWrapText(true); status.setMaxWidth(Double.MAX_VALUE);
+        Label open = cfgBtn("Open folder");
+        open.setOnMouseClicked(e -> status.setText(com.ars.fx.data.LogDbInfo.openFolder(com.ars.fx.data.LogDbInfo.dataDir())
+                ? "Opened " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir())
+                : "Could not open the folder — it is " + com.ars.fx.data.LogDbInfo.dataDir()));
+        Label toLog = cfgBtn("Open J-Log"); toLog.setOnMouseClicked(e -> Shell.navigate("log"));
+        HBox btns = new HBox(10, open, toLog); btns.setAlignment(Pos.CENTER_LEFT);
+        Region bsp = new Region(); HBox.setHgrow(bsp, Priority.ALWAYS);
+        HBox actions = new HBox(20, new VBox(2, lbl("Database folder", "cfg-lt"),
+                lbl("Back up, export and upload are in the sections below", "cfg-lh")), bsp, btns);
+        actions.getStyleClass().add("cfg-row"); actions.setAlignment(Pos.CENTER_LEFT);
+        return section("LOG DATABASE",
+            cfgRow("Normal log", com.ars.fx.data.LogDbInfo.normalLine(), nCount),
+            cfgRow("Contest log", com.ars.fx.data.LogDbInfo.contestLine(), cCount),
+            actions,
+            new HBox(status) {{ getStyleClass().add("cfg-row"); }});
     }
 
     /** J-Hub ▸ Modules — turn each module on or off (reflected live in the dock + nav). */

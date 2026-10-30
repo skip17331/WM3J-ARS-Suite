@@ -62,7 +62,7 @@ public final class JLogContest {
         Region dock = Shell.dock("log");
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
 
-        VBox center = new VBox(12, toolbar(plugin), entryPane(plugin));
+        VBox center = new VBox(12, toolbar(plugin), LogDbBar.build(true), entryPane(plugin));
         Region strip = trackerStrip(plugin);
         if (strip != null) center.getChildren().add(strip);
         center.getChildren().add(recentLogPane());
@@ -100,6 +100,38 @@ public final class JLogContest {
                         + "exports the current log to Cabrillo (a backup) first, then clears it.",
                 new Confirm.Choice("Continue", false, null),
                 new Confirm.Choice("Start fresh", true, () -> { ContestState.backupAndStartFresh(); Shell.navigate("logc"); })));
+    }
+
+    /** Entering contest mode from the normal log: say which databases are involved and offer the options —
+     *  continue the current contest log, start a new one (Cabrillo backup first), or pick another contest. */
+    public static void promptEnter(Node source) {
+        String where = "Your normal log is " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.normalPath())
+                + " (table qso). Contest QSOs go to a separate database, " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.contestPath())
+                + " (table contest_qso), so contest mode never changes your normal log. ";
+        Confirm.Choice cancel = new Confirm.Choice("Cancel", false, null);
+        ContestState.ensureLoaded();
+        ContestPlugin p = ContestState.plugin();
+        Runnable choose = () -> { lastPromptedId = null; ContestState.setActive(null); Shell.navigate("logc"); };
+        if (p == null) {
+            Confirm.show(source, "Switch to contest mode", where + "No contest is selected yet — choose one to start a new contest log.",
+                    cancel, new Confirm.Choice("Choose a contest", true, choose));
+            return;
+        }
+        String id = p.getContestId(), name = p.getContestName();
+        int n = ContestState.qsos().size();
+        if (n == 0) {
+            Confirm.show(source, "Switch to contest mode", where + name + " has no QSOs yet.",
+                    cancel, new Confirm.Choice("Choose another contest", false, choose),
+                    new Confirm.Choice("Start " + name + " log", true, () -> { lastPromptedId = id; Shell.navigate("logc"); }));
+            return;
+        }
+        Confirm.show(source, "Switch to contest mode",
+                where + "Contest log in use: " + name + " (" + n + " QSOs). “Start a new log” exports the current contest log to "
+                        + "Cabrillo in ~/.j-log/exports as a backup, then clears it.",
+                cancel,
+                new Confirm.Choice("Choose another contest", false, choose),
+                new Confirm.Choice("Start a new log", false, () -> { lastPromptedId = id; ContestState.backupAndStartFresh(); Shell.navigate("logc"); }),
+                new Confirm.Choice("Continue " + name, true, () -> { lastPromptedId = id; Shell.navigate("logc"); }));
     }
 
     /** Fill the contest entry from a clicked DX spot (callsign + band/mode), then focus the call + run dupe. */
@@ -153,7 +185,8 @@ public final class JLogContest {
                 new Confirm.Choice("Change", true, () -> { lastPromptedId = null; ContestState.setActive(null); Shell.navigate("logc"); })));
         Label normal = lbl("Normal log", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
         normal.setOnMouseClicked(e -> Confirm.show(normal, "Leave contest mode?",
-                "Switch back to normal logging? Your contest log is saved.",
+                "Switch back to normal logging? Your contest log is saved in " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.contestPath())
+                        + ". Normal QSOs go to " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.normalPath()) + ".",
                 new Confirm.Choice("Stay", false, null),
                 new Confirm.Choice("Leave", true, () -> { lastPromptedId = null; Shell.navigate("log"); })));
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
