@@ -1,6 +1,6 @@
 # Hardware Build Guide
 
-> Looking for the J-Learn overview / decision-tree write-up? See **j-learn §05-09 — Hardware Keyer Builds** (`j-learn/src/main/resources/content/05-morse/05-09-hardware-keyer-builds.md`). This file is the authoritative build reference; the j-learn chapter is the learner-facing summary.
+> Looking for the J-Learn overview / decision-tree write-up? See **j-learn §05-09 — Hardware Keyer Builds** (`j-learn-content/05-morse/05-09-hardware-keyer-builds.md`). This file is the authoritative build reference; the j-learn chapter is the learner-facing summary.
 
 Two keyer designs, both DIY-friendly. Both accept either a **straight key** or an **iambic paddle**, and both can do **iambic mode A or B** in firmware.
 

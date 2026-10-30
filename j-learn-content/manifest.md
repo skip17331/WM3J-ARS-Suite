@@ -1,6 +1,6 @@
 # J-Learn Master Manifest
 
-This file is the machine-parseable index for every section in `~/j-learn/src/main/resources/content/`. The Java loader (`ContentManifest.load()`) reads it once at startup and builds the navigation tree from the table rows in the **Section Index** below. Anything outside the rows of the section-index table is documentation for humans and is ignored by the parser.
+This file is the machine-parseable index for every section in `j-learn-content/` (installed copies live in `~/.j-learn/content/`). The Java loader (`ContentManifest.load()`) reads it once at startup and builds the navigation tree from the table rows in the **Section Index** below. Anything outside the rows of the section-index table is documentation for humans and is ignored by the parser.
 
 ---
 

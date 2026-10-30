@@ -49,7 +49,7 @@ store.load();                                      // Optional<ReadingState>
 ## Content layout
 
 ```
-src/main/resources/content/
+../j-learn-content/   (the chapter tree now lives outside this module)
 ├── manifest.md                 ← machine-parseable index
 ├── 00-about/
 │   ├── 00-00-readme.md
@@ -113,4 +113,4 @@ Source/target: **11**. No records, no pattern-matching instanceof, no switch exp
 
 ## Editing content
 
-Edits in `~/.j-learn/content/*.md` take effect on browser reload — no rebuild. To ship a change to all new installs, edit `j-learn/src/main/resources/content/` too and `mvn install` j-learn (the seed runs on first launch only; existing users keep their disk copy).
+Edits in `~/.j-learn/content/*.md` take effect on browser reload — no rebuild. To ship a change to all new installs, edit `j-learn-content/` (repo root) too and `mvn install` j-learn (the seed runs on first launch only; existing users keep their disk copy).

@@ -113,7 +113,7 @@ The manifest is parsed from `content/manifest.md`; content lives at the per-sect
 
 ## Updates and corrections
 
-Content is in markdown files in the `j-learn` Maven module under `src/main/resources/content/`. Corrections, typos, and additions are welcome via pull request to the WM3J-ARS-Suite GitHub repo.
+Content is in markdown files in the `j-learn-content/` folder of the WM3J-ARS-Suite repo (installed copies live in `~/.j-learn/content/`). Corrections, typos, and additions are welcome via pull request to the WM3J-ARS-Suite GitHub repo.
 
 When chapters are revised, the section's front-matter `status` field reflects current state (`stub` / `draft` / `review` / `published`). All sections are currently `published` — treat the content as authoritative, though refinements continue.
 

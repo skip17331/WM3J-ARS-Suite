@@ -6,7 +6,7 @@ In-app learning and reference library for the WM3J ARS Suite. ~200 markdown chap
 
 J-Learn is a **content + skeleton** module today. It ships:
 
-- The full chapter tree under `src/main/resources/content/` (every section is a stub at the moment — front matter, headings, and `<!-- TODO: content -->` markers only).
+- The full chapter tree under `../j-learn-content/` (every section is a stub at the moment — front matter, headings, and `<!-- TODO: content -->` markers only).
 - A machine-parseable `manifest.md` that the loader uses to build a navigation tree.
 - Java skeleton classes for the manifest parser, content loader, and reading-state persistence.
 
@@ -14,7 +14,7 @@ There is **no UI here yet** — host modules (j-log, j-map, j-digi, j-bridge, j-
 
 ## How content is organized
 
-All chapters live under `src/main/resources/content/`. Directories are numbered `NN-slug/`; each section inside a directory is `NN-NN-slug.md`. The full table of contents is in [`src/main/resources/content/manifest.md`](src/main/resources/content/manifest.md), grouped into five Parts:
+All chapters live under `../j-learn-content/` (a repo-root folder, outside the module, so the content can be updated on its own). Directories are numbered `NN-slug/`; each section inside a directory is `NN-NN-slug.md`. The full table of contents is in [`../j-learn-content/manifest.md`](../j-learn-content/manifest.md), grouped into five Parts:
 
 | Part | Theme | Chapters |
 |------|-------|----------|
