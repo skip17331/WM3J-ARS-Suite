@@ -7,8 +7,8 @@ rem  Nothing else to type. It installs Java + Maven if needed,
 rem  builds everything, and adds Start-Menu shortcuts.
 rem
 rem  First run takes about 5-10 minutes. Re-running later just
-rem  upgrades. It never touches your logs, the J-Vault
-rem  inventory, or saved passwords.
+rem  upgrades. It never touches your logs, your settings, or the
+rem  J-Vault inventory.
 rem
 rem  Power users:
 rem      install.bat -SkipDeps      (Java/Maven already present)

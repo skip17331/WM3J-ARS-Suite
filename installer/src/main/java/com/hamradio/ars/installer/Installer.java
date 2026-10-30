@@ -37,7 +37,7 @@ import javax.imageio.ImageIO;
  *       via a PowerShell {@code WScript.Shell} snippet.</li>
  * </ul>
  *
- * Zero-state guarantee: never touches {@code j-hub.json}, databases, or logs.
+ * Zero-state guarantee: never touches your settings (~/.j-hub), databases, or logs.
  * Safe to run repeatedly as an upgrade.
  */
 public final class Installer {
@@ -710,8 +710,8 @@ public final class Installer {
         System.out.println("  " + (hasWsjtx  ? "[OK] " : "[-- ] ") + "WSJT-X"
             + (hasWsjtx ? "" : "   — " + wsjtxHint));
         System.out.println();
-        System.out.println("  (optional — the suite runs without these; j-hub's Dashboard");
-        System.out.println("   has a re-check button after you install them.)");
+        System.out.println("  (optional — the suite runs without these; install Hamlib for rig/rotor/amp");
+        System.out.println("   control and WSJT-X for J-Bridge, then restart the app.)");
     }
 
     private static boolean which(String cmd) {

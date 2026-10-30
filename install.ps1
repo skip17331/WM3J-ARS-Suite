@@ -13,23 +13,22 @@
                     j-digi, j-bridge), then mvn -Pwin package the ars-fx app
     3. Integrate  - builds + runs the Java installer, which writes per-module
                     .bat launchers, generates .ico icons, and creates
-                    Start-Menu shortcuts under "ARS Suite"
-    4. Normalize  - rewrites any stale Linux launch commands left in
-                    j-hub.json so j-hub launches the Windows .bat wrappers
+                    Start-Menu shortcuts under "ARS Suite" (and removes the
+                    shortcuts left by older installs)
 
   Everything printed is also saved to install-log.txt next to this
   script. If anything fails, the script tells you exactly which file to
   attach to a bug report - no need to copy-paste from the window.
 
-  Safe to re-run as an upgrade. Never touches QSO logs, the j-vault
-  inventory DB, or station credentials.
+  Safe to re-run as an upgrade. Never touches your logs, the J-Vault
+  inventory, or your settings (~/.j-hub, ~/.j-log, ~/.j-vault, ...).
 
 .PARAMETER SkipDeps
   Assume Git/JDK/Maven are already present; skip the toolchain step
   entirely (no winget, no Maven download).
 
 .PARAMETER SkipBuild
-  Jars are already built; only do desktop integration + config normalize.
+  Jars are already built; only do the desktop integration (shortcuts).
 
 .EXAMPLE
   .\install.bat            (this is the single command for Windows)
@@ -188,16 +187,16 @@ try {
     Info "Log file    : $LogFile"
 
     if (-not $SkipDeps) {
-        Section '[1/4] Toolchain (Git, Java 21, Maven)'
+        Section '[1/3] Toolchain (Git, Java 21, Maven)'
         Ensure-Tool 'git'  'Git.Git'                        'Git'
         Ensure-Tool 'java' 'EclipseAdoptium.Temurin.21.JDK' 'Temurin 21 JDK'
         Ensure-Maven
     } else {
-        Section '[1/4] Toolchain - skipped (-SkipDeps)'
+        Section '[1/3] Toolchain - skipped (-SkipDeps)'
     }
 
     if (-not $SkipBuild) {
-        Section '[2/4] Build the ARS Suite app (first run downloads deps, ~5-10 min)'
+        Section '[2/3] Build the ARS Suite app (first run downloads deps, ~5-10 min)'
         # Shared libraries the app depends on - install to the local repo first.
         foreach ($lib in 'j-log-common', 'j-log-engine', 'j-digi', 'j-bridge') {
             Invoke-Mvn "$lib\pom.xml" 'install'
@@ -205,10 +204,10 @@ try {
         # The unified ars-fx app - Windows fat jar (JavaFX bundled, win natives).
         Invoke-Mvn 'ars-fx\pom.xml' @('-Pwin', 'clean', 'package')
     } else {
-        Section '[2/4] Build - skipped (-SkipBuild)'
+        Section '[2/3] Build - skipped (-SkipBuild)'
     }
 
-    Section '[3/4] Desktop integration (launchers, icons, Start-Menu shortcuts)'
+    Section '[3/3] Desktop integration (launchers, icons, Start-Menu shortcuts)'
     Invoke-Mvn 'installer\pom.xml' @('clean', 'package')
     # Resolve the built installer jar regardless of version. shade writes the
     # runnable j-installer-<version>.jar next to the thin original-*.jar; pick
@@ -223,34 +222,10 @@ try {
     & java -jar $installerJar --root $root
     if ($LASTEXITCODE -ne 0) { Die 'installer run failed' }
 
-    Section '[4/4] Normalize j-hub launch commands'
-    # j-hub.json lives wherever j-hub's cwd was (j-hub dir via the shortcut, or
-    # repo root via .\j-hub\start.bat). A rebuilt j-hub also self-heals stale
-    # commands on first launch (JHubConfig.applyDefaults); this is belt-and-
-    # braces and only rewrites command VALUES, never the rest of the file.
-    $candidates = @(
-        (Join-Path $root 'j-hub\j-hub.json'),
-        (Join-Path $root 'j-hub.json')
-    )
-    $rx = '(?i)("command"\s*:\s*")([^"]*?(?:^\s*bash\s|bash\s|\.sh|/home/)[^"]*)(")'
-    $fixedAny = $false
-    foreach ($jf in $candidates) {
-        if (-not (Test-Path -LiteralPath $jf)) { continue }
-        $raw = Get-Content -Raw -LiteralPath $jf
-        $new = [regex]::Replace($raw, $rx, '${1}${3}')
-        if ($new -ne $raw) {
-            Set-Content -LiteralPath $jf -Value $new -Encoding UTF8 -NoNewline
-            Info "rewrote stale Linux commands in $jf"
-            $fixedAny = $true
-        }
-    }
-    if (-not $fixedAny) {
-        Info 'no stale j-hub.json found - Windows defaults applied on first j-hub launch'
-    }
-
     Section 'Done - ARS Suite is installed'
-    Info 'Open the Start Menu, type  WM3J J-Hub , press Enter.'
-    Info 'Then open  http://localhost:8081/  in your browser.'
+    Info 'Open the Start Menu, type  ARS Suite , press Enter.'
+    Info 'Each module (J-Log, J-Map, J-Sat, ...) also has its own entry in the ARS Suite folder.'
+    Info 'Start with J-Hub > Station: enter your callsign and grid square.'
     Info "(A copy of this run was saved to $LogFile)"
     $ok = $true
 }

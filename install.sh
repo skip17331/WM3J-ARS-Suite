@@ -23,7 +23,7 @@
 #                  + icons in ~/.local/share/icons/
 #        - macOS : .app bundles in ~/Applications/
 #                  (log output goes to ~/Library/Logs/ARS-Suite/)
-#   4. Leaves all existing files (j-hub.json, logs, databases) untouched —
+#   4. Leaves all existing files (settings in ~/.j-hub, logs, databases) untouched —
 #      safe to run any number of times as an upgrade.
 
 set -e

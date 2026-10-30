@@ -2,13 +2,12 @@
 #
 # ARS Suite — macOS one-command bootstrap.
 #
-# Builds the whole suite, runs the installer (which plants .app bundles
+# Builds the suite, runs the installer (which plants .app bundles
 # in ~/Applications/), and clears the Gatekeeper quarantine bit so
 # first-launch double-click works without the right-click-Open dance.
 #
-# JavaFX is not installed separately: every module's fat jar bundles the
-# JavaFX runtime, and Maven's pom profiles auto-select the Apple-Silicon
-# or Intel native classifier at build time.
+# JavaFX is not installed separately: the app jar bundles the JavaFX runtime,
+# and install.sh selects the Apple-Silicon or Intel build profile.
 #
 # Idempotent: re-running is the upgrade path. Existing config, logs,
 # and databases are never touched.
@@ -36,7 +35,7 @@ bold "ARS Suite — macOS bootstrap"
 echo
 
 # ── Step 1: Prerequisites ──────────────────────────────────────────
-info "Step 1 / 5 — checking prerequisites"
+info "Step 1 / 3 — checking prerequisites"
 for cmd in java mvn git; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         case "$cmd" in
@@ -57,32 +56,18 @@ fi
 ok "Java ${JAVA_MAJOR}"
 echo
 
-# ── Step 2: Build the shared libraries (mvn install) ──────────────
-info "Step 2 / 5 — installing the shared libraries to the local Maven repo"
-for lib in j-log-common j-log-engine j-digi j-bridge; do
-    mvn -q -DskipTests -f "$SCRIPT_DIR/$lib/pom.xml" install \
-        || die "$lib build failed"
-    ok "$lib"
-done
-echo
-
-# ── Step 3: Package the app ────────────────────────────────────────
-info "Step 3 / 5 — packaging ars-fx"
-mvn -q -DskipTests -f "$SCRIPT_DIR/ars-fx/pom.xml" package \
-    || die "ars-fx build failed"
-ok "ars-fx"
-echo
-
-# ── Step 4: Run the installer (writes .app bundles) ────────────────
-info "Step 4 / 5 — installing .app bundles to ~/Applications/"
+# ── Step 2: Build the app and install the .app bundles ────────────
+# install.sh builds the shared libraries, then ars-fx with the right JavaFX
+# profile for this Mac (Apple Silicon vs Intel), then writes the bundles.
+info "Step 2 / 3 — building and installing .app bundles to ~/Applications/"
 bash "$SCRIPT_DIR/install.sh"
 echo
 
-# ── Step 5: Clear Gatekeeper quarantine so double-click works ──────
-info "Step 5 / 5 — clearing Gatekeeper quarantine on installed bundles"
+# ── Step 3: Clear Gatekeeper quarantine so double-click works ──────
+info "Step 3 / 3 — clearing Gatekeeper quarantine on installed bundles"
 shopt -s nullglob
 QUARANTINED=0
-for app in "$HOME/Applications/"WM3J*.app; do
+for app in "$HOME/Applications/"ARS\ Suite*.app "$HOME/Applications/"J-*.app; do
     if xattr -p com.apple.quarantine "$app" >/dev/null 2>&1; then
         xattr -dr com.apple.quarantine "$app" 2>/dev/null || true
         QUARANTINED=$((QUARANTINED+1))
@@ -98,11 +83,11 @@ echo
 # ── Done ────────────────────────────────────────────────────────────
 bold "All done."
 echo
-echo "  Launch J-Hub:"
-echo "      open ~/Applications/WM3J\\ J-Hub.app"
-echo "      # or Spotlight (⌘-Space): type \"J-Hub\""
+echo "  Launch the suite:"
+echo "      open ~/Applications/ARS\\ Suite.app"
+echo "      # or Spotlight (⌘-Space): type \"ARS Suite\""
 echo
-echo "  Then open the web UI:  http://localhost:8081/"
+echo "  Then open J-Hub > Station and enter your callsign and grid square."
 echo
 echo "  Logs per module:       ~/Library/Logs/ARS-Suite/<name>.log"
 echo "  Re-run this script after a 'git pull' to update everything in one shot."
