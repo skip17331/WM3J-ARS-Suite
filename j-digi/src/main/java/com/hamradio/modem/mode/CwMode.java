@@ -84,7 +84,7 @@ public class CwMode implements DigitalMode {
     private static final int    MIN_EMIT_CHARS      = 6;     // flush pending when ≥ this many chars
     private static final double MIN_RMS             = 0.002;
 
-    private static final boolean DEBUG              = true;
+    private static final boolean DEBUG              = false;
 
     // =================================================================
     // Per-instance state

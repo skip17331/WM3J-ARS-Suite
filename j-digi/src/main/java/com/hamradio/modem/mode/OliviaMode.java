@@ -55,7 +55,7 @@ public class OliviaMode implements DigitalMode {
     /** Walsh confidence ratio (best / second-best) below which char is marked '?'. */
     private static final double MIN_CONF_RATIO    = 1.15;
 
-    private static final boolean DEBUG            = true;
+    private static final boolean DEBUG            = false;
 
     // ── AFC ───────────────────────────────────────────────────────────
     /** How far the centroid may sit from current centerHz before we'd retune.

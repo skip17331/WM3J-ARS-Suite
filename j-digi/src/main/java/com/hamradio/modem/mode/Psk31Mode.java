@@ -62,7 +62,7 @@ public class Psk31Mode implements DigitalMode {
     private static final int    MAX_BIT_BUF     = 512;
 
     // ── Debug ─────────────────────────────────────────────────────────
-    private static final boolean DEBUG          = true;
+    private static final boolean DEBUG          = false;
 
     // =================================================================
     // Per-instance state
