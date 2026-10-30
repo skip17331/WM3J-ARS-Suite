@@ -25,6 +25,7 @@ public final class ContestConfigBridge {
         try {
             Class.forName("org.sqlite.JDBC");
             DatabaseManager.getInstance().initAll();   // opens/creates contest.db + config.db (WAL); must precede the rest
+            ContestLogs.applyCurrent();                 // reopen the named contest database used last time
             AppConfig.getInstance().load();
             PluginLoader.getInstance().init();          // needs DatabaseManager.getDataDir() for user plugins
             booted = true;

@@ -54,10 +54,13 @@ public final class JLogDb {
     public static Path path() { return dbPath(); }
     private static Path dbPath() { return Paths.get(System.getProperty("user.home"), ".j-log", "j-log.db"); }
 
+    private static boolean adopted;
+
     private static Connection open() throws Exception {
         Path p = dbPath();
         Files.createDirectories(p.getParent());
-        Connection c = DriverManager.getConnection("jdbc:sqlite:" + p + "?busyTimeout=5000");
+        if (!adopted) { adopted = true; Sqlite.adoptLegacy(p, "?busyTimeout=5000", "qso"); }   // data an earlier build put in a wrongly named file
+        Connection c = Sqlite.open(p, 5000);
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA journal_mode=WAL");
             st.execute(DDL);

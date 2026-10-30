@@ -40,10 +40,13 @@ public final class JVaultDb {
 
     private static Path dbPath() { return Paths.get(System.getProperty("user.home"), ".j-vault", "inventory.db"); }
 
+    private static boolean adopted;
+
     private static Connection open() throws Exception {
         Path p = dbPath();
         Files.createDirectories(p.getParent());
-        Connection c = DriverManager.getConnection("jdbc:sqlite:" + p + "?busyTimeout=5000");
+        if (!adopted) { adopted = true; Sqlite.adoptLegacy(p, "?busyTimeout=5000", "inventory_items", "first_call_contacts"); }
+        Connection c = Sqlite.open(p, 5000);
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA journal_mode=WAL");
             st.execute("CREATE TABLE IF NOT EXISTS equipment_types(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,display_order INTEGER NOT NULL DEFAULT 100)");

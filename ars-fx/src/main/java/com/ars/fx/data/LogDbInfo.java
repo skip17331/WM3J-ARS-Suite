@@ -17,7 +17,8 @@ public final class LogDbInfo {
 
     public static Path dataDir()     { return Paths.get(System.getProperty("user.home"), ".j-log"); }
     public static Path normalPath()  { return JLogDb.path(); }
-    public static Path contestPath() { return dataDir().resolve("contest.db"); }
+    /** The contest database in use right now (a named file under contest-logs/, or the original contest.db). */
+    public static Path contestPath() { return ContestLogs.current(); }
 
     /** Path with the home directory shown as {@code ~}. */
     public static String pretty(Path p) {
@@ -39,7 +40,7 @@ public final class LogDbInfo {
 
     /** One line for the contest log, naming the active contest when there is one. */
     public static String contestLine() {
-        ContestState.ensureLoaded();
+        ContestState.ensureLoaded();   // also brings the engine up, so contestPath() is the real file
         var p = ContestState.plugin();
         return pretty(contestPath()) + " · table " + CONTEST_TABLE + (p == null ? " · no contest selected" : " · " + p.getContestName());
     }

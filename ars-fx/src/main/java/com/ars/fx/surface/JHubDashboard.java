@@ -753,12 +753,13 @@ public final class JHubDashboard {
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, logDatabaseSection(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, macroSection());
+            cells, logDatabaseSection(), JHubContestDbs.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, macroSection());
     }
 
     /** Which database files J-Log writes to, with their sizes and a way to open the folder. The export and
      *  upload tools follow directly below on this page. */
     private static VBox logDatabaseSection() {
+        com.ars.fx.data.ContestState.ensureLoaded();   // brings the contest engine up so "in use" is the real file
         java.nio.file.Path normal = com.ars.fx.data.LogDbInfo.normalPath(), contest = com.ars.fx.data.LogDbInfo.contestPath();
         Label nCount = lbl(JLogDb.count() + " QSOs · " + com.ars.fx.data.LogDbInfo.size(normal), "cfg-lt");
         com.ars.fx.data.ContestState.ensureLoaded();
@@ -778,7 +779,7 @@ public final class JHubDashboard {
         actions.getStyleClass().add("cfg-row"); actions.setAlignment(Pos.CENTER_LEFT);
         return section("LOG DATABASE",
             cfgRow("Normal log", com.ars.fx.data.LogDbInfo.normalLine(), nCount),
-            cfgRow("Contest log", com.ars.fx.data.LogDbInfo.contestLine(), cCount),
+            cfgRow("Contest log (in use)", com.ars.fx.data.LogDbInfo.contestLine(), cCount),
             actions,
             new HBox(status) {{ getStyleClass().add("cfg-row"); }});
     }

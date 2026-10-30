@@ -25,7 +25,13 @@ final class LogDbBar {
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         Label tools = lbl("Database tools ›", "jl-clearbtn"); tools.setStyle("-fx-cursor:hand;");
         tools.setOnMouseClicked(e -> Shell.navigate("hubdata"));   // J-Hub ▸ Data: database info, export, upload
-        HBox bar = new HBox(10, where, gap, tools);
+        HBox bar = new HBox(10, where, gap);
+        if (contest) {
+            Label sw = lbl("Switch database", "jl-clearbtn"); sw.setStyle("-fx-cursor:hand;");
+            sw.setOnMouseClicked(e -> JLogContest.switchDatabase(sw));
+            bar.getChildren().add(sw);
+        }
+        bar.getChildren().add(tools);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(0, 18, 6, 18));
         return bar;
     }
