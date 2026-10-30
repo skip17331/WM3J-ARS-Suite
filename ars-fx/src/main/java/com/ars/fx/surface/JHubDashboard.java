@@ -387,6 +387,7 @@ public final class JHubDashboard {
         body.setPadding(new Insets(14, 16, 16, 16));
         body.getChildren().add(lbl("Enter a callsign for DXCC, beam heading & worked-before…", "jhub-mini-hint"));
         body.getChildren().add(frow(labeled("CALLSIGN", tCall), true, labeled("FREQ (MHZ)", tFreq), false, labeled("MODE", tMode), false));
+        body.getChildren().add(Shell.bandCaption(tFreq));       // "20m · CW segment" from the shared band plan
         body.getChildren().add(frow(labeled("RST ↑", tUp), false, labeled("RST ↓", tDn), false, labeled("NAME", tName), true));
         body.getChildren().add(frow(labeled("QTH", tQth), true, labeled("GRID", tGrid), false));
 
@@ -640,7 +641,7 @@ public final class JHubDashboard {
         VBox zones = section("ZONES & AWARDS",
             cfgRow("ITU zone", null, cInputPrompt("station.ituZone", "your ITU zone")),
             cfgRow("CQ zone", null, cInputPrompt("station.cqZone", "your CQ zone")),
-            cfgRow("IARU region", null, cSeg("station.iaru", new String[]{"R1","R2","R3"}, 1)),
+            cfgRow("IARU region", null, cSegApply("station.iaru", new String[]{"R1","R2","R3"}, 1, com.ars.fx.data.Bands::applyRegion)),
             cfgRow("Default TX power", null, cUnit("station.txPower", "100", "W")));
 
         VBox units = section("UNITS",
@@ -1132,6 +1133,12 @@ public final class JHubDashboard {
         String cur = com.ars.fx.data.HubConfig.get(key, opts[def]);
         int on = 0; for (int i = 0; i < opts.length; i++) if (opts[i].equals(cur)) on = i;
         return tagged(segSel(opts, on, i -> com.ars.fx.data.HubConfig.set(key, opts[i])), key);
+    }
+    /** Segmented control bound to a HubConfig key that also runs {@code apply} after each change. */
+    private static Region cSegApply(String key, String[] opts, int def, Runnable apply) {
+        String cur = com.ars.fx.data.HubConfig.get(key, opts[def]);
+        int on = 0; for (int i = 0; i < opts.length; i++) if (opts[i].equals(cur)) on = i;
+        return tagged(segSel(opts, on, i -> { com.ars.fx.data.HubConfig.set(key, opts[i]); apply.run(); }), key);
     }
     /** Toggle bound to a HubConfig boolean key. */
     private static Region cToggle(String key, boolean def) {

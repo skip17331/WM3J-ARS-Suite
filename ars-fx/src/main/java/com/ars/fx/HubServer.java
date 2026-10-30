@@ -81,6 +81,7 @@ public final class HubServer {
 
         // Own the shared backends: daemons first (so the rig/rotor clients find them), then the clients,
         // then publish state. This process is the sole owner; every window (loose or docked) is a client.
+        com.ars.fx.data.Bands.applyRegion();
         try { DaemonManager.ensureAll(); } catch (Exception e) { System.err.println("[hub] daemons: " + e.getMessage()); }
         ClusterClient.getInstance().applyConfig();   // server + login from J-Hub ▸ Data (was: hard-coded defaults only)
         ClusterClient.getInstance().start();

@@ -491,11 +491,5 @@ public final class RigPanel {
         String u = m.trim().toUpperCase();
         return switch (u) { case "CWR" -> "CW-R"; case "PKTUSB", "PKTLSB", "PKT", "FT4", "DIGI" -> "FT8"; case "FSK", "FSKR" -> "RTTY"; default -> u; };
     }
-    private static String bandOf(long hz) {
-        double m = hz / 1_000_000.0;
-        if (m >= 1.8 && m <= 2.0) return "160"; if (m >= 3.5 && m <= 4.0) return "80"; if (m >= 5.3 && m <= 5.4) return "60";
-        if (m >= 7.0 && m <= 7.3) return "40"; if (m >= 10.1 && m <= 10.15) return "30"; if (m >= 14.0 && m <= 14.35) return "20";
-        if (m >= 18.068 && m <= 18.168) return "17"; if (m >= 21.0 && m <= 21.45) return "15"; if (m >= 24.89 && m <= 24.99) return "12";
-        if (m >= 28.0 && m <= 29.7) return "10"; if (m >= 50.0 && m <= 54.0) return "6"; return null;
-    }
+    private static String bandOf(long hz) { return com.ars.fx.data.Bands.number(hz); }   // shared band plan; null out of band
 }

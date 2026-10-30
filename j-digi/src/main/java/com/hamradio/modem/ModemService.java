@@ -327,18 +327,8 @@ public class ModemService implements HubMessageListener {
 
     /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
     public String bandFromRigHz() {
-        long k = status.getRigFrequencyHz() / 1000;
-        if (k >= 1800  && k <= 2000)  return "160m";
-        if (k >= 3500  && k <= 4000)  return "80m";
-        if (k >= 7000  && k <= 7300)  return "40m";
-        if (k >= 10100 && k <= 10150) return "30m";
-        if (k >= 14000 && k <= 14350) return "20m";
-        if (k >= 18068 && k <= 18168) return "17m";
-        if (k >= 21000 && k <= 21450) return "15m";
-        if (k >= 24890 && k <= 24990) return "12m";
-        if (k >= 28000 && k <= 29700) return "10m";
-        if (k >= 50000 && k <= 54000) return "6m";
-        return "";
+        String b = com.jlog.bandplan.BandplanLoader.getInstance().bandName(status.getRigFrequencyHz());   // the shared band plan
+        return b == null ? "" : b;
     }
     public void   setMyCall(String call) {
         PREFS.put(PREF_MY_CALL, call != null ? call.trim().toUpperCase() : "NOCALL");

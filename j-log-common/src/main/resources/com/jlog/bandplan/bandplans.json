@@ -265,6 +265,15 @@
             { "lower": 435000000, "upper": 438000000, "activity": "SAT",    "label": "Satellite subband" },
             { "lower": 438000000, "upper": 450000000, "activity": "PHONE",  "label": "FM repeaters / simplex" }
           ]
+        },
+        {
+          "name": "1.25m", "lower": 222000000, "upper": 225000000,
+          "segments": [
+            { "lower": 222000000, "upper": 222150000, "activity": "CW",     "label": "Weak-signal CW / SSB" },
+            { "lower": 222150000, "upper": 222250000, "activity": "PHONE",  "label": "SSB calling 222.100" },
+            { "lower": 222250000, "upper": 223380000, "activity": "MIXED",  "label": "Mixed-mode / simplex" },
+            { "lower": 223380000, "upper": 225000000, "activity": "PHONE",  "label": "FM repeaters" }
+          ]
         }
       ]
     },

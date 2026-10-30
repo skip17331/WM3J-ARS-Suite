@@ -249,25 +249,6 @@ public final class JLogDb {
     private static String nz(String s) { return (s == null || s.isBlank()) ? null : s.trim(); }
     public static String hhmm(String dt) { return (dt != null && dt.length() >= 16) ? dt.substring(11, 16) : "—"; }
 
-    /** Best-effort amateur band from a frequency in MHz (e.g. "14.074" → "20m"). */
-    public static String bandFor(String freqMhz) {
-        if (freqMhz == null) return null;
-        double f;
-        try { f = Double.parseDouble(freqMhz.replace(",", "").trim()); } catch (Exception e) { return null; }
-        if (f >= 1.8 && f <= 2.0) return "160m";
-        if (f >= 3.5 && f <= 4.0) return "80m";
-        if (f >= 5.3 && f <= 5.45) return "60m";
-        if (f >= 7.0 && f <= 7.3) return "40m";
-        if (f >= 10.1 && f <= 10.15) return "30m";
-        if (f >= 14.0 && f <= 14.35) return "20m";
-        if (f >= 18.0 && f <= 18.2) return "17m";
-        if (f >= 21.0 && f <= 21.45) return "15m";
-        if (f >= 24.8 && f <= 25.0) return "12m";
-        if (f >= 28.0 && f <= 29.7) return "10m";
-        if (f >= 50.0 && f <= 54.0) return "6m";
-        if (f >= 144.0 && f <= 148.0) return "2m";
-        if (f >= 222.0 && f <= 225.0) return "1.25m";
-        if (f >= 420.0 && f <= 450.0) return "70cm";
-        return null;
-    }
+    /** Amateur band from a frequency in MHz (e.g. "14.074" → "20m"), from the shared band plan; null if unreadable or out of band. */
+    public static String bandFor(String freqMhz) { return Bands.ofMhz(freqMhz); }
 }

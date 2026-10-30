@@ -118,10 +118,49 @@ public final class BandplanLoader {
         return null;
     }
 
+    /**
+     * The amateur band a frequency is in ({@code "20m"}, {@code "70cm"} …), or {@code null} outside every known band.
+     * This is the one place band edges live: everything that needs "which band is this" asks here, so a log entry, a
+     * cluster spot, a rig reading and a WSJT-X decode all agree. The operator's {@code region} plan is tried first; a
+     * frequency outside it is then looked up in the other IARU regions, so a spot heard from another region still gets
+     * its band name instead of being dropped.
+     */
+    public String bandName(long hz, String region) {
+        ensureLoaded();
+        Bandplan own = region(region != null ? region : DEFAULT_REGION);
+        BandRange r = own == null ? null : own.bandAt(hz);
+        if (r != null) return r.name();
+        for (Bandplan other : regions.values()) {
+            if (other == own) continue;
+            r = other.bandAt(hz);
+            if (r != null) return r.name();
+        }
+        return null;
+    }
+
+    private static volatile String activeRegion = DEFAULT_REGION;
+    /** The operator's IARU region ({@code "IARU-R1"}, {@code "IARU-R2"}, {@code "IARU-R3"}) as set by the host application;
+     *  used by every call that doesn't name a region itself. Unknown ids are ignored. */
+    public static void setActiveRegion(String regionId) { if (regionId != null && !regionId.isBlank()) activeRegion = regionId.trim(); }
+    public static String activeRegion() { return activeRegion; }
+
+    /** {@link #bandName(long, String)} for the operator's active region. */
+    public String bandName(long hz) { return bandName(hz, activeRegion); }
+
+    /** The band names of a region's plan, lowest frequency first ({@code 160m} … {@code 70cm}). */
+    public List<String> bandNames(String region) {
+        ensureLoaded();
+        Bandplan p = region(region != null ? region : DEFAULT_REGION);
+        List<String> out = new java.util.ArrayList<>();
+        if (p != null) for (BandRange r : p.bands()) out.add(r.name());
+        return out;
+    }
+
     /** {@link #describe(long, String, String)} with the {@link #DEFAULT_REGION}
      *  and {@link #DEFAULT_COUNTRY}. */
     public Description describe(long hz) {
-        return describe(hz, DEFAULT_REGION, DEFAULT_COUNTRY);
+        // the US licence-class overlay only makes sense for a region-2 operator
+        return describe(hz, activeRegion, DEFAULT_REGION.equals(activeRegion) ? DEFAULT_COUNTRY : null);
     }
 
     private void ensureLoaded() {

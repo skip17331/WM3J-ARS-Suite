@@ -80,6 +80,22 @@ public final class Shell {
     private static final java.util.Set<String> BUTTON_CLASSES = java.util.Set.of(
             "jl-clearbtn", "jl-logbtn", "jhub-clearbtn", "jhub-open", "cfg-select", "cfg-seg-btn", "jm-seg-btn",
             "sx-ro-turn-btn", "rc-vfobtn", "dg-send", "jm-collapse", "sx-theme", "js-pill");
+    /** A small caption for a frequency field (MHz) saying what the band plan has there — "20m · CW segment" — and nothing
+     *  when the frequency is empty or outside every amateur band. Follows the field as it is typed or tuned. */
+    public static Label bandCaption(javafx.scene.control.TextField freqMhz) {
+        Label l = lbl("", "jl-skim-meta");
+        Runnable paint = () -> {
+            String t = "";
+            try { t = com.ars.fx.data.Bands.describe(Math.round(Double.parseDouble(freqMhz.getText().replace(",", "").trim()) * 1_000_000.0)); }
+            catch (Exception ignored) { /* empty or mid-typing */ }
+            l.setText(t); l.setVisible(!t.isEmpty()); l.setManaged(!t.isEmpty());
+        };
+        freqMhz.textProperty().addListener((o, a, b) -> paint.run());
+        paint.run();
+        com.ars.fx.shell.Tips.tip(l, "From the suite's band plan (your IARU region is set in J-Hub ▸ Station)");
+        return l;
+    }
+
     /** A button that is not wired up yet: shown greyed out, does nothing when clicked, and says so in its tooltip. */
     public static Label placeholderButton(String text, String styleClass, String tooltip) {
         Label b = lbl(text, styleClass);

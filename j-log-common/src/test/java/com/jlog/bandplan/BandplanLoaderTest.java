@@ -159,4 +159,33 @@ class BandplanLoaderTest {
         assertThrows(IllegalArgumentException.class,
             () -> new BandSegment(14_070_000L, 14_000_000L, Activity.CW, "bad"));
     }
+
+    @Test
+    void bandNameCoversHfAndVhf() {
+        BandplanLoader b = BandplanLoader.getInstance();
+        assertEquals("20m",  b.bandName(14_074_000L));
+        assertEquals("60m",  b.bandName(5_357_000L));
+        assertEquals("17m",  b.bandName(18_100_000L));
+        assertEquals("2m",   b.bandName(146_520_000L));
+        assertEquals("70cm", b.bandName(446_000_000L));
+    }
+
+    @Test
+    void bandNameIsNullOutsideAmateurBands() {
+        assertNull(BandplanLoader.getInstance().bandName(11_000_000L));
+        assertNull(BandplanLoader.getInstance().bandName(18_200_000L), "just above 17m");
+    }
+
+    @Test
+    void bandNameFallsBackToOtherRegions() {
+        // 3.9 MHz is outside the R1 80 m allocation but inside R2's: an R1 operator hearing it still gets "80m"
+        assertEquals("80m", BandplanLoader.getInstance().bandName(3_900_000L, "IARU-R1"));
+    }
+
+    @Test
+    void bandNamesAreLowestFirst() {
+        var names = BandplanLoader.getInstance().bandNames("IARU-R2");
+        assertEquals("160m", names.get(0));
+        assertTrue(names.contains("70cm"));
+    }
 }
