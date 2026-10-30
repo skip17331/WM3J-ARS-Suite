@@ -45,7 +45,7 @@ public class RttyMode implements DigitalMode {
     private static final int BAD_CHARS_BEFORE_UNLOCK = 5;
     private static final int MAX_BUFFER_BEFORE_EMIT = 32;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final int POWER_LOG_EVERY_FRAMES = 12;
 
     private boolean reverse = false;
