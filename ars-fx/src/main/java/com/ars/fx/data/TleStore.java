@@ -34,6 +34,9 @@ public final class TleStore {
             {"AMSAT nasabare",     "https://amsat.org/tle/current/nasabare.txt"}};
 
     private static final String K_LAST = "sat.tle.lastFetchMs", K_AUTO = "sat.tle.autoRefresh";
+    /** Picks Celestrak has already said it does not track (decayed / unknown) — not asked again until "Refresh now". */
+    private static final java.util.Set<Integer> NOT_TRACKED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    public static boolean isNotTracked(int norad) { return NOT_TRACKED.contains(norad); }
     private static final long DAY_MS = 24L * 3600_000;
 
     private static volatile Map<Integer, TleSet> current;
@@ -92,6 +95,7 @@ public final class TleStore {
     /** Download and merge now (blocking — call off the FX thread). The cache is only rewritten when something was fetched. */
     public static synchronized Result refreshNow() {
         refreshing = true;
+        NOT_TRACKED.clear();                 // an explicit refresh asks again
         try {
             HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15))
                     .followRedirects(HttpClient.Redirect.NORMAL).build();
@@ -158,14 +162,15 @@ public final class TleStore {
     private static int[] fetchMissing(HttpClient http, Map<Integer, TleSet> merged) {
         int found = 0, none = 0, tried = 0;
         for (int id : SatSelection.selected()) {
-            if (id <= 0 || merged.containsKey(id)) continue;
+            if (id <= 0 || merged.containsKey(id) || NOT_TRACKED.contains(id)) continue;
             if (tried++ >= 30) break;                       // be polite to Celestrak
             try {
                 HttpRequest req = HttpRequest.newBuilder(URI.create("https://celestrak.org/NORAD/elements/gp.php?CATNR=" + id + "&FORMAT=TLE"))
                         .timeout(Duration.ofSeconds(20)).header("User-Agent", "WM3J-ARS-Suite").GET().build();
                 HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                 Map<Integer, TleSet> got = resp.statusCode() == 200 ? parse(resp.body().lines().toList()) : Map.of();
-                if (got.containsKey(id)) { merged.put(id, got.get(id)); found++; } else none++;
+                if (got.containsKey(id)) { merged.put(id, got.get(id)); found++; }
+                else { none++; if (resp.statusCode() == 200) NOT_TRACKED.add(id); }   // a clean "no data" answer, not a network error
             } catch (Exception e) { none++; }
         }
         return new int[]{found, none};

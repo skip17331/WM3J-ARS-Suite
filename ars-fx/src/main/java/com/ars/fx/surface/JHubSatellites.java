@@ -80,12 +80,13 @@ final class JHubSatellites {
         PauseTransition debounce = new PauseTransition(Duration.millis(700));
         debounce.setOnFinished(e -> {
             SatService.getInstance().reload();
-            boolean missing = sel.stream().anyMatch(id -> id > 0 && !TleStore.current().containsKey(id));
+            boolean missing = sel.stream().anyMatch(id -> id > 0 && !TleStore.current().containsKey(id) && !TleStore.isNotTracked(id));
             if (missing && !TleStore.refreshing()) {
                 status.setText("Looking up orbital data for new picks…");
                 TleStore.fetchMissingAsync(r -> Platform.runLater(() -> {
                     status.setText((r.ok() ? "✓ " : "• ") + r.message());
-                    updateStats.run(); passes = null; loadPasses(renderList[0]); renderList[0].run();
+                    updateStats.run();
+                    if (r.ok()) { passes = null; loadPasses(renderList[0]); renderList[0].run(); }   // only new elements change the list
                 }));
             }
         });
@@ -134,6 +135,10 @@ final class JHubSatellites {
 
         // ── list ────────────────────────────────────────────────────────────
         renderList[0] = () -> Shell.keepScroll(list, () -> {
+            // Rebuilding replaces the checkbox the operator just clicked. Without this the focus would fall back to the
+            // first field on the page (Find) and the page would scroll up to show it — hence the jump.
+            Node fo = list.getScene() == null ? null : list.getScene().getFocusOwner();
+            Object focusedId = fo == null ? null : fo.getProperties().get("norad");
             List<Row> shown = filtered(sel);
             list.getChildren().clear();
             list.getChildren().add(headerRow());
@@ -142,6 +147,8 @@ final class JHubSatellites {
                 Label none = lbl("No satellites match.", "cfg-lh"); none.setPadding(new Insets(14, 16, 14, 16));
                 list.getChildren().add(none);
             }
+            if (focusedId != null)
+                for (Node n : list.lookupAll(".check-box")) if (focusedId.equals(n.getProperties().get("norad"))) { n.requestFocus(); break; }
             long on = shown.stream().filter(r -> sel.contains(r.norad())).count();
             count.setText(shown.size() + " shown · " + on + " selected of them"
                     + (passes == null && minElIdx > 0 ? " · predicting passes…" : ""));
@@ -205,7 +212,7 @@ final class JHubSatellites {
     }
 
     private static HBox row(Row r, Set<Integer> sel, Runnable persist) {
-        CheckBox cb = new CheckBox(); cb.setSelected(sel.contains(r.norad()));
+        CheckBox cb = new CheckBox(); cb.setSelected(sel.contains(r.norad())); cb.getProperties().put("norad", r.norad());
         cb.selectedProperty().addListener((o, a, b) -> { if (b) sel.add(r.norad()); else sel.remove(r.norad()); persist.run(); });
 
         Label nm = lbl(r.name(), "cfg-lt");
