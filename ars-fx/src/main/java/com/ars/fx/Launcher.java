@@ -53,6 +53,7 @@ public class Launcher extends Application {
 
         scene = new Scene(host, 1460, 900);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
+        Shell.installPageKeys(scene);
         show(System.getProperty("surface", "hub"));
 
         stage.setTitle("ARS Suite");
@@ -98,6 +99,7 @@ public class Launcher extends Application {
 
         scene = new Scene(host, cfg.window.width, cfg.window.height);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
+        Shell.installPageKeys(scene);
         show(cfg.module);
 
         stage.setTitle(cfg.windowTitle());

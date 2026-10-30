@@ -159,7 +159,15 @@ public final class JDigiView {
         }
         Region node() {
             Region cursor = new Region(); cursor.getStyleClass().add("wf-cursor"); cursor.setMinWidth(2); cursor.setMaxWidth(2); cursor.setMaxHeight(Double.MAX_VALUE);
-            StackPane wf = new StackPane(canvas, cursor); StackPane.setAlignment(cursor, Pos.CENTER); wf.setMaxWidth(Double.MAX_VALUE);
+            // The canvas is not resizable, so on its own it pins the whole page at W px wide and clips both side
+            // columns in a narrower window. Let it follow the available width instead (redraw() scales the image).
+            Pane holder = new Pane(canvas);
+            holder.setMinWidth(0); holder.setPrefWidth(W);
+            holder.setMinHeight(H); holder.setPrefHeight(H); holder.setMaxHeight(H);
+            canvas.widthProperty().bind(holder.widthProperty());
+            canvas.widthProperty().addListener((o, ov, nv) -> redraw());
+            StackPane wf = new StackPane(holder, cursor); StackPane.setAlignment(cursor, Pos.CENTER); wf.setMaxWidth(Double.MAX_VALUE);
+            wf.setMinWidth(0);
             return wf;
         }
         void push(double[] mag) {

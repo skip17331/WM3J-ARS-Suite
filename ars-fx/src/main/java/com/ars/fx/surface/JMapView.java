@@ -245,7 +245,7 @@ public final class JMapView {
         // live DX-cluster spots feed the map + the rail spot list
         VBox spotsBox = new VBox();
         fillSpots(spotsBox);
-        currentSpotsRefresh = () -> fillSpots(spotsBox);
+        currentSpotsRefresh = () -> Shell.keepScroll(spotsBox, () -> fillSpots(spotsBox));
         com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
         cc.setListener(c -> javafx.application.Platform.runLater(JMapView::refreshSpots));
         cc.start();
@@ -257,7 +257,7 @@ public final class JMapView {
         Runnable[] rebuildLeft = new Runnable[1];
         rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed[0] == 1 || narrow())
                 ? leftRail(() -> { leftCollapsed[0] = 0; rebuildLeft[0].run(); })
-                : leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); }));
+                : scrollLeft(leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); })));
         rebuildLeft[0].run();
 
         HBox center = new HBox(leftHolder, mapHolder); center.setFillHeight(true);
@@ -328,8 +328,16 @@ public final class JMapView {
     }
 
     // ---- left controls panel ----------------------------------------------
+    /** The controls column is taller than a normal window; it must scroll rather than stretch the whole frame. */
+    private static Region scrollLeft(Region panel) {
+        ScrollPane sp = new ScrollPane(panel); sp.setFitToWidth(true);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setMinWidth(270); sp.setPrefWidth(270); sp.setMaxWidth(270);
+        sp.setStyle("-fx-background-color:transparent;");
+        return sp;
+    }
     private static Region leftPanel(java.util.function.IntConsumer onProjection, Runnable onCollapse) {
-        VBox p = new VBox(0); p.getStyleClass().add("jm-panel"); p.setMinWidth(270); p.setPrefWidth(270); p.setMaxWidth(270);
+        VBox p = new VBox(0); p.getStyleClass().add("jm-panel");
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;"); collapse.setOnMouseClicked(e -> onCollapse.run());
         HBox header = new HBox(8, title, collapse); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));

@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -105,7 +106,7 @@ public final class JSatView {
         return host;
     }
     private static void rebuild() {
-        if (host != null) host.getChildren().setAll(frame(SatService.getInstance().snapshot()));
+        if (host != null) Shell.keepScroll(host, () -> host.getChildren().setAll(frame(SatService.getInstance().snapshot())));
     }
 
     // distinct per-satellite colours (assigned by name so each sat keeps its colour)
@@ -196,7 +197,10 @@ public final class JSatView {
         p.getChildren().add(new HBox(8, title, collapse));
         java.util.Map<String, Color> cm = colorMap(snap);
         for (SatInfo s : snap.sats()) p.getChildren().add(satCard(s, s == f, cm.get(s.name())));
-        return p;
+        // more satellites than fit the window must scroll, not run off the bottom edge
+        ScrollPane sp = new ScrollPane(p); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setMinWidth(272); sp.setPrefWidth(310); sp.setMaxWidth(310); sp.setStyle("-fx-background-color:transparent;");
+        return sp;
     }
     private static Region satCard(SatInfo s, boolean focused, Color color) {
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);

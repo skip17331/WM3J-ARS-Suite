@@ -245,7 +245,7 @@ public final class JHubDashboard {
         Label act = lbl("", "jhub-clearbtn");
 
         // single render: applies filters to the live feed + refreshes status everywhere
-        Runnable render = () -> {
+        Runnable render = () -> Shell.keepScroll(rsp, () -> {
             boolean conn = cc.isConnected();
             cdot.setStyle("-fx-background-color:" + (conn ? "-ars-ok" : "-ars-t4") + ";");
             java.util.Set<String> worked = workedSet();
@@ -275,7 +275,7 @@ public final class JHubDashboard {
             if (conn) { statusLbl.getStyleClass().add("live"); statusLbl.setText("● connected · " + cc.endpoint()); }
             else statusLbl.setText((want ? "○ connecting · " : "○ disconnected · ") + cc.endpoint());
             act.setText(want ? "Disconnect" : "Connect");
-        };
+        });
 
         VBox bandsF = labeled("BANDS", segSel(new String[]{"All","HF","VHF+"}, cluBandSel, i -> { cluBandSel = i; render.run(); }));
         VBox modesF = labeled("MODES", segSel(new String[]{"All","CW","Phone","Digi"}, cluModeSel, i -> { cluModeSel = i; render.run(); }));

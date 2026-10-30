@@ -98,6 +98,7 @@ public final class Shell {
         Region body = (rail == null) ? center : new HBox(center, rail);
         if (body instanceof HBox hb) hb.setFillHeight(true);
         VBox.setVgrow(body, Priority.ALWAYS);
+        body.setMinHeight(0); center.setMinHeight(0);   // a tall panel must scroll/clip, not push the top bar and ticker off-screen
         VBox modwin = new VBox(top, body); modwin.getStyleClass().add("sx-modwin");
         if (bottom != null) modwin.getChildren().add(bottom);
         HBox.setHgrow(modwin, Priority.ALWAYS); VBox.setVgrow(modwin, Priority.ALWAYS);
@@ -235,6 +236,69 @@ public final class Shell {
         });
         dw.getChildren().addAll(head, bodyBox);
         return dw;
+    }
+
+    /** Run a content rebuild without losing the user's scroll position. Rebuilding a list or a whole frame on a
+     *  data tick otherwise snaps every ScrollPane under {@code scope} (and the ones enclosing it) back to the top,
+     *  so a page-down "resets" immediately. Offsets are kept in pixels, since the content height changes. */
+    public static void keepScroll(Node scope, Runnable rebuild) {
+        List<ScrollPane> before = scrollPanes(scope);
+        double[] px = new double[before.size()];
+        for (int i = 0; i < px.length; i++) px[i] = scrollPx(before.get(i));
+        rebuild.run();
+        if (scope.getScene() == null) return;
+        if (scope instanceof javafx.scene.Parent p) { p.applyCss(); p.layout(); }
+        List<ScrollPane> after = scrollPanes(scope);
+        if (after.size() != px.length) return;
+        for (int i = 0; i < px.length; i++) {
+            ScrollPane sp = after.get(i);
+            if (px[i] <= 0 || sp.getContent() == null) continue;
+            sp.layout();
+            double extra = sp.getContent().getLayoutBounds().getHeight() - sp.getViewportBounds().getHeight();
+            if (extra > 0) sp.setVvalue(Math.min(1.0, px[i] / extra));
+        }
+    }
+    /** Page Up/Down, Home and End scroll the ScrollPane under the mouse pointer. JavaFX only routes those keys to a
+     *  focused ScrollPane, and clicking a plain panel never focuses one, so in practice they did nothing. */
+    public static void installPageKeys(javafx.scene.Scene scene) {
+        Node[] hover = new Node[1];
+        scene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_MOVED, e -> hover[0] = e.getPickResult().getIntersectedNode());
+        scene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> hover[0] = e.getPickResult().getIntersectedNode());
+        scene.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
+            javafx.scene.input.KeyCode k = e.getCode();
+            if (k != javafx.scene.input.KeyCode.PAGE_DOWN && k != javafx.scene.input.KeyCode.PAGE_UP
+                    && k != javafx.scene.input.KeyCode.HOME && k != javafx.scene.input.KeyCode.END) return;
+            Node focus = scene.getFocusOwner();
+            if (focus instanceof javafx.scene.control.TextInputControl || focus instanceof javafx.scene.control.ComboBoxBase) return;
+            for (Node n = hover[0]; n != null; n = n.getParent()) {
+                if (!(n instanceof ScrollPane sp) || sp.getContent() == null) continue;
+                double extra = sp.getContent().getLayoutBounds().getHeight() - sp.getViewportBounds().getHeight();
+                if (extra <= 0) continue;                         // nothing to scroll here; try the enclosing pane
+                double page = sp.getViewportBounds().getHeight() * 0.9 / extra;
+                double v = switch (k) {
+                    case PAGE_DOWN -> sp.getVvalue() + page;
+                    case PAGE_UP   -> sp.getVvalue() - page;
+                    case HOME      -> 0.0;
+                    default        -> 1.0;
+                };
+                sp.setVvalue(Math.max(0.0, Math.min(1.0, v)));
+                e.consume();
+                return;
+            }
+        });
+    }
+    private static List<ScrollPane> scrollPanes(Node scope) {
+        List<ScrollPane> out = new ArrayList<>();
+        List<ScrollPane> up = new ArrayList<>();
+        for (Node n = scope.getParent(); n != null; n = n.getParent()) if (n instanceof ScrollPane sp) up.add(0, sp);
+        out.addAll(up);
+        for (Node n : scope.lookupAll(".scroll-pane")) if (n instanceof ScrollPane sp && !out.contains(sp)) out.add(sp);
+        return out;
+    }
+    private static double scrollPx(ScrollPane sp) {
+        if (sp.getContent() == null) return 0;
+        double extra = sp.getContent().getLayoutBounds().getHeight() - sp.getViewportBounds().getHeight();
+        return extra > 0 ? sp.getVvalue() * extra : 0;
     }
 
     /** Right-rail container that scrolls. */

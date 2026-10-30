@@ -417,13 +417,13 @@ public final class JLogCockpit {
         Label empty = lbl("Cluster off — Connect above for DX spots", "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2));
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
-        cc.setListener(c -> {
+        cc.setListener(c -> Shell.keepScroll(rows, () -> {
             cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
             rows.getChildren().clear();
             List<com.ars.fx.data.ClusterClient.Spot> list = c.spots();
             if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : c.wantConnected() ? "Cluster offline — reconnecting…" : "Cluster off — Connect above for DX spots"); rows.getChildren().add(empty); }
             else { int n = 0; for (com.ars.fx.data.ClusterClient.Spot s : list) { if (n++ >= 12) break; rows.getChildren().add(spotRow(s)); } }
-        });
+        }));
         cc.start();
         return Shell.drawer("DX Cluster", "map", "map", cc.endpoint(), true, body);
     }
@@ -457,7 +457,7 @@ public final class JLogCockpit {
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
 
-        hb.setListener(c -> {
+        hb.setListener(c -> Shell.keepScroll(rows, () -> {
             cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
             rows.getChildren().clear();
             List<com.ars.fx.data.HeardByClient.HeardSpot> list = c.spots();
@@ -469,7 +469,7 @@ public final class JLogCockpit {
             } else {
                 for (com.ars.fx.data.HeardByClient.HeardSpot s : list) rows.getChildren().add(heardRow(s));
             }
-        });
+        }));
         hb.start();
         return Shell.drawer("Heard By", "map", "map", hb.myCall() + " · RBN", true, body);
     }
