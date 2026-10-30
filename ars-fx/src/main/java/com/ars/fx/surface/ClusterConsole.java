@@ -100,6 +100,7 @@ final class ClusterConsole {
 
         Scene scene = new Scene(root, 800, 540);
         Theme.apply(scene, false);
+        com.ars.fx.shell.Tips.install(scene);
         Themes.applyTo(root, "hub");
 
         Stage st = new Stage();

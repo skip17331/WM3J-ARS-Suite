@@ -442,6 +442,7 @@ public final class JLogCockpit {
         HBox bot = new HBox(9, lbl(s.band(), "jl-skim-meta"), lbl(tail, "jl-skim-meta")); bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
         row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
         row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
         return row;
     }
@@ -488,6 +489,7 @@ public final class JLogCockpit {
         HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
         row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(row, "Click to use this skimmer's frequency — tunes the rig and offers to turn the beam");
         row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.spotter(), s.freqHz(), s.mode(), s.band()));
         return row;
     }

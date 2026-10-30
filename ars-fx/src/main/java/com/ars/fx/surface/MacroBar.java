@@ -20,13 +20,16 @@ public final class MacroBar {
     private MacroBar() {}
 
     /** The F1–F<n> button row; {@code fire.accept(index)} runs that macro. */
-    public static HBox row(IntConsumer fire) {
-        HBox m = new HBox(6); m.setAlignment(Pos.CENTER_LEFT);
+    public static javafx.scene.layout.FlowPane row(IntConsumer fire) {
+        // wraps onto a second line in a narrow column — the buttons keep their natural size instead of collapsing to "…"
+        javafx.scene.layout.FlowPane m = new javafx.scene.layout.FlowPane(6, 6); m.setAlignment(Pos.CENTER_LEFT);
         for (int i = 0; i < MacroConfig.count(); i++) {
             final int idx = i;
             VBox mb = new VBox(2, lbl("F" + (i + 1), "jl-macro-fk"), lbl(MacroConfig.get(i).label(), "jl-macro-ml"));
             mb.getStyleClass().add("jl-macro"); mb.setStyle("-fx-cursor:hand;");
-            HBox.setHgrow(mb, Priority.ALWAYS); mb.setMaxWidth(Double.MAX_VALUE);
+            mb.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            for (javafx.scene.Node n : mb.getChildren()) if (n instanceof javafx.scene.control.Label l) l.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            com.ars.fx.shell.Tips.tip(mb, "F" + (idx + 1) + " — " + MacroConfig.get(idx).label() + "  (click to send)");
             mb.setOnMouseClicked(e -> fire.accept(idx));
             m.getChildren().add(mb);
         }

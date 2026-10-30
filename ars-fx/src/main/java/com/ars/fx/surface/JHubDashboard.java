@@ -283,6 +283,7 @@ public final class JHubDashboard {
                             ClusterClient.fmtFreq(s.freqHz()), s.call(), isNeeded(s, worked) ? "y" : "", s.mode(), s.band(),
                             s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) });
                     row.setStyle("-fx-cursor:hand;");
+                    com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
                     rows.getChildren().add(row);
                 }
@@ -348,6 +349,7 @@ public final class JHubDashboard {
         boolean[] on = {initial};
         Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
         StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); sw.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(sw, "Click to switch on or off");
         sw.setMinSize(36, 20); sw.setPrefSize(36, 20); sw.setMaxSize(36, 20);   // the row would otherwise stretch it into a circle
         StackPane.setMargin(knob, new Insets(0, 3, 0, 3));
         Runnable paint = () -> {

@@ -74,8 +74,15 @@ public final class Shell {
         Map.entry("accent",Color.web("#31bdda")), Map.entry("t2",     Color.web("#97a4b2")));
 
     // ---- small helpers -----------------------------------------------------
+    /** Style classes that mark a label as a button. Such labels keep their full width: in a crowded row it is the
+     *  spacer or the long text beside them that gives way, never the button (which would show as "…"). */
+    private static final java.util.Set<String> BUTTON_CLASSES = java.util.Set.of(
+            "jl-clearbtn", "jl-logbtn", "jhub-clearbtn", "jhub-open", "cfg-select", "cfg-seg-btn", "jm-seg-btn",
+            "sx-ro-turn-btn", "rc-vfobtn", "dg-send", "jm-collapse", "sx-theme", "js-pill");
     public static Label lbl(String text, String... classes) {
-        Label l = new Label(text); l.getStyleClass().addAll(classes); return l;
+        Label l = new Label(text); l.getStyleClass().addAll(classes);
+        for (String c : classes) if (BUTTON_CLASSES.contains(c)) { l.setMinWidth(Region.USE_PREF_SIZE); break; }
+        return l;
     }
     static Region spacer() { Region r = new Region(); HBox.setHgrow(r, Priority.ALWAYS); VBox.setVgrow(r, Priority.ALWAYS); return r; }
     static Region hsp()    { Region r = new Region(); HBox.setHgrow(r, Priority.ALWAYS); return r; }
@@ -158,6 +165,7 @@ public final class Shell {
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
         // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
+        Tips.tip(row, hue.equals("gear") ? "Station settings" : name + (running ? "" : " (not running)"));
         if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id.equals("log") ? lastLogSurface : id));
         else { row.setStyle("-fx-cursor:hand;"); row.setOnMouseClicked(e -> navigate("station")); }   // gear → Station settings
         return row;
@@ -185,12 +193,14 @@ public final class Shell {
         if (solo) {
             Label gear = lbl("⚙", "sx-theme"); gear.setStyle("-fx-cursor:hand;");
             javafx.scene.control.Tooltip.install(gear, new javafx.scene.control.Tooltip("J-Hub · Station settings"));
+            Tips.tip(gear, "Open J-Hub (dashboard and settings)");
             gear.setOnMouseClicked(e -> navigate("hub"));
             HBox.setMargin(gear, new Insets(0, 14, 0, 0));
             top.getChildren().add(gear);
         }
         // per-module theme: shows the module's current scheme, cycles just this module on click
         Label theme = lbl("◑ " + com.ars.fx.Themes.effective(hue).label(), "sx-theme"); theme.setStyle("-fx-cursor:hand;");
+        Tips.tip(theme, "Switch this module's colour scheme");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
         HBox.setMargin(theme, new Insets(0, 16, 0, 0));
         top.getChildren().add(theme);
@@ -226,6 +236,7 @@ public final class Shell {
         VBox bodyBox = new VBox(); bodyBox.getStyleClass().add("sx-dw-body"); bodyBox.getChildren().add(body);
         cv.setRotate(initOpen ? 90 : 0); sum.setVisible(!initOpen); sum.setManaged(!initOpen);
         bodyBox.setManaged(initOpen); bodyBox.setVisible(initOpen);
+        Tips.tip(head, "Click to show or hide " + title);
         head.setOnMouseClicked(e -> {
             boolean nowOpen = !dw.getStyleClass().contains("open");
             dw.getStyleClass().remove("open"); if (nowOpen) dw.getStyleClass().add("open");

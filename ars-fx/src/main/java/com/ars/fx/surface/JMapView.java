@@ -465,7 +465,7 @@ public final class JMapView {
     private static Region toggleSwitch(boolean initial, java.util.function.Consumer<Boolean> onChange) {
         boolean[] on = {initial};
         Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
-        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); sw.setMaxSize(36, 20); sw.setPadding(new Insets(0, 3, 0, 3));
+        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); com.ars.fx.shell.Tips.tip(sw, "Click to switch on or off"); sw.setMaxSize(36, 20); sw.setPadding(new Insets(0, 3, 0, 3));
         Runnable paint = () -> { sw.getStyleClass().remove("on"); if (on[0]) sw.getStyleClass().add("on"); StackPane.setAlignment(knob, on[0] ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT); };
         paint.run(); sw.setStyle("-fx-cursor:hand;");
         sw.setOnMouseClicked(e -> { on[0] = !on[0]; paint.run(); onChange.accept(on[0]); });
@@ -923,6 +923,7 @@ public final class JMapView {
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
             row.setStyle("-fx-cursor:hand;");
+            com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
             row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon()));
             spots.getChildren().add(row);
         }
