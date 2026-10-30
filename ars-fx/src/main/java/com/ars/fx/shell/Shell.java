@@ -320,10 +320,10 @@ public final class Shell {
             wxBig = new HBox(8, lbl("—°","sx-ro-head"), lbl("loading…","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
             wxBody = new VBox(wxBig); wxSum = "loading…";
         } else {
-            wxBig = new HBox(8, lbl(Math.round(w.tempC())+"°","sx-ro-head"), lbl(w.desc()+" · feels "+Math.round(w.feelsC())+"°","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
-            wxBody = new VBox(wxBig, kv("Wind", w.windCompass()+" "+Math.round(w.windKmh())+" · g"+Math.round(w.gustKmh()), false),
-                    kv("Humidity", w.humidity()+"%", false), kv("Pressure", Math.round(w.pressure())+" hPa", false));
-            wxSum = Math.round(w.tempC())+"° "+w.windCompass()+Math.round(w.windKmh());
+            wxBig = new HBox(8, lbl(com.ars.fx.data.Units.tempText(w.tempC()),"sx-ro-head"), lbl(w.desc()+" · feels "+com.ars.fx.data.Units.tempText(w.feelsC()),"sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
+            wxBody = new VBox(wxBig, kv("Wind", w.windCompass()+" "+com.ars.fx.data.Units.wind(w.windKmh())+" · g"+com.ars.fx.data.Units.wind(w.gustKmh())+" "+com.ars.fx.data.Units.windUnit(), false),
+                    kv("Humidity", w.humidity()+"%", false), kv("Pressure", com.ars.fx.data.Units.pressureText(w.pressure()), false));
+            wxSum = com.ars.fx.data.Units.tempText(w.tempC())+" "+w.windCompass()+com.ars.fx.data.Units.wind(w.windKmh());
         }
 
         return List.of(

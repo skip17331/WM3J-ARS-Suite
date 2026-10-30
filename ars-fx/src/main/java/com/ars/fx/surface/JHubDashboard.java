@@ -632,17 +632,37 @@ public final class JHubDashboard {
         VBox loc = section("LOCATION",
             cfgRow("Latitude", "decimal degrees (N+)", cInput("station.lat", "39.745583")),
             cfgRow("Longitude", "decimal degrees (E+)", cInput("station.lon", "-76.959714")),
-            cfgRow("Elevation", null, cUnit("station.elev", "0", "m AMSL")));
+            cfgRow("Elevation", "height above sea level — shown in the unit chosen under Units", elevationField()));
         VBox zones = section("ZONES & AWARDS",
             cfgRow("ITU zone", null, cInput("station.ituZone", "8")),
             cfgRow("CQ zone", null, cInput("station.cqZone", "5")),
             cfgRow("IARU region", null, cSeg("station.iaru", new String[]{"R1","R2","R3"}, 1)),
             cfgRow("Default TX power", null, cUnit("station.txPower", "100", "W")));
 
-        VBox v = new VBox(20, top, desc, cells, id, loc, zones);
+        VBox units = section("UNITS",
+            cfgRow("Units", "Metric: km · °C · km/h · hPa · m      Standard (US): mi · °F · mph · inHg · ft", unitSystemSeg()));
+        VBox v = new VBox(20, top, desc, cells, id, loc, units, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
+
+    /** Metric / Standard switch. Rebuilds the page so the elevation field and other labels follow at once. */
+    private static Region unitSystemSeg() {
+        int on = com.ars.fx.data.Units.standard() ? 1 : 0;
+        return segSel(new String[]{"Metric", "Standard (US)"}, on, i -> {
+            com.ars.fx.data.Units.System next = i == 1 ? com.ars.fx.data.Units.System.STANDARD : com.ars.fx.data.Units.System.METRIC;
+            if (next == com.ars.fx.data.Units.system()) return;
+            double m = com.ars.fx.data.Units.heightToMeters(parseD(com.ars.fx.data.HubConfig.get("station.elev", "0")));   // keep the same real height
+            com.ars.fx.data.Units.set(next);
+            com.ars.fx.data.HubConfig.set("station.elev", String.valueOf(Math.round(com.ars.fx.data.Units.heightFromMeters(m))));
+            com.ars.fx.data.RemoteLink.nudgeReconfig();
+            Shell.navigate("station");
+        });
+    }
+    private static double parseD(String s) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return 0; } }
+
+    /** Station elevation, stored and shown in the chosen height unit (ft or m). */
+    private static Region elevationField() { return cUnit("station.elev", "0", com.ars.fx.data.Units.heightUnit() + " AMSL"); }
     // ---- shared config-page chrome ----------------------------------------
     static HBox cfgTop(String... crumbs) {
         HBox crumb = new HBox(7); crumb.setAlignment(Pos.BOTTOM_LEFT);

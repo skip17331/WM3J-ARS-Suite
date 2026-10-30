@@ -148,7 +148,7 @@ public final class JBridgeView {
         Label msg = lbl(nz(d.getMessage()), "jb-msg"); if (d.isCqCall()) msg.getStyleClass().add("cq");
         HBox.setHgrow(msg, Priority.ALWAYS); msg.setMaxWidth(Double.MAX_VALUE);
         String tail = (d.getCountry() != null && !d.getCountry().isBlank() ? d.getCountry() : "")
-                + (d.getDistanceKm() > 0 ? "  " + Math.round(d.getDistanceKm()) + " km" : "");
+                + (d.getDistanceKm() > 0 ? "  " + com.ars.fx.data.Units.distText(d.getDistanceKm()) : "");
         HBox m = new HBox(10, msg); m.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(m, Priority.ALWAYS);
         if (!tail.isBlank()) m.getChildren().add(lbl(tail.trim(), "jb-panel-hd"));
         row.getChildren().add(m);

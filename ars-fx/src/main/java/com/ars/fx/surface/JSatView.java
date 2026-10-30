@@ -158,8 +158,8 @@ public final class JSatView {
                 {"AOS", f != null ? SatService.hhmmUtc(f.aosEpoch()) : "—"},
                 {"LOS", f != null ? SatService.hhmmUtc(f.losEpoch()) : "—"},
                 {"REACHABLE", reachable(f), f != null && f.inPass() ? "accent" : null},
-                {"APOGEE", f != null ? Math.round(f.apogeeKm()) + " km" : "—"},
-                {"PERIGEE", f != null ? Math.round(f.perigeeKm()) + " km" : "—"}};
+                {"APOGEE", f != null ? com.ars.fx.data.Units.distText(f.apogeeKm()) : "—"},
+                {"PERIGEE", f != null ? com.ars.fx.data.Units.distText(f.perigeeKm()) : "—"}};
         String utc = java.time.LocalTime.now(java.time.ZoneOffset.UTC)
                 .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
         HBox top = Shell.topBar("sat", "sat", "J-Sat", "Satellite tracking · " + name, stats, utc);
@@ -273,9 +273,9 @@ public final class JSatView {
         String[][] cells = {
                 {"AZIMUTH", String.format("%03.0f", f.azDeg()), "°", ""},
                 {"ELEVATION", String.format("%.0f", f.elDeg()), "°", f.elDeg() < 0 ? "y" : ""},
-                {"ALTITUDE", String.format("%,d", Math.round(f.altKm())), "km", ""},
-                {"RANGE", String.format("%,d", Math.round(f.rangeKm())), "km", ""},
-                {"RANGE RATE", String.format("%+.1f", f.rangeRateKmS()), "km/s", f.rangeRateKmS() < 0 ? "y" : ""},
+                {"ALTITUDE", com.ars.fx.data.Units.distNum(f.altKm()), com.ars.fx.data.Units.distUnit(), ""},
+                {"RANGE", com.ars.fx.data.Units.distNum(f.rangeKm()), com.ars.fx.data.Units.distUnit(), ""},
+                {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""},
                 {"DOPPLER", String.format("%+.1f", dopHz / 1000.0), "kHz", dopHz < 0 ? "y" : ""}};
         HBox tel = new HBox(12); tel.setAlignment(Pos.CENTER); tel.setPadding(new Insets(0, 0, 22, 0));
         for (String[] c : cells) {

@@ -556,7 +556,7 @@ public final class JMapView {
 
         // range rings
         if (ovRings) {
-            double[] rr = {0.34, 0.67, 1.0}; String[] rl = {"5k km","10k km","15k km"};
+            double[] rr = {0.34, 0.67, 1.0}; String[] rl = com.ars.fx.data.Units.standard() ? new String[]{"3k mi","6k mi","9k mi"} : new String[]{"5k km","10k km","15k km"};
             g.setStroke(border); g.setLineWidth(1);
             for (int i=0;i<3;i++){ double r=R*rr[i]; g.strokeOval(cx-r, cy-r, r*2, r*2); }
             g.setFont(Font.font("JetBrains Mono", 9.5)); g.setFill(t4); g.setTextAlign(TextAlignment.LEFT);
