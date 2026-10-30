@@ -13,14 +13,11 @@ import java.util.function.Consumer;
  * LocalSkimmer — multi-channel CW signal detector that runs in parallel
  * with whatever mode the operator has selected. Identifies every CW
  * carrier above a noise-floor threshold across the audio passband and
- * publishes them as <em>activity</em> events so j-hub can render them
- * to other modules (J-Map waterfall colouring, J-Log spot pane).
+ * reports them to its listener as <em>activity</em> snapshots.
  *
  * <p>This is the carrier-detection front end of the embedded CW skimmer.
  * The per-channel decode + callsign-extraction stages live in
- * {@link MultiCarrierDecoder}, {@link CallsignScorer}, and
- * {@link SkimmerSpotPublisher}, which together publish {@code SPOT}
- * messages to j-hub. Used standalone (without those followers), the
+ * {@link MultiCarrierDecoder} and {@link CallsignScorer}. On its own the
  * detector also doubles as a band-activity gauge across the audio
  * passband — useful for finding open frequencies during contests.
  *

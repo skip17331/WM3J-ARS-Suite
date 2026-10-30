@@ -1,20 +1,12 @@
 package com.hamradio.modem;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.hamradio.modem.audio.AudioEngine;
 import com.hamradio.modem.dsp.FftAnalyzer;
-import com.hamradio.modem.hub.HubClient;
-import com.hamradio.modem.hub.HubMessageListener;
 import com.hamradio.modem.mode.ModeManager;
 import com.hamradio.modem.mode.RttyMode;
 import com.hamradio.modem.model.DecodeMessage;
-import com.hamradio.modem.model.HubMacro;
-import com.hamradio.modem.model.HubRigStatus;
-import com.hamradio.modem.model.HubSpot;
 import com.hamradio.modem.model.ModeType;
 import com.hamradio.modem.model.ModemStatus;
-import com.hamradio.modem.model.RotorStatus;
 import com.hamradio.modem.model.SignalSnapshot;
 import com.hamradio.modem.tx.AudioTxEngine;
 import com.hamradio.modem.tx.CwTransmitter;
@@ -36,33 +28,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.LineUnavailableException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
-public class ModemService implements HubMessageListener {
+public class ModemService {
 
     private static final Logger log = LoggerFactory.getLogger(ModemService.class);
-    private static final Gson GSON = new Gson();
 
-    private static final String DEFAULT_HUB_URL = "ws://127.0.0.1:8080";
     private static final ModeType DEFAULT_MODE = ModeType.RTTY;
 
     private static final int MAX_DECODE_HISTORY = 100;
     private static final long DUPLICATE_SUPPRESS_MS = 1500L;
-    private static final long CONNECT_TIMEOUT_MS = 3000L;
 
     private static final Preferences PREFS = Preferences.userNodeForPackage(ModemService.class);
-    private static final String PREF_HUB_URL     = "hub.url";
     private static final String PREF_MODE         = "modem.mode";
     private static final String PREF_RTTY_REVERSE = "rtty.reverse";
     private static final String PREF_AUDIO_INPUT  = "audio.input.device";
@@ -81,8 +64,8 @@ public class ModemService implements HubMessageListener {
     private final AudioTxEngine audioTxEngine = new AudioTxEngine();
     private final FftAnalyzer fftAnalyzer =
             new FftAnalyzer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
-    /** Multi-channel CW detector. Off by default; toggled by the
-     *  j-hub J-Digi tab → "Local CW Skimmer" card. */
+    /** Multi-channel CW detector. Off by default; toggled by
+     *  the "Local CW Skimmer" setting. */
     private final com.hamradio.modem.dsp.LocalSkimmer localSkimmer =
             new com.hamradio.modem.dsp.LocalSkimmer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
     /** Phase A multi-channel CW decoder — runs one {@code CwMode} per
@@ -94,24 +77,11 @@ public class ModemService implements HubMessageListener {
     /** Latest skimmer snapshot, refreshed every audio frame so the
      *  multi-channel decoder can drive its lifecycle off it. */
     private volatile com.hamradio.modem.dsp.LocalSkimmer.Snapshot lastSkimmerSnapshot;
-    /** Rate-limit skimmer broadcasts — the audio frame rate is ~31 Hz
-     *  but downstream consumers don't need that. 1 Hz is plenty. */
-    private long lastSkimmerBroadcastMs = 0L;
-    private static final long SKIMMER_BROADCAST_INTERVAL_MS = 1000L;
     /** Click-to-identify classifier — buffers ~16 s of audio, classifies on demand. */
     private final com.hamradio.modem.dsp.SignalClassifier signalClassifier =
             new com.hamradio.modem.dsp.SignalClassifier(AudioEngine.SAMPLE_RATE, AudioEngine.FRAME_SIZE);
     private final ModeManager modeManager = new ModeManager();
     private final ModemStatus status = new ModemStatus();
-    /** Phase C: turns scored-callsign promotions into broker SPOT
-     *  messages, with a 5-minute per-(callsign, kHz) dedup window.
-     *  Declared after {@code status} so the rig-frequency supplier
-     *  lambda doesn't trip a forward-reference compile error. */
-    private final com.hamradio.modem.dsp.SkimmerSpotPublisher skimmerSpotPublisher =
-            new com.hamradio.modem.dsp.SkimmerSpotPublisher(
-                this::publishSpotJson,
-                () -> status.getRigFrequencyHz(),
-                this::getMyCall);
     private final Deque<String> decodeHistory = new ArrayDeque<>();
 
     private final DigitalTransmitter rttyTransmitter   = new RttyTransmitter();
@@ -125,40 +95,12 @@ public class ModemService implements HubMessageListener {
     private Consumer<SignalSnapshot> spectrumListener     = s -> {};
     private Consumer<String>        decodeListener       = s -> {};
     private Consumer<ModemStatus>   statusListener       = s -> {};
-    private Consumer<List<HubMacro>> macrosListener      = l -> {};
-    private Consumer<HubSpot>       spotListener         = s -> {};
-    private Consumer<HubSpot>       spotSelectedListener = s -> {};
-    private Consumer<RotorStatus>   rotorListener        = r -> {};
-    /** Fires on the FX thread when j-hub delivers station identity via JHUB_WELCOME. */
-    private Consumer<String[]>      stationListener      = a -> {};  // [callsign, grid, tz]
-    private Consumer<Integer>       fontSizeListener     = s -> {};
-    /** Per-pane font-size updates delivered as the raw jDigiSettings.fonts JsonObject. */
-    private Consumer<com.google.gson.JsonObject> fontsListener = f -> {};
-    /** UI density preset — fires on CONFIG_UPDATE.settings.density. Values:
-     *  "compact" | "comfortable" | "spacious". */
-    private Consumer<String>        densityListener      = d -> {};
-    /** Fires with the CONTEST_ACTIVE JsonObject when a j-log contest is loaded, or null for CONTEST_INACTIVE. */
-    private Consumer<com.google.gson.JsonObject> contestListener = c -> {};
-
-    private final List<HubMacro> macros = new ArrayList<>();
-    private final List<HubSpot>  spots  = new ArrayList<>();
-
-    // Station identity — populated from j-hub JHUB_WELCOME; prefs used as fallback
-    private volatile String hubCallsign  = null;
-    private volatile String hubGridSquare = null;
-
-    private HubClient hubClient;
     private boolean shuttingDown = false;
 
     private String lastPublishedDecodeLine = "";
     private long lastPublishedDecodeAtMs = 0L;
 
-    private volatile CountDownLatch connectLatch;
-
     public ModemService() {
-        // Start with English so any UI built before JHUB_WELCOME has labels.
-        com.hamradio.modem.i18n.I18n.load("en");
-        status.setHubUrl(loadSavedHubUrl());
         status.setMode(loadSavedMode());
         status.setTxMode(status.getMode());
         status.setTxState(TxState.IDLE);
@@ -187,59 +129,7 @@ public class ModemService implements HubMessageListener {
         localSkimmer.setEnabled(PREFS.getBoolean(PREF_LOCAL_SKIMMER, false));
         localSkimmer.setListener(snap -> {
             lastSkimmerSnapshot = snap;         // freshest snapshot, every frame
-            publishLocalSkimmer(snap);          // rate-limited WS broadcast
         });
-        // Phase C wiring — every scored callsign goes through the
-        // publisher's dedup before reaching the broker.
-        multiCarrierDecoder.setCallsignListener(skimmerSpotPublisher::onScoredCallsign);
-    }
-
-    /**
-     * Forward a {@link com.hamradio.modem.dsp.LocalSkimmer.Snapshot} to
-     * j-hub as a {@code LOCAL_SKIMMER_ACTIVITY} WS message — rate-limited
-     * to once a second so downstream consumers (J-Map waterfall colouring,
-     * J-Log band-activity widgets) don't get overwhelmed.
-     */
-    private void publishLocalSkimmer(com.hamradio.modem.dsp.LocalSkimmer.Snapshot snap) {
-        long now = System.currentTimeMillis();
-        if (now - lastSkimmerBroadcastMs < SKIMMER_BROADCAST_INTERVAL_MS) return;
-        lastSkimmerBroadcastMs = now;
-        if (hubClient == null || !hubClient.isOpen()) return;
-
-        com.google.gson.JsonObject msg = new com.google.gson.JsonObject();
-        msg.addProperty("type", "LOCAL_SKIMMER_ACTIVITY");
-        msg.addProperty("timestamp", java.time.Instant.now().toString());
-        long rigHz = status.getRigFrequencyHz();
-        if (rigHz > 0) msg.addProperty("rigFrequencyHz", rigHz);
-
-        com.google.gson.JsonArray peaks = new com.google.gson.JsonArray();
-        for (com.hamradio.modem.dsp.LocalSkimmer.Peak p : snap.peaks) {
-            com.google.gson.JsonObject po = new com.google.gson.JsonObject();
-            po.addProperty("audioFreqHz", p.freqHz);
-            po.addProperty("snrDb",       Math.round(p.snrDb * 10.0) / 10.0);
-            po.addProperty("bandwidthHz", Math.round(p.bandwidthHz * 10.0) / 10.0);
-            if (rigHz > 0) {
-                // Best-effort conversion to absolute RF frequency assuming
-                // USB convention (rig dial = LSB carrier; audio freq adds).
-                po.addProperty("rfFrequencyHz", rigHz + Math.round(p.freqHz));
-            }
-            peaks.add(po);
-        }
-        msg.add("peaks", peaks);
-        hubClient.sendJson(msg);
-    }
-
-    /**
-     * Send a pre-built SPOT JsonObject to j-hub. Used by the Phase C
-     * SkimmerSpotPublisher; it has already built the wire-shape message
-     * and applied dedup, so we just need to forward when the socket is
-     * open. A no-op when the broker isn't reachable — skimmer spots
-     * aren't worth retrying since the operator's session resumes
-     * naturally once the hub comes back.
-     */
-    private void publishSpotJson(com.google.gson.JsonObject msg) {
-        if (hubClient == null || !hubClient.isOpen()) return;
-        hubClient.sendJson(msg);
     }
 
     /** Click-to-identify entry point: invoked by the UI when the operator
@@ -249,30 +139,7 @@ public class ModemService implements HubMessageListener {
         return signalClassifier.classify(centerHz);
     }
 
-    public void startup() throws Exception {
-        connectHubBlocking(status.getHubUrl());
-        startAudio();
-    }
-
-    /**
-     * Thread-safe variant of {@link #startup()} that swallows exceptions and
-     * reports failures to the decode log. Intended to be called from a background
-     * thread immediately after the main window is shown.
-     */
-    public void startupSafe() {
-        try {
-            startup();
-        } catch (Exception e) {
-            postDecodeLine("Hub connection failed: " + e.getMessage() + " — use Setup to reconnect");
-            log.warn("Startup failed: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * Start without the legacy central-hub WebSocket: audio capture only. For hosts that embed the modem and are
-     * themselves the hub (the ARS Suite app), where nothing listens on the old hub URL — connecting would only
-     * fail, post "Hub connection failed" into the decode log, and (in {@link #startup()}) skip audio start.
-     */
+    /** Start audio capture; a failure is reported to the decode log rather than thrown. */
     public void startupEmbedded() {
         try {
             startAudio();
@@ -286,7 +153,6 @@ public class ModemService implements HubMessageListener {
         shuttingDown = true;
         cancelTransmit();
         stopAudio();
-        disconnectHub();
     }
 
     public ModemStatus getStatus() {
@@ -305,25 +171,10 @@ public class ModemService implements HubMessageListener {
         this.statusListener = statusListener != null ? statusListener : s -> {};
     }
 
-    public void setMacrosListener(Consumer<List<HubMacro>> l)    { this.macrosListener      = l != null ? l : list -> {}; }
-    public void setSpotListener(Consumer<HubSpot> l)            { this.spotListener         = l != null ? l : s -> {}; }
-    public void setSpotSelectedListener(Consumer<HubSpot> l)    { this.spotSelectedListener = l != null ? l : s -> {}; }
-    public void setRotorListener(Consumer<RotorStatus> l)       { this.rotorListener        = l != null ? l : r -> {}; }
-    public void setStationListener(Consumer<String[]> l)        { this.stationListener      = l != null ? l : a -> {}; }
-    public void setFontSizeListener(Consumer<Integer> l)        { this.fontSizeListener     = l != null ? l : s -> {}; }
-    public void setFontsListener(Consumer<com.google.gson.JsonObject> l) { this.fontsListener = l != null ? l : f -> {}; }
-    public void setDensityListener(Consumer<String> l)          { this.densityListener      = l != null ? l : d -> {}; }
-    public void setContestListener(Consumer<com.google.gson.JsonObject> l) { this.contestListener = l != null ? l : c -> {}; }
-
-    public List<HubMacro> getMacros()    { return Collections.unmodifiableList(macros); }
-    public List<HubSpot>  getSpots()     { return Collections.unmodifiableList(spots);  }
-    /** Returns callsign from j-hub config if available, otherwise falls back to local prefs. */
+    /** The operator callsign from the saved preferences. */
     public String getMyCall() {
-        return hubCallsign != null && !hubCallsign.isBlank()
-               ? hubCallsign
-               : PREFS.get(PREF_MY_CALL, "NOCALL");
+        return PREFS.get(PREF_MY_CALL, "NOCALL");
     }
-    public String getMyGrid() { return hubGridSquare != null ? hubGridSquare : ""; }
 
     /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
     public String bandFromRigHz() {
@@ -395,53 +246,6 @@ public class ModemService implements HubMessageListener {
         postDecodeLine("TX output set to: " + selected);
     }
 
-    public void connectHubBlocking(String url) throws Exception {
-        String trimmed = normalizeHubUrl(url);
-        if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("Hub URL cannot be blank");
-        }
-
-        disconnectHub();
-
-        status.setHubUrl(trimmed);
-        fireStatus();
-
-        connectLatch = new CountDownLatch(1);
-        hubClient = new HubClient(new URI(trimmed), "j-digi", ModemMain.version(), this);
-        hubClient.connect();
-
-        boolean connected = connectLatch.await(CONNECT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        if (!connected || !status.isHubConnected()) {
-            disconnectHub();
-            throw new IllegalStateException("Could not connect to hub at " + trimmed);
-        }
-
-        saveHubUrl(trimmed);
-    }
-
-    public void reconnectHubFromSetup(String url) {
-        try {
-            connectHubBlocking(url);
-            postDecodeLine("Hub connected: " + status.getHubUrl());
-        } catch (Exception ex) {
-            postDecodeLine("Reconnect failed: " + ex.getMessage());
-        }
-    }
-
-    public void disconnectHub() {
-        if (hubClient != null) {
-            try {
-                hubClient.close();
-            } catch (Exception ignored) {
-            } finally {
-                hubClient = null;
-            }
-        }
-
-        status.setHubConnected(false);
-        fireStatus();
-    }
-
     public void startAudio() throws LineUnavailableException {
         if (audioEngine.isRunning()) {
             status.setAudioRunning(true);
@@ -497,10 +301,6 @@ public class ModemService implements HubMessageListener {
         flushPrefsQuietly("RTTY reverse");
         fireStatus();
         postDecodeLine("RTTY reverse " + (reverse ? "enabled" : "disabled"));
-    }
-
-    public String getHubUrl() {
-        return status.getHubUrl();
     }
 
     public boolean isTransmitting() {
@@ -652,55 +452,6 @@ public class ModemService implements HubMessageListener {
         audioTxEngine.cancel();
     }
 
-    public void sendLogDraft(String callsign,
-                             String mode,
-                             String band,
-                             long frequency,
-                             String rstSent,
-                             String rstReceived,
-                             String exchange,
-                             String notes,
-                             double confidence) {
-
-        if (hubClient == null || !hubClient.isOpen()) {
-            postDecodeLine("Cannot send log draft: hub not connected");
-            return;
-        }
-
-        try {
-            hubClient.sendLogDraft(
-                    callsign,
-                    mode,
-                    band,
-                    frequency,
-                    rstSent,
-                    rstReceived,
-                    exchange,
-                    notes,
-                    confidence
-            );
-
-            postDecodeLine("LOG_ENTRY_DRAFT sent: "
-                    + (callsign == null || callsign.isBlank() ? "<no call>" : callsign));
-
-        } catch (Exception e) {
-            log.warn("Failed to send log draft: {}", e.getMessage(), e);
-            postDecodeLine("Failed to send log draft: " + e.getMessage());
-        }
-    }
-
-    /** Broadcast a just-persisted contest QSO so j-log's contest view (and any
-     *  other peer stations) refresh. No-ops silently when the hub isn't open —
-     *  the DB write has already happened so the QSO isn't lost. */
-    public void sendContestQsoSaved(com.jlog.model.QsoRecord q) {
-        if (hubClient == null || !hubClient.isOpen()) return;
-        try {
-            hubClient.sendContestQsoSaved(q);
-        } catch (Exception e) {
-            log.warn("Failed to broadcast QSO_SAVED: {}", e.getMessage());
-        }
-    }
-
     private DigitalTransmitter transmitterForMode(ModeType mode) {
         if (mode == null) {
             return null;
@@ -776,10 +527,7 @@ public class ModemService implements HubMessageListener {
         String method = PREFS.get(PREF_PTT_METHOD, "VOX").toUpperCase();
         switch (method) {
             case "HAMLIB":
-                // Reuse j-hub's station-level rigctld endpoint (delivered via
-                // JHUB_WELCOME / STATION_CONFIG). The legacy ptt.hamlib.host /
-                // .port prefs survive as a fallback for stand-alone use before
-                // a hub connection is established.
+                // rigctld endpoint from the saved ptt.hamlib.host / .port prefs.
                 String host = PREFS.get(PREF_PTT_HAMLIB_HOST, HamlibRigControl.DEFAULT_HOST);
                 int port = PREFS.getInt(PREF_PTT_HAMLIB_PORT, HamlibRigControl.DEFAULT_PORT);
                 log.info("PTT method = HAMLIB ({}:{})", host, port);
@@ -790,62 +538,6 @@ public class ModemService implements HubMessageListener {
                 log.info("PTT method = VOX (audio-sensing — rig/interface keys itself)");
                 return new NoOpRigControl();
         }
-    }
-
-    /**
-     * Apply a station snapshot from j-hub (either JHUB_WELCOME on connect or a
-     * live STATION_CONFIG broadcast after the operator saves settings in the
-     * j-hub web UI). The values land in Java Preferences so they survive
-     * disconnects — j-hub is the source of truth, but j-digi can still run
-     * stand-alone with the last-known config.
-     */
-    private void applyStationFromHub(com.google.gson.JsonObject msg) {
-        if (msg.has("station") && msg.get("station").isJsonObject()) {
-            com.google.gson.JsonObject st = msg.getAsJsonObject("station");
-            if (st.has("callsign")) {
-                String call = st.get("callsign").getAsString().trim().toUpperCase();
-                if (!call.isBlank()) hubCallsign = call;
-            }
-            if (st.has("gridSquare")) {
-                hubGridSquare = st.get("gridSquare").getAsString().trim().toUpperCase();
-            }
-            if (st.has("iaruRegion")) {
-                PREFS.put(PREF_BANDPLAN_REGION, st.get("iaruRegion").getAsString());
-            }
-            if (st.has("country")) {
-                PREFS.put(PREF_BANDPLAN_COUNTRY, st.get("country").getAsString());
-            }
-            if (st.has("language")) {
-                String lang = st.get("language").getAsString();
-                com.hamradio.modem.i18n.I18n.load(lang);
-            }
-            String tz = st.has("timezone") ? st.get("timezone").getAsString() : "UTC";
-            stationListener.accept(new String[]{ getMyCall(), getMyGrid(), tz });
-        }
-        // Station-level Hamlib endpoint (set in j-hub Rig Control) — j-digi
-        // mirrors it locally so PTT works even after the hub disconnects.
-        if (msg.has("rigHamlibHost")) {
-            PREFS.put(PREF_PTT_HAMLIB_HOST, msg.get("rigHamlibHost").getAsString());
-        }
-        if (msg.has("rigHamlibPort")) {
-            PREFS.putInt(PREF_PTT_HAMLIB_PORT, msg.get("rigHamlibPort").getAsInt());
-        }
-        flushPrefsQuietly("j-hub station config");
-    }
-
-    private String loadSavedHubUrl() {
-        String saved = PREFS.get(PREF_HUB_URL, DEFAULT_HUB_URL);
-        return normalizeHubUrl(saved);
-    }
-
-    private void saveHubUrl(String url) {
-        String normalized = normalizeHubUrl(url);
-        if (normalized.isEmpty()) {
-            return;
-        }
-
-        PREFS.put(PREF_HUB_URL, normalized);
-        flushPrefsQuietly("hub URL");
     }
 
     private ModeType loadSavedMode() {
@@ -873,19 +565,6 @@ public class ModemService implements HubMessageListener {
         } catch (Exception e) {
             log.warn("Failed to persist {}: {}", what, e.getMessage());
         }
-    }
-
-    private String normalizeHubUrl(String url) {
-        if (url == null) {
-            return DEFAULT_HUB_URL;
-        }
-
-        String trimmed = url.trim();
-        if (trimmed.isEmpty()) {
-            return DEFAULT_HUB_URL;
-        }
-
-        return trimmed;
     }
 
     private void handleAudioFrame(float[] samples) {
@@ -981,21 +660,6 @@ public class ModemService implements HubMessageListener {
         decodeHistory.addLast(line);
 
         Platform.runLater(() -> decodeListener.accept(line));
-
-        if (hubClient != null && hubClient.isOpen()) {
-            try {
-                hubClient.sendDecode(
-                        decode.getMode().name(),
-                        decode.getText(),
-                        decode.getFrequencyHz(),
-                        decode.getOffsetHz(),
-                        decode.getSnr(),
-                        decode.getConfidence()
-                );
-            } catch (Exception e) {
-                log.warn("Failed to send decode to hub: {}", e.getMessage());
-            }
-        }
     }
 
     private void postDecodeLine(String text) {
@@ -1025,196 +689,5 @@ public class ModemService implements HubMessageListener {
 
     private void fireStatus() {
         statusListener.accept(status);
-    }
-
-    @Override
-    public void onConnected() {
-        status.setHubConnected(true);
-        fireStatus();
-
-        CountDownLatch latch = connectLatch;
-        if (latch != null) {
-            latch.countDown();
-        }
-
-        Platform.runLater(() -> decodeListener.accept("Hub connected"));
-    }
-
-    @Override
-    public void onDisconnected() {
-        status.setHubConnected(false);
-        fireStatus();
-
-        CountDownLatch latch = connectLatch;
-        if (latch != null) {
-            latch.countDown();
-        }
-
-        if (!shuttingDown) {
-            Platform.runLater(() -> decodeListener.accept("Hub disconnected - waiting for reconnect"));
-        }
-    }
-
-    @Override
-    public void onMessage(JsonObject message) {
-        Platform.runLater(() -> handleHubMessage(message));
-    }
-
-    private void handleHubMessage(JsonObject msg) {
-        String type = msg.has("type") ? msg.get("type").getAsString() : "";
-
-        switch (type) {
-            case "JHUB_WELCOME" -> {
-                // Extract global station config from j-hub so we don't need our own copy
-                applyStationFromHub(msg);
-                decodeListener.accept(com.hamradio.modem.i18n.I18n.get("status.connected", getMyCall()));
-            }
-
-            case "STATION_CONFIG" -> {
-                // Live update — operator changed station or rig settings in j-hub UI
-                applyStationFromHub(msg);
-                // Re-apply rig control + refresh caption against the new bandplan region
-                audioTxEngine.setRigControl(buildConfiguredRigControl());
-                status.setBandplanCaption(captionFor(status.getRigFrequencyHz()));
-                fireStatus();
-            }
-
-            case "RIG_STATUS" -> {
-                HubRigStatus rig = GSON.fromJson(msg, HubRigStatus.class);
-                status.setRigFrequencyHz(rig.frequency);
-                status.setRigMode(rig.mode != null ? rig.mode : "");
-                status.setBandplanCaption(captionFor(rig.frequency));
-                fireStatus();
-            }
-
-            case "SPOT" -> {
-                HubSpot spot = GSON.fromJson(msg, HubSpot.class);
-                if (spots.size() >= 200) spots.remove(spots.size() - 1);
-                spots.add(0, spot);
-                spotListener.accept(spot);
-            }
-
-            case "SPOT_SELECTED" -> {
-                HubSpot spot = GSON.fromJson(msg, HubSpot.class);
-                if (msg.has("frequency")) {
-                    long hz = msg.get("frequency").getAsLong();
-                    status.setRigFrequencyHz(hz);
-                    status.setBandplanCaption(captionFor(hz));
-                }
-                if (msg.has("mode")) {
-                    status.setRigMode(msg.get("mode").getAsString());
-                }
-                fireStatus();
-                spotSelectedListener.accept(spot);
-            }
-
-            case "MACRO_LIST" -> {
-                macros.clear();
-                if (msg.has("macros")) {
-                    com.google.gson.reflect.TypeToken<List<HubMacro>> token =
-                        new com.google.gson.reflect.TypeToken<>(){};
-                    List<HubMacro> received = GSON.fromJson(msg.getAsJsonArray("macros"), token);
-                    if (received != null) macros.addAll(received);
-                }
-                macrosListener.accept(Collections.unmodifiableList(macros));
-            }
-
-            case "ROTOR_STATUS" -> {
-                RotorStatus rotor = GSON.fromJson(msg, RotorStatus.class);
-                rotorListener.accept(rotor);
-            }
-
-            case "CONTEST_ACTIVE"   -> contestListener.accept(msg);
-            case "CONTEST_INACTIVE" -> contestListener.accept(null);
-
-            case "MODEM_TX" -> {
-                // Inbound command from j-log's keyer: transmit the given text.
-                String text = msg.has("text") ? msg.get("text").getAsString() : "";
-                String mode = msg.has("mode") ? msg.get("mode").getAsString() : "";
-                if (text == null || text.isBlank()) break;
-                if (mode != null && !mode.isBlank()) {
-                    // Switch modes if requested (CW / RTTY / PSK31 / etc.)
-                    try { setMode(ModeType.valueOf(mode.trim().toUpperCase())); }
-                    catch (IllegalArgumentException ignored) {}
-                }
-                transmitText(text);
-            }
-
-            case "APP_LIST" -> {} // no-op
-
-            case "CONFIG_UPDATE" -> {
-                if (msg.has("settings")) {
-                    com.google.gson.JsonObject settings = msg.getAsJsonObject("settings");
-                    if (settings.has("fontSize")) {
-                        fontSizeListener.accept(settings.get("fontSize").getAsInt());
-                    }
-                    if (settings.has("fonts") && settings.get("fonts").isJsonObject()) {
-                        fontsListener.accept(settings.getAsJsonObject("fonts"));
-                    }
-                    if (settings.has("density")) {
-                        densityListener.accept(settings.get("density").getAsString());
-                    }
-                    // Audio device IDs from the j-hub Audio Setup Wizard — persist
-                    // and apply on the next audio engine restart.
-                    if (settings.has("audioInputDeviceId")) {
-                        String id = settings.get("audioInputDeviceId").getAsString();
-                        PREFS.put(PREF_AUDIO_INPUT, id);
-                        audioEngine.setPreferredInputDeviceId(id);
-                    }
-                    if (settings.has("audioOutputDeviceId")) {
-                        String id = settings.get("audioOutputDeviceId").getAsString();
-                        PREFS.put(PREF_AUDIO_OUTPUT, id);
-                        audioTxEngine.setPreferredOutputDeviceId(id);
-                    }
-                    if (settings.has("localSkimmerEnabled")) {
-                        boolean on = settings.get("localSkimmerEnabled").getAsBoolean();
-                        PREFS.putBoolean(PREF_LOCAL_SKIMMER, on);
-                        localSkimmer.setEnabled(on);
-                    }
-                    // PTT / CW settings now live in j-hub; persist + apply live
-                    boolean txDirty = false;
-                    if (settings.has("pttMethod")) {
-                        PREFS.put(PREF_PTT_METHOD, settings.get("pttMethod").getAsString());
-                        txDirty = true;
-                    }
-                    if (settings.has("cwKeyer")) {
-                        PREFS.put(PREF_CW_KEYER, settings.get("cwKeyer").getAsString());
-                    }
-                    if (settings.has("cwWpm")) {
-                        PREFS.putInt(PREF_CW_WPM, settings.get("cwWpm").getAsInt());
-                    }
-                    if (txDirty) {
-                        audioTxEngine.setRigControl(buildConfiguredRigControl());
-                    }
-                    flushPrefsQuietly("j-hub CONFIG_UPDATE");
-                }
-            }
-
-            case "SHUTDOWN" -> {
-                // J-Hub is shutting down — exit cleanly
-                log.info("SHUTDOWN command received from j-hub — exiting");
-                postDecodeLine("Shutdown command received from j-hub — closing");
-                Platform.runLater(Platform::exit);
-            }
-
-            default -> {
-                // ignore
-            }
-        }
-    }
-
-    @Override
-    public void onError(String errorMessage) {
-        String safeMessage = (errorMessage == null || errorMessage.isBlank())
-                ? "unknown error"
-                : errorMessage;
-
-        Platform.runLater(() -> decodeListener.accept("Hub error: " + safeMessage));
-        log.warn("Hub error: {}", safeMessage);
-
-        CountDownLatch latch = connectLatch;
-        if (latch != null) {
-            latch.countDown();
-        }
     }
 }

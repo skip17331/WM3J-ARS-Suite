@@ -4,24 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Role in the suite
 
-`j-digi` is the modem library behind the **J-Digi** surface of `ars-fx` (see `../ars-fx/CLAUDE.md`). It also
-builds a standalone JavaFX window (`ModemMain` / `Launcher`). `ars-fx` depends on this module and drives it through
-`com.ars.fx.data.DigiEngine`, which calls `ModemService.startupEmbedded()`.
+`j-digi` is the modem **library** behind the J-Digi surface of `ars-fx` (see `../ars-fx/CLAUDE.md`). It has no window,
+launcher or hub link of its own — the standalone UI, `ModemMain`, `HubClient` and the launcher scripts were removed;
+the only standalone module in the suite is J-Map. `ars-fx` drives the modem through `com.ars.fx.data.DigiEngine`, which
+calls `ModemService.startupEmbedded()` (audio capture only) and registers the decode, spectrum and status listeners.
+`ars-fx` supplies station identity, macros and rig control itself.
 
-- **Embedded** (normal): `startupEmbedded()` starts audio capture only and reports audio failures to the decode log.
-  There is no hub connection; `ars-fx` supplies station identity, macros and rig control itself.
-- **Standalone**: `startup()` first connects `HubClient` to a WebSocket hub (default `ws://127.0.0.1:8080`, pref
-  `hub.url`) and only then starts audio. That hub was the old standalone J-Hub, which has been retired, so on its
-  own the connect fails. Keep the code path working for tests, but do not build new features on it.
-
-## Build & Run
+## Build
 
 ```bash
-./run.sh                # mvn clean install, then java -jar on the newest target/j-digi-*.jar
+mvn install             # tests run; installs j-digi-<version>.jar to ~/.m2
 ```
 
 Java 21, Maven. `j-log-common` and `j-log-engine` must be in `~/.m2` first (`../build-release.sh` installs them).
-The fat jar carries JavaFX, so no `--module-path` is needed.
 
 ## Status
 
@@ -41,13 +36,12 @@ AX.25 WAV export). Bump to 1.0-quality claims gates on on-air testing against re
 | `SignalClassifier` | Rolling ~16 s audio buffer; classifies the mode when the operator clicks a signal in the waterfall |
 | `LocalSkimmer` / `SkimmerSpotPublisher` | Local CW skimmer that publishes spots |
 | `AudioTxEngine` | TX state machine; emits PCM for outbound CW/RTTY/PSK31/Olivia/MFSK16/Domino-EX |
-| `HubClient` | Legacy WebSocket link used only by standalone `startup()` |
 
 Decoders run on the audio thread; the UI receives decoded text on the JavaFX Application Thread via `Platform.runLater`.
 
 ## PTT / rig keying
 
-Two keying methods; pick one in Preferences (embedded: in the suite's J-Hub pages).
+Two keying methods, chosen by the `ptt.method` preference.
 
 | Method | What happens | Use when |
 |---|---|---|
@@ -63,8 +57,7 @@ CI-V control (`CivRigControl`/`CivEngine`) was removed; Hamlib's `icom` backend 
 | `ptt.hamlib.host` | hostname / IP | `127.0.0.1` |
 | `ptt.hamlib.port` | TCP port | `4532` |
 
-Embedded, `ars-fx` supplies these from its J-Hub settings; the Java Preferences
-(`com.hamradio.modem.ModemService`) are the standalone store. Wire protocol is the plain rigctld set; a non-zero
+These live in Java Preferences (`com.hamradio.modem.ModemService`). Wire protocol is the plain rigctld set; a non-zero
 `RPRT` surfaces as an `IOException` through `AudioTxEngine`'s `onError`.
 
 ## CW keyer — audio vs CAT
@@ -78,17 +71,12 @@ Embedded, `ars-fx` supplies these from its J-Hub settings; the Java Preferences
 the `SourceDataLine`; CAT sends `\stop_morse\n`). CAT completion timing is estimated from PARIS
 (`length × 10 × 1200/wpm` ms + 200 ms) because `rigctld` returns `RPRT 0` as soon as it queues the command.
 
-## Macros
-
-`MacroBar` and `HubMacro` carry the F1–F8 macros. In the suite they are the same editable macros as J-Log, built from
-station data with `{TAGS}` (see `ars-fx` `MacroConfig`), plus a DX call box for `{CALL}`.
-
 ## Band plan caption
 
 `ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-common) and writes e.g. "20m / CW — CW (US)"
 into `ModemStatus.bandplanCaption`; `bandFromRigHz` also delegates to it, so band names match the log and cluster.
 Region and country prefs: `bandplan.region` (`IARU-R1/R2/R3`, default `IARU-R2`) and `bandplan.country` (`US` or blank).
-In the suite the region comes from the Station "IARU region" setting.
+The suite's own band plan region is set by `ars-fx` (Station ▸ IARU region); this module reads its own `bandplan.region` pref.
 
 ## State and persistence
 
@@ -99,15 +87,12 @@ Mode, audio devices, PTT and keyer settings persist via Java `Preferences` (typi
 
 | Package | Responsibility |
 |---|---|
-| `com.hamradio.modem` | `ModemMain`, `Launcher`, `ModemService`, `CrashHandler` |
+| `com.hamradio.modem` | `ModemService` |
 | `com.hamradio.modem.audio` | Audio device discovery, `AudioEngine` capture thread |
-| `com.hamradio.modem.dsp` | FFT, window functions, Goertzel, Viterbi, `SignalClassifier`, `LocalSkimmer`, `MultiCarrierDecoder` |
+| `com.hamradio.modem.dsp` | FFT, window functions, Goertzel, Viterbi, `SignalClassifier`, `LocalSkimmer`, `MultiCarrierDecoder`, `CallsignScorer` |
 | `com.hamradio.modem.mode` | One class per mode — CW, RTTY, PSK31, Olivia, MFSK16, Domino-EX, AX.25 |
 | `com.hamradio.modem.tx` | Transmitters, `AudioTxEngine`, `HamlibRigControl`, `HamlibCwKeyer`, `NoOpRigControl`, `WavFileWriter` |
-| `com.hamradio.modem.hub` | `HubClient` legacy WebSocket wrapper |
-| `com.hamradio.modem.i18n` | `I18n` |
-| `com.hamradio.modem.ui` | `MainWindow`, `WaterfallPane`, `SpectrumPane`, `MacroBar`, `LogEntryPane`, `ContestEntryPane`, `DxSpotPane`, `RightPanel`, `SplashScreen` |
-| `com.hamradio.modem.model` | Decode/spot/rig-status POJOs |
+| `com.hamradio.modem.model` | `ModemStatus`, `ModeType`, `DecodeMessage`, `SignalSnapshot` |
 
 ## Loopback testing
 
@@ -121,6 +106,8 @@ Depends on `j-log-engine` and `j-log-common` for shared types. Build them first 
 
 ## What's NOT here
 
-- No `~/.j-digi/` directory — state lives in Java Preferences.
-- No FXML — the UI is built programmatically.
-- No bundled data files beyond `logback.xml` and icons.
+- No window, FXML or launcher — the UI belongs to `ars-fx`.
+- No hub connection and no `~/.j-digi/` directory — state lives in Java Preferences.
+- No bundled data files beyond `logback.xml`.
+- The CW skimmer's callsign-to-SPOT publisher was removed with the hub link; `LocalSkimmer`, `MultiCarrierDecoder` and
+  `CallsignScorer` remain and the decoder still accepts a callsign listener.

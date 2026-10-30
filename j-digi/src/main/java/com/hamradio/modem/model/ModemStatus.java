@@ -4,12 +4,10 @@ import com.hamradio.modem.tx.TxState;
 
 public class ModemStatus {
 
-    private boolean hubConnected;
     private boolean audioRunning;
 
     private ModeType mode = ModeType.RTTY;
 
-    private String hubUrl = "";
     private long rigFrequencyHz;
     private String rigMode = "";
     /** Cached bandplan caption for the current rig frequency
@@ -34,14 +32,6 @@ public class ModemStatus {
     private String txStatusText = "Idle";
     private String txTextPreview = "";
 
-    public boolean isHubConnected() {
-        return hubConnected;
-    }
-
-    public void setHubConnected(boolean hubConnected) {
-        this.hubConnected = hubConnected;
-    }
-
     public boolean isAudioRunning() {
         return audioRunning;
     }
@@ -56,14 +46,6 @@ public class ModemStatus {
 
     public void setMode(ModeType mode) {
         this.mode = mode;
-    }
-
-    public String getHubUrl() {
-        return hubUrl;
-    }
-
-    public void setHubUrl(String hubUrl) {
-        this.hubUrl = hubUrl;
     }
 
     public long getRigFrequencyHz() {

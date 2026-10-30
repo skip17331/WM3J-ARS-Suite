@@ -274,7 +274,7 @@ public class MultiCarrierDecoder {
      * Phase B promotion event — a callsign was extracted from a
      * channel's decoded text and scored above the emit threshold.
      * Phase C will subscribe to this and translate each one into a
-     * {@code SPOT} message published to j-hub with {@code
+     * {@code SPOT} message with {@code
      * source:"LOCAL_SKIMMER"} (with a time-based dedup window so the
      * same call doesn't get spotted twice in five minutes).
      */

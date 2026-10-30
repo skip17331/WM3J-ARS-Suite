@@ -5,7 +5,8 @@ modules are libraries it embeds.
 
 ## What it is
 
-One JavaFX 21 / Java 21 application that runs the whole shack. Two ways to run it from the **same jar**:
+One JavaFX 21 / Java 21 application that runs the whole shack. Two ways to run it from the **same jar**. (The `j-digi` and `j-bridge` Maven modules are libraries with no
+standalone app of their own.)
 
 - **Docked** (default) — one window, a dock on the left switches between surfaces. Entry: `com.ars.fx.Launcher`.
 - **Loose** — each module in its own window, all attached to a background hub (`launch/run-loose.sh`, see
@@ -49,8 +50,8 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 
 | Library | How ars-fx uses it |
 |---|---|
-| `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio only, no legacy hub link) |
-| `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`); only the listener and `model` classes are used |
+| `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only); a library with no window or launcher of its own |
+| `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`); a library with no standalone app |
 | `j-log-engine` | SQLite DAOs, contest plugins/scoring, Cabrillo export, `DxccResolver` |
 | `j-log-common` | Shared models and `BandplanLoader` |
 
