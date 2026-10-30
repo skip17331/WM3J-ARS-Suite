@@ -11,7 +11,8 @@ import com.hamradio.modem.ModemService;
  *
  * <p>The modem's PTT follows the J-Hub rig settings: {@code rig.ptt} (VOX keys nothing; CAT, RTS and DTR all go
  * through Hamlib, whose daemon does the keying) and the {@code rig.rigctldHost} / {@code rig.rigctldPort} daemon
- * endpoint. It is applied when the modem is created and again whenever one of those settings changes.
+ * endpoint. It is applied when the modem is created and again whenever one of those settings changes. The rig's
+ * dial frequency and mode ({@link RigClient}) are passed on too, with 0 Hz while the rig is not connected.
  */
 public final class DigiEngine {
     private DigiEngine() {}
@@ -28,6 +29,11 @@ public final class DigiEngine {
             if (svc != null) {
                 syncPtt();
                 HubConfig.addChangeListener(key -> { if ("*".equals(key) || key.startsWith("rig.")) syncPtt(); });
+                // the modem needs the dial frequency and mode (band-plan caption, "Rig freq" readout, decoders)
+                RigClient.getInstance().addListener(st -> {
+                    ModemService m = svc;
+                    if (m != null) m.setRigState(st.connected() ? st.freqHz() : 0L, st.mode());
+                });
             }
         }
         return svc;

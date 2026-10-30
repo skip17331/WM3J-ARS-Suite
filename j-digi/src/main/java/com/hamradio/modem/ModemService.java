@@ -55,8 +55,6 @@ public class ModemService {
     private static final String PREF_PTT_HAMLIB_PORT = "ptt.hamlib.port";
     private static final String PREF_CW_KEYER     = "cw.keyer";            // AUDIO | HAMLIB
     private static final String PREF_CW_WPM       = "cw.wpm";
-    private static final String PREF_BANDPLAN_REGION = "bandplan.region";  // IARU-R1 | IARU-R2 | IARU-R3
-    private static final String PREF_BANDPLAN_COUNTRY = "bandplan.country"; // US | (none)
     private static final String PREF_LOCAL_SKIMMER   = "skimmer.local.enabled";
 
     private final AudioEngine audioEngine = new AudioEngine();
@@ -166,6 +164,23 @@ public class ModemService {
 
     public void setStatusListener(Consumer<ModemStatus> statusListener) {
         this.statusListener = statusListener != null ? statusListener : s -> {};
+    }
+
+    /**
+     * Tell the modem where the rig is tuned. The host calls this whenever its rig state changes; listeners are only
+     * notified when the frequency or mode actually changed, so it is cheap to call on every poll.
+     *
+     * @param frequencyHz dial frequency in Hz, or 0 when the rig is not connected
+     * @param mode        the rig's mode name (e.g. {@code USB}), or null
+     */
+    public void setRigState(long frequencyHz, String mode) {
+        long hz = Math.max(0L, frequencyHz);
+        String m = mode == null ? "" : mode;
+        if (hz == status.getRigFrequencyHz() && m.equals(status.getRigMode())) return;
+        status.setRigFrequencyHz(hz);
+        status.setRigMode(m);
+        status.setBandplanCaption(captionFor(hz));
+        fireStatus();
     }
 
     /** Convert current rig frequency to ham band string (e.g. "20m"). Empty if unrecognised. */
@@ -466,16 +481,11 @@ public class ModemService {
         };
     }
 
-    /** "20m / CW — CW (US)" style caption for the current rig frequency.
-     *  Empty when the rig is on a non-amateur frequency or hasn't reported
-     *  one yet — UI binds this directly to a status-bar label. Region /
-     *  country come from prefs so operators outside R2 see the correct
-     *  band edges. */
+    /** "20m / CW — CW (US)" style caption for a rig frequency, from the shared band plan's active region. Empty when
+     *  the rig is on a non-amateur frequency or hasn't reported one yet. */
     private static String captionFor(long hz) {
         if (hz <= 0) return "";
-        String region  = PREFS.get(PREF_BANDPLAN_REGION,  BandplanLoader.DEFAULT_REGION);
-        String country = PREFS.get(PREF_BANDPLAN_COUNTRY, BandplanLoader.DEFAULT_COUNTRY);
-        BandplanLoader.Description d = BandplanLoader.getInstance().describe(hz, region, country);
+        BandplanLoader.Description d = BandplanLoader.getInstance().describe(hz);
         return d == null ? "" : d.toString();
     }
 

@@ -75,13 +75,14 @@ transmission is under way). `ars-fx` calls it from `DigiEngine.syncPtt()` so J-D
 the `SourceDataLine`; CAT sends `\stop_morse\n`). CAT completion timing is estimated from PARIS
 (`length × 10 × 1200/wpm` ms + 200 ms) because `rigctld` returns `RPRT 0` as soon as it queues the command.
 
-## Band plan caption
+## Rig state and band plan caption
 
-`ModemService.captionFor(hz)` consults the shared `BandplanLoader` (j-log-common) and builds a "20m / CW — CW (US)"
-string for `ModemStatus.bandplanCaption`; `bandFromRigHz()` also delegates to the band plan. Both work from
-`ModemStatus.getRigFrequencyHz()`, which only the removed hub link used to set. **Nothing in the embedded app feeds the
-rig frequency or mode into the modem today**, so the caption stays empty and `ars-fx`'s J-Digi "Rig freq" shows "—".
-Region and country prefs: `bandplan.region` (`IARU-R1/R2/R3`, default `IARU-R2`) and `bandplan.country` (`US` or blank).
+The host tells the modem where the rig is tuned with `ModemService.setRigState(frequencyHz, mode)` (0 Hz when the rig is
+not connected); it only notifies the status listener when the frequency or mode changed, so it is cheap to call on every
+poll. `ars-fx` does this from `DigiEngine`, which listens to `RigClient`. The frequency feeds `ModemStatus` (J-Digi's
+"Rig freq" readout), the decoders, `bandFromRigHz()` and the caption: `captionFor(hz)` asks the shared `BandplanLoader`
+(j-log-common) for e.g. "20m / CW — CW (US)" and stores it in `ModemStatus.bandplanCaption`. The caption follows the
+band plan's *active region* (set by `ars-fx` from Station ▸ IARU region), not a preference of this module.
 
 ## State and persistence
 
