@@ -97,7 +97,8 @@ public final class MacroBar {
                     sendText.accept("▶ voice " + m.label() + " — no audio set (J-Hub ▸ Data ▸ Macros)");
                 }
             } else {
-                com.ars.fx.data.TxController.macroText(modeSup.get(), expand(m.text(), callSup.get()), sendText);   // CW via the rig keyer
+                String text = textFor(m.text(), callSup.get(), sendText);          // null = a needed station field is empty (already reported)
+                if (text != null) com.ars.fx.data.TxController.macroText(modeSup.get(), text, sendText);   // CW via the rig keyer
             }
         };
     }
@@ -108,8 +109,14 @@ public final class MacroBar {
         return m.equals("USB") || m.equals("LSB") || m.contains("SSB") || m.equals("AM") || m.equals("FM")
                 || m.contains("PHONE") || m.contains("VOICE");
     }
-    public static String expand(String msg, String call) {
-        String c = (call == null || call.isBlank()) ? "OM" : call.trim().toUpperCase();
-        return msg == null ? "" : msg.replace("{CALL}", c);
+    public static String expand(String msg, String call) { return MacroConfig.expand(msg, call).text(); }
+
+    /** The macro text with {CALL} and the station placeholders filled in. When a field it needs is empty, nothing is sent:
+     *  this reports which one to {@code report} and returns null. */
+    public static String textFor(String template, String workedCall, Consumer<String> report) {
+        MacroConfig.Expanded x = MacroConfig.expand(template, workedCall);
+        if (x.ok()) return x.text();
+        if (report != null) report.accept("✗ not sent — this macro needs " + String.join("; ", x.missing()) + ". Set it in J-Hub.");
+        return null;
     }
 }

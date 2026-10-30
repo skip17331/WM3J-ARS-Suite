@@ -31,10 +31,6 @@ public final class JDigiView {
     private static final String[][] TABS = {
             {"CW", "CW"}, {"RTTY", "RTTY"}, {"PSK31", "PSK31"}, {"Olivia", "OLIVIA"},
             {"MFSK16", "MFSK16"}, {"DominoEX", "DOMINOEX"}, {"AX.25", "AX25"}};
-    private static final String[][] MACROS = {
-            {"CQ", "CQ CQ CQ DE WM3J WM3J WM3J K"}, {"TU", "TU 73 DE WM3J"}, {"Name", "MY NAME IS MIKE"},
-            {"QTH", "MY QTH IS FM19"}, {"73", "73 GL DE WM3J K"}, {"BRB", "BRB BK"}};
-
     public static Region build() {
         Region dock = Shell.dock("digi");
         ModemService svc = DigiEngine.get();
@@ -83,15 +79,16 @@ public final class JDigiView {
         stop.setOnMouseClicked(e -> { if (svc != null) svc.cancelTransmit(); });
         HBox txRow = new HBox(12, tx, stop, send); txRow.setAlignment(Pos.CENTER_LEFT);
 
-        // macros → transmit
-        HBox macros = new HBox(6); macros.setAlignment(Pos.CENTER_LEFT);
-        for (String[] mc : MACROS) {
-            VBox b = new VBox(2, lbl(mc[0], "jl-macro-fk"), lbl(mc[1].length() > 14 ? mc[1].substring(0, 14) + "…" : mc[1], "jl-macro-ml"));
-            b.getStyleClass().add("jl-macro"); b.setStyle("-fx-cursor:hand;"); HBox.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-            final String text = mc[1];
-            b.setOnMouseClicked(e -> { if (svc != null) svc.transmitText(text); });
-            macros.getChildren().add(b);
-        }
+        // macros → transmit: the same editable F1–F8 as J-Log (J-Hub ▸ Data ▸ Macros), filled from your station data
+        TextField dxCall = new TextField(); dxCall.setPromptText("DX call"); dxCall.getStyleClass().add("jhub-mini-field");
+        dxCall.setMinWidth(90); dxCall.setPrefWidth(100); dxCall.setMaxWidth(110);
+        com.ars.fx.shell.Tips.tip(dxCall, "The station you are working — fills {CALL} in a macro (OM when empty)");
+        txRow.getChildren().add(0, dxCall);
+        Node macros = MacroBar.row(i -> {
+            com.ars.fx.data.MacroConfig.Macro m = com.ars.fx.data.MacroConfig.get(i);
+            String text = MacroBar.textFor(m.text(), dxCall.getText(), msg -> decode.appendText(msg + "\n"));   // null = a field is empty (reported)
+            if (text != null && svc != null) svc.transmitText(text);
+        });
 
         // bind live listeners (latest build wins)
         if (svc != null) {

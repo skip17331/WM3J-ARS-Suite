@@ -137,7 +137,9 @@ public final class JLogCockpit {
                 else
                     com.ars.fx.data.TxController.macroVoice(m.audio(), msg -> rx.appendText(msg + "\n"));   // keys the rig, plays the file, unkeys
             } else {
-                com.ars.fx.data.TxController.macroText(mode.getText(), expandMacro(m.text(), call.getText()), msg -> rx.appendText(msg + "\n"));   // CW via the rig keyer
+                Consumer<String> say = msg -> rx.appendText(msg + "\n");
+                String text = MacroBar.textFor(m.text(), call.getText(), say);      // fills {CALL} and your station data; null = a field is empty
+                if (text != null) com.ars.fx.data.TxController.macroText(mode.getText(), text, say);   // CW via the rig keyer
             }
         };
 
@@ -271,10 +273,6 @@ public final class JLogCockpit {
     }
     // F-key macros are defined in J-Hub ▸ Data (MacroConfig); J-Log just renders + fires them.
     /** Expand {CALL} in a macro from the current callsign field (blank → "OM"). */
-    private static String expandMacro(String msg, String call) {
-        String c = (call == null || call.isBlank()) ? "OM" : call.trim().toUpperCase();
-        return msg.replace("{CALL}", c);
-    }
     /** Phone modes play the voice keyer; everything else sends macro text. */
     private static boolean isPhone(String mode) {
         if (mode == null) return false;

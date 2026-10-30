@@ -593,18 +593,18 @@ public final class JHubDashboard {
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
 
         VBox conn = section("CONNECTION",
-            cfgRow("Transceiver model", null, cInput("rig.model", "Icom IC-7610")),
+            cfgRow("Transceiver model", null, cInputPrompt("rig.model", "e.g. Icom IC-7610")),
             cfgRow("Hamlib model #", "rigctld -m (run: rigctl --list)", cInput("rig.hamlibModel", "")),
             cfgRow("Interface", null, cSeg("rig.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Port", null, cInput("rig.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
-            cfgRow("CI-V address", "Icom civ address (hex)", cInput("rig.civ", "0x98")),
+            cfgRow("CI-V address", "Icom civ address (hex)", cInputPrompt("rig.civ", "e.g. 0x98")),
             cfgRow("Poll interval", null, cUnit("rig.poll", "12", "ms")),
             cfgRow("rigctld host", "Hamlib rig daemon J-Hub connects to", cInputApply("rig.rigctldHost", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("rigctld port", null, cInputApply("rig.rigctldPort", "4532", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox ptt = section("PTT & KEYING",
             cfgRow("PTT method", null, cSeg("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0)),
-            cfgRow("CW keyer", null, cInput("rig.keyer", "Winkeyer USB")),
+            cfgRow("CW keyer", null, cInputPrompt("rig.keyer", "e.g. Winkeyer USB")),
             cfgRow("TX delay", null, cUnit("rig.txDelay", "30", "ms")));
         VBox beh = section("BEHAVIOR",
             cfgRow("Auto band-follow", null, cToggle("rig.autoBandFollow", true)),
@@ -630,15 +630,16 @@ public final class JHubDashboard {
 
         VBox id = section("IDENTITY",
             cfgRow("Callsign", null, cInputApply("station.call", "WM3J", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("Operator name", null, cInput("station.name", "Mike")),
+            cfgRow("Operator name", null, cInputPrompt("station.name", "your first name")),
+            cfgRow("QTH", "city, state", cInputPrompt("station.qth", "e.g. Baltimore MD")),
             cfgRow("Grid square", "6-char Maidenhead locator", cInput("station.grid", "FM19")));
         VBox loc = section("LOCATION",
-            cfgRow("Latitude", "decimal degrees (N+)", cInput("station.lat", "39.745583")),
-            cfgRow("Longitude", "decimal degrees (E+)", cInput("station.lon", "-76.959714")),
+            cfgRow("Latitude", "decimal degrees (N+)", cInputPrompt("station.lat", "decimal degrees, N+")),
+            cfgRow("Longitude", "decimal degrees (E+)", cInputPrompt("station.lon", "decimal degrees, E+")),
             cfgRow("Elevation", "height above sea level — shown in the unit chosen under Units", elevationField()));
         VBox zones = section("ZONES & AWARDS",
-            cfgRow("ITU zone", null, cInput("station.ituZone", "8")),
-            cfgRow("CQ zone", null, cInput("station.cqZone", "5")),
+            cfgRow("ITU zone", null, cInputPrompt("station.ituZone", "your ITU zone")),
+            cfgRow("CQ zone", null, cInputPrompt("station.cqZone", "your CQ zone")),
             cfgRow("IARU region", null, cSeg("station.iaru", new String[]{"R1","R2","R3"}, 1)),
             cfgRow("Default TX power", null, cUnit("station.txPower", "100", "W")));
 
@@ -688,7 +689,7 @@ public final class JHubDashboard {
                 statCell("ELEVATION","12","°",false), statCell("ROTCTLD","127.0.0.1:4533","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
-            cfgRow("Rotor model", null, cInput("rotor.model", "Yaesu G-1000DXA")),
+            cfgRow("Rotor model", null, cInputPrompt("rotor.model", "e.g. Yaesu G-1000DXA")),
             cfgRow("Hamlib model #", "rotctld -m (run: rotctl --list)", cInput("rotor.hamlibModel", "")),
             cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
             cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
@@ -711,7 +712,7 @@ public final class JHubDashboard {
                 statCell("SWR","1.2:1","",false), statCell("AMPCTLD","127.0.0.1:4534","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
-            cfgRow("Amplifier model", null, cInput("amp.model", "Elecraft KPA-1500")),
+            cfgRow("Amplifier model", null, cInputPrompt("amp.model", "e.g. Elecraft KPA-1500")),
             cfgRow("Hamlib model #", "ampctld -m (run: ampctl --list)", cInput("amp.hamlibModel", "")),
             cfgRow("Interface", null, cSeg("amp.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Serial port", null, cInput("amp.port", "/dev/ttyACM0")),
@@ -733,9 +734,9 @@ public final class JHubDashboard {
                 statCell("ANTENNA","20m beam","",false), statCell("PORTS","6","",false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         VBox conn = section("CONNECTION",
-            cfgRow("Switch model", null, cInput("ant.model", "4O3A Antenna Genius")),
+            cfgRow("Switch model", null, cInputPrompt("ant.model", "e.g. 4O3A Antenna Genius")),
             cfgRow("Interface", null, cSeg("ant.interface", new String[]{"USB","Serial","Network"}, 2)),
-            cfgRow("Host / IP", null, cInput("ant.host", "192.168.1.50")),
+            cfgRow("Host / IP", null, cInputPrompt("ant.host", "e.g. 192.168.1.50")),
             cfgRow("Port", null, cInput("ant.port", "9007")),
             cfgRow("Follow rig band", "select antenna by band", cToggle("ant.followBand", true)));
         String[][] ports = {{"1","160m dipole","160m"},{"2","80m vertical","80m"},{"3","20m beam","20–10m"},
@@ -969,11 +970,12 @@ public final class JHubDashboard {
     }
 
     private static VBox macroSection() {
+        TextField[] lastMacroText = {null};
         VBox card = new VBox(); card.getStyleClass().add("cfg-card");
         // column header
         Label hk = lbl("KEY", "cfg-lh"); hk.setMinWidth(34);
         Label hl = lbl("LABEL", "cfg-lh"); hl.setMinWidth(110);
-        Label ht = lbl("CW / RTTY TEXT  ·  {CALL} = worked station", "cfg-lh"); HBox.setHgrow(ht, Priority.ALWAYS); ht.setMaxWidth(Double.MAX_VALUE);
+        Label ht = lbl("CW / RTTY TEXT  ·  fields are filled in when sent", "cfg-lh"); HBox.setHgrow(ht, Priority.ALWAYS); ht.setMaxWidth(Double.MAX_VALUE);
         Label ha = lbl("SSB VOICE FILE", "cfg-lh"); ha.setMinWidth(210);
         HBox header = new HBox(10, hk, hl, ht, ha, spacer(82)); header.getStyleClass().add("cfg-row"); header.setAlignment(Pos.CENTER_LEFT);
         card.getChildren().add(header);
@@ -984,6 +986,7 @@ public final class JHubDashboard {
             Label fk = lbl("F" + (i + 1), "cfg-lt"); fk.setMinWidth(34);
             TextField labelF = macroField(m.label(), 110);
             TextField textF  = macroField(m.text(), -1);
+            textF.focusedProperty().addListener((o, was, now) -> { if (now) lastMacroText[0] = textF; });   // where a clicked tag is inserted
             TextField audioF = macroField(m.audio(), 210); audioF.setPromptText("none — text only");
             Label browse = lbl("Browse…", "cfg-select"); browse.setMinWidth(82); browse.setStyle("-fx-cursor:hand;");
 
@@ -1004,9 +1007,42 @@ public final class JHubDashboard {
             card.getChildren().add(row);
         }
         if (!card.getChildren().isEmpty()) card.getChildren().get(card.getChildren().size() - 1).setStyle("-fx-border-width:0;");
-        return new VBox(6, lbl("STATION MACROS · F1–F8", "cfg-sec"),
-                lbl("Shared with J-Log. CW/RTTY/digital modes send the text message; SSB and other phone modes play the voice file.", "cfg-lh"),
-                card);
+        // the tags: every setting on the Station / Rig / Rotor / Amplifier / Antenna pages, with what it is worth right now
+        Label hintLbl = lbl("Click a tag to put it into the macro text box you are editing. {CALL} is the station you are working.", "cfg-lh");
+        hintLbl.setWrapText(true); hintLbl.setMaxWidth(Double.MAX_VALUE);
+        VBox palette = new VBox(10, hintLbl);
+        String curGroup = null; javafx.scene.layout.FlowPane flow = null;
+        for (com.ars.fx.data.MacroConfig.Tag g : com.ars.fx.data.MacroConfig.TAGS) {
+            if (!g.group().equals(curGroup)) {
+                curGroup = g.group();
+                flow = new javafx.scene.layout.FlowPane(6, 6);
+                palette.getChildren().addAll(lbl(curGroup, "cfg-lh"), flow);
+            }
+            String v = com.ars.fx.data.MacroConfig.value(g);
+            Label chip = lbl(g.tag() + (v.isEmpty() ? "  ⚠ not set" : "  " + v.toUpperCase()), "jl-clearbtn");
+            chip.setStyle("-fx-cursor:hand;-fx-padding:3 8;-fx-background-color:-ars-surface-2;-fx-background-radius:6;"
+                    + (v.isEmpty() ? "-fx-text-fill:-ars-warn;" : ""));
+            com.ars.fx.shell.Tips.tip(chip, g.tag() + " — " + g.desc() + "\n" + (v.isEmpty() ? "Not set yet: a macro using it will not be sent until you fill it in." : "Currently: " + v.toUpperCase()));
+            chip.setOnMouseClicked(e -> {
+                TextField tf = lastMacroText[0];
+                if (tf == null) { hintLbl.setText("Click into a macro's text box first, then click the tag."); return; }
+                tf.insertText(tf.getCaretPosition(), g.tag()); tf.requestFocus();
+            });
+            flow.getChildren().add(chip);
+        }
+        VBox tagsCard = new VBox(palette); tagsCard.getStyleClass().add("cfg-card"); tagsCard.setPadding(new Insets(12, 16, 12, 16));
+        Label rebuild = cfgBtn("Rebuild from station data");
+        rebuild.setOnMouseClicked(e -> Confirm.show(rebuild, "Rebuild the macros?",
+                "Puts the standard macro texts back on F1–F8, written with {MYCALL}, {CALL} and the other fields so they use your Station data. "
+                        + "Your voice-file choices are kept; any text you edited is replaced.",
+                new Confirm.Choice("Cancel", false, null),
+                new Confirm.Choice("Rebuild", true, () -> { com.ars.fx.data.MacroConfig.resetToDefaults(); Shell.navigate("hubdata"); })));
+        HBox tools = new HBox(14, new Region(), rebuild); tools.setAlignment(Pos.CENTER_RIGHT); HBox.setHgrow(tools.getChildren().get(0), Priority.ALWAYS);
+        Label macroDesc = lbl("Shared with J-Log. CW/RTTY/digital modes send the text message; SSB and other phone modes play the voice file. "
+                + "A field is filled from J-Hub ▸ Station (and Rig control) when the macro is sent — a macro that needs one you have not filled in is not sent.", "cfg-lh");
+        macroDesc.setWrapText(true); macroDesc.setMaxWidth(Double.MAX_VALUE);
+        return new VBox(6, lbl("STATION MACROS · F1–F8", "cfg-sec"), macroDesc, tools, card,
+                lbl("MACRO TAGS", "cfg-sec"), tagsCard);
     }
     private static TextField macroField(String val, double w) {
         TextField t = new TextField(val == null ? "" : val);
@@ -1033,6 +1069,8 @@ public final class JHubDashboard {
         return new VBox(6, lbl(name, "cfg-sec"), card);
     }
     static HBox cfgRow(String title, String hint, Node control) {
+        Object tag = control.getProperties().get("macroTag");
+        if (tag != null) hint = (hint == null ? "" : hint + "  ·  ") + "macro tag " + tag;      // every setting a macro can use says so
         VBox lblBox = new VBox(2, lbl(title, "cfg-lt")); if (hint != null) lblBox.getChildren().add(lbl(hint, "cfg-lh"));
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox row = new HBox(20, lblBox, sp, control); row.getStyleClass().add("cfg-row"); row.setAlignment(Pos.CENTER_LEFT);
@@ -1045,21 +1083,40 @@ public final class JHubDashboard {
         TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, def)); t.getStyleClass().add("jhub-mini-field");
         t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);
         t.textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
-        return t;
+        return tagged(t, key);
+    }
+    /** Marks a settings control with the macro tag its value is available as: the row shows it, and the control's
+     *  tooltip names it. A no-op for settings that have no tag. */
+    private static <T extends Node> T tagged(T n, String key) {
+        com.ars.fx.data.MacroConfig.Tag g = com.ars.fx.data.MacroConfig.tagForKey(key);
+        if (g == null) return n;
+        n.getProperties().put("macroTag", g.tag());
+        Object prev = n.getProperties().get("tip");
+        com.ars.fx.shell.Tips.tip(n, (prev instanceof String ps && !ps.isBlank() ? ps + "\n" : "") + "Macro tag " + g.tag() + " — put it in a macro to send this value");
+        return n;
+    }
+    /** Free-text field bound to a HubConfig key whose example is shown as grey prompt text — the field is genuinely
+     *  empty until the operator types, so what is displayed is what is stored (and what macros will send). */
+    private static TextField cInputPrompt(String key, String example) {
+        TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, "")); t.getStyleClass().add("jhub-mini-field");
+        t.setPromptText(example);
+        t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);
+        t.textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
+        return tagged(t, key);
     }
     /** Free-text field bound to a HubConfig key that also runs {@code apply} on commit (focus-lost / Enter). */
     private static TextField cInputApply(String key, String def, Runnable apply) {
         TextField t = cInput(key, def);
         t.focusedProperty().addListener((o, was, now) -> { if (!now) apply.run(); });
         t.setOnAction(e -> apply.run());
-        return t;
+        return tagged(t, key);
     }
     /** Numeric/short field + unit, bound to a HubConfig key. */
     private static Region cUnit(String key, String def, String unit) {
         TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, def)); t.getStyleClass().add("jhub-mini-field");
         t.setMinWidth(120); t.setMaxWidth(120); t.setAlignment(Pos.CENTER_RIGHT);
         t.textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
-        HBox h = new HBox(8, t, lbl(unit, "cfg-sval-u")); h.setAlignment(Pos.CENTER_LEFT); return h;
+        HBox h = new HBox(8, t, lbl(unit, "cfg-sval-u")); h.setAlignment(Pos.CENTER_LEFT); return tagged(h, key);
     }
     /** Dropdown bound to a HubConfig key (current value injected if not in the list). */
     private static Region cSelect(String key, String def, String... opts) {
@@ -1068,21 +1125,21 @@ public final class JHubDashboard {
         if (!c.getItems().contains(cur)) c.getItems().add(0, cur);
         c.setValue(cur); c.setMinWidth(220); c.setMaxWidth(260);
         c.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
-        return c;
+        return tagged(c, key);
     }
     /** Segmented control bound to a HubConfig key (stores the option string). */
     private static Region cSeg(String key, String[] opts, int def) {
         String cur = com.ars.fx.data.HubConfig.get(key, opts[def]);
         int on = 0; for (int i = 0; i < opts.length; i++) if (opts[i].equals(cur)) on = i;
-        return segSel(opts, on, i -> com.ars.fx.data.HubConfig.set(key, opts[i]));
+        return tagged(segSel(opts, on, i -> com.ars.fx.data.HubConfig.set(key, opts[i])), key);
     }
     /** Toggle bound to a HubConfig boolean key. */
     private static Region cToggle(String key, boolean def) {
-        return switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> com.ars.fx.data.HubConfig.setBool(key, v));
+        return tagged(switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> com.ars.fx.data.HubConfig.setBool(key, v)), key);
     }
     /** Toggle bound to a HubConfig boolean key that also runs {@code apply} with the new state. */
     private static Region cToggleApply(String key, boolean def, java.util.function.Consumer<Boolean> apply) {
-        return switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> { com.ars.fx.data.HubConfig.setBool(key, v); apply.accept(v); });
+        return tagged(switchToggle(com.ars.fx.data.HubConfig.getBool(key, def), v -> { com.ars.fx.data.HubConfig.setBool(key, v); apply.accept(v); }), key);
     }
 
     // ---- small helpers -----------------------------------------------------
