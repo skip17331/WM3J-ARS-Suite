@@ -112,8 +112,8 @@ Mode, audio devices, PTT and keyer settings persist via Java `Preferences` (typi
 ## Loopback testing
 
 Route tone output through a PulseAudio loopback device (`jdigi_loop` by convention) and capture from its monitor.
-`generate_*_test_suite.py` and the `*_test_suite/` folders at the module root hold generated test signals for each
-mode. Most decoders have per-mode DEBUG toggles.
+`generate_*_test_suite.py`, the `*_test_suite/` folders, `run_cw_test.sh` and `run_psk31_test.sh` live in
+`../tools/j-digi-test-signals/` (run the generators from that folder; `Ax25ModeTest` reads the AX.25 WAVs from there). Most decoders have per-mode DEBUG toggles.
 
 ## Dependencies
 

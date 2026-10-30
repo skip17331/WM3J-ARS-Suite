@@ -98,13 +98,13 @@ class Ax25ModeTest {
     }
 
     private static File locate(String relativePath) {
-        // Tests run from the module root under Maven; the WAVs sit there.
-        File primary = new File(relativePath);
-        if (primary.isFile()) return primary;
-        File fallback = new File("j-digi", relativePath);
-        if (fallback.isFile()) return fallback;
+        // The WAVs live in tools/j-digi-test-signals; Maven runs tests from the module root.
+        for (String base : new String[] {"../tools/j-digi-test-signals", "tools/j-digi-test-signals"}) {
+            File f = new File(base, relativePath);
+            if (f.isFile()) return f;
+        }
         throw new IllegalStateException("Cannot find " + relativePath
-                + " (cwd=" + new File(".").getAbsolutePath() + ")");
+                + " under tools/j-digi-test-signals (cwd=" + new File(".").getAbsolutePath() + ")");
     }
 
     private static double readSampleRate(File wav) throws Exception {
