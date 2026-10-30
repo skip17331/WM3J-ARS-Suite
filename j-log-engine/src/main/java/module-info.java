@@ -14,12 +14,9 @@ module com.jlog.engine {
     requires org.apache.pdfbox;
 
     opens com.jlog.plugin to com.fasterxml.jackson.databind;
-    opens com.jlog.award  to com.fasterxml.jackson.databind;
 
     exports com.jlog.db;
-    exports com.jlog.cluster;
     exports com.jlog.plugin;
-    exports com.jlog.award;
     exports com.jlog.scoring;
     exports com.jlog.export;
     exports com.jlog.util;

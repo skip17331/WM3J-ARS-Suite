@@ -14,7 +14,6 @@ module com.jlog.common {
 
     exports com.jlog.model;
     exports com.jlog.bandplan;
-    exports com.jlog.civ;
     exports com.jlog.i18n;
     exports com.jlog.support;
 }
