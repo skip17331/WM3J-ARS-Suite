@@ -70,7 +70,7 @@ public final class ContestPicker {
         HBox row = new HBox(11, Shell.iconTile("log", "log", 13, "sx-dw-ic"), txt, id);
         row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jl-pick");
         row.setStyle("-fx-cursor:hand;-fx-background-color:-ars-surface-1;-fx-background-radius:8;-fx-border-color:-ars-border;-fx-border-width:1;-fx-border-radius:8;-fx-padding:9 12;");
-        row.setOnMouseClicked(e -> { ContestState.setActive(p.getContestId()); Shell.navigate("logc"); });
+        row.setOnMouseClicked(e -> { ContestState.setActive(p.getContestId()); com.ars.fx.data.ContestLogs.resetConfirmation(); Shell.navigate("logc"); });
         return row;
     }
 

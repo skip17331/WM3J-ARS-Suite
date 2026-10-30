@@ -42,6 +42,8 @@ public final class HubConfig {
         try { return root.has(key) ? root.get(key).getAsBoolean() : def; } catch (Exception e) { return def; }
     }
     public static synchronized void set(String key, String val) { ensure(); root.addProperty(key, val == null ? "" : val); save(); }
+    /** Drop a key entirely, so readers fall back to their defaults. */
+    public static synchronized void remove(String key) { ensure(); root.remove(key); save(); }
     public static synchronized void setBool(String key, boolean val) { ensure(); root.addProperty(key, val); save(); }
 
     // convenience accessors for the most-shared identity fields

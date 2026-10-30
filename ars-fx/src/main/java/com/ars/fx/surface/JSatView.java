@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -105,7 +106,7 @@ public final class JSatView {
         return host;
     }
     private static void rebuild() {
-        if (host != null) host.getChildren().setAll(frame(SatService.getInstance().snapshot()));
+        if (host != null) Shell.keepScroll(host, () -> host.getChildren().setAll(frame(SatService.getInstance().snapshot())));
     }
 
     // distinct per-satellite colours (assigned by name so each sat keeps its colour)
@@ -157,20 +158,32 @@ public final class JSatView {
                 {"AOS", f != null ? SatService.hhmmUtc(f.aosEpoch()) : "—"},
                 {"LOS", f != null ? SatService.hhmmUtc(f.losEpoch()) : "—"},
                 {"REACHABLE", reachable(f), f != null && f.inPass() ? "accent" : null},
-                {"APOGEE", f != null ? Math.round(f.apogeeKm()) + " km" : "—"},
-                {"PERIGEE", f != null ? Math.round(f.perigeeKm()) + " km" : "—"}};
+                {"APOGEE", f != null ? com.ars.fx.data.Units.distText(f.apogeeKm()) : "—"},
+                {"PERIGEE", f != null ? com.ars.fx.data.Units.distText(f.perigeeKm()) : "—"}};
         String utc = java.time.LocalTime.now(java.time.ZoneOffset.UTC)
                 .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
         HBox top = Shell.topBar("sat", "sat", "J-Sat", "Satellite tracking · " + name, stats, utc);
 
         Region center = snap.ready() && f != null
                 ? new HBox(satColumn(snap, f), plotCol(snap, f))
+                : snap.ready() && snap.sats().isEmpty() ? emptyPlaceholder()
                 : placeholder(snap.error().isEmpty() ? "Computing…" : snap.error());
         if (center instanceof HBox hb) hb.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(snap, f));
         return (Region) Shell.frame(dock, top, center, rail);
     }
 
+    /** Nothing selected (or nothing selected has elements): say so and point at the picker. */
+    private static Region emptyPlaceholder() {
+        java.util.List<String> missing = SatService.getInstance().missingNames();
+        Label l = lbl(missing.isEmpty() ? "No satellites selected." : "None of the selected satellites has orbital data yet.");
+        l.setStyle("-fx-font-size:14px;-fx-text-fill:-ars-t2;");
+        Label go = lbl("Choose satellites and refresh orbital data in J-Hub ›", "jl-logbtn"); go.setStyle("-fx-cursor:hand;-fx-padding:8 16;");
+        go.setOnMouseClicked(e -> Shell.navigate("hubsat"));
+        VBox v = new VBox(14, l, go); v.setAlignment(Pos.CENTER);
+        StackPane sp = new StackPane(v); sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
+        return sp;
+    }
     private static Region placeholder(String msg) {
         Label l = lbl(msg); l.setStyle("-fx-font-size:13px;-fx-text-fill:-ars-t3;");
         StackPane sp = new StackPane(l); sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
@@ -195,8 +208,21 @@ public final class JSatView {
         collapse.setOnMouseClicked(e -> { satCollapsed = true; rebuild(); });
         p.getChildren().add(new HBox(8, title, collapse));
         java.util.Map<String, Color> cm = colorMap(snap);
+        Label pick = lbl("Choose satellites in J-Hub ›", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
+        pick.setOnMouseClicked(e -> Shell.navigate("hubsat"));
+        p.getChildren().add(pick);
+        java.util.List<String> missing = SatService.getInstance().missingNames();
+        if (!missing.isEmpty()) {
+            Label warn = lbl("⚠ No orbital data for " + missing.size() + " selected: " + String.join(", ", missing)
+                    + ". Refresh elements in J-Hub ▸ Satellites.", "jm-spot-meta");
+            warn.setWrapText(true); warn.setMaxWidth(280);
+            p.getChildren().add(warn);
+        }
         for (SatInfo s : snap.sats()) p.getChildren().add(satCard(s, s == f, cm.get(s.name())));
-        return p;
+        // more satellites than fit the window must scroll, not run off the bottom edge
+        ScrollPane sp = new ScrollPane(p); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setMinWidth(272); sp.setPrefWidth(310); sp.setMaxWidth(310); sp.setStyle("-fx-background-color:transparent;");
+        return sp;
     }
     private static Region satCard(SatInfo s, boolean focused, Color color) {
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
@@ -247,9 +273,9 @@ public final class JSatView {
         String[][] cells = {
                 {"AZIMUTH", String.format("%03.0f", f.azDeg()), "°", ""},
                 {"ELEVATION", String.format("%.0f", f.elDeg()), "°", f.elDeg() < 0 ? "y" : ""},
-                {"ALTITUDE", String.format("%,d", Math.round(f.altKm())), "km", ""},
-                {"RANGE", String.format("%,d", Math.round(f.rangeKm())), "km", ""},
-                {"RANGE RATE", String.format("%+.1f", f.rangeRateKmS()), "km/s", f.rangeRateKmS() < 0 ? "y" : ""},
+                {"ALTITUDE", com.ars.fx.data.Units.distNum(f.altKm()), com.ars.fx.data.Units.distUnit(), ""},
+                {"RANGE", com.ars.fx.data.Units.distNum(f.rangeKm()), com.ars.fx.data.Units.distUnit(), ""},
+                {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""},
                 {"DOPPLER", String.format("%+.1f", dopHz / 1000.0), "kHz", dopHz < 0 ? "y" : ""}};
         HBox tel = new HBox(12); tel.setAlignment(Pos.CENTER); tel.setPadding(new Insets(0, 0, 22, 0));
         for (String[] c : cells) {

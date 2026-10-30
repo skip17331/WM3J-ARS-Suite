@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.ContestConfigBridge;
+import com.ars.fx.data.ContestLogs;
 import com.ars.fx.data.ContestState;
 import com.ars.fx.data.ContestValidators;
 import com.ars.fx.data.HubConfig;
@@ -62,7 +63,7 @@ public final class JLogContest {
         Region dock = Shell.dock("log");
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
 
-        VBox center = new VBox(12, toolbar(plugin), entryPane(plugin));
+        VBox center = new VBox(12, toolbar(plugin), LogDbBar.build(true), entryPane(plugin));
         Region strip = trackerStrip(plugin);
         if (strip != null) center.getChildren().add(strip);
         center.getChildren().add(recentLogPane());
@@ -83,23 +84,45 @@ public final class JLogContest {
         SpotAction.Prefill queued = SpotAction.takePending();
         if (queued != null) prefillSpot(queued);
 
-        maybePromptDb(plugin);   // on entering a contest with existing QSOs: continue or start fresh
+        maybeChooseDb(plugin);   // each time contest mode is entered: pick which database this contest logs to
         return host;
     }
 
-    // Prompt once per entry into a contest that already has QSOs.
-    private static String lastPromptedId = null;
-    private static void maybePromptDb(ContestPlugin plugin) {
-        String id = plugin.getContestId();
-        if (id.equals(lastPromptedId)) return;
-        lastPromptedId = id;
-        int n = ContestState.qsos().size();
-        if (n == 0) return;   // fresh contest — nothing to continue or clear
-        Platform.runLater(() -> Confirm.show(host, "Contest log · " + plugin.getContestName(),
-                "This contest already has " + n + " QSOs. Continue logging, or start fresh? Starting fresh "
-                        + "exports the current log to Cabrillo (a backup) first, then clears it.",
-                new Confirm.Choice("Continue", false, null),
-                new Confirm.Choice("Start fresh", true, () -> { ContestState.backupAndStartFresh(); Shell.navigate("logc"); })));
+    /** On entering contest mode (or switching contest) ask which database to log to, unless already chosen this session.
+     *  Cancelling leaves contest mode — it cannot run without a database. */
+    private static void maybeChooseDb(ContestPlugin plugin) {
+        if (ContestLogs.confirmed()) return;
+        Platform.runLater(() -> ContestDbDialog.show(host, plugin, () -> Shell.navigate("logc"),
+                () -> { ContestLogs.resetConfirmation(); Shell.navigate("log"); }));
+    }
+
+    /** Switch database from inside contest mode (the "Switch database" link). */
+    static void switchDatabase(Node source) {
+        ContestState.ensureLoaded();
+        ContestPlugin p = ContestState.plugin();
+        if (p != null) ContestDbDialog.show(source, p, () -> Shell.navigate("logc"), null);
+    }
+
+    /** Entering contest mode from the normal log: offer the contest chosen last time (or let the operator pick another).
+     *  Which database it logs to is asked next, when the contest screen opens. */
+    public static void promptEnter(Node source) {
+        ContestState.ensureLoaded();
+        String where = "Your normal log is " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.normalPath())
+                + " (table qso). Contest QSOs go to a contest database of their own — you pick which one next — so contest mode never changes your normal log. ";
+        Confirm.Choice cancel = new Confirm.Choice("Cancel", false, null);
+        Runnable choose = () -> { ContestLogs.resetConfirmation(); ContestState.setActive(null); Shell.navigate("logc"); };
+        String lastId = ContestState.lastId();
+        ContestPlugin last = null;
+        try { if (!lastId.isBlank()) last = com.jlog.plugin.PluginLoader.getInstance().getById(lastId); } catch (Exception ignored) {}
+        if (last == null) {
+            Confirm.show(source, "Switch to contest mode", where + "No contest has been chosen yet — pick one to continue.",
+                    cancel, new Confirm.Choice("Choose a contest", true, choose));
+            return;
+        }
+        String name = last.getContestName();
+        Confirm.show(source, "Switch to contest mode", where + "Last contest: " + name + ".",
+                cancel, new Confirm.Choice("Choose another contest", false, choose),
+                new Confirm.Choice("Continue " + name, true, () -> { ContestState.setActive(lastId); ContestLogs.resetConfirmation(); Shell.navigate("logc"); }));
     }
 
     /** Fill the contest entry from a clicked DX spot (callsign + band/mode), then focus the call + run dupe. */
@@ -150,12 +173,13 @@ public final class JLogContest {
         pick.setOnMouseClicked(e -> Confirm.show(pick, "Change contest?",
                 "Pick a different contest? The current contest's QSOs stay logged.",
                 new Confirm.Choice("Cancel", false, null),
-                new Confirm.Choice("Change", true, () -> { lastPromptedId = null; ContestState.setActive(null); Shell.navigate("logc"); })));
+                new Confirm.Choice("Change", true, () -> { ContestLogs.resetConfirmation(); ContestState.setActive(null); Shell.navigate("logc"); })));
         Label normal = lbl("Normal log", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
         normal.setOnMouseClicked(e -> Confirm.show(normal, "Leave contest mode?",
-                "Switch back to normal logging? Your contest log is saved.",
+                "Switch back to normal logging? Your contest log is saved in " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.contestPath())
+                        + ". Normal QSOs go to " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.normalPath()) + ".",
                 new Confirm.Choice("Stay", false, null),
-                new Confirm.Choice("Leave", true, () -> { lastPromptedId = null; Shell.navigate("log"); })));
+                new Confirm.Choice("Leave", true, () -> { ContestLogs.resetConfirmation(); Shell.navigate("log"); })));
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
         export.setOnMouseClicked(e -> exportCabrillo(plugin));
 
@@ -209,6 +233,7 @@ public final class JLogContest {
         body.getChildren().add(actions);
 
         // F1–F8 station macros (shared with normal log + dashboard)
+        body.getChildren().add(MacroBar.sendAsRow(modeF));
         body.getChildren().add(MacroBar.row(MacroBar.fire(
                 () -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"))));
 

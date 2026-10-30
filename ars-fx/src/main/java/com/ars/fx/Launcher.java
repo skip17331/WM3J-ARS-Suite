@@ -53,6 +53,9 @@ public class Launcher extends Application {
 
         scene = new Scene(host, 1460, 900);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
+        com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.shell.TxIndicator.installEscStop(scene);
+        Shell.installPageKeys(scene);
         show(System.getProperty("surface", "hub"));
 
         stage.setTitle("ARS Suite");
@@ -98,6 +101,9 @@ public class Launcher extends Application {
 
         scene = new Scene(host, cfg.window.width, cfg.window.height);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
+        com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.shell.TxIndicator.installEscStop(scene);
+        Shell.installPageKeys(scene);
         show(cfg.module);
 
         stage.setTitle(cfg.windowTitle());
@@ -119,6 +125,7 @@ public class Launcher extends Application {
      *  otherwise keep the process alive after the last window closes. Daemons/server belong to the hub, not us. */
     @Override
     public void stop() {
+        try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
         try { com.ars.fx.data.RemoteLink.disconnect(); } catch (Exception ignored) {}
         javafx.application.Platform.exit();
         System.exit(0);
@@ -137,6 +144,7 @@ public class Launcher extends Application {
             case "hubant":   return com.ars.fx.surface.JHubDashboard.buildAntSw();
             case "hubdata":  return com.ars.fx.surface.JHubDashboard.buildData();
             case "hubmods":  return com.ars.fx.surface.JHubDashboard.buildModules();
+            case "hubsat":   return com.ars.fx.surface.JHubDashboard.buildSatellites();
             case "map":    return com.ars.fx.surface.JMapView.build();
             case "sat":    return com.ars.fx.surface.JSatView.build();
             case "digi":   return com.ars.fx.surface.JDigiView.build();

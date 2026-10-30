@@ -1,9 +1,5 @@
 package com.ars.fx.data;
 
-import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -13,22 +9,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Live DX-cluster Telnet feed for the J-Hub dashboard cluster panel. Standalone
- * re-implementation of j-hub's ClusterManager protocol — connect, log in with
- * the station callsign, parse "DX de" spot lines, keep a bounded recent list.
+ * Live DX-cluster Telnet feed (dxc.ve7cc.net by default): log in with the station callsign, parse "DX de" spot
+ * lines, keep a bounded recent list. The connection, status model ({@link Status}: disconnected / connecting /
+ * connected), raw log and hub mirroring all live in {@link TelnetFeed}; this class adds the spot parsing.
  *
- * <p>Defaults: host {@code dxc.ve7cc.net}, port {@code 23}, login {@code WM3J}
- * (WM3J's call). Override with {@code -Dcluster.host/.port/.call}.
- *
- * <p>One background daemon thread owns the socket; on every new spot (and on
- * connect/disconnect) the registered listener fires on the JavaFX thread. Auto-
- * reconnects with exponential back-off so a dropped cluster heals itself.
+ * <p>The hub process owns the socket; windows attached to the hub mirror it. On every change the registered
+ * listener fires on the JavaFX thread.
  */
-public final class ClusterClient {
+public final class ClusterClient extends TelnetFeed {
 
     private static final ClusterClient INSTANCE = new ClusterClient();
     public static ClusterClient getInstance() { return INSTANCE; }
-    private ClusterClient() {}
+
+    private ClusterClient() {
+        super("cluster", "cluster", System.getProperty("cluster.host", "dxc.ve7cc.net"),
+                Integer.getInteger("cluster.port", 23), System.getProperty("cluster.call", HubConfig.call()),
+                HubConfig.getBool("data.clusterAutoConnect", false));   // not on by default: the operator opts in (J-Hub ▸ Data ▸ DX Cluster)
+    }
 
     // DX de <spotter>:  <freqKHz>  <spotted>  <comment>  <hhmm>Z
     private static final Pattern SPOT = Pattern.compile(
@@ -36,112 +33,92 @@ public final class ClusterClient {
             Pattern.CASE_INSENSITIVE);
 
     private static final int MAX_SPOTS = 40;
-    private static final int MAX_BACKOFF = 60;
 
     /** One cluster spot. {@code arrivalMs} is local receive time, for the age column. */
     public record Spot(long freqHz, String call, String mode, String band, String de, String comment, long arrivalMs) {}
 
-    private volatile String host  = System.getProperty("cluster.host", "dxc.ve7cc.net");
-    private volatile int    port  = Integer.getInteger("cluster.port", 23);
-    private volatile String call  = System.getProperty("cluster.call", HubConfig.call());
+    /** Bands and mode groups of the activity heat map (see {@link #activity(long)}). */
+    public static final String[] HEAT_BANDS = {"160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m"};
+    public static final String[] HEAT_MODES = {"CW", "Phone", "Digi"};
+    private static final int ACTIVITY_KEEP_MS = 60 * 60_000, ACTIVITY_MAX = 6000;
 
     private final Deque<Spot> spots = new ArrayDeque<>();
+    /** Every spot heard in the last hour as {arrivalMs, bandIndex, modeGroup} — longer memory than the 40-spot list. */
+    private final Deque<long[]> activityLog = new ArrayDeque<>();
+    private volatile int[][] remoteActivity;           // window side: what the hub last sent
     private volatile Consumer<ClusterClient> listener = c -> {};
-    private volatile boolean connected = false;
-    private volatile boolean started = false;
-    // Don't auto-connect on start unless the operator opted in (J-Hub ▸ Data ▸ DX Cluster).
-    // paused == "we don't want a connection right now" (startup default OR operator pressed Disconnect).
-    private volatile boolean paused = !HubConfig.getBool("data.clusterAutoConnect", false);
-    private int backoff = 5;
-
-    private Socket socket; private BufferedReader reader; private PrintWriter writer;
-
-    public boolean isConnected() { return connected; }
-    /** True when the operator wants a connection (i.e. not manually disconnected). */
-    public boolean wantConnected() { return !paused; }
-    public String endpoint() { return host; }
-    public String loginCall() { return call; }
 
     /** Snapshot of recent spots, newest first. */
     public synchronized List<Spot> spots() { return new ArrayList<>(spots); }
 
     public void setListener(Consumer<ClusterClient> l) { this.listener = l == null ? c -> {} : l; fire(); }
 
-    public synchronized void start() {
-        if (started) return;
-        started = true;
-        if (RemoteLink.isActive()) return;   // solo-remote: spots arrive via injectSpots(), no local telnet
-        Thread t = new Thread(this::loop, "cluster");
-        t.setDaemon(true);
-        t.start();
+    /** Hub side: take the server/login from J-Hub's config ({@code data.clusterServer}, {@code data.clusterLogin}). */
+    public void applyConfig() {
+        if (RemoteLink.isActive()) return;
+        String srv = HubConfig.get("data.clusterServer", "").trim();
+        String login = HubConfig.get("data.clusterLogin", "").trim();
+        String h = host; int p = port;
+        if (!srv.isEmpty()) {
+            int c = srv.lastIndexOf(':');
+            if (c > 0) { h = srv.substring(0, c); try { p = Integer.parseInt(srv.substring(c + 1).trim()); } catch (Exception ignored) {} }
+            else h = srv;
+        }
+        setEndpoint(h, p, login.isEmpty() ? HubConfig.call() : login);
     }
 
-    /** Replace the feed with spots pushed from the station (solo-remote mode). */
+    /** Spot counts per band (rows, {@link #HEAT_BANDS}) and mode group (columns, {@link #HEAT_MODES}) over the last
+     *  {@code windowMs}. A window attached to the hub shows what the hub counted (it always uses the hub's 30 min). */
+    public int[][] activity(long windowMs) {
+        int[][] remote = remoteActivity;
+        if (RemoteLink.isActive()) return remote != null ? remote : new int[HEAT_BANDS.length][HEAT_MODES.length];
+        int[][] out = new int[HEAT_BANDS.length][HEAT_MODES.length];
+        long cutoff = System.currentTimeMillis() - windowMs;
+        synchronized (this) { for (long[] a : activityLog) if (a[0] >= cutoff) out[(int) a[1]][(int) a[2]]++; }
+        return out;
+    }
+    /** Hub side: the 30-minute counts flattened row by row, for the snapshot sent to windows. */
+    public int[] activityFlat() {
+        int[][] a = activity(30 * 60_000L); int[] f = new int[HEAT_BANDS.length * HEAT_MODES.length];
+        for (int i = 0; i < a.length; i++) for (int j = 0; j < a[i].length; j++) f[i * HEAT_MODES.length + j] = a[i][j];
+        return f;
+    }
+    /** Window side: adopt the hub's counts. */
+    public void applyRemoteActivity(int[] flat) {
+        if (flat == null || flat.length != HEAT_BANDS.length * HEAT_MODES.length) return;
+        int[][] a = new int[HEAT_BANDS.length][HEAT_MODES.length];
+        for (int i = 0; i < flat.length; i++) a[i / HEAT_MODES.length][i % HEAT_MODES.length] = flat[i];
+        remoteActivity = a;
+    }
+    private static int modeGroup(String mode) {
+        if (mode == null) return 1;
+        return switch (mode.toUpperCase()) { case "CW" -> 0; case "SSB", "USB", "LSB", "FM", "AM" -> 1; default -> 2; };
+    }
+    private synchronized void recordActivity(Spot s) {
+        int b = -1; for (int i = 0; i < HEAT_BANDS.length; i++) if (HEAT_BANDS[i].equals(s.band())) { b = i; break; }
+        if (b < 0) return;
+        activityLog.addLast(new long[]{s.arrivalMs(), b, modeGroup(s.mode())});
+        long cutoff = s.arrivalMs() - ACTIVITY_KEEP_MS;
+        while (!activityLog.isEmpty() && (activityLog.peekFirst()[0] < cutoff || activityLog.size() > ACTIVITY_MAX)) activityLog.removeFirst();
+    }
+
+    /** Replace the feed with spots pushed from the hub (window side). Status arrives separately. */
     public void injectSpots(List<Spot> incoming) {
         synchronized (this) {
             spots.clear();
             if (incoming != null) for (Spot s : incoming) { spots.addLast(s); if (spots.size() >= MAX_SPOTS) break; }
         }
-        connected = true;
         fire();
     }
 
-    /** Operator Disconnect — stop reading and don't auto-reconnect. */
-    public void disconnect() { paused = true; closeSocket(); fire(); }
-    /** Operator Connect — resume; the loop reconnects within ~300ms. */
-    public void connect() { backoff = 5; paused = false; }
-    /** Point at a new server/login and reconnect (clears the current feed). */
-    public void setEndpoint(String h, int p, String c) {
-        this.host = (h == null || h.isBlank()) ? this.host : h.trim();
-        if (p > 0) this.port = p;
-        this.call = (c == null || c.isBlank()) ? this.call : c.trim().toUpperCase();
-        synchronized (this) { spots.clear(); }
-        backoff = 5; paused = false; closeSocket();
-    }
+    @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); activityLog.clear(); } }
 
-    private void loop() {
-        while (true) {
-            if (paused) {
-                if (connected) { connected = false; closeSocket(); fire(); }
-                sleepMs(300);
-                continue;
-            }
-            try {
-                openAndLogin();
-                connected = true;
-                backoff = 5;
-                fire();
-                String line;
-                while (!paused && (line = reader.readLine()) != null) processLine(line.trim());
-            } catch (Exception e) {
-                /* connect/read failure → back off and retry */
-            }
-            connected = false;
-            closeSocket();
-            fire();
-            if (paused) continue;
-            sleepMs(backoff * 1000L);
-            backoff = Math.min(backoff * 2, MAX_BACKOFF);
-        }
-    }
-    private static void sleepMs(long ms) { try { Thread.sleep(ms); } catch (InterruptedException ignored) {} }
-
-    private void openAndLogin() throws IOException {
-        Socket s = new Socket();
-        s.connect(new InetSocketAddress(host, port), 8000);
-        s.setSoTimeout(0); // cluster streams indefinitely; no read timeout
-        socket = s;
-        reader = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.US_ASCII));
-        writer = new PrintWriter(new OutputStreamWriter(s.getOutputStream(), StandardCharsets.US_ASCII), true);
-        writer.println(call); // most DXSpider/CC clusters accept the bare call as login
-    }
-
-    private void processLine(String line) {
-        if (line.isEmpty()) return;
+    @Override protected void onLine(String line) {
         Matcher m = SPOT.matcher(line);
         if (!m.find()) return;
         Spot spot = parse(m);
         if (spot == null) return;
+        recordActivity(spot);
         synchronized (this) {
             spots.addFirst(spot);
             while (spots.size() > MAX_SPOTS) spots.removeLast();
@@ -161,20 +138,10 @@ public final class ClusterClient {
         return new Spot(freqHz, call, mode, band, de, comment, System.currentTimeMillis());
     }
 
-    private void fire() {
+    @Override protected void fire() {
         Consumer<ClusterClient> l = listener;
         try { javafx.application.Platform.runLater(() -> l.accept(this)); }
         catch (IllegalStateException noFx) { /* toolkit not up (tests) */ }
-    }
-
-    private void closeSocket() {
-        // Close ONLY the socket. When disconnect() runs on another thread while the
-        // loop thread is blocked in readLine(), closing the reader/writer first would
-        // deadlock (their close() waits on the lock the blocked read holds). Closing
-        // the socket tears down its streams and asynchronously unblocks the read.
-        Socket s = socket;
-        socket = null; reader = null; writer = null;
-        try { if (s != null) s.close(); } catch (Exception ignored) {}
     }
 
     // ── helpers (mirror j-hub ClusterManager) ─────────────────────────────────

@@ -40,6 +40,7 @@ public final class RemoteServer extends WebSocketServer {
     public static volatile Runnable onReconfig;
 
     private final Map<WebSocket, String> clients = new ConcurrentHashMap<>();   // conn → module label (from "hello")
+    private final Map<WebSocket, Long> rawCursor = new ConcurrentHashMap<>();   // conn → last cluster raw-log seq it has been sent
     private final String boundHost;
     private final int boundPort;
 
@@ -96,11 +97,14 @@ public final class RemoteServer extends WebSocketServer {
     @Override public void onStart() { setConnectionLostTimeout(30); }
     @Override public void onOpen(WebSocket conn, ClientHandshake h) {
         clients.put(conn, "?");
+        rawCursor.put(conn, Math.max(0, ClusterClient.getInstance().rawSeq() - 200));   // a new window gets the recent raw log
         fireCount();
         trySend(conn, snapshot());
     }
     @Override public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         clients.remove(conn);
+        rawCursor.remove(conn);
+        TxController.hubClientGone(conn);                       // never leave PTT keyed for a window that vanished
         fireCount();
     }
     @Override public void onError(WebSocket conn, Exception ex) {}
@@ -117,6 +121,11 @@ public final class RemoteServer extends WebSocketServer {
                     clients.put(conn, o.has("module") ? o.get("module").getAsString() : "?");
                     System.out.println("[hub] " + clients.get(conn) + " attached (" + clients.size()
                             + " client" + (clients.size() == 1 ? "" : "s") + ")");
+                }
+                case "tx"           -> TxController.hubCommand(o.get("op").getAsString(), o, conn);   // cw / ptt / stop for a window
+                case "feed"         -> {                                   // connect / disconnect / endpoint / cmd for a telnet feed
+                    TelnetFeed f = TelnetFeed.byKey(o.get("key").getAsString());
+                    if (f != null) f.applyCommand(o.get("op").getAsString(), o);
                 }
                 case "hub.reconfig" -> { Runnable r = onReconfig; if (r != null) r.run(); }   // re-read config + reconcile
                 default             -> { /* ignore unknown */ }
@@ -139,6 +148,37 @@ public final class RemoteServer extends WebSocketServer {
         }, "remote-broadcast");
         t.setDaemon(true);
         t.start();
+
+        // the cluster's raw log (console popup) is pushed in small increments, a few times a second
+        Thread raw = new Thread(() -> {
+            while (INSTANCE == this) {
+                try { Thread.sleep(250); } catch (InterruptedException e) { return; }
+                if (INSTANCE != this) return;
+                try { pushRaw(); } catch (Exception ignored) {}
+            }
+        }, "remote-raw");
+        raw.setDaemon(true);
+        raw.start();
+    }
+
+    private void pushRaw() {
+        ClusterClient cc = ClusterClient.getInstance();
+        long head = cc.rawSeq();
+        for (WebSocket c : getConnections()) {
+            long from = rawCursor.getOrDefault(c, head);
+            if (from >= head) continue;
+            java.util.List<TelnetFeed.RawLine> lines = cc.rawSince(from);
+            if (lines.size() > 200) lines = lines.subList(lines.size() - 200, lines.size());
+            if (lines.isEmpty()) continue;
+            JsonObject o = new JsonObject();
+            o.addProperty("t", "raw"); o.addProperty("key", "cluster");
+            o.addProperty("epoch", TelnetFeed.epoch()); o.addProperty("seq", lines.get(lines.size() - 1).seq());
+            com.google.gson.JsonArray arr = new com.google.gson.JsonArray();
+            for (TelnetFeed.RawLine l : lines) arr.add(l.text());
+            o.add("lines", arr);
+            trySend(c, o.toString());
+            rawCursor.put(c, lines.get(lines.size() - 1).seq());
+        }
     }
 
     private static void trySend(WebSocket c, String s) { try { c.send(s); } catch (Exception ignored) {} }
@@ -151,6 +191,12 @@ public final class RemoteServer extends WebSocketServer {
         o.add("heard", GSON.toJsonTree(HeardByClient.getInstance().spots()));
         o.add("rig",   GSON.toJsonTree(RigClient.getInstance().last()));
         o.add("rotor", GSON.toJsonTree(RotorClient.getInstance().last()));
+        JsonObject feeds = new JsonObject();
+        feeds.add("cluster", ClusterClient.getInstance().statusJson());
+        feeds.add("rbn", HeardByClient.getInstance().statusJson());
+        o.add("feeds", feeds);
+        o.addProperty("tx", TxController.hubTransmitting());
+        o.add("activity", GSON.toJsonTree(ClusterClient.getInstance().activityFlat()));
         JsonObject st = new JsonObject();
         st.addProperty("call", HubConfig.call());
         st.addProperty("grid", HubConfig.grid());

@@ -71,8 +71,8 @@ public final class SatService {
     private volatile Consumer<SatService> listener = s -> {};
     private volatile boolean started = false;
 
-    private Map<Integer, TleSet> tles;     // by NORAD id
-    private List<Def> defs;
+    private volatile Map<Integer, TleSet> tles;     // by NORAD id
+    private volatile List<Def> defs;
     private long lastPassMs = 0;
     private final Map<Integer, SatellitePass> nextPass = new HashMap<>();
 
@@ -90,15 +90,50 @@ public final class SatService {
     }
 
     private void loop() {
-        try { tles = loadTles(); defs = loadRegistry(); }
+        try { tles = TleStore.current(); defs = buildDefs(); }
         catch (Exception e) { snapshot = new Snapshot(false, List.of(), null, "TLE/registry load failed: " + e.getMessage()); fire(); return; }
+        TleStore.addListener(this::reload);        // new elements arrived → re-resolve the tracked set
+        TleStore.autoRefreshIfDue();               // daily, in the background, if enabled in J-Hub ▸ Satellites
         while (true) {
             try { recompute(); } catch (Exception e) { /* keep last good snapshot */ }
             try { Thread.sleep(LIVE_MS); } catch (InterruptedException ie) { return; }
         }
     }
 
-    private void recompute() {
+    /** What the operator picked in J-Hub ▸ Satellites, resolved against the elements we actually hold. A pick with
+     *  no elements can't be tracked; it is remembered in {@link #missingNames()} instead of vanishing silently. */
+    private List<Def> buildDefs() {
+        Map<Integer, SatRegistry.Entry> reg = SatRegistry.byNorad();
+        List<Def> list = new ArrayList<>();
+        List<String> missing = new ArrayList<>();
+        for (int id : SatSelection.selected()) {
+            SatRegistry.Entry e = reg.get(id);
+            TleSet tle = tles.get(id);
+            if (tle == null) { missing.add(e != null ? e.name() : "NORAD " + id); continue; }
+            if (e != null) list.add(new Def(id, e.name(), e.type(), e.downlinkHz(), e.uplinkHz(), e.mode()));
+            else list.add(new Def(id, tle.name, "No radio data", 0, 0, ""));
+        }
+        missingNames = List.copyOf(missing);
+        return list;
+    }
+
+    /** Selected satellites that have no orbital elements loaded. */
+    public List<String> missingNames() { return missingNames; }
+    private volatile List<String> missingNames = List.of();
+
+    /** Re-read the selection and elements and recompute now (off the caller's thread). */
+    public void reload() {
+        Thread t = new Thread(() -> {
+            synchronized (this) {
+                tles = TleStore.current(); defs = buildDefs(); nextPass.clear(); lastPassMs = 0;
+            }
+            if (started) { try { recompute(); } catch (Exception ignored) {} }
+        }, "sat-reload");
+        t.setDaemon(true); t.start();
+    }
+
+    private synchronized void recompute() {
+        if (defs == null || tles == null) return;
         Instant now = Instant.now();
         boolean refreshPasses = (System.currentTimeMillis() - lastPassMs) > PASS_MS || nextPass.isEmpty();
         Sgp4Propagator prop = new Sgp4Propagator();
@@ -199,68 +234,6 @@ public final class SatService {
     }
     private static double dbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 
-    private static Map<Integer, TleSet> loadTles() throws Exception {
-        List<String> lines;
-        Path cache = Paths.get(System.getProperty("user.home"), ".j-sat", "tles.txt");
-        if (Files.isReadable(cache)) lines = Files.readAllLines(cache, StandardCharsets.UTF_8);
-        else lines = readResourceLines("/com/ars/fx/sat/tles-fallback.txt");
-        Map<Integer, TleSet> map = new HashMap<>();
-        int i = 0;
-        while (i + 2 < lines.size()) {
-            String name = lines.get(i).trim();
-            String l1 = lines.get(i + 1).trim(), l2 = lines.get(i + 2).trim();
-            if (l1.startsWith("1 ") && l2.startsWith("2 ")) {
-                try {
-                    TleSet t = new TleSet(name, l1, l2);
-                    map.put(Integer.parseInt(t.noradId), t);
-                } catch (Exception ignored) {}
-                i += 3;
-            } else { i += 1; }  // resync if a stray/blank line appears
-        }
-        return map;
-    }
-
-    private static List<Def> loadRegistry() throws Exception {
-        try (InputStream in = SatService.class.getResourceAsStream("/com/ars/fx/sat/satellite-registry.json");
-             Reader r = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-            JsonElement root = JsonParser.parseReader(r);
-            JsonArray arr = root.isJsonArray() ? root.getAsJsonArray()
-                    : root.getAsJsonObject().getAsJsonArray(root.getAsJsonObject().keySet().iterator().next());
-            // "Selected in J-Hub" = ~/.j-sat settings.json enabledSatellites (falls back to the
-            // registry's own enabled flag when no selection is present).
-            java.util.Set<String> enabled = loadEnabled();
-            List<Def> list = new ArrayList<>();
-            for (JsonElement e : arr) {
-                JsonObject o = e.getAsJsonObject();
-                String nm = o.get("name").getAsString();
-                boolean keep = enabled.isEmpty() ? (!o.has("enabled") || o.get("enabled").getAsBoolean())
-                                                 : enabled.contains(nm);
-                if (!keep) continue;
-                long dn = o.has("downlinkHz") ? o.get("downlinkHz").getAsLong() : 0;
-                long up = o.has("uplinkHz") ? o.get("uplinkHz").getAsLong() : 0;
-                String mode = "FM";
-                if (o.has("modes") && o.getAsJsonArray("modes").size() > 0) mode = o.getAsJsonArray("modes").get(0).getAsString();
-                list.add(new Def(o.get("noradId").getAsInt(), o.get("name").getAsString(),
-                        o.has("type") ? o.get("type").getAsString() : "", dn, up, mode));
-            }
-            return list;
-        }
-    }
-
-    /** Operator-selected satellite names from ~/.j-sat/settings.json (j-hub selection). */
-    private static java.util.Set<String> loadEnabled() {
-        Path p = Paths.get(System.getProperty("user.home"), ".j-sat", "settings.json");
-        try (Reader r = Files.newBufferedReader(p)) {
-            JsonObject o = JsonParser.parseReader(r).getAsJsonObject();
-            if (o.has("enabledSatellites")) {
-                java.util.Set<String> s = new java.util.HashSet<>();
-                for (JsonElement e : o.getAsJsonArray("enabledSatellites")) s.add(e.getAsString());
-                return s;
-            }
-        } catch (Exception ignored) {}
-        return java.util.Set.of();
-    }
-
     private static List<String> readResourceLines(String res) throws Exception {
         try (InputStream in = SatService.class.getResourceAsStream(res)) {
             if (in == null) return List.of();
@@ -283,11 +256,12 @@ public final class SatService {
         return "+" + (m / 60) + "h " + (m % 60) + "m";
     }
     /** Hz → "145.960" MHz string (3 dp). */
-    public static String mhz(long hz) { return String.format("%.3f", hz / 1_000_000.0); }
+    public static String mhz(long hz) { return hz <= 0 ? "—" : String.format("%.3f", hz / 1_000_000.0); }
     /** Hz → "145.9612" MHz string (4 dp, for Doppler-corrected). */
-    public static String mhz4(long hz) { return String.format("%.4f", hz / 1_000_000.0); }
+    public static String mhz4(long hz) { return hz <= 0 ? "—" : String.format("%.4f", hz / 1_000_000.0); }
     /** signed kHz shift, e.g. "+1.2 kHz". */
     public static String shiftKHz(long corrHz, long nomHz) {
+        if (nomHz <= 0) return "—";
         double k = (corrHz - nomHz) / 1000.0;
         return String.format("%+.1f kHz", k);
     }

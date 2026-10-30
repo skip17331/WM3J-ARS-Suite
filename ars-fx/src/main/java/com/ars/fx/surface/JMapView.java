@@ -245,7 +245,7 @@ public final class JMapView {
         // live DX-cluster spots feed the map + the rail spot list
         VBox spotsBox = new VBox();
         fillSpots(spotsBox);
-        currentSpotsRefresh = () -> fillSpots(spotsBox);
+        currentSpotsRefresh = () -> Shell.keepScroll(spotsBox, () -> fillSpots(spotsBox));
         com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
         cc.setListener(c -> javafx.application.Platform.runLater(JMapView::refreshSpots));
         cc.start();
@@ -257,7 +257,7 @@ public final class JMapView {
         Runnable[] rebuildLeft = new Runnable[1];
         rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed[0] == 1 || narrow())
                 ? leftRail(() -> { leftCollapsed[0] = 0; rebuildLeft[0].run(); })
-                : leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); }));
+                : scrollLeft(leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); })));
         rebuildLeft[0].run();
 
         HBox center = new HBox(leftHolder, mapHolder); center.setFillHeight(true);
@@ -328,8 +328,16 @@ public final class JMapView {
     }
 
     // ---- left controls panel ----------------------------------------------
+    /** The controls column is taller than a normal window; it must scroll rather than stretch the whole frame. */
+    private static Region scrollLeft(Region panel) {
+        ScrollPane sp = new ScrollPane(panel); sp.setFitToWidth(true);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setMinWidth(270); sp.setPrefWidth(270); sp.setMaxWidth(270);
+        sp.setStyle("-fx-background-color:transparent;");
+        return sp;
+    }
     private static Region leftPanel(java.util.function.IntConsumer onProjection, Runnable onCollapse) {
-        VBox p = new VBox(0); p.getStyleClass().add("jm-panel"); p.setMinWidth(270); p.setPrefWidth(270); p.setMaxWidth(270);
+        VBox p = new VBox(0); p.getStyleClass().add("jm-panel");
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;"); collapse.setOnMouseClicked(e -> onCollapse.run());
         HBox header = new HBox(8, title, collapse); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));
@@ -457,7 +465,7 @@ public final class JMapView {
     private static Region toggleSwitch(boolean initial, java.util.function.Consumer<Boolean> onChange) {
         boolean[] on = {initial};
         Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
-        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); sw.setMaxSize(36, 20); sw.setPadding(new Insets(0, 3, 0, 3));
+        StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); com.ars.fx.shell.Tips.tip(sw, "Click to switch on or off"); sw.setMaxSize(36, 20); sw.setPadding(new Insets(0, 3, 0, 3));
         Runnable paint = () -> { sw.getStyleClass().remove("on"); if (on[0]) sw.getStyleClass().add("on"); StackPane.setAlignment(knob, on[0] ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT); };
         paint.run(); sw.setStyle("-fx-cursor:hand;");
         sw.setOnMouseClicked(e -> { on[0] = !on[0]; paint.run(); onChange.accept(on[0]); });
@@ -548,7 +556,7 @@ public final class JMapView {
 
         // range rings
         if (ovRings) {
-            double[] rr = {0.34, 0.67, 1.0}; String[] rl = {"5k km","10k km","15k km"};
+            double[] rr = {0.34, 0.67, 1.0}; String[] rl = com.ars.fx.data.Units.standard() ? new String[]{"3k mi","6k mi","9k mi"} : new String[]{"5k km","10k km","15k km"};
             g.setStroke(border); g.setLineWidth(1);
             for (int i=0;i<3;i++){ double r=R*rr[i]; g.strokeOval(cx-r, cy-r, r*2, r*2); }
             g.setFont(Font.font("JetBrains Mono", 9.5)); g.setFill(t4); g.setTextAlign(TextAlignment.LEFT);
@@ -901,7 +909,8 @@ public final class JMapView {
         java.util.List<MapSpot> list = liveSpots();
         if (list.isEmpty()) {
             com.ars.fx.data.ClusterClient ccc = com.ars.fx.data.ClusterClient.getInstance();
-            Label e = lbl(ccc.isConnected() ? "No spots match the filters." : ccc.wantConnected() ? "Connecting to cluster…" : "Cluster off — Connect in J-Hub", "jm-spot-meta");
+            Label e = lbl(ccc.isConnected() ? "Connected — no spots match the filters." : com.ars.fx.shell.FeedUi.emptyList(ccc, "cluster").replace("press Connect", "Connect in J-Hub"), "jm-spot-meta");
+            e.setWrapText(true);
             e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
         }
         int n = 0;
@@ -914,6 +923,7 @@ public final class JMapView {
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
             row.setStyle("-fx-cursor:hand;");
+            com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
             row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon()));
             spots.getChildren().add(row);
         }

@@ -28,6 +28,8 @@ public class DatabaseManager {
     private Connection translationsConn;
 
     private Path dataDir;
+    /** The file the contest connection currently points at ({@code contest.db} unless switched). */
+    private Path contestDbPath;
 
     private DatabaseManager() {}
 
@@ -38,7 +40,8 @@ public class DatabaseManager {
         dataDir.toFile().mkdirs();
 
         logConn          = openDb(dataDir.resolve("j-log.db").toString());
-        contestConn      = openDb(dataDir.resolve("contest.db").toString());
+        contestDbPath    = dataDir.resolve("contest.db");
+        contestConn      = openDb(contestDbPath.toString());
         configConn       = openDb(dataDir.resolve("config.db").toString());
         translationsConn = openDb(dataDir.resolve("translations.db").toString());
 
@@ -341,6 +344,24 @@ public class DatabaseManager {
 
     public Connection getLogConnection()         { return logConn;          }
     public Connection getContestConnection()     { return contestConn;      }
+    public synchronized Path getContestDbPath()  { return contestDbPath;    }
+
+    /**
+     * Point the contest log at a different SQLite file (created, with the contest schema, if it is new).
+     * The previous contest connection is closed. The DAOs fetch the connection on every call, so they follow
+     * the switch immediately. On failure the previous file stays in use.
+     */
+    public synchronized void useContestDb(Path file) throws Exception {
+        java.nio.file.Files.createDirectories(file.toAbsolutePath().getParent());
+        Connection next = openDb(file.toAbsolutePath().toString());
+        Connection prev = contestConn;
+        contestConn = next;
+        try { applyContestSchema(); }
+        catch (SQLException e) { contestConn = prev; closeQuietly(next); throw e; }
+        contestDbPath = file.toAbsolutePath();
+        if (prev != null && prev != next) closeQuietly(prev);
+        log.info("Contest log now using {}", contestDbPath);
+    }
     public Connection getConfigConnection()      { return configConn;       }
     public Connection getTranslationsConnection(){ return translationsConn; }
     public Path       getDataDir()               { return dataDir;          }

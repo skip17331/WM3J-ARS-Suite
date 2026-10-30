@@ -38,6 +38,7 @@ public final class JHubDashboard {
     public static Region buildAntSw()   { return page("antsw", antennaSwitchCenter()); }
     public static Region buildData()    { return page("data", dataCenter()); }
     public static Region buildModules() { return page("modules", modulesCenter()); }
+    public static Region buildSatellites() { return page("sat", JHubSatellites.center()); }
 
     private static Region page(String activeConf, Region centerContent) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
@@ -128,6 +129,8 @@ public final class JHubDashboard {
         }
         Region data = confItem("▤", "Data", "›", activeConf.equals("data"));
         data.setOnMouseClicked(e -> Shell.navigate("hubdata")); out.add(data);
+        Region sats = confItem("✦", "Satellites", "›", activeConf.equals("sat"));
+        sats.setOnMouseClicked(e -> Shell.navigate("hubsat")); out.add(sats);
         return out;
     }
     private static Region confItem(String icon, String name, String caret, boolean active) {
@@ -151,8 +154,10 @@ public final class JHubDashboard {
 
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         ClusterClient cc = ClusterClient.getInstance();
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle("-fx-background-color:-ars-" + (cc.isConnected() ? "ok" : "t4") + ";");
-        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, lbl(cc.spots().size() + " spots", "jhub-bar-sub"),
+        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
+        headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
+        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
                 lbl("UTC", "jhub-crumb"), lbl(nowUtc(), "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
         HBox profRow = new HBox(sp2, clu); profRow.setAlignment(Pos.CENTER_LEFT);
         return new VBox(14, crumbRow, profRow);
@@ -213,6 +218,8 @@ public final class JHubDashboard {
         return !worked.contains(s.call() + "|" + s.band());
     }
 
+    private static Region headerDot; private static Label headerTxt; private static Label headActRef;
+
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     private static Region clusterCol() {
         ClusterClient cc = ClusterClient.getInstance();
@@ -220,9 +227,18 @@ public final class JHubDashboard {
         // ---- DX spot panel ----
         Node ic = Shell.iconTile("hub", "hub", 16, "sx-dw-ic");
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle("-fx-background-color:-ars-t4;");
-        HBox src = new HBox(6, cdot, lbl(cc.endpoint(), "jhub-clu-de")); src.setAlignment(Pos.CENTER_LEFT);
-        HBox head = new HBox(11, ic, lbl("DX Cluster", "jhub-card-title"), hsp, src); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
+        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Label cluState = lbl(com.ars.fx.shell.FeedUi.line(cc), "jhub-clu-de");
+        HBox src = new HBox(6, cdot, cluState); src.setAlignment(Pos.CENTER_LEFT);
+        Label consoleBtn = lbl("Console", "jhub-clearbtn"); consoleBtn.setStyle("-fx-cursor:hand;");   // raw feed + command line
+        consoleBtn.setOnMouseClicked(e -> ClusterConsole.show(consoleBtn));
+        Label headAct = lbl(com.ars.fx.shell.FeedUi.action(cc), "jhub-clearbtn"); headAct.setStyle("-fx-cursor:hand;");   // Connect / Stop / Disconnect, always visible
+        headAct.setOnMouseClicked(e -> com.ars.fx.shell.FeedUi.toggle(cc));
+        headActRef = headAct;
+        Label cluTitle = lbl("DX Cluster", "jhub-card-title");
+        for (Label l : new Label[]{cluTitle, headAct, consoleBtn}) l.setMinWidth(Region.USE_PREF_SIZE);   // never truncated; the server text gives way instead
+        cluState.setMinWidth(0); src.setMinWidth(0); HBox.setHgrow(src, Priority.SOMETIMES);
+        HBox head = new HBox(11, ic, cluTitle, hsp, src, headAct, consoleBtn); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
 
         Label fltSummary = lbl("", "jhub-clu-flt");
         HBox flt = new HBox(8, fltSummary);
@@ -230,7 +246,7 @@ public final class JHubDashboard {
         flt.setAlignment(Pos.CENTER_LEFT); flt.setPadding(new Insets(12, 16, 12, 16));
 
         VBox rows = new VBox();
-        Label empty = lbl("Connecting to cluster…"); empty.setStyle("-fx-font-size:12px;-fx-text-fill:-ars-t4;-fx-padding:18 16 18 16;");
+        Label empty = lbl(com.ars.fx.shell.FeedUi.emptyList(cc, "cluster")); empty.setStyle("-fx-font-size:12px;-fx-text-fill:-ars-t4;-fx-padding:18 16 18 16;"); empty.setWrapText(true);
         rows.getChildren().add(empty);
         ScrollPane rsp = new ScrollPane(rows); rsp.setFitToWidth(true); rsp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); rsp.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(rsp, Priority.ALWAYS);
         VBox card = new VBox(head, flt, rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
@@ -245,9 +261,13 @@ public final class JHubDashboard {
         Label act = lbl("", "jhub-clearbtn");
 
         // single render: applies filters to the live feed + refreshes status everywhere
-        Runnable render = () -> {
+        Runnable render = () -> Shell.keepScroll(rsp, () -> {
             boolean conn = cc.isConnected();
-            cdot.setStyle("-fx-background-color:" + (conn ? "-ars-ok" : "-ars-t4") + ";");
+            cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            cluState.setText(com.ars.fx.shell.FeedUi.line(cc));
+            if (headActRef != null) headActRef.setText(com.ars.fx.shell.FeedUi.action(cc));
+            if (headerDot != null) headerDot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             java.util.Set<String> worked = workedSet();
             java.util.List<ClusterClient.Spot> all = cc.spots();
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
@@ -255,9 +275,7 @@ public final class JHubDashboard {
                 if (bandOk(s) && modeOk(s) && (!cluNeededOnly || isNeeded(s, worked))) shown.add(s);
             rows.getChildren().clear();
             if (shown.isEmpty()) {
-                empty.setText(!cc.wantConnected() ? "Disconnected"
-                        : conn ? (all.isEmpty() ? "Connected — waiting for spots…" : "No spots match the current filter")
-                        : "Cluster offline — reconnecting…");
+                empty.setText(conn && !all.isEmpty() ? "No spots match the current filter" : com.ars.fx.shell.FeedUi.emptyList(cc, "cluster"));
                 rows.getChildren().add(empty);
             } else {
                 for (ClusterClient.Spot s : shown) {
@@ -265,6 +283,7 @@ public final class JHubDashboard {
                             ClusterClient.fmtFreq(s.freqHz()), s.call(), isNeeded(s, worked) ? "y" : "", s.mode(), s.band(),
                             s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) });
                     row.setStyle("-fx-cursor:hand;");
+                    com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
                     rows.getChildren().add(row);
                 }
@@ -272,10 +291,10 @@ public final class JHubDashboard {
             fltSummary.setText(filterSummary() + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
             boolean want = cc.wantConnected();
             statusLbl.getStyleClass().remove("live");
-            if (conn) { statusLbl.getStyleClass().add("live"); statusLbl.setText("● connected · " + cc.endpoint()); }
-            else statusLbl.setText((want ? "○ connecting · " : "○ disconnected · ") + cc.endpoint());
-            act.setText(want ? "Disconnect" : "Connect");
-        };
+            statusLbl.setText(com.ars.fx.shell.FeedUi.symbolLine(cc) + (cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING && !cc.detail().isEmpty() ? " — " + cc.detail() : ""));
+            if (conn) statusLbl.getStyleClass().add("live");
+            act.setText(com.ars.fx.shell.FeedUi.action(cc));
+        });
 
         VBox bandsF = labeled("BANDS", segSel(new String[]{"All","HF","VHF+"}, cluBandSel, i -> { cluBandSel = i; render.run(); }));
         VBox modesF = labeled("MODES", segSel(new String[]{"All","CW","Phone","Digi"}, cluModeSel, i -> { cluModeSel = i; render.run(); }));
@@ -287,7 +306,7 @@ public final class JHubDashboard {
 
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { if (cc.wantConnected()) cc.disconnect(); else cc.connect(); render.run(); });
+        act.setOnMouseClicked(e -> { com.ars.fx.shell.FeedUi.toggle(cc); render.run(); });
         Label apply = lbl("Apply server", "jhub-clearbtn"); apply.setStyle("-fx-cursor:hand;");
         apply.setOnMouseClicked(e -> {
             String txt = server.getText().trim(); String h = txt; int p = -1;
@@ -313,7 +332,7 @@ public final class JHubDashboard {
         return b[cluBandSel] + " · " + m[cluModeSel];
     }
     /** Interactive segmented control: highlights the chosen option and reports its index. */
-    private static Region segSel(String[] opts, int on, java.util.function.IntConsumer onSelect) {
+    static Region segSel(String[] opts, int on, java.util.function.IntConsumer onSelect) {
         HBox h = new HBox(2); h.getStyleClass().add("cfg-seg");
         Label[] btns = new Label[opts.length];
         for (int i = 0; i < opts.length; i++) {
@@ -326,11 +345,15 @@ public final class JHubDashboard {
         return h;
     }
     /** Interactive toggle switch that reports its new state. */
-    private static Region switchToggle(boolean initial, java.util.function.Consumer<Boolean> onChange) {
+    static Region switchToggle(boolean initial, java.util.function.Consumer<Boolean> onChange) {
         boolean[] on = {initial};
         Region knob = new Region(); knob.getStyleClass().add("jm-switch-knob");
         StackPane sw = new StackPane(knob); sw.getStyleClass().add("jm-switch"); sw.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(sw, "Click to switch on or off");
+        sw.setMinSize(36, 20); sw.setPrefSize(36, 20); sw.setMaxSize(36, 20);   // the row would otherwise stretch it into a circle
+        StackPane.setMargin(knob, new Insets(0, 3, 0, 3));
         Runnable paint = () -> {
+            StackPane.setAlignment(knob, on[0] ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
             sw.getStyleClass().remove("on"); if (on[0]) sw.getStyleClass().add("on");
             sw.setStyle("-fx-cursor:hand;" + (on[0] ? "-fx-background-color:-ars-accent;-fx-border-color:-ars-accent;" : ""));
         };
@@ -343,9 +366,9 @@ public final class JHubDashboard {
         // header — live count from the real ~/.j-log/j-log.db
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
         Label sub = lbl(JLogDb.count() + " in log · live", "jhub-card-sub");
-        VBox ttl = new VBox(1, lbl("J-Log · new QSO", "jhub-card-title"), sub);
+        VBox ttl = new VBox(1, lbl("J-Log-Quick", "jhub-card-title"), sub);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label open = lbl("Open full J-Log →", "jhub-open");
+        Label open = lbl("Open J-Log →", "jhub-open");
         open.setOnMouseClicked(e -> Shell.navigate("log"));
         HBox head = new HBox(11, ic, ttl, sp, open); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
 
@@ -371,12 +394,14 @@ public final class JHubDashboard {
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         Label clear = lbl("Clear", "jhub-clearbtn");
         Label logBtn = lbl("Log QSO ⏎", "jl-logbtn");
-        HBox cmtRow = new HBox(12, cmt, sp2, clear, logBtn);
+        Label printQsl = Shell.placeholderButton("Print QSL label", "jhub-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
+        HBox cmtRow = new HBox(12, cmt, sp2, printQsl, clear, logBtn);
         cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
 
         // F1–F8 station macros (shared with J-Log normal + contest)
         Label txEcho = lbl("", "jhub-mini-hint");
+        body.getChildren().add(MacroBar.sendAsRow(tMode));
         body.getChildren().add(MacroBar.row(MacroBar.fire(() -> tMode.getText(), () -> tCall.getText(), msg -> txEcho.setText("▶ " + msg))));
         body.getChildren().add(txEcho);
 
@@ -489,8 +514,7 @@ public final class JHubDashboard {
                 Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
-                Shell.solarSpaceWeatherDrawer(),
-                Shell.bandConditionsDrawer());
+                Shell.solarSpaceWeatherDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
         return col;
     }
@@ -611,19 +635,39 @@ public final class JHubDashboard {
         VBox loc = section("LOCATION",
             cfgRow("Latitude", "decimal degrees (N+)", cInput("station.lat", "39.745583")),
             cfgRow("Longitude", "decimal degrees (E+)", cInput("station.lon", "-76.959714")),
-            cfgRow("Elevation", null, cUnit("station.elev", "0", "m AMSL")));
+            cfgRow("Elevation", "height above sea level — shown in the unit chosen under Units", elevationField()));
         VBox zones = section("ZONES & AWARDS",
             cfgRow("ITU zone", null, cInput("station.ituZone", "8")),
             cfgRow("CQ zone", null, cInput("station.cqZone", "5")),
             cfgRow("IARU region", null, cSeg("station.iaru", new String[]{"R1","R2","R3"}, 1)),
             cfgRow("Default TX power", null, cUnit("station.txPower", "100", "W")));
 
-        VBox v = new VBox(20, top, desc, cells, id, loc, zones);
+        VBox units = section("UNITS",
+            cfgRow("Units", "Metric: km · °C · km/h · hPa · m      Standard (US): mi · °F · mph · inHg · ft", unitSystemSeg()));
+        VBox v = new VBox(20, top, desc, cells, id, loc, units, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
+
+    /** Metric / Standard switch. Rebuilds the page so the elevation field and other labels follow at once. */
+    private static Region unitSystemSeg() {
+        int on = com.ars.fx.data.Units.standard() ? 1 : 0;
+        return segSel(new String[]{"Metric", "Standard (US)"}, on, i -> {
+            com.ars.fx.data.Units.System next = i == 1 ? com.ars.fx.data.Units.System.STANDARD : com.ars.fx.data.Units.System.METRIC;
+            if (next == com.ars.fx.data.Units.system()) return;
+            double m = com.ars.fx.data.Units.heightToMeters(parseD(com.ars.fx.data.HubConfig.get("station.elev", "0")));   // keep the same real height
+            com.ars.fx.data.Units.set(next);
+            com.ars.fx.data.HubConfig.set("station.elev", String.valueOf(Math.round(com.ars.fx.data.Units.heightFromMeters(m))));
+            com.ars.fx.data.RemoteLink.nudgeReconfig();
+            Shell.navigate("station");
+        });
+    }
+    private static double parseD(String s) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return 0; } }
+
+    /** Station elevation, stored and shown in the chosen height unit (ft or m). */
+    private static Region elevationField() { return cUnit("station.elev", "0", com.ars.fx.data.Units.heightUnit() + " AMSL"); }
     // ---- shared config-page chrome ----------------------------------------
-    private static HBox cfgTop(String... crumbs) {
+    static HBox cfgTop(String... crumbs) {
         HBox crumb = new HBox(7); crumb.setAlignment(Pos.BOTTOM_LEFT);
         for (int i = 0; i < crumbs.length; i++) {
             crumb.getChildren().add(lbl(crumbs[i], i == crumbs.length - 1 ? "cfg-title" : "jhub-crumb"));
@@ -634,7 +678,7 @@ public final class JHubDashboard {
         HBox top = new HBox(crumb, sp, back); top.setAlignment(Pos.BOTTOM_LEFT);
         return top;
     }
-    private static Region cfgPage(Node... rows) {
+    static Region cfgPage(Node... rows) {
         VBox v = new VBox(20, rows); v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
@@ -704,8 +748,9 @@ public final class JHubDashboard {
             cells, conn, ant);
     }
     private static Region dataCenter() {
-        HBox cells = new HBox(0, statCell("CLUSTER","● dxc.ve7cc.net","",true), statCell("RBN","● connected","",true),
-                statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB","~/.j-log","",false));
+        HBox cells = new HBox(0, statCell("CLUSTER", com.ars.fx.data.ClusterClient.getInstance().status().label(), com.ars.fx.data.ClusterClient.getInstance().endpoint(), com.ars.fx.data.ClusterClient.getInstance().isConnected()),
+                statCell("RBN", com.ars.fx.data.HeardByClient.getInstance().status().label(), com.ars.fx.data.HeardByClient.getInstance().endpoint(), com.ars.fx.data.HeardByClient.getInstance().isConnected()),
+                statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB", com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir()), "", false));
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
         Runnable applyCluster = () -> {
             String srv = com.ars.fx.data.HubConfig.get("data.clusterServer", "dxc.ve7cc.net:23").trim();
@@ -718,8 +763,12 @@ public final class JHubDashboard {
             cfgRow("Cluster server", null, cInputApply("data.clusterServer", "dxc.ve7cc.net:23", applyCluster)),
             cfgRow("Login callsign", null, cInputApply("data.clusterLogin", "WM3J", applyCluster)),
             cfgRow("Auto-connect on start", "off by default — connect from the cluster panel when you want spots", cToggle("data.clusterAutoConnect", false)),
+            cfgRow("Connection tries", "give up after this many failed attempts (0 = keep trying); Connect starts a fresh count",
+                    cInputApply("data.clusterMaxTries", "5", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Band filter", null, cSeg("data.clusterBand", new String[]{"All","HF","VHF+"}, 0)),
             cfgRow("Mode filter", null, cSeg("data.clusterMode", new String[]{"All","CW","Phone","Digi"}, 0)),
+            cfgRow("RBN connection tries", "give up after this many failed attempts (0 = keep trying)",
+                    cInputApply("data.rbnMaxTries", "5", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("RBN auto-connect on start", "off by default — \"who's hearing me\" skimmer spots; Connect from the Heard By panel",
                     cToggle("data.rbnAutoConnect", false)));
         VBox wsjt = section("WSJT-X / DIGITAL",
@@ -727,7 +776,6 @@ public final class JHubDashboard {
             cfgRow("Auto-log FT8/FT4 QSOs", null, cToggle("data.autoLogFt8", true)),
             cfgRow("PSK Reporter upload", null, cToggle("data.pskReporter", false)));
         VBox logbook = section("LOGBOOK & EXPORT",
-            cfgRow("Log database", null, cInput("data.logDb", "~/.j-log/j-log.db")),
             cfgRow("Cabrillo / CSV charset", null, cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
             cfgRow("LoTW / eQSL auto-upload", null, cToggle("data.lotwAutoUpload", false)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
@@ -748,7 +796,35 @@ public final class JHubDashboard {
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
         return cfgPage(cfgTop("J-Hub","Data"),
             lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, cluster, wsjt, lookupSection(), logbook, contest, remote, backupSection(), uploadSection(), macroSection());
+            cells, logDatabaseSection(), JHubContestDbs.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, txSection(), macroSection());
+    }
+
+    /** Which database files J-Log writes to, with their sizes and a way to open the folder. The export and
+     *  upload tools follow directly below on this page. */
+    private static VBox logDatabaseSection() {
+        com.ars.fx.data.ContestState.ensureLoaded();   // brings the contest engine up so "in use" is the real file
+        java.nio.file.Path normal = com.ars.fx.data.LogDbInfo.normalPath(), contest = com.ars.fx.data.LogDbInfo.contestPath();
+        Label nCount = lbl(JLogDb.count() + " QSOs · " + com.ars.fx.data.LogDbInfo.size(normal), "cfg-lt");
+        com.ars.fx.data.ContestState.ensureLoaded();
+        var plug = com.ars.fx.data.ContestState.plugin();
+        Label cCount = lbl((plug == null ? "no contest selected" : plug.getContestName() + " · " + com.ars.fx.data.ContestState.qsos().size() + " QSOs")
+                + " · " + com.ars.fx.data.LogDbInfo.size(contest), "cfg-lt");
+        Label status = lbl("", "cfg-lh"); status.setWrapText(true); status.setMaxWidth(Double.MAX_VALUE);
+        Label open = cfgBtn("Open folder");
+        open.setOnMouseClicked(e -> status.setText(com.ars.fx.data.LogDbInfo.openFolder(com.ars.fx.data.LogDbInfo.dataDir())
+                ? "Opened " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir())
+                : "Could not open the folder — it is " + com.ars.fx.data.LogDbInfo.dataDir()));
+        Label toLog = cfgBtn("Open J-Log"); toLog.setOnMouseClicked(e -> Shell.navigate("log"));
+        HBox btns = new HBox(10, open, toLog); btns.setAlignment(Pos.CENTER_LEFT);
+        Region bsp = new Region(); HBox.setHgrow(bsp, Priority.ALWAYS);
+        HBox actions = new HBox(20, new VBox(2, lbl("Database folder", "cfg-lt"),
+                lbl("Back up, export and upload are in the sections below", "cfg-lh")), bsp, btns);
+        actions.getStyleClass().add("cfg-row"); actions.setAlignment(Pos.CENTER_LEFT);
+        return section("LOG DATABASE",
+            cfgRow("Normal log", com.ars.fx.data.LogDbInfo.normalLine(), nCount),
+            cfgRow("Contest log (in use)", com.ars.fx.data.LogDbInfo.contestLine(), cCount),
+            actions,
+            new HBox(status) {{ getStyleClass().add("cfg-row"); }});
     }
 
     /** J-Hub ▸ Modules — turn each module on or off (reflected live in the dock + nav). */
@@ -872,11 +948,26 @@ public final class JHubDashboard {
         card.getChildren().add(statusRow);
         return new VBox(6, lbl("BACKUP & EXPORT", "cfg-sec"), card);
     }
-    private static Label cfgBtn(String text) {
+    static Label cfgBtn(String text) {
         Label b = lbl(text, "cfg-select"); b.setStyle("-fx-cursor:hand; -fx-padding:6 14 6 14; -fx-background-color:-ars-accent; -fx-text-fill:#06121a; -fx-font-weight:bold; -fx-background-radius:7;");
         return b;
     }
     /** F1–F8 station macros used by J-Log: CW/RTTY/digital send the text, phone plays the audio file. */
+    /** What the F-key macros need to key the radio: CW speed, and the sound output voice macros play to. */
+    private static VBox txSection() {
+        javafx.scene.control.ComboBox<String> dev = new javafx.scene.control.ComboBox<>();
+        dev.getItems().add("System default"); dev.getItems().addAll(com.ars.fx.data.TxController.outputDevices());
+        String cur = com.ars.fx.data.HubConfig.get("tx.voiceDevice", "").trim();
+        dev.setValue(cur.isEmpty() || !dev.getItems().contains(cur) ? "System default" : cur);
+        dev.setMinWidth(260); dev.setMaxWidth(320);
+        dev.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set("tx.voiceDevice", b == null || b.equals("System default") ? "" : b));
+        return section("TRANSMIT (F-KEY MACROS)",
+            cfgRow("CW speed", "sent to the rig's own keyer (Hamlib send_morse) — the rig must support it", cUnit("tx.cwWpm", "25", "wpm")),
+            cfgRow("PTT delay", "seconds between keying the rig and the audio starting, and again between the audio ending and dropping the key (0 – 2, e.g. 0.3)",
+                    cUnit("tx.pttDelay", "0.2", "s")),
+            cfgRow("Voice audio output", "where voice macros play — choose the sound card that feeds the radio. PTT is keyed through the rig (Rig control)", dev));
+    }
+
     private static VBox macroSection() {
         VBox card = new VBox(); card.getStyleClass().add("cfg-card");
         // column header
@@ -931,17 +1022,17 @@ public final class JHubDashboard {
         return rows;
     }
 
-    private static VBox statCell(String k, String val, String unit, boolean ok) {
+    static VBox statCell(String k, String val, String unit, boolean ok) {
         Label v = lbl(val, "cfg-sv"); if (ok) v.getStyleClass().add("ok");
         HBox vu = new HBox(4, v); vu.setAlignment(Pos.BOTTOM_LEFT); if (!unit.isEmpty()) vu.getChildren().add(lbl(unit, "cfg-sval-u"));
         VBox cell = new VBox(4, lbl(k, "cfg-sk"), vu); cell.setMinWidth(150); return cell;
     }
-    private static VBox section(String name, Node... rows) {
+    static VBox section(String name, Node... rows) {
         VBox card = new VBox(rows); card.getStyleClass().add("cfg-card");
         if (rows.length > 0) rows[rows.length-1].setStyle("-fx-border-width:0;");
         return new VBox(6, lbl(name, "cfg-sec"), card);
     }
-    private static HBox cfgRow(String title, String hint, Node control) {
+    static HBox cfgRow(String title, String hint, Node control) {
         VBox lblBox = new VBox(2, lbl(title, "cfg-lt")); if (hint != null) lblBox.getChildren().add(lbl(hint, "cfg-lh"));
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox row = new HBox(20, lblBox, sp, control); row.getStyleClass().add("cfg-row"); row.setAlignment(Pos.CENTER_LEFT);

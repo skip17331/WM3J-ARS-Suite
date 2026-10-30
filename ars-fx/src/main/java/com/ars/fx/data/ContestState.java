@@ -37,14 +37,24 @@ public final class ContestState {
     /** Make {@code contestId} the active contest, persist it, and recompute. {@code null} clears it. */
     public static void setActive(String contestId) {
         String id = contestId == null ? "" : contestId;
+        String prev = activeId();
         AppConfig.getInstance().setActiveContestId(id);
         HubConfig.set("contest.activeId", id);   // mirror for parity
+        if (!id.isBlank()) HubConfig.set("contest.last", id);   // survives "choose another contest", which clears the active id
+        if (!id.equals(prev)) ContestLogs.resetConfirmation();  // a different contest asks which database again
         plugin = id.isBlank() ? null : PluginLoader.getInstance().getById(id);
         recompute();
     }
 
+    /** The contest chosen most recently, even if the active contest was cleared to pick another. */
+    public static String lastId() {
+        String l = HubConfig.get("contest.last", "");
+        return l.isBlank() ? activeId() : l;
+    }
+
     /** Resolve the plugin from the persisted active id if not already loaded. */
     public static void ensureLoaded() {
+        ContestConfigBridge.bootstrap();   // idempotent; AppConfig/DatabaseManager must be up before reading the active id
         if (plugin == null) {
             String id = activeId();
             if (!id.isBlank()) plugin = PluginLoader.getInstance().getById(id);

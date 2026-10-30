@@ -315,7 +315,7 @@
       "enabled": false
     },
     {
-      "noradId": 49153,
+      "noradId": 50466,
       "name": "HO-113",
       "type": "Linear Transponder",
       "uplink": "435.190–435.230 MHz USB",
@@ -434,7 +434,7 @@
       "enabled": false
     },
     {
-      "noradId": 0,
+      "noradId": 68456,
       "name": "PARUS-6U1",
       "type": "APRS",
       "aprs": "145.825 MHz",
@@ -445,7 +445,7 @@
       "enabled": false
     },
     {
-      "noradId": 0,
+      "noradId": 68446,
       "name": "HADES-SA",
       "type": "Digital",
       "uplink": "145.875 MHz FSK",
@@ -458,7 +458,7 @@
       "enabled": false
     },
     {
-      "noradId": 0,
+      "noradId": 68261,
       "name": "Ten-Koh 2",
       "type": "Digital",
       "uplink": "Multiple (CW, AFSK, GMSK)",

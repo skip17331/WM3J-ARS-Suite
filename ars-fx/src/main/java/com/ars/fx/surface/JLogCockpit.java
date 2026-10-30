@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.JLogDb;
+import com.ars.fx.shell.FeedUi;
 import com.ars.fx.shell.Shell;
 import javafx.application.Platform;
 import javafx.animation.KeyFrame;
@@ -90,7 +91,7 @@ public final class JLogCockpit {
         VBox ttl = new VBox(1, titleLbl, sub);
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
         Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
-        contestChip.setOnMouseClicked(e -> Shell.navigate("logc"));
+        contestChip.setOnMouseClicked(e -> JLogContest.promptEnter(contestChip));
         Label b4 = lbl("Normal log", "jl-eyebrow");   // worked-before / dupe / status
         HBox head = new HBox(11, ic, ttl, hsp, contestChip, b4); head.setAlignment(Pos.CENTER_LEFT);
 
@@ -130,15 +131,13 @@ public final class JLogCockpit {
         // the voice-keyer audio file; in CW/RTTY/digital it sends the text message.
         java.util.function.IntConsumer fireMacro = i -> {
             com.ars.fx.data.MacroConfig.Macro m = com.ars.fx.data.MacroConfig.get(i);
-            if (isPhone(mode.getText())) {
+            if (MacroBar.usePhone(mode.getText())) {
                 if (m.audio() == null || m.audio().isBlank())
                     rx.appendText("▶ voice " + m.label() + " — no audio file set (Dashboard ▸ Data ▸ Macros)\n");
-                else {
-                    boolean played = com.ars.fx.data.MacroConfig.playVoice(m.audio());
-                    rx.appendText("▶ voice " + m.label() + " — " + shortName(m.audio()) + (played ? "" : " (file not found)") + "\n");
-                }
+                else
+                    com.ars.fx.data.TxController.macroVoice(m.audio(), msg -> rx.appendText(msg + "\n"));   // keys the rig, plays the file, unkeys
             } else {
-                transmit.accept(expandMacro(m.text(), call.getText()));
+                com.ars.fx.data.TxController.macroText(mode.getText(), expandMacro(m.text(), call.getText()), msg -> rx.appendText(msg + "\n"));   // CW via the rig keyer
             }
         };
 
@@ -158,8 +157,10 @@ public final class JLogCockpit {
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
         Label cancel = lbl("Cancel edit", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;"); cancel.setVisible(false); cancel.setManaged(false);
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
-        HBox cmtRow = new HBox(12, cmtF, sp2, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
+        Label printQsl = Shell.placeholderButton("Print QSL label", "jl-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
+        HBox cmtRow = new HBox(12, cmtF, sp2, printQsl, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
+        body.getChildren().add(MacroBar.sendAsRow(mode));
         body.getChildren().add(MacroBar.row(fireMacro));
 
         // recent log table
@@ -253,7 +254,7 @@ public final class JLogCockpit {
         lookupRef = doCallLookup;
         call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
-        VBox entry = new VBox(0, head, body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
+        VBox entry = new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
         entry.sceneProperty().addListener((o, oldS, s) -> {
             if (s == null) return;
@@ -410,20 +411,24 @@ public final class JLogCockpit {
         Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
         cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
         Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
-        Label act = lbl(cc.wantConnected() ? "Disconnect" : "Connect", "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { if (cc.wantConnected()) cc.disconnect(); else cc.connect(); act.setText(cc.wantConnected() ? "Disconnect" : "Connect"); });
-        HBox src = new HBox(6, cdot, lbl(cc.endpoint(), "jl-skim-meta"), ssp, act); src.setAlignment(Pos.CENTER_LEFT);
+        Label act = lbl(FeedUi.action(cc), "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
+        act.setOnMouseClicked(e -> { FeedUi.toggle(cc); act.setText(FeedUi.action(cc)); });
+        Label console = lbl("Console", "jl-clearbtn"); console.setStyle("-fx-cursor:hand;");
+        console.setOnMouseClicked(e -> ClusterConsole.show(console));
+        Label state = lbl(FeedUi.line(cc), "jl-skim-meta");
+        HBox src = new HBox(6, cdot, state, ssp, console, act); src.setAlignment(Pos.CENTER_LEFT);
         VBox rows = new VBox();
-        Label empty = lbl("Cluster off — Connect above for DX spots", "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2));
+        Label empty = lbl(FeedUi.emptyList(cc, "cluster"), "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2)); empty.setWrapText(true);
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
-        cc.setListener(c -> {
-            cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
+        cc.setListener(c -> Shell.keepScroll(rows, () -> {
+            cdot.setStyle(FeedUi.dot(c.status()));
+            state.setText(FeedUi.line(c)); act.setText(FeedUi.action(c));
             rows.getChildren().clear();
             List<com.ars.fx.data.ClusterClient.Spot> list = c.spots();
-            if (list.isEmpty()) { empty.setText(c.isConnected() ? "Connected — waiting for spots…" : c.wantConnected() ? "Cluster offline — reconnecting…" : "Cluster off — Connect above for DX spots"); rows.getChildren().add(empty); }
+            if (list.isEmpty()) { empty.setText(FeedUi.emptyList(c, "cluster")); rows.getChildren().add(empty); }
             else { int n = 0; for (com.ars.fx.data.ClusterClient.Spot s : list) { if (n++ >= 12) break; rows.getChildren().add(spotRow(s)); } }
-        });
+        }));
         cc.start();
         return Shell.drawer("DX Cluster", "map", "map", cc.endpoint(), true, body);
     }
@@ -437,6 +442,7 @@ public final class JLogCockpit {
         HBox bot = new HBox(9, lbl(s.band(), "jl-skim-meta"), lbl(tail, "jl-skim-meta")); bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
         row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
         row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
         return row;
     }
@@ -447,29 +453,29 @@ public final class JLogCockpit {
         Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
         cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
         Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
-        Label act = lbl(hb.wantConnected() ? "Disconnect" : "Connect", "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { if (hb.wantConnected()) hb.disconnect(); else hb.connect(); act.setText(hb.wantConnected() ? "Disconnect" : "Connect"); });
-        HBox src = new HBox(6, cdot, lbl(hb.endpoint(), "jl-skim-meta"), ssp, act); src.setAlignment(Pos.CENTER_LEFT);
+        Label act = lbl(FeedUi.action(hb), "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
+        act.setOnMouseClicked(e -> { FeedUi.toggle(hb); act.setText(FeedUi.action(hb)); });
+        Label state = lbl(FeedUi.line(hb), "jl-skim-meta");
+        HBox src = new HBox(6, cdot, state, ssp, act); src.setAlignment(Pos.CENTER_LEFT);
 
         VBox rows = new VBox();
-        Label empty = lbl(hb.wantConnected() ? "Listening for skimmer spots of " + hb.myCall() + "…" : "RBN off — Connect above to see who's hearing you", "jl-skim-meta"); empty.setWrapText(true);
+        Label empty = lbl(FeedUi.emptyList(hb, "RBN"), "jl-skim-meta"); empty.setWrapText(true);
         empty.setPadding(new Insets(8, 2, 8, 2));
         rows.getChildren().add(empty);
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
 
-        hb.setListener(c -> {
-            cdot.setStyle("-fx-background-color:" + (c.isConnected() ? "-ars-ok" : "-ars-t4") + ";-fx-background-radius:99;");
+        hb.setListener(c -> Shell.keepScroll(rows, () -> {
+            cdot.setStyle(FeedUi.dot(c.status()));
+            state.setText(FeedUi.line(c)); act.setText(FeedUi.action(c));
             rows.getChildren().clear();
             List<com.ars.fx.data.HeardByClient.HeardSpot> list = c.spots();
             if (list.isEmpty()) {
-                empty.setText(c.isConnected() ? "Connected to RBN — waiting to be heard…"
-                        : c.wantConnected() ? "Listening for skimmer spots of " + c.myCall() + "…"
-                        : "RBN off — Connect above to see who's hearing you");
+                empty.setText(c.isConnected() ? "Connected to RBN — waiting to be heard (" + c.myCall() + ")…" : FeedUi.emptyList(c, "RBN"));
                 rows.getChildren().add(empty);
             } else {
                 for (com.ars.fx.data.HeardByClient.HeardSpot s : list) rows.getChildren().add(heardRow(s));
             }
-        });
+        }));
         hb.start();
         return Shell.drawer("Heard By", "map", "map", hb.myCall() + " · RBN", true, body);
     }
@@ -483,6 +489,7 @@ public final class JLogCockpit {
         HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
         row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(row, "Click to use this skimmer's frequency — tunes the rig and offers to turn the beam");
         row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.spotter(), s.freqHz(), s.mode(), s.band()));
         return row;
     }

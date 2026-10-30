@@ -1,9 +1,5 @@
 package com.ars.fx.data;
 
-import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -23,11 +19,16 @@ import java.util.regex.Pattern;
  * daemon thread + auto-reconnect, same as {@link ClusterClient}. RBN/internet
  * is unreachable from sandboxes, so the drawer simply shows "listening…".
  */
-public final class HeardByClient {
+public final class HeardByClient extends TelnetFeed {
 
     private static final HeardByClient INSTANCE = new HeardByClient();
     public static HeardByClient getInstance() { return INSTANCE; }
-    private HeardByClient() {}
+
+    private HeardByClient() {
+        super("rbn", "heardby", System.getProperty("heardby.host", "telnet.reversebeacon.net"),
+                Integer.getInteger("heardby.port", 7000), System.getProperty("heardby.call", HubConfig.call()),
+                HubConfig.getBool("data.rbnAutoConnect", false));
+    }
 
     // DX de <skimmer>:  <freqKHz>  <spotted>  <comment incl. mode/snr/wpm>  <hhmm>Z
     // RBN skimmer calls carry a trailing "-#", so '#' is allowed in the spotter group.
@@ -36,97 +37,31 @@ public final class HeardByClient {
             Pattern.CASE_INSENSITIVE);
 
     private static final int MAX_SPOTS = 40;
-    private static final int MAX_BACKOFF = 60;
 
     /** One reverse spot: {@code spotter} is the skimmer that heard us. */
     public record HeardSpot(long freqHz, String spotter, String mode, String band, String report, long arrivalMs) {}
 
-    private volatile String host = System.getProperty("heardby.host", "telnet.reversebeacon.net");
-    private volatile int    port = Integer.getInteger("heardby.port", 7000);
-    private volatile String call = System.getProperty("heardby.call", HubConfig.call());
-
     private final Deque<HeardSpot> spots = new ArrayDeque<>();
     private volatile Consumer<HeardByClient> listener = c -> {};
-    private volatile boolean connected = false;
-    private volatile boolean started = false;
-    // Don't auto-connect on start unless the operator opted in (J-Hub ▸ Data ▸ DX Cluster).
-    private volatile boolean paused = !HubConfig.getBool("data.rbnAutoConnect", false);
-    private int backoff = 5;
 
-    private Socket socket; private BufferedReader reader; private PrintWriter writer;
-
-    public boolean isConnected() { return connected; }
-    /** True when the operator wants the RBN feed connected (not paused). */
-    public boolean wantConnected() { return !paused; }
-    /** Stop the RBN feed and don't auto-reconnect. */
-    public void disconnect() { paused = true; closeSocket(); fire(); }
-    /** Start/resume the RBN feed; the loop connects within ~300ms. */
-    public void connect() { backoff = 5; paused = false; }
-    public String endpoint() { return host; }
     public String myCall() { return call; }
-    /** Update the watched call (e.g. from station config) and reconnect to RBN. */
-    public void setCall(String c) {
-        if (c == null || c.isBlank()) return;
-        this.call = c.trim().toUpperCase();
-        backoff = 5; closeSocket();
-    }
+    /** Update the watched call (e.g. from station config) and reconnect to RBN if it changed. */
+    public void setCall(String c) { if (c != null && !c.isBlank()) setEndpoint(null, 0, c); }
     public synchronized List<HeardSpot> spots() { return new ArrayList<>(spots); }
     public void setListener(Consumer<HeardByClient> l) { this.listener = l == null ? c -> {} : l; fire(); }
 
-    public synchronized void start() {
-        if (started) return;
-        started = true;
-        if (RemoteLink.isActive()) return;   // solo-remote: spots arrive via injectSpots(), no local RBN telnet
-        Thread t = new Thread(this::loop, "heardby");
-        t.setDaemon(true);
-        t.start();
-    }
-
-    /** Replace the feed with "heard by" spots pushed from the station (solo-remote mode). */
+    /** Replace the feed with "heard by" spots pushed from the hub (window side). Status arrives separately. */
     public void injectSpots(List<HeardSpot> incoming) {
         synchronized (this) {
             spots.clear();
             if (incoming != null) for (HeardSpot s : incoming) { spots.addLast(s); if (spots.size() >= MAX_SPOTS) break; }
         }
-        connected = true;
         fire();
     }
 
-    private void loop() {
-        while (true) {
-            if (paused) {
-                if (connected) { connected = false; closeSocket(); fire(); }
-                sleepMs(300);
-                continue;
-            }
-            try {
-                openAndLogin();
-                connected = true; backoff = 5; fire();
-                String line;
-                while (!paused && (line = reader.readLine()) != null) processLine(line.trim());
-            } catch (Exception e) { /* connect/read failure → back off */ }
-            connected = false;
-            closeSocket();
-            fire();
-            if (paused) continue;
-            sleepMs(backoff * 1000L);
-            backoff = Math.min(backoff * 2, MAX_BACKOFF);
-        }
-    }
-    private static void sleepMs(long ms) { try { Thread.sleep(ms); } catch (InterruptedException ignored) {} }
+    @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); } }
 
-    private void openAndLogin() throws IOException {
-        Socket s = new Socket();
-        s.connect(new InetSocketAddress(host, port), 8000);
-        s.setSoTimeout(0);
-        socket = s;
-        reader = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.US_ASCII));
-        writer = new PrintWriter(new OutputStreamWriter(s.getOutputStream(), StandardCharsets.US_ASCII), true);
-        writer.println(call); // RBN prompts "Please enter your call:" — the bare call works
-    }
-
-    private void processLine(String line) {
-        if (line.isEmpty()) return;
+    @Override protected void onLine(String line) {
         Matcher m = SPOT.matcher(line);
         if (!m.find()) return;
         String spotted = m.group(3).toUpperCase();
@@ -145,15 +80,9 @@ public final class HeardByClient {
         fire();
     }
 
-    private void fire() {
+    @Override protected void fire() {
         Consumer<HeardByClient> l = listener;
         try { javafx.application.Platform.runLater(() -> l.accept(this)); }
         catch (IllegalStateException noFx) { /* toolkit not up */ }
-    }
-
-    private void closeSocket() {
-        Socket s = socket;
-        socket = null; reader = null; writer = null;
-        try { if (s != null) s.close(); } catch (Exception ignored) {}
     }
 }

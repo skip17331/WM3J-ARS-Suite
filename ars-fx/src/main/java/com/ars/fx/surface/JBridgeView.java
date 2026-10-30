@@ -68,7 +68,7 @@ public final class JBridgeView {
             conn.setStyle(BridgeService.connected() ? "-fx-text-fill:-ars-ok;" : "-fx-text-fill:-ars-t4;");
             txState.setText(s != null && s.isTransmitting() ? "TRANSMITTING" : (s != null && s.isTxEnabled() ? "TX ENABLED" : "RECEIVING"));
             txState.setStyle(s != null && s.isTransmitting() ? "-fx-text-fill:-ars-err;" : "");
-            fillDecodes(tableHost);
+            Shell.keepScroll(tableHost, () -> fillDecodes(tableHost));
             fillFooter(footer, s);
             fillLink(linkBody);
             updateTopStats(top);
@@ -134,7 +134,10 @@ public final class JBridgeView {
         } else {
             for (WsjtxDecode d : ds) tbl.getChildren().add(decodeRow(d));
         }
-        host.getChildren().addAll(hd, tbl);
+        // a busy band produces far more decodes than fit; the table scrolls instead of running off the window
+        ScrollPane tblScroll = new ScrollPane(tbl); tblScroll.setFitToWidth(true); tblScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        tblScroll.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(tblScroll, Priority.ALWAYS);
+        host.getChildren().addAll(hd, tblScroll);
     }
     private static HBox decodeRow(WsjtxDecode d) {
         HBox row = new HBox(8); row.getStyleClass().add("jb-row"); if (d.isCqCall()) row.getStyleClass().add("cq"); row.setAlignment(Pos.CENTER_LEFT);
@@ -145,7 +148,7 @@ public final class JBridgeView {
         Label msg = lbl(nz(d.getMessage()), "jb-msg"); if (d.isCqCall()) msg.getStyleClass().add("cq");
         HBox.setHgrow(msg, Priority.ALWAYS); msg.setMaxWidth(Double.MAX_VALUE);
         String tail = (d.getCountry() != null && !d.getCountry().isBlank() ? d.getCountry() : "")
-                + (d.getDistanceKm() > 0 ? "  " + Math.round(d.getDistanceKm()) + " km" : "");
+                + (d.getDistanceKm() > 0 ? "  " + com.ars.fx.data.Units.distText(d.getDistanceKm()) : "");
         HBox m = new HBox(10, msg); m.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(m, Priority.ALWAYS);
         if (!tail.isBlank()) m.getChildren().add(lbl(tail.trim(), "jb-panel-hd"));
         row.getChildren().add(m);
