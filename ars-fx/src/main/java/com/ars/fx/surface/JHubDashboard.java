@@ -1016,7 +1016,7 @@ public final class JHubDashboard {
             com.ars.fx.data.MacroConfig.Macro m = com.ars.fx.data.MacroConfig.get(i);
             Label fk = lbl("F" + (i + 1), "cfg-lt"); fk.setMinWidth(34);
             TextField labelF = macroField(m.label(), 110);
-            TextField textF  = macroField(m.text(), -1);
+            TextField textF  = com.ars.fx.shell.Shell.caps(macroField(m.text(), -1));   // macro text is sent in upper case
             textF.focusedProperty().addListener((o, was, now) -> { if (now) lastMacroText[0] = textF; });   // where a clicked tag is inserted
             TextField audioF = macroField(m.audio(), 210); audioF.setPromptText("none — text only");
             Label browse = lbl("Browse…", "cfg-select"); browse.setMinWidth(82); browse.setStyle("-fx-cursor:hand;");
