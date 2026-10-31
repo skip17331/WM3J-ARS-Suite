@@ -61,7 +61,10 @@ These live in Java Preferences (`com.hamradio.modem.ModemService`). A host appli
 `ModemService.applyPttSettings(method, host, port)`, which saves them and rebuilds the PTT implementation (deferred if a
 transmission is under way). `ars-fx` calls it from `DigiEngine.syncPtt()` so J-Digi follows the J-Hub rig settings:
 `rig.ptt` `VOX` → `VOX`; `CAT`, `RTS` or `DTR` → `HAMLIB` (the rigctld daemon does the keying); host and port from
-`rig.rigctldHost` / `rig.rigctldPort`. The Hamlib CW keyer reads the same host and port. Wire protocol is the plain rigctld set; a non-zero
+`rig.rigctldHost` / `rig.rigctldPort`. The Hamlib CW keyer reads the same host and port.
+
+CW speed and keyer are set the same way with `applyCwSettings(keyer, wpm)`: `ars-fx` maps J-Hub ▸ Data ▸ Transmit's *CW speed*
+(`tx.cwWpm`) to `cw.wpm` and its *J-Digi CW keyer* (`tx.cwKeyer`: Audio → `AUDIO`, Rig keyer → `HAMLIB`) to `cw.keyer`. Wire protocol is the plain rigctld set; a non-zero
 `RPRT` surfaces as an `IOException` through `AudioTxEngine`'s `onError`.
 
 ## CW keyer — audio vs CAT

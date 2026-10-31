@@ -306,6 +306,28 @@ public class ModemService {
         postDecodeLine("RTTY reverse " + (reverse ? "enabled" : "disabled"));
     }
 
+    /**
+     * Set how CW is sent, from the host application's settings; saved and used from the next CW transmission.
+     *
+     * @param keyer {@code AUDIO} (the modem makes the tone and keys the rig with the PTT method) or {@code HAMLIB}
+     *              (the text goes to the rig's own keyer over rigctld); blank keeps the saved choice
+     * @param wpm   words per minute for both paths, clamped to 5–60; 0 or less keeps the saved speed
+     */
+    public void applyCwSettings(String keyer, int wpm) {
+        if (keyer != null && !keyer.isBlank()) {
+            String k = keyer.trim().toUpperCase();
+            PREFS.put(PREF_CW_KEYER, k.equals("HAMLIB") ? "HAMLIB" : "AUDIO");
+        }
+        if (wpm > 0) PREFS.putInt(PREF_CW_WPM, Math.max(5, Math.min(60, wpm)));
+        flushPrefsQuietly("CW settings");
+    }
+
+    /** The saved CW keyer, {@code AUDIO} or {@code HAMLIB}. */
+    public String getCwKeyer() { return PREFS.get(PREF_CW_KEYER, "AUDIO").toUpperCase(); }
+
+    /** The saved CW speed in words per minute. */
+    public int getCwWpm() { return PREFS.getInt(PREF_CW_WPM, HamlibCwKeyer.DEFAULT_WPM); }
+
     /** The saved PTT method, {@code VOX} or {@code HAMLIB}. */
     public String getPttMethod() { return PREFS.get(PREF_PTT_METHOD, "VOX").toUpperCase(); }
 

@@ -205,6 +205,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration>
+                    <!-- the modem keeps its settings in Java Preferences; tests must never touch the user's real ones -->
+                    <argLine>-Djava.util.prefs.userRoot=${project.build.directory}/test-prefs</argLine>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

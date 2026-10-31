@@ -989,7 +989,9 @@ public final class JHubDashboard {
         dev.setMinWidth(260); dev.setMaxWidth(320);
         dev.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set("tx.voiceDevice", b == null || b.equals("System default") ? "" : b));
         return section("TRANSMIT (F-KEY MACROS)",
-            cfgRow("CW speed", "sent to the rig's own keyer (Hamlib send_morse) — the rig must support it", cUnit("tx.cwWpm", "25", "wpm")),
+            cfgRow("CW speed", "F-key macros go to the rig's own keyer (Hamlib send_morse) — the rig must support it. J-Digi uses this speed for CW as well", cUnit("tx.cwWpm", "25", "wpm")),
+            cfgRow("J-Digi CW keyer", "Audio: J-Digi makes the tone and keys the rig with the PTT method (Rig control). Rig keyer: the text goes to the rig's own keyer over Hamlib — no audio path needed",
+                    cSeg("tx.cwKeyer", new String[]{"Audio","Rig keyer"}, 0)),
             cfgRow("PTT delay", "seconds between keying the rig and the audio starting, and again between the audio ending and dropping the key (0 – 2, e.g. 0.3)",
                     cUnit("tx.pttDelay", "0.2", "s")),
             cfgRow("Voice audio output", "where voice macros play — choose the sound card that feeds the radio. PTT is keyed through the rig (Rig control)", dev));

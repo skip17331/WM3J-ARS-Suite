@@ -12,7 +12,8 @@ import com.hamradio.modem.ModemService;
  * <p>The modem's PTT follows the J-Hub rig settings: {@code rig.ptt} (VOX keys nothing; CAT, RTS and DTR all go
  * through Hamlib, whose daemon does the keying) and the {@code rig.rigctldHost} / {@code rig.rigctldPort} daemon
  * endpoint. It is applied when the modem is created and again whenever one of those settings changes. The rig's
- * dial frequency and mode ({@link RigClient}) are passed on too, with 0 Hz while the rig is not connected.
+ * dial frequency and mode ({@link RigClient}) are passed on too, with 0 Hz while the rig is not connected. The CW speed
+ * ({@code tx.cwWpm}) and CW keyer choice ({@code tx.cwKeyer}) from J-Hub ▸ Data ▸ Transmit are applied the same way.
  */
 public final class DigiEngine {
     private DigiEngine() {}
@@ -28,7 +29,11 @@ public final class DigiEngine {
             catch (Throwable t) { svc = null; }
             if (svc != null) {
                 syncPtt();
-                HubConfig.addChangeListener(key -> { if ("*".equals(key) || key.startsWith("rig.")) syncPtt(); });
+                syncCw();
+                HubConfig.addChangeListener(key -> {
+                    if ("*".equals(key) || key.startsWith("rig.")) syncPtt();
+                    if ("*".equals(key) || key.startsWith("tx.cw")) syncCw();
+                });
                 // the modem needs the dial frequency and mode (band-plan caption, "Rig freq" readout, decoders)
                 RigClient.getInstance().addListener(st -> {
                     ModemService m = svc;
@@ -49,6 +54,16 @@ public final class DigiEngine {
         int port = 0;
         try { port = Integer.parseInt(HubConfig.get("rig.rigctldPort", "4532").trim()); } catch (NumberFormatException ignored) { }
         svc.applyPttSettings(method, HubConfig.get("rig.rigctldHost", "127.0.0.1"), port);
+    }
+
+    /** Push the J-Hub CW speed ({@code tx.cwWpm}) and J-Digi CW keyer ({@code tx.cwKeyer}: "Audio" or "Rig keyer") into the modem. */
+    static void syncCw() {
+        ModemService svc = DigiEngine.svc;
+        if (svc == null) return;
+        int wpm = 0;
+        try { wpm = Integer.parseInt(HubConfig.get("tx.cwWpm", "25").trim()); } catch (NumberFormatException ignored) { }
+        String keyer = HubConfig.get("tx.cwKeyer", "Audio").trim().toLowerCase().startsWith("rig") ? "HAMLIB" : "AUDIO";
+        svc.applyCwSettings(keyer, wpm);
     }
 
     /** Start audio capture once (off the UI thread). ars-fx is itself the hub, so the modem's legacy hub link is skipped. */
