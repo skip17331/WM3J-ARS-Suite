@@ -122,7 +122,7 @@ public final class MacroConfig {
             if (v.isEmpty()) { missing.add(g.tag() + " — " + g.desc() + " (" + g.group().toLowerCase(java.util.Locale.ROOT) + " page)"); continue; }
             out = out.replaceAll("(?i)" + java.util.regex.Pattern.quote(g.tag()), java.util.regex.Matcher.quoteReplacement(v.toUpperCase(java.util.Locale.ROOT)));
         }
-        return new Expanded(out, missing);
+        return new Expanded(out.toUpperCase(java.util.Locale.ROOT), missing);   // everything sent is upper case
     }
 
     /** Put the default (template) text and labels back on every macro; the voice-file paths are kept. */
