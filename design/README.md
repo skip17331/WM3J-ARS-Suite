@@ -13,5 +13,5 @@ Still useful:
 - `Rig Control Drawer.html` — `ars-fx/.../shell/RigPanel.java` is built 1:1 from it.
 - `handoff-shots/` — screenshots of the intended look.
 
-Stale in `HANDOFF.md` and `PROJECT-OVERVIEW.md`: they describe building the screens as a task, and `HANDOFF.md` mentions
-an embedded web UI on `localhost:8081`. J-Hub is now part of the one JavaFX app; there is no separate web UI.
+`HANDOFF.md` has been rewritten as short reference notes. `PROJECT-OVERVIEW.md` still reads as a build brief ("build the suite as
+described here") and describes a build task that is finished; treat it as background, not instructions.

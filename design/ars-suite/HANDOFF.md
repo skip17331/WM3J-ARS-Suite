@@ -1,25 +1,20 @@
-# ARS Suite — Claude Code Handoff
+# ARS Suite — design reference notes
 
 ## What this is
-A complete set of **high-fidelity HTML/CSS/JS design references** for the ARS Suite (J-Hub + 7 modules). These are **prototypes that show intended look and behavior** — not production code to ship as-is. The task in your distro is to **recreate these designs using your real stack** (JavaFX scenes for the native windows, your embedded web UI framework for the J-Hub web surface), reusing the tokens and component conventions documented here.
+A set of **high-fidelity HTML/CSS/JS design references** for the ARS Suite (J-Hub + 7 modules): prototypes that show the intended
+look and behaviour. They are **not the app** — the app is the JavaFX program in `../../ars-fx`, which was built from these and has
+moved on since (see `../README.md`). Where the two differ, the app wins.
 
-Two render targets (as in the product):
-- **Native JavaFX windows** — J-Hub, J-Log cockpit. Everything here is deliberately **JavaFX-safe**: solid fills, 1px borders, simple drop shadows, `oklch`/hex colors, no `backdrop-filter`, no blur, no heavy CSS filters. Translate 1:1 to JavaFX CSS + scene nodes.
-- **Embedded web UI (localhost:8081)** — J-Hub config/dashboard and the module web surfaces. React-ready; recreate in your web framework.
+What is still worth using them for:
+- the **design tokens** (`ars-tokens.css`) and the **card / chiclet / `--h` hue conventions** (`EDITING-STANDARD.md`) when adding or
+  restyling a screen;
+- the **screenshots** in `handoff-shots/` as a picture of the intended look;
+- `Rig Control Drawer.html`, which `ars-fx`'s `RigPanel` is built 1:1 from.
 
-Fidelity: **hi-fi.** Colors, type, spacing, and interactions are final-intent. Match them.
+The references are deliberately **JavaFX-safe**: solid fills, 1px borders, simple drop shadows, `oklch`/hex colours, no
+`backdrop-filter`, no blur, no heavy CSS filters, so they translate directly to JavaFX CSS and scene nodes.
 
----
-
-## How to bring this into Claude Code
-1. Download the bundle (the `ars-suite/` folder) and drop it into your repo, e.g. `design/ars-suite/`.
-2. Open the repo in Claude Code.
-3. Point Claude at this file first:
-   > "Read `design/ars-suite/HANDOFF.md` and `EDITING-STANDARD.md`. We're recreating these HTML design references in <our JavaFX app / our web UI>. Start with <screen>. Follow the editing standard exactly — especially the card and chiclet conventions and the `--h` hue system."
-4. Implement screen-by-screen. Each module is self-contained (see File Map). Keep `ars-tokens.css` values as your single source of truth for color/spacing/radius.
-5. For any card/chiclet changes your distro needs, use the prompt template in `EDITING-STANDARD.md` so edits stay consistent.
-
-To preview a reference while building: open any `J-*.html` in a browser (they load via CDN React + Babel; no build step).
+To preview one, open any `J-*.html` in a browser (they load via CDN React + Babel; no build step).
 
 ---
 
@@ -72,4 +67,4 @@ Light theme = same tokens overridden under `.ars-root.ars-light`.
 - `image-slot.js` — drop-in user image component (J-Map custom basemaps). Optional.
 - No other external images; all icons are inline SVG (`ARSGlyph`) — reproduce as JavaFX SVGPath or web SVG.
 
-See `EDITING-STANDARD.md` for the card/chiclet conventions and the edit prompt template.
+See `EDITING-STANDARD.md` for the card/chiclet conventions.
