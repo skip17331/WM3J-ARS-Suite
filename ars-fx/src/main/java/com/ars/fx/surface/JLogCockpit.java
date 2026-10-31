@@ -312,7 +312,7 @@ public final class JLogCockpit {
         Region msp = new Region(); HBox.setHgrow(msp, Priority.ALWAYS);
         modeRow.getChildren().addAll(msp, rate);
 
-        TextField tx = new TextField(); tx.setPromptText("type to transmit…"); tx.getStyleClass().add("jhub-mini-field"); HBox.setHgrow(tx, Priority.ALWAYS); tx.setMaxWidth(Double.MAX_VALUE);
+        TextField tx = new TextField(); Shell.caps(tx); tx.setPromptText("type to transmit…"); tx.getStyleClass().add("jhub-mini-field"); HBox.setHgrow(tx, Priority.ALWAYS); tx.setMaxWidth(Double.MAX_VALUE);
         Label stop = lbl("Stop", "jl-clearbtn"); stop.setStyle("-fx-cursor:hand;");
         Label send = lbl("Send ⏎", "jl-logbtn"); send.setStyle("-fx-cursor:hand;");
         Runnable sendTx = () -> { if (!tx.getText().isBlank()) { transmit.accept(tx.getText()); tx.clear(); } };
@@ -332,7 +332,7 @@ public final class JLogCockpit {
         if (prompt != null && !prompt.isEmpty()) t.setPromptText(prompt);
         t.getStyleClass().add("jhub-mini-field"); if (call) t.getStyleClass().add("call");
         if (w > 0) { t.setMinWidth(w); t.setPrefWidth(w); t.setMaxWidth(w); } else t.setMaxWidth(Double.MAX_VALUE);
-        return t;
+        return Shell.caps(t);   // all log entry is upper case
     }
     private static VBox g(String label, TextField field, boolean grow) {
         VBox v = new VBox(5, lbl(label, "jl-flabel"), field); v.setAlignment(Pos.TOP_LEFT);

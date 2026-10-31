@@ -456,9 +456,7 @@ public final class JLogContest {
         TextField t = new TextField(); if (fd.getLabel() != null) t.setPromptText(fd.getLabel());
         t.getStyleClass().add("jhub-mini-field"); if ("callsign".equals(fd.getId())) t.getStyleClass().add("call");
         double w = fd.getWidth() > 0 ? fd.getWidth() : 96; t.setMinWidth(w); t.setPrefWidth(w);
-        // force uppercase for exchange fields (stored uppercase in the DB)
-        t.textProperty().addListener((o, a, b) -> { if (b != null && !b.equals(b.toUpperCase())) t.setText(b.toUpperCase()); });
-        return t;
+        return Shell.caps(t);   // exchange fields are upper case (stored upper case in the DB)
     }
     private static String value(String id) {
         Control c = fieldControls.get(id);
@@ -483,7 +481,7 @@ public final class JLogContest {
         if (prompt != null && !prompt.isEmpty()) t.setPromptText(prompt);
         t.getStyleClass().add("jhub-mini-field");
         if (w > 0) { t.setMinWidth(w); t.setPrefWidth(w); }
-        return t;
+        return Shell.caps(t);
     }
     private static VBox g(String label, Node field) {
         VBox v = new VBox(5, lbl(label, "jl-flabel"), field); v.setAlignment(Pos.TOP_LEFT);

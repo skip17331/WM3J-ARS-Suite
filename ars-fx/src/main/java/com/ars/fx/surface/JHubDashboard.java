@@ -456,7 +456,7 @@ public final class JHubDashboard {
         if (call) t.getStyleClass().add("call");
         if (w > 0) { t.setMinWidth(w); t.setPrefWidth(w); t.setMaxWidth(w); }
         else { t.setMaxWidth(Double.MAX_VALUE); }
-        return t;
+        return com.ars.fx.shell.Shell.caps(t);   // J-Log-Quick entry is upper case
     }
 
     private static void fillLog(VBox tbl, Label countLbl) {
