@@ -17,14 +17,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sqlite.version>3.46.0.0</sqlite.version>
         <jackson.version>2.17.0</jackson.version>
-        <jssc.version>2.9.4</jssc.version>
     </properties>
 
     <dependencies>
-        <!-- DB-free shared primitives (model/bandplan/civ/i18n) — split out so
+        <!-- DB-free shared primitives (model/bandplan) — split out so
              non-logging consumers can depend on common alone. Re-exported to
-             engine consumers via `requires transitive com.jlog.common`.
-             Brings jssc transitively (CI-V lives in common now). -->
+             engine consumers via `requires transitive com.jlog.common`. -->
         <dependency>
             <groupId>com.jlog</groupId>
             <artifactId>j-log-common</artifactId>

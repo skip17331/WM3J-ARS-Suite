@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="splash.png" alt="WM3J ARS Suite Splash Image" width="600">
+  <img src="docs/images/splash.png" alt="WM3J ARS Suite Splash Image" width="600">
 </p>
 
 # WM3J‑ARS‑Suite

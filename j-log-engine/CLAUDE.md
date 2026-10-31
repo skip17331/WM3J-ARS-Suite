@@ -21,7 +21,7 @@ engine must be built before `ars-fx` and `j-digi`.** `../build-release.sh` does 
 | `com.jlog.plugin` | PluginLoader, ContestPlugin, MultiplierLists — JSON contest definitions |
 | `com.jlog.scoring` | ContestScorer, DxccResolver and the per-contest multiplier helpers (AriDx, Wag, WaeMultiplier ...) |
 | `com.jlog.export` | CabrilloExporter (ADIF import/export live in `ars-fx`) |
-| `com.jlog.util` | LoggingConfigurator, AppConfig, CallsignRegion, DxccLanguageMap, MacroVariableEngine, Maidenhead |
+| `com.jlog.util` | AppConfig, CallsignRegion, DxccLanguageMap, Maidenhead |
 
 ## What's in j-log-common (not here)
 
@@ -31,7 +31,6 @@ com.jlog.common`, so engine consumers still see these through us unchanged:
 
 - `com.jlog.model` — QsoRecord, QtcRecord, Macro, Translation
 - `com.jlog.bandplan` — BandplanLoader + IARU R1/R2/R3 / per-country overlay (the suite's single band plan)
-- `com.jlog.i18n` — I18n resource-bundle loader
 - `com.jlog.support` — IssueReporter (GitHub-issue browser launcher)
 
 ## What's NOT Here

@@ -5,7 +5,6 @@
  */
 module com.jlog.common {
     requires transitive com.fasterxml.jackson.databind;
-    requires jssc;
     requires org.slf4j;
     requires java.desktop;   // IssueReporter → java.awt.Desktop (browser launch)
 
@@ -14,6 +13,5 @@ module com.jlog.common {
 
     exports com.jlog.model;
     exports com.jlog.bandplan;
-    exports com.jlog.i18n;
     exports com.jlog.support;
 }
