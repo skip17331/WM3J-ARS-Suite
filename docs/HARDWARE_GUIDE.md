@@ -53,9 +53,9 @@ For most of your gear, that daemon is part of a project called **Hamlib**. Hamli
 | `rotctld` | Your antenna rotator | TCP port 4533 |
 | `ampctld` | Your amplifier | TCP port 4531 |
 
-For antenna switches, J-Hub talks to the switch directly over the serial port — there is no Hamlib daemon for switches.
+There is no Hamlib daemon for antenna switches, and J-Hub does not yet send commands to one — see section 7.
 
-You do not need to start these daemons by hand on Linux if you set them up to start when the computer boots. On Windows you may run them from a shortcut. The User Guide has the exact commands.
+You do not have to start these daemons yourself: each J-Hub hardware page has a **Start rigctld for me** (or **rotctld** / **ampctld**) switch, which starts the daemon with the settings you enter. It needs Hamlib installed, so that the daemon program can be found. If you would rather run a daemon yourself — for example on another computer, or from a script when the machine boots — leave that switch off and tell J-Hub its **host** and **port** instead. The User Guide has the exact commands.
 
 ---
 
@@ -113,12 +113,17 @@ This is the easy case. Examples:
 3. If it does not appear on Windows, go to the radio's manufacturer website and download the USB driver. Install it, then plug in the radio again.
 4. In the radio's menu, set the CAT speed (sometimes called "baud rate"). 19200 or 38400 are common. Write down what you pick — you will need it again.
 5. In the radio's menu, set the CAT address if it asks. Icom default is `94`. Yaesu and Kenwood do not ask.
-6. Open **J-Hub ▸ Rig control** and set the backend to **Hamlib rigctld**.
-7. Leave **Start rigctld for me** turned on (default). Pick your radio from the **Rig Model** dropdown, fill in the **Serial Port** from step 2 (`/dev/ttyUSB0` on Linux, `COM4` on Windows, etc.), pick the **Baud Rate** from step 4, and click **Save**. Within a few seconds you should see a frequency reading appear.
+6. Open **J-Hub ▸ Hardware ▸ Rig control**. Everything on the page saves as you change it — there is no Save button.
+7. Under **Connection**, fill in:
+   - **Transceiver model** — your radio's name, for your own reference (and for macros).
+   - **Hamlib model #** — the number Hamlib uses for your radio. Run `rigctl --list` (or `rigctl.exe --list` on Windows) and find your radio in the list.
+   - **Interface** — **USB** or **Serial** for a cable to the radio.
+   - **Port** — the device from step 2 (`/dev/ttyUSB0` on Linux, `COM4` on Windows, etc.).
+   - **Baud rate** — the speed you wrote down in step 4.
+   - **CI-V address** — only for Icom radios; the address from step 5 as a hex number such as `0x94`.
+8. Under **Behavior**, turn on **Start rigctld for me**. It is off until you do. J-Hub then starts `rigctld` with the settings above. Within a few seconds the box at the top of the page should say **CONNECTED** and show the radio's frequency and mode.
 
-   J-Hub will start `rigctld` for you with the right arguments. If your rig isn't in the dropdown, choose **Other / Custom** and enter the Hamlib model number — run `rigctld -l` (or `rigctld.exe -l` on Windows) to find it.
-
-   *Power user:* if you already run `rigctld` yourself (e.g. on a separate machine), turn the toggle off and just point Host/Port at it.
+   *Power user:* if you already run `rigctld` yourself (for example on a separate computer), leave **Start rigctld for me** off and set **rigctld host** and **rigctld port** under **Connection** to where it is listening.
 
 ### 4.2 Older radios with a DB-9 CAT port
 
@@ -130,7 +135,7 @@ Examples: many older Yaesu, Kenwood, and Ten-Tec rigs. Also Icom rigs that come 
 2. Connect the adapter's serial end to the radio's CAT port using the cable that came with the radio (or a 9-pin straight-through cable).
 3. Plug the USB end into your PC.
 4. The PC sees a new serial port. On Linux it is usually `/dev/ttyUSB0`. On Windows it is `COMn` where n is some number.
-5. Continue with steps 4–7 from section 4.1 (set CAT speed/address on the radio; configure the rig in J-Hub ▸ Rig control).
+5. Continue with steps 4–8 from section 4.1 (set CAT speed/address on the radio; configure the rig in **J-Hub ▸ Hardware ▸ Rig control**).
 
 ### 4.3 Icom rigs with only a CI-V (3.5 mm) jack
 
@@ -154,17 +159,19 @@ The CI-V port uses a small voltage that a regular serial port cannot read direct
 
 For most people, option A is easier and worth the small extra cost.
 
-After it is wired up, follow steps 4–7 from section 4.1. Use the right Icom model number for your rig (run `rigctld -l | grep -i icom` to find it).
+After it is wired up, follow steps 4–8 from section 4.1. Use the right Icom model number for your rig (run `rigctld -l | grep -i icom` to find it).
 
 ### 4.4 Where does PTT come from?
 
-PTT means "tell the radio to transmit." You have three choices:
+PTT means "tell the radio to transmit." You choose how in **J-Hub ▸ Hardware ▸ Rig control ▸ PTT & Keying ▸ PTT method**. J-Hub's F-key macros and the built-in digital-mode modem (J-Digi) both use this setting.
 
-1. **CAT PTT.** The Hamlib command `T 1` keys the radio over the CAT cable. Works on most modern rigs. This is what J-Hub uses by default. No extra wiring needed.
-2. **VOX.** The radio listens to its mic input and starts transmitting when it hears sound. Works for voice macros. No wiring needed but slow to react and can clip the start of audio.
-3. **Hardware PTT line.** A separate wire (usually from a sound interface like a SignaLink) keys the radio. Best for digital modes that need precise timing.
+1. **CAT** (the default). The Hamlib command `T 1` keys the radio over the CAT cable. Works on most modern rigs. No extra wiring needed.
+2. **RTS** or **DTR**. Some interfaces key the radio from a control line of a serial port instead. Choose **RTS** or **DTR** to match your interface. The line is taken from the same serial port as the **Port** setting, and this needs **Start rigctld for me** to be on, because J-Hub has to start `rigctld` with the PTT type. (If you run `rigctld` yourself, start it with `-P RTS -p <port>` or `-P DTR -p <port>`.) Changing the PTT method restarts the `rigctld` that J-Hub started.
+3. **VOX**. The radio, or the sound interface between the computer and the radio, listens for audio and starts transmitting when it hears it. J-Hub sends no key command at all. Choose this for a SignaLink or similar audio-sensing interface, and for a rig's built-in VOX. Slow to react for voice and can clip the start of audio.
 
-If you are just starting out, leave it on CAT PTT (option 1). Switch to a hardware PTT line later if you have timing trouble.
+J-Hub's default is **CAT**, and it is also what J-Digi follows. If you have a SignaLink or DigiRig that keys itself from the audio, switch the setting to **VOX**.
+
+**Pure CW** has no audio for VOX to sense. Use **CAT** (or RTS/DTR). J-Hub's **Data ▸ Transmit ▸ J-Digi CW keyer** then lets J-Digi either make the tone itself and key the radio, or hand the text to the radio's own keyer (**Rig keyer**, if the radio supports it).
 
 ---
 
@@ -176,22 +183,23 @@ Most rotators have a separate **controller box** that sits on your desk. The rot
 
 1. The GS-232 box (sometimes built into the controller) has a DB-9 serial port labeled "Computer."
 2. Connect a USB-to-serial adapter from your PC to that port.
-3. Open **J-Hub ▸ Rotor control** and set the backend to **Hamlib rotctld**.
-4. Leave **Start rotctld for me** turned on (default). Pick **Yaesu GS-232A**, **GS-232B**, or **GS-232** from the **Rotor Model** dropdown (whichever your controller actually speaks — check the menu), fill in **Serial Port** (`/dev/ttyUSB1`, `COM5`, etc.), **Baud Rate** (usually 9600), and click **Save**. The compass display should start showing your current heading.
+3. Open **J-Hub ▸ Hardware ▸ Rotor control**. It saves as you change it.
+4. Under **Connection**, fill in **Rotor model** (your own label), **Hamlib model #** (run `rotctl --list` and pick the **Yaesu GS-232A**, **GS-232B** or **GS-232** entry — whichever your controller actually speaks; check its menu), **Interface** (**Serial**), **Serial port** (`/dev/ttyUSB1`, `COM5`, etc.) and **Baud rate** (usually 9600).
+5. Turn on **Start rotctld for me** (it is off until you do). The box at the top of the page should show the rotor's azimuth within a few seconds.
 
-   *Power user:* turn the toggle off and use Host/Port if you already run `rotctld` yourself.
+   *Power user:* leave **Start rotctld for me** off and set **rotctld host** and **rotctld port** if you already run `rotctld` yourself.
 
 ### 5.2 Hy-Gain DCU-1 / DCU-1X / DCU-2 / DCU-3 / YRC-1
 
-Same pattern. Pick **Hy-Gain DCU-1 / DCU-1X** (Hamlib id 403) or **Hy-Gain DCU2 / DCU3 / YRC-1** (id 406) from the dropdown. AlfaSpid controllers use the SPID models (901–903).
+Same pattern. Use **Hy-Gain DCU-1 / DCU-1X** (Hamlib id 403) or **Hy-Gain DCU2 / DCU3 / YRC-1** (id 406) as the **Hamlib model #**. AlfaSpid controllers use the SPID models (901–903).
 
 ### 5.3 Green Heron RT-21
 
-This is one of the few rotators with USB built in. Plug it in, then in J-Hub pick **Green Heron RT-21** (Hamlib id 405) from the dropdown. No adapter needed.
+This is one of the few rotators with USB built in. Plug it in, then in **J-Hub ▸ Hardware ▸ Rotor control** enter **405** (Green Heron RT-21) as the **Hamlib model #**. No adapter needed.
 
 ### 5.4 Heavy duty (Prosistel, Orion, M2 RC2800)
 
-Same as 5.1 — DB-9 serial → USB-serial adapter. The dropdown has entries for **Prosistel D** (azimuth / elevation / combi-track) and **M2 RC2800**. If your specific model isn't listed, use **Other / Custom** and run `rotctld -l` to find the number.
+Same as 5.1 — DB-9 serial → USB-serial adapter. Hamlib has entries for **Prosistel D** (azimuth / elevation / combi-track) and **M2 RC2800**. Run `rotctl --list` to find the number for your model.
 
 ---
 
@@ -203,15 +211,14 @@ Amplifier control is more recent than rig control, so older amps simply cannot b
 
 Has built-in USB. Plug in one cable, then in J-Hub:
 
-1. **Amp Control** tab, backend **Hamlib ampctld**.
-2. Leave **Start ampctld for me** turned on (default).
-3. Pick **Elecraft KPA1500** from the **Amp Model** dropdown (Hamlib id 201).
-4. Fill in **Serial Port** (`/dev/ttyUSB2`, `COM6`, etc.) and **Baud Rate** (KPA1500 default is 38400).
-5. Click **Save**. Forward power and SWR should appear in the Live Status panel within a couple of seconds.
+1. Open **J-Hub ▸ Hardware ▸ Amplifier**.
+2. Under **Connection**, fill in **Amplifier model** (your own label) and **Hamlib model #** — **201** for the Elecraft KPA1500.
+3. Set **Interface** to **USB**, **Serial port** to where the amp shows up (`/dev/ttyUSB2`, `COM6`, etc.) and **Baud rate** (the KPA1500 default is 38400).
+4. Turn on **Start ampctld for me** (it is off until you do). The status box at the top of the page should show the amp within a couple of seconds.
 
 ### 6.2 Gemini DX1200 / HF-1K
 
-Same pattern. Pick **Gemini DX1200 / HF-1K** (Hamlib id 301) from the dropdown and fill in the serial port the amp shows up on.
+Same pattern. Use Hamlib id **301** (**Gemini DX1200 / HF-1K**) as the **Hamlib model #** and fill in the serial port the amp shows up on.
 
 ### 6.3 ACOM, Ameritron, and other amps with serial control
 
@@ -219,7 +226,7 @@ Hamlib ships drivers for the Elecraft KPA1500 and Gemini DX1200 only (as of Haml
 
 - Run the manufacturer's own remote-control app (e.g. ACOM's *RCU-Pilot*) alongside J-Hub.
 - Get **band-follow** working by feeding the amp BCD band data straight from the rig — see your amp's manual for the BCD pinout and use a band-decoder board between rig and amp.
-- Drop the model number into the **Other / Custom** field if you've built a Hamlib amp driver locally that isn't in upstream yet.
+- Enter its number as the **Hamlib model #** if you have built a Hamlib amp driver locally that is not in upstream yet.
 
 ### 6.4 Old tube amps (no remote port)
 
@@ -229,32 +236,32 @@ If your amp has no computer port at all, you cannot control it from software. Yo
 
 ## 7. Connecting your antenna switch
 
-J-Hub talks to switches over a plain serial port. There is no Hamlib daemon for switches. The exact command bytes are different for each switch, so the **Antenna Switch** tab in J-Hub lets you write a "command template" with `{switch}` and `{antenna}` placeholders.
+**J-Hub does not control antenna switches yet.** There is no Hamlib daemon for them, and J-Hub has no driver that sends commands to a switch. The **J-Hub ▸ Hardware ▸ Antenna switch** page only *records* what you have — which switch, how it connects, whether it follows the radio's band, and a name for each port. Those details are shown for reference and can be used in macros (the `{ANT}`, `{ANTIF}`, `{ANTHOST}`, `{ANTPORT}` and `{ANTFOLLOW}` tags). You still choose antennas with the switch's own controller, app or buttons.
+
+The notes below say how common switches connect, in case that matters for your station or for a future driver.
 
 ### 7.1 DX Engineering RR8B-MS
 
-DB-9 serial → USB-to-serial adapter. The command template is `SW{switch}={antenna}\r`.
+DB-9 serial → USB-to-serial adapter.
 
 ### 7.2 Microham µStation
 
-Built-in USB. Different commands per model — check the µStation manual.
+Built-in USB. Commands differ per model — check the µStation manual.
 
 ### 7.3 ARCO RC-1A
 
-This one talks over Ethernet (TCP), not serial. J-Hub today only supports serial switches; let us know if you have one and we will add TCP support.
+This one talks over Ethernet (TCP), not serial.
 
 ### 7.4 Bare relay boards (Numato, KMTronic, DLP)
 
-These are simple boards with USB on one end and 4 or 8 relay outputs. You wire each relay to one of your antenna feedlines. Use the command template field to send whatever the board's data sheet says — for a Numato 8-channel relay it is something like `relay on {antenna}\r`.
+These are simple boards with USB on one end and 4 or 8 relay outputs. You wire each relay to one of your antenna feedlines.
 
-### 7.5 Adding a switch in J-Hub
+### 7.5 Recording your switch in J-Hub
 
-1. Go to **Antenna Switch** tab.
-2. Check **Enable automatic switching**.
-3. Fill in the **Serial Port** (e.g., `/dev/ttyUSB3` or `COM7`) and **Baud** (usually 9600).
-4. Click **+ Add Switch**, give it a friendly ID like `main` and a name like `Tower 1`. Set the antenna count.
-5. Click **+ Add Rule**. Pick a band, optionally a mode and heading window, the switch ID, and which antenna should be selected. Set the command template.
-6. Click **Save Switches & Rules**. The first matching rule (top to bottom) wins, so put more-specific rules above less-specific ones.
+1. Open **J-Hub ▸ Hardware ▸ Antenna switch**. It saves as you change it.
+2. Under **Connection**, fill in **Switch model**, **Interface** (**USB**, **Serial** or **Network**), and the **Host / IP** and **Port** for a network switch (for example a 4O3A Antenna Genius on port 9007).
+3. Turn **Follow rig band** on or off to note whether the switch selects antennas by band.
+4. Under **Antenna ports**, give each port a name (for example "20m beam").
 
 ---
 
@@ -282,7 +289,7 @@ Plug it in. It shows up as **"USB Audio CODEC"** (yes, identical to a built-in U
 **Settings:**
 - Set the SignaLink's **DLY** knob just past minimum so PTT releases promptly after each transmission.
 - Set **RX** and **TX** knobs to roughly 9 o'clock as a starting point; adjust by watching levels in J-Digi's spectrum/decoder.
-- PTT in J-Digi: set **PTT method** to **VOX** in **J-Hub ▸ Rig control** (J-Hub's default is CAT, and J-Digi follows it). The SignaLink keys the rig when it sees audio; you don't need Hamlib PTT.
+- PTT in J-Digi: set **PTT method** to **VOX** in **J-Hub ▸ Hardware ▸ Rig control** (J-Hub's default is CAT, and J-Digi follows it). The SignaLink keys the rig when it sees audio; you don't need Hamlib PTT.
 
 ### 8.3 DigiRig Mobile / DigiRig Lite
 
@@ -293,8 +300,8 @@ After plugging in, you'll see:
 - A sound card called **"USB Audio CODEC"** — pick it in J-Digi / WSJT-X
 
 PTT options:
-- **VOX** — DigiRig keys the rig when audio appears. Simplest. Set **PTT method** to **VOX** in **J-Hub ▸ Rig control**.
-- **CAT / Hamlib** — J-Digi sends `T 1` / `T 0` to `rigctld`, which keys DigiRig's PTT line. Required for pure CW since there's no audio for VOX to sense. Set **PTT method** to **CAT** in **J-Hub ▸ Rig control**.
+- **VOX** — DigiRig keys the rig when audio appears. Simplest. Set **PTT method** to **VOX** in **J-Hub ▸ Hardware ▸ Rig control**.
+- **CAT / Hamlib** — J-Digi sends `T 1` / `T 0` to `rigctld`, which keys DigiRig's PTT line. Required for pure CW since there's no audio for VOX to sense. Set **PTT method** to **CAT** in **J-Hub ▸ Hardware ▸ Rig control**.
 
 ### 8.4 RIGblaster / microHAM USB Interface III
 
@@ -540,6 +547,6 @@ For a typical small station with one rig, one rotator, one amp, and one antenna 
 
 ## You are done
 
-If you can plug in a USB cable, install a small driver, and edit one text file with stable port names, you are 90% of the way to a working station. The rest is in J-Hub, where you fill in the host and port for each daemon and click Save. The User Guide covers that part.
+If you can plug in a USB cable, install a small driver, and edit one text file with stable port names, you are 90% of the way to a working station. The rest is in J-Hub, where you enter the details for each device; it saves them as you type. The User Guide covers that part.
 
 Welcome to the hobby. Have fun.
