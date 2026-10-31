@@ -63,18 +63,6 @@ public class ContestQtcDao {
         }
     }
 
-    /** QTCs already exchanged with a partner (both directions) — for the
-     *  ≤10-per-pair cap (Rule §7 / §12). */
-    public int countByPair(String contestId, String partnerCall) throws SQLException {
-        try (PreparedStatement ps = conn().prepareStatement(
-                "SELECT COUNT(*) FROM contest_qtc WHERE contest_id=? AND partner_call=?")) {
-            ps.setString(1, contestId);
-            ps.setString(2, partnerCall == null ? "" : partnerCall.toUpperCase().trim());
-            ResultSet rs = ps.executeQuery();
-            return rs.next() ? rs.getInt(1) : 0;
-        }
-    }
-
     public int countByContest(String contestId) throws SQLException {
         return totalQtcPointsByContest(contestId);
     }

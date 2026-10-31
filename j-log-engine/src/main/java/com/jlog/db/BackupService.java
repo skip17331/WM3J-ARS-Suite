@@ -57,10 +57,6 @@ public class BackupService {
         if (scheduler != null) { scheduler.shutdownNow(); scheduler = null; }
     }
 
-    /** Run a single backup pass immediately. Exposed so the user can trigger
-     *  "Backup now" from a setup/menu command later. */
-    public synchronized void runBackupNow() { runBackup(); }
-
     // -----------------------------------------------------------------
     // Backup pass
     // -----------------------------------------------------------------

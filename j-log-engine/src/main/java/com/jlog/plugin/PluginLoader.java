@@ -170,66 +170,8 @@ public class PluginLoader {
     }
 
     // ---------------------------------------------------------------
-    // Import a plugin from a user-chosen file
+    // Load a single plugin JSON
     // ---------------------------------------------------------------
-
-    public void importPlugin(Path source) throws Exception {
-        ContestPlugin p = mapper.readValue(source.toFile(), ContestPlugin.class);
-        if (p.getContestId() == null || p.getContestId().isBlank())
-            throw new IllegalArgumentException("Plugin has no contestId");
-
-        Path dest = DatabaseManager.getInstance().getDataDir()
-            .resolve("plugins")
-            .resolve(source.getFileName());
-        Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
-        loadFromPath(dest);
-        // Importing un-hides — the operator clearly wants this plugin back.
-        AppConfig.getInstance().removeHiddenContestId(p.getContestId());
-        log.info("Imported plugin {} from {}", p.getContestId(), source);
-    }
-
-    /**
-     * Remove a plugin from the chooser. For user-installed plugins the JSON file
-     * in {@code ~/.j-log/plugins/} is deleted outright. For bundled plugins the
-     * contestId is added to the hidden-contest preference so it stays out of the
-     * chooser across restarts. A subsequent import of the same contestId un-hides it.
-     *
-     * @return true if anything changed (file deleted or id newly hidden).
-     */
-    public boolean removePlugin(String contestId) {
-        if (contestId == null || contestId.isBlank()) return false;
-        boolean changed = false;
-
-        // Delete any user-installed file(s) whose contents declare this contestId.
-        Path dir = DatabaseManager.getInstance().getDataDir().resolve("plugins");
-        if (dir.toFile().exists()) {
-            try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir, "*.json")) {
-                for (Path f : ds) {
-                    try {
-                        ContestPlugin cp = mapper.readValue(f.toFile(), ContestPlugin.class);
-                        if (contestId.equals(cp.getContestId())) {
-                            Files.delete(f);
-                            log.info("Deleted user plugin file: {}", f);
-                            changed = true;
-                        }
-                    } catch (Exception ignore) { /* skip unparseable */ }
-                }
-            } catch (Exception ex) {
-                log.warn("scanning plugin dir while removing: {}", ex.getMessage());
-            }
-        }
-
-        // Record intent to hide (handles bundled plugins too).
-        Set<String> hidden = AppConfig.getInstance().getHiddenContestIds();
-        if (hidden.add(contestId)) {
-            AppConfig.getInstance().setHiddenContestIds(hidden);
-            changed = true;
-        }
-
-        // Drop from the in-memory list so the chooser updates immediately.
-        plugins.removeIf(p -> contestId.equals(p.getContestId()));
-        return changed;
-    }
 
     private void loadFromPath(Path path) {
         try {

@@ -97,78 +97,6 @@ public class ContestQsoDao {
         }
     }
 
-    /**
-     * Natural-key upsert for network sync. Two stations logging the same call
-     * in the same contest at the same second is essentially impossible in one
-     * operation, so {@code (contest_id, callsign, datetime_utc)} is a reliable
-     * identity. Inserts when no match; updates when found. Returns true if a
-     * new row was inserted.
-     */
-    public boolean upsertByNaturalKey(QsoRecord q) throws SQLException {
-        String call = q.getCallsign() == null ? "" : q.getCallsign().toUpperCase();
-        String dt   = q.getDateTimeUtc() == null ? null : q.getDateTimeUtc().format(FMT);
-        if (dt == null) return false;
-
-        Long existingId = null;
-        try (PreparedStatement ps = conn().prepareStatement(
-                "SELECT id FROM contest_qso WHERE contest_id=? AND callsign=? AND datetime_utc=?")) {
-            ps.setString(1, q.getContestId());
-            ps.setString(2, call);
-            ps.setString(3, dt);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) existingId = rs.getLong(1);
-        }
-
-        if (existingId == null) {
-            insert(q);
-            return true;
-        }
-        q.setId(existingId);
-        update(q);
-        return false;
-    }
-
-    /**
-     * Wipe every QSO for the given contest. Used by File → New Database to
-     * start a fresh log for the active event after the operator has exported
-     * (Cabrillo/ADIF) and backed up the DB. Returns the number of rows
-     * removed so the caller can log/show it.
-     *
-     * <p>QTC rows in {@code contest_qtc} are joined via QSO id, so wipe
-     * those first to avoid orphan rows for plugins that use the QTC table
-     * (WAE-DC family).
-     */
-    public int deleteAllForContest(String contestId) throws SQLException {
-        if (contestId == null) return 0;
-        try (PreparedStatement qtc = conn().prepareStatement(
-                "DELETE FROM contest_qtc WHERE qso_id IN "
-              + "(SELECT id FROM contest_qso WHERE contest_id=?)")) {
-            qtc.setString(1, contestId);
-            qtc.executeUpdate();
-        }
-        try (PreparedStatement ps = conn().prepareStatement(
-                "DELETE FROM contest_qso WHERE contest_id=?")) {
-            ps.setString(1, contestId);
-            return ps.executeUpdate();
-        }
-    }
-
-    /**
-     * Delete by the same natural key upsert uses. Silently no-ops if there is
-     * no match — idempotent so repeated broadcasts don't fail.
-     */
-    public int deleteByNaturalKey(String contestId, String callsign,
-                                  java.time.LocalDateTime datetimeUtc) throws SQLException {
-        if (datetimeUtc == null) return 0;
-        try (PreparedStatement ps = conn().prepareStatement(
-                "DELETE FROM contest_qso WHERE contest_id=? AND callsign=? AND datetime_utc=?")) {
-            ps.setString(1, contestId);
-            ps.setString(2, callsign == null ? "" : callsign.toUpperCase());
-            ps.setString(3, datetimeUtc.format(FMT));
-            return ps.executeUpdate();
-        }
-    }
-
     /** Check if callsign is already worked this contest on same band+mode. */
     public boolean isDuplicate(String contestId, String callsign, String band, String mode) throws SQLException {
         String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? AND band=? AND mode=? AND is_dupe=0";
@@ -180,72 +108,6 @@ public class ContestQsoDao {
             ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
         }
-    }
-
-    /** Rover-aware dupe: matches on callsign + band + grid (column-whitelisted).
-     *  If the same rover reports a new grid, it is NOT a dupe (VHF contests). */
-    public boolean isDuplicateBandGrid(String contestId, String callsign,
-                                       String band, String gridColumn, String grid) throws SQLException {
-        if (!gridColumn.matches("field[1-5]")) return false;
-        String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? "
-                   + "AND band=? AND " + gridColumn + "=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, callsign.toUpperCase());
-            ps.setString(3, band);
-            ps.setString(4, grid);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    /** Band-only dupe (mode-agnostic). Used by VHF contests where cross-mode
-     *  isn't allowed but dupe is tracked per band regardless of mode. */
-    public boolean isDuplicatePerBand(String contestId, String callsign, String band) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? AND band=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, callsign.toUpperCase());
-            ps.setString(3, band);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    /** Check if callsign is already worked this contest on ANY band/mode (ARRL Sweepstakes). */
-    public boolean isDuplicateContestWide(String contestId, String callsign) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, callsign.toUpperCase());
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    /** Check if callsign is already worked this contest on same mode (band-agnostic). */
-    public boolean isDuplicatePerMode(String contestId, String callsign, String mode) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND callsign=? AND mode=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, callsign.toUpperCase());
-            ps.setString(3, mode);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    /** Partial callsign match for dupe checker pane. */
-    public List<String> partialMatch(String contestId, String partial) throws SQLException {
-        List<String> results = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(
-                "SELECT DISTINCT callsign FROM contest_qso WHERE contest_id=? AND callsign LIKE ? LIMIT 20")) {
-            ps.setString(1, contestId);
-            ps.setString(2, partial.toUpperCase() + "%");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) results.add(rs.getString(1));
-        }
-        return results;
     }
 
     public List<QsoRecord> fetchByContest(String contestId) throws SQLException {
@@ -355,38 +217,6 @@ public class ContestQsoDao {
                 "SELECT COALESCE(SUM(points),0) FROM contest_qso WHERE contest_id=? AND mode=? AND is_dupe=0")) {
             ps.setString(1, contestId);
             ps.setString(2, mode);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() ? rs.getInt(1) : 0;
-        }
-    }
-
-    /** First time a particular multiplier value was worked on a mode. */
-    public LocalDateTime firstWorkedAt(String contestId, String column, String value, String mode) throws SQLException {
-        if (!column.matches("field[1-5]")) return null;
-        String sql = "SELECT MIN(datetime_utc) FROM contest_qso WHERE contest_id=? AND mode=? AND "
-                   + column + "=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, mode);
-            ps.setString(3, value);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                String s = rs.getString(1);
-                if (s != null) return LocalDateTime.parse(s, FMT);
-            }
-        }
-        return null;
-    }
-
-    /** Number of QSOs holding a particular multiplier value on a mode. */
-    public int countQsosForMultValue(String contestId, String column, String value, String mode) throws SQLException {
-        if (!column.matches("field[1-5]")) return 0;
-        String sql = "SELECT COUNT(*) FROM contest_qso WHERE contest_id=? AND mode=? AND "
-                   + column + "=? AND is_dupe=0";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, contestId);
-            ps.setString(2, mode);
-            ps.setString(3, value);
             ResultSet rs = ps.executeQuery();
             return rs.next() ? rs.getInt(1) : 0;
         }
