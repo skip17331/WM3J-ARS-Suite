@@ -103,6 +103,15 @@ public final class Shell {
         Tips.tip(b, tooltip);
         return b;
     }
+    /** Force a text field to UPPER CASE as the operator types, pastes or sets text programmatically (caret stays put). */
+    public static <T extends javafx.scene.control.TextInputControl> T caps(T field) {
+        field.setTextFormatter(new javafx.scene.control.TextFormatter<String>(ch -> {
+            if (ch.isContentChange()) ch.setText(ch.getText().toUpperCase(java.util.Locale.ROOT));
+            return ch;
+        }));
+        return field;
+    }
+
     public static Label lbl(String text, String... classes) {
         Label l = new Label(text); l.getStyleClass().addAll(classes);
         for (String c : classes) if (BUTTON_CLASSES.contains(c)) { l.setMinWidth(Region.USE_PREF_SIZE); break; }

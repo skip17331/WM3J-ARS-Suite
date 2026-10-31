@@ -69,7 +69,7 @@ public final class JDigiView {
         VBox.setVgrow(decode, Priority.ALWAYS);
 
         // TX row
-        TextField tx = new TextField(); tx.setPromptText("type to transmit…"); tx.getStyleClass().add("jhub-mini-field");
+        TextField tx = com.ars.fx.shell.Shell.caps(new TextField()); tx.setPromptText("type to transmit…"); tx.getStyleClass().add("jhub-mini-field");
         HBox.setHgrow(tx, Priority.ALWAYS); tx.setMaxWidth(Double.MAX_VALUE);
         Label stop = lbl("Stop", "jl-clearbtn"); stop.setStyle("-fx-cursor:hand;");
         Label send = lbl("Send ▶", "dg-send"); send.setStyle("-fx-cursor:hand;");
@@ -80,7 +80,7 @@ public final class JDigiView {
         HBox txRow = new HBox(12, tx, stop, send); txRow.setAlignment(Pos.CENTER_LEFT);
 
         // macros → transmit: the same editable F1–F8 as J-Log (J-Hub ▸ Data ▸ Macros), filled from your station data
-        TextField dxCall = new TextField(); dxCall.setPromptText("DX call"); dxCall.getStyleClass().add("jhub-mini-field");
+        TextField dxCall = com.ars.fx.shell.Shell.caps(new TextField()); dxCall.setPromptText("DX call"); dxCall.getStyleClass().add("jhub-mini-field");
         dxCall.setMinWidth(90); dxCall.setPrefWidth(100); dxCall.setMaxWidth(110);
         com.ars.fx.shell.Tips.tip(dxCall, "The station you are working — fills {CALL} in a macro (OM when empty)");
         txRow.getChildren().add(0, dxCall);
