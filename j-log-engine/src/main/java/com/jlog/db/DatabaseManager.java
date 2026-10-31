@@ -409,7 +409,6 @@ public class DatabaseManager {
         if (prev != null && prev != next) closeQuietly(prev);
         log.info("Contest log now using {}", contestDbPath);
     }
-    public Connection getConfigConnection()      { return configConn;       }
     public Connection getTranslationsConnection(){ return translationsConn; }
     public Path       getDataDir()               { return dataDir;          }
 

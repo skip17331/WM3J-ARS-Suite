@@ -237,19 +237,6 @@ public class AppConfig {
         prefs.put("hiddenContestIds", String.join(",", ids));
     }
 
-    public void addHiddenContestId(String id) {
-        if (id == null || id.isBlank()) return;
-        java.util.Set<String> s = getHiddenContestIds();
-        s.add(id);
-        setHiddenContestIds(s);
-    }
-
-    public void removeHiddenContestId(String id) {
-        if (id == null || id.isBlank()) return;
-        java.util.Set<String> s = getHiddenContestIds();
-        if (s.remove(id)) setHiddenContestIds(s);
-    }
-
     // ---------------------------------------------------------------
     // Last band / mode (prefill for contest entry; persists until changed)
     // ---------------------------------------------------------------

@@ -102,41 +102,11 @@ public class QsoDao {
         }
     }
 
-    /** Fetch last N QSOs ordered newest-first. */
-    public List<QsoRecord> fetchLast(int limit) throws SQLException {
-        return query("SELECT * FROM qso ORDER BY datetime_utc DESC LIMIT " + limit);
-    }
-
-    /** Fetch page of QSOs (offset-based). */
-    public List<QsoRecord> fetchPage(int offset, int size) throws SQLException {
-        return query("SELECT * FROM qso ORDER BY datetime_utc DESC LIMIT " + size + " OFFSET " + offset);
-    }
-
     /** Total QSO count. */
     public int count() throws SQLException {
         try (Statement st = conn().createStatement();
              ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM qso")) {
             return rs.next() ? rs.getInt(1) : 0;
-        }
-    }
-
-    /** Delete every row matching the (callsign, band, mode, date) dupe key.
-     *  When {@code date} is null, falls back to the legacy (call, band, mode)
-     *  match — used for records that didn't carry a date so the operator
-     *  can still wipe them out by callsign/band/mode. Returns the number
-     *  of rows removed. */
-    public int deleteByKey(String callsign, String band, String mode,
-                           java.time.LocalDate date) throws SQLException {
-        String sql = (date == null)
-            ? "DELETE FROM qso WHERE callsign=? AND band=? AND mode=?"
-            : "DELETE FROM qso WHERE callsign=? AND band=? AND mode=? "
-            + "AND substr(datetime_utc, 1, 10)=?";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, callsign == null ? "" : callsign.toUpperCase());
-            ps.setString(2, band == null ? "" : band);
-            ps.setString(3, mode == null ? "" : mode);
-            if (date != null) ps.setString(4, date.toString());
-            return ps.executeUpdate();
         }
     }
 
@@ -158,35 +128,6 @@ public class QsoDao {
             if (date != null) ps.setString(4, date.toString());
             ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    /** Fetch all QSOs for ADIF/CSV export. */
-    public List<QsoRecord> fetchAll() throws SQLException {
-        return query("SELECT * FROM qso ORDER BY datetime_utc ASC");
-    }
-
-    /** Rows that match the dupe key (callsign + band + mode + date) in
-     *  insertion order. Used by AdifImporter's REVIEW dupe-mode so the
-     *  operator's review dialog can show the EXISTING row(s) next to the
-     *  incoming row before deciding Keep / Overwrite / Skip. When
-     *  {@code date} is null, falls back to legacy (call, band, mode) match. */
-    public List<QsoRecord> findByDupeKey(String callsign, String band, String mode,
-                                         java.time.LocalDate date) throws SQLException {
-        String sql = (date == null)
-            ? "SELECT * FROM qso WHERE callsign=? AND band=? AND mode=? ORDER BY id ASC"
-            : "SELECT * FROM qso WHERE callsign=? AND band=? AND mode=? "
-            + "AND substr(datetime_utc, 1, 10)=? ORDER BY id ASC";
-        try (PreparedStatement ps = conn().prepareStatement(sql)) {
-            ps.setString(1, callsign == null ? "" : callsign.toUpperCase().trim());
-            ps.setString(2, band == null ? "" : band);
-            ps.setString(3, mode == null ? "" : mode);
-            if (date != null) ps.setString(4, date.toString());
-            try (ResultSet rs = ps.executeQuery()) {
-                List<QsoRecord> list = new ArrayList<>();
-                while (rs.next()) list.add(map(rs));
-                return list;
-            }
         }
     }
 

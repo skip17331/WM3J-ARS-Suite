@@ -50,36 +50,6 @@ public class TranslationDao {
         return out;
     }
 
-    /**
-     * Returns rows whose category matches any of the supplied prefixes
-     * (case-insensitive), or all rows if {@code categories} is empty.
-     * Used by the DXCC-driven window to bias toward QSO-relevant phrases.
-     */
-    public List<Translation> getByCategories(List<String> categories) {
-        if (categories == null || categories.isEmpty()) return getAll();
-        StringBuilder sql = new StringBuilder(
-            "SELECT phrase_id, category, english, spanish, german, portuguese, phonetic, phonetic_de, phonetic_pt " +
-            "FROM translations WHERE ");
-        for (int i = 0; i < categories.size(); i++) {
-            if (i > 0) sql.append(" OR ");
-            sql.append("LOWER(category)=?");
-        }
-        sql.append(" ORDER BY category, english");
-
-        List<Translation> out = new ArrayList<>();
-        try (PreparedStatement ps = conn().prepareStatement(sql.toString())) {
-            for (int i = 0; i < categories.size(); i++) {
-                ps.setString(i + 1, categories.get(i).toLowerCase(Locale.ROOT));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) out.add(map(rs));
-            }
-        } catch (SQLException ex) {
-            log.warn("Failed to load translations by category: {}", ex.getMessage());
-        }
-        return out;
-    }
-
     // ---------------------------------------------------------------
     // Writes
     // ---------------------------------------------------------------
