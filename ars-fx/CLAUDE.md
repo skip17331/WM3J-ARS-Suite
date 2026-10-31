@@ -50,7 +50,7 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 
 | Library | How ars-fx uses it |
 |---|---|
-| `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only) and keeps the modem's PTT in step with the J-Hub rig settings (`rig.ptt`, `rig.rigctldHost`, `rig.rigctldPort`) and Transmit settings (`tx.cwWpm`, `tx.cwKeyer`) via `HubConfig.addChangeListener`, and passes it the rig's dial frequency and mode from `RigClient`; a library with no window or launcher of its own |
+| `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only) and keeps the modem's PTT in step with the J-Hub rig settings (`rig.ptt`, `rig.rigctldHost`, `rig.rigctldPort`) and Transmit settings (`tx.cwWpm`, `tx.cwKeyer`) via `HubConfig.addChangeListener`, and switches the local CW skimmer from `digi.localSkimmer` (its spots go to the shared list through the hub: a window sends `spot.add`, `RemoteServer` calls `ClusterClient.addLocalSpot`), and passes it the rig's dial frequency and mode from `RigClient`; a library with no window or launcher of its own |
 | `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`) and enriches each decode (callsign, band/mode, DXCC country, distance and bearing via `DxccInfo`); a library with no standalone app |
 | `j-log-engine` | SQLite DAOs, contest plugins/scoring, Cabrillo export, `DxccResolver` |
 | `j-log-common` | Shared models and `BandplanLoader` |

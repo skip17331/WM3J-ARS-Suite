@@ -776,6 +776,8 @@ public final class JHubDashboard {
                     cToggle("data.rbnAutoConnect", false)));
         VBox wsjt = section("WSJT-X / DIGITAL",
             cfgRow("WSJT-X UDP port", null, cInput("data.wsjtxPort", "2237")),
+            cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
+                    cToggle("digi.localSkimmer", false)),
             cfgRow("Auto-log FT8/FT4 QSOs", null, cToggle("data.autoLogFt8", true)),
             cfgRow("PSK Reporter upload", null, cToggle("data.pskReporter", false)));
         VBox logbook = section("LOGBOOK & EXPORT",

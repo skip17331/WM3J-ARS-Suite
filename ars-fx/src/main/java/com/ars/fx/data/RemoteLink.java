@@ -177,5 +177,12 @@ public final class RemoteLink {
     }
     public void sendRigFreq(long hz)  { JsonObject o = new JsonObject(); o.addProperty("t", "rig.freq"); o.addProperty("hz", hz);   send(o); }
     public void sendRigMode(String m) { JsonObject o = new JsonObject(); o.addProperty("t", "rig.mode"); o.addProperty("mode", m);  send(o); }
+    /** Ask the hub to add a spot from this window's local CW skimmer to the shared spot list. */
+    public void sendSpot(ClusterClient.Spot sp) {
+        JsonObject o = new JsonObject(); o.addProperty("t", "spot.add");
+        o.addProperty("hz", sp.freqHz()); o.addProperty("call", sp.call()); o.addProperty("mode", sp.mode());
+        o.addProperty("band", sp.band() == null ? "" : sp.band()); o.addProperty("de", sp.de()); o.addProperty("comment", sp.comment());
+        send(o);
+    }
     public void sendRotorMove(double az) { JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az); send(o); }
 }

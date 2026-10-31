@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /** J-Digi follows the J-Hub rig and transmit settings, now and as they change. */
 class DigiEngineSyncTest {
@@ -40,6 +40,12 @@ class DigiEngineSyncTest {
             assertEquals(60, svc.getCwWpm());
             HubConfig.set("tx.cwWpm", "not a number");    // unreadable → the saved speed is kept
             assertEquals(60, svc.getCwWpm());
+
+            assertFalse(svc.isLocalSkimmerEnabled());      // the local CW skimmer is off until J-Hub turns it on
+            HubConfig.setBool("digi.localSkimmer", true);
+            assertTrue(svc.isLocalSkimmerEnabled());
+            HubConfig.setBool("digi.localSkimmer", false);
+            assertFalse(svc.isLocalSkimmerEnabled());
         } finally {
             System.setProperty("user.home", oldHome);
             HubConfig.reload();

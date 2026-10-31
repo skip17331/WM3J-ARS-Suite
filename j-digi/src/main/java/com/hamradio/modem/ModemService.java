@@ -79,6 +79,11 @@ public class ModemService {
             new com.hamradio.modem.dsp.SignalClassifier(AudioEngine.SAMPLE_RATE, AudioEngine.FRAME_SIZE);
     private final ModeManager modeManager = new ModeManager();
     private final ModemStatus status = new ModemStatus();
+    private volatile Consumer<com.hamradio.modem.dsp.SkimmerSpotPublisher.LocalSpot> spotListener = s -> {};
+    /** Turns scored callsigns from the multi-carrier CW decoder into {@link SkimmerSpotPublisher.LocalSpot}s for the host.
+     *  Declared after {@code status} so the rig-frequency supplier does not trip a forward reference. */
+    private final com.hamradio.modem.dsp.SkimmerSpotPublisher skimmerSpotPublisher =
+            new com.hamradio.modem.dsp.SkimmerSpotPublisher(spot -> spotListener.accept(spot), () -> status.getRigFrequencyHz());
     private final Deque<String> decodeHistory = new ArrayDeque<>();
 
     private final DigitalTransmitter rttyTransmitter   = new RttyTransmitter();
@@ -123,6 +128,7 @@ public class ModemService {
         // Honor the saved local-skimmer toggle so the operator's choice
         // survives restarts.
         localSkimmer.setEnabled(PREFS.getBoolean(PREF_LOCAL_SKIMMER, false));
+        multiCarrierDecoder.setCallsignListener(skimmerSpotPublisher::onScoredCallsign);
         localSkimmer.setListener(snap -> {
             lastSkimmerSnapshot = snap;         // freshest snapshot, every frame
         });
@@ -328,6 +334,24 @@ public class ModemService {
     /** The saved CW speed in words per minute. */
     public int getCwWpm() { return PREFS.getInt(PREF_CW_WPM, HamlibCwKeyer.DEFAULT_WPM); }
 
+    /**
+     * Switch the local CW skimmer on or off (saved). On, it listens to the whole audio passband for CW, decodes the
+     * carriers it finds and reports the callsigns it is confident of through the spot listener — which needs the rig
+     * frequency (see {@link #setRigState}) to turn an audio offset into a radio frequency.
+     */
+    public void setLocalSkimmerEnabled(boolean on) {
+        PREFS.putBoolean(PREF_LOCAL_SKIMMER, on);
+        flushPrefsQuietly("local skimmer");
+        localSkimmer.setEnabled(on);
+    }
+
+    public boolean isLocalSkimmerEnabled() { return localSkimmer.isEnabled(); }
+
+    /** Receive each callsign the local skimmer spots (called on the audio thread; keep it quick). */
+    public void setSpotListener(Consumer<com.hamradio.modem.dsp.SkimmerSpotPublisher.LocalSpot> l) {
+        this.spotListener = l != null ? l : s -> {};
+    }
+
     /** The saved PTT method, {@code VOX} or {@code HAMLIB}. */
     public String getPttMethod() { return PREFS.get(PREF_PTT_METHOD, "VOX").toUpperCase(); }
 
@@ -367,27 +391,27 @@ public class ModemService {
         status.setTransmitting(true);
         fireStatus();
 
-        Runnable             onStarted   = () -> Platform.runLater(() -> {
+        Runnable             onStarted   = () -> postToFx(() -> {
             status.setTxState(TxState.TRANSMITTING);
             status.setTxStatusText(txMode + " TX active");
             fireStatus();
             postDecodeLine("TX started: " + txMode);
         });
-        Runnable             onCompleted = () -> Platform.runLater(() -> {
+        Runnable             onCompleted = () -> postToFx(() -> {
             status.setTxState(TxState.COMPLETE);
             status.setTxStatusText("TX complete");
             status.setTransmitting(false);
             fireStatus();
             postDecodeLine("TX complete: " + txMode);
         });
-        Runnable             onCancelled = () -> Platform.runLater(() -> {
+        Runnable             onCancelled = () -> postToFx(() -> {
             status.setTxState(TxState.CANCELLED);
             status.setTxStatusText("TX cancelled");
             status.setTransmitting(false);
             fireStatus();
             postDecodeLine("TX cancelled");
         });
-        java.util.function.Consumer<String> onError = err -> Platform.runLater(() -> {
+        java.util.function.Consumer<String> onError = err -> postToFx(() -> {
             status.setTxState(TxState.ERROR);
             status.setTxStatusText("TX error: " + err);
             status.setTransmitting(false);
@@ -610,7 +634,7 @@ public class ModemService {
         }
     }
 
-    private void handleAudioFrame(float[] samples) {
+    void handleAudioFrame(float[] samples) {   // package-private so tests can feed audio without a sound card
         if (status.isTransmitting()) {
             return;
         }
@@ -644,7 +668,7 @@ public class ModemService {
 
             updateModeDiagnostics();
 
-            Platform.runLater(() -> {
+            postToFx(() -> {
                 spectrumListener.accept(snapshot);
                 fireStatus();
             });
@@ -658,7 +682,7 @@ public class ModemService {
 
         } catch (Exception e) {
             log.warn("Audio frame processing failed: {}", e.getMessage(), e);
-            Platform.runLater(() ->
+            postToFx(() ->
                     decodeListener.accept("Audio processing error: " + e.getMessage()));
         }
     }
@@ -702,7 +726,7 @@ public class ModemService {
         }
         decodeHistory.addLast(line);
 
-        Platform.runLater(() -> decodeListener.accept(line));
+        postToFx(() -> decodeListener.accept(line));
     }
 
     private void postDecodeLine(String text) {
@@ -715,7 +739,7 @@ public class ModemService {
         }
         decodeHistory.addLast(text);
 
-        Platform.runLater(() -> decodeListener.accept(text));
+        postToFx(() -> decodeListener.accept(text));
     }
 
     private String buildTxPreview(String text) {
@@ -728,6 +752,12 @@ public class ModemService {
             return normalized;
         }
         return normalized.substring(0, 80) + "...";
+    }
+
+    /** Run {@code r} on the JavaFX thread when the toolkit is up; with no toolkit (a headless host, a test) run it right away. */
+    private static void postToFx(Runnable r) {
+        try { Platform.runLater(r); }
+        catch (IllegalStateException noToolkit) { r.run(); }
     }
 
     private void fireStatus() {

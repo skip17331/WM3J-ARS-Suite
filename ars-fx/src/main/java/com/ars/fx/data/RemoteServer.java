@@ -127,6 +127,9 @@ public final class RemoteServer extends WebSocketServer {
                     TelnetFeed f = TelnetFeed.byKey(o.get("key").getAsString());
                     if (f != null) f.applyCommand(o.get("op").getAsString(), o);
                 }
+                case "spot.add"     -> ClusterClient.getInstance().addLocalSpot(new ClusterClient.Spot(    // a window's local skimmer heard a call
+                        o.get("hz").getAsLong(), o.get("call").getAsString(), o.get("mode").getAsString(), o.get("band").getAsString(),
+                        o.get("de").getAsString(), o.get("comment").getAsString(), System.currentTimeMillis()));
                 case "hub.reconfig" -> { Runnable r = onReconfig; if (r != null) r.run(); }   // re-read config + reconcile
                 default             -> { /* ignore unknown */ }
             }

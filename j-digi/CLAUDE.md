@@ -87,6 +87,18 @@ poll. `ars-fx` does this from `DigiEngine`, which listens to `RigClient`. The fr
 (j-log-common) for e.g. "20m / CW — CW (US)" and stores it in `ModemStatus.bandplanCaption`. The caption follows the
 band plan's *active region* (set by `ars-fx` from Station ▸ IARU region), not a preference of this module.
 
+## Local CW skimmer
+
+Off until the host turns it on with `setLocalSkimmerEnabled(true)` (saved). While on, `LocalSkimmer` finds CW carriers in the audio
+passband, `MultiCarrierDecoder` decodes each one, and `CallsignScorer` promotes callsigns it is confident of (needs a `CQ`/`DE`
+context or a repeat). `SkimmerSpotPublisher` then turns each into a `LocalSpot` (callsign, dial + audio offset in Hz, SNR,
+context) with a 5-minute per-(callsign, kHz) dedup, and hands it to the host's `setSpotListener` on the audio thread. A spot needs
+the rig frequency (`setRigState`); until the host provides one nothing is produced. `ars-fx` adds each spot to the shared spot list.
+
+Limits: the channel decoder copies the synthetic test signal cleanly at about 12 wpm; from about 15 wpm up it runs letters together
+(`DE W1AW` comes out as one wrong character), so few callsigns reach the scorer at normal contest speeds. That is decoder accuracy,
+not the spot path, and it has not been investigated. `ModemServiceSkimmerTest` covers audio → spot at 12 wpm.
+
 ## State and persistence
 
 Mode, audio devices, PTT and keyer settings persist via Java `Preferences` (typically `~/.java/.userPrefs/com/hamradio/modem`),
@@ -118,5 +130,3 @@ Depends on `j-log-engine` and `j-log-common` for shared types. Build them first 
 - No window, FXML or launcher — the UI belongs to `ars-fx`.
 - No hub connection and no `~/.j-digi/` directory — state lives in Java Preferences.
 - No bundled data files beyond `logback.xml`.
-- The CW skimmer's callsign-to-SPOT publisher was removed with the hub link; `LocalSkimmer`, `MultiCarrierDecoder` and
-  `CallsignScorer` remain and the decoder still accepts a callsign listener.

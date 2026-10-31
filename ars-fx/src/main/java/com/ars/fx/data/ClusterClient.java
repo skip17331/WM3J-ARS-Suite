@@ -111,6 +111,17 @@ public final class ClusterClient extends TelnetFeed {
         fire();
     }
 
+    /** Add one spot that did not come from the telnet feed (e.g. the local CW skimmer) to the top of the list.
+     *  It is left out of the activity heat map, which stays a picture of the cluster feed. */
+    public void addLocalSpot(Spot spot) {
+        if (spot == null) return;
+        synchronized (this) {
+            spots.addFirst(spot);
+            while (spots.size() > MAX_SPOTS) spots.removeLast();
+        }
+        fire();
+    }
+
     @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); activityLog.clear(); } }
 
     @Override protected void onLine(String line) {
