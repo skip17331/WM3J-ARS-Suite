@@ -41,20 +41,42 @@ public final class DaemonManager {
      *  The hub calls this after re-loading config on a client's {@code hub.reconfig} nudge. */
     public static void applyAll() { for (Spec s : SPECS) setEnabled(s.kind(), HubConfig.getBool(s.startKey(), false)); }
 
-    /** Spawn the daemon for {@code kind} if its toggle is on, the binary exists, and it isn't already running. */
+    /** The command line we started each daemon with, so a changed setting can be told from "already running". */
+    private static final Map<String, List<String>> ARGV = new ConcurrentHashMap<>();
+
+    /**
+     * Spawn the daemon for {@code kind} if its toggle is on and the binary exists. A daemon we started earlier is left
+     * alone while its command line is unchanged, and restarted when a setting that goes on it (model, port, baud, PTT
+     * type …) has changed. One we did not start — anything already listening on the endpoint — is never touched.
+     */
     public static synchronized void ensure(String kind) {
         Spec s = spec(kind);
         if (s == null || !HubConfig.getBool(s.startKey(), false)) return;
-        Process p = PROCS.get(kind);
-        if (p != null && p.isAlive()) return;
-        // Cross-process backstop: if something is already listening on the daemon's endpoint (our own daemon
-        // owned by another JVM, or an externally-run daemon), never spawn a second one to fight over the port.
-        String host = HubConfig.get(s.hostKey(), "127.0.0.1").trim();
-        if (portOpen(host, parsePort(HubConfig.get(s.portKey(), s.defaultPort()), s.defaultPort()))) return;
         String bin = resolveBinary(s.daemon());
-        if (bin == null) return;                                  // not installed — leave it to the operator
+        List<String> argv = bin == null ? null : buildArgv(s, bin);
+        Process p = PROCS.get(kind);
+        if (p != null && p.isAlive()) {
+            if (argv == null || argv.equals(ARGV.get(kind))) return;          // unchanged (or can't be rebuilt) — keep it
+            stop(kind);                                                       // settings changed: restart with the new ones
+            try { p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+        } else {
+            // Cross-process backstop: if something is already listening on the daemon's endpoint (our own daemon
+            // owned by another JVM, or an externally-run daemon), never spawn a second one to fight over the port.
+            String host = HubConfig.get(s.hostKey(), "127.0.0.1").trim();
+            if (portOpen(host, parsePort(HubConfig.get(s.portKey(), s.defaultPort()), s.defaultPort()))) return;
+        }
+        if (argv == null) return;                                 // not installed, or no Hamlib model # (needed for -m)
+        try {
+            Process np = new ProcessBuilder(argv).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+            PROCS.put(kind, np);
+            ARGV.put(kind, argv);
+        } catch (Exception ignored) { /* spawn failed — operator runs it manually */ }
+    }
+
+    /** The command line for {@code s}'s daemon from the current settings, or null when there is no Hamlib model number. */
+    private static List<String> buildArgv(Spec s, String bin) {
         String model = HubConfig.get(s.modelKey(), "").trim();
-        if (model.isBlank()) return;                              // hamlib model # required for -m
+        if (model.isBlank()) return null;
         List<String> argv = new ArrayList<>();
         argv.add(bin); argv.add("-m"); argv.add(model);
         String serial = HubConfig.get(s.serialKey(), "").trim();
@@ -63,15 +85,28 @@ public final class DaemonManager {
         if (!baud.isBlank()) { argv.add("-s"); argv.add(baud); }
         argv.add("-t"); argv.add(HubConfig.get(s.portKey(), s.defaultPort()).trim());
         argv.add("-T"); argv.add(HubConfig.get(s.hostKey(), "127.0.0.1").trim());
-        try {
-            Process np = new ProcessBuilder(argv).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
-            PROCS.put(kind, np);
-        } catch (Exception ignored) { /* spawn failed — operator runs it manually */ }
+        if (s.kind().equals("rig")) {
+            // J-Hub's PTT method: CAT keys over the CAT link (the default); RTS / DTR key a control line of the serial
+            // port, which rigctld only does when told the PTT type and device. VOX needs no keying from the daemon.
+            String ptt = HubConfig.get("rig.ptt", "CAT").trim().toUpperCase();
+            if ((ptt.equals("RTS") || ptt.equals("DTR")) && !serial.isBlank()) {
+                argv.add("-P"); argv.add(ptt);
+                argv.add("-p"); argv.add(serial);
+            }
+        }
+        return argv;
+    }
+
+    /** The command line {@code kind}'s daemon would be started with now (as a path-less program name), or null. For tests. */
+    static List<String> argvFor(String kind) {
+        Spec s = spec(kind);
+        return s == null ? null : buildArgv(s, s.daemon());
     }
 
     /** Stop the daemon we spawned for {@code kind} (toggle turned off / app exit). */
     public static synchronized void stop(String kind) {
         Process p = PROCS.remove(kind);
+        ARGV.remove(kind);
         if (p != null) p.destroy();
     }
 

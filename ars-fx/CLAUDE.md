@@ -68,6 +68,9 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 
 - **One band plan.** Use `data/Bands` (facade over `BandplanLoader`). Never add another band-edge table. The Station
   "IARU region" setting picks the plan (`Bands.applyRegion()` at start-up and on change).
+- **Daemons** (`data/DaemonManager`) start rigctld / rotctld / ampctld when "Start … for me" is on. J-Hub's *PTT method* RTS or DTR
+  adds `-P <type> -p <serial port>` to rigctld (CAT and VOX add nothing), and a daemon we started is restarted when its
+  command line changes (the hub re-reads config on a `hub.reconfig` nudge). One we did not start is never touched.
 - **Macros** are templates with `{TAGS}` (`MacroConfig.TAGS`, 42 of them) filled from the J-Hub settings; `{CALL}` is
   the worked station. A macro that needs an empty personal setting is refused with a message naming it.
 - **Shared screens, one hub.** Data clients (`ClusterClient`, `RigClient` ...) must no-op their `start()` when a

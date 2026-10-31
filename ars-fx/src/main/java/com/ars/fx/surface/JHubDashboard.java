@@ -604,7 +604,8 @@ public final class JHubDashboard {
             cfgRow("rigctld host", "Hamlib rig daemon J-Hub connects to", cInputApply("rig.rigctldHost", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("rigctld port", null, cInputApply("rig.rigctldPort", "4532", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox ptt = section("PTT & KEYING",
-            cfgRow("PTT method", null, cSeg("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0)),
+            cfgRow("PTT method", "CAT keys over the CAT link. RTS / DTR key that line of the serial port (needs Start rigctld for me). VOX keys nothing — the radio or interface senses the audio",
+                    cSegApply("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("CW keyer", null, cInputPrompt("rig.keyer", "e.g. Winkeyer USB")),
             cfgRow("TX delay", null, cUnit("rig.txDelay", "30", "ms")));
         VBox beh = section("BEHAVIOR",
