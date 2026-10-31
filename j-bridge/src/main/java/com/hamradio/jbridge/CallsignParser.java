@@ -106,6 +106,28 @@ public class CallsignParser {
     }
 
     /**
+     * Extract the <em>transmitting</em> station from a WSJT-X decoded message — the one whose signal was heard, which is
+     * the right station for "where is this signal from". It differs from {@link #extractDxCallsign} on directed
+     * messages: in {@code W3ABC K3XYZ -10} WSJT-X puts the station being called first and the sender second, so the
+     * sender is {@code K3XYZ}. For {@code CQ}, {@code DE} and {@code TU;} messages both methods agree.
+     *
+     * @param message raw message text (may be null)
+     * @return callsign in upper-case, or null if not determined
+     */
+    public static String extractSenderCallsign(String message) {
+        if (message == null || message.isBlank()) return null;
+        String msg = message.trim().toUpperCase();
+        if (msg.startsWith("CQ ") || msg.startsWith("DE ") || msg.startsWith("TU;")) return extractDxCallsign(message);
+
+        java.util.List<String> calls = new java.util.ArrayList<>();
+        for (String t : msg.split("\\s+")) {
+            if (!RESERVED.contains(t) && isCallsign(t)) calls.add(stripPortableSuffix(t));
+        }
+        if (calls.isEmpty()) return null;
+        return calls.size() >= 2 ? calls.get(1) : calls.get(0);
+    }
+
+    /**
      * Returns true if the token looks like a valid amateur callsign.
      * Rejects grid squares (FM19), signal reports (-10), and reserved words.
      */

@@ -69,7 +69,9 @@ JavaFX, WebSocket, JSON or logging backend — `ars-fx` supplies those.
 ## What the host adds
 
 The listener hands over raw decodes. `ars-fx` (`BridgeService.enrich`) fills in the rest of `WsjtxDecode`: the DX
-callsign (`CallsignParser`), the dial frequency, mode and band from the latest status (`BandUtils`), and from the callsign
-its DXCC country, continent, a position, and the distance and bearing from the station. A decode that ends in a 4-character
+callsign (`CallsignParser.extractDxCallsign`), the dial frequency, mode and band from the latest status (`BandUtils`), and,
+from the *transmitting* station's callsign (`CallsignParser.extractSenderCallsign` — on a directed message such as
+`W3ABC K3XYZ -10` that is the second call), its DXCC country, continent, a position, and the distance and bearing from the
+station. A decode that ends in a 4-character
 grid uses that grid as the far end; otherwise the middle of the country is used. The station position comes from J-Hub ▸
 Station (latitude/longitude, else the grid square); with neither set, distance and bearing stay at zero.

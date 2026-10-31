@@ -47,10 +47,20 @@ class BridgeServiceEnrichTest {
 
     @Test
     void rr73IsAReplyNotAGrid() {
-        WsjtxDecode d = decode("W3ABC K3XYZ RR73");
+        WsjtxDecode d = decode("DL1ABC W3XYZ RR73");
         BridgeService.enrich(d, null, Maidenhead.center("JO31"));
-        assertEquals("W3ABC", d.getCallsign());
-        assertEquals(DxccInfo.of("W3ABC").lat(), d.getLat(), 1e-9);      // the country centre, not the "RR73" square
+        assertEquals(DxccInfo.of("W3XYZ").lat(), d.getLat(), 1e-9);      // the country centre, not the "RR73" square
+    }
+
+    @Test
+    void countryAndDistanceDescribeTheTransmittingStation() {
+        // "<called> <sender> <report>": ZS6AA is sending, N0CALL is being called
+        WsjtxDecode d = decode("N0CALL ZS6AA -12");
+        BridgeService.enrich(d, null, FN20);
+        assertEquals("N0CALL", d.getCallsign());                           // the existing "DX call" meaning is unchanged
+        assertEquals("South Africa", d.getCountry());
+        assertEquals("AF", d.getContinent());
+        assertTrue(d.getDistanceKm() > 11000);
     }
 
     @Test

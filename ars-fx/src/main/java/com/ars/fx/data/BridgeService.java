@@ -52,9 +52,10 @@ public final class BridgeService {
 
     /**
      * Fill in what the raw WSJT-X decode does not carry: the DX callsign, the band / mode / dial frequency from the
-     * latest WSJT-X status, and from the callsign its DXCC country, continent and a distance and bearing from the station.
-     * The far end's position is its 4-character grid when the message has one, otherwise the middle of its country.
-     * Without a station position the distance and bearing are left at zero.
+     * latest WSJT-X status, and its DXCC country, continent and a distance and bearing from the station. The country and
+     * distance describe the <em>transmitting</em> station — on a directed message ({@code W3ABC K3XYZ -10}) that is the
+     * second callsign, not the one being called. Its position is the 4-character grid at the end of the message when
+     * there is one, otherwise the middle of its country. Without a station position distance and bearing stay at zero.
      *
      * @param station {lat, lon} of this station, or null if not set
      */
@@ -62,14 +63,15 @@ public final class BridgeService {
         String msg = d.getMessage();
         String call = CallsignParser.extractDxCallsign(msg);
         d.setCallsign(call);
+        String sender = CallsignParser.extractSenderCallsign(msg);
         if (st != null) {
             d.setFrequency(st.getDialFrequency());
             d.setMode(st.getMode());
             String b = BandUtils.frequencyToBand(st.getDialFrequency());
             d.setBand("OOB".equals(b) ? null : b);
         }
-        if (call == null) return;
-        DxccInfo.Info info = DxccInfo.of(call);
+        if (sender == null) return;
+        DxccInfo.Info info = DxccInfo.of(sender);
         if (info == null) return;
         d.setCountry(info.country());
         d.setContinent(info.continent());
