@@ -4,7 +4,7 @@ module com.jlog.engine {
     requires java.desktop;
     requires org.xerial.sqlitejdbc;
     requires transitive com.fasterxml.jackson.databind;
-    // DB-free primitives (model/bandplan/civ/i18n) now live in j-log-common.
+    // DB-free primitives (model/bandplan) now live in j-log-common.
     // transitive so engine consumers keep seeing com.jlog.model etc. through us.
     requires transitive com.jlog.common;
     requires org.java_websocket;

@@ -47,10 +47,7 @@
         <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId><version>2.0.13</version></dependency>
         <!-- J-Sat satellite registry + ~/.j-sat settings JSON parsing -->
         <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.10.1</version></dependency>
-        <!-- Contest mode reuses the pure scoring/plugin/Cabrillo engine. Pinned explicitly (rather than
-             relying on the copy embedded in the j-digi fat jar) so the API version is deterministic.
-             It is declared BEFORE j-digi on purpose: that fat jar carries an older copy of the same com.jlog
-             classes, and classpath/shade order decides which copy wins — the engine must win. -->
+        <!-- Contest mode reuses the pure scoring/plugin/Cabrillo engine. Pinned explicitly so the API version is deterministic. -->
         <dependency><groupId>com.jlog</groupId><artifactId>j-log-engine</artifactId><version>1.9.5</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- J-Digi embeds the real modem engine (ModemService); same JavaFX/gson/slf4j versions.
@@ -62,7 +59,9 @@
         <!-- Solo J-Map/J-Sat ⇄ station J-Hub link (same WS lib the suite's central hub uses) -->
         <dependency><groupId>org.java-websocket</groupId><artifactId>Java-WebSocket</artifactId><version>1.5.6</version></dependency>
         <!-- PluginLoader/ContestPlugin parse contest JSON with Jackson; pin so the shade keeps it. -->
-        <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId><version>2.17.0</version></dependency>
+        <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId><version>2.17.0</version>
+            <!-- 2.17.0's pom wrongly lists byte-buddy as a compile dependency; nothing here uses it -->
+            <exclusions><exclusion><groupId>net.bytebuddy</groupId><artifactId>byte-buddy</artifactId></exclusion></exclusions></dependency>
         <!-- Morse trainer (J-Learn): serial port for the Arduino paddle keyer -->
         <dependency><groupId>com.fazecast</groupId><artifactId>jSerialComm</artifactId><version>2.10.4</version></dependency>
         <dependency>
@@ -132,40 +131,6 @@
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                                <!-- j-digi is published as a fat jar that embeds all of JavaFX (+natives).
-                                     Strip that out: the desktop jar supplies JavaFX from the openjfx deps,
-                                     the Pi jar gets it from a Liberica Full JDK. -->
-                                <filter>
-                                    <artifact>com.hamradio:j-digi</artifact>
-                                    <excludes>
-                                        <exclude>javafx/**</exclude>
-                                        <exclude>com/sun/javafx/**</exclude>
-                                        <exclude>com/sun/glass/**</exclude>
-                                        <exclude>com/sun/prism/**</exclude>
-                                        <exclude>com/sun/scenario/**</exclude>
-                                        <exclude>com/sun/webkit/**</exclude>
-                                        <exclude>com/sun/media/**</exclude>
-                                        <exclude>com/sun/marlin/**</exclude>
-                                        <exclude>com/sun/pisces/**</exclude>
-                                        <exclude>**/*.so</exclude>
-                                        <!-- These fat jars also embed every shared library (engine, gson,
-                                             jackson, sqlite, logback, websocket, pdfbox, byte-buddy, jssc…).
-                                             Strip them all so the pinned standalone copies are authoritative;
-                                             only com/hamradio/** (the module's own code) is kept. -->
-                                        <exclude>com/jlog/**</exclude>
-                                        <exclude>ch/qos/**</exclude>
-                                        <exclude>com/fasterxml/**</exclude>
-                                        <exclude>com/google/**</exclude>
-                                        <exclude>net/bytebuddy/**</exclude>
-                                        <exclude>org/apache/**</exclude>
-                                        <exclude>org/java_websocket/**</exclude>
-                                        <exclude>org/scijava/**</exclude>
-                                        <exclude>org/sqlite/**</exclude>
-                                        <exclude>org/slf4j/**</exclude>
-                                        <exclude>jssc/**</exclude>
-                                        <exclude>natives/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
