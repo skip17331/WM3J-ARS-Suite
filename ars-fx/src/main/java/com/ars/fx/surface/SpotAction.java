@@ -80,7 +80,7 @@ public final class SpotAction {
         if (hm != null) rig.setMode(hm);
 
         // 3. offer to rotate the antenna toward the spot
-        if (!Double.isNaN(lat) && !Double.isNaN(lon)) {
+        if (!Double.isNaN(lat) && !Double.isNaN(lon) && RotorClient.getInstance().isConfigured()) {
             int brg = (int) Math.round(bearing(qLat(), qLon(), lat, lon));
             askRotate(source, c, brg);
         }

@@ -48,6 +48,12 @@ public final class RotorClient {
     private Socket socket; private BufferedReader reader; private OutputStream out;
 
     public State last() { return last; }
+
+    /** True if a rotor appears to be set up: a Hamlib model is configured, or a rotor is actually answering. */
+    public boolean isConfigured() {
+        String m = HubConfig.get("rotor.hamlibModel", "");
+        return (m != null && !m.isBlank()) || last.connected();
+    }
     public String endpoint() { return host + ":" + port; }
     public void setListener(Consumer<State> l) { this.listener = l == null ? s -> {} : l; emit(last); }
 
