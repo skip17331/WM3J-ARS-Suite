@@ -124,6 +124,7 @@
    SHELL — module dock
    ============================================================================ */
 .sx-shell  { -fx-background-color: -ars-bg; }
+.sx-dock-scroll, .sx-dock-scroll > .viewport { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0; }
 .sx-dock   { -fx-background-color: -ars-surface-1; -fx-border-color: transparent -ars-border transparent transparent; -fx-border-width: 0 1 0 0; -fx-padding: 9 0 9 0; }
 .sx-dock-sec  { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; -fx-padding: 12 16 5 16; }
 .sx-dock-item { -fx-padding: 7 14 7 14; -fx-background-radius: 9; -fx-cursor: hand; }

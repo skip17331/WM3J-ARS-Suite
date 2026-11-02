@@ -174,9 +174,19 @@ public final class Shell {
         foot.getStyleClass().add("sx-dock-foot");
         dock.getChildren().add(foot);
 
-        dock.setOnMouseEntered(e -> { setExpanded(dock, expandOnly, true); });
-        dock.setOnMouseExited(e -> { setExpanded(dock, expandOnly, false); });
-        return dock;
+        // Scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would make
+        // the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
+        ScrollPane sp = new ScrollPane(dock);
+        sp.getStyleClass().add("sx-dock-scroll");
+        sp.setFitToWidth(true); sp.setFitToHeight(true);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setMinHeight(0);
+        sp.minWidthProperty().bind(dock.minWidthProperty());
+        sp.prefWidthProperty().bind(dock.prefWidthProperty());
+        sp.maxWidthProperty().bind(dock.maxWidthProperty());
+        sp.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
+        sp.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
+        return sp;
     }
     private static void setExpanded(VBox dock, List<Node> nodes, boolean exp) {
         double w = exp ? 216 : 58;

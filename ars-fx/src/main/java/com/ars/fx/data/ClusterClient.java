@@ -42,6 +42,9 @@ public final class ClusterClient extends TelnetFeed {
     public static final String[] HEAT_MODES = {"CW", "Phone", "Digi"};
     private static final int ACTIVITY_KEEP_MS = 60 * 60_000, ACTIVITY_MAX = 6000;
 
+    private static final long AGE_REFRESH_MS = 30_000;
+    private long lastInjectFire;
+
     private final Deque<Spot> spots = new ArrayDeque<>();
     /** Every spot heard in the last hour as {arrivalMs, bandIndex, modeGroup} — longer memory than the 40-spot list. */
     private final Deque<long[]> activityLog = new ArrayDeque<>();
@@ -102,11 +105,21 @@ public final class ClusterClient extends TelnetFeed {
         while (!activityLog.isEmpty() && (activityLog.peekFirst()[0] < cutoff || activityLog.size() > ACTIVITY_MAX)) activityLog.removeFirst();
     }
 
+    /** A changed list, or an unchanged one that has gone long enough for the spot ages on screen to need a refresh. */
+    static boolean worthNotifying(List<Spot> current, List<Spot> next, long msSinceLast) {
+        return !current.equals(next) || msSinceLast >= AGE_REFRESH_MS;
+    }
+
     /** Replace the feed with spots pushed from the hub (window side). Status arrives separately. */
     public void injectSpots(List<Spot> incoming) {
+        List<Spot> next = incoming == null ? List.of() : incoming.subList(0, Math.min(incoming.size(), MAX_SPOTS));
+        long now = System.currentTimeMillis();
         synchronized (this) {
-            spots.clear();
-            if (incoming != null) for (Spot s : incoming) { spots.addLast(s); if (spots.size() >= MAX_SPOTS) break; }
+            // The hub repeats its state about once a second. Listeners redraw whole screens (J-Map's repaint takes
+            // hundreds of ms), so tell them only about a real change, or now and then to keep spot ages current.
+            if (!worthNotifying(new ArrayList<>(spots), next, now - lastInjectFire)) return;
+            spots.clear(); spots.addAll(next);
+            lastInjectFire = now;
         }
         fire();
     }

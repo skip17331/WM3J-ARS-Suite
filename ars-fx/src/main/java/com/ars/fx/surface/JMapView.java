@@ -134,11 +134,12 @@ public final class JMapView {
 
     private static void startBeaconTicker() {
         if (beaconTicker != null) return;
-        // 1 Hz tick drives the beacon cycle and the live gray line (sun position,
-        // az/el and SR/SS in the solar readout track the wall clock).
+        // 1 Hz tick keeps the top bar live. The map itself is costly to repaint and barely changes: beacons step every
+        // 10 s, the sun about a quarter of a degree a minute. New spots repaint it on their own.
         beaconTicker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
             updateMapTopbar();                                 // ticking clock + live SPOTS/SHOWN/GRAY-LINE/BEAM
-            if (showBeacons || ovGrayline) repaintMap();
+            long second = java.time.Instant.now().getEpochSecond();
+            if (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0) repaintMap();
         }));
         beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
         beaconTicker.play();
@@ -285,11 +286,12 @@ public final class JMapView {
     private static void updateMapTopbar() {
         if (mapFrame == null) return;
         if (mapFrame.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
-        if (legendSpots != null) legendSpots.setText(legendSpotsText());
+        int shown = liveSpots().size();
+        if (legendSpots != null) legendSpots.setText(legendSpotsText(shown));
         java.util.List<Label> vs = new java.util.ArrayList<>(); collectStatValues(mapFrame, vs);
         if (vs.size() >= 4) {
             vs.get(0).setText(String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));
-            vs.get(1).setText(String.valueOf(liveSpots().size()));
+            vs.get(1).setText(String.valueOf(shown));
             vs.get(2).setText(grayLineStat());
             vs.get(3).setText(String.format("%03d°", (int) beamDeg));
         }
@@ -301,40 +303,46 @@ public final class JMapView {
 
     // ---- bottom alert scroller (port of original J-Map DxScrollerBar) ------
     private static Region tickerBar() {
-        double H = 42;
-        Canvas canvas = new Canvas();
-        Pane pane = new Pane(canvas);
+        double H = 42, speed = 70;                            // px per second
+        Pane pane = new Pane();
         pane.setMinHeight(H); pane.setPrefHeight(H); pane.setMaxHeight(H);
-        pane.setStyle("-fx-background-color:#07090c;");
-        canvas.widthProperty().bind(pane.widthProperty());
-        canvas.setHeight(H);
+        pane.setStyle("-fx-background-color:#07090c;-fx-border-color:#2c3540 transparent transparent transparent;-fx-border-width:1 0 0 0;");
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.widthProperty().bind(pane.widthProperty()); clip.setHeight(H);
+        pane.setClip(clip);
 
-        String color = "#c3ccd6";
+        // One text node slid along by the GPU: redrawing a canvas on a timer steps unevenly against the screen refresh.
         Font font = Font.font("JetBrains Mono", 12.5);
-        String[] text = new String[1];
+        Text line = new Text(); line.setFont(font); line.setFill(Color.web("#c3ccd6"));
+        line.setTextOrigin(javafx.geometry.VPos.CENTER); line.setLayoutY(H / 2);
+        line.setCache(true); line.setCacheHint(javafx.scene.CacheHint.SPEED);
+        pane.getChildren().add(line);
+
         double[] singleW = new double[1];
         Runnable refreshText = () -> {
-            text[0] = com.ars.fx.data.SolarData.tickerText(com.ars.fx.data.SolarData.getInstance().snapshot(), grayLineStat());
-            Text meas = new Text(text[0]); meas.setFont(font);
+            String one = com.ars.fx.data.SolarData.tickerText(com.ars.fx.data.SolarData.getInstance().snapshot(), grayLineStat()) + "   ";
+            Text meas = new Text(one); meas.setFont(font);
             singleW[0] = meas.getLayoutBounds().getWidth();
+            int copies = (int) Math.ceil(Math.max(pane.getWidth(), 1920) / singleW[0]) + 1;   // enough to fill the bar past the wrap
+            line.setText(one.repeat(copies));
         };
         refreshText.run();
 
-        double speed = 70, tickMs = 30;
         double[] x = { Double.NaN };
-        Timeline tl = new Timeline(new KeyFrame(Duration.millis(tickMs), e -> {
-            double w = canvas.getWidth(); if (w <= 0) return;
-            if (Double.isNaN(x[0])) x[0] = w;
-            x[0] -= speed * (tickMs / 1000.0);
-            if (x[0] <= -singleW[0]) { refreshText.run(); x[0] = 0; }   // new figures only where the line wraps, so it never jumps
-            GraphicsContext g = canvas.getGraphicsContext2D();
-            g.setFill(Color.web("#07090c")); g.fillRect(0, 0, w, H);
-            g.setStroke(Color.web("#2c3540")); g.setLineWidth(1); g.strokeLine(0, 0, w, 0);
-            g.setFont(font); g.setFill(Color.web(color));
-            for (double px = x[0]; px < w; px += singleW[0]) g.fillText(text[0], px, H - 15);
-        }));
-        tl.setCycleCount(Timeline.INDEFINITE); tl.play();
-        pane.sceneProperty().addListener((o, old, sc) -> { if (sc == null && old != null) tl.stop(); });
+        long[] last = { 0 };
+        javafx.animation.AnimationTimer timer = new javafx.animation.AnimationTimer() {
+            @Override public void handle(long now) {
+                double w = pane.getWidth();
+                if (w <= 0) return;
+                if (Double.isNaN(x[0])) x[0] = w;
+                if (last[0] != 0) x[0] -= speed * (now - last[0]) / 1e9;   // by elapsed time, so a busy frame can't slow it
+                last[0] = now;
+                if (x[0] <= -singleW[0]) { refreshText.run(); x[0] = 0; }  // new figures only where the line repeats
+                line.setTranslateX(x[0]);
+            }
+        };
+        timer.start();
+        pane.sceneProperty().addListener((o, old, sc) -> { if (sc == null && old != null) timer.stop(); });
         return pane;
     }
 
@@ -509,7 +517,7 @@ public final class JMapView {
     private static Region aziArea() {
         Canvas cv = new Canvas();
         // top-right legend
-        legendSpots = rt(legendSpotsText());
+        legendSpots = rt(legendSpotsText(liveSpots().size()));
         VBox tr = new VBox(2, legendSpots,
             rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")), rt("spokes = 30°"));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -532,7 +540,7 @@ public final class JMapView {
     }
     private static Label rt(String s){ return lbl(s, "jm-legend"); }
     private static Label legendSpots;                     // live first line of the azimuthal note
-    private static String legendSpotsText() { return liveSpots().size() + " spots · ≤ " + spotAgeMax + " min"; }
+    private static String legendSpotsText(int shown) { return shown + " spots · ≤ " + spotAgeMax + " min"; }
 
     private static void paintAzimuthal(GraphicsContext g, double w, double h) {
         g.clearRect(0, 0, w, h);
@@ -616,30 +624,45 @@ public final class JMapView {
         drawBeacons(g, azi);
     }
     /** Azimuthal-equidistant night shading + terminator (gray line) centred on QTH. */
-    private static void drawAzimuthalGrayLine(GraphicsContext g, double cx, double cy, double R) {
-        double[] ss = com.ars.fx.data.SolarPosition.subSolar(); double decl = ss[0], ssLon = ss[1];
-        double declR = Math.toRadians(decl), sinDecl = Math.sin(declR), cosDecl = Math.cos(declR), ssLonR = Math.toRadians(ssLon);
-        double qLatR = Math.toRadians(Q_LAT), qLonR = Math.toRadians(Q_LON), sinQ = Math.sin(qLatR), cosQ = Math.cos(qLatR);
+    // One image, not thousands of small rectangles: those stalled the render thread for about 400 ms on every repaint.
+    private static javafx.scene.image.WritableImage nightMask;
+    private static String nightMaskKey = "";
 
-        // night region — inverse-project each (downsampled) pixel, darken where the sun is below the horizon
-        g.save();
-        g.beginPath(); g.arc(cx, cy, R, R, 0, 360); g.closePath(); g.clip();
-        g.setFill(Color.web("#000000", 0.42));
-        int step = 3;
-        for (double py = cy - R; py <= cy + R; py += step) {
-            for (double px = cx - R; px <= cx + R; px += step) {
-                double dx = px - cx, dy = py - cy, rp = Math.sqrt(dx * dx + dy * dy);
-                if (rp > R) continue;
-                double delta = (rp / R) * 15000.0 / 6371.0;       // angular distance (rad)
+    /** The dark side of the azimuthal disk, recalculated when the size, station or minute changes. */
+    private static javafx.scene.image.Image nightMask(double R) {
+        int size = (int) Math.round(R);                       // half the disk's pixels; scaling up softens the edge
+        String key = size + "/" + Q_LAT + "/" + Q_LON + "/" + (System.currentTimeMillis() / 60_000);
+        if (key.equals(nightMaskKey)) return nightMask;
+
+        double[] ss = com.ars.fx.data.SolarPosition.subSolar();
+        double declR = Math.toRadians(ss[0]), sinDecl = Math.sin(declR), cosDecl = Math.cos(declR), ssLonR = Math.toRadians(ss[1]);
+        double qLatR = Math.toRadians(Q_LAT), qLonR = Math.toRadians(Q_LON), sinQ = Math.sin(qLatR), cosQ = Math.cos(qLatR);
+        int[] argb = new int[size * size];
+        int night = 0x6B000000;                               // black at 42%
+        double half = size / 2.0;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                double dx = x + 0.5 - half, dy = y + 0.5 - half, rp = Math.sqrt(dx * dx + dy * dy);
+                if (rp > half) continue;
+                double delta = (rp / half) * 15000.0 / 6371.0;     // angular distance (rad)
                 double brg = Math.atan2(dy, dx) + Math.PI / 2;     // bearing from north
                 double sinDel = Math.sin(delta), cosDel = Math.cos(delta);
                 double latR = Math.asin(sinQ * cosDel + cosQ * sinDel * Math.cos(brg));
                 double lonR = qLonR + Math.atan2(Math.sin(brg) * sinDel * cosQ, cosDel - sinQ * Math.sin(latR));
-                double dot = Math.sin(latR) * sinDecl + Math.cos(latR) * cosDecl * Math.cos(lonR - ssLonR);
-                if (dot < 0) g.fillRect(px, py, step, step);
+                if (Math.sin(latR) * sinDecl + Math.cos(latR) * cosDecl * Math.cos(lonR - ssLonR) < 0) argb[y * size + x] = night;
             }
         }
-        g.restore();
+        if (nightMask == null || (int) nightMask.getWidth() != size) nightMask = new javafx.scene.image.WritableImage(size, size);
+        nightMask.getPixelWriter().setPixels(0, 0, size, size,
+                javafx.scene.image.PixelFormat.getIntArgbInstance(), argb, 0, size);
+        nightMaskKey = key;
+        return nightMask;
+    }
+
+    private static void drawAzimuthalGrayLine(GraphicsContext g, double cx, double cy, double R) {
+        double[] ss = com.ars.fx.data.SolarPosition.subSolar(); double decl = ss[0], ssLon = ss[1];
+
+        g.drawImage(nightMask(R), cx - R, cy - R, R * 2, R * 2);
 
         // terminator line — the great circle 90° from the sub-solar point, clipped to the disk
         g.setStroke(Color.web("#eebb58", 0.85)); g.setLineWidth(1.6); g.setLineDashes(6, 5);
