@@ -17,9 +17,10 @@ if not defined JAR (
 )
 
 cd /d "%SCRIPT_DIR%"
+rem javaw has no console; start returns at once, so this script's own window closes too.
 if "%~1"=="--hub" (
-  java -Dfile.encoding=UTF-8 -cp "%JAR%" com.ars.fx.HubServer
+  start "" javaw -Dfile.encoding=UTF-8 -cp "%JAR%" com.ars.fx.HubServer
 ) else (
-  java -Dfile.encoding=UTF-8 -jar "%JAR%" %*
+  start "" javaw -Dfile.encoding=UTF-8 -jar "%JAR%" %*
 )
 endlocal

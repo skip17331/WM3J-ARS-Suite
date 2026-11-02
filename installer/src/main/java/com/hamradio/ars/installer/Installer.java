@@ -537,7 +537,7 @@ public final class Installer {
         // cd into the module dir so logback's logs/ and per-module config
         // files resolve relative to <mod>/, not whatever cwd the caller had.
         sb.append("cd /d \"%SCRIPT_DIR%\"\r\n");
-        sb.append("java -Dfile.encoding=UTF-8 -jar \"%JAR%\" %*\r\n");
+        sb.append("start \"\" javaw -Dfile.encoding=UTF-8 -jar \"%JAR%\" %*\r\n");
         sb.append("endlocal\r\n");
         Files.writeString(batPath, sb.toString(), StandardCharsets.UTF_8,
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -570,6 +570,7 @@ public final class Installer {
             "$s.TargetPath=\"" + escTarget + "\";" +
             "$s.WorkingDirectory=\"" + escWorkDir + "\";" +
             "$s.Description=\"" + escTitle + "\";" +
+            "$s.WindowStyle=7;" +        // run the .bat minimized, so it doesn't flash a console on the way to javaw
             argLine +
             iconLine +
             "$s.Save();";
