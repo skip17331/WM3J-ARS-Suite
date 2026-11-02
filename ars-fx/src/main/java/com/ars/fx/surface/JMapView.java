@@ -308,29 +308,32 @@ public final class JMapView {
         canvas.widthProperty().bind(pane.widthProperty());
         canvas.setHeight(H);
 
-        // Quiet default (no live geomag/lightning feed yet) — mirrors the original's idle banner.
-        String text = "   Space weather quiet   ●   SFI 168 · SN 142 · A 7 · K 2 · X-ray B1   ●   "
-                + "Aurora quiet — no visible activity   ●   No active geomagnetic alerts   ●   "
-                + "No lightning activity detected   ●   Gray line: SR 11:02 · SS 22:48   ●   MUF(3000) 28.4 MHz   ●";
         String color = "#5b6675";
         Font font = Font.font("JetBrains Mono", 12.5);
-        Text meas = new Text(text); meas.setFont(font);
-        double singleW = meas.getLayoutBounds().getWidth();
+        String[] text = new String[1];
+        double[] singleW = new double[1];
+        Runnable refreshText = () -> {
+            text[0] = com.ars.fx.data.SolarData.tickerText(com.ars.fx.data.SolarData.getInstance().snapshot(), grayLineStat());
+            Text meas = new Text(text[0]); meas.setFont(font);
+            singleW[0] = meas.getLayoutBounds().getWidth();
+        };
+        refreshText.run();
 
         double speed = 70, tickMs = 30;
-        double[] x = { -1 };
+        double[] x = { Double.NaN };
         Timeline tl = new Timeline(new KeyFrame(Duration.millis(tickMs), e -> {
             double w = canvas.getWidth(); if (w <= 0) return;
-            if (x[0] < 0) x[0] = w;
+            if (Double.isNaN(x[0])) x[0] = w;
             x[0] -= speed * (tickMs / 1000.0);
-            if (x[0] <= -singleW) x[0] += singleW;
+            if (x[0] <= -singleW[0]) { refreshText.run(); x[0] = 0; }   // new figures only where the line wraps, so it never jumps
             GraphicsContext g = canvas.getGraphicsContext2D();
             g.setFill(Color.web("#11161d")); g.fillRect(0, 0, w, H);
             g.setStroke(Color.web("#2c3540")); g.setLineWidth(1); g.strokeLine(0, 0, w, 0);
             g.setFont(font); g.setFill(Color.web(color));
-            for (double px = x[0]; px < w; px += singleW) g.fillText(text, px, H - 15);
+            for (double px = x[0]; px < w; px += singleW[0]) g.fillText(text[0], px, H - 15);
         }));
         tl.setCycleCount(Timeline.INDEFINITE); tl.play();
+        pane.sceneProperty().addListener((o, old, sc) -> { if (sc == null && old != null) tl.stop(); });
         return pane;
     }
 
@@ -506,7 +509,7 @@ public final class JMapView {
         Canvas cv = new Canvas();
         // top-right legend
         VBox tr = new VBox(2,
-            rt("22 spots · ≤"), rt("20m"), rt("rings ="), rt("distance"), rt("spokes ="), rt("bearing"));
+            rt("rings ="), rt("distance"), rt("spokes ="), rt("bearing"));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14,18,0,0));
         StackPane area = new StackPane(cv, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);

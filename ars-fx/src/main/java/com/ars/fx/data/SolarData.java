@@ -90,6 +90,22 @@ public final class SolarData {
     }
     private static String nz(String s) { return s == null ? "—" : s; }
 
+    /** The line J-Map's bottom ticker scrolls: the live figures, the gray line, and the MUF when it is reported. */
+    public static String tickerText(Snapshot s, String grayLine) {
+        String sep = "   ●   ";
+        if (s == null) return "   Space weather loading…" + sep + "Gray line: " + grayLine + "   ●";
+        StringBuilder t = new StringBuilder("   Geomagnetic field ").append(geomag(s.kIndex())).append(sep)
+                .append("SFI ").append(nz(s.sfi())).append(" · SN ").append(nz(s.sunspots()))
+                .append(" · A ").append(nz(s.aIndex())).append(" · K ").append(nz(s.kIndex()))
+                .append(" · X-ray ").append(nz(s.xray())).append(sep)
+                .append("Aurora ").append(nz(s.aurora())).append(sep)
+                .append("Solar wind ").append(nz(s.solarWind())).append(" km/s").append(sep)
+                .append("Gray line: ").append(grayLine).append(sep);
+        double muf = mufMhz(s);
+        if (!Double.isNaN(muf)) t.append(String.format(java.util.Locale.US, "MUF %.1f MHz", muf)).append(sep);
+        return t.toString().stripTrailing();
+    }
+
     /** Geomagnetic descriptor from the K index. */
     public static String geomag(String k) {
         try {
