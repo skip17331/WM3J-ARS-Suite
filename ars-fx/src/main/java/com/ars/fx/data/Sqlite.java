@@ -1,6 +1,7 @@
 package com.ars.fx.data;
 
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
@@ -33,7 +34,9 @@ public final class Sqlite {
      */
     public static void adoptLegacy(Path real, String strayName, String... dataTables) {
         try {
-            Path stray = real.resolveSibling(real.getFileName() + strayName);
+            Path stray;
+            try { stray = real.resolveSibling(real.getFileName() + strayName); }
+            catch (InvalidPathException illegalHere) { return; }                       // e.g. '?' on Windows: no such file can exist, so nothing to adopt
             if (!Files.isRegularFile(stray) || Files.size(stray) == 0 || rows(stray, dataTables) == 0) return;
             if (Files.isRegularFile(real) && rows(real, dataTables) > 0) {
                 System.err.println("[db] " + stray + " holds data but so does " + real + " — left as is; merge by hand.");
