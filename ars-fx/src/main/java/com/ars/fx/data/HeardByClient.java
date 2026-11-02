@@ -52,9 +52,10 @@ public final class HeardByClient extends TelnetFeed {
 
     /** Replace the feed with "heard by" spots pushed from the hub (window side). Status arrives separately. */
     public void injectSpots(List<HeardSpot> incoming) {
+        List<HeardSpot> next = incoming == null ? List.of() : incoming.subList(0, Math.min(incoming.size(), MAX_SPOTS));
         synchronized (this) {
-            spots.clear();
-            if (incoming != null) for (HeardSpot s : incoming) { spots.addLast(s); if (spots.size() >= MAX_SPOTS) break; }
+            if (new java.util.ArrayList<>(spots).equals(next)) return;   // the hub repeats its state about once a second
+            spots.clear(); spots.addAll(next);
         }
         fire();
     }

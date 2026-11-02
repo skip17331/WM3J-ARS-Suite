@@ -49,7 +49,8 @@ public final class JHubDashboard {
         ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox row = new HBox(nav, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
-        VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;");
+        row.setMinHeight(0);
+        VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;"); root.setMinHeight(0);
         return root;
     }
 
