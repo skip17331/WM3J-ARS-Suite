@@ -14,6 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -160,7 +161,8 @@ final class MapQsoCard {
                 row(labeled("QTH", qth), labeled("GRID", grid)),
                 labeled("COMMENT", comment),
                 buttons);
-        card.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ESCAPE) { dismiss(); e.consume(); } });   // while sending, Esc stops TX first
+        // a filter, because a text field swallows Esc before it could bubble up here; while sending, the scene's Esc stops TX first
+        card.addEventFilter(KeyEvent.KEY_PRESSED, e -> { if (e.getCode() == KeyCode.ESCAPE) { dismiss(); e.consume(); } });
     }
 
     /** Clear: a floating card goes away, a pinned one stays ready for the next QSO. */
