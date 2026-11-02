@@ -45,7 +45,7 @@ public final class ContestPicker {
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
         VBox center = new VBox(0, head, sp); VBox.setVgrow(sp, Priority.ALWAYS);
 
-        Region rail = Shell.rail(Shell.leadDrawers(0).toArray(new Node[0]));
+        Region rail = Shell.rail(Shell.leadDrawers().toArray(new Node[0]));
         return (Region) Shell.frame(dock, top, center, rail);
     }
 

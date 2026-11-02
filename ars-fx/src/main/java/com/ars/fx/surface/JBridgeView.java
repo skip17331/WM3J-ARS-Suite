@@ -170,7 +170,7 @@ public final class JBridgeView {
 
     private static Node[] railDrawers(VBox linkBody) {
         List<Node> rail = new ArrayList<>();
-        rail.addAll(Shell.leadDrawers(50));     // Station ID, Rig control, Rotor control
+        rail.addAll(Shell.leadDrawers());     // Station ID, Rig control, Rotor control
         rail.add(Shell.drawer("WSJT-X link", "bridge", "bridge", BridgeService.connected() ? "connected" : "waiting", true, linkBody));
         rail.addAll(Shell.instruments(50));
         return rail.toArray(new Node[0]);

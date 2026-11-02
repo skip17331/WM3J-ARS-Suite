@@ -55,6 +55,12 @@ public final class RotorClient {
         return (m != null && !m.isBlank()) || last.connected();
     }
     public String endpoint() { return host + ":" + port; }
+
+    /** The antenna's heading, 0 to 360, or NaN when no rotor is answering. Every screen shows this, never its own number. */
+    public double headingDeg() { State s = last; return s.connected() ? ((s.az() % 360) + 360) % 360 : Double.NaN; }
+
+    /** Why there is no heading, or that it is live. */
+    public String statusText() { return last.connected() ? "live" : isConfigured() ? "rotctld offline" : "no rotor set up"; }
     public void setListener(Consumer<State> l) { this.listener = l == null ? s -> {} : l; emit(last); }
 
     public synchronized void start() {
@@ -124,10 +130,12 @@ public final class RotorClient {
 
     private synchronized String send(String cmd) throws IOException {
         ensureConnected();
+        while (reader.ready()) reader.readLine();             // a report left over from the last command
         out.write((cmd + "\n").getBytes(StandardCharsets.US_ASCII));
         out.flush();
         StringBuilder sb = new StringBuilder();
         String line;
+        int values = 0;
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("RPRT ")) {
                 int code; try { code = Integer.parseInt(line.substring(5).trim()); } catch (NumberFormatException e) { code = -1; }
@@ -136,6 +144,8 @@ public final class RotorClient {
             }
             if (sb.length() > 0) sb.append('\n');
             sb.append(line);
+            // A position reply is two values, with or without a closing RPRT: don't wait for one that may not come.
+            if ("p".equals(cmd) && ++values == 2) break;
         }
         return sb.toString().trim();
     }

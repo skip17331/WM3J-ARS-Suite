@@ -77,7 +77,6 @@ public final class JSatView {
         }, "sat-alarm");
         t.setDaemon(true); t.start();
     }
-    private static boolean satCollapsed = false;
     // J-Sat carries an extra ~310px satellite column on top of the usual dock+rail, so it needs a
     // wide window. Below this logical width auto-collapse the list to an icon strip so the plot +
     // rail stay on screen instead of being pushed off (the "cramped" open).
@@ -165,7 +164,7 @@ public final class JSatView {
         HBox top = Shell.topBar("sat", "sat", "J-Sat", "Satellite tracking · " + name, stats, utc);
 
         Region center = snap.ready() && f != null
-                ? new HBox(satColumn(snap, f), plotCol(snap, f))
+                ? new HBox(com.ars.fx.shell.AutoPanel.wrap("sat", false, satStrip(), satColumn(snap, f), 310, JSatView::narrow), plotCol(snap, f))
                 : snap.ready() && snap.sats().isEmpty() ? emptyPlaceholder()
                 : placeholder(snap.error().isEmpty() ? "Computing…" : snap.error());
         if (center instanceof HBox hb) hb.setFillHeight(true);
@@ -191,23 +190,19 @@ public final class JSatView {
     }
 
     // ---- left satellite list (collapsible drawer) --------------------------
+    private static Region satStrip() {
+        VBox p = new VBox(0); p.getStyleClass().add("js-panel");
+        p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(14, 0, 14, 0));
+        Label v = lbl("SATELLITES", "js-sec"); v.setRotate(90);
+        javafx.scene.Group vgroup = new javafx.scene.Group(v);
+        VBox.setMargin(vgroup, new Insets(28, 0, 0, 0));
+        p.getChildren().addAll(lbl("›", "jm-collapse"), vgroup);
+        return p;
+    }
     private static Region satColumn(Snapshot snap, SatInfo f) {
-        if (satCollapsed || narrow()) {
-            VBox p = new VBox(0); p.getStyleClass().add("js-panel"); p.setMinWidth(40); p.setPrefWidth(40); p.setMaxWidth(40);
-            p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(14, 0, 14, 0));
-            Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;");
-            expand.setOnMouseClicked(e -> { satCollapsed = false; rebuild(); });
-            Label v = lbl("SATELLITES", "js-sec"); v.setRotate(90);
-            javafx.scene.Group vgroup = new javafx.scene.Group(v);
-            VBox.setMargin(vgroup, new Insets(28, 0, 0, 0));
-            p.getChildren().addAll(expand, vgroup);
-            return p;
-        }
         VBox p = new VBox(9); p.getStyleClass().add("js-panel"); p.setMinWidth(272); p.setPrefWidth(310); p.setMaxWidth(310);
         Label title = lbl("SATELLITES · " + snap.sats().size(), "js-sec"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
-        Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;");
-        collapse.setOnMouseClicked(e -> { satCollapsed = true; rebuild(); });
-        p.getChildren().add(new HBox(8, title, collapse));
+        p.getChildren().add(new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("sat", JSatView::rebuild)));
         java.util.Map<String, Color> cm = colorMap(snap);
         Label pick = lbl("Choose satellites in J-Hub ›", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
         pick.setOnMouseClicked(e -> Shell.navigate("hubsat"));
@@ -517,7 +512,7 @@ public final class JSatView {
         String passSummary = !snap.sats().isEmpty() ? snap.sats().get(0).name() + " " +
                 (snap.sats().get(0).inPass() ? "now" : SatService.compactLower(snap.sats().get(0).secsToAos())) : "—";
         List<Node> rail = new ArrayList<>();
-        rail.addAll(Shell.leadDrawers(f != null ? (int) Math.round(f.azDeg()) : 0));   // Station ID, Rig control, Rotor control
+        rail.addAll(Shell.leadDrawers());   // Station ID, Rig control, Rotor control
         rail.add(drawer("Radio · Doppler", "bridge", "bridge", dopSummary, true, doppler));
         rail.add(drawer("Next passes", "sat", "sat", passSummary, true, np));
         rail.addAll(Shell.instruments(0));   // propagation, solar, band conditions, weather

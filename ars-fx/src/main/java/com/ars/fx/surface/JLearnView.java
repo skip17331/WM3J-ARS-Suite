@@ -50,14 +50,11 @@ public final class JLearnView {
 
         // collapsible left chapter/section TOC drawer
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
-        int[] collapsed = {0};
         String[] expanded = {chapters.isEmpty() ? "" : chapters.get(0).num()};   // open chapter (accordion)
         String[] selected = {null};                                              // current section id
         Runnable[] rebuild = new Runnable[1];
-        rebuild[0] = () -> leftHolder.getChildren().setAll(collapsed[0] == 1
-                ? collapsedRail(() -> { collapsed[0] = 0; rebuild[0].run(); })
-                : chapterDrawer(chapters, expanded, selected, selectedMorse, open, openMorse, rebuild[0],
-                        () -> { collapsed[0] = 1; rebuild[0].run(); }));
+        rebuild[0] = () -> leftHolder.getChildren().setAll(com.ars.fx.shell.AutoPanel.wrap("learn", false, collapsedRail(),
+                chapterDrawer(chapters, expanded, selected, selectedMorse, open, openMorse, rebuild[0]), 272, () -> false));
         rebuildRef[0] = rebuild[0];
         rebuild[0].run();
 
@@ -67,11 +64,10 @@ public final class JLearnView {
 
     // ---- left collapsible TOC ---------------------------------------------
     private static Region chapterDrawer(List<Chapter> chapters, String[] expanded, String[] selected, boolean[] morseOn,
-                                        Consumer<Section> open, Runnable openMorse, Runnable rebuild, Runnable onCollapse) {
+                                        Consumer<Section> open, Runnable openMorse, Runnable rebuild) {
         VBox p = new VBox(0); p.getStyleClass().add("j2-topics"); p.setMinWidth(272); p.setPrefWidth(272); p.setMaxWidth(272);
         Label title = lbl("CHAPTERS", "j2-sec"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
-        Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;"); collapse.setOnMouseClicked(e -> onCollapse.run());
-        HBox header = new HBox(8, title, collapse); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(2, 6, 6, 2));
+        HBox header = new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("learn", rebuild)); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(2, 6, 6, 2));
         p.getChildren().add(header);
 
         VBox list = new VBox(2);
@@ -104,10 +100,10 @@ public final class JLearnView {
         p.getChildren().add(sp);
         return p;
     }
-    private static Region collapsedRail(Runnable onExpand) {
+    private static Region collapsedRail() {
         VBox p = new VBox(0); p.getStyleClass().add("j2-topics"); p.setMinWidth(40); p.setPrefWidth(40); p.setMaxWidth(40);
         p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(8, 0, 16, 0));
-        Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;"); expand.setOnMouseClicked(e -> onExpand.run());
+        Label expand = lbl("›", "jm-collapse");
         Label vlabel = lbl("CHAPTERS", "j2-sec"); vlabel.setRotate(90);
         javafx.scene.Group vgroup = new javafx.scene.Group(vlabel);   // sized to the rotated label, so it can't spill over the dock
         VBox.setMargin(vgroup, new Insets(30, 0, 0, 0));

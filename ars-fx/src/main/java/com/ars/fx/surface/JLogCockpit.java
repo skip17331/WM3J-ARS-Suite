@@ -395,7 +395,7 @@ public final class JLogCockpit {
     // ---- right rail --------------------------------------------------------
     private static Node[] railDrawers() {
         List<Node> rail = new ArrayList<>();
-        rail.addAll(Shell.leadDrawers(50));     // Station ID, Rig control, Rotor control
+        rail.addAll(Shell.leadDrawers());     // Station ID, Rig control, Rotor control
         rail.add(spotterDrawer());
         rail.add(heardByDrawer());
         rail.add(awardsDrawer());

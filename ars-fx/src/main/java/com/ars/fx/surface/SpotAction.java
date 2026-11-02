@@ -118,7 +118,6 @@ public final class SpotAction {
         veil.setOnMouseClicked(e -> { if (e.getTarget() == veil) close.run(); });   // click the scrim to dismiss
         yes.setOnMouseClicked(e -> {
             RotorClient.getInstance().moveTo(bearing);
-            JMapView.setBeam(bearing);
             close.run();
         });
         root.getChildren().add(veil);

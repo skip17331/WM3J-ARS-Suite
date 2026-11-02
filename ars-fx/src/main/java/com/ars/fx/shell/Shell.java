@@ -396,36 +396,25 @@ public final class Shell {
         return extra > 0 ? sp.getVvalue() * extra : 0;
     }
 
-    /** One choice for every surface, and it outlives the rebuilds (J-Sat recreates its rail every ~2 s). */
-    private static boolean railCollapsed = false;
-
-    /** Wrap a right column so it folds to a thin strip. The rail stays in the scene while folded, so its live drawers keep updating. */
+    /** Wrap a right column so it folds to a thin strip and opens on hover. It stays in the scene while folded, so its live drawers keep updating. */
     public static Region collapsibleRail(Region rail) {
-        Label collapse = Tips.tip(lbl("›", "jm-collapse"), "Collapse this panel");
-        Label expand = Tips.tip(lbl("‹", "jm-collapse"), "Expand this panel");
-        collapse.setStyle("-fx-cursor:hand;"); expand.setStyle("-fx-cursor:hand;");
-
-        HBox header = new HBox(8, lbl("PANELS", "sx-rail-title"), hsp(), collapse);
+        StackPane outer = new StackPane();
+        outer.setMaxWidth(Region.USE_PREF_SIZE);
+        Runnable[] rebuild = new Runnable[1];
+        HBox header = new HBox(8, lbl("PANELS", "sx-rail-title"), hsp(), AutoPanel.pinButton("rail", () -> rebuild[0].run()));
         header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("sx-rail-head");
         VBox open = new VBox(header, rail);
+        open.setMinWidth(322); open.setPrefWidth(322); open.setMaxWidth(322);
         VBox.setVgrow(rail, Priority.ALWAYS);
 
         Label title = lbl("PANELS", "sx-rail-title"); title.setRotate(90);
-        VBox strip = new VBox(16, expand, new javafx.scene.Group(title));
+        VBox strip = new VBox(16, lbl("‹", "jm-collapse"), new javafx.scene.Group(title));
         strip.setAlignment(Pos.TOP_CENTER); strip.getStyleClass().add("sx-rail-strip");
-        strip.setMinWidth(40); strip.setPrefWidth(40); strip.setMaxWidth(40);
+        Tips.tip(strip, "Hover to open the panels; Pin keeps them open");
 
-        Runnable apply = () -> {
-            open.setVisible(!railCollapsed); open.setManaged(!railCollapsed);
-            strip.setVisible(railCollapsed); strip.setManaged(railCollapsed);
-        };
-        collapse.setOnMouseClicked(e -> { railCollapsed = true; apply.run(); });
-        expand.setOnMouseClicked(e -> { railCollapsed = false; apply.run(); });
-        apply.run();
-
-        StackPane holder = new StackPane(open, strip);
-        holder.setMaxWidth(Region.USE_PREF_SIZE);
-        return holder;
+        rebuild[0] = () -> outer.getChildren().setAll(AutoPanel.wrap("rail", true, strip, open, 322, () -> false));
+        rebuild[0].run();
+        return outer;
     }
 
     /** Right-rail container that scrolls. */
@@ -463,42 +452,61 @@ public final class Shell {
 
     /** Lead drawers shown first on every operating module, in order: Station ID, Rig control
      *  ({@link RigPanel}), Rotor control. */
-    public static List<Node> leadDrawers(int az) { return List.of(RigPanel.build(), rotorControlDrawer(az)); }
+    public static List<Node> leadDrawers() { return List.of(RigPanel.build(), rotorControlDrawer()); }
 
     /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */
-    public static Node rotorControlDrawer(int az) {
-        String dir = new String[]{"N","NE","E","SE","S","SW","W","NW"}[(int)Math.round(((az%360+360)%360)/45.0)%8];
-        String az3 = String.format("%03d", (az%360+360)%360);
+    public static Node rotorControlDrawer() {
+        RotorClient rotor = RotorClient.getInstance();
         StackPane roHolder = new StackPane(); roHolder.setAlignment(Pos.TOP_LEFT);
-        java.util.function.Consumer<RotorClient.State> renderRo = st -> {
-            boolean live = st != null && st.connected();
-            int curAz = live ? (int) Math.round(((st.az() % 360) + 360) % 360) : az;
-            String d = new String[]{"N","NE","E","SE","S","SW","W","NW"}[(int) Math.round((curAz % 360) / 45.0) % 8];
-            VBox roInfo = new VBox(0); roInfo.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(roInfo, Priority.ALWAYS);
-            HBox head = new HBox(2, lbl(String.format("%03d", curAz), "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
-            Label ccw = btn("◀ CCW","sx-ro-turn-btn"), stp = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW ▶","sx-ro-turn-btn");
-            ccw.setStyle("-fx-cursor:hand;"); stp.setStyle("-fx-cursor:hand;"); cw.setStyle("-fx-cursor:hand;");
-            ccw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(-15));
-            stp.setOnMouseClicked(e -> RotorClient.getInstance().stop());
-            cw.setOnMouseClicked(e -> RotorClient.getInstance().nudge(15));
-            HBox turn = new HBox(5, ccw, stp, cw); for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
-            roInfo.getChildren().addAll(head, lbl(d + (live ? " · live" : " · rotctld offline"), "sx-ro-dir"), turn);
-            VBox.setMargin(turn, new Insets(10,0,0,0));
-            HBox roTop = new HBox(13, compass(curAz, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
-            GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
-            int i = 0; for (Object[] p : Mock.ROTOR_PRESETS) {
-                final int paz = ((Number) p[1]).intValue();
-                Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-                b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> RotorClient.getInstance().moveTo(paz));
-                presets.add(b, i%3, i/3); i++;
-            }
-            for (int col=0; col<3; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); presets.getColumnConstraints().add(cc); }
-            roHolder.getChildren().setAll(new VBox(11, roTop, presets));
+        VBox dw = drawer("Rotor control", "sat", "sat", rotorSummary(), false, new VBox(roHolder));
+        String[] shown = {null};
+        Runnable render = () -> {
+            double az = rotor.headingDeg();
+            String key = Double.isNaN(az) ? rotor.statusText() : String.valueOf(Math.round(az));
+            if (key.equals(shown[0])) return;                 // the rotor reports twice a second; rebuilding would eat clicks
+            shown[0] = key;
+            if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(rotorSummary());
+            roHolder.getChildren().setAll(Double.isNaN(az) ? rotorOffline(rotor) : rotorLive(rotor, az));
         };
-        renderRo.accept(null);
-        RotorClient.getInstance().setListener(st -> javafx.application.Platform.runLater(() -> renderRo.accept(st)));
-        RotorClient.getInstance().start();
-        return drawer("Rotor control","sat","sat", az3+"° "+dir, false, new VBox(roHolder));
+        render.run();
+        rotor.setListener(st -> javafx.application.Platform.runLater(render));
+        rotor.start();
+        return dw;
+    }
+    private static String rotorSummary() {
+        double az = RotorClient.getInstance().headingDeg();
+        return Double.isNaN(az) ? RotorClient.getInstance().statusText()
+                : String.format("%03.0f° %s", az, RotorClient.cardinal(az));
+    }
+    /** No heading to show, so no number, needle or controls: only why, and where to set it up. */
+    private static Region rotorOffline(RotorClient rotor) {
+        HBox head = new HBox(2, lbl("—", "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
+        VBox info = new VBox(0, head, lbl(rotor.statusText(), "sx-ro-dir")); info.setAlignment(Pos.CENTER_LEFT);
+        Label hint = lbl("Set up the rotor in J-Hub ▸ Hardware ▸ Rotor control.", "sx-ro-dir"); hint.setWrapText(true);
+        HBox top = new HBox(13, compass(Double.NaN, 88), info); top.setAlignment(Pos.CENTER_LEFT);
+        return new VBox(11, top, hint);
+    }
+    private static Region rotorLive(RotorClient rotor, double az) {
+        VBox roInfo = new VBox(0); roInfo.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(roInfo, Priority.ALWAYS);
+        HBox head = new HBox(2, lbl(String.format("%03.0f", az), "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
+        Label ccw = btn("◀ CCW","sx-ro-turn-btn"), stp = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW ▶","sx-ro-turn-btn");
+        ccw.setStyle("-fx-cursor:hand;"); stp.setStyle("-fx-cursor:hand;"); cw.setStyle("-fx-cursor:hand;");
+        ccw.setOnMouseClicked(e -> rotor.nudge(-15));
+        stp.setOnMouseClicked(e -> rotor.stop());
+        cw.setOnMouseClicked(e -> rotor.nudge(15));
+        HBox turn = new HBox(5, ccw, stp, cw); for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        roInfo.getChildren().addAll(head, lbl(RotorClient.cardinal(az) + " · live", "sx-ro-dir"), turn);
+        VBox.setMargin(turn, new Insets(10,0,0,0));
+        HBox roTop = new HBox(13, compass(az, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
+        GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
+        int i = 0; for (Object[] p : Mock.ROTOR_PRESETS) {
+            final int paz = ((Number) p[1]).intValue();
+            Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
+            b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> rotor.moveTo(paz));
+            presets.add(b, i%3, i/3); i++;
+        }
+        for (int col=0; col<3; col++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); presets.getColumnConstraints().add(cc); }
+        return new VBox(11, roTop, presets);
     }
     /** "Propagation" — one drawer for everything about what the bands are doing: MUF / FOT and geomagnetic state, then a
      *  single table of HF bands with HamQSL's day / night rating and live DX-cluster activity (heat map). The raw solar
@@ -612,6 +620,7 @@ public final class Shell {
         return s.bands().get(0).group() + " " + s.bands().get(0).day().toLowerCase();
     }
     private static String nz(String s) { return (s == null || s.isBlank()) ? "—" : s.trim(); }
+
 
     // ---- canonical space-weather drawers (shared so same-named drawers match) ----
     /** "Solar &amp; space weather": real SDO sun disk + solar cell grid + source stamp. */
@@ -750,6 +759,7 @@ public final class Shell {
             g.strokeLine(cx+Math.cos(a)*r, cy+Math.sin(a)*r, cx+Math.cos(a)*r2, cy+Math.sin(a)*r2);
         }
         g.setStroke(Color.web("#38434f")); g.setLineWidth(1.5); g.strokeOval(cx-r, cy-r, r*2, r*2);
+        if (Double.isNaN(az)) return;                         // no heading, no needle
         double rad = Math.toRadians(az-90), nx = cx+Math.cos(rad)*(r-6), ny = cy+Math.sin(rad)*(r-6);
         g.setStroke(Color.web("#6fc884")); g.setLineWidth(2.5); g.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
         g.strokeLine(cx, cy, nx, ny);
