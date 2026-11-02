@@ -263,7 +263,7 @@ public final class JMapView {
         Runnable[] rebuildLeft = new Runnable[1];
         rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed[0] == 1 || narrow())
                 ? leftRail(() -> { leftCollapsed[0] = 0; rebuildLeft[0].run(); })
-                : scrollLeft(leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); })));
+                : scrollLeft(leftPanel(proj[0], onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); })));
         rebuildLeft[0].run();
 
         StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
@@ -288,6 +288,7 @@ public final class JMapView {
         if (mapFrame.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
         int shown = liveSpots().size();
         if (legendSpots != null) legendSpots.setText(legendSpotsText(shown));
+        if (spotsDrawer != null && spotsDrawer.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(shown + " spots");
         java.util.List<Label> vs = new java.util.ArrayList<>(); collectStatValues(mapFrame, vs);
         if (vs.size() >= 4) {
             vs.get(0).setText(String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));
@@ -355,7 +356,7 @@ public final class JMapView {
         sp.setStyle("-fx-background-color:transparent;");
         return sp;
     }
-    private static Region leftPanel(java.util.function.IntConsumer onProjection, Runnable onCollapse) {
+    private static Region leftPanel(int projection, java.util.function.IntConsumer onProjection, Runnable onCollapse) {
         VBox p = new VBox(0); p.getStyleClass().add("jm-panel");
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;"); collapse.setOnMouseClicked(e -> onCollapse.run());
@@ -371,7 +372,7 @@ public final class JMapView {
         };
         for (int i = 0; i < projOpts.length; i++) {
             final int idx = i;
-            Label b = lbl(projOpts[i], "jm-seg-btn"); if (i == 0) b.getStyleClass().add("on");
+            Label b = lbl(projOpts[i], "jm-seg-btn"); if (i == projection) b.getStyleClass().add("on");
             HBox.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
             b.setOnMouseClicked(e -> { selectProj.accept(idx); onProjection.accept(idx); });
             projBtns[i] = b; projSeg.getChildren().add(b);
@@ -889,6 +890,7 @@ public final class JMapView {
             spots.getChildren().add(row);
         }
     }
+    private static Region spotsDrawer;                    // its summary follows the live count
     private static Node[] railDrawers(VBox spots) {
         ScrollPane spotScroll = new ScrollPane(spots); spotScroll.setFitToWidth(true);
         spotScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); spotScroll.setPrefViewportHeight(300);
@@ -897,7 +899,8 @@ public final class JMapView {
         List<Node> rail = new ArrayList<>();
         rail.add(MapQsoCard.drawerSlot());                // New QSO, when pinned
         rail.addAll(Shell.leadDrawers((int) beamDeg));    // Rig control, Rotor control
-        rail.add(Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll));
+        spotsDrawer = Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll);
+        rail.add(spotsDrawer);
         rail.add(Shell.drawer("DX station info","accent","hub","", false, DxInfoCard.drawerBody()));
         rail.addAll(Shell.instruments(50));               // propagation, solar, band conditions, weather
         return rail.toArray(new Node[0]);
