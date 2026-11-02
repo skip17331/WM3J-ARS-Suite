@@ -276,18 +276,54 @@ public final class JSatView {
                 {"ALTITUDE", com.ars.fx.data.Units.distNum(f.altKm()), com.ars.fx.data.Units.distUnit(), ""},
                 {"RANGE", com.ars.fx.data.Units.distNum(f.rangeKm()), com.ars.fx.data.Units.distUnit(), ""},
                 {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""},
-                {"DOPPLER", String.format("%+.1f", dopHz / 1000.0), "kHz", dopHz < 0 ? "y" : ""}};
-        HBox tel = new HBox(12); tel.setAlignment(Pos.CENTER); tel.setPadding(new Insets(0, 0, 22, 0));
+                {"DOPPLER", String.format("%+.1f", dopHz / 1000.0), "kHz", dopHz < 0 ? "y" : ""},
+                {"UPLINK", SatService.mhz4(f.uplinkCorrHz()), f.uplinkCorrHz() > 0 ? "MHz" : "", ""},
+                {"DOWNLINK", SatService.mhz4(f.downlinkCorrHz()), f.downlinkCorrHz() > 0 ? "MHz" : "", ""},
+                {"MODE", f.mode() == null || f.mode().isBlank() ? "—" : f.mode(), "", ""}};
+        // wraps to a second line when the plot column is too narrow for every tile
+        javafx.scene.layout.FlowPane tel = new javafx.scene.layout.FlowPane(12, 12); tel.setAlignment(Pos.CENTER); tel.setPadding(new Insets(0, 0, 22, 0));
+        List<Label> keys = new ArrayList<>(), vals = new ArrayList<>(), units = new ArrayList<>();
+        List<VBox> tiles = new ArrayList<>();
         for (String[] c : cells) {
-            Label v = lbl(c[1], "js-tel-v"); if (c[3].equals("y")) v.getStyleClass().add("neg");
-            HBox vu = new HBox(3, v, lbl(c[2], "js-tel-u")); vu.setAlignment(Pos.BOTTOM_LEFT);
-            VBox cell = new VBox(3, lbl(c[0], "js-tel-k"), vu); cell.getStyleClass().add("js-tel"); cell.setMinWidth(72);   // was 108; lower min lets the row shrink on narrow windows (values still size to content)
+            Label k = lbl(c[0], "js-tel-k"), v = lbl(c[1], "js-tel-v"), u = lbl(c[2], "js-tel-u");
+            if (c[3].equals("y")) v.getStyleClass().add("neg");
+            HBox vu = new HBox(3, v, u); vu.setAlignment(Pos.BOTTOM_LEFT);
+            VBox cell = new VBox(3, k, vu); cell.getStyleClass().add("js-tel");
+            keys.add(k); vals.add(v); units.add(u); tiles.add(cell);
             tel.getChildren().add(cell);
         }
         VBox col = new VBox(0, title, sky, tel); col.setAlignment(Pos.TOP_CENTER); col.setStyle("-fx-background-color:-ars-bg;");
         HBox.setHgrow(col, Priority.ALWAYS); col.setPadding(new Insets(0, 20, 0, 20));
+
+        // the tiles follow the window: frame() rebuilds every ~2 s, so start from the last scale rather than flash full size
+        Runnable scaleTiles = () -> {
+            double s = telScale;
+            tel.setHgap(12 * s); tel.setVgap(12 * s);
+            String key = String.format("-fx-font-size:%.1fpx;", Math.max(8, 9 * s));
+            String val = String.format("-fx-font-size:%.1fpx;", 20 * s);
+            String unit = String.format("-fx-font-size:%.1fpx;", Math.max(8, 10 * s));
+            String pad = String.format("-fx-padding:%.0f %.0f %.0f %.0f;", 12 * s, 16 * s, 12 * s, 16 * s);
+            keys.forEach(l -> l.setStyle(key)); vals.forEach(l -> l.setStyle(val)); units.forEach(l -> l.setStyle(unit));
+            tiles.forEach(t -> t.setStyle(pad));
+        };
+        Runnable refit = () -> {
+            double w = col.getWidth() - 40, h = col.getHeight();
+            if (w <= 1 || h <= 1) return;
+            double row = 0;                                              // tiles change width with their values ("SSB" vs "FM Voice")
+            for (VBox t : tiles) row += t.prefWidth(-1);
+            double fullW = (row / telScale + 12 * (tiles.size() - 1)) * 1.03;   // the row at full size, plus room for labels held at their minimum
+            double s = Math.max(TEL_MIN_SCALE, Math.min(1, Math.min(w / fullW, h / TEL_FULL_H)));
+            if (Math.abs(s - telScale) < 0.01) return;
+            telScale = s; scaleTiles.run();
+        };
+        col.widthProperty().addListener((o, a, b) -> refit.run());
+        col.heightProperty().addListener((o, a, b) -> refit.run());
+        scaleTiles.run();
         return col;
     }
+    /** Telemetry tiles: the plot-column height at which they show full size, and how far they shrink below it. */
+    private static final double TEL_FULL_H = 760, TEL_MIN_SCALE = 0.6;
+    private static double telScale = 1;
     private static Region viewToggle() {
         HBox h = new HBox(2); h.getStyleClass().add("jm-seg");
         String[] opts = {"Polar", "Blue marble"};
@@ -304,7 +340,7 @@ public final class JSatView {
     // ---- polar sky plot (all sats above horizon) --------------------------
     private static void drawPolar(GraphicsContext g, double w, double h, Snapshot snap, SatInfo f, boolean dim, Canvas cv) {
         g.clearRect(0, 0, w, h);
-        double cx = w/2, cy = h/2, R = Math.max(60, Math.min(w,h)/2 - 30);
+        double cx = w/2, cy = h/2 - 8, R = Math.max(60, Math.min(w,h)/2 - 40);   // leaves room under the plot for "S" and the below-horizon count
         Color border = Color.web("#28313d"), t3 = Color.web("#6a7684"), sat = Color.web("#6fc884");
 
         g.setStroke(border); g.setLineWidth(1);

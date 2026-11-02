@@ -517,7 +517,7 @@ public final class JHubDashboard {
                 Shell.propagationDrawer(),
                 Shell.solarSpaceWeatherDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
-        return col;
+        return Shell.collapsibleRail(col);
     }
     private static Region ampBody() {
         Label stateV = lbl("—", "jhub-pill", "grey");
