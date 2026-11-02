@@ -153,7 +153,7 @@ public final class SpotAction {
         return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
     }
 
-    private static double qLat() { return dbl(HubConfig.get("station.lat", "39.7456"), 39.7456); }
-    private static double qLon() { return dbl(HubConfig.get("station.lon", "-76.96"), -76.96); }
+    static double qLat() { return dbl(HubConfig.get("station.lat", "39.7456"), 39.7456); }
+    static double qLon() { return dbl(HubConfig.get("station.lon", "-76.96"), -76.96); }
     private static double dbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 }

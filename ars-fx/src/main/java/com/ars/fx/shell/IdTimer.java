@@ -2,12 +2,8 @@ package com.ars.fx.shell;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 import java.util.List;
@@ -17,8 +13,8 @@ import static com.ars.fx.shell.Shell.lbl;
 
 /**
  * Shared station-ID timer — a single 10-minute FCC-ID countdown used on both the
- * J-Log surface and the J-Hub dashboard. One global 1 s ticker drives every
- * on-screen frame; clicking any frame resets the countdown everywhere.
+ * top bar of every surface. One global 1 s ticker drives every on-screen button;
+ * clicking any of them resets the countdown everywhere.
  */
 public final class IdTimer {
     private IdTimer() {}
@@ -27,29 +23,20 @@ public final class IdTimer {
     private static Timeline ticker;
     private static final List<Runnable> updaters = new CopyOnWriteArrayList<>();
 
-    /** Framed, clickable-to-reset countdown that fills its container. */
-    public static Region frame() {
-        Label timer = lbl(text(), "jl-idtimer"); timer.setMaxWidth(Double.MAX_VALUE); timer.setAlignment(Pos.CENTER);
-        Label cap = lbl("click anywhere to identify & reset", "jl-skim-meta"); cap.setMaxWidth(Double.MAX_VALUE); cap.setAlignment(Pos.CENTER);
-        VBox box = new VBox(6, timer, cap); box.getStyleClass().add("jl-idframe"); box.setAlignment(Pos.CENTER); box.setMaxWidth(Double.MAX_VALUE);
-        Runnable upd = () -> { timer.setText(text()); applyClass(timer); applyClass(box); };
+    /** Compact countdown for the top bar; click it after you identify to start the 10 minutes again. */
+    public static Label button() {
+        Label b = lbl("", "sx-theme", "sx-idbtn"); b.setStyle("-fx-cursor:hand;");
+        Tips.tip(b, "Station ID: identify at least every 10 minutes. Click after you ID to reset the timer.");
+        Runnable upd = () -> { b.setText(text()); applyClass(b); };
         upd.run();
-        box.setOnMouseClicked(e -> reset());
+        b.setOnMouseClicked(e -> reset());
         updaters.add(upd);
-        box.sceneProperty().addListener((o, old, sc) -> { if (sc == null) updaters.remove(upd); });
+        b.sceneProperty().addListener((o, old, sc) -> { if (sc == null) updaters.remove(upd); });
         start();
-        return box;
-    }
-
-    /** The framed timer wrapped in a "Station ID" drawer with a hint line. */
-    public static Node drawer() {
-        Label hint = lbl("Identify your station on air at least every 10 minutes.", "jl-skim-meta"); hint.setWrapText(true);
-        VBox v = new VBox(10, frame(), hint); v.setPadding(new Insets(4, 2, 4, 2));
-        return Shell.drawer("Station ID", "log", "log", text(), true, v);
+        return b;
     }
 
     public static void reset() { seconds = 600; notifyUpd(); }
-    public static String summary() { return text(); }
 
     private static void start() {
         if (ticker != null) return;
@@ -63,5 +50,5 @@ public final class IdTimer {
         if (seconds <= 0) n.getStyleClass().add("over");
         else if (seconds <= 60) n.getStyleClass().add("warn");
     }
-    private static String text() { return seconds <= 0 ? "ID NOW" : String.format("%d:%02d", seconds / 60, seconds % 60); }
+    private static String text() { return seconds <= 0 ? "ID NOW" : String.format("ID %d:%02d", seconds / 60, seconds % 60); }
 }

@@ -129,7 +129,7 @@ One long page of everything that carries data in or out. It is organised into se
 | **Online log upload** | **LoTW** (signed with TrustedQSL), **eQSL.cc**, **QRZ Logbook** and **Club Log**, each with its login, an **Upload** button and an auto-upload tick. |
 | **Logbook & export** | Cabrillo / CSV character set and LoTW / eQSL auto-upload. |
 | **Contest / Cabrillo** | The categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club) plus Sweepstakes precedence, check and section. |
-| **DX cluster** | Server (`host:port`), login callsign, auto-connect, band and mode filters, **connection tries** (the retry limit; 0 keeps trying) and **Apply server**. |
+| **DX cluster** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying). |
 | **RBN** | Auto-connect on start, and its own connection-tries limit. |
 | **WSJT-X / digital** | UDP port (2237), auto-log FT8/FT4 contacts, PSK Reporter upload. |
 | **Callsign lookup** | Callook.info (free, US), HamQTH, QRZ.com XML, QRZCQ, HamCall, and a local CSV callbook file. Tried top to bottom; the first answer fills name, QTH, grid, state and county. |
@@ -171,7 +171,7 @@ database** and **Database tools ›** (which opens J-Hub ▸ Data).
   and **Stop** cancels a connection that is not coming up.
 - **Heard By** and **Skimmer** — who has heard you on the Reverse Beacon Network, and CW skimmer decodes.
 - **RTTY / CW · TX & RX** — a text pane for the modem.
-- **Rig and band controls**, propagation, space weather and an ID timer in the drawers beside the form.
+- **Rig and band controls**, propagation and space weather in the drawers beside the form.
 - **Translator** — opens the QSO phrase translator (below).
 
 **Contest mode** — press **⇄ Contest mode**.
@@ -201,6 +201,12 @@ A full-screen map with a controls panel:
 - **Who's hearing me · RBN** — plots stations that have heard you.
 - **NCDXF beacons** — show the beacon cycle.
 - **Beam heading** to the selected station, with the region drawn from the Blue Marble image.
+
+Clicking a spot on the map or in the list tunes the rig and pops up the station's details. **Log this** opens the
+**New QSO** form, filled in from the spot. Press **Enter** to log it to your **normal log**, or **Esc** or **Clear** to
+drop it. Drag the form by its top row. **Pin** moves it into a drawer in the right column, where it stays and empties after each QSO; while it is docked, a
+spot click fills it directly and the pop-up has no **Log this** button. **+
+QSO** at the top left of the map opens a blank card. Contest logging stays in J-Log.
 
 Set your latitude and longitude first. Distances follow your Units setting.
 
@@ -276,6 +282,9 @@ and digital modes send the text; SSB and the other phone modes play the voice fi
 - **RTTY and PSK31** go to the J-Digi modem.
 - A **PTT delay** (one number, in J-Hub ▸ Data ▸ Transmit) is applied both between keying and the start of audio, and
   between the end of audio and un-keying.
+
+The **ID** button in every module's top bar counts down 10 minutes. It turns amber in the last minute and shows
+**ID NOW** when time is up; click it after you identify to start again.
 
 While transmitting, a flashing red **TRANSMITTING** light shows in every module's top bar. **Esc**, or clicking the
 light, stops sending and drops PTT. Nothing is sent unless the rig is connected, and PTT is also released on an error,

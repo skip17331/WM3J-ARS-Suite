@@ -100,7 +100,8 @@ public final class JHubDashboard {
         Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "jhub-theme");
         theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
-        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), theme);
+        Label idTimer = com.ars.fx.shell.IdTimer.button();
+        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), idTimer, theme);
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }
@@ -252,8 +253,8 @@ public final class JHubDashboard {
         VBox card = new VBox(head, flt, rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
 
         // ---- controls drawer ----
-        TextField server = new TextField(cc.endpoint()); server.getStyleClass().add("jhub-mini-field"); server.setMaxWidth(Double.MAX_VALUE);
         TextField login  = new TextField(cc.loginCall()); login.getStyleClass().add("jhub-mini-field"); login.setMinWidth(96); login.setMaxWidth(96);
+        ComboBox<String> server = clusterPicker(login::getText); server.setMaxWidth(Double.MAX_VALUE);
         VBox serverF = labeled("CLUSTER SERVER", server); HBox.setHgrow(serverF, Priority.ALWAYS); serverF.setMaxWidth(Double.MAX_VALUE);
         HBox row1 = new HBox(12, serverF, labeled("LOGIN CALL", login)); row1.setAlignment(Pos.BOTTOM_LEFT);
 
@@ -307,12 +308,11 @@ public final class JHubDashboard {
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         act.setStyle("-fx-cursor:hand;");
         act.setOnMouseClicked(e -> { com.ars.fx.shell.FeedUi.toggle(cc); render.run(); });
-        Label apply = lbl("Apply server", "jhub-clearbtn"); apply.setStyle("-fx-cursor:hand;");
+        Label apply = lbl("Apply login", "jhub-clearbtn"); apply.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(apply, "Use the login call typed above and reconnect");
         apply.setOnMouseClicked(e -> {
-            String txt = server.getText().trim(); String h = txt; int p = -1;
-            int colon = txt.lastIndexOf(':');
-            if (colon > 0) { try { p = Integer.parseInt(txt.substring(colon + 1).trim()); h = txt.substring(0, colon); } catch (NumberFormatException ignored) {} }
-            cc.setEndpoint(h, p, login.getText());
+            com.ars.fx.data.HubConfig.set("data.clusterLogin", login.getText().trim());
+            cc.setEndpoint(null, -1, login.getText());
         });
         HBox actRow = new HBox(10, statusLbl, gap, apply, act); actRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -510,8 +510,7 @@ public final class JHubDashboard {
 
     // ---- drawer rail (rig + rotor + space wx) ------------------------------
     private static Region railCol() {
-        VBox col = new VBox(11, com.ars.fx.shell.IdTimer.drawer(),
-                com.ars.fx.shell.RigPanel.build(),
+        VBox col = new VBox(11, com.ars.fx.shell.RigPanel.build(),
                 Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
@@ -763,7 +762,8 @@ public final class JHubDashboard {
             ClusterClient.getInstance().setEndpoint(host, port, login);
         };
         VBox cluster = section("DX CLUSTER",
-            cfgRow("Cluster server", null, cInputApply("data.clusterServer", "dxc.ve7cc.net:23", applyCluster)),
+            cfgRow("Cluster server", "pick one, or type host:port and press Enter; one runs at a time, and a live connection moves to the new server",
+                    tagged(clusterPicker(() -> com.ars.fx.data.HubConfig.get("data.clusterLogin", com.ars.fx.data.HubConfig.call())), "data.clusterServer")),
             cfgRow("Login callsign", null, cInputApply("data.clusterLogin", "WM3J", applyCluster)),
             cfgRow("Auto-connect on start", "off by default — connect from the cluster panel when you want spots", cToggle("data.clusterAutoConnect", false)),
             cfgRow("Connection tries", "give up after this many failed attempts (0 = keep trying); Connect starts a fresh count",
@@ -1157,6 +1157,22 @@ public final class JHubDashboard {
         c.setValue(cur); c.setMinWidth(220); c.setMaxWidth(260);
         c.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
         return tagged(c, key);
+    }
+    /** Pick list of DX clusters. Choosing one saves it and moves the single cluster connection there. */
+    private static ComboBox<String> clusterPicker(java.util.function.Supplier<String> login) {
+        ComboBox<String> c = new ComboBox<>(); c.setEditable(true);
+        for (com.ars.fx.data.ClusterServers.Server s : com.ars.fx.data.ClusterServers.ALL) c.getItems().add(s.label());
+        String cur = com.ars.fx.data.ClusterServers.label(com.ars.fx.data.HubConfig.get("data.clusterServer", com.ars.fx.data.ClusterServers.DEFAULT_ADDRESS).trim());
+        if (!c.getItems().contains(cur)) c.getItems().add(0, cur);
+        c.setValue(cur); c.setMinWidth(220);
+        com.ars.fx.shell.Tips.tip(c, "Choose a DX cluster, or type host:port and press Enter");
+        c.valueProperty().addListener((o, a, b) -> {
+            String address = com.ars.fx.data.ClusterServers.addressOf(b);
+            if (address.isEmpty() || address.equals(com.ars.fx.data.ClusterServers.addressOf(a))) return;
+            com.ars.fx.data.HubConfig.set("data.clusterServer", address);
+            ClusterClient.getInstance().setEndpoint(com.ars.fx.data.ClusterServers.host(address), com.ars.fx.data.ClusterServers.port(address), login.get());
+        });
+        return c;
     }
     /** Segmented control bound to a HubConfig key (stores the option string). */
     private static Region cSeg(String key, String[] opts, int def) {
