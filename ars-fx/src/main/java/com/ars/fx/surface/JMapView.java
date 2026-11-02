@@ -51,12 +51,14 @@ public final class JMapView {
         int slot = (int) ((java.time.Instant.now().getEpochSecond() % 180) / 10);
         return ((slot - band) % 18 + 18) % 18;
     }
-    private static void repaintMap() { if (currentMapRepaint != null) currentMapRepaint.run(); }
+    private static void repaintMap() { paintedBeam = Math.round(beamDeg()); if (currentMapRepaint != null) currentMapRepaint.run(); }
     /** Dim the regular DX spots while a propagation overlay (beacons / who's-hearing-me) is active. */
     private static boolean dimSpots() { return showBeacons || showHeardBy; }
 
-    /** Point the beam wedge at a heading (e.g. after rotating to a clicked spot). */
-    public static void setBeam(double deg) { beamDeg = ((deg % 360) + 360) % 360; repaintMap(); updateMapTopbar(); }
+    /** The antenna's heading, or NaN with no rotor: the map never shows a beam the antenna isn't on. */
+    private static double beamDeg() { return com.ars.fx.data.RotorClient.getInstance().headingDeg(); }
+    private static String beamText() { double b = beamDeg(); return Double.isNaN(b) ? "—" : String.format("%03.0f°", b); }
+    private static long paintedBeam = Long.MIN_VALUE;     // what the map last drew, so a turning rotor repaints it
 
     // ── clickable map dots: each paint records the on-screen spot positions so a
     //    click can be hit-tested back to the spot that was drawn there. ──────────
@@ -77,7 +79,6 @@ public final class JMapView {
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
     private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false;
-    private static double beamDeg = 50;
     // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
     // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
     // icon strip (same idea as J-Sat's satellite list).
@@ -139,7 +140,8 @@ public final class JMapView {
         beaconTicker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
             updateMapTopbar();                                 // ticking clock + live SPOTS/SHOWN/GRAY-LINE/BEAM
             long second = java.time.Instant.now().getEpochSecond();
-            if (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0) repaintMap();
+            boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
+            if (beamMoved || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
         }));
         beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
         beaconTicker.play();
@@ -236,7 +238,7 @@ public final class JMapView {
         String[][] stats = {{"SPOTS", String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size())},
                 {"SHOWN", String.valueOf(liveSpots().size())},
                 {"GRAY LINE", grayLineStat()},
-                {"BEAM", String.format("%03d°", (int) beamDeg), "accent"}};
+                {"BEAM", beamText(), "accent"}};
         HBox top = Shell.topBar("map","map","J-Map","Propagation & spots · " + com.ars.fx.data.HubConfig.grid(), stats, nowUtc());
 
         // projection toggle: azimuthal canvas ⇄ rectangular blue-marble map
@@ -259,9 +261,8 @@ public final class JMapView {
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
         java.util.function.IntConsumer onProj = i -> { projection = i; renderMap.run(); };
         Runnable[] rebuildLeft = new Runnable[1];
-        rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed || narrow())
-                ? leftRail(() -> { leftCollapsed = false; rebuildLeft[0].run(); })
-                : scrollLeft(leftPanel(projection, onProj, () -> { leftCollapsed = true; rebuildLeft[0].run(); })));
+        rebuildLeft[0] = () -> leftHolder.getChildren().setAll(com.ars.fx.shell.AutoPanel.wrap("map", false, leftRail(),
+                scrollLeft(leftPanel(projection, onProj, () -> rebuildLeft[0].run())), 270, JMapView::narrow));
         rebuildLeft[0].run();
 
         StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
@@ -277,7 +278,6 @@ public final class JMapView {
     private static Region mapFrame;
     // Kept here, not in build(): switching modules rebuilds J-Map, and these must survive that.
     private static int projection = 0;                    // 0 azimuthal · 1 rectangular
-    private static boolean leftCollapsed = false;
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static String grayLineStat() {
         double[] rs = com.ars.fx.data.SolarPosition.riseSet(Q_LAT, Q_LON);
@@ -295,7 +295,7 @@ public final class JMapView {
             vs.get(0).setText(String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));
             vs.get(1).setText(String.valueOf(shown));
             vs.get(2).setText(grayLineStat());
-            vs.get(3).setText(String.format("%03d°", (int) beamDeg));
+            vs.get(3).setText(beamText());
         }
     }
     private static void collectStatValues(Node n, java.util.List<Label> out) {
@@ -357,11 +357,10 @@ public final class JMapView {
         sp.setStyle("-fx-background-color:transparent;");
         return sp;
     }
-    private static Region leftPanel(int projection, java.util.function.IntConsumer onProjection, Runnable onCollapse) {
+    private static Region leftPanel(int projection, java.util.function.IntConsumer onProjection, Runnable rebuild) {
         VBox p = new VBox(0); p.getStyleClass().add("jm-panel");
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
-        Label collapse = lbl("‹", "jm-collapse"); collapse.setStyle("-fx-cursor:hand;"); collapse.setOnMouseClicked(e -> onCollapse.run());
-        HBox header = new HBox(8, title, collapse); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));
+        HBox header = new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("map", rebuild)); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));
         p.getChildren().add(header);
         // PROJECTION — inlined (not segSel) so the region picker can flip it to Rectangular and keep the highlight in sync.
         p.getChildren().add(lbl("PROJECTION","jm-sec"));
@@ -461,11 +460,6 @@ public final class JMapView {
         htr.setAlignment(Pos.CENTER_LEFT); htr.setPadding(new Insets(7, 0, 4, 0));
         p.getChildren().add(htr);
 
-        Label beamLbl = lbl("BEAM HEADING · " + String.format("%03d°", (int) beamDeg), "jm-sec");
-        p.getChildren().add(beamLbl);
-        p.getChildren().add(sliderI(beamDeg / 359.0, frac -> {
-            beamDeg = frac * 359; beamLbl.setText("BEAM HEADING · " + String.format("%03d°", (int) beamDeg)); repaintMap();
-        }));
         return p;
     }
     /** Interactive slider — click/drag sets the value and reports the fraction. */
@@ -493,10 +487,10 @@ public final class JMapView {
         return sw;
     }
     /** Collapsed left column — a thin rail with a re-open control. */
-    private static Region leftRail(Runnable onExpand) {
+    private static Region leftRail() {
         VBox p = new VBox(0); p.getStyleClass().add("jm-panel"); p.setMinWidth(40); p.setPrefWidth(40); p.setMaxWidth(40);
         p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(16, 0, 16, 0));
-        Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;"); expand.setOnMouseClicked(e -> onExpand.run());
+        Label expand = lbl("›", "jm-collapse");
         Label vlabel = lbl("CONTROLS", "jm-sec"); vlabel.setRotate(90);
         javafx.scene.Group vgroup = new javafx.scene.Group(vlabel);   // sized to the rotated label, so it can't spill over the dock
         VBox.setMargin(vgroup, new Insets(26, 0, 0, 0));
@@ -587,8 +581,8 @@ public final class JMapView {
         }
 
         // beam wedge toward the selected heading
-        if (ovBeam) {
-            double beam = Math.toRadians(beamDeg - 90), spread = Math.toRadians(11);
+        if (ovBeam && !Double.isNaN(beamDeg())) {
+            double beam = Math.toRadians(beamDeg() - 90), spread = Math.toRadians(11);
             g.setFill(Color.web("#31bdda", 0.16));
             g.beginPath(); g.moveTo(cx, cy);
             g.lineTo(cx+Math.cos(beam-spread)*R, cy+Math.sin(beam-spread)*R);
@@ -758,6 +752,41 @@ public final class JMapView {
         return area;
     }
 
+    /** The beam as great-circle paths out to the azimuthal map's 15,000 km edge, so the two views agree. */
+    private static void drawRectBeam(GraphicsContext g, double rmx, double rmy, double rw, double rh, double heading) {
+        double reach = 15000, spread = 11;
+        int steps = 40;
+        double[] left = rectPath(heading - spread, reach, steps), right = rectPath(heading + spread, reach, steps), mid = rectPath(heading, reach, steps);
+        int n = steps + 1;
+        double[] xs = new double[n * 2], ys = new double[n * 2];
+        for (int i = 0; i < n; i++) {
+            xs[i] = lon2x(left[i * 2 + 1], rmx, rw); ys[i] = lat2y(left[i * 2], rmy, rh);
+            int back = n * 2 - 1 - i;
+            xs[back] = lon2x(right[i * 2 + 1], rmx, rw); ys[back] = lat2y(right[i * 2], rmy, rh);
+        }
+        double[] mx = new double[n], my = new double[n];
+        for (int i = 0; i < n; i++) { mx[i] = lon2x(mid[i * 2 + 1], rmx, rw); my[i] = lat2y(mid[i * 2], rmy, rh); }
+        double world = rw * 360 / (vMaxLon - vMinLon);        // the map may be zoomed to a region
+        for (double wrap : new double[]{-world, 0, world}) {  // a path past the date line carries on from the other edge
+            double[] sx = new double[xs.length], sm = new double[n];
+            for (int i = 0; i < sx.length; i++) sx[i] = xs[i] + wrap;
+            for (int i = 0; i < n; i++) sm[i] = mx[i] + wrap;
+            g.setFill(Color.web("#31bdda", 0.22)); g.fillPolygon(sx, ys, sx.length);
+            g.setStroke(Color.web("#31bdda", 0.8)); g.setLineWidth(1.4); g.strokePolyline(sm, my, n);
+        }
+    }
+    /** {lat, lon, lat, lon, ...} along a bearing from the station, longitude unbroken across the date line. */
+    private static double[] rectPath(double bearing, double km, int steps) {
+        double[] out = new double[(steps + 1) * 2];
+        double prev = Q_LON;
+        for (int i = 0; i <= steps; i++) {
+            double[] p = dest(Q_LAT, Q_LON, bearing, km * i / steps);
+            prev += (((p[1] - prev) % 360 + 540) % 360) - 180;
+            out[i * 2] = p[0]; out[i * 2 + 1] = prev;
+        }
+        return out;
+    }
+
     /** Draw the equirectangular overlay (graticule, terminator, spots, QTH) for the given area + centred image rect. */
     private static void paintRect(GraphicsContext g, double aw, double ah, double imgW, double imgH) {
         double RMX = (aw - imgW) / 2.0, RMY = (ah - imgH) / 2.0, RW = imgW, RH = imgH;
@@ -779,6 +808,7 @@ public final class JMapView {
             g.strokeLine(RMX, y, RMX + RW, y);
         }
         if (ovGrayline) drawTerminator(g, RMX, RMY, RW, RH);
+        if (ovBeam && !Double.isNaN(beamDeg())) drawRectBeam(g, RMX, RMY, RW, RH, beamDeg());
 
         g.setFill(Color.web("#cdd6e0", 0.65)); g.setFont(Font.font("IBM Plex Sans", FontWeight.NORMAL, 12)); g.setTextAlign(TextAlignment.CENTER);
         double[][] regions = {{52,13},{39,-98},{-14,-52},{8,20},{55,40},{36,138},{-25,134}};
@@ -899,7 +929,7 @@ public final class JMapView {
 
         List<Node> rail = new ArrayList<>();
         rail.add(MapQsoCard.drawerSlot());                // New QSO, when pinned
-        rail.addAll(Shell.leadDrawers((int) beamDeg));    // Rig control, Rotor control
+        rail.addAll(Shell.leadDrawers());    // Rig control, Rotor control
         spotsDrawer = Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll);
         rail.add(spotsDrawer);
         rail.add(Shell.drawer("DX station info","accent","hub","", false, DxInfoCard.drawerBody()));

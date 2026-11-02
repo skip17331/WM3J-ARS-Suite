@@ -25,6 +25,9 @@ licence are in [README.md](README.md).
 The suite is **one JavaFX application**. A dock down the left edge switches between its screens (the modules).
 Hover over almost anything — buttons, drawers, switches, the dock — for a tooltip.
 
+Side panels fold to a thin strip and slide open while the mouse is over them. **Pin** keeps a panel open, and the suite
+remembers that; **Unpin** lets it collapse again.
+
 | Module | What it is for |
 |--------|----------------|
 | **J-Hub** | The dashboard and every setting: station, radio hardware, cluster, log databases, uploads, macros, satellites |
@@ -200,7 +203,8 @@ A full-screen map with a controls panel:
   DXCC entity, beam heading and distance in **DX station info**.
 - **Who's hearing me · RBN** — plots stations that have heard you.
 - **NCDXF beacons** — show the beacon cycle.
-- **Beam heading** to the selected station, with the region drawn from the Blue Marble image.
+- **Beam heading** shows where the rotor is pointing, on both map views. With no rotor answering there is no beam and no
+  heading.
 
 Clicking a spot on the map or in the list tunes the rig and pops up the station's details. **Log this** opens the
 **New QSO** form, filled in from the spot. Press **Enter** to log it to your **normal log**, or **Esc** or **Clear** to

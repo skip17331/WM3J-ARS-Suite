@@ -84,6 +84,7 @@ final class MapQsoCard {
         if (pinned) {
             Shell.openDrawer(TITLE);
             refreshSlot();
+            com.ars.fx.shell.AutoPanel.reveal("rail");        // does nothing while the column is pinned open
         } else {
             float_(source);
         }
@@ -112,6 +113,7 @@ final class MapQsoCard {
             close();
             Shell.openDrawer(TITLE);
             refreshSlot();
+            com.ars.fx.shell.AutoPanel.setPinned("rail", true);   // a docked form needs its column on screen
         } else {
             Node anchor = slot;                                   // still in the scene once the drawer is emptied
             refreshSlot();

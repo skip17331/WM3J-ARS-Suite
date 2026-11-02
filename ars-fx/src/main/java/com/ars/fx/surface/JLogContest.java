@@ -70,7 +70,7 @@ public final class JLogContest {
         ScrollPane sp = new ScrollPane(center); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
 
-        List<Node> railNodes = new ArrayList<>(Shell.leadDrawers(0));
+        List<Node> railNodes = new ArrayList<>(Shell.leadDrawers());
         railNodes.addAll(com.ars.fx.surface.contest.TrackerFactory.columnPanes(plugin));
         Region rail = Shell.rail(railNodes.toArray(new Node[0]));
         host = new StackPane((Region) Shell.frame(dock, top, sp, rail));

@@ -512,12 +512,15 @@ public final class JHubDashboard {
     // ---- drawer rail (rig + rotor + space wx) ------------------------------
     private static Region railCol() {
         VBox col = new VBox(11, com.ars.fx.shell.RigPanel.build(),
-                Shell.drawer("Rotor control", "bridge", "bridge", "", true, rotorBody()),
+                Shell.rotorControlDrawer(),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
                 Shell.solarSpaceWeatherDrawer());
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
-        return Shell.collapsibleRail(col);
+        ScrollPane sp = new ScrollPane(col);                  // floating, it can't lean on the page to scroll
+        sp.getStyleClass().add("sx-dock-scroll"); sp.setFitToWidth(true);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        return Shell.collapsibleRail(sp);
     }
     private static Region ampBody() {
         Label stateV = lbl("—", "jhub-pill", "grey");
@@ -540,43 +543,6 @@ public final class JHubDashboard {
         });
         AmpClient.getInstance().start();
         return new VBox(12, stateRow, meters, conn);
-    }
-    private static Region rotorBody() {
-        javafx.scene.canvas.Canvas cv = Shell.compass(0, 88);
-        VBox info = new VBox(0); HBox.setHgrow(info, Priority.ALWAYS);
-        Label head = lbl("—","sx-ro-head");
-        HBox h = new HBox(2, head, lbl("°","sx-ro-dir")); h.setAlignment(Pos.BOTTOM_LEFT);
-        Label dir = lbl("offline","sx-ro-dir");
-        HBox turn = new HBox(5,
-                btn("◀ CCW","sx-ro-turn-btn"), btn("Stop","sx-ro-turn-btn","stop"), btn("CW ▶","sx-ro-turn-btn"));
-        ((Label) turn.getChildren().get(0)).setOnMouseClicked(e -> RotorClient.getInstance().nudge(-15));
-        ((Label) turn.getChildren().get(1)).setOnMouseClicked(e -> RotorClient.getInstance().stop());
-        ((Label) turn.getChildren().get(2)).setOnMouseClicked(e -> RotorClient.getInstance().nudge(15));
-        for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
-        info.getChildren().addAll(h, dir, turn); VBox.setMargin(turn, new Insets(10,0,0,0));
-        HBox top = new HBox(13, cv, info); top.setAlignment(Pos.CENTER_LEFT);
-        Object[][] pr = {{"Europe",50},{"Africa",95},{"S. Am",155},{"Carib",135},{"Asia",330},{"Oceania",250}};
-        GridPane g = new GridPane(); g.setHgap(5); g.setVgap(5);
-        for (int i=0;i<pr.length;i++){
-            final double az = (Integer) pr[i][1];
-            Label b = btn(pr[i][0]+" "+(int)az+"°", "sx-ro-preset"); GridPane.setHgrow(b,Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-            b.setOnMouseClicked(e -> RotorClient.getInstance().moveTo(az));
-            g.add(b,i%3,i/3);
-        }
-        for (int c=0;c<3;c++){ ColumnConstraints cc=new ColumnConstraints(); cc.setPercentWidth(100/3.0); g.getColumnConstraints().add(cc); }
-
-        RotorClient.getInstance().setListener(s -> {
-            if (s.connected()) {
-                Shell.paintCompass(cv, s.az());
-                head.setText(String.format("%03d", Math.round(((s.az()%360)+360)%360)));
-                dir.setText(RotorClient.cardinal(s.az()) + " · short path");
-            } else {
-                Shell.paintCompass(cv, 0);
-                head.setText("—"); dir.setText("offline");
-            }
-        });
-        RotorClient.getInstance().start();
-        return new VBox(11, top, g);
     }
 
     // ---- config page (shot 09) --------------------------------------------
