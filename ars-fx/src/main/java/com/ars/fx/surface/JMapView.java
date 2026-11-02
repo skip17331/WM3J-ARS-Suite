@@ -285,6 +285,7 @@ public final class JMapView {
     private static void updateMapTopbar() {
         if (mapFrame == null) return;
         if (mapFrame.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
+        if (legendSpots != null) legendSpots.setText(legendSpotsText());
         java.util.List<Label> vs = new java.util.ArrayList<>(); collectStatValues(mapFrame, vs);
         if (vs.size() >= 4) {
             vs.get(0).setText(String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));
@@ -304,11 +305,11 @@ public final class JMapView {
         Canvas canvas = new Canvas();
         Pane pane = new Pane(canvas);
         pane.setMinHeight(H); pane.setPrefHeight(H); pane.setMaxHeight(H);
-        pane.setStyle("-fx-background-color:#11161d;");
+        pane.setStyle("-fx-background-color:#07090c;");
         canvas.widthProperty().bind(pane.widthProperty());
         canvas.setHeight(H);
 
-        String color = "#5b6675";
+        String color = "#c3ccd6";
         Font font = Font.font("JetBrains Mono", 12.5);
         String[] text = new String[1];
         double[] singleW = new double[1];
@@ -327,7 +328,7 @@ public final class JMapView {
             x[0] -= speed * (tickMs / 1000.0);
             if (x[0] <= -singleW[0]) { refreshText.run(); x[0] = 0; }   // new figures only where the line wraps, so it never jumps
             GraphicsContext g = canvas.getGraphicsContext2D();
-            g.setFill(Color.web("#11161d")); g.fillRect(0, 0, w, H);
+            g.setFill(Color.web("#07090c")); g.fillRect(0, 0, w, H);
             g.setStroke(Color.web("#2c3540")); g.setLineWidth(1); g.strokeLine(0, 0, w, 0);
             g.setFont(font); g.setFill(Color.web(color));
             for (double px = x[0]; px < w; px += singleW[0]) g.fillText(text[0], px, H - 15);
@@ -508,8 +509,9 @@ public final class JMapView {
     private static Region aziArea() {
         Canvas cv = new Canvas();
         // top-right legend
-        VBox tr = new VBox(2,
-            rt("rings ="), rt("distance"), rt("spokes ="), rt("bearing"));
+        legendSpots = rt(legendSpotsText());
+        VBox tr = new VBox(2, legendSpots,
+            rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")), rt("spokes = 30°"));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14,18,0,0));
         StackPane area = new StackPane(cv, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
@@ -529,6 +531,8 @@ public final class JMapView {
         return area;
     }
     private static Label rt(String s){ return lbl(s, "jm-legend"); }
+    private static Label legendSpots;                     // live first line of the azimuthal note
+    private static String legendSpotsText() { return liveSpots().size() + " spots · ≤ " + spotAgeMax + " min"; }
 
     private static void paintAzimuthal(GraphicsContext g, double w, double h) {
         g.clearRect(0, 0, w, h);

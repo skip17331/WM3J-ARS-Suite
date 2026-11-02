@@ -62,6 +62,7 @@ public class Launcher extends Application {
         stage.setTitle("ARS Suite");
         AppIcons.apply(stage, null);                    // the app mark — without it the panel shows a generic gear
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
         AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
     }
