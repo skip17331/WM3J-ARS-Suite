@@ -164,7 +164,7 @@
 .sx-brand-ic { -fx-min-width: 32; -fx-pref-width: 32; -fx-max-width: 32; -fx-min-height: 32; -fx-pref-height: 32; -fx-background-radius: 9; -fx-border-radius: 9; -fx-border-width: 1; -fx-alignment: center; }
 .sx-brand-nm { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .sx-brand-ct { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
-.sx-stat     { -fx-padding: 0 18 0 18; }
+.sx-stat     { -fx-background-color: -ars-bg; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 5 12 5 12; }
 .sx-stat-k   { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .sx-stat-v   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .sx-stat-v.accent { -fx-text-fill: -ars-accent; }
@@ -206,6 +206,9 @@
    SHELL — right rail drawers
    ============================================================================ */
 .sx-rail { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent transparent -ars-border; -fx-border-width: 0 0 0 1; -fx-padding: 11; }
+.sx-rail-head { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border -ars-border; -fx-border-width: 0 0 1 1; -fx-padding: 6 11 6 11; }
+.sx-rail-strip { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent transparent -ars-border; -fx-border-width: 0 0 0 1; -fx-padding: 8 0 8 0; }
+.sx-rail-title { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .sx-dw      { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 9; -fx-border-radius: 9; }
 .sx-dw.open { -fx-background-color: -ars-surface-1; }
 .sx-dw-head { -fx-padding: 10 12 10 12; -fx-cursor: hand; -fx-alignment: center-left; }

@@ -135,7 +135,7 @@ public final class Shell {
     }
     public static Region frame(Region dock, HBox top, Region center, Region rail, Region bottom) {
         HBox.setHgrow(center, Priority.ALWAYS);
-        Region body = (rail == null) ? center : new HBox(center, rail);
+        Region body = (rail == null) ? center : new HBox(center, collapsibleRail(rail));
         if (body instanceof HBox hb) hb.setFillHeight(true);
         VBox.setVgrow(body, Priority.ALWAYS);
         body.setMinHeight(0); center.setMinHeight(0);   // a tall panel must scroll/clip, not push the top bar and ticker off-screen
@@ -214,11 +214,13 @@ public final class Shell {
         bt.setAlignment(Pos.CENTER_LEFT);
         HBox brand = new HBox(10, bic, bt); brand.setAlignment(Pos.CENTER_LEFT); brand.setPadding(new Insets(0, 20, 0, 0));
         top.getChildren().add(brand);
+        List<VBox> tiles = new ArrayList<>();
         for (String[] s : stats) {   // {key, value, optional class}
             boolean hasCls = s.length > 2 && s[2] != null && !s[2].isBlank();
             VBox cell = new VBox(2, lbl(s[0], "sx-stat-k"),
                     lbl(s[1], hasCls ? new String[]{"sx-stat-v", s[2]} : new String[]{"sx-stat-v"}));
             cell.getStyleClass().add("sx-stat"); cell.setAlignment(Pos.CENTER_LEFT);
+            tiles.add(cell);
             top.getChildren().add(cell);
         }
         top.getChildren().add(hsp());
@@ -240,9 +242,44 @@ public final class Shell {
         top.getChildren().add(theme);
         if (clock != null) {
             VBox c = new VBox(1, lbl("UTC", "sx-clock-k"), lbl(clock, "sx-clock-v"));
-            c.setAlignment(Pos.CENTER_RIGHT); top.getChildren().add(c);
+            c.getStyleClass().add("sx-stat"); c.setAlignment(Pos.CENTER_RIGHT);
+            tiles.add(c); top.getChildren().add(c);
         }
+        scaleWithWidth(top, tiles);
         return top;
+    }
+
+    /** Last top-bar scale: surfaces rebuild (J-Sat every ~2 s), so a new bar starts here rather than flash full size. */
+    private static double topScale = 1;
+    private static final double TOP_MIN_SCALE = 0.5, TOP_TILE_GAP = 8, TOP_BRAND_MIN = 120;
+
+    /** Shrink the top-bar tiles and their fonts so the row fits the bar's width, instead of cutting values to "…". */
+    private static void scaleWithWidth(HBox top, List<VBox> tiles) {
+        Runnable apply = () -> {
+            double s = topScale;
+            String pad = String.format("-fx-padding:%.0f %.0f %.0f %.0f;", 5 * s, 12 * s, 5 * s, 12 * s);
+            for (VBox t : tiles) {
+                t.setStyle(pad);
+                t.setMinWidth(Region.USE_PREF_SIZE);    // the subtitle gives way when the row is tight, never a value
+                t.setMaxHeight(Region.USE_PREF_SIZE);
+                HBox.setMargin(t, new Insets(0, 0, 0, TOP_TILE_GAP * s));
+                for (Node n : t.getChildren()) {
+                    if (!(n instanceof Label l)) continue;
+                    double full = l.getStyleClass().contains("sx-stat-v") ? 16 : l.getStyleClass().contains("sx-clock-v") ? 18 : 0;
+                    l.setStyle(String.format("-fx-font-size:%.1fpx;", full > 0 ? full * s : Math.max(8, 9 * s)));
+                }
+            }
+        };
+        top.widthProperty().addListener((o, a, b) -> {
+            double row = 0, others = top.getInsets().getLeft() + top.getInsets().getRight() + 30;   // 30: margins around the theme button
+            for (VBox t : tiles) row += t.prefWidth(-1) + TOP_TILE_GAP * topScale;
+            for (Node n : top.getChildren())
+                if (!tiles.contains(n)) others += n == top.getChildren().get(0) ? Math.min(n.prefWidth(-1), TOP_BRAND_MIN) : n.prefWidth(-1);
+            double s = Math.max(TOP_MIN_SCALE, Math.min(1, (b.doubleValue() - others) / (row / topScale * 1.03)));
+            if (b.doubleValue() <= 1 || Math.abs(s - topScale) < 0.01) return;
+            topScale = s; apply.run();
+        });
+        apply.run();
     }
 
     // ---- collapsible drawer ------------------------------------------------
@@ -344,6 +381,38 @@ public final class Shell {
         if (sp.getContent() == null) return 0;
         double extra = sp.getContent().getLayoutBounds().getHeight() - sp.getViewportBounds().getHeight();
         return extra > 0 ? sp.getVvalue() * extra : 0;
+    }
+
+    /** One choice for every surface, and it outlives the rebuilds (J-Sat recreates its rail every ~2 s). */
+    private static boolean railCollapsed = false;
+
+    /** Wrap a right column so it folds to a thin strip. The rail stays in the scene while folded, so its live drawers keep updating. */
+    public static Region collapsibleRail(Region rail) {
+        Label collapse = Tips.tip(lbl("›", "jm-collapse"), "Collapse this panel");
+        Label expand = Tips.tip(lbl("‹", "jm-collapse"), "Expand this panel");
+        collapse.setStyle("-fx-cursor:hand;"); expand.setStyle("-fx-cursor:hand;");
+
+        HBox header = new HBox(8, lbl("PANELS", "sx-rail-title"), hsp(), collapse);
+        header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("sx-rail-head");
+        VBox open = new VBox(header, rail);
+        VBox.setVgrow(rail, Priority.ALWAYS);
+
+        Label title = lbl("PANELS", "sx-rail-title"); title.setRotate(90);
+        VBox strip = new VBox(16, expand, new javafx.scene.Group(title));
+        strip.setAlignment(Pos.TOP_CENTER); strip.getStyleClass().add("sx-rail-strip");
+        strip.setMinWidth(40); strip.setPrefWidth(40); strip.setMaxWidth(40);
+
+        Runnable apply = () -> {
+            open.setVisible(!railCollapsed); open.setManaged(!railCollapsed);
+            strip.setVisible(railCollapsed); strip.setManaged(railCollapsed);
+        };
+        collapse.setOnMouseClicked(e -> { railCollapsed = true; apply.run(); });
+        expand.setOnMouseClicked(e -> { railCollapsed = false; apply.run(); });
+        apply.run();
+
+        StackPane holder = new StackPane(open, strip);
+        holder.setMaxWidth(Region.USE_PREF_SIZE);
+        return holder;
     }
 
     /** Right-rail container that scrolls. */
