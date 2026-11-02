@@ -75,7 +75,7 @@ java -jar ars-fx-pi.jar --config j-map-remote.json
 |-----------|---------|
 | `module`  | `"map"` or `"sat"` |
 | `title`   | window title (optional) |
-| `window`  | `{ width, height, maximized }` |
+| `window`  | `{ width, height, maximized }`; `maximized` defaults to `true`, so set it to `false` to use the size given |
 | `dock`    | keep the module dock? default `false` (clean single-module window) |
 | `remote`  | station J-Hub WebSocket, e.g. `ws://192.168.1.50:8090`. Omit for a fully local run. |
 | `station` | `{ call, grid, lat, lon }` — QTH/call the module uses |
