@@ -65,7 +65,7 @@ public final class SoloConfig {
     public static final class Window {
         public double width = 1360;
         public double height = 880;
-        public boolean maximized = false;
+        public boolean maximized = true;
     }
     public static final class Station {
         public String call;
