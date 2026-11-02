@@ -241,8 +241,7 @@ public final class JMapView {
 
         // projection toggle: azimuthal canvas ⇄ rectangular blue-marble map
         StackPane mapHolder = new StackPane(); HBox.setHgrow(mapHolder, Priority.ALWAYS);
-        int[] proj = {0};
-        Runnable renderMap = () -> mapHolder.getChildren().setAll(proj[0] == 1 ? rectMap() : aziArea());
+        Runnable renderMap = () -> mapHolder.getChildren().setAll(projection == 1 ? rectMap() : aziArea());
         renderMap.run();
         startBeaconTicker();
         com.ars.fx.data.HeardByClient.getInstance().setListener(c -> { if (showHeardBy) repaintMap(); });
@@ -258,12 +257,11 @@ public final class JMapView {
 
         // collapsible left controls column
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
-        int[] leftCollapsed = {0};
-        java.util.function.IntConsumer onProj = i -> { proj[0] = i; renderMap.run(); };
+        java.util.function.IntConsumer onProj = i -> { projection = i; renderMap.run(); };
         Runnable[] rebuildLeft = new Runnable[1];
-        rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed[0] == 1 || narrow())
-                ? leftRail(() -> { leftCollapsed[0] = 0; rebuildLeft[0].run(); })
-                : scrollLeft(leftPanel(proj[0], onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); })));
+        rebuildLeft[0] = () -> leftHolder.getChildren().setAll((leftCollapsed || narrow())
+                ? leftRail(() -> { leftCollapsed = false; rebuildLeft[0].run(); })
+                : scrollLeft(leftPanel(projection, onProj, () -> { leftCollapsed = true; rebuildLeft[0].run(); })));
         rebuildLeft[0].run();
 
         StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
@@ -277,6 +275,9 @@ public final class JMapView {
     }
 
     private static Region mapFrame;
+    // Kept here, not in build(): switching modules rebuilds J-Map, and these must survive that.
+    private static int projection = 0;                    // 0 azimuthal · 1 rectangular
+    private static boolean leftCollapsed = false;
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static String grayLineStat() {
         double[] rs = com.ars.fx.data.SolarPosition.riseSet(Q_LAT, Q_LON);
