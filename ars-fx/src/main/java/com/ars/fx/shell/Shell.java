@@ -239,7 +239,8 @@ public final class Shell {
         theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
         HBox.setMargin(theme, new Insets(0, 16, 0, 0));
         top.getChildren().add(TxIndicator.build());
-        top.getChildren().add(theme);
+        Label id = IdTimer.button(); HBox.setMargin(id, new Insets(0, 8, 0, 0));
+        top.getChildren().addAll(id, theme);
         if (clock != null) {
             VBox c = new VBox(1, lbl("UTC", "sx-clock-k"), lbl(clock, "sx-clock-v"));
             c.getStyleClass().add("sx-stat"); c.setAlignment(Pos.CENTER_RIGHT);
@@ -288,7 +289,9 @@ public final class Shell {
     // Drawers default closed (see drawer()); the few seeded here start open instead,
     // until the operator collapses them.
     private static final Map<String, Boolean> DRAWER_STATE = new java.util.HashMap<>();
-    static { DRAWER_STATE.put("Station ID", true); }   // the ID timer stays open by default
+
+    /** Have the drawer with this title open the next time it is built. */
+    public static void openDrawer(String title) { DRAWER_STATE.put(title, true); }
 
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
@@ -447,11 +450,10 @@ public final class Shell {
     }
 
     /** Station-ID timer drawer — the first standard drawer on every operating module. */
-    public static Node idDrawer() { return com.ars.fx.shell.IdTimer.drawer(); }
 
     /** Lead drawers shown first on every operating module, in order: Station ID, Rig control
      *  ({@link RigPanel}), Rotor control. */
-    public static List<Node> leadDrawers(int az) { return List.of(idDrawer(), RigPanel.build(), rotorControlDrawer(az)); }
+    public static List<Node> leadDrawers(int az) { return List.of(RigPanel.build(), rotorControlDrawer(az)); }
 
     /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */
     public static Node rotorControlDrawer(int az) {
@@ -613,7 +615,37 @@ public final class Shell {
         SolarData.getInstance().start();
         SolarData.Snapshot s = SolarData.getInstance().snapshot();
         String stamp = s != null ? "HamQSL · N0NBH · " + nz(s.updated()) : "HamQSL · N0NBH · loading…";
-        return new VBox(9, sunspotDisk(), solarGrid(), lbl(stamp, "sx-dw-stamp"));
+        return new VBox(9, sunspotDisk(), solarGrid(), sunPositionGrid(), lbl(stamp, "sx-dw-stamp"));
+    }
+    /** Where the sun is now, from the station's position. Keeps itself current while it is on screen. */
+    private static GridPane sunPositionGrid() {
+        String[] keys = {"Sub-solar", "Sun az / el", "Sunrise", "Sunset"};
+        Label[] vals = new Label[keys.length];
+        GridPane grid = new GridPane(); grid.setHgap(7); grid.setVgap(7);
+        for (int i = 0; i < keys.length; i++) {
+            vals[i] = lbl("—", "sx-swx-v");
+            VBox c = new VBox(2, lbl(keys[i], "sx-swx-k"), vals[i]); c.getStyleClass().add("sx-swx-c");
+            GridPane.setHgrow(c, Priority.ALWAYS); c.setMaxWidth(Double.MAX_VALUE);
+            grid.add(c, i % 2, i / 2);
+        }
+        Runnable paint = () -> {
+            double lat = stationCoord("station.lat", 39.7456), lon = stationCoord("station.lon", -76.96);
+            double[] ae = com.ars.fx.data.SolarPosition.azEl(lat, lon), rs = com.ars.fx.data.SolarPosition.riseSet(lat, lon);
+            String none = rs[2] > 0 ? "up all day" : "down all day";
+            vals[0].setText(com.ars.fx.data.SolarPosition.subSolarText());
+            vals[1].setText(String.format("%03.0f° / %+.0f°", ae[0], ae[1]));
+            vals[2].setText(Double.isNaN(rs[0]) ? none : com.ars.fx.data.SolarPosition.hhmm(rs[0]) + " Z");
+            vals[3].setText(Double.isNaN(rs[1]) ? none : com.ars.fx.data.SolarPosition.hhmm(rs[1]) + " Z");
+        };
+        paint.run();
+        javafx.animation.Timeline tick = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(30), e -> paint.run()));
+        tick.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        grid.sceneProperty().addListener((o, old, sc) -> { if (sc == null) tick.stop(); else tick.play(); });
+        return grid;
+    }
+    private static double stationCoord(String key, double fallback) {
+        try { return Double.parseDouble(HubConfig.get(key, "").trim()); } catch (Exception e) { return fallback; }
     }
     private static String heatColor(double frac, int count) {
         if (count <= 0) return "-ars-surface-2";

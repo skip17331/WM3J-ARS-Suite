@@ -198,8 +198,9 @@ public final class JSatView {
             Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;");
             expand.setOnMouseClicked(e -> { satCollapsed = false; rebuild(); });
             Label v = lbl("SATELLITES", "js-sec"); v.setRotate(90);
-            StackPane vwrap = new StackPane(v); vwrap.setMinWidth(36); VBox.setMargin(vwrap, new Insets(28, 0, 0, 0)); vwrap.setMinHeight(130);
-            p.getChildren().addAll(expand, vwrap);
+            javafx.scene.Group vgroup = new javafx.scene.Group(v);
+            VBox.setMargin(vgroup, new Insets(28, 0, 0, 0));
+            p.getChildren().addAll(expand, vgroup);
             return p;
         }
         VBox p = new VBox(9); p.getStyleClass().add("js-panel"); p.setMinWidth(272); p.setPrefWidth(310); p.setMaxWidth(310);

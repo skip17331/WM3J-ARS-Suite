@@ -16,12 +16,51 @@ import java.util.Map;
 public final class DxccInfo {
     private DxccInfo() {}
 
-    /** {@code dxcc} is 0 and {@code lat}/{@code lon} are NaN when only the continent is known. */
+    /** {@code dxcc} is 0 for an entity missing from the prefix data; {@code lat}/{@code lon} are NaN when no position is known. */
     public record Info(String country, String continent, int dxcc, double lat, double lon) {}
 
     private record Entry(String country, double lat, double lon) {}
 
     private static volatile Map<String, Entry> byDxcc;
+    private static volatile Map<String, Entry> outlines;
+
+    /** Entities the prefix data lacks. The map outlines have no coordinates, but each has a label position to work back from. */
+    private static Map<String, Entry> outlines() {
+        Map<String, Entry> m = outlines;
+        if (m == null) {
+            m = new HashMap<>();
+            try (InputStream in = DxccResolver.class.getResourceAsStream("/com/jlog/maps/dxcc-entities.json")) {
+                if (in != null) {
+                    JsonNode ents = new ObjectMapper().readTree(in).path("entities");
+                    Map<String, Entry> out = m;
+                    ents.fieldNames().forEachRemaining(id -> {
+                        JsonNode n = ents.path(id);
+                        double[] ll = fromMap(n.path("labelX").asDouble(Double.NaN), n.path("labelY").asDouble(Double.NaN));
+                        out.put(id, new Entry(n.path("name").asText(null), ll[0], ll[1]));
+                    });
+                }
+            } catch (Exception ignored) { /* no outlines just means continent only */ }
+            outlines = m;
+        }
+        return m;
+    }
+
+    // Robinson projection table (every 5 degrees of latitude), and how dxcc-entities.json is laid out on it.
+    private static final double[] ROBIN_X = {1, .9986, .9954, .9900, .9822, .9730, .9600, .9427, .9216, .8962, .8679, .8350, .7986, .7597, .7186, .6732, .6213, .5722, .5322};
+    private static final double[] ROBIN_Y = {0, .0620, .1240, .1860, .2480, .3100, .3720, .4340, .4958, .5571, .6176, .6769, .7346, .7903, .8435, .8936, .9394, .9761, 1};
+    private static final double MAP_CX = 595.97, MAP_CY = 315.80, MAP_SX = 3.3178, MAP_SY = 307.16;
+
+    /** Map position → {lat, lon}. Good to about a degree for a small country; a label can sit far from a big one's centre. */
+    private static double[] fromMap(double x, double y) {
+        if (Double.isNaN(x) || Double.isNaN(y)) return new double[]{Double.NaN, Double.NaN};
+        double north = (MAP_CY - y) / MAP_SY, v = Math.min(Math.abs(north), 1);
+        int i = 0;
+        while (i < ROBIN_Y.length - 2 && v > ROBIN_Y[i + 1]) i++;
+        double f = (v - ROBIN_Y[i]) / (ROBIN_Y[i + 1] - ROBIN_Y[i]);
+        double lat = Math.copySign((i + f) * 5, north);
+        double lon = (x - MAP_CX) / MAP_SX / (ROBIN_X[i] + f * (ROBIN_X[i + 1] - ROBIN_X[i]));
+        return new double[]{lat, lon};
+    }
 
     /** DXCC number → country name, centre point. Read once from the engine's prefix data. */
     private static Map<String, Entry> table() {
@@ -46,7 +85,11 @@ public final class DxccInfo {
         try { e = DxccResolver.getInstance().resolve(call); } catch (RuntimeException ex) { e = null; }
         if (e == null) return null;
         Entry en = table().get(e.id());
-        if (en == null) return new Info(null, e.continent(), 0, Double.NaN, Double.NaN);
+        if (en == null) {
+            Entry o = outlines().get(e.id());
+            return o == null ? new Info(null, e.continent(), 0, Double.NaN, Double.NaN)
+                             : new Info(o.country(), e.continent(), 0, o.lat(), o.lon());
+        }
         int n; try { n = Integer.parseInt(e.id()); } catch (NumberFormatException ex) { n = 0; }
         return new Info(en.country(), e.continent(), n, en.lat(), en.lon());
     }

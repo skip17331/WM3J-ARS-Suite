@@ -66,9 +66,13 @@ public final class JMapView {
         Dot best = null; double bestD = Double.MAX_VALUE;
         for (Dot d : paintedDots) { double dd = Math.hypot(d.x() - x, d.y() - y); if (dd < bestD) { bestD = dd; best = d; } }
         if (best != null && bestD <= 11) {
-            MapSpot s = best.s();
-            SpotAction.onSpot(source, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon());
+            selectSpot(source, best.s());
         }
+    }
+    /** A spot was clicked, on the map or in the list: show who it is, then do the shared spot action. */
+    private static void selectSpot(Node source, MapSpot s) {
+        DxInfoCard.show(source, s, workedCalls().contains(s.call().toUpperCase()));
+        SpotAction.onSpot(source, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon());
     }
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
@@ -102,7 +106,8 @@ public final class JMapView {
     private static Runnable currentSpotsRefresh;
 
     /** A positioned cluster spot (geo-located via {@link com.ars.fx.data.Geo}). */
-    public record MapSpot(String call, double lat, double lon, String band, String mode, long arrivalMs, long freqHz, Color color) {}
+    public record MapSpot(String call, double lat, double lon, String band, String mode, long arrivalMs, long freqHz, Color color,
+                          String spotter, String comment) {}
 
     /** Geo-locate + filter the given raw cluster spots (skips calls with no known location). */
     public static java.util.List<MapSpot> spotsFrom(java.util.List<com.ars.fx.data.ClusterClient.Spot> raw) {
@@ -112,7 +117,7 @@ public final class JMapView {
             double[] ll = com.ars.fx.data.Geo.of(s.call());
             if (ll == null) continue;
             if (!modePass(s.mode()) || !bandPass(s.band()) || (now - s.arrivalMs()) / 60000 > spotAgeMax) continue;
-            out.add(new MapSpot(s.call(), ll[0], ll[1], s.band(), s.mode(), s.arrivalMs(), s.freqHz(), bandColor(s.band())));
+            out.add(new MapSpot(s.call(), ll[0], ll[1], s.band(), s.mode(), s.arrivalMs(), s.freqHz(), bandColor(s.band()), s.de(), s.comment()));
         }
         return out;
     }
@@ -260,7 +265,9 @@ public final class JMapView {
                 : scrollLeft(leftPanel(onProj, () -> { leftCollapsed[0] = 1; rebuildLeft[0].run(); })));
         rebuildLeft[0].run();
 
-        HBox center = new HBox(leftHolder, mapHolder); center.setFillHeight(true);
+        StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
+        mapWithButton.setMinSize(0, 0); mapHolder.setMinSize(0, 0);
+        HBox center = new HBox(leftHolder, mapWithButton); center.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(spotsBox));
         mapFrame = (Region) Shell.frame(dock, top, center, rail, tickerBar());
         // re-collapse / expand the controls when the window crosses the narrow threshold
@@ -271,8 +278,8 @@ public final class JMapView {
     private static Region mapFrame;
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static String grayLineStat() {
-        double[] rs = solarRiseSet();
-        return Double.isNaN(rs[0]) ? (rs[2] > 0 ? "sun up all day" : "sun down all day") : "SR " + hhmm(rs[0]) + " · SS " + hhmm(rs[1]);
+        double[] rs = com.ars.fx.data.SolarPosition.riseSet(Q_LAT, Q_LON);
+        return Double.isNaN(rs[0]) ? (rs[2] > 0 ? "sun up all day" : "sun down all day") : "SR " + com.ars.fx.data.SolarPosition.hhmm(rs[0]) + " · SS " + com.ars.fx.data.SolarPosition.hhmm(rs[1]);
     }
     /** Live topbar: ticking UTC clock + SPOTS / SHOWN / GRAY-LINE / BEAM. */
     private static void updateMapTopbar() {
@@ -477,9 +484,9 @@ public final class JMapView {
         p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(16, 0, 16, 0));
         Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;"); expand.setOnMouseClicked(e -> onExpand.run());
         Label vlabel = lbl("CONTROLS", "jm-sec"); vlabel.setRotate(90);
-        VBox vbox = new VBox(vlabel); vbox.setAlignment(Pos.CENTER); VBox.setMargin(vbox, new Insets(26, 0, 0, 0)); vbox.setMinWidth(120);
-        StackPane vwrap = new StackPane(vbox); vwrap.setMinWidth(36); vwrap.setMaxWidth(36);
-        p.getChildren().addAll(expand, vwrap);
+        javafx.scene.Group vgroup = new javafx.scene.Group(vlabel);   // sized to the rotated label, so it can't spill over the dock
+        VBox.setMargin(vgroup, new Insets(26, 0, 0, 0));
+        p.getChildren().addAll(expand, vgroup);
         return p;
     }
     /** Interactive segmented control reporting the chosen index. */
@@ -502,13 +509,7 @@ public final class JMapView {
             rt("22 spots · ≤"), rt("20m"), rt("rings ="), rt("distance"), rt("spokes ="), rt("bearing"));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14,18,0,0));
-        // bottom-left legend card
-        VBox card = new VBox(5, lbl("Azimuthal · centered FN20","jm-legend-b"),
-            legRow("#26c0cf","your station  / beam"), legRow("ring","needed DX"), legRow("#eebb58","sunlit (gray line)"));
-        card.getStyleClass().add("jm-legend-card");
-        card.setMaxSize(220, Region.USE_PREF_SIZE);
-        StackPane.setAlignment(card, Pos.BOTTOM_LEFT); StackPane.setMargin(card, new Insets(0,0,20,16));
-        StackPane area = new StackPane(cv, tr, card); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
+        StackPane area = new StackPane(cv, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
 
         Runnable redraw = () -> {
@@ -525,12 +526,6 @@ public final class JMapView {
         return area;
     }
     private static Label rt(String s){ return lbl(s, "jm-legend"); }
-    private static HBox legRow(String color, String text){
-        Region d = new Region(); d.setMinSize(9,9); d.setMaxSize(9,9);
-        if (color.equals("ring")) d.setStyle("-fx-background-radius:99; -fx-border-color:-ars-warn; -fx-border-width:1.5; -fx-border-radius:99;");
-        else d.setStyle("-fx-background-color:"+color+"; -fx-background-radius:99;");
-        HBox r = new HBox(8, d, lbl(text,"jm-legend-row")); r.setAlignment(Pos.CENTER_LEFT); return r;
-    }
 
     private static void paintAzimuthal(GraphicsContext g, double w, double h) {
         g.clearRect(0, 0, w, h);
@@ -598,9 +593,9 @@ public final class JMapView {
         }
         // the Sun — sub-solar point projected into the azimuthal map (if visible)
         if (ovGrayline) {
-            double[] ss = subSolar();
+            double[] ss = com.ars.fx.data.SolarPosition.subSolar();
             double[] sp = azProject(ss[0], ss[1], cx, cy, R);
-            if (sp[2] <= 1.0) { drawSun(g, sp[0], sp[1]); drawSunLabel(g, sp[0], sp[1]); }
+            if (sp[2] <= 1.0) drawSun(g, sp[0], sp[1]);
         }
 
         // me (center)
@@ -615,7 +610,7 @@ public final class JMapView {
     }
     /** Azimuthal-equidistant night shading + terminator (gray line) centred on QTH. */
     private static void drawAzimuthalGrayLine(GraphicsContext g, double cx, double cy, double R) {
-        double[] ss = subSolar(); double decl = ss[0], ssLon = ss[1];
+        double[] ss = com.ars.fx.data.SolarPosition.subSolar(); double decl = ss[0], ssLon = ss[1];
         double declR = Math.toRadians(decl), sinDecl = Math.sin(declR), cosDecl = Math.cos(declR), ssLonR = Math.toRadians(ssLon);
         double qLatR = Math.toRadians(Q_LAT), qLonR = Math.toRadians(Q_LON), sinQ = Math.sin(qLatR), cosQ = Math.cos(qLatR);
 
@@ -699,15 +694,7 @@ public final class JMapView {
         iv.setPreserveRatio(false); iv.setSmooth(true);
         Canvas cv = new Canvas();
 
-        VBox tr = new VBox(2, rt("22 spots · ≤"), rt("20m"), rt("grid ="), rt("30° lat/lon"), rt("dash ="), rt("great-circle"));
-        tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14, 18, 0, 0));
-        VBox card = new VBox(5, lbl("Rectangular · lat / lon", "jm-legend-b"),
-                legRow("#26c0cf", "your station  / beam"), legRow("ring", "needed DX"), legRow("#eebb58", "sunlit (gray line)"));
-        card.getStyleClass().add("jm-legend-card"); card.setMaxSize(220, Region.USE_PREF_SIZE);
-        StackPane.setAlignment(card, Pos.BOTTOM_LEFT); StackPane.setMargin(card, new Insets(0, 0, 20, 16));
-
-        StackPane area = new StackPane(iv, cv, tr, card); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
+        StackPane area = new StackPane(iv, cv); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
 
         // Size the blue-marble image + overlay to the live area for the currently
@@ -800,17 +787,8 @@ public final class JMapView {
         double lon = ((Math.toDegrees(l2) + 540) % 360) - 180;
         return new double[]{Math.toDegrees(p2), lon};
     }
-    /** Current sub-solar point {declinationDeg, subSolarLonDeg} — the geometry behind the gray line. */
-    private static double[] subSolar() {
-        java.time.Instant now = java.time.Instant.now();
-        double hoursUtc = (now.getEpochSecond() % 86400) / 3600.0;
-        double ssLon = ((-15.0 * (hoursUtc - 12.0) + 540) % 360) - 180;
-        int doy = java.time.LocalDate.now(java.time.ZoneOffset.UTC).getDayOfYear();
-        double decl = 23.44 * Math.sin(Math.toRadians(360.0 / 365.0 * (doy - 81)));
-        return new double[]{ decl, ssLon };
-    }
     private static void drawTerminator(GraphicsContext g, double rmx, double rmy, double rw, double rh) {
-        double[] ss = subSolar(); double decl = ss[0], ssLon = ss[1];
+        double[] ss = com.ars.fx.data.SolarPosition.subSolar(); double decl = ss[0], ssLon = ss[1];
         double td = Math.tan(Math.toRadians(decl == 0 ? 0.001 : decl));
 
         // terminator polyline points (y clamped to the map rect)
@@ -840,54 +818,7 @@ public final class JMapView {
 
         // the Sun — its sub-solar point (directly overhead: lat = declination, lon = sub-solar)
         double sx = lon2x(ssLon, rmx, rw), sy = lat2y(decl, rmy, rh);
-        drawSun(g, sx, sy); drawSunLabel(g, sx, sy);
-    }
-    /** Sun's azimuth/elevation as seen from the QTH (degrees), from the sub-solar point. */
-    private static double[] solarAzEl() {
-        double[] ss = subSolar();
-        double decl = Math.toRadians(ss[0]), ssLon = ss[1];
-        double lat = Math.toRadians(Q_LAT), dlon = Math.toRadians(ssLon - Q_LON);
-        double cosC = Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(dlon);
-        double el = 90 - Math.toDegrees(Math.acos(Math.max(-1, Math.min(1, cosC))));
-        double y = Math.sin(dlon) * Math.cos(decl);
-        double x = Math.cos(lat) * Math.sin(decl) - Math.sin(lat) * Math.cos(decl) * Math.cos(dlon);
-        double az = (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
-        return new double[]{az, el};
-    }
-    /** Sunrise/sunset at the QTH today as {srUtcHours, ssUtcHours}; NaN if sun never rises/sets. */
-    private static double[] solarRiseSet() {
-        double decl = Math.toRadians(subSolar()[0]), lat = Math.toRadians(Q_LAT);
-        double cosH = -Math.tan(lat) * Math.tan(decl);
-        if (cosH < -1) return new double[]{Double.NaN, Double.NaN, 1};   // sun up all day
-        if (cosH > 1)  return new double[]{Double.NaN, Double.NaN, -1};  // sun down all day
-        double H = Math.toDegrees(Math.acos(cosH));     // half-day arc, degrees
-        // solar noon in UTC at this longitude (when the sub-solar point crosses Q_LON)
-        double noonUtc = 12.0 - Q_LON / 15.0;
-        double sr = ((noonUtc - H / 15.0) % 24 + 24) % 24;
-        double sUtc = ((noonUtc + H / 15.0) % 24 + 24) % 24;
-        return new double[]{sr, sUtc, 0};
-    }
-    private static String hhmm(double h) {
-        int m = (int) Math.round(h * 60) % 1440; if (m < 0) m += 1440;
-        return String.format("%02d:%02d", m / 60, m % 60);
-    }
-    /** Solar-position readout beside the sun glyph: sub-solar lat/lon + az/el + SR/SS from QTH. */
-    private static void drawSunLabel(GraphicsContext g, double x, double y) {
-        double[] ss = subSolar(); double decl = ss[0], ssLon = ss[1];
-        double[] ae = solarAzEl();
-        double[] rs = solarRiseSet();
-        String pos = String.format("☉ %.1f°%s %.1f°%s",
-                Math.abs(decl), decl >= 0 ? "N" : "S", Math.abs(ssLon), ssLon >= 0 ? "E" : "W");
-        String azel = String.format("az %03.0f°  el %+.0f°", ae[0], ae[1]);
-        String srss = Double.isNaN(rs[0])
-                ? (rs[2] > 0 ? "sun up all day" : "sun down all day")
-                : String.format("SR %s  SS %s Z", hhmm(rs[0]), hhmm(rs[1]));
-        g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 10.5));
-        g.setTextAlign(TextAlignment.LEFT);
-        g.setFill(Color.web("#05080c", 0.55)); g.fillText(pos, x + 16.5, y + 5.5); g.fillText(azel, x + 16.5, y + 18.5); g.fillText(srss, x + 16.5, y + 31.5);
-        g.setFill(Color.web("#ffd84a", 0.92)); g.fillText(pos, x + 16, y + 5);
-        g.setFill(Color.web("#eebb58", 0.88)); g.fillText(azel, x + 16, y + 18);
-        g.setFill(Color.web("#d7c089", 0.85)); g.fillText(srss, x + 16, y + 31);
+        drawSun(g, sx, sy);
     }
     /** A small sun glyph (glow + disk + rays) at (x,y). */
     private static void drawSun(GraphicsContext g, double x, double y) {
@@ -924,7 +855,7 @@ public final class JMapView {
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
             row.setStyle("-fx-cursor:hand;");
             com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
-            row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon()));
+            row.setOnMouseClicked(e -> selectSpot(row, s));
             spots.getChildren().add(row);
         }
     }
@@ -934,9 +865,10 @@ public final class JMapView {
         spotScroll.setStyle("-fx-background-color:transparent;");
 
         List<Node> rail = new ArrayList<>();
-        rail.addAll(Shell.leadDrawers((int) beamDeg));    // Station ID, Rig control, Rotor control
+        rail.add(MapQsoCard.drawerSlot());                // New QSO, when pinned
+        rail.addAll(Shell.leadDrawers((int) beamDeg));    // Rig control, Rotor control
         rail.add(Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll));
-        rail.add(Shell.drawer("DX station info","accent","hub","", false, lbl("Select a spot to see DXCC, beam heading & distance.","jm-spot-meta")));
+        rail.add(Shell.drawer("DX station info","accent","hub","", false, DxInfoCard.drawerBody()));
         rail.addAll(Shell.instruments(50));               // propagation, solar, band conditions, weather
         return rail.toArray(new Node[0]);
     }

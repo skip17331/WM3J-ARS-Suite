@@ -52,7 +52,6 @@ public final class Tips {
             Map.entry("Export ADIF", "Export every QSO as an ADIF file"),
             Map.entry("Export CSV", "Export every QSO as a CSV file for a spreadsheet"),
             Map.entry("Upload", "Upload your log to this service"),
-            Map.entry("Apply server", "Use the server and login typed above and reconnect"),
             Map.entry("+ Spot", "Send a spot to the cluster"),
             Map.entry("Create & use", "Create this database and log to it"),
             Map.entry("Cancel", "Close without changing anything"),

@@ -109,9 +109,9 @@ public final class JLearnView {
         p.setAlignment(Pos.TOP_CENTER); p.setPadding(new Insets(8, 0, 16, 0));
         Label expand = lbl("›", "jm-collapse"); expand.setStyle("-fx-cursor:hand;"); expand.setOnMouseClicked(e -> onExpand.run());
         Label vlabel = lbl("CHAPTERS", "j2-sec"); vlabel.setRotate(90);
-        VBox vbox = new VBox(vlabel); vbox.setAlignment(Pos.CENTER); VBox.setMargin(vbox, new Insets(30, 0, 0, 0)); vbox.setMinWidth(120);
-        StackPane vwrap = new StackPane(vbox); vwrap.setMinWidth(36); vwrap.setMaxWidth(36);
-        p.getChildren().addAll(expand, vwrap);
+        javafx.scene.Group vgroup = new javafx.scene.Group(vlabel);   // sized to the rotated label, so it can't spill over the dock
+        VBox.setMargin(vgroup, new Insets(30, 0, 0, 0));
+        p.getChildren().addAll(expand, vgroup);
         return p;
     }
 

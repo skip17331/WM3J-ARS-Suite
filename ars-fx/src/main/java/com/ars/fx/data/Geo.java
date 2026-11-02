@@ -1,10 +1,9 @@
 package com.ars.fx.data;
 
 /**
- * Approximate latitude/longitude for a callsign, by prefix — used to place RBN
- * skimmers ("who's hearing me") on the J-Map. Covers the regions that actually
- * host RBN skimmers (US call areas, major EU, JA, VK/ZL, etc.); unresolved
- * prefixes return null and are skipped.
+ * Approximate latitude/longitude for a callsign — used to place DX spots and RBN
+ * skimmers on the J-Map. The full DXCC prefix data decides the country; the table
+ * below only refines the USA to its call areas and catches what DXCC can't resolve.
  */
 public final class Geo {
     private Geo() {}
@@ -16,6 +15,9 @@ public final class Geo {
         {"K1","42.3","-72.0"},{"K2","41.0","-74.5"},{"K3","39.5","-77.5"},{"K4","34.0","-82.0"},{"K5","32.0","-97.0"},
         {"K6","37.0","-120.0"},{"K7","44.0","-117.0"},{"K8","41.0","-83.0"},{"K9","41.5","-88.0"},{"K0","41.0","-95.0"},
         {"N1","42.3","-72.0"},{"N2","41.0","-74.5"},{"N3","39.5","-77.5"},{"N4","34.0","-82.0"},{"N6","37.0","-120.0"},
+        {"KH6","20.8","-156.5"},{"AH6","20.8","-156.5"},{"NH6","20.8","-156.5"},{"WH6","20.8","-156.5"},   // filed as USA by the DXCC data
+        {"KL","64.0","-152.0"},{"AL","64.0","-152.0"},{"NL","64.0","-152.0"},{"WL","64.0","-152.0"},
+        {"KP4","18.2","-66.5"},{"NP4","18.2","-66.5"},{"WP4","18.2","-66.5"},
         {"AA","39.0","-95.0"},{"K","39.0","-95.0"},{"N","39.0","-95.0"},{"W","39.0","-95.0"},  // generic US fallback
         {"VE","56.0","-106.0"},{"VA","50.0","-100.0"},{"VO","48.0","-56.0"},{"VY","64.0","-110.0"},{"XE","23.0","-102.0"},
         {"DL","51.0","10.0"},{"DK","51.0","10.0"},{"DJ","51.0","10.0"},{"DF","51.0","10.0"},
@@ -34,9 +36,19 @@ public final class Geo {
         {"OA","-10.0","-76.0"},{"CX","-33.0","-56.0"},{"PJ","12.2","-69.0"},{"FY","4.0","-53.0"},
     };
 
-    /** {lat, lon} for a callsign (RBN "-#" suffix and portable prefixes stripped), or null. */
+    private static final int DXCC_USA = 291;
+
+    /** {lat, lon} for a callsign (RBN "-#" suffix stripped), or null when nothing recognises it. */
     public static double[] of(String call) {
         if (call == null || call.isEmpty()) return null;
+        DxccInfo.Info dxcc = DxccInfo.of(call.toUpperCase().replaceAll("-.*", ""));   // W3LPL-# → W3LPL
+        boolean located = dxcc != null && !Double.isNaN(dxcc.lat()) && !Double.isNaN(dxcc.lon());
+        if (located && dxcc.dxcc() != DXCC_USA) return new double[]{dxcc.lat(), dxcc.lon()};
+        double[] prefix = byPrefix(call);
+        return prefix != null || !located ? prefix : new double[]{dxcc.lat(), dxcc.lon()};
+    }
+
+    private static double[] byPrefix(String call) {
         String c = call.toUpperCase().replaceAll("[-/].*", "");   // W3LPL-# → W3LPL, F/K1ABC → F
         double[] best = null; int bl = 0;
         for (String[] e : PFX) {
