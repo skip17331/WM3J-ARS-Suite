@@ -22,15 +22,17 @@ import java.util.List;
 import java.util.function.DoubleConsumer;
 
 /**
- * Applies an update found by {@link UpdateChecker}: download the release jar for this machine, check it against the
+ * Applies an update found by {@link UpdateChecker}: download the release jar for this install, check it against the
  * SHA-256 GitHub publishes for the asset, then hand over to a small per-OS helper that swaps the jar once this app
- * has exited and relaunches it (rolling back if the new version does not start). Windows is implemented;
- * {@link #supported()} is false elsewhere, and for a dev run from {@code target/classes}.
+ * has exited and relaunches it (rolling back if the new version does not start). Windows and Linux are implemented;
+ * macOS is not yet. {@link #supported()} is false elsewhere, for a dev run from {@code target/classes}, and when the
+ * install folder isn't writable ({@link #manualReason()} says why).
  */
 public final class UpdateApplier {
     private UpdateApplier() {}
 
     public static boolean isWindows() { return System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win"); }
+    public static boolean isLinux()   { return System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("linux"); }
 
     /** The jar this app is running from, or null when it isn't a packaged jar (IDE / {@code mvn javafx:run}). */
     public static Path installedJar() {
@@ -40,18 +42,53 @@ public final class UpdateApplier {
         } catch (Exception e) { return null; }
     }
 
-    /** The installed {@code ars-fx.bat} that sits one folder above the jar's {@code target/} folder, or null. */
+    /** The installed launcher ({@code ars-fx.bat} / {@code ars-fx.sh}) one folder above the jar's {@code target/} folder, or null. */
     static Path launcherFor(Path jar) {
         if (jar == null || jar.getParent() == null || jar.getParent().getParent() == null) return null;
-        Path bat = jar.getParent().getParent().resolve("ars-fx.bat");
-        return Files.isRegularFile(bat) ? bat : null;
+        Path f = jar.getParent().getParent().resolve(isWindows() ? "ars-fx.bat" : "ars-fx.sh");
+        return Files.isRegularFile(f) ? f : null;
+    }
+
+    /**
+     * Which release asset replaces the installed jar. Windows has one. On Linux the INSTALLED JAR decides, not the CPU:
+     * {@code install.sh} builds {@code ars-fx-linux.jar} on x86_64 and the JavaFX-less {@code ars-fx-pi.jar} on aarch64.
+     */
+    static String assetKeyFor(Path jar) {
+        if (isWindows()) return "windows-x86_64";
+        if (isLinux() && jar != null) return linuxKeyForJarName(jar.getFileName().toString());
+        return null;
+    }
+
+    static String linuxKeyForJarName(String name) {
+        return switch (name) {
+            case "ars-fx-linux.jar" -> "linux-x86_64";
+            case "ars-fx-pi.jar" -> "linux-aarch64";
+            default -> null;
+        };
+    }
+
+    /** Both the jar and its folder must be writable: the swap creates {@code .new}/{@code .bak} beside it. */
+    static boolean writable(Path jar) {
+        return jar != null && Files.isWritable(jar) && jar.getParent() != null && Files.isWritable(jar.getParent());
     }
 
     /** Can this install update itself in place? */
-    public static boolean supported() {
-        if (!isWindows()) return false;               // macOS / Linux updaters are separate and not built yet
+    public static boolean supported() { return installedJar() != null && manualReason() == null; }
+
+    /**
+     * Why this install must be updated by hand, or null if it can update itself (or is a dev run, where there is nothing to say).
+     * Shown in the update card in place of the "Update now" button.
+     */
+    public static String manualReason() {
         Path jar = installedJar();
-        return jar != null && launcherFor(jar) != null;
+        if (jar == null) return null;
+        if (!isWindows() && !isLinux())
+            return "In-app update isn't available on this system yet. Download the new version from the release page.";
+        if (launcherFor(jar) == null || assetKeyFor(jar) == null)
+            return "This copy isn't set up for in-app update. Download the new version from the release page.";
+        if (!writable(jar))
+            return "The install folder isn't writable by you, so it can't update itself. Update it as the user who owns it, or download the new version.";
+        return null;
     }
 
     /** Where downloads and the helper script go: {@code ~/.j-hub/updates}, next to the suite's other state. */
@@ -80,12 +117,13 @@ public final class UpdateApplier {
     // ---- download ---------------------------------------------------------------------------------
 
     /**
-     * Download and verify the jar for this machine. Refuses a release whose asset carries no SHA-256, and deletes the
+     * Download and verify the jar for this install. Refuses a release whose asset carries no SHA-256, and deletes the
      * file if it does not match. {@code progress} receives 0..1 (called on this thread). Returns the verified file.
      */
     public static Path download(Release r, DoubleConsumer progress) throws IOException, InterruptedException {
-        Asset a = UpdateChecker.assetForThisMachine(r);
-        if (a == null) throw new IOException("this release has no download for this computer");
+        String key = assetKeyFor(installedJar());
+        Asset a = key == null ? null : UpdateChecker.assetFor(r, key);
+        if (a == null) throw new IOException("this release has no download for this install");
         String want = expectedSha256(a);
         if (want == null) throw new IOException("this release has no published checksum, so it can't be verified — update manually");
         Files.createDirectories(updatesDir());
@@ -114,30 +152,57 @@ public final class UpdateApplier {
 
     // ---- hand over to the per-OS helper ------------------------------------------------------------
 
-    /** The helper's command line (pure; unit-tested). */
+    /** The Windows helper's command line (pure; unit-tested). */
     static List<String> windowsCommand(Path script, long appPid, Path jar, Path newJar, Path launcher, Path log) {
         return List.of("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", script.toString(),
                 "-AppPid", Long.toString(appPid), "-Jar", jar.toString(), "-NewJar", newJar.toString(),
                 "-Launcher", launcher.toString(), "-Log", log.toString());
     }
 
+    /** The Linux helper's command line (pure; unit-tested). Positional: APP_PID JAR NEW_JAR LAUNCHER LOG. */
+    static List<String> unixCommand(Path script, long appPid, Path jar, Path newJar, Path launcher, Path log) {
+        return List.of("sh", script.toString(), Long.toString(appPid), jar.toString(), newJar.toString(), launcher.toString(), log.toString());
+    }
+
     /**
-     * Start the Windows helper. It waits for this process to exit, so the caller must exit right after this returns.
-     * @throws IOException if the helper can't be written or started (the app keeps running; nothing was changed)
+     * Start the helper for this OS. It waits for this process to exit, so the caller must exit right after this returns.
+     * Refuses while anything is transmitting.
+     * @throws IOException if the update can't start (the app keeps running; nothing was changed)
      */
     public static void launchHelper(Path newJar) throws IOException {
-        if (!isWindows()) throw new IOException("in-app update is only available on Windows so far");
+        if (TxController.busy() || TxController.hubTransmitting())
+            throw new IOException("the transmitter is keyed — wait until you are off the air, then try again");
         Path jar = installedJar();
         Path launcher = launcherFor(jar);
         if (jar == null || launcher == null) throw new IOException("this copy of the app can't update itself (not an installed jar)");
+        String reason = manualReason();
+        if (reason != null) throw new IOException(reason);
         Files.createDirectories(updatesDir());
-        Path script = updatesDir().resolve("update-windows.ps1");
-        try (InputStream in = UpdateApplier.class.getResourceAsStream("/com/ars/fx/update/update-windows.ps1")) {
+        boolean win = isWindows();
+        String resource = win ? "update-windows.ps1" : "update-unix.sh";
+        Path script = updatesDir().resolve(resource);
+        try (InputStream in = UpdateApplier.class.getResourceAsStream("/com/ars/fx/update/" + resource)) {
             if (in == null) throw new IOException("updater script is missing from this build");
             Files.copy(in, script, StandardCopyOption.REPLACE_EXISTING);
         }
         Path log = updatesDir().resolve("update.log");
-        new ProcessBuilder(windowsCommand(script, ProcessHandle.current().pid(), jar, newJar, launcher, log))
-                .redirectErrorStream(true).redirectOutput(updatesDir().resolve("update-helper.out").toFile()).start();
+        Files.deleteIfExists(updatesDir().resolve("last-result.txt"));
+        List<String> cmd = win ? windowsCommand(script, ProcessHandle.current().pid(), jar, newJar, launcher, log)
+                               : unixCommand(script, ProcessHandle.current().pid(), jar, newJar, launcher, log);
+        new ProcessBuilder(cmd).redirectErrorStream(true).redirectOutput(updatesDir().resolve("update-helper.out").toFile()).start();
+    }
+
+    /**
+     * What the last update's helper reported, if it didn't go well ({@code failed: …} / {@code rolled back: …}); null if there is
+     * nothing to say. Read once: the file is deleted so the message is shown a single time.
+     */
+    public static String takeLastResult() {
+        Path f = updatesDir().resolve("last-result.txt");
+        try {
+            if (!Files.isRegularFile(f)) return null;
+            String t = Files.readString(f).trim();
+            Files.deleteIfExists(f);
+            return t.startsWith("failed") || t.startsWith("rolled back") ? t : null;
+        } catch (IOException e) { return null; }
     }
 }

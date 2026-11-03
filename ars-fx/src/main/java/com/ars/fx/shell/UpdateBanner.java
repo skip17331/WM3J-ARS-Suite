@@ -32,6 +32,22 @@ public final class UpdateBanner {
     public static void install(StackPane hostPane, HostServices hs) {
         host = hostPane; hostServices = hs;
         UpdateChecker.addListener(r -> Platform.runLater(() -> { shown = r; card = build(r); attach(host); }));
+        // an earlier update whose helper failed or rolled back leaves a note: say so, once
+        String last = UpdateApplier.takeLastResult();
+        if (last != null) { card = buildMessage("The last update didn't finish", last); attach(host); }
+    }
+
+    private static VBox buildMessage(String title, String text) {
+        Label t = lbl(title, "ub-title");
+        Label m = lbl(text, "ub-sub"); m.setWrapText(true); m.setMaxWidth(340);
+        Label ok = lbl("Dismiss", "ub-link"); ok.setStyle("-fx-cursor:hand;");
+        ok.setOnMouseClicked(e -> dismiss());
+        VBox c = new VBox(4, t, m, ok);
+        c.getStyleClass().add("ub-card");
+        c.setMaxSize(VBox.USE_PREF_SIZE, VBox.USE_PREF_SIZE);
+        StackPane.setAlignment(c, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(c, new Insets(0, 16, 16, 0));
+        return c;
     }
 
     /** Re-add the card (if an update is pending) after the host's children were replaced. */
@@ -79,6 +95,8 @@ public final class UpdateBanner {
             Label now = lbl("Update now", "ub-btn"); now.setStyle("-fx-cursor:hand;");
             now.setOnMouseClicked(e -> apply(r, now, sub, actions));
             actions.getChildren().add(0, now);
+        } else if (UpdateApplier.manualReason() != null) {
+            sub.setText(UpdateApplier.manualReason()); sub.setWrapText(true); sub.setMaxWidth(340);
         }
         VBox c = new VBox(4, title, sub, actions);
         c.getStyleClass().add("ub-card");

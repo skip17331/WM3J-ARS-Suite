@@ -9,6 +9,7 @@
 #   -NewJar        the verified download
 #   -Launcher      the installed ars-fx.bat (its folder is the working directory)
 #   -StartupSecs   how long the new jar must stay up to count as a good start (default 20)
+#   -HubWaitSecs   how long to let the background hub exit by itself before giving up (default 40)
 #   -Log           append progress here
 param(
     [Parameter(Mandatory)][int]$AppPid,
@@ -16,9 +17,15 @@ param(
     [Parameter(Mandatory)][string]$NewJar,
     [Parameter(Mandatory)][string]$Launcher,
     [int]$StartupSecs = 20,
+    [int]$HubWaitSecs = 40,
     [string]$Log = ''
 )
 $ErrorActionPreference = 'Stop'
+
+# One line the app shows on its next start ("last-result.txt" beside the log): failed / rolled back / ok.
+function Write-Result([string]$m) {
+    if ($Log) { try { Set-Content -LiteralPath (Join-Path (Split-Path -Parent $Log) 'last-result.txt') -Value $m } catch { } }
+}
 
 function Write-Log([string]$m) {
     $line = '{0:yyyy-MM-dd HH:mm:ss}  {1}' -f (Get-Date), $m
@@ -65,14 +72,11 @@ try {
     $end = (Get-Date).AddSeconds(60)
     while ((Get-Date) -lt $end -and (Get-Process -Id $AppPid -ErrorAction SilentlyContinue)) { Start-Sleep -Milliseconds 300 }
 
-    # 2. wait for the jar to be released; the background hub may still hold it
-    if (-not (Wait-Unlocked $Jar 20)) {
-        # stop only suite processes running THIS jar (the hub started from it), then wait again
-        Write-Log 'jar still in use - stopping suite processes that run it'
-        Get-CimInstance Win32_Process |
-            Where-Object { $_.Name -match '^javaw?\.exe$' -and $_.CommandLine -and $_.CommandLine.Contains($Jar) } |
-            ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force } catch { } }
-        if (-not (Wait-Unlocked $Jar 15)) { throw 'the installed jar is still locked; leaving the current version in place' }
+    # 2. the background hub may still hold the jar. An auto-started hub quits by itself a few seconds after its
+    #    last client leaves, and its shutdown hook un-keys the transmitter - so wait for that. Never force-kill it:
+    #    Windows has no graceful stop for it, and a hard kill would skip that hook.
+    if (-not (Wait-Unlocked $Jar $HubWaitSecs)) {
+        throw 'the background hub is still running the old version (a hub started with --hub stays up until quit). Quit it from the system tray, then run the update again'
     }
 
     # 3. swap, keeping the old jar as .bak
@@ -92,13 +96,16 @@ try {
         Move-Item -LiteralPath $bak -Destination $Jar -Force
         [void](Start-App)
         Write-Log 'rolled back to the previous version'
+        Write-Result 'rolled back: the new version did not start, so the previous version was restored'
         exit 2
     }
     Write-Log 'new version is running; previous jar kept as .bak'
+    Write-Result 'ok'
     exit 0
 }
 catch {
     Write-Log "update failed: $($_.Exception.Message)"
+    Write-Result "failed: $($_.Exception.Message)"
     # leave the user with a working app: relaunch whatever jar is installed
     try { if (Test-Path -LiteralPath $Jar) { [void](Start-App) } } catch { }
     exit 1

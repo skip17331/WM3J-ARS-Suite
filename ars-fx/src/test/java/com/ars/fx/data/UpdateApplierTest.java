@@ -38,8 +38,8 @@ class UpdateApplierTest {
     void launcherIsFoundOnlyInTheInstalledLayout(@TempDir Path dir) throws Exception {
         Path jar = Files.createDirectories(dir.resolve("ars-fx/target")).resolve("ars-fx-windows.jar");
         Files.writeString(jar, "x");
-        assertNull(UpdateApplier.launcherFor(jar));                       // no ars-fx.bat yet
-        Path bat = Files.writeString(dir.resolve("ars-fx/ars-fx.bat"), "rem");
+        assertNull(UpdateApplier.launcherFor(jar));                       // no launcher yet
+        Path bat = Files.writeString(dir.resolve(UpdateApplier.isWindows() ? "ars-fx/ars-fx.bat" : "ars-fx/ars-fx.sh"), "rem");
         assertEquals(bat, UpdateApplier.launcherFor(jar));
         assertNull(UpdateApplier.launcherFor(null));
     }
@@ -54,5 +54,43 @@ class UpdateApplierTest {
     @Test
     void notSupportedWhenNotRunningFromAnInstalledJar() {
         assertFalse(UpdateApplier.supported());   // under surefire the code lives in target/classes, not a jar
+    }
+
+    @Test
+    void linuxAssetIsChosenByInstalledJarNotByCpu() {
+        assertEquals("linux-x86_64", UpdateApplier.linuxKeyForJarName("ars-fx-linux.jar"));
+        assertEquals("linux-aarch64", UpdateApplier.linuxKeyForJarName("ars-fx-pi.jar"));
+        assertNull(UpdateApplier.linuxKeyForJarName("ars-fx-windows.jar"));
+        assertNull(UpdateApplier.linuxKeyForJarName("something.jar"));
+    }
+
+    @Test
+    void unixCommandIsPositional() {
+        List<String> c = UpdateApplier.unixCommand(Path.of("s.sh"), 42, Path.of("a.jar"), Path.of("n.jar"), Path.of("l.sh"), Path.of("u.log"));
+        assertEquals(List.of("sh", "s.sh", "42", "a.jar", "n.jar", "l.sh", "u.log"), c);
+    }
+
+    @Test
+    void writableNeedsAnExistingJarInAWritableFolder(@TempDir Path dir) throws Exception {
+        Path jar = Files.writeString(dir.resolve("x.jar"), "x");
+        assertTrue(UpdateApplier.writable(jar));
+        assertFalse(UpdateApplier.writable(dir.resolve("missing.jar")));
+        assertFalse(UpdateApplier.writable(null));
+    }
+
+    @Test
+    void lastResultIsShownOnceAndOnlyWhenItWentWrong(@TempDir Path home) throws Exception {
+        String old = System.getProperty("user.home");
+        System.setProperty("user.home", home.toString());
+        try {
+            Path f = Files.createDirectories(UpdateApplier.updatesDir()).resolve("last-result.txt");
+            Files.writeString(f, "failed: boom" + System.lineSeparator());
+            assertEquals("failed: boom", UpdateApplier.takeLastResult());
+            assertNull(UpdateApplier.takeLastResult());                  // consumed
+            Files.writeString(f, "ok" + System.lineSeparator());
+            assertNull(UpdateApplier.takeLastResult());                  // success needs no card
+            Files.writeString(f, "rolled back: x" + System.lineSeparator());
+            assertEquals("rolled back: x", UpdateApplier.takeLastResult());
+        } finally { System.setProperty("user.home", old); }
     }
 }
