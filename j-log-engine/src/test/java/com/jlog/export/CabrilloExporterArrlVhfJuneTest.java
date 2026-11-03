@@ -6,6 +6,7 @@ import com.jlog.model.QsoRecord;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.plugin.PluginLoader;
 import com.jlog.util.AppConfig;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,13 @@ class CabrilloExporterArrlVhfJuneTest {
         AppConfig.getInstance().load();
         DatabaseManager.getInstance().initAll();
         PluginLoader.getInstance().init();
+    }
+
+    /** Release SQLite handles so JUnit can delete the @TempDir on Windows. */
+    @AfterAll
+    static void closeDb() {
+        com.jlog.db.BackupService.getInstance().stop();
+        DatabaseManager.getInstance().closeAll();
     }
 
     @BeforeEach
