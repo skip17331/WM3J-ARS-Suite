@@ -34,7 +34,10 @@ public final class AutoPanel {
 
     private record Slot(Pane holder, Region panel) {}
 
-    private static final Map<String, Slot> SLOTS = new HashMap<>();
+    /** Every copy of a panel that has been built under one key. A surface that is no longer on screen can keep rebuilding itself
+     *  (J-Sat does, every ~2 s), so the copy the user is hovering is not necessarily the newest one: state changes go to all of them. */
+    private static final Map<String, java.util.List<Slot>> SLOTS = new HashMap<>();
+    private static final int MAX_DETACHED = 6;
     private static final Map<String, Boolean> OPEN = new HashMap<>();
     private static final Map<String, Runnable> REBUILD = new HashMap<>();
     private static final Map<String, PauseTransition> OPENING = new HashMap<>();
@@ -91,8 +94,9 @@ public final class AutoPanel {
         holder.setMaxWidth(STRIP_WIDTH);
         DropShadow shadow = new DropShadow(14, Color.rgb(0, 0, 0, 0.35));
         panel.setEffect(shadow);
-        SLOTS.put(key, new Slot(holder, panel));
+        register(key, new Slot(holder, panel));
         show(key);
+        holder.parentProperty().addListener((o, was, now) -> { if (now != null) show(key); });   // the wrapper isn't known until it is placed
 
         holder.setOnMouseEntered(e -> {
             stop(CLOSING, key);
@@ -110,7 +114,7 @@ public final class AutoPanel {
 
     /** Open an unpinned panel for a moment without the mouse, because something in it just changed. */
     public static void reveal(String key) {
-        if (!SLOTS.containsKey(key)) return;
+        if (live(key) == null) return;
         setOpen(key, true);
         scheduleClose(key, REVEAL_TIME);
     }
@@ -118,8 +122,8 @@ public final class AutoPanel {
     private static void scheduleClose(String key, Duration after) {
         PauseTransition t = timer(CLOSING, key, after);
         t.setOnFinished(e -> {
-            Slot s = SLOTS.get(key);
-            if (s != null && s.holder().getScene() != null && (s.holder().isHover() || typingIn(s))) {
+            Slot s = live(key);
+            if (s != null && (s.holder().isHover() || typingIn(s))) {
                 t.setDuration(CLOSE_DELAY);
                 t.playFromStart();                            // still in use: look again shortly
             } else {
@@ -141,12 +145,37 @@ public final class AutoPanel {
         show(key);
     }
 
+    private static void register(String key, Slot slot) {
+        java.util.List<Slot> list = SLOTS.computeIfAbsent(key, k -> new java.util.ArrayList<>());
+        // keep the copies that are on screen; of the rest (rebuilt but not attached, or since removed) keep only the newest few
+        long detached = list.stream().filter(x -> x.holder().getScene() == null).count();
+        for (java.util.Iterator<Slot> it = list.iterator(); it.hasNext() && detached >= MAX_DETACHED; ) {
+            if (it.next().holder().getScene() == null) { it.remove(); detached--; }
+        }
+        list.add(slot);
+    }
+
+    /** The copy of this panel that is on screen, or null. */
+    private static Slot live(String key) {
+        java.util.List<Slot> list = SLOTS.get(key);
+        if (list != null) for (Slot s : list) if (s.holder().getScene() != null) return s;
+        return null;
+    }
+
     private static void show(String key) {
-        Slot s = SLOTS.get(key);
-        if (s == null) return;
+        java.util.List<Slot> list = SLOTS.get(key);
+        if (list == null) return;
+        for (Slot s : new java.util.ArrayList<>(list)) show(key, s);
+    }
+
+    private static void show(String key, Slot s) {
         boolean open = OPEN.getOrDefault(key, false);
         s.panel().setVisible(open);
         s.holder().setViewOrder(open ? -1 : 0);               // over whatever sits beside it in the layout
+        // The holder usually sits in a wrapper pane that is itself a sibling of the content, and view order only reorders
+        // within one parent, so the wrapper has to come forward too or the open panel slides out underneath the content.
+        Parent wrapper = s.holder().getParent();
+        if (wrapper != null) wrapper.setViewOrder(open ? -1 : 0);
         s.holder().requestLayout();
     }
 

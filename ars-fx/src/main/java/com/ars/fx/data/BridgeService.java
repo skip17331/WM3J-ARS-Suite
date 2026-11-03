@@ -44,6 +44,7 @@ public final class BridgeService {
             });
             listener.setOnConnectionChange((c, app, ver) -> { connected = c; sourceApp = app == null ? "" : app; version = ver == null ? "" : ver; fire(); });
             listener.setOnClear(() -> { synchronized (decodes) { decodes.clear(); } fire(); });
+            listener.setOnQsoLogged(BridgeService::autoLog);
             listener.start();
         } catch (Throwable t) {
             listener = null;
@@ -98,13 +99,7 @@ public final class BridgeService {
     }
 
     /** This station's {lat, lon} from J-Hub ▸ Station (latitude / longitude, else the grid square); null when unset. */
-    private static double[] stationLatLon() {
-        try {
-            String la = HubConfig.get("station.lat", "").trim(), lo = HubConfig.get("station.lon", "").trim();
-            if (!la.isEmpty() && !lo.isEmpty()) return new double[]{Double.parseDouble(la), Double.parseDouble(lo)};
-        } catch (NumberFormatException ignored) { /* fall back to the grid */ }
-        return Maidenhead.center(HubConfig.get("station.grid", "").trim());
-    }
+    private static double[] stationLatLon() { return HubConfig.location(); }
 
     /** UI refresh callback — wrap your Platform.runLater(refresh) here. Replaces any previous sink. */
     public static void setSink(Runnable r) { sink = r != null ? r : () -> {}; }
@@ -114,7 +109,41 @@ public final class BridgeService {
     public static String sourceApp()   { return sourceApp; }
     public static String version()     { return version; }
     public static WsjtxStatus status() { return status; }
-    public static int port()           { return Integer.getInteger("wsjtx.port", 2237); }
+    /** UDP port WSJT-X sends to: {@code -Dwsjtx.port}, else J-Hub ▸ Data ▸ WSJT-X UDP port, else 2237. */
+    public static int port() {
+        Integer sys = Integer.getInteger("wsjtx.port");
+        if (sys != null) return sys;
+        try { int p = Integer.parseInt(HubConfig.get("data.wsjtxPort", "2237").trim()); if (p >= 1 && p <= 65535) return p; }
+        catch (NumberFormatException ignored) { /* use the default */ }
+        return 2237;
+    }
+
+    /** Listen on the port in the settings now (after it was changed in J-Hub ▸ Data). */
+    public static synchronized void restart() {
+        if (listener != null) { try { listener.stop(); } catch (RuntimeException ignored) { } listener = null; }
+        connected = false; status = null;
+        started = false;
+        start();
+        fire();
+    }
+
+    /** A QSO WSJT-X reports as logged goes into the J-Log database when J-Hub ▸ Data ▸ "Auto-log FT8/FT4 QSOs" is on. */
+    private static void autoLog(com.hamradio.jbridge.model.WsjtxQsoLogged q) {
+        if (q == null || !HubConfig.getBool("data.autoLogFt8", false)) return;
+        String call = q.getDxCall();
+        if (call == null || call.isBlank()) return;
+        java.time.Instant when = q.getTimeOn() != null ? q.getTimeOn() : q.getTimestamp() != null ? q.getTimestamp() : java.time.Instant.now();
+        String utc = java.time.LocalDateTime.ofInstant(when, java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String freq = q.getDialFrequency() > 0 ? String.format(java.util.Locale.ROOT, "%.6f", q.getDialFrequency() / 1e6) : null;
+        String band = q.getBand() != null && !q.getBand().isBlank() ? q.getBand() : freq == null ? null : JLogDb.bandFor(freq);
+        String mode = q.getMode();
+        if (JLogDb.hasQso(call, band, mode, utc)) return;                    // already there
+        int power = 0;
+        try { power = (int) Math.round(Double.parseDouble(q.getTxPower().trim())); } catch (Exception ignored) { }
+        JLogDb.insertAt(utc, call, freq, band, mode, q.getRstSent(), q.getRstReceived(), q.getName(), null,
+                q.getDxGrid(), q.getComments(), null, null, power);
+        fire();
+    }
     public static List<WsjtxDecode> decodes() { synchronized (decodes) { return new ArrayList<>(decodes); } }
 
     private static void fire() { Runnable r = sink; if (r != null) r.run(); }

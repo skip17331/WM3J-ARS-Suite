@@ -46,10 +46,10 @@ public final class MacroConfig {
     /** Every setting on the J-Hub Station, Rig, Rotor, Amplifier and Antenna pages that a macro can use. {CALL} (the
      *  station you are working) is separate: it is typed in the log, not a setting. */
     public static final java.util.List<Tag> TAGS = java.util.List.of(
-            t("{MYCALL}", "station.call",     "STATION", "your callsign", "WM3J"),
+            t("{MYCALL}", "station.call",     "STATION", "your callsign", null),
             t("{NAME}",   "station.name",     "STATION", "your name", null),
             t("{QTH}",    "station.qth",      "STATION", "your QTH (city, state)", null),
-            t("{GRID}",   "station.grid",     "STATION", "your grid square", "FM19"),
+            t("{GRID}",   "station.grid",     "STATION", "your grid square", null),
             t("{LAT}",    "station.lat",      "STATION", "your latitude", null),
             t("{LON}",    "station.lon",      "STATION", "your longitude", null),
             t("{ITU}",    "station.ituZone",  "STATION", "your ITU zone", null),
@@ -66,7 +66,7 @@ public final class MacroConfig {
             t("{RIGPOLL}",    "rig.poll",         "RIG", "rig poll interval in ms", "12"),
             t("{PTT}",        "rig.ptt",          "RIG", "PTT method (CAT / RTS / DTR / VOX)", "CAT"),
             t("{KEYER}",      "rig.keyer",        "RIG", "CW keyer", null),
-            t("{TXDELAY}",    "rig.txDelay",      "RIG", "TX delay in ms", "30"),
+            t("{TXDELAY}",    "tx.pttDelay",      "RIG", "PTT delay in seconds (J-Hub ▸ Data ▸ Transmit)", "0.2"),
 
             t("{ROTOR}",         "rotor.model",       "ROTOR", "your rotor", null),
             t("{ROTORHAMLIB}",   "rotor.hamlibModel", "ROTOR", "the Hamlib model number of your rotor", null),

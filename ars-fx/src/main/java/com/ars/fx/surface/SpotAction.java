@@ -80,7 +80,7 @@ public final class SpotAction {
         if (hm != null) rig.setMode(hm);
 
         // 3. offer to rotate the antenna toward the spot
-        if (!Double.isNaN(lat) && !Double.isNaN(lon) && RotorClient.getInstance().isConfigured()) {
+        if (!Double.isNaN(lat) && !Double.isNaN(lon) && HubConfig.hasLocation() && RotorClient.getInstance().isConfigured()) {
             int brg = (int) Math.round(bearing(qLat(), qLon(), lat, lon));
             askRotate(source, c, brg);
         }
@@ -152,7 +152,7 @@ public final class SpotAction {
         return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
     }
 
-    static double qLat() { return dbl(HubConfig.get("station.lat", "39.7456"), 39.7456); }
-    static double qLon() { return dbl(HubConfig.get("station.lon", "-76.96"), -76.96); }
+    static double qLat() { return HubConfig.lat(); }
+    static double qLon() { return HubConfig.lon(); }
     private static double dbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 }

@@ -1,6 +1,5 @@
 package com.ars.fx.surface;
 
-import com.ars.fx.mock.Mock;
 import com.ars.fx.shell.Shell;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -232,8 +231,8 @@ public final class JMapView {
     public static Region build() {
         Region dock = Shell.dock("map");
         // station QTH + call from the J-Hub config
-        Q_LAT = qdbl(com.ars.fx.data.HubConfig.get("station.lat", "39.7456"), 39.7456);
-        Q_LON = qdbl(com.ars.fx.data.HubConfig.get("station.lon", "-76.96"), -76.96);
+        Q_LAT = com.ars.fx.data.HubConfig.lat();        // lat/lon, else the grid square; 0 until a location is set (the map says so)
+        Q_LON = com.ars.fx.data.HubConfig.lon();
         myCall = com.ars.fx.data.HubConfig.call();
         String[][] stats = {{"SPOTS", String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size())},
                 {"SHOWN", String.valueOf(liveSpots().size())},
@@ -266,6 +265,13 @@ public final class JMapView {
         rebuildLeft[0].run();
 
         StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
+        if (!com.ars.fx.data.HubConfig.hasLocation()) {
+            Label warn = lbl("⚠ " + com.ars.fx.data.HubConfig.LOCATION_HINT + " Bearings, distances and the gray line need it.", "jm-tog-label");
+            warn.setWrapText(true); warn.setMaxWidth(560);
+            warn.setStyle("-fx-background-color:-ars-surface-2;-fx-border-color:-ars-border;-fx-background-radius:6;-fx-border-radius:6;-fx-padding:8 12 8 12;");
+            StackPane.setAlignment(warn, Pos.TOP_CENTER); StackPane.setMargin(warn, new Insets(10, 0, 0, 0));
+            mapWithButton.getChildren().add(warn);
+        }
         mapWithButton.setMinSize(0, 0); mapHolder.setMinSize(0, 0);
         HBox center = new HBox(leftHolder, mapWithButton); center.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(spotsBox));
@@ -280,6 +286,7 @@ public final class JMapView {
     private static int projection = 0;                    // 0 azimuthal · 1 rectangular
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static String grayLineStat() {
+        if (!com.ars.fx.data.HubConfig.hasLocation()) return "set location";
         double[] rs = com.ars.fx.data.SolarPosition.riseSet(Q_LAT, Q_LON);
         return Double.isNaN(rs[0]) ? (rs[2] > 0 ? "sun up all day" : "sun down all day") : "SR " + com.ars.fx.data.SolarPosition.hhmm(rs[0]) + " · SS " + com.ars.fx.data.SolarPosition.hhmm(rs[1]);
     }
@@ -416,8 +423,8 @@ public final class JMapView {
                 bandChips.get(i).setOpacity(!any || sel ? 1.0 : 0.4);
             }
         };
-        for (int i=0;i<Mock.MAP_BANDS.length;i++){
-            String[] b = Mock.MAP_BANDS[i];
+        for (int i=0;i<MAP_BANDS.length;i++){
+            String[] b = MAP_BANDS[i];
             String key = b[0] + "m";                          // Mock bands are bare ("20"); cluster bands are "20m"
             Region dot = new Region(); dot.getStyleClass().add("jm-band-dot"); dot.setStyle("-fx-background-color:"+b[1]+";");
             HBox chip = new HBox(7, dot, lbl(b[0],"jm-band-n")); chip.getStyleClass().add("jm-band"); chip.setAlignment(Pos.CENTER_LEFT);
@@ -438,9 +445,9 @@ public final class JMapView {
             ageLbl.setText("SPOT AGE ≤ " + spotAgeMax + " MIN"); refreshSpots();
         }));
         p.getChildren().add(lbl("OVERLAYS","jm-sec"));
-        for (int oi = 0; oi < Mock.OVERLAYS.length; oi++) {
+        for (int oi = 0; oi < OVERLAYS.length; oi++) {
             final int idx = oi;
-            Label t = lbl((String) Mock.OVERLAYS[oi][0], "jm-tog-label"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
+            Label t = lbl((String) OVERLAYS[oi][0], "jm-tog-label"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
             HBox row = new HBox(t, toggleSwitch(overlayFlag(idx), v -> { setOverlayFlag(idx, v); repaintMap(); }));
             row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(7, 0, 7, 0));
             p.getChildren().add(row);
@@ -455,7 +462,7 @@ public final class JMapView {
 
         // RBN "who's hearing me" overlay
         p.getChildren().add(lbl("WHO'S HEARING ME · RBN","jm-sec"));
-        Label ht = lbl("Show RBN spots of WM3J","jm-tog-label"); HBox.setHgrow(ht, Priority.ALWAYS); ht.setMaxWidth(Double.MAX_VALUE);
+        Label ht = lbl("Show RBN spots of " + (myCall.isEmpty() ? "my call" : myCall.toUpperCase()),"jm-tog-label"); HBox.setHgrow(ht, Priority.ALWAYS); ht.setMaxWidth(Double.MAX_VALUE);
         HBox htr = new HBox(ht, toggleSwitch(showHeardBy, v -> { showHeardBy = v; repaintMap(); }));
         htr.setAlignment(Pos.CENTER_LEFT); htr.setPadding(new Insets(7, 0, 4, 0));
         p.getChildren().add(htr);
@@ -684,8 +691,17 @@ public final class JMapView {
     }
 
     // ---- rectangular (equirectangular) blue-marble map ---------------------
-    private static double Q_LAT = 39.7456, Q_LON = -76.96;  // station QTH (from HubConfig)
-    private static String myCall = "WM3J";
+    /** Band buttons on the left panel: {band number, colour}. */
+    private static final String[][] MAP_BANDS = {
+        {"160","#ec5b57"},{"80","#ec5b57"},{"40","#eebb58"},{"30","#67d283"},{"20","#26c0cf"},
+        {"17","#26c0cf"},{"15","#b191ea"},{"12","#b191ea"},{"10","#ef7d83"},
+    };
+    /** Overlay toggle labels, in the order of {@code overlayFlag(i)}. */
+    private static final Object[][] OVERLAYS = {
+        {"Gray line / sun"},{"Basemap image"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},
+    };
+    private static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
+    private static String myCall = "";
     private static double qdbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 
     // Fixed-zoom regions for the blue marble: {minLat, maxLat, minLon, maxLon}.

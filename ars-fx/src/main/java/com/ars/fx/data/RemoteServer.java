@@ -203,8 +203,8 @@ public final class RemoteServer extends WebSocketServer {
         JsonObject st = new JsonObject();
         st.addProperty("call", HubConfig.call());
         st.addProperty("grid", HubConfig.grid());
-        st.addProperty("lat",  HubConfig.get("station.lat", "39.7456"));
-        st.addProperty("lon",  HubConfig.get("station.lon", "-76.96"));
+        st.addProperty("lat",  HubConfig.get("station.lat", ""));
+        st.addProperty("lon",  HubConfig.get("station.lon", ""));
         o.add("station", st);
         return o.toString();
     }

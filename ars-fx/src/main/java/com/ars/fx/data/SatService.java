@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 /**
  * Real satellite tracking for the J-Sat surface. Drives the SGP4 orbital core
  * (copied from j-sat) with:
- *   • observer QTH from <code>~/.j-sat/settings.json</code> (fallback WM3J grid),
+ *   • observer QTH from <code>~/.j-sat/settings.json</code> (fallback: the J-Hub station location),
  *   • fresh TLEs from <code>~/.j-sat/tles.txt</code> (the cache j-sat refreshes
  *     daily; fallback to a bundled snapshot so it still works standalone),
  *   • amateur frequencies/type from the bundled satellite-registry.json.
@@ -61,7 +61,7 @@ public final class SatService {
     // ── registry definition ───────────────────────────────────────────────────
     private record Def(int norad, String name, String type, long downlinkHz, long uplinkHz, String mode) {}
 
-    private final double[] obs = loadObserver();           // {lat, lon, altKm}
+    private volatile double[] obs = {0, 0, 0};              // {lat, lon, altKm}: re-read every pass computation so edits in J-Hub apply at once
     private volatile Snapshot snapshot = Snapshot.EMPTY;
     private volatile Consumer<SatService> listener = s -> {};
     private volatile boolean started = false;
@@ -76,6 +76,7 @@ public final class SatService {
     public double obsLon() { return obs[1]; }
     public void setListener(Consumer<SatService> l) { this.listener = l == null ? s -> {} : l; fire(); }
 
+    public boolean isRunning() { return started; }
     public synchronized void start() {
         if (started) return;
         started = true;
@@ -90,6 +91,14 @@ public final class SatService {
         TleStore.addListener(this::reload);        // new elements arrived → re-resolve the tracked set
         TleStore.autoRefreshIfDue();               // daily, in the background, if enabled in J-Hub ▸ Satellites
         while (true) {
+            double[] o = loadObserver();
+            if (o == null) {
+                snapshot = new Snapshot(false, List.of(), null, HubConfig.LOCATION_HINT);
+                fire();
+                try { Thread.sleep(LIVE_MS); } catch (InterruptedException ie) { return; }
+                continue;
+            }
+            obs = o;
             try { recompute(); } catch (Exception e) { /* keep last good snapshot */ }
             try { Thread.sleep(LIVE_MS); } catch (InterruptedException ie) { return; }
         }
@@ -222,10 +231,14 @@ public final class SatService {
             return new double[]{ o.get("qthLat").getAsDouble(), o.get("qthLon").getAsDouble(),
                     o.has("qthAltKm") ? o.get("qthAltKm").getAsDouble() : 0.0 };
         } catch (Exception e) {
-            // fall back to the J-Hub station config (then WM3J / FM19)
-            return new double[]{ dbl(HubConfig.get("station.lat", "39.745583"), 39.745583),
-                    dbl(HubConfig.get("station.lon", "-76.959714"), -76.959714), 0.0 };
+            // no J-Sat file: use the J-Hub station location (lat/lon or grid), height from Station ▸ Elevation
+            double[] here = HubConfig.location();
+            return here == null ? null : new double[]{ here[0], here[1], elevKm() };
         }
+    }
+    /** Station elevation in km (the setting is stored in the chosen height unit). */
+    private static double elevKm() {
+        try { return Units.heightToMeters(Double.parseDouble(HubConfig.get("station.elev", "0").trim())) / 1000.0; } catch (Exception e) { return 0; }
     }
     private static double dbl(String s, double def) { try { return Double.parseDouble(s.trim()); } catch (Exception e) { return def; } }
 

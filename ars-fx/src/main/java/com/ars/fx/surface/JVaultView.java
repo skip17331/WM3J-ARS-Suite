@@ -109,7 +109,7 @@ public final class JVaultView {
             try {
                 Path dir = Paths.get(System.getProperty("user.home"), ".j-vault", "backups"); Files.createDirectories(dir);
                 Path f = dir.resolve("inventory-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + ".csv");
-                Files.writeString(f, JVaultDb.exportCsv());
+                Files.writeString(f, com.ars.fx.data.LogExport.forExport(JVaultDb.exportCsv()));
                 status.setText("✓ Exported " + JVaultDb.totals().count() + " items → " + f);
             } catch (Exception ex) { status.setText("✗ Export failed: " + ex.getMessage()); }
         });

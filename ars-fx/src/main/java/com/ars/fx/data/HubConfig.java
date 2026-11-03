@@ -54,8 +54,29 @@ public final class HubConfig {
     public static synchronized void setBool(String key, boolean val) { ensure(); root.addProperty(key, val); save(); changed(key); }
 
     // convenience accessors for the most-shared identity fields
-    public static String call() { return get("station.call", "WM3J"); }
-    public static String grid() { return get("station.grid", "FM19"); }
+    /** Your callsign from J-Hub ▸ Station; empty until set. */
+    public static String call() { return get("station.call", "").trim(); }
+    /** Your grid square from J-Hub ▸ Station; empty until set. */
+    public static String grid() { return get("station.grid", "").trim(); }
+
+    /** This station's {lat, lon}: the latitude / longitude from J-Hub ▸ Station, else the centre of the grid square;
+     *  null when neither is set (nothing here ever substitutes somebody else's location). */
+    public static double[] location() {
+        try {
+            String la = get("station.lat", "").trim(), lo = get("station.lon", "").trim();
+            if (!la.isEmpty() && !lo.isEmpty()) {
+                double a = Double.parseDouble(la), b = Double.parseDouble(lo);
+                if (a >= -90 && a <= 90 && b >= -180 && b <= 360) return new double[]{a, b};
+            }
+        } catch (NumberFormatException ignored) { /* fall back to the grid */ }
+        String g = grid();
+        return g.isEmpty() ? null : com.jlog.util.Maidenhead.center(g);
+    }
+    public static boolean hasLocation() { return location() != null; }
+    /** Latitude for maths that needs a number: 0 until a location is set — check {@link #hasLocation()} before showing a result. */
+    public static double lat() { double[] l = location(); return l == null ? 0 : l[0]; }
+    public static double lon() { double[] l = location(); return l == null ? 0 : l[1]; }
+    public static final String LOCATION_HINT = "Set your location (grid square or latitude / longitude) in J-Hub ▸ Station.";
 
     private static void save() {
         try {

@@ -46,7 +46,8 @@ public final class JBridgeView {
         Label slotEven = slotBtn("Even"), slotOdd = slotBtn("Odd");
         Label txState = lbl("RECEIVING", "jb-recv");
 
-        HBox seqLine = new HBox(6, lbl("15 s period ·", "jb-seq-lbl"), seqLbl, nextLbl); seqLine.setAlignment(Pos.CENTER_LEFT);
+        Label periodLbl = lbl("", "jb-seq-lbl");
+        HBox seqLine = new HBox(6, periodLbl, seqLbl, nextLbl); seqLine.setAlignment(Pos.CENTER_LEFT);
         VBox progBox = new VBox(6, prog, seqLine); HBox.setHgrow(progBox, Priority.ALWAYS);
         HBox slot = new HBox(2, slotEven, slotOdd); slot.getStyleClass().add("jb-slot");
         HBox seqRow = new HBox(16, progBox, slot, txState); seqRow.setAlignment(Pos.CENTER_LEFT);
@@ -77,16 +78,21 @@ public final class JBridgeView {
         fillLink(linkBody);
         refresh.run();
 
-        // local FT8 sequence clock (WSJT-X UDP carries no spectrum/period; derive from UTC)
-        Timeline seq = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-            long sec = java.time.Instant.now().getEpochSecond();
-            boolean even = (sec % 30) < 15;
-            int into = (int) (sec % 15), left = 15 - into;
+        // local sequence clock, timed to the mode WSJT-X reports (its UDP feed carries no period; derive it from UTC)
+        Timeline seq = new Timeline(new KeyFrame(Duration.millis(250), e -> {
+            WsjtxStatus ws = BridgeService.status();
+            String mode = ws != null ? nz(ws.getMode()) : "";
+            double period = periodSec(mode);
+            double now = System.currentTimeMillis() / 1000.0;
+            double into = now % period, left = period - into;
+            boolean even = ((long) Math.floor(now / period)) % 2 == 0;
+            periodLbl.setText((period == Math.rint(period) ? String.valueOf((long) period) : String.valueOf(period)) + " s period"
+                    + (mode.isBlank() || mode.equals("—") ? " (FT8 assumed) ·" : " (" + mode + ") ·"));
             seqLbl.setText(even ? "EVEN slot" : "ODD slot");
-            nextLbl.setText("· " + left + "s to next");
+            nextLbl.setText("· " + (int) Math.ceil(left) + "s to next");
             slotEven.getStyleClass().remove("on"); slotOdd.getStyleClass().remove("on");
             (even ? slotEven : slotOdd).getStyleClass().add("on");
-            ((Region) prog.getChildrenUnmodifiable().get(1)).setMaxWidth(prog.getWidth() * (into / 15.0));
+            ((Region) prog.getChildrenUnmodifiable().get(1)).setMaxWidth(prog.getWidth() * (into / period));
         }));
         seq.setCycleCount(Timeline.INDEFINITE); seq.play();
 
@@ -94,6 +100,17 @@ public final class JBridgeView {
         center.setPadding(new Insets(16, 18, 16, 18)); center.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(center, Priority.ALWAYS);
         Region rail = Shell.rail(railDrawers(linkBody));
         return Shell.frame(dock, top, center, rail);
+    }
+
+    /** The transmit / receive period of a WSJT-X mode, in seconds; FT8's 15 s when the mode is not known. */
+    static double periodSec(String mode) {
+        if (mode == null) return 15;
+        return switch (mode.trim().toUpperCase()) {
+            case "FT4" -> 7.5;
+            case "JT65", "JT9", "JT4" -> 60;
+            case "WSPR" -> 120;
+            default -> 15;                                           // FT8, MSK144, and anything unrecognised
+        };
     }
 
     private static void updateTopStats(HBox top) {
