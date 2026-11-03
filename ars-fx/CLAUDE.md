@@ -35,7 +35,7 @@ platform's JavaFX natives.
 
 | Package | Contents |
 |---|---|
-| `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons` |
+| `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons`, `AppVersion` (build version stamped from `version.properties`; version compare for the update check) |
 | `surface/` | One class per screen: `JHubDashboard` (settings + data), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
 | `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi` |
 | `data/` | Non-UI services: `HubConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `JLogDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `LearnContent`, `Bands`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
