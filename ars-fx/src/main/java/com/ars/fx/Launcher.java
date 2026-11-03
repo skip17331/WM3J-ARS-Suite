@@ -65,6 +65,8 @@ public class Launcher extends Application {
         stage.setMaximized(true);
         stage.show();
         AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
+        com.ars.fx.shell.UpdateBanner.install(host, getHostServices());
+        com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates
     }
 
     /** Resolve a solo launch descriptor, or null for the normal dock app. Two forms:
@@ -122,6 +124,7 @@ public class Launcher extends Application {
         Shell.currentSurface = id;
         if (id.equals("log") || id.equals("logc")) Shell.lastLogSurface = id;   // remember J-Log's mode
         host.getChildren().setAll(buildSurface(id));
+        com.ars.fx.shell.UpdateBanner.attach(host);      // keep a pending "update available" card across navigation
         Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }
 
