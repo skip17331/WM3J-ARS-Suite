@@ -23,7 +23,7 @@ import java.util.function.Consumer;
  *       Hamlib binds <code>[::1]</code> for "localhost" while Java connects IPv4.</li>
  * </ul>
  *
- * <p>One background daemon thread polls ~every {@value #POLL_MS} ms and pushes a
+ * <p>One background daemon thread polls every J-Hub ▸ Rig control ▸ Poll interval (800 ms by default) and pushes a
  * {@link State} to the registered listener on the JavaFX thread. When the daemon
  * is absent the connect fails fast (3 s) and a disconnected State is emitted, so
  * the drawer shows an honest "offline" rather than stale mock values.
@@ -34,7 +34,12 @@ public final class RigClient {
     public static RigClient getInstance() { return INSTANCE; }
     private RigClient() {}
 
-    private static final long POLL_MS = 800;
+    private static final long DEFAULT_POLL_MS = 800;
+    /** How often to poll rigctld, from J-Hub ▸ Rig control ▸ Poll interval (250–5000 ms; 800 when empty or not a number). */
+    private static long pollMs() {
+        try { return Math.max(250, Math.min(5000, Long.parseLong(HubConfig.get("rig.poll", "800").trim()))); }
+        catch (NumberFormatException e) { return DEFAULT_POLL_MS; }
+    }
 
     /** Default band entry frequencies (Hz) for the band keypad. */
     private static final Map<String,Long> BAND_HZ = new HashMap<>();
@@ -110,7 +115,7 @@ public final class RigClient {
                 emit(new State(false, 0, "", "", 0, false, false, 0, Integer.MIN_VALUE, -1, -1, -1,
                         java.util.Map.of(), java.util.Map.of(), e.getMessage() == null ? "offline" : e.getMessage()));
             }
-            try { Thread.sleep(POLL_MS); } catch (InterruptedException ie) { return; }
+            try { Thread.sleep(pollMs()); } catch (InterruptedException ie) { return; }
         }
     }
 

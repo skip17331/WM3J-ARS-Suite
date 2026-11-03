@@ -4,7 +4,6 @@ import com.ars.fx.data.ClusterClient;
 import com.ars.fx.data.JLogDb;
 import com.ars.fx.data.RigClient;
 import com.ars.fx.data.RotorClient;
-import com.ars.fx.mock.Mock;
 import com.ars.fx.data.AmpClient;
 import com.ars.fx.shell.Shell;
 import javafx.animation.KeyFrame;
@@ -93,9 +92,12 @@ public final class JHubDashboard {
         }));
         t.setCycleCount(Timeline.INDEFINITE); t.play();
     }
+    private static String brandCallText() { String c = com.ars.fx.data.HubConfig.call(); return c.isEmpty() ? "" : "· " + c.toUpperCase(); }
     private static Region workspaceBar() {
         Region dot = chip("jhub-bar-dot", 9);
-        HBox brand = new HBox(8, dot, lbl("J-Hub", "jhub-bar-nm"), lbl("· WM3J", "jhub-bar-sub"));
+        Label brandCall = lbl(brandCallText(), "jhub-bar-sub");
+        com.ars.fx.data.HubConfig.addChangeListener(k -> { if ("station.call".equals(k) || "*".equals(k)) javafx.application.Platform.runLater(() -> brandCall.setText(brandCallText())); });
+        HBox brand = new HBox(8, dot, lbl("J-Hub", "jhub-bar-nm"), brandCall);
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "jhub-theme");
@@ -121,11 +123,11 @@ public final class JHubDashboard {
         modules.setOnMouseClicked(e -> Shell.navigate("hubmods")); out.add(modules);
         out.add(confItem("◉", "Hardware", "⌄", onHardware));
         String[][] hw = {{"Rig control","hubcfg","rig"},{"Rotor control","hubrotor","rotor"},
-                {"Amplifier","hubamp","amp"},{"Antenna switch","hubant","antsw"},{"Antenna workshop","",""}};
+                {"Amplifier","hubamp","amp"},{"Antenna switch","hubant","antsw"},{"Antenna workshop","learn-workshop",""}};
         for (String[] s : hw) {
             Label l = lbl(s[0], "jhub-nav-sub");
             if (!s[2].isEmpty() && activeConf.equals(s[2])) l.getStyleClass().add("active");
-            if (!s[1].isEmpty()) { l.setStyle("-fx-cursor:hand;"); l.setOnMouseClicked(e -> Shell.navigate(s[1])); }
+            if (!s[1].isEmpty()) { l.setStyle("-fx-cursor:hand;"); l.setOnMouseClicked(e -> { if (s[1].equals("learn-workshop")) JLearnView.requestWorkshop(); Shell.navigate(s[1].equals("learn-workshop") ? "learn" : s[1]); }); }
             VBox.setMargin(l, new Insets(0, 9, 0, 9));
             out.add(l);
         }
@@ -151,7 +153,7 @@ public final class JHubDashboard {
         crumb.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         int enabledMods = com.ars.fx.data.ModuleConfig.enabledCount();
-        VBox run = new VBox(0, lbl(enabledMods + "/" + Mock.MODULES.size() + " modules", "jhub-modrun"), lbl("enabled", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
+        VBox run = new VBox(0, lbl(enabledMods + "/" + com.ars.fx.data.ModuleConfig.all().size() + " modules", "jhub-modrun"), lbl("enabled", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
         HBox crumbRow = new HBox(crumb, sp, run); crumbRow.setAlignment(Pos.CENTER_LEFT);
 
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
@@ -194,7 +196,14 @@ public final class JHubDashboard {
     // ---- DX cluster filter state (shared by panel + controls drawer) -------
     private static final java.util.Set<String> HF_BANDS = java.util.Set.of(
             "160m","80m","60m","40m","30m","20m","17m","15m","12m","10m");
-    private static int cluBandSel = 0, cluModeSel = 0;     // 0 = All
+    private static final String[] CLU_BANDS = {"All","HF","VHF+"}, CLU_MODES = {"All","CW","Phone","Digi"};
+    /** The cluster window's band / mode filter is the "Band filter" / "Mode filter" setting on J-Hub ▸ Data, so what you
+     *  pick here is what it starts with next time (and the Data page shows). 0 = All. */
+    private static int cluSel(String key, String[] opts) {
+        String cur = com.ars.fx.data.HubConfig.get(key, opts[0]);
+        for (int i = 0; i < opts.length; i++) if (opts[i].equals(cur)) return i;
+        return 0;
+    }
     private static boolean cluNeededOnly = false;
     private static java.util.Set<String> workedCache = java.util.Set.of();
     private static long workedAt = 0;
@@ -204,12 +213,13 @@ public final class JHubDashboard {
         return workedCache;
     }
     private static boolean bandOk(ClusterClient.Spot s) {
+        int cluBandSel = cluSel("data.clusterBand", CLU_BANDS);
         if (cluBandSel == 0) return true;
         boolean hf = HF_BANDS.contains(s.band());
         return cluBandSel == 1 ? hf : !hf;
     }
     private static boolean modeOk(ClusterClient.Spot s) {
-        switch (cluModeSel) {
+        switch (cluSel("data.clusterMode", CLU_MODES)) {
             case 1: return "CW".equals(s.mode());
             case 2: return "SSB".equals(s.mode());
             case 3: return java.util.Set.of("FT8","FT4","RTTY","PSK31","JS8").contains(s.mode());
@@ -223,7 +233,8 @@ public final class JHubDashboard {
     private static Region headerDot; private static Label headerTxt; private static Label headActRef;
 
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
-    private static Region clusterCol() {
+    /** The DX Cluster window (spot list + cluster controls). Also used on J-Log, so the two always look and behave alike. */
+    static Region clusterCol() {
         ClusterClient cc = ClusterClient.getInstance();
 
         // ---- DX spot panel ----
@@ -298,8 +309,8 @@ public final class JHubDashboard {
             act.setText(com.ars.fx.shell.FeedUi.action(cc));
         });
 
-        VBox bandsF = labeled("BANDS", segSel(new String[]{"All","HF","VHF+"}, cluBandSel, i -> { cluBandSel = i; render.run(); }));
-        VBox modesF = labeled("MODES", segSel(new String[]{"All","CW","Phone","Digi"}, cluModeSel, i -> { cluModeSel = i; render.run(); }));
+        VBox bandsF = labeled("BANDS", segSel(CLU_BANDS, cluSel("data.clusterBand", CLU_BANDS), i -> { com.ars.fx.data.HubConfig.set("data.clusterBand", CLU_BANDS[i]); render.run(); }));
+        VBox modesF = labeled("MODES", segSel(CLU_MODES, cluSel("data.clusterMode", CLU_MODES), i -> { com.ars.fx.data.HubConfig.set("data.clusterMode", CLU_MODES[i]); render.run(); }));
         HBox row2 = new HBox(12, bandsF, modesF); row2.setAlignment(Pos.BOTTOM_LEFT);
 
         Label nkl = lbl("Needed (ATNO/band-fill) only"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
@@ -330,7 +341,7 @@ public final class JHubDashboard {
     }
     private static String filterSummary() {
         String[] b = {"All bands","HF","VHF+"}, m = {"All modes","CW","Phone","Digi"};
-        return b[cluBandSel] + " · " + m[cluModeSel];
+        return b[cluSel("data.clusterBand", CLU_BANDS)] + " · " + m[cluSel("data.clusterMode", CLU_MODES)];
     }
     /** Interactive segmented control: highlights the chosen option and reports its index. */
     static Region segSel(String[] opts, int on, java.util.function.IntConsumer onSelect) {
@@ -554,10 +565,17 @@ public final class JHubDashboard {
         HBox top = new HBox(crumb, sp, back); top.setAlignment(Pos.BOTTOM_LEFT);
         Label desc = lbl("CAT control for your transceiver — connection, PTT, and how J-Hub follows the radio.","cfg-desc");
 
-        HBox cells = new HBox(0,
-            statCell("STATUS","● CONNECTED","",true), statCell("FREQUENCY","14.074.00","MHz",false),
-            statCell("MODE","USB","",false), statCell("POLL","12","ms",false));
-        cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+        com.ars.fx.data.RigClient.getInstance().start();
+        HBox cells = liveStrip(new String[]{"STATUS", "FREQUENCY", "MODE", "RIGCTLD"}, () -> {
+            com.ars.fx.data.RigClient rc = com.ars.fx.data.RigClient.getInstance();
+            com.ars.fx.data.RigClient.State st = rc.last();
+            boolean on = st != null && st.connected();
+            return new String[][]{
+                {on ? "● CONNECTED" : "○ OFFLINE", "", on ? "1" : "0"},
+                {on && st.freqHz() > 0 ? com.ars.fx.data.RigClient.fmtFreq(st.freqHz()) : "—", on && st.freqHz() > 0 ? "MHz" : "", "0"},
+                {on && st.mode() != null && !st.mode().isBlank() ? st.mode() : "—", "", "0"},
+                {rc.endpoint(), "", "0"}};
+        });
 
         VBox conn = section("CONNECTION",
             cfgRow("Transceiver model", null, cInputPrompt("rig.model", "e.g. Icom IC-7610")),
@@ -566,16 +584,15 @@ public final class JHubDashboard {
             cfgRow("Port", null, cInput("rig.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
             cfgRow("CI-V address", "Icom civ address (hex)", cInputPrompt("rig.civ", "e.g. 0x98")),
-            cfgRow("Poll interval", null, cUnit("rig.poll", "12", "ms")),
+            cfgRow("Poll interval", "how often J-Hub asks rigctld for frequency, mode and meters (250–5000 ms)", cInputApply("rig.poll", "800", () -> {})),
             cfgRow("rigctld host", "Hamlib rig daemon J-Hub connects to", cInputApply("rig.rigctldHost", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("rigctld port", null, cInputApply("rig.rigctldPort", "4532", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox ptt = section("PTT & KEYING",
             cfgRow("PTT method", "CAT keys over the CAT link. RTS / DTR key that line of the serial port (needs Start rigctld for me). VOX keys nothing — the radio or interface senses the audio",
                     cSegApply("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("CW keyer", null, cInputPrompt("rig.keyer", "e.g. Winkeyer USB")),
-            cfgRow("TX delay", null, cUnit("rig.txDelay", "30", "ms")));
+            cfgRow("CW keyer", null, cInputPrompt("rig.keyer", "e.g. Winkeyer USB")));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Auto band-follow", null, cToggle("rig.autoBandFollow", true)),
+            cfgRow("Auto band-follow", "not applied yet", cToggle("rig.autoBandFollow", true)),
             cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
@@ -590,17 +607,19 @@ public final class JHubDashboard {
         HBox top = new HBox(crumb, sp, back); top.setAlignment(Pos.BOTTOM_LEFT);
         Label desc = lbl("Your station identity & location — shared with every module for grids, beam headings and award tracking.","cfg-desc");
 
-        HBox cells = new HBox(0,
-            statCell("CALLSIGN", com.ars.fx.data.HubConfig.call(), "", true), statCell("GRID", com.ars.fx.data.HubConfig.grid(), "", false),
-            statCell("ITU / CQ", com.ars.fx.data.HubConfig.get("station.ituZone","8") + " / " + com.ars.fx.data.HubConfig.get("station.cqZone","5"), "", false),
-            statCell("DXCC","291","",false));
+        VBox callCell = statCell("CALLSIGN", "", "", true), gridCell = statCell("GRID", "", "", false),
+             zoneCell = statCell("ITU / CQ", "", "", false), dxccCell = statCell("DXCC", "", "", false);
+        stationStrip = new VBox[]{callCell, gridCell, zoneCell, dxccCell};
+        refreshStationStrip();
+        startStationStripListener();
+        HBox cells = new HBox(0, callCell, gridCell, zoneCell, dxccCell);
         cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
 
         VBox id = section("IDENTITY",
-            cfgRow("Callsign", null, cInputApply("station.call", "WM3J", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Callsign", null, cInputApply("station.call", "", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Operator name", null, cInputPrompt("station.name", "your first name")),
             cfgRow("QTH", "city, state", cInputPrompt("station.qth", "e.g. Baltimore MD")),
-            cfgRow("Grid square", "6-char Maidenhead locator", cInput("station.grid", "FM19")));
+            cfgRow("Grid square", "6-char Maidenhead locator", cInput("station.grid", "")));
         VBox loc = section("LOCATION",
             cfgRow("Latitude", "decimal degrees (N+)", cInputPrompt("station.lat", "decimal degrees, N+")),
             cfgRow("Longitude", "decimal degrees (E+)", cInputPrompt("station.lon", "decimal degrees, E+")),
@@ -609,13 +628,71 @@ public final class JHubDashboard {
             cfgRow("ITU zone", null, cInputPrompt("station.ituZone", "your ITU zone")),
             cfgRow("CQ zone", null, cInputPrompt("station.cqZone", "your CQ zone")),
             cfgRow("IARU region", null, cSegApply("station.iaru", new String[]{"R1","R2","R3"}, 1, com.ars.fx.data.Bands::applyRegion)),
-            cfgRow("Default TX power", null, cUnit("station.txPower", "100", "W")));
+            cfgRow("Default TX power", "pre-fills the power on a new QSO in J-Log", cUnit("station.txPower", "100", "W")));
 
         VBox units = section("UNITS",
             cfgRow("Units", "Metric: km · °C · km/h · hPa · m      Standard (US): mi · °F · mph · inHg · ft", unitSystemSeg()));
         VBox v = new VBox(20, top, desc, cells, id, loc, units, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
+    }
+
+    /** A status strip whose values are re-read from {@code vals} once a second while it is on screen: one {value, unit, "1" = ok}
+     *  per key. The strips on the hardware pages show what the rig / rotor / amp / feeds are doing now, not what they were
+     *  when the page was opened. */
+    private static HBox liveStrip(String[] keys, java.util.function.Supplier<String[][]> vals) { return liveStrip(keys, vals, 150); }
+    private static HBox liveStrip(String[] keys, java.util.function.Supplier<String[][]> vals, double cellWidth) {
+        VBox[] cells = new VBox[keys.length];
+        for (int i = 0; i < keys.length; i++) { cells[i] = statCell(keys[i], "", "", false); cells[i].setMinWidth(cellWidth); }
+        HBox row = new HBox(0, cells); row.getStyleClass().add("cfg-status"); row.setAlignment(Pos.CENTER_LEFT);
+        Runnable paint = () -> {
+            String[][] v;
+            try { v = vals.get(); } catch (RuntimeException ex) { return; }
+            for (int i = 0; i < cells.length && i < v.length; i++) {
+                Label val = stripValue(cells[i]);
+                val.setText(v[i][0]);
+                val.getStyleClass().remove("ok");
+                if ("1".equals(v[i][2])) val.getStyleClass().add("ok");
+                HBox vu = (HBox) cells[i].getChildren().get(1);
+                if (v[i][1].isEmpty()) { if (vu.getChildren().size() > 1) vu.getChildren().remove(1); }
+                else if (vu.getChildren().size() > 1) ((Label) vu.getChildren().get(1)).setText(v[i][1]);
+                else vu.getChildren().add(lbl(v[i][1], "cfg-sval-u"));
+            }
+        };
+        paint.run();
+        Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> paint.run()));
+        t.setCycleCount(Timeline.INDEFINITE);
+        row.sceneProperty().addListener((o, was, sc) -> { if (sc == null) t.stop(); else { paint.run(); t.play(); } });
+        return row;
+    }
+
+    // ---- Station page status strip: follows the saved settings as they are edited ----------------------------
+    private static VBox[] stationStrip;
+    private static boolean stationStripListening;
+    private static Label stripValue(VBox cell) { return (Label) ((HBox) cell.getChildren().get(1)).getChildren().get(0); }
+    private static Label stripUnit(VBox cell) { HBox vu = (HBox) cell.getChildren().get(1); return vu.getChildren().size() > 1 ? (Label) vu.getChildren().get(1) : null; }
+    private static String orDash(String s) { return s == null || s.isBlank() ? "—" : s.trim(); }
+    private static void refreshStationStrip() {
+        VBox[] c = stationStrip;
+        if (c == null) return;
+        String call = com.ars.fx.data.HubConfig.call();
+        stripValue(c[0]).setText(orDash(call));
+        stripValue(c[1]).setText(orDash(com.ars.fx.data.HubConfig.grid()).toUpperCase());
+        stripValue(c[2]).setText(orDash(com.ars.fx.data.HubConfig.get("station.ituZone", "")) + " / " + orDash(com.ars.fx.data.HubConfig.get("station.cqZone", "")));
+        // the DXCC entity follows the callsign: number and country, or a dash when the call can't be resolved
+        com.ars.fx.data.DxccInfo.Info info = call == null || call.isBlank() ? null : com.ars.fx.data.DxccInfo.of(call);
+        stripValue(c[3]).setText(info == null || info.dxcc() <= 0 ? "—" : String.valueOf(info.dxcc()));
+        Label u = stripUnit(c[3]);
+        if (u == null) { u = lbl("", "cfg-sval-u"); ((HBox) c[3].getChildren().get(1)).getChildren().add(u); }
+        u.setText(info == null || info.country() == null ? "" : info.country());
+    }
+    private static void startStationStripListener() {
+        if (stationStripListening) return;
+        stationStripListening = true;
+        com.ars.fx.data.HubConfig.addChangeListener(key -> {
+            if (key == null || !(key.startsWith("station.") || key.equals("*"))) return;
+            javafx.application.Platform.runLater(JHubDashboard::refreshStationStrip);
+        });
     }
 
     /** Metric / Standard switch. Rebuilds the page so the elevation field and other labels follow at once. */
@@ -653,9 +730,16 @@ public final class JHubDashboard {
     }
 
     private static Region rotorCenter() {
-        HBox cells = new HBox(0, statCell("STATUS","● CONNECTED","",true), statCell("AZIMUTH","045","°",false),
-                statCell("ELEVATION","12","°",false), statCell("ROTCTLD","127.0.0.1:4533","",false));
-        cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+        com.ars.fx.data.RotorClient.getInstance().start();
+        HBox cells = liveStrip(new String[]{"STATUS", "AZIMUTH", "ELEVATION", "ROTCTLD"}, () -> {
+            com.ars.fx.data.RotorClient ro = com.ars.fx.data.RotorClient.getInstance();
+            boolean on = ro.last().connected();
+            return new String[][]{
+                {on ? "● CONNECTED" : ro.isConfigured() ? "○ ROTCTLD OFFLINE" : "○ NOT SET UP", "", on ? "1" : "0"},
+                {on ? String.format("%03.0f", ro.headingDeg()) : "—", on ? "°" : "", "0"},
+                {on ? String.format("%.0f", ro.last().el()) : "—", on ? "°" : "", "0"},
+                {ro.endpoint(), "", "0"}};
+        });
         VBox conn = section("CONNECTION",
             cfgRow("Rotor model", null, cInputPrompt("rotor.model", "e.g. Yaesu G-1000DXA")),
             cfgRow("Hamlib model #", "rotctld -m (run: rotctl --list)", cInput("rotor.hamlibModel", "")),
@@ -666,19 +750,29 @@ public final class JHubDashboard {
             cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Overlap / wrap", "where the rotor crosses", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
-            cfgRow("Park position", null, cUnit("rotor.park", "0", "° az")),
-            cfgRow("Dead-band", null, cUnit("rotor.deadband", "2", "°")),
-            cfgRow("Auto-track satellites (J-Sat)", null, cToggle("rotor.autoTrack", false)));
+            cfgRow("Overlap / wrap", "where the rotor crosses — not applied yet", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
+            cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "° az")),
+            cfgRow("Dead-band", "satellite tracking skips moves smaller than this", cUnit("rotor.deadband", "2", "°")),
+            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat", cToggle("rotor.autoTrack", false)));
         VBox presets = section("BEAM PRESETS", presetRows());
         return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),
             lbl("Az/el rotor control via Hamlib rotctld — connection, presets and park position.","cfg-desc"),
             cells, conn, beh, presets);
     }
     private static Region amplifierCenter() {
-        HBox cells = new HBox(0, statCell("STATUS","● STANDBY","",true), statCell("BAND","20m","",false),
-                statCell("SWR","1.2:1","",false), statCell("AMPCTLD","127.0.0.1:4534","",false));
-        cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+        com.ars.fx.data.AmpClient.getInstance().start();
+        HBox cells = liveStrip(new String[]{"STATUS", "BAND", "SWR", "AMPCTLD"}, () -> {
+            com.ars.fx.data.AmpClient am = com.ars.fx.data.AmpClient.getInstance();
+            com.ars.fx.data.AmpClient.State st = am.last();
+            boolean on = st != null && st.connected();
+            com.ars.fx.data.RigClient.State rig = com.ars.fx.data.RigClient.getInstance().last();
+            String band = rig != null && rig.connected() && rig.freqHz() > 0 ? com.ars.fx.data.Bands.of(rig.freqHz()) : "";
+            return new String[][]{
+                {on ? "● " + st.mode().toUpperCase() : "○ OFFLINE", "", on ? "1" : "0"},
+                {band.isEmpty() ? "—" : band, "", "0"},
+                {on && st.swr() > 0 ? String.format("%.1f:1", st.swr()) : "—", "", "0"},
+                {am.endpoint(), "", "0"}};
+        });
         VBox conn = section("CONNECTION",
             cfgRow("Amplifier model", null, cInputPrompt("amp.model", "e.g. Elecraft KPA-1500")),
             cfgRow("Hamlib model #", "ampctld -m (run: ampctl --list)", cInput("amp.hamlibModel", "")),
@@ -689,18 +783,22 @@ public final class JHubDashboard {
             cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Follow rig band", "auto band-switch with the radio", cToggle("amp.followBand", true)),
-            cfgRow("Max power", null, cUnit("amp.maxPower", "1000", "W")),
-            cfgRow("Standby on TX inhibit", null, cToggle("amp.standbyOnInhibit", true)),
-            cfgRow("Operate / Standby", null, cSeg("amp.opStandby", new String[]{"Operate","Standby"}, 1)));
+            cfgRow("Follow rig band", "auto band-switch with the radio — not applied yet", cToggle("amp.followBand", true)),
+            cfgRow("Max power", "for your reference and macros — not applied yet", cUnit("amp.maxPower", "1000", "W")),
+            cfgRow("Standby on TX inhibit", "not applied yet", cToggle("amp.standbyOnInhibit", true)),
+            cfgRow("Operate / Standby", "not applied yet — set it on the amplifier", cSeg("amp.opStandby", new String[]{"Operate","Standby"}, 1)));
         return cfgPage(cfgTop("J-Hub","Hardware","Amplifier"),
             lbl("Linear amplifier control via Hamlib ampctld — band-follow, power limit and standby.","cfg-desc"),
             cells, conn, beh);
     }
     private static Region antennaSwitchCenter() {
-        HBox cells = new HBox(0, statCell("STATUS","● ONLINE","",true), statCell("ACTIVE","Port 3","",false),
-                statCell("ANTENNA","20m beam","",false), statCell("PORTS","6","",false));
-        cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+        HBox cells = liveStrip(new String[]{"STATUS", "ACTIVE", "ANTENNA", "PORTS"}, () -> {
+            int named = 0;
+            for (int i = 1; i <= 8; i++) if (!com.ars.fx.data.HubConfig.get("ant.port" + i, "").isBlank()) named++;
+            return new String[][]{
+                {"○ NO CONTROL", "", "0"}, {"—", "", "0"}, {"—", "", "0"},
+                {named == 0 ? "—" : String.valueOf(named), named == 0 ? "" : "named", "0"}};
+        });
         VBox conn = section("CONNECTION",
             cfgRow("Switch model", null, cInputPrompt("ant.model", "e.g. 4O3A Antenna Genius")),
             cfgRow("Interface", null, cSeg("ant.interface", new String[]{"USB","Serial","Network"}, 2)),
@@ -713,14 +811,20 @@ public final class JHubDashboard {
         for (int i = 0; i < ports.length; i++) rows[i] = cfgRow("Port " + ports[i][0], "bands " + ports[i][2], cInput("ant.port" + ports[i][0], ports[i][1]));
         VBox ant = section("ANTENNA PORTS", rows);
         return cfgPage(cfgTop("J-Hub","Hardware","Antenna switch"),
-            lbl("Remote antenna switch — port-to-antenna mapping and band-follow selection.","cfg-desc"),
+            lbl("Port names for your antenna switch, saved for reference and macros. Switch control is not built in yet.","cfg-desc"),
             cells, conn, ant);
     }
     private static Region dataCenter() {
-        HBox cells = new HBox(0, statCell("CLUSTER", com.ars.fx.data.ClusterClient.getInstance().status().label(), com.ars.fx.data.ClusterClient.getInstance().endpoint(), com.ars.fx.data.ClusterClient.getInstance().isConnected()),
-                statCell("RBN", com.ars.fx.data.HeardByClient.getInstance().status().label(), com.ars.fx.data.HeardByClient.getInstance().endpoint(), com.ars.fx.data.HeardByClient.getInstance().isConnected()),
-                statCell("WSJT-X","UDP 2237","",false), statCell("LOG DB", com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir()), "", false));
-        cells.getStyleClass().add("cfg-status"); cells.setAlignment(Pos.CENTER_LEFT);
+        HBox cells = liveStrip(new String[]{"CLUSTER", "RBN", "WSJT-X", "LOG DB"}, () -> {
+            com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
+            com.ars.fx.data.HeardByClient hb = com.ars.fx.data.HeardByClient.getInstance();
+            boolean wsjtx = com.ars.fx.data.BridgeService.connected();
+            return new String[][]{
+                {cc.status().label(), cc.endpoint(), cc.isConnected() ? "1" : "0"},
+                {hb.status().label(), hb.endpoint(), hb.isConnected() ? "1" : "0"},
+                {wsjtx ? "● linked" : "○ waiting", "UDP " + com.ars.fx.data.BridgeService.port(), wsjtx ? "1" : "0"},
+                {com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir()), "", "0"}};
+        }, 260);
         Runnable applyCluster = () -> {
             String srv = com.ars.fx.data.HubConfig.get("data.clusterServer", "dxc.ve7cc.net:23").trim();
             String login = com.ars.fx.data.HubConfig.get("data.clusterLogin", com.ars.fx.data.HubConfig.call());
@@ -731,7 +835,7 @@ public final class JHubDashboard {
         VBox cluster = section("DX CLUSTER",
             cfgRow("Cluster server", "pick one, or type host:port and press Enter; one runs at a time, and a live connection moves to the new server",
                     tagged(clusterPicker(() -> com.ars.fx.data.HubConfig.get("data.clusterLogin", com.ars.fx.data.HubConfig.call())), "data.clusterServer")),
-            cfgRow("Login callsign", null, cInputApply("data.clusterLogin", "WM3J", applyCluster)),
+            cfgRow("Login callsign", null, cInputApply("data.clusterLogin", com.ars.fx.data.HubConfig.call(), applyCluster)),
             cfgRow("Auto-connect on start", "off by default — connect from the cluster panel when you want spots", cToggle("data.clusterAutoConnect", false)),
             cfgRow("Connection tries", "give up after this many failed attempts (0 = keep trying); Connect starts a fresh count",
                     cInputApply("data.clusterMaxTries", "5", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
@@ -742,14 +846,14 @@ public final class JHubDashboard {
             cfgRow("RBN auto-connect on start", "off by default — \"who's hearing me\" skimmer spots; Connect from the Heard By panel",
                     cToggle("data.rbnAutoConnect", false)));
         VBox wsjt = section("WSJT-X / DIGITAL",
-            cfgRow("WSJT-X UDP port", null, cInput("data.wsjtxPort", "2237")),
+            cfgRow("WSJT-X UDP port", "set the same port in WSJT-X ▸ Settings ▸ Reporting; applied as soon as you leave the field", cInputApply("data.wsjtxPort", "2237", com.ars.fx.data.BridgeService::restart)),
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
                     cToggle("digi.localSkimmer", false)),
-            cfgRow("Auto-log FT8/FT4 QSOs", null, cToggle("data.autoLogFt8", true)),
-            cfgRow("PSK Reporter upload", null, cToggle("data.pskReporter", false)));
+            cfgRow("Auto-log FT8/FT4 QSOs", "adds each QSO WSJT-X logs to the J-Log database (skips one already there)", cToggle("data.autoLogFt8", false)),
+            cfgRow("PSK Reporter upload", "not applied yet", cToggle("data.pskReporter", false)));
         VBox logbook = section("LOGBOOK & EXPORT",
-            cfgRow("Cabrillo / CSV charset", null, cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
-            cfgRow("LoTW / eQSL auto-upload", null, cToggle("data.lotwAutoUpload", false)));
+            cfgRow("Cabrillo / CSV charset", "ASCII drops accents and replaces other characters with ?",  cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
+            cfgRow("LoTW / eQSL auto-upload", "not applied yet — use the Upload section below", cToggle("data.lotwAutoUpload", false)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
             cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor",
                     cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
@@ -802,7 +906,7 @@ public final class JHubDashboard {
     /** J-Hub ▸ Modules — turn each module on or off (reflected live in the dock + nav). */
     private static Region modulesCenter() {
         java.util.List<Node> rows = new java.util.ArrayList<>();
-        for (Mock.Mod m : com.ars.fx.data.ModuleConfig.all()) {
+        for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.all()) {
             Node tile = Shell.iconTile(m.hue(), m.id(), 13, "sx-dw-ic");
             Label nm = lbl(m.name(), "k"); HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
             VBox txt = new VBox(1, nm, lbl(com.ars.fx.data.ModuleConfig.blurb(m.id()), "jhub-card-sub"));
@@ -1050,9 +1154,10 @@ public final class JHubDashboard {
     }
     private static Region spacer(double w) { Region r = new Region(); r.setMinWidth(w); r.setMaxWidth(w); return r; }
     private static Node[] presetRows() {
-        String[][] pr = {{"Europe","50"},{"Africa","95"},{"S. America","155"},{"Caribbean","135"},{"Asia (LP)","330"},{"Oceania","250"}};
-        Node[] rows = new Node[pr.length];
-        for (int i = 0; i < pr.length; i++) rows[i] = cfgRow(pr[i][0], null, cUnit("rotor.preset." + pr[i][0].replaceAll("[^A-Za-z]", ""), pr[i][1], "° az"));
+        java.util.List<com.ars.fx.data.RotorClient.Preset> ps = com.ars.fx.data.RotorClient.PRESETS;
+        Node[] rows = new Node[ps.size()];
+        for (int i = 0; i < rows.length; i++)
+            rows[i] = cfgRow(ps.get(i).name(), "shown as " + ps.get(i).shortName() + " on the rotor panel", cUnit("rotor.preset." + ps.get(i).key(), String.valueOf(ps.get(i).defaultAz()), "° az"));
         return rows;
     }
 

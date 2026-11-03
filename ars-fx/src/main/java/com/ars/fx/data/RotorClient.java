@@ -96,6 +96,39 @@ public final class RotorClient {
         double el = Math.max(0, last.el());
         runCmd(String.format("P %.1f %.1f", targetAz, el));
     }
+    /** A beam preset: shown in full on J-Hub ▸ Hardware ▸ Rotor control (where it is edited) and by {@code shortName} on the rotor drawer. */
+    public record Preset(String name, String shortName, String key, int defaultAz) {
+        /** The azimuth in J-Hub's settings, or the default when it is empty or not a number. */
+        public int az() {
+            try { return (int) Math.round(((Double.parseDouble(HubConfig.get("rotor.preset." + key, String.valueOf(defaultAz)).trim()) % 360) + 360) % 360); }
+            catch (NumberFormatException e) { return defaultAz; }
+        }
+    }
+    public static final java.util.List<Preset> PRESETS = java.util.List.of(
+            new Preset("Europe", "EU", "Europe", 50), new Preset("Africa", "AF", "Africa", 95),
+            new Preset("S. America", "SA", "SAmerica", 155), new Preset("Caribbean", "Carib", "Caribbean", 135),
+            new Preset("Asia (LP)", "AS", "AsiaLP", 330), new Preset("Oceania", "OC", "Oceania", 250));
+
+    /** The park azimuth from J-Hub ▸ Rotor control (0 when not set). */
+    public static int parkAz() {
+        try { return (int) Math.round(((Double.parseDouble(HubConfig.get("rotor.park", "0").trim()) % 360) + 360) % 360); }
+        catch (NumberFormatException e) { return 0; }
+    }
+    /** The dead-band in degrees from J-Hub ▸ Rotor control: automatic tracking does not bother the rotor for less than this. */
+    public static double deadbandDeg() {
+        try { return Math.max(0, Double.parseDouble(HubConfig.get("rotor.deadband", "2").trim())); }
+        catch (NumberFormatException e) { return 2; }
+    }
+    /** Automatic tracking (a satellite pass): slew only when the beam is further than the dead-band from {@code az}. */
+    public void trackTo(double az) {
+        State s = last;
+        if (s.connected()) {
+            double d = Math.abs((((az - s.az()) % 360) + 540) % 360 - 180);
+            if (d < deadbandDeg()) return;
+        }
+        moveTo(az);
+    }
+
     /** Nudge the current bearing by delta degrees (CCW / CW buttons). */
     public void nudge(double delta) {
         double base = targetAz >= 0 ? targetAz : last.az();

@@ -73,7 +73,14 @@ public final class JLogContest {
         List<Node> railNodes = new ArrayList<>(Shell.leadDrawers());
         railNodes.addAll(com.ars.fx.surface.contest.TrackerFactory.columnPanes(plugin));
         Region rail = Shell.rail(railNodes.toArray(new Node[0]));
-        host = new StackPane((Region) Shell.frame(dock, top, sp, rail));
+        // the DX Cluster window from the J-Hub dashboard, beside the entry form (as in normal logging)
+        Region cluster = JHubDashboard.clusterCol();
+        cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cluster, Priority.ALWAYS);
+        sp.setMinWidth(600); sp.setPrefWidth(800); HBox.setHgrow(sp, Priority.NEVER);
+        HBox main = new HBox(14, sp, cluster); main.setFillHeight(true); main.setPadding(new Insets(0, 14, 0, 0));
+        main.setStyle("-fx-background-color:-ars-bg;");
+        host = new StackPane((Region) Shell.frame(dock, top, main, rail));
 
         ContestState.addListener(() -> Platform.runLater(JLogContest::refreshScoreStats));
         ContestState.recompute();
@@ -429,6 +436,10 @@ public final class JLogContest {
             java.nio.file.Files.createDirectories(dir);
             java.nio.file.Path out = dir.resolve(plugin.getContestId() + "_" + HubConfig.call() + ".cbr");
             com.jlog.export.CabrilloExporter.export(plugin, out);
+            if (com.ars.fx.data.LogExport.asciiOnly()) {            // J-Hub ▸ Data ▸ charset: ASCII
+                String txt = java.nio.file.Files.readString(out, java.nio.charset.StandardCharsets.UTF_8);
+                java.nio.file.Files.writeString(out, com.ars.fx.data.LogExport.forExport(txt), java.nio.charset.StandardCharsets.US_ASCII);
+            }
             setB4("Exported → " + out, "new");
         } catch (Exception e) {
             setB4("Export failed: " + e.getMessage(), "dupe");

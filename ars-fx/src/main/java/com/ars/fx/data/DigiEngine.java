@@ -107,4 +107,6 @@ public final class DigiEngine {
     }
 
     public static boolean available() { return get() != null; }
+    /** True once audio capture has been started. */
+    public static boolean running() { return started; }
 }

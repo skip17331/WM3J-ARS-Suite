@@ -6,7 +6,6 @@ import com.ars.fx.data.RotorClient;
 import com.ars.fx.data.SolarData;
 import com.ars.fx.data.SunImageService;
 import com.ars.fx.data.WeatherData;
-import com.ars.fx.mock.Mock;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -159,12 +158,13 @@ public final class Shell {
         dock.setMinWidth(58); dock.setPrefWidth(58); dock.setMaxWidth(58);
         List<Node> expandOnly = new ArrayList<>();   // names + section labels + dots
 
+        com.ars.fx.data.ModuleConfig.markOpened(activeId);
         // J-Hub at top
         dock.getChildren().add(dockItem("hub", "J-Hub", "hub", true, activeId, expandOnly));
         Label sec = lbl("MODULES", "sx-dock-sec"); sec.setManaged(false); sec.setVisible(false); expandOnly.add(sec);
         dock.getChildren().add(sec);
-        for (Mock.Mod m : com.ars.fx.data.ModuleConfig.enabledModules())
-            dock.getChildren().add(dockItem(m.id(), m.name(), m.hue(), m.running(), activeId, expandOnly));
+        for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.enabledModules())
+            dock.getChildren().add(dockItem(m.id(), m.name(), m.hue(), com.ars.fx.data.ModuleConfig.running(m.id()), activeId, expandOnly));
         if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
@@ -430,11 +430,12 @@ public final class Shell {
         // Weather (live Open-Meteo at the station location)
         WeatherData.getInstance().start();
         WeatherData.Snapshot w = WeatherData.getInstance().snapshot();
-        String grid = HubConfig.grid();
+        String grid = HubConfig.grid().isEmpty() ? "—" : HubConfig.grid().toUpperCase();
         HBox wxBig; VBox wxBody; String wxSum;
         if (w == null) {
-            wxBig = new HBox(8, lbl("—°","sx-ro-head"), lbl("loading…","sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
-            wxBody = new VBox(wxBig); wxSum = "loading…";
+            String why = HubConfig.hasLocation() ? "loading…" : "set your location";
+            wxBig = new HBox(8, lbl("—°","sx-ro-head"), lbl(why,"sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
+            wxBody = new VBox(wxBig); wxSum = why;
         } else {
             wxBig = new HBox(8, lbl(com.ars.fx.data.Units.tempText(w.tempC()),"sx-ro-head"), lbl(w.desc()+" · feels "+com.ars.fx.data.Units.tempText(w.feelsC()),"sx-ro-dir")); wxBig.setAlignment(Pos.BOTTOM_LEFT);
             wxBody = new VBox(wxBig, kv("Wind", w.windCompass()+" "+com.ars.fx.data.Units.wind(w.windKmh())+" · g"+com.ars.fx.data.Units.wind(w.gustKmh())+" "+com.ars.fx.data.Units.windUnit(), false),
@@ -499,8 +500,11 @@ public final class Shell {
         VBox.setMargin(turn, new Insets(10,0,0,0));
         HBox roTop = new HBox(13, compass(az, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
         GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
-        int i = 0; for (Object[] p : Mock.ROTOR_PRESETS) {
-            final int paz = ((Number) p[1]).intValue();
+        java.util.List<String[]> shownPresets = new java.util.ArrayList<>();
+        for (RotorClient.Preset pr : RotorClient.PRESETS) shownPresets.add(new String[]{pr.shortName(), String.valueOf(pr.az())});   // edited under J-Hub ▸ Rotor control
+        shownPresets.add(new String[]{"Park", String.valueOf(RotorClient.parkAz())});
+        int i = 0; for (String[] p : shownPresets) {
+            final int paz = Integer.parseInt(p[1]);
             Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
             b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> rotor.moveTo(paz));
             presets.add(b, i%3, i/3); i++;
@@ -648,7 +652,8 @@ public final class Shell {
             grid.add(c, i % 2, i / 2);
         }
         Runnable paint = () -> {
-            double lat = stationCoord("station.lat", 39.7456), lon = stationCoord("station.lon", -76.96);
+            if (!HubConfig.hasLocation()) { for (Label v : vals) v.setText("—"); vals[0].setText("set location"); return; }
+            double lat = HubConfig.lat(), lon = HubConfig.lon();
             double[] ae = com.ars.fx.data.SolarPosition.azEl(lat, lon), rs = com.ars.fx.data.SolarPosition.riseSet(lat, lon);
             String none = rs[2] > 0 ? "up all day" : "down all day";
             vals[0].setText(com.ars.fx.data.SolarPosition.subSolarText());
@@ -662,9 +667,6 @@ public final class Shell {
         tick.setCycleCount(javafx.animation.Timeline.INDEFINITE);
         grid.sceneProperty().addListener((o, old, sc) -> { if (sc == null) tick.stop(); else tick.play(); });
         return grid;
-    }
-    private static double stationCoord(String key, double fallback) {
-        try { return Double.parseDouble(HubConfig.get(key, "").trim()); } catch (Exception e) { return fallback; }
     }
     private static String heatColor(double frac, int count) {
         if (count <= 0) return "-ars-surface-2";

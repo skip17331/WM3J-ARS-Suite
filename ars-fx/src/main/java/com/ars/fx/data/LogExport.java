@@ -65,6 +65,17 @@ public final class LogExport {
         return sb.toString();
     }
 
+    /** J-Hub ▸ Data ▸ "Cabrillo / CSV charset" is ASCII (UTF-8 otherwise): accents are dropped, anything else becomes "?". */
+    public static boolean asciiOnly() { return "ASCII".equalsIgnoreCase(HubConfig.get("data.charset", "UTF-8").trim()); }
+    /** The text as the chosen charset needs it (unchanged for UTF-8). */
+    public static String forExport(String s) {
+        if (s == null || !asciiOnly()) return s;
+        String d = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
+        StringBuilder sb = new StringBuilder(d.length());
+        for (int i = 0; i < d.length(); i++) { char c = d.charAt(i); sb.append(c < 128 ? c : '?'); }
+        return sb.toString();
+    }
+
     /** Write a timestamped backup ({@code j-log-YYYYMMDD-HHMMSS.<ext>}) to {@code dir}; format = "adi" or "csv". */
     public static Result backup(String dir, String format) {
         try {
@@ -73,7 +84,7 @@ public final class LogExport {
             String body = ext.equals("csv") ? toCsv(rows) : toAdif(rows);
             Path d = resolve(dir); Files.createDirectories(d);
             Path f = d.resolve("j-log-" + LocalDateTime.now().format(STAMP) + "." + ext);
-            Files.writeString(f, body, StandardCharsets.UTF_8);
+            Files.writeString(f, forExport(body), StandardCharsets.UTF_8);
             return new Result(true, rows.size(), f.toString(), null);
         } catch (Exception e) {
             return new Result(false, 0, null, e.getMessage());

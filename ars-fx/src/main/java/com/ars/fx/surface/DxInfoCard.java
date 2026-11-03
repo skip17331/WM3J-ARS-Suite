@@ -132,6 +132,7 @@ final class DxInfoCard {
     }
 
     private static String beam(JMapView.MapSpot s) {
+        if (!com.ars.fx.data.HubConfig.hasLocation()) return "set your location in J-Hub ▸ Station";
         double km = DxccInfo.distanceKm(SpotAction.qLat(), SpotAction.qLon(), s.lat(), s.lon());
         int deg = (int) Math.round(SpotAction.bearing(SpotAction.qLat(), SpotAction.qLon(), s.lat(), s.lon()));
         return String.format("%03d° %s · %s", deg, RotorClient.cardinal(deg), Units.distText(km));

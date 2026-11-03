@@ -246,6 +246,17 @@ public final class JLogDb {
         } catch (Throwable t) { t.printStackTrace(); return false; }
     }
 
+    /** True when a QSO with this callsign, band and mode is already logged within 3 minutes of {@code datetimeUtc}
+     *  ("yyyy-MM-dd HH:mm:ss"): used so a QSO WSJT-X reports twice is not logged twice. */
+    public static boolean hasQso(String call, String band, String mode, String datetimeUtc) {
+        String sql = "SELECT COUNT(*) FROM qso WHERE callsign=? AND band IS ? AND mode IS ? AND "
+                + "ABS(strftime('%s', datetime_utc) - strftime('%s', ?)) <= 180";
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, call.toUpperCase().trim()); ps.setString(2, nz(band)); ps.setString(3, nz(mode)); ps.setString(4, datetimeUtc);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() && rs.getInt(1) > 0; }
+        } catch (Throwable t) { return false; }
+    }
+
     private static String nz(String s) { return (s == null || s.isBlank()) ? null : s.trim(); }
     public static String hhmm(String dt) { return (dt != null && dt.length() >= 16) ? dt.substring(11, 16) : "—"; }
 

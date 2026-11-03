@@ -1,5 +1,6 @@
 package com.ars.fx.surface;
 
+import com.ars.fx.data.AntennaCalcs;
 import com.ars.fx.data.JLearnLibrary;
 import com.ars.fx.data.JLearnLibrary.Chapter;
 import com.ars.fx.data.JLearnLibrary.Section;
@@ -23,6 +24,10 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class JLearnView {
     private JLearnView() {}
 
+    private static boolean workshopRequested;
+    /** The next J-Learn screen opens on the Antenna Workshop (used by the J-Hub nav link). */
+    public static void requestWorkshop() { workshopRequested = true; }
+
     public static Region build() {
         com.ars.fx.data.LearnContent.seedIfMissing();   // first use: copy the chapters bundled in the jar to ~/.j-learn/content
         Region dock = Shell.dock("learn");
@@ -37,34 +42,51 @@ public final class JLearnView {
         StackPane window = new StackPane(); window.setAlignment(Pos.TOP_LEFT); HBox.setHgrow(window, Priority.ALWAYS);
         window.setStyle("-fx-background-color:-ars-bg;");
         boolean[] selectedMorse = {false};          // true while the Morse Trainer, not a chapter section, is showing
-        Consumer<Section> open = s -> { selectedMorse[0] = false; window.getChildren().setAll(contentWindow(s)); };
+        boolean[] selectedWs = {false};             // true while the Antenna Workshop is showing
+        Runnable[] openWsRef = new Runnable[1];     // (calc id is carried in wsCalc)
+        String[] wsCalc = {null};
+        Consumer<Section> open = s -> { selectedMorse[0] = false; selectedWs[0] = false;
+            window.getChildren().setAll(contentWindow(s, () -> { wsCalc[0] = AntennaCalcs.forSection(s.id()).id(); openWsRef[0].run(); })); };
         window.getChildren().setAll(welcome());
+        String[] expanded = {chapters.isEmpty() ? "" : chapters.get(0).num()};   // open chapter (accordion)
+        String[] selected = {null};                                              // current section id
 
         // the Morse Trainer lives in J-Learn too: its entry sits above the chapters and opens in the reading window
         Runnable[] rebuildRef = new Runnable[1];
         Runnable openMorse = () -> {
-            selectedMorse[0] = true;
+            selectedMorse[0] = true; selectedWs[0] = false;
             window.getChildren().setAll(com.ars.fx.morse.ui.MorseHome.build(pane -> window.getChildren().setAll(pane)));
             if (rebuildRef[0] != null) rebuildRef[0].run();
         };
 
+        // the Antenna Workshop (recommender + calculators) also lives here; section links inside it jump to chapter text
+        java.util.function.Consumer<String> gotoSection = id -> {
+            for (Chapter c : chapters) for (Section sec : c.sections()) if (sec.id().equals(id)) {
+                expanded[0] = c.num(); selected[0] = sec.id(); open.accept(sec); rebuildRef[0].run(); return; }
+        };
+        openWsRef[0] = () -> {
+            selectedMorse[0] = false; selectedWs[0] = true; selected[0] = null;
+            window.getChildren().setAll(AntennaWorkshopView.build(gotoSection, wsCalc[0]));
+            wsCalc[0] = null;
+            rebuildRef[0].run();
+        };
+
         // collapsible left chapter/section TOC drawer
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
-        String[] expanded = {chapters.isEmpty() ? "" : chapters.get(0).num()};   // open chapter (accordion)
-        String[] selected = {null};                                              // current section id
         Runnable[] rebuild = new Runnable[1];
         rebuild[0] = () -> leftHolder.getChildren().setAll(com.ars.fx.shell.AutoPanel.wrap("learn", false, collapsedRail(),
-                chapterDrawer(chapters, expanded, selected, selectedMorse, open, openMorse, rebuild[0]), 272, () -> false));
+                chapterDrawer(chapters, expanded, selected, selectedMorse, selectedWs, open, openMorse, () -> { wsCalc[0] = null; openWsRef[0].run(); }, rebuild[0]), 272, () -> false));
         rebuildRef[0] = rebuild[0];
         rebuild[0].run();
 
+        if (workshopRequested) { workshopRequested = false; openWsRef[0].run(); }
         HBox center = new HBox(leftHolder, window); center.setFillHeight(true);
         return Shell.frame(dock, top, center, null);
     }
 
     // ---- left collapsible TOC ---------------------------------------------
     private static Region chapterDrawer(List<Chapter> chapters, String[] expanded, String[] selected, boolean[] morseOn,
-                                        Consumer<Section> open, Runnable openMorse, Runnable rebuild) {
+                                        boolean[] wsOn, Consumer<Section> open, Runnable openMorse, Runnable openWs, Runnable rebuild) {
         VBox p = new VBox(0); p.getStyleClass().add("j2-topics"); p.setMinWidth(272); p.setPrefWidth(272); p.setMaxWidth(272);
         Label title = lbl("CHAPTERS", "j2-sec"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         HBox header = new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("learn", rebuild)); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(2, 6, 6, 2));
@@ -77,6 +99,12 @@ public final class JLearnView {
         com.ars.fx.shell.Tips.tip(morseRow, "Practise CW: letters, groups, QSOs and sending with a key");
         morseRow.setOnMouseClicked(e -> openMorse.run());
         list.getChildren().add(morseRow);
+        Label wsNm = lbl("Antenna Workshop", "j2-topic-nm"); HBox.setHgrow(wsNm, Priority.ALWAYS); wsNm.setMaxWidth(Double.MAX_VALUE);
+        HBox wsRow = new HBox(8, lbl("📡", "j2-caret"), wsNm, lbl("design", "j2-topic-ct"));
+        wsRow.setAlignment(Pos.CENTER_LEFT); wsRow.getStyleClass().add("j2-topic"); if (wsOn[0]) wsRow.getStyleClass().add("open");
+        com.ars.fx.shell.Tips.tip(wsRow, "Antenna recommender and design calculators — dipoles, EFHW, traps, loops, Yagis, plus the formula tools");
+        wsRow.setOnMouseClicked(e -> openWs.run());
+        list.getChildren().add(wsRow);
         for (Chapter c : chapters) {
             boolean openCh = c.num().equals(expanded[0]);
             Label nm = lbl(c.num() + " · " + c.title(), "j2-topic-nm"); HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
@@ -122,10 +150,15 @@ public final class JLearnView {
         sp.setStyle("-fx-background-color:-ars-bg;-fx-background:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
         return sp;
     }
-    private static Region contentWindow(Section s) {
+    private static Region contentWindow(Section s, Runnable openCalc) {
         VBox v = new VBox(9); v.setPadding(new Insets(28, 30, 36, 30)); v.setMaxWidth(900); v.setStyle("-fx-background-color:-ars-bg;");
         v.getChildren().add(lbl(s.chapter() + " · SECTION " + s.section() + (s.advanced() ? "   ·   ADVANCED ⚙" : ""), "j2-content-eyebrow"));
         v.getChildren().add(wrap(lbl(s.title(), "j2-h1")));
+        if (AntennaCalcs.forSection(s.id()) != null) {
+            javafx.scene.control.Button b = new javafx.scene.control.Button("▶ Open in Antenna Workshop calculator");
+            b.getStyleClass().addAll("ars-btn", "primary"); b.setOnAction(e -> openCalc.run());
+            v.getChildren().add(b);
+        }
         String md = JLearnLibrary.body(s);
         if (md == null || md.isBlank()) {
             v.getChildren().add(wrap(lbl("This section's text isn't available. Open J-Hub ▸ Data ▸ J-LEARN CONTENT and press Update files (or Restore bundled copy) to refresh the library.", "j2-content-body")));

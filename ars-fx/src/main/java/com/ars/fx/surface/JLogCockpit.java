@@ -36,14 +36,6 @@ public final class JLogCockpit {
     private static TextField callRef, freqRef, bandRef, modeRef;   // spot-click prefill targets
     private static Runnable lookupRef;                             // worked-before + callbook lookup for the current call
 
-    // skimmer band-activity decodes: {freq, call, mode, wpm/snr}
-    private static final String[][] SKIMMER = {
-            {"14.0312", "W3LPL",  "CW",  "28 wpm · +21 dB"}, {"14.0285", "K1TTT",  "CW",  "30 wpm · +18 dB"},
-            {"14.0410", "DL8WPX", "CW",  "26 wpm · +12 dB"}, {"14.0235", "VK9DX",  "CW",  "24 wpm · +08 dB"},
-            {"14.0742", "JA1XYZ", "FT8", "-04 dB"},          {"14.0746", "EA5K",   "FT8", "-11 dB"},
-            {"14.0188", "5U5R",   "CW",  "22 wpm · +06 dB"}, {"14.0359", "PY2NY",  "CW",  "29 wpm · +14 dB"},
-    };
-
     public static Region build() {
         Region dock = Shell.dock("log");
         String[][] stats = {
@@ -58,7 +50,14 @@ public final class JLogCockpit {
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
 
         Region rail = Shell.rail(railDrawers());
-        host = new StackPane((Region) Shell.frame(dock, top, sp, rail));
+        // the DX Cluster window from the J-Hub dashboard, beside the entry form
+        Region cluster = JHubDashboard.clusterCol();
+        cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(cluster, Priority.ALWAYS);
+        sp.setMinWidth(600); sp.setPrefWidth(800); HBox.setHgrow(sp, Priority.NEVER);   // the entry form keeps its natural width; the cluster takes the rest
+        HBox main = new HBox(14, sp, cluster); main.setFillHeight(true); main.setPadding(new Insets(0, 14, 0, 0));
+        main.setStyle("-fx-background-color:-ars-bg;");
+        host = new StackPane((Region) Shell.frame(dock, top, main, rail));
         startTicker();
         // spot-click prefill: register this form as the live log + apply any spot picked elsewhere
         SpotAction.setLogTarget(JLogCockpit::prefillSpot);
@@ -111,7 +110,7 @@ public final class JLogCockpit {
         TextField qth  = tf("city / DXCC", "", 220, false);
         TextField stat = tf("ST", "", 70, false);
         TextField cnty = tf("county", "", 200, false);
-        TextField pwr  = tf("W", "100", 80, false);
+        TextField pwr  = tf("W", com.ars.fx.data.HubConfig.get("station.txPower", "100").trim(), 80, false);
         TextField cmt  = tf("notes, QSL info…", "", -1, false);
 
         // QSO date/time (UTC) — live "now" until you override; ⟳ snaps back to now.
@@ -287,16 +286,18 @@ public final class JLogCockpit {
     }
     // ---- RTTY / CW transmit & receive drawer (between entry pane and log) ---
     // digital TX mode chips: {label, rate descriptor}
-    private static final String[][] TX_MODES = {{"CW","25 wpm"},{"RTTY","45 baud · 170 Hz"},{"PSK31","31 baud"}};
+    private static String cwRate() { return com.ars.fx.data.HubConfig.get("tx.cwWpm", "25").trim() + " wpm"; }
+    private static final String[][] TX_MODES = {{"CW", null},{"RTTY","45 baud · 170 Hz"},{"PSK31","31 baud"}};
+    private static String txRate(int i) { return TX_MODES[i][1] == null ? cwRate() : TX_MODES[i][1]; }
     private static TextArea txRxArea() {
-        TextArea rx = new TextArea("CQ CQ CQ DE WM3J WM3J K\nWM3J DE DL8WPX DL8WPX  UR 599 599  NAME HANS HANS  QTH MUNICH  BK\n");
+        TextArea rx = new TextArea(); rx.setPromptText("What you send from here and the macro keyer shows up here.");
         rx.setEditable(false); rx.setWrapText(true); rx.setPrefRowCount(5);
         rx.setStyle("-fx-control-inner-background:#0b0f14; -fx-background-color:#0b0f14; -fx-text-fill:-ars-ok; -fx-font-family:'JetBrains Mono'; -fx-font-size:12px; -fx-border-color:-ars-border; -fx-border-radius:6; -fx-background-radius:6;");
         return rx;
     }
     private static Node rttyCwDrawer(TextArea rx, Consumer<String> transmit) {
         Label[] chips = new Label[TX_MODES.length];
-        Label rate = lbl(TX_MODES[0][1], "jl-skim-meta");
+        Label rate = lbl(txRate(0), "jl-skim-meta");
         HBox modeRow = new HBox(8); modeRow.setAlignment(Pos.CENTER_LEFT);
         for (int i = 0; i < TX_MODES.length; i++) {
             final int idx = i;
@@ -305,7 +306,7 @@ public final class JLogCockpit {
             chip.setOnMouseClicked(e -> {
                 for (Label c : chips) c.getStyleClass().remove("accent");
                 chip.getStyleClass().add("accent");
-                rate.setText(TX_MODES[idx][1]);
+                rate.setText(txRate(idx));
             });
             chips[i] = chip; modeRow.getChildren().add(chip);
         }
@@ -322,7 +323,7 @@ public final class JLogCockpit {
         HBox txRow = new HBox(10, tx, stop, send); txRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox body = new VBox(9, modeRow, rx, txRow); body.setPadding(new Insets(4, 2, 4, 2));
-        return Shell.drawer("RTTY / CW · TX & RX", "digi", "digi", "CW · 25 wpm", false, body);
+        return Shell.drawer("RTTY / CW · TX & RX", "digi", "digi", "CW · " + cwRate(), false, body);
     }
     private static void fillIfEmpty(TextField f, String v) {
         if (v != null && !v.isBlank() && (f.getText() == null || f.getText().isBlank())) f.setText(v);
@@ -396,39 +397,11 @@ public final class JLogCockpit {
     private static Node[] railDrawers() {
         List<Node> rail = new ArrayList<>();
         rail.addAll(Shell.leadDrawers());     // Station ID, Rig control, Rotor control
-        rail.add(spotterDrawer());
         rail.add(heardByDrawer());
         rail.add(awardsDrawer());
-        rail.add(Shell.drawer("Skimmer", "digi", "digi", SKIMMER.length + " decodes", true, skimmerBody()));
+        rail.add(skimmerDrawer());
         rail.addAll(Shell.instruments(50));      // propagation, solar, band conditions, weather
         return rail.toArray(new Node[0]);
-    }
-    /** Spotter / DX cluster drawer — live DX spots from the shared ClusterClient. */
-    private static Node spotterDrawer() {
-        com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
-        Region cdot = new Region(); cdot.getStyleClass().add("jhub-mini-dot"); cdot.setMinSize(8, 8); cdot.setMaxSize(8, 8);
-        cdot.setStyle("-fx-background-color:-ars-t4;-fx-background-radius:99;");
-        Region ssp = new Region(); HBox.setHgrow(ssp, Priority.ALWAYS);
-        Label act = lbl(FeedUi.action(cc), "jl-clearbtn"); act.setStyle("-fx-cursor:hand;");
-        act.setOnMouseClicked(e -> { FeedUi.toggle(cc); act.setText(FeedUi.action(cc)); });
-        Label console = lbl("Console", "jl-clearbtn"); console.setStyle("-fx-cursor:hand;");
-        console.setOnMouseClicked(e -> ClusterConsole.show(console));
-        Label state = lbl(FeedUi.line(cc), "jl-skim-meta");
-        HBox src = new HBox(6, cdot, state, ssp, console, act); src.setAlignment(Pos.CENTER_LEFT);
-        VBox rows = new VBox();
-        Label empty = lbl(FeedUi.emptyList(cc, "cluster"), "jl-skim-meta"); empty.setPadding(new Insets(8, 2, 8, 2)); empty.setWrapText(true);
-        rows.getChildren().add(empty);
-        VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
-        cc.setListener(c -> Shell.keepScroll(rows, () -> {
-            cdot.setStyle(FeedUi.dot(c.status()));
-            state.setText(FeedUi.line(c)); act.setText(FeedUi.action(c));
-            rows.getChildren().clear();
-            List<com.ars.fx.data.ClusterClient.Spot> list = c.spots();
-            if (list.isEmpty()) { empty.setText(FeedUi.emptyList(c, "cluster")); rows.getChildren().add(empty); }
-            else { int n = 0; for (com.ars.fx.data.ClusterClient.Spot s : list) { if (n++ >= 12) break; rows.getChildren().add(spotRow(s)); } }
-        }));
-        cc.start();
-        return Shell.drawer("DX Cluster", "map", "map", cc.endpoint(), true, body);
     }
     private static Region spotRow(com.ars.fx.data.ClusterClient.Spot s) {
         Label fq = lbl(com.ars.fx.data.ClusterClient.fmtFreq(s.freqHz()), "jl-skim-fq"); fq.setMinWidth(58);
@@ -528,20 +501,31 @@ public final class JLogCockpit {
         return Shell.drawer(p.code(), "log", "vault", p.worked() + "/" + p.target(), false, content);
     }
 
-    private static Region skimmerBody() {
-        VBox v = new VBox();
-        for (String[] s : SKIMMER) {
-            Label fq = lbl(s[0], "jl-skim-fq"); fq.setMinWidth(58);
-            Label cl = lbl(s[1], "jl-skim-cl"); HBox.setHgrow(cl, Priority.ALWAYS); cl.setMaxWidth(Double.MAX_VALUE);
-            Label md = lbl(s[2], "jl-mode");
-            Label snr = lbl(s[3], "jl-skim-snr");
-            HBox top = new HBox(9, fq, cl, md); top.setAlignment(Pos.CENTER_LEFT);
-            HBox bot = new HBox(9, lbl("de skimmer", "jl-skim-meta"), snr); bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(2, 0, 0, 0));
-            VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
-            row.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;");
-            v.getChildren().add(row);
-        }
-        return v;
+    private static Runnable skimmerRefresh;
+    /** Skimmer drawer — the callsigns the local CW skimmer has decoded. They arrive as spots from "<mycall>-SKM" in the shared
+     *  list, so this is that list filtered to the skimmer; it fills in as spots come in. */
+    private static Node skimmerDrawer() {
+        VBox rows = new VBox();
+        VBox dw = Shell.drawer("Skimmer", "digi", "digi", "", true, rows);
+        Runnable fill = () -> {
+            boolean on = com.ars.fx.data.HubConfig.getBool("digi.localSkimmer", false);
+            List<com.ars.fx.data.ClusterClient.Spot> heard = new ArrayList<>();
+            for (com.ars.fx.data.ClusterClient.Spot s : com.ars.fx.data.ClusterClient.getInstance().spots())
+                if (s.de() != null && s.de().toUpperCase().endsWith("-SKM") && heard.size() < 12) heard.add(s);
+            Shell.keepScroll(rows, () -> {
+                rows.getChildren().clear();
+                if (heard.isEmpty()) {
+                    Label none = lbl(on ? "Listening — no callsigns decoded yet." : "The local CW skimmer is off. Switch it on in J-Hub ▸ Data ▸ WSJT-X / Digital.", "jl-skim-meta");
+                    none.setWrapText(true); none.setPadding(new Insets(8, 2, 8, 2));
+                    rows.getChildren().add(none);
+                } else for (com.ars.fx.data.ClusterClient.Spot s : heard) rows.getChildren().add(spotRow(s));
+            });
+            if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(!on ? "off" : heard.size() + " decodes");
+        };
+        skimmerRefresh = fill;
+        com.ars.fx.data.ClusterClient.getInstance().addListener("jlog.skimmer", c -> fill.run());   // its callsigns arrive through the same feed
+        fill.run();
+        return dw;
     }
 
     // ---- UTC clock ticker (ID timer is the shared IdTimer component) -------

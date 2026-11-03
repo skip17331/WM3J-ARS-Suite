@@ -38,10 +38,10 @@ platform's JavaFX natives.
 | `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons` |
 | `surface/` | One class per screen: `JHubDashboard` (settings + data), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
 | `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi` |
-| `data/` | Non-UI services: `HubConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `JLogDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `LearnContent`, `Bands` |
+| `data/` | Non-UI services: `HubConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `JLogDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `LearnContent`, `Bands`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
 | `sat/` | SGP4 propagation, pass prediction, Doppler, coordinate transforms |
 | `morse/` | The Morse Trainer engine (audio, decoders, keyers, trainers) shown inside J-Learn |
-| `mock/` | Sample data for screens |
+
 
 Module surfaces: J-Hub, J-Log (normal + contest, with J-Log-Quick on the dashboard), J-Map, J-Sat, J-Digi, J-Bridge,
 J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.

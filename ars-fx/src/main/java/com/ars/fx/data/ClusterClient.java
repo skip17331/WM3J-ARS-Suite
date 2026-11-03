@@ -50,6 +50,13 @@ public final class ClusterClient extends TelnetFeed {
     private final Deque<long[]> activityLog = new ArrayDeque<>();
     private volatile int[][] remoteActivity;           // window side: what the hub last sent
     private volatile Consumer<ClusterClient> listener = c -> {};
+    private final java.util.Map<String, Consumer<ClusterClient>> extraListeners = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** An additional listener for a part of the screen that shares the feed with the main list (the J-Log skimmer drawer,
+     *  say). One per key: registering the same key again replaces it, so a rebuilt screen does not pile up listeners. */
+    public void addListener(String key, Consumer<ClusterClient> l) {
+        if (l == null) extraListeners.remove(key); else extraListeners.put(key, l);
+    }
 
     /** Snapshot of recent spots, newest first. */
     public synchronized List<Spot> spots() { return new ArrayList<>(spots); }
@@ -164,7 +171,7 @@ public final class ClusterClient extends TelnetFeed {
 
     @Override protected void fire() {
         Consumer<ClusterClient> l = listener;
-        try { javafx.application.Platform.runLater(() -> l.accept(this)); }
+        try { javafx.application.Platform.runLater(() -> { l.accept(this); for (Consumer<ClusterClient> x : extraListeners.values()) x.accept(this); }); }
         catch (IllegalStateException noFx) { /* toolkit not up (tests) */ }
     }
 

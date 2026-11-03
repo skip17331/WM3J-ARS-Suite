@@ -46,7 +46,9 @@ public final class WeatherData {
     }
 
     private void fetch() throws Exception {
-        String lat = HubConfig.get("station.lat", "39.7456"), lon = HubConfig.get("station.lon", "-76.96");
+        double[] here = HubConfig.location();
+        if (here == null) { snap = null; return; }            // no location set: nothing to look up (the drawer says so)
+        String lat = String.valueOf(here[0]), lon = String.valueOf(here[1]);
         String url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon
                 + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,"
                 + "wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh";
