@@ -48,7 +48,10 @@ public final class IdTimer {
     private static void applyClass(Node n) {
         n.getStyleClass().removeAll("warn", "over");
         if (seconds <= 0) n.getStyleClass().add("over");
-        else if (seconds <= 60) n.getStyleClass().add("warn");
+        else if (seconds <= 120) n.getStyleClass().add("warn");
+        // blink: lit on even seconds, dimmed on odd (the 1 s ticker drives it)
+        n.getStyleClass().remove("off");
+        if (seconds <= 120 && (seconds & 1) == 1) n.getStyleClass().add("off");
     }
     private static String text() { return seconds <= 0 ? "ID NOW" : String.format("ID %d:%02d", seconds / 60, seconds % 60); }
 }

@@ -243,14 +243,9 @@ public final class Shell {
             HBox.setMargin(gear, new Insets(0, 14, 0, 0));
             top.getChildren().add(gear);
         }
-        // per-module theme: shows the module's current scheme, cycles just this module on click
-        Label theme = lbl("◑ " + com.ars.fx.Themes.effective(hue).label(), "sx-theme"); theme.setStyle("-fx-cursor:hand;");
-        Tips.tip(theme, "Switch this module's colour scheme");
-        theme.setOnMouseClicked(e -> theme.setText("◑ " + cycleModuleTheme().label()));
-        HBox.setMargin(theme, new Insets(0, 16, 0, 0));
         top.getChildren().add(TxIndicator.build());
-        Label id = IdTimer.button(); HBox.setMargin(id, new Insets(0, 8, 0, 0));
-        top.getChildren().addAll(id, theme);
+        Label id = IdTimer.button(); HBox.setMargin(id, new Insets(0, 16, 0, 0));
+        top.getChildren().add(id);
         if (clock != null) {
             VBox c = new VBox(1, lbl("UTC", "sx-clock-k"), lbl(clock, "sx-clock-v"));
             c.getStyleClass().add("sx-stat"); c.setAlignment(Pos.CENTER_RIGHT);
@@ -282,7 +277,7 @@ public final class Shell {
             }
         };
         top.widthProperty().addListener((o, a, b) -> {
-            double row = 0, others = top.getInsets().getLeft() + top.getInsets().getRight() + 30;   // 30: margins around the theme button
+            double row = 0, others = top.getInsets().getLeft() + top.getInsets().getRight() + 60;   // 60: margins around the (larger) ID timer
             for (VBox t : tiles) row += t.prefWidth(-1) + TOP_TILE_GAP * topScale;
             for (Node n : top.getChildren())
                 if (!tiles.contains(n)) others += n == top.getChildren().get(0) ? Math.min(n.prefWidth(-1), TOP_BRAND_MIN) : n.prefWidth(-1);

@@ -100,11 +100,8 @@ public final class JHubDashboard {
         HBox brand = new HBox(8, dot, lbl("J-Hub", "jhub-bar-nm"), brandCall);
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "jhub-theme");
-        theme.setStyle("-fx-cursor:hand;");
-        theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
         Label idTimer = com.ars.fx.shell.IdTimer.button();
-        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), idTimer, theme);
+        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), idTimer);
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }
@@ -632,6 +629,11 @@ public final class JHubDashboard {
 
         VBox units = section("UNITS",
             cfgRow("Units", "Metric: km · °C · km/h · hPa · m      Standard (US): mi · °F · mph · inHg · ft", unitSystemSeg()));
+        Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "sx-theme");
+        theme.setStyle("-fx-cursor:hand;");
+        theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
+        VBox appearance = section("APPEARANCE",
+            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme));
         Label checkMsg = lbl("", "cfg-lh");
         Label checkBtn = lbl("Check now", "sx-theme"); checkBtn.setStyle("-fx-cursor:hand;");
         checkBtn.setOnMouseClicked(e -> {
@@ -652,7 +654,7 @@ public final class JHubDashboard {
             cfgRow("Version", "this build", lbl("v" + com.ars.fx.AppVersion.current(), "cfg-sv")),
             cfgRow("Check for updates", "once a day, from GitHub — nothing about you is sent", cToggle("update.check", true)),
             cfgRow("Check now", null, checkRow));
-        VBox v = new VBox(20, top, desc, cells, id, loc, units, updates, zones);
+        VBox v = new VBox(20, top, desc, cells, id, loc, units, appearance, updates, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
