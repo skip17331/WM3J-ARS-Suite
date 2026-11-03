@@ -34,7 +34,8 @@ public final class UpdateChecker {
     public static final String LATEST_URL = "https://api.github.com/repos/skip17331/WM3J-ARS-Suite/releases/latest";
 
     /** One downloadable file attached to a release. */
-    public record Asset(String name, String url, long size) {}
+    /** {@code digest} is GitHub's "sha256:<hex>" for the file ("" if the release predates digests). */
+    public record Asset(String name, String url, long size, String digest) {}
 
     /** A published release: {@code tag} like {@code v1.12.0}, {@code url} its GitHub page, {@code notes} its markdown body. */
     public record Release(String tag, String name, String url, String notes, List<Asset> assets) {
@@ -60,7 +61,7 @@ public final class UpdateChecker {
                 String name = str(a, "name"), url = str(a, "browser_download_url");
                 if (name.isEmpty() || url.isEmpty()) continue;
                 long size = a.has("size") && a.get("size").isJsonPrimitive() ? a.get("size").getAsLong() : 0;
-                assets.add(new Asset(name, url, size));
+                assets.add(new Asset(name, url, size, str(a, "digest")));
             }
         }
         return new Release(tag, str(o, "name"), str(o, "html_url"), str(o, "body"), List.copyOf(assets));

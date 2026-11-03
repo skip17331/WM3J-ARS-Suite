@@ -1,6 +1,7 @@
 package com.ars.fx.shell;
 
 import com.ars.fx.AppVersion;
+import com.ars.fx.data.UpdateApplier;
 import com.ars.fx.data.UpdateChecker;
 import com.ars.fx.data.UpdateChecker.Release;
 import javafx.application.HostServices;
@@ -44,6 +45,26 @@ public final class UpdateBanner {
         card = null; shown = null;
     }
 
+    /** Download + verify off the UI thread, then hand over to the helper and exit; on any failure the app keeps running unchanged. */
+    private static void apply(Release r, Label now, Label status, HBox actions) {
+        actions.setDisable(true);
+        status.setText("Downloading " + r.tag() + "…");
+        Thread t = new Thread(() -> {
+            try {
+                java.nio.file.Path jar = UpdateApplier.download(r, p -> Platform.runLater(() -> status.setText("Downloading " + r.tag() + "… " + Math.round(p * 100) + "%")));
+                Platform.runLater(() -> status.setText("Restarting to finish the update…"));
+                UpdateApplier.launchHelper(jar);
+                Platform.runLater(() -> { Platform.exit(); System.exit(0); });
+            } catch (Exception ex) {
+                Platform.runLater(() -> {
+                    status.setText("Update failed: " + ex.getMessage());
+                    actions.setDisable(false);
+                });
+            }
+        }, "update-apply");
+        t.setDaemon(true); t.start();
+    }
+
     private static VBox build(Release r) {
         Label title = lbl("Update available — " + r.tag(), "ub-title");
         Label sub = lbl("You have v" + AppVersion.current() + ".", "ub-sub");
@@ -54,6 +75,11 @@ public final class UpdateBanner {
         Label later = lbl("Later", "ub-link"); later.setStyle("-fx-cursor:hand;");
         later.setOnMouseClicked(e -> dismiss());
         HBox actions = new HBox(14, notes, skip, later); actions.setAlignment(Pos.CENTER_LEFT);
+        if (UpdateApplier.supported()) {
+            Label now = lbl("Update now", "ub-btn"); now.setStyle("-fx-cursor:hand;");
+            now.setOnMouseClicked(e -> apply(r, now, sub, actions));
+            actions.getChildren().add(0, now);
+        }
         VBox c = new VBox(4, title, sub, actions);
         c.getStyleClass().add("ub-card");
         c.setMaxSize(VBox.USE_PREF_SIZE, VBox.USE_PREF_SIZE);

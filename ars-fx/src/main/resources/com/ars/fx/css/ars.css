@@ -792,3 +792,5 @@
 .ub-sub   { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
 .ub-link  { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
 .ub-link:hover { -fx-underline: true; }
+.ub-btn   { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-accent-text; -fx-background-color: -ars-accent; -fx-background-radius: 5; -fx-padding: 3 10 3 10; }
+.ub-btn:hover { -fx-background-color: derive(-ars-accent, 15%); }
