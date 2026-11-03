@@ -192,10 +192,13 @@
 .sx-clock-v  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .sx-theme    { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 4 9 4 9; }
 .sx-theme:hover { -fx-text-fill: -ars-t1; -fx-border-color: -ars-t3; }
-.sx-idbtn { -fx-font-family: "JetBrains Mono"; -fx-text-fill: -ars-ok; }
+.sx-idbtn { -fx-font-family: "JetBrains Mono"; -fx-font-size: 20px; -fx-padding: 6 14 6 14; -fx-text-fill: -ars-ok; }
 .sx-idbtn:hover { -fx-text-fill: -ars-ok; -fx-border-color: -ars-ok; }
 .sx-idbtn.warn, .sx-idbtn.warn:hover { -fx-text-fill: -ars-warn; -fx-border-color: -ars-warn; }
 .sx-idbtn.over, .sx-idbtn.over:hover { -fx-text-fill: -ars-err; -fx-border-color: -ars-err; -fx-background-color: -ars-err-soft; }
+.sx-idbtn.warn.off, .sx-idbtn.warn.off:hover { -fx-text-fill: transparent; -fx-background-color: transparent; }
+.sx-idbtn.warn:not(.off) { -fx-background-color: #eebb5833; }
+.sx-idbtn.over.off, .sx-idbtn.over.off:hover { -fx-text-fill: transparent; -fx-background-color: transparent; }
 
 /* per-module brand tile (precomputed mix18_s3 / rgba.28) */
 .sx-brand-ic.log    { -fx-background-color: #424240; -fx-text-fill: -ars-log;    -fx-border-color: rgba(235,179,83,0.28); }
