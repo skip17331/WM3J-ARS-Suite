@@ -632,7 +632,27 @@ public final class JHubDashboard {
 
         VBox units = section("UNITS",
             cfgRow("Units", "Metric: km · °C · km/h · hPa · m      Standard (US): mi · °F · mph · inHg · ft", unitSystemSeg()));
-        VBox v = new VBox(20, top, desc, cells, id, loc, units, zones);
+        Label checkMsg = lbl("", "cfg-lh");
+        Label checkBtn = lbl("Check now", "sx-theme"); checkBtn.setStyle("-fx-cursor:hand;");
+        checkBtn.setOnMouseClicked(e -> {
+            checkMsg.setText("Checking…");
+            Thread t = new Thread(() -> {
+                String msg;
+                try {
+                    var r = com.ars.fx.data.UpdateChecker.check(true);
+                    msg = r == null ? "You're up to date (v" + com.ars.fx.AppVersion.current() + ")." : r.tag() + " is available.";
+                } catch (Exception ex) { msg = "Couldn't reach GitHub: " + ex.getMessage(); }
+                String m = msg;
+                javafx.application.Platform.runLater(() -> checkMsg.setText(m));
+            }, "update-check-manual");
+            t.setDaemon(true); t.start();
+        });
+        HBox checkRow = new HBox(12, checkBtn, checkMsg); checkRow.setAlignment(Pos.CENTER_LEFT);
+        VBox updates = section("UPDATES",
+            cfgRow("Version", "this build", lbl("v" + com.ars.fx.AppVersion.current(), "cfg-sv")),
+            cfgRow("Check for updates", "once a day, from GitHub — nothing about you is sent", cToggle("update.check", true)),
+            cfgRow("Check now", null, checkRow));
+        VBox v = new VBox(20, top, desc, cells, id, loc, units, updates, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
