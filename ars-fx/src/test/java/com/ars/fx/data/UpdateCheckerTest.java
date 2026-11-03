@@ -69,4 +69,12 @@ class UpdateCheckerTest {
         assertFalse(UpdateChecker.shouldOffer(r, "1.11.0", "v1.12.0"));          // skipped
         assertTrue(UpdateChecker.shouldOffer(r, "1.11.0", "v1.11.5"));           // an older skip doesn't hide a newer release
     }
+
+    @Test
+    void networkFailuresGetAPlainSentence() {
+        assertTrue(UpdateChecker.friendly(new java.net.http.HttpConnectTimeoutException("HTTP connect timed out")).contains("timed out"));
+        assertTrue(UpdateChecker.friendly(new java.net.ConnectException("x")).contains("internet"));
+        assertTrue(UpdateChecker.friendly(new java.net.UnknownHostException("github.com")).contains("github.com"));
+        assertEquals("boom", UpdateChecker.friendly(new java.io.IOException("boom")));
+    }
 }

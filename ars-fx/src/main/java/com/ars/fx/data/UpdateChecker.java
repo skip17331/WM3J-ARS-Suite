@@ -101,9 +101,44 @@ public final class UpdateChecker {
 
     // ---- network ----------------------------------------------------------------------------------
 
-    /** Fetch the latest published release. */
+    /** Fetch the latest published release. A connect failure is retried once (a Wi-Fi blip shouldn't fail a check). */
     public static Release fetchLatest() throws IOException, InterruptedException {
-        HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10))
+        try { return fetchOnce(15); }
+        catch (java.net.ConnectException | java.net.http.HttpTimeoutException first) {
+            logFailure(first);
+            Thread.sleep(2000);
+            try { return fetchOnce(30); }
+            catch (IOException second) { logFailure(second); throw new IOException(friendly(second), second); }
+        }
+    }
+
+    /** One short, human sentence for a network failure (the raw JDK messages, like "HTTP connect timed out", mean little to users). */
+    static String friendly(Exception e) {
+        if (e instanceof java.net.http.HttpTimeoutException || e instanceof java.net.ConnectException)
+            return "connection to GitHub timed out — check your internet connection and try again";
+        if (e instanceof java.net.UnknownHostException) return "can't find github.com — check your internet connection";
+        return e.getMessage() == null ? e.toString() : e.getMessage();
+    }
+
+    /** Append the full failure (type, cause chain, what github.com resolved to) to ~/.j-hub/updates/check.log so a repeat can be diagnosed. */
+    private static void logFailure(Exception e) {
+        try {
+            String nl = System.lineSeparator();
+            StringBuilder sb = new StringBuilder(java.time.Instant.now() + "  update check failed: " + e);
+            for (Throwable c = e.getCause(); c != null; c = c.getCause()) sb.append(nl).append("    caused by ").append(c);
+            try { sb.append(nl).append("    api.github.com -> ").append(java.util.Arrays.toString(java.net.InetAddress.getAllByName("api.github.com"))); }
+            catch (Exception dns) { sb.append(nl).append("    api.github.com did not resolve: ").append(dns); }
+            java.net.ProxySelector ps = java.net.ProxySelector.getDefault();
+            sb.append(nl).append("    proxy: ").append(ps == null ? "none" : ps.select(URI.create(LATEST_URL)))
+              .append("  java ").append(System.getProperty("java.version")).append(nl);
+            java.nio.file.Path dir = java.nio.file.Path.of(System.getProperty("user.home"), ".j-hub", "updates");
+            java.nio.file.Files.createDirectories(dir);
+            java.nio.file.Files.writeString(dir.resolve("check.log"), sb.toString(), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (Exception ignored) { }
+    }
+
+    private static Release fetchOnce(int connectSecs) throws IOException, InterruptedException {
+        HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(connectSecs))
                 .followRedirects(HttpClient.Redirect.NORMAL).build();
         HttpResponse<String> r = http.send(HttpRequest.newBuilder(URI.create(LATEST_URL)).timeout(Duration.ofSeconds(20))
                 .header("Accept", "application/vnd.github+json").header("User-Agent", "WM3J-ARS-Suite/" + AppVersion.current())
