@@ -75,8 +75,15 @@ fi
 
 INSTALLER_JAR="$( find_installer_jar )"
 
-if [[ -z "$INSTALLER_JAR" ]]; then
-    echo "[bootstrap] Installer jar not found — building…"
+# Rebuild when the jar is missing OR any installer source/resource/pom is newer than it,
+# so edits to the installer are never silently skipped by a stale jar.
+installer_stale() {
+    [[ -z "$INSTALLER_JAR" ]] && return 0
+    [[ -n "$(find "$SCRIPT_DIR/installer/src" "$SCRIPT_DIR/installer/pom.xml" -newer "$INSTALLER_JAR" -print -quit 2>/dev/null)" ]]
+}
+
+if installer_stale; then
+    echo "[bootstrap] Installer jar missing or out of date — building…"
     command -v mvn >/dev/null 2>&1 || {
         echo "error: Maven is required to build the installer but 'mvn' was not found."
         exit 1

@@ -187,9 +187,7 @@ public final class Installer {
     private static void writeAmateurRadioMenu(Path home, Path iconDir) {
         try {
             Path dirs = home.resolve(".local/share/desktop-directories");
-            Path menus = home.resolve(".config/menus/applications-merged");
             Files.createDirectories(dirs);
-            Files.createDirectories(menus);
             Path icon = iconDir.resolve("ars-fx.png");
             StringBuilder d = new StringBuilder("[Desktop Entry]\nType=Directory\nName=Amateur Radio\n");
             d.append("Icon=").append(Files.exists(icon) ? icon.toString() : "applications-other").append('\n');
@@ -199,7 +197,12 @@ public final class Installer {
                 + "<Menu>\n  <Name>Applications</Name>\n  <Menu>\n    <Name>Amateur Radio</Name>\n"
                 + "    <Directory>ars-amateur-radio.directory</Directory>\n"
                 + "    <Include><Category>X-ARS-Suite</Category></Include>\n  </Menu>\n</Menu>\n";
-            Files.writeString(menus.resolve("ars-amateur-radio.menu"), xml, StandardCharsets.UTF_8);
+            // Cinnamon merges cinnamon-applications-merged; the other XDG desktops merge applications-merged.
+            for (String merged : new String[] {"applications-merged", "cinnamon-applications-merged"}) {
+                Path menus = home.resolve(".config/menus").resolve(merged);
+                Files.createDirectories(menus);
+                Files.writeString(menus.resolve("ars-amateur-radio.menu"), xml, StandardCharsets.UTF_8);
+            }
             try { new ProcessBuilder("update-desktop-database", home.resolve(".local/share/applications").toString())
                     .redirectErrorStream(true).start(); } catch (Exception ignored) {}
         } catch (Exception e) { System.err.println("  (could not write the Amateur Radio menu folder: " + e.getMessage() + ")"); }
