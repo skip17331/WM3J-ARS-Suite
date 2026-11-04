@@ -24,13 +24,16 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class JLearnView {
     private JLearnView() {}
 
-    private static boolean workshopRequested;
-    /** The next J-Learn screen opens on the Antenna Workshop (used by the J-Hub nav link). */
+    private static boolean workshopRequested, morseRequested;
+    /** The next J-Learn screen opens on the Antenna Workshop (the dock's Antenna Workshop entry). */
     public static void requestWorkshop() { workshopRequested = true; }
+    /** The next J-Learn screen opens on the Morse Trainer (the dock's Morse Trainer entry). */
+    public static void requestMorse() { morseRequested = true; }
 
     public static Region build() {
         com.ars.fx.data.LearnContent.seedIfMissing();   // first use: copy the chapters bundled in the jar to ~/.j-learn/content
-        Region dock = Shell.dock("learn");
+        // the dock entry that opened this screen stays lit: Morse Trainer / Antenna Workshop, else J-Learn itself
+        Region dock = Shell.dock(morseRequested ? "morse" : workshopRequested ? "workshop" : "learn");
         List<Chapter> chapters = JLearnLibrary.chapters();
         int adv = 0; for (Chapter c : chapters) for (Section s : c.sections()) if (s.advanced()) adv++;
         String[][] stats = {{"CHAPTERS", String.valueOf(chapters.size())},
@@ -80,6 +83,7 @@ public final class JLearnView {
         rebuild[0].run();
 
         if (workshopRequested) { workshopRequested = false; openWsRef[0].run(); }
+        if (morseRequested) { morseRequested = false; openMorse.run(); }
         HBox center = new HBox(leftHolder, window); center.setFillHeight(true);
         return Shell.frame(dock, top, center, null);
     }

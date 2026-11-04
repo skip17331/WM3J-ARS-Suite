@@ -178,7 +178,7 @@ public final class JSatView {
         Label l = lbl(missing.isEmpty() ? "No satellites selected." : "None of the selected satellites has orbital data yet.");
         l.setStyle("-fx-font-size:14px;-fx-text-fill:-ars-t2;");
         Label go = lbl("Choose satellites and refresh orbital data in J-Hub ›", "jl-logbtn"); go.setStyle("-fx-cursor:hand;-fx-padding:8 16;");
-        go.setOnMouseClicked(e -> Shell.navigate("hubsat"));
+        go.setOnMouseClicked(e -> Shell.navigate("setup:sat"));
         VBox v = new VBox(14, l, go); v.setAlignment(Pos.CENTER);
         StackPane sp = new StackPane(v); sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
         return sp;
@@ -205,7 +205,7 @@ public final class JSatView {
         p.getChildren().add(new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("sat", JSatView::rebuild)));
         java.util.Map<String, Color> cm = colorMap(snap);
         Label pick = lbl("Choose satellites in J-Hub ›", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
-        pick.setOnMouseClicked(e -> Shell.navigate("hubsat"));
+        pick.setOnMouseClicked(e -> Shell.navigate("setup:sat"));
         p.getChildren().add(pick);
         java.util.List<String> missing = SatService.getInstance().missingNames();
         if (!missing.isEmpty()) {

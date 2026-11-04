@@ -43,7 +43,7 @@ platform's JavaFX natives.
 | Package | Contents |
 |---|---|
 | `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons`, `AppVersion` (build version stamped from `version.properties`; version compare for the update check) |
-| `surface/` | One class per screen: `JHubDashboard` (settings + data), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
+| `surface/` | One class per screen: `JHubDashboard` (dashboard + the setup page builders), `JHubSetup` (the one Setup screen: second left menu, section swapped on the right; open a section with `Shell.navigate("setup:<id>")`), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
 | `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi`, `AutoPanel`, `Glyphs`, `IdTimer` (station-ID countdown), `UpdateBanner` |
 | `data/` | Non-UI services: `HubConfig`, `ModuleConfig`, `SoloConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `RemoteLink`/`RemoteServer`, `JLogDb`, `JVaultDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `DxccInfo`, `LearnContent`, `Bands`, `UpdateChecker`/`UpdateApplier`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
 | `sat/` | SGP4 propagation, pass prediction, Doppler, coordinate transforms |
@@ -51,7 +51,8 @@ platform's JavaFX natives.
 
 
 Module surfaces: J-Hub, J-Log (normal + contest, with J-Log-Quick on the dashboard), J-Map, J-Sat, J-Digi, J-Bridge,
-J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
+J-Vault, J-Learn. The Morse Trainer and Antenna Workshop also have dock entries of their own (`ModuleConfig` ids `morse` and
+`workshop`); they open inside the J-Learn screen. Modules can be switched off in J-Hub ▸ Setup ▸ Modules.
 
 ## Embedded libraries
 

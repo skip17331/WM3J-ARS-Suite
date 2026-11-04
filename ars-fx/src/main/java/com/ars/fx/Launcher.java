@@ -121,6 +121,9 @@ public class Launcher extends Application {
     }
 
     private void show(String id) {
+        // Morse Trainer and Antenna Workshop have dock entries of their own but live inside the J-Learn screen
+        if (id.equals("morse"))    { com.ars.fx.surface.JLearnView.requestMorse();    id = "learn"; }
+        if (id.equals("workshop")) { com.ars.fx.surface.JLearnView.requestWorkshop(); id = "learn"; }
         Shell.currentSurface = id;
         if (id.equals("log") || id.equals("logc")) Shell.lastLogSurface = id;   // remember J-Log's mode
         host.getChildren().setAll(buildSurface(id));
@@ -143,18 +146,20 @@ public class Launcher extends Application {
 
     /** Build a surface frame by id. */
     public static Region buildSurface(String id) {
+        if (id.startsWith("setup:")) return com.ars.fx.surface.JHubSetup.build(id.substring("setup:".length()));
         switch (id) {
             case "log":    return com.ars.fx.surface.JLogCockpit.build();
             case "logc":   return com.ars.fx.surface.JLogContest.build();
             case "hub":      return com.ars.fx.surface.JHubDashboard.build();
-            case "hubcfg":   return com.ars.fx.surface.JHubDashboard.buildConfig();
-            case "station":  return com.ars.fx.surface.JHubDashboard.buildStation();
-            case "hubrotor": return com.ars.fx.surface.JHubDashboard.buildRotor();
-            case "hubamp":   return com.ars.fx.surface.JHubDashboard.buildAmp();
-            case "hubant":   return com.ars.fx.surface.JHubDashboard.buildAntSw();
-            case "hubdata":  return com.ars.fx.surface.JHubDashboard.buildData();
-            case "hubmods":  return com.ars.fx.surface.JHubDashboard.buildModules();
-            case "hubsat":   return com.ars.fx.surface.JHubDashboard.buildSatellites();
+            // J-Hub setup is one screen with its own left menu; these ids open it on the matching section
+            case "station":  return com.ars.fx.surface.JHubSetup.build("station");
+            case "hubcfg":   return com.ars.fx.surface.JHubSetup.build("rig");
+            case "hubrotor": return com.ars.fx.surface.JHubSetup.build("rotor");
+            case "hubamp":   return com.ars.fx.surface.JHubSetup.build("amp");
+            case "hubant":   return com.ars.fx.surface.JHubSetup.build("antsw");
+            case "hubdata":  return com.ars.fx.surface.JHubSetup.build("logdb");
+            case "hubmods":  return com.ars.fx.surface.JHubSetup.build("modules");
+            case "hubsat":   return com.ars.fx.surface.JHubSetup.build("sat");
             case "map":    return com.ars.fx.surface.JMapView.build();
             case "sat":    return com.ars.fx.surface.JSatView.build();
             case "digi":   return com.ars.fx.surface.JDigiView.build();

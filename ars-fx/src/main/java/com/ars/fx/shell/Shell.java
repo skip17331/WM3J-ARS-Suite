@@ -169,10 +169,6 @@ public final class Shell {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
         dock.getChildren().add(spacer());
-        // Station settings foot
-        VBox foot = new VBox(dockItemRaw("gear", "Station settings", "gear", false, activeId, expandOnly));
-        foot.getStyleClass().add("sx-dock-foot");
-        dock.getChildren().add(foot);
 
         // Scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would make
         // the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.

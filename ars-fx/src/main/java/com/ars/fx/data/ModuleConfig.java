@@ -24,7 +24,10 @@ public final class ModuleConfig {
         new Mod("digi",   "J-Digi",   "digi",   "Digital modes"),
         new Mod("sat",    "J-Sat",    "sat",    "Satellite tracking"),
         new Mod("vault",  "J-Vault",  "vault",  "Inventory"),
-        new Mod("learn",  "J-Learn",  "learn",  "Reference")
+        new Mod("learn",  "J-Learn",  "learn",  "Reference"),
+        // J-Learn tools with a dock entry of their own; they open inside the J-Learn screen and share its colour
+        new Mod("morse",    "Morse Trainer",    "learn", "CW practice"),
+        new Mod("workshop", "Antenna Workshop", "learn", "Antenna design")
     );
 
     public static boolean enabled(String id) { return HubConfig.getBool("module." + id + ".enabled", true); }
@@ -77,6 +80,8 @@ public final class ModuleConfig {
             case "bridge" -> "WSJT-X bridge";
             case "vault"  -> "Station inventory & estate";
             case "learn"  -> "Reference & study";
+            case "morse"    -> "Morse Trainer — practise CW (opens in J-Learn)";
+            case "workshop" -> "Antenna Workshop — recommender & calculators (opens in J-Learn)";
             default        -> "";
         };
     }

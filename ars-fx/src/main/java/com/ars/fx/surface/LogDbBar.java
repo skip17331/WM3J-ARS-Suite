@@ -24,7 +24,7 @@ final class LogDbBar {
                 : "Normal-log QSOs are stored here.\n" + LogDbInfo.normalPath()));
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         Label tools = lbl("Database tools ›", "jl-clearbtn"); tools.setStyle("-fx-cursor:hand;");
-        tools.setOnMouseClicked(e -> Shell.navigate("hubdata"));   // J-Hub ▸ Data: database info, export, upload
+        tools.setOnMouseClicked(e -> Shell.navigate("setup:logdb"));   // J-Hub ▸ Data: database info, export, upload
         HBox bar = new HBox(10, where, gap);
         if (contest) {
             Label sw = lbl("Switch database", "jl-clearbtn"); sw.setStyle("-fx-cursor:hand;");
