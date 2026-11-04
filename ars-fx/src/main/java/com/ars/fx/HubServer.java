@@ -73,7 +73,13 @@ public final class HubServer {
         int port = RemoteServer.port();
         auto = Boolean.getBoolean("ars.hub.auto");
 
-        // Refuse to start a second hub on the same machine — the daemons/port are single-owner.
+        // Refuse to start a second hub on the same machine — the daemons/port are single-owner. The lock file closes the
+        // race where two clients spawn a hub at the same moment (both would pass the port check, since the port is
+        // only bound after the daemons and feeds are up); the port check still catches a hub from an older build.
+        if (!acquireSingleInstanceLock()) {
+            System.out.println("[hub] another hub process is starting or running — nothing to do");
+            return;
+        }
         if (portOpen(port)) {
             System.out.println("[hub] a sharing hub is already listening on :" + port + " — nothing to do");
             return;
@@ -92,6 +98,7 @@ public final class HubServer {
         RemoteServer.onClientCount = HubServer::onClientCount;   // wire refcount before the server accepts clients
         RemoteServer.onReconfig    = HubServer::reconcile;
         RemoteServer.startHub();
+        if (!auto) scheduleStartupIdleCheck();   // a hub started on its own must not hold the cluster for nobody
 
         Runtime.getRuntime().addShutdownHook(new Thread(HubServer::cleanup, "hub-shutdown"));
 
@@ -129,10 +136,10 @@ public final class HubServer {
 
     // ── client refcount → linger shutdown ─────────────────────────────────────
 
-    /** Driven by {@link RemoteServer} on every connect/disconnect. When the last client leaves a short linger
-     *  timer starts, and a returning client cancels it — so swapping modules doesn't churn the connections.
-     *  If it runs out, an auto hub exits; a sticky hub (it only stops on Quit) stays up but hangs up the
-     *  DX-cluster / RBN telnet connections and leaves them down: the operator reconnects by hand. */
+    /** Driven by {@link RemoteServer} on every connect/disconnect. When the last client leaves (windows and LAN peers
+     *  both count) a short linger timer starts, and a returning client cancels it — so swapping modules doesn't
+     *  churn the connections. If it runs out, an auto hub exits; a sticky hub (it only stops on Quit) stays up
+     *  but hangs up the DX-cluster / RBN telnet connections and leaves them down: the operator reconnects by hand. */
     private static synchronized void onClientCount(int n) {
         if (n > 0) { hadClient = true; cancelLinger(); }
         else if (hadClient) scheduleLinger();
@@ -149,15 +156,40 @@ public final class HubServer {
         }, grace, TimeUnit.SECONDS);
     }
 
+    /** A sticky hub that nobody ever attaches to (started with {@code --hub}, window never opened) drops the feeds too. */
+    private static void scheduleStartupIdleCheck() {
+        LINGER.schedule(() -> { if (!hadClient && RemoteServer.clientCount() == 0) dropFeeds(); }, 30, TimeUnit.SECONDS);
+    }
+
     // The telnet feeds the hub owns.
     private static final com.ars.fx.data.TelnetFeed[] FEEDS = {
             ClusterClient.getInstance(), HeardByClient.getInstance() };
 
-    /** No client is attached: hang up the DX-cluster / RBN connections. They stay down until the operator
-     *  presses Connect (a disconnect pauses the feed, so it does not retry on its own). */
+    /** Nothing is attached: hang up the DX-cluster / RBN connections. They stay down until the operator presses
+     *  Connect (a disconnect pauses the feed, so it does not retry on its own). */
     private static void dropFeeds() {
         for (com.ars.fx.data.TelnetFeed f : FEEDS) f.disconnect();
-        System.out.println("[hub] no clients — cluster feeds disconnected");
+        System.out.println("[hub] nothing attached — cluster feeds disconnected");
+    }
+
+    // Held for the life of the process; the OS releases it if the hub dies, so a crash never blocks the next hub.
+    private static java.nio.channels.FileChannel lockChannel;
+    private static java.nio.channels.FileLock lockHandle;
+
+    /** True if this process now owns the single-hub lock. Fails open (true) if the lock file can't be used at all. */
+    private static boolean acquireSingleInstanceLock() {
+        try {
+            File dir = new File(System.getProperty("user.home"), ".j-hub");
+            dir.mkdirs();
+            lockChannel = java.nio.channels.FileChannel.open(new File(dir, "hub.lock").toPath(),
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE);
+            lockHandle = lockChannel.tryLock();            // null when another process holds it
+            return lockHandle != null;
+        } catch (java.nio.channels.OverlappingFileLockException e) {
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     private static void cancelLinger() {

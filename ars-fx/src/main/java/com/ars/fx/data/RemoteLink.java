@@ -30,7 +30,6 @@ public final class RemoteLink {
 
     public static boolean isActive() { return INSTANCE != null; }
     public static RemoteLink get() { return INSTANCE; }
-
     /** Begin the link to a station J-Hub (idempotent). Bad URLs fail quietly to local behaviour.
      *  {@code identity} is the module label sent in the {@code hello} so the hub can list/track clients
      *  (e.g. "log", "map", or "dock" for the docked app). */
@@ -117,8 +116,7 @@ public final class RemoteLink {
                 return;
             }
             if (!"state".equals(type)) return;
-            if (o.has("tx")) TxController.applyRemoteTx(o.get("tx").getAsBoolean());
-            if (o.has("activity") && o.get("activity").isJsonArray()) {
+            if (o.has("tx")) TxController.applyRemoteTx(o.get("tx").getAsBoolean());            if (o.has("activity") && o.get("activity").isJsonArray()) {
                 com.google.gson.JsonArray ja = o.getAsJsonArray("activity"); int[] flat = new int[ja.size()];
                 for (int i = 0; i < flat.length; i++) flat[i] = ja.get(i).getAsInt();
                 ClusterClient.getInstance().applyRemoteActivity(flat);
