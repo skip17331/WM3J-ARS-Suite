@@ -21,13 +21,15 @@ public final class LookupConfig {
     /** A provider definition: id, display label, hint, whether it needs user/secret, whether it needs a path. */
     public record Prov(String id, String label, String hint, boolean creds, boolean path) {}
 
+    /** Lookup order: first hit wins, so the free no-login Callook (US only, no county) goes LAST as a fallback;
+     *  otherwise it answers every US call and the operator's own QRZ / HamQTH account is never asked. */
     public static final List<Prov> PROVIDERS = List.of(
-            new Prov("callook",    "Callook.info",        "US callbook · free, no login",    false, false),
-            new Prov("hamqth",     "HamQTH",              "worldwide · free account",        true,  false),
             new Prov("qrz",        "QRZ.com XML",         "worldwide · XML subscription",    true,  false),
+            new Prov("hamqth",     "HamQTH",              "worldwide · free account",        true,  false),
             new Prov("qrzcq",      "QRZCQ.com",           "worldwide · account",             true,  false),
             new Prov("hamcall",    "HamCall (online)",    "Buckmaster · subscription",       true,  false),
-            new Prov("hamcall_cd", "HamCall (CD / local)","local callbook CSV file",         false, true));
+            new Prov("hamcall_cd", "HamCall (CD / local)","local callbook CSV file",         false, true),
+            new Prov("callook",    "Callook.info",        "US callbook · free, no login (fallback)", false, false));
 
     public record Setting(boolean enabled, String user, String secret, String extra) {}
 
