@@ -44,7 +44,12 @@ public final class SpotAction {
 
     private static volatile Consumer<Prefill> logTarget;     // set by the live J-Log normal form
     private static volatile Consumer<Prefill> contestTarget; // set by the live J-Log contest form
+    private static volatile Consumer<Prefill> quickTarget;   // set while the J-Log-Quick card is on screen (J-Hub dashboard)
     private static volatile Prefill pending;                 // queued when neither log form is on screen
+
+    /** J-Log-Quick registers while it is on screen, and unregisters (only if still the current one) when it leaves. */
+    static void setQuickTarget(Consumer<Prefill> t) { quickTarget = t; }
+    static void clearQuickTarget(Consumer<Prefill> t) { if (quickTarget == t) quickTarget = null; }
 
     /** The J-Log form registers how to fill itself (called each time it is built). */
     public static void setLogTarget(Consumer<Prefill> t) { logTarget = t; }
@@ -69,8 +74,11 @@ public final class SpotAction {
                 freqHz > 0 ? String.format(Locale.US, "%.3f", freqHz / 1e6) : null,
                 (band == null || band.isBlank()) ? null : band,
                 logMode(mode, freqHz));
+        com.ars.fx.data.DebugLog.log("spot click " + c + " surface=" + Shell.currentSurface
+                + " logTarget=" + (logTarget != null) + " contestTarget=" + (contestTarget != null));
         if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
         else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
+        else if (quickTarget != null) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now
         else pending = pf;
 
         // 2. tune the radio

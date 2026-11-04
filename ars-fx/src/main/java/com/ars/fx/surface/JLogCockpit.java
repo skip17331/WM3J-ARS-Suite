@@ -34,7 +34,8 @@ public final class JLogCockpit {
     private static TextField dateRef, timeRef;   // QSO date/time fields the ticker keeps "live"
     private static boolean[] manualRef;          // true once the operator overrides date/time
     private static TextField callRef, freqRef, bandRef, modeRef;   // spot-click prefill targets
-    private static Runnable lookupRef;                             // worked-before + callbook lookup for the current call
+    private static Runnable clearRef;                              // the Clear button's action: a spot click starts from a blank form
+    private static Runnable lookupRef;                            // worked-before + callbook lookup for the current call
 
     public static Region build() {
         Region dock = Shell.dock("log");
@@ -69,7 +70,9 @@ public final class JLogCockpit {
     /** Fill the new-QSO form from a clicked DX spot (callsign + freq/band/mode), then focus the call field. */
     static void prefillSpot(SpotAction.Prefill p) {
         Runnable r = () -> {
+            com.ars.fx.data.DebugLog.log("J-Log prefill call=" + (p == null ? null : p.call()) + " formReady=" + (callRef != null));
             if (callRef == null || p == null) return;
+            if (clearRef != null) clearRef.run();     // new spot = new contact: clear the previous one's name/QTH/grid, and forget the last lookup
             if (p.call() != null) callRef.setText(p.call());
             if (p.freqMhz() != null) freqRef.setText(p.freqMhz());
             if (p.band() != null && !p.band().isBlank()) bandRef.setText(p.band());
@@ -234,7 +237,9 @@ public final class JLogCockpit {
         logBtn.setOnMouseClicked(e -> doLog.run());
         call.setOnAction(e -> doLog.run());
         cmt.setOnAction(e -> doLog.run());
-        clear.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = ""; call.requestFocus(); });
+        Runnable clearForm = () -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = ""; };
+        clearRef = clearForm;
+        clear.setOnMouseClicked(e -> { clearForm.run(); call.requestFocus(); });
         cancel.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); call.requestFocus(); });
 
         // Worked-before/dupe indicator + callbook autofill for the current call (both off-thread).
@@ -242,7 +247,7 @@ public final class JLogCockpit {
         Runnable doCallLookup = () -> {
             String c = call.getText() == null ? "" : call.getText().trim().toUpperCase();
             if (c.length() < 3) { b4.setText("Normal log"); b4.setStyle(""); return; }
-            if (c.equals(lastLk[0])) return;
+            if (c.equals(lastLk[0])) { com.ars.fx.data.DebugLog.log("J-Log lookup skipped (same call as last) " + c); return; }
             lastLk[0] = c;
             String curBand = band.getText() == null ? "" : band.getText().trim();
             boolean lookupOn = com.ars.fx.data.LookupConfig.anyEnabled();
@@ -251,7 +256,8 @@ public final class JLogCockpit {
                 com.ars.fx.data.CallsignLookup.Result r = lookupOn ? com.ars.fx.data.CallsignLookup.lookup(c) : null;
                 Platform.runLater(() -> {
                     updateB4(b4, prior, curBand);
-                    if (r != null) { fillIfEmpty(name, r.name()); fillIfEmpty(grid, r.grid()); fillIfEmpty(qth, r.city());
+                    boolean sameCall = c.equals(call.getText() == null ? "" : call.getText().trim().toUpperCase());   // a slow reply must not land on the next spot
+                    if (r != null && sameCall) { fillIfEmpty(name, r.name()); fillIfEmpty(grid, r.grid()); fillIfEmpty(qth, r.city());
                         fillIfEmpty(stat, r.state()); fillIfEmpty(cnty, r.county()); }
                 });
             }, "callsign-lookup");

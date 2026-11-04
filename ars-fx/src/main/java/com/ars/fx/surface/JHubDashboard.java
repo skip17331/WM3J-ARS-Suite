@@ -423,6 +423,8 @@ public final class JHubDashboard {
         fillLog(tbl, tln);
 
         // wiring
+        String[] lastLk = {""};
+        Runnable clearForm = () -> { tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear(); lastLk[0] = ""; };
         Runnable doLog = () -> {
             String call = tCall.getText();
             if (call == null || call.isBlank()) { tCall.requestFocus(); return; }
@@ -430,7 +432,7 @@ public final class JHubDashboard {
             boolean ok = JLogDb.insert(call, freq, JLogDb.bandFor(freq), tMode.getText(),
                     tUp.getText(), tDn.getText(), tName.getText(), tQth.getText(), tGrid.getText(), tCmt.getText());
             if (ok) {
-                tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear();
+                clearForm.run();
                 tCall.requestFocus();
                 fillLog(tbl, tln);
                 sub.setText(JLogDb.count() + " in log · live");
@@ -439,11 +441,49 @@ public final class JHubDashboard {
         logBtn.setOnMouseClicked(e -> doLog.run());
         tCall.setOnAction(e -> doLog.run());
         tCmt.setOnAction(e -> doLog.run());
-        clear.setOnMouseClicked(e -> { tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear(); tCall.requestFocus(); });
+        clear.setOnMouseClicked(e -> { clearForm.run(); tCall.requestFocus(); });
+
+        // Callbook lookup for the call field: on leaving it, and on every spot click (same as the full J-Log form).
+        Runnable doLookup = () -> {
+            String c = tCall.getText() == null ? "" : tCall.getText().trim().toUpperCase();
+            if (c.length() < 3 || c.equals(lastLk[0])) return;
+            lastLk[0] = c;
+            if (!com.ars.fx.data.LookupConfig.anyEnabled()) return;
+            Thread t = new Thread(() -> {
+                com.ars.fx.data.CallsignLookup.Result r = com.ars.fx.data.CallsignLookup.lookup(c);
+                if (r == null) return;
+                javafx.application.Platform.runLater(() -> {
+                    if (!c.equals(tCall.getText() == null ? "" : tCall.getText().trim().toUpperCase())) return;   // the operator moved on
+                    quickFill(tName, r.name()); quickFill(tGrid, r.grid()); quickFill(tQth, r.city());
+                });
+            }, "quick-lookup");
+            t.setDaemon(true); t.start();
+        };
+        tCall.focusedProperty().addListener((o, was, now) -> { if (!now) doLookup.run(); });
+
+        // A spot click anywhere (cluster list, map...) starts a fresh contact here: clear, apply the call, look it up.
+        java.util.function.Consumer<SpotAction.Prefill> onSpot = p -> {
+            Runnable r = () -> {
+                clearForm.run();
+                if (p.call() != null) tCall.setText(p.call());
+                if (p.freqMhz() != null) tFreq.setText(p.freqMhz());
+                if (p.mode() != null && !p.mode().isBlank()) tMode.setText(p.mode());
+                tCall.requestFocus(); tCall.positionCaret(tCall.getText().length());
+                doLookup.run();
+            };
+            if (javafx.application.Platform.isFxApplicationThread()) r.run(); else javafx.application.Platform.runLater(r);
+        };
 
         VBox card = new VBox(head, body, tlbar, tbl); card.getStyleClass().add("jhub-card");
+        card.sceneProperty().addListener((o, was, sc) -> {   // only a target while this card is actually on screen
+            if (sc != null) SpotAction.setQuickTarget(onSpot); else SpotAction.clearQuickTarget(onSpot);
+        });
         HBox.setHgrow(card, Priority.ALWAYS); card.setMinWidth(420);
         return card;
+    }
+
+    private static void quickFill(TextField t, String v) {
+        if (v != null && !v.isBlank() && t.getText().isBlank()) t.setText(v.trim());
     }
 
     /** A labelled-field row: alternating (VBox field, boolean grow) pairs. */
