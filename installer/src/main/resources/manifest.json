@@ -9,7 +9,7 @@
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/suite.png",
       "primary": true,
-      "categories": "Network;HamRadio;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-log",
@@ -19,7 +19,7 @@
       "args": "--module log",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/log.png",
-      "categories": "HamRadio;Database;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-map",
@@ -29,7 +29,7 @@
       "args": "--module map",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/map.png",
-      "categories": "HamRadio;Geography;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-sat",
@@ -39,7 +39,7 @@
       "args": "--module sat",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/sat.png",
-      "categories": "HamRadio;Science;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-digi",
@@ -49,7 +49,7 @@
       "args": "--module digi",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/digi.png",
-      "categories": "HamRadio;AudioVideo;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-vault",
@@ -59,7 +59,7 @@
       "args": "--module vault",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/vault.png",
-      "categories": "HamRadio;Office;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-learn",
@@ -69,7 +69,7 @@
       "args": "--module learn",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/learn.png",
-      "categories": "HamRadio;Education;"
+      "categories": "X-ARS-Suite;HamRadio;"
     },
     {
       "name": "fx-hub",
@@ -79,7 +79,7 @@
       "args": "--hub",
       "jar": "ars-fx/target/ars-fx-linux.jar",
       "icon": "ars-fx/src/main/resources/com/ars/fx/icons/suite.png",
-      "categories": "Network;HamRadio;"
+      "categories": "X-ARS-Suite;HamRadio;"
     }
   ]
 }
