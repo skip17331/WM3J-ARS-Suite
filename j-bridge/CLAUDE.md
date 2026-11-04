@@ -6,10 +6,11 @@ Guidance for Claude Code when working in this module.
 
 J-Bridge is a **library**: the UDP listener and decoder for the feed of weak-signal digital-mode apps (WSJT-X **and
 JTDX**). It has no window, launcher, config file or hub link of its own — the standalone app (`JBridgeMain`, the
-window UI, `HubClient`, `MessagePublisher`) was removed; the only standalone module in the suite is J-Map.
+window UI, `HubClient`, `MessagePublisher`) was removed; the whole suite is now the single `ars-fx` app.
 
-`ars-fx` embeds it: `com.ars.fx.data.BridgeService` creates a `WsjtxUdpListener` (UDP port 2237, `-Dwsjtx.port` to
-override) and the J-Bridge surface shows decodes, status and the connected source app.
+`ars-fx` embeds it: `com.ars.fx.data.BridgeService` creates a `WsjtxUdpListener` and the J-Bridge surface shows
+decodes, status and the connected source app. The UDP port is `-Dwsjtx.port`, else J-Hub ▸ Data ▸ WSJT-X UDP port
+(`data.wsjtxPort`), else 2237.
 
 MSHV is intentionally **not** supported — it is closed-source freeware with no native macOS build, which fails the
 suite's "open source + Linux/Windows/macOS" constraint.
@@ -63,14 +64,14 @@ com.hamradio.jbridge/
 
 ## Dependencies
 
-Java 21, `j-log-common` (the band plan) and `slf4j-api`; JUnit 5 for tests. It is a thin jar (about 20 KB) with no
-JavaFX, WebSocket, JSON or logging backend — `ars-fx` supplies those.
+Java 21, `j-log-common` (the band plan) and `slf4j-api`; JUnit 5 for tests. It is a thin jar with no
+JavaFX, WebSocket or logging backend — `ars-fx` supplies those. (`j-log-common` itself pulls in Jackson.)
 
 ## What the host adds
 
 The listener hands over raw decodes. `ars-fx` (`BridgeService.enrich`) fills in the rest of `WsjtxDecode`: the DX
 callsign (`CallsignParser.extractDxCallsign`), the dial frequency, mode and band from the latest status (`BandUtils`), and,
-from the *transmitting* station's callsign (`CallsignParser.extractSenderCallsign` — on a directed message such as
+from the *transmitting* station's callsign (`CallsignParser.extractSenderCallsign`, looked up with `ars-fx`'s `DxccInfo` — on a directed message such as
 `W3ABC K3XYZ -10` that is the second call), its DXCC country, continent, a position, and the distance and bearing from the
 station. A decode that ends in a 4-character
 grid uses that grid as the far end; otherwise the middle of the country is used. The station position comes from J-Hub ▸

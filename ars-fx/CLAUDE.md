@@ -1,16 +1,20 @@
 # CLAUDE.md — ars-fx
 
-Guidance for Claude Code when working in the ARS Suite application. `ars-fx` is the app itself; the other Maven
-modules are libraries it embeds.
+Guidance for Claude Code when working in the ARS Suite application. `ars-fx` is the app itself; `j-log-common`,
+`j-log-engine`, `j-digi` and `j-bridge` are libraries it embeds (none has an app of its own). There is no root `pom.xml`:
+each module is built on its own. `../installer/` is a separate small installer app (`com.hamradio.ars.installer`); it
+is not part of this jar.
 
 ## What it is
 
-One JavaFX 21 / Java 21 application that runs the whole shack. Two ways to run it from the **same jar**. (The `j-digi` and `j-bridge` Maven modules are libraries with no
-standalone app of their own.)
+One JavaFX 21 / Java 21 application that runs the whole shack, in two ways from the **same jar**. It runs on the
+classpath (no `module-info.java`).
 
 - **Docked** (default) — one window, a dock on the left switches between surfaces. Entry: `com.ars.fx.Launcher`.
 - **Loose** — each module in its own window, all attached to a background hub (`launch/run-loose.sh`, see
-  `launch/README.md`). Solo J-Map / J-Sat can also run from a JSON launch file, optionally against a remote hub.
+  `launch/README.md`).
+- **Solo** — J-Map or J-Sat alone in a window, driven by a JSON launch file (`launch/run-solo.sh`, `--config`),
+  optionally against a remote hub over the LAN. J-Map and J-Sat are surfaces of this app, not separate modules.
 
 The docked app is a *client* of a local background hub, `com.ars.fx.HubServer` (WebSocket, default `ws://127.0.0.1:8090`,
 `remote.port` in the config). The hub owns the Hamlib daemons and live feeds (DX cluster, RBN, rig, rotor); the docked
@@ -25,7 +29,10 @@ mvn -DskipTests package                     # target/ars-fx-linux.jar
 mvn -Pwin|-Pmac|-Pmac-aarch64|-Ppi package  # other platforms; the Pi jar has no JavaFX
 mvn test              # JUnit 5 / surefire
 ../build-release.sh   # installs the libraries, builds all five platform jars into ../dist, checks natives
+../build-release.sh --verify   # only re-check the jars already in ../dist
 ```
+
+All scripts are bash: on Windows run them from Git Bash (`ars-fx.bat` / `install.bat` are the Windows launchers).
 
 Libraries must be in `~/.m2` before `ars-fx` builds: `j-log-common`, `j-log-engine`, `j-digi`, `j-bridge`. Each
 platform profile writes a distinct `ars-fx-<dist>.jar`; the build checks that a desktop jar carries only its own
@@ -37,8 +44,8 @@ platform's JavaFX natives.
 |---|---|
 | `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons`, `AppVersion` (build version stamped from `version.properties`; version compare for the update check) |
 | `surface/` | One class per screen: `JHubDashboard` (settings + data), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
-| `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi` |
-| `data/` | Non-UI services: `HubConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `JLogDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `LearnContent`, `Bands`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
+| `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi`, `AutoPanel`, `Glyphs`, `IdTimer` (station-ID countdown), `UpdateBanner` |
+| `data/` | Non-UI services: `HubConfig`, `ModuleConfig`, `SoloConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `RemoteLink`/`RemoteServer`, `JLogDb`, `JVaultDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `DxccInfo`, `LearnContent`, `Bands`, `UpdateChecker`/`UpdateApplier`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
 | `sat/` | SGP4 propagation, pass prediction, Doppler, coordinate transforms |
 | `morse/` | The Morse Trainer engine (audio, decoders, keyers, trainers) shown inside J-Learn |
 
@@ -51,7 +58,7 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 | Library | How ars-fx uses it |
 |---|---|
 | `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only) and keeps the modem's PTT in step with the J-Hub rig settings (`rig.ptt`, `rig.rigctldHost`, `rig.rigctldPort`) and Transmit settings (`tx.cwWpm`, `tx.cwKeyer`) via `HubConfig.addChangeListener`, and switches the local CW skimmer from `digi.localSkimmer` (its spots go to the shared list through the hub: a window sends `spot.add`, `RemoteServer` calls `ClusterClient.addLocalSpot`), and passes it the rig's dial frequency and mode from `RigClient`; a library with no window or launcher of its own |
-| `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`) and enriches each decode (callsign, band/mode, DXCC country, distance and bearing via `DxccInfo`); a library with no standalone app |
+| `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`, or J-Hub ▸ Data ▸ WSJT-X UDP port, `data.wsjtxPort`) and enriches each decode (callsign, band/mode, DXCC country, distance and bearing via `DxccInfo`); a library with no standalone app |
 | `j-log-engine` | SQLite DAOs, contest plugins/scoring, Cabrillo export, `DxccResolver` |
 | `j-log-common` | Shared models and `BandplanLoader` |
 
@@ -59,10 +66,16 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
 
 | Path | Contents |
 |---|---|
-| `~/.j-hub/config.json` | All suite settings (`HubConfig`, flat key/value): station, rig, cluster, macros, upload logins |
-| `~/.j-log/` | `j-log.db`, `contest.db`, `config.db`, `translations.db`, `backups/`, `contest-logs/` |
+| `~/.j-hub/config.json` | All suite settings (`HubConfig`, flat key/value): station, rig, rotor, amp, antenna, cluster, transmit |
+| `~/.j-hub/updates/` | Update-check log and downloaded update files plus helper script (`UpdateChecker`/`UpdateApplier`) |
+| `~/.j-log/` | `j-log.db`, `contest.db`, `config.db`, `translations.db`, `backups/`, `contest-logs/`, `exports/`; also `macros.json` (`MacroConfig`), `upload.json` (`UploadConfig`: upload logins) and `lookup.json` (`LookupConfig`) |
+| `~/.j-vault/` | `inventory.db` (J-Vault), `backups/` |
+| `~/.j-sat/` | `tles.txt` TLE cache, `settings.json` (J-Sat selection and settings) |
+| `~/.j-map/cache/` | Cached sun image for J-Map |
 | `~/.j-learn/content/` | J-Learn chapters, seeded on first open from the copy bundled in the jar (source: `../j-learn-content/`) |
 | `~/.j-learn/morse/` | Morse Trainer settings and session logs |
+
+The j-digi modem keeps its own settings in Java Preferences, not here (see `../j-digi/CLAUDE.md`).
 
 ## Conventions and gotchas
 
@@ -77,8 +90,13 @@ J-Vault, J-Learn. Modules can be switched off in J-Hub ▸ Modules.
   `RemoteLink` is active, so a docked or loose window never opens a second feed.
 - **J-Learn content** lives in the repo root `../j-learn-content/` and is packaged into the jar; users update it from
   J-Hub ▸ Data ▸ J-Learn content.
+- **Update check.** `UpdateChecker.start()` (from `Launcher`) checks once a day, anonymously; it can be turned off in
+  J-Hub ▸ Station ▸ Updates. `UpdateBanner` shows a pending update; `UpdateApplier` downloads it and runs the helper
+  script bundled in `resources/com/ars/fx/update/` (`update-unix.sh`, `update-windows.ps1`).
+- **Transmit safety.** `Launcher` shuts down `TxController` on exit so the transmitter is never left keyed; Esc stops
+  transmit (`TxIndicator.installEscStop`).
 - Solo launch files: `launch/j-map-local.json`, `j-map-remote.json`, `j-sat-remote.json` (run with `launch/run-solo.sh`); `--write-sample map|sat [file]` writes one.
-- Themes: styles are in `ars.css`; the Morse Trainer views use `.mt-root` rules.
+- Themes: styles are in `src/main/resources/com/ars/fx/css/ars.css`; the Morse Trainer views use `.mt-root` rules.
 
 ## Testing
 

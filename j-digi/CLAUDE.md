@@ -1,12 +1,12 @@
-# CLAUDE.md
+# CLAUDE.md — j-digi
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this module.
 
 ## Role in the suite
 
 `j-digi` is the modem **library** behind the J-Digi surface of `ars-fx` (see `../ars-fx/CLAUDE.md`). It has no window,
 launcher or hub link of its own — the standalone UI, `ModemMain`, `HubClient` and the launcher scripts were removed;
-the only standalone module in the suite is J-Map. `ars-fx` drives the modem through `com.ars.fx.data.DigiEngine`, which
+the whole suite is now the single `ars-fx` app. `ars-fx` drives the modem through `com.ars.fx.data.DigiEngine`, which
 calls `ModemService.startupEmbedded()` (audio capture only) and registers the decode, spectrum and status listeners.
 `ars-fx` supplies station identity, macros and rig control itself.
 
@@ -22,7 +22,7 @@ Java 21, Maven. `j-log-common` and `j-log-engine` must be in `~/.m2` first (`../
 
 Decode is implemented and audio-loopback validated for every bundled mode. Transmit exists for CW, RTTY, PSK31,
 Olivia, MFSK16 and Domino-EX. **AX.25 is decode-only** (`ModemService` throws `UnsupportedOperationException` for
-AX.25 WAV export). Bump to 1.0-quality claims gates on on-air testing against real signals.
+AX.25 WAV export). Don't describe the modem as production-grade until it has been tested on air against real signals.
 
 ## Architecture
 
@@ -37,7 +37,8 @@ AX.25 WAV export). Bump to 1.0-quality claims gates on on-air testing against re
 | `LocalSkimmer` / `SkimmerSpotPublisher` | Local CW skimmer that publishes spots |
 | `AudioTxEngine` | TX state machine; emits PCM for outbound CW/RTTY/PSK31/Olivia/MFSK16/Domino-EX |
 
-Decoders run on the audio thread; the UI receives decoded text on the JavaFX Application Thread via `Platform.runLater`.
+Decoders run on the audio thread and call the host's listeners there; the library has no JavaFX code, so a host that
+touches the UI (`ars-fx`) must hop to the JavaFX Application Thread itself.
 
 ## PTT / rig keying
 
@@ -101,8 +102,10 @@ not the spot path, and it has not been investigated. `ModemServiceSkimmerTest` c
 
 ## State and persistence
 
-Mode, audio devices, PTT and keyer settings persist via Java `Preferences` (typically `~/.java/.userPrefs/com/hamradio/modem`),
-**not** a file in `~/.j-digi/`. `ModemService` reads `PREF_MODE` on init and writes it on each mode switch.
+Mode (`modem.mode`), RTTY reverse (`rtty.reverse`), audio devices (`audio.input.device`, `audio.output.device`), PTT and
+keyer settings, and the skimmer switch (`skimmer.local.enabled`) persist via Java `Preferences`
+(typically `~/.java/.userPrefs/com/hamradio/modem`), **not** a file in `~/.j-digi/`. `ModemService` reads the saved mode
+on init and writes it on each mode switch.
 
 ## Packages
 
@@ -124,6 +127,9 @@ Route tone output through a PulseAudio loopback device (`jdigi_loop` by conventi
 ## Dependencies
 
 Depends on `j-log-engine` and `j-log-common` for shared types. Build them first if missing from `.m2`.
+
+`pom.xml` still declares JavaFX dependencies and per-platform profiles, but no source file imports JavaFX; they are
+leftovers from the removed UI and can be dropped.
 
 ## What's NOT here
 
