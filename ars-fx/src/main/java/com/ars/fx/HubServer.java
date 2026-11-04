@@ -149,6 +149,8 @@ public final class HubServer {
         int grace = lingerSeconds();
         System.out.println("[hub] last client left — " + (auto ? "stopping" : "hanging up the cluster feeds")
                 + " in " + grace + "s unless one returns");
+        if (clusterWanted()) notice("Last window closed",
+                "Disconnecting from the DX cluster in " + grace + " s. Open ARS Suite again to keep it connected.");
         pendingShutdown = LINGER.schedule(() -> {
             if (RemoteServer.clientCount() != 0) return;
             if (auto) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
@@ -168,8 +170,23 @@ public final class HubServer {
     /** Nothing is attached: hang up the DX-cluster / RBN connections. They stay down until the operator presses
      *  Connect (a disconnect pauses the feed, so it does not retry on its own). */
     private static void dropFeeds() {
+        boolean was = clusterWanted();
         for (com.ars.fx.data.TelnetFeed f : FEEDS) f.disconnect();
         System.out.println("[hub] nothing attached — cluster feeds disconnected");
+        if (was) notice("DX cluster disconnected", "Nothing is using the hub. Press Connect in J-Hub to reconnect.");
+    }
+
+    private static boolean clusterWanted() {
+        for (com.ars.fx.data.TelnetFeed f : FEEDS) if (f.wantConnected()) return true;
+        return false;
+    }
+
+    private static volatile TrayIcon trayIcon;
+
+    /** A tray balloon from the hub (the only thing still on screen once the last window has closed). No-op without a tray. */
+    private static void notice(String title, String message) {
+        TrayIcon t = trayIcon;
+        if (t != null) try { t.displayMessage(title, message, TrayIcon.MessageType.INFO); } catch (Exception ignored) {}
     }
 
     // Held for the life of the process; the OS releases it if the hub dies, so a crash never blocks the next hub.
@@ -242,6 +259,7 @@ public final class HubServer {
             TrayIcon icon = new TrayIcon(mark != null ? mark : trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);
             icon.setImageAutoSize(true);
             tray.add(icon);
+            trayIcon = icon;
             System.out.println("[hub] tray icon installed — sharing on :" + port);
             return true;
         } catch (Exception e) {

@@ -198,7 +198,8 @@ public final class RemoteServer extends WebSocketServer {
         feeds.add("cluster", ClusterClient.getInstance().statusJson());
         feeds.add("rbn", HeardByClient.getInstance().statusJson());
         o.add("feeds", feeds);
-        o.addProperty("tx", TxController.hubTransmitting());        o.add("activity", GSON.toJsonTree(ClusterClient.getInstance().activityFlat()));
+        o.addProperty("tx", TxController.hubTransmitting());
+        o.add("activity", GSON.toJsonTree(ClusterClient.getInstance().activityFlat()));
         JsonObject st = new JsonObject();
         st.addProperty("call", HubConfig.call());
         st.addProperty("grid", HubConfig.grid());
