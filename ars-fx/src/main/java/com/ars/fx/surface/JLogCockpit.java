@@ -70,7 +70,6 @@ public final class JLogCockpit {
     /** Fill the new-QSO form from a clicked DX spot (callsign + freq/band/mode), then focus the call field. */
     static void prefillSpot(SpotAction.Prefill p) {
         Runnable r = () -> {
-            com.ars.fx.data.DebugLog.log("J-Log prefill call=" + (p == null ? null : p.call()) + " formReady=" + (callRef != null));
             if (callRef == null || p == null) return;
             if (clearRef != null) clearRef.run();     // new spot = new contact: clear the previous one's name/QTH/grid, and forget the last lookup
             if (p.call() != null) callRef.setText(p.call());
@@ -247,7 +246,7 @@ public final class JLogCockpit {
         Runnable doCallLookup = () -> {
             String c = call.getText() == null ? "" : call.getText().trim().toUpperCase();
             if (c.length() < 3) { b4.setText("Normal log"); b4.setStyle(""); return; }
-            if (c.equals(lastLk[0])) { com.ars.fx.data.DebugLog.log("J-Log lookup skipped (same call as last) " + c); return; }
+            if (c.equals(lastLk[0])) return;
             lastLk[0] = c;
             String curBand = band.getText() == null ? "" : band.getText().trim();
             boolean lookupOn = com.ars.fx.data.LookupConfig.anyEnabled();

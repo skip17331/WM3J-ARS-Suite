@@ -129,21 +129,37 @@ public final class HubServer {
 
     // ── client refcount → linger shutdown ─────────────────────────────────────
 
-    /** Driven by {@link RemoteServer} on every connect/disconnect. An auto hub starts a short linger timer
-     *  when its last client leaves, and cancels it if one returns — so swapping modules doesn't churn the
-     *  daemons. A sticky hub ignores this and runs until Quit. */
+    /** Driven by {@link RemoteServer} on every connect/disconnect. When the last client leaves a short linger
+     *  timer starts, and a returning client cancels it — so swapping modules doesn't churn the connections.
+     *  If it runs out, an auto hub exits; a sticky hub (it only stops on Quit) stays up but hangs up the
+     *  DX-cluster / RBN telnet connections and leaves them down: the operator reconnects by hand. */
     private static synchronized void onClientCount(int n) {
         if (n > 0) { hadClient = true; cancelLinger(); }
-        else if (auto && hadClient) scheduleLinger();
+        else if (hadClient) scheduleLinger();
     }
     private static synchronized void scheduleLinger() {
         cancelLinger();
         int grace = lingerSeconds();
-        System.out.println("[hub] last client left — stopping in " + grace + "s unless one returns");
+        System.out.println("[hub] last client left — " + (auto ? "stopping" : "hanging up the cluster feeds")
+                + " in " + grace + "s unless one returns");
         pendingShutdown = LINGER.schedule(() -> {
-            if (RemoteServer.clientCount() == 0) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
+            if (RemoteServer.clientCount() != 0) return;
+            if (auto) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
+            else dropFeeds();
         }, grace, TimeUnit.SECONDS);
     }
+
+    // The telnet feeds the hub owns.
+    private static final com.ars.fx.data.TelnetFeed[] FEEDS = {
+            ClusterClient.getInstance(), HeardByClient.getInstance() };
+
+    /** No client is attached: hang up the DX-cluster / RBN connections. They stay down until the operator
+     *  presses Connect (a disconnect pauses the feed, so it does not retry on its own). */
+    private static void dropFeeds() {
+        for (com.ars.fx.data.TelnetFeed f : FEEDS) f.disconnect();
+        System.out.println("[hub] no clients — cluster feeds disconnected");
+    }
+
     private static void cancelLinger() {
         ScheduledFuture<?> f = pendingShutdown;
         pendingShutdown = null;
@@ -267,6 +283,7 @@ public final class HubServer {
 
     private static synchronized void cleanup() {
         try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
+        for (com.ars.fx.data.TelnetFeed f : FEEDS) try { f.disconnect(); } catch (Exception ignored) {}   // hang up on the cluster before exiting
         try { RemoteServer.shutdown(); } catch (Exception ignored) {}
         try { DaemonManager.stopAll(); } catch (Exception ignored) {}
     }

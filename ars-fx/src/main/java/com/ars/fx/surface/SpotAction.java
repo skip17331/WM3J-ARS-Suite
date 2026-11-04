@@ -74,8 +74,6 @@ public final class SpotAction {
                 freqHz > 0 ? String.format(Locale.US, "%.3f", freqHz / 1e6) : null,
                 (band == null || band.isBlank()) ? null : band,
                 logMode(mode, freqHz));
-        com.ars.fx.data.DebugLog.log("spot click " + c + " surface=" + Shell.currentSurface
-                + " logTarget=" + (logTarget != null) + " contestTarget=" + (contestTarget != null));
         if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
         else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
         else if (quickTarget != null) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now

@@ -41,7 +41,6 @@ public final class CallsignLookup {
     public static Result lookup(String call) {
         if (call == null || call.isBlank()) return null;
         String c = call.trim().toUpperCase();
-        DebugLog.log("lookup " + c);
         for (LookupConfig.Prov p : LookupConfig.PROVIDERS) {
             LookupConfig.Setting s = LookupConfig.get(p.id());
             if (!s.enabled()) continue;
@@ -55,15 +54,9 @@ public final class CallsignLookup {
                     case "hamcall_cd" -> hamcallCd(c, s);
                     default -> null;
                 };
-                DebugLog.log("  " + p.id() + " -> " + (r == null ? "no result" : r.found() ? "HIT" : "empty"));
                 if (r != null && r.found()) return r;
-            } catch (Exception e) {   // try the next provider
-                String m = String.valueOf(e.getMessage());
-                for (String secret : new String[]{s.user(), s.secret()}) if (!blank(secret)) m = m.replace(secret, "***");
-                DebugLog.log("  " + p.id() + " FAILED " + e.getClass().getSimpleName() + ": " + m);
-            }
+            } catch (Exception ignored) { /* try next provider */ }
         }
-        DebugLog.log("  no provider answered");
         return null;
     }
 
