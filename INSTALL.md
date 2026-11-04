@@ -247,7 +247,7 @@ J-Map or J-Sat makes a good dedicated display on a second monitor, a laptop or a
    ```jsonc
    // j-map-remote.json   (more samples in ars-fx/launch/)
    { "module": "map", "remote": "ws://192.168.1.42:8090",
-     "station": { "call": "WM3J", "grid": "FM19" } }
+     "station": { "call": "N0CALL", "grid": "AA00" } }
    ```
 
    ```bash

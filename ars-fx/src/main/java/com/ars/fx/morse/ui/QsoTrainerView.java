@@ -97,7 +97,7 @@ public class QsoTrainerView {
         inputBox.setValue("Keyboard (Space)");
 
         AppConfig cfg = AppConfig.get();
-        callsignField.setText(blank(cfg.userCallsign, "WM3J"));
+        callsignField.setText(blank(cfg.userCallsign, "N0CALL"));
         callsignField.setPrefColumnCount(8);
         nameField.setText(blank(cfg.userName, "OP"));
         nameField.setPrefColumnCount(8);
@@ -242,7 +242,7 @@ public class QsoTrainerView {
     private void startLive() {
         stopAnyInput();
         QsoGenerator.UserStation user = new QsoGenerator.UserStation(
-                upper(callsignField.getText(), "WM3J"),
+                upper(callsignField.getText(), "N0CALL"),
                 upper(nameField.getText(),     "OP"),
                 upper(qthField.getText(),      "USA"));
         turns = generator.generateTurns(difficulty.getValue(), user);

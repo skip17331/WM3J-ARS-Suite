@@ -34,7 +34,7 @@ public class QsoGenerator {
     public record UserStation(String callsign, String name, String qth) {
         public static UserStation fromConfig(AppConfig cfg) {
             return new UserStation(
-                    blankToDefault(cfg.userCallsign,  "WM3J"),
+                    blankToDefault(cfg.userCallsign,  "N0CALL"),
                     blankToDefault(cfg.userName,      "OP"),
                     blankToDefault(cfg.userQth,       "USA"));
         }

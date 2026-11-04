@@ -19,7 +19,7 @@ import java.nio.file.Path;
  *   "window": { "width": 1400, "height": 900, "maximized": false },
  *   "dock":   false,                          // show the module dock? default false (clean solo frame)
  *   "remote": "ws://192.168.1.50:8090",       // station J-Hub WebSocket; omit/empty = run fully local
- *   "station": { "call": "WM3J", "grid": "FM19", "lat": 39.7456, "lon": -76.96 }
+ *   "station": { "call": "N0CALL", "grid": "AA00" }   // optional; omit to use J-Hub ▸ Station
  * }
  * </pre>
  *
@@ -125,8 +125,7 @@ public final class SoloConfig {
         o.add("window", w);
         o.addProperty("dock", false);
         o.addProperty("remote", "ws://192.168.1.50:8090");
-        JsonObject s = new JsonObject(); s.addProperty("call", "WM3J"); s.addProperty("grid", "FM19");
-        s.addProperty("lat", 39.7456); s.addProperty("lon", -76.96);
+        JsonObject s = new JsonObject(); s.addProperty("call", "N0CALL"); s.addProperty("grid", "AA00");
         o.add("station", s);
         return new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(o);
     }
