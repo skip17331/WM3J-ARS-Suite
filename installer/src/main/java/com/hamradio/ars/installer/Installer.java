@@ -133,7 +133,7 @@ public final class Installer {
             String launch = m.get("launch").getAsString();
             String jar    = m.get("jar").getAsString();
             String iconR  = m.has("icon") ? m.get("icon").getAsString() : null;
-            String cats   = m.has("categories") ? m.get("categories").getAsString() : "Utility;";
+            String cats   = m.has("categories") ? m.get("categories").getAsString() : "X-ARS-Suite;";
             String cmt    = m.has("comment") ? m.get("comment").getAsString() : title;
             String args   = m.has("args") ? m.get("args").getAsString() : null;
 
@@ -161,6 +161,8 @@ public final class Installer {
             installed.add(name + " → " + desktop);
         }
 
+        writeAmateurRadioMenu(home, iconDir);
+
         // Prune stale suite shortcuts/icons, but ONLY ones we own: the old per-program
         // entries from the pre-ars-fx installer (LEGACY_NAMES), plus any ars-fx* file
         // this run did not write. Never the broad ars-* glob — that would clobber
@@ -177,6 +179,30 @@ public final class Installer {
         }
         pruneStale(appsDir, "ars-fx*.desktop", keptDesktops, pruned);
         pruneStale(iconDir, "ars-fx*.png",     keptIcons,    pruned);
+    }
+
+    /** Groups every suite shortcut (Categories=X-ARS-Suite) under one "Amateur Radio" application-menu folder
+     *  instead of scattering them across Internet / Education / Office ... Desktops that honour XDG menu files
+     *  (KDE, Xfce, MATE, Cinnamon, LXQt) show the folder; GNOME's app grid has no folders and lists them as usual. */
+    private static void writeAmateurRadioMenu(Path home, Path iconDir) {
+        try {
+            Path dirs = home.resolve(".local/share/desktop-directories");
+            Path menus = home.resolve(".config/menus/applications-merged");
+            Files.createDirectories(dirs);
+            Files.createDirectories(menus);
+            Path icon = iconDir.resolve("ars-fx.png");
+            StringBuilder d = new StringBuilder("[Desktop Entry]\nType=Directory\nName=Amateur Radio\n");
+            d.append("Icon=").append(Files.exists(icon) ? icon.toString() : "applications-other").append('\n');
+            Files.writeString(dirs.resolve("ars-amateur-radio.directory"), d.toString(), StandardCharsets.UTF_8);
+            String xml = "<!DOCTYPE Menu PUBLIC \"-//freedesktop//DTD Menu 1.0//EN\"\n"
+                + " \"http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd\">\n"
+                + "<Menu>\n  <Name>Applications</Name>\n  <Menu>\n    <Name>Amateur Radio</Name>\n"
+                + "    <Directory>ars-amateur-radio.directory</Directory>\n"
+                + "    <Include><Category>X-ARS-Suite</Category></Include>\n  </Menu>\n</Menu>\n";
+            Files.writeString(menus.resolve("ars-amateur-radio.menu"), xml, StandardCharsets.UTF_8);
+            try { new ProcessBuilder("update-desktop-database", home.resolve(".local/share/applications").toString())
+                    .redirectErrorStream(true).start(); } catch (Exception ignored) {}
+        } catch (Exception e) { System.err.println("  (could not write the Amateur Radio menu folder: " + e.getMessage() + ")"); }
     }
 
     /** Shortcut/icon basenames written by the old per-program installer (pre-ars-fx), so the new
