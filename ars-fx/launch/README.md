@@ -46,7 +46,7 @@ mvn -q -Pmac package         # → target/ars-fx-mac.jar          macOS Intel
 mvn -q -Pmac-aarch64 package # → target/ars-fx-mac-aarch64.jar  macOS Apple Silicon
 mvn -q -Ppi package          # → target/ars-fx-pi.jar           Raspberry Pi, JavaFX NOT bundled
 ./build-pi.sh                # convenience wrapper for the Pi build + next-steps
-# all desktop+pi jars at once, classified into dist/:  ../build-release.sh --ars-fx
+# all desktop+pi jars at once, classified into dist/:  ../build-release.sh
 ```
 
 ```bash

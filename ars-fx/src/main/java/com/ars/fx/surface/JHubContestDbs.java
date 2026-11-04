@@ -47,6 +47,16 @@ final class JHubContestDbs {
         });
         refresh[0].run();
 
+        // "Open archive folder" (and "Open folder" above) hand the operator a file manager, where a database can be moved or
+        // deleted behind our back. Rebuild both lists whenever this window regains focus, so they match what is on disk.
+        javafx.beans.value.ChangeListener<Boolean> onFocus = (o, was, now) -> { if (now) refresh[0].run(); };
+        usableCard.sceneProperty().addListener((o, oldScene, newScene) -> {
+            if (oldScene != null && oldScene.getWindow() != null) oldScene.getWindow().focusedProperty().removeListener(onFocus);
+            if (newScene == null) return;
+            if (newScene.getWindow() != null) newScene.getWindow().focusedProperty().addListener(onFocus);
+            else newScene.windowProperty().addListener((o2, a, w) -> { if (w != null) w.focusedProperty().addListener(onFocus); });
+        });
+
         return new VBox(20,
                 new VBox(6, lbl("CONTEST DATABASES", "cfg-sec"),
                         lbl("Offered when you enter contest mode. Archive one you are finished with to move it into storage.", "cfg-desc"), usableCard),
@@ -63,7 +73,7 @@ final class JHubContestDbs {
                 new Confirm.Choice("Archive", true, () -> {
                     try { status.setText("✓ Archived to " + LogDbInfo.pretty(ContestLogs.archive(i.path()))); }
                     catch (Exception ex) { status.setText("✗ Could not archive: " + ex.getMessage()); }
-                    if (i.current()) Shell.navigate("hubdata");   // the "in use" summary above must change too, so rebuild the page
+                    if (i.current()) Shell.navigate("setup:logdb");   // the "in use" summary above must change too, so rebuild the page
                     else refresh.run();
                 })));
         return row(i.fileName() + (i.current() ? "  · in use" : ""), meta(i), archive);

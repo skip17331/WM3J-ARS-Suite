@@ -22,7 +22,9 @@ class WorkshopSettingsTest {
     }
 
     @Test void everyModuleIsListed() {
-        assertEquals(7, ModuleConfig.all().size());
+        assertEquals(9, ModuleConfig.all().size());   // seven modules + the Morse Trainer and Antenna Workshop dock entries
         assertEquals("log", ModuleConfig.all().get(0).id());
+        assertEquals("morse", ModuleConfig.all().get(7).id());
+        assertEquals("workshop", ModuleConfig.all().get(8).id());
     }
 }

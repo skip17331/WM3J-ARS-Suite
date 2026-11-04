@@ -30,14 +30,20 @@ public final class JHubDashboard {
     private static boolean dashTickerStarted;
 
     public static Region build()        { dashRoot = page("dashboard", dashboardCenter()); startDashTicker(); return dashRoot; }
-    public static Region buildConfig()  { return page("rig", configCenter()); }
-    public static Region buildStation() { return page("station", stationCenter()); }
-    public static Region buildRotor()   { return page("rotor", rotorCenter()); }
-    public static Region buildAmp()     { return page("amp", amplifierCenter()); }
-    public static Region buildAntSw()   { return page("antsw", antennaSwitchCenter()); }
-    public static Region buildData()    { return page("data", dataCenter()); }
-    public static Region buildModules() { return page("modules", modulesCenter()); }
-    public static Region buildSatellites() { return page("sat", JHubSatellites.center()); }
+
+    /** The content of one J-Hub setup section, for {@link JHubSetup} (one screen, section menu on the left). */
+    static Region setupPage(String id) {
+        return switch (id) {
+            case "station"  -> stationCenter();
+            case "rig"      -> configCenter();
+            case "rotor"    -> rotorCenter();
+            case "amp"      -> amplifierCenter();
+            case "antsw"    -> antennaSwitchCenter();
+            case "modules"  -> modulesCenter();
+            case "sat"      -> JHubSatellites.center();
+            default         -> dataPage(id);     // tx, cluster, digital, lookup, logdb, upload, export, share, learn
+        };
+    }
 
     private static Region page(String activeConf, Region centerContent) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
@@ -93,7 +99,7 @@ public final class JHubDashboard {
         t.setCycleCount(Timeline.INDEFINITE); t.play();
     }
     private static String brandCallText() { String c = com.ars.fx.data.HubConfig.call(); return c.isEmpty() ? "" : "· " + c.toUpperCase(); }
-    private static Region workspaceBar() {
+    static Region workspaceBar() {
         Region dot = chip("jhub-bar-dot", 9);
         Label brandCall = lbl(brandCallText(), "jhub-bar-sub");
         com.ars.fx.data.HubConfig.addChangeListener(k -> { if ("station.call".equals(k) || "*".equals(k)) javafx.application.Platform.runLater(() -> brandCall.setText(brandCallText())); });
@@ -107,31 +113,12 @@ public final class JHubDashboard {
     }
 
     // ---- J-Hub config links (ride along in the dock as an expand-only tail) -----
-    private static java.util.List<Node> hubConfigSection(String activeConf) {
-        boolean onHardware = activeConf.equals("rig") || activeConf.equals("rotor")
-                || activeConf.equals("amp") || activeConf.equals("antsw");
+    /** The dock's J-Hub tail: just the one Setup screen (its sections are in Setup's own left menu); the J-Hub entry at the top of the dock is the dashboard. */
+    static java.util.List<Node> hubConfigSection(String activeConf) {
         java.util.List<Node> out = new java.util.ArrayList<>();
         out.add(lbl("J-HUB", "jhub-nav-sec"));
-        Region dash = confItem("◎", "Dashboard", null, activeConf.equals("dashboard"));
-        dash.setOnMouseClicked(e -> Shell.navigate("hub")); out.add(dash);
-        Region station = confItem("▣", "Station", "›", activeConf.equals("station"));
-        station.setOnMouseClicked(e -> Shell.navigate("station")); out.add(station);
-        Region modules = confItem("▦", "Modules", "›", activeConf.equals("modules"));
-        modules.setOnMouseClicked(e -> Shell.navigate("hubmods")); out.add(modules);
-        out.add(confItem("◉", "Hardware", "⌄", onHardware));
-        String[][] hw = {{"Rig control","hubcfg","rig"},{"Rotor control","hubrotor","rotor"},
-                {"Amplifier","hubamp","amp"},{"Antenna switch","hubant","antsw"},{"Antenna workshop","learn-workshop",""}};
-        for (String[] s : hw) {
-            Label l = lbl(s[0], "jhub-nav-sub");
-            if (!s[2].isEmpty() && activeConf.equals(s[2])) l.getStyleClass().add("active");
-            if (!s[1].isEmpty()) { l.setStyle("-fx-cursor:hand;"); l.setOnMouseClicked(e -> { if (s[1].equals("learn-workshop")) JLearnView.requestWorkshop(); Shell.navigate(s[1].equals("learn-workshop") ? "learn" : s[1]); }); }
-            VBox.setMargin(l, new Insets(0, 9, 0, 9));
-            out.add(l);
-        }
-        Region data = confItem("▤", "Data", "›", activeConf.equals("data"));
-        data.setOnMouseClicked(e -> Shell.navigate("hubdata")); out.add(data);
-        Region sats = confItem("✦", "Satellites", "›", activeConf.equals("sat"));
-        sats.setOnMouseClicked(e -> Shell.navigate("hubsat")); out.add(sats);
+        Region setup = confItem("⚙", "Setup", "›", !activeConf.equals("dashboard"));
+        setup.setOnMouseClicked(e -> Shell.navigate("station")); out.add(setup);
         return out;
     }
     private static Region confItem(String icon, String name, String caret, boolean active) {
@@ -423,6 +410,8 @@ public final class JHubDashboard {
         fillLog(tbl, tln);
 
         // wiring
+        String[] lastLk = {""};
+        Runnable clearForm = () -> { tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear(); lastLk[0] = ""; };
         Runnable doLog = () -> {
             String call = tCall.getText();
             if (call == null || call.isBlank()) { tCall.requestFocus(); return; }
@@ -430,7 +419,7 @@ public final class JHubDashboard {
             boolean ok = JLogDb.insert(call, freq, JLogDb.bandFor(freq), tMode.getText(),
                     tUp.getText(), tDn.getText(), tName.getText(), tQth.getText(), tGrid.getText(), tCmt.getText());
             if (ok) {
-                tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear();
+                clearForm.run();
                 tCall.requestFocus();
                 fillLog(tbl, tln);
                 sub.setText(JLogDb.count() + " in log · live");
@@ -439,11 +428,49 @@ public final class JHubDashboard {
         logBtn.setOnMouseClicked(e -> doLog.run());
         tCall.setOnAction(e -> doLog.run());
         tCmt.setOnAction(e -> doLog.run());
-        clear.setOnMouseClicked(e -> { tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear(); tCall.requestFocus(); });
+        clear.setOnMouseClicked(e -> { clearForm.run(); tCall.requestFocus(); });
+
+        // Callbook lookup for the call field: on leaving it, and on every spot click (same as the full J-Log form).
+        Runnable doLookup = () -> {
+            String c = tCall.getText() == null ? "" : tCall.getText().trim().toUpperCase();
+            if (c.length() < 3 || c.equals(lastLk[0])) return;
+            lastLk[0] = c;
+            if (!com.ars.fx.data.LookupConfig.anyEnabled()) return;
+            Thread t = new Thread(() -> {
+                com.ars.fx.data.CallsignLookup.Result r = com.ars.fx.data.CallsignLookup.lookup(c);
+                if (r == null) return;
+                javafx.application.Platform.runLater(() -> {
+                    if (!c.equals(tCall.getText() == null ? "" : tCall.getText().trim().toUpperCase())) return;   // the operator moved on
+                    quickFill(tName, r.name()); quickFill(tGrid, r.grid()); quickFill(tQth, r.city());
+                });
+            }, "quick-lookup");
+            t.setDaemon(true); t.start();
+        };
+        tCall.focusedProperty().addListener((o, was, now) -> { if (!now) doLookup.run(); });
+
+        // A spot click anywhere (cluster list, map...) starts a fresh contact here: clear, apply the call, look it up.
+        java.util.function.Consumer<SpotAction.Prefill> onSpot = p -> {
+            Runnable r = () -> {
+                clearForm.run();
+                if (p.call() != null) tCall.setText(p.call());
+                if (p.freqMhz() != null) tFreq.setText(p.freqMhz());
+                if (p.mode() != null && !p.mode().isBlank()) tMode.setText(p.mode());
+                tCall.requestFocus(); tCall.positionCaret(tCall.getText().length());
+                doLookup.run();
+            };
+            if (javafx.application.Platform.isFxApplicationThread()) r.run(); else javafx.application.Platform.runLater(r);
+        };
 
         VBox card = new VBox(head, body, tlbar, tbl); card.getStyleClass().add("jhub-card");
+        card.sceneProperty().addListener((o, was, sc) -> {   // only a target while this card is actually on screen
+            if (sc != null) SpotAction.setQuickTarget(onSpot); else SpotAction.clearQuickTarget(onSpot);
+        });
         HBox.setHgrow(card, Priority.ALWAYS); card.setMinWidth(420);
         return card;
+    }
+
+    private static void quickFill(TextField t, String v) {
+        if (v != null && !v.isBlank() && t.getText().isBlank()) t.setText(v.trim());
     }
 
     /** A labelled-field row: alternating (VBox field, boolean grow) pairs. */
@@ -836,7 +863,8 @@ public final class JHubDashboard {
             lbl("Port names for your antenna switch, saved for reference and macros. Switch control is not built in yet.","cfg-desc"),
             cells, conn, ant);
     }
-    private static Region dataCenter() {
+    /** One part of what used to be the single long Data page; each now has its own entry in the Setup menu. */
+    private static Region dataPage(String which) {
         HBox cells = liveStrip(new String[]{"CLUSTER", "RBN", "WSJT-X", "LOG DB"}, () -> {
             com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
             com.ars.fx.data.HeardByClient hb = com.ars.fx.data.HeardByClient.getInstance();
@@ -892,9 +920,36 @@ public final class JHubDashboard {
             cfgRow("Sweepstakes precedence", "your sent SS precedence (A/B/U/M/Q/S)", cInput("contest.ss.precedence", "")),
             cfgRow("Sweepstakes check", "year first licensed (2 digits)", cInput("contest.ss.check", "")),
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
-        return cfgPage(cfgTop("J-Hub","Data"),
-            lbl("Spotting, digital-mode and logbook data sources — cluster, RBN, WSJT-X, ADIF/Cabrillo export.","cfg-desc"),
-            cells, logDatabaseSection(), JHubContestDbs.build(), JHubLearnContent.build(), backupSection(), uploadSection(), logbook, contest, cluster, wsjt, lookupSection(), remote, txSection(), macroSection());
+        return switch (which) {
+            case "tx" -> cfgPage(cfgTop("J-Hub", "Hardware", "Transmit & macros"),
+                lbl("CW speed, keyer, PTT delay and voice output, and the F-key macros used by J-Log and J-Digi.", "cfg-desc"),
+                txSection(), macroSection());
+            case "cluster" -> cfgPage(cfgTop("J-Hub", "Data & spotting", "DX cluster & RBN"),
+                lbl("Where spots come from: the DX cluster server and login, and the Reverse Beacon Network (\"who is hearing me\").", "cfg-desc"),
+                cells, cluster);
+            case "digital" -> cfgPage(cfgTop("J-Hub", "Data & spotting", "WSJT-X / digital"),
+                lbl("The WSJT-X / JTDX link, the local CW skimmer and automatic logging of digital QSOs.", "cfg-desc"),
+                cells, wsjt);
+            case "lookup" -> cfgPage(cfgTop("J-Hub", "Data & spotting", "Callsign lookup"),
+                lbl("Callbook providers J-Log and J-Map ask for a station's name, QTH and grid, tried top to bottom.", "cfg-desc"),
+                lookupSection());
+            case "logdb" -> cfgPage(cfgTop("J-Hub", "Logbook", "Log database & backup"),
+                lbl("Which database files J-Log writes to, the contest databases, and ADIF / CSV backup.", "cfg-desc"),
+                cells, logDatabaseSection(), JHubContestDbs.build(), backupSection());
+            case "upload" -> cfgPage(cfgTop("J-Hub", "Logbook", "Online upload"),
+                lbl("Push your log to LoTW, eQSL, QRZ Logbook and Club Log.", "cfg-desc"),
+                uploadSection());
+            case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
+                lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
+                logbook, contest);
+            case "share" -> cfgPage(cfgTop("J-Hub", "System", "Remote sharing"),
+                lbl("Let a solo J-Map / J-Sat on another computer use this station's spots, rig and rotor.", "cfg-desc"),
+                remote);
+            case "learn" -> cfgPage(cfgTop("J-Hub", "System", "J-Learn content"),
+                lbl("Update the J-Learn chapters separately from the program.", "cfg-desc"),
+                JHubLearnContent.build());
+            default -> cfgPage(cfgTop("J-Hub", "Setup"), lbl("Pick a section from the menu on the left.", "cfg-desc"));
+        };
     }
 
     /** Which database files J-Log writes to, with their sizes and a way to open the folder. The export and
@@ -936,7 +991,7 @@ public final class JHubDashboard {
             HBox left = new HBox(11, tile, txt); left.setAlignment(Pos.CENTER_LEFT);
             HBox.setHgrow(left, Priority.ALWAYS); left.setMaxWidth(Double.MAX_VALUE);
             HBox row = new HBox(12, left,
-                    cToggleApply("module." + m.id() + ".enabled", true, on -> Shell.navigate("hubmods")));
+                    cToggleApply("module." + m.id() + ".enabled", true, on -> Shell.navigate("setup:modules")));
             row.getStyleClass().add("sx-kv"); row.setAlignment(Pos.CENTER_LEFT);
             rows.add(row);
         }
@@ -1160,7 +1215,7 @@ public final class JHubDashboard {
                 "Puts the standard macro texts back on F1–F8, written with {MYCALL}, {CALL} and the other fields so they use your Station data. "
                         + "Your voice-file choices are kept; any text you edited is replaced.",
                 new Confirm.Choice("Cancel", false, null),
-                new Confirm.Choice("Rebuild", true, () -> { com.ars.fx.data.MacroConfig.resetToDefaults(); Shell.navigate("hubdata"); })));
+                new Confirm.Choice("Rebuild", true, () -> { com.ars.fx.data.MacroConfig.resetToDefaults(); Shell.navigate("setup:tx"); })));
         HBox tools = new HBox(14, new Region(), rebuild); tools.setAlignment(Pos.CENTER_RIGHT); HBox.setHgrow(tools.getChildren().get(0), Priority.ALWAYS);
         Label macroDesc = lbl("Shared with J-Log. CW/RTTY/digital modes send the text message; SSB and other phone modes play the voice file. "
                 + "A field is filled from J-Hub ▸ Station (and Rig control) when the macro is sent — a macro that needs one you have not filled in is not sent.", "cfg-lh");

@@ -33,6 +33,12 @@ public final class Glyphs {
             }
             case "learn" -> add(g, color, path("M5 5.5h7a2.5 2.5 0 012.5 2.5v11a2 2 0 00-2-2H5z"),
                     path("M19 5.5h-4.5"), path("M14.5 8v11"));
+            case "morse" -> {   // dash · dot · dash
+                add(g, color, line(3.5,12,8.5,12), line(15.5,12,20.5,12));
+                g.getChildren().add(dot(12,12,1.9,color));
+            }
+            case "workshop" -> add(g, color, line(12,4,12,20.5), line(6.5,8,17.5,8),   // a beam: boom and three elements
+                    line(8,12.5,16,12.5), line(9.5,17,14.5,17));
             case "gear" -> add(g, color, ring(12,12,3),
                     path("M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.4 5.4l2.1 2.1M16.5 16.5l2.1 2.1M18.6 5.4l-2.1 2.1M7.5 16.5l-2.1 2.1"));
             default -> { // hub: target

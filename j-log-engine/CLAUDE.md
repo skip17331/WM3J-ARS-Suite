@@ -38,6 +38,13 @@ com.jlog.common`, so engine consumers still see these through us unchanged:
 - The UI, DX cluster, rig/rotor control, ADIF, LoTW/QRZ and awards — these live in `ars-fx`.
 - Unused hub, award, CI-V and QRZ classes were removed (see the cleanup commits).
 
+## Other directories and dependencies
+
+- `parked-plugins/` — contest definition JSONs that are deliberately not packaged or loaded. To enable one, move it
+  to `src/main/resources/com/jlog/plugins/` **and** add it to `PluginLoader`'s `BUNDLED` list (steps in its `README.md`).
+- Third-party libraries beyond SQLite: Jackson, PDFBox, Java-WebSocket, SLF4J + logback. JUnit 5 tests live under
+  `src/test/java/com/jlog/{export,scoring,util}`.
+
 ## Module
 
 JPMS named module: `com.jlog.engine` (requires transitive `com.jlog.common`).

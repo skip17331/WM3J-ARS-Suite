@@ -73,7 +73,13 @@ public final class HubServer {
         int port = RemoteServer.port();
         auto = Boolean.getBoolean("ars.hub.auto");
 
-        // Refuse to start a second hub on the same machine — the daemons/port are single-owner.
+        // Refuse to start a second hub on the same machine — the daemons/port are single-owner. The lock file closes the
+        // race where two clients spawn a hub at the same moment (both would pass the port check, since the port is
+        // only bound after the daemons and feeds are up); the port check still catches a hub from an older build.
+        if (!acquireSingleInstanceLock()) {
+            System.out.println("[hub] another hub process is starting or running — nothing to do");
+            return;
+        }
         if (portOpen(port)) {
             System.out.println("[hub] a sharing hub is already listening on :" + port + " — nothing to do");
             return;
@@ -92,6 +98,7 @@ public final class HubServer {
         RemoteServer.onClientCount = HubServer::onClientCount;   // wire refcount before the server accepts clients
         RemoteServer.onReconfig    = HubServer::reconcile;
         RemoteServer.startHub();
+        if (!auto) scheduleStartupIdleCheck();   // a hub started on its own must not hold the cluster for nobody
 
         Runtime.getRuntime().addShutdownHook(new Thread(HubServer::cleanup, "hub-shutdown"));
 
@@ -129,21 +136,79 @@ public final class HubServer {
 
     // ── client refcount → linger shutdown ─────────────────────────────────────
 
-    /** Driven by {@link RemoteServer} on every connect/disconnect. An auto hub starts a short linger timer
-     *  when its last client leaves, and cancels it if one returns — so swapping modules doesn't churn the
-     *  daemons. A sticky hub ignores this and runs until Quit. */
+    /** Driven by {@link RemoteServer} on every connect/disconnect. When the last client leaves (windows and LAN peers
+     *  both count) a short linger timer starts, and a returning client cancels it — so swapping modules doesn't
+     *  churn the connections. If it runs out, an auto hub exits; a sticky hub (it only stops on Quit) stays up
+     *  but hangs up the DX-cluster / RBN telnet connections and leaves them down: the operator reconnects by hand. */
     private static synchronized void onClientCount(int n) {
         if (n > 0) { hadClient = true; cancelLinger(); }
-        else if (auto && hadClient) scheduleLinger();
+        else if (hadClient) scheduleLinger();
     }
     private static synchronized void scheduleLinger() {
         cancelLinger();
         int grace = lingerSeconds();
-        System.out.println("[hub] last client left — stopping in " + grace + "s unless one returns");
+        System.out.println("[hub] last client left — " + (auto ? "stopping" : "hanging up the cluster feeds")
+                + " in " + grace + "s unless one returns");
+        if (clusterWanted()) notice("Last window closed",
+                "Disconnecting from the DX cluster in " + grace + " s. Open ARS Suite again to keep it connected.");
         pendingShutdown = LINGER.schedule(() -> {
-            if (RemoteServer.clientCount() == 0) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
+            if (RemoteServer.clientCount() != 0) return;
+            if (auto) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
+            else dropFeeds();
         }, grace, TimeUnit.SECONDS);
     }
+
+    /** A sticky hub that nobody ever attaches to (started with {@code --hub}, window never opened) drops the feeds too. */
+    private static void scheduleStartupIdleCheck() {
+        LINGER.schedule(() -> { if (!hadClient && RemoteServer.clientCount() == 0) dropFeeds(); }, 30, TimeUnit.SECONDS);
+    }
+
+    // The telnet feeds the hub owns.
+    private static final com.ars.fx.data.TelnetFeed[] FEEDS = {
+            ClusterClient.getInstance(), HeardByClient.getInstance() };
+
+    /** Nothing is attached: hang up the DX-cluster / RBN connections. They stay down until the operator presses
+     *  Connect (a disconnect pauses the feed, so it does not retry on its own). */
+    private static void dropFeeds() {
+        boolean was = clusterWanted();
+        for (com.ars.fx.data.TelnetFeed f : FEEDS) f.disconnect();
+        System.out.println("[hub] nothing attached — cluster feeds disconnected");
+        if (was) notice("DX cluster disconnected", "Nothing is using the hub. Press Connect in J-Hub to reconnect.");
+    }
+
+    private static boolean clusterWanted() {
+        for (com.ars.fx.data.TelnetFeed f : FEEDS) if (f.wantConnected()) return true;
+        return false;
+    }
+
+    private static volatile TrayIcon trayIcon;
+
+    /** A tray balloon from the hub (the only thing still on screen once the last window has closed). No-op without a tray. */
+    private static void notice(String title, String message) {
+        TrayIcon t = trayIcon;
+        if (t != null) try { t.displayMessage(title, message, TrayIcon.MessageType.INFO); } catch (Exception ignored) {}
+    }
+
+    // Held for the life of the process; the OS releases it if the hub dies, so a crash never blocks the next hub.
+    private static java.nio.channels.FileChannel lockChannel;
+    private static java.nio.channels.FileLock lockHandle;
+
+    /** True if this process now owns the single-hub lock. Fails open (true) if the lock file can't be used at all. */
+    private static boolean acquireSingleInstanceLock() {
+        try {
+            File dir = new File(System.getProperty("user.home"), ".j-hub");
+            dir.mkdirs();
+            lockChannel = java.nio.channels.FileChannel.open(new File(dir, "hub.lock").toPath(),
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.WRITE);
+            lockHandle = lockChannel.tryLock();            // null when another process holds it
+            return lockHandle != null;
+        } catch (java.nio.channels.OverlappingFileLockException e) {
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     private static void cancelLinger() {
         ScheduledFuture<?> f = pendingShutdown;
         pendingShutdown = null;
@@ -194,6 +259,7 @@ public final class HubServer {
             TrayIcon icon = new TrayIcon(mark != null ? mark : trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);
             icon.setImageAutoSize(true);
             tray.add(icon);
+            trayIcon = icon;
             System.out.println("[hub] tray icon installed — sharing on :" + port);
             return true;
         } catch (Exception e) {
@@ -267,6 +333,7 @@ public final class HubServer {
 
     private static synchronized void cleanup() {
         try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
+        for (com.ars.fx.data.TelnetFeed f : FEEDS) try { f.disconnect(); } catch (Exception ignored) {}   // hang up on the cluster before exiting
         try { RemoteServer.shutdown(); } catch (Exception ignored) {}
         try { DaemonManager.stopAll(); } catch (Exception ignored) {}
     }

@@ -797,3 +797,9 @@
 .ub-link:hover { -fx-underline: true; }
 .ub-btn   { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-accent-text; -fx-background-color: -ars-accent; -fx-background-radius: 5; -fx-padding: 3 10 3 10; }
 .ub-btn:hover { -fx-background-color: derive(-ars-accent, 15%); }
+
+/* ---- J-Hub Setup: the second left menu (same drawer as J-Learn's chapters) ---- */
+.jhs-group { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 14 8 4 8; }
+.jhs-item { -fx-font-size: 13px; -fx-text-fill: -ars-t2; -fx-padding: 7 10 7 14; -fx-background-radius: 7; -fx-cursor: hand; }
+.jhs-item:hover { -fx-background-color: -ars-surface-2; -fx-text-fill: -ars-t1; }
+.jhs-item.on { -fx-background-color: -ars-accent-dim; -fx-text-fill: -ars-accent; -fx-font-weight: bold; }

@@ -106,7 +106,9 @@ public final class CallsignLookup {
         if (blank(s.user()) || blank(s.secret())) return null;
         if (qrzKey == null) qrzKey = qrzSession(s);
         String body = qrzLookup(c);
-        if (body != null && body.toLowerCase().contains("session timeout")) { qrzKey = qrzSession(s); body = qrzLookup(c); }
+        if (body != null && (body.toLowerCase().contains("session timeout") || body.toLowerCase().contains("invalid session"))) {
+            qrzKey = qrzSession(s); body = qrzLookup(c);
+        }
         if (body == null) return null;
         String name = join(tag(body, "fname"), tag(body, "name"));
         return new Result(c, name, tag(body, "addr2"), tag(body, "state"), tag(body, "county"),
