@@ -88,7 +88,8 @@ public final class AwardsWindow {
                         tab("IOTA", refs(snap.iota, snap.iotaStats, "Island", "Island references entered on the QSO or imported (for example NA-005). Enter the other station's island in J-Log's IOTA field.")),
                         tab("POTA", refs(snap.pota, snap.potaStats, "Park", "Parks you have hunted — the park reference is for the other station.")),
                         tab("SOTA", refs(snap.sota, snap.sotaStats, "Summit", "Summits you have chased — the summit reference is for the other station.")),
-                        tab("Zones", zones(snap)));
+                        tab("Zones", zones(snap)),
+                        tab("My awards", CustomAwardsView.build()));
                 tabs.getSelectionModel().select(Math.min(keep, tabs.getTabs().size() - 1));
                 status.setText(snap.qsoCount + " QSOs · " + snap.dxcc.worked() + " entities worked, " + snap.dxcc.confirmed() + " confirmed"
                         + (snap.unresolved > 0 ? " · " + snap.unresolved + " calls with no entity" : ""));
