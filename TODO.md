@@ -4,6 +4,12 @@ Kept in the repo so it carries over between sessions. Tick items off (`[x]`) as 
 
 ## Ideas to look at
 - [ ] Contest calendar and other info — maybe a new **Info** tab (upcoming contests, plus other useful reference info). Decide where it lives and what feeds it.
+  - **Build first:** an "Upcoming" page (contests, DXpeditions, hamfests; one date-list view + a few feed fetchers) and an "Active now" panel (POTA / SOTA / DXpeditions). Headlines (RSS) after that.
+  - [ ] Calendars: contests (WA7BNM), hamfests / conventions (ARRL, HamCalendar — check for a usable feed), **DXpeditions** (NG3K, DX-World: entity, dates, bands, modes, QSL route), special event stations, net schedules, satellite news. Filter by distance from your grid.
+  - [ ] News feeds: ARRL / RSGB / CQ headlines, ham podcasts and video, rule and band-plan changes (FCC, IARU), software updates for WSJT-X / Hamlib.
+  - [ ] Operating activity: POTA / SOTA / WWFF activators on air, RBN "who hears me" summary, and award hints ("ZL9 is on 17m CW — you still need it") tied to award tracking.
+  - [ ] Your stats: QSOs this month, new entities, QSL / LoTW confirmations, upload errors.
+  - [ ] Reference: greyline / sunrise-sunset timetable and best bands by time of day, callsign of the day + quick lookup, licence renewal reminder, tip of the day (can surface new J-Learn chapters).
 - [ ] Maps: look at the J-Map options and see whether something better exists (tiles, projections, performance).
 - [ ] J-Map: point-to-point tracks (ham to ham) — draw the path between two stations on the map.
 - [ ] Beacon mode: look at it, get it working, and set up an auto-QSY mode.
