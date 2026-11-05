@@ -67,6 +67,7 @@ public class Launcher extends Application {
         AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
         com.ars.fx.shell.UpdateBanner.install(host, getHostServices());
         com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates
+        com.ars.fx.data.N1mmBroadcast.init();                       // rig reports for the N1MM+-compatible broadcast; sends nothing until switched on in J-Hub ▸ Data
         new Thread(com.ars.fx.data.LegalDocs::installBundled, "legal-docs").start();   // local copies of the licence and notices
     }
 
