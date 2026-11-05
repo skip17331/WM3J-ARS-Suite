@@ -153,6 +153,24 @@ public final class Shell {
         return field;
     }
 
+    /** Modules that are still beta: a notice on their page and "(beta)" on their dock tooltip. */
+    public static boolean isBeta(String moduleId) { return "digi".equals(moduleId) || "bridge".equals(moduleId); }
+
+    /** The banner shown at the top of a beta module's page. */
+    public static Node betaNote(String moduleName) {
+        Label chip = lbl("BETA", "jl-eyebrow"); chip.setStyle("-fx-text-fill:-ars-warn;-fx-font-weight:bold;-fx-font-size:12px;");
+        Label msg = lbl(moduleName + " is still in beta and may not behave as expected. Check what it does before you rely on it, and please report anything odd.", "jl-emeta");
+        msg.setWrapText(true); msg.setMaxWidth(Double.MAX_VALUE); msg.setStyle("-fx-font-size:13px;");
+        Label report = lbl("Report a problem", "jl-clearbtn");
+        report.setStyle("-fx-cursor:hand;-fx-underline:true;");
+        report.setOnMouseClicked(e -> { try { java.awt.Desktop.getDesktop().browse(java.net.URI.create("https://github.com/skip17331/WM3J-ARS-Suite/issues")); } catch (Throwable ignored) {} });
+        HBox.setHgrow(msg, Priority.ALWAYS);
+        HBox box = new HBox(12, chip, msg, report); box.setAlignment(Pos.CENTER_LEFT);
+        box.setPadding(new Insets(9, 14, 9, 14));
+        box.setStyle("-fx-background-color:-ars-surface-1;-fx-border-color:-ars-warn;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;");
+        return box;
+    }
+
     public static Label lbl(String text, String... classes) {
         Label l = new Label(text); l.getStyleClass().addAll(classes);
         for (String c : classes) if (BUTTON_CLASSES.contains(c)) { l.setMinWidth(Region.USE_PREF_SIZE); break; }
@@ -265,7 +283,7 @@ public final class Shell {
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
         // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
-        Tips.tip(row, hue.equals("gear") ? "Station settings" : name + (running ? "" : " (not running)"));
+        Tips.tip(row, hue.equals("gear") ? "Station settings" : name + (isBeta(id) ? " (beta)" : "") + (running ? "" : " (not running)"));
         if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
         else { row.setStyle("-fx-cursor:hand;"); row.setOnMouseClicked(e -> navigate("station")); }   // gear → Station settings
         return row;
