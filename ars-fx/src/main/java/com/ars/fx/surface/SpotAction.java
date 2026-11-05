@@ -68,6 +68,7 @@ public final class SpotAction {
     public static void onSpot(Node source, String call, long freqHz, String mode, String band, double lat, double lon) {
         if (call == null || call.isBlank()) return;
         String c = call.trim().toUpperCase();
+        com.ars.fx.shell.PathPropagationView.setTarget(c);          // the Propagation drawer shows band openings to this station
 
         // 1. prefill the active log — live form if J-Log is up, else queue for its next open
         Prefill pf = new Prefill(c,
