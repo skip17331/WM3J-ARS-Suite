@@ -5,6 +5,7 @@ import com.ars.fx.data.ContestLogs;
 import com.ars.fx.data.ContestState;
 import com.ars.fx.data.ContestValidators;
 import com.ars.fx.data.HubConfig;
+import com.ars.fx.data.MultCheck;
 import com.ars.fx.shell.Shell;
 import com.jlog.db.ContestQsoDao;
 import com.jlog.model.QsoRecord;
@@ -53,6 +54,10 @@ public final class JLogContest {
     private static Label sendV;                          // "what to send" line
     private static QsoRecord editingRec;                 // the logged QSO being corrected (null = logging a new one)
     private static Label editL;                          // "editing ..." banner
+    private static boolean callGivesMult;                // this contest's multiplier can be told from the call alone
+    private static Label memoryL;                        // "exchange filled from your earlier QSO"
+    private static final java.util.Map<String, String> spotMemo = new java.util.concurrent.ConcurrentHashMap<>();
+    private static volatile List<QsoRecord> logSnap;     // the contest log as of the last change, for spot tags
     private static Label problemL;                       // what is wrong with the entry (invalid section, missing field...)
     private static String problemOwner = "";             // field the message is about
     private static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
@@ -70,6 +75,11 @@ public final class JLogContest {
         if (plugin == null) return ContestPicker.build();   // no contest chosen yet → chooser
 
         ContestState.clearListeners();   // before building panes that self-register as listeners
+        spotMemo.clear(); logSnap = null;
+        ContestState.addListener(() -> { spotMemo.clear(); logSnap = null; });     // the log changed: spot tags are stale
+        callGivesMult = MultCheck.multFromCallAlone(plugin, ContestState.ctx());
+        // cluster spots in contest mode: NEW MULT where the multiplier can be told from the call; no DXCC flags (they mean nothing in a contest)
+        JHubDashboard.contestSpotTag = callGivesMult ? spot -> spotTag(plugin, spot) : spot -> "";
 
         Region dock = Shell.dock("log");
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
@@ -297,6 +307,9 @@ public final class JLogContest {
         problemL.managedProperty().bind(problemL.textProperty().isNotEmpty());
         problemL.visibleProperty().bind(problemL.textProperty().isNotEmpty());
         body.getChildren().add(problemL);
+        memoryL = lbl("", "jl-emeta"); memoryL.setWrapText(true); memoryL.setMaxWidth(Double.MAX_VALUE);
+        memoryL.setStyle("-fx-font-size:14px;");
+        memoryL.managedProperty().bind(memoryL.textProperty().isNotEmpty()); memoryL.visibleProperty().bind(memoryL.textProperty().isNotEmpty());
         similarL = lbl("", "jl-emeta"); similarL.setWrapText(true);   // possible duplicates: calls already logged that resemble the typed one
         similarL.setMaxWidth(Double.MAX_VALUE);
         similarL.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:-ars-warn;-fx-font-family:'JetBrains Mono';"
@@ -304,6 +317,7 @@ public final class JLogContest {
         similarL.managedProperty().bind(similarL.textProperty().isNotEmpty());   // no empty box while there is nothing to warn about
         similarL.visibleProperty().bind(similarL.textProperty().isNotEmpty());
         body.getChildren().add(similarL);
+        body.getChildren().add(memoryL);
 
         // F1–F8 station macros (shared with normal log + dashboard)
         body.getChildren().add(MacroBar.sendAsRow(modeF));
@@ -333,7 +347,13 @@ public final class JLogContest {
 
         // live dupe check as the call is typed (short pause after the last key), and when band/mode change
         javafx.animation.PauseTransition dupeDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(250));
-        dupeDelay.setOnFinished(e -> updateDupe(plugin));
+        dupeDelay.setOnFinished(e -> updateDupe(plugin, true));
+        javafx.animation.PauseTransition exchDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
+        exchDelay.setOnFinished(e -> updateDupe(plugin, false));
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || "callsign".equals(fd.getId()) || "band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
+            if (fieldControls.get(fd.getId()) instanceof TextField t) t.textProperty().addListener((o, a, b) -> exchDelay.playFromStart());
+        }
         Control callC = fieldControls.get("callsign");
         if (callC instanceof TextField cf) cf.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
         bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
@@ -402,6 +422,55 @@ public final class JLogContest {
     }
 
     // ---- save -------------------------------------------------------------
+    /** "NEW MULT" for a spot that would add a multiplier, else "". Remembered until the log changes. */
+    private static String spotTag(ContestPlugin plugin, com.ars.fx.data.ClusterClient.Spot spot) {
+        String key = spot.call() + "|" + spot.band() + "|" + spot.mode();
+        return spotMemo.computeIfAbsent(key, k -> {
+            List<QsoRecord> snap = logSnap;
+            if (snap == null) { snap = ContestState.qsos(); logSnap = snap; }
+            return MultCheck.isNewMult(plugin, snap, MultCheck.candidateOf(plugin, spot.call(), spot.band(), spot.mode()), ContestState.ctx()) ? "NEW MULT" : "";
+        });
+    }
+
+    /** Copy what is on the form (call, band, mode and every exchange field) into a record. */
+    private static void fillFromForm(ContestPlugin plugin, QsoRecord r) {
+        r.setCallsign(value("callsign").toUpperCase());
+        r.setBand(normBand(bandF.getText()));
+        r.setMode(modeF.getText().trim().toUpperCase());
+        for (FieldDef fd : plugin.getEntryFields()) {
+            String v = value(fd.getId());
+            switch (fd.getId()) {
+                case "callsign", "band", "mode" -> {}   // band/mode come from the dedicated selectors
+                case "rst_rcvd", "rst_received" -> r.setRstReceived(v);
+                case "rst_sent" -> r.setRstSent(v);
+                case "serial_rcvd", "serial_received" -> r.setSerialReceived(v);
+                default -> {
+                    String slot = plugin.fieldSlotColumn(fd.getId());
+                    if (slot != null) setSlot(r, slot, v.toUpperCase());
+                }
+            }
+        }
+    }
+    /** A record of the QSO being typed, not yet logged. */
+    private static QsoRecord candidate(ContestPlugin plugin) {
+        QsoRecord r = new QsoRecord();
+        r.setContestId(plugin.getContestId());
+        r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
+        fillFromForm(plugin, r);
+        return r;
+    }
+    /** Enough typed to ask "is it a new multiplier?": the multiplier field filled in and valid, or (when the call gives it) a call. */
+    private static boolean readyForMult(ContestPlugin plugin) {
+        if (value("callsign").length() < 3 || bandF.getText().isBlank() || modeF.getText().isBlank()) return false;
+        var mm = plugin.getMultiplierModel();
+        if (mm == null || mm.getField() == null) return true;
+        FieldDef fd = null;
+        for (FieldDef f : plugin.getEntryFields()) if (mm.getField().equals(f.getId())) fd = f;
+        if (fd == null || value(fd.getId()).isBlank()) return !callGivesMult;
+        var lv = ContestValidation.check(plugin, fd, value(fd.getId()), true).level();
+        return lv == ContestValidation.Level.OK || lv == ContestValidation.Level.SOFT;
+    }
+
     private static boolean logQso(ContestPlugin plugin) { return logQso(plugin, false); }
 
     /** @param dupeApproved the operator has already said "log this dupe anyway" */
@@ -421,26 +490,11 @@ public final class JLogContest {
             boolean editing = editingRec != null;
             QsoRecord r = editing ? editingRec : new QsoRecord();      // an edit keeps the QSO's time, serial and everything not on the form
             r.setContestId(cid);
-            r.setCallsign(call.toUpperCase());
-            r.setBand(normBand(bandF.getText()));
-            r.setMode(modeF.getText().trim().toUpperCase());
             if (!editing) {
                 r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
                 r.setSerialSent(String.valueOf(serial));
             }
-            for (FieldDef fd : plugin.getEntryFields()) {
-                String v = value(fd.getId());
-                switch (fd.getId()) {
-                    case "callsign", "band", "mode" -> {}   // band/mode come from the dedicated selectors
-                    case "rst_rcvd", "rst_received" -> r.setRstReceived(v);
-                    case "rst_sent" -> r.setRstSent(v);
-                    case "serial_rcvd", "serial_received" -> r.setSerialReceived(v);
-                    default -> {
-                        String slot = plugin.fieldSlotColumn(fd.getId());
-                        if (slot != null) setSlot(r, slot, v.toUpperCase());
-                    }
-                }
-            }
+            fillFromForm(plugin, r);
             List<QsoRecord> prior = new ArrayList<>(ContestQsoDao.getInstance().findByCallsign(cid, call));
             if (editing) prior.removeIf(x -> x.getId() == r.getId());
             boolean dupe = ContestScorer.isDupe(plugin, r, prior);
@@ -542,28 +596,61 @@ public final class JLogContest {
         }
     }
 
-    private static void updateDupe(ContestPlugin plugin) {
+    private static void updateDupe(ContestPlugin plugin) { updateDupe(plugin, true); }
+
+    /** @param fromCall true when the call, band or mode changed (may refill the exchange from an earlier QSO); false for an exchange edit */
+    private static void updateDupe(ContestPlugin plugin, boolean fromCall) {
         String call = value("callsign");
-        if (call == null || call.length() < 2) { setB4("New", ""); if (similarL != null) similarL.setText(""); return; }
+        if (call == null || call.length() < 2) { setB4("New", ""); if (similarL != null) similarL.setText(""); if (memoryL != null) memoryL.setText(""); return; }
         final String typed = call.toUpperCase();
+        final QsoRecord cand = candidate(plugin);                      // read the form here, on the FX thread
+        final boolean ready = readyForMult(plugin);
         Thread t = new Thread(() -> {
             try {
                 List<QsoRecord> prior = ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), typed);
-                QsoRecord cand = new QsoRecord();
-                cand.setCallsign(typed); cand.setBand(normBand(bandF.getText())); cand.setMode(modeF.getText());
                 boolean dupe = ContestScorer.isDupe(plugin, cand, prior);
                 String similar = similarCalls(plugin, typed);
+                boolean newMult = !dupe && ready && MultCheck.isNewMult(plugin, ContestState.qsos(), cand, ContestState.ctx());
+                QsoRecord last = null;
+                for (QsoRecord q : prior) if (last == null || (q.getDateTimeUtc() != null && last.getDateTimeUtc() != null && q.getDateTimeUtc().isAfter(last.getDateTimeUtc()))) last = q;
+                final QsoRecord earlier = last;
                 Platform.runLater(() -> {
-                    if (dupe) setB4("⛔ DUPE — " + typed, "dupe");
-                    else if (!prior.isEmpty()) setB4("◐ NEW BAND/MODE — " + typed + " (worked " + prior.size() + "× elsewhere)", "b4");
-                    else if (!similar.isEmpty()) setB4("◐ POSSIBLE DUPE — " + typed, "b4");
-                    else if (typed.length() >= 3) setB4("✓ NEW — " + typed, "new");
+                    String star = newMult ? "   \u2605 NEW MULT" : "";
+                    if (dupe) setB4("\u26d4 DUPE \u2014 " + typed, "dupe");
+                    else if (!prior.isEmpty()) setB4("\u25d0 NEW BAND/MODE \u2014 " + typed + " (worked " + prior.size() + "\u00d7 elsewhere)" + star, newMult ? "new" : "b4");
+                    else if (!similar.isEmpty()) setB4("\u25d0 POSSIBLE DUPE \u2014 " + typed + star, newMult ? "new" : "b4");
+                    else if (typed.length() >= 3) setB4("\u2713 NEW \u2014 " + typed + star, "new");
                     else setB4("New", "");
                     if (similarL != null) similarL.setText(similar.isEmpty() ? "" : "POSSIBLE DUPES:  " + similar);
+                    if (fromCall && earlier != null && editingRec == null) prefillFromEarlier(plugin, earlier);
+                    else if (fromCall && memoryL != null) memoryL.setText("");
                 });
             } catch (Exception ignored) {}
         }, "contest-dupe");
         t.setDaemon(true); t.start();
+    }
+
+    /** Exchange memory: a station you have worked before usually sends the same exchange (SS precedence / check / section, a state, a zone), so fill
+     *  in the blank received fields from that QSO. Serial numbers and reports are never copied. Nothing is overwritten. */
+    private static void prefillFromEarlier(ContestPlugin plugin, QsoRecord earlier) {
+        boolean anyTyped = false;
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || isNotExchange(fd.getId())) continue;
+            if (!value(fd.getId()).isBlank()) anyTyped = true;
+        }
+        if (anyTyped) return;                                          // the operator already started typing: leave it alone
+        int filled = 0;
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || isNotExchange(fd.getId())) continue;
+            String slot = plugin.fieldSlotColumn(fd.getId());
+            String v = slot == null ? null : slotValue(earlier, slot);
+            Control c = fieldControls.get(fd.getId());
+            if (v != null && !v.isBlank() && c != null) { setControl(c, v); filled++; }
+        }
+        if (memoryL != null) memoryL.setText(filled == 0 ? "" : "Exchange filled in from your earlier QSO with " + earlier.getCallsign() + " \u2014 check it before you log.");
+    }
+    private static boolean isNotExchange(String id) {
+        return id.equals("callsign") || id.equals("band") || id.equals("mode") || id.startsWith("rst") || id.startsWith("serial");
     }
 
     /** Logged calls that look like what is being typed: they start with it, contain it, or are contained in it
@@ -637,6 +724,7 @@ public final class JLogContest {
         if (serialV != null) serialV.setText(String.valueOf(serial));
         if (ContestState.plugin() != null) refreshSend(ContestState.plugin());
         if (similarL != null) similarL.setText("");
+        if (memoryL != null) memoryL.setText("");
         for (Control c : fieldControls.values()) c.getStyleClass().removeAll("invalid", "warnfield");
         editingRec = null; if (editL != null) editL.setText("");
         softArmed = false; showProblem("", "");
