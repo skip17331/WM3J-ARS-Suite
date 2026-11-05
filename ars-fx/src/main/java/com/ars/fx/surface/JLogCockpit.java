@@ -174,7 +174,9 @@ public final class JLogCockpit {
         // recent log table
         Label lh = lbl("☰  Recent log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
         Label ln = lbl(""); ln.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;");
-        HBox lbar = new HBox(8, lh, ln); lbar.getStyleClass().add("jl-loghd"); lbar.setAlignment(Pos.CENTER_LEFT);
+        Region lsp = new Region(); HBox.setHgrow(lsp, Priority.ALWAYS);
+        Label browse = lbl("Browse full log ⤢", "jl-clearbtn"); browse.setStyle("-fx-cursor:hand;");
+        HBox lbar = new HBox(8, lh, ln, lsp, browse); lbar.getStyleClass().add("jl-loghd"); lbar.setAlignment(Pos.CENTER_LEFT);
         VBox tbl = new VBox();
 
         TextField[] all = {call, name, grid, qth, stat, cnty, cmt};
@@ -211,8 +213,13 @@ public final class JLogCockpit {
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
             }
         };
-        refresh[0] = () -> fillLog(tbl, ln, onEdit, onDelete);
+        refresh[0] = () -> { fillLog(tbl, ln, onEdit, onDelete); LogBrowser.refreshIfOpen(); };
         refresh[0].run();
+        browse.setOnMouseClicked(e -> LogBrowser.show(browse, onEdit, () -> {
+            if (editId[0] >= 0 && JLogDb.byId(editId[0]) == null) exitEdit.run();   // the QSO being edited was deleted
+            refresh[0].run();
+            sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
+        }));
 
         Runnable doLog = () -> {
             if (call.getText() == null || call.getText().isBlank()) { call.requestFocus(); return; }
@@ -350,7 +357,7 @@ public final class JLogCockpit {
     private static HBox row(VBox... cells) { HBox r = new HBox(12, cells); r.setAlignment(Pos.BOTTOM_LEFT); return r; }
 
     // columns: DATE, UTC, CALL, FREQ, BAND, MODE, RST, NAME, [edit/del actions]
-    private static final double[] LOGC = {84, 48, -1, 74, 46, 54, 48, -1, 58};
+    private static final double[] LOGC = {88, 52, 112, 84, 52, 68, 50, -1, 58};   // only NAME flexes, so header and rows share one grid
     private static void fillLog(VBox tbl, Label count, Consumer<Long> onEdit, Consumer<Long> onDelete) {
         tbl.getChildren().clear();
         tbl.getChildren().add(headerRow(new String[]{"DATE", "UTC", "CALL", "FREQ", "BAND", "MODE", "RST", "NAME", ""}));
@@ -395,7 +402,7 @@ public final class JLogCockpit {
     }
     private static void col(HBox r, Node n, int i) {
         HBox cell = new HBox(n); cell.setAlignment(Pos.CENTER_LEFT);
-        if (LOGC[i] < 0) { HBox.setHgrow(cell, Priority.ALWAYS); cell.setMaxWidth(Double.MAX_VALUE); }
+        if (LOGC[i] < 0) { HBox.setHgrow(cell, Priority.ALWAYS); cell.setMaxWidth(Double.MAX_VALUE); cell.setMinWidth(0); cell.setPrefWidth(0); }
         else { cell.setMinWidth(LOGC[i]); cell.setPrefWidth(LOGC[i]); cell.setMaxWidth(LOGC[i]); }
         r.getChildren().add(cell);
     }

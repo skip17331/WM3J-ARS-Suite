@@ -85,6 +85,20 @@ public final class JLogDb {
         return out;
     }
 
+    /** Every QSO with all loggable fields, newest first — for the log browser. */
+    public static List<QsoFull> all() {
+        List<QsoFull> out = new ArrayList<>();
+        String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_sent,rst_received,operator_name,"
+                + "country,sig_info,state,county,power_watts,notes FROM qso ORDER BY datetime_utc DESC, id DESC";
+        try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next())
+                out.add(new QsoFull(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                        rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9),
+                        rs.getString(10), rs.getString(11), rs.getString(12), rs.getString(13), rs.getInt(14), rs.getString(15)));
+        } catch (Throwable t) { /* DB absent → empty */ }
+        return out;
+    }
+
     /** Full QSO by id (for the edit form), or null. */
     public static QsoFull byId(long id) {
         String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_sent,rst_received,operator_name,"

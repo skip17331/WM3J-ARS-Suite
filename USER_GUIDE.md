@@ -169,7 +169,7 @@ database** and **Database tools ›** (which opens J-Hub ▸ Data).
 - **New QSO** — callsign, band, mode, frequency, RST sent and received, name, QTH, state, county, grid, power and
   comment, then **Log QSO ⏎**. Typing a call looks it up (see *Callsign lookup* above) and shows its DXCC entity,
   beam heading and your previous contacts with it. **Print QSL label** prints a label for each new QSO when you save it; pick the printer in Setup ▸ Logbook ▸ Label printers. *(Beta.)*
-- **Recent log** — your latest QSOs; select one to edit or delete it.
+- **Recent log** — your latest QSOs; select one to edit or delete it. **Browse full log ⤢** opens every QSO in a sortable, searchable table (sort by any column heading, search by call, name, QTH, grid, state, county or notes, filter by band and mode; double-click a row to edit it).
 - **DX Cluster** — live spots with a **Console** button that opens a raw-feed pop-up with a command line (history, and
   shortcuts such as `SH/DX 20` and `SET/FT8`). The status is always **Disconnected**, **Connecting** or **Connected**,
   and **Stop** cancels a connection that is not coming up.
