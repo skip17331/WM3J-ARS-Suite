@@ -205,6 +205,16 @@ public final class JHubDashboard {
             default: return true;
         }
     }
+    /** Set by the contest page: what to tag a spot with while it is on screen (empty = no tag). */
+    static volatile java.util.function.Function<ClusterClient.Spot, String> contestSpotTag;
+
+    /** The tag on a spot: in contest mode the contest's own (NEW MULT), otherwise the new-entity / band / mode flag. */
+    private static String tag(ClusterClient.Spot s, SpotNeeds.Index ix) {
+        java.util.function.Function<ClusterClient.Spot, String> h = contestSpotTag;
+        if (h != null && "logc".equals(Shell.currentSurface)) return h.apply(s);
+        return need(s, ix).label;
+    }
+
     private static SpotNeeds.Need need(ClusterClient.Spot s, SpotNeeds.Index ix) {
         return SpotNeeds.classify(ix, s.call(), s.band(), s.mode(), SpotNeeds.resolver());
     }
@@ -264,7 +274,7 @@ public final class JHubDashboard {
             java.util.List<ClusterClient.Spot> all = cc.spots();
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
             for (ClusterClient.Spot s : all)
-                if (bandOk(s) && modeOk(s) && (!cluNeededOnly || need(s, worked) != SpotNeeds.Need.NONE)) shown.add(s);
+                if (bandOk(s) && modeOk(s) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);
             rows.getChildren().clear();
             if (shown.isEmpty()) {
                 empty.setText(conn && !all.isEmpty() ? "No spots match the current filter" : com.ars.fx.shell.FeedUi.emptyList(cc, "cluster"));
@@ -272,7 +282,7 @@ public final class JHubDashboard {
             } else {
                 for (ClusterClient.Spot s : shown) {
                     Region row = cluRow(new String[]{
-                            ClusterClient.fmtFreq(s.freqHz()), s.call(), need(s, worked).label, s.mode(), s.band(),
+                            ClusterClient.fmtFreq(s.freqHz()), s.call(), tag(s, worked), s.mode(), s.band(),
                             s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) });
                     row.setStyle("-fx-cursor:hand;");
                     com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
@@ -292,7 +302,7 @@ public final class JHubDashboard {
         VBox modesF = labeled("MODES", segSel(CLU_MODES, cluSel("data.clusterMode", CLU_MODES), i -> { com.ars.fx.data.HubConfig.set("data.clusterMode", CLU_MODES[i]); render.run(); }));
         HBox row2 = new HBox(12, bandsF, modesF); row2.setAlignment(Pos.BOTTOM_LEFT);
 
-        Label nkl = lbl("Needed only (new entity / band / mode)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
+        Label nkl = lbl("Needed only (new entity / band / mode; new multiplier in a contest)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
         HBox needed = new HBox(nkl, switchToggle(cluNeededOnly, v -> { cluNeededOnly = v; render.run(); }));
         needed.getStyleClass().add("sx-kv"); needed.setAlignment(Pos.CENTER_LEFT);
 
