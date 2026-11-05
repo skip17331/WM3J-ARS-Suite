@@ -47,5 +47,8 @@
   "cabrilloSent": ["rst_sent", "year_sent"],
   "cabrilloRcvd": ["rst_rcvd", "year_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band."
+  }
 }

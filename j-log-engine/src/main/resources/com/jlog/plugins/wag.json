@@ -51,5 +51,8 @@
   "cabrilloSent": ["rst_sent", "state_prov_sent", "serial_sent"],
   "cabrilloRcvd": ["rst_rcvd", "state_prov_rcvd", "serial_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band."
+  }
 }

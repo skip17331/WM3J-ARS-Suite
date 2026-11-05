@@ -72,5 +72,8 @@
   "cabrilloSent": ["rst_sent", "field3"],
   "cabrilloRcvd": ["rst_rcvd", "field2"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band."
+  }
 }

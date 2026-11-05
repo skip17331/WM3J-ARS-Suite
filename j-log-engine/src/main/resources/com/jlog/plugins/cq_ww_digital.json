@@ -69,5 +69,8 @@
   "cabrilloSent": ["grid_sent"],
   "cabrilloRcvd": ["grid_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band."
+  }
 }

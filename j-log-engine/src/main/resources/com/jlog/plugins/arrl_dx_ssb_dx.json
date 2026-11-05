@@ -111,5 +111,8 @@
     "IL","IN","WI",
     "CO","IA","KS","MN","MO","ND","NE","SD",
     "AB","BC","LB","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
-  ]
+  ],
+  "layout": {
+    "note": "Multipliers count once per band."
+  }
 }

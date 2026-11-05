@@ -374,6 +374,22 @@ public final class JLogContest {
             if (c instanceof TextField t) t.setOnAction(e -> doLog.run());
             c.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
         }
+        // Space = next field (call, then the exchange in the order shown); the space itself is not typed
+        List<Control> spaceOrder = new ArrayList<>();
+        for (FieldDef fd : fieldsInOrder) {
+            if (fd.getEntryRow() == 1 || "band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
+            Control c = fieldControls.get(fd.getId());
+            if (c instanceof TextField) spaceOrder.add(c);
+        }
+        for (int i = 0; i < spaceOrder.size(); i++) {
+            final Control cur = spaceOrder.get(i), next = i + 1 < spaceOrder.size() ? spaceOrder.get(i + 1) : null;
+            cur.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, e -> { if (" ".equals(e.getCharacter())) e.consume(); });
+            cur.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
+                if (e.getCode() != javafx.scene.input.KeyCode.SPACE) return;
+                e.consume();
+                if (next != null) { next.requestFocus(); if (next instanceof TextField t) t.selectAll(); }
+            });
+        }
         bandF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
         modeF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
 

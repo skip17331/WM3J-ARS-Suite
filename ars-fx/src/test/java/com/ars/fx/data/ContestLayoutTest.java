@@ -54,7 +54,9 @@ class ContestLayoutTest {
         ContestLayout l = ContestLayout.resolve(ss);
         assertFalse(l.note().isEmpty(), "the built-in note");
         assertEquals("Sections Worked", l.orderTabs(List.of("Statistics", "Sections Worked")).get(0));
-        assertEquals(ContestLayout.NONE, ContestLayout.resolve(load("cq_ww_cw.json")), "a contest without a layout block gets the standard page");
+        ContestLayout ww = ContestLayout.resolve(load("cq_ww_cw.json"));
+        assertEquals("Multipliers count once per band.", ww.note(), "CQ WW carries only the note its own definition supports");
+        assertTrue(ww.tabs().isEmpty() && ww.hideTabs().isEmpty() && ww.fieldOrder().isEmpty(), "no ordering: the standard page");
     }
 
     @Test void theOperatorsFileIsLayeredOverTheBuiltInOne(@TempDir Path tmp) throws Exception {
