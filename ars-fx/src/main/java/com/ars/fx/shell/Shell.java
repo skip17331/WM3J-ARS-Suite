@@ -263,7 +263,7 @@ public final class Shell {
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
         // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
         Tips.tip(row, hue.equals("gear") ? "Station settings" : name + (running ? "" : " (not running)"));
-        if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id.equals("log") ? lastLogSurface : id));
+        if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
         else { row.setStyle("-fx-cursor:hand;"); row.setOnMouseClicked(e -> navigate("station")); }   // gear → Station settings
         return row;
     }

@@ -31,8 +31,8 @@ public final class ContestPicker {
 
         TextField search = new TextField(); search.setPromptText("Search contests…");
         search.getStyleClass().add("jhub-mini-field"); search.setMaxWidth(360);
-        Label normal = lbl("← Normal log", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
-        normal.setOnMouseClicked(e -> Shell.navigate("log"));
+        Label normal = lbl("← Dashboard", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
+        normal.setOnMouseClicked(e -> Shell.navigate("hub"));
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         HBox head = new HBox(12, lbl("Choose a contest", "jhub-card-title"), gap, search, normal);
         head.setAlignment(Pos.CENTER_LEFT); head.setPadding(new Insets(14, 18, 8, 18));
