@@ -163,7 +163,7 @@ public final class Shell {
         msg.setWrapText(true); msg.setMaxWidth(Double.MAX_VALUE); msg.setStyle("-fx-font-size:13px;");
         Label report = lbl("Report a problem", "jl-clearbtn");
         report.setStyle("-fx-cursor:hand;-fx-underline:true;");
-        report.setOnMouseClicked(e -> { try { java.awt.Desktop.getDesktop().browse(java.net.URI.create("https://github.com/skip17331/WM3J-ARS-Suite/issues")); } catch (Throwable ignored) {} });
+        report.setOnMouseClicked(e -> com.ars.fx.data.LinkOpener.open("https://github.com/skip17331/WM3J-ARS-Suite/issues"));
         HBox.setHgrow(msg, Priority.ALWAYS);
         HBox box = new HBox(12, chip, msg, report); box.setAlignment(Pos.CENTER_LEFT);
         box.setPadding(new Insets(9, 14, 9, 14));

@@ -369,19 +369,18 @@ public final class InfoView {
         return l;
     }
     private static void mail(Label shown, String original, String subject) {
-        try {
-            java.awt.Desktop.getDesktop().mail(java.net.URI.create("mailto:" + CONTACT + "?subject=" + java.net.URLEncoder.encode(subject, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20")));
-        } catch (Throwable t) {
+        String uri = "mailto:" + CONTACT + "?subject=" + java.net.URLEncoder.encode(subject, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+        com.ars.fx.data.LinkOpener.mail(uri, () -> {
             javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent(); cc.putString(CONTACT);
             javafx.scene.input.Clipboard.getSystemClipboard().setContent(cc);
             shown.setText("Address copied: " + CONTACT);
             javafx.animation.PauseTransition p = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(4));
             p.setOnFinished(ev -> shown.setText(original)); p.play();
-        }
+        });
     }
 
     private static void open(String url) {
-        try { java.awt.Desktop.getDesktop().browse(java.net.URI.create(url)); } catch (Throwable ignored) {}
+        com.ars.fx.data.LinkOpener.open(url);
     }
 
     // ---- Sources dialog ------------------------------------------------------------------------------
