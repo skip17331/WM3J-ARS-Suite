@@ -95,6 +95,34 @@ public final class Shell {
         return l;
     }
 
+    /** The "Print QSL label" switch shared by J-Log and J-Log-Quick: a checkbox bound to the saved setting plus a one-line result. */
+    public static final class QslToggle {
+        public final javafx.scene.layout.VBox node;
+        private final Label status = lbl("", "jl-emeta");
+        QslToggle() {
+            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox("Print QSL label");
+            cb.setSelected(com.ars.fx.data.QslLabel.printOnSave());
+            cb.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.QslLabel.setPrintOnSave(b));
+            com.ars.fx.data.HubConfig.addChangeListener(k -> { if ("label.printOnSave".equals(k) || "*".equals(k))
+                javafx.application.Platform.runLater(() -> cb.setSelected(com.ars.fx.data.QslLabel.printOnSave())); });
+            Tips.tip(cb, "Print a QSL label whenever a QSO is saved — choose the printer in Setup ▸ Label printers");
+            status.setWrapText(true); status.setMaxWidth(190);
+            node = new javafx.scene.layout.VBox(3, cb, status);
+            node.setAlignment(javafx.geometry.Pos.BOTTOM_LEFT);
+        }
+        /** Called after a new QSO is saved: prints if the switch is on. */
+        public void afterSave(com.ars.fx.data.QslLabel.Qso q) {
+            if (!com.ars.fx.data.QslLabel.printOnSave()) return;
+            status.setText("⋯ printing label…");
+            com.ars.fx.data.QslLabel.printAsync(q, r -> javafx.application.Platform.runLater(() -> {
+                status.setText((r.ok() ? "✓ " : "✗ ") + r.message());
+                javafx.animation.PauseTransition t = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(r.ok() ? 6 : 15));
+                t.setOnFinished(e -> status.setText("")); t.play();
+            }));
+        }
+    }
+    public static QslToggle qslToggle() { return new QslToggle(); }
+
     /** A button that is not wired up yet: shown greyed out, does nothing when clicked, and says so in its tooltip. */
     public static Label placeholderButton(String text, String styleClass, String tooltip) {
         Label b = lbl(text, styleClass);

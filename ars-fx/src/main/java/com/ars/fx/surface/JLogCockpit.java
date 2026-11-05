@@ -165,8 +165,8 @@ public final class JLogCockpit {
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
         Label cancel = lbl("Cancel edit", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;"); cancel.setVisible(false); cancel.setManaged(false);
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
-        Label printQsl = Shell.placeholderButton("Print QSL label", "jl-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
-        HBox cmtRow = new HBox(12, cmtF, sp2, printQsl, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
+        Shell.QslToggle printQsl = Shell.qslToggle();
+        HBox cmtRow = new HBox(12, cmtF, sp2, printQsl.node, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
         body.getChildren().add(MacroBar.sendAsRow(mode));
         body.getChildren().add(MacroBar.row(fireMacro));
@@ -225,6 +225,8 @@ public final class JLogCockpit {
                     : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
                             rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p);
             if (ok) {
+                if (editId[0] < 0) printQsl.afterSave(new com.ars.fx.data.QslLabel.Qso(call.getText(), dt, freq.getText(), bandVal,
+                        mode.getText(), rsnt.getText(), rrcv.getText(), name.getText(), qth.getText()));
                 exitEdit.run();
                 for (TextField t : all) t.clear();
                 b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = "";

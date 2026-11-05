@@ -391,8 +391,8 @@ public final class JHubDashboard {
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         Label clear = lbl("Clear", "jhub-clearbtn");
         Label logBtn = lbl("Log QSO ⏎", "jl-logbtn");
-        Label printQsl = Shell.placeholderButton("Print QSL label", "jhub-clearbtn", "Print a QSL label for this QSO — coming soon");   // not hooked up yet
-        HBox cmtRow = new HBox(12, cmt, sp2, printQsl, clear, logBtn);
+        Shell.QslToggle printQsl = Shell.qslToggle();
+        HBox cmtRow = new HBox(12, cmt, sp2, printQsl.node, clear, logBtn);
         cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
 
@@ -419,6 +419,8 @@ public final class JHubDashboard {
             boolean ok = JLogDb.insert(call, freq, JLogDb.bandFor(freq), tMode.getText(),
                     tUp.getText(), tDn.getText(), tName.getText(), tQth.getText(), tGrid.getText(), tCmt.getText());
             if (ok) {
+                printQsl.afterSave(new com.ars.fx.data.QslLabel.Qso(call, null, freq, JLogDb.bandFor(freq), tMode.getText(),
+                        tUp.getText(), tDn.getText(), tName.getText(), tQth.getText()));
                 clearForm.run();
                 tCall.requestFocus();
                 fillLog(tbl, tln);
@@ -939,6 +941,9 @@ public final class JHubDashboard {
             case "upload" -> cfgPage(cfgTop("J-Hub", "Logbook", "Online upload"),
                 lbl("Push your log to LoTW, eQSL, QRZ Logbook and Club Log.", "cfg-desc"),
                 uploadSection());
+            case "labels" -> cfgPage(cfgTop("J-Hub", "Logbook", "Label printers"),
+                lbl("Print a QSL label for each QSO as it is logged. Tick \"Print QSL label\" on the J-Log form to turn it on.", "cfg-desc"),
+                labelSection());
             case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
                 lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
                 logbook, contest);
@@ -1078,6 +1083,93 @@ public final class JHubDashboard {
         return new VBox(6, lbl("CALLSIGN LOOKUP", "cfg-sec"),
                 lbl("Tried top-to-bottom; first hit wins. J-Log autofills name / QTH / grid / state / county from the CALLSIGN field.", "cfg-lh"),
                 card);
+    }
+    /** J-Hub ▸ Setup ▸ Label printers: model, label stock, destination, and a test print. */
+    private static VBox labelSection() {
+        Label status = lbl("", "cfg-lh"); status.setWrapText(true); status.setMaxWidth(Double.MAX_VALUE);
+        VBox card = new VBox(); card.getStyleClass().add("cfg-card");
+        VBox dyn = new VBox();                        // rows that depend on the chosen model; rebuilt on change
+
+        ComboBox<com.ars.fx.data.QslLabel.Model> model = new ComboBox<>();
+        model.getItems().addAll(com.ars.fx.data.QslLabel.MODELS);
+        model.setConverter(new javafx.util.StringConverter<>() {
+            public String toString(com.ars.fx.data.QslLabel.Model m) { return m == null ? "" : m.label(); }
+            public com.ars.fx.data.QslLabel.Model fromString(String s) { return null; }
+        });
+        model.setValue(com.ars.fx.data.QslLabel.currentModel()); model.setMinWidth(260);
+
+        Runnable[] rebuild = new Runnable[1];
+        rebuild[0] = () -> {
+            com.ars.fx.data.QslLabel.Model m = model.getValue();
+            dyn.getChildren().clear();
+            boolean zpl = m.zpl() && "zpl".equals(com.ars.fx.data.QslLabel.mode(m));
+
+            if (m.zpl()) {
+                ComboBox<String> mode = new ComboBox<>(); mode.getItems().addAll("Native ZPL (recommended)", "System driver");
+                mode.setValue(zpl ? mode.getItems().get(0) : mode.getItems().get(1)); mode.setMinWidth(260);
+                mode.valueProperty().addListener((o, a, b) -> {
+                    com.ars.fx.data.HubConfig.set("label.mode", b.startsWith("Native") ? "zpl" : "driver"); rebuild[0].run(); });
+                dyn.getChildren().add(cfgRow("Print method", "ZPL is sent straight to the printer; the driver rasterises the label", mode));
+            }
+
+            ComboBox<com.ars.fx.data.QslLabel.Size> size = new ComboBox<>();
+            size.getItems().addAll(com.ars.fx.data.QslLabel.sizesFor(m));
+            size.setConverter(new javafx.util.StringConverter<>() {
+                public String toString(com.ars.fx.data.QslLabel.Size s) { return s == null ? "" : s.label(); }
+                public com.ars.fx.data.QslLabel.Size fromString(String s) { return null; }
+            });
+            com.ars.fx.data.QslLabel.Size cur = com.ars.fx.data.QslLabel.currentSize(m);
+            String curId = com.ars.fx.data.HubConfig.get("label.size", "");
+            for (com.ars.fx.data.QslLabel.Size s : size.getItems()) if (s.id().equals(curId.isEmpty() ? cur.id() : curId)) size.setValue(s);
+            if (size.getValue() == null) size.setValue(size.getItems().get(0));
+            size.setMinWidth(320);
+            size.valueProperty().addListener((o, a, b) -> {
+                if (b != null) { com.ars.fx.data.HubConfig.set("label.size", b.id()); rebuild[0].run(); } });
+            dyn.getChildren().add(cfgRow("Label stock", "must match the roll loaded in the printer", size));
+            if ("custom".equals(size.getValue().id()))
+                dyn.getChildren().add(cfgRow("Custom size (mm)", "width × height of the label",
+                        new HBox(8, cInput("label.customW", "62"), lbl("×", "cfg-lh"), cInput("label.customH", "29"))));
+
+            if (zpl) {
+                dyn.getChildren().add(cfgRow("Network address", "printer IP or host[:port] — port 9100 if omitted; leave blank to use a queue below",
+                        cInputPrompt("label.host", "192.168.1.50")));
+                dyn.getChildren().add(cfgRow("Print resolution", "dots per inch of the print head",
+                        cSelect("label.dpi", String.valueOf(m.dpi()), "203", "300", "600")));
+            }
+            java.util.List<String> sys = com.ars.fx.data.QslLabel.systemPrinters();
+            ComboBox<String> pr = new ComboBox<>(); pr.getItems().addAll(sys); pr.setEditable(true); pr.setMinWidth(260);
+            pr.setValue(com.ars.fx.data.HubConfig.get("label.printer", ""));
+            pr.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set("label.printer", b == null ? "" : b));
+            pr.getEditor().textProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set("label.printer", b == null ? "" : b));
+            dyn.getChildren().add(cfgRow(zpl ? "System printer queue" : "Printer",
+                    sys.isEmpty() ? "no printers found — add the printer in your OS settings first" : "installed printers (CUPS / Windows)", pr));
+            dyn.getChildren().add(cfgRow("Copies", null, cSelect("label.copies", "1", "1", "2", "3", "4", "5")));
+        };
+
+        model.valueProperty().addListener((o, a, b) -> {
+            if (b == null) return;
+            com.ars.fx.data.HubConfig.set("label.model", b.id());
+            com.ars.fx.data.HubConfig.remove("label.size"); com.ars.fx.data.HubConfig.remove("label.mode");
+            com.ars.fx.data.HubConfig.remove("label.dpi");
+            rebuild[0].run();
+        });
+        rebuild[0].run();
+
+        CheckBox auto = new CheckBox(); auto.setSelected(com.ars.fx.data.QslLabel.printOnSave());
+        auto.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.QslLabel.setPrintOnSave(b));
+        Label test = cfgBtn("Test print");
+        test.setOnMouseClicked(e -> {
+            status.setText("⋯ printing test label…");
+            com.ars.fx.data.QslLabel.printAsync(com.ars.fx.data.QslLabel.sample(), r ->
+                    javafx.application.Platform.runLater(() -> status.setText((r.ok() ? "✓ " : "✗ ") + r.message())));
+        });
+
+        card.getChildren().addAll(
+                cfgRow("Print a label when a QSO is saved", "same switch as \"Print QSL label\" on the J-Log form", auto),
+                cfgRow("Printer model", "Brother QL, DYMO LabelWriter, Zebra, Rollo — or any printer with a system driver", model),
+                dyn,
+                cfgRow("Test", "prints a sample label with the settings above", test));
+        return new VBox(6, lbl("QSL LABEL PRINTER", "cfg-sec"), card, status);
     }
     /** Real ADIF / CSV backup export of the J-Log database. */
     private static VBox backupSection() {

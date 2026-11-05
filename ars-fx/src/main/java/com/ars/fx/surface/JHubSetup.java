@@ -38,7 +38,7 @@ public final class JHubSetup {
             new Item("lookup", "Callsign lookup"), new Item("sat", "Satellites")),
         new Group("LOGBOOK",
             new Item("logdb", "Log database & backup"), new Item("upload", "Online upload"),
-            new Item("export", "Export & Cabrillo")),
+            new Item("export", "Export & Cabrillo"), new Item("labels", "Label printers")),
         new Group("SYSTEM",
             new Item("modules", "Modules"), new Item("share", "Remote sharing"), new Item("learn", "J-Learn content")),
     };
