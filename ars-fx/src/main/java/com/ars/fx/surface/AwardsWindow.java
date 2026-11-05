@@ -2,6 +2,7 @@ package com.ars.fx.surface;
 
 import com.ars.fx.Theme;
 import com.ars.fx.Themes;
+import com.ars.fx.data.AwardLevels;
 import com.ars.fx.data.Awards;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
@@ -89,6 +91,7 @@ public final class AwardsWindow {
                         tab("POTA", refs(snap.pota, snap.potaStats, "Park", "Parks you have hunted — the park reference is for the other station.")),
                         tab("SOTA", refs(snap.sota, snap.sotaStats, "Summit", "Summits you have chased — the summit reference is for the other station.")),
                         tab("Zones", zones(snap)),
+                        tab("Levels", levels(snap)),
                         tab("My awards", CustomAwardsView.build()));
                 tabs.getSelectionModel().select(Math.min(keep, tabs.getTabs().size() - 1));
                 status.setText(snap.qsoCount + " QSOs · " + snap.dxcc.worked() + " entities worked, " + snap.dxcc.confirmed() + " confirmed"
@@ -190,6 +193,38 @@ public final class AwardsWindow {
         for (String item : p.all()) fp.getChildren().add(chip(item, p.confirmedSet().contains(item) ? "conf" : p.workedSet().contains(item) ? "worked" : ""));
         Label legend = lbl(blurb + "  Green = worked, blue = confirmed, grey = still needed.", "jl-emeta"); legend.setWrapText(true);
         return scroll(page(progressRow(p), legend, fp));
+    }
+
+    // ---- endorsement levels -------------------------------------------------------------------------
+    private static Node levels(Awards.Snapshot snap) {
+        VBox rows = new VBox(8);
+        String group = "";
+        for (AwardLevels.Level l : AwardLevels.compute(snap)) {
+            if (!l.group().equals(group)) {
+                group = l.group();
+                Label g = lbl(group, "jhub-card-title"); g.setPadding(new Insets(14, 0, 2, 0));
+                rows.getChildren().add(g);
+            }
+            rows.getChildren().add(levelRow(l));
+        }
+        Label hint = lbl("Confirmed (a QSL / LoTW / eQSL tick on the QSO) is what the sponsors credit; the bar shows confirmed, the first number is worked. "
+                + "Thresholds are the published ones - check the current rules before you apply.", "jl-emeta");
+        hint.setWrapText(true);
+        ScrollPane sp = new ScrollPane(page(rows, hint)); sp.setFitToWidth(true);
+        return sp;
+    }
+    private static Node levelRow(AwardLevels.Level l) {
+        StackPane bar = new StackPane(); bar.setMinHeight(6); bar.setMaxHeight(6); bar.setMaxWidth(Double.MAX_VALUE);
+        Region track = new Region(); track.getStyleClass().add("jl-award-bar-track"); track.setMinHeight(6); track.setMaxHeight(6); track.setMaxWidth(Double.MAX_VALUE);
+        Region fill = new Region(); fill.getStyleClass().add("jl-award-bar-fill"); fill.setMinHeight(6); fill.setMaxHeight(6);
+        StackPane.setAlignment(fill, Pos.CENTER_LEFT); bar.getChildren().addAll(track, fill);
+        fill.maxWidthProperty().bind(bar.widthProperty().multiply(l.fraction(true)));
+        Label name = lbl(l.name(), "jl-skim-meta"); name.setMinWidth(260);
+        Label cnt = lbl(l.worked() + " worked  \u00b7  " + l.confirmed() + "\u2714 of " + l.target() + (l.done() ? "   DONE" : ""), "jl-award-pct");
+        cnt.setMinWidth(210);
+        HBox r = new HBox(10, name, bar, cnt); HBox.setHgrow(bar, Priority.ALWAYS); r.setAlignment(Pos.CENTER_LEFT);
+        if (!l.note().isEmpty()) com.ars.fx.shell.Tips.tip(r, l.note());
+        return r;
     }
 
     private static Node zones(Awards.Snapshot s) {
