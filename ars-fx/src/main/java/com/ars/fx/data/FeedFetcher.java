@@ -43,11 +43,14 @@ public final class FeedFetcher {
     }
 
     /** The feed's text: from the cache while it is fresh, else fetched. {@code key} names the cache file. */
-    public static Fetched get(String key, String url, boolean force, Instant now) {
+    public static Fetched get(String key, String url, boolean force, Instant now) { return get(key, url, force, now, FRESH); }
+
+    /** As above, but a copy younger than {@code keep} is used without asking again (for things that rarely change). */
+    public static Fetched get(String key, String url, boolean force, Instant now, Duration keep) {
         if (!validUrl(url)) return new Fetched(null, null, false, "Not a web address (use https://...)");
         Path body = cacheDir().resolve(key + ".feed"), stamp = cacheDir().resolve(key + ".stamp");
         Instant cachedAt = readStamp(stamp, body, url);
-        Duration limit = force ? MIN_REFETCH : FRESH;
+        Duration limit = force ? MIN_REFETCH : keep;
         if (cachedAt != null && Duration.between(cachedAt, now).compareTo(limit) < 0)
             return new Fetched(read(body), cachedAt, true, null);
         try {

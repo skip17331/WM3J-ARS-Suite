@@ -927,6 +927,19 @@ public final class JHubDashboard {
                 }, "log-upload");
                 t.setDaemon(true); t.start();
             });
+            if (s.id().equals("lotw") || s.id().equals("eqsl")) {
+                Label dl = cfgBtn("Get confirmations");
+                dl.setOnMouseClicked(e -> {
+                    status.setText("\u22ef asking " + s.label() + " for your confirmations\u2026");
+                    final String id = s.id();
+                    Thread t = new Thread(() -> {
+                        com.ars.fx.data.ConfirmSync.Result r = id.equals("lotw") ? com.ars.fx.data.ConfirmSync.lotw() : com.ars.fx.data.ConfirmSync.eqsl();
+                        javafx.application.Platform.runLater(() -> status.setText((r.ok() ? "\u2713 " : "\u2717 ") + r.service() + ": " + r.message()));
+                    }, "confirm-sync");
+                    t.setDaemon(true); t.start();
+                });
+                fields.getChildren().add(dl);
+            }
             fields.getChildren().addAll(up, en);
             card.getChildren().add(cfgRow(s.label(), s.hint(), fields));
         }

@@ -168,7 +168,7 @@ public final class JLogCockpit {
         TextField cmt  = tf("notes, QSL info…", "", -1, false);
         TextField iota = tf("NA-005", "", 110, false);       // award references: island / summit / park
         TextField sota = tf("W7W/LC-001", "", 150, false);
-        TextField pota = tf("K-0039", "", 110, false);
+        TextField pota = tf("US-0001", "", 110, false);
         CheckBox cQsl = new CheckBox("QSL"), cLotw = new CheckBox("LoTW"), cEqsl = new CheckBox("eQSL");
         com.ars.fx.shell.Tips.tip(cQsl, "Paper QSL card received"); com.ars.fx.shell.Tips.tip(cLotw, "Confirmed on LoTW"); com.ars.fx.shell.Tips.tip(cEqsl, "Confirmed on eQSL");
         HBox confBox = new HBox(10, cQsl, cLotw, cEqsl); confBox.setAlignment(Pos.CENTER_LEFT);
@@ -219,6 +219,7 @@ public final class JLogCockpit {
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
         body.getChildren().add(dtRow);
         body.getChildren().add(row(g("IOTA", iota, false), g("SOTA SUMMIT", sota, false), g("POTA PARK", pota, false), g("CONFIRMED", confBox, false)));
+        body.getChildren().add(RefHints.attach(call, grid, iota, sota, pota));
 
         VBox cmtF = g("COMMENT", cmt, true);
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);

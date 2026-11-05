@@ -22,7 +22,9 @@ public final class UploadConfig {
     public static final List<Service> SERVICES = List.of(
             new Service("lotw", "LoTW (ARRL)", "signed upload via TrustedQSL (tqsl)", List.of(
                     new Field("location", "Station location", false),
-                    new Field("password", "Signing-key password", true))),
+                    new Field("password", "Signing-key password", true),
+                    new Field("weblogin", "LoTW website login (to download)", false),
+                    new Field("webpass", "LoTW website password", true))),
             new Service("eqsl", "eQSL.cc", "ADIF upload", List.of(
                     new Field("user", "Username", false),
                     new Field("password", "Password", true))),

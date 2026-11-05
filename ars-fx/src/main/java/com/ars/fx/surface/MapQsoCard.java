@@ -140,7 +140,7 @@ final class MapQsoCard {
         call = field(""); freq = field("MHz"); mode = field("USB");
         rstSent = field(""); rstRcvd = field("");
         name = field("name"); qth = field("city / QTH"); grid = field("FN31"); comment = field("notes, QSL info…");
-        iota = field("NA-005"); sota = field("W7W/LC-001"); pota = field("K-0039");      // award references of the other station
+        iota = field("NA-005"); sota = field("W7W/LC-001"); pota = field("US-0001");      // award references of the other station
         cQsl = new CheckBox("QSL"); cLotw = new CheckBox("LoTW"); cEqsl = new CheckBox("eQSL");
         Tips.tip(cQsl, "Paper QSL card received"); Tips.tip(cLotw, "Confirmed on LoTW"); Tips.tip(cEqsl, "Confirmed on eQSL");
         info = lbl("", "dx-info-v"); info.setWrapText(true);
@@ -168,6 +168,7 @@ final class MapQsoCard {
                 row(labeled("QTH", qth), labeled("GRID", grid)),
                 row(labeled("IOTA", iota), labeled("POTA PARK", pota)),
                 labeled("SOTA SUMMIT", sota),
+                RefHints.attach(call, grid, iota, sota, pota),
                 new VBox(3, lbl("CONFIRMED", "jl-flabel"), new HBox(10, cQsl, cLotw, cEqsl)),
                 labeled("COMMENT", comment),
                 buttons);

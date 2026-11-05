@@ -28,9 +28,11 @@ Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, t
 - [ ] Try it on the work machine (Windows) — install, open the dock **Awards** button (or Log tools ▸ Awards ▸ Open awards), import a LoTW ADIF to see confirmations.
 - [ ] **S** Close the remaining ~155 prefixes the engine's DXCC table lacks (the cty.dat fallback covers them for the awards and spot flags, but scoring and contest multipliers still use the table): mostly Russia (about 38 prefixes), France overseas (TH, TO, TP, TQ, TV, TX), Hawaii AH6 / AH7, Guam AH2, China XS, Botswana 8O, Gibraltar ZG, Greenland XP, Costa Rica TE, Colombia HJ. `CtyDataTest.auditAgainstTheEnginePrefixTable` writes the full list to `target/cty-audit.txt`.
 - [ ] **S** Keep `cty.dat` current: the copy in the app is from release 3634 (2 Nov 2026); the files change a few times a month. Needs a stable download address (the zip name carries the release number) or reading it off the site's front page; until then it is refreshed with each app release.
-- [ ] **M** Download confirmations straight from LoTW / eQSL (their APIs) instead of importing a file by hand.
-- [ ] **S** Suggest the IOTA reference from the callsign (IOTA's public group list) and look up POTA parks / SOTA summits when typing a reference.
 - [ ] **M** Refine CQ / ITU zones by grid for the multi-zone countries (US 3-5, Canada 1-5, Russia, China, Australia, Brazil...). Zones now come from the callsign through cty.dat, which gives the entity default and a few per-call overrides, so a W6 station reads zone 5 where it is really 3. The J-Map zone outlines (`cq-zones.json`) could turn a grid square into a zone.
+
+- [ ] **S** Check **Get confirmations** against your real LoTW and eQSL accounts (tests use sample files only). LoTW uses the documented query; the eQSL inbox download is undocumented and follows what other loggers do, so it is the one most likely to need a fix. A password with a `#` is known to break eQSL downloads.
+- [ ] **S** Confirmation sync follow-ups: also add confirmed QSOs missing from the log (today only matched ones are ticked and the rest are counted); show how many were newly confirmed; Club Log and QRZ have confirmation downloads too.
+- [ ] **S** Reference lookups: the POTA lookup uses an unofficial interface and may change; the IOTA list is the public download from iota-world.org, kept a week; check their terms, and add a lookup button if typing and tabbing is not enough.
 
 ## 2b. Next — contest page (phases 2 and 3)
 Phase 1 is built: one generic page driven by the 86 contest definitions in `j-log-engine/.../plugins/`; contest mode is entered from Log tools ▸ Log mode.

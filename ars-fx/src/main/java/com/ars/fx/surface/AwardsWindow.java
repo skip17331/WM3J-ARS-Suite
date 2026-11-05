@@ -57,7 +57,19 @@ public final class AwardsWindow {
         Label refresh = lbl("⟳ Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
         refresh.setOnMouseClicked(e -> load());
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox bar = new HBox(10, lbl("Awards", "jhub-card-title"), status, sp, refresh);
+        Label getConf = lbl("Get confirmations", "jl-clearbtn"); getConf.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(getConf, "Download your LoTW and eQSL confirmations and tick them on the QSOs in your log (logins: Setup \u25b8 Data \u25b8 Online log upload)");
+        getConf.setOnMouseClicked(e -> {
+            status.setText("Asking LoTW and eQSL for your confirmations\u2026");
+            Thread t = new Thread(() -> {
+                java.util.List<com.ars.fx.data.ConfirmSync.Result> rs = com.ars.fx.data.ConfirmSync.all();
+                StringBuilder sb = new StringBuilder();
+                for (com.ars.fx.data.ConfirmSync.Result r : rs) sb.append(r.ok() ? "\u2713 " : "\u2717 ").append(r.service()).append(": ").append(r.message()).append("   ");
+                Platform.runLater(() -> { load(); status.setText(sb.toString().trim()); });
+            }, "confirm-sync");
+            t.setDaemon(true); t.start();
+        });
+        HBox bar = new HBox(10, lbl("Awards", "jhub-card-title"), status, sp, getConf, refresh);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(10, 14, 10, 14));
         VBox.setVgrow(tabs, Priority.ALWAYS);
         VBox root = new VBox(bar, tabs);
