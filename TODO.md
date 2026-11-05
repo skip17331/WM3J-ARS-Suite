@@ -9,7 +9,7 @@ Merged since v1.12.2 and released by the nightly build. Nobody has clicked throu
 - [ ] **S** One-screen contest page (phase 1): try a Sweepstakes, a CQ WW and a QSO party. Check the SEND line, mode default, "mults left" tile, rates, tabs.
 - [ ] **S** Contest validation: bogus section / precedence / zone / callsign is refused; unrecognised state or county in a QSO party warns and needs a second Enter.
 - [ ] **S** Dupes ask permission; Edit / Erase on contest log rows and the All QSOs window; dupe flags re-decided after an erase.
-- [ ] **S** Awards: Awards button in the dock, the drawer's Customize link, and the **My awards** tab (PR #95, if merged) with the 13 Colonies template — check the K2A–K2M + WM3GPO list against the year you operate.
+- [ ] **S** Awards: Awards button in the dock, the drawer's Customize link, and the **My awards** tab (merged in #95) with the 13 Colonies template — check the K2A–K2M + WM3GPO list against the year you operate.
 - [ ] **S** Nightly release workflow: confirm a night with new code produces a release, and a night with none does not.
 
 ## 1. On hold — verify what shipped in v1.12.2
@@ -22,7 +22,7 @@ No label printers to test with at the moment, so these wait.
 ## 2. Next — award tracking (merged to main, PR #85)
 Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, and the awards screen (DXCC matrix, WAS, WAC, grids, IOTA, POTA, SOTA, zones).
 - [x] Review and merge the PR (#85)
-- [ ] Try it on the work machine (Windows) — install, open J-Log ▸ Awards, import a LoTW ADIF to see confirmations.
+- [ ] Try it on the work machine (Windows) — install, open the dock **Awards** button (or Log tools ▸ Awards ▸ Open awards), import a LoTW ADIF to see confirmations.
 - [ ] **M** Audit the DXCC prefix table (`j-log-engine/.../dxcc-prefixes.json`) against the full ARRL list: about 270 prefixes were added, but whole blocks are still missing (much of Africa, Asia, Oceania, the Caribbean), and deleted entities are not tracked. Calls with no entity are counted in the Awards header.
 - [ ] **M** Download confirmations straight from LoTW / eQSL (their APIs) instead of importing a file by hand.
 - [ ] **S** Suggest the IOTA reference from the callsign (IOTA's public group list) and look up POTA parks / SOTA summits when typing a reference.
