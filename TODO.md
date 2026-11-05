@@ -38,13 +38,9 @@ Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, t
 Phase 1 is built: one generic page driven by the 86 contest definitions in `j-log-engine/.../plugins/`; contest mode is entered from Log tools ▸ Log mode.
 - [ ] **M** Phase 2 — per-contest layout: an optional `layout` block in the contest JSON (which panels, order, first fields, macro set, extra score tiles, pick-lists such as the county list), plus a user override file `~/.j-log/contests/<id>.json` layered over the built-in one. Tailor the contests actually run first (ask which).
 - [ ] **M** Spot NEW MULT tags cover only the 44 of 86 contests whose multiplier is in the callsign (CQ WW, All Asian, Oceania, WAE, Russian DX, ARI, most QSO parties). For the rest (Sweepstakes, ARRL DX, WPX, Field Day, VHF...) the multiplier is in the exchange, so a spot cannot be tagged until the exchange is typed. A call-history file (each call's usual section / state / zone, from earlier contests) would let spots be tagged early; it would also feed the exchange memory.
-- [ ] **S** Contest start / end times in the definitions, and a timer (elapsed, remaining, off-time).
 - [ ] **M** Phase 3 — special panels: Sweepstakes (precedence / check / section flow), Field Day (class + section, bonus points), WAE **QTC entry** (not implemented), QSO-party in-state vs out-of-state exchange and counties.
 - [ ] **S** QSO-party "mults left" counts the counties in the multiplier list; for an operator inside the state it should be states and provinces instead.
-- [ ] **S** Mixed-mode contests (QSO parties, Field Day, VHF, IARU, EU HF...) open in the rig's mode, else SSB — confirm that default, or make it a setting.
-- [ ] **S** Contest macro keyer on the contest page: confirm CW / voice F-keys work there as they did on the old page.
 - [ ] **S** Validation: sent-side values are not checked; add a callsign-exists check only if wanted (shape only today). Add state / province / county lists per QSO party so that warning becomes a hard error where the list is definitive.
-- [ ] **S** Contest QSO edit: changing the callsign of an old QSO re-checks dupes for the whole log; add a test for the re-flag logic (needs a test database).
 
 ## 2c. Next — gaps found in the competitor survey
 From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the portable loggers. We are working on these.

@@ -241,7 +241,10 @@ public final class JLogContest {
             Control cf = fieldControls == null ? null : fieldControls.get("callsign");
             TranslatorWindow.show(translator, cf instanceof TextField t ? t.getText() : "");
         });
-        HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, export);
+        Label times = lbl("Contest times\u2026", "jl-clearbtn"); times.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(times, "Set when this contest starts and ends (UTC) to get a clock with time left and off time");
+        times.setOnMouseClicked(e -> editTimes(times, plugin));
+        HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, times, export);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(14, 18, 6, 18));
         return bar;
     }
@@ -321,8 +324,9 @@ public final class JLogContest {
 
         // F1–F8 station macros (shared with normal log + dashboard)
         body.getChildren().add(MacroBar.sendAsRow(modeF));
-        body.getChildren().add(MacroBar.row(MacroBar.fire(
-                () -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"))));
+        java.util.function.IntConsumer fireMacro = MacroBar.fire(() -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"));
+        body.getChildren().add(MacroBar.row(fireMacro));
+        installFKeys(body, fireMacro);
 
         Runnable doLog = () -> { if (logQso(plugin)) clearForm(); };   // recompute → listeners refresh log + trackers
         logBtn.setOnMouseClicked(e -> doLog.run());
@@ -366,7 +370,9 @@ public final class JLogContest {
     private static String defaultMode(ContestPlugin plugin, com.ars.fx.data.RigClient.State rs) {
         String m = SentExchange.contestMode(plugin);
         if (m != null) return m;
-        return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "SSB";   // mixed-mode contest: follow the rig, else SSB
+        String pref = HubConfig.get("contest.defaultMode", "Auto");                    // Setup: Auto / SSB / CW
+        if (pref.equals("SSB") || pref.equals("CW")) return pref;
+        return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "SSB";   // Auto: follow the rig, else SSB
     }
 
     // ---- "SEND" line: exactly what to say / key, built from Setup ----------------
@@ -429,6 +435,24 @@ public final class JLogContest {
             List<QsoRecord> snap = logSnap;
             if (snap == null) { snap = ContestState.qsos(); logSnap = snap; }
             return MultCheck.isNewMult(plugin, snap, MultCheck.candidateOf(plugin, spot.call(), spot.band(), spot.mode()), ContestState.ctx()) ? "NEW MULT" : "";
+        });
+    }
+
+    /** F1-F8 key the macros, for as long as this page is on screen (and never after: the keys are handed back when the page leaves the scene). */
+    private static void installFKeys(Node anchor, java.util.function.IntConsumer fire) {
+        javafx.scene.input.KeyCode[] fk = {javafx.scene.input.KeyCode.F1, javafx.scene.input.KeyCode.F2, javafx.scene.input.KeyCode.F3, javafx.scene.input.KeyCode.F4,
+                javafx.scene.input.KeyCode.F5, javafx.scene.input.KeyCode.F6, javafx.scene.input.KeyCode.F7, javafx.scene.input.KeyCode.F8};
+        List<javafx.scene.input.KeyCodeCombination> mine = new ArrayList<>();
+        anchor.sceneProperty().addListener((o, oldS, s) -> {
+            if (oldS != null) for (var k : mine) oldS.getAccelerators().remove(k);
+            mine.clear();
+            if (s == null) return;
+            for (int i = 0; i < com.ars.fx.data.MacroConfig.count() && i < fk.length; i++) {
+                final int idx = i;
+                var k = new javafx.scene.input.KeyCodeCombination(fk[i]);
+                mine.add(k);
+                s.getAccelerators().put(k, () -> fire.accept(idx));
+            }
         });
     }
 
@@ -574,14 +598,7 @@ public final class JLogContest {
     private static void reflagDupes(ContestPlugin plugin) {
         try {
             List<QsoRecord> all = new ArrayList<>(ContestQsoDao.getInstance().fetchByContest(plugin.getContestId()));
-            all.sort(java.util.Comparator.comparing(QsoRecord::getDateTimeUtc, java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder())));
-            Map<String, List<QsoRecord>> earlier = new java.util.HashMap<>();
-            for (QsoRecord q : all) {
-                List<QsoRecord> prior = earlier.computeIfAbsent(z(q.getCallsign()).toUpperCase(), k -> new ArrayList<>());
-                boolean d = ContestScorer.isDupe(plugin, q, prior);
-                if (d != q.isDupe()) { q.setDupe(d); ContestQsoDao.getInstance().update(q); }
-                prior.add(q);
-            }
+            for (QsoRecord q : com.ars.fx.data.DupeFlags.recompute(plugin, all)) ContestQsoDao.getInstance().update(q);
         } catch (Exception e) { System.err.println("[contest] dupe re-check failed: " + e.getMessage()); }
     }
 
@@ -743,14 +760,62 @@ public final class JLogContest {
                 {"10-MIN RATE", rates()[0] + "/h"},
                 {"60-MIN RATE", rates()[1] + "/h"}};
         ContestPlugin p = ContestState.plugin();
+        List<String[]> out = new ArrayList<>(java.util.Arrays.asList(tiles));
         String[] left = leftTile(p);
-        if (left != null) {
-            String[][] more = new String[tiles.length + 1][];
-            System.arraycopy(tiles, 0, more, 0, tiles.length);
-            more[tiles.length] = left;
-            return more;
+        if (left != null) out.add(left);
+        String[] clock = clockTile(p);
+        if (clock != null) out.add(clock);
+        return out.toArray(new String[0][]);
+    }
+
+    /** "CONTEST CLOCK": time to the start / left, and off time so far; only once the operator has set the contest's times. */
+    private static String[] clockTile(ContestPlugin p) {
+        if (p == null) return null;
+        com.ars.fx.data.ContestClock.Window w = com.ars.fx.data.ContestClock.window(p.getContestId());
+        if (!w.valid()) return null;
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        com.ars.fx.data.ContestClock.Status st = com.ars.fx.data.ContestClock.status(w, now);
+        String text = st.text();
+        if (st.phase() != com.ars.fx.data.ContestClock.Phase.BEFORE) {
+            List<LocalDateTime> times = new ArrayList<>();
+            for (QsoRecord q : ContestState.qsos()) if (!q.isDupe()) times.add(q.getDateTimeUtc());
+            java.time.Duration off = com.ars.fx.data.ContestClock.offTime(times, w, now, java.time.Duration.ofMinutes(30));
+            if (!off.isZero()) text += "  \u00b7  off " + com.ars.fx.data.ContestClock.span(off);
         }
-        return tiles;
+        return new String[]{"CONTEST CLOCK", text};
+    }
+
+    private static void editTimes(Node owner, ContestPlugin plugin) {
+        com.ars.fx.data.ContestClock.Window w = com.ars.fx.data.ContestClock.window(plugin.getContestId());
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        TextField start = new TextField(w.start() == null ? "" : f.format(w.start())), end = new TextField(w.end() == null ? "" : f.format(w.end()));
+        start.setPromptText("2026-11-28 00:00"); end.setPromptText("2026-11-30 00:00");
+        Label msg = lbl("", "jl-emeta"); msg.setStyle("-fx-text-fill:-ars-err;");
+        Label hint = lbl("Times are UTC. They are kept for this contest only, so enter them each year. Off time counts gaps of 30 minutes or more.", "jl-emeta");
+        hint.setWrapText(true); hint.setMaxWidth(380);
+        Label cancel = lbl("Cancel", "jl-clearbtn"), save = lbl("Save", "jl-logbtn"), clear = lbl("Clear", "jl-clearbtn");
+        for (Label l : new Label[]{cancel, save, clear}) l.setStyle("-fx-cursor:hand;");
+        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
+        HBox btns = new HBox(14, clear, msg, gap, cancel, save); btns.setAlignment(Pos.CENTER_LEFT);
+        VBox box = new VBox(8, lbl("Contest times \u2014 " + plugin.getContestName(), "jhub-card-title"), lbl("START (UTC)", "jl-flabel"), start,
+                lbl("END (UTC)", "jl-flabel"), end, hint, btns);
+        box.setPadding(new Insets(16)); box.setPrefWidth(420);
+        javafx.scene.Scene scene = new javafx.scene.Scene(box);
+        com.ars.fx.Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.Themes.applyTo(box, "log");
+        javafx.stage.Stage st = new javafx.stage.Stage(); st.setTitle("Contest times"); st.setScene(scene);
+        st.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
+        cancel.setOnMouseClicked(e -> st.close());
+        clear.setOnMouseClicked(e -> { com.ars.fx.data.ContestClock.setWindow(plugin.getContestId(), null); st.close(); Shell.navigate("logc"); });
+        save.setOnMouseClicked(e -> {
+            LocalDateTime a = com.ars.fx.data.ContestClock.parse(start.getText()), b = com.ars.fx.data.ContestClock.parse(end.getText());
+            if (a == null || b == null) { msg.setText("Use yyyy-MM-dd HH:mm"); return; }
+            if (!b.isAfter(a)) { msg.setText("The end must be after the start"); return; }
+            com.ars.fx.data.ContestClock.setWindow(plugin.getContestId(), new com.ars.fx.data.ContestClock.Window(a, b));
+            st.close(); Shell.navigate("logc");                      // rebuild so the clock tile appears
+        });
+        st.show();
     }
 
     /** Label of the "multipliers still to work" tile, or null when the contest has no fixed set of multipliers (prefixes, DXCC). */
@@ -801,6 +866,9 @@ public final class JLogContest {
         }
         if (vs.size() >= 6) { int[] r = rates(); vs.get(4).setText(r[0] + "/h"); vs.get(5).setText(r[1] + "/h"); }
         if (vs.size() >= 7 && leftLabel(ContestState.plugin()) != null) vs.get(6).setText(leftText(ContestState.plugin()));
+        int clockAt = 6 + (leftLabel(ContestState.plugin()) != null ? 1 : 0);
+        String[] clock = clockTile(ContestState.plugin());
+        if (clock != null && vs.size() > clockAt) vs.get(clockAt).setText(clock[1]);
     }
     private static void collectStatV(Node n, List<Label> out) {
         if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);

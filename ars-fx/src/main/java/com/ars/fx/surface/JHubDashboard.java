@@ -812,6 +812,7 @@ public final class JHubDashboard {
             cfgRow("Mode category", null, cInput("contest.cab.mode", "MIXED")),
             cfgRow("Station", null, cInput("contest.cab.station", "FIXED")),
             cfgRow("Club", null, cInput("contest.cab.club", "")),
+            cfgRow("Mixed-mode contests open in", "QSO parties, Field Day, VHF and others that allow CW and phone. Auto follows the rig, else SSB", cSelect("contest.defaultMode", "Auto", "Auto", "SSB", "CW")),
             cfgRow("Sweepstakes precedence", "your sent SS precedence (A/B/U/M/Q/S)", cInput("contest.ss.precedence", "")),
             cfgRow("Sweepstakes check", "year first licensed (2 digits)", cInput("contest.ss.check", "")),
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
