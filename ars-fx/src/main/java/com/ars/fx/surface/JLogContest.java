@@ -89,7 +89,7 @@ public final class JLogContest {
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
 
         // One-screen operating position: entry + last QSOs on the left, DX cluster over the contest panes on the right.
-        VBox left = new VBox(8, toolbar(plugin), LogDbBar.build(true), entryPane(plugin), recentLogPane());
+        VBox left = new VBox(8, toolbar(plugin), new com.ars.fx.surface.contest.NetStrip(), LogDbBar.build(true), entryPane(plugin), recentLogPane());
         left.setStyle("-fx-background-color:-ars-bg;");
         ScrollPane sp = new ScrollPane(left); sp.setFitToWidth(true); sp.setFitToHeight(true);   // scrolls only if the window is too short
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -664,7 +664,7 @@ public final class JLogContest {
     private static void reflagDupes(ContestPlugin plugin) {
         try {
             List<QsoRecord> all = new ArrayList<>(ContestQsoDao.getInstance().fetchByContest(plugin.getContestId()));
-            for (QsoRecord q : com.ars.fx.data.DupeFlags.recompute(plugin, all)) ContestQsoDao.getInstance().update(q);
+            for (QsoRecord q : com.ars.fx.data.DupeFlags.recompute(plugin, all)) ContestQsoDao.getInstance().updateDerived(q.getId(), q.getPoints(), q.isDupe());
         } catch (Exception e) { System.err.println("[contest] dupe re-check failed: " + e.getMessage()); }
     }
 

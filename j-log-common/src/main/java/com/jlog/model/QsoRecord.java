@@ -42,6 +42,12 @@ public class QsoRecord {
     private int    points;
     private boolean isDupe;
 
+    // Network mode: a contest QSO is the same QSO on every station by its uid; origin is the station that logged it
+    // and updatedMs (epoch ms) is when it last changed - the later change wins when two stations disagree.
+    private String uid;
+    private String origin;
+    private long   updatedMs;
+
     // ---- Constructors ----
     public QsoRecord() {}
 
@@ -131,6 +137,13 @@ public class QsoRecord {
 
     public boolean isDupe() { return isDupe; }
     public void setDupe(boolean dupe) { isDupe = dupe; }
+
+    public String getUid() { return uid; }
+    public void setUid(String uid) { this.uid = uid; }
+    public String getOrigin() { return origin; }
+    public void setOrigin(String origin) { this.origin = origin; }
+    public long getUpdatedMs() { return updatedMs; }
+    public void setUpdatedMs(long updatedMs) { this.updatedMs = updatedMs; }
 
     @Override
     public String toString() {

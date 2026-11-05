@@ -116,6 +116,12 @@ public class DatabaseManager {
         }
     }
 
+    private void addContestColumnIfMissing(Statement st, String column, String type) throws SQLException {
+        if (contestColumnExists(column)) return;
+        st.executeUpdate("ALTER TABLE contest_qso ADD COLUMN " + column + " " + type);
+        log.info("Upgraded contest_qso: added column {}", column);
+    }
+
     private boolean contestColumnExists(String column) throws SQLException {
         try (Statement st = contestConn.createStatement();
              ResultSet rs = st.executeQuery("PRAGMA table_info(contest_qso)")) {
@@ -200,6 +206,23 @@ public class DatabaseManager {
                 st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
                 log.info("Migrated contest_qso: dropped redundant `exchange` column");
             }
+
+            // Network mode: every contest QSO has a global id (uid), the station that logged it (origin) and when it last changed
+            // (updated_ms); a deleted QSO leaves a tombstone so the deletion can reach the other stations.
+            addContestColumnIfMissing(st, "uid", "TEXT");
+            addContestColumnIfMissing(st, "origin", "TEXT");
+            addContestColumnIfMissing(st, "updated_ms", "INTEGER");
+            st.executeUpdate("UPDATE contest_qso SET uid = lower(hex(randomblob(16))) WHERE uid IS NULL OR uid = ''");
+            st.executeUpdate("UPDATE contest_qso SET updated_ms = CAST(strftime('%s', datetime_utc) AS INTEGER) * 1000 WHERE updated_ms IS NULL");
+            st.executeUpdate("UPDATE contest_qso SET origin = '' WHERE origin IS NULL");
+            st.executeUpdate("CREATE UNIQUE INDEX IF NOT EXISTS idx_cqso_uid ON contest_qso(uid)");
+            st.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS contest_qso_deleted (
+                    uid         TEXT PRIMARY KEY,
+                    contest_id  TEXT NOT NULL,
+                    deleted_ms  INTEGER NOT NULL
+                )
+                """);
 
             // WAE-DC QTC traffic (Rule §7). One row = one transferred QTC.
             st.executeUpdate("""
