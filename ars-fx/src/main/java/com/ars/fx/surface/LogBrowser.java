@@ -55,23 +55,23 @@ final class LogBrowser {
         Label refresh = lbl("⟳ Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
 
         TableView<JLogDb.QsoFull> table = new TableView<>();
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);   // NOTES takes whatever width is left
         table.setPlaceholder(lbl("No QSOs match", "jl-emeta"));
         table.getColumns().addAll(List.of(
-                col("DATE (UTC)", 130, q -> JLogDb.dateOf(q.datetimeUtc()) + " " + JLogDb.hhmm(q.datetimeUtc())),
-                col("CALL", 110, JLogDb.QsoFull::call),
-                col("FREQ", 84, JLogDb.QsoFull::freq),
-                col("BAND", 60, JLogDb.QsoFull::band),
-                col("MODE", 66, JLogDb.QsoFull::mode),
-                col("RST S", 56, JLogDb.QsoFull::rstSent),
-                col("RST R", 56, JLogDb.QsoFull::rstRcvd),
-                col("NAME", 150, JLogDb.QsoFull::name),
-                col("QTH", 170, JLogDb.QsoFull::qth),
-                col("GRID", 76, JLogDb.QsoFull::grid),
-                col("ST", 50, JLogDb.QsoFull::state),
-                col("COUNTY", 120, JLogDb.QsoFull::county),
-                col("PWR", 56, q -> q.powerW() > 0 ? String.valueOf(q.powerW()) : ""),
-                col("NOTES", 260, JLogDb.QsoFull::notes)));
+                col("DATE (UTC)", 126, q -> JLogDb.dateOf(q.datetimeUtc()) + " " + JLogDb.hhmm(q.datetimeUtc())),
+                col("CALL", 96, JLogDb.QsoFull::call),
+                col("FREQ", 74, JLogDb.QsoFull::freq),
+                col("BAND", 52, JLogDb.QsoFull::band),
+                col("MODE", 58, JLogDb.QsoFull::mode),
+                col("RST S", 50, JLogDb.QsoFull::rstSent),
+                col("RST R", 50, JLogDb.QsoFull::rstRcvd),
+                col("NAME", 130, JLogDb.QsoFull::name),
+                col("QTH", 140, JLogDb.QsoFull::qth),
+                col("GRID", 70, JLogDb.QsoFull::grid),
+                col("ST", 40, JLogDb.QsoFull::state),
+                col("COUNTY", 110, JLogDb.QsoFull::county),
+                col("PWR", 46, q -> q.powerW() > 0 ? String.valueOf(q.powerW()) : ""),
+                col("NOTES", 150, JLogDb.QsoFull::notes)));
         // the date column holds "yyyy-MM-dd HH:mm", which sorts correctly as text — newest first to start
         @SuppressWarnings("unchecked")
         TableColumn<JLogDb.QsoFull, String> dateCol = (TableColumn<JLogDb.QsoFull, String>) table.getColumns().get(0);
@@ -134,7 +134,7 @@ final class LogBrowser {
         VBox.setVgrow(table, Priority.ALWAYS);
         VBox root = new VBox(bar, hint, table);
 
-        Scene scene = new Scene(root, 1180, 620);
+        Scene scene = new Scene(root, 1260, 620);
         Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
         Themes.applyTo(root, "log");
         Stage st = new Stage(); st.setTitle("J-Log — full log"); st.setScene(scene); com.ars.fx.AppIcons.apply(st, null);
