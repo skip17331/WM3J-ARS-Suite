@@ -100,11 +100,37 @@ public final class JLogCockpit {
         });
         return pane;
     }
-    /** The J-Log-only drawers (RTTY/CW TX & RX, Heard By, Awards, Skimmer) for the dashboard's collapsing side column. Call after {@link #embeddedEntry()}. */
+    /** Log mode: normal log (current) and the way into contest mode. */
+    private static Node logModeDrawer() {
+        Label cur = lbl("\u25cf Normal log", "jl-skim-meta"); cur.setStyle("-fx-font-weight:bold;-fx-text-fill:-ars-ok;");
+        Label where = lbl("Logging to " + com.ars.fx.data.LogDbInfo.normalLine(), "jl-emeta"); where.setWrapText(true);
+        Label contest = lbl("\u21c4 Contest mode\u2026", "jl-clearbtn"); contest.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(contest, "Switch to the contest page. Contest QSOs go to a contest database of their own.");
+        contest.setOnMouseClicked(e -> JLogContest.promptEnter(contest));
+        return Shell.drawer("Log mode", "log", "log", "Normal", true, new VBox(8, cur, where, contest));
+    }
+    /** Translator: QSO phrases in other languages, following the call being logged. */
+    private static Node translatorDrawer() {
+        Label open = lbl("Open translator", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
+        open.setOnMouseClicked(e -> TranslatorWindow.show(open, callRef == null ? "" : callRef.getText()));
+        Label hint = lbl("QSO phrases in other languages; follows the country of the callsign you are logging.", "jl-emeta"); hint.setWrapText(true);
+        return Shell.drawer("Translator", "learn", "learn", "", false, new VBox(8, hint, open));
+    }
+    /** Database tools: which database is in use, and the way to J-Hub Setup > Data. */
+    private static Node databaseDrawer() {
+        Label where = lbl("Log in use: " + com.ars.fx.data.LogDbInfo.normalLine(), "jl-emeta"); where.setWrapText(true);
+        Label tools = lbl("Database tools \u203a", "jl-clearbtn"); tools.setStyle("-fx-cursor:hand;");
+        tools.setOnMouseClicked(e -> Shell.navigate("setup:logdb"));   // J-Hub > Data: database info, export, upload
+        return Shell.drawer("Database tools", "vault", "vault", "", false, new VBox(8, where, tools));
+    }
+
+    /** The J-Log-only drawers (Log mode, RTTY/CW TX & RX, Heard By, Awards, Skimmer, Translator, Database tools) for the dashboard's collapsing side column. Call after {@link #embeddedEntry()}. */
     static Node[] sideDrawers() {
         List<Node> out = new ArrayList<>();
+        out.add(logModeDrawer());
         if (embeddedTx != null) out.add(embeddedTx);
         out.add(heardByDrawer()); out.add(awardsDrawer()); out.add(skimmerDrawer());
+        out.add(translatorDrawer()); out.add(databaseDrawer());
         return out.toArray(new Node[0]);
     }
 
@@ -117,10 +143,12 @@ public final class JLogCockpit {
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
         Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
         contestChip.setOnMouseClicked(e -> JLogContest.promptEnter(contestChip));
-        Label b4 = lbl("Normal log", "jl-eyebrow");   // worked-before / dupe / status
+        final String idleB4 = embedded ? "" : "Normal log";    // merged page: the header shows only the worked-before / dupe status
+        Label b4 = lbl(idleB4, "jl-eyebrow");   // worked-before / dupe / status
         Label translatorChip = lbl("Translator", "jl-clearbtn"); translatorChip.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(translatorChip, "QSO phrases in other languages — follows the country of the callsign you are logging");
-        HBox head = new HBox(11, ic, ttl, hsp, translatorChip, contestChip, b4); head.setAlignment(Pos.CENTER_LEFT);
+        HBox head = embedded ? new HBox(11, ic, ttl, hsp, b4) : new HBox(11, ic, ttl, hsp, translatorChip, contestChip, b4);
+        head.setAlignment(Pos.CENTER_LEFT);
 
         TextField call = tf("", "", 210, true);
         call.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));        // the translator (if open) follows the call's country
@@ -273,7 +301,7 @@ public final class JLogCockpit {
                         mode.getText(), rsnt.getText(), rrcv.getText(), name.getText(), qth.getText()));
                 exitEdit.run();
                 for (TextField t : all) t.clear();
-                b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = "";
+                b4.setText(idleB4); b4.setStyle(""); lastLk[0] = "";
                 call.requestFocus();
                 refresh[0].run();
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
@@ -282,7 +310,7 @@ public final class JLogCockpit {
         logBtn.setOnMouseClicked(e -> doLog.run());
         call.setOnAction(e -> doLog.run());
         cmt.setOnAction(e -> doLog.run());
-        Runnable clearForm = () -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText("Normal log"); b4.setStyle(""); lastLk[0] = ""; };
+        Runnable clearForm = () -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText(idleB4); b4.setStyle(""); lastLk[0] = ""; };
         clearRef = clearForm;
         clear.setOnMouseClicked(e -> { clearForm.run(); call.requestFocus(); });
         cancel.setOnMouseClicked(e -> { exitEdit.run(); for (TextField t : all) t.clear(); call.requestFocus(); });
@@ -291,7 +319,7 @@ public final class JLogCockpit {
         // Shared by the call-field exit AND the spot-click prefill.
         Runnable doCallLookup = () -> {
             String c = call.getText() == null ? "" : call.getText().trim().toUpperCase();
-            if (c.length() < 3) { b4.setText("Normal log"); b4.setStyle(""); return; }
+            if (c.length() < 3) { b4.setText(idleB4); b4.setStyle(""); return; }
             if (c.equals(lastLk[0])) return;
             lastLk[0] = c;
             String curBand = band.getText() == null ? "" : band.getText().trim();
@@ -311,7 +339,7 @@ public final class JLogCockpit {
         lookupRef = doCallLookup;
         call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
-        VBox entry = new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
+        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
         entry.sceneProperty().addListener((o, oldS, s) -> {
             if (s == null) return;
