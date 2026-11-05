@@ -210,6 +210,9 @@ public final class Shell {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
         dock.getChildren().add(spacer());
+        // Awards: opens the full awards screen from any module (same screen as J-Log's drawer "Open awards")
+        dock.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
+                expandOnly, com.ars.fx.surface.AwardsWindow::open));
         // Settings foot: on every module's dock, not just the J-Hub screens (gear → J-Hub Setup)
         dock.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
 
@@ -231,6 +234,18 @@ public final class Shell {
         double w = exp ? 216 : 58;
         dock.setMinWidth(w); dock.setPrefWidth(w); dock.setMaxWidth(w);
         for (Node n : nodes) { n.setManaged(exp); n.setVisible(exp); }
+    }
+    /** A dock row that runs an action (instead of navigating to a module). */
+    private static HBox dockAction(String name, String hue, String tip, List<Node> expandOnly, Runnable action) {
+        StackPane ic = iconTile(hue, hue, 20, "sx-dock-ic");
+        Label nm = lbl(name, "sx-dock-name"); nm.setManaged(false); nm.setVisible(false); HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
+        expandOnly.add(nm);
+        HBox row = new HBox(12, ic, nm); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().addAll("sx-dock-item", hue);
+        VBox.setMargin(row, new Insets(2, 9, 2, 9));
+        Tips.tip(row, tip);
+        row.setStyle("-fx-cursor:hand;");
+        row.setOnMouseClicked(e -> action.run());
+        return row;
     }
     private static HBox dockItem(String id, String name, String hue, boolean running, String active, List<Node> expandOnly) {
         return dockItemRaw(id, name, hue, running, active, expandOnly);

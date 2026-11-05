@@ -492,29 +492,85 @@ public final class JLogCockpit {
         row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.spotter(), s.freqHz(), s.mode(), s.band()));
         return row;
     }
-    /** Awards drawer — a line per award (worked / confirmed of target) from the real log, and a button for the full awards screen. */
+    /** Config key: comma-separated award codes the drawer shows. Unset = the default view (DXCC/WAS/WAC always,
+     *  the others once something is logged); set = exactly those, even with nothing logged yet. */
+    private static final String AWARDS_KEY = "awards.drawer";
+
+    /** The codes the operator picked for the drawer, or null for the default view. */
+    private static java.util.Set<String> pickedAwards() {
+        String v = com.ars.fx.data.HubConfig.get(AWARDS_KEY, null);
+        if (v == null) return null;
+        java.util.Set<String> out = new java.util.LinkedHashSet<>();
+        for (String c : v.split(",")) if (!c.isBlank()) out.add(c.trim());
+        return out;
+    }
+
+    /** Awards drawer - a line per tracked award (worked / confirmed of target) from the real log, a button for the full
+     *  awards screen, and "Customize" to choose which awards are tracked here. */
     private static Node awardsDrawer() {
         VBox body = new VBox(7);
         body.setPadding(new Insets(2, 2, 4, 2));
-        Label loading = lbl("Working out awards…", "jl-skim-meta");
-        body.getChildren().add(loading);
         Node dw = Shell.drawer("Awards", "vault", "vault", "", true, body);
-        Thread t = new Thread(() -> {
-            com.ars.fx.data.Awards.Snapshot snap = com.ars.fx.data.Awards.compute();
-            Platform.runLater(() -> {
-                body.getChildren().clear();
-                for (com.ars.fx.data.Awards.Progress p : snap.all()) {
-                    if (p.worked() == 0 && !(p == snap.dxcc || p == snap.was || p == snap.wac)) continue;   // hide awards with nothing logged yet
-                    body.getChildren().add(awardLine(p));
-                }
-                Label open = lbl("Open awards ⤢", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
-                open.setOnMouseClicked(e -> AwardsWindow.show(open));
-                body.getChildren().add(open);
-                if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(snap.dxcc.worked() + " DXCC · " + snap.was.worked() + "/" + snap.was.target() + " WAS");
-            });
-        }, "awards-drawer");
-        t.setDaemon(true); t.start();
+        Runnable[] refresh = new Runnable[1];
+        refresh[0] = () -> {
+            body.getChildren().setAll(lbl("Working out awards…", "jl-skim-meta"));
+            Thread t = new Thread(() -> {
+                com.ars.fx.data.Awards.Snapshot snap = com.ars.fx.data.Awards.compute();
+                Platform.runLater(() -> {
+                    body.getChildren().clear();
+                    java.util.Set<String> picked = pickedAwards();
+                    for (com.ars.fx.data.Awards.Progress p : snap.all()) {
+                        if (picked != null) { if (!picked.contains(p.code())) continue; }
+                        else if (p.worked() == 0 && !(p == snap.dxcc || p == snap.was || p == snap.wac)) continue;   // default: hide awards with nothing logged yet
+                        body.getChildren().add(awardLine(p));
+                    }
+                    if (body.getChildren().isEmpty()) body.getChildren().add(lbl("No awards tracked - use Customize.", "jl-skim-meta"));
+                    Label open = lbl("Open awards ⤢", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
+                    open.setOnMouseClicked(e -> AwardsWindow.show(open));
+                    Label cust = lbl("Customize…", "jl-clearbtn"); cust.setStyle("-fx-cursor:hand;");
+                    cust.setOnMouseClicked(e -> customizeAwards(cust, snap, refresh[0]));
+                    HBox links = new HBox(14, open, cust); links.setAlignment(Pos.CENTER_LEFT);
+                    body.getChildren().add(links);
+                    if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(snap.dxcc.worked() + " DXCC · " + snap.was.worked() + "/" + snap.was.target() + " WAS");
+                });
+            }, "awards-drawer");
+            t.setDaemon(true); t.start();
+        };
+        refresh[0].run();
         return dw;
+    }
+
+    /** Pop-up with one tick per award: choose which ones the Awards drawer tracks. */
+    private static void customizeAwards(Node owner, com.ars.fx.data.Awards.Snapshot snap, Runnable onSaved) {
+        java.util.Set<String> picked = pickedAwards();
+        VBox box = new VBox(8); box.setPadding(new Insets(14));
+        box.getChildren().add(lbl("Show these awards in the drawer", "jhub-card-title"));
+        List<CheckBox> boxes = new ArrayList<>();
+        List<String> codes = new ArrayList<>();
+        for (com.ars.fx.data.Awards.Progress p : snap.all()) {
+            boolean on = picked != null ? picked.contains(p.code())
+                    : (p.worked() > 0 || p == snap.dxcc || p == snap.was || p == snap.wac);
+            CheckBox cb = new CheckBox(p.code() + " — " + p.name()); cb.setSelected(on);
+            boxes.add(cb); codes.add(p.code()); box.getChildren().add(cb);
+        }
+        Label reset = lbl("Reset to default", "jl-clearbtn"); reset.setStyle("-fx-cursor:hand;");
+        Label save  = lbl("Save", "jl-clearbtn");            save.setStyle("-fx-cursor:hand;");
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox btns = new HBox(14, reset, sp, save); btns.setAlignment(Pos.CENTER_LEFT); btns.setPadding(new Insets(8, 0, 0, 0));
+        box.getChildren().add(btns);
+        javafx.scene.Scene scene = new javafx.scene.Scene(box);
+        com.ars.fx.Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.Themes.applyTo(box, "log");
+        javafx.stage.Stage st = new javafx.stage.Stage(); st.setTitle("Awards — customize"); st.setScene(scene);
+        if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
+        reset.setOnMouseClicked(e -> { com.ars.fx.data.HubConfig.remove(AWARDS_KEY); st.close(); onSaved.run(); });
+        save.setOnMouseClicked(e -> {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < boxes.size(); i++) if (boxes.get(i).isSelected()) sb.append(sb.length() > 0 ? "," : "").append(codes.get(i));
+            com.ars.fx.data.HubConfig.set(AWARDS_KEY, sb.toString());
+            st.close(); onSaved.run();
+        });
+        st.show();
     }
     private static Node awardLine(com.ars.fx.data.Awards.Progress p) {
         StackPane bar = new StackPane(); bar.setMinHeight(6); bar.setMaxHeight(6); bar.setMaxWidth(Double.MAX_VALUE);
