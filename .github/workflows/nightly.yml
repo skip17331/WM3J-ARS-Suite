@@ -1,0 +1,127 @@
+name: Nightly release
+
+# Replaces "tag a release after every change". Once a night this checks whether main has
+# shipped-code changes since the last v* tag; if so it bumps the patch version, tags it and
+# hands off to release.yml, which builds the jars and publishes the GitHub Release (that is
+# what the in-app updater looks at via /releases/latest). No new code -> no release.
+#
+# Safe to re-run: if the version in the poms is already ahead of the last tag (a manual
+# `chore(release)` bump, or a nightly that failed after bumping) that version is released
+# as-is instead of bumping again.
+#
+# Run it by hand from the Actions tab any time ("force" skips the green-build and
+# docs-only checks). Cutting a release by hand with a v* tag still works as before.
+on:
+  schedule:
+    - cron: '0 7 * * *'     # 07:00 UTC (02:00/03:00 US Eastern)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Release even if the changes are docs-only or build.yml has not passed'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # push the version bump + tag
+  actions: write    # dispatch release.yml (a tag pushed by GITHUB_TOKEN does not trigger it)
+
+concurrency:
+  group: nightly-release
+  cancel-in-progress: false
+
+jobs:
+  nightly:
+    name: Tag + release if main changed
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Decide whether (and what) to release
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORCE="${{ github.event.inputs.force || 'false' }}"
+          SHA="$(git rev-parse HEAD)"
+
+          LAST="$(git tag -l 'v[0-9]*' --sort=-v:refname | head -1)"
+          if [ -z "$LAST" ]; then echo "No v* tag yet - tag one by hand first."; exit 1; fi
+          LAST_VER="${LAST#v}"
+          POM_VER="$(grep -m1 '<version>' ars-fx/pom.xml | sed -E 's/.*<version>([^<]+)<.*/\1/')"
+          echo "last tag: $LAST   pom version: $POM_VER   head: ${SHA:0:8}"
+
+          release=false; bump=false; new="$POM_VER"
+          if [ "$POM_VER" != "$LAST_VER" ]; then
+            # Version already moved past the last tag (manual bump / interrupted nightly): release it.
+            release=true
+          elif [ "$(git rev-list --count "$LAST"..HEAD)" -eq 0 ]; then
+            echo "Nothing new since $LAST."
+          else
+            CODE="$(git diff --name-only "$LAST" HEAD | grep -vE '^(docs/|\.github/|.*\.md$)' || true)"
+            if [ -z "$CODE" ] && [ "$FORCE" != "true" ]; then
+              echo "Only docs/workflow changes since $LAST - skipping."
+            else
+              release=true; bump=true
+              IFS=. read -r MA MI PA <<<"$LAST_VER"
+              new="$MA.$MI.$((PA + 1))"
+            fi
+          fi
+
+          if [ "$release" = true ] && [ "$FORCE" != "true" ]; then
+            OK="$(gh run list --workflow build.yml --branch main --commit "$SHA" --status success \
+                    --json conclusion --jq 'length' || echo 0)"
+            if [ "$OK" -lt 1 ]; then
+              echo "::warning::build.yml has not passed on ${SHA:0:8} - not releasing tonight."
+              release=false
+            fi
+          fi
+
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "bump=$bump"       >> "$GITHUB_OUTPUT"
+          echo "old=$LAST_VER"    >> "$GITHUB_OUTPUT"
+          echo "new=$new"         >> "$GITHUB_OUTPUT"
+          echo "Plan: release=$release bump=$bump -> v$new"
+
+      - name: Bump the version everywhere
+        if: steps.plan.outputs.release == 'true' && steps.plan.outputs.bump == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          OLD="${{ steps.plan.outputs.old }}"; NEW="${{ steps.plan.outputs.new }}"
+          # The suite's own artifacts all share one version, and the exact old version string
+          # only appears as that version, so a literal replace is safe. Matches chore(release) commits.
+          FILES="$(grep -rlF --include=pom.xml --include=manifest.json "$OLD" ars-fx installer j-bridge j-digi j-log-common j-log-engine || true)"
+          [ -n "$FILES" ] || { echo "No files contain $OLD"; exit 1; }
+          for f in $FILES; do
+            sed -i "s/\(<version>\|\"version\": \"\)${OLD//./\\.}/\1${NEW}/g" "$f"
+          done
+          if grep -rF --include=pom.xml --include=manifest.json -e "<version>$OLD<" -e "\"version\": \"$OLD\"" \
+               ars-fx installer j-bridge j-digi j-log-common j-log-engine; then
+            echo "Leftover $OLD after bump"; exit 1
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): $NEW (nightly)"
+          git push origin HEAD:main
+
+      - name: Tag and start the release build
+        if: steps.plan.outputs.release == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.plan.outputs.new }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Nightly release $TAG"
+          git push origin "$TAG"
+          # Tags pushed with GITHUB_TOKEN don't fire release.yml's push trigger, so start it explicitly.
+          gh workflow run release.yml -f tag="$TAG"
+          echo "Started release.yml for $TAG" >> "$GITHUB_STEP_SUMMARY"
