@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -41,7 +42,8 @@ final class MapQsoCard {
     private static VBox card;
     private static Label info;
     private static Label pin, status;
-    private static TextField call, freq, mode, rstSent, rstRcvd, name, qth, grid, comment;
+    private static TextField call, freq, mode, rstSent, rstRcvd, name, qth, grid, comment, iota, sota, pota;
+    private static CheckBox cQsl, cLotw, cEqsl;      // confirmations, as on the full J-Log form
     private static boolean pinned = HubConfig.getBool(PIN_KEY, false);
     private static final VBox slot = new VBox();       // the place in the right column; empty unless pinned
 
@@ -138,6 +140,9 @@ final class MapQsoCard {
         call = field(""); freq = field("MHz"); mode = field("USB");
         rstSent = field(""); rstRcvd = field("");
         name = field("name"); qth = field("city / QTH"); grid = field("FN31"); comment = field("notes, QSL info…");
+        iota = field("NA-005"); sota = field("W7W/LC-001"); pota = field("K-0039");      // award references of the other station
+        cQsl = new CheckBox("QSL"); cLotw = new CheckBox("LoTW"); cEqsl = new CheckBox("eQSL");
+        Tips.tip(cQsl, "Paper QSL card received"); Tips.tip(cLotw, "Confirmed on LoTW"); Tips.tip(cEqsl, "Confirmed on eQSL");
         info = lbl("", "dx-info-v"); info.setWrapText(true);
         status = lbl("", "jm-spot-meta");
 
@@ -161,6 +166,9 @@ final class MapQsoCard {
                 row(labeled("RST SENT", rstSent), labeled("RST RCVD", rstRcvd)),
                 labeled("NAME", name),
                 row(labeled("QTH", qth), labeled("GRID", grid)),
+                row(labeled("IOTA", iota), labeled("POTA PARK", pota)),
+                labeled("SOTA SUMMIT", sota),
+                new VBox(3, lbl("CONFIRMED", "jl-flabel"), new HBox(10, cQsl, cLotw, cEqsl)),
                 labeled("COMMENT", comment),
                 buttons);
         // a filter, because a text field swallows Esc before it could bubble up here; while sending, the scene's Esc stops TX first
@@ -177,8 +185,10 @@ final class MapQsoCard {
         String c = call.getText();
         if (c == null || c.isBlank()) { call.requestFocus(); return; }
         String f = freq.getText();
-        boolean ok = JLogDb.insert(c, f, JLogDb.bandFor(f), mode.getText(), rstSent.getText(), rstRcvd.getText(),
-                name.getText(), qth.getText(), grid.getText(), comment.getText());
+        JLogDb.Refs refs = new JLogDb.Refs(iota.getText().trim(), sota.getText().trim(), pota.getText().trim(), 0, 0,
+                cQsl.isSelected(), cLotw.isSelected(), cEqsl.isSelected());
+        boolean ok = JLogDb.insertAt(null, c, f, JLogDb.bandFor(f), mode.getText(), rstSent.getText(), rstRcvd.getText(),
+                name.getText(), qth.getText(), grid.getText(), comment.getText(), null, null, 0, refs);
         if (!ok) { status.setText("Not saved"); return; }
         SpotAction.takePending();                    // this contact is done; J-Log must not refill it on its next open
         clear();
@@ -190,7 +200,8 @@ final class MapQsoCard {
     }
 
     private static void clear() {
-        for (TextField t : new TextField[]{call, freq, mode, name, qth, grid, comment}) t.clear();
+        for (TextField t : new TextField[]{call, freq, mode, name, qth, grid, comment, iota, sota, pota}) t.clear();
+        cQsl.setSelected(false); cLotw.setSelected(false); cEqsl.setSelected(false);
         rstSent.setText("59"); rstRcvd.setText("59");
         info.setText(""); info.setManaged(false); info.setVisible(false);
         status.setText("");
