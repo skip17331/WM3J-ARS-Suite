@@ -51,6 +51,8 @@ public final class JLogContest {
     private static TextField bandF, modeF;
     private static Label serialV;
     private static Label sendV;                          // "what to send" line
+    private static QsoRecord editingRec;                 // the logged QSO being corrected (null = logging a new one)
+    private static Label editL;                          // "editing ..." banner
     private static Label problemL;                       // what is wrong with the entry (invalid section, missing field...)
     private static String problemOwner = "";             // field the message is about
     private static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
@@ -193,7 +195,11 @@ public final class JLogContest {
         VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
         fillLog(tbl);
         ContestState.addListener(() -> Platform.runLater(() -> fillLog(tbl)));
-        VBox v = new VBox(6, lh, tbl); v.setPadding(new Insets(0, 18, 12, 18));
+        Label all = lbl("All QSOs \u2192", "jl-clearbtn"); all.setStyle("-fx-cursor:hand;");
+        all.setOnMouseClicked(e -> openAllQsos());
+        Region hgap = new Region(); HBox.setHgrow(hgap, Priority.ALWAYS);
+        HBox head = new HBox(10, lh, hgap, all); head.setAlignment(Pos.CENTER_LEFT);
+        VBox v = new VBox(6, head, tbl); v.setPadding(new Insets(0, 18, 12, 18));
         return v;
     }
 
@@ -271,6 +277,11 @@ public final class JLogContest {
         }
         serialV = lbl(String.valueOf(serial), "jhub-rig-fq");   // kept for clearForm; the number is shown in the SEND line
 
+        editL = lbl("", "jl-emeta"); editL.setWrapText(true); editL.setMaxWidth(Double.MAX_VALUE);
+        editL.setStyle("-fx-font-size:15px;-fx-font-weight:bold;-fx-text-fill:-ars-accent;");
+        editL.managedProperty().bind(editL.textProperty().isNotEmpty());
+        editL.visibleProperty().bind(editL.textProperty().isNotEmpty());
+        body.getChildren().add(editL);
         body.getChildren().add(wrapRow("RECEIVED", rcvd));
         body.getChildren().add(sendRow(plugin));
 
@@ -391,7 +402,10 @@ public final class JLogContest {
     }
 
     // ---- save -------------------------------------------------------------
-    private static boolean logQso(ContestPlugin plugin) {
+    private static boolean logQso(ContestPlugin plugin) { return logQso(plugin, false); }
+
+    /** @param dupeApproved the operator has already said "log this dupe anyway" */
+    private static boolean logQso(ContestPlugin plugin, boolean dupeApproved) {
         String call = value("callsign");
         if (call == null || call.isBlank()) { focus("callsign"); return false; }
         // required-field check (band/mode come from the dedicated selectors)
@@ -404,13 +418,16 @@ public final class JLogContest {
         if (!validateEntry(plugin)) return false;      // an invalid value never reaches the log
         try {
             String cid = plugin.getContestId();
-            QsoRecord r = new QsoRecord();
+            boolean editing = editingRec != null;
+            QsoRecord r = editing ? editingRec : new QsoRecord();      // an edit keeps the QSO's time, serial and everything not on the form
             r.setContestId(cid);
             r.setCallsign(call.toUpperCase());
             r.setBand(normBand(bandF.getText()));
             r.setMode(modeF.getText().trim().toUpperCase());
-            r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
-            r.setSerialSent(String.valueOf(serial));
+            if (!editing) {
+                r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
+                r.setSerialSent(String.valueOf(serial));
+            }
             for (FieldDef fd : plugin.getEntryFields()) {
                 String v = value(fd.getId());
                 switch (fd.getId()) {
@@ -424,17 +441,94 @@ public final class JLogContest {
                     }
                 }
             }
-            List<QsoRecord> prior = ContestQsoDao.getInstance().findByCallsign(cid, call);
-            r.setDupe(ContestScorer.isDupe(plugin, r, prior));
+            List<QsoRecord> prior = new ArrayList<>(ContestQsoDao.getInstance().findByCallsign(cid, call));
+            if (editing) prior.removeIf(x -> x.getId() == r.getId());
+            boolean dupe = ContestScorer.isDupe(plugin, r, prior);
+            if (dupe && !dupeApproved) {   // a dupe is never logged without the operator saying so
+                setB4("\u26d4 DUPE \u2014 " + call.toUpperCase(), "dupe");
+                Confirm.show(b4, "Dupe \u2014 " + call.toUpperCase(),
+                        call.toUpperCase() + " is already in the log for " + normBand(bandF.getText()) + " " + modeF.getText().trim().toUpperCase()
+                                + ". A dupe scores nothing. Log it anyway?",
+                        new Confirm.Choice("Don't log it", true, () -> focus("callsign")),
+                        new Confirm.Choice("Log the dupe", false, () -> { if (logQso(plugin, true)) clearForm(); }));
+                return false;
+            }
+            r.setDupe(dupe);
             r.setPoints(ContestScorer.points(plugin, r, ContestState.ctx()));
-            ContestQsoDao.getInstance().insert(r);
-            serial++;
+            if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); }
+            else { ContestQsoDao.getInstance().insert(r); serial++; }
             ContestState.recompute();
             return true;
         } catch (Exception e) {
             System.err.println("[contest] log failed: " + e.getMessage());
             return false;
         }
+    }
+
+    // ---- edit / erase a logged QSO ------------------------------------------------
+    private static String slotValue(QsoRecord q, String slot) {
+        return switch (slot) {
+            case "field1" -> q.getContestField1();
+            case "field2" -> q.getContestField2();
+            case "field3" -> q.getContestField3();
+            case "field4" -> q.getContestField4();
+            case "field5" -> q.getContestField5();
+            default -> null;
+        };
+    }
+    /** Load a logged QSO into the entry form; Enter then saves it back in place, Esc drops the edit. */
+    private static void loadForEdit(QsoRecord q) {
+        ContestPlugin plugin = ContestState.plugin();
+        if (plugin == null || fieldControls == null) return;
+        clearForm();
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || "band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
+            Control c = fieldControls.get(fd.getId());
+            if (c == null) continue;
+            String v = switch (fd.getId()) {
+                case "callsign" -> q.getCallsign();
+                case "rst_rcvd", "rst_received" -> q.getRstReceived();
+                case "serial_rcvd", "serial_received" -> q.getSerialReceived();
+                default -> { String slot = plugin.fieldSlotColumn(fd.getId()); yield slot == null ? null : slotValue(q, slot); }
+            };
+            setControl(c, v == null ? "" : v);
+        }
+        if (q.getBand() != null) bandF.setText(q.getBand());
+        if (q.getMode() != null) modeF.setText(q.getMode());
+        editingRec = q;
+        if (editL != null) editL.setText("\u270e EDITING " + q.getCallsign() + (q.getDateTimeUtc() == null ? "" : "  (" + q.getDateTimeUtc().format(HMS).substring(0, 5) + "Z)")
+                + " \u2014 Enter saves the change, Esc cancels");
+        focus("callsign");
+    }
+    private static void eraseQso(Node source, QsoRecord q) {
+        Confirm.show(source, "Erase this QSO?",
+                q.getCallsign() + "  " + z(q.getBand()) + " " + z(q.getMode())
+                        + (q.getDateTimeUtc() == null ? "" : "  " + q.getDateTimeUtc().format(HMS).substring(0, 5) + "Z")
+                        + "\nIt is removed from the contest log and the score. This cannot be undone.",
+                new Confirm.Choice("Keep it", true, null),
+                new Confirm.Choice("Erase", false, () -> {
+                    try {
+                        ContestQsoDao.getInstance().delete(q.getId());
+                        if (editingRec != null && editingRec.getId() == q.getId()) clearForm();
+                        ContestPlugin p = ContestState.plugin();
+                        if (p != null) reflagDupes(p);      // erasing the first contact can turn a later "dupe" into a valid QSO
+                        ContestState.recompute();
+                    } catch (Exception e) { setB4("Erase failed: " + e.getMessage(), "dupe"); }
+                }));
+    }
+    /** Re-decide which QSOs are dupes, oldest first, after one was edited or erased. */
+    private static void reflagDupes(ContestPlugin plugin) {
+        try {
+            List<QsoRecord> all = new ArrayList<>(ContestQsoDao.getInstance().fetchByContest(plugin.getContestId()));
+            all.sort(java.util.Comparator.comparing(QsoRecord::getDateTimeUtc, java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder())));
+            Map<String, List<QsoRecord>> earlier = new java.util.HashMap<>();
+            for (QsoRecord q : all) {
+                List<QsoRecord> prior = earlier.computeIfAbsent(z(q.getCallsign()).toUpperCase(), k -> new ArrayList<>());
+                boolean d = ContestScorer.isDupe(plugin, q, prior);
+                if (d != q.isDupe()) { q.setDupe(d); ContestQsoDao.getInstance().update(q); }
+                prior.add(q);
+            }
+        } catch (Exception e) { System.err.println("[contest] dupe re-check failed: " + e.getMessage()); }
     }
 
     private static void setSlot(QsoRecord r, String slot, String v) {
@@ -544,6 +638,7 @@ public final class JLogContest {
         if (ContestState.plugin() != null) refreshSend(ContestState.plugin());
         if (similarL != null) similarL.setText("");
         for (Control c : fieldControls.values()) c.getStyleClass().removeAll("invalid", "warnfield");
+        editingRec = null; if (editL != null) editL.setText("");
         softArmed = false; showProblem("", "");
         setB4("New", "");
         focus("callsign");
@@ -625,7 +720,8 @@ public final class JLogContest {
     }
 
     // ---- recent contest log table -----------------------------------------
-    private static void fillLog(VBox tbl) {
+    private static void fillLog(VBox tbl) { fillLog(tbl, 10); }
+    private static void fillLog(VBox tbl, int limit) {
         tbl.getChildren().clear();
         tbl.getChildren().add(logHeader());
         List<QsoRecord> rows = ContestState.qsos();
@@ -634,29 +730,54 @@ public final class JLogContest {
             tbl.getChildren().add(none); return;
         }
         int n = 0;
-        for (QsoRecord q : rows) { if (n++ >= 10) break; tbl.getChildren().add(logRow(q)); }
+        for (QsoRecord q : rows) { if (n++ >= limit) break; tbl.getChildren().add(logRow(q)); }
     }
     private static Node logHeader() {
         HBox h = new HBox(9,
                 col("UTC", 54), col("CALL", 90), col("BAND", 48), col("MODE", 46),
-                col("SN", 44), col("EXCHANGE", -1), col("PTS", 36));
+                col("SN", 44), col("EXCHANGE", -1), col("PTS", 46), col("", 92));
         h.getStyleClass().add("jl-loghd"); h.setAlignment(Pos.CENTER_LEFT); return h;
     }
     private static Node logRow(QsoRecord q) {
         String utc = q.getDateTimeUtc() == null ? "" : q.getDateTimeUtc().format(HMS).substring(0, 5);
         String exch = String.join(" ", strip(q.getSerialReceived(), q.getContestField1(), q.getContestField2(),
                 q.getContestField3(), q.getContestField4(), q.getContestField5()));
+        Label pts = cell(q.isDupe() ? "DUPE" : String.valueOf(q.getPoints()), 46);
+        if (q.isDupe()) pts.setStyle("-fx-text-fill:-ars-err;-fx-font-weight:bold;");      // a dupe in the log is called out, not just dimmed
+        Label edit = lbl("Edit", "jl-clearbtn"); edit.setStyle("-fx-cursor:hand;");
+        Label erase = lbl("Erase", "jl-clearbtn"); erase.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-err;");
+        edit.setOnMouseClicked(e -> loadForEdit(q));
+        erase.setOnMouseClicked(e -> eraseQso(erase, q));
+        HBox acts = new HBox(10, edit, erase); acts.setMinWidth(92); acts.setPrefWidth(92); acts.setAlignment(Pos.CENTER_RIGHT);
         HBox r = new HBox(9,
                 cell(utc, 54), cell(q.getCallsign(), 90), cell(z(q.getBand()), 48), cell(z(q.getMode()), 46),
-                cell(z(q.getSerialSent()), 44), cell(exch, -1), cell(q.isDupe() ? "dup" : String.valueOf(q.getPoints()), 36));
+                cell(z(q.getSerialSent()), 44), cell(exch, -1), pts, acts);
         r.getStyleClass().add("jl-logrow"); r.setAlignment(Pos.CENTER_LEFT);
-        if (q.isDupe()) r.setOpacity(0.5);
+        if (q.isDupe()) r.setOpacity(0.75);
         return r;
     }
     private static String[] strip(String... parts) {
         List<String> out = new ArrayList<>();
         for (String p : parts) if (p != null && !p.isBlank()) out.add(p);
         return out.toArray(new String[0]);
+    }
+
+    /** Every QSO of the contest in a window of its own, each with Edit / Erase - for correcting something older than the last ten. */
+    private static void openAllQsos() {
+        ContestPlugin plugin = ContestState.plugin();
+        if (plugin == null) return;
+        VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
+        Runnable fill = () -> fillLog(tbl, Integer.MAX_VALUE);
+        fill.run();
+        ContestState.addListener(() -> Platform.runLater(fill));
+        ScrollPane sp = new ScrollPane(tbl); sp.setFitToWidth(true); sp.setStyle("-fx-background-color:-ars-bg;");
+        VBox root = new VBox(sp); VBox.setVgrow(sp, Priority.ALWAYS); root.setStyle("-fx-background-color:-ars-bg;");
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 900, 620);
+        com.ars.fx.Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
+        com.ars.fx.Themes.applyTo(root, "log");
+        javafx.stage.Stage st = new javafx.stage.Stage();
+        st.setTitle(plugin.getContestName() + " \u2014 all QSOs"); st.setScene(scene);
+        st.show();
     }
 
     // ---- Cabrillo export --------------------------------------------------
