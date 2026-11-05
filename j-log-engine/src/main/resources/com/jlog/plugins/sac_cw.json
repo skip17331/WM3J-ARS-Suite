@@ -45,5 +45,8 @@
   "cabrilloSent": ["rst_sent", "serial_sent"],
   "cabrilloRcvd": ["rst_rcvd", "serial_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band. The mode is fixed to CW."
+  }
 }

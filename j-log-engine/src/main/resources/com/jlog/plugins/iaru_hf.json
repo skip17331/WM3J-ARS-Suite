@@ -50,5 +50,8 @@
   "cabrilloSent": ["rst_sent", "zone_hq_sent"],
   "cabrilloRcvd": ["rst_rcvd", "zone_hq_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band."
+  }
 }

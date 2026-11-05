@@ -107,5 +107,8 @@
   "cabrilloSent": ["name_sent", "year_sent", "state_prov_sent"],
   "cabrilloRcvd": ["name_rcvd", "year_rcvd", "state_prov_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "The mode is fixed to CW."
+  }
 }

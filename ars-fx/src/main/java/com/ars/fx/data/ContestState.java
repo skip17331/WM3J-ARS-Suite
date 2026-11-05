@@ -112,8 +112,10 @@ public final class ContestState {
             List<QsoRecord> qsos = ContestQsoDao.getInstance().fetchByContest(plugin.getContestId());
             LinkedHashSet<String> bands = new LinkedHashSet<>();
             for (QsoRecord q : qsos) if (q.getBand() != null && !q.getBand().isBlank()) bands.add(q.getBand());
+            int qtc = 0;
+            try { qtc = com.jlog.db.ContestQtcDao.getInstance().totalQtcPointsByContest(plugin.getContestId()); } catch (Exception ignored) { /* none logged */ }
             score = ContestScorer.score(plugin, qsos, ctx(), plugin.computeMultiplierDbColumn(),
-                    new ArrayList<>(bands), 0);
+                    new ArrayList<>(bands), qtc);
         } catch (Exception e) {
             score = ContestScore.of(0, 0, 0, 0);
         }

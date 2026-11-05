@@ -69,5 +69,8 @@
   "cabrilloSent": ["rst_sent", "zone_sent", "state_sent"],
   "cabrilloRcvd": ["rst_rcvd", "cq_zone", "state_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "Multipliers count once per band. The mode is fixed to RTTY."
+  }
 }

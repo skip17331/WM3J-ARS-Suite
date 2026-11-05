@@ -120,5 +120,8 @@
     "IL","IN","WI",
     "CO","IA","KS","MN","MO","NE","ND","SD",
     "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER"
-  ]
+  ],
+  "layout": {
+    "note": "The band is fixed to 160m. The mode is fixed to CW."
+  }
 }

@@ -65,5 +65,8 @@
   "cabrilloSent": ["rst_sent", "state_prov_sent"],
   "cabrilloRcvd": ["rst_rcvd", "state_prov_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "note": "The band is fixed to 80m."
+  }
 }

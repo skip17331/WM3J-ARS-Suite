@@ -41,7 +41,7 @@ public final class TrackerFactory {
             case "county_list"            -> lightbox(universeFor(plugin));
             case "worked_before"          -> note("Worked-before shows by the call field.");
             case "dupe_checker"           -> note("Dupe check shows by the call field.");
-            case "qtc"                    -> note("WAE QTC entry — not yet in ars-fx.");
+            case "qtc"                    -> QtcPane.build(plugin);
             case "us_state_map", "canada_map" -> mapPane("us-states", plugin);
             case "dxcc_map"               -> mapPane("dxcc-entities", plugin);
             case "grid_map"               -> mapPane("maidenhead-grids", plugin);
@@ -150,6 +150,8 @@ public final class TrackerFactory {
             String title = pd.getTitle() == null || pd.getTitle().isBlank() ? prettify(type) : pd.getTitle();
             out.add(java.util.Map.entry(title, r));
         }
+        if (FieldDayPane.applies(plugin.getContestId())) out.add(java.util.Map.entry("Summary sheet", card("Summary sheet", FieldDayPane.build())));
+        if (BonusPane.has(plugin)) out.add(java.util.Map.entry("Bonus stations", card("Bonus stations", BonusPane.build(plugin))));
         return out;
     }
     public static List<Region> columnPanes(ContestPlugin plugin) { return panes(plugin, "column"); }
