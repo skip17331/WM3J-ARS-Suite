@@ -851,6 +851,13 @@ public final class JHubDashboard {
                     cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("WebSocket port", "the solo module connects to ws://<this-pc>:<port>",
                     cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+        VBox n1mm = section("N1MM-COMPATIBLE BROADCAST (GRIDTRACKER, LOG4OM …)",
+            cfgRow("Broadcast the log", "sends each contest QSO (call, band, mode, exchange) over UDP in N1MM+'s format so other programs can follow your log live. Off until you turn it on, and it goes only to the addresses below", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_ENABLED, false)),
+            cfgRow("Send to", "ip:port pairs separated by spaces. 127.0.0.1:12060 is this PC; a subnet broadcast address such as 192.168.1.255:12060 reaches every PC on the network", cInput(com.ars.fx.data.N1mmBroadcast.KEY_DEST, com.ars.fx.data.N1mmBroadcast.DEFAULT_DEST)),
+            cfgRow("Contacts", "QSOs added, edited and erased", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_CONTACTS, true)),
+            cfgRow("Lookups", "the call as you type it, when you press Space", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_LOOKUP, true)),
+            cfgRow("Radio", "the rig's frequency and mode, when they change and every 10 seconds", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_RADIO, true)),
+            cfgRow("Score", "the contest score, for N1MM+ score reporting (the categories come from Contest / Cabrillo below)", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_SCORE, false)));
         VBox contest = section("CONTEST / CABRILLO",
             cfgRow("Operator category", null, cSelect("contest.cab.operator", "SINGLE-OP", new String[]{"SINGLE-OP","MULTI-OP","CHECKLOG"})),
             cfgRow("Power", null, cSelect("contest.cab.power", "HIGH", new String[]{"HIGH","LOW","QRP"})),
@@ -887,7 +894,7 @@ public final class JHubDashboard {
                 labelSection());
             case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
                 lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
-                logbook, contest);
+                logbook, n1mm, contest);
             case "share" -> cfgPage(cfgTop("J-Hub", "System", "Remote sharing"),
                 lbl("Let a solo J-Map / J-Sat on another computer use this station's spots, rig and rotor.", "cfg-desc"),
                 remote);

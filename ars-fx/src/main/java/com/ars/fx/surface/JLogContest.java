@@ -83,6 +83,7 @@ public final class JLogContest {
         callGivesMult = MultCheck.multFromCallAlone(plugin, ContestState.ctx());
         // cluster spots in contest mode: NEW MULT where the multiplier can be told from the call; no DXCC flags (they mean nothing in a contest)
         JHubDashboard.contestSpotTag = callGivesMult ? spot -> spotTag(plugin, spot) : spot -> "";
+        com.ars.fx.data.N1mmBroadcast.appInfo(plugin);                                   // tell listening programs which contest this is
 
         Region dock = Shell.dock("log");
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
@@ -392,6 +393,7 @@ public final class JLogContest {
             cur.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> {
                 if (e.getCode() != javafx.scene.input.KeyCode.SPACE) return;
                 e.consume();
+                if (cur == fieldControls.get("callsign")) com.ars.fx.data.N1mmBroadcast.lookup(plugin, candidate(plugin));   // Space after the call: a lookup, before the QSO is logged
                 if (next != null) { next.requestFocus(); if (next instanceof TextField t) t.selectAll(); }
             });
         }
@@ -573,6 +575,7 @@ public final class JLogContest {
             String cid = plugin.getContestId();
             boolean editing = editingRec != null;
             QsoRecord r = editing ? editingRec : new QsoRecord();      // an edit keeps the QSO's time, serial and everything not on the form
+            final String oldCall = editing ? r.getCallsign() : null;    // an edit tells other programs which call it replaces
             r.setContestId(cid);
             if (!editing) {
                 r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
@@ -593,8 +596,10 @@ public final class JLogContest {
             }
             r.setDupe(dupe);
             r.setPoints(ContestScorer.points(plugin, r, ContestState.ctx()));
-            if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); }
-            else { ContestQsoDao.getInstance().insert(r); serial++; }
+            // a new multiplier is worked out before the QSO is in the log (only when something is listening: it scores the log twice)
+            boolean newMult = !editing && !dupe && com.ars.fx.data.N1mmBroadcast.enabled() && MultCheck.isNewMult(plugin, ContestState.qsos(), r, ContestState.ctx());
+            if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); com.ars.fx.data.N1mmBroadcast.contactEdited(plugin, r, oldCall); }
+            else { ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); }
             ContestState.recompute();
             return true;
         } catch (Exception e) {
@@ -647,6 +652,7 @@ public final class JLogContest {
                 new Confirm.Choice("Erase", false, () -> {
                     try {
                         ContestQsoDao.getInstance().delete(q.getId());
+                        com.ars.fx.data.N1mmBroadcast.contactDeleted(ContestState.plugin(), q);
                         if (editingRec != null && editingRec.getId() == q.getId()) clearForm();
                         ContestPlugin p = ContestState.plugin();
                         if (p != null) reflagDupes(p);      // erasing the first contact can turn a later "dupe" into a valid QSO
