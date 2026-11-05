@@ -31,7 +31,7 @@ import static com.ars.fx.shell.Shell.lbl;
 
 /**
  * The whole normal log in one sortable, searchable table. Click a column heading to sort (click again to reverse);
- * the search box matches call, name, QTH, grid, state, county and notes; the Band and Mode lists narrow it further.
+ * the search box matches call, name, QTH, grid, state, county, notes and IOTA / POTA / SOTA references; the Band and Mode lists narrow it further.
  * Double-click a row (or press Edit) to load it into the J-Log form; Delete asks first.
  */
 final class LogBrowser {
@@ -65,13 +65,15 @@ final class LogBrowser {
                 col("MODE", 58, JLogDb.QsoFull::mode),
                 col("RST S", 50, JLogDb.QsoFull::rstSent),
                 col("RST R", 50, JLogDb.QsoFull::rstRcvd),
-                col("NAME", 130, JLogDb.QsoFull::name),
-                col("QTH", 140, JLogDb.QsoFull::qth),
+                col("NAME", 120, JLogDb.QsoFull::name),
+                col("QTH", 120, JLogDb.QsoFull::qth),
                 col("GRID", 70, JLogDb.QsoFull::grid),
                 col("ST", 40, JLogDb.QsoFull::state),
-                col("COUNTY", 110, JLogDb.QsoFull::county),
+                col("COUNTY", 90, JLogDb.QsoFull::county),
                 col("PWR", 46, q -> q.powerW() > 0 ? String.valueOf(q.powerW()) : ""),
-                col("NOTES", 150, JLogDb.QsoFull::notes)));
+                col("CONF", 54, q -> (q.refs().qsl() ? "Q" : "") + (q.refs().lotw() ? "L" : "") + (q.refs().eqsl() ? "E" : "")),
+                col("REFS", 170, q -> refsText(q.refs())),
+                col("NOTES", 100, JLogDb.QsoFull::notes)));
         // the date column holds "yyyy-MM-dd HH:mm", which sorts correctly as text — newest first to start
         @SuppressWarnings("unchecked")
         TableColumn<JLogDb.QsoFull, String> dateCol = (TableColumn<JLogDb.QsoFull, String>) table.getColumns().get(0);
@@ -129,12 +131,12 @@ final class LogBrowser {
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox bar = new HBox(10, search, band, mode, count, sp, refresh, edit, del);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(10, 14, 10, 14));
-        Label hint = lbl("Click a heading to sort · double-click a row to edit it in J-Log", "jl-emeta");
+        Label hint = lbl("Click a heading to sort · double-click a row to edit it in J-Log · CONF: Q = QSL card, L = LoTW, E = eQSL", "jl-emeta");
         hint.setPadding(new Insets(0, 14, 8, 14));
         VBox.setVgrow(table, Priority.ALWAYS);
         VBox root = new VBox(bar, hint, table);
 
-        Scene scene = new Scene(root, 1260, 620);
+        Scene scene = new Scene(root, 1380, 620);
         Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
         Themes.applyTo(root, "log");
         Stage st = new Stage(); st.setTitle("J-Log — full log"); st.setScene(scene); com.ars.fx.AppIcons.apply(st, null);
@@ -158,9 +160,18 @@ final class LogBrowser {
 
     private static String nz(String s) { return s == null ? "" : s; }
 
+    /** "IOTA NA-005 · POTA K-0039" — only the references the QSO has. */
+    private static String refsText(JLogDb.Refs r) {
+        StringBuilder b = new StringBuilder();
+        if (!nz(r.iota()).isEmpty()) b.append("IOTA ").append(r.iota());
+        if (!nz(r.pota()).isEmpty()) b.append(b.length() > 0 ? " · " : "").append("POTA ").append(r.pota());
+        if (!nz(r.sota()).isEmpty()) b.append(b.length() > 0 ? " · " : "").append("SOTA ").append(r.sota());
+        return b.toString();
+    }
+
     private static String haystack(JLogDb.QsoFull q) {
         return (nz(q.call()) + " " + nz(q.name()) + " " + nz(q.qth()) + " " + nz(q.grid()) + " " + nz(q.state()) + " "
-                + nz(q.county()) + " " + nz(q.notes())).toLowerCase();
+                + nz(q.county()) + " " + nz(q.notes()) + " " + refsText(q.refs())).toLowerCase();
     }
 
     /** Orders band labels by wavelength-ish size: 160m, 80m ... 70cm. */

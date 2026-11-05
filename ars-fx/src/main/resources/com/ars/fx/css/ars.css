@@ -803,3 +803,4 @@
 .jhs-item { -fx-font-size: 13px; -fx-text-fill: -ars-t2; -fx-padding: 7 10 7 14; -fx-background-radius: 7; -fx-cursor: hand; }
 .jhs-item:hover { -fx-background-color: -ars-surface-2; -fx-text-fill: -ars-t1; }
 .jhs-item.on { -fx-background-color: -ars-accent-dim; -fx-text-fill: -ars-accent; -fx-font-weight: bold; }
+.jl-award-chip.conf { -fx-text-fill: -ars-accent; -fx-background-color: -ars-surface-4; -fx-font-weight: bold; }

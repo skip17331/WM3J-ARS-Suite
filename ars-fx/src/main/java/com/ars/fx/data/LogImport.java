@@ -45,15 +45,35 @@ public final class LogImport {
             String band = r.get("BAND") != null ? r.get("BAND").toLowerCase(Locale.ROOT) : Bands.ofMhz(freq);
             String sub = r.get("SUBMODE"), mode = (sub != null && !sub.isBlank() && ("USB".equalsIgnoreCase(sub) || "LSB".equalsIgnoreCase(sub)
                     || r.get("MODE") == null || "PSK".equalsIgnoreCase(r.get("MODE")))) ? sub : r.get("MODE");
-            if (!have.add(key(call, dt, band, mode))) { dupes++; continue; }
+            JLogDb.Refs refs = refsOf(r);
+            if (!have.add(key(call, dt, band, mode))) {
+                JLogDb.mergeRefs(call, dt, band, mode, refs);   // a LoTW / eQSL download confirms what is already logged
+                dupes++; continue;
+            }
             int pwr = 0;
             try { if (r.get("TX_PWR") != null) pwr = (int) Math.round(Double.parseDouble(r.get("TX_PWR"))); } catch (NumberFormatException ignored) {}
             boolean ok = JLogDb.insertAt(dt, call, freq, band, mode, r.get("RST_SENT"), r.get("RST_RCVD"), r.get("NAME"), r.get("QTH"),
-                    r.get("GRIDSQUARE"), r.get("COMMENT"), r.get("STATE"), r.get("CNTY"), pwr);
+                    r.get("GRIDSQUARE"), r.get("COMMENT"), r.get("STATE"), r.get("CNTY"), pwr, refs);
             if (ok) added++; else bad++;
         }
         return new Result(true, added, dupes, bad, null);
     }
+
+    /** The award-tracking fields of one ADIF record: IOTA / SOTA / POTA references, zones and confirmation flags. */
+    static JLogDb.Refs refsOf(Map<String, String> r) {
+        String sig = r.get("SIG") == null ? "" : r.get("SIG").trim().toUpperCase(Locale.ROOT), sigInfo = r.get("SIG_INFO");
+        String sota = first(r.get("SOTA_REF")), pota = first(r.get("POTA_REF"));
+        if (sota.isEmpty() && "SOTA".equals(sig)) sota = first(sigInfo);      // older loggers keep the reference in SIG / SIG_INFO
+        if (pota.isEmpty() && "POTA".equals(sig)) pota = first(sigInfo);
+        return new JLogDb.Refs(r.get("IOTA") == null ? "" : r.get("IOTA").trim().toUpperCase(Locale.ROOT), sota, pota,
+                intOf(r.get("CQZ")), intOf(r.get("ITUZ")), yes(r.get("QSL_RCVD")), yes(r.get("LOTW_QSL_RCVD")), yes(r.get("EQSL_QSL_RCVD")));
+    }
+    private static String first(String s) {
+        if (s == null || s.isBlank()) return "";
+        return s.split("[,;\\s]+")[0].trim().toUpperCase(Locale.ROOT);      // POTA_REF can list several parks
+    }
+    private static int intOf(String s) { try { return s == null ? 0 : Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return 0; } }
+    private static boolean yes(String s) { return s != null && s.trim().equalsIgnoreCase("Y"); }
 
     private static String key(String call, String dt, String band, String mode) {
         return (call == null ? "" : call.trim().toUpperCase(Locale.ROOT)) + "|" + (dt == null ? "" : dt.substring(0, Math.min(16, dt.length())))

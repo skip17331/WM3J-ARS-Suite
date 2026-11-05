@@ -45,7 +45,27 @@ public final class JLogDb {
     /** Every loggable field for one QSO (for editing). qth=country, grid=sig_info, name=operator_name. */
     public record QsoFull(long id, String datetimeUtc, String call, String freq, String band, String mode,
                           String rstSent, String rstRcvd, String name, String qth, String grid,
-                          String state, String county, int powerW, String notes) {}
+                          String state, String county, int powerW, String notes, Refs refs) {}
+
+    /** What award tracking needs beyond the basic QSO: island / summit / park references, zones, and which
+     *  confirmations (paper QSL, LoTW, eQSL) have come back. {@link #NONE} = nothing recorded. */
+    public record Refs(String iota, String sota, String pota, int cqz, int ituz, boolean qsl, boolean lotw, boolean eqsl) {
+        public static final Refs NONE = new Refs("", "", "", 0, 0, false, false, false);
+        public boolean confirmed() { return qsl || lotw || eqsl; }
+        /** Same refs with the confirmations of {@code o} added (never takes one away). */
+        public Refs mergedWith(Refs o) {
+            return new Refs(blank(iota) ? o.iota : iota, blank(sota) ? o.sota : sota, blank(pota) ? o.pota : pota,
+                    cqz > 0 ? cqz : o.cqz, ituz > 0 ? ituz : o.ituz, qsl || o.qsl, lotw || o.lotw, eqsl || o.eqsl);
+        }
+        private static boolean blank(String s) { return s == null || s.isBlank(); }
+    }
+
+    private static final String REF_COLS = "iota,sota_ref,pota_ref,cqz,ituz,qsl_received,lotw_rcvd,eqsl_rcvd";
+    private static Refs refsAt(ResultSet rs, int from) throws SQLException {
+        return new Refs(nvl(rs.getString(from)), nvl(rs.getString(from + 1)), nvl(rs.getString(from + 2)), rs.getInt(from + 3),
+                rs.getInt(from + 4), rs.getInt(from + 5) != 0, rs.getInt(from + 6) != 0, rs.getInt(from + 7) != 0);
+    }
+    private static String nvl(String s) { return s == null ? "" : s; }
 
     /** Prior-QSO summary for the worked-before / dupe indicator. */
     public record Prior(int count, String lastDate, java.util.List<String> bands) {}
@@ -64,8 +84,22 @@ public final class JLogDb {
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA journal_mode=WAL");
             st.execute(DDL);
+            addColumns(st);
         }
         return c;
+    }
+
+    /** Award-tracking columns added after the first release; additive, so an older J-Log opening the file is unaffected. */
+    private static final String[][] EXTRA_COLUMNS = {
+        {"iota", "TEXT"}, {"sota_ref", "TEXT"}, {"pota_ref", "TEXT"},
+        {"cqz", "INTEGER DEFAULT 0"}, {"ituz", "INTEGER DEFAULT 0"},
+        {"lotw_rcvd", "INTEGER DEFAULT 0"}, {"eqsl_rcvd", "INTEGER DEFAULT 0"}};
+
+    private static void addColumns(Statement st) throws SQLException {
+        java.util.Set<String> have = new java.util.HashSet<>();
+        try (ResultSet rs = st.executeQuery("PRAGMA table_info(qso)")) { while (rs.next()) have.add(rs.getString("name").toLowerCase()); }
+        for (String[] col : EXTRA_COLUMNS)
+            if (!have.contains(col[0])) st.executeUpdate("ALTER TABLE qso ADD COLUMN " + col[0] + " " + col[1]);
     }
 
     /** True if the log DB can be opened (driver present, path writable). */
@@ -89,12 +123,12 @@ public final class JLogDb {
     public static List<QsoFull> all() {
         List<QsoFull> out = new ArrayList<>();
         String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_sent,rst_received,operator_name,"
-                + "country,sig_info,state,county,power_watts,notes FROM qso ORDER BY datetime_utc DESC, id DESC";
+                + "country,sig_info,state,county,power_watts,notes," + REF_COLS + " FROM qso ORDER BY datetime_utc DESC, id DESC";
         try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next())
                 out.add(new QsoFull(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
                         rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9),
-                        rs.getString(10), rs.getString(11), rs.getString(12), rs.getString(13), rs.getInt(14), rs.getString(15)));
+                        rs.getString(10), rs.getString(11), rs.getString(12), rs.getString(13), rs.getInt(14), rs.getString(15), refsAt(rs, 16)));
         } catch (Throwable t) { /* DB absent → empty */ }
         return out;
     }
@@ -102,13 +136,13 @@ public final class JLogDb {
     /** Full QSO by id (for the edit form), or null. */
     public static QsoFull byId(long id) {
         String sql = "SELECT id,datetime_utc,callsign,frequency,band,mode,rst_sent,rst_received,operator_name,"
-                + "country,sig_info,state,county,power_watts,notes FROM qso WHERE id=?";
+                + "country,sig_info,state,county,power_watts,notes," + REF_COLS + " FROM qso WHERE id=?";
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return new QsoFull(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4),
                         rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9),
-                        rs.getString(10), rs.getString(11), rs.getString(12), rs.getString(13), rs.getInt(14), rs.getString(15));
+                        rs.getString(10), rs.getString(11), rs.getString(12), rs.getString(13), rs.getInt(14), rs.getString(15), refsAt(rs, 16));
             }
         } catch (Throwable t) { /* not found */ }
         return null;
@@ -125,9 +159,18 @@ public final class JLogDb {
     public static boolean update(long id, String datetimeUtc, String call, String freq, String band, String mode,
                                  String rstSent, String rstRcvd, String name, String qth, String grid,
                                  String comment, String state, String county, int powerW) {
+        QsoFull cur = byId(id);
+        return update(id, datetimeUtc, call, freq, band, mode, rstSent, rstRcvd, name, qth, grid, comment, state, county, powerW,
+                cur == null ? Refs.NONE : cur.refs());   // keeps the references and confirmations the caller does not know about
+    }
+    public static boolean update(long id, String datetimeUtc, String call, String freq, String band, String mode,
+                                 String rstSent, String rstRcvd, String name, String qth, String grid,
+                                 String comment, String state, String county, int powerW, Refs r) {
         if (call == null || call.isBlank()) return false;
+        if (r == null) r = Refs.NONE;
         String sql = "UPDATE qso SET callsign=?,datetime_utc=?,band=?,mode=?,frequency=?,power_watts=?,"
-                + "rst_sent=?,rst_received=?,country=?,operator_name=?,state=?,county=?,notes=?,sig_info=? WHERE id=?";
+                + "rst_sent=?,rst_received=?,country=?,operator_name=?,state=?,county=?,notes=?,sig_info=?,"
+                + "iota=?,sota_ref=?,pota_ref=?,cqz=?,ituz=?,qsl_received=?,lotw_rcvd=?,eqsl_rcvd=? WHERE id=?";
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, call.toUpperCase().trim());
             ps.setString(2, (datetimeUtc == null || datetimeUtc.isBlank()) ? LocalDateTime.now(ZoneOffset.UTC).format(FMT) : datetimeUtc.trim());
@@ -136,7 +179,10 @@ public final class JLogDb {
             ps.setString(7, nz(rstSent)); ps.setString(8, nz(rstRcvd));
             ps.setString(9, nz(qth)); ps.setString(10, nz(name)); ps.setString(11, nz(state)); ps.setString(12, nz(county));
             ps.setString(13, nz(comment)); ps.setString(14, nz(grid));
-            ps.setLong(15, id);
+            ps.setString(15, refNorm(r.iota())); ps.setString(16, refNorm(r.sota())); ps.setString(17, refNorm(r.pota()));
+            ps.setInt(18, Math.max(0, r.cqz())); ps.setInt(19, Math.max(0, r.ituz()));
+            ps.setInt(20, r.qsl() ? 1 : 0); ps.setInt(21, r.lotw() ? 1 : 0); ps.setInt(22, r.eqsl() ? 1 : 0);
+            ps.setLong(23, id);
             return ps.executeUpdate() > 0;
         } catch (Throwable t) { return false; }
     }
@@ -164,17 +210,17 @@ public final class JLogDb {
     /** A full QSO row for export (note: qth is stored in country, grid in sig_info). */
     public record QsoExport(String call, String datetimeUtc, String band, String mode, String freq,
                             int powerW, String rstSent, String rstRcvd, String qth, String name,
-                            String state, String county, String notes, String grid) {}
+                            String state, String county, String notes, String grid, Refs refs) {}
 
     /** Every QSO with all loggable fields, oldest first — for ADIF / CSV export. */
     public static List<QsoExport> allForExport() {
         List<QsoExport> out = new ArrayList<>();
         String sql = "SELECT callsign,datetime_utc,band,mode,frequency,power_watts,rst_sent,rst_received,"
-                + "country,operator_name,state,county,notes,sig_info FROM qso ORDER BY datetime_utc ASC";
+                + "country,operator_name,state,county,notes,sig_info," + REF_COLS + " FROM qso ORDER BY datetime_utc ASC";
         try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) out.add(new QsoExport(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
                     rs.getString(5), rs.getInt(6), rs.getString(7), rs.getString(8), rs.getString(9), rs.getString(10),
-                    rs.getString(11), rs.getString(12), rs.getString(13), rs.getString(14)));
+                    rs.getString(11), rs.getString(12), rs.getString(13), rs.getString(14), refsAt(rs, 15)));
         } catch (Throwable t) { /* DB absent → empty */ }
         return out;
     }
@@ -242,10 +288,18 @@ public final class JLogDb {
     public static boolean insertAt(String datetimeUtc, String call, String freq, String band, String mode,
                                    String rstSent, String rstRcvd, String name, String qth,
                                    String grid, String comment, String state, String county, int powerW) {
+        return insertAt(datetimeUtc, call, freq, band, mode, rstSent, rstRcvd, name, qth, grid, comment, state, county, powerW, Refs.NONE);
+    }
+    /** Full insert including island / summit / park references, zones and confirmations. */
+    public static boolean insertAt(String datetimeUtc, String call, String freq, String band, String mode,
+                                   String rstSent, String rstRcvd, String name, String qth,
+                                   String grid, String comment, String state, String county, int powerW, Refs r) {
         if (call == null || call.isBlank()) return false;
+        if (r == null) r = Refs.NONE;
         String sql = "INSERT INTO qso(callsign,datetime_utc,band,mode,frequency,power_watts,"
                 + "rst_sent,rst_received,country,operator_name,state,county,notes,"
-                + "qsl_sent,qsl_received,sig,sig_info) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "qsl_sent,qsl_received,sig,sig_info,iota,sota_ref,pota_ref,cqz,ituz,lotw_rcvd,eqsl_rcvd) "
+                + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, call.toUpperCase().trim());
             ps.setString(2, (datetimeUtc == null || datetimeUtc.isBlank()) ? LocalDateTime.now(ZoneOffset.UTC).format(FMT) : datetimeUtc.trim());
@@ -253,11 +307,38 @@ public final class JLogDb {
             ps.setInt(6, Math.max(0, powerW));
             ps.setString(7, nz(rstSent)); ps.setString(8, nz(rstRcvd));
             ps.setString(9, nz(qth)); ps.setString(10, nz(name)); ps.setString(11, nz(state)); ps.setString(12, nz(county));
-            ps.setString(13, nz(comment)); ps.setInt(14, 0); ps.setInt(15, 0);
+            ps.setString(13, nz(comment)); ps.setInt(14, 0); ps.setInt(15, r.qsl() ? 1 : 0);
             ps.setString(16, null); ps.setString(17, nz(grid));
+            ps.setString(18, refNorm(r.iota())); ps.setString(19, refNorm(r.sota())); ps.setString(20, refNorm(r.pota()));
+            ps.setInt(21, Math.max(0, r.cqz())); ps.setInt(22, Math.max(0, r.ituz()));
+            ps.setInt(23, r.lotw() ? 1 : 0); ps.setInt(24, r.eqsl() ? 1 : 0);
             ps.executeUpdate();
             return true;
         } catch (Throwable t) { t.printStackTrace(); return false; }
+    }
+
+    /** Reference text as stored: trimmed and upper-case, null when empty. */
+    static String refNorm(String s) { return (s == null || s.isBlank()) ? null : s.trim().toUpperCase(java.util.Locale.ROOT); }
+
+    /** Adds confirmations and references from an imported record to the QSO already in the log (same call, band, mode and
+     *  minute). Never removes anything. Returns true when a matching QSO was found. */
+    public static boolean mergeRefs(String call, String datetimeUtc, String band, String mode, Refs add) {
+        if (call == null || datetimeUtc == null || add == null) return false;
+        String minute = datetimeUtc.substring(0, Math.min(16, datetimeUtc.length()));
+        String sql = "SELECT id FROM qso WHERE UPPER(callsign)=? AND substr(datetime_utc,1,16)=? AND band IS ? AND UPPER(IFNULL(mode,''))=?";
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, call.trim().toUpperCase(java.util.Locale.ROOT)); ps.setString(2, minute); ps.setString(3, nz(band));
+            ps.setString(4, mode == null ? "" : mode.trim().toUpperCase(java.util.Locale.ROOT));
+            long id = -1;
+            try (ResultSet rs = ps.executeQuery()) { if (rs.next()) id = rs.getLong(1); }
+            if (id < 0) return false;
+            QsoFull cur = byId(id);
+            if (cur == null) return false;
+            Refs m = cur.refs().mergedWith(add);
+            if (m.equals(cur.refs())) return true;
+            return update(id, cur.datetimeUtc(), cur.call(), cur.freq(), cur.band(), cur.mode(), cur.rstSent(), cur.rstRcvd(),
+                    cur.name(), cur.qth(), cur.grid(), cur.notes(), cur.state(), cur.county(), cur.powerW(), m);
+        } catch (Throwable t) { return false; }
     }
 
     /** True when a QSO with this callsign, band and mode is already logged within 3 minutes of {@code datetimeUtc}

@@ -3,18 +3,23 @@
 Kept in the repo so it carries over between sessions. Tick items off (`[x]`) as they are done; add new ones at the top of a tier.
 Ordered by priority: do the tiers top to bottom. Size is a rough guess: S = under a day, M = a few days, L = a week or more.
 
-## 1. Now — verify what has just shipped (v1.12.2)
+## 1. On hold — verify what shipped in v1.12.2
+No label printers to test with at the moment, so these wait.
 - [ ] **S** QSL label printing (beta): try on real hardware — Brother QL-810W, DYMO LabelWriter 550, Zebra ZD421 (ZPL and driver modes). Check size, margins, rotation on narrow strip labels. Fix what it finds before adding more printers.
-- [ ] **S** Log browser: click through the Band / Mode filters, Delete + confirmation, and the **Browse full log ⤢** button inside J-Log (only tested through a harness).
+- [ ] **S** Log browser: click through the Band / Mode filters and Delete + confirmation (only tested through a harness).
 - [ ] **S** Confirm the Amateur Radio menu folder shows on Cinnamon after the installer fix.
 - [ ] **S** Check the 2026-10-03 9K2IC (70cm DMR) entry in the log — looks like a mistyped date.
 
-## 2. Next — award tracking (the biggest gap; everything else builds on it)
-Get award tracking back into J-Log (there is an `Awards` class in `data/` and an awards drawer to start from). In this order:
-- [ ] **M** Replace the hand-made prefix table in `data/Awards.java` with the real DXCC entity list (`DxccResolver` in `j-log-engine`), so rare entities resolve correctly.
-- [ ] **M** Track confirmations per QSO (QSL / LoTW / eQSL) — every award needs worked vs confirmed. The log has no confirmation status yet.
-- [ ] **M** Add reference fields to the QSO table and form: IOTA, SOTA, POTA (the `sig` / `sig_info` columns exist, but `sig_info` already holds the grid). Carry them through ADIF import / export and the LoTW / eQSL uploads.
-- [ ] **L** The awards themselves: DXCC (by band and mode), WAS, WAC, grid squares (VUCC), CQ and ITU zones (WAZ), then **IOTA** (suggest the island reference from the callsign using IOTA's public group list), POTA and SOTA (hunter and activator; POTA park lookup via its API).
+## 2. Next — award tracking (branch `feat/award-tracking`, PR open for review)
+Built on the branch: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, and the awards screen (DXCC matrix, WAS, WAC, grids, IOTA, POTA, SOTA, zones).
+- [ ] **Review and merge the PR**, then try it on the work machine (Windows) — install, open J-Log ▸ Awards, import a LoTW ADIF to see confirmations.
+- [ ] **M** Audit the DXCC prefix table (`j-log-engine/.../dxcc-prefixes.json`) against the full ARRL list: about 270 prefixes were added, but whole blocks are still missing (much of Africa, Asia, Oceania, the Caribbean), and deleted entities are not tracked. Calls with no entity are counted in the Awards header.
+- [ ] **M** Download confirmations straight from LoTW / eQSL (their APIs) instead of importing a file by hand.
+- [ ] **S** Suggest the IOTA reference from the callsign (IOTA's public group list) and look up POTA parks / SOTA summits when typing a reference.
+- [ ] **M** Work out CQ and ITU zones from the callsign / grid so WAZ does not depend on an ADIF import.
+- [ ] **M** DXCC "needed" hints: flag cluster spots that are a new entity, band or mode (feeds the Info tab "Active now" panel).
+- [ ] **S** Endorsement and award-level reporting: DXCC Challenge (entities x bands), 5-Band DXCC / WAS, mixed-mode; VUCC per band (50 MHz and up only).
+- [ ] **S** Show IOTA / SOTA / POTA / confirmation boxes in J-Log-Quick and on the J-Map QSO card (only the full J-Log form has them).
 
 ## 3. Then — features operators will notice
 - [ ] **M** J-Map: point-to-point tracks (ham to ham) — draw the path between two stations on the map.

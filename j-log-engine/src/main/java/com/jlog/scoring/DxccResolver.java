@@ -18,7 +18,7 @@ import java.util.Map;
  * (NA/SA/EU/AS/AF/OC).
  *
  * <p>Data is a self-contained j-log resource
- * ({@code /com/jlog/scoring/dxcc-prefixes.json}, 452 callsign-prefix →
+ * ({@code /com/jlog/scoring/dxcc-prefixes.json}, callsign-prefix →
  * {country, continent, dxcc} records). This class adds no shared API and
  * does not touch j-log-engine or j-hub.
  *

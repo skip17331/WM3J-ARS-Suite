@@ -169,6 +169,8 @@ database** and **Database tools ›** (which opens J-Hub ▸ Data).
 - **New QSO** — callsign, band, mode, frequency, RST sent and received, name, QTH, state, county, grid, power and
   comment, then **Log QSO ⏎**. Typing a call looks it up (see *Callsign lookup* above) and shows its DXCC entity,
   beam heading and your previous contacts with it. **Print QSL label** prints a label for each new QSO when you save it; pick the printer in Setup ▸ Logbook ▸ Label printers. *(Beta.)*
+- **IOTA, SOTA and POTA** — optional fields for the other station's island, summit and park (hunter credit), and **Confirmed** boxes for a paper QSL, LoTW or eQSL. Import an ADIF file downloaded from LoTW or eQSL and the QSOs already in your log are marked confirmed.
+- **Awards** — the Awards drawer on the right lists DXCC, WAS, WAC, grid squares, IOTA, POTA, SOTA and the zones, each as worked / confirmed of its target. **Open awards ⤢** opens the full screen: a DXCC band-by-band matrix, state and continent grids, and reference lists. A call whose entity cannot be worked out is left out of the DXCC count.
 - **Recent log** — your latest QSOs; select one to edit or delete it. **Browse full log ⤢** opens every QSO in a sortable, searchable table (sort by any column heading, search by call, name, QTH, grid, state, county or notes, filter by band and mode; double-click a row to edit it).
 - **DX Cluster** — live spots with a **Console** button that opens a raw-feed pop-up with a command line (history, and
   shortcuts such as `SH/DX 20` and `SET/FT8`). The status is always **Disconnected**, **Connecting** or **Connected**,

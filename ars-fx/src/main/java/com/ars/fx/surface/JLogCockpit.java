@@ -9,6 +9,7 @@ import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -114,6 +115,13 @@ public final class JLogCockpit {
         TextField cnty = tf("county", "", 200, false);
         TextField pwr  = tf("W", com.ars.fx.data.HubConfig.get("station.txPower", "100").trim(), 80, false);
         TextField cmt  = tf("notes, QSL info…", "", -1, false);
+        TextField iota = tf("NA-005", "", 110, false);       // award references: island / summit / park
+        TextField sota = tf("W7W/LC-001", "", 150, false);
+        TextField pota = tf("K-0039", "", 110, false);
+        CheckBox cQsl = new CheckBox("QSL"), cLotw = new CheckBox("LoTW"), cEqsl = new CheckBox("eQSL");
+        com.ars.fx.shell.Tips.tip(cQsl, "Paper QSL card received"); com.ars.fx.shell.Tips.tip(cLotw, "Confirmed on LoTW"); com.ars.fx.shell.Tips.tip(cEqsl, "Confirmed on eQSL");
+        HBox confBox = new HBox(10, cQsl, cLotw, cEqsl); confBox.setAlignment(Pos.CENTER_LEFT);
+        com.ars.fx.data.JLogDb.Refs[] baseRefs = {com.ars.fx.data.JLogDb.Refs.NONE};   // CQ / ITU zone of the QSO being edited (kept as is)
 
         // QSO date/time (UTC) — live "now" until you override; ⟳ snaps back to now.
         TextField dateF = tf("YYYY-MM-DD", nowDate(), 130, false);
@@ -159,6 +167,7 @@ public final class JLogCockpit {
         body.getChildren().add(row(g("RST SENT", rsnt, false), g("RST RCVD", rrcv, false), g("NAME", name, false), g("GRID", grid, false)));
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
         body.getChildren().add(dtRow);
+        body.getChildren().add(row(g("IOTA", iota, false), g("SOTA SUMMIT", sota, false), g("POTA PARK", pota, false), g("CONFIRMED", confBox, false)));
 
         VBox cmtF = g("COMMENT", cmt, true);
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
@@ -179,7 +188,7 @@ public final class JLogCockpit {
         HBox lbar = new HBox(8, lh, ln, lsp, browse); lbar.getStyleClass().add("jl-loghd"); lbar.setAlignment(Pos.CENTER_LEFT);
         VBox tbl = new VBox();
 
-        TextField[] all = {call, name, grid, qth, stat, cnty, cmt};
+        TextField[] all = {call, name, grid, qth, stat, cnty, cmt, iota, sota, pota};
         long[] editId = {-1};
         String[] lastLk = {""};
         Runnable[] refresh = new Runnable[1];
@@ -188,6 +197,7 @@ public final class JLogCockpit {
             editId[0] = -1; titleLbl.setText("New QSO"); logBtn.setText("Log QSO  ⏎");
             cancel.setVisible(false); cancel.setManaged(false);
             manualTime[0] = false; dateF.setText(nowDate()); timeF.setText(nowTime());
+            cQsl.setSelected(false); cLotw.setSelected(false); cEqsl.setSelected(false); baseRefs[0] = com.ars.fx.data.JLogDb.Refs.NONE;
         };
         // Load a logged QSO back into the form for editing.
         Consumer<Long> onEdit = id -> {
@@ -198,6 +208,8 @@ public final class JLogCockpit {
             rsnt.setText(z(f.rstSent())); rrcv.setText(z(f.rstRcvd())); name.setText(z(f.name())); grid.setText(z(f.grid()));
             qth.setText(z(f.qth())); stat.setText(z(f.state())); cnty.setText(z(f.county()));
             pwr.setText(f.powerW() > 0 ? String.valueOf(f.powerW()) : ""); cmt.setText(z(f.notes()));
+            iota.setText(z(f.refs().iota())); sota.setText(z(f.refs().sota())); pota.setText(z(f.refs().pota()));
+            cQsl.setSelected(f.refs().qsl()); cLotw.setSelected(f.refs().lotw()); cEqsl.setSelected(f.refs().eqsl()); baseRefs[0] = f.refs();
             String dt = f.datetimeUtc();
             dateF.setText(dt != null && dt.length() >= 10 ? dt.substring(0, 10) : nowDate());
             timeF.setText(dt != null && dt.length() >= 19 ? dt.substring(11, 19) : nowTime());
@@ -226,11 +238,13 @@ public final class JLogCockpit {
             int p = 0; try { p = Integer.parseInt(pwr.getText().trim()); } catch (Exception ignored) {}
             String bandVal = (band.getText() == null || band.getText().isBlank()) ? JLogDb.bandFor(freq.getText()) : band.getText();
             String dt = manualTime[0] ? composeDt(dateF.getText(), timeF.getText()) : null;
+            com.ars.fx.data.JLogDb.Refs refs = new com.ars.fx.data.JLogDb.Refs(iota.getText(), sota.getText(), pota.getText(),
+                    baseRefs[0].cqz(), baseRefs[0].ituz(), cQsl.isSelected(), cLotw.isSelected(), cEqsl.isSelected());
             boolean ok = (editId[0] >= 0)
                     ? JLogDb.update(editId[0], dt, call.getText(), freq.getText(), bandVal, mode.getText(),
-                            rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p)
+                            rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs)
                     : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
-                            rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p);
+                            rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs);
             if (ok) {
                 if (editId[0] < 0) printQsl.afterSave(new com.ars.fx.data.QslLabel.Qso(call.getText(), dt, freq.getText(), bandVal,
                         mode.getText(), rsnt.getText(), rrcv.getText(), name.getText(), qth.getText()));
@@ -349,7 +363,7 @@ public final class JLogCockpit {
         if (w > 0) { t.setMinWidth(w); t.setPrefWidth(w); t.setMaxWidth(w); } else t.setMaxWidth(Double.MAX_VALUE);
         return Shell.caps(t);   // all log entry is upper case
     }
-    private static VBox g(String label, TextField field, boolean grow) {
+    private static VBox g(String label, Node field, boolean grow) {
         VBox v = new VBox(5, lbl(label, "jl-flabel"), field); v.setAlignment(Pos.TOP_LEFT);
         if (grow) { HBox.setHgrow(v, Priority.ALWAYS); v.setMaxWidth(Double.MAX_VALUE); }
         return v;
@@ -478,41 +492,41 @@ public final class JLogCockpit {
         row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.spotter(), s.freqHz(), s.mode(), s.band()));
         return row;
     }
-    /** Awards drawer — collapsible mini-drawers for WAS / WAC / DXCC, computed from the real log. */
+    /** Awards drawer — a line per award (worked / confirmed of target) from the real log, and a button for the full awards screen. */
     private static Node awardsDrawer() {
-        com.ars.fx.data.Awards.Progress was = com.ars.fx.data.Awards.was();
-        com.ars.fx.data.Awards.Progress wac = com.ars.fx.data.Awards.wac();
-        com.ars.fx.data.Awards.Progress dxcc = com.ars.fx.data.Awards.dxcc();
-        VBox body = new VBox(8, awardMini(was, true), awardMini(wac, true), awardMini(dxcc, false));
+        VBox body = new VBox(7);
         body.setPadding(new Insets(2, 2, 4, 2));
-        String summary = was.worked() + "/" + was.target() + " WAS";
-        return Shell.drawer("Awards", "vault", "vault", summary, true, body);
+        Label loading = lbl("Working out awards…", "jl-skim-meta");
+        body.getChildren().add(loading);
+        Node dw = Shell.drawer("Awards", "vault", "vault", "", true, body);
+        Thread t = new Thread(() -> {
+            com.ars.fx.data.Awards.Snapshot snap = com.ars.fx.data.Awards.compute();
+            Platform.runLater(() -> {
+                body.getChildren().clear();
+                for (com.ars.fx.data.Awards.Progress p : snap.all()) {
+                    if (p.worked() == 0 && !(p == snap.dxcc || p == snap.was || p == snap.wac)) continue;   // hide awards with nothing logged yet
+                    body.getChildren().add(awardLine(p));
+                }
+                Label open = lbl("Open awards ⤢", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
+                open.setOnMouseClicked(e -> AwardsWindow.show(open));
+                body.getChildren().add(open);
+                if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(snap.dxcc.worked() + " DXCC · " + snap.was.worked() + "/" + snap.was.target() + " WAS");
+            });
+        }, "awards-drawer");
+        t.setDaemon(true); t.start();
+        return dw;
     }
-    private static Node awardMini(com.ars.fx.data.Awards.Progress p, boolean grid) {
-        double frac = p.target() > 0 ? Math.min(1.0, (double) p.worked() / p.target()) : 0;
-        VBox content = new VBox(9);
-        // progress bar + count
-        StackPane bar = new StackPane(); bar.setMinHeight(8); bar.setMaxHeight(8); bar.setMaxWidth(Double.MAX_VALUE);
-        Region track = new Region(); track.getStyleClass().add("jl-award-bar-track"); track.setMinHeight(8); track.setMaxHeight(8); track.setMaxWidth(Double.MAX_VALUE);
-        Region fill = new Region(); fill.getStyleClass().add("jl-award-bar-fill"); fill.setMinHeight(8); fill.setMaxHeight(8);
+    private static Node awardLine(com.ars.fx.data.Awards.Progress p) {
+        StackPane bar = new StackPane(); bar.setMinHeight(6); bar.setMaxHeight(6); bar.setMaxWidth(Double.MAX_VALUE);
+        Region track = new Region(); track.getStyleClass().add("jl-award-bar-track"); track.setMinHeight(6); track.setMaxHeight(6); track.setMaxWidth(Double.MAX_VALUE);
+        Region fill = new Region(); fill.getStyleClass().add("jl-award-bar-fill"); fill.setMinHeight(6); fill.setMaxHeight(6);
         StackPane.setAlignment(fill, Pos.CENTER_LEFT); bar.getChildren().addAll(track, fill);
-        fill.maxWidthProperty().bind(bar.widthProperty().multiply(frac));
-        Label cnt = lbl(p.worked() + " / " + p.target(), "jl-award-pct");
-        Region csp = new Region(); HBox.setHgrow(csp, Priority.ALWAYS);
-        HBox barRow = new HBox(10, bar, cnt); HBox.setHgrow(bar, Priority.ALWAYS); barRow.setAlignment(Pos.CENTER_LEFT);
-        content.getChildren().add(barRow);
-        // grid of entities (worked highlighted)
-        if (grid && p.all() != null) {
-            FlowPane fp = new FlowPane(4, 4);
-            for (String e : p.all()) {
-                Label chip = lbl(e, "jl-award-chip"); if (p.workedSet().contains(e)) chip.getStyleClass().add("worked");
-                fp.getChildren().add(chip);
-            }
-            content.getChildren().add(fp);
-        } else {
-            content.getChildren().add(lbl(p.worked() + " entities worked · target " + p.target(), "jl-skim-meta"));
-        }
-        return Shell.drawer(p.code(), "log", "vault", p.worked() + "/" + p.target(), false, content);
+        fill.maxWidthProperty().bind(bar.widthProperty().multiply(p.fraction()));
+        Label name = lbl(p.code(), "jl-skim-meta"); name.setMinWidth(40);
+        Label cnt = lbl(p.worked() + " / " + p.confirmed() + "✓ of " + p.target(), "jl-award-pct");
+        HBox top = new HBox(8, name, bar, cnt); HBox.setHgrow(bar, Priority.ALWAYS); top.setAlignment(Pos.CENTER_LEFT);
+        com.ars.fx.shell.Tips.tip(top, p.name() + " — " + p.worked() + " worked, " + p.confirmed() + " confirmed");
+        return top;
     }
 
     private static Runnable skimmerRefresh;
