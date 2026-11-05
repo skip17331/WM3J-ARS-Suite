@@ -71,6 +71,7 @@ public final class Shell {
         Map.entry("digi",  Color.web("#b191ea")), Map.entry("bridge", Color.web("#6fa7ee")),
         Map.entry("sat",   Color.web("#6fc884")), Map.entry("vault",  Color.web("#dba475")),
         Map.entry("learn", Color.web("#ef7d83")), Map.entry("hub",    Color.web("#a2c4d0")),
+        Map.entry("info",  Color.web("#d98fd1")),
         Map.entry("accent",Color.web("#31bdda")), Map.entry("t2",     Color.web("#97a4b2")));
 
     // ---- small helpers -----------------------------------------------------

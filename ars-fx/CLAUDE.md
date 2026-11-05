@@ -43,7 +43,7 @@ platform's JavaFX natives.
 | Package | Contents |
 |---|---|
 | `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons`, `AppVersion` (build version stamped from `version.properties`; version compare for the update check) |
-| `surface/` | One class per screen: `JHubDashboard` (dashboard + the setup page builders), `JHubSetup` (the one Setup screen: second left menu, section swapped on the right; open a section with `Shell.navigate("setup:<id>")`), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
+| `surface/` | One class per screen: `JHubDashboard` (dashboard + the setup page builders), `InfoView` (Info tab: Upcoming contests / DXpeditions / hamfests from iCal feeds, `data/UpcomingEvents` + `data/IcalFeed`), `JHubSetup` (the one Setup screen: second left menu, section swapped on the right; open a section with `Shell.navigate("setup:<id>")`), `JLogCockpit`, `JLogContest`, `JMapView`, `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
 | `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi`, `AutoPanel`, `Glyphs`, `IdTimer` (station-ID countdown), `UpdateBanner` |
 | `data/` | Non-UI services: `HubConfig`, `ModuleConfig`, `SoloConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `RemoteLink`/`RemoteServer`, `JLogDb`, `JVaultDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `DxccInfo`, `LearnContent`, `Bands`, `UpdateChecker`/`UpdateApplier`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
 | `sat/` | SGP4 propagation, pass prediction, Doppler, coordinate transforms |
@@ -68,6 +68,7 @@ J-Vault, J-Learn. The Morse Trainer and Antenna Workshop also have dock entries 
 | Path | Contents |
 |---|---|
 | `~/.j-hub/config.json` | All suite settings (`HubConfig`, flat key/value): station, rig, rotor, amp, antenna, cluster, transmit |
+| `~/.j-hub/info/` | Cached iCal feeds for the Info tab (`<kind>.ics` + `<kind>.stamp`; six-hour cache, `UpcomingEvents`) |
 | `~/.j-hub/updates/` | Update-check log and downloaded update files plus helper script (`UpdateChecker`/`UpdateApplier`) |
 | `~/.j-log/` | `j-log.db`, `contest.db`, `config.db`, `translations.db`, `backups/`, `contest-logs/`, `exports/`; also `macros.json` (`MacroConfig`), `upload.json` (`UploadConfig`: upload logins), `lookup.json` (`LookupConfig`) and `awards/*.json` (`CustomAwards`: the operator's own award sheets, one file each) |
 | `~/.j-vault/` | `inventory.db` (J-Vault), `backups/` |

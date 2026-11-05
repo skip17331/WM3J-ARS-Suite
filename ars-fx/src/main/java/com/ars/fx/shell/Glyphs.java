@@ -31,6 +31,10 @@ public final class Glyphs {
                 Rectangle r = new Rectangle(4.5,6,15,13); r.setArcWidth(4); r.setArcHeight(4);
                 add(g, color, r, path("M9 6V4.5h6V6"), ring(12,12.5,2));
             }
+            case "info" -> {   // a circled "i"
+                add(g, color, ring(12, 12, 8.5), line(12, 11, 12, 16.5));
+                g.getChildren().add(dot(12, 7.8, 1.2, color));
+            }
             case "learn" -> add(g, color, path("M5 5.5h7a2.5 2.5 0 012.5 2.5v11a2 2 0 00-2-2H5z"),
                     path("M19 5.5h-4.5"), path("M14.5 8v11"));
             case "morse" -> {   // dash · dot · dash

@@ -36,7 +36,7 @@ public final class Themes {
             new Scheme("nord",   "Nord",   "ars-nord"));
 
     /** Surfaces that keep their own scheme. J-Hub pages (dashboard/config) always follow the global. */
-    private static final Set<String> MODULES = Set.of("log", "map", "sat", "digi", "bridge", "vault", "learn");
+    private static final Set<String> MODULES = Set.of("log", "map", "sat", "digi", "bridge", "vault", "learn", "info");
 
     public static Scheme byKey(String key) {
         for (Scheme s : SCHEMES) if (s.key().equals(key)) return s;

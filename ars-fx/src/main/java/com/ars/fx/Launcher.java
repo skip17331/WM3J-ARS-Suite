@@ -166,6 +166,7 @@ public class Launcher extends Application {
             case "bridge": return com.ars.fx.surface.JBridgeView.build();
             case "vault":  return com.ars.fx.surface.JVaultView.build();
             case "learn":  return com.ars.fx.surface.JLearnView.build();
+            case "info":   return com.ars.fx.surface.InfoView.build();
             default:       return com.ars.fx.surface.JHubDashboard.build();
         }
     }
