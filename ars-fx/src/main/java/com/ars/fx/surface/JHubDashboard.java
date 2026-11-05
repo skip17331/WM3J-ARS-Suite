@@ -858,6 +858,13 @@ public final class JHubDashboard {
             cfgRow("Lookups", "the call as you type it, when you press Space", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_LOOKUP, true)),
             cfgRow("Radio", "the rig's frequency and mode, when they change and every 10 seconds", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_RADIO, true)),
             cfgRow("Score", "the contest score, for N1MM+ score reporting (the categories come from Contest / Cabrillo below)", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_SCORE, false)));
+        VBox network = section("CONTEST NETWORK (MULTI-OPERATOR)",
+            cfgRow("Network mode", "Off, or Host (this station is the one the others join) or Join (connect to the host). Every station keeps its own full copy of the log, so one that loses the host keeps logging and catches up when it is back", cSelect(com.ars.fx.net.ContestNetwork.KEY_MODE, "Off", "Off", "Host", "Join")),
+            cfgRow("Shared key", "the same on every station, at least 4 characters. It is never sent, only a proof that you know it. The QSOs themselves cross your LAN unencrypted, so use this on a network you trust", cInput(com.ars.fx.net.ContestNetwork.KEY_KEY, "")),
+            cfgRow("Host address", "Join only: the host station's IP address or name, such as 192.168.1.20", cInput(com.ars.fx.net.ContestNetwork.KEY_HOST, "")),
+            cfgRow("Port", "the host listens on it and the others connect to it (default 12070); open it in the host's firewall", cInput(com.ars.fx.net.ContestNetwork.KEY_PORT, String.valueOf(com.ars.fx.net.ContestNetwork.DEFAULT_PORT))),
+            cfgRow("Station name", "this computer's name on the network, unique on it (default: the computer's name). It is recorded on each QSO you log", cInput(com.ars.fx.net.ContestNetwork.KEY_STATION, "")),
+            cfgRow("Operator", "who is at this station (default: your call), shown to the other stations", cInput(com.ars.fx.net.ContestNetwork.KEY_OP, "")));
         VBox contest = section("CONTEST / CABRILLO",
             cfgRow("Operator category", null, cSelect("contest.cab.operator", "SINGLE-OP", new String[]{"SINGLE-OP","MULTI-OP","CHECKLOG"})),
             cfgRow("Power", null, cSelect("contest.cab.power", "HIGH", new String[]{"HIGH","LOW","QRP"})),
@@ -894,7 +901,7 @@ public final class JHubDashboard {
                 labelSection());
             case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
                 lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
-                logbook, n1mm, contest);
+                logbook, n1mm, network, contest);
             case "share" -> cfgPage(cfgTop("J-Hub", "System", "Remote sharing"),
                 lbl("Let a solo J-Map / J-Sat on another computer use this station's spots, rig and rotor.", "cfg-desc"),
                 remote);
