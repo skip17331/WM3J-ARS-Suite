@@ -48,7 +48,7 @@
 
     /* module signature hues */
     -ars-log: #ebb353;  -ars-map: #26c0cf;  -ars-digi: #b191ea;  -ars-bridge: #6fa7ee;
-    -ars-sat: #6fc884;  -ars-vault: #dba475; -ars-learn: #ef7d83; -ars-hub: #a2c4d0;
+    -ars-sat: #6fc884;  -ars-vault: #dba475; -ars-learn: #ef7d83; -ars-info: #d98fd1; -ars-hub: #a2c4d0;
 }
 
 /* light palette override (token-only) */
@@ -147,6 +147,7 @@
 .sx-dock-ic.sat    { -fx-background-color: #2e4244; -fx-text-fill: -ars-sat;    -fx-border-color: rgba(111,200,132,0.26); }
 .sx-dock-ic.vault  { -fx-background-color: #3d3d42; -fx-text-fill: -ars-vault;  -fx-border-color: rgba(219,164,117,0.26); }
 .sx-dock-ic.learn  { -fx-background-color: #413943; -fx-text-fill: -ars-learn;  -fx-border-color: rgba(239,125,131,0.26); }
+.sx-dock-ic.info  { -fx-background-color: #40394a; -fx-text-fill: -ars-info;  -fx-border-color: rgba(217,143,209,0.26); }
 .sx-dock-ic.hub    { -fx-background-color: #34414d; -fx-text-fill: -ars-hub;    -fx-border-color: rgba(162,196,208,0.26); }
 .sx-dock-ic.gear   { -fx-background-color: -ars-surface-3; -fx-text-fill: -ars-t2; -fx-border-color: -ars-border-2; }
 .sx-dock-item.active.log    { -fx-background-color: #373635; }
@@ -156,6 +157,7 @@
 .sx-dock-item.active.sat    { -fx-background-color: #273939; }
 .sx-dock-item.active.vault  { -fx-background-color: #353437; }
 .sx-dock-item.active.learn  { -fx-background-color: #393039; }
+.sx-dock-item.active.info  { -fx-background-color: #352f3c; }
 .sx-dock-item.active.hub    { -fx-background-color: #2d3842; }
 
 /* ============================================================================
@@ -209,6 +211,7 @@
 .sx-brand-ic.sat    { -fx-background-color: #2f4545; -fx-text-fill: -ars-sat;    -fx-border-color: rgba(111,200,132,0.28); }
 .sx-brand-ic.vault  { -fx-background-color: #403f43; -fx-text-fill: -ars-vault;  -fx-border-color: rgba(219,164,117,0.28); }
 .sx-brand-ic.learn  { -fx-background-color: #453a45; -fx-text-fill: -ars-learn;  -fx-border-color: rgba(239,125,131,0.28); }
+.sx-brand-ic.info  { -fx-background-color: #453a4d; -fx-text-fill: -ars-info;  -fx-border-color: rgba(217,143,209,0.28); }
 .sx-brand-ic.hub    { -fx-background-color: #364450; -fx-text-fill: -ars-hub;    -fx-border-color: rgba(162,196,208,0.28); }
 
 /* ============================================================================
@@ -235,6 +238,7 @@
 .sx-dw-ic.sat    { -fx-background-color: #2e4244; -fx-text-fill: -ars-sat; }
 .sx-dw-ic.vault  { -fx-background-color: #3d3d42; -fx-text-fill: -ars-vault; }
 .sx-dw-ic.learn  { -fx-background-color: #413943; -fx-text-fill: -ars-learn; }
+.sx-dw-ic.info  { -fx-background-color: #40394a; -fx-text-fill: -ars-info; }
 .sx-dw-ic.hub    { -fx-background-color: #34414d; -fx-text-fill: -ars-hub; }
 .sx-dw-ic.accent { -fx-background-color: #29404e; -fx-text-fill: -ars-accent; }
 
@@ -662,6 +666,7 @@
 
 .sx-stat-v.vault { -fx-text-fill: -ars-vault; }
 .sx-stat-v.learn { -fx-text-fill: -ars-learn; }
+.sx-stat-v.info { -fx-text-fill: -ars-info; }
 
 /* dev surface-picker bar */
 .picker { -fx-background-color: -ars-surface-2; -fx-padding: 7 12 7 12; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; }

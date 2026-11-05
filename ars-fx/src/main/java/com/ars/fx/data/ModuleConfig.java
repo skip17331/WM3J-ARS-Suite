@@ -18,6 +18,7 @@ public final class ModuleConfig {
 
     /** Every module, in dock order. */
     public static final List<Mod> MODULES = List.of(
+        new Mod("info",   "Info",     "info",   "Upcoming contests, DXpeditions & hamfests"),
         new Mod("log",    "J-Log",    "log",    "Logging & contests"),
         new Mod("map",    "J-Map",    "map",    "Propagation & DX spots"),
         new Mod("bridge", "J-Bridge", "bridge", "WSJT-X bridge"),
@@ -73,6 +74,7 @@ public final class ModuleConfig {
     /** One-line description shown next to each module's on/off toggle. */
     public static String blurb(String id) {
         return switch (id) {
+            case "info"   -> "Upcoming contests, DXpeditions & hamfests";
             case "log"    -> "Logging & contests";
             case "map"    -> "Propagation & DX spots";
             case "sat"    -> "Satellite tracking";

@@ -67,6 +67,7 @@ public class Launcher extends Application {
         AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
         com.ars.fx.shell.UpdateBanner.install(host, getHostServices());
         com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates
+        new Thread(com.ars.fx.data.LegalDocs::installBundled, "legal-docs").start();   // local copies of the licence and notices
     }
 
     /** Resolve a solo launch descriptor, or null for the normal dock app. Two forms:
@@ -166,6 +167,7 @@ public class Launcher extends Application {
             case "bridge": return com.ars.fx.surface.JBridgeView.build();
             case "vault":  return com.ars.fx.surface.JVaultView.build();
             case "learn":  return com.ars.fx.surface.JLearnView.build();
+            case "info":   return com.ars.fx.surface.InfoView.build();
             default:       return com.ars.fx.surface.JHubDashboard.build();
         }
     }
