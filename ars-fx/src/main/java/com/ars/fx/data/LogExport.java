@@ -50,17 +50,27 @@ public final class LogExport {
         field(sb, "STATE", q.state()); field(sb, "CNTY", q.county());
         if (q.powerW() > 0) field(sb, "TX_PWR", String.valueOf(q.powerW()));
         field(sb, "COMMENT", q.notes());
+        JLogDb.Refs r = q.refs() == null ? JLogDb.Refs.NONE : q.refs();
+        field(sb, "IOTA", r.iota()); field(sb, "SOTA_REF", r.sota()); field(sb, "POTA_REF", r.pota());
+        if (r.cqz() > 0) field(sb, "CQZ", String.valueOf(r.cqz()));
+        if (r.ituz() > 0) field(sb, "ITUZ", String.valueOf(r.ituz()));
+        if (r.qsl()) field(sb, "QSL_RCVD", "Y");
+        if (r.lotw()) field(sb, "LOTW_QSL_RCVD", "Y");
+        if (r.eqsl()) field(sb, "EQSL_QSL_RCVD", "Y");
         sb.append("<EOR>\n");
     }
 
     /** Build a CSV document from the log. */
     public static String toCsv(List<JLogDb.QsoExport> rows) {
-        StringBuilder sb = new StringBuilder("Call,Date,Time,Band,Mode,Freq,RST_Sent,RST_Rcvd,Name,QTH,Grid,State,County,Power,Comment\n");
+        StringBuilder sb = new StringBuilder("Call,Date,Time,Band,Mode,Freq,RST_Sent,RST_Rcvd,Name,QTH,Grid,State,County,Power,Comment,IOTA,SOTA,POTA,CQZ,ITUZ,QSL,LoTW,eQSL\n");
         for (JLogDb.QsoExport q : rows) {
             String[] dt = splitDate(q.datetimeUtc());
+            JLogDb.Refs r = q.refs() == null ? JLogDb.Refs.NONE : q.refs();
             sb.append(String.join(",", csv(q.call()), nz(dt[0]), nz(dt[1]), csv(q.band()), csv(q.mode()), csv(q.freq()),
                     csv(q.rstSent()), csv(q.rstRcvd()), csv(q.name()), csv(q.qth()), csv(q.grid()), csv(q.state()),
-                    csv(q.county()), q.powerW() > 0 ? String.valueOf(q.powerW()) : "", csv(q.notes()))).append("\n");
+                    csv(q.county()), q.powerW() > 0 ? String.valueOf(q.powerW()) : "", csv(q.notes()),
+                    csv(r.iota()), csv(r.sota()), csv(r.pota()), r.cqz() > 0 ? String.valueOf(r.cqz()) : "", r.ituz() > 0 ? String.valueOf(r.ituz()) : "",
+                    r.qsl() ? "Y" : "", r.lotw() ? "Y" : "", r.eqsl() ? "Y" : "")).append("\n");
         }
         return sb.toString();
     }
