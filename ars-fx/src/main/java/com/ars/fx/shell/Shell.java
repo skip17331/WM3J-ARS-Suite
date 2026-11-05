@@ -204,8 +204,10 @@ public final class Shell {
         dock.getChildren().add(dockItem("hub", "J-Hub", "hub", true, activeId, expandOnly));
         Label sec = lbl("MODULES", "sx-dock-sec"); sec.setManaged(false); sec.setVisible(false); expandOnly.add(sec);
         dock.getChildren().add(sec);
-        for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.enabledModules())
+        for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) {
+            if (m.id().equals("log")) continue;   // logging lives on the J-Hub dashboard; contest mode is reached from its Log tools
             dock.getChildren().add(dockItem(m.id(), m.name(), m.hue(), com.ars.fx.data.ModuleConfig.running(m.id()), activeId, expandOnly));
+        }
         if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
