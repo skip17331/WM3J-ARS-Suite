@@ -630,7 +630,8 @@ public final class Shell {
         tick.setCycleCount(javafx.animation.Animation.INDEFINITE);
         body.sceneProperty().addListener((o, was, now) -> { if (now == null) tick.stop(); else tick.play(); });
         SolarData.Snapshot sd = SolarData.getInstance().snapshot();
-        return drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, body);
+        VBox whole = new VBox(14, body, new PathPropagationView());      // the global table above, the estimate for one path below
+        return drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, whole);
     }
 
     private static String propagationSignature() {
