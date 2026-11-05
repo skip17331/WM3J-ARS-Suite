@@ -160,6 +160,11 @@ public final class Awards {
     }
 
     /** CW, Phone or Digital — the groups DXCC is endorsed in. */
+    /** The key an entity is counted under: its DXCC number, else its country name, else its continent. */
+    public static String entityKey(DxccInfo.Info info) {
+        return info.dxcc() > 0 ? String.valueOf(info.dxcc()) : (info.country() != null ? info.country() : info.continent() + "?");
+    }
+
     public static String modeGroup(String mode) {
         String m = mode == null ? "" : mode.trim().toUpperCase(Locale.ROOT);
         if (m.equals("CW")) return "CW";

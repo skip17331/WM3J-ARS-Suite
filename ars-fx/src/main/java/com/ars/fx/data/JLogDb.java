@@ -238,6 +238,16 @@ public final class JLogDb {
         return out;
     }
 
+    /** Every distinct (call, band, mode) already in the log, for the cluster's new-entity / band / mode flags. */
+    public static java.util.List<SpotNeeds.Slot> workedSlots() {
+        java.util.List<SpotNeeds.Slot> out = new java.util.ArrayList<>();
+        try (Connection c = open(); Statement st = c.createStatement();
+             ResultSet rs = st.executeQuery("SELECT DISTINCT callsign, band, mode FROM qso")) {
+            while (rs.next()) out.add(new SpotNeeds.Slot(rs.getString(1), rs.getString(2), rs.getString(3)));
+        } catch (Throwable t) { /* DB absent: nothing worked yet */ }
+        return out;
+    }
+
     public static int count() {
         try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM qso")) {
             return rs.next() ? rs.getInt(1) : 0;

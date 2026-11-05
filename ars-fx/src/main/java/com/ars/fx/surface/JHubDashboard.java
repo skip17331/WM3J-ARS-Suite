@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.ClusterClient;
+import com.ars.fx.data.SpotNeeds;
 import com.ars.fx.data.JLogDb;
 import com.ars.fx.data.RigClient;
 import com.ars.fx.data.RotorClient;
@@ -182,12 +183,13 @@ public final class JHubDashboard {
         return 0;
     }
     private static boolean cluNeededOnly = false;
-    private static java.util.Set<String> workedCache = java.util.Set.of();
-    private static long workedAt = 0;
-    private static java.util.Set<String> workedSet() {
+    private static SpotNeeds.Index needCache = new SpotNeeds.Index();
+    private static long needAt = 0;
+    /** The log's worked slots as an index for the NEED flags; rebuilt every few seconds, not per spot. */
+    private static SpotNeeds.Index needIndex() {
         long now = System.currentTimeMillis();
-        if (now - workedAt > 5000) { workedCache = JLogDb.workedCallBands(); workedAt = now; }
-        return workedCache;
+        if (now - needAt > 5000) { needCache = SpotNeeds.build(JLogDb.workedSlots(), SpotNeeds.resolver()); needAt = now; }
+        return needCache;
     }
     private static boolean bandOk(ClusterClient.Spot s) {
         int cluBandSel = cluSel("data.clusterBand", CLU_BANDS);
@@ -203,8 +205,8 @@ public final class JHubDashboard {
             default: return true;
         }
     }
-    private static boolean isNeeded(ClusterClient.Spot s, java.util.Set<String> worked) {
-        return !worked.contains(s.call() + "|" + s.band());
+    private static SpotNeeds.Need need(ClusterClient.Spot s, SpotNeeds.Index ix) {
+        return SpotNeeds.classify(ix, s.call(), s.band(), s.mode(), SpotNeeds.resolver());
     }
 
     private static Region headerDot; private static Label headerTxt; private static Label headActRef;
@@ -258,11 +260,11 @@ public final class JHubDashboard {
             if (headActRef != null) headActRef.setText(com.ars.fx.shell.FeedUi.action(cc));
             if (headerDot != null) headerDot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
             if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
-            java.util.Set<String> worked = workedSet();
+            SpotNeeds.Index worked = needIndex();
             java.util.List<ClusterClient.Spot> all = cc.spots();
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
             for (ClusterClient.Spot s : all)
-                if (bandOk(s) && modeOk(s) && (!cluNeededOnly || isNeeded(s, worked))) shown.add(s);
+                if (bandOk(s) && modeOk(s) && (!cluNeededOnly || need(s, worked) != SpotNeeds.Need.NONE)) shown.add(s);
             rows.getChildren().clear();
             if (shown.isEmpty()) {
                 empty.setText(conn && !all.isEmpty() ? "No spots match the current filter" : com.ars.fx.shell.FeedUi.emptyList(cc, "cluster"));
@@ -270,7 +272,7 @@ public final class JHubDashboard {
             } else {
                 for (ClusterClient.Spot s : shown) {
                     Region row = cluRow(new String[]{
-                            ClusterClient.fmtFreq(s.freqHz()), s.call(), isNeeded(s, worked) ? "y" : "", s.mode(), s.band(),
+                            ClusterClient.fmtFreq(s.freqHz()), s.call(), need(s, worked).label, s.mode(), s.band(),
                             s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) });
                     row.setStyle("-fx-cursor:hand;");
                     com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
@@ -290,7 +292,7 @@ public final class JHubDashboard {
         VBox modesF = labeled("MODES", segSel(CLU_MODES, cluSel("data.clusterMode", CLU_MODES), i -> { com.ars.fx.data.HubConfig.set("data.clusterMode", CLU_MODES[i]); render.run(); }));
         HBox row2 = new HBox(12, bandsF, modesF); row2.setAlignment(Pos.BOTTOM_LEFT);
 
-        Label nkl = lbl("Needed (ATNO/band-fill) only"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
+        Label nkl = lbl("Needed only (new entity / band / mode)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
         HBox needed = new HBox(nkl, switchToggle(cluNeededOnly, v -> { cluNeededOnly = v; render.run(); }));
         needed.getStyleClass().add("sx-kv"); needed.setAlignment(Pos.CENTER_LEFT);
 
@@ -417,7 +419,7 @@ public final class JHubDashboard {
     private static Region cluRow(String[] s) {
         Label fq = lbl(s[0], "jhub-clu-fq"); fq.setMinWidth(64);
         HBox top = new HBox(9, fq, lbl(s[1], "jhub-clu-call"));
-        if (s[2].equals("y")) top.getChildren().add(lbl("NEED", "jhub-need"));
+        if (!s[2].isEmpty()) top.getChildren().add(lbl(s[2], "jhub-need"));     // NEW ONE / NEW BAND / NEW MODE
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS); top.getChildren().addAll(sp, lbl(s[7], "jhub-clu-age"));
         top.setAlignment(Pos.CENTER_LEFT);
         String tail = "de " + s[5] + (s[6].isEmpty() ? "" : "  · " + s[6]);
