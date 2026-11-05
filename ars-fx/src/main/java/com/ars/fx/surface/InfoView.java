@@ -214,9 +214,7 @@ public final class InfoView {
                 link("WM3J-ARS-Suite on GitHub", "https://github.com/skip17331/WM3J-ARS-Suite", 16));
         mine.setAlignment(Pos.CENTER_LEFT);
         Label ask = mailLink("Contact: " + CONTACT + " \u2014 to have a feed added or removed", "Info feeds: add or remove a source", 13);
-        HBox legal = new HBox(18, link("GPL v3 license", "https://www.gnu.org/licenses/gpl-3.0.html", 13),
-                link("Code of Conduct", REPO + "/blob/main/CodeOfConduct.md", 13),
-                link("Legal & privacy notes", REPO + "/blob/main/LEGAL.md", 13), ask);
+        HBox legal = new HBox(18, doc("GPL v3 license", "license"), doc("Code of Conduct", "conduct"), doc("Legal & privacy notes", "legal"), ask);
         legal.setAlignment(Pos.CENTER_LEFT);
         VBox links = new VBox(6, mine, legal);
         VBox page = new VBox(14, bar, grid, links);
@@ -348,13 +346,19 @@ public final class InfoView {
     }
 
     static final String CONTACT = "wm3jmike@gmail.com";
-    private static final String REPO = "https://github.com/skip17331/WM3J-ARS-Suite";
 
     /** An underlined link label that opens in the browser. */
     private static Label link(String text, String url, double size) {
         Label l = lbl(text, "jl-emeta"); l.setStyle("-fx-cursor:hand;-fx-underline:true;-fx-font-size:" + size + "px;-fx-text-fill:-ars-accent;");
         com.ars.fx.shell.Tips.tip(l, url);
         l.setOnMouseClicked(e -> open(url));
+        return l;
+    }
+    /** A label that opens one of the local legal documents in the app. */
+    private static Label doc(String text, String id) {
+        Label l = lbl(text, "jl-emeta"); l.setStyle("-fx-cursor:hand;-fx-underline:true;-fx-font-size:13px;-fx-text-fill:-ars-accent;");
+        com.ars.fx.shell.Tips.tip(l, "Read it here - this copy is kept on your computer");
+        l.setOnMouseClicked(e -> LegalView.show(l, id));
         return l;
     }
     /** A link that starts an email to the project contact; if no mail program is set up, the address is copied instead. */

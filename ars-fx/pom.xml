@@ -80,6 +80,10 @@
             <!-- the J-Learn chapters live in their own repo folder (so they can be updated on their own); a copy ships in
                  the jar so a fresh install has content and can restore it -->
             <resource><directory>${project.basedir}/../j-learn-content</directory><targetPath>com/ars/fx/learn/content</targetPath></resource>
+            <!-- the licence, Code of Conduct and legal notes live at the repo root; a copy ships in the jar so the app shows them
+                 without a web link and refreshes its local copies when an update is downloaded (LegalDocs) -->
+            <resource><directory>${project.basedir}/..</directory><targetPath>com/ars/fx/legal</targetPath>
+                <includes><include>LICENSE</include><include>CodeOfConduct.md</include><include>LEGAL.md</include></includes></resource>
         </resources>
         <plugins>
             <plugin>

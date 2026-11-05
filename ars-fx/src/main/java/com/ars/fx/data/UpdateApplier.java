@@ -146,6 +146,8 @@ public final class UpdateApplier {
             throw new IOException("the download failed its checksum check and was discarded");
         }
         Files.move(part, done, StandardCopyOption.REPLACE_EXISTING);
+        // the download is verified: check the legal documents in it and update the local copies if they are newer
+        try { LegalDocs.installFromJar(done); } catch (Exception ignored) { /* never let a notice stop an update */ }
         progress.accept(1.0);
         return done;
     }

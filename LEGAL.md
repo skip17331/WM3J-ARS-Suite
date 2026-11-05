@@ -7,6 +7,10 @@ Plain-language notices for people using or contributing to the suite. This is no
 The WM3J ARS Suite is free software, released under the **GNU General Public License, version 3** — see [LICENSE](LICENSE)
 (also at <https://www.gnu.org/licenses/gpl-3.0.html>). You may use, study, change and share it under those terms.
 
+A copy of this licence, the Code of Conduct and these notes comes with the app (open them from the bottom of the Info
+page) and is kept in `~/.j-hub/legal/`. When an update is downloaded, the app checks the copies in the new release and
+replaces the local ones if they are newer.
+
 The program is distributed in the hope that it will be useful, but **without any warranty**; without even the implied
 warranty of merchantability or fitness for a particular purpose. See the GPL for details.
 
