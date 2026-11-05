@@ -853,7 +853,7 @@ public final class JHubDashboard {
         open.setOnMouseClicked(e -> status.setText(com.ars.fx.data.LogDbInfo.openFolder(com.ars.fx.data.LogDbInfo.dataDir())
                 ? "Opened " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.dataDir())
                 : "Could not open the folder — it is " + com.ars.fx.data.LogDbInfo.dataDir()));
-        Label toLog = cfgBtn("Open J-Log"); toLog.setOnMouseClicked(e -> Shell.navigate("log"));
+        Label toLog = cfgBtn("Open J-Log"); toLog.setOnMouseClicked(e -> Shell.navigate("logc"));
         HBox btns = new HBox(10, open, toLog); btns.setAlignment(Pos.CENTER_LEFT);
         Region bsp = new Region(); HBox.setHgrow(bsp, Priority.ALWAYS);
         HBox actions = new HBox(20, new VBox(2, lbl("Database folder", "cfg-lt"),

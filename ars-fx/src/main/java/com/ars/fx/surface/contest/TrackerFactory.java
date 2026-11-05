@@ -129,6 +129,22 @@ public final class TrackerFactory {
     /** Build all row-placement tracker cards for a plugin (null-safe, maps skipped). */
     public static List<Region> rowPanes(ContestPlugin plugin) { return panes(plugin, "row"); }
     /** Build all column-placement tracker cards for a plugin. */
+    /** Every tracker/map pane of the contest as (title, pane), in the plugin's order - for the contest page's tab strip.
+     *  The "shows by the call field" notes are left out: the entry bar already does that. */
+    public static List<java.util.Map.Entry<String, Region>> titledPanes(ContestPlugin plugin) {
+        List<java.util.Map.Entry<String, Region>> out = new ArrayList<>();
+        List<PaneDef> defs = plugin.getRow2Panes();
+        if (defs == null) return out;
+        for (PaneDef pd : defs) {
+            String type = pd.getPaneType() == null ? "" : pd.getPaneType();
+            if (type.equals("dupe_checker") || type.equals("worked_before")) continue;
+            Region r = paneFor(pd, plugin);
+            if (r == null) continue;
+            String title = pd.getTitle() == null || pd.getTitle().isBlank() ? prettify(type) : pd.getTitle();
+            out.add(java.util.Map.entry(title, r));
+        }
+        return out;
+    }
     public static List<Region> columnPanes(ContestPlugin plugin) { return panes(plugin, "column"); }
 
     private static List<Region> panes(ContestPlugin plugin, String placement) {

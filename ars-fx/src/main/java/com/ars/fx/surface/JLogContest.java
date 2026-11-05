@@ -21,6 +21,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 
@@ -63,23 +65,26 @@ public final class JLogContest {
         Region dock = Shell.dock("log");
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
 
-        VBox center = new VBox(12, toolbar(plugin), LogDbBar.build(true), entryPane(plugin));
-        Region strip = trackerStrip(plugin);
-        if (strip != null) center.getChildren().add(strip);
-        center.getChildren().add(recentLogPane());
-        ScrollPane sp = new ScrollPane(center); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
+        // One-screen operating position: entry + last QSOs on the left, DX cluster over the contest panes on the right.
+        VBox left = new VBox(8, toolbar(plugin), LogDbBar.build(true), entryPane(plugin), recentLogPane());
+        left.setStyle("-fx-background-color:-ars-bg;");
+        ScrollPane sp = new ScrollPane(left); sp.setFitToWidth(true); sp.setFitToHeight(true);   // scrolls only if the window is too short
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setStyle("-fx-background-color:-ars-bg;");
+        sp.setMinWidth(620); sp.setPrefWidth(780); HBox.setHgrow(sp, Priority.NEVER);
 
-        List<Node> railNodes = new ArrayList<>(Shell.leadDrawers());
-        railNodes.addAll(com.ars.fx.surface.contest.TrackerFactory.columnPanes(plugin));
-        Region rail = Shell.rail(railNodes.toArray(new Node[0]));
-        // the DX Cluster window from the J-Hub dashboard, beside the entry form (as in normal logging)
         Region cluster = JHubDashboard.clusterCol();
         cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(cluster, Priority.ALWAYS);
-        sp.setMinWidth(600); sp.setPrefWidth(800); HBox.setHgrow(sp, Priority.NEVER);
-        HBox main = new HBox(14, sp, cluster); main.setFillHeight(true); main.setPadding(new Insets(0, 14, 0, 0));
+        VBox.setVgrow(cluster, Priority.ALWAYS);
+        VBox right = new VBox(10, cluster);
+        TabPane tabs = contestTabs(plugin);
+        if (tabs != null) right.getChildren().add(tabs);
+        right.setMinWidth(380); HBox.setHgrow(right, Priority.ALWAYS);
+        HBox main = new HBox(14, sp, right); main.setFillHeight(true); main.setPadding(new Insets(0, 14, 10, 0));
         main.setStyle("-fx-background-color:-ars-bg;");
+
+        // the right-hand rail keeps the station controls (rig, rotor); the contest panes live in the tabs
+        Region rail = Shell.rail(Shell.leadDrawers().toArray(new Node[0]));
         host = new StackPane((Region) Shell.frame(dock, top, main, rail));
 
         ContestState.addListener(() -> Platform.runLater(JLogContest::refreshScoreStats));
@@ -100,7 +105,7 @@ public final class JLogContest {
     private static void maybeChooseDb(ContestPlugin plugin) {
         if (ContestLogs.confirmed()) return;
         Platform.runLater(() -> ContestDbDialog.show(host, plugin, () -> Shell.navigate("logc"),
-                () -> { ContestLogs.resetConfirmation(); Shell.navigate("log"); }));
+                () -> { ContestLogs.resetConfirmation(); Shell.navigate("hub"); }));
     }
 
     /** Switch database from inside contest mode (the "Switch database" link). */
@@ -146,25 +151,41 @@ public final class JLogContest {
         if (Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
     }
 
-    // ---- tracker strip (row-placement multiplier panes) -------------------
-    private static Region trackerStrip(ContestPlugin plugin) {
-        List<Region> panes = com.ars.fx.surface.contest.TrackerFactory.rowPanes(plugin);
+    // ---- contest panes as tabs (multiplier trackers, maps, statistics) ------
+    private static TabPane contestTabs(ContestPlugin plugin) {
+        List<Map.Entry<String, Region>> panes = com.ars.fx.surface.contest.TrackerFactory.titledPanes(plugin);
         if (panes.isEmpty()) return null;
-        HBox strip = new HBox(12); strip.setAlignment(Pos.TOP_LEFT); strip.getChildren().addAll(panes);
-        strip.setPadding(new Insets(0, 18, 4, 18));
-        ScrollPane sp = new ScrollPane(strip); sp.setFitToHeight(true);
-        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setStyle("-fx-background-color:transparent;");
-        sp.setMinHeight(140); sp.setPrefHeight(280); sp.setMaxHeight(300);
-        return sp;
+        TabPane tp = new TabPane(); tp.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        for (Map.Entry<String, Region> e : panes) {
+            ScrollPane c = new ScrollPane(e.getValue()); c.setFitToWidth(true);
+            c.setStyle("-fx-background-color:transparent;");
+            tp.getTabs().add(new Tab(e.getKey(), c));
+        }
+        tp.setMinHeight(220); tp.setPrefHeight(300); tp.setMaxHeight(340);
+        return tp;
     }
+
+    /** {QSOs/h over the last 10 minutes, QSOs in the last 60 minutes} - dupes don't count. */
+    private static int[] rates() {
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        int c10 = 0, c60 = 0;
+        for (QsoRecord q : ContestState.qsos()) {
+            if (q.isDupe() || q.getDateTimeUtc() == null) continue;
+            long m = java.time.temporal.ChronoUnit.MINUTES.between(q.getDateTimeUtc(), now);
+            if (m < 10) c10++;
+            if (m < 60) c60++;
+        }
+        return new int[]{c10 * 6, c60};
+    }
+
 
     // ---- recent contest-log pane (refreshed on every score recompute) -----
     private static VBox recentLogPane() {
-        Label lh = lbl("☰  Recent contest log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
+        Label lh = lbl("☰  Last 10 QSOs"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
         VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
         fillLog(tbl);
         ContestState.addListener(() -> Platform.runLater(() -> fillLog(tbl)));
-        VBox v = new VBox(6, lh, tbl); v.setMaxWidth(1100); v.setPadding(new Insets(0, 18, 18, 18));
+        VBox v = new VBox(6, lh, tbl); v.setPadding(new Insets(0, 18, 12, 18));
         return v;
     }
 
@@ -181,12 +202,12 @@ public final class JLogContest {
                 "Pick a different contest? The current contest's QSOs stay logged.",
                 new Confirm.Choice("Cancel", false, null),
                 new Confirm.Choice("Change", true, () -> { ContestLogs.resetConfirmation(); ContestState.setActive(null); Shell.navigate("logc"); })));
-        Label normal = lbl("Normal log", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
+        Label normal = lbl("Leave contest", "jl-clearbtn"); normal.setStyle("-fx-cursor:hand;");
         normal.setOnMouseClicked(e -> Confirm.show(normal, "Leave contest mode?",
-                "Switch back to normal logging? Your contest log is saved in " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.contestPath())
+                "Go back to the J-Hub dashboard for normal logging? Your contest log is saved in " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.contestPath())
                         + ". Normal QSOs go to " + com.ars.fx.data.LogDbInfo.pretty(com.ars.fx.data.LogDbInfo.normalPath()) + ".",
                 new Confirm.Choice("Stay", false, null),
-                new Confirm.Choice("Leave", true, () -> { ContestLogs.resetConfirmation(); Shell.navigate("log"); })));
+                new Confirm.Choice("Leave", true, () -> { ContestLogs.resetConfirmation(); Shell.navigate("hub"); })));
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
         export.setOnMouseClicked(e -> exportCabrillo(plugin));
 
@@ -206,7 +227,7 @@ public final class JLogContest {
         fieldControls = new LinkedHashMap<>();
         serial = ContestState.nextSerial();
 
-        VBox body = new VBox(13); body.setPadding(new Insets(8, 18, 16, 18));
+        VBox body = new VBox(9); body.setPadding(new Insets(4, 18, 8, 18));
 
         // BAND + MODE (seeded from the rig; locked when the plugin pins them)
         com.ars.fx.data.RigClient.State rs = com.ars.fx.data.RigClient.getInstance().last();
@@ -227,20 +248,21 @@ public final class JLogContest {
             if ("band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;   // dedicated selectors above
             Control c = controlFor(fd);
             fieldControls.put(fd.getId(), c);
-            if ("callsign".equals(fd.getId()) && c instanceof TextField cf)
+            if ("callsign".equals(fd.getId()) && c instanceof TextField cf) {
+                cf.setMinWidth(210); cf.setPrefWidth(210); cf.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // the call is what you look at
                 cf.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));     // the translator (if open) follows the country
+            }
             (fd.getEntryRow() == 1 ? sent : rcvd).add(g(fd.getLabel(), c));
         }
         // running serial display in the sent row
         serialV = lbl(String.valueOf(serial), "jhub-rig-fq");
         sent.add(0, g("SERIAL", serialV));
 
-        body.getChildren().add(lbl("Log the exchange — band/mode + " + (plugin.getExchangeFormat() == null ? "exchange" : plugin.getExchangeFormat()) + ".", "jl-cp-empty"));
         body.getChildren().add(wrapRow("RECEIVED", rcvd));
         body.getChildren().add(wrapRow("SENT", sent));
 
         // worked-before / dupe indicator + actions
-        b4 = lbl("New", "jl-eyebrow");
+        b4 = lbl("New", "jl-eyebrow"); b4.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // DUPE / NEW / NEW BAND, readable from across the desk
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
@@ -256,14 +278,22 @@ public final class JLogContest {
         logBtn.setOnMouseClicked(e -> doLog.run());
         clear.setOnMouseClicked(e -> clearForm());
 
-        // dupe check on callsign blur
-        Control callC = fieldControls.get("callsign");
-        if (callC instanceof TextField cf) {
-            cf.setOnAction(e -> doLog.run());
-            cf.focusedProperty().addListener((o, was, now) -> { if (!now) updateDupe(plugin); });
+        // keyboard flow: Enter in any field logs (a missing required field takes the focus instead), Esc clears
+        for (Control c : fieldControls.values()) {
+            if (c instanceof TextField t) t.setOnAction(e -> doLog.run());
+            c.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
         }
+        bandF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
+        modeF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
 
-        body.setMaxWidth(1100);
+        // live dupe check as the call is typed (short pause after the last key), and when band/mode change
+        javafx.animation.PauseTransition dupeDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(250));
+        dupeDelay.setOnFinished(e -> updateDupe(plugin));
+        Control callC = fieldControls.get("callsign");
+        if (callC instanceof TextField cf) cf.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
+        bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
+        modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
+
         return body;
     }
 
@@ -342,7 +372,7 @@ public final class JLogContest {
                 boolean dupe = ContestScorer.isDupe(plugin, cand, prior);
                 Platform.runLater(() -> {
                     if (dupe) setB4("⛔ DUPE — " + call.toUpperCase(), "dupe");
-                    else if (!prior.isEmpty()) setB4("● B4 " + prior.size() + "× — " + call.toUpperCase(), "b4");
+                    else if (!prior.isEmpty()) setB4("◐ NEW BAND/MODE — " + call.toUpperCase() + " (worked " + prior.size() + "× elsewhere)", "b4");
                     else setB4("✓ NEW — " + call.toUpperCase(), "new");
                 });
             } catch (Exception ignored) {}
@@ -374,7 +404,9 @@ public final class JLogContest {
                 {"QSOs", String.valueOf(s.qsoCount())},
                 {"MULTS", String.valueOf(s.mults())},
                 {"PTS", String.valueOf(s.points())},
-                {"SCORE", String.format("%,d", s.score()), "accent"}};
+                {"SCORE", String.format("%,d", s.score()), "accent"},
+                {"10-MIN RATE", rates()[0] + "/h"},
+                {"60-MIN RATE", rates()[1] + "/h"}};
     }
     private static void refreshScoreStats() {
         if (host == null) return;
@@ -387,6 +419,7 @@ public final class JLogContest {
             vs.get(2).setText(String.valueOf(s.points()));
             vs.get(3).setText(String.format("%,d", s.score()));
         }
+        if (vs.size() >= 6) { int[] r = rates(); vs.get(4).setText(r[0] + "/h"); vs.get(5).setText(r[1] + "/h"); }
     }
     private static void collectStatV(Node n, List<Label> out) {
         if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
@@ -403,7 +436,7 @@ public final class JLogContest {
             tbl.getChildren().add(none); return;
         }
         int n = 0;
-        for (QsoRecord q : rows) { if (n++ >= 15) break; tbl.getChildren().add(logRow(q)); }
+        for (QsoRecord q : rows) { if (n++ >= 10) break; tbl.getChildren().add(logRow(q)); }
     }
     private static Node logHeader() {
         HBox h = new HBox(9,
