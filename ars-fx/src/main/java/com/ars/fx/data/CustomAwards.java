@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Awards the operator defines for themselves - a special event series (the 13 Colonies), a list of counties, the
@@ -49,6 +51,7 @@ public final class CustomAwards {
         public List<String> modes = new ArrayList<>();     // empty = any mode (SSB also takes USB / LSB)
         public String from = "", to = "";                  // yyyy-mm-dd, inclusive; empty = no limit
         public boolean confirmedOnly;                      // only confirmed QSOs count
+        public List<String> trackBands = new ArrayList<>();   // if set, an item is done only when worked on EVERY one of these bands
         public List<Item> items = new ArrayList<>();
         @Override public String toString() { return name == null || name.isBlank() ? id : name; }
     }
@@ -59,6 +62,7 @@ public final class CustomAwards {
         public final Item item;
         public int qsos;
         public boolean worked, confirmed;
+        public final Set<String> bandsWorked = new TreeSet<>(), bandsConfirmed = new TreeSet<>();
         public Hit first;
         Row(Item item) { this.item = item; }
     }
@@ -67,6 +71,7 @@ public final class CustomAwards {
         public final Def def;
         public final List<Row> rows = new ArrayList<>();
         public int worked, confirmed;
+        public int slotsWorked, slotsTotal;                  // item x band slots when bands are tracked, else items
         Result(Def def) { this.def = def; }
         public int total() { return rows.size(); }
     }
@@ -178,13 +183,24 @@ public final class CustomAwards {
             if (def.confirmedOnly && !conf) continue;
             String v = value(def.field, q);
             if (v.isEmpty()) continue;
+            String band = q.band() == null ? "" : q.band().trim().toLowerCase(Locale.ROOT);
             for (int i = 0; i < res.rows.size(); i++) {
                 if (!matches(def.how, v, tokens.get(i))) continue;
                 Row r = res.rows.get(i);
                 r.qsos++; r.worked = true;
                 if (conf) r.confirmed = true;
+                if (!band.isEmpty()) { r.bandsWorked.add(band); if (conf) r.bandsConfirmed.add(band); }
                 if (r.first == null) r.first = new Hit(date(q), q.call() == null ? "" : q.call(), q.band() == null ? "" : q.band(), q.mode() == null ? "" : q.mode(), conf);
             }
+        }
+        // per-band tracking: an item is done only when worked (or confirmed) on every tracked band
+        List<String> need = new ArrayList<>();
+        for (String b : def.trackBands) if (b != null && !b.isBlank()) need.add(b.trim().toLowerCase(Locale.ROOT));
+        for (Row r : res.rows) {
+            if (need.isEmpty()) { res.slotsTotal++; if (r.worked) res.slotsWorked++; continue; }
+            for (String b : need) { res.slotsTotal++; if (r.bandsWorked.contains(b)) res.slotsWorked++; }
+            r.worked = r.bandsWorked.containsAll(need);
+            r.confirmed = r.bandsConfirmed.containsAll(need);
         }
         for (Row r : res.rows) { if (r.worked) res.worked++; if (r.confirmed) res.confirmed++; }
         return res;
@@ -261,6 +277,41 @@ public final class CustomAwards {
         Files.writeString(out, sb.toString(), StandardCharsets.UTF_8);
         return out;
     }
+    /** A sheet to print: a plain HTML page with a tick box per item (open it in a browser and print). */
+    public static Path exportHtml(Result res, Path folder, String station) throws IOException {
+        Files.createDirectories(folder);
+        Path out = folder.resolve(res.def.id + "-sheet.html");
+        boolean bands = !res.def.trackBands.isEmpty();
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!doctype html><html><head><meta charset=\"utf-8\"><title>").append(esc(res.def.name)).append("</title><style>")
+          .append("body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#111}h1{margin:0 0 4px;font-size:22px}")
+          .append(".sub{color:#555;margin:0 0 14px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #bbb;padding:6px 8px;text-align:left;font-size:14px}")
+          .append("th{border-bottom:2px solid #333}.box{font-size:18px;width:28px}.done{font-weight:bold}@media print{body{margin:8mm}}</style></head><body>");
+        sb.append("<h1>").append(esc(res.def.name)).append("</h1><p class=\"sub\">")
+          .append(esc(station == null || station.isBlank() ? "" : station + " \u00b7 ")).append(res.worked).append(" of ").append(res.total()).append(" worked, ")
+          .append(res.confirmed).append(" confirmed");
+        if (res.def.description != null && !res.def.description.isBlank()) sb.append(" \u00b7 ").append(esc(res.def.description));
+        sb.append("</p><table><tr><th class=\"box\"></th><th>Item</th><th>Status</th><th>First worked</th><th>Call</th><th>Band</th><th>Mode</th>");
+        if (bands) sb.append("<th>Bands done</th>");
+        sb.append("</tr>");
+        for (Row r : res.rows) {
+            sb.append("<tr><td class=\"box\">").append(r.confirmed ? "&#9745;" : r.worked ? "&#9746;" : "&#9744;").append("</td><td class=\"")
+              .append(r.worked ? "done" : "").append("\">").append(esc(r.item.label)).append("</td><td>")
+              .append(r.confirmed ? "Confirmed" : r.worked ? "Worked" : "").append("</td>");
+            if (r.first == null) sb.append("<td></td><td></td><td></td><td></td>");
+            else sb.append("<td>").append(esc(r.first.date())).append("</td><td>").append(esc(r.first.call())).append("</td><td>")
+                   .append(esc(r.first.band())).append("</td><td>").append(esc(r.first.mode())).append("</td>");
+            if (bands) sb.append("<td>").append(esc(String.join(" ", r.bandsWorked))).append("</td>");
+            sb.append("</tr>");
+        }
+        sb.append("</table></body></html>");
+        Files.writeString(out, sb.toString(), StandardCharsets.UTF_8);
+        return out;
+    }
+    private static String esc(String s) {
+        return s == null ? "" : s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
     private static String csv(String s) {
         String t = s == null ? "" : s;
         return t.contains(",") || t.contains("\"") || t.contains("\n") ? "\"" + t.replace("\"", "\"\"") + "\"" : t;

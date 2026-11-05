@@ -31,7 +31,6 @@ Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, t
 - [ ] **S** Suggest the IOTA reference from the callsign (IOTA's public group list) and look up POTA parks / SOTA summits when typing a reference.
 - [ ] **M** Work out CQ and ITU zones from the callsign / grid so WAZ does not depend on an ADIF import.
 - [ ] **S** Show IOTA / SOTA / POTA / confirmation boxes on the J-Map QSO card (the dashboard has the full form; the map card does not).
-- [ ] **S** My awards: show custom awards in the dashboard Awards drawer; per-band tracking within one award; a printable sheet (CSV export only today).
 
 ## 2b. Next — contest page (phases 2 and 3)
 Phase 1 is built: one generic page driven by the 86 contest definitions in `j-log-engine/.../plugins/`; contest mode is entered from Log tools ▸ Log mode.

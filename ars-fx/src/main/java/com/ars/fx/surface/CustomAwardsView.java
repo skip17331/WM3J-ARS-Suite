@@ -70,12 +70,14 @@ final class CustomAwardsView {
             shown[0] = res;
             desc.setText(d.description == null ? "" : d.description);
             summary.setText(res.worked + " / " + res.total() + " worked   ·   " + res.confirmed + " confirmed"
-                    + (res.total() > 0 && res.worked == res.total() ? "   —   COMPLETE" : ""));
+                    + (!d.trackBands.isEmpty() ? "   \u00b7   " + res.slotsWorked + " / " + res.slotsTotal + " item-band slots" : "")
+                    + (res.total() > 0 && res.worked == res.total() ? "   \u2014   COMPLETE" : ""));
             fill.maxWidthProperty().bind(bar.widthProperty().multiply(res.total() == 0 ? 0 : (double) res.worked / res.total()));
-            sheet.getChildren().add(head());
+            boolean tracked = !d.trackBands.isEmpty();
+            sheet.getChildren().add(head(tracked));
             for (CustomAwards.Row r : res.rows) {
                 if (onlyNeeded.isSelected() && r.worked) continue;
-                sheet.getChildren().add(row(r));
+                sheet.getChildren().add(row(r, tracked, d));
             }
         };
 
@@ -143,12 +145,22 @@ final class CustomAwardsView {
             try { status.setText("Saved " + CustomAwards.exportCsv(shown[0], exports())); }
             catch (Exception ex) { status.setText("Could not save: " + ex.getMessage()); }
         });
-        Label refresh = lbl("⟳ Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
+        Label printBtn = lbl("Print sheet", "jl-clearbtn"); printBtn.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(printBtn, "Make a printable page with a tick box per item and open it in your browser");
+        printBtn.setOnMouseClicked(e -> {
+            if (shown[0] == null) return;
+            try {
+                Path html = CustomAwards.exportHtml(shown[0], exports(), com.ars.fx.data.HubConfig.call());
+                status.setText("Saved " + html);
+                try { java.awt.Desktop.getDesktop().browse(html.toUri()); } catch (Throwable t) { /* the file is saved; open it yourself */ }
+            } catch (Exception ex) { status.setText("Could not make the sheet: " + ex.getMessage()); }
+        });
+        Label refresh = lbl("\u27f3 Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
         refresh.setOnMouseClicked(e -> reload[0].run());
 
         HBox top = new HBox(10, pick, newBtn, tplBtn, editBtn, delBtn); top.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox top2 = new HBox(14, summary, sp, onlyNeeded, impBtn, shareBtn, csvBtn, refresh); top2.setAlignment(Pos.CENTER_LEFT);
+        HBox top2 = new HBox(14, summary, sp, onlyNeeded, impBtn, shareBtn, csvBtn, printBtn, refresh); top2.setAlignment(Pos.CENTER_LEFT);
         ScrollPane scroll = new ScrollPane(sheet); scroll.setFitToWidth(true); scroll.setStyle("-fx-background-color:transparent;");
         VBox.setVgrow(scroll, Priority.ALWAYS);
         VBox page = new VBox(10, top, desc, top2, bar, scroll, status);
@@ -169,12 +181,13 @@ final class CustomAwardsView {
         if (w > 0) { l.setMinWidth(w); l.setPrefWidth(w); } else { HBox.setHgrow(l, Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); }
         return l;
     }
-    private static Node head() {
+    private static Node head(boolean tracked) {
         HBox h = new HBox(9, c("", 26, "jl-logc-h"), c("ITEM", -1, "jl-logc-h"), c("STATUS", 86, "jl-logc-h"), c("FIRST WORKED", 100, "jl-logc-h"),
                 c("CALL", 100, "jl-logc-h"), c("BAND", 52, "jl-logc-h"), c("MODE", 56, "jl-logc-h"), c("QSOs", 44, "jl-logc-h"));
+        if (tracked) h.getChildren().add(c("BANDS DONE", 170, "jl-logc-h"));
         h.getStyleClass().add("jl-loghd"); h.setAlignment(Pos.CENTER_LEFT); return h;
     }
-    private static Node row(CustomAwards.Row r) {
+    private static Node row(CustomAwards.Row r, boolean tracked, Def d) {
         Label tick = c(r.confirmed ? "✔" : r.worked ? "●" : "○", 26, "jl-logc");
         tick.setStyle("-fx-font-size:15px;-fx-text-fill:" + (r.confirmed ? "-ars-ok" : r.worked ? "-ars-warn" : "-ars-t4") + ";");
         Label status = c(r.confirmed ? "Confirmed" : r.worked ? "Worked" : "Needed", 86, "jl-logc");
@@ -184,6 +197,14 @@ final class CustomAwardsView {
                 c(f == null ? "" : f.date(), 100, "jl-logc"), c(f == null ? "" : f.call(), 100, "jl-logc"),
                 c(f == null ? "" : f.band(), 52, "jl-logc"), c(f == null ? "" : f.mode(), 56, "jl-logc"),
                 c(r.qsos == 0 ? "" : String.valueOf(r.qsos), 44, "jl-logc"));
+        if (tracked) {     // each tracked band: confirmed / worked / still needed
+            StringBuilder sb = new StringBuilder();
+            for (String b : d.trackBands) {
+                String k = b.trim().toLowerCase(java.util.Locale.ROOT);
+                sb.append(b.trim()).append(r.bandsConfirmed.contains(k) ? "\u2714 " : r.bandsWorked.contains(k) ? "\u25cf " : "\u25cb ");
+            }
+            row.getChildren().add(c(sb.toString().trim(), 170, "jl-logc"));
+        }
         row.getStyleClass().add("jl-logrow"); row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
@@ -201,6 +222,7 @@ final class CustomAwardsView {
         TextField modes = new TextField(String.join(", ", src.modes)); modes.setPromptText("any mode  (e.g. CW, SSB, FT8)");
         TextField from = new TextField(src.from); from.setPromptText("yyyy-mm-dd"); from.setPrefWidth(120);
         TextField to = new TextField(src.to); to.setPromptText("yyyy-mm-dd"); to.setPrefWidth(120);
+        TextField track = new TextField(String.join(", ", src.trackBands)); track.setPromptText("optional: each item must be worked on all of these bands (e.g. 20m, 40m)");
         CheckBox confOnly = new CheckBox("Only confirmed QSOs count"); confOnly.setSelected(src.confirmedOnly);
         TextArea items = new TextArea(CustomAwards.itemsText(src.items)); items.setPrefRowCount(12);
         items.setPromptText("One item per line.\nK2A\nWM3GPO (bonus) = WM3GPO\nOhio = OH");
@@ -213,6 +235,7 @@ final class CustomAwardsView {
                 lbl("WHAT COUNTS", "jl-flabel"), new HBox(10, lbl("Match the", "jl-emeta"), field, how, lbl("of the QSO", "jl-emeta")), fieldHelp,
                 lbl("ONLY QSOs ON (optional)", "jl-flabel"), new HBox(10, bands, modes),
                 new HBox(10, lbl("between", "jl-emeta"), from, lbl("and", "jl-emeta"), to), confOnly,
+                lbl("TRACK EACH ITEM ON EVERY BAND (optional)", "jl-flabel"), track,
                 lbl("ITEMS", "jl-flabel"), items, itemHelp);
         for (Node n : box.getChildren()) if (n instanceof HBox h) { h.setAlignment(Pos.CENTER_LEFT); for (Node k : h.getChildren()) if (k instanceof TextField) HBox.setHgrow(k, Priority.ALWAYS); }
 
@@ -239,6 +262,7 @@ final class CustomAwardsView {
             d.bands = split(bands.getText()); d.modes = split(modes.getText());
             d.from = from.getText().trim(); d.to = to.getText().trim();
             d.confirmedOnly = confOnly.isSelected();
+            d.trackBands = split(track.getText());
             d.items = CustomAwards.parseItems(items.getText());
             if (d.name.isEmpty()) { msg.setText("Give the award a name."); return; }
             if (d.items.isEmpty()) { msg.setText("Add at least one item."); return; }
