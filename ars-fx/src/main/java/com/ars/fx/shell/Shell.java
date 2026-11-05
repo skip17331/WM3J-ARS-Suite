@@ -100,14 +100,27 @@ public final class Shell {
         public final javafx.scene.layout.VBox node;
         private final Label status = lbl("", "jl-emeta");
         QslToggle() {
-            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox("Print QSL label");
+            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox("Print QSL label on save (beta)");
             cb.setSelected(com.ars.fx.data.QslLabel.printOnSave());
             cb.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.QslLabel.setPrintOnSave(b));
             com.ars.fx.data.HubConfig.addChangeListener(k -> { if ("label.printOnSave".equals(k) || "*".equals(k))
                 javafx.application.Platform.runLater(() -> cb.setSelected(com.ars.fx.data.QslLabel.printOnSave())); });
             Tips.tip(cb, "Print a QSL label whenever a QSO is saved — choose the printer in Setup ▸ Label printers");
-            status.setWrapText(true); status.setMaxWidth(190);
-            node = new javafx.scene.layout.VBox(3, cb, status);
+            status.setWrapText(true); status.setMaxWidth(230);
+            // Says where the label will go, so the tick box is never a mystery.
+            Label dest = lbl("", "jl-emeta"); dest.setMaxWidth(230);
+            Runnable showDest = () -> {
+                com.ars.fx.data.QslLabel.Model m = com.ars.fx.data.QslLabel.currentModel();
+                boolean zpl = "zpl".equals(com.ars.fx.data.QslLabel.mode(m));
+                String where = (zpl ? com.ars.fx.data.HubConfig.get("label.host", "").trim() : "");
+                if (where.isEmpty()) where = com.ars.fx.data.HubConfig.get("label.printer", "").trim();
+                dest.setText(where.isEmpty() ? "No printer set — Setup ▸ Label printers"
+                        : m.label() + " · " + com.ars.fx.data.QslLabel.currentSize(m).label().replaceAll(" — .*", ""));
+            };
+            showDest.run();
+            com.ars.fx.data.HubConfig.addChangeListener(k -> { if (k != null && (k.startsWith("label.") || "*".equals(k)))
+                javafx.application.Platform.runLater(showDest); });
+            node = new javafx.scene.layout.VBox(3, cb, dest, status);
             node.setAlignment(javafx.geometry.Pos.BOTTOM_LEFT);
         }
         /** Called after a new QSO is saved: prints if the switch is on. */
