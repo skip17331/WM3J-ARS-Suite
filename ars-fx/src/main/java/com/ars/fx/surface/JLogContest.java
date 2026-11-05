@@ -241,6 +241,7 @@ public final class JLogContest {
                 : (rs.connected() && rs.freqHz() > 0 ? bandFor(rs.freqHz()) : "20m");
         String mode0 = defaultMode(plugin, rs);
         bandF = tf("", band0, 80); modeF = tf("", mode0, 80);
+        bandF.textProperty().addListener((o, a, b) -> refreshScoreStats());
         if (plugin.getLockedBand() != null) bandF.setDisable(true);
         if (plugin.getLockedMode() != null) modeF.setDisable(true);
 
@@ -259,7 +260,7 @@ public final class JLogContest {
             }
             if (fd.getEntryRow() == 1) {                       // what WE send: filled from Setup / earlier answers, shown in the SEND line
                 keepIds.add(fd.getId());
-                setControl(c, SentExchange.value(fd, modeF.getText()));
+                setControl(c, SentExchange.value(plugin, fd, modeF.getText()));
             } else {
                 if (fd.isPersistent() && !"callsign".equals(fd.getId())) keepIds.add(fd.getId());
                 rcvd.add(g(fd.getLabel(), c));
@@ -315,14 +316,9 @@ public final class JLogContest {
 
     /** The mode a contest opens in: the one it pins, else the one its name says (SSB / CW / RTTY / digital), else the rig's, else CW. */
     private static String defaultMode(ContestPlugin plugin, com.ars.fx.data.RigClient.State rs) {
-        if (plugin.getLockedMode() != null) return plugin.getLockedMode();
-        String tag = ((plugin.getContestId() == null ? "" : plugin.getContestId()) + " "
-                + (plugin.getContestName() == null ? "" : plugin.getContestName())).toUpperCase();
-        if (tag.contains("SSB") || tag.contains("PHONE")) return "SSB";
-        if (tag.contains("RTTY")) return "RTTY";
-        if (tag.contains("DIGITAL") || tag.contains("DIGI")) return "FT8";
-        if (tag.matches(".*(^|[^A-Z])CW([^A-Z]|$).*")) return "CW";
-        return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "CW";
+        String m = SentExchange.contestMode(plugin);
+        if (m != null) return m;
+        return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "SSB";   // mixed-mode contest: follow the rig, else SSB
     }
 
     // ---- "SEND" line: exactly what to say / key, built from Setup ----------------
@@ -352,7 +348,7 @@ public final class JLogContest {
     private static void reloadSent(ContestPlugin plugin) {
         for (FieldDef fd : SentExchange.sentFields(plugin)) {
             Control c = fieldControls.get(fd.getId());
-            if (c != null) setControl(c, SentExchange.value(fd, modeF.getText()));
+            if (c != null) setControl(c, SentExchange.value(plugin, fd, modeF.getText()));
         }
         refreshSend(plugin);
     }
@@ -510,26 +506,50 @@ public final class JLogContest {
                 {"10-MIN RATE", rates()[0] + "/h"},
                 {"60-MIN RATE", rates()[1] + "/h"}};
         ContestPlugin p = ContestState.plugin();
-        if (sweepable(p)) {
+        String[] left = leftTile(p);
+        if (left != null) {
             String[][] more = new String[tiles.length + 1][];
             System.arraycopy(tiles, 0, more, 0, tiles.length);
-            more[tiles.length] = new String[]{"TO CLEAN SWEEP", sweepText(p)};
+            more[tiles.length] = left;
             return more;
         }
         return tiles;
     }
 
-    /** Contests scored on sections (Sweepstakes): the countdown of sections still needed. */
-    private static boolean sweepable(ContestPlugin p) {
-        return p != null && p.getScoringRules() != null && "sections".equals(p.getScoringRules().getMultiplierType())
-                && p.getMultiplierModel() != null && p.getMultiplierModel().getValidValues() != null
-                && !p.getMultiplierModel().getValidValues().isEmpty();
+    /** Label of the "multipliers still to work" tile, or null when the contest has no fixed set of multipliers (prefixes, DXCC). */
+    private static String leftLabel(ContestPlugin p) {
+        if (p == null || com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p) == null) return null;
+        if (p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS")) return "TO CLEAN SWEEP";
+        String t = p.getScoringRules() == null || p.getScoringRules().getMultiplierType() == null ? "" : p.getScoringRules().getMultiplierType();
+        return switch (t) {
+            case "sections" -> "SECTIONS LEFT";
+            case "states" -> "STATES LEFT";
+            case "zone_country", "zone_country_state" -> "ZONES LEFT";
+            default -> "MULTS LEFT";
+        };
     }
-    private static String sweepText(ContestPlugin p) {
-        java.util.Set<String> worked = ContestState.workedMults();
+    private static String[] leftTile(ContestPlugin p) {
+        String label = leftLabel(p);
+        return label == null ? null : new String[]{label, leftText(p)};
+    }
+    /** "12 sections" / "CLEAN SWEEP!" - for contests that count multipliers per band, the ones left on the band in use. */
+    private static String leftText(ContestPlugin p) {
+        List<String> all = com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p);
+        if (all == null) return "";
+        java.util.Set<String> worked = new java.util.HashSet<>();
+        boolean perBand = p.getMultiplierModel() != null && p.getMultiplierModel().isPerBand();
+        String band = bandF == null ? "" : normBand(bandF.getText());
+        if (perBand && !band.isEmpty()) {
+            for (Map.Entry<String, List<String>> e : ContestState.score().workedByBand().entrySet())
+                if (e.getKey() != null && e.getKey().equalsIgnoreCase(band)) for (String v : e.getValue()) worked.add(v.toUpperCase());
+        } else {
+            for (String v : ContestState.workedMults()) worked.add(v.toUpperCase());
+        }
         int left = 0;
-        for (String v : p.getMultiplierModel().getValidValues()) if (!worked.contains(v)) left++;
-        return left == 0 ? "CLEAN SWEEP!" : left + (left == 1 ? " section" : " sections");
+        for (String v : all) if (!worked.contains(v.toUpperCase())) left++;
+        boolean sweep = p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS");
+        if (left == 0) return sweep ? "CLEAN SWEEP!" : "ALL WORKED";
+        return left + (perBand && !band.isEmpty() ? " on " + band : "");
     }
     private static void refreshScoreStats() {
         if (host == null) return;
@@ -543,7 +563,7 @@ public final class JLogContest {
             vs.get(3).setText(String.format("%,d", s.score()));
         }
         if (vs.size() >= 6) { int[] r = rates(); vs.get(4).setText(r[0] + "/h"); vs.get(5).setText(r[1] + "/h"); }
-        if (vs.size() >= 7 && sweepable(ContestState.plugin())) vs.get(6).setText(sweepText(ContestState.plugin()));
+        if (vs.size() >= 7 && leftLabel(ContestState.plugin()) != null) vs.get(6).setText(leftText(ContestState.plugin()));
     }
     private static void collectStatV(Node n, List<Label> out) {
         if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);

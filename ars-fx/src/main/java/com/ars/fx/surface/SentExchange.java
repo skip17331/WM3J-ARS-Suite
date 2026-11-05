@@ -51,16 +51,42 @@ final class SentExchange {
             case "zone_sent"  -> "station.cqZone";
             case "grid_sent"  -> "station.grid";
             case "name_sent"  -> "station.name";
+            case "zone_hq_sent" -> "station.ituZone";                // IARU HF: ITU zone (or society) you send
+            case "state_sent", "state_prov_sent" -> "contest.sent.state_prov_sent";   // one saved answer for every contest that sends a state/province/county
             case "power_sent" -> "station.txPower";
             default           -> "contest.sent." + fieldId;
         };
     }
 
     /** The value to send for a field, or "" if it is not known yet. */
-    static String value(FieldDef fd, String mode) {
+    static String value(FieldDef fd, String mode) { return value(null, fd, mode); }
+    static String value(ContestPlugin plugin, FieldDef fd, String mode) {
         if (fd.getId().equals("rst_sent")) return isPhone(mode) ? "59" : "599";
-        String v = HubConfig.get(key(fd.getId()), "").trim();
-        return v.isEmpty() ? "" : v.toUpperCase();
+        String v = HubConfig.get(key(fd.getId()), "").trim().toUpperCase();
+        if (fd.getId().equals("grid_sent") && v.length() > 4 && plugin != null
+                && plugin.getContestId() != null && plugin.getContestId().toUpperCase().contains("VHF")) v = v.substring(0, 4);   // VHF contests: 4-character grid
+        return v;
+    }
+
+    /** True for every sent-field id the page knows how to fill or ask for (a test checks every shipped contest against this). */
+    static boolean known(String id) {
+        return switch (id) {
+            case "rst_sent", "serial_sent", "prec_sent", "check_sent", "sect_sent", "zone_sent", "zone_hq_sent", "grid_sent", "name_sent",
+                 "power_sent", "state_sent", "state_prov_sent", "class_sent", "year_sent", "age_sent" -> true;
+            default -> false;
+        };
+    }
+
+    /** The mode a contest is run in, read from its id / name (SSB, RTTY, digital, CW), or null for mixed-mode contests. */
+    static String contestMode(ContestPlugin plugin) {
+        if (plugin.getLockedMode() != null) return plugin.getLockedMode();
+        String tag = ((plugin.getContestId() == null ? "" : plugin.getContestId()) + " "
+                + (plugin.getContestName() == null ? "" : plugin.getContestName())).toUpperCase();
+        if (tag.contains("SSB") || tag.contains("PHONE")) return "SSB";
+        if (tag.contains("RTTY")) return "RTTY";
+        if (tag.contains("DIGITAL") || tag.contains("DIGI")) return "FT8";
+        if (tag.matches(".*(^|[^A-Z])CW([^A-Z]|$).*")) return "CW";
+        return null;
     }
     static void save(String fieldId, String v) { HubConfig.set(key(fieldId), v == null ? "" : v.trim()); }
 
@@ -73,7 +99,7 @@ final class SentExchange {
     /** Sent fields with no value yet (excluding the automatic ones). */
     static List<FieldDef> missing(ContestPlugin plugin, String mode) {
         List<FieldDef> out = new ArrayList<>();
-        for (FieldDef fd : sentFields(plugin)) if (!automatic(fd.getId()) && value(fd, mode).isEmpty()) out.add(fd);
+        for (FieldDef fd : sentFields(plugin)) if (!automatic(fd.getId()) && value(plugin, fd, mode).isEmpty()) out.add(fd);
         return out;
     }
 
@@ -91,9 +117,9 @@ final class SentExchange {
             Control c;
             if (fd.getOptions() != null && !fd.getOptions().isEmpty() && fd.getOptions().size() <= 12) {
                 ComboBox<String> cb = new ComboBox<>(); cb.getItems().addAll(fd.getOptions()); cb.setEditable(true);
-                cb.setValue(value(fd, mode)); cb.setPrefWidth(160); c = cb;
+                cb.setValue(value(plugin, fd, mode)); cb.setPrefWidth(160); c = cb;
             } else {
-                TextField t = new TextField(value(fd, mode)); t.setPrefWidth(160); c = t;
+                TextField t = new TextField(value(plugin, fd, mode)); t.setPrefWidth(160); c = t;
             }
             Label l = lbl(fd.getLabel() == null ? fd.getId() : fd.getLabel(), "jl-flabel"); l.setMinWidth(90);
             HBox row = new HBox(10, l, c); row.setAlignment(Pos.CENTER_LEFT);
