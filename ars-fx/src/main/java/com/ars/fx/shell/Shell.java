@@ -466,6 +466,29 @@ public final class Shell {
         return outer;
     }
 
+    /** A collapsing column that sits right of the module dock: a thin strip that floats the panel open on hover (Pin keeps it open).
+     *  Mirror of {@link #collapsibleRail}; {@code key} names its pin state. */
+    public static Region collapsibleLeftPanel(String key, String titleText, double width, Node... drawers) {
+        VBox box = new VBox(9, drawers); box.getStyleClass().add("sx-rail");
+        ScrollPane sp = new ScrollPane(box); sp.setFitToWidth(true); sp.getStyleClass().add("sx-rail-scroll");
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        StackPane outer = new StackPane();
+        outer.setMaxWidth(Region.USE_PREF_SIZE);
+        Runnable[] rebuild = new Runnable[1];
+        HBox header = new HBox(8, lbl(titleText, "sx-rail-title"), hsp(), AutoPanel.pinButton(key, () -> rebuild[0].run()));
+        header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("sx-rail-head");
+        VBox open = new VBox(header, sp);
+        open.setMinWidth(width); open.setPrefWidth(width); open.setMaxWidth(width);
+        VBox.setVgrow(sp, Priority.ALWAYS);
+        Label title = lbl(titleText, "sx-rail-title"); title.setRotate(90);
+        VBox strip = new VBox(16, lbl("›", "jm-collapse"), new javafx.scene.Group(title));
+        strip.setAlignment(Pos.TOP_CENTER); strip.getStyleClass().add("sx-rail-strip");
+        Tips.tip(strip, "Hover to open; Pin keeps it open");
+        rebuild[0] = () -> outer.getChildren().setAll(AutoPanel.wrap(key, false, strip, open, width, () -> false));
+        rebuild[0].run();
+        return outer;
+    }
+
     /** Right-rail container that scrolls. */
     public static ScrollPane rail(Node... drawers) {
         VBox box = new VBox(9, drawers); box.getStyleClass().add("sx-rail");

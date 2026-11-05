@@ -85,6 +85,29 @@ public final class JLogCockpit {
     }
 
     // ---- complete QSO entry pane + recent log ------------------------------
+    /** True while the J-Hub dashboard builds the entry form: the RTTY/CW drawer is then handed to the dashboard's side column. */
+    private static boolean embedded;
+    private static Node embeddedTx;
+
+    /** The normal-log entry form + recent log, for the J-Hub dashboard (the merged normal-log page). Spot clicks fill it while it is on screen. */
+    static VBox embeddedEntry() {
+        embedded = true; embeddedTx = null;
+        VBox pane;
+        try { pane = entryPane(); } finally { embedded = false; }
+        startTicker();
+        pane.sceneProperty().addListener((o, was, sc) -> {
+            if (sc != null) SpotAction.setQuickTarget(JLogCockpit::prefillSpot); else SpotAction.clearQuickTarget(JLogCockpit::prefillSpot);
+        });
+        return pane;
+    }
+    /** The J-Log-only drawers (RTTY/CW TX & RX, Heard By, Awards, Skimmer) for the dashboard's collapsing side column. Call after {@link #embeddedEntry()}. */
+    static Node[] sideDrawers() {
+        List<Node> out = new ArrayList<>();
+        if (embeddedTx != null) out.add(embeddedTx);
+        out.add(heardByDrawer()); out.add(awardsDrawer()); out.add(skimmerDrawer());
+        return out.toArray(new Node[0]);
+    }
+
     private static VBox entryPane() {
         // header
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
@@ -298,7 +321,13 @@ public final class JLogCockpit {
                 s.getAccelerators().put(new KeyCodeCombination(fkeys[i]), () -> fireMacro.accept(idx));
             }
         });
-        Node txrx = rttyCwDrawer(rx, transmit); ((Region) txrx).setMaxWidth(940); VBox txWrap = new VBox(txrx); txWrap.setMaxWidth(940); txWrap.setPadding(new Insets(11, 14, 0, 14));
+        Node txrx = rttyCwDrawer(rx, transmit);
+        if (embedded) {   // merged page: the TX drawer lives in the dashboard's side column, the form fills its own width
+            embeddedTx = txrx;
+            VBox col = new VBox(entry, lbar, tbl); col.setStyle("-fx-background-color:-ars-bg;");
+            return col;
+        }
+        ((Region) txrx).setMaxWidth(940); VBox txWrap = new VBox(txrx); txWrap.setMaxWidth(940); txWrap.setPadding(new Insets(11, 14, 0, 14));
         lbar.setMaxWidth(940); tbl.setMaxWidth(940);
         VBox col = new VBox(entry, txWrap, lbar, tbl); col.setStyle("-fx-background-color:-ars-bg;");
         return col;
