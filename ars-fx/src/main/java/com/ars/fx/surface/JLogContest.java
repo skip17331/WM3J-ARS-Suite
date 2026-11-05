@@ -278,6 +278,11 @@ public final class JLogContest {
         HBox actions = new HBox(12, b4, gap, clear, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
         similarL = lbl("", "jl-emeta"); similarL.setWrapText(true);   // possible duplicates: calls already logged that resemble the typed one
+        similarL.setMaxWidth(Double.MAX_VALUE);
+        similarL.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:-ars-warn;-fx-font-family:'JetBrains Mono';"
+                + "-fx-background-color:-ars-surface-2;-fx-border-color:-ars-warn;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 12 8 12;");
+        similarL.managedProperty().bind(similarL.textProperty().isNotEmpty());   // no empty box while there is nothing to warn about
+        similarL.visibleProperty().bind(similarL.textProperty().isNotEmpty());
         body.getChildren().add(similarL);
 
         // F1–F8 station macros (shared with normal log + dashboard)
@@ -445,7 +450,7 @@ public final class JLogContest {
                     else if (!similar.isEmpty()) setB4("◐ POSSIBLE DUPE — " + typed, "b4");
                     else if (typed.length() >= 3) setB4("✓ NEW — " + typed, "new");
                     else setB4("New", "");
-                    if (similarL != null) similarL.setText(similar.isEmpty() ? "" : "Already in the log: " + similar);
+                    if (similarL != null) similarL.setText(similar.isEmpty() ? "" : "POSSIBLE DUPES:  " + similar);
                 });
             } catch (Exception ignored) {}
         }, "contest-dupe");
