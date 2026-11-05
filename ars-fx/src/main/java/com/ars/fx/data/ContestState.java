@@ -66,7 +66,9 @@ public final class ContestState {
 
     /** Operator facts for scoring, from ars-fx HubConfig. */
     public static StationContext ctx() {
-        return StationContext.of(HubConfig.call(), HubConfig.grid(), HubConfig.get("contest.ss.section", ""));
+        // QSO parties score in-state and out-of-state entrants differently, by the sent QTH (county or state): that, not the SS section
+        String qth = plugin != null && QsoPartySide.isParty(plugin) ? QsoPartySide.sentQth(plugin) : HubConfig.get("contest.ss.section", "");
+        return StationContext.of(HubConfig.call(), HubConfig.grid(), qth);
     }
 
     /**

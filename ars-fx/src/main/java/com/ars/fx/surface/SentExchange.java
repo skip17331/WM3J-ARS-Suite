@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.HubConfig;
+import com.ars.fx.data.QsoPartySide;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.plugin.ContestPlugin.FieldDef;
 import javafx.geometry.Insets;
@@ -61,6 +62,7 @@ final class SentExchange {
     /** The value to send for a field, or "" if it is not known yet. */
     static String value(FieldDef fd, String mode) { return value(null, fd, mode); }
     static String value(ContestPlugin plugin, FieldDef fd, String mode) {
+        if (plugin != null && QsoPartySide.isParty(plugin) && isStateField(fd.getId())) return QsoPartySide.sentQth(plugin);   // per party
         if (fd.getId().equals("rst_sent")) return isPhone(mode) ? "59" : "599";
         String v = HubConfig.get(key(fd.getId()), "").trim().toUpperCase();
         if (fd.getId().equals("grid_sent") && v.length() > 4 && plugin != null
@@ -88,6 +90,12 @@ final class SentExchange {
         if (tag.matches(".*(^|[^A-Z])CW([^A-Z]|$).*")) return "CW";
         return null;
     }
+    private static boolean isStateField(String id) { return id.equals("state_prov_sent") || id.equals("state_sent"); }
+    /** Save an answer; in a state QSO party the state / county is kept for that party alone. */
+    static void saveFor(ContestPlugin plugin, String fieldId, String v) {
+        if (plugin != null && QsoPartySide.isParty(plugin) && isStateField(fieldId)) QsoPartySide.saveSentQth(plugin, v);
+        else save(fieldId, v);
+    }
     static void save(String fieldId, String v) { HubConfig.set(key(fieldId), v == null ? "" : v.trim()); }
 
     static boolean isPhone(String mode) {
@@ -111,6 +119,13 @@ final class SentExchange {
         Label why = lbl("This is what you send. It is remembered, and the station details also live in J-Hub ▸ Setup.", "jl-emeta");
         why.setWrapText(true); why.setMaxWidth(420);
         box.getChildren().add(why);
+        if (QsoPartySide.isParty(plugin)) {
+            Label party = lbl("QSO party: if you are in " + (QsoPartySide.partyState(plugin).isEmpty() ? "the party area" : QsoPartySide.partyState(plugin))
+                    + ", send your COUNTY code and you work everyone (counties, other states and provinces, DX). From anywhere else send your STATE or PROVINCE "
+                    + "(DX if outside the US and Canada) and you work only the party's counties.", "jl-emeta");
+            party.setWrapText(true); party.setMaxWidth(420);
+            box.getChildren().add(party);
+        }
         Map<String, Control> inputs = new LinkedHashMap<>();
         for (FieldDef fd : which) {
             if (automatic(fd.getId())) continue;
@@ -144,7 +159,7 @@ final class SentExchange {
                 Control c = en.getValue();
                 String v = c instanceof ComboBox<?> cb ? (cb.getEditor().getText() == null ? "" : cb.getEditor().getText())
                         : ((TextField) c).getText();
-                if (v != null && !v.isBlank()) save(en.getKey(), v);
+                if (v != null && !v.isBlank()) saveFor(plugin, en.getKey(), v);
             }
             st.close();
             if (onSaved != null) onSaved.run();

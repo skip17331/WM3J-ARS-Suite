@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.ContestValidators;
+import com.ars.fx.data.QsoPartySide;
 import com.jlog.plugin.ContestPlugin;
 import com.jlog.plugin.ContestPlugin.FieldDef;
 
@@ -122,11 +123,16 @@ final class ContestValidation {
         return "qso_party".equals(t) || "states".equals(t) || "state_prov_country".equals(t);
     }
     private static Result stateLike(ContestPlugin p, String v, String label, boolean complete) {
-        Set<String> known = new HashSet<>(US); known.addAll(CA); known.add("DX");
+        QsoPartySide.Side side = QsoPartySide.isParty(p) ? QsoPartySide.side(p) : null;
+        Set<String> known = new HashSet<>();
+        if (side != null) known.addAll(QsoPartySide.receivable(p, side));          // what this side can actually work
+        else { known.addAll(US); known.addAll(CA); known.add("DX"); }
         List<String> extra = com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p);
         if (extra != null) for (String e : extra) known.add(e.toUpperCase(Locale.ROOT));
         if (known.contains(v)) return Result.OK;
         if (!complete) for (String k : known) if (k.startsWith(v)) return Result.partial();
+        if (side == QsoPartySide.Side.OUT_OF_STATE)
+            return Result.soft("'" + v + "' is not a " + QsoPartySide.partyState(p) + " county - from outside the state you can only work " + QsoPartySide.partyState(p) + " stations");
         return Result.soft("'" + v + "' is not a known county, state or province for this contest");
     }
 
