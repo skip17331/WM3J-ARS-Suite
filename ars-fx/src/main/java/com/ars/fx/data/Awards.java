@@ -51,7 +51,7 @@ public final class Awards {
     /** One IOTA / POTA / SOTA reference or grid square. */
     public static final class RefStat {
         public final String key; public String firstDate = "", lastCall = ""; public int qsos; public boolean confirmed;
-        public final Set<String> bands = new TreeSet<>();
+        public final Set<String> bands = new TreeSet<>(), bandsConfirmed = new TreeSet<>();
         RefStat(String key) { this.key = key; }
     }
 
@@ -64,6 +64,8 @@ public final class Awards {
         /** DXCC worked / confirmed per band ("20m" → n) and per mode group. */
         public final Map<String, int[]> dxccByBand = new LinkedHashMap<>(), dxccByMode = new LinkedHashMap<>();
         public final Set<String> workedStates = new TreeSet<>(), confirmedStates = new TreeSet<>();
+        /** States worked / confirmed on each band ("20m" to the states), for 5-Band WAS. */
+        public final Map<String, Set<String>> statesByBand = new LinkedHashMap<>(), statesConfirmedByBand = new LinkedHashMap<>();
         public List<Progress> all() { return List.of(dxcc, was, wac, grids, iota, pota, sota, cqz, ituz); }
     }
 
@@ -98,7 +100,13 @@ public final class Awards {
             }
             // WAS
             String st = q.state() == null ? "" : q.state().trim().toUpperCase(Locale.ROOT);
-            if (Arrays.asList(STATES).contains(st)) { s.workedStates.add(st); if (conf) s.confirmedStates.add(st); }
+            if (Arrays.asList(STATES).contains(st)) {
+                s.workedStates.add(st); if (conf) s.confirmedStates.add(st);
+                if (!band.isEmpty()) {
+                    s.statesByBand.computeIfAbsent(band, k -> new TreeSet<>()).add(st);
+                    if (conf) s.statesConfirmedByBand.computeIfAbsent(band, k -> new TreeSet<>()).add(st);
+                }
+            }
             // grids (4-character squares)
             String g = q.grid() == null ? "" : q.grid().trim().toUpperCase(Locale.ROOT);
             if (GRID4.matcher(g).find()) ref(s.gridStats, g.substring(0, 4), call, band, date, conf);
@@ -139,7 +147,7 @@ public final class Awards {
     private static void ref(Map<String, RefStat> m, String key, String call, String band, String date, boolean conf) {
         RefStat r = m.computeIfAbsent(key, RefStat::new);
         r.qsos++; r.lastCall = call; if (conf) r.confirmed = true;
-        if (!band.isEmpty()) r.bands.add(band);
+        if (!band.isEmpty()) { r.bands.add(band); if (conf) r.bandsConfirmed.add(band); }
         if (r.firstDate.isEmpty() || (!date.isEmpty() && date.compareTo(r.firstDate) < 0)) r.firstDate = date;
     }
 
