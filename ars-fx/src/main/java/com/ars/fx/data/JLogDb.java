@@ -342,13 +342,31 @@ public final class JLogDb {
             long id = -1;
             try (ResultSet rs = ps.executeQuery()) { if (rs.next()) id = rs.getLong(1); }
             if (id < 0) return false;
-            QsoFull cur = byId(id);
-            if (cur == null) return false;
-            Refs m = cur.refs().mergedWith(add);
-            if (m.equals(cur.refs())) return true;
-            return update(id, cur.datetimeUtc(), cur.call(), cur.freq(), cur.band(), cur.mode(), cur.rstSent(), cur.rstRcvd(),
-                    cur.name(), cur.qth(), cur.grid(), cur.notes(), cur.state(), cur.county(), cur.powerW(), m);
+            return mergeInto(id, add);
         } catch (Throwable t) { return false; }
+    }
+
+    /** Like {@link #mergeRefs} but ignoring the mode (a confirmation says SSB where the log says USB): used only when the QSO
+     *  at that call, minute and band is unique. */
+    public static boolean mergeRefsAnyMode(String call, String datetimeUtc, String band, Refs add) {
+        if (call == null || datetimeUtc == null || add == null) return false;
+        String minute = datetimeUtc.substring(0, Math.min(16, datetimeUtc.length()));
+        String sql = "SELECT id FROM qso WHERE UPPER(callsign)=? AND substr(datetime_utc,1,16)=? AND band IS ?";
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, call.trim().toUpperCase(java.util.Locale.ROOT)); ps.setString(2, minute); ps.setString(3, nz(band));
+            long id = -1; int n = 0;
+            try (ResultSet rs = ps.executeQuery()) { while (rs.next()) { id = rs.getLong(1); n++; } }
+            return n == 1 && mergeInto(id, add);
+        } catch (Throwable t) { return false; }
+    }
+
+    private static boolean mergeInto(long id, Refs add) {
+        QsoFull cur = byId(id);
+        if (cur == null) return false;
+        Refs m = cur.refs().mergedWith(add);
+        if (m.equals(cur.refs())) return true;
+        return update(id, cur.datetimeUtc(), cur.call(), cur.freq(), cur.band(), cur.mode(), cur.rstSent(), cur.rstRcvd(),
+                cur.name(), cur.qth(), cur.grid(), cur.notes(), cur.state(), cur.county(), cur.powerW(), m);
     }
 
     /** True when a QSO with this callsign, band and mode is already logged within 3 minutes of {@code datetimeUtc}
