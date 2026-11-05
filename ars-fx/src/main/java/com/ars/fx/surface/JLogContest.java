@@ -64,6 +64,7 @@ public final class JLogContest {
     private static String problemOwner = "";             // field the message is about
     private static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
     private static Label similarL;                       // possible-duplicate callsigns
+    private static com.ars.fx.surface.contest.ScpBox scpBox;   // Super Check Partial strip under the call
     private static final java.util.Set<String> keepIds = new java.util.HashSet<>();   // fields that survive Clear (sent + persistent)
     private static final java.util.Set<String> askedSent = new java.util.HashSet<>();  // contests whose missing exchange was asked this session
     private static int serial = 1;
@@ -357,6 +358,10 @@ public final class JLogContest {
         similarL.managedProperty().bind(similarL.textProperty().isNotEmpty());   // no empty box while there is nothing to warn about
         similarL.visibleProperty().bind(similarL.textProperty().isNotEmpty());
         body.getChildren().add(similarL);
+        scpBox = new com.ars.fx.surface.contest.ScpBox(c -> {
+            if (fieldControls.get("callsign") instanceof TextField cf) { cf.setText(c); cf.requestFocus(); cf.positionCaret(c.length()); }
+        });
+        body.getChildren().add(scpBox);
         body.getChildren().add(memoryL);
 
         // F1–F8 station macros (shared with normal log + dashboard)
@@ -412,7 +417,7 @@ public final class JLogContest {
             if (fieldControls.get(fd.getId()) instanceof TextField t) t.textProperty().addListener((o, a, b) -> exchDelay.playFromStart());
         }
         Control callC = fieldControls.get("callsign");
-        if (callC instanceof TextField cf) cf.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
+        if (callC instanceof TextField cf) cf.textProperty().addListener((o, a, b) -> { dupeDelay.playFromStart(); if (scpBox != null) scpBox.update(b); });
         bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
         modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
 
@@ -796,6 +801,7 @@ public final class JLogContest {
         if (serialV != null) serialV.setText(String.valueOf(serial));
         if (ContestState.plugin() != null) refreshSend(ContestState.plugin());
         if (similarL != null) similarL.setText("");
+        if (scpBox != null) scpBox.update("");
         if (memoryL != null) memoryL.setText("");
         for (Control c : fieldControls.values()) c.getStyleClass().removeAll("invalid", "warnfield");
         editingRec = null; if (editL != null) editL.setText("");

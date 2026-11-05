@@ -798,7 +798,8 @@ public final class JHubDashboard {
             cfgRow("PSK Reporter upload", "not applied yet", cToggle("data.pskReporter", false)));
         VBox logbook = section("LOGBOOK & EXPORT",
             cfgRow("Cabrillo / CSV charset", "ASCII drops accents and replaces other characters with ?",  cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
-            cfgRow("LoTW / eQSL auto-upload", "not applied yet — use the Upload section below", cToggle("data.lotwAutoUpload", false)));
+            cfgRow("LoTW / eQSL auto-upload", "not applied yet — use the Upload section below", cToggle("data.lotwAutoUpload", false)),
+            cfgRow("Super Check Partial", "the contest call check: downloads the call list (MASTER.SCP, about 350 KB) from supercheckpartial.com when a contest page is opened, at most once a day, and only when it has changed. Nothing about you or your log is sent", cToggle(com.ars.fx.data.ScpStore.KEY_AUTO, true)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
             cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor",
                     cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
