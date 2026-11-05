@@ -29,7 +29,7 @@ public final class JHubDashboard {
     private static Region dashRoot;
     private static boolean dashTickerStarted;
 
-    public static Region build()        { dashRoot = page("dashboard", dashboardCenter()); startDashTicker(); return dashRoot; }
+    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers())); startDashTicker(); return dashRoot; }
 
     /** The content of one J-Hub setup section, for {@link JHubSetup} (one screen, section menu on the left). */
     static Region setupPage(String id) {
@@ -45,7 +45,9 @@ public final class JHubDashboard {
         };
     }
 
-    private static Region page(String activeConf, Region centerContent) {
+    private static Region page(String activeConf, Region centerContent) { return page(activeConf, centerContent, null); }
+    /** @param leftPanel optional collapsing column placed right of the dock (the dashboard's log tools) */
+    private static Region page(String activeConf, Region centerContent, Region leftPanel) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
         // expand-only tail so they stay reachable without changing the collapsed rail. In a solo
         // window there is no dock, so the same links become a fixed left nav column instead.
@@ -53,7 +55,7 @@ public final class JHubDashboard {
 
         ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(nav, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        HBox row = leftPanel == null ? new HBox(nav, sp) : new HBox(nav, leftPanel, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
         row.setMinHeight(0);
         VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;"); root.setMinHeight(0);
         return root;
@@ -154,9 +156,13 @@ public final class JHubDashboard {
     // ---- 3-column area -----------------------------------------------------
     private static HBox threeColRef = new HBox();
     private static HBox threeCol() {
-        HBox windows = new HBox(20, miniLog(), clusterCol());
+        // the full normal-log entry form + recent log (same as J-Log) beside the DX cluster
+        VBox entry = JLogCockpit.embeddedEntry();
+        entry.setMinWidth(560); entry.setPrefWidth(760); HBox.setHgrow(entry, Priority.NEVER);
+        Region cluster = clusterCol(); cluster.setMinWidth(380); HBox.setHgrow(cluster, Priority.ALWAYS);
+        HBox windows = new HBox(20, entry, cluster);
         windows.setFillHeight(true);
-        VBox left = new VBox(11, windows, savedQsoDrawer());
+        VBox left = new VBox(11, windows);
         HBox.setHgrow(left, Priority.ALWAYS);
         HBox box = new HBox(20, left, railCol());
         box.setFillHeight(true); VBox.setVgrow(box, Priority.ALWAYS);
@@ -164,20 +170,7 @@ public final class JHubDashboard {
         return box;
     }
     /** Mini "Saved QSOs" drawer under the New-QSO / DX-cluster windows — from the real ~/.j-log DB. */
-    private static Region savedQsoDrawer() {
-        VBox rows = new VBox();
-        rows.getChildren().add(logRow(new String[]{"UTC","CALL","FREQ","BAND","MODE","RST"}, true));
-        java.util.List<JLogDb.Qso> recent = JLogDb.recent(8);
-        if (recent.isEmpty()) {
-            Label none = lbl("No saved QSOs yet — log one above"); none.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;-fx-padding:12 16 12 16;");
-            rows.getChildren().add(none);
-        } else {
-            for (JLogDb.Qso q : recent) rows.getChildren().add(logRow(new String[]{
-                    JLogDb.hhmm(q.utc()), nv(q.callsign()), nv(q.freq()), nv(q.band()), nv(q.mode()), nv(q.rstRcvd()) }, false));
-        }
-        return Shell.drawer("Saved QSOs", "log", "log", recent.size() + " recent", true, rows);
-    }
-    // ---- DX cluster filter state (shared by panel + controls drawer) -------
+        // ---- DX cluster filter state (shared by panel + controls drawer) -------
     private static final java.util.Set<String> HF_BANDS = java.util.Set.of(
             "160m","80m","60m","40m","30m","20m","17m","15m","12m","10m");
     private static final String[] CLU_BANDS = {"All","HF","VHF+"}, CLU_MODES = {"All","CW","Phone","Digi"};
@@ -358,119 +351,7 @@ public final class JHubDashboard {
         return sw;
     }
 
-    private static Region miniLog() {
-        // header — live count from the real ~/.j-log/j-log.db
-        Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
-        Label sub = lbl(JLogDb.count() + " in log · live", "jhub-card-sub");
-        VBox ttl = new VBox(1, lbl("J-Log-Quick", "jhub-card-title"), sub);
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label open = lbl("Open J-Log →", "jhub-open");
-        open.setOnMouseClicked(e -> Shell.navigate("log"));
-        HBox head = new HBox(11, ic, ttl, sp, open); head.getStyleClass().add("jhub-card-head"); head.setAlignment(Pos.CENTER_LEFT);
-
-        // editable fields
-        TextField tCall = tf("", "", -1, true);
-        TextField tFreq = tf("MHz", "14.074", 120, false);
-        TextField tMode = tf("", "USB", 90, false);
-        TextField tUp   = tf("", "59", 70, false);
-        TextField tDn   = tf("", "59", 70, false);
-        TextField tName = tf("name", "", -1, false);
-        TextField tQth  = tf("DXCC / QTH", "", -1, false);
-        TextField tGrid = tf("FN31", "", 120, false);
-        TextField tCmt  = tf("notes, QSL info…", "", -1, false);
-
-        VBox body = new VBox(13);
-        body.setPadding(new Insets(14, 16, 16, 16));
-        body.getChildren().add(lbl("Enter a callsign for DXCC, beam heading & worked-before…", "jhub-mini-hint"));
-        body.getChildren().add(frow(labeled("CALLSIGN", tCall), true, labeled("FREQ (MHZ)", tFreq), false, labeled("MODE", tMode), false));
-        body.getChildren().add(Shell.bandCaption(tFreq));       // "20m · CW segment" from the shared band plan
-        body.getChildren().add(frow(labeled("RST ↑", tUp), false, labeled("RST ↓", tDn), false, labeled("NAME", tName), true));
-        body.getChildren().add(frow(labeled("QTH", tQth), true, labeled("GRID", tGrid), false));
-
-        VBox cmt = labeled("COMMENT", tCmt); HBox.setHgrow(cmt, Priority.ALWAYS); cmt.setMaxWidth(Double.MAX_VALUE);
-        Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
-        Label clear = lbl("Clear", "jhub-clearbtn");
-        Label logBtn = lbl("Log QSO ⏎", "jl-logbtn");
-        Shell.QslToggle printQsl = Shell.qslToggle();
-        HBox cmtRow = new HBox(12, cmt, sp2, printQsl.node, clear, logBtn);
-        cmtRow.setAlignment(Pos.BOTTOM_LEFT);
-        body.getChildren().add(cmtRow);
-
-        // F1–F8 station macros (shared with J-Log normal + contest)
-        Label txEcho = lbl("", "jhub-mini-hint");
-        body.getChildren().add(MacroBar.sendAsRow(tMode));
-        body.getChildren().add(MacroBar.row(MacroBar.fire(() -> tMode.getText(), () -> tCall.getText(), msg -> txEcho.setText("▶ " + msg))));
-        body.getChildren().add(txEcho);
-
-        // today's log — read back from the DB
-        Label tlh = lbl("☰  Recent log"); tlh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
-        Label tln = lbl(""); tln.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;");
-        HBox tlbar = new HBox(8, tlh, tln); tlbar.getStyleClass().add("jhub-card-head"); tlbar.setAlignment(Pos.CENTER_LEFT);
-        VBox tbl = new VBox();
-        fillLog(tbl, tln);
-
-        // wiring
-        String[] lastLk = {""};
-        Runnable clearForm = () -> { tCall.clear(); tName.clear(); tQth.clear(); tGrid.clear(); tCmt.clear(); lastLk[0] = ""; };
-        Runnable doLog = () -> {
-            String call = tCall.getText();
-            if (call == null || call.isBlank()) { tCall.requestFocus(); return; }
-            String freq = tFreq.getText();
-            boolean ok = JLogDb.insert(call, freq, JLogDb.bandFor(freq), tMode.getText(),
-                    tUp.getText(), tDn.getText(), tName.getText(), tQth.getText(), tGrid.getText(), tCmt.getText());
-            if (ok) {
-                printQsl.afterSave(new com.ars.fx.data.QslLabel.Qso(call, null, freq, JLogDb.bandFor(freq), tMode.getText(),
-                        tUp.getText(), tDn.getText(), tName.getText(), tQth.getText()));
-                clearForm.run();
-                tCall.requestFocus();
-                fillLog(tbl, tln);
-                sub.setText(JLogDb.count() + " in log · live");
-            }
-        };
-        logBtn.setOnMouseClicked(e -> doLog.run());
-        tCall.setOnAction(e -> doLog.run());
-        tCmt.setOnAction(e -> doLog.run());
-        clear.setOnMouseClicked(e -> { clearForm.run(); tCall.requestFocus(); });
-
-        // Callbook lookup for the call field: on leaving it, and on every spot click (same as the full J-Log form).
-        Runnable doLookup = () -> {
-            String c = tCall.getText() == null ? "" : tCall.getText().trim().toUpperCase();
-            if (c.length() < 3 || c.equals(lastLk[0])) return;
-            lastLk[0] = c;
-            if (!com.ars.fx.data.LookupConfig.anyEnabled()) return;
-            Thread t = new Thread(() -> {
-                com.ars.fx.data.CallsignLookup.Result r = com.ars.fx.data.CallsignLookup.lookup(c);
-                if (r == null) return;
-                javafx.application.Platform.runLater(() -> {
-                    if (!c.equals(tCall.getText() == null ? "" : tCall.getText().trim().toUpperCase())) return;   // the operator moved on
-                    quickFill(tName, r.name()); quickFill(tGrid, r.grid()); quickFill(tQth, r.city());
-                });
-            }, "quick-lookup");
-            t.setDaemon(true); t.start();
-        };
-        tCall.focusedProperty().addListener((o, was, now) -> { if (!now) doLookup.run(); });
-
-        // A spot click anywhere (cluster list, map...) starts a fresh contact here: clear, apply the call, look it up.
-        java.util.function.Consumer<SpotAction.Prefill> onSpot = p -> {
-            Runnable r = () -> {
-                clearForm.run();
-                if (p.call() != null) tCall.setText(p.call());
-                if (p.freqMhz() != null) tFreq.setText(p.freqMhz());
-                if (p.mode() != null && !p.mode().isBlank()) tMode.setText(p.mode());
-                tCall.requestFocus(); tCall.positionCaret(tCall.getText().length());
-                doLookup.run();
-            };
-            if (javafx.application.Platform.isFxApplicationThread()) r.run(); else javafx.application.Platform.runLater(r);
-        };
-
-        VBox card = new VBox(head, body, tlbar, tbl); card.getStyleClass().add("jhub-card");
-        card.sceneProperty().addListener((o, was, sc) -> {   // only a target while this card is actually on screen
-            if (sc != null) SpotAction.setQuickTarget(onSpot); else SpotAction.clearQuickTarget(onSpot);
-        });
-        HBox.setHgrow(card, Priority.ALWAYS); card.setMinWidth(420);
-        return card;
-    }
-
+    
     private static void quickFill(TextField t, String v) {
         if (v != null && !v.isBlank() && t.getText().isBlank()) t.setText(v.trim());
     }
