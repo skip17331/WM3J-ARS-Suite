@@ -200,5 +200,9 @@
     "IL","IN","WI",
     "CO","IA","KS","MN","MO","NE","ND","SD",
     "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER"
-  ]
+  ],
+  "layout": {
+    "note": "Sweepstakes: type the other station's section exactly as sent (EPA, ENY, WMA...). Check is the two digits of the year they were first licensed. Each station counts once per contest, whatever the band.",
+    "tabs": ["Sections Worked", "Statistics"]
+  }
 }
