@@ -51,6 +51,9 @@ public final class JLogContest {
     private static TextField bandF, modeF;
     private static Label serialV;
     private static Label sendV;                          // "what to send" line
+    private static Label problemL;                       // what is wrong with the entry (invalid section, missing field...)
+    private static String problemOwner = "";             // field the message is about
+    private static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
     private static Label similarL;                       // possible-duplicate callsigns
     private static final java.util.Set<String> keepIds = new java.util.HashSet<>();   // fields that survive Clear (sent + persistent)
     private static final java.util.Set<String> askedSent = new java.util.HashSet<>();  // contests whose missing exchange was asked this session
@@ -278,6 +281,11 @@ public final class JLogContest {
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
         HBox actions = new HBox(12, b4, gap, clear, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
+        problemL = lbl("", "jl-emeta"); problemL.setWrapText(true); problemL.setMaxWidth(Double.MAX_VALUE);
+        problemL.setStyle("-fx-font-size:18px;-fx-font-weight:bold;-fx-text-fill:-ars-err;");
+        problemL.managedProperty().bind(problemL.textProperty().isNotEmpty());
+        problemL.visibleProperty().bind(problemL.textProperty().isNotEmpty());
+        body.getChildren().add(problemL);
         similarL = lbl("", "jl-emeta"); similarL.setWrapText(true);   // possible duplicates: calls already logged that resemble the typed one
         similarL.setMaxWidth(Double.MAX_VALUE);
         similarL.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:-ars-warn;-fx-font-family:'JetBrains Mono';"
@@ -302,6 +310,15 @@ public final class JLogContest {
         }
         bandF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
         modeF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
+
+        // live validation: red border the moment a value can never be valid, amber if merely unrecognised; the full check on leaving the field
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || "band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
+            if (fieldControls.get(fd.getId()) instanceof TextField t) {
+                t.textProperty().addListener((o, a, b) -> { softArmed = false; liveCheck(plugin, fd, t, false); });
+                t.focusedProperty().addListener((o, was, now) -> { if (!now) liveCheck(plugin, fd, t, true); });
+            }
+        }
 
         // live dupe check as the call is typed (short pause after the last key), and when band/mode change
         javafx.animation.PauseTransition dupeDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(250));
@@ -380,9 +397,11 @@ public final class JLogContest {
         // required-field check (band/mode come from the dedicated selectors)
         for (FieldDef fd : plugin.getEntryFields()) {
             if ("band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
-            if (fd.isRequired() && fd.getEntryRow() == 0 && value(fd.getId()).isBlank()) { focus(fd.getId()); return false; }
-            if (!ContestValidators.valid(fd.getValidator(), value(fd.getId()))) { focus(fd.getId()); return false; }
+            if (fd.isRequired() && fd.getEntryRow() == 0 && value(fd.getId()).isBlank()) {
+                showProblem(fd.getId(), "Missing: " + (fd.getLabel() == null ? fd.getId() : fd.getLabel())); focus(fd.getId()); return false;
+            }
         }
+        if (!validateEntry(plugin)) return false;      // an invalid value never reaches the log
         try {
             String cid = plugin.getContestId();
             QsoRecord r = new QsoRecord();
@@ -480,6 +499,39 @@ public final class JLogContest {
         if (!cls.isEmpty()) b4.getStyleClass().add(cls);
     }
 
+    // ---- validation ------------------------------------------------------------
+    private static void showProblem(String owner, String msg) { problemOwner = owner; if (problemL != null) problemL.setText(msg); }
+    private static void clearProblem(String owner) { if (owner.equals(problemOwner)) showProblem("", ""); }
+    private static void mark(Control c, ContestValidation.Result r) {
+        c.getStyleClass().removeAll("invalid", "warnfield");
+        if (r.level() == ContestValidation.Level.HARD) c.getStyleClass().add("invalid");
+        else if (r.level() == ContestValidation.Level.SOFT) c.getStyleClass().add("warnfield");
+    }
+    private static void liveCheck(ContestPlugin plugin, FieldDef fd, Control c, boolean complete) {
+        ContestValidation.Result r = ContestValidation.check(plugin, fd, value(fd.getId()), complete);
+        mark(c, r);
+        if (r.level() == ContestValidation.Level.HARD || (complete && r.level() == ContestValidation.Level.SOFT)) showProblem(fd.getId(), r.message());
+        else clearProblem(fd.getId());
+    }
+    /** Hard problems stop the QSO; "not recognised" ones need a second Enter. */
+    private static boolean validateEntry(ContestPlugin plugin) {
+        List<String> soft = new ArrayList<>();
+        for (FieldDef fd : plugin.getEntryFields()) {
+            Control c = fieldControls.get(fd.getId());
+            if (c == null) continue;
+            ContestValidation.Result r = ContestValidation.check(plugin, fd, value(fd.getId()), true);
+            mark(c, r);
+            if (r.blocks()) { showProblem(fd.getId(), r.message()); c.requestFocus(); return false; }
+            if (r.level() == ContestValidation.Level.SOFT) soft.add(r.message());
+        }
+        if (!soft.isEmpty() && !softArmed) {
+            softArmed = true;
+            showProblem("soft", String.join(".  ", soft) + ".  Press Enter again to log it anyway.");
+            return false;
+        }
+        return true;
+    }
+
     private static void clearForm() {
         for (Map.Entry<String, Control> en : fieldControls.entrySet()) {
             if (keepIds.contains(en.getKey())) continue;
@@ -491,6 +543,8 @@ public final class JLogContest {
         if (serialV != null) serialV.setText(String.valueOf(serial));
         if (ContestState.plugin() != null) refreshSend(ContestState.plugin());
         if (similarL != null) similarL.setText("");
+        for (Control c : fieldControls.values()) c.getStyleClass().removeAll("invalid", "warnfield");
+        softArmed = false; showProblem("", "");
         setB4("New", "");
         focus("callsign");
     }
