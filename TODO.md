@@ -15,6 +15,10 @@ Kept in the repo so it carries over between sessions. Tick items off (`[x]`) as 
 - [ ] Beacon mode: look at it, get it working, and set up an auto-QSY mode.
 - [ ] 3D globe as a map option — find out whether it is possible in JavaFX (and what it would cost).
 - [ ] Get award tracking back into J-Log (DXCC, WAS, and so on; there is an `Awards` class in `data/` and an awards drawer to start from).
+  - [ ] **First:** replace the hand-made prefix table in `data/Awards.java` with the real DXCC entity list (`DxccResolver` in `j-log-engine`), so rare entities resolve correctly.
+  - [ ] **First:** track confirmations per QSO (QSL / LoTW / eQSL) — every award needs worked vs confirmed. The log has no confirmation status yet.
+  - [ ] Add reference fields to the QSO table and form: IOTA, SOTA, POTA (the `sig` / `sig_info` columns exist, but `sig_info` already holds the grid). Carry them through ADIF import / export and the LoTW / eQSL uploads.
+  - [ ] Awards to track: DXCC (by band and mode), WAS, WAC, grid squares (VUCC), **IOTA** (suggest the island reference from the callsign using IOTA's public group list), POTA and SOTA (hunter and activator; POTA park lookup via its API), CQ and ITU zones (WAZ).
 
 ## Testing needed
 - [ ] QSL label printing (beta, v1.12.2): try on real hardware — Brother QL-810W, DYMO LabelWriter 550, Zebra ZD421 (ZPL and driver modes). Check size, margins, rotation on narrow strip labels.
