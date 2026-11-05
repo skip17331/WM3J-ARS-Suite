@@ -185,7 +185,8 @@ public final class InfoView {
         Label feedsLink = lbl("Feeds\u2026", "jl-clearbtn"); feedsLink.setStyle("-fx-cursor:hand;");
         feedsLink.setOnMouseClicked(e -> editSources(feedsLink, () -> load[0].run()));
         Region ngap = new Region(); HBox.setHgrow(ngap, Priority.ALWAYS);
-        HBox nhead = new HBox(9, ndot, lbl("News", "jhub-card-title"), newsSource, ngap, newsCount, feedsLink);
+        Label request = mailLink("Request a change", "Info feeds: add or remove a source", 12);
+        HBox nhead = new HBox(12, ndot, lbl("News", "jhub-card-title"), newsSource, ngap, newsCount, request, feedsLink);
         nhead.getStyleClass().add("jhub-card-head");
         ScrollPane nscroll = new ScrollPane(newsRows); nscroll.setFitToWidth(true); nscroll.setStyle("-fx-background-color:transparent;");
         nscroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -206,9 +207,18 @@ public final class InfoView {
         HBox bar = new HBox(12, lbl("Info", "jhub-card-title"), range, search, sp, status, refresh, sources);
         bar.setAlignment(Pos.CENTER_LEFT);
         VBox.setVgrow(grid, Priority.ALWAYS);
-        HBox links = new HBox(14, lbl("WM3J", "jl-emeta"), link("wm3j.net", "https://www.wm3j.net"),
-                link("GitHub repositories", "https://github.com/skip17331?tab=repositories"), link("WM3J-ARS-Suite", "https://github.com/skip17331/WM3J-ARS-Suite"));
-        links.setAlignment(Pos.CENTER_LEFT);
+        // bottom: who made it (large), then the legal notes and a way to ask for a feed to be added or removed
+        Label who = lbl("WM3J", "jhub-card-title"); who.setStyle("-fx-font-size:18px;-fx-font-weight:bold;");
+        HBox mine = new HBox(20, who, link("wm3j.net", "https://www.wm3j.net", 16),
+                link("GitHub repositories", "https://github.com/skip17331?tab=repositories", 16),
+                link("WM3J-ARS-Suite on GitHub", "https://github.com/skip17331/WM3J-ARS-Suite", 16));
+        mine.setAlignment(Pos.CENTER_LEFT);
+        Label ask = mailLink("Contact: " + CONTACT + " \u2014 to have a feed added or removed", "Info feeds: add or remove a source", 13);
+        HBox legal = new HBox(18, link("GPL v3 license", "https://www.gnu.org/licenses/gpl-3.0.html", 13),
+                link("Code of Conduct", REPO + "/blob/main/CodeOfConduct.md", 13),
+                link("Legal & privacy notes", REPO + "/blob/main/LEGAL.md", 13), ask);
+        legal.setAlignment(Pos.CENTER_LEFT);
+        VBox links = new VBox(6, mine, legal);
         VBox page = new VBox(14, bar, grid, links);
         page.setPadding(new Insets(16, 22, 18, 22)); page.setStyle("-fx-background-color:-ars-bg;");
         page.setMinWidth(0);
@@ -337,12 +347,33 @@ public final class InfoView {
         } else { t.credit.setStyle(""); t.credit.setOnMouseClicked(null); }
     }
 
-    /** A small underlined link label that opens in the browser. */
-    private static Label link(String text, String url) {
-        Label l = lbl(text, "jl-emeta"); l.setStyle("-fx-cursor:hand;-fx-underline:true;");
+    static final String CONTACT = "wm3jmike@gmail.com";
+    private static final String REPO = "https://github.com/skip17331/WM3J-ARS-Suite";
+
+    /** An underlined link label that opens in the browser. */
+    private static Label link(String text, String url, double size) {
+        Label l = lbl(text, "jl-emeta"); l.setStyle("-fx-cursor:hand;-fx-underline:true;-fx-font-size:" + size + "px;-fx-text-fill:-ars-accent;");
         com.ars.fx.shell.Tips.tip(l, url);
         l.setOnMouseClicked(e -> open(url));
         return l;
+    }
+    /** A link that starts an email to the project contact; if no mail program is set up, the address is copied instead. */
+    private static Label mailLink(String text, String subject, double size) {
+        Label l = lbl(text, "jl-emeta"); l.setStyle("-fx-cursor:hand;-fx-underline:true;-fx-font-size:" + size + "px;-fx-text-fill:-ars-accent;");
+        com.ars.fx.shell.Tips.tip(l, "Opens your mail program (or copies the address if you have none set up)");
+        l.setOnMouseClicked(e -> mail(l, text, subject));
+        return l;
+    }
+    private static void mail(Label shown, String original, String subject) {
+        try {
+            java.awt.Desktop.getDesktop().mail(java.net.URI.create("mailto:" + CONTACT + "?subject=" + java.net.URLEncoder.encode(subject, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20")));
+        } catch (Throwable t) {
+            javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent(); cc.putString(CONTACT);
+            javafx.scene.input.Clipboard.getSystemClipboard().setContent(cc);
+            shown.setText("Address copied: " + CONTACT);
+            javafx.animation.PauseTransition p = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(4));
+            p.setOnFinished(ev -> shown.setText(original)); p.play();
+        }
     }
 
     private static void open(String url) {
