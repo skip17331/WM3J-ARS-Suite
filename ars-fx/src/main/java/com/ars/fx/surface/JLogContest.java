@@ -7,6 +7,7 @@ import com.ars.fx.data.ContestState;
 import com.ars.fx.data.ContestValidators;
 import com.ars.fx.data.HubConfig;
 import com.ars.fx.data.MultCheck;
+import com.ars.fx.data.QsoPartySide;
 import com.ars.fx.shell.Shell;
 import com.jlog.db.ContestQsoDao;
 import com.jlog.model.QsoRecord;
@@ -179,7 +180,19 @@ public final class JLogContest {
         TabPane tp = new TabPane(); tp.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         ContestLayout lay = ContestLayout.resolve(plugin);                   // order and hiding, from the contest's layout
         List<Map.Entry<String, Region>> ordered = new ArrayList<>();
-        for (String title : lay.orderTabs(panes.stream().map(Map.Entry::getKey).toList()))
+        List<String> titles = new ArrayList<>(lay.orderTabs(panes.stream().map(Map.Entry::getKey).toList()));
+        QsoPartySide.Side sd = QsoPartySide.isParty(plugin) ? QsoPartySide.side(plugin) : null;
+        if (sd != null && lay.tabs().isEmpty()) {             // counties first from outside the state, states and provinces first from inside
+            boolean inState = sd == QsoPartySide.Side.IN_STATE;
+            titles.sort(java.util.Comparator.comparingInt((String t) -> {
+                String x = t.toLowerCase(java.util.Locale.ROOT);
+                boolean county = x.contains("count"), statey = x.contains("state") || x.contains("provinc") || x.contains("map");
+                return inState ? (statey ? 0 : county ? 1 : 2) : (county ? 0 : statey ? 2 : 1);
+            }));
+        }
+        else if (lay.tabs().isEmpty())                        // every other contest: the multiplier trackers and maps before the statistics
+            titles.sort(java.util.Comparator.comparingInt((String t) -> t.toLowerCase(java.util.Locale.ROOT).contains("statist") ? 1 : 0));
+        for (String title : titles)
             for (Map.Entry<String, Region> e : panes) if (e.getKey().equals(title)) { ordered.add(e); break; }
         if (ordered.isEmpty()) return null;
         for (Map.Entry<String, Region> e : ordered) {
@@ -253,7 +266,9 @@ public final class JLogContest {
         Label layoutBtn = lbl("Layout\u2026", "jl-clearbtn"); layoutBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(layoutBtn, "Open this contest's layout file: a reminder note, the order of the tabs and of the exchange fields");
         layoutBtn.setOnMouseClicked(e -> openLayoutFile(plugin));
+        Node chip = sideChip(plugin);
         HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, times, layoutBtn, export);
+        if (chip != null) bar.getChildren().add(2, chip);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(14, 18, 6, 18));
         return bar;
     }
@@ -293,6 +308,10 @@ public final class JLogContest {
         for (FieldDef fd : fieldsInOrder) {
             if ("band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;   // dedicated selectors above
             Control c = controlFor(fd);
+            if (c instanceof TextField tfc && QsoPartySide.isParty(plugin) && fd.getId().equals("state_prov_rcvd")) {
+                QsoPartySide.Side sd0 = QsoPartySide.side(plugin);
+                if (sd0 != null) tfc.setPromptText(sd0 == QsoPartySide.Side.IN_STATE ? "county / state / DX" : (QsoPartySide.partyState(plugin) + " county"));
+            }
             fieldControls.put(fd.getId(), c);
             if ("callsign".equals(fd.getId()) && c instanceof TextField cf) {
                 cf.setMinWidth(210); cf.setPrefWidth(210); cf.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // the call is what you look at
@@ -805,6 +824,24 @@ public final class JLogContest {
         return new String[]{"CONTEST CLOCK", text};
     }
 
+    /** The side of a state QSO party this operator is on - in-state (sends a county) or out-of-state (sends a state / province) - or a prompt to say. */
+    private static Node sideChip(ContestPlugin plugin) {
+        if (!QsoPartySide.isParty(plugin)) return null;
+        String qth = QsoPartySide.sentQth(plugin), st = QsoPartySide.partyState(plugin);
+        QsoPartySide.Side sd = QsoPartySide.side(plugin, qth);
+        Label l = lbl(sd == null ? "Set your QTH \u203a" : QsoPartySide.label(sd) + (st.isEmpty() ? "" : " (" + st + ")") + " \u00b7 sending " + qth, "jl-eyebrow");
+        String color = sd == null ? "-ars-warn" : sd == QsoPartySide.Side.IN_STATE ? "-ars-ok" : "-ars-accent";
+        l.setStyle("-fx-cursor:hand;-fx-font-size:12px;-fx-font-weight:bold;-fx-text-fill:" + color + ";-fx-border-color:" + color
+                + ";-fx-border-radius:10;-fx-padding:3 10 3 10;");
+        String tip = sd == null ? "Tell the app where you are: your county if you are in " + st + ", otherwise your state or province."
+                : sd == QsoPartySide.Side.IN_STATE
+                ? "You are in " + st + ": you send your county and work everyone - counties, other states and provinces, and DX. Click to change."
+                : "You are outside " + st + ": you send your state or province and work only " + st + " stations (counties). Click to change.";
+        com.ars.fx.shell.Tips.tip(l, tip);
+        l.setOnMouseClicked(e -> SentExchange.ask(l, plugin, SentExchange.sentFields(plugin), modeF.getText(), () -> Shell.navigate("logc")));
+        return l;
+    }
+
     /** Make (if need be) and open the operator's layout file for this contest; the page picks it up the next time it is opened. */
     private static void openLayoutFile(ContestPlugin plugin) {
         try {
@@ -855,8 +892,9 @@ public final class JLogContest {
 
     /** Label of the "multipliers still to work" tile, or null when the contest has no fixed set of multipliers (prefixes, DXCC). */
     private static String leftLabel(ContestPlugin p) {
-        if (p == null || com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p) == null) return null;
+        if (p == null || universe(p) == null) return null;
         if (p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS")) return "TO CLEAN SWEEP";
+        if (QsoPartySide.isParty(p) && QsoPartySide.side(p) != null) return QsoPartySide.side(p) == QsoPartySide.Side.IN_STATE ? "MULTS LEFT" : "COUNTIES LEFT";
         String t = p.getScoringRules() == null || p.getScoringRules().getMultiplierType() == null ? "" : p.getScoringRules().getMultiplierType();
         return switch (t) {
             case "sections" -> "SECTIONS LEFT";
@@ -865,13 +903,21 @@ public final class JLogContest {
             default -> "MULTS LEFT";
         };
     }
+    /** The multipliers there are to collect: for a state QSO party, what this side of the party can work; else the contest's own list. */
+    private static List<String> universe(ContestPlugin p) {
+        if (QsoPartySide.isParty(p)) {
+            QsoPartySide.Side sd = QsoPartySide.side(p);
+            if (sd != null) { List<String> u = QsoPartySide.multUniverse(p, sd); if (u != null) return u; }
+        }
+        return com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p);
+    }
     private static String[] leftTile(ContestPlugin p) {
         String label = leftLabel(p);
         return label == null ? null : new String[]{label, leftText(p)};
     }
     /** "12 sections" / "CLEAN SWEEP!" - for contests that count multipliers per band, the ones left on the band in use. */
     private static String leftText(ContestPlugin p) {
-        List<String> all = com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p);
+        List<String> all = universe(p);
         if (all == null) return "";
         java.util.Set<String> worked = new java.util.HashSet<>();
         boolean perBand = p.getMultiplierModel() != null && p.getMultiplierModel().isPerBand();
