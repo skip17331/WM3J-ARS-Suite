@@ -118,6 +118,7 @@
 /* ---- typography ---- */
 .ars-mono { -fx-font-family: "JetBrains Mono"; }
 .label { -fx-text-fill: -ars-t1; }
+.check-box { -fx-text-fill: -ars-t1; }   /* CheckBox is a Labeled, not a .label - without this its text is the JavaFX default (dark) on dark themes */
 .eyebrow { -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 
 /* ============================================================================
