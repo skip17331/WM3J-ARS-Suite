@@ -83,7 +83,7 @@ public final class DxccInfo {
     public static Info of(String call) {
         DxccResolver.Entity e;
         try { e = DxccResolver.getInstance().resolve(call); } catch (RuntimeException ex) { e = null; }
-        if (e == null) return null;
+        if (e == null) return fromCty(call);          // the engine's table has no answer: ask the contest country files
         Entry en = table().get(e.id());
         if (en == null) {
             Entry o = outlines().get(e.id());
@@ -92,6 +92,39 @@ public final class DxccInfo {
         }
         int n; try { n = Integer.parseInt(e.id()); } catch (NumberFormatException ex) { n = 0; }
         return new Info(en.country(), e.continent(), n, en.lat(), en.lon());
+    }
+
+    private static final java.util.regex.Pattern CALLISH = java.util.regex.Pattern.compile("[A-Z0-9]{1,3}[0-9][A-Z0-9]*[A-Z](/[A-Z0-9]+)*|[A-Z0-9]+/[A-Z0-9]+");
+    private static final Map<CtyData.Entity, Integer> BRIDGE = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The contest country files (cty.dat) as a second opinion for a call the prefix table cannot place. */
+    private static Info fromCty(String call) {
+        if (call == null) return null;
+        String c = call.strip().toUpperCase(java.util.Locale.ROOT);
+        if (!CALLISH.matcher(c).matches()) return null;                    // junk such as "TEST" must not land in an entity
+        CtyData.Match m = CtyData.bundled().lookup(c);
+        if (m == null) return null;
+        CtyData.Entity en = m.entity();
+        int n = bridgeNumber(en);
+        // when the engine knows the entity under another prefix, use its number and name so the entity is counted once
+        String name = n > 0 ? countryName(String.valueOf(n)) : en.name();
+        return new Info(name, m.continent(), n, en.lat(), en.lonEast());
+    }
+
+    /** The engine's DXCC number for a cty.dat entity, found by resolving one of its other prefixes; 0 when it has none. */
+    private static int bridgeNumber(CtyData.Entity en) {
+        return BRIDGE.computeIfAbsent(en, k -> {
+            for (String p : CtyData.bundled().aliasPrefixes(k)) {
+                String probe = p + (Character.isDigit(p.charAt(p.length() - 1)) ? "AA" : "1AA");
+                CtyData.Match pm = CtyData.bundled().lookup(probe);
+                if (pm == null || pm.entity() != k) continue;
+                try {
+                    DxccResolver.Entity r = DxccResolver.getInstance().resolve(probe);
+                    if (r != null) return Integer.parseInt(r.id());
+                } catch (RuntimeException ignored) { /* try the next prefix */ }
+            }
+            return 0;
+        });
     }
 
     /** The country name for a DXCC entity id as the resolver reports it ("230" → "Germany"); an unknown id passes through. */

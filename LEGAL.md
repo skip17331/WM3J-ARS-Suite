@@ -33,6 +33,9 @@ That content belongs to its owners. The suite shows only the headline (or event 
 to the source's own site; it does not copy articles. Follow each site's own terms when you use their content. The suite
 ships no built-in access to the WA7BNM Contest Calendar; if you add a link to it, its terms of use apply to you.
 
+The app includes the **Contest Country Files** (`cty.dat`) by Jim Reisert AD1C, <https://www.country-files.com>, used under the
+MIT licence (its notice is kept with the file in the app). They give the DXCC entity and the CQ / ITU zone for a callsign.
+
 Names and marks such as ARRL, RSGB, AMSAT, CQ, QRZ, LoTW, eQSL, Club Log, WSJT-X, Hamlib and others belong to their
 respective owners. Their appearance here only identifies the service; it does not mean the owner is connected with, or
 endorses, this project.
