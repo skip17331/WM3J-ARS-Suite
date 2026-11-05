@@ -30,7 +30,7 @@ Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, t
 - [ ] **M** Download confirmations straight from LoTW / eQSL (their APIs) instead of importing a file by hand.
 - [ ] **S** Suggest the IOTA reference from the callsign (IOTA's public group list) and look up POTA parks / SOTA summits when typing a reference.
 - [ ] **M** Work out CQ and ITU zones from the callsign / grid so WAZ does not depend on an ADIF import.
-- [ ] **M** DXCC "needed" hints: flag cluster spots that are a new entity, band or mode (feeds the Info tab "Active now" panel).
+- [ ] **S** Make the cluster **NEED** flag entity-aware. Today `JHubDashboard.isNeeded` only checks that this call has not been worked on this band, so a call from an entity you have already worked still shows NEED (and the filter is labelled ATNO / band-fill). Use the awards data: new DXCC entity, new band slot for an entity, new mode. Feeds the Info tab "Active now" panel.
 - [ ] **S** Endorsement and award-level reporting: DXCC Challenge (entities x bands), 5-Band DXCC / WAS, mixed-mode; VUCC per band (50 MHz and up only).
 - [ ] **S** Show IOTA / SOTA / POTA / confirmation boxes on the J-Map QSO card (the dashboard has the full form; the map card does not).
 - [ ] **S** My awards: show custom awards in the dashboard Awards drawer; per-band tracking within one award; a printable sheet (CSV export only today).
@@ -38,7 +38,7 @@ Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, t
 ## 2b. Next — contest page (phases 2 and 3)
 Phase 1 is built: one generic page driven by the 86 contest definitions in `j-log-engine/.../plugins/`; contest mode is entered from Log tools ▸ Log mode.
 - [ ] **M** Phase 2 — per-contest layout: an optional `layout` block in the contest JSON (which panels, order, first fields, macro set, extra score tiles, pick-lists such as the county list), plus a user override file `~/.j-log/contests/<id>.json` layered over the built-in one. Tailor the contests actually run first (ask which).
-- [ ] **M** Needs: new-multiplier detection (the NEW MULT banner) and a bandmap that shows only spots that are a new multiplier or new on this band; "check partial" from the log history.
+- [ ] **M** New-multiplier detection (the NEW MULT banner) and a spot filter that shows only spots that would be a new multiplier or new on this band. Builds on the band map and Super Check Partial below.
 - [ ] **S** Contest start / end times in the definitions, and a timer (elapsed, remaining, off-time).
 - [ ] **M** Phase 3 — special panels: Sweepstakes (precedence / check / section flow), Field Day (class + section, bonus points), WAE **QTC entry** (not implemented), QSO-party in-state vs out-of-state exchange and counties.
 - [ ] **S** QSO-party "mults left" counts the counties in the multiplier list; for an operator inside the state it should be states and provinces instead.
@@ -46,6 +46,15 @@ Phase 1 is built: one generic page driven by the 86 contest definitions in `j-lo
 - [ ] **S** Contest macro keyer on the contest page: confirm CW / voice F-keys work there as they did on the old page.
 - [ ] **S** Validation: sent-side values are not checked; add a callsign-exists check only if wanted (shape only today). Add state / province / county lists per QSO party so that warning becomes a hard error where the list is definitive.
 - [ ] **S** Contest QSO edit: changing the callsign of an old QSO re-checks dupes for the whole log; add a test for the re-flag logic (needs a test database).
+
+## 2c. Next — gaps found in the competitor survey
+From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the portable loggers. We are working on these.
+- [ ] **M** **Super Check Partial** and a graphical **band map**. Super Check Partial: type part of a call and see the matching known contest calls (the `MASTER.SCP` list; check where it may be fetched from and its terms, and keep it updated like the other feeds), plus calls from your own log. Band map: spots laid out along the band by frequency, aged and colour-coded (worked / needed / new multiplier), click to tune, on the contest page and the dashboard.
+- [ ] **L** **Phone-friendly web client** for the hub, for portable (POTA / SOTA) logging and shack monitoring without a native app: a responsive page served by the hub (the WebSocket link already exists) with QSO entry, spots, rig and rotor status; keep working offline in the field and sync when back on the network. Needs a login or token on the LAN and a decision on how it is reached from outside.
+- [ ] **M** **VOACAP-style propagation predictions** (what DXLab PropView and Log4OM offer). First decide how: bundle the open-source VOACAP engine per platform, write an ITU-R P.533 model in Java, or call an online service. Then add predictions between the station and a spot or entity, and band-opening graphs.
+- [ ] **S** **N1MM-compatible UDP broadcast** of contacts (and lookups, radio info, scoring) so GridTracker, Log4OM and other tools can follow our log live. Host / port in Setup; keep the message format identical to N1MM+'s.
+- [ ] **L** **Network mode**: multi-operator and multi-computer contest logging over the LAN. A shared contest log with stations and operators, band / mode conflict checks, per-operator stats, sked and chat; also club-station use. Build on the hub (decide whether the hub is the server). Reference points: N1MM+ networking and Wavelog's multi-operator logging.
+- [ ] **M** **Emergency communications**: bring GoKit (APRS, Winlink, AX.25 packet; alpha, separate repo) into the suite — decide whether to embed it or link / launch it — with shared station identity and settings, and ICS forms.
 
 ## 3. Then — features operators will notice
 - [ ] **M** J-Map: point-to-point tracks (ham to ham) — draw the path between two stations on the map.
@@ -70,3 +79,6 @@ Phase 1 is built: one generic page driven by the 86 contest definitions in `j-lo
 - [ ] **S** QSL labels: more label stock / printer models if requested.
 - [ ] **M** Maps: look at the J-Map options and see whether something better exists (tiles, projections, performance). Do this before the 3D globe.
 - [ ] **L** 3D globe as a map option — find out whether it is possible in JavaFX (and what it would cost). Research only until the map review above is done.
+
+## 5. Decided against
+- A WSJT-X activity layer in J-Bridge (call roster, wanted-grid highlights, PSK Reporter map, like GridTracker) — GridTracker already does it, so we leave it to them.
