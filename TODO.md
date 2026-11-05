@@ -10,9 +10,10 @@ No label printers to test with at the moment, so these wait.
 - [ ] **S** Confirm the Amateur Radio menu folder shows on Cinnamon after the installer fix.
 - [ ] **S** Check the 2026-10-03 9K2IC (70cm DMR) entry in the log — looks like a mistyped date.
 
-## 2. Next — award tracking (branch `feat/award-tracking`, PR open for review)
-Built on the branch: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, and the awards screen (DXCC matrix, WAS, WAC, grids, IOTA, POTA, SOTA, zones).
-- [ ] **Review and merge the PR**, then try it on the work machine (Windows) — install, open J-Log ▸ Awards, import a LoTW ADIF to see confirmations.
+## 2. Next — award tracking (merged to main, PR #85; version not yet bumped)
+Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, and the awards screen (DXCC matrix, WAS, WAC, grids, IOTA, POTA, SOTA, zones).
+- [x] Review and merge the PR (#85)
+- [ ] Try it on the work machine (Windows) — install, open J-Log ▸ Awards, import a LoTW ADIF to see confirmations.
 - [ ] **M** Audit the DXCC prefix table (`j-log-engine/.../dxcc-prefixes.json`) against the full ARRL list: about 270 prefixes were added, but whole blocks are still missing (much of Africa, Asia, Oceania, the Caribbean), and deleted entities are not tracked. Calls with no entity are counted in the Awards header.
 - [ ] **M** Download confirmations straight from LoTW / eQSL (their APIs) instead of importing a file by hand.
 - [ ] **S** Suggest the IOTA reference from the callsign (IOTA's public group list) and look up POTA parks / SOTA summits when typing a reference.
