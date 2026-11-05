@@ -32,6 +32,13 @@ walkthrough, per‑module setup notes and troubleshooting.
 guide to USB‑to‑serial adapters, Hamlib daemons, USB hubs, stable port
 names, and common gotchas.
 
+**Website and code:** **[wm3j.net](https://www.wm3j.net)** ·
+**[GitHub repositories](https://github.com/skip17331?tab=repositories)** —
+[WM3J-ARS-Suite](https://github.com/skip17331/WM3J-ARS-Suite) (this project),
+[WM3J-ARS-Plugin-Builder](https://github.com/skip17331/WM3J-ARS-Plugin-Builder) (editor for contest and award plugins),
+[GoKit](https://github.com/skip17331/GoKit) (emergency communications: APRS, Winlink, packet) and
+[wireworks](https://github.com/skip17331/wireworks) (antenna modeling and design).
+
 ---
 
 ## What's in the box

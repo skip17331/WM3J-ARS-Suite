@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.HubConfig;
+import com.ars.fx.data.NewsFeeds;
 import com.ars.fx.data.UpcomingEvents;
 import com.ars.fx.data.UpcomingEvents.Event;
 import com.ars.fx.data.UpcomingEvents.Kind;
@@ -10,10 +11,12 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -38,8 +41,9 @@ import static com.ars.fx.shell.Shell.lbl;
 
 /**
  * Info: what is happening in the hobby. This first page is "Upcoming" - one tile each for contests, DXpeditions and
- * hamfests, soonest first, with ongoing events marked NOW. A shared range and search word narrow all three tiles.
- * Feeds are in {@link UpcomingEvents}.
+ * hamfests, soonest first, with ongoing events marked NOW - and a News tile of ham radio headlines along the bottom.
+ * A shared range (calendars) and search word (all tiles) narrow what is shown. Feeds are in {@link UpcomingEvents}
+ * and {@link NewsFeeds}.
  */
 public final class InfoView {
     private InfoView() {}
@@ -67,6 +71,14 @@ public final class InfoView {
         Map<Kind, Tile> tiles = new EnumMap<>(Kind.class);
         for (Kind k : Kind.values()) tiles.put(k, new Tile(k));
 
+        // ---- the News tile ----
+        List<NewsFeeds.Headline> headlines = new ArrayList<>();
+        Map<String, String> newsProblems = new java.util.LinkedHashMap<>();
+        Instant[] newsAt = {null};
+        boolean[] newsLoading = {true};
+        VBox newsRows = new VBox(); Label newsCount = lbl("", "jhub-card-sub"); Label newsNote = lbl("", "jhub-card-sub");
+        ComboBox<String> newsSource = new ComboBox<>(); newsSource.setValue("All sources");
+
         ComboBox<String> range = new ComboBox<>();
         range.getItems().addAll("Next 7 days", "Next 30 days", "Next 90 days", "Everything");
         range.setValue(HubConfig.get("info.range", "Next 30 days"));
@@ -74,6 +86,27 @@ public final class InfoView {
         TextField search = new TextField(); search.setPromptText("Search all tiles…"); search.setPrefWidth(220);
 
         Runnable[] load = new Runnable[1];
+
+        Runnable renderNews = () -> {
+            String src = "All sources".equals(newsSource.getValue()) ? null : newsSource.getValue();
+            List<NewsFeeds.Headline> shown = NewsFeeds.latest(headlines, src, search.getText(), NewsFeeds.TOTAL);
+            newsCount.setText(String.valueOf(shown.size()));
+            newsRows.getChildren().clear();
+            Instant now = Instant.now();
+            if (shown.isEmpty()) {
+                String m = newsLoading[0] ? "Loading headlines\u2026" : NewsFeeds.active().isEmpty()
+                        ? "No news feeds are switched on. Choose some under Feeds\u2026" : "No headlines match.";
+                Label l = lbl(m, "jl-emeta"); l.setPadding(new Insets(14, 10, 14, 10));
+                newsRows.getChildren().add(l);
+            } else {
+                for (NewsFeeds.Headline h : shown) newsRows.getChildren().add(newsRow(h, now));
+            }
+            String when = newsAt[0] == null ? "" : "updated " + DateTimeFormatter.ofPattern("d MMM HH:mm'Z'", Locale.ENGLISH).format(newsAt[0].atZone(ZoneOffset.UTC)) + "  \u00b7  ";
+            String bad = newsProblems.isEmpty() ? "" : "  \u00b7  " + newsProblems.size() + (newsProblems.size() == 1 ? " feed" : " feeds") + " had a problem: "
+                    + String.join("; ", newsProblems.entrySet().stream().map(e -> e.getKey() + " (" + e.getValue() + ")").toList());
+            newsNote.setText(when + "headlines link to each source site" + bad);
+            newsNote.setStyle(newsProblems.isEmpty() ? "" : "-fx-text-fill:-ars-warn;");
+        };
 
         Runnable render = () -> {
             int days = switch (range.getValue()) { case "Next 7 days" -> 7; case "Next 30 days" -> 30; case "Next 90 days" -> 90; default -> 0; };
@@ -92,18 +125,44 @@ public final class InfoView {
         };
 
         boolean[] busy = {false};
+        boolean[] newsBusy = {false};
+        java.util.function.Consumer<Boolean> runNews = force -> {
+            if (newsBusy[0]) return;
+            newsBusy[0] = true; newsLoading[0] = true;
+            Thread t = new Thread(() -> {
+                List<NewsFeeds.Feed> feeds = NewsFeeds.active();
+                NewsFeeds.Result r = NewsFeeds.load(feeds, force, Instant.now());
+                Platform.runLater(() -> {
+                    headlines.clear(); headlines.addAll(r.headlines());
+                    newsProblems.clear(); newsProblems.putAll(r.problems());
+                    newsAt[0] = r.fetched();
+                    String keep = newsSource.getValue();
+                    newsSource.getItems().setAll("All sources");
+                    for (NewsFeeds.Feed f : feeds) newsSource.getItems().add(f.name());
+                    newsSource.setValue(newsSource.getItems().contains(keep) ? keep : "All sources");
+                    newsLoading[0] = false; newsBusy[0] = false;
+                    renderNews.run();
+                });
+            }, "info-news");
+            t.setDaemon(true); t.start();
+        };
         load[0] = () -> {
+            runNews.accept(false);
             if (busy[0]) return;
             busy[0] = true;
             runLoad(false, all, loads, tiles, status, render, () -> busy[0] = false);
         };
         Label refresh = lbl("⟳ Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
-        refresh.setOnMouseClicked(e -> { if (!busy[0]) { busy[0] = true; runLoad(true, all, loads, tiles, status, render, () -> busy[0] = false); } });
+        refresh.setOnMouseClicked(e -> {
+            runNews.accept(true);
+            if (!busy[0]) { busy[0] = true; runLoad(true, all, loads, tiles, status, render, () -> busy[0] = false); }
+        });
         Label sources = lbl("Sources…", "jl-clearbtn"); sources.setStyle("-fx-cursor:hand;");
         sources.setOnMouseClicked(e -> editSources(sources, () -> load[0].run()));
 
         range.setOnAction(e -> { HubConfig.set("info.range", range.getValue()); render.run(); });
-        search.textProperty().addListener((o, a, b) -> render.run());
+        search.textProperty().addListener((o, a, b) -> { render.run(); renderNews.run(); });
+        newsSource.setOnAction(e -> renderNews.run());
 
         // ---- tiles in a three-column grid ----
         GridPane grid = new GridPane(); grid.setHgap(16);
@@ -120,17 +179,44 @@ public final class InfoView {
         javafx.scene.layout.RowConstraints rc = new javafx.scene.layout.RowConstraints(); rc.setVgrow(Priority.ALWAYS); rc.setFillHeight(true);
         grid.getRowConstraints().add(rc);
 
+        // ---- the News tile spans the bottom ----
+        Region ndot = new Region(); ndot.setMinSize(10, 10); ndot.setMaxSize(10, 10); ndot.setStyle("-fx-background-color:-ars-digi;-fx-background-radius:5;");
+        newsCount.setStyle("-fx-font-weight:bold;-fx-text-fill:-ars-digi;-fx-font-size:14px;");
+        Label feedsLink = lbl("Feeds\u2026", "jl-clearbtn"); feedsLink.setStyle("-fx-cursor:hand;");
+        feedsLink.setOnMouseClicked(e -> editSources(feedsLink, () -> load[0].run()));
+        Region ngap = new Region(); HBox.setHgrow(ngap, Priority.ALWAYS);
+        HBox nhead = new HBox(9, ndot, lbl("News", "jhub-card-title"), newsSource, ngap, newsCount, feedsLink);
+        nhead.getStyleClass().add("jhub-card-head");
+        ScrollPane nscroll = new ScrollPane(newsRows); nscroll.setFitToWidth(true); nscroll.setStyle("-fx-background-color:transparent;");
+        nscroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        newsRows.setPadding(new Insets(4, 6, 8, 6));
+        newsNote.setPadding(new Insets(0, 16, 8, 16)); newsNote.setWrapText(true);
+        VBox newsCard = new VBox(nhead, nscroll, newsNote);
+        newsCard.getStyleClass().add("jhub-card"); newsCard.setMinWidth(0);
+        VBox.setVgrow(nscroll, Priority.ALWAYS);
+        grid.add(newsCard, 0, 1, 3, 1);
+        javafx.scene.layout.GridPane.setFillHeight(newsCard, true);
+        grid.setVgap(16);
+        grid.getRowConstraints().clear();
+        javafx.scene.layout.RowConstraints r0 = new javafx.scene.layout.RowConstraints(); r0.setPercentHeight(42); r0.setFillHeight(true);
+        javafx.scene.layout.RowConstraints r1 = new javafx.scene.layout.RowConstraints(); r1.setPercentHeight(58); r1.setFillHeight(true);
+        grid.getRowConstraints().addAll(r0, r1);
+
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox bar = new HBox(12, lbl("Upcoming", "jhub-card-title"), range, search, sp, status, refresh, sources);
+        HBox bar = new HBox(12, lbl("Info", "jhub-card-title"), range, search, sp, status, refresh, sources);
         bar.setAlignment(Pos.CENTER_LEFT);
         VBox.setVgrow(grid, Priority.ALWAYS);
-        VBox page = new VBox(14, bar, grid);
+        HBox links = new HBox(14, lbl("WM3J", "jl-emeta"), link("wm3j.net", "https://www.wm3j.net"),
+                link("GitHub repositories", "https://github.com/skip17331?tab=repositories"), link("WM3J-ARS-Suite", "https://github.com/skip17331/WM3J-ARS-Suite"));
+        links.setAlignment(Pos.CENTER_LEFT);
+        VBox page = new VBox(14, bar, grid, links);
         page.setPadding(new Insets(16, 22, 18, 22)); page.setStyle("-fx-background-color:-ars-bg;");
         page.setMinWidth(0);
         HBox.setHgrow(page, Priority.ALWAYS);
 
         Region frame = Shell.frame(dock, top, page, null);
         render.run();
+        renderNews.run();
         load[0].run();
         return frame;
     }
@@ -186,6 +272,23 @@ public final class InfoView {
         return r;
     }
 
+    /** One headline on one line: age, source, title. Click opens the source page. */
+    private static Node newsRow(NewsFeeds.Headline h, Instant now) {
+        Label age = lbl(NewsFeeds.age(h.published(), now), "jl-eyebrow"); age.setMinWidth(46); age.setPrefWidth(46);
+        age.setStyle("-fx-text-fill:-ars-t2;-fx-font-weight:bold;");
+        Label src = lbl(h.source(), "jl-emeta"); src.setMinWidth(150); src.setPrefWidth(150); src.setMaxWidth(150); src.setTextOverrun(OverrunStyle.ELLIPSIS);
+        Label title = lbl(h.title(), "jhub-card-title"); title.setTextOverrun(OverrunStyle.ELLIPSIS); title.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(title, Priority.ALWAYS); title.setMinWidth(0);
+        HBox r = new HBox(10, age, src, title); r.setAlignment(Pos.CENTER_LEFT); r.setPadding(new Insets(7, 10, 7, 10));
+        r.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        javafx.scene.control.Tooltip.install(r, new javafx.scene.control.Tooltip(h.title() + "\n" + h.source()
+                + (h.published() == null ? "" : "  \u00b7  " + DateTimeFormatter.ofPattern("d MMM yyyy HH:mm'Z'", Locale.ENGLISH).format(h.published().atZone(ZoneOffset.UTC)))
+                + "\n(click to read it on the source site)"));
+        String link = h.link();
+        r.setOnMouseClicked(e -> open(link));
+        return r;
+    }
+
     private static Node empty(Kind kind, Loaded l, boolean loading, Runnable reload) {
         String msg;
         if (loading) msg = "Loading…";
@@ -234,6 +337,14 @@ public final class InfoView {
         } else { t.credit.setStyle(""); t.credit.setOnMouseClicked(null); }
     }
 
+    /** A small underlined link label that opens in the browser. */
+    private static Label link(String text, String url) {
+        Label l = lbl(text, "jl-emeta"); l.setStyle("-fx-cursor:hand;-fx-underline:true;");
+        com.ars.fx.shell.Tips.tip(l, url);
+        l.setOnMouseClicked(e -> open(url));
+        return l;
+    }
+
     private static void open(String url) {
         try { java.awt.Desktop.getDesktop().browse(java.net.URI.create(url)); } catch (Throwable ignored) {}
     }
@@ -245,6 +356,17 @@ public final class InfoView {
         TextField dx = new TextField(HubConfig.get("info.dx.url", "")); dx.setPromptText("default: " + UpcomingEvents.DX_DEFAULT);
         TextField contests = new TextField(HubConfig.get("info.contests.url", "")); contests.setPromptText("https://… your contest calendar (.ics link)");
         TextField fests = new TextField(HubConfig.get("info.hamfests.url", "")); fests.setPromptText("https://… a hamfest calendar (.ics link)");
+        Map<NewsFeeds.Feed, CheckBox> newsBoxes = new java.util.LinkedHashMap<>();
+        java.util.Set<String> onNow = NewsFeeds.enabledIds();
+        VBox newsBox = new VBox(4);
+        NewsFeeds.Group lastGroup = null;
+        for (NewsFeeds.Feed f : NewsFeeds.CATALOG) {
+            if (f.group() != lastGroup) { newsBox.getChildren().add(lbl(f.group().label.toUpperCase(Locale.ROOT), "jl-flabel")); lastGroup = f.group(); }
+            CheckBox cb = new CheckBox(f.name()); cb.setSelected(onNow.contains(f.id()));
+            newsBoxes.put(f, cb); newsBox.getChildren().add(cb);
+        }
+        TextArea custom = new TextArea(HubConfig.get("info.news.custom", "")); custom.setPrefRowCount(3);
+        custom.setPromptText("https://example.org/feed   (one RSS or Atom address per line)");
         Label note = lbl("Contests and hamfests come from an iCalendar (.ics) link you provide. The WA7BNM Contest Calendar permits its iCal feed for "
                 + "personal calendar use; paste your own link from contestcalendar.com. Feeds are fetched at most every six hours and kept on disk.", "jl-emeta");
         note.setWrapText(true); note.setMaxWidth(520);
@@ -253,12 +375,16 @@ public final class InfoView {
         Label save = lbl("Save", "jl-logbtn"); save.setStyle("-fx-cursor:hand;");
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         HBox btns = new HBox(14, msg, gap, cancel, save); btns.setAlignment(Pos.CENTER_LEFT);
+        Label newsNote2 = lbl("News shows only the headline, the source and a link to the source site. Feeds are fetched at most every six hours.", "jl-emeta");
+        newsNote2.setWrapText(true); newsNote2.setMaxWidth(520);
         VBox box = new VBox(8, lbl("Sources", "jhub-card-title"), dxOn, lbl("DXPEDITION CALENDAR (leave blank for the default)", "jl-flabel"), dx,
-                lbl("CONTEST CALENDAR", "jl-flabel"), contests, lbl("HAMFEST CALENDAR", "jl-flabel"), fests, note, btns);
+                lbl("CONTEST CALENDAR", "jl-flabel"), contests, lbl("HAMFEST CALENDAR", "jl-flabel"), fests, note,
+                lbl("NEWS FEEDS", "jhub-card-title"), newsBox, lbl("YOUR OWN NEWS FEEDS", "jl-flabel"), custom, newsNote2, btns);
         box.setPadding(new Insets(16)); box.setPrefWidth(560);
-        javafx.scene.Scene scene = new javafx.scene.Scene(box);
+        ScrollPane boxScroll = new ScrollPane(box); boxScroll.setFitToWidth(true); boxScroll.setPrefViewportHeight(640);
+        javafx.scene.Scene scene = new javafx.scene.Scene(boxScroll);
         com.ars.fx.Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
-        com.ars.fx.Themes.applyTo(box, "info");
+        com.ars.fx.Themes.applyTo(boxScroll, "info");
         Stage st = new Stage(); st.setTitle("Info sources"); st.setScene(scene); st.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
         cancel.setOnMouseClicked(e -> st.close());
@@ -269,6 +395,10 @@ public final class InfoView {
             HubConfig.set("info.dx.url", dx.getText().trim());
             HubConfig.set("info.contests.url", contests.getText().trim());
             HubConfig.set("info.hamfests.url", fests.getText().trim());
+            java.util.Set<String> on = new java.util.LinkedHashSet<>();
+            for (Map.Entry<NewsFeeds.Feed, CheckBox> en : newsBoxes.entrySet()) if (en.getValue().isSelected()) on.add(en.getKey().id());
+            NewsFeeds.setEnabled(on);
+            NewsFeeds.setCustom(custom.getText());
             st.close(); onSaved.run();
         });
         st.show();
