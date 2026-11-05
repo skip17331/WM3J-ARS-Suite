@@ -215,6 +215,37 @@ public final class JHubDashboard {
         return need(s, ix).label;
     }
 
+    /** The spots as band-map marks: needed (tagged), already worked (this call on this band; in a contest, in this contest's log), or ordinary. */
+    private static java.util.List<com.ars.fx.data.BandMapModel.Mark> bandMarks(java.util.List<ClusterClient.Spot> spots, SpotNeeds.Index ix) {
+        var plugin = com.ars.fx.data.ContestState.plugin();
+        boolean contest = "logc".equals(Shell.currentSurface) && plugin != null;
+        boolean wide = contest && plugin.isContestWideDupe();
+        java.util.Set<String> done = contest ? contestWorked() : java.util.Set.of();
+        java.util.List<com.ars.fx.data.BandMapModel.Mark> out = new java.util.ArrayList<>(spots.size());
+        for (ClusterClient.Spot s : spots) {
+            com.ars.fx.data.BandMapModel.Kind k;
+            if (!tag(s, ix).isEmpty()) k = com.ars.fx.data.BandMapModel.Kind.NEEDED;
+            else if (contest ? done.contains(wide ? SpotNeeds.up(s.call()) : SpotNeeds.up(s.call()) + "|" + SpotNeeds.up(s.band())) : ix.worked(s.call(), s.band()))
+                k = com.ars.fx.data.BandMapModel.Kind.WORKED;
+            else k = com.ars.fx.data.BandMapModel.Kind.NORMAL;
+            out.add(new com.ars.fx.data.BandMapModel.Mark(s.call(), s.freqHz(), s.mode(), s.band(), s.arrivalMs(), k));
+        }
+        return out;
+    }
+    private static java.util.Set<String> cwSet = java.util.Set.of();
+    private static int cwCount = -1; private static String cwContest = "";
+    /** The calls (and call + band) in the open contest's log, rebuilt only when the log has changed size. */
+    private static java.util.Set<String> contestWorked() {
+        java.util.List<com.jlog.model.QsoRecord> q = com.ars.fx.data.ContestState.qsos();
+        String id = com.ars.fx.data.ContestState.plugin().getContestId();
+        if (q.size() != cwCount || !id.equals(cwContest)) {
+            java.util.Set<String> s = new java.util.HashSet<>();
+            for (com.jlog.model.QsoRecord r : q) { String c = SpotNeeds.up(r.getCallsign()); s.add(c); s.add(c + "|" + SpotNeeds.up(r.getBand())); }
+            cwSet = s; cwCount = q.size(); cwContest = id;
+        }
+        return cwSet;
+    }
+
     private static SpotNeeds.Need need(ClusterClient.Spot s, SpotNeeds.Index ix) {
         return SpotNeeds.classify(ix, s.call(), s.band(), s.mode(), SpotNeeds.resolver());
     }
@@ -244,14 +275,21 @@ public final class JHubDashboard {
 
         Label fltSummary = lbl("", "jhub-clu-flt");
         HBox flt = new HBox(8, fltSummary);
-        Region fsp = new Region(); HBox.setHgrow(fsp, Priority.ALWAYS); flt.getChildren().addAll(fsp, lbl("+ Spot", "jhub-clu-flt"));
+        Region fsp = new Region(); HBox.setHgrow(fsp, Priority.ALWAYS); 
+        // the spots as a list, or laid out on a band map (same spots, same filters)
+        BandMapView map = new BandMapView((node, mk) -> SpotAction.onSpot(node, mk.call(), mk.freqHz(), mk.mode(), mk.band()));
+        VBox.setVgrow(map, Priority.ALWAYS);
+        boolean[] mapOn = {"map".equals(com.ars.fx.data.HubConfig.get("data.clusterView", "list"))};
+        Label viewBtn = lbl(mapOn[0] ? "List" : "Map", "jhub-clu-flt"); viewBtn.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(viewBtn, "Switch between the spot list and the band map");
+        flt.getChildren().addAll(fsp, viewBtn, lbl("+ Spot", "jhub-clu-flt"));
         flt.setAlignment(Pos.CENTER_LEFT); flt.setPadding(new Insets(12, 16, 12, 16));
 
         VBox rows = new VBox();
         Label empty = lbl(com.ars.fx.shell.FeedUi.emptyList(cc, "cluster")); empty.setStyle("-fx-font-size:12px;-fx-text-fill:-ars-t4;-fx-padding:18 16 18 16;"); empty.setWrapText(true);
         rows.getChildren().add(empty);
         ScrollPane rsp = new ScrollPane(rows); rsp.setFitToWidth(true); rsp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); rsp.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(rsp, Priority.ALWAYS);
-        VBox card = new VBox(head, flt, rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
+        VBox card = new VBox(head, flt, mapOn[0] ? map : rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
 
         // ---- controls drawer ----
         TextField login  = new TextField(cc.loginCall()); login.getStyleClass().add("jhub-mini-field"); login.setMinWidth(96); login.setMaxWidth(96);
@@ -291,6 +329,7 @@ public final class JHubDashboard {
                 }
             }
             fltSummary.setText(filterSummary() + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
+            if (mapOn[0]) map.update(bandMarks(shown, worked));
             boolean want = cc.wantConnected();
             statusLbl.getStyleClass().remove("live");
             statusLbl.setText(com.ars.fx.shell.FeedUi.symbolLine(cc) + (cc.status() == com.ars.fx.data.TelnetFeed.Status.CONNECTING && !cc.detail().isEmpty() ? " — " + cc.detail() : ""));
@@ -320,6 +359,13 @@ public final class JHubDashboard {
         VBox body = new VBox(12, row1, row2, needed, actRow); body.setPadding(new Insets(4, 2, 4, 2));
         Region controls = Shell.drawer("Cluster controls", "hub", "hub", cc.endpoint(), false, body);
 
+        viewBtn.setOnMouseClicked(e -> {
+            mapOn[0] = !mapOn[0];
+            com.ars.fx.data.HubConfig.set("data.clusterView", mapOn[0] ? "map" : "list");
+            viewBtn.setText(mapOn[0] ? "List" : "Map");
+            card.getChildren().setAll(head, flt, mapOn[0] ? map : rsp);
+            render.run();
+        });
         cc.setListener(c -> render.run());
         cc.start();
         render.run();
