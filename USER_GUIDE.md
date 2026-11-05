@@ -130,6 +130,7 @@ One long page of everything that carries data in or out. It is organised into se
 | **J-Learn content** | Where J-Learn's chapters come from and how to refresh them — see [§4.8](#48-j-learn). |
 | **Backup, export & import** | **Export ADIF** or **Export CSV** to a timestamped file in the backup folder, and **Import ADIF…** into the normal log (QSOs already in the log are skipped). |
 | **Online log upload** | **LoTW** (signed with TrustedQSL), **eQSL.cc**, **QRZ Logbook** and **Club Log**, each with its login, an **Upload** button and an auto-upload tick. |
+| **Label printers (beta)** | Printer model (Brother QL, DYMO LabelWriter, Zebra, Rollo or any system printer), label stock, printer or network address, copies and a **Test print** button. Used by **Print QSL label** in J-Log (§4.1). |
 | **Logbook & export** | Cabrillo / CSV character set and LoTW / eQSL auto-upload. |
 | **Contest / Cabrillo** | The categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club) plus Sweepstakes precedence, check and section. |
 | **DX cluster** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying). |
@@ -167,7 +168,7 @@ database** and **Database tools ›** (which opens J-Hub ▸ Data).
 
 - **New QSO** — callsign, band, mode, frequency, RST sent and received, name, QTH, state, county, grid, power and
   comment, then **Log QSO ⏎**. Typing a call looks it up (see *Callsign lookup* above) and shows its DXCC entity,
-  beam heading and your previous contacts with it. **Print QSL label** prints a label for each new QSO when you save it; pick the printer in Setup ▸ Logbook ▸ Label printers.
+  beam heading and your previous contacts with it. **Print QSL label** prints a label for each new QSO when you save it; pick the printer in Setup ▸ Logbook ▸ Label printers. *(Beta.)*
 - **Recent log** — your latest QSOs; select one to edit or delete it.
 - **DX Cluster** — live spots with a **Console** button that opens a raw-feed pop-up with a command line (history, and
   shortcuts such as `SH/DX 20` and `SET/FT8`). The status is always **Disconnected**, **Connecting** or **Connected**,
