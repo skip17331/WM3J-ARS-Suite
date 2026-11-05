@@ -572,20 +572,31 @@ public final class JLogCockpit {
         refresh[0] = () -> {
             body.getChildren().setAll(lbl("Working out awards…", "jl-skim-meta"));
             Thread t = new Thread(() -> {
-                com.ars.fx.data.Awards.Snapshot snap = com.ars.fx.data.Awards.compute();
+                List<com.ars.fx.data.JLogDb.QsoExport> logRows = com.ars.fx.data.JLogDb.allForExport();
+                com.ars.fx.data.Awards.Snapshot snap = com.ars.fx.data.Awards.compute(logRows);
+                // the operator's own award sheets (My awards) sit beside the built-in awards
+                List<com.ars.fx.data.Awards.Progress> all = new ArrayList<>(snap.all());
+                java.util.Set<String> defaultOn = new java.util.HashSet<>(List.of(snap.dxcc.code(), snap.was.code(), snap.wac.code()));
+                for (com.ars.fx.data.Awards.Progress p : snap.all()) if (p.worked() > 0) defaultOn.add(p.code());
+                for (com.ars.fx.data.CustomAwards.Def d : com.ars.fx.data.CustomAwards.list()) {
+                    com.ars.fx.data.CustomAwards.Result res = com.ars.fx.data.CustomAwards.compute(d, logRows);
+                    com.ars.fx.data.Awards.Progress p = new com.ars.fx.data.Awards.Progress("my:" + d.id, d.name, res.worked, res.confirmed, res.total(),
+                            java.util.Set.of(), java.util.Set.of(), null);
+                    all.add(p); defaultOn.add(p.code());
+                }
                 Platform.runLater(() -> {
                     body.getChildren().clear();
                     java.util.Set<String> picked = pickedAwards();
-                    for (com.ars.fx.data.Awards.Progress p : snap.all()) {
+                    for (com.ars.fx.data.Awards.Progress p : all) {
                         if (picked != null) { if (!picked.contains(p.code())) continue; }
-                        else if (p.worked() == 0 && !(p == snap.dxcc || p == snap.was || p == snap.wac)) continue;   // default: hide awards with nothing logged yet
+                        else if (!defaultOn.contains(p.code())) continue;   // default: hide awards with nothing logged yet
                         body.getChildren().add(awardLine(p));
                     }
                     if (body.getChildren().isEmpty()) body.getChildren().add(lbl("No awards tracked - use Customize.", "jl-skim-meta"));
                     Label open = lbl("Open awards ⤢", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
                     open.setOnMouseClicked(e -> AwardsWindow.show(open));
                     Label cust = lbl("Customize…", "jl-clearbtn"); cust.setStyle("-fx-cursor:hand;");
-                    cust.setOnMouseClicked(e -> customizeAwards(cust, snap, refresh[0]));
+                    cust.setOnMouseClicked(e -> customizeAwards(cust, all, defaultOn, refresh[0]));
                     HBox links = new HBox(14, open, cust); links.setAlignment(Pos.CENTER_LEFT);
                     body.getChildren().add(links);
                     if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(snap.dxcc.worked() + " DXCC · " + snap.was.worked() + "/" + snap.was.target() + " WAS");
@@ -598,16 +609,15 @@ public final class JLogCockpit {
     }
 
     /** Pop-up with one tick per award: choose which ones the Awards drawer tracks. */
-    private static void customizeAwards(Node owner, com.ars.fx.data.Awards.Snapshot snap, Runnable onSaved) {
+    private static void customizeAwards(Node owner, List<com.ars.fx.data.Awards.Progress> all, java.util.Set<String> defaultOn, Runnable onSaved) {
         java.util.Set<String> picked = pickedAwards();
         VBox box = new VBox(8); box.setPadding(new Insets(14));
         box.getChildren().add(lbl("Show these awards in the drawer", "jhub-card-title"));
         List<CheckBox> boxes = new ArrayList<>();
         List<String> codes = new ArrayList<>();
-        for (com.ars.fx.data.Awards.Progress p : snap.all()) {
-            boolean on = picked != null ? picked.contains(p.code())
-                    : (p.worked() > 0 || p == snap.dxcc || p == snap.was || p == snap.wac);
-            CheckBox cb = new CheckBox(p.code() + " — " + p.name()); cb.setSelected(on);
+        for (com.ars.fx.data.Awards.Progress p : all) {
+            boolean on = picked != null ? picked.contains(p.code()) : defaultOn.contains(p.code());
+            CheckBox cb = new CheckBox(p.code().startsWith("my:") ? p.name() + " (my award)" : p.code() + " — " + p.name()); cb.setSelected(on);
             boxes.add(cb); codes.add(p.code()); box.getChildren().add(cb);
         }
         Label reset = lbl("Reset to default", "jl-clearbtn"); reset.setStyle("-fx-cursor:hand;");
@@ -635,7 +645,8 @@ public final class JLogCockpit {
         Region fill = new Region(); fill.getStyleClass().add("jl-award-bar-fill"); fill.setMinHeight(6); fill.setMaxHeight(6);
         StackPane.setAlignment(fill, Pos.CENTER_LEFT); bar.getChildren().addAll(track, fill);
         fill.maxWidthProperty().bind(bar.widthProperty().multiply(p.fraction()));
-        Label name = lbl(p.code(), "jl-skim-meta"); name.setMinWidth(40);
+        boolean mine = p.code().startsWith("my:");
+        Label name = lbl(mine ? p.name() : p.code(), "jl-skim-meta"); name.setMinWidth(mine ? 96 : 40); name.setMaxWidth(mine ? 130 : 60);
         Label cnt = lbl(p.worked() + " / " + p.confirmed() + "✓ of " + p.target(), "jl-award-pct");
         HBox top = new HBox(8, name, bar, cnt); HBox.setHgrow(bar, Priority.ALWAYS); top.setAlignment(Pos.CENTER_LEFT);
         com.ars.fx.shell.Tips.tip(top, p.name() + " — " + p.worked() + " worked, " + p.confirmed() + " confirmed");

@@ -102,4 +102,41 @@ class CustomAwardsTest {
             CustomAwards.setDirForTest(null);
         }
     }
+
+    @Test
+    void trackingBandsMakesAnItemDoneOnlyWhenWorkedOnEveryBand() {
+        Def d = CustomAwards.template13Colonies();
+        d.trackBands.add("20m"); d.trackBands.add("40m");
+        Result r = CustomAwards.compute(d, List.of(
+                q("K2A", "2026-07-01", "20m", "SSB", "", false),
+                q("K2A", "2026-07-02", "40m", "CW", "", true),
+                q("K2B", "2026-07-03", "20m", "SSB", "", true)));
+        assertTrue(r.rows.get(0).worked, "K2A done on both bands");
+        assertTrue(r.rows.get(0).confirmed == false, "20m was not confirmed");
+        assertFalse(r.rows.get(1).worked, "K2B only on 20m");
+        assertEquals(1, r.worked);
+        assertEquals(3, r.slotsWorked);                 // K2A 20m + 40m, K2B 20m
+        assertEquals(28, r.slotsTotal);                 // 14 items x 2 bands
+    }
+
+    @Test
+    void withoutTrackedBandsSlotsAreJustItems() {
+        Result r = CustomAwards.compute(CustomAwards.template13Colonies(), List.of(q("K2A", "2026-07-01", "20m", "SSB", "", false)));
+        assertEquals(1, r.slotsWorked);
+        assertEquals(14, r.slotsTotal);
+    }
+
+    @Test
+    void thePrintableSheetListsEveryItemAndEscapesText(@TempDir Path tmp) throws Exception {
+        Def d = CustomAwards.template13Colonies();
+        d.id = "colonies"; d.name = "Colonies <test> & more";
+        Result r = CustomAwards.compute(d, List.of(q("K2A", "2026-07-01", "20m", "SSB", "", true)));
+        String html = java.nio.file.Files.readString(CustomAwards.exportHtml(r, tmp, "WM3J"));
+        assertTrue(html.contains("Colonies &lt;test&gt; &amp; more"));
+        assertTrue(html.contains("WM3J"));
+        assertTrue(html.contains("K2M"), "unworked items are on the sheet too");
+        assertTrue(html.contains("&#9745;"), "a confirmed item is ticked");
+        assertTrue(html.contains("&#9744;"), "an unworked item has an empty box");
+        assertFalse(html.contains("<test>"));
+    }
 }
