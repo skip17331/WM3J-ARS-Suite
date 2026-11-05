@@ -37,6 +37,8 @@ public final class SpotNeeds {
         private final Map<String, Set<String>> modesByEntity = new HashMap<>();
         private final Set<String> callBands = new HashSet<>();
         public int size() { return callBands.size(); }
+        /** True if this call is already in the log on this band (any mode). */
+        public boolean worked(String call, String band) { return callBands.contains(up(call) + "|" + up(band)); }
     }
 
     private static final Map<String, Optional<DxccInfo.Info>> RESOLVED = new ConcurrentHashMap<>();
@@ -45,7 +47,7 @@ public final class SpotNeeds {
         return call -> RESOLVED.computeIfAbsent(call, c -> Optional.ofNullable(DxccInfo.of(c))).orElse(null);
     }
 
-    static String up(String s) { return s == null ? "" : s.trim().toUpperCase(Locale.ROOT); }
+    public static String up(String s) { return s == null ? "" : s.trim().toUpperCase(Locale.ROOT); }
 
     public static Index build(List<Slot> slots, Function<String, DxccInfo.Info> resolve) {
         Index ix = new Index();
