@@ -41,6 +41,9 @@ public class ContestPlugin {
     // (ARRL_DX_SSB_US/DX → "ARRL-DX-SSB") and any other mismatch.
     private String cabrilloContestName;
     private List<String> sections;
+    // Optional page layout for this contest (note, tabs, hideTabs, fieldOrder, defaultMode). Kept as a free-form map so the engine
+    // does not depend on the UI; ars-fx reads it (ContestLayout) and lets the operator's own file override it.
+    private Map<String, Object> layout;
 
     // New (ARRL 10M / cockpit framework):
     private String lockedBand;                       // if set, band field is forced + read-only
@@ -490,6 +493,8 @@ public class ContestPlugin {
     public void   setCabrilloContestName(String v){ this.cabrilloContestName = v; }
 
     public List<String> getSections()   { return sections; }
+    public Map<String, Object> getLayout()          { return layout; }
+    public void setLayout(Map<String, Object> v)    { this.layout = v; }
     public void   setSections(List<String> v){ this.sections = v; }
 
     public String getLockedBand()             { return lockedBand; }

@@ -1,6 +1,7 @@
 package com.ars.fx.surface;
 
 import com.ars.fx.data.ContestConfigBridge;
+import com.ars.fx.data.ContestLayout;
 import com.ars.fx.data.ContestLogs;
 import com.ars.fx.data.ContestState;
 import com.ars.fx.data.ContestValidators;
@@ -176,7 +177,12 @@ public final class JLogContest {
         List<Map.Entry<String, Region>> panes = com.ars.fx.surface.contest.TrackerFactory.titledPanes(plugin);
         if (panes.isEmpty()) return null;
         TabPane tp = new TabPane(); tp.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-        for (Map.Entry<String, Region> e : panes) {
+        ContestLayout lay = ContestLayout.resolve(plugin);                   // order and hiding, from the contest's layout
+        List<Map.Entry<String, Region>> ordered = new ArrayList<>();
+        for (String title : lay.orderTabs(panes.stream().map(Map.Entry::getKey).toList()))
+            for (Map.Entry<String, Region> e : panes) if (e.getKey().equals(title)) { ordered.add(e); break; }
+        if (ordered.isEmpty()) return null;
+        for (Map.Entry<String, Region> e : ordered) {
             ScrollPane c = new ScrollPane(e.getValue()); c.setFitToWidth(true);
             c.setStyle("-fx-background-color:transparent;");
             tp.getTabs().add(new Tab(e.getKey(), c));
@@ -244,7 +250,10 @@ public final class JLogContest {
         Label times = lbl("Contest times\u2026", "jl-clearbtn"); times.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(times, "Set when this contest starts and ends (UTC) to get a clock with time left and off time");
         times.setOnMouseClicked(e -> editTimes(times, plugin));
-        HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, times, export);
+        Label layoutBtn = lbl("Layout\u2026", "jl-clearbtn"); layoutBtn.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(layoutBtn, "Open this contest's layout file: a reminder note, the order of the tabs and of the exchange fields");
+        layoutBtn.setOnMouseClicked(e -> openLayoutFile(plugin));
+        HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, times, layoutBtn, export);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(14, 18, 6, 18));
         return bar;
     }
@@ -272,7 +281,16 @@ public final class JLogContest {
         List<Node> sent = new ArrayList<>();
         rcvd.add(g("BAND", bandF));
         rcvd.add(g("MODE", modeF));
-        for (FieldDef fd : plugin.getEntryFields()) {
+        ContestLayout layout = ContestLayout.resolve(plugin);
+        List<FieldDef> fieldsInOrder = new ArrayList<>();
+        for (String id : layout.orderFields(plugin.getEntryFields().stream().map(FieldDef::getId).toList()))
+            for (FieldDef f : plugin.getEntryFields()) if (f.getId().equals(id)) { fieldsInOrder.add(f); break; }
+        if (!layout.note().isEmpty()) {                                                // a reminder for this contest
+            Label noteL = lbl(layout.note(), "jl-emeta"); noteL.setWrapText(true); noteL.setMaxWidth(Double.MAX_VALUE);
+            noteL.setStyle("-fx-font-size:13px;");
+            body.getChildren().add(noteL);
+        }
+        for (FieldDef fd : fieldsInOrder) {
             if ("band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;   // dedicated selectors above
             Control c = controlFor(fd);
             fieldControls.put(fd.getId(), c);
@@ -370,6 +388,8 @@ public final class JLogContest {
     private static String defaultMode(ContestPlugin plugin, com.ars.fx.data.RigClient.State rs) {
         String m = SentExchange.contestMode(plugin);
         if (m != null) return m;
+        String own = ContestLayout.resolve(plugin).modeOrNull();                           // the contest's own layout
+        if (own != null) return own;
         String pref = HubConfig.get("contest.defaultMode", "Auto");                    // Setup: Auto / SSB / CW
         if (pref.equals("SSB") || pref.equals("CW")) return pref;
         return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "SSB";   // Auto: follow the rig, else SSB
@@ -783,6 +803,21 @@ public final class JLogContest {
             if (!off.isZero()) text += "  \u00b7  off " + com.ars.fx.data.ContestClock.span(off);
         }
         return new String[]{"CONTEST CLOCK", text};
+    }
+
+    /** Make (if need be) and open the operator's layout file for this contest; the page picks it up the next time it is opened. */
+    private static void openLayoutFile(ContestPlugin plugin) {
+        try {
+            List<String> tabs = new ArrayList<>();
+            if (plugin.getRow2Panes() != null) for (var pd : plugin.getRow2Panes()) {
+                String type = pd.getPaneType() == null ? "" : pd.getPaneType();
+                if (type.equals("dupe_checker") || type.equals("worked_before")) continue;
+                tabs.add(pd.getTitle() == null || pd.getTitle().isBlank() ? type : pd.getTitle());
+            }
+            List<String> ids = plugin.getEntryFields().stream().map(FieldDef::getId).filter(i -> !i.equals("band") && !i.equals("mode")).toList();
+            java.nio.file.Path f = ContestLayout.ensureUserFile(plugin, tabs, ids);
+            try { java.awt.Desktop.getDesktop().open(f.toFile()); } catch (Throwable t) { setB4("Layout file: " + f, "new"); }
+        } catch (Exception e) { setB4("Could not make the layout file: " + e.getMessage(), "dupe"); }
     }
 
     private static void editTimes(Node owner, ContestPlugin plugin) {
