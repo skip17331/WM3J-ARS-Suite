@@ -63,6 +63,13 @@ public final class TrackerFactory {
         return box;
     }
 
+    /** Every multiplier value the contest can give (its valid list, else its multiplier list / sections), or null when it has no fixed set (prefixes, DXCC). */
+    public static List<String> multiplierUniverse(ContestPlugin p) {
+        if (p.getMultiplierModel() != null && p.getMultiplierModel().getValidValues() != null
+                && !p.getMultiplierModel().getValidValues().isEmpty()) return p.getMultiplierModel().getValidValues();
+        return universeFor(p);
+    }
+
     private static List<String> universeFor(ContestPlugin p) {
         String list = p.getMultiplierList();
         if (list != null && !list.isBlank()) {

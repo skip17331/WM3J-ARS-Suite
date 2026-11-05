@@ -50,6 +50,10 @@ public final class JLogContest {
     private static Map<String, Control> fieldControls;
     private static TextField bandF, modeF;
     private static Label serialV;
+    private static Label sendV;                          // "what to send" line
+    private static Label similarL;                       // possible-duplicate callsigns
+    private static final java.util.Set<String> keepIds = new java.util.HashSet<>();   // fields that survive Clear (sent + persistent)
+    private static final java.util.Set<String> askedSent = new java.util.HashSet<>();  // contests whose missing exchange was asked this session
     private static int serial = 1;
     private static Label b4;                 // worked-before / dupe indicator
     private static StackPane host;
@@ -97,6 +101,7 @@ public final class JLogContest {
         if (queued != null) prefillSpot(queued);
 
         maybeChooseDb(plugin);   // each time contest mode is entered: pick which database this contest logs to
+        if (ContestLogs.confirmed()) askSentIfMissing(plugin);   // then anything of "what I send" that Setup does not know
         return host;
     }
 
@@ -225,6 +230,7 @@ public final class JLogContest {
     // ---- entry pane: band/mode + plugin fields + log table -----------------
     private static VBox entryPane(ContestPlugin plugin) {
         fieldControls = new LinkedHashMap<>();
+        keepIds.clear();
         serial = ContestState.nextSerial();
 
         VBox body = new VBox(9); body.setPadding(new Insets(4, 18, 8, 18));
@@ -233,9 +239,9 @@ public final class JLogContest {
         com.ars.fx.data.RigClient.State rs = com.ars.fx.data.RigClient.getInstance().last();
         String band0 = plugin.getLockedBand() != null ? plugin.getLockedBand()
                 : (rs.connected() && rs.freqHz() > 0 ? bandFor(rs.freqHz()) : "20m");
-        String mode0 = plugin.getLockedMode() != null ? plugin.getLockedMode()
-                : (rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "CW");
+        String mode0 = defaultMode(plugin, rs);
         bandF = tf("", band0, 80); modeF = tf("", mode0, 80);
+        bandF.textProperty().addListener((o, a, b) -> refreshScoreStats());
         if (plugin.getLockedBand() != null) bandF.setDisable(true);
         if (plugin.getLockedMode() != null) modeF.setDisable(true);
 
@@ -252,14 +258,18 @@ public final class JLogContest {
                 cf.setMinWidth(210); cf.setPrefWidth(210); cf.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // the call is what you look at
                 cf.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));     // the translator (if open) follows the country
             }
-            (fd.getEntryRow() == 1 ? sent : rcvd).add(g(fd.getLabel(), c));
+            if (fd.getEntryRow() == 1) {                       // what WE send: filled from Setup / earlier answers, shown in the SEND line
+                keepIds.add(fd.getId());
+                setControl(c, SentExchange.value(plugin, fd, modeF.getText()));
+            } else {
+                if (fd.isPersistent() && !"callsign".equals(fd.getId())) keepIds.add(fd.getId());
+                rcvd.add(g(fd.getLabel(), c));
+            }
         }
-        // running serial display in the sent row
-        serialV = lbl(String.valueOf(serial), "jhub-rig-fq");
-        sent.add(0, g("SERIAL", serialV));
+        serialV = lbl(String.valueOf(serial), "jhub-rig-fq");   // kept for clearForm; the number is shown in the SEND line
 
         body.getChildren().add(wrapRow("RECEIVED", rcvd));
-        body.getChildren().add(wrapRow("SENT", sent));
+        body.getChildren().add(sendRow(plugin));
 
         // worked-before / dupe indicator + actions
         b4 = lbl("New", "jl-eyebrow"); b4.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // DUPE / NEW / NEW BAND, readable from across the desk
@@ -268,6 +278,13 @@ public final class JLogContest {
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
         HBox actions = new HBox(12, b4, gap, clear, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
+        similarL = lbl("", "jl-emeta"); similarL.setWrapText(true);   // possible duplicates: calls already logged that resemble the typed one
+        similarL.setMaxWidth(Double.MAX_VALUE);
+        similarL.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:-ars-warn;-fx-font-family:'JetBrains Mono';"
+                + "-fx-background-color:-ars-surface-2;-fx-border-color:-ars-warn;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 12 8 12;");
+        similarL.managedProperty().bind(similarL.textProperty().isNotEmpty());   // no empty box while there is nothing to warn about
+        similarL.visibleProperty().bind(similarL.textProperty().isNotEmpty());
+        body.getChildren().add(similarL);
 
         // F1–F8 station macros (shared with normal log + dashboard)
         body.getChildren().add(MacroBar.sendAsRow(modeF));
@@ -295,6 +312,57 @@ public final class JLogContest {
         modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
 
         return body;
+    }
+
+    /** The mode a contest opens in: the one it pins, else the one its name says (SSB / CW / RTTY / digital), else the rig's, else CW. */
+    private static String defaultMode(ContestPlugin plugin, com.ars.fx.data.RigClient.State rs) {
+        String m = SentExchange.contestMode(plugin);
+        if (m != null) return m;
+        return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "SSB";   // mixed-mode contest: follow the rig, else SSB
+    }
+
+    // ---- "SEND" line: exactly what to say / key, built from Setup ----------------
+    private static String sendText(ContestPlugin plugin) {
+        List<String> parts = new ArrayList<>();
+        if (fieldControls.containsKey("serial_rcvd")) parts.add(String.valueOf(serial));      // contests that exchange a serial number
+        for (FieldDef fd : SentExchange.sentFields(plugin)) {
+            String v = value(fd.getId());
+            parts.add(v.isEmpty() ? "?" : v);
+            if (fd.getId().equals("prec_sent")) parts.add(HubConfig.call().toUpperCase());    // Sweepstakes: NR PREC CALL CHK SECT
+        }
+        return parts.isEmpty() ? "-" : String.join("   ", parts);
+    }
+    private static Region sendRow(ContestPlugin plugin) {
+        Label tag = lbl("SEND", "jl-flabel"); tag.setMinWidth(70);
+        sendV = lbl(sendText(plugin), "jhub-rig-fq");
+        sendV.setStyle("-fx-font-size:22px;-fx-font-weight:bold;-fx-text-fill:-ars-ok;");
+        Label edit = lbl("Edit", "jl-clearbtn"); edit.setStyle("-fx-cursor:hand;");
+        edit.setOnMouseClicked(e -> SentExchange.ask(edit, plugin, SentExchange.sentFields(plugin), modeF.getText(), () -> reloadSent(plugin)));
+        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
+        HBox row = new HBox(10, tag, sendV, gap, edit); row.setAlignment(Pos.CENTER_LEFT);
+        // the report follows the mode (59 on phone, 599 otherwise) and the line follows the serial / any edit
+        modeF.textProperty().addListener((o, a, b) -> reloadSent(plugin));
+        return row;
+    }
+    /** Re-read every sent field (Setup, saved answers, mode-dependent report) into its control and redraw the SEND line. */
+    private static void reloadSent(ContestPlugin plugin) {
+        for (FieldDef fd : SentExchange.sentFields(plugin)) {
+            Control c = fieldControls.get(fd.getId());
+            if (c != null) setControl(c, SentExchange.value(plugin, fd, modeF.getText()));
+        }
+        refreshSend(plugin);
+    }
+    private static void refreshSend(ContestPlugin plugin) { if (sendV != null) sendV.setText(sendText(plugin)); }
+    @SuppressWarnings("unchecked")
+    private static void setControl(Control c, String v) {
+        if (c instanceof TextField t) t.setText(v == null ? "" : v);
+        else if (c instanceof ComboBox<?> cb) ((ComboBox<String>) cb).setValue(v == null || v.isEmpty() ? null : v);
+    }
+    /** Ask for any part of the exchange Setup does not know, once per contest per session. */
+    private static void askSentIfMissing(ContestPlugin plugin) {
+        List<FieldDef> miss = SentExchange.missing(plugin, modeF.getText());
+        if (miss.isEmpty() || !askedSent.add(plugin.getContestId())) return;
+        Platform.runLater(() -> SentExchange.ask(host, plugin, miss, modeF.getText(), () -> reloadSent(plugin)));
     }
 
     private static HBox wrapRow(String tag, List<Node> cells) {
@@ -363,21 +431,47 @@ public final class JLogContest {
 
     private static void updateDupe(ContestPlugin plugin) {
         String call = value("callsign");
-        if (call == null || call.length() < 3) { setB4("New", ""); return; }
+        if (call == null || call.length() < 2) { setB4("New", ""); if (similarL != null) similarL.setText(""); return; }
+        final String typed = call.toUpperCase();
         Thread t = new Thread(() -> {
             try {
-                List<QsoRecord> prior = ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), call);
+                List<QsoRecord> prior = ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), typed);
                 QsoRecord cand = new QsoRecord();
-                cand.setCallsign(call); cand.setBand(normBand(bandF.getText())); cand.setMode(modeF.getText());
+                cand.setCallsign(typed); cand.setBand(normBand(bandF.getText())); cand.setMode(modeF.getText());
                 boolean dupe = ContestScorer.isDupe(plugin, cand, prior);
+                String similar = similarCalls(plugin, typed);
                 Platform.runLater(() -> {
-                    if (dupe) setB4("⛔ DUPE — " + call.toUpperCase(), "dupe");
-                    else if (!prior.isEmpty()) setB4("◐ NEW BAND/MODE — " + call.toUpperCase() + " (worked " + prior.size() + "× elsewhere)", "b4");
-                    else setB4("✓ NEW — " + call.toUpperCase(), "new");
+                    if (dupe) setB4("⛔ DUPE — " + typed, "dupe");
+                    else if (!prior.isEmpty()) setB4("◐ NEW BAND/MODE — " + typed + " (worked " + prior.size() + "× elsewhere)", "b4");
+                    else if (!similar.isEmpty()) setB4("◐ POSSIBLE DUPE — " + typed, "b4");
+                    else if (typed.length() >= 3) setB4("✓ NEW — " + typed, "new");
+                    else setB4("New", "");
+                    if (similarL != null) similarL.setText(similar.isEmpty() ? "" : "POSSIBLE DUPES:  " + similar);
                 });
             } catch (Exception ignored) {}
         }, "contest-dupe");
         t.setDaemon(true); t.start();
+    }
+
+    /** Logged calls that look like what is being typed: they start with it, contain it, or are contained in it
+     *  (a partial call, or one letter too many). Other than an exact match; at most 8, with band and mode. */
+    private static String similarCalls(ContestPlugin plugin, String typed) {
+        if (typed.length() < 3) return "";
+        java.util.Map<String, String> found = new java.util.TreeMap<>();
+        try {
+            for (QsoRecord q : ContestQsoDao.getInstance().fetchByContest(plugin.getContestId())) {
+                String c = q.getCallsign() == null ? "" : q.getCallsign().toUpperCase();
+                if (c.isEmpty() || c.equals(typed) || q.isDupe()) continue;
+                if (c.contains(typed) || (c.length() >= 3 && typed.contains(c)))
+                    found.merge(c, (z(q.getBand()) + " " + z(q.getMode())).trim(), (a, b) -> a);
+            }
+        } catch (Exception ignored) {}
+        List<String> out = new ArrayList<>();
+        for (Map.Entry<String, String> e : found.entrySet()) {
+            if (out.size() >= 8) break;
+            out.add(e.getValue().isEmpty() ? e.getKey() : e.getKey() + " (" + e.getValue() + ")");
+        }
+        return String.join(",  ", out);
     }
     private static void setB4(String text, String cls) {
         if (b4 == null) return;
@@ -387,12 +481,16 @@ public final class JLogContest {
     }
 
     private static void clearForm() {
-        for (Control c : fieldControls.values()) {
+        for (Map.Entry<String, Control> en : fieldControls.entrySet()) {
+            if (keepIds.contains(en.getKey())) continue;
+            Control c = en.getValue();
             if (c instanceof TextField t) t.clear();
             else if (c instanceof ComboBox<?> cb) cb.getSelectionModel().clearSelection();
         }
         serial = ContestState.nextSerial();
         if (serialV != null) serialV.setText(String.valueOf(serial));
+        if (ContestState.plugin() != null) refreshSend(ContestState.plugin());
+        if (similarL != null) similarL.setText("");
         setB4("New", "");
         focus("callsign");
     }
@@ -400,13 +498,58 @@ public final class JLogContest {
     // ---- score readout ----------------------------------------------------
     private static String[][] scoreStats() {
         ContestScore s = ContestState.score();
-        return new String[][]{
+        String[][] tiles = new String[][]{
                 {"QSOs", String.valueOf(s.qsoCount())},
                 {"MULTS", String.valueOf(s.mults())},
                 {"PTS", String.valueOf(s.points())},
                 {"SCORE", String.format("%,d", s.score()), "accent"},
                 {"10-MIN RATE", rates()[0] + "/h"},
                 {"60-MIN RATE", rates()[1] + "/h"}};
+        ContestPlugin p = ContestState.plugin();
+        String[] left = leftTile(p);
+        if (left != null) {
+            String[][] more = new String[tiles.length + 1][];
+            System.arraycopy(tiles, 0, more, 0, tiles.length);
+            more[tiles.length] = left;
+            return more;
+        }
+        return tiles;
+    }
+
+    /** Label of the "multipliers still to work" tile, or null when the contest has no fixed set of multipliers (prefixes, DXCC). */
+    private static String leftLabel(ContestPlugin p) {
+        if (p == null || com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p) == null) return null;
+        if (p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS")) return "TO CLEAN SWEEP";
+        String t = p.getScoringRules() == null || p.getScoringRules().getMultiplierType() == null ? "" : p.getScoringRules().getMultiplierType();
+        return switch (t) {
+            case "sections" -> "SECTIONS LEFT";
+            case "states" -> "STATES LEFT";
+            case "zone_country", "zone_country_state" -> "ZONES LEFT";
+            default -> "MULTS LEFT";
+        };
+    }
+    private static String[] leftTile(ContestPlugin p) {
+        String label = leftLabel(p);
+        return label == null ? null : new String[]{label, leftText(p)};
+    }
+    /** "12 sections" / "CLEAN SWEEP!" - for contests that count multipliers per band, the ones left on the band in use. */
+    private static String leftText(ContestPlugin p) {
+        List<String> all = com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p);
+        if (all == null) return "";
+        java.util.Set<String> worked = new java.util.HashSet<>();
+        boolean perBand = p.getMultiplierModel() != null && p.getMultiplierModel().isPerBand();
+        String band = bandF == null ? "" : normBand(bandF.getText());
+        if (perBand && !band.isEmpty()) {
+            for (Map.Entry<String, List<String>> e : ContestState.score().workedByBand().entrySet())
+                if (e.getKey() != null && e.getKey().equalsIgnoreCase(band)) for (String v : e.getValue()) worked.add(v.toUpperCase());
+        } else {
+            for (String v : ContestState.workedMults()) worked.add(v.toUpperCase());
+        }
+        int left = 0;
+        for (String v : all) if (!worked.contains(v.toUpperCase())) left++;
+        boolean sweep = p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS");
+        if (left == 0) return sweep ? "CLEAN SWEEP!" : "ALL WORKED";
+        return left + (perBand && !band.isEmpty() ? " on " + band : "");
     }
     private static void refreshScoreStats() {
         if (host == null) return;
@@ -420,6 +563,7 @@ public final class JLogContest {
             vs.get(3).setText(String.format("%,d", s.score()));
         }
         if (vs.size() >= 6) { int[] r = rates(); vs.get(4).setText(r[0] + "/h"); vs.get(5).setText(r[1] + "/h"); }
+        if (vs.size() >= 7 && leftLabel(ContestState.plugin()) != null) vs.get(6).setText(leftText(ContestState.plugin()));
     }
     private static void collectStatV(Node n, List<Label> out) {
         if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
