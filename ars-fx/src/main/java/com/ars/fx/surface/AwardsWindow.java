@@ -38,12 +38,15 @@ import static com.ars.fx.shell.Shell.lbl;
  * The awards screen: one tab per award, each showing what is worked and what is confirmed. Opened from J-Log's Awards drawer.
  * DXCC has a band-by-band matrix; WAS, WAC and the zones are chip grids; grids, IOTA, POTA and SOTA are reference lists.
  */
-final class AwardsWindow {
+public final class AwardsWindow {
     private AwardsWindow() {}
 
     private static Stage stage;
     private static TabPane tabs;
     private static Label status;
+
+    /** Open (or raise) the awards screen from anywhere - the dock button uses this. */
+    public static void open() { show(null); }
 
     static void show(Node owner) {
         if (stage != null) { stage.show(); stage.toFront(); load(); return; }
