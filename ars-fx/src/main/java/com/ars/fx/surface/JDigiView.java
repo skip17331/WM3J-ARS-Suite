@@ -97,7 +97,7 @@ public final class JDigiView {
             svc.setStatusListener(s -> Platform.runLater(() -> { highlight(tabs, TABS, s.getMode().name()); statusStrip.setText(statusText(s, svc)); }));
         }
 
-        VBox center = new VBox(12, wfHeader(), wf.node(), modeRow, decode, txRow, macros);
+        VBox center = new VBox(12, Shell.betaNote("J-Digi"), wfHeader(), wf.node(), modeRow, decode, txRow, macros);
         center.setPadding(new Insets(16, 18, 16, 18)); center.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(center, Priority.ALWAYS);
         Region rail = Shell.rail(railDrawers(svc));
         return Shell.frame(dock, top, center, rail);

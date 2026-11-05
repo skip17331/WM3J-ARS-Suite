@@ -96,7 +96,7 @@ public final class JBridgeView {
         }));
         seq.setCycleCount(Timeline.INDEFINITE); seq.play();
 
-        VBox center = new VBox(13, conn, seqRow, tableHost, footer);
+        VBox center = new VBox(13, Shell.betaNote("J-Bridge"), conn, seqRow, tableHost, footer);
         center.setPadding(new Insets(16, 18, 16, 18)); center.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(center, Priority.ALWAYS);
         Region rail = Shell.rail(railDrawers(linkBody));
         return Shell.frame(dock, top, center, rail);
