@@ -731,9 +731,9 @@ public final class JMapView {
         Color border = Color.web("#28313d"), faint = Color.web("#28313d"), t3 = Color.web("#6a7684"), t4 = Color.web("#4d5663");
 
         // light-gray azimuthal world basemap (great-circle map centred on QTH), clipped to the disk.
-        // gcm-gray spans 0–180° (edge = antipode); our R = 15000 km ≈ 135°, so the full image
+        // The picture spans 0–180° (edge = antipode); our R = 15000 km ≈ 135°, so the full image
         // disk must be drawn larger (×180/135) and clipped so our outer ring sits at 135°.
-        Image base = gcmGray();
+        Image base = azBasemap();
         if (ovBasemap && base != null && !base.isError()) {
             g.save();
             g.beginPath(); g.arc(cx, cy, R, R, 0, 360); g.closePath(); g.clip();
@@ -906,6 +906,24 @@ public final class JMapView {
     private static Image marble() {
         if (marble == null) marble = new Image(JMapView.class.getResourceAsStream("/com/ars/fx/map/bluemarble.jpg"));
         return marble;
+    }
+    /** The azimuthal world map turned to be centred on this station. The bundled picture is centred on the US east coast, so used as it is the continents sit in the wrong place for anyone else. */
+    private static javafx.scene.image.WritableImage azBase;
+    private static double azBaseLat = Double.NaN, azBaseLon = Double.NaN;
+    private static Image azBasemap() {
+        if (azBase != null && Math.abs(azBaseLat - Q_LAT) < 0.05 && Math.abs(azBaseLon - Q_LON) < 0.05) return azBase;
+        try {
+            com.ars.fx.data.AzimuthalBasemap.Source src = com.ars.fx.data.AzimuthalBasemap.loadSource();
+            if (src != null) {
+                int n = src.size();
+                int[] px = com.ars.fx.data.AzimuthalBasemap.render(src, Q_LAT, Q_LON, n);
+                javafx.scene.image.WritableImage w = new javafx.scene.image.WritableImage(n, n);
+                w.getPixelWriter().setPixels(0, 0, n, n, javafx.scene.image.PixelFormat.getIntArgbInstance(), px, 0, n);
+                azBase = w; azBaseLat = Q_LAT; azBaseLon = Q_LON;
+                return w;
+            }
+        } catch (RuntimeException ignored) { /* the fixed picture below */ }
+        return gcmGray();
     }
     private static Image gcmGray;
     private static Image gcmGray() {
