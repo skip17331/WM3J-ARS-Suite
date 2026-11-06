@@ -36,20 +36,34 @@ class QsoPartyValidationTest {
         assertEquals(Level.OK, check("ON").level());
         assertEquals(Level.OK, check("DX").level());
         assertEquals(Level.OK, check(county()).level());
-        assertEquals(Level.SOFT, check("QQQ").level());
+        assertEquals(Level.HARD, check("QQQ").level(), "VT has all 14 counties listed, so a code outside them is refused");
     }
 
     @Test void outOfStateOnlyTheStateCountiesAreWorkable() {
         QsoPartySide.saveSentQth(vt, "MA");
         assertEquals(Level.OK, check(county()).level());
         ContestValidation.Result r = check("NH");
-        assertEquals(Level.SOFT, r.level());
+        assertEquals(Level.HARD, r.level());
         assertTrue(r.message().contains("VT county"), r.message());
-        assertEquals(Level.SOFT, check("DX").level(), "DX is not workable from outside the state either");
+        assertEquals(Level.HARD, check("DX").level(), "DX is not workable from outside the state either");
     }
 
     @Test void withNothingSetTheOldLooseCheckApplies() {
         assertEquals(Level.OK, check("MA").level());
-        assertEquals(Level.SOFT, check("QQQ").level());
+        assertEquals(Level.SOFT, check("QQQ").level(), "no side known: the loose check, a warning only");
+    }
+
+    @Test void everyListedPartyStateReallyHasThatManyCounties() throws Exception {
+        for (String f : new String[]{"az", "ca", "de", "fl", "ga", "me", "mi", "mdc", "nc", "nh", "nm", "ns", "ny", "oh", "pa", "sc", "tn", "tx", "vt", "wa"}) {
+            ContestPlugin p = new ObjectMapper().readValue(Path.of("..", "j-log-engine", "src", "main", "resources", "com", "jlog", "plugins", f + "_qso_party.json").toFile(), ContestPlugin.class);
+            assertTrue(QsoPartySide.countyListDefinitive(p), f + " county list is not the length of the state's county count");
+        }
+    }
+
+    @Test void partiesWithoutACheckedListOnlyWarn() throws Exception {
+        for (String f : new String[]{"on", "bc", "qc", "new_england"}) {
+            ContestPlugin p = new ObjectMapper().readValue(Path.of("..", "j-log-engine", "src", "main", "resources", "com", "jlog", "plugins", f + "_qso_party.json").toFile(), ContestPlugin.class);
+            assertFalse(QsoPartySide.countyListDefinitive(p), f + " is not a list we can check");
+        }
     }
 }

@@ -116,7 +116,7 @@ final class ContestValidation {
         return mm.getValidValues();
     }
 
-    // ---- state / province / county (QSO parties): not definitive, so a miss only warns ----
+    // ---- state / province / county (QSO parties): a miss is refused where the county list is complete, else it only warns ----
     private static boolean isStateField(ContestPlugin p, String id) {
         if (!id.equals("state_prov_rcvd") && !id.equals("state_rcvd")) return false;
         String t = p.getScoringRules() == null ? null : p.getScoringRules().getMultiplierType();
@@ -131,9 +131,11 @@ final class ContestValidation {
         if (extra != null) for (String e : extra) known.add(e.toUpperCase(Locale.ROOT));
         if (known.contains(v)) return Result.OK;
         if (!complete) for (String k : known) if (k.startsWith(v)) return Result.partial();
+        boolean sure = side != null && QsoPartySide.countyListDefinitive(p);          // the county list is complete: a miss is a mistake
+        java.util.function.Function<String, Result> miss = m -> sure ? Result.hard(m) : Result.soft(m);
         if (side == QsoPartySide.Side.OUT_OF_STATE)
-            return Result.soft("'" + v + "' is not a " + QsoPartySide.partyState(p) + " county - from outside the state you can only work " + QsoPartySide.partyState(p) + " stations");
-        return Result.soft("'" + v + "' is not a known county, state or province for this contest");
+            return miss.apply("'" + v + "' is not a " + QsoPartySide.partyState(p) + " county - from outside the state you can only work " + QsoPartySide.partyState(p) + " stations");
+        return miss.apply("'" + v + "' is not a county, state or province this contest accepts");
     }
 
     // ---- formats -------------------------------------------------------------------
