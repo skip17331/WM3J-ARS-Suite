@@ -31,7 +31,7 @@ public final class ContestNetwork {
     private ContestNetwork() {}
 
     public static final String KEY_MODE = "network.mode", KEY_HOST = "network.host", KEY_PORT = "network.port",
-            KEY_KEY = "network.key", KEY_STATION = "network.station", KEY_OP = "network.op";
+            KEY_KEY = "network.key", KEY_STATION = "network.station", KEY_OP = "network.op", KEY_ANNOUNCE = "network.announce";
     public static final int DEFAULT_PORT = 12070;
 
     private static final ScheduledExecutorService WORK = Executors.newSingleThreadScheduledExecutor(r -> { Thread t = new Thread(r, "contest-net-work"); t.setDaemon(true); return t; });
@@ -40,6 +40,8 @@ public final class ContestNetwork {
     private static volatile String startError = "";
     private static volatile String lastContest;
     private static volatile boolean started;
+    private static NetDiscovery.Announcer announcer;
+    private static int applyGen;                                // a search for the host that began before the settings changed again is dropped
 
     /** This station's name on the network: the setting, else the computer's name (upper case, 15 characters at most). */
     public static String station() {
@@ -96,6 +98,8 @@ public final class ContestNetwork {
         ContestQsoDao.getInstance().setStationId(station());
         NetNode old = node;
         if (old != null) { old.stop(); node = null; }
+        if (announcer != null) { announcer.close(); announcer = null; }
+        int gen = ++applyGen;
         startError = "";
         String mode = mode();
         if (mode.equals("Off")) return;
@@ -105,15 +109,43 @@ public final class ContestNetwork {
         n.setSerialSource(ContestState::localNextSerial);
         try {
             int port = port();
-            if (mode.equals("Host")) n.startHost(port);
-            else {
+            if (mode.equals("Host")) {
+                n.startHost(port);
+                if (HubConfig.getBool(KEY_ANNOUNCE, true))
+                    announcer = NetDiscovery.announce(ContestNetwork::station, n::port, () -> ContestState.plugin() == null ? "" : ContestState.plugin().getContestId());
+            } else {
                 String host = HubConfig.get(KEY_HOST, "").trim();
-                if (host.isEmpty()) { startError = "Enter the host station's address."; return; }
+                if (host.isEmpty()) { findHostAndJoin(n, gen); return; }
                 n.startJoin(host, port);
             }
             node = n;
             lastContest = ContestState.plugin() == null ? null : ContestState.plugin().getContestId();
         } catch (Exception e) { startError = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage(); }
+    }
+
+    /** No address was given: listen for a host announcing itself, and join it if there is exactly one. Runs in the background; the strip says what it is doing. */
+    private static void findHostAndJoin(NetNode n, int gen) {
+        startError = "Looking for a host on the network\u2026";
+        Thread t = new Thread(() -> {
+            List<NetDiscovery.Found> hosts = NetDiscovery.scan(7000);
+            synchronized (ContestNetwork.class) {
+                if (gen != applyGen) return;                                                   // the settings changed while we listened
+                if (hosts.size() == 1) {
+                    NetDiscovery.Found f = hosts.get(0);
+                    startError = "";
+                    n.startJoin(f.host(), f.port());
+                    node = n;
+                    lastContest = ContestState.plugin() == null ? null : ContestState.plugin().getContestId();
+                } else if (hosts.isEmpty()) {
+                    startError = "No host found on the network. Start the host first, or enter its address.";
+                } else {
+                    StringBuilder sb = new StringBuilder("Several hosts found - enter the address of the one to join: ");
+                    for (int i = 0; i < hosts.size(); i++) sb.append(i == 0 ? "" : ", ").append(hosts.get(i).label());
+                    startError = sb.toString();
+                }
+            }
+        }, "net-find-host");
+        t.setDaemon(true); t.start();
     }
 
     private static int port() { try { return Integer.parseInt(HubConfig.get(KEY_PORT, String.valueOf(DEFAULT_PORT)).trim()); } catch (NumberFormatException e) { return DEFAULT_PORT; } }
