@@ -139,6 +139,12 @@ final class DxInfoCard {
         }
         box.getChildren().setAll(head, grid);
         if (s.comment() != null && !s.comment().isBlank()) box.getChildren().add(value(s.comment()));
+        if (s.spotter() != null && !s.spotter().isBlank() && com.ars.fx.data.MapTracks.resolve(s.spotter()) != null) {
+            Label track = lbl("Show path " + s.spotter() + " \u2192 " + s.call() + " on the map", "jl-clearbtn");
+            track.setStyle("-fx-cursor:hand;");
+            track.setOnMouseClicked(e -> JMapView.showTrack(s.spotter(), s.call()));
+            box.getChildren().add(track);
+        }
     }
 
     private static Label value(String text) {

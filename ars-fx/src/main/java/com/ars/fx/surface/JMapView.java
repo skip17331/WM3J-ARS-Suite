@@ -46,6 +46,42 @@ public final class JMapView {
     private static boolean showBeacons = false;
     private static int beaconBand = 0;
     private static Label beaconInfo;                         // live "QSY to ..." line in the drawer
+    private static HBox beaconSeg;                           // the band buttons, so a hopping watch can move the highlight
+    private static Label beaconHeardInfo;                    // "7 of 18 heard on 20m"
+    private record BeaconDot(double x, double y, String call) {}
+    private static final java.util.List<BeaconDot> paintedBeacons = new java.util.ArrayList<>();
+    private static boolean beaconHop() { return com.ars.fx.data.HubConfig.getBool("map.beaconHop", false); }
+    private static boolean beaconAuto() { return com.ars.fx.data.HubConfig.getBool("map.beaconAuto", false); }
+    private static void selectBeaconSeg(int idx) {
+        if (beaconSeg == null) return;
+        for (int i = 0; i < beaconSeg.getChildren().size(); i++) {
+            Node n = beaconSeg.getChildren().get(i);
+            if (i == idx) { if (!n.getStyleClass().contains("on")) n.getStyleClass().add("on"); } else n.getStyleClass().remove("on");
+        }
+    }
+    private static void refreshBeaconHeard() {
+        if (beaconHeardInfo != null) beaconHeardInfo.setText(com.ars.fx.data.BeaconHeard.summary(BEACON_BANDS[beaconBand], BEACONS.length)
+                + "   \u00b7   " + com.ars.fx.data.BeaconHeard.allBands(java.util.Arrays.asList(BEACON_BANDS), BEACONS.length));
+    }
+    /** Once a second while the cycle is on: hop to the next band every cycle if asked, and mark the beacon on the air if the S-meter holds a signal on its frequency. */
+    private static void beaconWatch() {
+        long now = java.time.Instant.now().getEpochSecond();
+        if (beaconHop()) {
+            int b = com.ars.fx.data.BeaconHeard.bandAt(now, BEACON_BANDS.length);
+            if (b != beaconBand) {
+                beaconBand = b; selectBeaconSeg(b);
+                if (beaconInfo != null) beaconInfo.setText(beaconLine());
+                qsyToBeacon(); repaintMap(); refreshBeaconHeard();
+            }
+        }
+        if (beaconAuto()) {
+            com.ars.fx.data.RigClient.State st = com.ars.fx.data.RigClient.getInstance().last();
+            boolean onFreq = st != null && st.connected() && Math.abs(st.freqHz() - BEACON_HZ[beaconBand]) <= 2000 && st.mode() != null && st.mode().toUpperCase().startsWith("CW");
+            if (onFreq && com.ars.fx.data.BeaconHeard.sample(BEACONS[activeBeacon(beaconBand)][0], BEACON_BANDS[beaconBand], st.sMeterDb(), (int) (now % 10), now)) {
+                repaintMap(); refreshBeaconHeard();
+            }
+        }
+    }
     private static Runnable currentMapRepaint;
     private static javafx.animation.Timeline beaconTicker;
     /** Beacon index transmitting on band b right now (slot = UTC%180 /10; band offsets by one slot each). */
@@ -94,6 +130,15 @@ public final class JMapView {
     private static void handleMapClick(Node source, double x, double y) {
         Dot best = null; double bestD = Double.MAX_VALUE;
         for (Dot d : paintedDots) { double dd = Math.hypot(d.x() - x, d.y() - y); if (dd < bestD) { bestD = dd; best = d; } }
+        if (showBeacons) {
+            BeaconDot nb = null; double nd = Double.MAX_VALUE;
+            for (BeaconDot b : paintedBeacons) { double dd = Math.hypot(b.x() - x, b.y() - y); if (dd < nd) { nd = dd; nb = b; } }
+            if (nb != null && nd <= 10 && (best == null || nd <= bestD)) {
+                com.ars.fx.data.BeaconHeard.toggle(nb.call(), BEACON_BANDS[beaconBand], java.time.Instant.now().getEpochSecond());
+                refreshBeaconHeard(); repaintMap();
+                return;
+            }
+        }
         if (best != null && bestD <= 11) {
             selectSpot(source, best.s());
         }
@@ -177,6 +222,7 @@ public final class JMapView {
         beaconTicker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
             updateMapTopbar();                                 // ticking clock + live SPOTS/SHOWN/GRAY-LINE/BEAM
             if (beaconInfo != null) beaconInfo.setText(showBeacons ? beaconLine() : "");
+            if (showBeacons) beaconWatch();
             long second = java.time.Instant.now().getEpochSecond();
             boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
             if (beamMoved || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
@@ -188,6 +234,7 @@ public final class JMapView {
     private interface Proj { double[] at(double lat, double lon); }
     private static void drawBeacons(GraphicsContext g, Proj proj) {
         if (!showBeacons) return;
+        paintedBeacons.clear();
         int active = activeBeacon(beaconBand);
         g.setFill(Color.web("#0b0f14", 0.78)); g.fillRoundRect(12, 12, 360, 26, 8, 8);
         g.setFill(Color.web("#ffd84a")); g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 13)); g.setTextAlign(TextAlignment.LEFT);
@@ -202,6 +249,10 @@ public final class JMapView {
             double[] p = proj.at(Double.parseDouble(BEACONS[i][1]), Double.parseDouble(BEACONS[i][2]));
             if (p == null) continue;
             double x = p[0], y = p[1];
+            paintedBeacons.add(new BeaconDot(x, y, BEACONS[i][0]));
+            if (com.ars.fx.data.BeaconHeard.isHeard(BEACONS[i][0], BEACON_BANDS[beaconBand])) {
+                g.setStroke(Color.web("#4ade80", 0.95)); g.setLineWidth(2); g.strokeOval(x - 8, y - 8, 16, 16);
+            }
             if (i == active) {
                 g.setFill(Color.web("#ffd33d", 0.18)); g.fillOval(x - 14, y - 14, 28, 28);
                 g.setFill(Color.web("#fff3b0")); g.fillOval(x - 6, y - 6, 12, 12);
@@ -213,6 +264,34 @@ public final class JMapView {
                 g.setFill(Color.web("#cdd6e0", 0.55)); g.fillOval(x - 3, y - 3, 6, 6);
                 g.setFill(Color.web("#9aa7b4", 0.7)); g.setFont(Font.font("JetBrains Mono", 9)); g.setTextAlign(TextAlignment.LEFT);
                 g.fillText(BEACONS[i][0], x + 7, y + 3);
+            }
+        }
+    }
+
+    // ── Ham-to-ham tracks: the great-circle path between two stations that are not this one ──
+    /** Draws a path between two places for the map's track list, with a dot and the name at each end and the distance and bearing at the middle. */
+    public static void showTrack(String from, String to) { com.ars.fx.data.MapTracks.add(from, to); repaintMap(); }
+
+    private static void drawTracks(GraphicsContext g, Proj proj) {
+        for (com.ars.fx.data.MapTracks.Track t : com.ars.fx.data.MapTracks.all()) {
+            Color col = Color.web("#7ec8ff");
+            drawGcPath(g, proj, t.lat1(), t.lon1(), t.lat2(), t.lon2(), Color.web("#7ec8ff", 0.85));
+            g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 10)); g.setTextAlign(TextAlignment.LEFT);
+            double[][] ends = {{t.lat1(), t.lon1()}, {t.lat2(), t.lon2()}};
+            String[] names = {t.from(), t.to()};
+            for (int i = 0; i < 2; i++) {
+                double[] p = proj.at(ends[i][0], ends[i][1]);
+                if (p == null) continue;
+                g.setStroke(Color.web("#0b0f14", 0.85)); g.setLineWidth(2); g.strokeOval(p[0] - 4.5, p[1] - 4.5, 9, 9);
+                g.setFill(col); g.fillOval(p[0] - 4.5, p[1] - 4.5, 9, 9);
+                g.setFill(Color.web("#e8f4ff")); g.fillText(names[i], p[0] + 8, p[1] - 6);
+            }
+            double[] mid = gcPoint(t.lat1(), t.lon1(), t.lat2(), t.lon2(), 0.5);
+            double[] mp = proj.at(mid[0], mid[1]);
+            if (mp != null) {
+                String s = t.shortLabel();
+                g.setFill(Color.web("#0b0f14", 0.78)); g.fillRoundRect(mp[0] - 4, mp[1] - 13, s.length() * 6.2 + 8, 16, 6, 6);
+                g.setFill(Color.web("#bfe3ff")); g.fillText(s, mp[0], mp[1] - 1);
             }
         }
     }
@@ -499,6 +578,25 @@ public final class JMapView {
             row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(7, 0, 7, 0));
             p.getChildren().add(row);
         }
+        // ham-to-ham tracks
+        p.getChildren().add(lbl("TRACKS (HAM TO HAM)","jm-sec"));
+        javafx.scene.control.TextField trA = new javafx.scene.control.TextField(), trB = new javafx.scene.control.TextField();
+        trA.setPromptText("from: call, prefix or grid"); trB.setPromptText("to: call, prefix or grid");
+        for (javafx.scene.control.TextField f : new javafx.scene.control.TextField[]{trA, trB}) f.getStyleClass().add("jhub-mini-field");
+        Label trMsg = lbl("", "jm-tog-label"); trMsg.setWrapText(true);
+        Label trDraw = lbl("Draw", "jl-logbtn"), trClear = lbl("Clear", "jl-clearbtn");
+        trDraw.setStyle("-fx-cursor:hand;"); trClear.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(trDraw, "Draw the great-circle path between two stations, with its distance and beam heading. Also from a spot: click a spot, then \"Show path\" to see where the spotter heard it from.");
+        Runnable drawTrack = () -> {
+            com.ars.fx.data.MapTracks.Track t = com.ars.fx.data.MapTracks.add(trA.getText(), trB.getText());
+            trMsg.setText(t == null ? "Cannot place one of those (a call, a prefix such as ZS, or a grid such as FN31)." : t.label());
+            repaintMap();
+        };
+        trDraw.setOnMouseClicked(e -> drawTrack.run());
+        trA.setOnAction(e -> trB.requestFocus()); trB.setOnAction(e -> drawTrack.run());
+        trClear.setOnMouseClicked(e -> { com.ars.fx.data.MapTracks.clear(); trMsg.setText(""); repaintMap(); });
+        HBox trBtns = new HBox(14, trDraw, trClear); trBtns.setAlignment(Pos.CENTER_LEFT); trBtns.setPadding(new Insets(4, 0, 4, 0));
+        p.getChildren().addAll(trA, trB, trBtns, trMsg);
         // NCDXF/IARU International Beacon Project cycle
         p.getChildren().add(lbl("NCDXF BEACONS","jm-sec"));
         Label bt = lbl("Show beacon cycle","jm-tog-label"); HBox.setHgrow(bt, Priority.ALWAYS); bt.setMaxWidth(Double.MAX_VALUE);
@@ -507,13 +605,40 @@ public final class JMapView {
         HBox btr = new HBox(bt, toggleSwitch(showBeacons, v -> { showBeacons = v; beaconInfo.setText(v ? beaconLine() : ""); repaintMap(); qsyToBeacon(); }));
         btr.setAlignment(Pos.CENTER_LEFT); btr.setPadding(new Insets(7, 0, 4, 0));
         p.getChildren().add(btr);
-        p.getChildren().add(segSel(BEACON_BANDS, beaconBand, i -> { beaconBand = i; beaconInfo.setText(showBeacons ? beaconLine() : ""); repaintMap(); qsyToBeacon(); }));
+        beaconSeg = (HBox) segSel(BEACON_BANDS, beaconBand, i -> { beaconBand = i; beaconInfo.setText(showBeacons ? beaconLine() : ""); refreshBeaconHeard(); repaintMap(); qsyToBeacon(); });
+        p.getChildren().add(beaconSeg);
         p.getChildren().add(beaconInfo);
         Label qt = lbl("Auto QSY the rig","jm-tog-label"); HBox.setHgrow(qt, Priority.ALWAYS); qt.setMaxWidth(Double.MAX_VALUE);
         com.ars.fx.shell.Tips.tip(qt, "Tune the rig to the beacon frequency (CW) when you pick a band or switch the cycle on. Needs the rig connected; never while transmitting.");
         HBox qtr = new HBox(qt, toggleSwitch(com.ars.fx.data.HubConfig.getBool("map.beaconQsy", false), v -> { com.ars.fx.data.HubConfig.set("map.beaconQsy", String.valueOf(v)); qsyToBeacon(); }));
         qtr.setAlignment(Pos.CENTER_LEFT); qtr.setPadding(new Insets(4, 0, 7, 0));
         p.getChildren().add(qtr);
+        Label hp = lbl("Hop bands each 3 minutes", "jm-tog-label"); HBox.setHgrow(hp, Priority.ALWAYS); hp.setMaxWidth(Double.MAX_VALUE);
+        com.ars.fx.shell.Tips.tip(hp, "Moves to the next band every 3-minute cycle (20, 17, 15, 12, 10 m), so one watch hears every beacon on every band in 15 minutes. With Auto QSY the rig follows.");
+        HBox hpr = new HBox(hp, toggleSwitch(beaconHop(), v -> { com.ars.fx.data.HubConfig.set("map.beaconHop", String.valueOf(v)); if (v) beaconWatch(); }));
+        hpr.setAlignment(Pos.CENTER_LEFT); hpr.setPadding(new Insets(4, 0, 4, 0));
+        Label au = lbl("Mark heard by the S-meter", "jm-tog-label"); HBox.setHgrow(au, Priority.ALWAYS); au.setMaxWidth(Double.MAX_VALUE);
+        com.ars.fx.shell.Tips.tip(au, "Marks the beacon on the air as heard when the rig is on the beacon frequency in CW and its S-meter holds S3 or more for three seconds. Needs a rig that reports its S-meter. You can always click a beacon on the map to mark or unmark it.");
+        HBox aur = new HBox(au, toggleSwitch(beaconAuto(), v -> com.ars.fx.data.HubConfig.set("map.beaconAuto", String.valueOf(v))));
+        aur.setAlignment(Pos.CENTER_LEFT); aur.setPadding(new Insets(4, 0, 4, 0));
+        beaconHeardInfo = lbl("", "jm-tog-label"); beaconHeardInfo.setWrapText(true);
+        refreshBeaconHeard();
+        Label hear = lbl("I hear it", "jl-logbtn"), logBtn = lbl("Heard log", "jl-clearbtn"), clearHeard = lbl("Clear", "jl-clearbtn");
+        for (Label l : new Label[]{hear, logBtn, clearHeard}) l.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(hear, "Marks the beacon that is on the air now, on the band shown, as heard.");
+        com.ars.fx.shell.Tips.tip(logBtn, "Writes the beacons you have heard, with the UTC time, to a CSV file and opens it.");
+        hear.setOnMouseClicked(e -> { com.ars.fx.data.BeaconHeard.mark(BEACONS[activeBeacon(beaconBand)][0], BEACON_BANDS[beaconBand], java.time.Instant.now().getEpochSecond()); refreshBeaconHeard(); repaintMap(); });
+        logBtn.setOnMouseClicked(e -> {
+            try {
+                java.nio.file.Path f = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-map", "beacons-heard.csv");
+                java.nio.file.Files.createDirectories(f.getParent());
+                java.nio.file.Files.writeString(f, com.ars.fx.data.BeaconHeard.csv(), java.nio.charset.StandardCharsets.UTF_8);
+                com.ars.fx.data.LinkOpener.openFile(f, () -> { });
+            } catch (java.io.IOException ex) { beaconHeardInfo.setText("Could not write the log: " + ex.getMessage()); }
+        });
+        clearHeard.setOnMouseClicked(e -> { com.ars.fx.data.BeaconHeard.clear(); refreshBeaconHeard(); repaintMap(); });
+        HBox heardBtns = new HBox(14, hear, logBtn, clearHeard); heardBtns.setAlignment(Pos.CENTER_LEFT); heardBtns.setPadding(new Insets(4, 0, 6, 0));
+        p.getChildren().addAll(hpr, aur, beaconHeardInfo, heardBtns);
 
         // RBN "who's hearing me" overlay
         p.getChildren().add(lbl("WHO'S HEARING ME · RBN","jm-sec"));
@@ -680,6 +805,7 @@ public final class JMapView {
         Proj azi = (lat, lon) -> { double[] pp = azProject(lat, lon, cx, cy, R); return pp[2] <= 1.0 ? new double[]{pp[0], pp[1]} : null; };
         drawHeardBy(g, azi);
         drawBeacons(g, azi);
+        drawTracks(g, azi);
     }
     /** Azimuthal-equidistant night shading + terminator (gray line) centred on QTH. */
     // One image, not thousands of small rectangles: those stalled the render thread for about 400 ms on every repaint.
@@ -907,6 +1033,7 @@ public final class JMapView {
         Proj rect = (lat, lon) -> new double[]{lon2x(lon, RMX, RW), lat2y(lat, RMY, RH)};
         drawHeardBy(g, rect);
         drawBeacons(g, rect);
+        drawTracks(g, rect);
         g.restore();
     }
     private static double lon2x(double lon, double rmx, double rw) { return rmx + ((lon - vMinLon) / (vMaxLon - vMinLon)) * rw; }
