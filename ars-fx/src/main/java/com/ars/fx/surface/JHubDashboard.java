@@ -893,7 +893,7 @@ public final class JHubDashboard {
                 lookupSection());
             case "logdb" -> cfgPage(cfgTop("J-Hub", "Logbook", "Log database & backup"),
                 lbl("Which database files J-Log writes to, the contest databases, and ADIF / CSV backup.", "cfg-desc"),
-                cells, logDatabaseSection(), JHubContestDbs.build(), backupSection());
+                cells, logDatabaseSection(), JHubContestDbs.build(), callHistorySection(), backupSection());
             case "upload" -> cfgPage(cfgTop("J-Hub", "Logbook", "Online upload"),
                 lbl("Push your log to LoTW, eQSL, QRZ Logbook and Club Log.", "cfg-desc"),
                 uploadSection());
@@ -1139,6 +1139,45 @@ public final class JHubDashboard {
                 dyn,
                 cfgRow("Test", "prints a sample label with the settings above", test));
         return new VBox(6, lbl("QSL LABEL PRINTER", "cfg-sec"), card, status);
+    }
+    /** Call history: what each station usually sends (state, section, zone, name), learned from the logs or imported. */
+    private static VBox callHistorySection() {
+        Label count = lbl("", "cfg-lt"), status = lbl("", "cfg-lh"); status.setWrapText(true); status.setMaxWidth(Double.MAX_VALUE);
+        Runnable refresh = () -> {
+            Thread t = new Thread(() -> { int n = com.ars.fx.data.CallHistory.count(); javafx.application.Platform.runLater(() -> count.setText(n + (n == 1 ? " station" : " stations"))); }, "call-history-count");
+            t.setDaemon(true); t.start();
+        };
+        refresh.run();
+        boolean[] busy = {false};
+        java.util.function.BiConsumer<String, java.util.function.Supplier<com.ars.fx.data.CallHistory.Result>> run = (what, job) -> {
+            if (busy[0]) return;
+            busy[0] = true; status.setText(what + " …");
+            Thread t = new Thread(() -> {
+                com.ars.fx.data.CallHistory.Result r = job.get();
+                javafx.application.Platform.runLater(() -> { busy[0] = false; refresh.run();
+                    status.setText(r.ok() ? "✓ " + r.calls() + " station" + (r.calls() == 1 ? "" : "s") + " added or updated" : "✗ " + r.error()); });
+            }, "call-history-job");
+            t.setDaemon(true); t.start();
+        };
+        Label build = cfgBtn("Build from my logs");
+        build.setOnMouseClicked(e -> run.accept("Reading your contest and normal logs", com.ars.fx.data.CallHistory::rebuildFromLogs));
+        Label imp = cfgBtn("Import file…");
+        imp.setOnMouseClicked(e -> {
+            FileChooser fc = new FileChooser(); fc.setTitle("Import a call history file");
+            fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Call history (CSV / text)", "*.csv", "*.txt", "*.dat"), new FileChooser.ExtensionFilter("All files", "*.*"));
+            java.io.File f = fc.showOpenDialog(imp.getScene() != null ? imp.getScene().getWindow() : null);
+            if (f != null) run.accept("Importing " + f.getName(), () -> com.ars.fx.data.CallHistory.importFile(f.toPath()));
+        });
+        Label clear = cfgBtn("Clear");
+        clear.setOnMouseClicked(e -> { if (busy[0]) return; com.ars.fx.data.CallHistory.clear(); refresh.run(); status.setText("Call history cleared"); });
+        HBox btns = new HBox(10, build, imp, clear); btns.setAlignment(Pos.CENTER_LEFT);
+        VBox card = new VBox(0);
+        card.getStyleClass().add("cfg-card");
+        card.getChildren().addAll(
+            cfgRow("Remembered", "each station's usual state, section, zone, grid and name — fills the exchange when you type a call, and tags cluster spots NEW MULT? in contests where the multiplier is in the exchange", count),
+            cfgRow("Fill it", "your own QSOs always win; an imported file is CSV with a Call column (N1MM+ call history files work)", btns),
+            new HBox(status) {{ getStyleClass().add("cfg-row"); setStyle("-fx-border-width:0;"); }});
+        return new VBox(6, lbl("CALL HISTORY", "cfg-sec"), card);
     }
     /** Real ADIF / CSV backup export of the J-Log database. */
     private static VBox backupSection() {

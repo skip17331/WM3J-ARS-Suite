@@ -82,7 +82,7 @@ public final class JLogContest {
         ContestState.addListener(() -> { spotMemo.clear(); logSnap = null; });     // the log changed: spot tags are stale
         callGivesMult = MultCheck.multFromCallAlone(plugin, ContestState.ctx());
         // cluster spots in contest mode: NEW MULT where the multiplier can be told from the call; no DXCC flags (they mean nothing in a contest)
-        JHubDashboard.contestSpotTag = callGivesMult ? spot -> spotTag(plugin, spot) : spot -> "";
+        JHubDashboard.contestSpotTag = spot -> spotTag(plugin, spot);
         com.ars.fx.data.N1mmBroadcast.appInfo(plugin);                                   // tell listening programs which contest this is
 
         Region dock = Shell.dock("log");
@@ -496,8 +496,23 @@ public final class JLogContest {
         return spotMemo.computeIfAbsent(key, k -> {
             List<QsoRecord> snap = logSnap;
             if (snap == null) { snap = ContestState.qsos(); logSnap = snap; }
-            return MultCheck.isNewMult(plugin, snap, MultCheck.candidateOf(plugin, spot.call(), spot.band(), spot.mode()), ContestState.ctx()) ? "NEW MULT" : "";
+            QsoRecord cand = MultCheck.candidateOf(plugin, spot.call(), spot.band(), spot.mode());
+            if (callGivesMult) return MultCheck.isNewMult(plugin, snap, cand, ContestState.ctx()) ? "NEW MULT" : "";
+            // the multiplier is in the exchange: use what the call history says this station sends, if the contest accepts it
+            return fromHistory(plugin, cand) && MultCheck.isNewMult(plugin, snap, cand, ContestState.ctx()) ? "NEW MULT?" : "";
         });
+    }
+    /** Fill {@code cand}'s multiplier field from the call history. False when there is nothing usable (then no tag is better than a wrong one). */
+    private static boolean fromHistory(ContestPlugin plugin, QsoRecord cand) {
+        var mm = plugin.getMultiplierModel();
+        if (mm == null || mm.getField() == null) return false;
+        String key = com.ars.fx.data.CallHistory.keyForField(mm.getField());
+        String v = key == null ? null : com.ars.fx.data.CallHistory.get(cand.getCallsign()).get(key);
+        String slot = plugin.fieldSlotColumn(mm.getField());
+        if (v == null || slot == null) return false;
+        for (FieldDef fd : plugin.getEntryFields())
+            if (mm.getField().equals(fd.getId())) { if (!acceptable(plugin, fd, v)) return false; setSlot(cand, slot, v); return true; }
+        return false;
     }
 
     /** F1-F8 key the macros, for as long as this page is on screen (and never after: the keys are handed back when the page leaves the scene). */
@@ -601,6 +616,9 @@ public final class JLogContest {
             if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); com.ars.fx.data.N1mmBroadcast.contactEdited(plugin, r, oldCall); }
             else { ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); }
             ContestState.recompute();
+            final QsoRecord logged = r;
+            Thread lt = new Thread(() -> com.ars.fx.data.CallHistory.learn(plugin, logged), "call-history-learn");
+            lt.setDaemon(true); lt.start();
             return true;
         } catch (Exception e) {
             System.err.println("[contest] log failed: " + e.getMessage());
@@ -697,6 +715,7 @@ public final class JLogContest {
                 QsoRecord last = null;
                 for (QsoRecord q : prior) if (last == null || (q.getDateTimeUtc() != null && last.getDateTimeUtc() != null && q.getDateTimeUtc().isAfter(last.getDateTimeUtc()))) last = q;
                 final QsoRecord earlier = last;
+                final java.util.Map<String, String> hist = earlier == null && fromCall ? com.ars.fx.data.CallHistory.get(typed) : java.util.Map.of();
                 Platform.runLater(() -> {
                     String star = newMult ? "   \u2605 NEW MULT" : "";
                     if (dupe) setB4("\u26d4 DUPE \u2014 " + typed, "dupe");
@@ -706,6 +725,7 @@ public final class JLogContest {
                     else setB4("New", "");
                     if (similarL != null) similarL.setText(similar.isEmpty() ? "" : "POSSIBLE DUPES:  " + similar);
                     if (fromCall && earlier != null && editingRec == null) prefillFromEarlier(plugin, earlier);
+                    else if (fromCall && !hist.isEmpty() && editingRec == null && prefillFromHistory(plugin, typed, hist)) { /* filled */ }
                     else if (fromCall && memoryL != null) memoryL.setText("");
                 });
             } catch (Exception ignored) {}
@@ -731,6 +751,32 @@ public final class JLogContest {
             if (v != null && !v.isBlank() && c != null) { setControl(c, v); filled++; }
         }
         if (memoryL != null) memoryL.setText(filled == 0 ? "" : "Exchange filled in from your earlier QSO with " + earlier.getCallsign() + " \u2014 check it before you log.");
+    }
+    /**
+     * Call history: a station never worked in this contest usually sends what it sent before (its state, section, zone, name).
+     * Blank received fields are filled from the history, but only with a value the contest accepts for that field, and only if the
+     * operator has not started typing. @return true when at least one field was filled
+     */
+    private static boolean prefillFromHistory(ContestPlugin plugin, String call, java.util.Map<String, String> hist) {
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || isNotExchange(fd.getId())) continue;
+            if (!value(fd.getId()).isBlank()) return false;
+        }
+        int filled = 0;
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || fd.isConstant() || isNotExchange(fd.getId())) continue;
+            String key = com.ars.fx.data.CallHistory.keyForField(fd.getId());
+            String v = key == null ? null : hist.get(key);
+            Control c = fieldControls.get(fd.getId());
+            if (v == null || c == null || !acceptable(plugin, fd, v)) continue;
+            setControl(c, v); filled++;
+        }
+        if (memoryL != null && filled > 0) memoryL.setText("Exchange filled in from the call history for " + call + " \u2014 check it before you log.");
+        return filled > 0;
+    }
+    /** Would the contest take this value in this field? Anything short of a clean pass is not used. */
+    private static boolean acceptable(ContestPlugin plugin, FieldDef fd, String v) {
+        return ContestValidation.check(plugin, fd, v, true).level() == ContestValidation.Level.OK;
     }
     private static boolean isNotExchange(String id) {
         return id.equals("callsign") || id.equals("band") || id.equals("mode") || id.startsWith("rst") || id.startsWith("serial");
