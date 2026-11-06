@@ -75,7 +75,7 @@ public final class NetNode {
             java.util.concurrent.CompletableFuture<Integer> f = new java.util.concurrent.CompletableFuture<>();
             serialWaits.put(id, f);
             try {
-                c.send(NetProto.serialReq(id, local));
+                c.out(NetProto.serialReq(id, local));
                 return Math.max(local, f.get(SERIAL_WAIT_MS, TimeUnit.MILLISECONDS));
             } catch (Exception e) {
                 return local;
@@ -117,7 +117,7 @@ public final class NetNode {
     }
     private void addChat(ChatMsg m) { chat.addLast(m); while (chat.size() > CHAT_KEEP) chat.pollFirst(); fire(); }
 
-    private static final class Conn { String nonce = NetAuth.nonce(); boolean authed; String station = ""; }
+    private static final class Conn { String nonce = NetAuth.nonce(); boolean authed; String station = ""; volatile byte[] sk; }
     private static final long STALE_MS = 20_000;
 
     public NetNode(String station, String op, String key, NetStore store, Supplier<NetStatus> myStatus) {
@@ -225,10 +225,10 @@ public final class NetNode {
     public void resync() {
         if (role == Role.HOST) {
             for (Map.Entry<WebSocket, Conn> e : conns.entrySet())
-                if (e.getValue().authed && e.getKey().isOpen()) { sendHave(e.getKey()::send); e.getKey().send(NetProto.sync()); }
+                if (e.getValue().authed && e.getKey().isOpen()) { WebSocket w = e.getKey(); sendHave(m -> sendTo(w, m)); sendTo(w, NetProto.sync()); }
         } else if (role == Role.JOIN && connected) {
             Cli c = client;
-            if (c != null && c.isOpen()) { sendHave(c::send); c.send(NetProto.sync()); }
+            if (c != null && c.isOpen()) { sendHave(c::out); c.out(NetProto.sync()); }
         }
     }
 
@@ -252,22 +252,25 @@ public final class NetNode {
         }
         @Override public void onError(WebSocket ws, Exception e) { lastProblem = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage(); }
         @Override public void onMessage(WebSocket ws, String text) {
-            JsonObject m = NetProto.parse(text);
             Conn c = conns.get(ws);
+            if (c != null && c.authed && c.sk != null) { text = NetCrypt.open(c.sk, text); if (text == null) return; }      // after the handshake only sealed frames count
+            JsonObject m = NetProto.parse(text);
             if (m == null || c == null) return;
             String t = NetProto.type(m);
             if (!c.authed) {
                 if (!"hello".equals(t)) { ws.close(); return; }
                 String st = NetProto.str(m, "station");
+                if (NetProto.num(m, "v") < NetProto.VERSION) { ws.send(NetProto.reject("this station runs an older version that does not encrypt the network - update it")); ws.close(); return; }
                 if (st.isBlank() || st.equals(station) || stationInUse(st)) { ws.send(NetProto.reject("that station name is already in use")); ws.close(); return; }
                 if (!NetAuth.verify(key, c.nonce, st, NetProto.str(m, "proof"))) { ws.send(NetProto.reject("wrong key")); ws.close(); return; }
                 c.authed = true; c.station = st;
                 ws.send(NetProto.welcome(station, store.contest()));
-                sendHave(ws::send);
+                c.sk = NetCrypt.sessionKey(key, c.nonce);                      // from here on everything is sealed
+                sendHave(out -> sendTo(ws, out));
                 fire();
                 return;
             }
-            handle(m, text, ws::send, ws);
+            handle(m, text, out -> sendTo(ws, out), ws);
         }
         private boolean stationInUse(String st) { for (Conn c : conns.values()) if (c.authed && c.station.equals(st)) return true; return false; }
     }
@@ -275,18 +278,22 @@ public final class NetNode {
     // ---- the client side ---------------------------------------------------------------------------------------------
 
     private final class Cli extends WebSocketClient {
+        private volatile byte[] sk, pendingSk;                                  // the key for this connection, in force once the host has welcomed us
         Cli(URI u) { super(u); }
+        /** Sends a message, sealed once the handshake is done. */
+        void out(String msg) { byte[] k = sk; send(k == null ? msg : NetCrypt.seal(k, msg)); }
         @Override public void onOpen(ServerHandshake h) { /* the host speaks first: it sends a challenge */ }
         @Override public void onClose(int code, String reason, boolean remote) { connecting = false; connected = false; fire(); }
         @Override public void onError(Exception e) { lastProblem = "cannot reach " + joinHost + ":" + joinPort; connecting = false; fire(); }
         @Override public void onMessage(String text) {
+            if (sk != null) { text = NetCrypt.open(sk, text); if (text == null) return; }                    // after the handshake only sealed frames count
             JsonObject m = NetProto.parse(text);
             if (m == null) return;
             switch (NetProto.type(m)) {
-                case "challenge" -> send(NetProto.hello(station, op, NetAuth.proof(key, NetProto.str(m, "nonce"), station)));
-                case "welcome" -> { connected = true; lastProblem = ""; connecting = false; sendHave(this::send); fire(); }
+                case "challenge" -> { pendingSk = NetCrypt.sessionKey(key, NetProto.str(m, "nonce")); send(NetProto.hello(station, op, NetAuth.proof(key, NetProto.str(m, "nonce"), station))); }
+                case "welcome" -> { sk = pendingSk; connected = true; lastProblem = ""; connecting = false; sendHave(this::out); fire(); }
                 case "reject" -> { lastProblem = NetProto.str(m, "reason"); fire(); }
-                default -> handle(m, text, this::send, null);
+                default -> handle(m, text, this::out, null);
             }
         }
     }
@@ -369,6 +376,13 @@ public final class NetNode {
 
     // ---- sending -----------------------------------------------------------------------------------------------------
 
+    /** To one joined station, sealed with that connection's key. */
+    private void sendTo(WebSocket ws, String msg) {
+        Conn c = conns.get(ws);
+        byte[] k = c == null ? null : c.sk;
+        ws.send(k == null ? msg : NetCrypt.seal(k, msg));
+    }
+
     /** The host passes what it received on to every other joined station. */
     private void relay(String raw, WebSocket except) { if (role == Role.HOST) broadcast(raw, except); }
 
@@ -376,10 +390,10 @@ public final class NetNode {
     private void broadcast(String msg, WebSocket except) {
         if (role == Role.HOST) {
             for (Map.Entry<WebSocket, Conn> e : conns.entrySet())
-                if (e.getValue().authed && e.getKey() != except && e.getKey().isOpen()) { try { e.getKey().send(msg); } catch (Exception ignored) { } }
+                if (e.getValue().authed && e.getKey() != except && e.getKey().isOpen()) { try { sendTo(e.getKey(), msg); } catch (Exception ignored) { } }
         } else if (role == Role.JOIN && connected) {
             Cli c = client;
-            if (c != null && c.isOpen()) { try { c.send(msg); } catch (Exception ignored) { } }
+            if (c != null && c.isOpen()) { try { c.out(msg); } catch (Exception ignored) { } }
         }
     }
 

@@ -21,7 +21,8 @@ import java.util.List;
 public final class NetProto {
     private NetProto() {}
 
-    public static final int VERSION = 1;
+    /** 2: everything after the welcome is sealed ({@link NetCrypt}). */
+    public static final int VERSION = 2;
     private static final DateTimeFormatter DT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // ---- building ----------------------------------------------------------------------------------------------------
