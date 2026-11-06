@@ -30,11 +30,13 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE, not per band/mode). Pts: Phone 1, CW & Digital 2. IL entrant mult = IL counties + each US state + each Canadian province + each DXCC country. Non-IL entrant mult = IL counties. IL works everyone; non-IL scores IL contacts only (non-IL↔non-IL no credit). IL mobile/rover county-change = new QSO + new county. STANDARD/CLAIMED — built from the long-running ILQP format because the supplied document contained only WIARC website metadata (no rules body). Points/multiplier/bonus structure must be verified against the official WIARC ILQP rules PDF; the WIARC club station W9AWE may carry a sponsoring-club bonus in some years (NOT applied — off-log/claimed, not fabricated). IL county abbreviations are NOT bundled (by-exclusion, not invented). Power/operator categories not applied. The ILQP committee re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE, not per band/mode). Pts: Phone 1, CW & Digital 2. IL entrant mult = IL counties + each US state + each Canadian province + up to 5 DXCC countries (Canada, KH6 and KL7 are not DX). Bonus stations W9AWE and W9OAB: +100 each, once, added after the multiply. Non-IL entrant mult = IL counties. IL works everyone; non-IL scores IL contacts only (non-IL↔non-IL no credit). IL mobile/rover county-change = new QSO + new county. STANDARD/CLAIMED — built from the long-running ILQP format because the supplied document contained only WIARC website metadata (no rules body). Points/multiplier/bonus structure must be verified against the official WIARC ILQP rules PDF; the WIARC club station W9AWE may carry a sponsoring-club bonus in some years (NOT applied — off-log/claimed, not fabricated). IL county abbreviations are NOT bundled (by-exclusion, not invented). Power/operator categories not applied. The ILQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Illinois",
       "stateAbbr": "IL",
+      "bonusStationsOnce": { "W9AWE": 100, "W9OAB": 100 },
+      "dxMultCap": 5,
       "countyByExclusion": true,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "once",

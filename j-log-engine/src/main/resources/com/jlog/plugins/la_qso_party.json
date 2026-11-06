@@ -27,6 +27,7 @@
     { "id": "state_prov_sent", "label": "My Par/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
+  "multiplierList": "/com/jlog/counties/la.json",
   "scoringRules": {
     "pointsPerQso": 2,
     "multiplierType": "qso_party",
@@ -35,7 +36,7 @@
     "qsoParty": {
       "stateName": "Louisiana",
       "stateAbbr": "LA",
-      "countyCodeLen": 3,
+      "inStateCounties": ["ACAD", "ALLE", "ASCE", "ASSU", "AVOY", "BEAU", "BIEN", "BOSS", "CADD", "CALC", "CALD", "CAME", "CATA", "CLAI", "CONC", "DESO", "EBR", "ECAR", "EFEL", "EVAN", "FRAN", "GRAN", "IBER", "IBVL", "JACK", "JEFF", "JFDV", "LASA", "LAFA", "LAFO", "LINC", "LIVI", "MADI", "MORE", "NATC", "ORLE", "OUAC", "PLAQ", "PCP", "RAPI", "REDR", "RICH", "SABI", "SBND", "SCHL", "SHEL", "SJAM", "SJB", "SLAN", "SMT", "SMAR", "STAM", "TANG", "TENS", "TERR", "UNIO", "VERM", "VERN", "WASH", "WEBS", "WBR", "WCAR", "WFEL", "WINN"],
       "pointsByModeClass": { "PH": 2, "CD": 4 },
       "multScope": "per_band_mode",
       "mergeCwDigital": true,

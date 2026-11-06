@@ -37,6 +37,8 @@
     "qsoParty": {
       "stateName": "New Hampshire",
       "stateAbbr": "NH",
+      "dxMultCap": 10,
+      "dcCountsAsMd": true,
       "countyByExclusion": true,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "once",

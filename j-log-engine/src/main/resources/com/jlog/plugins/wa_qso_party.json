@@ -37,6 +37,7 @@
     "qsoParty": {
       "stateName": "Washington",
       "stateAbbr": "WA",
+      "dxMultCap": 10,
       "countyByExclusion": true,
       "pointsByModeClass": { "PH": 2, "CW": 3 },
       "multScope": "once",

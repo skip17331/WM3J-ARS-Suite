@@ -103,10 +103,10 @@ class CallHistoryTest {
     }
 
     @Test void aCountyInAQsoPartyIsRememberedForThatPartysState() {
-        QsoRecord r = MultCheckTest.q(qp, "K4FL", "20m", "SSB", "state_prov_rcvd", "ALA");     // an in-state Florida station, sending its county
+        QsoRecord r = MultCheckTest.q(qp, "K4FL", "20m", "SSB", "state_prov_rcvd", "ALC");     // an in-state Florida station, sending its county
         CallHistory.learn(qp, r);
         Map<String, String> h = CallHistory.get("K4FL");
-        assertEquals("ALA", h.get("county:FL"));
+        assertEquals("ALC", h.get("county:FL"));
         assertNull(h.get("state"), "a county is not a state");
         assertEquals(List.of("county:FL", "state"), CallHistory.keysForField(qp, "state_prov_rcvd"));
         assertEquals(List.of("section"), CallHistory.keysForField(ss, "section"));

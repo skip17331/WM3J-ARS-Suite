@@ -567,6 +567,9 @@ public final class ContestScorer {
             int bonusPts = 0;
             Set<String> rareSet  = c == null ? Set.of() : qpUpper(c.getRareCounties());
             Set<String> rareSeen = new HashSet<>();
+            int dxCap = c == null ? 0 : c.getDxMultCap();
+            boolean dcMd = c != null && c.isDcCountsAsMd();
+            Set<String> dxCounted = new HashSet<>();
             for (QsoRecord q : qsos) {
                 if (q.isDupe()) continue;
                 String b  = q.getBand() == null ? "" : q.getBand();
@@ -574,6 +577,7 @@ public final class ContestScorer {
                 String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
                 String R  = q.getContestField1() == null ? ""
                         : q.getContestField1().trim().toUpperCase();
+                if (dcMd && R.equals("DC")) R = "MD";
                 if (clubMemMult) {
                     if (R.chars().anyMatch(Character::isDigit))
                         mset.add("M|" + QsoParty.baseCall(call));
@@ -622,7 +626,12 @@ public final class ContestScorer {
                     } else if (isDx) {
                         if (!noDx) {
                             String e = DxccResolver.getInstance().entityOf(call);
-                            mset.add(sk + "X|" + (dxEach ? (e == null ? "DX" : e) : "DX"));
+                            String ent = dxEach ? (e == null ? "DX" : e) : "DX";
+                            // dxMultCap: only the first N distinct entities earn a multiplier
+                            if (dxCap <= 0 || dxCounted.contains(ent) || dxCounted.size() < dxCap) {
+                                dxCounted.add(ent);
+                                mset.add(sk + "X|" + ent);
+                            }
                         }
                     } else if (inStates && !R.isBlank() && !R.equals(stateAbbr)) {
                         mset.add(sk + "S|" + R);

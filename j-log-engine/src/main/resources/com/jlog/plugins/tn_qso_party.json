@@ -37,6 +37,7 @@
     "qsoParty": {
       "stateName": "Tennessee",
       "stateAbbr": "TN",
+      "dcCountsAsMd": true,
       "countyByExclusion": true,
       "multScope": "per_band",
       "inStateCountsCounties": true,

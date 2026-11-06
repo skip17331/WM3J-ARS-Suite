@@ -273,6 +273,11 @@ public class ContestPlugin {
         private int outStateGridCap;                    // out-of-state DG mult = min(#in-state grids, cap)
         private int multCap;                            // >0 ⇒ total scored mults capped at this
                                                         //   value (CQP: 58 scored of 63 possible)
+        private int dxMultCap;                          // >0 ⇒ at most this many distinct DXCC entities
+                                                        //   earn a multiplier (WA / NH / 7QP: 10, ILQP: 5);
+                                                        //   later entities still score QSO points
+        private boolean dcCountsAsMd;                   // true ⇒ a received "DC" counts as the Maryland
+                                                        //   state multiplier ("DC counts as Maryland")
         private Map<String,Integer> bonusPointCalls;    // out-of-state +pts for working these calls
         private List<String> clubMultCalls;             // each counts as a multiplier (scope-applied)
 
@@ -312,6 +317,10 @@ public class ContestPlugin {
         public void setFt8GridDivisor(int v){ this.ft8GridDivisor = v; }
         public int getOutStateGridCap(){ return outStateGridCap; }
         public void setOutStateGridCap(int v){ this.outStateGridCap = v; }
+        public int getDxMultCap(){ return dxMultCap; }
+        public void setDxMultCap(int v){ this.dxMultCap = v; }
+        public boolean isDcCountsAsMd(){ return dcCountsAsMd; }
+        public void setDcCountsAsMd(boolean v){ this.dcCountsAsMd = v; }
         public int getMultCap(){ return multCap; }
         public void setMultCap(int v){ this.multCap = v; }
         public Map<String,Integer> getBonusPointCalls(){ return bonusPointCalls; }
