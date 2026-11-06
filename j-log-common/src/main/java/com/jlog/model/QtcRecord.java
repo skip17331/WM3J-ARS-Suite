@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
  * transferred QTC is worth one point to the sender and one to the
  * receiver; the suite credits one point per stored row for the entrant.
  *
- * <p>{@code direction} is "RX" (we received this QTC from the partner)
- * or "TX" (we sent it to the partner). {@code seriesNo}/{@code seriesSize}
+ * <p>{@code direction} is "RX" or "RECEIVED" (we received this QTC from the partner)
+ * or "TX" / "SENT" (we sent it to the partner). {@code seriesNo}/{@code seriesSize}
  * form the QTC-GRP ("3/7"). The reported-QSO fields are the contents of
  * the QTC itself.
  */
