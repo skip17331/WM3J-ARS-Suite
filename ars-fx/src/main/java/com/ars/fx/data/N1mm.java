@@ -149,7 +149,7 @@ public final class N1mm {
         f.put("operator", q.getOperator() == null || q.getOperator().isBlank() ? c.opCall() : q.getOperator());
         f.put("mode", n1mmMode(q.getMode()));
         f.put("call", call);
-        f.put("countryprefix", "");
+        f.put("countryprefix", countryPrefix(call));
         f.put("wpxprefix", wpxPrefix(call));
         f.put("stationprefix", wpxPrefix(c.mycall()));
         f.put("continent", info == null || info.continent() == null ? "" : info.continent());
@@ -184,6 +184,13 @@ public final class N1mm {
         f.put("ID", id(p, q));
         f.put("IsClaimedQso", "1");
         return f;
+    }
+
+    /** The DXCC entity's own prefix for a call ("K" for any US call, "DL", "JA", "KH6" for Hawaii), as N1MM+ counts countries; "" when it cannot be placed. */
+    static String countryPrefix(String call) {
+        if (call == null || call.isBlank()) return "";
+        try { CtyData.Match m = CtyData.current().lookup(call); return m == null || m.entity().primary() == null ? "" : m.entity().primary(); }
+        catch (RuntimeException e) { return ""; }
     }
 
     /** The received exchange, by the N1MM element it belongs in: section, grid, name, power, prec, ck, zone; anything else in exchange1 then misctext. */
