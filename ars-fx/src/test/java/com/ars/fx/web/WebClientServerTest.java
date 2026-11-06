@@ -154,9 +154,15 @@ class WebClientServerTest {
         assertTrue(noRig.json().get("error").getAsString().contains("not connected"), noRig.body());
     }
 
-    @Test void spotsComeBackAsAListEvenWhenThereAreNone() throws Exception {
-        JsonObject s = get("/api/spots", token).json();
-        assertTrue(s.getAsJsonArray("spots").isEmpty());
+    @Test void spotsComeBackAsAListWithTheFieldsThePageReads() throws Exception {
+        JsonObject s = get("/api/spots?limit=3", token).json();      // whatever the shared cluster client holds in this run, up to the limit
+        assertTrue(s.get("spots").isJsonArray());
+        assertTrue(s.getAsJsonArray("spots").size() <= 3);
+        for (var e : s.getAsJsonArray("spots")) {
+            JsonObject o = e.getAsJsonObject();
+            for (String k : new String[]{"call", "freqHz", "mode", "band", "de", "comment", "ageSec"}) assertTrue(o.has(k), "a spot has " + k);
+        }
+        assertTrue(get("/api/spots?limit=abc", token).json().get("spots").isJsonArray(), "an unreadable limit means the default");
     }
 
     // ---- starting and stopping with the settings -------------------------------------------------------------
