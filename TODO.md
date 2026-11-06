@@ -3,19 +3,6 @@
 Kept in the repo so it carries over between sessions. Tick items off (`[x]`) as they are done, and delete them once they have shipped; add new ones at the top of a tier.
 Ordered by priority: do the tiers top to bottom. Size is a rough guess: S = under a day, M = a few days, L = a week or more.
 
-## 0. Built — try it and report back
-Merged or ready since v1.12.2. The code is written and the tests pass, but nobody has clicked through these in the running app yet. Tick one when you have used it; fix what it finds.
-- [ ] **S** J-Hub dashboard as the normal log: full QSO form beside the cluster, the collapsing **Log tools** column (Log mode, RTTY/CW, Heard By, Awards, Skimmer, Translator, Database tools), J-Log gone from the dock. Check widths on a small monitor.
-- [ ] **S** One-screen contest page: try a Sweepstakes, a CQ WW and a QSO party. Check the SEND line, mode default, "mults left" tile, rates and the tabs.
-- [ ] **S** Contest validation: a bogus section / precedence / zone / callsign is refused; an unrecognised state or county in a QSO party warns and needs a second Enter.
-- [ ] **S** Dupes ask permission; Edit / Erase on the contest log rows and the All QSOs window; dupe flags re-decided after an erase.
-- [ ] **S** Awards: the dock **Awards** button, the drawer's Customize link, and the **My awards** tab with the 13 Colonies template — check the K2A–K2M + WM3GPO list against the year you operate.
-- [ ] **S** Info page: the Contests / DXpeditions / Hamfests tiles, the News tile, **Feeds…**, **Sources…**, **Request a change**, and the links row at the bottom. Check the layout at your window size.
-- [ ] **S** License, Code of Conduct and legal notes open from local copies (bottom of the Info page). After the next real update, confirm `~/.j-hub/legal/installed.properties` moved to the new version.
-- [ ] **S** Beta banners on J-Digi and J-Bridge (and "(beta)" in their dock tooltips).
-- [ ] **S** Nightly release workflow: confirm a night with new code produces a release, and a night with none does not.
-- [ ] **S** Read `LEGAL.md` and correct anything about the project's licence, privacy or contact details that is not right.
-
 ## 1. On hold — verify what shipped in v1.12.2
 No label printers to test with at the moment, so these wait.
 - [ ] **S** QSL label printing (beta): try on real hardware — Brother QL-810W, DYMO LabelWriter 550, Zebra ZD421 (ZPL and driver modes). Check size, margins, rotation on narrow strip labels. Fix what it finds before adding more printers.

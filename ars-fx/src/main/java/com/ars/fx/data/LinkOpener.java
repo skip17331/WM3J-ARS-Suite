@@ -45,6 +45,31 @@ public final class LinkOpener {
         t.start();
     }
 
+    /** Opens a file or folder with the desktop's default program, off the UI thread; {@code onFail} (may be null) runs on the FX thread if it did not work. */
+    public static void openFile(java.nio.file.Path path, Runnable onFail) {
+        Thread t = new Thread(() -> {
+            boolean ok = false;
+            try {
+                String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+                String[] cmd = null;
+                if (os.contains("linux") || os.contains("bsd")) cmd = new String[]{"xdg-open", path.toString()};
+                else if (os.contains("mac")) cmd = new String[]{"open", path.toString()};
+                if (cmd != null) {
+                    Process p = new ProcessBuilder(cmd).redirectErrorStream(true)
+                            .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+                    ok = p.waitFor(10, java.util.concurrent.TimeUnit.SECONDS) ? p.exitValue() == 0 : true;
+                } else if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
+                    java.awt.Desktop.getDesktop().open(path.toFile()); ok = true;
+                } else {
+                    new ProcessBuilder("explorer", path.toString()).start(); ok = true;
+                }
+            } catch (Throwable e) { ok = false; }
+            if (!ok && onFail != null) javafx.application.Platform.runLater(onFail);
+        }, "open-file");
+        t.setDaemon(true);
+        t.start();
+    }
+
     private static void launch(String url) {
         String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         try {

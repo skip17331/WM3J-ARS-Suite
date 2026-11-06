@@ -881,7 +881,7 @@ public final class JLogContest {
             }
             List<String> ids = plugin.getEntryFields().stream().map(FieldDef::getId).filter(i -> !i.equals("band") && !i.equals("mode")).toList();
             java.nio.file.Path f = ContestLayout.ensureUserFile(plugin, tabs, ids);
-            try { java.awt.Desktop.getDesktop().open(f.toFile()); } catch (Throwable t) { setB4("Layout file: " + f, "new"); }
+            com.ars.fx.data.LinkOpener.openFile(f, () -> setB4("Layout file: " + f, "new"));
         } catch (Exception e) { setB4("Could not make the layout file: " + e.getMessage(), "dupe"); }
     }
 
