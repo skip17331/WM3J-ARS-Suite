@@ -49,14 +49,8 @@ public final class LogDbInfo {
     public static boolean openFolder(Path dir) {
         try {
             Files.createDirectories(dir);
-            if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
-                java.awt.Desktop.getDesktop().open(dir.toFile()); return true;
-            }
-            String os = System.getProperty("os.name", "").toLowerCase();
-            String[] cmd = os.contains("win") ? new String[]{"explorer", dir.toString()}
-                         : os.contains("mac") ? new String[]{"open", dir.toString()}
-                         : new String[]{"xdg-open", dir.toString()};
-            new ProcessBuilder(cmd).start(); return true;
+            LinkOpener.openFile(dir, null);   // off the UI thread: AWT Desktop can hang JavaFX on Linux
+            return true;
         } catch (Throwable t) { return false; }
     }
 }

@@ -152,7 +152,7 @@ final class CustomAwardsView {
             try {
                 Path html = CustomAwards.exportHtml(shown[0], exports(), com.ars.fx.data.HubConfig.call());
                 status.setText("Saved " + html);
-                try { java.awt.Desktop.getDesktop().browse(html.toUri()); } catch (Throwable t) { /* the file is saved; open it yourself */ }
+                com.ars.fx.data.LinkOpener.openFile(html, null);   // the file is saved; if no browser opens, open it yourself
             } catch (Exception ex) { status.setText("Could not make the sheet: " + ex.getMessage()); }
         });
         Label refresh = lbl("\u27f3 Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
