@@ -68,6 +68,7 @@ public final class NetProto {
         JsonObject o = obj("status");
         o.addProperty("station", s.station()); o.addProperty("op", s.op()); o.addProperty("c", s.contest());
         o.addProperty("band", s.band()); o.addProperty("mode", s.mode()); o.addProperty("freq", s.freqHz());
+        o.addProperty("clock", System.currentTimeMillis());                // our clock, so the others can see how far off it is
         return o.toString();
     }
 
@@ -130,6 +131,8 @@ public final class NetProto {
     public static NetStatus statusFrom(JsonObject m) {
         String st = str(m, "station");
         if (st.isBlank()) return null;
-        return new NetStatus(st, str(m, "op"), str(m, "c").isEmpty() ? null : str(m, "c"), str(m, "band"), str(m, "mode"), num(m, "freq"), System.currentTimeMillis());
+        long now = System.currentTimeMillis(), sent = num(m, "clock");
+        return new NetStatus(st, str(m, "op"), str(m, "c").isEmpty() ? null : str(m, "c"), str(m, "band"), str(m, "mode"), num(m, "freq"), now,
+                sent > 0 ? sent - now : 0);                             // unknown (an older build) reads as no skew
     }
 }
