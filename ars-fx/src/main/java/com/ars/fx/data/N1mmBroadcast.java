@@ -29,12 +29,16 @@ public final class N1mmBroadcast {
     private N1mmBroadcast() {}
 
     public static final String KEY_ENABLED = "n1mm.enabled", KEY_DEST = "n1mm.dest", KEY_CONTACTS = "n1mm.contacts",
-            KEY_RADIO = "n1mm.radio", KEY_LOOKUP = "n1mm.lookup", KEY_SCORE = "n1mm.score";
+            KEY_RADIO = "n1mm.radio", KEY_LOOKUP = "n1mm.lookup", KEY_SCORE = "n1mm.score",
+            KEY_SPOTS = "n1mm.spots", KEY_NORMAL = "n1mm.normal", KEY_ALLCOMP = "n1mm.allComputers";
+    /** The message kinds that can be sent to an address of their own: the setting is {@code n1mm.dest.<kind>}, blank = the main address. */
+    public static final List<String> KINDS = List.of("contacts", "lookup", "radio", "score", "spots", "appinfo");
     public static final String DEFAULT_DEST = "127.0.0.1:12060";
     public static final int DEFAULT_PORT = 12060, CONTEST_NR = 1;
 
-    private static Consumer<String> senderOverride;                     // tests
-    static void setSenderForTest(Consumer<String> s) { senderOverride = s; }
+    private static java.util.function.BiConsumer<String, String> senderOverride;      // tests: (kind, xml)
+    static void setSenderForTest(Consumer<String> s) { senderOverride = s == null ? null : (k, x) -> s.accept(x); }
+    static void setKindSenderForTest(java.util.function.BiConsumer<String, String> s) { senderOverride = s; }
 
     private static final ScheduledExecutorService POOL = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "n1mm-udp"); t.setDaemon(true); return t;
@@ -66,6 +70,13 @@ public final class N1mmBroadcast {
         return out;
     }
 
+    /** The addresses for a kind of message: its own setting if it has one that names at least one address, else the main one. */
+    public static List<InetSocketAddress> destinationsFor(String kind) {
+        String own = HubConfig.get(KEY_DEST + "." + kind, "").trim();
+        if (!own.isEmpty()) { List<InetSocketAddress> l = destinations(own); if (!l.isEmpty()) return l; }
+        return destinations(HubConfig.get(KEY_DEST, DEFAULT_DEST));
+    }
+
     /** Starts the rig-frequency reports. Call once at start-up; sending stays off until the operator enables it. */
     public static synchronized void init() {
         if (started) return;
@@ -73,31 +84,34 @@ public final class N1mmBroadcast {
         RigClient.getInstance().addListener(s -> { lastRadio = s; radioIfChanged(s); });
         POOL.scheduleWithFixedDelay(() -> { try { RigClient.State s = lastRadio; if (s != null) sendRadio(s); } catch (Throwable ignored) { } }, 10, 10, TimeUnit.SECONDS);
         ContestState.addListener(() -> { try { score(); } catch (Throwable ignored) { } });
+        ClusterClient.getInstance().addListener("n1mm-spots", cc -> { try { spotsHeard(cc.spots()); } catch (Throwable ignored) { } });
+        HubConfig.addChangeListener(k -> { if (k != null && k.startsWith("n1mm.")) N1mmListener.apply(); });
+        N1mmListener.apply();
     }
 
     // ---- the messages ------------------------------------------------------------------------------------------------
 
     public static void contactAdded(ContestPlugin p, QsoRecord q, boolean newMult) {
         if (!on(KEY_CONTACTS, true)) return;
-        send(N1mm.contactInfo(p, q, ctx(q.getBand(), newMult, null)));
+        send("contacts", N1mm.contactInfo(p, q, ctx(q.getBand(), newMult, null)));
     }
     public static void contactEdited(ContestPlugin p, QsoRecord q, String oldCall) {
         if (!on(KEY_CONTACTS, true)) return;
-        send(N1mm.contactReplace(p, q, ctx(q.getBand(), false, oldCall)));
+        send("contacts", N1mm.contactReplace(p, q, ctx(q.getBand(), false, oldCall)));
     }
     public static void contactDeleted(ContestPlugin p, QsoRecord q) {
         if (!on(KEY_CONTACTS, true)) return;
-        send(N1mm.contactDelete(p, q, ctx(q.getBand(), false, null)));
+        send("contacts", N1mm.contactDelete(p, q, ctx(q.getBand(), false, null)));
     }
     /** The call typed so far, sent when Space is pressed (before the QSO is logged). */
     public static void lookup(ContestPlugin p, QsoRecord candidate) {
         if (!on(KEY_LOOKUP, true) || candidate.getCallsign() == null || candidate.getCallsign().isBlank()) return;
-        send(N1mm.lookupInfo(p, candidate, ctx(candidate.getBand(), false, null)));
+        send("lookup", N1mm.lookupInfo(p, candidate, ctx(candidate.getBand(), false, null)));
     }
     /** The contest being worked, when its page opens. */
     public static void appInfo(ContestPlugin p) {
         if (!enabled() || p == null) return;
-        send(N1mm.appInfo(p, ctx("", false, null)));
+        send("appinfo", N1mm.appInfo(p, ctx("", false, null)));
     }
     /** The score so far; at most once every two seconds, and only if the operator asked for it. */
     public static void score() {
@@ -113,7 +127,73 @@ public final class N1mmBroadcast {
         cab.put("band", HubConfig.get("contest.cab.band", "ALL"));
         cab.put("mode", HubConfig.get("contest.cab.mode", "MIXED"));
         cab.put("club", HubConfig.get("contest.cab.club", ""));
-        send(N1mm.score(p, ContestState.qsos(), ContestState.score().score(), ctx("", false, null), cab, HubConfig.grid()));
+        send("score", N1mm.score(p, ContestState.qsos(), ContestState.score().score(), ctx("", false, null), cab, HubConfig.grid()));
+    }
+
+    // ---- spots, the normal log, and contacts passed on from other computers -----------------------------------------------
+
+    private static volatile long lastSpotMs = System.currentTimeMillis();            // only spots that arrive after start-up (or after the switch is turned on)
+
+    /** Sends each cluster spot not sent before, oldest first. Returns how many went out. With spots switched off it only notes the newest, so turning them on does not send the backlog. */
+    static int spotsHeard(List<ClusterClient.Spot> spots) {
+        long newest = lastSpotMs;
+        for (ClusterClient.Spot s : spots) newest = Math.max(newest, s.arrivalMs());
+        if (!on(KEY_SPOTS, false)) { lastSpotMs = newest; return 0; }
+        List<ClusterClient.Spot> fresh = new ArrayList<>();
+        for (ClusterClient.Spot s : spots) if (s.arrivalMs() > lastSpotMs) fresh.add(s);
+        fresh.sort(java.util.Comparator.comparingLong(ClusterClient.Spot::arrivalMs));
+        lastSpotMs = newest;
+        int n = 0;
+        for (ClusterClient.Spot s : fresh) {
+            if (n >= 40) break;                                                     // a burst after a reconnect is not worth flooding the network with
+            java.time.LocalDateTime t = java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(s.arrivalMs()), java.time.ZoneOffset.UTC);
+            send("spots", N1mm.spot(new N1mm.SpotMsg(s.call(), s.freqHz(), s.de(), s.comment(), s.mode(), t, "add", ""), ctx(s.band(), false, null)));
+            n++;
+        }
+        return n;
+    }
+
+    /** A QSO of the normal log, for the messages below. {@code dbId} is its row, which keeps the same ID through an edit. */
+    public record NormalQso(long dbId, String utc, String call, String freqMhz, String band, String mode, String rstSent, String rstRcvd, String name, String comment) {}
+
+    /** A QSO read back from the normal log. */
+    public static NormalQso of(JLogDb.QsoFull q) {
+        return new NormalQso(q.id(), q.datetimeUtc(), q.call(), q.freq(), q.band(), q.mode(), q.rstSent(), q.rstRcvd(), q.name(), q.notes());
+    }
+
+    static QsoRecord record(NormalQso n) {
+        QsoRecord r = new QsoRecord();
+        r.setId(n.dbId());
+        r.setCallsign(n.call()); r.setBand(n.band()); r.setMode(n.mode());
+        r.setRstSent(n.rstSent()); r.setRstReceived(n.rstRcvd()); r.setNotes(n.comment());
+        try { r.setDateTimeUtc(java.time.LocalDateTime.parse(n.utc().trim().replace('T', ' '), java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))); }
+        catch (RuntimeException e) { r.setDateTimeUtc(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC)); }
+        return r;
+    }
+    private static N1mm.Ctx ctxFor(NormalQso n, String oldCall) {
+        N1mm.Ctx base = ctx(n.band(), false, oldCall);
+        try { double mhz = Double.parseDouble(n.freqMhz().trim()); if (mhz > 0) return new N1mm.Ctx(base.mycall(), base.stationName(), base.opCall(), Math.round(mhz * 1e6), false, oldCall, base.contestNr()); }
+        catch (RuntimeException ignored) { /* the band's usual frequency */ }
+        return base;
+    }
+    /** The normal log has no contest, so these go out with an empty contest name and no exchange: enough for a program that marks calls worked. */
+    public static void normalAdded(NormalQso n) {
+        if (!on(KEY_NORMAL, true) || !on(KEY_CONTACTS, true)) return;
+        send("contacts", N1mm.contactInfo(null, record(n), ctxFor(n, null)));
+    }
+    public static void normalEdited(NormalQso n, String oldCall) {
+        if (!on(KEY_NORMAL, true) || !on(KEY_CONTACTS, true)) return;
+        send("contacts", N1mm.contactReplace(null, record(n), ctxFor(n, oldCall)));
+    }
+    public static void normalDeleted(NormalQso n) {
+        if (!on(KEY_NORMAL, true) || !on(KEY_CONTACTS, true)) return;
+        send("contacts", N1mm.contactDelete(null, record(n), ctxFor(n, null)));
+    }
+
+    /** A contest QSO that came in from another computer on the contest network, passed on as N1MM+'s "All Computers" does. Off by default. */
+    public static void forwarded(ContestPlugin p, QsoRecord q) {
+        if (!on(KEY_CONTACTS, true) || !on(KEY_ALLCOMP, false) || q == null) return;
+        send("contacts", N1mm.contactForwarded(p, q, ctx(q.getBand(), false, null)));
     }
 
     private static void radioIfChanged(RigClient.State s) {
@@ -126,7 +206,7 @@ public final class N1mmBroadcast {
     private static void sendRadio(RigClient.State s) {
         if (!on(KEY_RADIO, true) || s == null || !s.connected() || s.freqHz() <= 0) return;
         lastRadioSent = System.currentTimeMillis(); lastRadioSentState = s;
-        send(N1mm.radioInfo(new N1mm.Radio(true, s.freqHz(), s.split() && s.vfoBHz() > 0 ? s.vfoBHz() : s.freqHz(), s.mode(), s.split(), s.ptt(), 1, HubConfig.call(), ""),
+        send("radio", N1mm.radioInfo(new N1mm.Radio(true, s.freqHz(), s.split() && s.vfoBHz() > 0 ? s.vfoBHz() : s.freqHz(), s.mode(), s.split(), s.ptt(), 1, HubConfig.call(), ""),
                 ctx("", false, null)));
     }
 
@@ -150,9 +230,9 @@ public final class N1mmBroadcast {
     }
 
     /** Queues a message for every destination. Returns at once; a failure is swallowed (a dead address must never stop the logger). */
-    static void send(String xml) {
-        if (senderOverride != null) { senderOverride.accept(xml); return; }
-        List<InetSocketAddress> to = destinations(HubConfig.get(KEY_DEST, DEFAULT_DEST));
+    static void send(String kind, String xml) {
+        if (senderOverride != null) { senderOverride.accept(kind, xml); return; }
+        List<InetSocketAddress> to = destinationsFor(kind);
         if (to.isEmpty()) return;
         byte[] data = xml.getBytes(StandardCharsets.UTF_8);
         POOL.execute(() -> {

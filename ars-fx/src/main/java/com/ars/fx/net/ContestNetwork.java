@@ -119,6 +119,7 @@ public final class ContestNetwork {
         @Override public Meta metaOf(String uid) throws Exception { return dao.metaOf(uid); }
         @Override public void apply(QsoRecord q) throws Exception {
             dao.applyReplica(q);
+            try { com.ars.fx.data.N1mmBroadcast.forwarded(com.jlog.plugin.PluginLoader.getInstance().getById(q.getContestId()), q); } catch (RuntimeException ignored) { }   // N1MM+'s All Computers: pass it on
             try { com.ars.fx.data.CallHistory.learnAsync(com.jlog.plugin.PluginLoader.getInstance().getById(q.getContestId()), q); } catch (RuntimeException ignored) { }   // what another station logged is history too
         }
         @Override public void applyDelete(String uid, String c, long ts) throws Exception { dao.applyReplicaDelete(uid, c, ts); }

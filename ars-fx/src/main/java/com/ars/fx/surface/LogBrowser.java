@@ -124,7 +124,7 @@ final class LogBrowser {
                             + " · " + nz(q.band()) + " " + nz(q.mode()) + "\nThis cannot be undone.",
                     new Confirm.Choice("Cancel", false, null),
                     new Confirm.Choice("Delete", true, () -> {
-                        if (JLogDb.delete(q.id())) { reload.run(); if (afterChange != null) afterChange.run(); }
+                        if (JLogDb.delete(q.id())) { com.ars.fx.data.N1mmBroadcast.normalDeleted(com.ars.fx.data.N1mmBroadcast.of(q)); reload.run(); if (afterChange != null) afterChange.run(); }
                     }));
         });
 
