@@ -299,7 +299,9 @@ public final class JLogCockpit {
             call.requestFocus();
         };
         Consumer<Long> onDelete = id -> {
+            JLogDb.QsoFull gone = JLogDb.byId(id);
             if (JLogDb.delete(id)) {
+                if (gone != null) com.ars.fx.data.N1mmBroadcast.normalDeleted(com.ars.fx.data.N1mmBroadcast.of(gone));
                 if (editId[0] == id) exitEdit.run();
                 refresh[0].run();
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
@@ -320,12 +322,19 @@ public final class JLogCockpit {
             String dt = manualTime[0] ? composeDt(dateF.getText(), timeF.getText()) : null;
             com.ars.fx.data.JLogDb.Refs refs = new com.ars.fx.data.JLogDb.Refs(iota.getText(), sota.getText(), pota.getText(),
                     baseRefs[0].cqz(), baseRefs[0].ituz(), cQsl.isSelected(), cLotw.isSelected(), cEqsl.isSelected());
+            JLogDb.QsoFull before = editId[0] >= 0 ? JLogDb.byId(editId[0]) : null;
             boolean ok = (editId[0] >= 0)
                     ? JLogDb.update(editId[0], dt, call.getText(), freq.getText(), bandVal, mode.getText(),
                             rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs)
                     : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
                             rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs);
             if (ok) {
+                long rowId = editId[0] >= 0 ? editId[0] : JLogDb.maxId();
+                JLogDb.QsoFull saved = JLogDb.byId(rowId);
+                if (saved != null) {
+                    if (editId[0] >= 0) com.ars.fx.data.N1mmBroadcast.normalEdited(com.ars.fx.data.N1mmBroadcast.of(saved), before == null ? saved.call() : before.call());
+                    else com.ars.fx.data.N1mmBroadcast.normalAdded(com.ars.fx.data.N1mmBroadcast.of(saved));
+                }
                 if (editId[0] < 0) printQsl.afterSave(new com.ars.fx.data.QslLabel.Qso(call.getText(), dt, freq.getText(), bandVal,
                         mode.getText(), rsnt.getText(), rrcv.getText(), name.getText(), qth.getText()));
                 exitEdit.run();

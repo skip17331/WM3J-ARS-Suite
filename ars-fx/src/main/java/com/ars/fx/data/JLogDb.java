@@ -148,6 +148,13 @@ public final class JLogDb {
         return null;
     }
 
+    /** The newest row's id (the QSO just inserted, in a single-operator log), or 0. */
+    public static long maxId() {
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement("SELECT MAX(id) FROM qso"); java.sql.ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getLong(1) : 0;
+        } catch (Throwable t) { return 0; }
+    }
+
     /** Delete a logged QSO. */
     public static boolean delete(long id) {
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement("DELETE FROM qso WHERE id=?")) {

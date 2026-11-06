@@ -130,6 +130,65 @@ public final class N1mm {
         return b.toString();
     }
 
+    // ---- a spot, a forwarded contact, and the one message N1MM+ receives that we act on ---------------------------------
+
+    /** A DX cluster spot, for {@code <spot>}. {@code action} is "add" or "delete"; {@code status} is one of N1MM+'s words (single mult, dupe, ...) or "". */
+    public record SpotMsg(String dxCall, long freqHz, String spotter, String comment, String mode, LocalDateTime time, String action, String status) {}
+
+    /**
+     * The {@code <spot>} message. N1MM+'s document shows the frequency as 7061.2 for a 40 m CW spot, so it is written in kHz with one decimal
+     * (the document does not name the unit), and the time as {@code yyyy-MM-dd HH:mm:ss} like every other message (its own example has typos).
+     */
+    public static String spot(SpotMsg m, Ctx c) {
+        Map<String, String> f = new LinkedHashMap<>();
+        f.put("app", APP);
+        f.put("StationName", c.stationName());
+        f.put("dxcall", up(m.dxCall()));
+        f.put("frequency", String.format(Locale.ROOT, "%.1f", m.freqHz() / 1000.0));
+        f.put("spottercall", up(m.spotter()));
+        f.put("timestamp", ts(m.time()));
+        f.put("action", "delete".equalsIgnoreCase(m.action()) ? "delete" : "add");
+        f.put("mode", n1mmMode(m.mode()));
+        f.put("comment", nz(m.comment()));
+        f.put("status", nz(m.status()));
+        f.put("statuslist", nz(m.status()));
+        return xml("spot", f);
+    }
+
+    /** A contact this computer received from another one and is passing on ("All Computers"): the same message with IsOriginal false. */
+    public static String contactForwarded(ContestPlugin p, QsoRecord q, Ctx c) {
+        Map<String, String> f = contactFields(p, q, c, false);
+        f.put("IsOriginal", "False");
+        return xml("contactinfo", f);
+    }
+
+    /** What an external program (a waterfall, a bandmap) asks for in {@code <radio_setfrequency>}: radio number and frequency. */
+    public record SetFrequency(int radioNr, long freqHz) {}
+
+    private static final Pattern SF_ROOT = Pattern.compile("<\\s*radio_setfrequency\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SF_FREQ = Pattern.compile("<\\s*frequency\\s*>\\s*([0-9]{1,9}(?:\\.[0-9]{1,6})?)\\s*<\\s*/\\s*frequency\\s*>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SF_RADIO = Pattern.compile("<\\s*radionr\\s*>\\s*([0-9]{1,2})\\s*<\\s*/\\s*radionr\\s*>", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Reads a {@code <radio_setfrequency>} message. N1MM+'s document gives the example 14053.284 and does not name the unit; it is read as kHz.
+     * Null for anything else, for a message with no usable frequency, and for one with a DOCTYPE or entity (it is read as text, never parsed
+     * as XML, so a hostile packet cannot do more than be ignored).
+     */
+    public static SetFrequency parseSetFrequency(String xml) {
+        if (xml == null || xml.length() > 4096 || !SF_ROOT.matcher(xml).find()) return null;
+        String low = xml.toLowerCase(Locale.ROOT);
+        if (low.contains("<!doctype") || low.contains("<!entity")) return null;
+        Matcher fm = SF_FREQ.matcher(xml);
+        if (!fm.find()) return null;
+        double khz;
+        try { khz = Double.parseDouble(fm.group(1)); } catch (NumberFormatException e) { return null; }
+        long hz = Math.round(khz * 1000.0);
+        if (hz < 100_000L || hz > 450_000_000L) return null;                 // 100 kHz to 450 MHz: nothing outside the radio's range is a QSY
+        Matcher rm = SF_RADIO.matcher(xml);
+        int radio = rm.find() ? Integer.parseInt(rm.group(1)) : 1;
+        return new SetFrequency(radio, hz);
+    }
+
     // ---- a contact, field by field -----------------------------------------------------------------------------------
 
     static Map<String, String> contactFields(ContestPlugin p, QsoRecord q, Ctx c, boolean replace) {
