@@ -35,6 +35,7 @@
     "qsoParty": {
       "stateName": "Oklahoma",
       "stateAbbr": "OK",
+      "dcCountsAsMd": true,
       "countyCodeLen": 3,
       "pointsByModeClass": { "PH": 2, "CW": 3, "DG": 3 },
       "multScope": "once",

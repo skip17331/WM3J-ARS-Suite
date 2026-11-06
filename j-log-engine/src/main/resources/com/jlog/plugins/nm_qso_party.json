@@ -35,6 +35,7 @@
     "qsoParty": {
       "stateName": "New Mexico",
       "stateAbbr": "NM",
+      "dcCountsAsMd": true,
       "inStateCounties": ["BER","CAT","CHA","CIB","COL","CUR","DEB","DON","EDD","GRA","GUA","HAR","HID","LEA","LIN","LOS","LUN","MCK","MOR","OTE","QUA","RIO","ROO","SJU","SMI","SAN","SFE","SIE","SOC","TAO","TOR","UNI","VAL"],
       "pointsByModeClass": { "PH": 1, "CW": 2, "RY": 2, "DG": 2 },
       "multScope": "once",

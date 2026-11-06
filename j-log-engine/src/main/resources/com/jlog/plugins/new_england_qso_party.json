@@ -35,6 +35,7 @@
     "qsoParty": {
       "stateName": "New England",
       "stateAbbr": "NE",
+      "dcCountsAsMd": true,
       "countyByExclusion": true,
       "areaStatePrefixLen": 2,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },

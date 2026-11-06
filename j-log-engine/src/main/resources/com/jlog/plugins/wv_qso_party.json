@@ -35,6 +35,7 @@
     "qsoParty": {
       "stateName": "West Virginia",
       "stateAbbr": "WV",
+      "dcCountsAsMd": true,
       "countyByExclusion": true,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "once",

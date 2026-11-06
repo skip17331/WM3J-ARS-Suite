@@ -31,7 +31,7 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × Σ mults, counted ONCE not per band) + bonus-station pts + bonuses. Pts: CW 2, Phone 1 (SSB/FM/AM = one mode). PA entrant mult = ARRL sections + Canadian sections + PA counties + 1 DX. Non-PA entrant mult = 67 PA counties. PA works everyone; non-PA scores PA contacts only. Work once per band/mode; Rovers/Mobiles re-worked on county change. Bonus station N3XF (Somerset Co, 2025) = 200 points per valid QSO (overrides QSO pts) + its normal county multiplier. PA-county detection uses the bundled pa.json (67 codes) so 3-letter ARRL/Canadian section tokens are NOT mis-read as PA counties; official paqso.org abbreviations govern — claimed, the PA QSO Party Association re-adjudicates & rescores. NOT applied (off-log/category): QRP ×2 QSO-point multiplier (QRP-division-dependent); PA Mobile/Rover +500 per county with ≥10 QSOs (entrant-self); power/operator/portable categories.",
+    "scoreFormula": "(Σ QSO pts × Σ mults, counted ONCE not per band) + bonus-station pts + bonuses. Pts: CW 2, Phone 1 (SSB/FM/AM = one mode). PA entrant mult = ARRL sections + Canadian sections + PA counties + 1 DX. Non-PA entrant mult = 67 PA counties. PA works everyone; non-PA scores PA contacts only. Work once per band/mode; Rovers/Mobiles re-worked on county change. Bonus station K3ZMC (Pottstown Area ARC, Montgomery Co, 2026) = 200 points per valid QSO (overrides QSO pts) + its normal county multiplier. PA-county detection uses the bundled pa.json (67 codes) so 3-letter ARRL/Canadian section tokens are NOT mis-read as PA counties; official paqso.org abbreviations govern — claimed, the PA QSO Party Association re-adjudicates & rescores. NOT applied (off-log/category): QRP ×2 QSO-point multiplier (QRP-division-dependent); PA Mobile/Rover +500 per county with ≥10 QSOs (entrant-self); power/operator/portable categories.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Pennsylvania",
@@ -45,7 +45,7 @@
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
       "inStateNoDxMult": false,
-      "qsoPointCalls": { "N3XF": 200 },
+      "qsoPointCalls": { "K3ZMC": 200 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }

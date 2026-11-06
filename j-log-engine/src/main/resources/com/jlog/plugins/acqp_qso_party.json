@@ -35,6 +35,7 @@
     "qsoParty": {
       "stateName": "Atlantic Canada",
       "stateAbbr": "AC",
+      "dcCountsAsMd": true,
       "countyByExclusion": true,
       "areaStatePrefixLen": 2,
       "multScope": "per_band",

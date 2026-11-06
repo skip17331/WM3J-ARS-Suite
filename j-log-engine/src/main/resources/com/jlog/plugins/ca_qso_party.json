@@ -31,13 +31,13 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ SCORED mults (counted ONCE, not per band/mode; CAPPED at 58). Pts: Phone 2, CW 3. CA entrant mult = 49 other US states + CA itself (the first CA county QSO = the CA multiplier) + 13 Canadian provinces/territories = 63 possible, but only the top 58 are SCORED; DX = QSO credit only (no mult). Non-CA entrant mult = the 58 CA counties. CA works everyone; non-CA scores CA contacts only (non-CA↔non-CA no QSO credit). CA mobile county/state-change = new QSO + new mult. Claimed/running — the NCCC CQP committee re-adjudicates. NOT applied (category): power/operator/expedition categories.",
+    "scoreFormula": "Σ QSO pts × Σ SCORED mults (counted ONCE, not per band/mode; CAPPED at 58). Pts: Phone 3 (new in 2026), CW 3. CA entrant mult = 49 other US states + CA itself (the first CA county QSO = the CA multiplier) + 13 Canadian provinces/territories = 63 possible, but only the top 58 are SCORED; DX = QSO credit only (no mult). Non-CA entrant mult = the 58 CA counties. CA works everyone; non-CA scores CA contacts only (non-CA↔non-CA no QSO credit). CA mobile county/state-change = new QSO + new mult. Claimed/running — the NCCC CQP committee re-adjudicates. NOT applied (category): power/operator/expedition categories.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "California",
       "stateAbbr": "CA",
       "countyByExclusion": true,
-      "pointsByModeClass": { "PH": 2, "CW": 3 },
+      "pointsByModeClass": { "PH": 3, "CW": 3 },
       "multScope": "once",
       "multCap": 58,
       "inStateCountsCounties": false,

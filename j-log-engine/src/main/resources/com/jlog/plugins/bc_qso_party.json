@@ -37,6 +37,7 @@
     "qsoParty": {
       "stateName": "British Columbia",
       "stateAbbr": "BC",
+      "dcCountsAsMd": true,
       "countyCodeLen": 3,
       "pointsByModeClass": { "PH": 2, "CW": 4 },
       "multScope": "per_band_mode",

@@ -37,6 +37,7 @@
     "qsoParty": {
       "stateName": "Texas",
       "stateAbbr": "TX",
+      "dcCountsAsMd": true,
       "countyByExclusion": true,
       "pointsByModeClass": { "PH": 2, "CW": 3, "DG": 3 },
       "multScope": "once",
