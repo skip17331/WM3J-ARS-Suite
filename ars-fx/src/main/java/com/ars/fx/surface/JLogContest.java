@@ -371,7 +371,7 @@ public final class JLogContest {
         body.getChildren().add(similarL);
         scpBox = new com.ars.fx.surface.contest.ScpBox(c -> {
             if (fieldControls.get("callsign") instanceof TextField cf) { cf.setText(c); cf.requestFocus(); cf.positionCaret(c.length()); }
-        }, workedInContest());
+        }, workedInContest(), com.ars.fx.data.ScpStore.listFor(plugin));
         body.getChildren().add(scpBox);
         body.getChildren().add(memoryL);
 

@@ -9,7 +9,6 @@ import javafx.scene.layout.VBox;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static com.ars.fx.shell.Shell.lbl;
@@ -21,21 +20,26 @@ import static com.ars.fx.shell.Shell.lbl;
  */
 public final class ScpBox extends VBox {
     private static final int SHOWN = 14, NEAR_SHOWN = 6;
-    private static final AtomicBoolean checked = new AtomicBoolean();      // one network check per run of the app; ScpStore also rations itself to once a day
+    private static final java.util.Set<ScpStore.Kind> checked = java.util.concurrent.ConcurrentHashMap.newKeySet();      // one network check per list per run of the app; ScpStore also rations itself to once a day
 
     private final Label status = lbl("", "ct-note");
     private final FlowPane partial = new FlowPane(8, 4), near = new FlowPane(8, 4);
     private final Label nearHead = lbl("", "ct-note");
     private final Consumer<String> pick;
     private final java.util.function.Predicate<String> worked;     // is this call already in the log? Marked on its chip.
+    private final ScpStore.Kind kind;
     private ScpData data = ScpData.EMPTY;
     private String lastTyped = "";
 
     public ScpBox(Consumer<String> pick) { this(pick, c -> false); }
 
     /** @param worked says whether a call is already in the log being worked in; its chip is dimmed and ticked. */
-    public ScpBox(Consumer<String> pick, java.util.function.Predicate<String> worked) {
+    public ScpBox(Consumer<String> pick, java.util.function.Predicate<String> worked) { this(pick, worked, ScpStore.Kind.MASTER); }
+
+    /** @param kind which of the site's lists to check against (see {@link ScpStore#listFor}). */
+    public ScpBox(Consumer<String> pick, java.util.function.Predicate<String> worked, ScpStore.Kind kind) {
         super(4);
+        this.kind = kind == null ? ScpStore.Kind.MASTER : kind;
         this.pick = pick;
         this.worked = worked == null ? c -> false : worked;
         nearHead.setStyle("-fx-text-fill:-ars-warn;-fx-font-weight:bold;");
@@ -49,11 +53,11 @@ public final class ScpBox extends VBox {
     /** Reads the database off the UI thread, and once per run asks the site whether there is a newer one. */
     private void load() {
         Thread t = new Thread(() -> {
-            ScpData d = ScpStore.current();
+            ScpData d = ScpStore.current(kind);
             Platform.runLater(() -> { data = d; update(lastTyped); });
-            if (checked.compareAndSet(false, true)) {
-                ScpStore.Outcome o = ScpStore.refresh(Instant.now(), false);
-                if (o.changed()) Platform.runLater(() -> { data = ScpStore.current(); update(lastTyped); });
+            if (checked.add(kind)) {
+                ScpStore.Outcome o = ScpStore.refresh(kind, Instant.now(), false);
+                if (o.changed()) Platform.runLater(() -> { data = ScpStore.current(kind); update(lastTyped); });
             }
         }, "scp-load");
         t.setDaemon(true); t.start();
@@ -70,7 +74,7 @@ public final class ScpBox extends VBox {
             return;
         }
         String core = ScpData.core(lastTyped);
-        String head = "SUPER CHECK PARTIAL · " + String.format("%,d", data.size()) + " calls" + (data.release().isEmpty() ? "" : " · release " + data.release());
+        String head = "SUPER CHECK PARTIAL" + (kind == ScpStore.Kind.MASTER ? "" : " (" + kind.about + ")") + " · " + String.format("%,d", data.size()) + " calls" + (data.release().isEmpty() ? "" : " · release " + data.release());
         if (core.length() < 2) { status.setText(head); return; }
         ScpData.Result r = data.partial(core, SHOWN);
         boolean known = data.contains(core);
