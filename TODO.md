@@ -39,7 +39,8 @@ From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the
 
 ## 3. Then — features operators will notice
 - [ ] **M** J-Map: point-to-point tracks (ham to ham) — draw the path between two stations on the map.
-- [ ] **M** Beacon mode: look at it, get it working, and set up an auto-QSY mode.
+- [ ] **S** Try the J-Map beacon QSY (PR #122) with a connected rig: the QSY box on the map, the live now / next line in the NCDXF BEACONS drawer section, and **Auto QSY the rig** (picking a band should tune the rig to 14.100 / 18.110 / 21.150 / 24.930 / 28.200 MHz in CW; never while transmitting).
+- [ ] **M** Beacon mode, what is left: Auto QSY tunes once per band choice and does not hop bands by itself (an option to step through the five bands, one per 3-minute cycle); mark which beacons you have heard (S-meter or a click) and keep a log of them.
 - [ ] **L** Info tab, what is left. The Upcoming tiles and the News tile are built; still to do:
   - [ ] **S** **Send the permission email to WA7BNM** (contest calendar). Their terms bar automated access without written permission; until it is granted the app ships no built-in contest feed (the operator pastes their own .ics link under Info ▸ Sources). When it arrives, set the default in `UpcomingEvents.sources()` and keep the "WA7BNM Contest Calendar" label with a link back. Consider asking ARRL too about using their feed's headlines.
   - [ ] **S** Hamfests: no usable public feed found yet (ARRL, HamCalendar) — same "paste a link" path for now.
