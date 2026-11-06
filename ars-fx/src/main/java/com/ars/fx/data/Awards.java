@@ -114,10 +114,10 @@ public final class Awards {
             if (!r.iota().isBlank()) ref(s.iotaStats, r.iota().trim().toUpperCase(Locale.ROOT), call, band, date, conf);
             if (!r.pota().isBlank()) ref(s.potaStats, r.pota().trim().toUpperCase(Locale.ROOT), call, band, date, conf);
             if (!r.sota().isBlank()) ref(s.sotaStats, r.sota().trim().toUpperCase(Locale.ROOT), call, band, date, conf);
-            // zones: the QSO's own when it has them, else from the callsign (the contest country files); approximate for the
-            // big multi-zone countries, where only the station's location tells the zone
+            // zones: the QSO's own when it has them, else from the callsign (the contest country files), with the QSO's grid
+            // square settling the CQ zone in the multi-zone countries; the ITU zone is the country's default
             int cq = r.cqz(), itu = r.ituz();
-            if (cq < 1 || itu < 1) { int[] z = zonesFromCall(call); if (cq < 1) cq = z[0]; if (itu < 1) itu = z[1]; }
+            if (cq < 1 || itu < 1) { int[] z = ZoneLookup.zones(call, q.grid()); if (cq < 1) cq = z[0]; if (itu < 1) itu = z[1]; }
             if (cq >= 1 && cq <= 40) { cqW.add(String.valueOf(cq)); if (conf) cqC.add(String.valueOf(cq)); }
             if (itu >= 1 && itu <= 90) { ituW.add(String.valueOf(itu)); if (conf) ituC.add(String.valueOf(itu)); }
         }
@@ -172,11 +172,8 @@ public final class Awards {
     }
 
     /** CW, Phone or Digital — the groups DXCC is endorsed in. */
-    /** {CQ zone, ITU zone} for a call from the contest country files, or {0, 0}. */
-    public static int[] zonesFromCall(String call) {
-        CtyData.Match m = CtyData.bundled().lookup(call);
-        return m == null ? new int[]{0, 0} : new int[]{m.cq(), m.itu()};
-    }
+    /** {CQ zone, ITU zone} for a call from the contest country files, or {0, 0}. The grid, when known, settles the CQ zone in multi-zone countries. */
+    public static int[] zonesFromCall(String call, String grid) { return ZoneLookup.zones(call, grid); }
 
     /** The key an entity is counted under: its DXCC number, else its country name, else its continent. */
     public static String entityKey(DxccInfo.Info info) {

@@ -7,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,12 +41,12 @@ public final class DxccResolver {
 
     /** prefix → resolved entity (dxcc id + continent). Primary table. */
     private final Map<String, Entity> byPrefix = new HashMap<>();
-    /** prefixes sorted longest-first for greedy match. */
-    private final List<String> prefixesByLenDesc;
+    /** length of the longest prefix in the table, so a lookup tries at most that many leading slices. */
+    private final int maxPrefix;
     /** entity-prefix → entity (id = entity prefix). Fallback for entities the
      *  primary table lacks entirely (China BY, Israel 4X, …). */
     private final Map<String, Entity> entityFallback = new HashMap<>();
-    private final List<String> fallbackByLenDesc;
+    private final int maxFallback;
 
     private static final DxccResolver INSTANCE = new DxccResolver();
     public static DxccResolver getInstance() { return INSTANCE; }
@@ -76,8 +74,7 @@ public final class DxccResolver {
         } catch (Exception ex) {
             log.warn("Failed to load DXCC prefix data: {}", ex.getMessage());
         }
-        prefixesByLenDesc = new ArrayList<>(byPrefix.keySet());
-        prefixesByLenDesc.sort((x, y) -> y.length() - x.length());
+        maxPrefix = byPrefix.keySet().stream().mapToInt(String::length).max().orElse(1);
 
         try (InputStream in = DxccResolver.class.getResourceAsStream(ENTITY_FALLBACK)) {
             if (in != null) {
@@ -92,8 +89,7 @@ public final class DxccResolver {
         } catch (Exception ex) {
             log.warn("Failed to load DXCC entity fallback: {}", ex.getMessage());
         }
-        fallbackByLenDesc = new ArrayList<>(entityFallback.keySet());
-        fallbackByLenDesc.sort((x, y) -> y.length() - x.length());
+        maxFallback = entityFallback.keySet().stream().mapToInt(String::length).max().orElse(1);
 
         log.info("DxccResolver: {} prefixes + {} entity fallbacks loaded",
                 byPrefix.size(), entityFallback.size());
@@ -111,11 +107,14 @@ public final class DxccResolver {
         if (rawCall == null || rawCall.isBlank() || isMaritimeOrAir(rawCall)) return null;
         String call = CallsignRegion.normalise(rawCall);
         if (call.isEmpty()) return null;
-        for (String pfx : prefixesByLenDesc) {           // longest match wins
-            if (call.startsWith(pfx)) return byPrefix.get(pfx);
-        }
-        for (String pfx : fallbackByLenDesc) {           // entities the table lacks
-            if (call.startsWith(pfx)) return entityFallback.get(pfx);
+        Entity e = longest(call, byPrefix, maxPrefix);       // longest match wins
+        return e != null ? e : longest(call, entityFallback, maxFallback);   // entities the table lacks
+    }
+
+    private static Entity longest(String call, Map<String, Entity> table, int max) {
+        for (int n = Math.min(call.length(), max); n >= 1; n--) {
+            Entity e = table.get(call.substring(0, n));
+            if (e != null) return e;
         }
         return null;
     }

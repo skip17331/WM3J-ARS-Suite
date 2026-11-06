@@ -621,6 +621,7 @@ public final class JHubDashboard {
         VBox updates = section("UPDATES",
             cfgRow("Version", "this build", lbl("v" + com.ars.fx.AppVersion.current(), "cfg-sv")),
             cfgRow("Check for updates", "once a day, from GitHub — nothing about you is sent", cToggle("update.check", true)),
+            cfgRow("Refresh country files", "weekly, from country-files.com — keeps DXCC prefixes and zones current", cToggle("cty.update", true)),
             cfgRow("Check now", null, checkRow));
         VBox v = new VBox(20, top, desc, cells, id, loc, units, appearance, updates, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
