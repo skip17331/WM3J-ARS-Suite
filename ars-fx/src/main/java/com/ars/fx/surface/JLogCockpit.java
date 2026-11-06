@@ -143,6 +143,21 @@ public final class JLogCockpit {
         return new Node[]{translator};
     }
 
+    /** Is this call already in the normal log? The set of calls is re-read at most every ten seconds. */
+    private static java.util.function.Predicate<String> normalWorked() {
+        java.util.Set<String>[] calls = new java.util.Set[]{java.util.Set.of()};
+        long[] at = {0};
+        return c -> {
+            long now = System.currentTimeMillis();
+            if (now - at[0] > 10_000) {
+                java.util.Set<String> s = new java.util.HashSet<>();
+                for (String k : com.ars.fx.data.JLogDb.workedCallBands()) s.add(k.substring(0, k.indexOf('|')));
+                calls[0] = s; at[0] = now;
+            }
+            return calls[0].contains(c.toUpperCase());
+        };
+    }
+
     private static VBox entryPane() {
         // header
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
@@ -224,6 +239,10 @@ public final class JLogCockpit {
         body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
         body.getChildren().add(row(g("CALLSIGN", call, false), g("FREQ (MHZ)", freq, false), g("BAND", band, false), g("MODE", mode, false)));
         body.getChildren().add(Shell.bandCaption(freq));        // "20m · CW segment" from the shared band plan
+        // Super Check Partial under the call, as in contest mode; a call already in the log is ticked
+        com.ars.fx.surface.contest.ScpBox scp = new com.ars.fx.surface.contest.ScpBox(c -> { call.setText(c); call.requestFocus(); call.positionCaret(c.length()); }, normalWorked());
+        call.textProperty().addListener((o, a, b) -> scp.update(b));
+        body.getChildren().add(scp);
         body.getChildren().add(row(g("RST SENT", rsnt, false), g("RST RCVD", rrcv, false), g("NAME", name, false), g("GRID", grid, false)));
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
         body.getChildren().add(dtRow);

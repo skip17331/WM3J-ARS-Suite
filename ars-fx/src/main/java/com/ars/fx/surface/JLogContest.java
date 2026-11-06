@@ -371,7 +371,7 @@ public final class JLogContest {
         body.getChildren().add(similarL);
         scpBox = new com.ars.fx.surface.contest.ScpBox(c -> {
             if (fieldControls.get("callsign") instanceof TextField cf) { cf.setText(c); cf.requestFocus(); cf.positionCaret(c.length()); }
-        });
+        }, workedInContest());
         body.getChildren().add(scpBox);
         body.getChildren().add(memoryL);
 
@@ -545,6 +545,21 @@ public final class JLogContest {
                 s.getAccelerators().put(k, () -> fire.accept(idx));
             }
         });
+    }
+
+    /** Is this call already in the open contest's log (on any band)? Rebuilt only when the log changes size. */
+    private static java.util.function.Predicate<String> workedInContest() {
+        java.util.Set<String>[] calls = new java.util.Set[]{java.util.Set.of()};
+        int[] n = {-1};
+        return c -> {
+            List<QsoRecord> q = ContestState.qsos();
+            if (q.size() != n[0]) {
+                java.util.Set<String> s = new java.util.HashSet<>();
+                for (QsoRecord r : q) if (r.getCallsign() != null) s.add(r.getCallsign().trim().toUpperCase());
+                calls[0] = s; n[0] = q.size();
+            }
+            return calls[0].contains(c.toUpperCase());
+        };
     }
 
     /** Copy what is on the form (call, band, mode and every exchange field) into a record. */

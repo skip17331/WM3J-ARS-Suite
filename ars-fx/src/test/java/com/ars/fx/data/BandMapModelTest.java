@@ -100,4 +100,29 @@ class BandMapModelTest {
         assertEquals("20m", BandMapModel.busiestBand(marks));
         assertNull(BandMapModel.busiestBand(List.of()));
     }
+
+    @Test void segmentsJoinRunsOfTheSameActivityAndSkipGaps() {
+        java.util.function.LongFunction<String> plan = hz -> hz < 14_070_000L ? "CW" : hz < 14_150_000L ? "DATA" : hz < 14_160_000L ? "" : "PHONE";
+        List<BandMapModel.Segment> sg = BandMapModel.segments(14_000_000L, 14_350_000L, plan);
+        assertEquals(List.of("CW", "DATA", "PHONE"), sg.stream().map(BandMapModel.Segment::activity).toList());
+        assertEquals(14_000_000L, sg.get(0).loHz());
+        assertEquals(14_350_000L, sg.get(2).hiHz());
+        assertTrue(Math.abs(sg.get(0).hiHz() - 14_070_000L) <= 1_000, "the CW edge is found to within a step");
+        assertEquals(List.of(), BandMapModel.segments(14_000_000L, 14_000_000L, plan), "an empty range has no segments");
+        assertEquals(List.of(), BandMapModel.segments(1, 1000, hz -> ""), "a plan that says nothing gives none");
+    }
+
+    @Test void aClickOnTheRulerIsAFrequencyToTheNearest100HzInsideTheRange() {
+        assertEquals(14_000_000L, BandMapModel.freqAt(10, 10, 300, 14_000_000L, 14_350_000L));
+        assertEquals(14_350_000L, BandMapModel.freqAt(310, 10, 300, 14_000_000L, 14_350_000L));
+        assertEquals(14_175_000L, BandMapModel.freqAt(160, 10, 300, 14_000_000L, 14_350_000L));
+        assertEquals(14_000_000L, BandMapModel.freqAt(-50, 10, 300, 14_000_000L, 14_350_000L), "above the ruler stays in range");
+        assertEquals(14_350_000L, BandMapModel.freqAt(900, 10, 300, 14_000_000L, 14_350_000L));
+        assertEquals(0L, BandMapModel.freqAt(160, 10, 300, 14_000_000L, 14_350_000L) % 100);
+    }
+
+    @Test void aMarkFromTheClusterIsNotLocalUnlessSaidSo() {
+        assertFalse(m("K1ABC", 14_025_000L, 1, Kind.NORMAL).local());
+        assertTrue(new Mark("K1ABC", 14_025_000L, "CW", "20m", NOW, Kind.NORMAL, true).local());
+    }
 }
