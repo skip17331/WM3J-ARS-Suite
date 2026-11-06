@@ -5,6 +5,7 @@ import com.ars.fx.data.DxccInfo;
 import com.ars.fx.data.HubConfig;
 import com.ars.fx.data.QtcRules;
 import com.ars.fx.shell.Shell;
+import com.ars.fx.surface.Confirm;
 import com.jlog.db.ContestQtcDao;
 import com.jlog.model.QsoRecord;
 import com.jlog.model.QtcRecord;
@@ -61,11 +62,14 @@ public final class QtcPane {
             grid.add(t, 0, i + 1); grid.add(c, 1, i + 1); grid.add(s, 2, i + 1);
         }
         VBox history = new VBox(2);
+        Runnable[] again = new Runnable[1];                    // refresh, for the handlers built inside it
+        int[] editNo = {0};                                    // the series being corrected (0 = a new one)
+        String[] editDir = {null};
 
         Runnable refresh = () -> {
             List<QtcRecord> ex = existing(cid);
             String d = dirKey(dir);
-            seriesL.setText("QTC series " + QtcRules.nextSeries(ex, d));
+            seriesL.setText(editNo[0] > 0 ? "Editing QTC series " + editNo[0] : "QTC series " + QtcRules.nextSeries(ex, d));
             long sent = ex.stream().filter(r -> QtcRules.SENT.equalsIgnoreCase(r.getDirection())).count(), rcvd = ex.size() - sent;
             totals.setText(sent + " sent + " + rcvd + " received = " + ex.size() + " QTC point" + (ex.size() == 1 ? "" : "s"));
             history.getChildren().clear();
@@ -74,35 +78,68 @@ public final class QtcPane {
             List<String> keys = new ArrayList<>(series.keySet());
             for (int i = Math.max(0, keys.size() - 6); i < keys.size(); i++) {
                 List<QtcRecord> g = series.get(keys.get(i)); QtcRecord f = g.get(0);
-                history.getChildren().add(lbl(("SENT".equalsIgnoreCase(f.getDirection()) ? "→ " : "← ") + f.getPartnerCall() + "  series " + f.getSeriesNo() + "  ·  " + g.size() + " QTC" + (g.size() == 1 ? "" : "s"), "ct-note"));
+                Label row = lbl(("SENT".equalsIgnoreCase(f.getDirection()) ? "→ " : "← ") + f.getPartnerCall() + "  series " + f.getSeriesNo() + "  ·  " + g.size() + " QTC" + (g.size() == 1 ? "" : "s"), "ct-note");
+                Label edit = lbl("Edit", "jl-clearbtn"), del = lbl("Delete", "jl-clearbtn");
+                edit.setStyle("-fx-cursor:hand;"); del.setStyle("-fx-cursor:hand;");
+                edit.setOnMouseClicked(e -> {                                    // load the series into the form; Save replaces it
+                    dir.setValue("SENT".equalsIgnoreCase(f.getDirection()) ? "Sent" : "Received");
+                    partner.setText(f.getPartnerCall()); band.setText(f.getQtcBand() == null ? "" : f.getQtcBand()); mode.setText(f.getQtcMode() == null ? "" : f.getQtcMode());
+                    for (int r = 0; r < ROWS; r++) {
+                        QtcRecord q = r < g.size() ? g.get(r) : null;
+                        rows.get(r)[0].setText(q == null ? "" : nz(q.getQsoTime())); rows.get(r)[1].setText(q == null ? "" : nz(q.getQsoCall())); rows.get(r)[2].setText(q == null ? "" : nz(q.getQsoSerial()));
+                    }
+                    editNo[0] = f.getSeriesNo(); editDir[0] = f.getDirection().toUpperCase();
+                    msg.setText("Editing series " + f.getSeriesNo() + " - Save replaces it, Clear drops the change."); msg.setStyle("");
+                    again[0].run();
+                });
+                del.setOnMouseClicked(e -> Confirm.show(del, "Delete this QTC series?",
+                        "Delete series " + f.getSeriesNo() + " with " + f.getPartnerCall() + " (" + g.size() + " QTC" + (g.size() == 1 ? "" : "s") + ")? Each is a point, so the score drops by " + g.size() + ".",
+                        new Confirm.Choice("Keep", false, null),
+                        new Confirm.Choice("Delete", true, () -> {
+                            try { ContestQtcDao.getInstance().deleteSeries(cid, f.getDirection(), f.getSeriesNo()); }
+                            catch (Exception ex3) { msg.setText("Could not delete: " + ex3.getMessage()); msg.setStyle("-fx-text-fill:-ars-err;"); return; }
+                            if (editNo[0] == f.getSeriesNo() && f.getDirection().equalsIgnoreCase(editDir[0])) { editNo[0] = 0; editDir[0] = null; }
+                            msg.setText("Deleted series " + f.getSeriesNo() + "."); msg.setStyle("");
+                            again[0].run(); ContestState.recompute();
+                        })));
+                Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
+                HBox line = new HBox(8, row, gap, edit, del); line.setAlignment(Pos.CENTER_LEFT);
+                history.getChildren().add(line);
             }
         };
+        again[0] = refresh;
         dir.setOnAction(e -> refresh.run());
 
         Label save = lbl("Save series", "jl-logbtn"), clear = lbl("Clear", "jl-clearbtn");
         save.setStyle("-fx-cursor:hand;"); clear.setStyle("-fx-cursor:hand;");
-        clear.setOnMouseClicked(e -> { for (TextField[] r : rows) for (TextField t : r) t.clear(); msg.setText(""); });
+        clear.setOnMouseClicked(e -> { for (TextField[] r : rows) for (TextField t : r) t.clear(); msg.setText(""); editNo[0] = 0; editDir[0] = null; refresh.run(); });
         save.setOnMouseClicked(e -> {
             List<QtcRules.Line> lines = new ArrayList<>();
             for (TextField[] r : rows) if (!(r[0].getText().isBlank() && r[1].getText().isBlank() && r[2].getText().isBlank()))
                 lines.add(new QtcRules.Line(r[0].getText().trim(), r[1].getText().trim(), r[2].getText().trim()));
             String d = dirKey(dir), p = partner.getText().trim().toUpperCase();
+            boolean editing = editNo[0] > 0;
             List<QtcRecord> ex = existing(cid);
+            if (editing) ex.removeIf(r -> r.getSeriesNo() == editNo[0] && editDir[0] != null && editDir[0].equalsIgnoreCase(r.getDirection()));   // the series being corrected does not count against itself
             String problem = QtcRules.validate(own, p, QtcRules.continentOf(p, DxccInfo::of), d, lines, ex);
             if (problem != null) { msg.setText(problem); msg.setStyle("-fx-text-fill:-ars-err;"); return; }
-            int no = QtcRules.nextSeries(ex, d);
+            int no = editing && d.equalsIgnoreCase(editDir[0]) ? editNo[0] : QtcRules.nextSeries(ex, d);
+            List<QtcRecord> made = new ArrayList<>();
+            for (QtcRules.Line l : lines) {
+                QtcRecord r = new QtcRecord();
+                r.setContestId(cid); r.setPartnerCall(p); r.setDirection(d); r.setSeriesNo(no); r.setSeriesSize(lines.size());
+                r.setQtcBand(band.getText().trim().toLowerCase()); r.setQtcMode(mode.getText().trim().toUpperCase());
+                r.setQtcDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
+                r.setQsoTime(l.time()); r.setQsoCall(l.call()); r.setQsoSerial(l.serial());
+                made.add(r);
+            }
             try {
-                for (QtcRules.Line l : lines) {
-                    QtcRecord r = new QtcRecord();
-                    r.setContestId(cid); r.setPartnerCall(p); r.setDirection(d); r.setSeriesNo(no); r.setSeriesSize(lines.size());
-                    r.setQtcBand(band.getText().trim().toLowerCase()); r.setQtcMode(mode.getText().trim().toUpperCase());
-                    r.setQtcDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
-                    r.setQsoTime(l.time()); r.setQsoCall(l.call()); r.setQsoSerial(l.serial());
-                    ContestQtcDao.getInstance().insert(r);
-                }
+                if (editing) ContestQtcDao.getInstance().replaceSeries(cid, editDir[0], editNo[0], made);
+                else for (QtcRecord r : made) ContestQtcDao.getInstance().insert(r);
             } catch (Exception ex2) { msg.setText("Could not save: " + ex2.getMessage()); msg.setStyle("-fx-text-fill:-ars-err;"); return; }
             for (TextField[] r : rows) for (TextField t : r) t.clear();
-            msg.setText("Saved QTC series " + no + " (" + lines.size() + " QTC" + (lines.size() == 1 ? "" : "s") + ") " + ("SENT".equals(d) ? "to " : "from ") + p + ".");
+            editNo[0] = 0; editDir[0] = null;
+            msg.setText((editing ? "Updated" : "Saved") + " QTC series " + no + " (" + lines.size() + " QTC" + (lines.size() == 1 ? "" : "s") + ") " + ("SENT".equals(d) ? "to " : "from ") + p + ".");
             msg.setStyle("-fx-text-fill:-ars-ok;");
             refresh.run();
             ContestState.recompute();                                 // the QTC points join the score
@@ -111,7 +148,7 @@ public final class QtcPane {
 
         HBox head = new HBox(6, dir, partner, band, mode); head.setAlignment(Pos.CENTER_LEFT);
         HBox buttons = new HBox(12, clear, save); buttons.setAlignment(Pos.CENTER_RIGHT);
-        Label rule = lbl("Up to 10 QTCs a series, 10 in all with one station; a QSO is reported once. Check the current WAEDC rules.", "ct-note");
+        Label rule = lbl("Up to 10 QTCs a series, 10 in all with one station; a QSO is reported once. Edit or Delete a saved series from the list above. Check the current WAEDC rules.", "ct-note");
         rule.setWrapText(true); rule.setMaxWidth(300);
         VBox box = new VBox(6, head, seriesL, grid, msg, buttons, totals, history, rule);
         box.setPadding(new Insets(2));
@@ -119,10 +156,12 @@ public final class QtcPane {
         return box;
     }
 
+    private static String nz(String s) { return s == null ? "" : s; }
+
     private static String dirKey(ComboBox<String> dir) { return "Sent".equals(dir.getValue()) ? QtcRules.SENT : QtcRules.RECEIVED; }
 
     private static List<QtcRecord> existing(String contestId) {
-        try { return ContestQtcDao.getInstance().fetchByContest(contestId); } catch (Exception e) { return List.of(); }
+        try { return new ArrayList<>(ContestQtcDao.getInstance().fetchByContest(contestId)); } catch (Exception e) { return new ArrayList<>(); }
     }
 
     private static String ownContinent() {
