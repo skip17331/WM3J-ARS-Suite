@@ -53,6 +53,35 @@ public class ContestQtcDao {
         return -1;
     }
 
+    /** Delete one saved series (every QTC of it). Returns how many QTCs went; each was a point. */
+    public int deleteSeries(String contestId, String direction, int seriesNo) throws SQLException {
+        try (PreparedStatement ps = conn().prepareStatement(
+                "DELETE FROM contest_qtc WHERE contest_id=? AND direction=? AND series_no=?")) {
+            ps.setString(1, contestId); ps.setString(2, direction); ps.setInt(3, seriesNo);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Replace a saved series with corrected rows, all or nothing: the old series is deleted and the new rows inserted in one
+     * transaction, so a failure leaves the original as it was.
+     */
+    public void replaceSeries(String contestId, String direction, int seriesNo, List<QtcRecord> rows) throws SQLException {
+        Connection c = conn();
+        boolean auto = c.getAutoCommit();
+        c.setAutoCommit(false);
+        try {
+            deleteSeries(contestId, direction, seriesNo);
+            for (QtcRecord r : rows) insert(r);
+            c.commit();
+        } catch (SQLException | RuntimeException e) {
+            c.rollback();
+            throw e;
+        } finally {
+            c.setAutoCommit(auto);
+        }
+    }
+
     /** Total QTC points for the contest = one per transferred QTC (Rule §7). */
     public int totalQtcPointsByContest(String contestId) throws SQLException {
         try (PreparedStatement ps = conn().prepareStatement(
