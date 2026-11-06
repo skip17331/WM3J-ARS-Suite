@@ -41,8 +41,11 @@ public final class JMapView {
             {"4X6TU","32.11","34.80"}, {"OH2B","60.19","24.96"}, {"CS3B","32.65","-16.91"},
             {"LU4AA","-34.61","-58.37"}, {"OA4B","-12.07","-77.08"}, {"YV5B","10.42","-66.98"}};
     private static final String[] BEACON_BANDS = {"20m","17m","15m","12m","10m"};
+    /** The one frequency each band's beacons share (kHz as MHz text); the 18 stations take turns on it, so a rig tuned here hears them all. */
+    private static final long[] BEACON_HZ = {14_100_000L, 18_110_000L, 21_150_000L, 24_930_000L, 28_200_000L};
     private static boolean showBeacons = false;
     private static int beaconBand = 0;
+    private static Label beaconInfo;                         // live "QSY to ..." line in the drawer
     private static Runnable currentMapRepaint;
     private static javafx.animation.Timeline beaconTicker;
     /** Beacon index transmitting on band b right now (slot = UTC%180 /10; band offsets by one slot each). */
@@ -50,6 +53,31 @@ public final class JMapView {
         int slot = (int) ((java.time.Instant.now().getEpochSecond() % 180) / 10);
         return ((slot - band) % 18 + 18) % 18;
     }
+    private static String mhz(long hz) { return String.format(java.util.Locale.ROOT, "%.3f", hz / 1e6); }
+
+    /** What to tell the operator: where to tune, who is on now and who is next. */
+    private static String beaconLine() {
+        long now = java.time.Instant.now().getEpochSecond();
+        int a = activeBeacon(beaconBand);
+        // the station on this band moves one place round the list every 10 s
+        int nxt = activeBeaconAt(beaconBand, now + 10);
+        return "QSY to " + mhz(BEACON_HZ[beaconBand]) + " MHz CW  \u00b7  now " + BEACONS[a][0] + "  \u00b7  next " + BEACONS[nxt][0] + " in " + (10 - now % 10) + " s";
+    }
+    private static int activeBeaconAt(int band, long epochSec) {
+        int slot = (int) ((epochSec % 180) / 10);
+        return ((slot - band) % 18 + 18) % 18;
+    }
+
+    /** Auto QSY: put the rig on the selected band's beacon frequency in CW. Does nothing without a connected rig, and never while it transmits. */
+    private static void qsyToBeacon() {
+        if (!showBeacons || !com.ars.fx.data.HubConfig.getBool("map.beaconQsy", false)) return;
+        com.ars.fx.data.RigClient rig = com.ars.fx.data.RigClient.getInstance();
+        com.ars.fx.data.RigClient.State st = rig.last();
+        if (!st.connected() || st.ptt()) return;
+        rig.setMode("CW");
+        rig.setFreqHz(BEACON_HZ[beaconBand]);
+    }
+
     private static void repaintMap() { paintedBeam = Math.round(beamDeg()); if (currentMapRepaint != null) currentMapRepaint.run(); }
     /** Dim the regular DX spots while a propagation overlay (beacons / who's-hearing-me) is active. */
     private static boolean dimSpots() { return showBeacons || showHeardBy; }
@@ -138,6 +166,7 @@ public final class JMapView {
         // 10 s, the sun about a quarter of a degree a minute. New spots repaint it on their own.
         beaconTicker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
             updateMapTopbar();                                 // ticking clock + live SPOTS/SHOWN/GRAY-LINE/BEAM
+            if (beaconInfo != null) beaconInfo.setText(showBeacons ? beaconLine() : "");
             long second = java.time.Instant.now().getEpochSecond();
             boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
             if (beamMoved || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
@@ -150,6 +179,9 @@ public final class JMapView {
     private static void drawBeacons(GraphicsContext g, Proj proj) {
         if (!showBeacons) return;
         int active = activeBeacon(beaconBand);
+        g.setFill(Color.web("#0b0f14", 0.78)); g.fillRoundRect(12, 12, 360, 26, 8, 8);
+        g.setFill(Color.web("#ffd84a")); g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 13)); g.setTextAlign(TextAlignment.LEFT);
+        g.fillText("QSY " + mhz(BEACON_HZ[beaconBand]) + " MHz CW  \u00b7  " + BEACONS[active][0], 22, 30);
         double[] q = proj.at(Q_LAT, Q_LON);
         double[] ab = proj.at(Double.parseDouble(BEACONS[active][1]), Double.parseDouble(BEACONS[active][2]));
         if (q != null && ab != null) {
@@ -455,10 +487,18 @@ public final class JMapView {
         // NCDXF/IARU International Beacon Project cycle
         p.getChildren().add(lbl("NCDXF BEACONS","jm-sec"));
         Label bt = lbl("Show beacon cycle","jm-tog-label"); HBox.setHgrow(bt, Priority.ALWAYS); bt.setMaxWidth(Double.MAX_VALUE);
-        HBox btr = new HBox(bt, toggleSwitch(showBeacons, v -> { showBeacons = v; repaintMap(); }));
+        beaconInfo = lbl(showBeacons ? beaconLine() : "", "jm-tog-label"); beaconInfo.setWrapText(true);
+        beaconInfo.setStyle("-fx-text-fill:#ffd84a;-fx-font-weight:bold;");
+        HBox btr = new HBox(bt, toggleSwitch(showBeacons, v -> { showBeacons = v; beaconInfo.setText(v ? beaconLine() : ""); repaintMap(); qsyToBeacon(); }));
         btr.setAlignment(Pos.CENTER_LEFT); btr.setPadding(new Insets(7, 0, 4, 0));
         p.getChildren().add(btr);
-        p.getChildren().add(segSel(BEACON_BANDS, beaconBand, i -> { beaconBand = i; repaintMap(); }));
+        p.getChildren().add(segSel(BEACON_BANDS, beaconBand, i -> { beaconBand = i; beaconInfo.setText(showBeacons ? beaconLine() : ""); repaintMap(); qsyToBeacon(); }));
+        p.getChildren().add(beaconInfo);
+        Label qt = lbl("Auto QSY the rig","jm-tog-label"); HBox.setHgrow(qt, Priority.ALWAYS); qt.setMaxWidth(Double.MAX_VALUE);
+        com.ars.fx.shell.Tips.tip(qt, "Tune the rig to the beacon frequency (CW) when you pick a band or switch the cycle on. Needs the rig connected; never while transmitting.");
+        HBox qtr = new HBox(qt, toggleSwitch(com.ars.fx.data.HubConfig.getBool("map.beaconQsy", false), v -> { com.ars.fx.data.HubConfig.set("map.beaconQsy", String.valueOf(v)); qsyToBeacon(); }));
+        qtr.setAlignment(Pos.CENTER_LEFT); qtr.setPadding(new Insets(4, 0, 7, 0));
+        p.getChildren().add(qtr);
 
         // RBN "who's hearing me" overlay
         p.getChildren().add(lbl("WHO'S HEARING ME · RBN","jm-sec"));
