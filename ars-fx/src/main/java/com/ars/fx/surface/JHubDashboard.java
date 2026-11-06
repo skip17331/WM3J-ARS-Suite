@@ -228,7 +228,8 @@ public final class JHubDashboard {
             else if (contest ? done.contains(wide ? SpotNeeds.up(s.call()) : SpotNeeds.up(s.call()) + "|" + SpotNeeds.up(s.band())) : ix.worked(s.call(), s.band()))
                 k = com.ars.fx.data.BandMapModel.Kind.WORKED;
             else k = com.ars.fx.data.BandMapModel.Kind.NORMAL;
-            out.add(new com.ars.fx.data.BandMapModel.Mark(s.call(), s.freqHz(), s.mode(), s.band(), s.arrivalMs(), k));
+            boolean skimmer = s.de() != null && s.de().toUpperCase(java.util.Locale.ROOT).endsWith("-SKM");     // the local CW skimmer's spots
+            out.add(new com.ars.fx.data.BandMapModel.Mark(s.call(), s.freqHz(), s.mode(), s.band(), s.arrivalMs(), k, skimmer));
         }
         return out;
     }

@@ -39,6 +39,12 @@ public final class Bands {
         return b.isEmpty() ? null : b.replaceAll("[^0-9.]", "");
     }
 
+    /** The band plan's activity at this frequency ("CW", "DATA", "PHONE"...), or "" when it is not in a band or the plan is silent. */
+    public static String activityAt(long hz) {
+        BandplanLoader.Description d = plan().describe(hz);
+        return d == null || d.activity == null ? "" : d.activity.name();
+    }
+
     /** What the band plan says is at this frequency, e.g. "20m · CW segment" — "" when it is not in a band. */
     public static String describe(long hz) {
         BandplanLoader.Description d = plan().describe(hz);

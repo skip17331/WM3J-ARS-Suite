@@ -27,12 +27,17 @@ public final class ScpBox extends VBox {
     private final FlowPane partial = new FlowPane(8, 4), near = new FlowPane(8, 4);
     private final Label nearHead = lbl("", "ct-note");
     private final Consumer<String> pick;
+    private final java.util.function.Predicate<String> worked;     // is this call already in the log? Marked on its chip.
     private ScpData data = ScpData.EMPTY;
     private String lastTyped = "";
 
-    public ScpBox(Consumer<String> pick) {
+    public ScpBox(Consumer<String> pick) { this(pick, c -> false); }
+
+    /** @param worked says whether a call is already in the log being worked in; its chip is dimmed and ticked. */
+    public ScpBox(Consumer<String> pick, java.util.function.Predicate<String> worked) {
         super(4);
         this.pick = pick;
+        this.worked = worked == null ? c -> false : worked;
         nearHead.setStyle("-fx-text-fill:-ars-warn;-fx-font-weight:bold;");
         for (FlowPane p : List.of(partial, near)) { p.managedProperty().bind(p.visibleProperty()); }
         nearHead.managedProperty().bind(nearHead.visibleProperty());
@@ -87,9 +92,11 @@ public final class ScpBox extends VBox {
     }
 
     private Label chip(String call, boolean exact) {
-        Label l = lbl(call, "ct-note");
+        boolean did = !exact && worked.test(call);
+        Label l = lbl(did ? call + " \u2713" : call, "ct-note");
+        if (did) com.ars.fx.shell.Tips.tip(l, call + " is already in the log");
         l.setStyle("-fx-font-family:'JetBrains Mono';-fx-font-size:15px;-fx-font-weight:bold;-fx-cursor:hand;-fx-padding:1 6 1 6;-fx-background-radius:4;"
-                + "-fx-background-color:" + (exact ? "-ars-ok-soft" : "-ars-surface-3") + ";-fx-text-fill:" + (exact ? "-ars-ok" : "-ars-t1") + ";");
+                + "-fx-background-color:" + (exact ? "-ars-ok-soft" : "-ars-surface-3") + ";-fx-text-fill:" + (exact ? "-ars-ok" : did ? "-ars-t3" : "-ars-t1") + ";" + (did ? "-fx-opacity:0.7;" : ""));
         l.setOnMouseClicked(e -> pick.accept(call));
         return l;
     }

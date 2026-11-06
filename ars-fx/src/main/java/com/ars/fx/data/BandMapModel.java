@@ -20,7 +20,41 @@ public final class BandMapModel {
     public enum Kind { NEEDED, NORMAL, WORKED }
 
     /** One spot to place. */
-    public record Mark(String call, long freqHz, String mode, String band, long arrivalMs, Kind kind) {}
+    public record Mark(String call, long freqHz, String mode, String band, long arrivalMs, Kind kind, boolean local) {
+        /** A spot from the cluster feed (not the local skimmer). */
+        public Mark(String call, long freqHz, String mode, String band, long arrivalMs, Kind kind) { this(call, freqHz, mode, band, arrivalMs, kind, false); }
+    }
+
+    /** A stretch of the band the plan gives to one kind of operating (CW, DATA, PHONE...). */
+    public record Segment(long loHz, long hiHz, String activity) {}
+
+    /**
+     * The band plan's segments inside [{@code loHz}, {@code hiHz}], found by asking {@code activityAt} (an activity name, or "" where the plan
+     * says nothing) at a regular step and joining runs of the same answer. The step is fine enough for a screen (about 400 points).
+     */
+    public static List<Segment> segments(long loHz, long hiHz, java.util.function.LongFunction<String> activityAt) {
+        List<Segment> out = new ArrayList<>();
+        if (hiHz <= loHz) return out;
+        long step = Math.max(100, (hiHz - loHz) / 400);
+        String cur = ""; long start = loHz;
+        for (long f = loHz; f <= hiHz; f += step) {
+            String a = activityAt.apply(f);
+            if (a == null) a = "";
+            if (!a.equals(cur)) {
+                if (!cur.isEmpty()) out.add(new Segment(start, f, cur));
+                cur = a; start = f;
+            }
+        }
+        if (!cur.isEmpty()) out.add(new Segment(start, hiHz, cur));
+        return out;
+    }
+
+    /** The frequency under a click on the ruler: {@code y} pixels down a ruler that starts {@code top} pixels from the pane's top and is {@code usable} tall, to the nearest 100 Hz and kept inside the range. */
+    public static long freqAt(double y, double top, double usable, long loHz, long hiHz) {
+        double f = loHz + (y - top) / Math.max(1, usable) * (hiHz - loHz);
+        long hz = Math.round(f / 100.0) * 100L;
+        return Math.max(loHz, Math.min(hiHz, hz));
+    }
 
     /** A spot with its place on the ruler (pixels from the top) and how faded it is (1 fresh ... {@link #MIN_ALPHA} old). */
     public record Placed(Mark mark, double trueY, double labelY, double alpha) {}

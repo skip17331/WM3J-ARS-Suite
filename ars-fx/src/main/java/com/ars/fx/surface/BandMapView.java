@@ -49,6 +49,7 @@ public final class BandMapView extends VBox {
     private String choice = HubConfig.get("data.bandmapBand", "Rig");
     private boolean near = HubConfig.getBool("data.bandmapNear", false);
     private long drawnRigHz = -1;
+    private long drawLo, drawHi; private double drawTop, drawUsable;      // where the ruler is, for click-to-tune
     private final Consumer<RigClient.State> rigListener = s -> Platform.runLater(() -> {
         long f = s != null && s.connected() ? s.freqHz() : 0;
         if (Math.abs(f - drawnRigHz) >= 50) draw();                  // the rig moved: the marker, and maybe the band, change
@@ -79,6 +80,12 @@ public final class BandMapView extends VBox {
         pane.setMinHeight(140); VBox.setVgrow(pane, Priority.ALWAYS);
         Rectangle clip = new Rectangle(); clip.widthProperty().bind(pane.widthProperty()); clip.heightProperty().bind(pane.heightProperty());
         pane.setClip(clip);
+        pane.setOnMouseClicked(ev -> {                                   // a click on the ruler tunes the rig there (a spot label does its own thing)
+            if (ev.getTarget() instanceof Label || ev.getX() > LABEL_X - 8 || drawHi <= drawLo) return;
+            long hz = BandMapModel.freqAt(ev.getY(), drawTop, drawUsable, drawLo, drawHi);
+            RigClient.getInstance().setFreqHz(hz);
+            head.setText("Tuned to " + String.format("%.4f", hz / 1e6) + " MHz");
+        });
         pane.widthProperty().addListener((o, a, b) -> draw());
         pane.heightProperty().addListener((o, a, b) -> draw());
         getChildren().addAll(bands, row, pane);
@@ -118,6 +125,16 @@ public final class BandMapView extends VBox {
         head.setText(band + " · " + mhz(lo) + "–" + mhz(hi) + " MHz · " + placed.size() + (placed.size() == 1 ? " spot" : " spots") + (zoom ? " · near rig" : ""));
         final double top = GAP / 2, usable = h - GAP, span = Math.max(1, hi - lo);
 
+        drawLo = lo; drawHi = hi; drawTop = top; drawUsable = usable;
+        for (BandMapModel.Segment sg : BandMapModel.segments(lo, hi, Bands::activityAt)) {      // what the band plan gives each stretch to
+            String fill = switch (sg.activity()) { case "CW" -> "-ars-warn"; case "DATA" -> "-ars-info"; case "PHONE" -> "-ars-ok"; default -> null; };
+            if (fill == null) continue;
+            double y0 = top + (sg.loHz() - lo) / (double) span * usable, y1 = top + (sg.hiHz() - lo) / (double) span * usable;
+            Rectangle strip = new Rectangle(RULER_X + 2, y0, 5, Math.max(1, y1 - y0));
+            strip.setStyle("-fx-fill:" + fill + ";-fx-opacity:0.7;");
+            Tips.tip(strip, sg.activity() + " segment (band plan) — click the ruler to tune");
+            pane.getChildren().add(strip);
+        }
         Line axis = new Line(RULER_X, top, RULER_X, top + usable); axis.setStyle("-fx-stroke:-ars-border-2;"); pane.getChildren().add(axis);
         long step = BandMapModel.tickStepHz(lo, hi, usable, 38);
         for (long t = BandMapModel.firstTick(lo, step); t <= hi; t += step) {
@@ -133,12 +150,12 @@ public final class BandMapView extends VBox {
             Line lead = new Line(RULER_X, ty, LABEL_X - 3, ly); lead.setStyle("-fx-stroke:-ars-t4;-fx-stroke-width:0.7;"); lead.setOpacity(p.alpha());
             String text = (m.kind() == Kind.NEEDED ? "★ " : "") + String.format("%.1f", m.freqHz() / 1000.0) + "  " + m.call();
             Label l = lbl(text, "ct-note");
-            String color = m.kind() == Kind.NEEDED ? "-ars-ok" : m.kind() == Kind.WORKED ? "-ars-t3" : "-ars-t1";
+            String color = m.kind() == Kind.NEEDED ? "-ars-ok" : m.kind() == Kind.WORKED ? "-ars-t3" : m.local() ? "-ars-info" : "-ars-t1";   // blue: your own skimmer heard it
             l.setStyle("-fx-font-family:'JetBrains Mono';-fx-font-size:13px;-fx-cursor:hand;-fx-text-fill:" + color + ";" + (m.kind() == Kind.NEEDED ? "-fx-font-weight:bold;" : ""));
             l.setOpacity(p.alpha());
             l.setLayoutX(LABEL_X); l.setLayoutY(ly - 9); l.setMaxWidth(Math.max(60, w - LABEL_X - 4));
             Tips.tip(l, m.call() + " · " + m.mode() + " · " + ClusterClient.fmtFreq(m.freqHz()) + " · " + ClusterClient.age(m.arrivalMs()) + " ago"
-                    + (m.kind() == Kind.NEEDED ? " · needed" : m.kind() == Kind.WORKED ? " · already worked" : "") + " — click to use");
+                    + (m.kind() == Kind.NEEDED ? " · needed" : m.kind() == Kind.WORKED ? " · already worked" : "") + (m.local() ? " · heard by your local skimmer" : "") + " — click to use");
             l.setOnMouseClicked(ev -> onPick.accept(l, m));
             pane.getChildren().addAll(lead, l);
         }
