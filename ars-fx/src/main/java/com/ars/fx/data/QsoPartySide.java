@@ -75,6 +75,24 @@ public final class QsoPartySide {
         return l;
     }
 
+    /** How many counties (or county-equivalents) each party state has. A party whose list is this long is complete, so a code outside it is a mistake. */
+    private static final java.util.Map<String, Integer> COUNTY_COUNT = java.util.Map.ofEntries(
+            java.util.Map.entry("AZ", 15), java.util.Map.entry("CA", 58), java.util.Map.entry("DE", 3), java.util.Map.entry("FL", 67),
+            java.util.Map.entry("GA", 159), java.util.Map.entry("ME", 16), java.util.Map.entry("MI", 83), java.util.Map.entry("MDC", 25),
+            java.util.Map.entry("NC", 100), java.util.Map.entry("NH", 10), java.util.Map.entry("NM", 33), java.util.Map.entry("NS", 18),
+            java.util.Map.entry("NY", 62), java.util.Map.entry("OH", 88), java.util.Map.entry("PA", 67), java.util.Map.entry("SC", 46),
+            java.util.Map.entry("TN", 95), java.util.Map.entry("TX", 254), java.util.Map.entry("VT", 14), java.util.Map.entry("WA", 39));
+
+    /**
+     * True when the app's county list for this party is known to be complete (it has as many entries as the state has counties). Then a
+     * county, state or province that is not on it can never be right and entry can refuse it; otherwise (a list we cannot check, towns,
+     * districts, no list at all) a miss only warns.
+     */
+    public static boolean countyListDefinitive(ContestPlugin p) {
+        Integer want = COUNTY_COUNT.get(partyState(p));
+        return want != null && new HashSet<>(counties(p)).size() == want;
+    }
+
     /** Everything an entrant on this side can receive: out of state, only the party's counties; in state, those and every state, province and DX. */
     public static Set<String> receivable(ContestPlugin p, Side side) {
         Set<String> out = new HashSet<>(counties(p));
