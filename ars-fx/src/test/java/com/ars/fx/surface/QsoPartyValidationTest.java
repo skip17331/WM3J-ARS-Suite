@@ -54,14 +54,14 @@ class QsoPartyValidationTest {
     }
 
     @Test void everyListedPartyStateReallyHasThatManyCounties() throws Exception {
-        for (String f : new String[]{"az", "ca", "de", "fl", "ga", "me", "mi", "mdc", "nc", "nh", "nm", "ns", "ny", "oh", "pa", "sc", "tn", "tx", "vt", "wa"}) {
+        for (String f : new String[]{"az", "ca", "de", "fl", "ga", "me", "mi", "mdc", "nc", "nh", "nm", "ns", "ny", "oh", "on", "bc", "qc", "pa", "sc", "tn", "tx", "vt", "wa"}) {
             ContestPlugin p = new ObjectMapper().readValue(Path.of("..", "j-log-engine", "src", "main", "resources", "com", "jlog", "plugins", f + "_qso_party.json").toFile(), ContestPlugin.class);
             assertTrue(QsoPartySide.countyListDefinitive(p), f + " county list is not the length of the state's county count");
         }
     }
 
     @Test void partiesWithoutACheckedListOnlyWarn() throws Exception {
-        for (String f : new String[]{"on", "bc", "qc", "new_england"}) {
+        for (String f : new String[]{"new_england"}) {
             ContestPlugin p = new ObjectMapper().readValue(Path.of("..", "j-log-engine", "src", "main", "resources", "com", "jlog", "plugins", f + "_qso_party.json").toFile(), ContestPlugin.class);
             assertFalse(QsoPartySide.countyListDefinitive(p), f + " is not a list we can check");
         }
