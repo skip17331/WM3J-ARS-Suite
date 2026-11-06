@@ -28,12 +28,42 @@ class FieldDaySheetTest {
         assertEquals(0, FieldDaySheet.number(null));
     }
 
-    @Test void theCategoriesAreUniqueAndOnlyTheStatedValuesAreFilledIn() {
+    private static FieldDaySheet.Category cat(String key) {
+        return FieldDaySheet.CATEGORIES.stream().filter(c -> c.key().equals(key)).findFirst().orElseThrow();
+    }
+
+    @Test void theCategoriesAreUnique() {
         var keys = new HashSet<String>();
-        for (var c : FieldDaySheet.CATEGORIES) {
-            assertTrue(keys.add(c.key()), c.key());
-            if (c.points() >= 0) assertEquals("web", c.key(), "no value is filled in unless the sources state it");
-        }
-        assertTrue(FieldDaySheet.CATEGORIES.size() >= 15);
+        for (var c : FieldDaySheet.CATEGORIES) assertTrue(keys.add(c.key()), c.key());
+        assertEquals(18, FieldDaySheet.CATEGORIES.size());
+    }
+
+    @Test void aFlatBonusIsClaimedOnceWhateverTheCount() {
+        assertEquals(100, cat("media").points(1));
+        assertEquals(100, cat("media").points(5), "a flat bonus is earned once");
+        assertEquals(0, cat("media").points(0));
+        assertEquals(0, cat("media").points(-2));
+        assertEquals(50, cat("web").points(1));
+        assertEquals(50, cat("site").points(1));
+    }
+
+    @Test void messagesAreTenEachUpToAHundred() {
+        assertEquals(30, cat("nts").points(3));
+        assertEquals(100, cat("nts").points(10));
+        assertEquals(100, cat("nts").points(25), "ten messages at most");
+    }
+
+    @Test void youthIsTwentyEachUpToAHundred() {
+        assertEquals(40, cat("youth").points(2));
+        assertEquals(100, cat("youth").points(9));
+    }
+
+    @Test void gotaContactsAreFiveEachWithNoLimit() {
+        assertEquals(5, cat("gota").points(1));
+        assertEquals(1500, cat("gota").points(300));
+    }
+
+    @Test void thePowerMultipliersAreFiveTwoOne() {
+        assertArrayEquals(new int[]{5, 2, 1}, FieldDaySheet.POWER_MULTIPLIERS);
     }
 }
