@@ -117,4 +117,16 @@ class PropagationTest {
         assertNull(Weather.of(null, "", "3"));
         assertNull(Weather.of("--", "NoRpt", "2"));
     }
+
+    @Test void openNowGivesAVerdictWithTheMufAndLufOrNothingWhenItCannot() {
+        java.time.LocalDateTime noon = java.time.LocalDateTime.of(2026, 6, 21, 14, 0);
+        String r10 = Propagation.openNow(NYC, LONDON, HIGH, noon, 28.5), r160 = Propagation.openNow(NYC, LONDON, HIGH, noon, 1.85);
+        assertTrue(r10.contains("MUF") && r10.contains("LUF") && r10.contains("estimate"), r10);
+        assertTrue(r160.startsWith("probably closed: below the LUF"), "160 m by day is absorbed: " + r160);
+        assertTrue(Propagation.openNow(NYC, LONDON, LOW, noon, 50.1).startsWith("probably closed: above the MUF"), "6 m at the bottom of the cycle");
+        assertEquals("", Propagation.openNow(null, LONDON, HIGH, noon, 14.2));
+        assertEquals("", Propagation.openNow(NYC, LONDON, null, noon, 14.2));
+        assertEquals("", Propagation.openNow(NYC, LONDON, HIGH, noon, 0));
+        assertTrue(Propagation.openNow(NYC, LONDON, HIGH, noon, 14.2).startsWith("likely open"), "20 m NYC-London at midday with a high flux");
+    }
 }
