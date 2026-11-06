@@ -98,6 +98,7 @@ public final class HubServer {
         RemoteServer.onClientCount = HubServer::onClientCount;   // wire refcount before the server accepts clients
         RemoteServer.onReconfig    = HubServer::reconcile;
         RemoteServer.startHub();
+        com.ars.fx.web.WebClientServer.init();             // the phone page, if the operator turned it on
         if (!auto) scheduleStartupIdleCheck();   // a hub started on its own must not hold the cluster for nobody
 
         Runtime.getRuntime().addShutdownHook(new Thread(HubServer::cleanup, "hub-shutdown"));
@@ -332,6 +333,7 @@ public final class HubServer {
     }
 
     private static synchronized void cleanup() {
+        try { com.ars.fx.web.WebClientServer.stop(); } catch (Throwable ignored) { }
         try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
         for (com.ars.fx.data.TelnetFeed f : FEEDS) try { f.disconnect(); } catch (Exception ignored) {}   // hang up on the cluster before exiting
         try { RemoteServer.shutdown(); } catch (Exception ignored) {}

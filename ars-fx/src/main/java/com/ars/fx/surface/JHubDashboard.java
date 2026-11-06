@@ -857,6 +857,13 @@ public final class JHubDashboard {
                     cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("WebSocket port", "the solo module connects to ws://<this-pc>:<port>",
                     cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+        VBox phone = section("PHONE WEB CLIENT",
+            cfgRow("Phone web client", "a page your phone opens on your own network to log QSOs (POTA / SOTA), watch the DX spots and see the rig. Off until you turn it on. It is plain HTTP, so use it on your own network only; to reach it from outside, use a VPN. QSOs typed while the signal is gone wait on the phone and are sent, with their real times, when it returns", cToggle(com.ars.fx.web.WebClientServer.KEY_ENABLED, false)),
+            cfgRow("Port", "the page is at http://<this computer>:<port>/", cInput(com.ars.fx.web.WebClientServer.KEY_PORT, String.valueOf(com.ars.fx.web.WebClientServer.DEFAULT_PORT))),
+            cfgRow("Access token", "the phone must give this; it is made for you the first time. Change it to lock out a phone that should no longer log", cInput(com.ars.fx.web.WebClientServer.KEY_TOKEN, com.ars.fx.web.WebClientServer.enabled() ? com.ars.fx.web.WebClientServer.token() : "")),
+            cfgRow("Address to open", com.ars.fx.web.WebClientServer.enabled() ? "open this on the phone once; it keeps the token" : "turn the client on first",
+                    lbl(phoneUrl(), "cfg-lh")),
+            cfgRow("Tune the rig from the phone", "lets the Spots page tune the rig: only while it is connected and not transmitting, and only inside an amateur band", cToggle(com.ars.fx.web.WebClientServer.KEY_CONTROL, false)));
         VBox n1mm = section("N1MM-COMPATIBLE BROADCAST (GRIDTRACKER, LOG4OM …)",
             cfgRow("Broadcast the log", "sends each contest QSO (call, band, mode, exchange) over UDP in N1MM+'s format so other programs can follow your log live. Off until you turn it on, and it goes only to the addresses below", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_ENABLED, false)),
             cfgRow("Send to", "ip:port pairs separated by spaces. 127.0.0.1:12060 is this PC; a subnet broadcast address such as 192.168.1.255:12060 reaches every PC on the network", cInput(com.ars.fx.data.N1mmBroadcast.KEY_DEST, com.ars.fx.data.N1mmBroadcast.DEFAULT_DEST)),
@@ -918,7 +925,7 @@ public final class JHubDashboard {
                 labelSection());
             case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
                 lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
-                logbook, n1mm, network, contest);
+                logbook, phone, n1mm, network, contest);
             case "share" -> cfgPage(cfgTop("J-Hub", "System", "Remote sharing"),
                 lbl("Let a solo J-Map / J-Sat on another computer use this station's spots, rig and rotor.", "cfg-desc"),
                 remote);
@@ -1364,6 +1371,13 @@ public final class JHubDashboard {
         if (rows.length > 0) rows[rows.length-1].setStyle("-fx-border-width:0;");
         return new VBox(6, lbl(name, "cfg-sec"), card);
     }
+    /** The first address to give the phone, or a hint when the client is off or no network address was found. */
+    private static String phoneUrl() {
+        if (!com.ars.fx.web.WebClientServer.enabled()) return "";
+        java.util.List<String> u = com.ars.fx.web.WebClientServer.urls();
+        return u.isEmpty() ? "no network address found" : String.join("\n", u);
+    }
+
     static HBox cfgRow(String title, String hint, Node control) {
         Object tag = control.getProperties().get("macroTag");
         if (tag != null) hint = (hint == null ? "" : hint + "  ·  ") + "macro tag " + tag;      // every setting a macro can use says so

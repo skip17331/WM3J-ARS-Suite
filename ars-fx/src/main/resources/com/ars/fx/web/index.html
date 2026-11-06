@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>ARS Suite</title>
+<style>
+:root { --bg:#f4f6f8; --card:#fff; --ink:#14202b; --dim:#5d6b79; --line:#d6dde4; --accent:#0a6cff; --ok:#13a05a; --warn:#c77700; --err:#c62828; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0b0f14; --card:#141b23; --ink:#e8eef4; --dim:#93a1af; --line:#26313c; --accent:#4d9bff; --ok:#3ddc84; --warn:#ffb74d; --err:#ff6b6b; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding-bottom:env(safe-area-inset-bottom); }
+header { padding:10px 16px; background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+header .row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.call { font-weight:700; font-size:18px; }
+.dim { color:var(--dim); font-size:14px; }
+.dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--dim); margin-right:6px; }
+.dot.ok { background:var(--ok); } .dot.bad { background:var(--err); }
+nav { display:flex; background:var(--card); border-bottom:1px solid var(--line); }
+nav button { flex:1; padding:12px 0; border:0; background:none; color:var(--dim); font:inherit; font-weight:600; border-bottom:3px solid transparent; }
+nav button.on { color:var(--accent); border-bottom-color:var(--accent); }
+main { padding:12px 16px; max-width:640px; margin:0 auto; }
+label { display:block; font-size:13px; color:var(--dim); margin:10px 0 3px; }
+input, select { width:100%; padding:12px; font-size:16px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+input.call-in { font-size:22px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; } .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+button.act { width:100%; margin-top:14px; padding:14px; font-size:18px; font-weight:700; border:0; border-radius:10px; background:var(--accent); color:#fff; }
+button.sec { margin-top:8px; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); font:inherit; }
+.msg { margin-top:10px; padding:10px; border-radius:8px; background:var(--card); border:1px solid var(--line); font-size:14px; }
+.msg.err { border-color:var(--err); color:var(--err); } .msg.ok { border-color:var(--ok); color:var(--ok); } .msg.warn { border-color:var(--warn); color:var(--warn); }
+.item { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+.item .top { display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+.item .c { font-weight:700; font-size:18px; }
+.pill { font-size:12px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--dim); }
+.pill.open { color:var(--ok); border-color:var(--ok); } .pill.marginal { color:var(--warn); border-color:var(--warn); }
+.hidden { display:none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row"><span class="call" id="hcall">ARS Suite</span><span class="dim" id="hutc"></span></div>
+  <div class="row dim"><span><span class="dot" id="hdot"></span><span id="hrig">connecting…</span></span><span id="hrotor"></span></div>
+</header>
+<nav id="tabs"><button data-t="log" class="on">Log</button><button data-t="spots">Spots</button><button data-t="recent">Recent</button></nav>
+<main>
+  <section id="tab-log">
+    <label for="call">Callsign</label>
+    <input id="call" class="call-in" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" inputmode="text">
+    <div class="grid3">
+      <div><label for="freq">Freq (MHz)</label><input id="freq" inputmode="decimal"></div>
+      <div><label for="mode">Mode</label><select id="mode"></select></div>
+      <div><label for="band">Band</label><input id="band" readonly></div>
+    </div>
+    <div class="grid2">
+      <div><label for="rs">RST sent</label><input id="rs" inputmode="numeric"></div>
+      <div><label for="rr">RST received</label><input id="rr" inputmode="numeric"></div>
+    </div>
+    <div class="grid2">
+      <div><label for="name">Name</label><input id="name" autocomplete="off"></div>
+      <div><label for="qth">QTH</label><input id="qth" autocomplete="off"></div>
+    </div>
+    <div class="grid3">
+      <div><label for="grid">Grid</label><input id="grid" autocapitalize="characters" autocomplete="off"></div>
+      <div><label for="pota">POTA</label><input id="pota" autocapitalize="characters" placeholder="K-1234" autocomplete="off"></div>
+      <div><label for="sota">SOTA</label><input id="sota" autocapitalize="characters" placeholder="W7W/KG-001" autocomplete="off"></div>
+    </div>
+    <label for="comment">Comment</label>
+    <input id="comment" autocomplete="off">
+    <button class="act" id="log">Log QSO</button>
+    <button class="sec" id="clear">Clear</button>
+    <div id="logmsg" class="msg hidden"></div>
+    <div id="queue" class="msg warn hidden"></div>
+  </section>
+  <section id="tab-spots" class="hidden"><div id="spots"></div></section>
+  <section id="tab-recent" class="hidden"><div id="recent"></div></section>
+  <div id="authmsg" class="msg err hidden"></div>
+</main>
+<script>
+"use strict";
+var $ = function (id) { return document.getElementById(id); };
+var TOKEN_KEY = "ars.token", QUEUE_KEY = "ars.queue", REJECT_KEY = "ars.rejected";
+var state = null, control = false, flushing = false;
+
+// ---- token: from ?t= once, then kept ---------------------------------------------------------------------------------
+(function () {
+  try {
+    var p = new URLSearchParams(location.search), t = p.get("t");
+    if (t) { localStorage.setItem(TOKEN_KEY, t); history.replaceState(null, "", location.pathname); }
+  } catch (e) { /* storage may be blocked */ }
+})();
+function token() { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; } }
+
+// ---- small helpers -----------------------------------------------------------------------------------------------------
+function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function store(key, def) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) { /* storage full or blocked */ } }
+function newUid() {
+  var a = new Uint8Array(12);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  return Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+}
+function utcNow() { return new Date().toISOString().slice(0, 19).replace("T", " "); }
+function show(id, text, kind) { var e = $(id); e.textContent = text; e.className = "msg " + (kind || "") + (text ? "" : " hidden"); }
+
+function api(path, opts) {
+  opts = opts || {};
+  var h = { "X-Token": token() };
+  if (opts.body) h["Content-Type"] = "application/json";
+  return fetch(path, { method: opts.method || "GET", headers: h, body: opts.body ? JSON.stringify(opts.body) : undefined, cache: "no-store" }).then(function (r) {
+    return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, json: j }; });
+  });
+}
+
+// ---- tabs --------------------------------------------------------------------------------------------------------------
+document.querySelectorAll("#tabs button").forEach(function (b) {
+  b.onclick = function () { openTab(b.getAttribute("data-t")); };
+});
+function openTab(t) {
+  document.querySelectorAll("#tabs button").forEach(function (b) { b.className = b.getAttribute("data-t") === t ? "on" : ""; });
+  ["log", "spots", "recent"].forEach(function (n) { $("tab-" + n).className = n === t ? "" : "hidden"; });
+  if (t === "spots") loadSpots();
+  if (t === "recent") loadRecent();
+}
+
+// ---- modes and reports -------------------------------------------------------------------------------------------------
+var MODES = ["CW", "SSB", "FM", "AM", "RTTY", "FT8", "FT4", "PSK31", "OTHER"];
+var RIG_MODE = { USB: "SSB", LSB: "SSB", CW: "CW", CWR: "CW", FM: "FM", AM: "AM", RTTY: "RTTY", PKTUSB: "FT8", PKTLSB: "FT8", PKTFM: "FM" };
+var BANDS = [[1.8, 2, "160m"], [3.5, 4, "80m"], [5.3, 5.5, "60m"], [7, 7.3, "40m"], [10.1, 10.15, "30m"], [14, 14.35, "20m"], [18.068, 18.168, "17m"],
+             [21, 21.45, "15m"], [24.89, 24.99, "12m"], [28, 29.7, "10m"], [50, 54, "6m"], [144, 148, "2m"], [420, 450, "70cm"]];
+MODES.forEach(function (m) { var o = el("option", null, m); o.value = m; $("mode").appendChild(o); });
+function bandOf(mhz) { for (var i = 0; i < BANDS.length; i++) if (mhz >= BANDS[i][0] && mhz <= BANDS[i][1]) return BANDS[i][2]; return ""; }
+function defaultRst(mode) { return mode === "SSB" || mode === "FM" || mode === "AM" ? "59" : "599"; }
+function setBand() { var v = parseFloat($("freq").value); $("band").value = isNaN(v) ? "" : bandOf(v); }
+$("freq").oninput = setBand;
+$("mode").onchange = function () { $("rs").value = defaultRst($("mode").value); $("rr").value = defaultRst($("mode").value); };
+
+// ---- state: rig, rotor, clock ------------------------------------------------------------------------------------------
+var dirty = {};   // the operator typed in this field, so the rig no longer overwrites it
+["freq", "mode"].forEach(function (id) { $(id).addEventListener("input", function () { dirty[id] = true; }); $(id).addEventListener("change", function () { dirty[id] = true; }); });
+
+function refreshState() {
+  api("/api/state").then(function (r) {
+    if (r.status === 401) { auth("The access token was not accepted. Open the address from J-Hub ▸ Data again."); return; }
+    if (r.status !== 200) throw new Error("status " + r.status);
+    state = r.json; control = !!state.rigControl; show("authmsg", "");
+    $("hcall").textContent = state.call || "ARS Suite";
+    $("hutc").textContent = state.utc ? state.utc.slice(11, 16) + "Z" : "";
+    var rig = state.rig || {};
+    $("hdot").className = "dot " + (rig.connected ? "ok" : "bad");
+    $("hrig").textContent = rig.connected ? (rig.freqHz / 1e6).toFixed(4) + " MHz " + (rig.mode || "") + (rig.ptt ? " TX" : "") : "rig not connected";
+    $("hrotor").textContent = state.rotor && state.rotor.connected ? "beam " + state.rotor.az + "°" : "";
+    if (rig.connected) {
+      if (!dirty.freq) { $("freq").value = (rig.freqHz / 1e6).toFixed(4); setBand(); }
+      if (!dirty.mode) { var m = RIG_MODE[(rig.mode || "").toUpperCase()]; if (m) { $("mode").value = m; if (!$("rs").value) { $("rs").value = defaultRst(m); $("rr").value = defaultRst(m); } } }
+    }
+  }).catch(function () { $("hdot").className = "dot bad"; $("hrig").textContent = "no connection to the hub"; });
+}
+function auth(msg) { show("authmsg", msg, "err"); }
+
+// ---- logging, with a queue for when the network is not there ----------------------------------------------------
+function form() {
+  return { uid: newUid(), utc: utcNow(), call: $("call").value.trim().toUpperCase(), freq: $("freq").value.trim(), band: $("band").value, mode: $("mode").value,
+           rstSent: $("rs").value.trim(), rstRcvd: $("rr").value.trim(), name: $("name").value.trim(), qth: $("qth").value.trim(), grid: $("grid").value.trim().toUpperCase(),
+           pota: $("pota").value.trim().toUpperCase(), sota: $("sota").value.trim().toUpperCase(), comment: $("comment").value.trim() };
+}
+function clearForm(keepRefs) {
+  ["call", "name", "qth", "grid", "comment"].forEach(function (id) { $(id).value = ""; });
+  $("rs").value = defaultRst($("mode").value); $("rr").value = defaultRst($("mode").value);
+  if (!keepRefs) { $("pota").value = ""; $("sota").value = ""; }
+  $("call").focus();
+}
+$("clear").onclick = function () { clearForm(false); show("logmsg", ""); };
+$("log").onclick = function () {
+  var q = form();
+  if (!/^[A-Z0-9\/]{3,14}$/.test(q.call) || !/\d/.test(q.call) || !/[A-Z]/.test(q.call)) { show("logmsg", "Enter a callsign first.", "err"); return; }
+  if (!q.freq && !q.band) { show("logmsg", "Enter the frequency.", "err"); return; }
+  var queue = store(QUEUE_KEY, []); queue.push(q); save(QUEUE_KEY, queue);
+  show("logmsg", "Saved " + q.call + ".", "ok");
+  clearForm(true);        // POTA / SOTA references stay for the next contact from the same spot
+  flush();
+};
+
+function flush() {
+  if (flushing) return;
+  var queue = store(QUEUE_KEY, []);
+  if (!queue.length) { renderQueue(); return; }
+  flushing = true;
+  (function next() {
+    var queue = store(QUEUE_KEY, []);
+    if (!queue.length) { flushing = false; renderQueue(); return; }
+    var q = queue[0];
+    api("/api/qso", { method: "POST", body: q }).then(function (r) {
+      if (r.status === 200 && r.json.ok) {
+        queue.shift(); save(QUEUE_KEY, queue); renderQueue(); next();
+      } else if (r.status === 401) {
+        flushing = false; renderQueue(); auth("The access token was not accepted, so the QSOs are kept on this phone.");
+      } else if (r.status === 400) {
+        var rej = store(REJECT_KEY, []); rej.push({ q: q, why: r.json.error || "rejected" }); save(REJECT_KEY, rej.slice(-20));
+        queue.shift(); save(QUEUE_KEY, queue); renderQueue(); next();
+      } else { flushing = false; renderQueue(); }
+    }).catch(function () { flushing = false; renderQueue(); });   // no network: they wait
+  })();
+}
+function renderQueue() {
+  var n = store(QUEUE_KEY, []).length, rej = store(REJECT_KEY, []);
+  var t = "";
+  if (n) t += n + " QSO" + (n === 1 ? "" : "s") + " waiting to send - kept on this phone until the hub can be reached. ";
+  if (rej.length) t += rej.length + " could not be logged: " + rej[rej.length - 1].q.call + " (" + rej[rej.length - 1].why + ").";
+  show("queue", t, "warn");
+}
+window.addEventListener("online", flush);
+setInterval(flush, 30000);
+
+// ---- spots and recent --------------------------------------------------------------------------------------------------
+function modeFromSpot(m) { m = (m || "").toUpperCase(); return RIG_MODE[m] || (MODES.indexOf(m) >= 0 ? m : ""); }
+function loadSpots() {
+  api("/api/spots?limit=40").then(function (r) {
+    var box = $("spots"); box.textContent = "";
+    if (r.status !== 200) { box.appendChild(el("div", "msg err", r.status === 401 ? "The access token was not accepted." : "Could not load the spots.")); return; }
+    var list = r.json.spots || [];
+    if (!list.length) { box.appendChild(el("div", "msg", "No spots right now. The hub needs its DX cluster connection.")); return; }
+    list.forEach(function (s) {
+      var it = el("div", "item"), top = el("div", "top");
+      top.appendChild(el("span", "c", s.call));
+      top.appendChild(el("span", "dim", (s.freqHz / 1e6).toFixed(4) + " " + (s.mode || "")));
+      it.appendChild(top);
+      var meta = el("div", "top");
+      meta.appendChild(el("span", "dim", (s.band || "") + " · " + Math.round(s.ageSec / 60) + " min · de " + (s.de || "") + (s.comment ? " · " + s.comment : "")));
+      if (s.path) meta.appendChild(el("span", "pill " + s.path, s.path === "open" ? "likely open" : s.path === "marginal" ? "marginal" : "closed?"));
+      it.appendChild(meta);
+      var use = el("button", "sec", "Use this spot"); use.onclick = function () { useSpot(s); }; it.appendChild(use);
+      if (control) { var tune = el("button", "sec", "Tune the rig"); tune.onclick = function () { tuneTo(s, tune); }; it.appendChild(tune); }
+      box.appendChild(it);
+    });
+  }).catch(function () { $("spots").textContent = "No connection to the hub."; });
+}
+function useSpot(s) {
+  $("call").value = s.call; $("freq").value = (s.freqHz / 1e6).toFixed(4); dirty.freq = true; setBand();
+  var m = modeFromSpot(s.mode); if (m) { $("mode").value = m; dirty.mode = true; $("rs").value = defaultRst(m); $("rr").value = defaultRst(m); }
+  openTab("log"); $("call").focus();
+}
+function tuneTo(s, btn) {
+  btn.disabled = true;
+  api("/api/qsy", { method: "POST", body: { freqKhz: String(s.freqHz / 1000), mode: s.mode } }).then(function (r) {
+    btn.textContent = r.status === 200 ? "Tuned" : (r.json.error || "Could not tune"); setTimeout(function () { btn.textContent = "Tune the rig"; btn.disabled = false; }, 2500); refreshState();
+  }).catch(function () { btn.textContent = "No connection"; btn.disabled = false; });
+}
+function loadRecent() {
+  api("/api/recent?limit=25").then(function (r) {
+    var box = $("recent"); box.textContent = "";
+    if (r.status !== 200) { box.appendChild(el("div", "msg err", "Could not load the log.")); return; }
+    var list = r.json.qsos || [];
+    if (!list.length) { box.appendChild(el("div", "msg", "Nothing logged yet.")); return; }
+    list.forEach(function (q) {
+      var it = el("div", "item"), top = el("div", "top");
+      top.appendChild(el("span", "c", q.call));
+      top.appendChild(el("span", "dim", (q.utc || "").slice(0, 16) + "Z"));
+      it.appendChild(top);
+      it.appendChild(el("div", "dim", [q.band, q.mode, q.freq, q.rst, q.name].filter(Boolean).join(" · ")));
+      box.appendChild(it);
+    });
+  }).catch(function () { $("recent").textContent = "No connection to the hub."; });
+}
+
+// ---- start -------------------------------------------------------------------------------------------------------------
+$("rs").value = "599"; $("rr").value = "599";
+if (!token()) auth("No access token. Open the address shown in J-Hub ▸ Data ▸ Phone web client.");
+refreshState(); renderQueue(); flush();
+setInterval(refreshState, 5000);
+</script>
+</body>
+</html>
