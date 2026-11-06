@@ -42,6 +42,8 @@ public final class CallHistory {
     public static final List<String> KEYS = List.of("name", "state", "section", "cqz", "ituz", "grid", "prec", "check", "age");
 
     private static final int SRC_IMPORTED = 0, SRC_LOGGED = 1;
+    /** Prefix of the key a QSO party county is kept under: {@code county:FL}. A county code means nothing in another state's party. */
+    public static final String COUNTY = "county:";
 
     private static Path dirOverride;
     static void setDirForTest(Path p) { dirOverride = p; cache.clear(); }
@@ -95,6 +97,7 @@ public final class CallHistory {
         if (raw == null) return null;
         String v = raw.strip().toUpperCase(Locale.ROOT);
         if (v.isEmpty()) return null;
+        if (key.startsWith(COUNTY)) return v.matches("[A-Z0-9]{2,6}") ? v : null;      // a county code of one QSO party's state
         switch (key) {
             case "state":   return STATES.contains(v) ? v : null;              // a county, a DX station's power... is not a state
             case "section": return SECTION.matcher(v).matches() ? v : null;
@@ -202,15 +205,51 @@ public final class CallHistory {
                 case "field5" -> q.getContestField5();
                 default -> null;
             };
-            if (v != null && !v.isBlank()) m.put(key, v);
+            if (v == null || v.isBlank()) continue;
+            if (key.equals("state") && clean("state", v) == null && QsoPartySide.isParty(plugin)
+                    && QsoPartySide.counties(plugin).contains(v.strip().toUpperCase(Locale.ROOT))) {
+                m.put(COUNTY + QsoPartySide.partyState(plugin), v);                       // the station is in the party's state: remember its county
+                continue;
+            }
+            m.put(key, v);
         }
         return m;
+    }
+
+    /** The history keys to try, best first, for a contest field: in a QSO party a station's county before its state. */
+    public static List<String> keysForField(ContestPlugin plugin, String fieldId) {
+        String key = keyForField(fieldId);
+        if (key == null) return List.of();
+        if (key.equals("state") && QsoPartySide.isParty(plugin)) return List.of(COUNTY + QsoPartySide.partyState(plugin), "state");
+        return List.of(key);
     }
 
     /** Remember what a logged contest QSO showed. Cheap; call it after each QSO is saved. */
     public static void learn(ContestPlugin plugin, QsoRecord q) {
         if (q == null || q.getCallsign() == null) return;
         write(Map.of(q.getCallsign(), fromContestQso(plugin, q)), SRC_LOGGED);
+    }
+
+    private static final java.util.concurrent.ExecutorService LEARNER = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "call-history-learn"); t.setDaemon(true); return t;
+    });
+    /** As {@link #learn}, but on a background thread of its own (for QSOs that arrive in bulk, such as the contest network catching up). */
+    public static void learnAsync(ContestPlugin plugin, QsoRecord q) { LEARNER.execute(() -> learn(plugin, q)); }
+
+    /** Learn from QSOs just imported from an ADIF file: the other station's name, state, grid and zones. */
+    public static int learnFromAdif(List<Map<String, String>> records) {
+        Map<String, Map<String, String>> all = new HashMap<>();
+        for (Map<String, String> r : records) {
+            String call = r.get("CALL");
+            if (call == null || call.isBlank()) continue;
+            Map<String, String> m = all.computeIfAbsent(baseCall(call), k -> new HashMap<>());
+            if (r.get("NAME") != null) m.put("name", r.get("NAME"));
+            if (r.get("STATE") != null) m.put("state", r.get("STATE"));
+            if (r.get("GRIDSQUARE") != null) m.put("grid", r.get("GRIDSQUARE"));
+            if (r.get("CQZ") != null) m.put("cqz", r.get("CQZ"));
+            if (r.get("ITUZ") != null) m.put("ituz", r.get("ITUZ"));
+        }
+        return write(all, SRC_LOGGED);
     }
 
     /** Result of a rebuild or import: calls touched, and a message when something went wrong. */

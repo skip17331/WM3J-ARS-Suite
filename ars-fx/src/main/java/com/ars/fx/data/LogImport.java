@@ -56,6 +56,7 @@ public final class LogImport {
                     r.get("GRIDSQUARE"), r.get("COMMENT"), r.get("STATE"), r.get("CNTY"), pwr, refs);
             if (ok) added++; else bad++;
         }
+        try { CallHistory.learnFromAdif(records); } catch (RuntimeException ignored) { /* the call history is a convenience */ }
         return new Result(true, added, dupes, bad, null);
     }
 

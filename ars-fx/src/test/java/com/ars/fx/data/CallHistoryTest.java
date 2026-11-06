@@ -102,6 +102,32 @@ class CallHistoryTest {
         assertEquals(0, CallHistory.count());
     }
 
+    @Test void aCountyInAQsoPartyIsRememberedForThatPartysState() {
+        QsoRecord r = MultCheckTest.q(qp, "K4FL", "20m", "SSB", "state_prov_rcvd", "ALA");     // an in-state Florida station, sending its county
+        CallHistory.learn(qp, r);
+        Map<String, String> h = CallHistory.get("K4FL");
+        assertEquals("ALA", h.get("county:FL"));
+        assertNull(h.get("state"), "a county is not a state");
+        assertEquals(List.of("county:FL", "state"), CallHistory.keysForField(qp, "state_prov_rcvd"));
+        assertEquals(List.of("section"), CallHistory.keysForField(ss, "section"));
+    }
+
+    @Test void aStateInAQsoPartyIsStillAState() {
+        CallHistory.learn(qp, MultCheckTest.q(qp, "W1AW", "20m", "SSB", "state_prov_rcvd", "CT"));
+        assertEquals("CT", CallHistory.get("W1AW").get("state"));
+    }
+
+    @Test void anAdifImportTeachesNameStateGridAndZones() {
+        List<Map<String, String>> recs = List.of(
+                Map.of("CALL", "K1ABC", "NAME", "Bob", "STATE", "CT", "GRIDSQUARE", "FN31", "CQZ", "5", "ITUZ", "8"),
+                Map.of("CALL", "N0COUNTY", "STATE", "Camden"), Map.of("NAME", "no call"));
+        CallHistory.learnFromAdif(recs);
+        Map<String, String> h = CallHistory.get("K1ABC");
+        assertEquals("BOB", h.get("name")); assertEquals("CT", h.get("state")); assertEquals("FN31", h.get("grid"));
+        assertEquals("5", h.get("cqz")); assertEquals("8", h.get("ituz"));
+        assertTrue(CallHistory.get("N0COUNTY").isEmpty(), "a county in the STATE field is not kept as a state");
+    }
+
     @Test void clearForgetsEverything() {
         CallHistory.learn(ss, MultCheckTest.q(ss, "K1ABC", "20m", "SSB", "section", "CT"));
         assertEquals(1, CallHistory.count());
