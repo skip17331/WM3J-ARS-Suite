@@ -50,6 +50,16 @@ public final class DxccInfo {
     private static final double[] ROBIN_Y = {0, .0620, .1240, .1860, .2480, .3100, .3720, .4340, .4958, .5571, .6176, .6769, .7346, .7903, .8435, .8936, .9394, .9761, 1};
     private static final double MAP_CX = 595.97, MAP_CY = 315.80, MAP_SX = 3.3178, MAP_SY = 307.16;
 
+    /** {lat, lon} → map position (the forward Robinson projection of the zone and entity outlines). */
+    static double[] toMap(double lat, double lon) {
+        int i = (int) Math.floor(Math.abs(lat) / 5);
+        i = Math.min(i, ROBIN_Y.length - 2);
+        double f = (Math.abs(lat) - i * 5) / 5;
+        double xf = ROBIN_X[i] + f * (ROBIN_X[i + 1] - ROBIN_X[i]);
+        double yf = ROBIN_Y[i] + f * (ROBIN_Y[i + 1] - ROBIN_Y[i]);
+        return new double[]{MAP_CX + lon * MAP_SX * xf, MAP_CY - Math.copySign(yf, lat) * MAP_SY};
+    }
+
     /** Map position → {lat, lon}. Good to about a degree for a small country; a label can sit far from a big one's centre. */
     private static double[] fromMap(double x, double y) {
         if (Double.isNaN(x) || Double.isNaN(y)) return new double[]{Double.NaN, Double.NaN};
@@ -81,6 +91,7 @@ public final class DxccInfo {
 
     /** What is known about {@code call}'s DXCC entity, or null when it cannot be resolved (or is maritime / aero mobile). */
     public static Info of(String call) {
+        if (call == null || call.chars().noneMatch(Character::isDigit)) return null;   // every callsign has a digit; "TEST" or "QRZ" is not one
         DxccResolver.Entity e;
         try { e = DxccResolver.getInstance().resolve(call); } catch (RuntimeException ex) { e = null; }
         if (e == null) return fromCty(call);          // the engine's table has no answer: ask the contest country files
@@ -102,7 +113,7 @@ public final class DxccInfo {
         if (call == null) return null;
         String c = call.strip().toUpperCase(java.util.Locale.ROOT);
         if (!CALLISH.matcher(c).matches()) return null;                    // junk such as "TEST" must not land in an entity
-        CtyData.Match m = CtyData.bundled().lookup(c);
+        CtyData.Match m = CtyData.current().lookup(c);
         if (m == null) return null;
         CtyData.Entity en = m.entity();
         int n = bridgeNumber(en);
@@ -114,9 +125,9 @@ public final class DxccInfo {
     /** The engine's DXCC number for a cty.dat entity, found by resolving one of its other prefixes; 0 when it has none. */
     private static int bridgeNumber(CtyData.Entity en) {
         return BRIDGE.computeIfAbsent(en, k -> {
-            for (String p : CtyData.bundled().aliasPrefixes(k)) {
+            for (String p : CtyData.current().aliasPrefixes(k)) {
                 String probe = p + (Character.isDigit(p.charAt(p.length() - 1)) ? "AA" : "1AA");
-                CtyData.Match pm = CtyData.bundled().lookup(probe);
+                CtyData.Match pm = CtyData.current().lookup(probe);
                 if (pm == null || pm.entity() != k) continue;
                 try {
                     DxccResolver.Entity r = DxccResolver.getInstance().resolve(probe);

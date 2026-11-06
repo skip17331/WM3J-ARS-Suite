@@ -85,33 +85,55 @@ class CtyDataTest {
         assertEquals(5, c.lookup("W6AAA").cq(), "the US default zone applies to every other call");
     }
 
-    /** Not a pass/fail check: writes target/cty-audit.txt listing where the engine's prefix table and cty.dat disagree. */
-    @Test void auditAgainstTheEnginePrefixTable() throws Exception {
+    /**
+     * The engine's DXCC table and cty.dat must agree: every prefix of a cty entity resolves, in the engine, to that entity's
+     * DXCC number, and two different cty entities never share one. A few cty entities are deliberately folded into a parent
+     * (DXCC counts Sicily and African Italy as Italy, the Shetlands as Scotland, Asiatic and European Turkey as Turkey).
+     * Also writes target/cty-audit.txt listing every disagreement.
+     */
+    @Test void engineTableAgreesWithCountryFiles() throws Exception {
         CtyData cty = CtyData.bundled();
         DxccResolver res = DxccResolver.getInstance();
-        List<String> missing = new ArrayList<>();       // cty knows it, the engine does not
-        Map<String, Integer> byEntity = new TreeMap<>();
-        int total = 0, resolved = 0;
+        java.util.Set<String> noDxcc = java.util.Set.of("Vienna Intl Ctr");     // not a DXCC entity
+        Map<String, Map<String, Integer>> numbersOf = new TreeMap<>();          // entity name -> engine number -> prefixes
+        Map<String, java.util.Set<String>> entitiesOf = new TreeMap<>();        // engine number -> entity names
+        List<String> unresolved = new ArrayList<>();
+        Map<String, List<String>> detail = new TreeMap<>();
+        int total = 0;
         for (CtyData.Entity e : cty.entities()) {
+            if (noDxcc.contains(e.name())) continue;
             for (String p : cty.aliasPrefixes(e)) {
                 String call = p + (Character.isDigit(p.charAt(p.length() - 1)) ? "AA" : "1AA");
                 CtyData.Match m = cty.lookup(call);
-                if (m == null || m.entity() != e) continue;          // a longer prefix owns this call; test that one instead
+                if (m == null || m.entity() != e) continue;                      // a longer prefix owns this call
                 total++;
                 DxccResolver.Entity r;
                 try { r = res.resolve(call); } catch (RuntimeException ex) { r = null; }
-                if (r != null) { resolved++; continue; }
-                missing.add(e.name() + "  " + p);
-                byEntity.merge(e.name(), 1, Integer::sum);
+                if (r == null) { unresolved.add(e.name() + "  " + p); continue; }
+                numbersOf.computeIfAbsent(e.name(), k -> new TreeMap<>()).merge(r.id(), 1, Integer::sum);
+                detail.computeIfAbsent(e.name() + " " + r.id(), k -> new ArrayList<>()).add(p);
+                entitiesOf.computeIfAbsent(r.id(), k -> new java.util.TreeSet<>()).add(e.name());
             }
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("cty.dat prefixes tested: ").append(total).append("\nresolved by the engine table: ").append(resolved)
-          .append("\nnot resolved: ").append(missing.size()).append("\nentities with at least one unresolved prefix: ").append(byEntity.size()).append("\n\n");
-        byEntity.forEach((k, v) -> sb.append(String.format("%3d  %s%n", v, k)));
-        sb.append("\n--- unresolved prefixes ---\n");
-        missing.forEach(x -> sb.append(x).append('\n'));
+        StringBuilder sb = new StringBuilder("cty.dat prefixes tested: " + total + "\nunresolved: " + unresolved.size() + "\n");
+        unresolved.forEach(x -> sb.append("  ").append(x).append('\n'));
+        List<String> split = new ArrayList<>(), shared = new ArrayList<>();
+        numbersOf.forEach((name, nums) -> { if (nums.size() > 1) split.add(name + " -> " + nums); });
+        entitiesOf.forEach((num, names) -> { if (names.size() > 1) shared.add(num + " <- " + names); });
+        sb.append("entities resolving to more than one number:\n"); split.forEach(x -> sb.append("  ").append(x).append('\n'));
+        sb.append("numbers shared by several entities:\n"); shared.forEach(x -> sb.append("  ").append(x).append('\n'));
+        sb.append("detail for the split entities:\n");
+        for (String line : split) { String n = line.substring(0, line.indexOf(" -> ")); detail.forEach((k, v) -> { if (k.startsWith(n + " ")) sb.append("  ").append(k).append(": ").append(v.size() > 12 ? v.subList(0, 12) + "..." : v).append('\n'); }); }
+        Files.createDirectories(Path.of("target"));
         Files.writeString(Path.of("target", "cty-audit.txt"), sb.toString());
+
         assertTrue(total > 1000);
+        assertEquals(List.of(), unresolved, "cty.dat prefixes the engine table cannot place (see target/cty-audit.txt)");
+        assertEquals(List.of(), split, "a cty entity must map to one DXCC number");
+        // the folds that are intended
+        java.util.Set<String> folded = java.util.Set.of("[Italy, Sicily]", "[African Italy, Italy, Sicily]", "[African Italy, Italy]", "[African Italy, Sicily]",
+                "[Asiatic Turkey, European Turkey]", "[Scotland, Shetland Islands]");
+        List<String> bad = shared.stream().filter(x -> !folded.contains(x.substring(x.indexOf("<- ") + 3))).toList();
+        assertEquals(List.of(), bad, "two different cty entities share a DXCC number");
     }
 }

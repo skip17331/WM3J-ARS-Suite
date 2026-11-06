@@ -30,6 +30,7 @@ public final class CtyData {
     private final Map<String, Match> prefixes = new HashMap<>();
     private final List<Entity> entities = new ArrayList<>();
     private final Map<Entity, List<String>> aliases = new HashMap<>();
+    private final Map<Entity, java.util.Set<Integer>> cqSets = new HashMap<>();
     private int maxPrefix = 1;
 
     private static volatile CtyData bundled;
@@ -45,6 +46,45 @@ public final class CtyData {
         }
         return c;
     }
+
+    private static volatile CtyData current;
+    private static java.nio.file.Path userDirOverride;
+    static void setUserDirForTest(java.nio.file.Path p) { userDirOverride = p; current = null; }
+
+    /** Where a refreshed copy is kept ({@link CtyUpdater}). */
+    public static java.nio.file.Path userFile() {
+        java.nio.file.Path dir = userDirOverride != null ? userDirOverride
+                : java.nio.file.Paths.get(System.getProperty("user.home"), ".j-hub", "cty");
+        return dir.resolve("cty.dat");
+    }
+
+    /** True when {@code d} looks like a whole country file rather than a truncated or wrong download. */
+    static boolean plausible(CtyData d) {
+        return d.size() >= 300 && d.entities.stream().anyMatch(e -> e.name().equals("United States"));
+    }
+
+    /** The newest country data: the refreshed copy under {@code ~/.j-hub/cty} when there is a good one, else the copy in the jar. */
+    public static CtyData current() {
+        CtyData c = current;
+        if (c == null) {
+            try {
+                java.nio.file.Path f = userFile();
+                if (java.nio.file.Files.isRegularFile(f)) {
+                    CtyData u = parse(new String(java.nio.file.Files.readAllBytes(f), StandardCharsets.ISO_8859_1));
+                    if (plausible(u)) c = u;
+                }
+            } catch (IOException | RuntimeException ignored) { /* fall through to the bundled copy */ }
+            if (c == null) c = bundled();
+            current = c;
+        }
+        return c;
+    }
+
+    /** Pick up a freshly written user copy. */
+    public static void reload() { current = null; }
+
+    /** The CQ zones this entity has: its default and every per-prefix override. More than one means the callsign alone cannot tell the zone. */
+    public java.util.Set<Integer> cqZones(Entity e) { return cqSets.getOrDefault(e, java.util.Set.of(e.cq())); }
 
     public List<Entity> entities() { return entities; }
     public List<String> aliasPrefixes(Entity e) { return aliases.getOrDefault(e, List.of()); }
@@ -91,6 +131,7 @@ public final class CtyData {
             m = CONT.matcher(t); if (m.find()) cont = m.group(1).toUpperCase(Locale.ROOT);
             String base = TZ.matcher(POS.matcher(CONT.matcher(ITU.matcher(CQ.matcher(t).replaceAll("")).replaceAll("")).replaceAll("")).replaceAll("")).replaceAll("").strip().toUpperCase(Locale.ROOT);
             if (base.isEmpty()) continue;
+            cqSets.computeIfAbsent(e, k -> new java.util.TreeSet<>(java.util.Set.of(k.cq()))).add(cq);
             Match match = new Match(e, cq, itu, cont);
             if (isExact) exact.put(base, match);
             else { prefixes.put(base, match); maxPrefix = Math.max(maxPrefix, base.length()); list.add(base); }

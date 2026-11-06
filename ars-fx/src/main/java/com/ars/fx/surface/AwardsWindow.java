@@ -243,8 +243,9 @@ public final class AwardsWindow {
         FlowPane cq = new FlowPane(6, 6), itu = new FlowPane(6, 6);
         for (String z : s.cqz.all()) cq.getChildren().add(chip(z, s.cqz.confirmedSet().contains(z) ? "conf" : s.cqz.workedSet().contains(z) ? "worked" : ""));
         for (String z : s.ituz.all()) itu.getChildren().add(chip(z, s.ituz.confirmedSet().contains(z) ? "conf" : s.ituz.workedSet().contains(z) ? "worked" : ""));
-        Label note = lbl("Zones are not worked out from the callsign. They count where the QSO carries a CQ / ITU zone — "
-                + "for now that means QSOs imported from an ADIF file that has CQZ / ITUZ fields. Green = worked, blue = confirmed.", "jl-emeta");
+        Label note = lbl("A QSO's own CQ / ITU zone counts when it has one. Otherwise the zone comes from the callsign's country, and in "
+                + "countries that span several CQ zones (US, Canada, Russia, China, Australia, Brazil...) from the worked station's grid square. "
+                + "ITU zones are the country's default. Green = worked, blue = confirmed.", "jl-emeta");
         note.setWrapText(true);
         return scroll(page(progressRow(s.cqz), cq, progressRow(s.ituz), itu, note));
     }
