@@ -1,5 +1,7 @@
 [
-  "ACR","BKN","CAP","CAR","CCR","CKT","COS","COM","CVR","EKT",
-  "FFG","FVL","KBD","MVR","MTW","NAN","NOC","NOR","OKS","PRG",
-  "PRQ","SLR","STK","STN","SUN","THN"
+  "ASL","BNS","BUC","CHP","CKS","CLC","CML","COA","CPC","CPG",
+  "DEL","ESQ","FPK","KEL","KSC","KTN","LTF","MMA","NAL","NBM",
+  "NPR","NVC","OSK","PMC","PMM","PPN","RCM","RES","SBV","SGI",
+  "SSW","SUC","SUN","SWR","VAC","VAE","VAG","VAK","VAQ","VIC",
+  "VLM","VSB","WVS"
 ]

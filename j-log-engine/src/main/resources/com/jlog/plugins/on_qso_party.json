@@ -2,7 +2,7 @@
   "contestId": "ON_QSO_PARTY",
   "contestName": "Ontario QSO Party",
   "version": "1.1.0",
-  "exchangeFormat": "CA: serial + county (e.g. 001 ALAM)   Other: serial + state/prov/DX (e.g. 001 PA)",
+  "exchangeFormat": "ON: RS(T) + county abbreviation (e.g. 59 OTT). Non-ON: RS(T) + province/state or DX (e.g. 59 PA). ON works everyone; non-ON works ON only.",
   "autoFillDxccPrefix": true,
   "entryFields": [
     {
@@ -57,17 +57,8 @@
       "label": "RST R",
       "type": "text",
       "width": 50,
-      "required": false,
-      "entryRow": 0
-    },
-    {
-      "id": "serial_rcvd",
-      "label": "# R",
-      "type": "text",
-      "width": 60,
       "required": true,
-      "entryRow": 0,
-      "validator": "numeric"
+      "entryRow": 0
     },
     {
       "id": "state_prov_rcvd",
@@ -82,7 +73,7 @@
       "label": "RST S",
       "type": "text",
       "width": 50,
-      "required": false,
+      "required": true,
       "entryRow": 1
     },
     {
@@ -99,21 +90,23 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "\u03a3 QSO pts \u00d7 \u03a3 mults (once overall). In-state entrant: own counties + W/VE states/provinces + 1 DX; out-of-state entrant: in-state counties only. Mobile/rover re-worked from a new county = new QSO. Claimed/standard \u2014 sponsor re-adjudicates (per-contest official-rules pass still pending).",
+    "scoreFormula": "Total = Σ QSO pts × Σ mults, mults counted once PER BAND. Pts: phone 2, CW 2; 10 for VA3CCO, VE3CCO, VE3ODX, VA3RAC, VE3RHQ. Ontario entrant: Ontario counties + Canadian provinces/territories + US states (+DC) + each DXCC country; non-Ontario entrant: Ontario counties only. Not scored: the mobile/rover bonus (300 per Ontario area activated with 3+ contacts) — add it by hand. Claimed — CCO re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Ontario",
       "stateAbbr": "ON",
+      "countyCodeLen": 3,
       "pointsByModeClass": {
-        "PH": 1,
+        "PH": 2,
         "CW": 2,
         "RY": 2,
         "DG": 2
       },
-      "multScope": "once",
+      "multScope": "per_band",
       "inStateCountsStates": true,
-      "inStateCountsDxccEach": false,
+      "inStateCountsDxccEach": true,
       "inStateCountsCounties": true,
+      "qsoPointCalls": { "VA3CCO": 10, "VE3CCO": 10, "VE3ODX": 10, "VA3RAC": 10, "VE3RHQ": 10 },
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
@@ -150,6 +143,6 @@
     "qso_per_hour"
   ],
   "cabrilloSent": ["rst_sent", "state_prov_sent"],
-  "cabrilloRcvd": ["rst_rcvd", "serial_rcvd", "state_prov_rcvd"],
+  "cabrilloRcvd": ["rst_rcvd", "state_prov_rcvd"],
   "sections": []
 }

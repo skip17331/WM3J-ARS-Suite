@@ -80,6 +80,7 @@ public final class QsoPartySide {
             java.util.Map.entry("AZ", 15), java.util.Map.entry("CA", 58), java.util.Map.entry("DE", 3), java.util.Map.entry("FL", 67),
             java.util.Map.entry("GA", 159), java.util.Map.entry("ME", 16), java.util.Map.entry("MI", 83), java.util.Map.entry("MDC", 25),
             java.util.Map.entry("NC", 100), java.util.Map.entry("NH", 10), java.util.Map.entry("NM", 33), java.util.Map.entry("NS", 18),
+            java.util.Map.entry("ON", 50), java.util.Map.entry("BC", 43), java.util.Map.entry("QC", 17),
             java.util.Map.entry("NY", 62), java.util.Map.entry("OH", 88), java.util.Map.entry("PA", 67), java.util.Map.entry("SC", 46),
             java.util.Map.entry("TN", 95), java.util.Map.entry("TX", 254), java.util.Map.entry("VT", 14), java.util.Map.entry("WA", 39));
 

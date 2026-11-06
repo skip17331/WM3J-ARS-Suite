@@ -2,7 +2,7 @@
   "contestId": "QC_QSO_PARTY",
   "contestName": "Quebec QSO Party",
   "version": "1.1.0",
-  "exchangeFormat": "CA: serial + county (e.g. 001 ALAM)   Other: serial + state/prov/DX (e.g. 001 PA)",
+  "exchangeFormat": "VE2: RS(T) + region code (e.g. 59 MTL). Non-VE2: RS(T) + province/state or DX (e.g. 59 PA). VE2 works everyone; non-VE2 works VE2 only.",
   "autoFillDxccPrefix": true,
   "entryFields": [
     {
@@ -57,17 +57,8 @@
       "label": "RST R",
       "type": "text",
       "width": 50,
-      "required": false,
-      "entryRow": 0
-    },
-    {
-      "id": "serial_rcvd",
-      "label": "# R",
-      "type": "text",
-      "width": 60,
       "required": true,
-      "entryRow": 0,
-      "validator": "numeric"
+      "entryRow": 0
     },
     {
       "id": "state_prov_rcvd",
@@ -82,7 +73,7 @@
       "label": "RST S",
       "type": "text",
       "width": 50,
-      "required": false,
+      "required": true,
       "entryRow": 1
     },
     {
@@ -99,18 +90,19 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "\u03a3 QSO pts \u00d7 \u03a3 mults (once overall). In-state entrant: own counties + W/VE states/provinces + 1 DX; out-of-state entrant: in-state counties only. Mobile/rover re-worked from a new county = new QSO. Claimed/standard \u2014 sponsor re-adjudicates (per-contest official-rules pass still pending).",
+    "scoreFormula": "Total = Σ QSO pts × Σ mults, mults counted once PER BAND (not per mode). Pts: phone 1, CW 2. VE2 entrant: Quebec regions + Canadian provinces/territories + US states + one DX; non-VE2 entrant: Quebec regions only. No bonus station in 2026. Not scored: the mobile bonus (300 per region activated with 3+ contacts) — add it by hand. Claimed — QCQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Quebec",
       "stateAbbr": "QC",
+      "countyCodeLen": 3,
       "pointsByModeClass": {
         "PH": 1,
         "CW": 2,
         "RY": 2,
         "DG": 2
       },
-      "multScope": "once",
+      "multScope": "per_band",
       "inStateCountsStates": true,
       "inStateCountsDxccEach": false,
       "inStateCountsCounties": true,
@@ -150,6 +142,6 @@
     "qso_per_hour"
   ],
   "cabrilloSent": ["rst_sent", "state_prov_sent"],
-  "cabrilloRcvd": ["rst_rcvd", "serial_rcvd", "state_prov_rcvd"],
+  "cabrilloRcvd": ["rst_rcvd", "state_prov_rcvd"],
   "sections": []
 }
