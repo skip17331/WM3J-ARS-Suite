@@ -523,6 +523,8 @@ public final class JLogCockpit {
         Label md = lbl(s.mode(), "jl-mode");
         Label age = lbl(com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jl-skim-meta");
         HBox top = new HBox(9, fq, cl, md, age); top.setAlignment(Pos.CENTER_LEFT);
+        Node pc = com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forSpot(s.call(), s.freqHz())) : null;
+        if (pc != null) top.getChildren().add(3, pc);
         String tail = "de " + s.de() + (s.comment().isEmpty() ? "" : " · " + s.comment());
         HBox bot = new HBox(9, lbl(s.band(), "jl-skim-meta"), lbl(tail, "jl-skim-meta")); bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(2, 0, 0, 0));
         VBox row = new VBox(0, top, bot); row.setPadding(new Insets(7, 0, 7, 0));
