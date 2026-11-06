@@ -55,9 +55,6 @@ From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the
 - [ ] **S** Log browser: export the filtered view; show the contest-log databases too (it shows the normal log only).
 
 ## 4. Later — housekeeping and research
-- [ ] **S** `USER_GUIDE.md` §3.3 still describes the old long J-Hub Data page; rewrite for the Setup screen and its menu.
-- [ ] **S** `USER_GUIDE.md`: the dashboard now holds normal logging (no J-Log in the dock), the Log tools column, the one-screen contest page (entry, SEND line, validation, dupes, edit / erase), My awards, the Info page, and the beta status of J-Digi and J-Bridge.
-- [ ] **S** `ars-fx/CLAUDE.md`: the surfaces list still needs the contest page and the classes behind it (`SentExchange`, `ContestValidation`), `CustomAwards`, `LegalDocs` / `LegalView`, and that J-Log normal mode now lives on the dashboard.
 - [ ] **S** QSL labels: more label stock / printer models if requested.
 - [ ] **M** Maps: look at the J-Map options and see whether something better exists (tiles, projections, performance). Do this before the 3D globe.
 - [ ] **L** 3D globe as a map option — find out whether it is possible in JavaFX (and what it would cost). Research only until the map review above is done.
