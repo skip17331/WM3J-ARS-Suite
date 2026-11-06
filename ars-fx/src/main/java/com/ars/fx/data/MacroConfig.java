@@ -110,8 +110,13 @@ public final class MacroConfig {
 
     /** Fill every placeholder. {CALL} becomes the worked station's call ("OM" when none is typed yet). A placeholder whose
      *  setting is empty is left in place and reported in {@code missing}, so the caller can refuse to send it. */
-    public static Expanded expand(String text, String workedCall) {
+    public static Expanded expand(String text, String workedCall) { return expand(text, workedCall, java.util.Map.of()); }
+
+    /** As above, with extra placeholders the caller knows (a contest page: {@code {EXCH}}, {@code {NR}}). Keys include the braces. */
+    public static Expanded expand(String text, String workedCall, java.util.Map<String, String> extras) {
         String out = text == null ? "" : text;
+        for (java.util.Map.Entry<String, String> e : extras.entrySet())
+            out = out.replaceAll("(?i)" + java.util.regex.Pattern.quote(e.getKey()), java.util.regex.Matcher.quoteReplacement(e.getValue() == null ? "" : e.getValue()));
         String worked = workedCall == null || workedCall.isBlank() ? "OM" : workedCall.trim().toUpperCase(java.util.Locale.ROOT);
         out = out.replaceAll("(?i)\\{CALL\\}", java.util.regex.Matcher.quoteReplacement(worked));
         java.util.List<String> missing = new java.util.ArrayList<>();

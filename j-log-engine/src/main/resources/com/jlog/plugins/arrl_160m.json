@@ -122,6 +122,10 @@
     "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER"
   ],
   "layout": {
-    "note": "The band is fixed to 160m. The mode is fixed to CW."
+    "note": "The band is fixed to 160m. The mode is fixed to CW.",
+    "fieldOrder": ["callsign", "state_prov_rcvd", "rst_rcvd"],
+    "tiles": ["mults", "countries", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ TEST {MYCALL}"
   }
 }

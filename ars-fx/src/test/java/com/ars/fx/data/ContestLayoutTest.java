@@ -55,8 +55,11 @@ class ContestLayoutTest {
         assertFalse(l.note().isEmpty(), "the built-in note");
         assertEquals("Sections Worked", l.orderTabs(List.of("Statistics", "Sections Worked")).get(0));
         ContestLayout ww = ContestLayout.resolve(load("cq_ww_cw.json"));
-        assertEquals("Multipliers count once per band.", ww.note(), "CQ WW carries only the note its own definition supports");
-        assertTrue(ww.tabs().isEmpty() && ww.hideTabs().isEmpty() && ww.fieldOrder().isEmpty(), "no ordering: the standard page");
+        assertEquals("Multipliers count once per band.", ww.note(), "CQ WW keeps the note its own definition supports");
+        assertTrue(ww.tabs().isEmpty() && ww.hideTabs().isEmpty(), "and the standard tabs");
+        assertEquals(List.of("callsign", "cq_zone", "rst_rcvd"), ww.fieldOrder(), "call, zone, then the report that is usually left as it is");
+        assertEquals(List.of("zones", "countries", "multsByBand", "qsosByBand"), ww.tiles());
+        assertEquals(8, ww.contestMacros().size());
     }
 
     @Test void theOperatorsFileIsLayeredOverTheBuiltInOne(@TempDir Path tmp) throws Exception {

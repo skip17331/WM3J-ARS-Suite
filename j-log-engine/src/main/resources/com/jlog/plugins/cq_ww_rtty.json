@@ -71,6 +71,10 @@
 
   "sections": [],
   "layout": {
-    "note": "Multipliers count once per band. The mode is fixed to RTTY."
+    "note": "Multipliers count once per band. The mode is fixed to RTTY.",
+    "fieldOrder": ["callsign", "cq_zone", "state_rcvd", "rst_rcvd"],
+    "tiles": ["zones", "countries", "multsByBand", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ TEST {MYCALL}"
   }
 }

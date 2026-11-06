@@ -69,6 +69,10 @@
 
   "sections": [],
   "layout": {
-    "note": "Multipliers count once per band."
+    "note": "Multipliers count once per band.",
+    "fieldOrder": ["callsign", "state_prov_rcvd", "rst_rcvd"],
+    "tiles": ["mults", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ QP {MYCALL}"
   }
 }
