@@ -134,6 +134,15 @@ public final class JLogCockpit {
         return out.toArray(new Node[0]);
     }
 
+    /** The drawer the contest page's LOG TOOLS column carries besides its own Contest drawer: the Translator, following the call being logged. (Awards and Database tools read the normal log, so they stay off the contest page.) */
+    static Node[] contestSideDrawers(java.util.function.Supplier<String> call) {
+        Label open = lbl("Open translator", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
+        open.setOnMouseClicked(e -> TranslatorWindow.show(open, call.get()));
+        Label hint = lbl("QSO phrases in other languages; follows the country of the callsign you are logging.", "jl-emeta"); hint.setWrapText(true);
+        Node translator = Shell.drawer("Translator", "learn", "learn", "", false, new VBox(8, hint, open));
+        return new Node[]{translator};
+    }
+
     private static VBox entryPane() {
         // header
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");

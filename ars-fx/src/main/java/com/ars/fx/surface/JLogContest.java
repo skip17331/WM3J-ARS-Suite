@@ -108,7 +108,9 @@ public final class JLogContest {
 
         // the right-hand rail keeps the station controls (rig, rotor); the contest panes live in the tabs
         Region rail = Shell.rail(Shell.leadDrawers().toArray(new Node[0]));
-        host = new StackPane((Region) Shell.frame(dock, top, main, rail));
+        HBox withTools = new HBox(toolsColumn(plugin), main); withTools.setFillHeight(true);
+        HBox.setHgrow(main, Priority.ALWAYS);
+        host = new StackPane((Region) Shell.frame(dock, top, withTools, rail));
 
         ContestState.addListener(() -> Platform.runLater(JLogContest::refreshScoreStats));
         ContestState.recompute();
@@ -242,6 +244,17 @@ public final class JLogContest {
         VBox ttl = new VBox(1, name, fmt);
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
 
+        Node chip = sideChip(plugin);
+        HBox bar = new HBox(11, ic, ttl, gap);
+        if (chip != null) bar.getChildren().add(2, chip);
+        bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(14, 18, 6, 18));
+        return bar;
+    }
+
+    // ---- LOG TOOLS column: the contest actions that used to crowd the title bar -----------------------------
+    /** The collapsing column beside the dock, as on the J-Hub dashboard: contest actions, translator, awards, database tools. */
+    private static Region toolsColumn(ContestPlugin plugin) {
+        Shell.openDrawerByDefault("Contest");
         Label pick = lbl("Change contest", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
         pick.setOnMouseClicked(e -> Confirm.show(pick, "Change contest?",
                 "Pick a different contest? The current contest's QSOs stay logged.",
@@ -256,23 +269,20 @@ public final class JLogContest {
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
         export.setOnMouseClicked(e -> exportCabrillo(plugin));
 
-        Label translator = lbl("Translator", "jl-clearbtn"); translator.setStyle("-fx-cursor:hand;");
-        com.ars.fx.shell.Tips.tip(translator, "QSO phrases in other languages — follows the country of the callsign you are logging");
-        translator.setOnMouseClicked(e -> {
-            Control cf = fieldControls == null ? null : fieldControls.get("callsign");
-            TranslatorWindow.show(translator, cf instanceof TextField t ? t.getText() : "");
-        });
         Label times = lbl("Contest times\u2026", "jl-clearbtn"); times.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(times, "Set when this contest starts and ends (UTC) to get a clock with time left and off time");
         times.setOnMouseClicked(e -> editTimes(times, plugin));
         Label layoutBtn = lbl("Layout\u2026", "jl-clearbtn"); layoutBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(layoutBtn, "Open this contest's layout file: a reminder note, the order of the tabs and of the exchange fields");
         layoutBtn.setOnMouseClicked(e -> openLayoutFile(plugin));
-        Node chip = sideChip(plugin);
-        HBox bar = new HBox(11, ic, ttl, gap, translator, normal, pick, times, layoutBtn, export);
-        if (chip != null) bar.getChildren().add(2, chip);
-        bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(14, 18, 6, 18));
-        return bar;
+        VBox contestBody = new VBox(8, export, times, layoutBtn, pick, normal);
+        Node contestDrawer = Shell.drawer("Contest", "log", "log", plugin.getContestName(), true, contestBody);
+        Node[] more = JLogCockpit.contestSideDrawers(() -> {
+            Control cf = fieldControls == null ? null : fieldControls.get("callsign");
+            return cf instanceof TextField t ? t.getText() : "";
+        });
+        List<Node> all = new ArrayList<>(); all.add(contestDrawer); all.addAll(List.of(more));
+        return Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, all.toArray(new Node[0]));
     }
 
     // ---- entry pane: band/mode + plugin fields + log table -----------------

@@ -372,6 +372,8 @@ public final class Shell {
 
     /** Have the drawer with this title open the next time it is built. */
     public static void openDrawer(String title) { DRAWER_STATE.put(title, true); }
+    /** Open this drawer the first time it is built, then leave it to the operator's choice. */
+    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, true); }
 
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
