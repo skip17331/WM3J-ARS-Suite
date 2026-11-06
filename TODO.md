@@ -40,9 +40,9 @@ From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the
 - [ ] **M** **Emergency communications** — PARKED, do not start. Bring GoKit (APRS, Winlink, AX.25 packet; alpha, separate repo) into the suite — decide whether to embed it or link / launch it — with shared station identity and settings, and ICS forms.
 
 ## 3. Then — features operators will notice
-- [ ] **M** J-Map: point-to-point tracks (ham to ham) — draw the path between two stations on the map.
-- [ ] **S** Try the J-Map beacon QSY (PR #122) with a connected rig: the QSY box on the map, the live now / next line in the NCDXF BEACONS drawer section, and **Auto QSY the rig** (picking a band should tune the rig to 14.100 / 18.110 / 21.150 / 24.930 / 28.200 MHz in CW; never while transmitting).
-- [ ] **M** Beacon mode, what is left: Auto QSY tunes once per band choice and does not hop bands by itself (an option to step through the five bands, one per 3-minute cycle); mark which beacons you have heard (S-meter or a click) and keep a log of them.
+- [ ] **S** J-Map ham-to-ham tracks are built (J-Map filters > Tracks: two stations by call, prefix or grid, with distance and heading; and "Show path" on a spot's card draws spotter to station). **Not yet looked at in the running app** - try both projections, a path across the date line, and a spot's "Show path".
+- [ ] **S** Try the J-Map beacon QSY (PR #122) with a connected rig: the QSY box on the map, the live now / next line in the NCDXF BEACONS drawer section, and **Auto QSY the rig** (picking a band should tune the rig to 14.100 / 18.110 / 21.150 / 24.930 / 28.200 MHz in CW; never while transmitting). Also try the new **Hop bands each 3 minutes** (the highlighted band and the rig should step every 3 minutes), **Mark heard by the S-meter** (needs a rig that reports its S-meter), clicking a beacon to mark it, and the Heard log.
+- [ ] **S** Beacon mode: hopping bands, marking beacons heard (click, "I hear it", or by the S-meter) and the CSV log are built and tested, but not yet seen in the running app. Nothing else is left.
 - [ ] **L** Info tab, what is left. The Upcoming tiles and the News tile are built; still to do:
   - [ ] **S** **Send the permission email to WA7BNM** (contest calendar). Their terms bar automated access without written permission; until it is granted the app ships no built-in contest feed (the operator pastes their own .ics link under Info ▸ Sources). When it arrives, set the default in `UpcomingEvents.sources()` and keep the "WA7BNM Contest Calendar" label with a link back. Consider asking ARRL too about using their feed's headlines.
   - [ ] **S** Hamfests: no usable public feed found yet (ARRL, HamCalendar) — same "paste a link" path for now.
@@ -58,8 +58,8 @@ From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the
 
 ## 4. Later — housekeeping and research
 - [ ] **S** QSL labels: more label stock / printer models if requested.
-- [ ] **M** Maps: look at the J-Map options and see whether something better exists (tiles, projections, performance). Do this before the 3D globe.
-- [ ] **L** 3D globe as a map option — find out whether it is possible in JavaFX (and what it would cost). Research only until the map review above is done.
+- [ ] **M** Maps: reviewed (`docs/jmap-maps-and-globe.md`). The review found that the azimuthal basemap was centred on the US east coast rather than on the station, which is fixed. Next, if wanted: a vector basemap (Natural Earth, public domain) with zoom, pan and country borders - the best gain, medium effort. Slippy tiles and a WebView are not recommended. **Decision for you:** do the vector basemap?
+- [ ] **L** 3D globe as a map option: tried, and it works in JavaFX 21 (a textured globe, markers and a lifted great-circle arc, 4-5 ms a frame; picture in `docs/images/jmap-globe-probe.png`). The traps and their fixes (the texture needs a vertical pre-warp, marker maths, lines, labels, picking) and a cost of about 3-5 days for a basic version are in `docs/jmap-maps-and-globe.md`. Mostly looks; the azimuthal map is better for working the bands. **Decision for you:** build it, after the vector basemap?
 
 ## 5. Decided against
 - A WSJT-X activity layer in J-Bridge (call roster, wanted-grid highlights, PSK Reporter map, like GridTracker) — GridTracker already does it, so we leave it to them.
