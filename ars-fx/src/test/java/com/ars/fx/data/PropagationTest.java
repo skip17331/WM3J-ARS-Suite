@@ -129,4 +129,41 @@ class PropagationTest {
         assertEquals("", Propagation.openNow(NYC, LONDON, HIGH, noon, 0));
         assertTrue(Propagation.openNow(NYC, LONDON, HIGH, noon, 14.2).startsWith("likely open"), "20 m NYC-London at midday with a high flux");
     }
+
+    @Test void theVerdictThresholdsAreTheOnesTheSpotCardUses() {
+        assertEquals(Propagation.Verdict.OPEN, Propagation.verdict(0.6));
+        assertEquals(Propagation.Verdict.MARGINAL, Propagation.verdict(0.59));
+        assertEquals(Propagation.Verdict.MARGINAL, Propagation.verdict(0.25));
+        assertEquals(Propagation.Verdict.CLOSED, Propagation.verdict(0.24));
+        assertNull(Propagation.verdictNow(null, LONDON, HIGH, java.time.LocalDateTime.of(2026, 3, 21, 12, 30), 14.2));
+        assertNull(Propagation.verdictNow(NYC, LONDON, null, java.time.LocalDateTime.of(2026, 3, 21, 12, 30), 14.2));
+    }
+
+    @Test void bestTimesAgreeWithTheVerdictForTheHourWeAreIn() {
+        for (int h = 0; h < 24; h++) {
+            java.time.LocalDateTime t = java.time.LocalDateTime.of(2026, 3, 21, h, 30);
+            for (double f : new double[]{3.6, 7.1, 14.2, 21.2, 28.5}) {
+                String b = Propagation.bestTimes(NYC, LONDON, MEDIUM, t, f);
+                boolean openNow = Propagation.verdictNow(NYC, LONDON, MEDIUM, t, f) == Propagation.Verdict.OPEN;
+                assertEquals(openNow, b.startsWith("open now") || b.startsWith("open for the next"), h + "h " + f + " MHz: " + b);
+            }
+        }
+    }
+
+    @Test void bestTimesNameAWindowOrSayNoneIsExpected() {
+        java.time.LocalDateTime t = java.time.LocalDateTime.of(2026, 3, 21, 3, 30);
+        String forty = Propagation.bestTimes(NYC, LONDON, MEDIUM, t, 7.1);
+        assertTrue(forty.matches("(open now until|next opening|marginal only,|open for the next).*"), forty);
+        String six = Propagation.bestTimes(NYC, LONDON, LOW, t, 50.1);
+        assertEquals("no opening expected in the next 24 hours", six, "6 m at the bottom of the cycle");
+        assertEquals("", Propagation.bestTimes(NYC, null, HIGH, t, 14.2));
+        assertEquals("", Propagation.bestTimes(NYC, LONDON, HIGH, t, 0));
+    }
+
+    @Test void aWindowThatCrossesMidnightIsNamedInUtcHours() {
+        java.time.LocalDateTime t = java.time.LocalDateTime.of(2026, 3, 21, 22, 30);
+        String s = Propagation.bestTimes(NYC, LONDON, HIGH, t, 3.6);
+        assertTrue(s.contains("UTC"), s);
+        assertTrue(s.matches(".*\\b([01]\\d|2[0-3])00\\b.*"), "hours are written HH00: " + s);
+    }
 }

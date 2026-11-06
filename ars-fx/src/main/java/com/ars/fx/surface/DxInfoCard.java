@@ -118,6 +118,8 @@ final class DxInfoCard {
         rows.add(new String[]{"Plan", Bands.describe(s.freqHz())});
         String open = openNow(s);
         if (!open.isEmpty()) rows.add(new String[]{"Path now", open});
+        String best = com.ars.fx.data.PathNow.bestTimes(s.lat(), s.lon(), s.freqHz());
+        if (!open.isEmpty() && !best.isEmpty()) rows.add(new String[]{"Best time", best});
         String age = ClusterClient.age(s.arrivalMs());
         rows.add(new String[]{"Spotted", join(" · ", s.spotter(), "now".equals(age) ? age : age + " ago")});
         rows.add(new String[]{"Log", workedBefore ? "Worked before" : "Not in your log"});

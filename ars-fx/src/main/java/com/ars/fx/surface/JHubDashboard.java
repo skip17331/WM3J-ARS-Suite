@@ -322,7 +322,8 @@ public final class JHubDashboard {
                 for (ClusterClient.Spot s : shown) {
                     Region row = cluRow(new String[]{
                             ClusterClient.fmtFreq(s.freqHz()), s.call(), tag(s, worked), s.mode(), s.band(),
-                            s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) });
+                            s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) },
+                            com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forSpot(s.call(), s.freqHz())) : null);
                     row.setStyle("-fx-cursor:hand;");
                     com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
@@ -473,11 +474,14 @@ public final class JHubDashboard {
         r.getChildren().add(cell);
     }
 
-    private static Region cluRow(String[] s) {
+    private static Region cluRow(String[] s) { return cluRow(s, null); }
+    private static Region cluRow(String[] s, Node pathChip) {
         Label fq = lbl(s[0], "jhub-clu-fq"); fq.setMinWidth(64);
         HBox top = new HBox(9, fq, lbl(s[1], "jhub-clu-call"));
         if (!s[2].isEmpty()) top.getChildren().add(lbl(s[2], "jhub-need"));     // NEW ONE / NEW BAND / NEW MODE
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS); top.getChildren().addAll(sp, lbl(s[7], "jhub-clu-age"));
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS); top.getChildren().add(sp);
+        if (pathChip != null) top.getChildren().add(pathChip);
+        top.getChildren().add(lbl(s[7], "jhub-clu-age"));
         top.setAlignment(Pos.CENTER_LEFT);
         String tail = "de " + s[5] + (s[6].isEmpty() ? "" : "  · " + s[6]);
         HBox bot = new HBox(9, lbl(s[3], "jhub-clu-mode"), lbl(s[4], "jhub-clu-de"), lbl(tail, "jhub-clu-de"));

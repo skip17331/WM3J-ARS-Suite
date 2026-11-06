@@ -133,6 +133,16 @@ public final class JMapView {
     private static int spotAgeMax = 20;                                           // minutes
     private static Runnable currentSpotsRefresh;
 
+    /** A spot's dot. With Path now on, a band our estimate says is probably closed fades, and one it says is likely open gets a green ring. */
+    private static void spotDot(javafx.scene.canvas.GraphicsContext g, MapSpot s, double x, double y, double spotA) {
+        com.ars.fx.data.Propagation.Verdict v = com.ars.fx.data.PathNow.shown() ? com.ars.fx.data.PathNow.forPoint(s.lat(), s.lon(), s.freqHz()) : null;
+        double a = v == com.ars.fx.data.Propagation.Verdict.CLOSED ? spotA * 0.4 : spotA;
+        g.setFill(s.color().deriveColor(0, 1, 1, a)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
+        if (v == com.ars.fx.data.Propagation.Verdict.OPEN) {
+            g.setStroke(Color.web("#4ade80", 0.95 * spotA)); g.setLineWidth(1.6); g.strokeOval(x - 6.5, y - 6.5, 13, 13);
+        }
+    }
+
     /** A positioned cluster spot (geo-located via {@link com.ars.fx.data.Geo}). */
     public record MapSpot(String call, double lat, double lon, String band, String mode, long arrivalMs, long freqHz, Color color,
                           String spotter, String comment) {}
@@ -476,6 +486,11 @@ public final class JMapView {
             spotAgeMax = (int) Math.max(1, Math.round(1 + f * 59));
             ageLbl.setText("SPOT AGE ≤ " + spotAgeMax + " MIN"); refreshSpots();
         }));
+        Label pn = lbl("Path now: fade closed bands, ring open ones", "jm-tog-label"); HBox.setHgrow(pn, Priority.ALWAYS); pn.setMaxWidth(Double.MAX_VALUE);
+        com.ars.fx.shell.Tips.tip(pn, "Our own propagation estimate from the solar flux, sunspots and K index: a spot on a band that is probably closed from here fades, one that is likely open gets a green ring. An estimate, not a measurement. Needs your location set.");
+        HBox pnr = new HBox(pn, toggleSwitch(com.ars.fx.data.PathNow.shown(), v -> { com.ars.fx.data.HubConfig.set("map.pathNow", String.valueOf(v)); repaintMap(); refreshSpots(); }));
+        pnr.setAlignment(Pos.CENTER_LEFT); pnr.setPadding(new Insets(7, 0, 7, 0));
+        p.getChildren().add(pnr);
         p.getChildren().add(lbl("OVERLAYS","jm-sec"));
         for (int oi = 0; oi < OVERLAYS.length; oi++) {
             final int idx = oi;
@@ -646,7 +661,7 @@ public final class JMapView {
             if (pp[2] > 1.0) continue;                       // off the visible disk
             double x = pp[0], y = pp[1];
             paintedDots.add(new Dot(x, y, s));
-            g.setFill(s.color().deriveColor(0,1,1,spotA)); g.fillOval(x-4.5, y-4.5, 9, 9);
+            spotDot(g, s, x, y, spotA);
             if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x+8, y+4); }
         }
         // the Sun — sub-solar point projected into the azimuthal map (if visible)
@@ -878,7 +893,7 @@ public final class JMapView {
             double x = lon2x(s.lon(), RMX, RW), y = lat2y(s.lat(), RMY, RH);
             paintedDots.add(new Dot(x, y, s));
             g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(x - 4.5, y - 4.5, 9, 9);
-            g.setFill(s.color().deriveColor(0,1,1,spotA)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
+            spotDot(g, s, x, y, spotA);
             if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x + 8, y + 4); }
         }
 
@@ -971,6 +986,8 @@ public final class JMapView {
             VBox txt = new VBox(1, hcall(s.call(), need),
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
+            Node pc = com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forPoint(s.lat(), s.lon(), s.freqHz())) : null;
+            if (pc != null) row.getChildren().add(pc);
             row.setStyle("-fx-cursor:hand;");
             com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
             row.setOnMouseClicked(e -> selectSpot(row, s));

@@ -179,6 +179,17 @@ public final class Propagation {
         return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
     }
 
+    /** How open a frequency is on a path: likely (0.6 or more), marginal (0.25 or more), or probably closed. */
+    public enum Verdict { OPEN, MARGINAL, CLOSED }
+
+    public static Verdict verdict(double reliability) { return reliability >= 0.6 ? Verdict.OPEN : reliability >= 0.25 ? Verdict.MARGINAL : Verdict.CLOSED; }
+
+    /** The verdict for {@code fMhz} on the path at {@code utc}, or null when the path, the space weather or the frequency is missing. */
+    public static Verdict verdictNow(Point tx, Point rx, Weather w, java.time.LocalDateTime utc, double fMhz) {
+        if (tx == null || rx == null || w == null || fMhz <= 0) return null;
+        return verdict(reliability(fMhz, hour(tx, rx, w, utc.getDayOfYear(), utc.getHour() + utc.getMinute() / 60.0)));
+    }
+
     /** How likely a spot's frequency is to be open on a path right now, as one line for a spot card. See {@link #reliability}. */
     public static String openNow(Point tx, Point rx, Weather w, java.time.LocalDateTime utc, double fMhz) {
         if (tx == null || rx == null || w == null || fMhz <= 0) return "";
@@ -187,4 +198,40 @@ public final class Propagation {
         String verdict = r >= 0.6 ? "likely open" : r >= 0.25 ? "marginal" : fMhz > h.mufMhz() ? "probably closed: above the MUF" : "probably closed: below the LUF";
         return verdict + "  \u00b7  MUF " + Math.round(h.mufMhz()) + " / LUF " + Math.round(h.lufMhz()) + " MHz (estimate)";
     }
+
+    /**
+     * When {@code fMhz} is worth trying on this path in the next 24 hours, as a short phrase for a spot card: "open now until 1800 UTC",
+     * "next opening 1400-1800 UTC", "marginal only, 1500-1600 UTC" or "no opening expected in the next 24 hours". Each hour is judged
+     * at its middle, so a time at half past the hour agrees with {@link #verdictNow}. Empty without a path, weather or frequency.
+     */
+    public static String bestTimes(Point tx, Point rx, Weather w, java.time.LocalDateTime utc, double fMhz) {
+        if (tx == null || rx == null || w == null || fMhz <= 0) return "";
+        java.time.LocalDateTime start = utc.withMinute(0).withSecond(0).withNano(0);
+        double[] r = new double[24];
+        for (int k = 0; k < 24; k++) {
+            java.time.LocalDateTime t = start.plusHours(k);
+            r[k] = reliability(fMhz, hour(tx, rx, w, t.getDayOfYear(), t.getHour() + 0.5));
+        }
+        int[] open = firstRun(r, 0.6);
+        if (open != null) {
+            if (open[0] == 0 && open[1] == 24) return "open for the next 24 hours";
+            if (open[0] == 0) return "open now until " + hhmm(start, open[1]) + " UTC";
+            return "next opening " + hhmm(start, open[0]) + "-" + hhmm(start, open[1]) + " UTC";
+        }
+        int[] marginal = firstRun(r, 0.25);
+        if (marginal != null) return "marginal only, " + hhmm(start, marginal[0]) + "-" + hhmm(start, marginal[1]) + " UTC";
+        return "no opening expected in the next 24 hours";
+    }
+
+    /** The first run of hours at or above {@code min}, as {start, end) indexes, or null. */
+    private static int[] firstRun(double[] r, double min) {
+        for (int i = 0; i < r.length; i++) {
+            if (r[i] < min) continue;
+            int j = i;
+            while (j < r.length && r[j] >= min) j++;
+            return new int[]{i, j};
+        }
+        return null;
+    }
+    private static String hhmm(java.time.LocalDateTime start, int hoursLater) { return String.format("%02d00", start.plusHours(hoursLater).getHour()); }
 }
