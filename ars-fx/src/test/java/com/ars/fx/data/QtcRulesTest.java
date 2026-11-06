@@ -45,6 +45,21 @@ class QtcRulesTest {
         assertNull(check("NA", "DL1XYZ", null, "RECEIVED", lines(2), List.of()), "an unknown continent never blocks");
     }
 
+    @Test void rttyNeedsOnlyDifferentContinents() {
+        assertNull(QtcRules.validate("NA", "JA1ABC", "AS", "SENT", lines(2), List.of(), true), "two non-Europeans on different continents");
+        assertNull(QtcRules.validate("EU", "W1AW", "NA", "RECEIVED", lines(2), List.of(), true));
+        assertTrue(QtcRules.validate("NA", "W1AW", "NA", "SENT", lines(2), List.of(), true).contains("different continents"));
+        assertNotNull(QtcRules.validate("NA", "JA1ABC", "AS", "SENT", lines(2), List.of(), false), "CW and SSB still need a European on one side");
+    }
+
+    @Test void tenInAllCountsSentAndReceivedTogether() {
+        List<QtcRecord> ex = new ArrayList<>();
+        for (int i = 1; i <= 6; i++) ex.add(rec("W1AW", "SENT", 1, "11" + String.format("%02d", i), "F" + i + "AAA", String.valueOf(i)));
+        String msg = QtcRules.validate("EU", "W1AW", "NA", "RECEIVED", lines(5), ex, true);
+        assertTrue(msg.contains("At most 10") && msg.contains("6 already"), msg);
+        assertNull(QtcRules.validate("EU", "W1AW", "NA", "RECEIVED", lines(4), ex, true), "6 + 4 = 10");
+    }
+
     @Test void aQsoIsReportedOnlyOnce() {
         List<QtcRecord> ex = List.of(rec("W1AW", "SENT", 1, "1201", "DL1ABC", "101"));
         String msg = check("EU", "W2XYZ", "NA", "SENT", List.of(new Line("1201", "DL1ABC", "101")), ex);
@@ -72,7 +87,7 @@ class QtcRulesTest {
         assertEquals(3, QtcRules.nextSeries(ex, "SENT"));
         assertEquals(8, QtcRules.nextSeries(ex, "RECEIVED"));
         assertEquals(1, QtcRules.nextSeries(List.of(), "SENT"));
-        assertEquals("SENT", QtcRules.defaultDirection("EU"));
-        assertEquals("RECEIVED", QtcRules.defaultDirection("NA"));
+        assertEquals("RECEIVED", QtcRules.defaultDirection("EU"), "a QTC is reported back to a European station");
+        assertEquals("SENT", QtcRules.defaultDirection("NA"));
     }
 }

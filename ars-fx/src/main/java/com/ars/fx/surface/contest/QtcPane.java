@@ -121,7 +121,7 @@ public final class QtcPane {
             boolean editing = editNo[0] > 0;
             List<QtcRecord> ex = existing(cid);
             if (editing) ex.removeIf(r -> r.getSeriesNo() == editNo[0] && editDir[0] != null && editDir[0].equalsIgnoreCase(r.getDirection()));   // the series being corrected does not count against itself
-            String problem = QtcRules.validate(own, p, QtcRules.continentOf(p, DxccInfo::of), d, lines, ex);
+            String problem = QtcRules.validate(own, p, QtcRules.continentOf(p, DxccInfo::of), d, lines, ex, "RTTY".equalsIgnoreCase(plugin.getLockedMode()));
             if (problem != null) { msg.setText(problem); msg.setStyle("-fx-text-fill:-ars-err;"); return; }
             int no = editing && d.equalsIgnoreCase(editDir[0]) ? editNo[0] : QtcRules.nextSeries(ex, d);
             List<QtcRecord> made = new ArrayList<>();
@@ -148,7 +148,7 @@ public final class QtcPane {
 
         HBox head = new HBox(6, dir, partner, band, mode); head.setAlignment(Pos.CENTER_LEFT);
         HBox buttons = new HBox(12, clear, save); buttons.setAlignment(Pos.CENTER_RIGHT);
-        Label rule = lbl("Up to 10 QTCs a series, 10 in all with one station; a QSO is reported once. Edit or Delete a saved series from the list above. Check the current WAEDC rules.", "ct-note");
+        Label rule = lbl("Up to 10 QTCs a series, 10 in all with one station (sent and received together); a QSO is reported once. A European station receives QTCs, a non-European one sends them (RTTY: any station, different continents). Edit or Delete a saved series from the list above.", "ct-note");
         rule.setWrapText(true); rule.setMaxWidth(300);
         VBox box = new VBox(6, head, seriesL, grid, msg, buttons, totals, history, rule);
         box.setPadding(new Insets(2));

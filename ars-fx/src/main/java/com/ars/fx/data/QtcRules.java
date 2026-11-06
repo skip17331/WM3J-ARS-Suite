@@ -12,10 +12,11 @@ import java.util.function.Function;
  * The checks on WAE DX Contest QTC traffic. A QTC is a report of a QSO you already made - its time, the call and the serial number -
  * passed on to a station on the other side of the Europe / non-Europe line, one point for each QTC for both stations.
  *
- * <p>What is checked: at most 10 QTCs in a series; at most 10 QTCs in all with the same station; a QTC passes between a European and
- * a non-European station only; a QSO is reported once; and not back to the station it was made with. These are the rules as the
- * engine's WAE definition cites them (claimed / running - the contest committee re-adjudicates), so check them against the current
- * WAEDC rules before relying on them.
+ * <p>What is checked, from section 7 (and 12 for RTTY) of the WAE DX Contest rules, checked against the 2026 page: at most 10 QTCs in a
+ * series; at most 10 QTCs in all between two stations (sent and received together); in CW and SSB a QTC passes between a European and a
+ * non-European station only, and in RTTY between stations on different continents; a QSO is reported once; and not back to the station
+ * it was made with. A QTC is "the report of a contest QSO back to a European station", so in CW and SSB the European station receives
+ * and the non-European station sends; in RTTY any station may do either.
  */
 public final class QtcRules {
     private QtcRules() {}
@@ -29,20 +30,28 @@ public final class QtcRules {
     /** The first thing wrong with a series about to be saved, or null when it is fine. */
     public static String validate(String ownContinent, String partnerCall, String partnerContinent, String direction,
                                   List<Line> lines, List<QtcRecord> existing) {
+        return validate(ownContinent, partnerCall, partnerContinent, direction, lines, existing, false);
+    }
+
+    /** As above; {@code rtty} applies the RTTY rule (section 12): the two stations need only be on different continents. */
+    public static String validate(String ownContinent, String partnerCall, String partnerContinent, String direction,
+                                  List<Line> lines, List<QtcRecord> existing, boolean rtty) {
         String partner = norm(partnerCall);
         if (partner.isEmpty()) return "Enter the station the QTCs are with.";
         if (lines == null || lines.isEmpty()) return "Enter at least one QTC.";
         if (lines.size() > MAX_SERIES) return "A series holds at most " + MAX_SERIES + " QTCs.";
-        if (ownContinent != null && partnerContinent != null && !ownContinent.isBlank() && !partnerContinent.isBlank()
-                && ownContinent.equalsIgnoreCase("EU") == partnerContinent.equalsIgnoreCase("EU"))
-            return "QTCs pass only between a European and a non-European station (you are " + ownContinent.toUpperCase(Locale.ROOT)
-                    + ", " + partner + " is " + partnerContinent.toUpperCase(Locale.ROOT) + ").";
+        if (ownContinent != null && partnerContinent != null && !ownContinent.isBlank() && !partnerContinent.isBlank()) {
+            String me = ownContinent.toUpperCase(Locale.ROOT), them = partnerContinent.toUpperCase(Locale.ROOT);
+            if (rtty ? me.equals(them) : (me.equals("EU") == them.equals("EU")))
+                return rtty ? "In RTTY QTCs pass only between different continents (you are " + me + ", " + partner + " is " + them + ")."
+                            : "QTCs pass only between a European and a non-European station (you are " + me + ", " + partner + " is " + them + ").";
+        }
 
         int already = 0;
         Set<String> reported = new HashSet<>();
         for (QtcRecord r : existing) {
+            if (partner.equals(norm(r.getPartnerCall()))) already++;   // sent and received together: the limit is per pair of stations
             if (!direction.equalsIgnoreCase(r.getDirection())) continue;
-            if (partner.equals(norm(r.getPartnerCall()))) already++;
             reported.add(key(r.getQsoTime(), r.getQsoCall(), r.getQsoSerial()));
         }
         if (already + lines.size() > MAX_PER_PARTNER)
@@ -68,8 +77,8 @@ public final class QtcRules {
         return max + 1;
     }
 
-    /** Which side a station is on by default: a European sends QTCs, a non-European receives them. */
-    public static String defaultDirection(String ownContinent) { return "EU".equalsIgnoreCase(ownContinent) ? SENT : RECEIVED; }
+    /** Which side a station is on by default: a QTC is reported back to a European station, so a European receives and a non-European sends. */
+    public static String defaultDirection(String ownContinent) { return "EU".equalsIgnoreCase(ownContinent) ? RECEIVED : SENT; }
 
     static String norm(String s) { return s == null ? "" : s.trim().toUpperCase(Locale.ROOT); }
     private static String key(String time, String call, String serial) { return norm(time) + "|" + norm(call) + "|" + (serial == null ? "" : serial.trim().replaceFirst("^0+(?!$)", "")); }

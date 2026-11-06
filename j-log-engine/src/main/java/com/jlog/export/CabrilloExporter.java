@@ -104,7 +104,7 @@ public class CabrilloExporter {
             List<QtcRecord> qtcs = ContestQtcDao.getInstance().fetchByContest(plugin.getContestId());
             String myCall = nullSafe(cfg.getStationCallsign());
             for (QtcRecord r : qtcs) {
-                boolean rx = "RX".equalsIgnoreCase(r.getDirection());
+                boolean rx = isReceived(r.getDirection());
                 String callRx = rx ? myCall : r.getPartnerCall();
                 String callTx = rx ? r.getPartnerCall() : myCall;
                 String qDate = r.getQtcDateTimeUtc() != null
@@ -122,6 +122,11 @@ public class CabrilloExporter {
             log.info("Cabrillo export: {} QSOs, {} QTCs to {}",
                     qsos.size(), qtcs.size(), destination);
         }
+    }
+
+    /** True for a QTC we received: "RX", or "RECEIVED" as the QTC pane stores it ("TX" / "SENT" is one we sent). */
+    static boolean isReceived(String direction) {
+        return "RX".equalsIgnoreCase(direction) || "RECEIVED".equalsIgnoreCase(direction);
     }
 
     /** Claimed score = (stored QSO points) × (multipliers) using the plugin's
