@@ -73,6 +73,7 @@ class N1mmTest {
         assertEquals("599", m.get("snt")); assertEquals("579", m.get("rcv"));
         assertEquals("5", m.get("zone"));
         assertEquals("K2", m.get("wpxprefix")); assertEquals("W1", m.get("stationprefix"));
+        assertEquals("K", m.get("countryprefix"), "the entity's own prefix, not the WPX one");
         assertEquals("K1TTT", m.get("operator"), "no operator on the QSO: the station's operator");
         assertEquals("1", m.get("ismultiplier1")); assertEquals("3", m.get("points"));
         assertEquals("SHACK-PC", m.get("StationName")); assertEquals("True", m.get("IsOriginal"));
@@ -210,5 +211,14 @@ class N1mmTest {
             Map<String, String> m = parse(xml);
             assertEquals("K2DE", m.get("call")); assertEquals("14", m.get("band"));
         }
+    }
+
+    @Test void theCountryPrefixIsTheEntitysOwnPrefix() {
+        assertEquals("K", N1mm.countryPrefix("W1AW"));
+        assertEquals("DL", N1mm.countryPrefix("DL1ABC"));
+        assertEquals("KH6", N1mm.countryPrefix("AH6XYZ"), "Hawaii is its own country");
+        assertEquals("", N1mm.countryPrefix("W1AW/MM"), "maritime mobile has no country");
+        assertEquals("", N1mm.countryPrefix(""));
+        assertEquals("", N1mm.countryPrefix(null));
     }
 }
