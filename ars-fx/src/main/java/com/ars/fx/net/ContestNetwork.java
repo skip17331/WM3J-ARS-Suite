@@ -106,7 +106,7 @@ public final class ContestNetwork {
         String band = on ? Bands.of(rig.freqHz()) : "";
         String mode = on && rig.mode() != null ? rig.mode().toUpperCase(Locale.ROOT) : "";
         mode = switch (mode) { case "USB", "LSB", "PKTUSB", "PKTLSB" -> "SSB"; case "CWR" -> "CW"; default -> mode; };
-        return new NetStatus(station(), operator(), p == null ? null : p.getContestId(), band, mode, on ? rig.freqHz() : 0, 0);
+        return new NetStatus(station(), operator(), p == null ? null : p.getContestId(), band, mode, on ? rig.freqHz() : 0, 0, 0, ContestState.isRun());
     }
 
     // ---- the contest database as this station's log -------------------------------------------------------------------

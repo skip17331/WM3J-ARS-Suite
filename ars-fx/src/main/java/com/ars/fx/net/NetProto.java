@@ -60,6 +60,10 @@ public final class NetProto {
         return o.toString();
     }
 
+    public static String chat(String station, String text, long ts) {
+        JsonObject o = obj("chat"); o.addProperty("station", station); o.addProperty("text", text); o.addProperty("ts", ts); return o.toString();
+    }
+
     public static String del(String uid, String contest, long ts) {
         JsonObject o = obj("del"); o.addProperty("uid", uid); o.addProperty("c", contest); o.addProperty("ts", ts); return o.toString();
     }
@@ -69,6 +73,7 @@ public final class NetProto {
         o.addProperty("station", s.station()); o.addProperty("op", s.op()); o.addProperty("c", s.contest());
         o.addProperty("band", s.band()); o.addProperty("mode", s.mode()); o.addProperty("freq", s.freqHz());
         o.addProperty("clock", System.currentTimeMillis());                // our clock, so the others can see how far off it is
+        o.addProperty("run", s.run());
         return o.toString();
     }
 
@@ -133,6 +138,7 @@ public final class NetProto {
         if (st.isBlank()) return null;
         long now = System.currentTimeMillis(), sent = num(m, "clock");
         return new NetStatus(st, str(m, "op"), str(m, "c").isEmpty() ? null : str(m, "c"), str(m, "band"), str(m, "mode"), num(m, "freq"), now,
-                sent > 0 ? sent - now : 0);                             // unknown (an older build) reads as no skew
+                sent > 0 ? sent - now : 0,                              // unknown (an older build) reads as no skew
+                m.has("run") && !m.get("run").isJsonNull() && m.get("run").getAsBoolean());
     }
 }

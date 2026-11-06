@@ -40,6 +40,7 @@ public final class NetNode {
     private final Map<WebSocket, Conn> conns = new ConcurrentHashMap<>();
     private final Map<String, NetStatus> roster = new ConcurrentHashMap<>();
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
+    private final java.util.Deque<ChatMsg> chat = new java.util.concurrent.ConcurrentLinkedDeque<>();
 
     private volatile Role role = Role.OFF;
     private volatile boolean connected;                              // JOIN: the host has accepted us
@@ -48,6 +49,24 @@ public final class NetNode {
     private String joinHost; private int joinPort;
     private Srv server; private Cli client; private volatile boolean connecting;   // volatile: socket callbacks must never take this node's lock (stop() holds it while closing a socket)
     private ScheduledExecutorService timer;
+
+    /** One line of the stations' chat. */
+    public record ChatMsg(String station, String text, long ts) {}
+    private static final int CHAT_KEEP = 100, CHAT_MAX = 500;
+
+    /** The chat so far, oldest first. */
+    public List<ChatMsg> chatHistory() { return new ArrayList<>(chat); }
+
+    /** Says something to every station on the network. */
+    public void sendChat(String text) {
+        String t = text == null ? "" : text.trim();
+        if (t.isEmpty() || role == Role.OFF) return;
+        if (t.length() > CHAT_MAX) t = t.substring(0, CHAT_MAX);
+        long ts = System.currentTimeMillis();
+        addChat(new ChatMsg(station, t, ts));
+        broadcast(NetProto.chat(station, t, ts), null);
+    }
+    private void addChat(ChatMsg m) { chat.addLast(m); while (chat.size() > CHAT_KEEP) chat.pollFirst(); fire(); }
 
     private static final class Conn { String nonce = NetAuth.nonce(); boolean authed; String station = ""; }
     private static final long STALE_MS = 20_000;
@@ -232,6 +251,13 @@ public final class NetNode {
                 case "sync" -> sendHave(reply);
                 case "qso" -> { if (applyQso(m)) relay(raw, from); }
                 case "del" -> { if (applyDelete(m)) relay(raw, from); }
+                case "chat" -> {
+                    String who = NetProto.str(m, "station"), text = NetProto.str(m, "text");
+                    if (!who.isBlank() && !text.isBlank() && !who.equals(station)) {
+                        addChat(new ChatMsg(who, text.length() > CHAT_MAX ? text.substring(0, CHAT_MAX) : text, NetProto.num(m, "ts")));
+                        relay(raw, from);
+                    }
+                }
                 case "status" -> {
                     NetStatus s = NetProto.statusFrom(m);
                     if (s != null && !s.station().equals(station)) { roster.put(s.station(), s); fire(); }
