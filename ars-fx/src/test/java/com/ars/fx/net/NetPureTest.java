@@ -99,4 +99,24 @@ class NetPureTest {
         assertTrue(NetConflicts.warnings(null, List.of(same)).isEmpty());
         assertTrue(NetConflicts.warnings(new NetStatus("STN-A", "", "CQ_WW_CW", "", "", 0, 0), List.of(same)).isEmpty(), "no rig band: nothing to conflict");
     }
+
+    @Test void aStatusCarriesTheSendersClockSoTheSkewCanBeSeen() {
+        NetStatus sent = new NetStatus("STN-B", "K1ABC", "CQ_WW_CW", "20m", "CW", 0, 0);
+        NetStatus back = NetProto.statusFrom(NetProto.parse(NetProto.status(sent)));
+        assertEquals("status", NetProto.type(NetProto.parse(NetProto.status(sent))), "the clock must not clobber the message type");
+        assertTrue(Math.abs(back.skewMs()) < 2_000, "same machine: no skew, got " + back.skewMs());
+        com.google.gson.JsonObject old = NetProto.parse(NetProto.status(sent));
+        old.remove("clock");
+        assertEquals(0, NetProto.statusFrom(old).skewMs(), "an older build sends no clock: no skew is claimed");
+    }
+
+    @Test void aClockWellOffIsWarnedAboutAndALittleIsNot() {
+        NetStatus me = new NetStatus("STN-A", "", "CQ_WW_CW", "", "", 0, 0);
+        NetStatus fast = new NetStatus("STN-B", "K2DEF", "CQ_WW_CW", "", "", 0, 0, 45_000), slow = new NetStatus("STN-C", "", "CQ_WW_CW", "", "", 0, 0, -400_000),
+                near = new NetStatus("STN-D", "", "CQ_WW_CW", "", "", 0, 0, 900);
+        List<String> w = NetConflicts.warnings(me, List.of(fast, slow, near));
+        assertEquals(2, w.size(), w.toString());
+        assertTrue(w.get(0).contains("45 seconds ahead of"), w.get(0));
+        assertTrue(w.get(1).contains("6 minutes behind"), w.get(1));
+    }
 }
