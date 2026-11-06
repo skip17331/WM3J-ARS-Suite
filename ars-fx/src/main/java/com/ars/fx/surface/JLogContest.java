@@ -516,12 +516,16 @@ public final class JLogContest {
     private static boolean fromHistory(ContestPlugin plugin, QsoRecord cand) {
         var mm = plugin.getMultiplierModel();
         if (mm == null || mm.getField() == null) return false;
-        String key = com.ars.fx.data.CallHistory.keyForField(mm.getField());
-        String v = key == null ? null : com.ars.fx.data.CallHistory.get(cand.getCallsign()).get(key);
         String slot = plugin.fieldSlotColumn(mm.getField());
-        if (v == null || slot == null) return false;
-        for (FieldDef fd : plugin.getEntryFields())
-            if (mm.getField().equals(fd.getId())) { if (!acceptable(plugin, fd, v)) return false; setSlot(cand, slot, v); return true; }
+        if (slot == null) return false;
+        java.util.Map<String, String> hist = com.ars.fx.data.CallHistory.get(cand.getCallsign());
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (!mm.getField().equals(fd.getId())) continue;
+            for (String key : com.ars.fx.data.CallHistory.keysForField(plugin, fd.getId())) {
+                String v = hist.get(key);
+                if (v != null && acceptable(plugin, fd, v)) { setSlot(cand, slot, v); return true; }
+            }
+        }
         return false;
     }
 
@@ -775,11 +779,13 @@ public final class JLogContest {
         int filled = 0;
         for (FieldDef fd : plugin.getEntryFields()) {
             if (fd.getEntryRow() == 1 || fd.isConstant() || isNotExchange(fd.getId())) continue;
-            String key = com.ars.fx.data.CallHistory.keyForField(fd.getId());
-            String v = key == null ? null : hist.get(key);
             Control c = fieldControls.get(fd.getId());
-            if (v == null || c == null || !acceptable(plugin, fd, v)) continue;
-            setControl(c, v); filled++;
+            if (c == null) continue;
+            for (String key : com.ars.fx.data.CallHistory.keysForField(plugin, fd.getId())) {         // a QSO party county before the state
+                String v = hist.get(key);
+                if (v == null || !acceptable(plugin, fd, v)) continue;
+                setControl(c, v); filled++; break;
+            }
         }
         if (memoryL != null && filled > 0) memoryL.setText("Exchange filled in from the call history for " + call + " \u2014 check it before you log.");
         return filled > 0;

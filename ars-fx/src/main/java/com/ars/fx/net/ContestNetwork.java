@@ -117,7 +117,10 @@ public final class ContestNetwork {
         @Override public List<Meta> inventory(String c) throws Exception { return dao.inventory(c); }
         @Override public QsoRecord find(String uid) throws Exception { return dao.findByUid(uid); }
         @Override public Meta metaOf(String uid) throws Exception { return dao.metaOf(uid); }
-        @Override public void apply(QsoRecord q) throws Exception { dao.applyReplica(q); }
+        @Override public void apply(QsoRecord q) throws Exception {
+            dao.applyReplica(q);
+            try { com.ars.fx.data.CallHistory.learnAsync(com.jlog.plugin.PluginLoader.getInstance().getById(q.getContestId()), q); } catch (RuntimeException ignored) { }   // what another station logged is history too
+        }
         @Override public void applyDelete(String uid, String c, long ts) throws Exception { dao.applyReplicaDelete(uid, c, ts); }
         @Override public void onLocalChange(Consumer<Change> l) { dao.addListener(l); }
         @Override public void remoteChanged(String c) { queueRecompute(); }
