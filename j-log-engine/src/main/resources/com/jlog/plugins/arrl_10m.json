@@ -108,6 +108,10 @@
     "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT"
   ],
   "layout": {
-    "note": "Multipliers count once per mode. The band is fixed to 10m."
+    "note": "Multipliers count once per mode. The band is fixed to 10m.",
+    "fieldOrder": ["callsign", "state_prov_rcvd", "serial_rcvd", "rst_rcvd"],
+    "tiles": ["mults", "countries", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ TEST {MYCALL}"
   }
 }

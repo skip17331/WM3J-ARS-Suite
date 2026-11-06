@@ -98,5 +98,11 @@
     "CO","IA","KS","MN","MO","NE","ND","SD",
     "AB","BC","GH","MB","NB","NL","NS","ONE","ONN","ONS","PE","QC","SK","TER",
     "DX"
-  ]
+  ],
+  "layout": {
+    "fieldOrder": ["callsign", "class_rcvd", "sect_rcvd"],
+    "tiles": ["sections", "qsosByBand", "dupes"],
+    "macroSet": "contest",
+    "cq": "CQ FD {MYCALL}"
+  }
 }

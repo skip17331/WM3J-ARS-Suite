@@ -67,6 +67,10 @@
 
   "sections": [],
   "layout": {
-    "note": "The band is fixed to 80m."
+    "note": "The band is fixed to 80m.",
+    "fieldOrder": ["callsign", "state_prov_rcvd", "rst_rcvd"],
+    "tiles": ["mults", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ QP {MYCALL}"
   }
 }

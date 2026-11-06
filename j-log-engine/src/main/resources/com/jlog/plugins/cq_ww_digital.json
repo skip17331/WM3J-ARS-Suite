@@ -71,6 +71,10 @@
 
   "sections": [],
   "layout": {
-    "note": "Multipliers count once per band."
+    "note": "Multipliers count once per band.",
+    "fieldOrder": ["callsign", "grid_rcvd"],
+    "tiles": ["zones", "countries", "multsByBand", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ TEST {MYCALL}"
   }
 }

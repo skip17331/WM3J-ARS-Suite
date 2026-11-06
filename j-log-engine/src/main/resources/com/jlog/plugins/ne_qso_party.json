@@ -71,5 +71,11 @@
   "cabrilloSent": ["rst_sent", "state_prov_sent"],
   "cabrilloRcvd": ["rst_rcvd", "state_prov_rcvd"],
 
-  "sections": []
+  "sections": [],
+  "layout": {
+    "fieldOrder": ["callsign", "state_prov_rcvd", "rst_rcvd"],
+    "tiles": ["mults", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ QP {MYCALL}"
+  }
 }

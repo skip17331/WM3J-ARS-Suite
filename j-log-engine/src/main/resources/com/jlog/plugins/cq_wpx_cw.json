@@ -69,6 +69,10 @@
 
   "sections": [],
   "layout": {
-    "note": "The mode is fixed to CW."
+    "note": "The mode is fixed to CW.",
+    "fieldOrder": ["callsign", "serial_rcvd", "rst_rcvd"],
+    "tiles": ["prefixes", "qsosByBand"],
+    "macroSet": "contest",
+    "cq": "CQ TEST {MYCALL}"
   }
 }

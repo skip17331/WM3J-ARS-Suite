@@ -377,9 +377,12 @@ public final class JLogContest {
 
         // F1–F8 station macros (shared with normal log + dashboard)
         body.getChildren().add(MacroBar.sendAsRow(modeF));
-        java.util.function.IntConsumer fireMacro = MacroBar.fire(() -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"));
-        body.getChildren().add(MacroBar.row(fireMacro));
-        installFKeys(body, fireMacro);
+        List<com.ars.fx.data.MacroConfig.Macro> ownMacros = layout.contestMacros();     // the contest's own F1-F8, if its layout has them
+        List<com.ars.fx.data.MacroConfig.Macro> macroSet = ownMacros.isEmpty() ? null : ownMacros;
+        java.util.function.IntConsumer fireMacro = MacroBar.fire(() -> modeF.getText(), () -> value("callsign"), msg -> setB4("▶ " + msg, "new"),
+                macroSet, () -> macroTags(plugin));
+        body.getChildren().add(MacroBar.row(fireMacro, macroSet));
+        installFKeys(body, fireMacro, macroSet == null ? com.ars.fx.data.MacroConfig.count() : macroSet.size());
 
         Runnable doLog = () -> { if (logQso(plugin)) clearForm(); };   // recompute → listeners refresh log + trackers
         logBtn.setOnMouseClicked(e -> doLog.run());
@@ -458,6 +461,29 @@ public final class JLogContest {
         }
         return parts.isEmpty() ? "-" : String.join("   ", parts);
     }
+    /** What you send, in the contest's own (Cabrillo) order, e.g. "5NN 05" or "5NN 001" or "1D ORG"; the report is cut (599 = 5NN). */
+    static String exchangeText(ContestPlugin plugin) {
+        List<String> parts = new ArrayList<>();
+        boolean resolved = plugin.getCabrilloSent() != null && !plugin.getCabrilloSent().isEmpty();
+        if (resolved) for (String id : plugin.getCabrilloSent()) {
+            if (id.equals("serial_sent")) { parts.add(String.valueOf(serial)); continue; }
+            FieldDef fd = plugin.getEntryFields().stream().filter(f -> f.getId().equals(id)).findFirst().orElse(null);
+            if (fd == null) { resolved = false; break; }
+            parts.add(value(id));
+        }
+        if (!resolved) {                                              // the Cabrillo names are not field ids: fall back to the SEND line's order
+            parts.clear();
+            if (fieldControls.containsKey("serial_rcvd")) parts.add(String.valueOf(serial));
+            for (FieldDef fd : SentExchange.sentFields(plugin)) parts.add(value(fd.getId()));
+        }
+        parts.removeIf(String::isEmpty);
+        return com.ars.fx.data.ContestMacros.cut(String.join(" ", parts));
+    }
+    /** The placeholders only a contest page knows. */
+    private static Map<String, String> macroTags(ContestPlugin plugin) {
+        return Map.of("{EXCH}", exchangeText(plugin), "{NR}", String.valueOf(serial));
+    }
+
     private static Region sendRow(ContestPlugin plugin) {
         Label tag = lbl("SEND", "jl-flabel"); tag.setMinWidth(70);
         sendV = lbl(sendText(plugin), "jhub-rig-fq");
@@ -530,7 +556,7 @@ public final class JLogContest {
     }
 
     /** F1-F8 key the macros, for as long as this page is on screen (and never after: the keys are handed back when the page leaves the scene). */
-    private static void installFKeys(Node anchor, java.util.function.IntConsumer fire) {
+    private static void installFKeys(Node anchor, java.util.function.IntConsumer fire, int count) {
         javafx.scene.input.KeyCode[] fk = {javafx.scene.input.KeyCode.F1, javafx.scene.input.KeyCode.F2, javafx.scene.input.KeyCode.F3, javafx.scene.input.KeyCode.F4,
                 javafx.scene.input.KeyCode.F5, javafx.scene.input.KeyCode.F6, javafx.scene.input.KeyCode.F7, javafx.scene.input.KeyCode.F8};
         List<javafx.scene.input.KeyCodeCombination> mine = new ArrayList<>();
@@ -538,7 +564,7 @@ public final class JLogContest {
             if (oldS != null) for (var k : mine) oldS.getAccelerators().remove(k);
             mine.clear();
             if (s == null) return;
-            for (int i = 0; i < com.ars.fx.data.MacroConfig.count() && i < fk.length; i++) {
+            for (int i = 0; i < count && i < fk.length; i++) {
                 final int idx = i;
                 var k = new javafx.scene.input.KeyCodeCombination(fk[i]);
                 mine.add(k);
@@ -909,7 +935,16 @@ public final class JLogContest {
         if (left != null) out.add(left);
         String[] clock = clockTile(p);
         if (clock != null) out.add(clock);
+        out.addAll(layoutTiles(p));
         return out.toArray(new String[0][]);
+    }
+
+    /** The extra tiles the contest's layout asks for ({@code tiles}). */
+    private static List<String[]> layoutTiles(ContestPlugin p) {
+        if (p == null) return List.of();
+        List<String> kinds = ContestLayout.resolve(p).tiles();
+        if (kinds.isEmpty()) return List.of();
+        return com.ars.fx.data.ContestTiles.compute(kinds, ContestState.qsos(), ContestState.score(), ContestState.workedMults());
     }
 
     /** "CONTEST CLOCK": time to the start / left, and off time so far; only once the operator has set the contest's times. */
@@ -1055,6 +1090,9 @@ public final class JLogContest {
         int clockAt = 6 + (leftLabel(ContestState.plugin()) != null ? 1 : 0);
         String[] clock = clockTile(ContestState.plugin());
         if (clock != null && vs.size() > clockAt) vs.get(clockAt).setText(clock[1]);
+        int extraAt = clockAt + (clock != null ? 1 : 0);
+        List<String[]> extra = layoutTiles(ContestState.plugin());
+        for (int i = 0; i < extra.size() && extraAt + i < vs.size(); i++) vs.get(extraAt + i).setText(extra.get(i)[1]);
     }
     private static void collectStatV(Node n, List<Label> out) {
         if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
