@@ -376,6 +376,7 @@ public final class JLogContest {
         body.getChildren().add(memoryL);
 
         // F1–F8 station macros (shared with normal log + dashboard)
+        body.getChildren().add(runRow());
         body.getChildren().add(MacroBar.sendAsRow(modeF));
         List<com.ars.fx.data.MacroConfig.Macro> ownMacros = layout.contestMacros();     // the contest's own F1-F8, if its layout has them
         List<com.ars.fx.data.MacroConfig.Macro> macroSet = ownMacros.isEmpty() ? null : ownMacros;
@@ -461,6 +462,22 @@ public final class JLogContest {
         }
         return parts.isEmpty() ? "-" : String.join("   ", parts);
     }
+    /** "RUN" or "S&P": whether you are calling CQ or hunting. Passed on in the N1MM+ messages (RadioInfo IsRunning, contact IsRunQSO). */
+    private static Region runRow() {
+        Label tag = lbl("Operating", "jl-skim-meta");
+        Label chip = lbl(ContestState.isRun() ? "RUN" : "S&P", "jl-clearbtn");
+        chip.setStyle("-fx-cursor:hand;-fx-font-weight:bold;");
+        com.ars.fx.shell.Tips.tip(chip, "Click to switch between running (calling CQ) and search-and-pounce. Other programs listening on the N1MM+ broadcast are told.");
+        chip.setOnMouseClicked(e -> {
+            boolean run = !ContestState.isRun();
+            ContestState.setRun(run);
+            chip.setText(run ? "RUN" : "S&P");
+            com.ars.fx.data.N1mmBroadcast.runChanged();
+        });
+        HBox row = new HBox(12, tag, chip); row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
     /** What you send, in the contest's own (Cabrillo) order, e.g. "5NN 05" or "5NN 001" or "1D ORG"; the report is cut (599 = 5NN). */
     static String exchangeText(ContestPlugin plugin) {
         List<String> parts = new ArrayList<>();

@@ -29,7 +29,11 @@ public final class N1mm {
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /** What a message needs to know about this station and the moment. */
-    public record Ctx(String mycall, String stationName, String opCall, long freqHz, boolean newMult, String oldCall, int contestNr) {}
+    public record Ctx(String mycall, String stationName, String opCall, long freqHz, boolean newMult, String oldCall, int contestNr, boolean running) {
+        public Ctx(String mycall, String stationName, String opCall, long freqHz, boolean newMult, String oldCall, int contestNr) {
+            this(mycall, stationName, opCall, freqHz, newMult, oldCall, contestNr, false);
+        }
+    }
 
     /** The rig, for {@code <RadioInfo>}. */
     public record Radio(boolean connected, long freqHz, long txFreqHz, String mode, boolean split, boolean transmitting, int radioNr, String opCall, String radioName) {}
@@ -74,7 +78,7 @@ public final class N1mm {
         f.put("TXFreq", String.valueOf((r.txFreqHz() > 0 ? r.txFreqHz() : r.freqHz()) / 10));
         f.put("Mode", radioMode(r.mode()));
         f.put("OpCall", r.opCall() == null || r.opCall().isBlank() ? c.mycall() : r.opCall());
-        f.put("IsRunning", "False");
+        f.put("IsRunning", bool(c.running()));
         f.put("FocusEntry", "0");
         f.put("EntryWindowHwnd", "0");
         f.put("Antenna", "0");
@@ -238,7 +242,7 @@ public final class N1mm {
         f.put("NetworkedCompNr", "0");
         f.put("IsOriginal", "True");
         f.put("NetBiosName", c.stationName());
-        f.put("IsRunQSO", "0");
+        f.put("IsRunQSO", c.running() ? "1" : "0");
         f.put("StationName", c.stationName());
         f.put("ID", id(p, q));
         f.put("IsClaimedQso", "1");

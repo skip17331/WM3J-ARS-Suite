@@ -185,4 +185,54 @@ class N1mmMoreTest {
         assertFalse(N1mmListener.qsy(new N1mm.SetFrequency(2, 14_025_000L)), "there is one radio");
         assertFalse(N1mmListener.qsy(new N1mm.SetFrequency(1, 14_025_000L)), "no rig connected in a test");
     }
+
+    // ---- run / search and pounce -----------------------------------------------------------------------------
+    @Test void runAndSearchAndPounceReachTheRadioAndContactMessages() throws Exception {
+        N1mm.Ctx c = new N1mm.Ctx("W1AW", "S", "W1AW", 14_025_000L, false, null, 1, true);
+        N1mm.Radio r = new N1mm.Radio(true, 14_025_000L, 14_025_000L, "CW", false, false, 1, "W1AW", "");
+        assertEquals("True", N1mmTest.parse(N1mm.radioInfo(r, c), new String[1]).get("IsRunning"));
+        assertEquals("1", N1mmTest.parse(N1mm.contactInfo(null, q(1, "K1ABC", "20m", "CW"), c), new String[1]).get("IsRunQSO"));
+        N1mm.Ctx sp = new N1mm.Ctx("W1AW", "S", "W1AW", 14_025_000L, false, null, 1);
+        assertEquals("False", N1mmTest.parse(N1mm.radioInfo(r, sp), new String[1]).get("IsRunning"), "the older constructor means search and pounce");
+        assertEquals("0", N1mmTest.parse(N1mm.contactInfo(null, q(1, "K1ABC", "20m", "CW"), sp), new String[1]).get("IsRunQSO"));
+    }
+
+    @Test void theOperatorsRunSwitchIsWhatTheBroadcastReports() throws Exception {
+        assertFalse(ContestState.isRun(), "search and pounce until set");
+        N1mmBroadcast.normalAdded(normal(5, "K1ABC"));
+        assertEquals("0", N1mmTest.parse(sent.get(0)[1], new String[1]).get("IsRunQSO"));
+        ContestState.setRun(true);
+        N1mmBroadcast.normalAdded(normal(6, "K1ABD"));
+        assertEquals("1", N1mmTest.parse(sent.get(1)[1], new String[1]).get("IsRunQSO"));
+        ContestState.setRun(false);
+        assertFalse(ContestState.isRun());
+    }
+
+    // ---- who may tune the rig ---------------------------------------------------------------------------------
+    @Test void onlyTheRightSendersAreHeard() throws Exception {
+        InetAddress me = InetAddress.getLoopbackAddress(), lan = InetAddress.getByName("192.168.1.50"), other = InetAddress.getByName("10.0.0.7"), net = InetAddress.getByName("8.8.8.8");
+        assertTrue(N1mmListener.allowed(me, false, ""), "this computer is always heard");
+        assertFalse(N1mmListener.allowed(lan, false, ""), "the network only when asked for");
+        assertTrue(N1mmListener.allowed(lan, true, ""), "any private address when asked for and no list is given");
+        assertFalse(N1mmListener.allowed(net, true, ""), "never the internet");
+        assertTrue(N1mmListener.allowed(lan, true, "192.168.1.50"));
+        assertFalse(N1mmListener.allowed(other, true, "192.168.1.50"), "only the senders named");
+        assertTrue(N1mmListener.allowed(other, true, "192.168.1.50  10.0.0.7"));
+        assertFalse(N1mmListener.allowed(net, true, "8.8.8.8"), "naming a public address does not open the internet");
+        assertTrue(N1mmListener.allowed(me, true, "192.168.1.50"), "and this computer is still heard");
+        assertFalse(N1mmListener.allowed(null, true, ""));
+    }
+
+    @Test void theListenerCanListenOnTheNetworkSideToo() throws Exception {
+        AtomicReference<N1mm.SetFrequency> got = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        assertTrue(N1mmListener.start(0, true, f -> { got.set(f); latch.countDown(); }));
+        int port = N1mmListener.boundPort();
+        try (DatagramSocket s = new DatagramSocket()) {
+            byte[] ok = "<radio_setfrequency><frequency>7030</frequency></radio_setfrequency>".getBytes(StandardCharsets.UTF_8);
+            s.send(new DatagramPacket(ok, ok.length, InetAddress.getLoopbackAddress(), port));
+        }
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertEquals(7_030_000L, got.get().freqHz());
+    }
 }

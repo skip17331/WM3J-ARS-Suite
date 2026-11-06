@@ -172,7 +172,7 @@ public final class N1mmBroadcast {
     }
     private static N1mm.Ctx ctxFor(NormalQso n, String oldCall) {
         N1mm.Ctx base = ctx(n.band(), false, oldCall);
-        try { double mhz = Double.parseDouble(n.freqMhz().trim()); if (mhz > 0) return new N1mm.Ctx(base.mycall(), base.stationName(), base.opCall(), Math.round(mhz * 1e6), false, oldCall, base.contestNr()); }
+        try { double mhz = Double.parseDouble(n.freqMhz().trim()); if (mhz > 0) return new N1mm.Ctx(base.mycall(), base.stationName(), base.opCall(), Math.round(mhz * 1e6), false, oldCall, base.contestNr(), base.running()); }
         catch (RuntimeException ignored) { /* the band's usual frequency */ }
         return base;
     }
@@ -196,6 +196,12 @@ public final class N1mmBroadcast {
         send("contacts", N1mm.contactForwarded(p, q, ctx(q.getBand(), false, null)));
     }
 
+    /** The operator switched between Run and search-and-pounce: tell the listeners now rather than at the next ten-second report. */
+    public static void runChanged() {
+        RigClient.State s = lastRadio;
+        if (s != null) POOL.execute(() -> { try { sendRadio(s); } catch (Throwable ignored) { } });
+    }
+
     private static void radioIfChanged(RigClient.State s) {
         RigClient.State prev = lastRadioSentState;
         boolean changed = prev == null || prev.freqHz() != s.freqHz() || prev.connected() != s.connected()
@@ -217,7 +223,7 @@ public final class N1mmBroadcast {
         long hz = rig != null && rig.connected() && rig.freqHz() > 0 ? rig.freqHz() : 0;
         if (hz == 0 && band != null) { Long b = RigClient.bandHz(band.replaceAll("[^0-9]", "")); if (b != null) hz = b; }     // no rig: the band's usual spot
         String call = HubConfig.call();
-        return new N1mm.Ctx(call, stationName(), call, hz, newMult, oldCall, CONTEST_NR);
+        return new N1mm.Ctx(call, stationName(), call, hz, newMult, oldCall, CONTEST_NR, ContestState.isRun());
     }
 
     /** The computer's name, as N1MM+ gives it (upper case, at most 15 characters). */

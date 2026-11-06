@@ -93,6 +93,10 @@ public final class ContestState {
         return w;
     }
 
+    /** Running (calling CQ) or search-and-pounce: what the operator last set on the contest page. Search-and-pounce until set. */
+    public static boolean isRun() { return HubConfig.getBool("contest.run", false); }
+    public static void setRun(boolean run) { HubConfig.set("contest.run", String.valueOf(run)); }
+
     public static int nextSerial() {
         if (plugin == null) return 1;
         try { return ContestQsoDao.getInstance().maxSerialSent(plugin.getContestId()) + 1; }

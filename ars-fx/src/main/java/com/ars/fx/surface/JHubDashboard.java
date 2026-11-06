@@ -868,6 +868,8 @@ public final class JHubDashboard {
             cfgRow("Normal log", "QSOs you log in the normal log, as plain contacts with no contest, so a program that marks calls worked sees them too", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_NORMAL, true)),
             cfgRow("All computers", "contacts that arrive from other computers on the contest network, passed on the way N1MM+'s All Computers does. Leave it off unless a program needs every station's QSOs", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_ALLCOMP, false)),
             cfgRow("Receive QSY", "listen on this computer only (UDP 13064) for a waterfall or band map that clicks to tune the rig. Acts only while the rig is connected and not transmitting, and only inside an amateur band", cToggle(com.ars.fx.data.N1mmListener.KEY_LISTEN, false)),
+            cfgRow("QSY from the network", "also hear a waterfall or band map on another computer on your network. Only private addresses are accepted, never the internet", cToggle(com.ars.fx.data.N1mmListener.KEY_LAN, false)),
+            cfgRow("QSY only from", "IP addresses allowed to tune the rig, separated by spaces (blank = any computer on your network)", cInput(com.ars.fx.data.N1mmListener.KEY_FROM, "")),
             cfgRow("Contacts to", "an address for contacts alone (blank = the address above)", cInput(com.ars.fx.data.N1mmBroadcast.KEY_DEST + ".contacts", "")),
             cfgRow("Spots to", "an address for spots alone (blank = the address above)", cInput(com.ars.fx.data.N1mmBroadcast.KEY_DEST + ".spots", "")),
             cfgRow("Radio to", "an address for the rig's frequency alone (blank = the address above)", cInput(com.ars.fx.data.N1mmBroadcast.KEY_DEST + ".radio", "")),
