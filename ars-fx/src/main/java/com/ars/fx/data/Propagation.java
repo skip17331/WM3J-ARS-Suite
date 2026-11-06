@@ -178,4 +178,13 @@ public final class Propagation {
         double y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);
         return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
     }
+
+    /** How likely a spot's frequency is to be open on a path right now, as one line for a spot card. See {@link #reliability}. */
+    public static String openNow(Point tx, Point rx, Weather w, java.time.LocalDateTime utc, double fMhz) {
+        if (tx == null || rx == null || w == null || fMhz <= 0) return "";
+        Hour h = hour(tx, rx, w, utc.getDayOfYear(), utc.getHour() + utc.getMinute() / 60.0);
+        double r = reliability(fMhz, h);
+        String verdict = r >= 0.6 ? "likely open" : r >= 0.25 ? "marginal" : fMhz > h.mufMhz() ? "probably closed: above the MUF" : "probably closed: below the LUF";
+        return verdict + "  \u00b7  MUF " + Math.round(h.mufMhz()) + " / LUF " + Math.round(h.lufMhz()) + " MHz (estimate)";
+    }
 }

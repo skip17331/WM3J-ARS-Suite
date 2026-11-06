@@ -92,6 +92,17 @@ final class DxInfoCard {
         t.setDaemon(true); t.start();
     }
 
+    /** Whether the spot's frequency should be open from here right now, from our own propagation estimate; "" without a location or space-weather data. */
+    private static String openNow(JMapView.MapSpot s) {
+        try {
+            if (!com.ars.fx.data.HubConfig.hasLocation()) return "";
+            com.ars.fx.data.SolarData.Snapshot sd = com.ars.fx.data.SolarData.getInstance().snapshot();
+            com.ars.fx.data.Propagation.Weather w = sd == null ? null : com.ars.fx.data.Propagation.Weather.of(sd.sfi(), sd.sunspots(), sd.kIndex());
+            return com.ars.fx.data.Propagation.openNow(new com.ars.fx.data.Propagation.Point(com.ars.fx.data.HubConfig.lat(), com.ars.fx.data.HubConfig.lon()),
+                    new com.ars.fx.data.Propagation.Point(s.lat(), s.lon()), w, java.time.LocalDateTime.now(java.time.ZoneOffset.UTC), s.freqHz() / 1e6);
+        } catch (RuntimeException e) { return ""; }
+    }
+
     private static void render(VBox box, JMapView.MapSpot s, boolean workedBefore, CallsignLookup.Result r, int columns, Node action) {
         DxccInfo.Info dxcc = DxccInfo.of(s.call());
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
@@ -105,6 +116,8 @@ final class DxInfoCard {
         rows.add(new String[]{"Freq", join(" · ", ClusterClient.fmtFreq(s.freqHz()) + " MHz", s.band(), s.mode())});
         rows.add(new String[]{"Beam", beam(s)});
         rows.add(new String[]{"Plan", Bands.describe(s.freqHz())});
+        String open = openNow(s);
+        if (!open.isEmpty()) rows.add(new String[]{"Path now", open});
         String age = ClusterClient.age(s.arrivalMs());
         rows.add(new String[]{"Spotted", join(" · ", s.spotter(), "now".equals(age) ? age : age + " ago")});
         rows.add(new String[]{"Log", workedBefore ? "Worked before" : "Not in your log"});
