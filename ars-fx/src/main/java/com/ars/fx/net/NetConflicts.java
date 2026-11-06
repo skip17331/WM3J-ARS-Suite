@@ -25,6 +25,10 @@ public final class NetConflicts {
                 out.add(o.label() + " is logging a different contest (" + o.contest() + "): its QSOs are not shared");
                 continue;
             }
+            if (me.run() && o.run() && !blank(me.band()) && me.band().equalsIgnoreCase(o.band())) {
+                out.add(o.label() + " and this station are both running on " + me.band() + ": one run station per band");
+                continue;
+            }
             if (!blank(me.band()) && !blank(me.mode()) && me.band().equalsIgnoreCase(o.band()) && me.mode().equalsIgnoreCase(o.mode()))
                 out.add(o.label() + " is also on " + me.band() + " " + me.mode());
         }

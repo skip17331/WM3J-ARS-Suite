@@ -93,7 +93,23 @@ public final class ContestState {
         return w;
     }
 
+    /** Running (calling CQ) or search-and-pounce: what the operator last set on the contest page. Search-and-pounce until set. */
+    public static boolean isRun() { return HubConfig.getBool("contest.run", false); }
+    public static void setRun(boolean run) { HubConfig.set("contest.run", String.valueOf(run)); }
+
+    private static volatile java.util.function.IntUnaryOperator serialSource;
+    /** The contest network hands out serial numbers so two stations never take the same one: it is given the number this station would use. */
+    public static void setSerialSource(java.util.function.IntUnaryOperator s) { serialSource = s; }
+
+    /** The serial number to send next: the network's if the station is on one, else this log's highest plus one. */
     public static int nextSerial() {
+        int local = localNextSerial();
+        java.util.function.IntUnaryOperator src = serialSource;
+        return src == null ? local : Math.max(1, src.applyAsInt(local));
+    }
+
+    /** This log's highest serial sent plus one, whatever the network says. */
+    public static int localNextSerial() {
         if (plugin == null) return 1;
         try { return ContestQsoDao.getInstance().maxSerialSent(plugin.getContestId()) + 1; }
         catch (Exception e) { return 1; }

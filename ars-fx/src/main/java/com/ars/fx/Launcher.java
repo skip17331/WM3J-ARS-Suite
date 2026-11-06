@@ -69,6 +69,7 @@ public class Launcher extends Application {
         com.ars.fx.data.CtyUpdater.start();             // weekly refresh of the country files; off via J-Hub ▸ Station ▸ Updates
         com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates
         com.ars.fx.data.N1mmBroadcast.init();
+        com.ars.fx.data.PropagationCheck.init();
         com.ars.fx.net.ContestNetwork.init();                              // the contest network (multi-operator); off until Host or Join is chosen in J-Hub ▸ Data                       // rig reports for the N1MM+-compatible broadcast; sends nothing until switched on in J-Hub ▸ Data
         new Thread(com.ars.fx.data.LegalDocs::installBundled, "legal-docs").start();   // local copies of the licence and notices
     }
@@ -143,6 +144,7 @@ public class Launcher extends Application {
     public void stop() {
         try { com.ars.fx.morse.ui.MorseHome.shutdown(); } catch (Exception ignored) {}
         try { com.ars.fx.data.TxController.shutdown(); } catch (Exception ignored) {}   // never leave the transmitter keyed
+        try { com.ars.fx.data.PropagationCheck.flush(); } catch (Exception ignored) {}   // keep the estimate-check tallies
         try { com.ars.fx.data.RemoteLink.disconnect(); } catch (Exception ignored) {}
         javafx.application.Platform.exit();
         System.exit(0);

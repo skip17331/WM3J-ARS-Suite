@@ -45,6 +45,7 @@ public final class PathPropagationView extends VBox {
 
     private final TextField target = new TextField(HubConfig.get(KEY_TARGET, ""));
     private final VBox out = new VBox(6);
+    private final Label check = lbl("", "sx-dw-stamp");
     private String signature = "";
 
     /** The spot you clicked becomes the target of the estimate. */
@@ -59,12 +60,18 @@ public final class PathPropagationView extends VBox {
         typed.setOnFinished(e -> { HubConfig.set(KEY_TARGET, target.getText().trim().toUpperCase(Locale.ROOT)); refresh(); });
         target.textProperty().addListener((o, a, b) -> typed.playFromStart());
         HBox row = new HBox(8, lbl("PATH ESTIMATE TO", "sx-bc-hh"), target); row.setAlignment(Pos.CENTER_LEFT);
-        getChildren().addAll(row, out);
+        check.setWrapText(true); check.setMaxWidth(330);
+        Tips.tip(check, "How often our estimate agreed with what the DX cluster hears: every spot of 1,000 km or more is a path that was open, so a 'probably closed' answer for it is a miss. It cannot show false alarms. Kept between sessions. Click to start the count again.");
+        check.setStyle("-fx-cursor:hand;");
+        check.setOnMouseClicked(e -> { com.ars.fx.data.PropagationCheck.reset(); check.setText(com.ars.fx.data.PropagationCheck.summary()); });
+        getChildren().addAll(row, out, check);
+        check.setText(com.ars.fx.data.PropagationCheck.summary());
         refresh();
         // follows a spot clicked elsewhere, moves the "now" column and picks up fresh space-weather data; stops when the panel is taken off screen
         Timeline tick = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
             String t = HubConfig.get(KEY_TARGET, "");
             if (!target.isFocused() && !t.equals(target.getText().trim())) target.setText(t);
+            check.setText(com.ars.fx.data.PropagationCheck.summary());
             refresh();
         }));
         tick.setCycleCount(Animation.INDEFINITE);
