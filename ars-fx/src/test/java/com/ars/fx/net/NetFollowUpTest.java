@@ -109,4 +109,56 @@ class NetFollowUpTest {
         off.sendChat("hello");
         assertTrue(off.chatHistory().isEmpty(), "a station not on the network has nobody to tell");
     }
+
+    // ---- shared serial numbers -------------------------------------------------------------------------------
+    @Test void stationsAskingAtTheSameMomentAllGetDifferentNumbers() throws Exception {
+        MemStore hs = new MemStore("HOST", "CQ_WW_CW"), as = new MemStore("AAA", "CQ_WW_CW"), bs = new MemStore("BBB", "CQ_WW_CW");
+        NetNode h = node("HOST", hs); h.startHost(0);
+        NetNode a = node("AAA", as); a.startJoin("127.0.0.1", h.port());
+        NetNode b = node("BBB", bs); b.startJoin("127.0.0.1", h.port());
+        await("both joined", () -> a.online() && b.online() && h.connectedCount() == 2);
+
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(3);
+        try {
+            java.util.concurrent.Callable<Integer> ha = () -> h.reserveSerial(1), ca = () -> a.reserveSerial(1), cb = () -> b.reserveSerial(1);
+            java.util.List<java.util.concurrent.Future<Integer>> f = pool.invokeAll(java.util.List.of(ha, ca, cb));
+            java.util.Set<Integer> got = new java.util.TreeSet<>();
+            for (java.util.concurrent.Future<Integer> x : f) got.add(x.get());
+            assertEquals(java.util.Set.of(1, 2, 3), got, "three stations, three different numbers");
+        } finally { pool.shutdownNow(); }
+        int next = a.reserveSerial(1);
+        assertEquals(4, next, "and the next one asked for is above all of them");
+    }
+
+    @Test void theHostNeverHandsOutANumberItHasAlreadyLogged() throws Exception {
+        MemStore hs = new MemStore("HOST", "CQ_WW_CW"), as = new MemStore("AAA", "CQ_WW_CW");
+        NetNode h = node("HOST", hs); h.startHost(0);
+        h.setSerialSource(() -> 51);                                   // the host's log already holds serial 50
+        NetNode a = node("AAA", as); a.startJoin("127.0.0.1", h.port());
+        await("joined", () -> a.online() && h.connectedCount() == 1);
+        assertEquals(51, a.reserveSerial(1), "the client asked for 1 and was given the host's next");
+        assertEquals(52, a.reserveSerial(1));
+        assertEquals(53, h.reserveSerial(1));
+    }
+
+    @Test void aNewContestStartsTheCountAgain() throws Exception {
+        MemStore hs = new MemStore("HOST", "CQ_WW_CW");
+        NetNode h = node("HOST", hs); h.startHost(0);
+        assertEquals(1, h.reserveSerial(1)); assertEquals(2, h.reserveSerial(1));
+        hs.contest = "CQ_WPX_CW";
+        assertEquals(1, h.reserveSerial(1), "numbers handed out in the other contest do not count");
+    }
+
+    @Test void withoutTheHostAStationUsesItsOwnCount() throws Exception {
+        MemStore as = new MemStore("AAA", "CQ_WW_CW");
+        NetNode a = node("AAA", as);
+        assertEquals(7, a.reserveSerial(7), "not on the network");
+        a.startJoin("127.0.0.1", 1);                                   // nobody is listening
+        Thread.sleep(300);
+        assertFalse(a.online());
+        long t0 = System.currentTimeMillis();
+        assertEquals(9, a.reserveSerial(9), "joined to nobody: its own count");
+        assertTrue(System.currentTimeMillis() - t0 < 2000, "and without waiting around");
+        assertEquals(1, a.reserveSerial(0), "never below one");
+    }
 }

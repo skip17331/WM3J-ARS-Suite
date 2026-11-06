@@ -41,6 +41,11 @@ public final class NetNode {
     private final Map<String, NetStatus> roster = new ConcurrentHashMap<>();
     private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
     private final java.util.Deque<ChatMsg> chat = new java.util.concurrent.ConcurrentLinkedDeque<>();
+    private final Map<String, java.util.concurrent.CompletableFuture<Integer>> serialWaits = new ConcurrentHashMap<>();
+    private final Object serialLock = new Object();
+    private int serialHandedOut;                                  // HOST: the highest serial number given to any station
+    private String serialContest = "";
+    private volatile java.util.function.IntSupplier serialSource;
 
     private volatile Role role = Role.OFF;
     private volatile boolean connected;                              // JOIN: the host has accepted us
@@ -49,6 +54,50 @@ public final class NetNode {
     private String joinHost; private int joinPort;
     private Srv server; private Cli client; private volatile boolean connecting;   // volatile: socket callbacks must never take this node's lock (stop() holds it while closing a socket)
     private ScheduledExecutorService timer;
+
+    /** What this station's own count would give next (the log's highest serial sent plus one). The host uses it so a number it already logged is never handed out again. */
+    public void setSerialSource(java.util.function.IntSupplier s) { serialSource = s; }
+
+    private static final long SERIAL_WAIT_MS = 600;
+
+    /**
+     * The next serial number to send, never the same as one given to another station. The host hands the numbers out; a joined station asks it
+     * (and uses its own count if the host does not answer within a moment, so logging never waits on the network). Each call hands out a
+     * new number: the caller keeps it until it has been used. {@code localNext} is this station's own next number.
+     */
+    public int reserveSerial(int localNext) {
+        int local = Math.max(1, localNext);
+        if (role == Role.HOST) return handOut(local);
+        if (role == Role.JOIN && connected) {
+            Cli c = client;
+            if (c == null || !c.isOpen()) return local;
+            String id = NetAuth.nonce();
+            java.util.concurrent.CompletableFuture<Integer> f = new java.util.concurrent.CompletableFuture<>();
+            serialWaits.put(id, f);
+            try {
+                c.send(NetProto.serialReq(id, local));
+                return Math.max(local, f.get(SERIAL_WAIT_MS, TimeUnit.MILLISECONDS));
+            } catch (Exception e) {
+                return local;
+            } finally {
+                serialWaits.remove(id);
+            }
+        }
+        return local;
+    }
+
+    /** HOST: the next number above everything this station has logged, been told of, or already handed out. */
+    private int handOut(int requested) {
+        synchronized (serialLock) {
+            String cur = store.contest() == null ? "" : store.contest();
+            if (!cur.equals(serialContest)) { serialContest = cur; serialHandedOut = 0; }      // a different contest starts again
+            java.util.function.IntSupplier src = serialSource;
+            int own = src == null ? 1 : Math.max(1, src.getAsInt());
+            int n = Math.max(Math.max(requested, own), serialHandedOut + 1);
+            serialHandedOut = n;
+            return n;
+        }
+    }
 
     /** One line of the stations' chat. */
     public record ChatMsg(String station, String text, long ts) {}
@@ -251,6 +300,11 @@ public final class NetNode {
                 case "sync" -> sendHave(reply);
                 case "qso" -> { if (applyQso(m)) relay(raw, from); }
                 case "del" -> { if (applyDelete(m)) relay(raw, from); }
+                case "serial" -> { if (role == Role.HOST) reply.accept(NetProto.serialIs(NetProto.str(m, "id"), handOut((int) Math.min(Integer.MAX_VALUE, NetProto.num(m, "local"))))); }
+                case "serialIs" -> {
+                    java.util.concurrent.CompletableFuture<Integer> f = serialWaits.get(NetProto.str(m, "id"));
+                    if (f != null) f.complete((int) Math.min(Integer.MAX_VALUE, NetProto.num(m, "n")));
+                }
                 case "chat" -> {
                     String who = NetProto.str(m, "station"), text = NetProto.str(m, "text");
                     if (!who.isBlank() && !text.isBlank() && !who.equals(station)) {

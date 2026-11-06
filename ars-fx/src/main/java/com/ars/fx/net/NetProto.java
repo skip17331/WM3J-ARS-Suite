@@ -64,6 +64,10 @@ public final class NetProto {
         JsonObject o = obj("chat"); o.addProperty("station", station); o.addProperty("text", text); o.addProperty("ts", ts); return o.toString();
     }
 
+    /** A joined station asks the host for the next serial number; {@code local} is the next one it would use itself. */
+    public static String serialReq(String id, int local) { JsonObject o = obj("serial"); o.addProperty("id", id); o.addProperty("local", local); return o.toString(); }
+    public static String serialIs(String id, int n) { JsonObject o = obj("serialIs"); o.addProperty("id", id); o.addProperty("n", n); return o.toString(); }
+
     public static String del(String uid, String contest, long ts) {
         JsonObject o = obj("del"); o.addProperty("uid", uid); o.addProperty("c", contest); o.addProperty("ts", ts); return o.toString();
     }

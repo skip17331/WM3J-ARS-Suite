@@ -55,11 +55,30 @@ public final class ContestNetwork {
     /** Why the network did not start, if it did not. */
     public static String startError() { return startError; }
 
+    private static int held;                                    // a serial number given to the operator and not yet used (0 = none)
+    private static String heldContest = "";
+
+    /**
+     * The serial number to send next. Off the network, the log's own count. On it, the host's: asked once, then the same number back until it has
+     * been logged (so clearing the form wastes none), and the log's own count if the host cannot be reached.
+     */
+    static synchronized int reserveSerial(int local) {
+        NetNode n = node;
+        ContestPlugin p = ContestState.plugin();
+        String cid = p == null ? "" : p.getContestId();
+        if (!cid.equals(heldContest)) { heldContest = cid; held = 0; }
+        if (n == null || !n.online()) return local;
+        if (held > 0 && held >= local) return held;
+        held = n.reserveSerial(local);
+        return held;
+    }
+
     /** Call once at start-up. Records this station's name on every QSO it logs, and starts the network if the settings say so. */
     public static synchronized void init() {
         if (started) return;
         started = true;
         ContestQsoDao.getInstance().setStationId(station());
+        ContestState.setSerialSource(ContestNetwork::reserveSerial);
         HubConfig.addChangeListener(key -> { if (key != null && (key.startsWith("network.") || key.equals("*"))) scheduleApply(); });
         ContestState.addListener(() -> {                                        // a different contest opened: share that one's log now
             ContestPlugin p = ContestState.plugin();
@@ -83,6 +102,7 @@ public final class ContestNetwork {
         String key = HubConfig.get(KEY_KEY, "");
         if (!NetAuth.keyOk(key)) { startError = "Set a shared key of at least " + NetAuth.MIN_KEY + " characters (the same on every station)."; return; }
         NetNode n = new NetNode(station(), operator(), key, new DbStore(), ContestNetwork::myStatus);
+        n.setSerialSource(ContestState::localNextSerial);
         try {
             int port = port();
             if (mode.equals("Host")) n.startHost(port);
