@@ -237,6 +237,15 @@ A full-screen map with a controls panel:
   DXCC entity, beam heading and distance in **DX station info**.
 - **Who's hearing me · RBN** — plots stations that have heard you.
 - **NCDXF beacons** — show the beacon cycle for the band you pick. The map shows the frequency to tune ("QSY 14.100 MHz CW") beside the beacon on the air, and the drawer shows it live with who is on now and who is next. Switch on **Auto QSY the rig** and picking a band tunes a connected rig to that band's beacon frequency in CW (never while it transmits).
+- **Projection** — **Azimuthal** (centred on you, distances read straight off the rings), **Rectangular** (flat, with region
+  buttons and zoom) or **Globe** (a 3D Earth: drag to turn it, wheel to zoom, double-click to centre on your station). The
+  globe shows the same spots, beam, range rings and gray line, with the sun out in space on its daily track (the line of
+  latitude it rides today; turn the globe or zoom out with the wheel to bring it into view), and the same beacons, who's-hearing-me, spot paths and tracks, and a
+  click on a spot opens the same details card. Globe is hidden on a computer without 3D support.
+- **Tracks (ham to ham)** are drawn in red, with the distance and heading at the middle. On the globe, tracks and spot paths arch up off the surface, higher the longer the path.
+- **Spot paths · DX cluster** — draws a line from each spotted station to the station that spotted it, in the band's
+  colour, following the mode and band filters. A line fades over ten minutes and then goes; **Clear** starts again from
+  the next spot. Off by default. Click a spot and every path to it, one for each station that spotted it, turns red and heavier on top of the rest, even with the switch off; click empty map (or **Clear**) to let go of it.
 - **Beam heading** shows where the rotor is pointing, on both map views. With no rotor answering there is no beam and no
   heading.
 
@@ -266,7 +275,10 @@ In WSJT-X, open *File ▸ Settings ▸ Reporting* and tick **Accept UDP requests
 
 Shows the satellites you chose in Setup ▸ Satellites: the selected satellite's position, **Next passes**, and a
 **Radio · Doppler** panel. A satellite with no orbital data is flagged with a warning; satellites with no radio data
-still get position and passes. A link at the top takes you back to the picker. With *Auto-track satellites* on, the
+still get position and passes. The switch at the top right chooses the view: **Polar** (the sky above you),
+**Blue marble** (a flat world map with ground tracks) or **Globe** (a 3D Earth: drag to turn it, wheel to zoom, click a
+satellite to select it, double-click to centre on your station; the selected satellite shows its footprint and, in a pass,
+a line to you). Globe is hidden on a computer without 3D support. A link at the top takes you back to the picker. With *Auto-track satellites* on, the
 rotor follows the pass; Doppler-corrected downlink frequencies can be sent to the rig.
 
 ### 4.6 J-Vault

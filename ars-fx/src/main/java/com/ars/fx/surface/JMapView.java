@@ -117,6 +117,11 @@ public final class JMapView {
     private static void repaintMap() { paintedBeam = Math.round(beamDeg()); if (currentMapRepaint != null) currentMapRepaint.run(); }
     /** Dim the regular DX spots while a propagation overlay (beacons / who's-hearing-me) is active. */
     private static boolean dimSpots() { return showBeacons || showHeardBy; }
+    /** Draw each shown cluster spot's path, from the station spotted to the station that spotted it. */
+    private static java.util.List<MapSpot> frameSpots;               // the spots the globe is painting this frame, so the layers share one lookup
+    private static boolean showSpotPaths = false;
+    private static long spotPathsSince = 0;                         // Clear sets this to now: only spots that arrive after it get a line
+    private static final long SPOT_PATH_LIFE_MS = 10 * 60_000L;     // a spot's line fades out over ten minutes, then goes
 
     /** The antenna's heading, or NaN with no rotor: the map never shows a beam the antenna isn't on. */
     private static double beamDeg() { return com.ars.fx.data.RotorClient.getInstance().headingDeg(); }
@@ -141,10 +146,11 @@ public final class JMapView {
         }
         if (best != null && bestD <= 11) {
             selectSpot(source, best.s());
-        }
+        } else selectSpotCall(null);                                // a click on empty map lets go of the selected spot
     }
     /** A spot was clicked, on the map or in the list: show who it is, then do the shared spot action. */
     private static void selectSpot(Node source, MapSpot s) {
+        selectSpotCall(s.call());
         DxInfoCard.show(source, s, workedCalls().contains(s.call().toUpperCase()));
         SpotAction.onSpot(source, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon());
     }
@@ -225,7 +231,7 @@ public final class JMapView {
             if (showBeacons) beaconWatch();
             long second = java.time.Instant.now().getEpochSecond();
             boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
-            if (beamMoved || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
+            if (beamMoved || (showSpotPaths && second % 15 == 0) || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
         }));
         beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
         beaconTicker.play();
@@ -274,8 +280,8 @@ public final class JMapView {
 
     private static void drawTracks(GraphicsContext g, Proj proj) {
         for (com.ars.fx.data.MapTracks.Track t : com.ars.fx.data.MapTracks.all()) {
-            Color col = Color.web("#7ec8ff");
-            drawGcPath(g, proj, t.lat1(), t.lon1(), t.lat2(), t.lon2(), Color.web("#7ec8ff", 0.85));
+            Color col = Color.web("#ff5a5a");
+            drawGcPath(g, proj, t.lat1(), t.lon1(), t.lat2(), t.lon2(), Color.web("#ff5a5a", 0.9));
             g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 10)); g.setTextAlign(TextAlignment.LEFT);
             double[][] ends = {{t.lat1(), t.lon1()}, {t.lat2(), t.lon2()}};
             String[] names = {t.from(), t.to()};
@@ -284,16 +290,75 @@ public final class JMapView {
                 if (p == null) continue;
                 g.setStroke(Color.web("#0b0f14", 0.85)); g.setLineWidth(2); g.strokeOval(p[0] - 4.5, p[1] - 4.5, 9, 9);
                 g.setFill(col); g.fillOval(p[0] - 4.5, p[1] - 4.5, 9, 9);
-                g.setFill(Color.web("#e8f4ff")); g.fillText(names[i], p[0] + 8, p[1] - 6);
+                g.setFill(Color.web("#ffe3e3")); g.fillText(names[i], p[0] + 8, p[1] - 6);
             }
             double[] mid = gcPoint(t.lat1(), t.lon1(), t.lat2(), t.lon2(), 0.5);
-            double[] mp = proj.at(mid[0], mid[1]);
+            double[] mp;
+            if (gcGlobe != null) {                                     // on the globe the label rides the top of the arch
+                com.ars.fx.data.GlobeProjection.Pt pk = gcGlobe.project(mid[0], mid[1], gcLiftKm(t.lat1(), t.lon1(), t.lat2(), t.lon2()));
+                mp = pk.visible() ? new double[]{pk.x(), pk.y()} : null;
+            } else mp = proj.at(mid[0], mid[1]);
             if (mp != null) {
                 String s = t.shortLabel();
                 g.setFill(Color.web("#0b0f14", 0.78)); g.fillRoundRect(mp[0] - 4, mp[1] - 13, s.length() * 6.2 + 8, 16, 6, 6);
-                g.setFill(Color.web("#bfe3ff")); g.fillText(s, mp[0], mp[1] - 1);
+                g.setFill(Color.web("#ffc9c9")); g.fillText(s, mp[0], mp[1] - 1);
             }
         }
+    }
+
+    private static final java.util.Map<String, double[]> SPOTTER_AT = new java.util.HashMap<>();   // the same few skimmers spot all day; the lookup scans a prefix table
+    private static final double[] UNKNOWN = new double[0];
+    private static double[] spotterAt(String call) {
+        if (call == null) return null;
+        if (SPOTTER_AT.size() > 4000) SPOTTER_AT.clear();
+        double[] ll = SPOTTER_AT.computeIfAbsent(call, c -> { double[] g = com.ars.fx.data.Geo.of(c); return g == null ? UNKNOWN : g; });
+        return ll == UNKNOWN ? null : ll;
+    }
+
+    /** The spot last clicked, by call: all its paths, one for each station that spotted it, are drawn in red on top of the rest. */
+    private static String selectedSpotCall;
+    private static void selectSpotCall(String call) {
+        String c = call == null ? null : call.toUpperCase();
+        if (java.util.Objects.equals(c, selectedSpotCall)) return;
+        selectedSpotCall = c; repaintMap();
+    }
+
+    /**
+     * One thin line per shown spot, spotted station to spotter, in the band's colour, with a small dot at the spotter's end. The clicked spot's lines are
+     * red, heavier and on top, whether or not the Spot paths switch is on.
+     */
+    private static void drawSpotPaths(GraphicsContext g, Proj proj) {
+        if (!showSpotPaths && selectedSpotCall == null) return;
+        long now = System.currentTimeMillis();
+        java.util.List<MapSpot> spots = frameSpots != null ? frameSpots : liveSpots();
+        if (showSpotPaths) for (MapSpot s : spots) {
+            if (spotHidden(s.call()) || s.arrivalMs() < spotPathsSince || s.call().equalsIgnoreCase(selectedSpotCall)) continue;
+            double age = (now - s.arrivalMs()) / (double) SPOT_PATH_LIFE_MS;      // 0 new, 1 gone
+            if (age >= 1) continue;
+            double fade = 1 - age * 0.9;                                            // full strength to 10 % just before it expires
+            double[] ll = spotterAt(s.spotter());
+            if (ll == null || (Math.abs(ll[0] - s.lat()) < 0.01 && Math.abs(ll[1] - s.lon()) < 0.01)) continue;
+            Color col = s.color();
+            drawGcPath(g, proj, s.lat(), s.lon(), ll[0], ll[1], col.deriveColor(0, 1, 1, 0.6 * fade));
+            double[] p = proj.at(ll[0], ll[1]);
+            if (p == null) continue;
+            g.setFill(col.deriveColor(0, 1, 1, 0.9 * fade)); g.fillOval(p[0] - 2.5, p[1] - 2.5, 5, 5);
+        }
+        if (selectedSpotCall == null) return;
+        Color red = Color.web("#ff5a5a");
+        gcWidth = 2.2;
+        try {
+            for (MapSpot s : spots) {
+                if (!s.call().equalsIgnoreCase(selectedSpotCall) || spotHidden(s.call())) continue;
+                double[] ll = spotterAt(s.spotter());
+                if (ll == null || (Math.abs(ll[0] - s.lat()) < 0.01 && Math.abs(ll[1] - s.lon()) < 0.01)) continue;
+                drawGcPath(g, proj, s.lat(), s.lon(), ll[0], ll[1], red);
+                double[] p = proj.at(ll[0], ll[1]);
+                if (p == null) continue;
+                g.setStroke(Color.web("#0b0f14", 0.85)); g.setLineWidth(1.5); g.strokeOval(p[0] - 4, p[1] - 4, 8, 8);
+                g.setFill(red); g.fillOval(p[0] - 4, p[1] - 4, 8, 8);
+            }
+        } finally { gcWidth = 1.4; }
     }
 
     // ── "Who's hearing me" — RBN skimmers that spotted our call ───────────────
@@ -302,7 +367,7 @@ public final class JMapView {
         if (!showHeardBy) return;
         java.util.List<com.ars.fx.data.HeardByClient.HeardSpot> spots = com.ars.fx.data.HeardByClient.getInstance().spots();
         for (com.ars.fx.data.HeardByClient.HeardSpot s : spots) {
-            double[] ll = com.ars.fx.data.Geo.of(s.spotter());
+            double[] ll = spotterAt(s.spotter());
             if (ll == null) continue;
             Color col = bandColor(s.band());
             drawGcPath(g, proj, Q_LAT, Q_LON, ll[0], ll[1], Color.web(toHex(col), 0.7));
@@ -327,14 +392,31 @@ public final class JMapView {
         }
     }
     /** Great-circle path between two geographic points, projected + clipped to the map. */
+    /** The longest sideways step, in pixels, a path segment may take before it is taken to have wrapped across the flat map's date line. The globe has no such wrap. */
+    private static double gcJump = 350;
+    private static double gcWidth = 1.4;                            // line width of a path; a selected spot's paths are drawn heavier
+    /** Set while the globe is painting: paths then arch off the surface instead of lying flat on it. */
+    private static com.ars.fx.data.GlobeProjection gcGlobe;
+    /** How high the middle of a path rises on the globe, in km: a tenth of its length, up to 1,500 km. The ends stay on the ground. */
+    private static double gcLiftKm(double lat1, double lon1, double lat2, double lon2) {
+        double p1 = Math.toRadians(lat1), p2 = Math.toRadians(lat2);
+        double d = 2 * Math.asin(Math.min(1, Math.sqrt(Math.pow(Math.sin((p2 - p1) / 2), 2) + Math.cos(p1) * Math.cos(p2) * Math.pow(Math.sin(Math.toRadians(lon2 - lon1) / 2), 2))));
+        return Math.min(1500, 0.1 * d * 6371.0);
+    }
     private static void drawGcPath(GraphicsContext g, Proj proj, double lat1, double lon1, double lat2, double lon2, Color col) {
-        g.setStroke(col); g.setLineWidth(1.4);
-        int N = 24; double prevX = 0, prevY = 0; boolean have = false;
+        g.setStroke(col); g.setLineWidth(gcWidth);
+        com.ars.fx.data.GlobeProjection globe = gcGlobe;
+        int N = globe != null ? 48 : 24; double prevX = 0, prevY = 0; boolean have = false;
+        double lift = globe != null ? gcLiftKm(lat1, lon1, lat2, lon2) : 0;
         for (int i = 0; i <= N; i++) {
             double[] pt = gcPoint(lat1, lon1, lat2, lon2, (double) i / N);
-            double[] xy = proj.at(pt[0], pt[1]);
+            double[] xy;
+            if (globe != null) {
+                com.ars.fx.data.GlobeProjection.Pt p = globe.project(pt[0], pt[1], lift * Math.sin(Math.PI * i / N));
+                xy = p.visible() ? new double[]{p.x(), p.y()} : null;
+            } else xy = proj.at(pt[0], pt[1]);
             if (xy == null) { have = false; continue; }
-            if (have && Math.abs(xy[0] - prevX) < 350) g.strokeLine(prevX, prevY, xy[0], xy[1]);
+            if (have && Math.abs(xy[0] - prevX) < gcJump) g.strokeLine(prevX, prevY, xy[0], xy[1]);
             prevX = xy[0]; prevY = xy[1]; have = true;
         }
     }
@@ -363,7 +445,8 @@ public final class JMapView {
 
         // projection toggle: azimuthal canvas ⇄ rectangular blue-marble map
         StackPane mapHolder = new StackPane(); HBox.setHgrow(mapHolder, Priority.ALWAYS);
-        Runnable renderMap = () -> mapHolder.getChildren().setAll(projection == 1 ? rectMap() : aziArea());
+        if (projection == 2 && !GlobeView.supported()) projection = 0;       // no 3D here: the Globe button is not offered
+        Runnable renderMap = () -> mapHolder.getChildren().setAll(projection == 2 ? globeArea() : projection == 1 ? rectMap() : aziArea());
         renderMap.run();
         startBeaconTicker();
         com.ars.fx.data.HeardByClient.getInstance().setListener(c -> { if (showHeardBy) repaintMap(); });
@@ -376,7 +459,6 @@ public final class JMapView {
         com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
         cc.setListener(c -> javafx.application.Platform.runLater(JMapView::refreshSpots));
         cc.start();
-
         // collapsible left controls column
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
         java.util.function.IntConsumer onProj = i -> { projection = i; renderMap.run(); };
@@ -497,8 +579,8 @@ public final class JMapView {
         // PROJECTION — inlined (not segSel) so the region picker can flip it to Rectangular and keep the highlight in sync.
         p.getChildren().add(lbl("PROJECTION","jm-sec"));
         HBox projSeg = new HBox(2); projSeg.getStyleClass().add("jm-seg");
-        String[] projOpts = {"Azimuthal","Rectangular"};
-        Label[] projBtns = new Label[2];
+        String[] projOpts = GlobeView.supported() ? new String[]{"Azimuthal","Rectangular","Globe"} : new String[]{"Azimuthal","Rectangular"};
+        Label[] projBtns = new Label[projOpts.length];
         java.util.function.IntConsumer selectProj = sel -> {
             for (int i = 0; i < projBtns.length; i++) { projBtns[i].getStyleClass().remove("on"); if (i == sel) projBtns[i].getStyleClass().add("on"); }
         };
@@ -644,6 +726,18 @@ public final class JMapView {
         HBox heardBtns = new HBox(14, hear, logBtn, clearHeard); heardBtns.setAlignment(Pos.CENTER_LEFT); heardBtns.setPadding(new Insets(4, 0, 6, 0));
         p.getChildren().addAll(hpr, aur, beaconHeardInfo, heardBtns);
 
+        // DX-cluster spot paths: spotted station to spotter
+        p.getChildren().add(lbl("SPOT PATHS · DX CLUSTER","jm-sec"));
+        Label sp = lbl("Draw spotted \u2192 spotter for each shown spot","jm-tog-label"); HBox.setHgrow(sp, Priority.ALWAYS); sp.setMaxWidth(Double.MAX_VALUE);
+        HBox spr = new HBox(sp, toggleSwitch(showSpotPaths, v -> { showSpotPaths = v; repaintMap(); }));
+        spr.setAlignment(Pos.CENTER_LEFT); spr.setPadding(new Insets(7, 0, 4, 0));
+        com.ars.fx.shell.Tips.tip(spr, "Draw a line from each spotted station to the station that spotted it, in the band's colour. It follows the mode and band filters, fades with the spot's age and goes after 10 minutes.");
+        Label spClear = lbl("Clear", "jl-clearbtn"); spClear.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(spClear, "Wipe the spot paths and start again: only spots that arrive from now on get a line.");
+        spClear.setOnMouseClicked(e -> { spotPathsSince = System.currentTimeMillis(); selectedSpotCall = null; repaintMap(); });
+        HBox spBtns = new HBox(14, spClear); spBtns.setAlignment(Pos.CENTER_LEFT); spBtns.setPadding(new Insets(0, 0, 6, 0));
+        p.getChildren().addAll(spr, spBtns);
+
         // RBN "who's hearing me" overlay
         p.getChildren().add(lbl("WHO'S HEARING ME · RBN","jm-sec"));
         Label ht = lbl("Show RBN spots of " + (myCall.isEmpty() ? "my call" : myCall.toUpperCase()),"jm-tog-label"); HBox.setHgrow(ht, Priority.ALWAYS); ht.setMaxWidth(Double.MAX_VALUE);
@@ -725,6 +819,119 @@ public final class JMapView {
         redraw.run();
         return area;
     }
+    // ---- 3D globe ----------------------------------------------------------
+    private static GlobeView mapGlobe;                     // one instance, so the way it was turned survives rebuilds
+
+    private static Region globeArea() {
+        if (mapGlobe == null) {
+            mapGlobe = new GlobeView("map");
+            mapGlobe.stationDot(false);                    // the painter draws the station with its call
+            mapGlobe.painter(JMapView::paintGlobe);
+            mapGlobe.onClick((x, y) -> handleMapClick(mapGlobe, x, y));
+        }
+        mapGlobe.station(Q_LAT, Q_LON);
+        legendSpots = rt(legendSpotsText(liveSpots().size()));
+        VBox tr = new VBox(2, legendSpots, rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")));
+        tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE); tr.setMouseTransparent(true);
+        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14, 18, 0, 0));
+        StackPane area = new StackPane(mapGlobe, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
+        area.setMinSize(0, 0);
+        currentMapRepaint = () -> { mapGlobe.night(ovGrayline); mapGlobe.refresh(); };
+        currentMapRepaint.run();
+        return area;
+    }
+
+    private static java.util.List<MapSpot> globeSpots = java.util.List.of();
+    /** Everything J-Map draws on the flat and azimuthal maps, on the globe: range rings, the beam, spots, the sun, the station, and the track / path / beacon / heard-by layers. */
+    private static void paintGlobe(GraphicsContext g, com.ars.fx.data.GlobeProjection pr, double w, double h, boolean fresh) {
+        loadPalette();
+        if (fresh) globeSpots = liveSpots();               // a turn or zoom reuses the last lookup; a filter change or a new spot asks for a fresh one
+        frameSpots = globeSpots;
+        Proj gp = (lat, lon) -> { com.ars.fx.data.GlobeProjection.Pt p = pr.project(lat, lon, 0); return p.visible() ? new double[]{p.x(), p.y()} : null; };
+        gcJump = Double.MAX_VALUE; gcGlobe = pr;
+        try {
+            if (ovRings) {
+                g.setStroke(ovBasemap ? P.line() : Color.web("#28313d")); g.setLineWidth(1); g.setLineDashes(4, 5);
+                for (double km : new double[]{5000, 10000, 15000}) globeLine(g, pr, com.ars.fx.data.GlobeProjection.circle(Q_LAT, Q_LON, km / 111.195, 120));
+                g.setLineDashes(null);
+            }
+            if (ovBeam && !Double.isNaN(beamDeg())) drawGlobeBeam(g, pr, beamDeg());
+
+            double spotA = dimSpots() ? 0.28 : 1.0;
+            paintedDots.clear();
+            for (MapSpot s : globeSpots) {
+                if (spotHidden(s.call())) continue;
+                double[] xy = gp.at(s.lat(), s.lon());
+                if (xy == null) continue;
+                paintedDots.add(new Dot(xy[0], xy[1], s));
+                g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(xy[0] - 4.5, xy[1] - 4.5, 9, 9);
+                spotDot(g, s, xy[0], xy[1], spotA);
+                if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setStroke(Color.web("#0b0f14", 0.7 * spotA)); g.setLineWidth(3);
+                    g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT);
+                    g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(s.call(), xy[0] + 8, xy[1] + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER); g.fillText(s.call(), xy[0] + 8, xy[1] + 4); }
+            }
+            if (ovGrayline) drawGlobeSun(g, pr);
+            double[] me = gp.at(Q_LAT, Q_LON);
+            if (me != null) {
+                g.setFill(Color.web("#31bdda")); g.fillOval(me[0] - 5, me[1] - 5, 10, 10);
+                g.setStroke(Color.web("#31bdda", 0.35)); g.setLineWidth(3); g.strokeOval(me[0] - 5, me[1] - 5, 10, 10);
+                g.setStroke(Color.web("#0b0f14", 0.7)); g.setLineWidth(3); g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 12)); g.setTextAlign(TextAlignment.LEFT);
+                g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(myCall, me[0] + 9, me[1] + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER);
+                g.setFill(Color.web("#31bdda")); g.fillText(myCall, me[0] + 9, me[1] + 4);
+            }
+            drawSpotPaths(g, gp);
+            drawHeardBy(g, gp);
+            drawBeacons(g, gp);
+            drawTracks(g, gp);
+        } finally { gcJump = 350; gcGlobe = null; frameSpots = null; }
+    }
+    /**
+     * The sun out in space: on the line of constant latitude it rides all day (today's declination), at an orbital height rather than flat on the
+     * surface, with a faint line down to the point it is overhead. Round the back of the globe it is hidden by it.
+     */
+    private static void drawGlobeSun(GraphicsContext g, com.ars.fx.data.GlobeProjection pr) {
+        double[] ss = com.ars.fx.data.SolarPosition.subSolar();
+        double alt = pr.orbitAltKm(1.3);                  // near enough that it stays on the screen for most views of the globe
+        double[][] track = new double[121][];
+        for (int i = 0; i <= 120; i++) track[i] = new double[]{ss[0], -180 + 3.0 * i};
+        g.setStroke(Color.web("#ffd84a", 0.45)); g.setLineWidth(1.2); g.setLineDashes(2, 5);
+        globeLine(g, pr, track, alt);
+        com.ars.fx.data.GlobeProjection.Pt up = pr.project(ss[0], ss[1], alt), down = pr.project(ss[0], ss[1], 0);
+        if (up.visible() && down.visible()) { g.setLineDashes(3, 4); g.setStroke(Color.web("#ffd84a", 0.4)); g.strokeLine(down.x(), down.y(), up.x(), up.y()); }
+        g.setLineDashes(null);
+        if (up.visible()) drawSun(g, up.x(), up.y());
+    }
+    /** A polyline of {lat, lon} points on the globe, broken where a point is behind it. */
+    private static void globeLine(GraphicsContext g, com.ars.fx.data.GlobeProjection pr, double[][] pts) { globeLine(g, pr, pts, 0); }
+    private static void globeLine(GraphicsContext g, com.ars.fx.data.GlobeProjection pr, double[][] pts, double altKm) {
+        com.ars.fx.data.GlobeProjection.Pt prev = null;
+        for (double[] p : pts) {
+            com.ars.fx.data.GlobeProjection.Pt cur = pr.project(p[0], p[1], altKm);
+            if (prev != null && prev.visible() && cur.visible()) g.strokeLine(prev.x(), prev.y(), cur.x(), cur.y());
+            prev = cur;
+        }
+    }
+    /** The beam as a centre line and two edges 11 degrees either side, out to the same 15,000 km as the other maps; filled when all of it is on the near side. */
+    private static void drawGlobeBeam(GraphicsContext g, com.ars.fx.data.GlobeProjection pr, double heading) {
+        int steps = 40; double reach = 15000, spread = 11;
+        double[][] left = new double[steps + 1][], right = new double[steps + 1][], mid = new double[steps + 1][];
+        for (int i = 0; i <= steps; i++) {
+            double km = reach * i / steps;
+            left[i] = dest(Q_LAT, Q_LON, heading - spread, km); right[i] = dest(Q_LAT, Q_LON, heading + spread, km); mid[i] = dest(Q_LAT, Q_LON, heading, km);
+        }
+        double[] xs = new double[(steps + 1) * 2], ys = new double[(steps + 1) * 2];
+        boolean all = true;
+        for (int i = 0; i <= steps; i++) {
+            com.ars.fx.data.GlobeProjection.Pt a = pr.project(left[i][0], left[i][1], 0), b = pr.project(right[i][0], right[i][1], 0);
+            xs[i] = a.x(); ys[i] = a.y(); xs[xs.length - 1 - i] = b.x(); ys[ys.length - 1 - i] = b.y();
+            all &= a.visible() && b.visible();
+        }
+        if (all) { g.setFill(Color.web("#31bdda", 0.2)); g.fillPolygon(xs, ys, xs.length); }
+        g.setStroke(Color.web("#31bdda", 0.8)); g.setLineWidth(1.4);
+        globeLine(g, pr, mid);
+        if (!all) { g.setStroke(Color.web("#31bdda", 0.45)); globeLine(g, pr, left); globeLine(g, pr, right); }
+    }
+
     private static Label rt(String s){ return lbl(s, "jm-legend"); }
     private static Label legendSpots;                     // live first line of the azimuthal note
     private static String legendSpotsText(int shown) { return shown + " spots · ≤ " + spotAgeMax + " min"; }
@@ -803,6 +1010,7 @@ public final class JMapView {
 
         // NCDXF beacon + "who's hearing me" overlays (azimuthal-equidistant projection)
         Proj azi = (lat, lon) -> { double[] pp = azProject(lat, lon, cx, cy, R); return pp[2] <= 1.0 ? new double[]{pp[0], pp[1]} : null; };
+        drawSpotPaths(g, azi);
         drawHeardBy(g, azi);
         drawBeacons(g, azi);
         drawTracks(g, azi);
@@ -1169,6 +1377,7 @@ public final class JMapView {
 
         // NCDXF beacon + "who's hearing me" overlays (equirectangular)
         Proj rect = (lat, lon) -> new double[]{lon2x(lon, RMX, RW), lat2y(lat, RMY, RH)};
+        drawSpotPaths(g, rect);
         drawHeardBy(g, rect);
         drawBeacons(g, rect);
         drawTracks(g, rect);
