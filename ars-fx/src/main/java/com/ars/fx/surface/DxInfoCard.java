@@ -182,6 +182,9 @@ final class DxInfoCard {
         card.setOnMouseExited(e -> timer.playFromStart());
     }
 
+    /** Take the pop-up away now (a click on empty map does this); a no-op when none is showing. */
+    static void hide() { dismiss(); }
+
     private static void dismiss() {
         if (timer != null) timer.stop();
         if (toast != null && toast.getParent() instanceof StackPane p) p.getChildren().remove(toast);

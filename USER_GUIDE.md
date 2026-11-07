@@ -278,7 +278,7 @@ Shows the satellites you chose in Setup ▸ Satellites: the selected satellite's
 still get position and passes. The switch at the top right chooses the view: **Polar** (the sky above you),
 **Blue marble** (a flat world map with ground tracks) or **Globe** (a 3D Earth: drag to turn it, wheel to zoom, click a
 satellite to select it, double-click to centre on your station; the selected satellite shows its footprint and, in a pass,
-a line to you). Globe is hidden on a computer without 3D support. A link at the top takes you back to the picker. With *Auto-track satellites* on, the
+a line to you). Globe is hidden on a computer without 3D support. On the world map and the globe satellites are drawn as little satellites (the polar plot keeps dots); each orbit line glows ahead of the satellite and is dashed behind it, and the selected one has arrowheads. A link at the top takes you back to the picker. With *Auto-track satellites* on, the
 rotor follows the pass; Doppler-corrected downlink frequencies can be sent to the rig.
 
 ### 4.6 J-Vault
