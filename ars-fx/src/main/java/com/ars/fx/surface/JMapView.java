@@ -146,7 +146,7 @@ public final class JMapView {
         }
         if (best != null && bestD <= 11) {
             selectSpot(source, best.s());
-        } else selectSpotCall(null);                                // a click on empty map lets go of the selected spot
+        } else { selectSpotCall(null); DxInfoCard.hide(); }          // a click on empty map lets go of the selected spot and puts its card away
     }
     /** A spot was clicked, on the map or in the list: show who it is, then do the shared spot action. */
     private static void selectSpot(Node source, MapSpot s) {

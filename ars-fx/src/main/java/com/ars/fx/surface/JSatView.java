@@ -344,6 +344,13 @@ public final class JSatView {
         return h;
     }
 
+    /** A point a little way along the track from where the satellite is now (the track is centred on now), or null: what the icon turns to face. */
+    private static double[] aheadOf(SatInfo s) {
+        double[][] t = s.track();
+        if (t == null || t.length < 6) return null;
+        return t[Math.min(t.length - 1, t.length / 2 + 2)];
+    }
+
     // ---- 3D globe -----------------------------------------------------------
     private static GlobeView globe;                       // one instance, so the way you turned it survives the two-second rebuilds
     private static GlobeView globeFor(Snapshot snap, SatInfo f, boolean dim) {
@@ -359,9 +366,15 @@ public final class JSatView {
         for (SatInfo s : snap.sats()) {
             boolean isF = s == f;
             Color base = cm.get(s.name());
-            markers.add(new GlobeView.Marker(s.name(), s.subLat(), s.subLon(), s.altKm(), base, isF, s.elDeg() > 0, dim && !isF));
-            if (s.track() != null && s.track().length > 1)
-                polys.add(new GlobeView.Poly(s.track(), s.altKm(), alpha(base, isF ? 0.95 : (dim ? 0.28 : 0.55)), isF ? 1.8 : 1.1, false));
+            double[] ahead = aheadOf(s);
+            markers.add(new GlobeView.Marker(s.name(), s.subLat(), s.subLon(), s.altKm(), base, isF, s.elDeg() > 0, dim && !isF,
+                    ahead == null ? Double.NaN : ahead[0], ahead == null ? Double.NaN : ahead[1]));
+            double[][] t = s.track();
+            if (t != null && t.length > 3) {                    // centred on now: the first half is where it has been, the second where it is going
+                int mid = t.length / 2;
+                polys.add(new GlobeView.Poly(java.util.Arrays.copyOfRange(t, 0, mid + 1), s.altKm(), alpha(base, isF ? 0.5 : (dim ? 0.12 : 0.3)), isF ? 1.4 : 0.9, true, 0, false));
+                polys.add(new GlobeView.Poly(java.util.Arrays.copyOfRange(t, mid, t.length), s.altKm(), alpha(base, isF ? 1.0 : (dim ? 0.3 : 0.75)), isF ? 2.4 : 1.5, false, isF ? 7 : 4, isF));
+            }
         }
         double[][] rings = new double[0][];
         if (f != null && f.altKm() > 1) {
@@ -452,9 +465,9 @@ public final class JSatView {
         java.util.Map<String, Color> cm = colorMap(snap);
         for (SatInfo s : snap.sats()) {
             if (s == f) continue;
-            drawTrack(g, s.track(), RMX, RMY, RW, RH, alpha(cm.get(s.name()), dim ? 0.28 : 0.55), 1.1);
+            drawTrackLit(g, s.track(), RMX, RMY, RW, RH, cm.get(s.name()), dim ? 0.12 : 0.3, dim ? 0.3 : 0.75, 1.5, false);
         }
-        drawTrack(g, f.track(), RMX, RMY, RW, RH, alpha(cm.get(f.name()), 0.95), 1.8);
+        drawTrackLit(g, f.track(), RMX, RMY, RW, RH, cm.get(f.name()), 0.5, 1.0, 2.4, true);
 
         // focus footprint (visibility circle, approximated as an ellipse) in its colour
         if (f.altKm() > 1) {
@@ -481,16 +494,44 @@ public final class JSatView {
             double x = lon2x(s.subLon(), RMX, RW), y = lat2y(s.subLat(), RMY, RH);
             double a = isF ? 1.0 : (dim ? 0.3 : 0.95);
             Color base = cm.get(s.name());
-            if (isF) { g.setStroke(Color.web("#ffffff",0.55)); g.setLineWidth(2.5); g.strokeOval(x-8,y-8,16,16); }
-            g.setStroke(Color.web("#0b0f14",0.8)); g.setLineWidth(2); g.strokeOval(x-4.5,y-4.5,9,9);
-            g.setFill(alpha(base, a)); g.fillOval(x-4.5,y-4.5,9,9);
-            if (s.elDeg() > 0) { g.setStroke(alpha(Color.web("#e8eef4"), a)); g.setLineWidth(1.4); g.strokeOval(x-6.5,y-6.5,13,13); }
+            if (isF) { g.setStroke(Color.web("#ffffff",0.55)); g.setLineWidth(2.5); g.strokeOval(x-13,y-13,26,26); }
+            else if (s.elDeg() > 0) { g.setStroke(alpha(Color.web("#e8eef4"), a * 0.8)); g.setLineWidth(1.3); g.strokeOval(x-11,y-11,22,22); }
+            double vel = Double.NaN; double[] ah = aheadOf(s);
+            if (ah != null) { double ax = lon2x(ah[1], RMX, RW), ay = lat2y(ah[0], RMY, RH); if (Math.abs(ax - x) < RW * 0.5) vel = Math.atan2(ay - y, ax - x); }
+            SatIcon.draw(g, x, y, base, isF ? 22 : 17, a, vel);
             g.setFill(Color.web("#e8eef4", a)); g.setFont(Font.font("JetBrains Mono", isF?FontWeight.BOLD:FontWeight.NORMAL, isF?12:10));
-            g.setTextAlign(TextAlignment.LEFT); g.fillText(s.name(), x+8, y+4);
+            g.setTextAlign(TextAlignment.LEFT); g.fillText(s.name(), x+15, y+4);
             names.add(s.name()); pos.add(new double[]{x,y});
         }
         attachPick(cv, names, pos);
     }
+    /**
+     * A ground track the way the globe draws it: the half behind the satellite dim and dashed, the half ahead bright with a soft glow, and on the
+     * selected satellite small arrowheads showing which way it is going. The track is centred on now.
+     */
+    private static void drawTrackLit(GraphicsContext g, double[][] t, double rmx, double rmy, double rw, double rh, Color base, double behindA, double aheadA, double width, boolean arrows) {
+        if (t == null || t.length < 4) return;
+        int mid = t.length / 2;
+        double[][] behind = java.util.Arrays.copyOfRange(t, 0, mid + 1), ahead = java.util.Arrays.copyOfRange(t, mid, t.length);
+        g.setLineDashes(4, 5);
+        drawTrack(g, behind, rmx, rmy, rw, rh, alpha(base, behindA), Math.max(0.9, width * 0.6));
+        g.setLineDashes(null);
+        g.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+        drawTrack(g, ahead, rmx, rmy, rw, rh, alpha(base, aheadA * 0.22), width + 6);       // the halo
+        g.setLineCap(javafx.scene.shape.StrokeLineCap.BUTT);
+        drawTrack(g, ahead, rmx, rmy, rw, rh, alpha(base, aheadA), width);
+        if (arrows) {
+            g.setStroke(alpha(base, Math.min(1, aheadA + 0.05))); g.setLineWidth(1.6);
+            for (int i = 6; i < ahead.length - 1; i += 10) {
+                double x1 = lon2x(ahead[i][1], rmx, rw), y1 = lat2y(ahead[i][0], rmy, rh), x2 = lon2x(ahead[i + 1][1], rmx, rw), y2 = lat2y(ahead[i + 1][0], rmy, rh);
+                if (Math.abs(x2 - x1) > rw * 0.5) continue;
+                double ang = Math.atan2(y2 - y1, x2 - x1), cx = (x1 + x2) / 2, cy = (y1 + y2) / 2, L = 5;
+                g.strokeLine(cx - Math.cos(ang - 0.6) * L, cy - Math.sin(ang - 0.6) * L, cx, cy);
+                g.strokeLine(cx - Math.cos(ang + 0.6) * L, cy - Math.sin(ang + 0.6) * L, cx, cy);
+            }
+        }
+    }
+
     /** Draw a ground-track polyline, breaking the line where it wraps across the date line. */
     private static void drawTrack(GraphicsContext g, double[][] track, double rmx, double rmy, double rw, double rh, Color color, double width) {
         if (track == null || track.length < 2) return;

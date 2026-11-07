@@ -42,10 +42,10 @@ import java.util.function.Consumer;
  * One instance is kept by its owner and handed to each new layout, so the view you have turned to survives J-Sat's two-second rebuilds.
  */
 final class GlobeView extends Pane {
-    /** A labelled dot, {@code altKm} above the surface. {@code dim} fades it; {@code ring} puts a light ring round it (visible now, or selected). */
-    record Marker(String name, double lat, double lon, double altKm, Color color, boolean focus, boolean ring, boolean dim) {}
-    /** A line along the sphere: {lat, lon} points at one height. */
-    record Poly(double[][] points, double altKm, Color color, double width, boolean dashed) {}
+    /** A labelled satellite, {@code altKm} above the surface; {@code ahead} is a point a little further along its track (NaN if unknown), so the icon can face its way. {@code dim} fades it; {@code ring} puts a light ring round it (visible now, or selected). */
+    record Marker(String name, double lat, double lon, double altKm, Color color, boolean focus, boolean ring, boolean dim, double aheadLat, double aheadLon) {}
+    /** A line along the sphere: {lat, lon} points at one height; {@code glow} is the extra width of a soft halo under it (0 for none), {@code arrows} puts direction chevrons along it. */
+    record Poly(double[][] points, double altKm, Color color, double width, boolean dashed, double glow, boolean arrows) {}
     /** A line between two points that bows out between them (lat, lon, alt each end), such as a drop line or the link to a pass. */
     record Link(double lat1, double lon1, double alt1, double lat2, double lon2, double alt2, Color color, boolean dashed) {}
 
@@ -305,9 +305,16 @@ final class GlobeView extends Pane {
             line(g, pr, GlobeProjection.circle(r[0], r[1], r[2], 90), 0);
         }
         for (Poly p : polys) {
+            if (p.glow() > 0) {                                                    // a soft halo first, so the line reads as lit
+                g.setStroke(new Color(p.color().getRed(), p.color().getGreen(), p.color().getBlue(), p.color().getOpacity() * 0.22));
+                g.setLineWidth(p.width() + p.glow()); g.setLineDashes(null); g.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
+                line(g, pr, p.points(), p.altKm());
+                g.setLineCap(javafx.scene.shape.StrokeLineCap.BUTT);
+            }
             g.setStroke(p.color()); g.setLineWidth(p.width());
             if (p.dashed()) g.setLineDashes(5, 5); else g.setLineDashes(null);
             line(g, pr, p.points(), p.altKm());
+            if (p.arrows()) chevrons(g, pr, p);
         }
         g.setLineDashes(null);
         for (Link l : links) {
@@ -338,13 +345,17 @@ final class GlobeView extends Pane {
             Pt p = pr.project(m.lat(), m.lon(), m.altKm());
             if (!p.visible()) continue;
             double a = m.focus() ? 1.0 : (m.dim() ? 0.3 : 0.95);
-            if (m.focus()) { g.setStroke(Color.web("#ffffff", 0.55)); g.setLineWidth(2.5); g.strokeOval(p.x() - 8, p.y() - 8, 16, 16); }
-            g.setStroke(Color.web("#0b0f14", 0.8)); g.setLineWidth(2); g.strokeOval(p.x() - 4.5, p.y() - 4.5, 9, 9);
-            g.setFill(new Color(m.color().getRed(), m.color().getGreen(), m.color().getBlue(), a)); g.fillOval(p.x() - 4.5, p.y() - 4.5, 9, 9);
-            if (m.ring()) { g.setStroke(Color.web("#e8eef4", a)); g.setLineWidth(1.4); g.strokeOval(p.x() - 6.5, p.y() - 6.5, 13, 13); }
+            if (m.focus()) { g.setStroke(Color.web("#ffffff", 0.55)); g.setLineWidth(2.5); g.strokeOval(p.x() - 13, p.y() - 13, 26, 26); }
+            else if (m.ring()) { g.setStroke(Color.web("#e8eef4", a * 0.8)); g.setLineWidth(1.3); g.strokeOval(p.x() - 11, p.y() - 11, 22, 22); }
+            double heading = Double.NaN;
+            if (!Double.isNaN(m.aheadLat())) {
+                Pt q = pr.project(m.aheadLat(), m.aheadLon(), m.altKm());
+                if (q.visible()) heading = Math.atan2(q.y() - p.y(), q.x() - p.x());
+            }
+            SatIcon.draw(g, p.x(), p.y(), m.color(), m.focus() ? 22 : 17, a, heading);
             g.setFont(Font.font("JetBrains Mono", m.focus() ? FontWeight.BOLD : FontWeight.NORMAL, m.focus() ? 12 : 10)); g.setTextAlign(TextAlignment.LEFT);
-            g.setStroke(Color.web("#0b0f14", 0.7 * a)); g.setLineWidth(3); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(m.name(), p.x() + 8, p.y() + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER);
-            g.setFill(Color.web("#e8eef4", a)); g.fillText(m.name(), p.x() + 8, p.y() + 4);
+            g.setStroke(Color.web("#0b0f14", 0.7 * a)); g.setLineWidth(3); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(m.name(), p.x() + 14, p.y() + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER);
+            g.setFill(Color.web("#e8eef4", a)); g.fillText(m.name(), p.x() + 14, p.y() + 4);
             hits.add(new double[]{p.x(), p.y()}); hitNames.add(m.name());
         }
         if (painter != null) { painter.paint(g, pr, w, h, fresh); fresh = false; }
@@ -355,6 +366,19 @@ final class GlobeView extends Pane {
     private static double[] unit(double lat, double lon, double altKm) {
         double r = 1 + altKm / GlobeProjection.EARTH_KM, la = Math.toRadians(lat), lo = Math.toRadians(lon);
         return new double[]{r * Math.cos(la) * Math.cos(lo), r * Math.cos(la) * Math.sin(lo), r * Math.sin(la)};
+    }
+
+    /** Small arrowheads along a track, pointing the way the satellite is going, every few points. */
+    private static void chevrons(GraphicsContext g, GlobeProjection pr, Poly p) {
+        double[][] pts = p.points();
+        g.setLineDashes(null); g.setLineWidth(1.6); g.setStroke(new Color(p.color().getRed(), p.color().getGreen(), p.color().getBlue(), Math.min(1, p.color().getOpacity() + 0.05)));
+        for (int i = 6; i < pts.length - 1; i += 10) {
+            Pt a = pr.project(pts[i][0], pts[i][1], p.altKm()), b = pr.project(pts[i + 1][0], pts[i + 1][1], p.altKm());
+            if (!a.visible() || !b.visible()) continue;
+            double ang = Math.atan2(b.y() - a.y(), b.x() - a.x()), cx = (a.x() + b.x()) / 2, cy = (a.y() + b.y()) / 2, L = 5;
+            g.strokeLine(cx - Math.cos(ang - 0.6) * L, cy - Math.sin(ang - 0.6) * L, cx, cy);
+            g.strokeLine(cx - Math.cos(ang + 0.6) * L, cy - Math.sin(ang + 0.6) * L, cx, cy);
+        }
     }
 
     /** A polyline of {lat, lon} points, broken wherever a point is behind the globe. */
