@@ -633,7 +633,13 @@ public final class Shell {
         body.sceneProperty().addListener((o, was, now) -> { if (now == null) tick.stop(); else tick.play(); });
         SolarData.Snapshot sd = SolarData.getInstance().snapshot();
         VBox whole = new VBox(14, body, new PathPropagationView());      // the global table above, the estimate for one path below
-        return drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, whole);
+        VBox dw = drawer("Propagation", "map", "map", sd == null ? "loading…" : bestBand(sd), false, whole);
+        refreshOnSolarData(dw, () -> {
+            SolarData.Snapshot now = SolarData.getInstance().snapshot();
+            if (now != null && dw.lookup(".sx-dw-sum") instanceof Label l) l.setText(bestBand(now));
+            fill.run();
+        });
+        return dw;
     }
 
     private static String propagationSignature() {
@@ -726,15 +732,35 @@ public final class Shell {
     /** "Solar &amp; space weather": real SDO sun disk + solar cell grid + source stamp. */
     public static Node solarSpaceWeatherDrawer() {
         SolarData.getInstance().start();
+        VBox dw = drawer("Solar & space weather", "digi", "digi", solarSummary(), false, solarSpaceWeatherBody());
+        refreshOnSolarData(dw, () -> {
+            if (dw.lookup(".sx-dw-sum") instanceof Label l) l.setText(solarSummary());
+        });
+        return dw;
+    }
+    private static String solarSummary() {
         SolarData.Snapshot s = SolarData.getInstance().snapshot();
-        String sum = s == null ? "loading…" : "SFI " + nz(s.sfi()) + " · K" + nz(s.kIndex());
-        return drawer("Solar & space weather", "digi", "digi", sum, false, solarSpaceWeatherBody());
+        return s == null ? "loading…" : "SFI " + nz(s.sfi()) + " · K" + nz(s.kIndex());
+    }
+    /** Run {@code r} after each solar fetch for as long as {@code owner} is alive: the page is built once, usually before the first fetch has finished, so it has to catch up. */
+    private static void refreshOnSolarData(Node owner, Runnable r) {
+        java.lang.ref.WeakReference<Node> ref = new java.lang.ref.WeakReference<>(owner);
+        Runnable[] self = new Runnable[1];
+        self[0] = () -> {
+            if (ref.get() == null) { SolarData.getInstance().removeListener(self[0]); return; }
+            r.run();
+        };
+        SolarData.getInstance().addListener(self[0]);
     }
     public static VBox solarSpaceWeatherBody() {
         SolarData.getInstance().start();
+        VBox body = new VBox(9, sunspotDisk(), solarGrid(), sunPositionGrid(), lbl(solarStamp(), "sx-dw-stamp"));
+        refreshOnSolarData(body, () -> { body.getChildren().set(1, solarGrid()); body.getChildren().set(3, lbl(solarStamp(), "sx-dw-stamp")); });
+        return body;
+    }
+    private static String solarStamp() {
         SolarData.Snapshot s = SolarData.getInstance().snapshot();
-        String stamp = s != null ? "HamQSL · N0NBH · " + nz(s.updated()) : "HamQSL · N0NBH · loading…";
-        return new VBox(9, sunspotDisk(), solarGrid(), sunPositionGrid(), lbl(stamp, "sx-dw-stamp"));
+        return s != null ? "HamQSL · N0NBH · " + nz(s.updated()) : "HamQSL · N0NBH · loading…";
     }
     /** Where the sun is now, from the station's position. Keeps itself current while it is on screen. */
     private static GridPane sunPositionGrid() {

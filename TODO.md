@@ -53,12 +53,11 @@ From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the
   - [ ] **M** Your stats: QSOs this month, new entities, QSL / LoTW confirmations, upload errors.
   - [ ] **M** Reference: greyline / sunrise-sunset timetable and best bands by time of day, callsign of the day + quick lookup, licence renewal reminder, tip of the day (can surface new J-Learn chapters).
 - [ ] **S** QSL labels: reprint for a selected QSO, and print from contest mode (edits do not print today).
-- [ ] **S** Retire the old standalone J-Log page (`JLogCockpit.build()`): nothing opens it any more, but the dashboard embeds its form. Move the form into its own class and delete the page.
 - [ ] **S** Log browser: export the filtered view; show the contest-log databases too (it shows the normal log only).
 
 ## 4. Later — housekeeping and research
 - [ ] **S** QSL labels: more label stock / printer models if requested.
-- [ ] **M** Maps: reviewed (`docs/jmap-maps-and-globe.md`). The review found that the azimuthal basemap was centred on the US east coast rather than on the station, which is fixed. Next, if wanted: a vector basemap (Natural Earth, public domain) with zoom, pan and country borders - the best gain, medium effort. Slippy tiles and a WebView are not recommended. **Decision for you:** do the vector basemap?
+- [ ] **S** Vector basemap is built (Natural Earth 1:50 m land and country borders, public domain, `VectorBasemap`, ~275 KB; replaces both pictures). Seen running in both views: wheel zoom about the pointer, drag to pan and double-click to reset all work, and the gray line and station marker stay lined up with the coastlines. **Not yet tried**: the region chips, the "Basemap" overlay switch, and spots, the beam and beacons while zoomed (no spots were on the map), and clicking a spot after a zoom. Known edge case: land that lies right at the antipode (station in Argentina, say) can draw a stray wedge in the azimuthal view. Left: country names / labels, coastline detail that adds as you zoom in (50 m is used at every zoom), state / province borders.
 - [ ] **L** 3D globe as a map option: tried, and it works in JavaFX 21 (a textured globe, markers and a lifted great-circle arc, 4-5 ms a frame; picture in `docs/images/jmap-globe-probe.png`). The traps and their fixes (the texture needs a vertical pre-warp, marker maths, lines, labels, picking) and a cost of about 3-5 days for a basic version are in `docs/jmap-maps-and-globe.md`. Mostly looks; the azimuthal map is better for working the bands. **Decision for you:** build it, after the vector basemap?
 
 ## 5. Decided against

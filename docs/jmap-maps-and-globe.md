@@ -4,7 +4,9 @@ Written 2026-11-06 for the two TODO items "Maps: look at the J-Map options and s
 option". The globe was tried, not just thought about: a throwaway program drew a textured globe with markers and a lifted great-circle arc in
 JavaFX 21 on Windows (`docs/images/jmap-globe-probe.png`).
 
-## What J-Map draws today
+> **Update 2026-11-06:** the vector basemap below is built. Both views now draw Natural Earth 1:50 m land and borders (`VectorBasemap`, `land50.bin.gz`, `borders50.bin.gz`); the two pictures in the table (and `AzimuthalBasemap`) are gone, `bluemarble.jpg` stays for J-Sat. The flat map zooms with the wheel and pans by dragging.
+
+## What J-Map drew before
 
 | View | Basemap | Notes |
 |---|---|---|

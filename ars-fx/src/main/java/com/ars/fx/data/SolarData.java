@@ -43,14 +43,30 @@ public final class SolarData {
 
     public Snapshot snapshot() { return snap; }
 
+    private final java.util.List<Runnable> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+    /** Run {@code r} (on the FX thread) after each successful fetch, until it is removed with {@link #removeListener}. */
+    public void addListener(Runnable r) { listeners.add(r); }
+    public void removeListener(Runnable r) { listeners.remove(r); }
+    private void fire() {
+        for (Runnable r : listeners) {
+            try { javafx.application.Platform.runLater(r); } catch (IllegalStateException noToolkit) { r.run(); }
+        }
+    }
+
     /** Begin background fetch + hourly refresh (idempotent). */
     public synchronized void start() {
         if (started) return;
         started = true;
         Thread t = new Thread(() -> {
+            long retry = 30_000L;                                  // after a failure: 30 s, doubling to 10 min
             while (true) {
-                try { fetch(); } catch (Throwable ignored) { }
-                try { Thread.sleep(3_600_000L); } catch (InterruptedException e) { return; }
+                long wait = 3_600_000L;
+                try { fetch(); retry = 30_000L; }
+                catch (Throwable e) {
+                    System.err.println("[solar] fetch failed, retrying in " + retry / 1000 + " s: " + e);
+                    wait = retry; retry = Math.min(retry * 2, 600_000L);
+                }
+                try { Thread.sleep(wait); } catch (InterruptedException e) { return; }
             }
         }, "solar-data");
         t.setDaemon(true);
@@ -61,13 +77,14 @@ public final class SolarData {
         HttpRequest req = HttpRequest.newBuilder(URI.create("https://www.hamqsl.com/solarxml.php"))
                 .timeout(Duration.ofSeconds(12)).header("User-Agent", "ARS-Suite-JHub").GET().build();
         HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
-        if (resp.statusCode() != 200) return;
+        if (resp.statusCode() != 200) throw new java.io.IOException("HTTP " + resp.statusCode());
         String xml = resp.body();
         List<Band> bands = parseBands(xml);
         snap = new Snapshot(tag(xml, "solarflux"), tag(xml, "aindex"), tag(xml, "kindex"),
                 tag(xml, "sunspots"), tag(xml, "xray"), tag(xml, "aurora"),
                 tag(xml, "solarwind"), tag(xml, "magneticfield"), tag(xml, "updated"), bands,
                 tag(xml, "muf"), tag(xml, "fof2"));
+        fire();
     }
 
     private static List<Band> parseBands(String xml) {
