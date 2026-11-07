@@ -344,6 +344,18 @@ public final class JSatView {
         return h;
     }
 
+    /**
+     * How strongly to draw a satellite's footprint: {stroke alpha, fill alpha, line width}. The selected one is strongest; one your station is
+     * inside (it is above your horizon) is stronger than the rest, so you can see which footprints you are in; everything but the selected one dims
+     * when a satellite is selected.
+     */
+    private static double[] footprintLook(SatInfo s, boolean isF, boolean dim) {
+        boolean in = s.elDeg() > 0;
+        if (isF) return new double[]{in ? 0.95 : 0.7, in ? 0.22 : 0.14, in ? 2.0 : 1.5};
+        if (in) return dim ? new double[]{0.35, 0.06, 1.4} : new double[]{0.85, 0.17, 1.8};
+        return dim ? new double[]{0.16, 0.03, 1.1} : new double[]{0.45, 0.08, 1.1};
+    }
+
     /** A point a little way along the track from where the satellite is now (the track is centred on now), or null: what the icon turns to face. */
     private static double[] aheadOf(SatInfo s) {
         double[][] t = s.track();
@@ -358,6 +370,7 @@ public final class JSatView {
             globe = new GlobeView("sat");
             globe.onPick(name -> { selectedSat = name.equals(selectedSat) ? null : name; rebuild(); });
             globe.onRelease(() -> { if (rebuildHeld) rebuild(); });
+            globe.onMiss(() -> { if (selectedSat != null) { selectedSat = null; rebuild(); } });   // a click off every satellite lets go
         }
         SatService sv = SatService.getInstance();
         globe.station(sv.obsLat(), sv.obsLon());
@@ -376,12 +389,25 @@ public final class JSatView {
                 polys.add(new GlobeView.Poly(java.util.Arrays.copyOfRange(t, mid, t.length), s.altKm(), alpha(base, isF ? 1.0 : (dim ? 0.3 : 0.75)), isF ? 2.4 : 1.5, false, isF ? 7 : 4, isF));
             }
         }
-        double[][] rings = new double[0][];
+        // every satellite's footprint, tinted with its own colour; the selected one last so it sits on top, and the rest dim when one is selected
+        java.util.List<double[]> ringList = new ArrayList<>();
+        for (int pass = 0; pass < 2; pass++) for (SatInfo s : snap.sats()) {
+            boolean isF = s == f;
+            if (isF != (pass == 1) || s.altKm() <= 1) continue;
+            Color c = cm.get(s.name());
+            double[] look = footprintLook(s, isF, dim);
+            ringList.add(new double[]{s.subLat(), s.subLon(), s.footprintDeg(), c.getRed(), c.getGreen(), c.getBlue(), look[0], look[1], look[2]});
+        }
+        double[][] rings = ringList.toArray(new double[0][]);
         if (f != null && f.altKm() > 1) {
             Color fc = cm.get(f.name());
-            rings = new double[][]{{f.subLat(), f.subLon(), f.footprintDeg(), fc.getRed(), fc.getGreen(), fc.getBlue()}};
             links.add(new GlobeView.Link(f.subLat(), f.subLon(), 0, f.subLat(), f.subLon(), f.altKm(), alpha(fc, 0.8), true));       // drop line to the ground
-            if (f.elDeg() > 0) links.add(new GlobeView.Link(sv.obsLat(), sv.obsLon(), 0, f.subLat(), f.subLon(), f.altKm(), alpha(Color.WHITE, 0.85), false));   // the link to you
+        }
+        for (SatInfo s : snap.sats()) {                          // a line from your station to every satellite above your horizon; the selected one's is white
+            if (s.elDeg() <= 0 || s.altKm() <= 1) continue;
+            boolean isF = s == f;
+            links.add(new GlobeView.Link(sv.obsLat(), sv.obsLon(), 0, s.subLat(), s.subLon(), s.altKm(),
+                    isF ? alpha(Color.WHITE, 0.9) : alpha(cm.get(s.name()), dim ? 0.25 : 0.7), false));
         }
         globe.show(markers, polys, links, rings);
         return globe;
@@ -469,17 +495,39 @@ public final class JSatView {
         }
         drawTrackLit(g, f.track(), RMX, RMY, RW, RH, cm.get(f.name()), 0.5, 1.0, 2.4, true);
 
-        // focus footprint (visibility circle, approximated as an ellipse) in its colour
-        if (f.altKm() > 1) {
-            Color fc = cm.get(f.name());
-            double fp = f.footprintDeg();
-            double fx = lon2x(f.subLon(), RMX, RW), fy = lat2y(f.subLat(), RMY, RH);
-            double rxDeg = Math.min(170, fp / Math.max(0.25, Math.cos(Math.toRadians(f.subLat()))));
+        // every satellite's footprint (visibility circle, approximated as an ellipse) tinted with its own colour; the selected one is drawn last, on top,
+        // and the rest dim when one is selected
+        for (int pass = 0; pass < 2; pass++) for (SatInfo s : snap.sats()) {
+            boolean isF = s == f;
+            if (isF != (pass == 1) || s.altKm() <= 1) continue;
+            Color fc = cm.get(s.name());
+            double fp = s.footprintDeg();
+            double fx = lon2x(s.subLon(), RMX, RW), fy = lat2y(s.subLat(), RMY, RH);
+            double rxDeg = Math.min(170, fp / Math.max(0.25, Math.cos(Math.toRadians(s.subLat()))));
             double rx = (rxDeg / 360.0) * RW, ry = (fp / 180.0) * RH;
-            g.setStroke(alpha(fc, 0.6)); g.setLineWidth(1.3);
-            g.setFill(alpha(fc, 0.10));
+            double[] look = footprintLook(s, isF, dim);
+            g.setStroke(alpha(fc, look[0])); g.setLineWidth(look[2]);
+            g.setFill(alpha(fc, look[1]));
             g.fillOval(fx - rx, fy - ry, rx * 2, ry * 2);
             g.strokeOval(fx - rx, fy - ry, rx * 2, ry * 2);
+        }
+
+        // a line from your station to every satellite above your horizon, along the great circle; the selected one's is white
+        {
+            double oLat = SatService.getInstance().obsLat(), oLon = SatService.getInstance().obsLon();
+            for (int pass = 0; pass < 2; pass++) for (SatInfo s : snap.sats()) {
+                boolean isF = s == f;
+                if (isF != (pass == 1) || s.elDeg() <= 0) continue;
+                g.setStroke(isF ? Color.web("#ffffff", 0.9) : alpha(cm.get(s.name()), dim ? 0.25 : 0.7)); g.setLineWidth(isF ? 1.6 : 1.2); g.setLineDashes(isF ? null : new double[]{5, 4});
+                double px = Double.NaN, py = Double.NaN;
+                for (int i = 0; i <= 32; i++) {
+                    double[] pt = greatCircle(oLat, oLon, s.subLat(), s.subLon(), i / 32.0);
+                    double x = lon2x(pt[1], RMX, RW), y = lat2y(pt[0], RMY, RH);
+                    if (!Double.isNaN(px) && Math.abs(x - px) < RW * 0.5) g.strokeLine(px, py, x, y);
+                    px = x; py = y;
+                }
+                g.setLineDashes(null);
+            }
         }
 
         // QTH marker
@@ -549,6 +597,17 @@ public final class JSatView {
     private static double lon2x(double lon, double rmx, double rw) { return rmx + ((lon + 180) / 360.0) * rw; }
     private static double lat2y(double lat, double rmy, double rh) { return rmy + ((90 - lat) / 180.0) * rh; }
 
+    /** The point a fraction {@code f} of the way along the great circle from (lat1, lon1) to (lat2, lon2), as {lat, lon} in degrees. */
+    private static double[] greatCircle(double lat1, double lon1, double lat2, double lon2, double f) {
+        double p1 = Math.toRadians(lat1), l1 = Math.toRadians(lon1), p2 = Math.toRadians(lat2), l2 = Math.toRadians(lon2);
+        double d = 2 * Math.asin(Math.min(1, Math.sqrt(Math.pow(Math.sin((p2 - p1) / 2), 2) + Math.cos(p1) * Math.cos(p2) * Math.pow(Math.sin((l2 - l1) / 2), 2))));
+        if (d < 1e-9) return new double[]{lat1, lon1};
+        double A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+        double x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2), y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2);
+        double z = A * Math.sin(p1) + B * Math.sin(p2);
+        return new double[]{Math.toDegrees(Math.atan2(z, Math.sqrt(x * x + y * y))), Math.toDegrees(Math.atan2(y, x))};
+    }
+
     /** Click-to-select nearest satellite dot. */
     private static void attachPick(Canvas cv, List<String> names, List<double[]> pos) {
         cv.setOnMouseClicked((MouseEvent e) -> {
@@ -558,6 +617,7 @@ public final class JSatView {
                 if (d < best) { best = d; pick = names.get(i); }
             }
             if (pick != null && best < 20) { selectedSat = pick.equals(selectedSat) ? null : pick; rebuild(); }
+            else if (selectedSat != null) { selectedSat = null; rebuild(); }        // a click off every satellite lets go, and they all brighten again
         });
     }
     private static double lerpAz(double a, double b, double t) {

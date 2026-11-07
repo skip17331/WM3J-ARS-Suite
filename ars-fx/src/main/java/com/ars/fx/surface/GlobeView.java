@@ -68,8 +68,9 @@ final class GlobeView extends Pane {
     private List<Marker> markers = List.of();
     private List<Poly> polys = List.of();
     private List<Link> links = List.of();
-    private double[][] rings = new double[0][];           // {lat, lon, angDeg, r, g, b}
+    private double[][] rings = new double[0][];           // {lat, lon, angDeg, r, g, b, strokeAlpha, fillAlpha, lineWidth}
     private Consumer<String> onPick = n -> {};
+    private Runnable onMiss = () -> {};
     private final String surface;                           // whose colour scheme the globe follows: "sat", "map"
     private Painter painter;
     private BiConsumer<Double, Double> clickHook;
@@ -119,6 +120,7 @@ final class GlobeView extends Pane {
                 if (hit != null) centreOn(hit); else if (!Double.isNaN(qthLat)) { lat0 = qthLat; lon0 = qthLon; applyView(); redraw(); }
             } else if (clickHook != null) clickHook.accept(e.getX(), e.getY());
             else if (hit != null) onPick.accept(hit);
+            else onMiss.run();
         });
     }
 
@@ -127,6 +129,8 @@ final class GlobeView extends Pane {
     /** Called when the pointer is let go, so a rebuild held off during the drag can run. */
     void onRelease(Runnable r) { released = r; }
     void onPick(Consumer<String> c) { onPick = c; }
+    /** Called for a plain click that lands on no marker (and is not a drag or a double-click). */
+    void onMiss(Runnable r) { onMiss = r; }
     /** Take a plain click (not a drag, not a double-click) at pane coordinates instead of the built-in marker pick. */
     void onClick(BiConsumer<Double, Double> c) { clickHook = c; }
     /** Draw the owner's own layer. */
@@ -301,8 +305,10 @@ final class GlobeView extends Pane {
         g.strokeOval(w / 2 - sil, h / 2 - sil, sil * 2, sil * 2);
 
         for (double[] r : rings) {
-            g.setStroke(new Color(r[3], r[4], r[5], 0.85)); g.setLineWidth(1.6); g.setLineDashes(null);
-            line(g, pr, GlobeProjection.circle(r[0], r[1], r[2], 90), 0);
+            double[][] circle = GlobeProjection.circle(r[0], r[1], r[2], 90);
+            if (r[7] > 0) tint(g, pr, r[0], r[1], circle, new Color(r[3], r[4], r[5], r[7]));
+            g.setStroke(new Color(r[3], r[4], r[5], r[6])); g.setLineWidth(r.length > 8 ? r[8] : 1.6); g.setLineDashes(null);
+            line(g, pr, circle, 0);
         }
         for (Poly p : polys) {
             if (p.glow() > 0) {                                                    // a soft halo first, so the line reads as lit
@@ -366,6 +372,23 @@ final class GlobeView extends Pane {
     private static double[] unit(double lat, double lon, double altKm) {
         double r = 1 + altKm / GlobeProjection.EARTH_KM, la = Math.toRadians(lat), lo = Math.toRadians(lon);
         return new double[]{r * Math.cos(la) * Math.cos(lo), r * Math.cos(la) * Math.sin(lo), r * Math.sin(la)};
+    }
+
+    /**
+     * A wash of colour over the part of a footprint on the near side: a fan of triangles from its centre to each pair of neighbouring edge points that
+     * can be seen, filled in one go so the pieces do not overlap and double up. Skipped when the centre is behind the globe.
+     */
+    private static void tint(GraphicsContext g, GlobeProjection pr, double lat, double lon, double[][] circle, Color c) {
+        Pt mid = pr.project(lat, lon, 0);
+        if (!mid.visible()) return;
+        g.setFill(c); g.beginPath();
+        Pt prev = pr.project(circle[0][0], circle[0][1], 0);
+        for (int i = 1; i < circle.length; i++) {
+            Pt cur = pr.project(circle[i][0], circle[i][1], 0);
+            if (prev.visible() && cur.visible()) { g.moveTo(mid.x(), mid.y()); g.lineTo(prev.x(), prev.y()); g.lineTo(cur.x(), cur.y()); g.closePath(); }
+            prev = cur;
+        }
+        g.fill();
     }
 
     /** Small arrowheads along a track, pointing the way the satellite is going, every few points. */
