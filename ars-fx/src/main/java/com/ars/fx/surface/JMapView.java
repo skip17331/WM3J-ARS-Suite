@@ -514,7 +514,7 @@ public final class JMapView {
         // fixed-zoom region picker — single click. Picking a region snaps the blue
         // marble to that window AND switches the projection to Rectangular, so it
         // takes effect immediately even from the azimuthal view.
-        p.getChildren().add(lbl("REGION · BLUE MARBLE","jm-sec"));
+        p.getChildren().add(lbl("REGION","jm-sec"));
         FlowPane regions = new FlowPane(6, 6);
         Label[] rchips = new Label[REGION_NAMES.length];
         Runnable paintChips = () -> {
@@ -732,13 +732,14 @@ public final class JMapView {
     private static void paintAzimuthal(GraphicsContext g, double w, double h) {
         g.clearRect(0, 0, w, h);
         double cx = w/2, cy = h/2 + 4, R = Math.max(70, Math.min(w, h)/2 - 70);
-        Color border = ovBasemap ? Color.web("#ffffff", 0.30) : Color.web("#28313d"), faint = Color.web("#28313d"), t3 = Color.web("#6a7684"), t4 = ovBasemap ? Color.web("#dbe6f0", 0.8) : Color.web("#4d5663");
+        loadPalette();
+        Color border = ovBasemap ? P.line() : Color.web("#28313d"), faint = Color.web("#28313d"), t3 = ovBasemap ? P.lineText() : Color.web("#6a7684"), t4 = ovBasemap ? P.lineText() : Color.web("#4d5663");
 
         // vector world basemap (Natural Earth), azimuthal-equidistant about the station, clipped to the disk
         if (ovBasemap) {
             g.save();
             g.beginPath(); g.arc(cx, cy, R, R, 0, 360); g.closePath(); g.clip();
-            g.setFill(OCEAN); g.fillRect(cx - R, cy - R, R * 2, R * 2);
+            g.setFill(P.ocean()); g.fillRect(cx - R, cy - R, R * 2, R * 2);
             drawVectorAzimuthal(g, cx, cy, R);
             g.restore();
         }
@@ -760,7 +761,7 @@ public final class JMapView {
         g.setLineWidth(1);
         for (int i=0;i<12;i++){
             double a = Math.toRadians(i*30 - 90);
-            g.setStroke(ovBasemap ? Color.web("#ffffff", 0.16) : Color.web("#28313d", 0.55));
+            g.setStroke(ovBasemap ? P.line().deriveColor(0, 1, 1, 0.55) : Color.web("#28313d", 0.55));
             g.strokeLine(cx, cy, cx+Math.cos(a)*R, cy+Math.sin(a)*R);
             g.setFill(t3); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.CENTER);
             g.fillText(comp[i], cx+Math.cos(a)*(R+18), cy+Math.sin(a)*(R+18)+4);
@@ -786,7 +787,7 @@ public final class JMapView {
             double x = pp[0], y = pp[1];
             paintedDots.add(new Dot(x, y, s));
             spotDot(g, s, x, y, spotA);
-            if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x+8, y+4); }
+            if (ovCallsigns) { g.setFill(ovBasemap ? P.text().deriveColor(0, 1, 1, spotA) : Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x+8, y+4); }
         }
         // the Sun — sub-solar point projected into the azimuthal map (if visible)
         if (ovGrayline) {
@@ -814,14 +815,15 @@ public final class JMapView {
     /** The dark side of the azimuthal disk, recalculated when the size, station or minute changes. */
     private static javafx.scene.image.Image nightMask(double R) {
         int size = (int) Math.round(R);                       // half the disk's pixels; scaling up softens the edge
-        String key = size + "/" + Q_LAT + "/" + Q_LON + "/" + (System.currentTimeMillis() / 60_000);
+        String key = size + "/" + Q_LAT + "/" + Q_LON + "/" + (System.currentTimeMillis() / 60_000) + "/" + P.night();
         if (key.equals(nightMaskKey)) return nightMask;
 
         double[] ss = com.ars.fx.data.SolarPosition.subSolar();
         double declR = Math.toRadians(ss[0]), sinDecl = Math.sin(declR), cosDecl = Math.cos(declR), ssLonR = Math.toRadians(ss[1]);
         double qLatR = Math.toRadians(Q_LAT), qLonR = Math.toRadians(Q_LON), sinQ = Math.sin(qLatR), cosQ = Math.cos(qLatR);
         int[] argb = new int[size * size];
-        int night = 0x6B000000;                               // black at 42%
+        Color nc = ovBasemap ? P.night() : Color.web("#000000", 0.42);
+        int night = ((int) Math.round(nc.getOpacity() * 255) << 24) | ((int) Math.round(nc.getRed() * 255) << 16) | ((int) Math.round(nc.getGreen() * 255) << 8) | (int) Math.round(nc.getBlue() * 255);
         double half = size / 2.0;
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
@@ -858,8 +860,11 @@ public final class JMapView {
         }
         g.setLineDashes(null);
     }
-    private static final Color OCEAN = Color.web("#12395c"), LAND = Color.web("#3f7a4f"), COAST = Color.web("#8fc79a"), BORDER = Color.web("#d6c58a", 0.55),
-        ICE = Color.web("#dbe8f0"), ICE_COAST = Color.web("#ffffff", 0.8);
+    /** The map colours for the colour scheme in force; reloaded at the start of every paint so the theme button takes effect at once. */
+    private static MapPalette P = MapPalette.forScheme("dark");
+    private static void loadPalette() { P = MapPalette.forScheme(com.ars.fx.Themes.effectiveKey("map")); }
+    /** Called when the theme button is pressed: repaint the map in the new colours. */
+    public static void themeChanged() { if (currentMapRepaint != null) currentMapRepaint.run(); }
     /** Antarctica and Greenland are drawn as ice, everything else as land. */
     private static boolean isIce(com.ars.fx.data.VectorBasemap.Ring r) {
         return r.maxLat() < -60 || (r.minLon() > -75 && r.maxLon() < -10 && r.minLat() > 58 && r.points() > 200);
@@ -868,14 +873,14 @@ public final class JMapView {
     /** Land and borders in the azimuthal projection. Long edges are split so they bend like great circles; points past 140 degrees are held there (the disk clips at 135). */
     private static void drawVectorAzimuthal(GraphicsContext g, double cx, double cy, double R) {
         double maxD = 140.0 * 111.195 / 15000.0;                          // normalised distance cap
-        g.setFill(LAND); g.setStroke(COAST); g.setLineWidth(0.8);
+        g.setFill(P.land()); g.setStroke(P.coast()); g.setLineWidth(0.8);
         for (com.ars.fx.data.VectorBasemap.Ring ring : com.ars.fx.data.VectorBasemap.land().rings()) {
             boolean ice = isIce(ring);
-            g.setFill(ice ? ICE : LAND); g.setStroke(ice ? ICE_COAST : COAST);
+            g.setFill(ice ? P.ice() : P.land()); g.setStroke(ice ? P.iceCoast() : P.coast());
             azPath(g, ring.ll(), cx, cy, R, maxD, true);
             g.fill(); g.stroke();
         }
-        g.setStroke(BORDER); g.setLineWidth(0.7);
+        g.setStroke(P.border()); g.setLineWidth(0.7);
         for (com.ars.fx.data.VectorBasemap.Ring ring : com.ars.fx.data.VectorBasemap.borders().rings()) {
             azPath(g, ring.ll(), cx, cy, R, maxD, false);
             g.stroke();
@@ -1011,22 +1016,51 @@ public final class JMapView {
 
     /** Land, coast and country borders on the flat map. Rings off the window are skipped, and points under a pixel apart are dropped. */
     private static void drawVectorRect(GraphicsContext g, double rmx, double rmy, double rw, double rh) {
-        g.setFill(OCEAN); g.fillRect(rmx, rmy, rw, rh);
+        g.setFill(P.ocean()); g.fillRect(rmx, rmy, rw, rh);
         double pxPerDeg = rw / (vMaxLon - vMinLon);
-        g.setFill(LAND); g.setStroke(COAST); g.setLineWidth(0.8);
+        g.setFill(P.land()); g.setStroke(P.coast()); g.setLineWidth(0.8);
         for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.land().rings()) {
             if (!ringVisible(r)) continue;
             boolean ice = isIce(r);
-            g.setFill(ice ? ICE : LAND); g.setStroke(ice ? ICE_COAST : COAST);
+            g.setFill(ice ? P.ice() : P.land()); g.setStroke(ice ? P.iceCoast() : P.coast());
             rectPath(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, true);
             g.fill(); g.stroke();
         }
-        g.setStroke(BORDER); g.setLineWidth(0.7);
+        g.setStroke(P.border()); g.setLineWidth(0.7);
         for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.borders().rings()) {
             if (!ringVisible(r)) continue;
             rectPath(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, false);
             g.stroke();
         }
+        if (vMaxLon - vMinLon <= 100) {                           // state and province lines only once zoomed in
+            g.setStroke(P.state()); g.setLineWidth(0.6); g.setLineDashes(4, 3);
+            for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.states().rings()) {
+                if (!ringVisible(r)) continue;
+                rectPath(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, false);
+                g.stroke();
+            }
+            g.setLineDashes(null);
+        }
+    }
+    /** Country names, most important first; a name that would overlap one already placed is skipped. */
+    private static void drawCountryLabels(GraphicsContext g, double rmx, double rmy, double rw, double rh) {
+        double z = com.ars.fx.data.MapLabels.zoomOf(vMaxLon - vMinLon);
+        g.setFont(Font.font("IBM Plex Sans", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.CENTER);
+        g.setTextBaseline(javafx.geometry.VPos.CENTER);
+        g.setLineWidth(3); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND);
+        java.util.List<double[]> placed = new java.util.ArrayList<>();
+        for (com.ars.fx.data.MapLabels.Label l : com.ars.fx.data.MapLabels.countries()) {
+            if (l.minZoom() > z + 0.3) continue;
+            if (l.lon() < vMinLon || l.lon() > vMaxLon || l.lat() < vMinLat || l.lat() > vMaxLat) continue;
+            double x = lon2x(l.lon(), rmx, rw), y = lat2y(l.lat(), rmy, rh), hw = l.name().length() * 3.3 + 3, hh = 8;
+            boolean clash = false;
+            for (double[] r : placed) if (Math.abs(x - r[0]) < hw + r[2] && Math.abs(y - r[1]) < hh + r[3]) { clash = true; break; }
+            if (clash) continue;
+            placed.add(new double[]{x, y, hw, hh});
+            g.setStroke(P.halo()); g.strokeText(l.name(), x, y);
+            g.setFill(P.text().deriveColor(0, 1, 1, 0.85)); g.fillText(l.name(), x, y);
+        }
+        g.setTextBaseline(javafx.geometry.VPos.BASELINE);
     }
     private static boolean ringVisible(com.ars.fx.data.VectorBasemap.Ring r) {
         return r.maxLon() >= vMinLon && r.minLon() <= vMaxLon && r.maxLat() >= vMinLat && r.minLat() <= vMaxLat;
@@ -1083,6 +1117,7 @@ public final class JMapView {
     /** Draw the equirectangular overlay (graticule, terminator, spots, QTH) for the given area + centred image rect. */
     private static void paintRect(GraphicsContext g, double aw, double ah, double imgW, double imgH) {
         double RMX = (aw - imgW) / 2.0, RMY = (ah - imgH) / 2.0, RW = imgW, RH = imgH;
+        loadPalette();
         lastRMX = RMX; lastRMY = RMY; lastRW = RW; lastRH = RH;
         g.clearRect(0, 0, aw, ah);
         g.save();
@@ -1097,21 +1132,23 @@ public final class JMapView {
 
         for (int lon = -150; lon <= 150; lon += 30) {
             double x = lon2x(lon, RMX, RW); boolean prime = lon == 0;
-            g.setStroke(ovBasemap ? Color.web("#ffffff", prime ? 0.35 : 0.18) : Color.web("#28313d", prime ? 0.9 : 0.45)); g.setLineWidth(prime ? 1.1 : 0.6);
+            g.setStroke(ovBasemap ? P.line().deriveColor(0, 1, 1, prime ? 1.2 : 0.6) : Color.web("#28313d", prime ? 0.9 : 0.45)); g.setLineWidth(prime ? 1.1 : 0.6);
             g.strokeLine(x, RMY, x, RMY + RH);
         }
         for (int lat = -60; lat <= 60; lat += 30) {
             double y = lat2y(lat, RMY, RH); boolean eq = lat == 0;
-            g.setStroke(ovBasemap ? Color.web("#ffffff", eq ? 0.35 : 0.18) : Color.web("#28313d", eq ? 0.9 : 0.45)); g.setLineWidth(eq ? 1.1 : 0.6);
+            g.setStroke(ovBasemap ? P.line().deriveColor(0, 1, 1, eq ? 1.2 : 0.6) : Color.web("#28313d", eq ? 0.9 : 0.45)); g.setLineWidth(eq ? 1.1 : 0.6);
             g.strokeLine(RMX, y, RMX + RW, y);
         }
         if (ovGrayline) drawTerminator(g, RMX, RMY, RW, RH);
         if (ovBeam && !Double.isNaN(beamDeg())) drawRectBeam(g, RMX, RMY, RW, RH, beamDeg());
 
-        g.setFill(Color.web("#cdd6e0", 0.65)); g.setFont(Font.font("IBM Plex Sans", FontWeight.NORMAL, 12)); g.setTextAlign(TextAlignment.CENTER);
-        double[][] regions = {{52,13},{39,-98},{-14,-52},{8,20},{55,40},{36,138},{-25,134}};
-        String[] rn = {"EUROPE","N. AMERICA","S. AMERICA","AFRICA","RUSSIA","ASIA","OCEANIA"};
-        for (int i = 0; i < rn.length; i++) g.fillText(rn[i], lon2x(regions[i][1], RMX, RW), lat2y(regions[i][0], RMY, RH));
+        if (vMaxLon - vMinLon > 200) {                          // the whole world: the continents' names; zoomed in, the countries' names
+            g.setFill(ovBasemap ? P.text().deriveColor(0, 1, 1, 0.65) : Color.web("#cdd6e0", 0.65)); g.setFont(Font.font("IBM Plex Sans", FontWeight.NORMAL, 12)); g.setTextAlign(TextAlignment.CENTER);
+            double[][] regions = {{52,13},{39,-98},{-14,-52},{8,20},{55,40},{36,138},{-25,134}};
+            String[] rn = {"EUROPE","N. AMERICA","S. AMERICA","AFRICA","RUSSIA","ASIA","OCEANIA"};
+            for (int i = 0; i < rn.length; i++) g.fillText(rn[i], lon2x(regions[i][1], RMX, RW), lat2y(regions[i][0], RMY, RH));
+        } else if (ovBasemap) drawCountryLabels(g, RMX, RMY, RW, RH);
 
         double spotA = dimSpots() ? 0.28 : 1.0;
         paintedDots.clear();
@@ -1121,7 +1158,7 @@ public final class JMapView {
             paintedDots.add(new Dot(x, y, s));
             g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(x - 4.5, y - 4.5, 9, 9);
             spotDot(g, s, x, y, spotA);
-            if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x + 8, y + 4); }
+            if (ovCallsigns) { g.setFill(ovBasemap ? P.text().deriveColor(0, 1, 1, spotA) : Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x + 8, y + 4); }
         }
 
         double qx = lon2x(Q_LON, RMX, RW), qy = lat2y(Q_LAT, RMY, RH);
@@ -1164,7 +1201,7 @@ public final class JMapView {
         // Darken the NIGHT side (inside the gray line). Sun north (decl≥0) → night is
         // the southern hemisphere (below the curve); else the northern.
         boolean nightBelow = decl >= 0;
-        g.setFill(Color.web("#04060a", 0.5));
+        g.setFill(ovBasemap ? P.night() : Color.web("#04060a", 0.5));
         g.beginPath(); g.moveTo(xs[0], ys[0]);
         for (int i = 1; i < n; i++) g.lineTo(xs[i], ys[i]);
         if (nightBelow) { g.lineTo(rmx + rw, rmy + rh); g.lineTo(rmx, rmy + rh); }
