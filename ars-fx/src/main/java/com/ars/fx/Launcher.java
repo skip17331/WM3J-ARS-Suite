@@ -35,7 +35,7 @@ public class Launcher extends Application {
 
     @Override
     public void start(Stage stage) {
-        Shell.onThemeChanged = () -> Themes.applyTo(host, Shell.currentSurface);
+        Shell.onThemeChanged = () -> { Themes.applyTo(host, Shell.currentSurface); com.ars.fx.surface.JMapView.themeChanged(); };
         com.ars.fx.data.Bands.applyRegion();            // the operator's IARU region picks the band plan
 
         // Solo launch? `-Dars.config=<file>` or `--config <file>` runs one module (J-Map/J-Sat) on its own.

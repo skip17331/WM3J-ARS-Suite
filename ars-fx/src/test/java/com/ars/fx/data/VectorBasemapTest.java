@@ -14,6 +14,15 @@ class VectorBasemapTest {
     @Test void bordersLoad() {
         assertTrue(VectorBasemap.borders().rings().length > 100);
     }
+    @Test void statesAndLabelsLoad() {
+        assertTrue(VectorBasemap.states().rings().length > 300);
+        var ls = MapLabels.countries();
+        assertTrue(ls.size() > 200);
+        var us = ls.stream().filter(l -> l.name().startsWith("United States")).findFirst().orElseThrow();
+        assertTrue(us.lon() < -90 && us.lon() > -110 && us.lat() > 35 && us.lat() < 45, us.toString());
+        assertEquals(1.0, MapLabels.zoomOf(360), 1e-9);
+        assertEquals(3.0, MapLabels.zoomOf(90), 1e-9);
+    }
     /** Point-in-ring even-odd: London is land, the mid-Atlantic is not. */
     @Test void londonIsLandAndMidAtlanticIsSea() {
         assertTrue(inside(51.5, -0.1));

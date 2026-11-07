@@ -16,7 +16,7 @@ public final class VectorBasemap {
         public int points() { return ll.length / 2; }
     }
 
-    private static volatile VectorBasemap land, borders;
+    private static volatile VectorBasemap land, borders, states;
 
     private final Ring[] rings;
     private VectorBasemap(Ring[] r) { rings = r; }
@@ -31,6 +31,12 @@ public final class VectorBasemap {
     public static VectorBasemap borders() {
         if (borders == null) borders = load("/com/ars/fx/map/borders50.bin.gz");
         return borders;
+    }
+
+    /** State / province border lines (shown only when zoomed in). */
+    public static VectorBasemap states() {
+        if (states == null) states = load("/com/ars/fx/map/states50.bin.gz");
+        return states;
     }
 
     private static VectorBasemap load(String res) {
