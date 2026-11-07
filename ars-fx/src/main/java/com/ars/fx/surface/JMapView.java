@@ -472,7 +472,11 @@ public final class JMapView {
             }
         };
         timer.start();
-        pane.sceneProperty().addListener((o, old, sc) -> { if (sc == null && old != null) timer.stop(); });
+        Runnable onData = refreshText;                         // new figures as soon as they arrive, not only at the next wrap
+        com.ars.fx.data.SolarData.getInstance().addListener(onData);
+        pane.sceneProperty().addListener((o, old, sc) -> {
+            if (sc == null && old != null) { timer.stop(); com.ars.fx.data.SolarData.getInstance().removeListener(onData); }
+        });
         return pane;
     }
 
@@ -728,19 +732,14 @@ public final class JMapView {
     private static void paintAzimuthal(GraphicsContext g, double w, double h) {
         g.clearRect(0, 0, w, h);
         double cx = w/2, cy = h/2 + 4, R = Math.max(70, Math.min(w, h)/2 - 70);
-        Color border = Color.web("#28313d"), faint = Color.web("#28313d"), t3 = Color.web("#6a7684"), t4 = Color.web("#4d5663");
+        Color border = ovBasemap ? Color.web("#ffffff", 0.30) : Color.web("#28313d"), faint = Color.web("#28313d"), t3 = Color.web("#6a7684"), t4 = ovBasemap ? Color.web("#dbe6f0", 0.8) : Color.web("#4d5663");
 
-        // light-gray azimuthal world basemap (great-circle map centred on QTH), clipped to the disk.
-        // The picture spans 0–180° (edge = antipode); our R = 15000 km ≈ 135°, so the full image
-        // disk must be drawn larger (×180/135) and clipped so our outer ring sits at 135°.
-        Image base = azBasemap();
-        if (ovBasemap && base != null && !base.isError()) {
+        // vector world basemap (Natural Earth), azimuthal-equidistant about the station, clipped to the disk
+        if (ovBasemap) {
             g.save();
             g.beginPath(); g.arc(cx, cy, R, R, 0, 360); g.closePath(); g.clip();
-            double d = R * 2.667;
-            g.setGlobalAlpha(0.55);
-            g.drawImage(base, cx - d / 2, cy - d / 2, d, d);
-            g.setGlobalAlpha(1.0);
+            g.setFill(OCEAN); g.fillRect(cx - R, cy - R, R * 2, R * 2);
+            drawVectorAzimuthal(g, cx, cy, R);
             g.restore();
         }
 
@@ -761,7 +760,7 @@ public final class JMapView {
         g.setLineWidth(1);
         for (int i=0;i<12;i++){
             double a = Math.toRadians(i*30 - 90);
-            g.setStroke(Color.web("#28313d", 0.55));
+            g.setStroke(ovBasemap ? Color.web("#ffffff", 0.16) : Color.web("#28313d", 0.55));
             g.strokeLine(cx, cy, cx+Math.cos(a)*R, cy+Math.sin(a)*R);
             g.setFill(t3); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.CENTER);
             g.fillText(comp[i], cx+Math.cos(a)*(R+18), cy+Math.sin(a)*(R+18)+4);
@@ -859,6 +858,51 @@ public final class JMapView {
         }
         g.setLineDashes(null);
     }
+    private static final Color OCEAN = Color.web("#12395c"), LAND = Color.web("#3f7a4f"), COAST = Color.web("#8fc79a"), BORDER = Color.web("#d6c58a", 0.55),
+        ICE = Color.web("#dbe8f0"), ICE_COAST = Color.web("#ffffff", 0.8);
+    /** Antarctica and Greenland are drawn as ice, everything else as land. */
+    private static boolean isIce(com.ars.fx.data.VectorBasemap.Ring r) {
+        return r.maxLat() < -60 || (r.minLon() > -75 && r.maxLon() < -10 && r.minLat() > 58 && r.points() > 200);
+    }
+
+    /** Land and borders in the azimuthal projection. Long edges are split so they bend like great circles; points past 140 degrees are held there (the disk clips at 135). */
+    private static void drawVectorAzimuthal(GraphicsContext g, double cx, double cy, double R) {
+        double maxD = 140.0 * 111.195 / 15000.0;                          // normalised distance cap
+        g.setFill(LAND); g.setStroke(COAST); g.setLineWidth(0.8);
+        for (com.ars.fx.data.VectorBasemap.Ring ring : com.ars.fx.data.VectorBasemap.land().rings()) {
+            boolean ice = isIce(ring);
+            g.setFill(ice ? ICE : LAND); g.setStroke(ice ? ICE_COAST : COAST);
+            azPath(g, ring.ll(), cx, cy, R, maxD, true);
+            g.fill(); g.stroke();
+        }
+        g.setStroke(BORDER); g.setLineWidth(0.7);
+        for (com.ars.fx.data.VectorBasemap.Ring ring : com.ars.fx.data.VectorBasemap.borders().rings()) {
+            azPath(g, ring.ll(), cx, cy, R, maxD, false);
+            g.stroke();
+        }
+    }
+    private static void azPath(GraphicsContext g, double[] ll, double cx, double cy, double R, double maxD, boolean close) {
+        g.beginPath();
+        int n = ll.length / 2;
+        double plat = 0, plon = 0;
+        for (int i = 0; i < n; i++) {
+            double lat = ll[i * 2 + 1], lon = ll[i * 2];
+            int sub = 1;
+            if (i > 0) {
+                double dd = Math.max(Math.abs(lat - plat), Math.abs(lon - plon));
+                sub = Math.min(40, Math.max(1, (int) Math.ceil(dd / 1.0)));
+            }
+            for (int k = 1; k <= sub; k++) {
+                double f = (double) k / sub, la = i == 0 ? lat : plat + (lat - plat) * f, lo = i == 0 ? lon : plon + (lon - plon) * f;
+                double[] p = azProject(la, lo, cx, cy, R);
+                double x = p[0], y = p[1];
+                if (p[2] > maxD) { double sc = maxD / p[2]; x = cx + (x - cx) * sc; y = cy + (y - cy) * sc; }
+                if (i == 0) g.moveTo(x, y); else g.lineTo(x, y);
+            }
+            plat = lat; plon = lon;
+        }
+        if (close) g.closePath();
+    }
     /** Project a geographic point into the azimuthal-equidistant map (centred on QTH). Returns {x,y,distNorm}. */
     private static double[] azProject(double lat, double lon, double cx, double cy, double R) {
         double qLatR = Math.toRadians(Q_LAT), latR = Math.toRadians(lat), dLon = Math.toRadians(lon - Q_LON);
@@ -879,7 +923,7 @@ public final class JMapView {
     };
     /** Overlay toggle labels, in the order of {@code overlayFlag(i)}. */
     private static final Object[][] OVERLAYS = {
-        {"Gray line / sun"},{"Basemap image"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},
+        {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},
     };
     private static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
     private static String myCall = "";
@@ -902,69 +946,103 @@ public final class JMapView {
     private static int mapRegion = 0;
     // Live equirectangular viewport the rect projection + overlays map into.
     private static double vMinLon = -180, vMaxLon = 180, vMinLat = -90, vMaxLat = 90;
-    private static Image marble;
-    private static Image marble() {
-        if (marble == null) marble = new Image(JMapView.class.getResourceAsStream("/com/ars/fx/map/bluemarble.jpg"));
-        return marble;
-    }
-    /** The azimuthal world map turned to be centred on this station. The bundled picture is centred on the US east coast, so used as it is the continents sit in the wrong place for anyone else. */
-    private static javafx.scene.image.WritableImage azBase;
-    private static double azBaseLat = Double.NaN, azBaseLon = Double.NaN;
-    private static Image azBasemap() {
-        if (azBase != null && Math.abs(azBaseLat - Q_LAT) < 0.05 && Math.abs(azBaseLon - Q_LON) < 0.05) return azBase;
-        try {
-            com.ars.fx.data.AzimuthalBasemap.Source src = com.ars.fx.data.AzimuthalBasemap.loadSource();
-            if (src != null) {
-                int n = src.size();
-                int[] px = com.ars.fx.data.AzimuthalBasemap.render(src, Q_LAT, Q_LON, n);
-                javafx.scene.image.WritableImage w = new javafx.scene.image.WritableImage(n, n);
-                w.getPixelWriter().setPixels(0, 0, n, n, javafx.scene.image.PixelFormat.getIntArgbInstance(), px, 0, n);
-                azBase = w; azBaseLat = Q_LAT; azBaseLon = Q_LON;
-                return w;
-            }
-        } catch (RuntimeException ignored) { /* the fixed picture below */ }
-        return gcmGray();
-    }
-    private static Image gcmGray;
-    private static Image gcmGray() {
-        if (gcmGray == null) gcmGray = new Image(JMapView.class.getResourceAsStream("/com/ars/fx/map/gcm-gray.jpg"));
-        return gcmGray;
-    }
+    private static int appliedRegion = -1;
+    private static double lastRMX, lastRMY, lastRW = 1, lastRH = 1;     // the map rectangle of the last paint, for zoom and pan
     private static Region rectMap() {
-        ImageView iv = new ImageView(marble());
-        iv.setPreserveRatio(false); iv.setSmooth(true);
         Canvas cv = new Canvas();
-
-        StackPane area = new StackPane(iv, cv); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
+        StackPane area = new StackPane(cv); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
 
-        // Size the blue-marble image + overlay to the live area for the currently
-        // selected fixed-zoom region, and repaint on every resize. Equirectangular
-        // has equal px/degree on both axes, so the display aspect == the window's
-        // lon-span : lat-span, and the lat/lon window maps linearly to source pixels.
+        // The map window is {vMinLat..vMaxLat} x {vMinLon..vMaxLon}: a region chip sets it, the wheel zooms about the
+        // pointer, a drag pans, a double click goes back to the region. Equirectangular has equal px/degree on both axes,
+        // so the rectangle's aspect is the window's lon-span : lat-span.
         Runnable redraw = () -> {
             double aw = area.getWidth(), ah = area.getHeight();
             if (aw <= 1 || ah <= 1) return;
-            double[] rg = REGIONS[mapRegion];
-            vMinLat = rg[0]; vMaxLat = rg[1]; vMinLon = rg[2]; vMaxLon = rg[3];
-            double lonSpan = vMaxLon - vMinLon, latSpan = vMaxLat - vMinLat;
-            double aspect = lonSpan / latSpan;
+            if (appliedRegion != mapRegion) {
+                double[] rg = REGIONS[mapRegion];
+                vMinLat = rg[0]; vMaxLat = rg[1]; vMinLon = rg[2]; vMaxLon = rg[3];
+                appliedRegion = mapRegion;
+            }
+            double aspect = (vMaxLon - vMinLon) / (vMaxLat - vMinLat);
             double imgW = Math.min(aw, ah * aspect), imgH = imgW / aspect;
-            Image src = marble();
-            double sw = src.getWidth(), sh = src.getHeight();
-            iv.setViewport(new Rectangle2D((vMinLon + 180) / 360.0 * sw, (90 - vMaxLat) / 180.0 * sh,
-                                           lonSpan / 360.0 * sw, latSpan / 180.0 * sh));
-            iv.setFitWidth(imgW); iv.setFitHeight(imgH);
-            iv.setVisible(ovBasemap);
             cv.setWidth(aw); cv.setHeight(ah);
             paintRect(cv.getGraphicsContext2D(), aw, ah, imgW, imgH);
         };
         area.widthProperty().addListener((o, a, b) -> redraw.run());
         area.heightProperty().addListener((o, a, b) -> redraw.run());
-        area.setOnMouseClicked(e -> handleMapClick(area, e.getX(), e.getY()));
+
+        double[] press = new double[3];                          // x, y, dragged
+        area.setOnMousePressed(e -> { press[0] = e.getX(); press[1] = e.getY(); press[2] = 0; });
+        area.setOnMouseDragged(e -> {
+            double dx = e.getX() - press[0], dy = e.getY() - press[1];
+            if (press[2] == 0 && Math.hypot(dx, dy) < 4) return;
+            press[2] = 1; press[0] = e.getX(); press[1] = e.getY();
+            double lonSpan = vMaxLon - vMinLon, latSpan = vMaxLat - vMinLat;
+            setWindow(vMinLon - dx / lastRW * lonSpan, vMinLat + dy / lastRH * latSpan, lonSpan, latSpan);
+            currentMapRepaint.run();
+        });
+        area.setOnScroll(e -> {
+            if (e.getDeltaY() == 0) return;
+            double lonSpan = vMaxLon - vMinLon, latSpan = vMaxLat - vMinLat;
+            double fx = Math.max(0, Math.min(1, (e.getX() - lastRMX) / lastRW)), fy = Math.max(0, Math.min(1, (e.getY() - lastRMY) / lastRH));
+            double lonAt = vMinLon + fx * lonSpan, latAt = vMaxLat - fy * latSpan;
+            double f = Math.exp(e.getDeltaY() / 300.0);           // wheel up zooms in
+            double ns = Math.max(Math.min(1.0 / f, Math.min(360 / lonSpan, 180 / latSpan)), 2.0 / latSpan);   // spans never exceed the world nor go under 2 degrees
+            double nLon = lonSpan * ns, nLat = latSpan * ns;
+            setWindow(lonAt - fx * nLon, latAt - (1 - fy) * nLat, nLon, nLat);
+            currentMapRepaint.run();
+        });
+        area.setOnMouseClicked(e -> {
+            if (press[2] == 1) { press[2] = 0; return; }          // the end of a drag is not a click
+            if (e.getClickCount() == 2) { appliedRegion = -1; currentMapRepaint.run(); return; }
+            handleMapClick(area, e.getX(), e.getY());
+        });
         currentMapRepaint = redraw;
         redraw.run();
         return area;
+    }
+    /** Set the map window from its south-west corner and spans, kept inside the world. */
+    private static void setWindow(double minLon, double minLat, double lonSpan, double latSpan) {
+        minLon = Math.max(-180, Math.min(180 - lonSpan, minLon));
+        minLat = Math.max(-90, Math.min(90 - latSpan, minLat));
+        vMinLon = minLon; vMaxLon = minLon + lonSpan; vMinLat = minLat; vMaxLat = minLat + latSpan;
+    }
+
+    /** Land, coast and country borders on the flat map. Rings off the window are skipped, and points under a pixel apart are dropped. */
+    private static void drawVectorRect(GraphicsContext g, double rmx, double rmy, double rw, double rh) {
+        g.setFill(OCEAN); g.fillRect(rmx, rmy, rw, rh);
+        double pxPerDeg = rw / (vMaxLon - vMinLon);
+        g.setFill(LAND); g.setStroke(COAST); g.setLineWidth(0.8);
+        for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.land().rings()) {
+            if (!ringVisible(r)) continue;
+            boolean ice = isIce(r);
+            g.setFill(ice ? ICE : LAND); g.setStroke(ice ? ICE_COAST : COAST);
+            rectPath(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, true);
+            g.fill(); g.stroke();
+        }
+        g.setStroke(BORDER); g.setLineWidth(0.7);
+        for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.borders().rings()) {
+            if (!ringVisible(r)) continue;
+            rectPath(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, false);
+            g.stroke();
+        }
+    }
+    private static boolean ringVisible(com.ars.fx.data.VectorBasemap.Ring r) {
+        return r.maxLon() >= vMinLon && r.minLon() <= vMaxLon && r.maxLat() >= vMinLat && r.minLat() <= vMaxLat;
+    }
+    private static void rectPath(GraphicsContext g, double[] ll, double rmx, double rmy, double rw, double rh, double pxPerDeg, boolean close) {
+        g.beginPath();
+        double minStep = 0.6 / pxPerDeg, lx = 0, ly = 0;
+        int n = ll.length / 2;
+        for (int i = 0; i < n; i++) {
+            double lo = ll[i * 2], la = ll[i * 2 + 1];
+            if (i > 0 && i < n - 1 && Math.abs(lo - lx) < minStep && Math.abs(la - ly) < minStep) continue;
+            double x = lon2x(lo, rmx, rw), y = lat2y(la, rmy, rh);
+            if (i == 0) g.moveTo(x, y); else g.lineTo(x, y);
+            lx = lo; ly = la;
+        }
+        if (close) g.closePath();
     }
 
     /** The beam as great-circle paths out to the azimuthal map's 15,000 km edge, so the two views agree. */
@@ -1005,7 +1083,12 @@ public final class JMapView {
     /** Draw the equirectangular overlay (graticule, terminator, spots, QTH) for the given area + centred image rect. */
     private static void paintRect(GraphicsContext g, double aw, double ah, double imgW, double imgH) {
         double RMX = (aw - imgW) / 2.0, RMY = (ah - imgH) / 2.0, RW = imgW, RH = imgH;
+        lastRMX = RMX; lastRMY = RMY; lastRW = RW; lastRH = RH;
         g.clearRect(0, 0, aw, ah);
+        g.save();
+        g.beginPath(); g.rect(RMX, RMY, RW, RH); g.closePath(); g.clip();
+        if (ovBasemap) drawVectorRect(g, RMX, RMY, RW, RH);
+        g.restore();
         g.setStroke(Color.web("#28313d")); g.setLineWidth(1); g.strokeRect(RMX, RMY, RW, RH);
 
         // clip every overlay to the map rect so a zoomed region doesn't spill markers/labels
@@ -1014,12 +1097,12 @@ public final class JMapView {
 
         for (int lon = -150; lon <= 150; lon += 30) {
             double x = lon2x(lon, RMX, RW); boolean prime = lon == 0;
-            g.setStroke(Color.web("#28313d", prime ? 0.9 : 0.45)); g.setLineWidth(prime ? 1.1 : 0.6);
+            g.setStroke(ovBasemap ? Color.web("#ffffff", prime ? 0.35 : 0.18) : Color.web("#28313d", prime ? 0.9 : 0.45)); g.setLineWidth(prime ? 1.1 : 0.6);
             g.strokeLine(x, RMY, x, RMY + RH);
         }
         for (int lat = -60; lat <= 60; lat += 30) {
             double y = lat2y(lat, RMY, RH); boolean eq = lat == 0;
-            g.setStroke(Color.web("#28313d", eq ? 0.9 : 0.45)); g.setLineWidth(eq ? 1.1 : 0.6);
+            g.setStroke(ovBasemap ? Color.web("#ffffff", eq ? 0.35 : 0.18) : Color.web("#28313d", eq ? 0.9 : 0.45)); g.setLineWidth(eq ? 1.1 : 0.6);
             g.strokeLine(RMX, y, RMX + RW, y);
         }
         if (ovGrayline) drawTerminator(g, RMX, RMY, RW, RH);
