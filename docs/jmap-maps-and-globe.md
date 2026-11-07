@@ -63,3 +63,15 @@ the three to build.
 1. Done: centre the azimuthal map on the station.
 2. Vector basemap (Natural Earth) with zoom and pan, and country borders: medium, the best gain.
 3. 3D globe as an optional view, using the recipe above: medium to large.
+
+## Built: the globe in J-Sat (2026-11-07)
+
+`GlobeView` (surface) with `GlobeProjection` (data, tested). It differs from the recipe above in one way that removed most of the traps: only the Earth is
+3D, and it is not JavaFX's `Sphere`. That class spaces its rings evenly in height, so only a handful of texture rows are left near each pole and the Arctic
+smears into streaks (tried: a taller texture and a finer mesh did not help). `GlobeView.sphereMesh` builds a plain `TriangleMesh` with rings evenly in
+angle and ordinary equirectangular texture coordinates, placed the way `Sphere` is (longitude 0 faces the camera, north is -y), so the land is drawn into
+a 2048 x 1024 texture with no warp (trap 1) and the poles are clean. Markers, orbit lines, footprint rings, the link line and labels are drawn on a 2D
+canvas laid over the sphere and placed by our own projection of the same camera (trap 2: positions; trap 3: lines, so no cylinders; trap 4: labels;
+trap 6: picking is a plain distance test). The night side is a slightly larger transparent mesh carrying a mask recomputed each minute (trap 5).
+`Platform.isSupported(SCENE3D)` decides whether the Globe button is offered (trap 7). Checked in the running app, light, dark and ocean schemes, that the
+overlay and the texture line up (station, satellites and footprint over the right land).

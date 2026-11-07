@@ -34,7 +34,7 @@ public final class JSatView {
 
     // ── view state (persists across the 2 s snapshot rebuilds) ────────────────
     private static String selectedSat = null;   // null = follow the auto-tracked sat
-    private static int    viewMode    = 0;      // 0 = polar sky plot, 1 = blue marble
+    private static int    viewMode    = 0;      // 0 = polar sky plot, 1 = blue marble, 2 = 3D globe
     private static boolean trackRotor() { return com.ars.fx.data.HubConfig.getBool("rotor.autoTrack", false); }   // feed focus az to the rotor while in pass (J-Hub ▸ Rotor control)
     private static boolean dopplerTune = false; // feed Doppler-corrected downlink to the rig
 
@@ -104,7 +104,10 @@ public final class JSatView {
         }
         return host;
     }
+    private static boolean rebuildHeld;
     private static void rebuild() {
+        if (viewMode == 2 && globe != null && globe.busy()) { rebuildHeld = true; return; }      // do not pull the globe out from under a drag; run it on release
+        rebuildHeld = false;
         if (host != null) Shell.keepScroll(host, () -> host.getChildren().setAll(frame(SatService.getInstance().snapshot())));
     }
 
@@ -242,6 +245,7 @@ public final class JSatView {
 
     // ---- center plot + telemetry ------------------------------------------
     private static Region plotCol(Snapshot snap, SatInfo f) {
+        if (viewMode == 2 && !GlobeView.supported()) viewMode = 1;       // the Globe button is not offered without 3D: fall back to the flat map
         String sub = String.format("%s · max el %d°  ·  %d sats", f.type(), Math.round(f.nextMaxElDeg()), snap.sats().size());
         HBox titleL = new HBox(8, lbl(f.name(), "js-title"), lbl(sub, "js-title-sub")); titleL.setAlignment(Pos.CENTER_LEFT);
         Region tsp = new Region(); HBox.setHgrow(tsp, Priority.ALWAYS);
@@ -252,8 +256,14 @@ public final class JSatView {
         // the plot canvas fills the available area and repaints on resize. unmanaged so its
         // width never feeds back as the pane's pref/min — otherwise the plot ratchets wider and
         // squeezes the satellite list + rail to slivers on a narrow window.
+        Region plot;
+        if (viewMode == 2 && GlobeView.supported()) {
+            plot = globeFor(snap, f, dim);
+            VBox.setVgrow(plot, Priority.ALWAYS);
+        } else {
         Canvas cv = new Canvas(); cv.setManaged(false);
         StackPane sky = new StackPane(cv); sky.setStyle("-fx-background-color:-ars-bg;"); VBox.setVgrow(sky, Priority.ALWAYS); sky.setMinSize(0, 0); sky.setPrefSize(0, 0);
+        plot = sky;
         Runnable repaint = () -> {
             double aw = sky.getWidth(), ah = sky.getHeight();
             if (aw <= 1 || ah <= 1) return;
@@ -264,6 +274,7 @@ public final class JSatView {
         sky.widthProperty().addListener((o, a, b) -> repaint.run());
         sky.heightProperty().addListener((o, a, b) -> repaint.run());
         repaint.run();
+        }
 
         long dopHz = f.downlinkCorrHz() - f.downlinkHz();
         String[][] cells = {
@@ -288,7 +299,7 @@ public final class JSatView {
             keys.add(k); vals.add(v); units.add(u); tiles.add(cell);
             tel.getChildren().add(cell);
         }
-        VBox col = new VBox(0, title, sky, tel); col.setAlignment(Pos.TOP_CENTER); col.setStyle("-fx-background-color:-ars-bg;");
+        VBox col = new VBox(0, title, plot, tel); col.setAlignment(Pos.TOP_CENTER); col.setStyle("-fx-background-color:-ars-bg;");
         HBox.setHgrow(col, Priority.ALWAYS); col.setPadding(new Insets(0, 20, 0, 20));
 
         // the tiles follow the window: frame() rebuilds every ~2 s, so start from the last scale rather than flash full size
@@ -322,7 +333,7 @@ public final class JSatView {
     private static double telScale = 1;
     private static Region viewToggle() {
         HBox h = new HBox(2); h.getStyleClass().add("jm-seg");
-        String[] opts = {"Polar", "Blue marble"};
+        String[] opts = GlobeView.supported() ? new String[]{"Polar", "Blue marble", "Globe"} : new String[]{"Polar", "Blue marble"};
         for (int i = 0; i < opts.length; i++) {
             final int idx = i;
             Label b = lbl(opts[i], "jm-seg-btn"); if (i == viewMode) b.getStyleClass().add("on");
@@ -331,6 +342,36 @@ public final class JSatView {
             h.getChildren().add(b);
         }
         return h;
+    }
+
+    // ---- 3D globe -----------------------------------------------------------
+    private static GlobeView globe;                       // one instance, so the way you turned it survives the two-second rebuilds
+    private static GlobeView globeFor(Snapshot snap, SatInfo f, boolean dim) {
+        if (globe == null) {
+            globe = new GlobeView("sat");
+            globe.onPick(name -> { selectedSat = name.equals(selectedSat) ? null : name; rebuild(); });
+            globe.onRelease(() -> { if (rebuildHeld) rebuild(); });
+        }
+        SatService sv = SatService.getInstance();
+        globe.station(sv.obsLat(), sv.obsLon());
+        java.util.Map<String, Color> cm = colorMap(snap);
+        List<GlobeView.Marker> markers = new ArrayList<>(); List<GlobeView.Poly> polys = new ArrayList<>(); List<GlobeView.Link> links = new ArrayList<>();
+        for (SatInfo s : snap.sats()) {
+            boolean isF = s == f;
+            Color base = cm.get(s.name());
+            markers.add(new GlobeView.Marker(s.name(), s.subLat(), s.subLon(), s.altKm(), base, isF, s.elDeg() > 0, dim && !isF));
+            if (s.track() != null && s.track().length > 1)
+                polys.add(new GlobeView.Poly(s.track(), s.altKm(), alpha(base, isF ? 0.95 : (dim ? 0.28 : 0.55)), isF ? 1.8 : 1.1, false));
+        }
+        double[][] rings = new double[0][];
+        if (f != null && f.altKm() > 1) {
+            Color fc = cm.get(f.name());
+            rings = new double[][]{{f.subLat(), f.subLon(), f.footprintDeg(), fc.getRed(), fc.getGreen(), fc.getBlue()}};
+            links.add(new GlobeView.Link(f.subLat(), f.subLon(), 0, f.subLat(), f.subLon(), f.altKm(), alpha(fc, 0.8), true));       // drop line to the ground
+            if (f.elDeg() > 0) links.add(new GlobeView.Link(sv.obsLat(), sv.obsLon(), 0, f.subLat(), f.subLon(), f.altKm(), alpha(Color.WHITE, 0.85), false));   // the link to you
+        }
+        globe.show(markers, polys, links, rings);
+        return globe;
     }
 
     // ---- polar sky plot (all sats above horizon) --------------------------
