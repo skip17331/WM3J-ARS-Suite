@@ -11,10 +11,10 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * What is coming up: contests, DXpeditions, hamfests. Each kind is one iCalendar feed:
+ * What is coming up: contests and DXpeditions. Each kind is one iCalendar feed:
  * <ul>
  *   <li><b>DXpeditions</b> - NG3K's Announced DX Operations list as an iCal feed (on by default).</li>
- *   <li><b>Contests</b> and <b>hamfests</b> - an iCal link the operator supplies (Setup on the Info page). The WA7BNM Contest
+ *   <li><b>Contests</b> - an iCal link the operator supplies (Setup on the Info page). The WA7BNM Contest
  *       Calendar's terms allow its iCal feed for personal calendar use only and ask for written permission for automated
  *       access, so this app ships no built-in address for it.</li>
  * </ul>
@@ -25,7 +25,7 @@ public final class UpcomingEvents {
     private UpcomingEvents() {}
 
     public enum Kind {
-        CONTEST("Contests"), DXPEDITION("DXpeditions"), HAMFEST("Hamfests");
+        CONTEST("Contests"), DXPEDITION("DXpeditions");
         public final String label;
         Kind(String label) { this.label = label; }
     }
@@ -51,7 +51,6 @@ public final class UpcomingEvents {
             out.add(new Source(Kind.DXPEDITION, "dx", HubConfig.get("info.dx.url", DX_DEFAULT).trim().isEmpty() ? DX_DEFAULT : HubConfig.get("info.dx.url", DX_DEFAULT).trim(),
                     "NG3K Announced DX Operations", "https://www.ng3k.com/Misc/adxo.html"));
         out.add(new Source(Kind.CONTEST, "contests", HubConfig.get("info.contests.url", "").trim(), "WA7BNM Contest Calendar", "https://www.contestcalendar.com/"));
-        out.add(new Source(Kind.HAMFEST, "hamfests", HubConfig.get("info.hamfests.url", "").trim(), "Hamfest calendar", ""));
         return out;
     }
 

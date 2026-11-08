@@ -27,7 +27,7 @@ The **Info** page shows dates and headlines that come from other people's websit
 
 - DXpedition dates from the NG3K *Announced DX Operations* list (as an iCalendar feed).
 - Headlines from the news feeds listed under **Info ▸ Feeds**, and from any feeds you add yourself.
-- Contest and hamfest dates from calendar links that *you* supply.
+- Contest dates from a calendar link that *you* supply.
 
 That content belongs to its owners. The suite shows only the headline (or event title), the source's name and a link back
 to the source's own site; it does not copy articles. Follow each site's own terms when you use their content. The suite

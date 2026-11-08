@@ -40,8 +40,9 @@ import java.util.Map;
 import static com.ars.fx.shell.Shell.lbl;
 
 /**
- * Info: what is happening in the hobby. This first page is "Upcoming" - one tile each for contests, DXpeditions and
- * hamfests, soonest first, with ongoing events marked NOW - and a News tile of ham radio headlines along the bottom.
+ * Info: what is happening in the hobby. This first page is "Upcoming" - one tile each for contests and DXpeditions,
+ * soonest first, with ongoing events marked NOW, and a Links tile (plain links to calendars kept by others) - and a News
+ * tile of ham radio headlines along the bottom.
  * A shared range (calendars) and search word (all tiles) narrow what is shown. Feeds are in {@link UpcomingEvents}
  * and {@link NewsFeeds}.
  */
@@ -175,6 +176,12 @@ public final class InfoView {
             javafx.scene.layout.GridPane.setVgrow(t.card, Priority.ALWAYS);
             javafx.scene.layout.GridPane.setFillHeight(t.card, true);
         }
+        ColumnConstraints lcc = new ColumnConstraints(); lcc.setPercentWidth(100.0 / 3); lcc.setHgrow(Priority.ALWAYS); lcc.setMinWidth(260);
+        grid.getColumnConstraints().add(lcc);
+        VBox linksTile = linksTile();
+        grid.add(linksTile, col, 0);
+        javafx.scene.layout.GridPane.setVgrow(linksTile, Priority.ALWAYS);
+        javafx.scene.layout.GridPane.setFillHeight(linksTile, true);
         grid.setMinWidth(0);
         javafx.scene.layout.RowConstraints rc = new javafx.scene.layout.RowConstraints(); rc.setVgrow(Priority.ALWAYS); rc.setFillHeight(true);
         grid.getRowConstraints().add(rc);
@@ -229,9 +236,33 @@ public final class InfoView {
         return frame;
     }
 
+    /** Calendars other people keep: plain links that open in the browser. Nothing is fetched. */
+    private static VBox linksTile() {
+        Region dot = new Region(); dot.setMinSize(10, 10); dot.setMaxSize(10, 10); dot.setStyle("-fx-background-color:-ars-sat;-fx-background-radius:5;");
+        HBox head = new HBox(9, dot, lbl("Links", "jhub-card-title")); head.getStyleClass().add("jhub-card-head");
+        VBox rows = new VBox(
+                linkRow("ARRL Special Event Stations", "Special event stations on the air", "https://www.arrl.org/special-event-stations"),
+                linkRow("ARRL Hamfest & Convention Calendar", "Hamfests and conventions near you", "https://www.arrl.org/hamfests-and-conventions-calendar"),
+                linkRow("WA7BNM Contest Calendar", "Contest dates, rules and log deadlines", "https://www.contestcalendar.com/"));
+        rows.setPadding(new Insets(4, 6, 8, 6));
+        VBox card = new VBox(head, rows); card.getStyleClass().add("jhub-card"); card.setMinWidth(0);
+        return card;
+    }
+
+    private static Node linkRow(String title, String sub, String url) {
+        Label name = lbl(title, "jhub-card-title"); name.setTextOverrun(OverrunStyle.ELLIPSIS); name.setMaxWidth(Double.MAX_VALUE);
+        Label meta = lbl(sub + "  \u00b7  " + java.net.URI.create(url).getHost().replaceFirst("^www\\.", ""), "jl-emeta");
+        VBox text = new VBox(1, name, meta); text.setMinWidth(0);
+        HBox r = new HBox(8, text); r.setPadding(new Insets(9, 10, 9, 10));
+        r.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(r, url + "\n(click to open in your browser)");
+        r.setOnMouseClicked(e -> open(url));
+        return r;
+    }
+
     /** Header (colour dot, name, count, source credit) over a scrolling list. */
     private static void build(Tile t) {
-        String hue = switch (t.kind) { case CONTEST -> "-ars-log"; case DXPEDITION -> "-ars-map"; case HAMFEST -> "-ars-sat"; };
+        String hue = switch (t.kind) { case CONTEST -> "-ars-log"; case DXPEDITION -> "-ars-map"; };
         Region dot = new Region(); dot.setMinSize(10, 10); dot.setMaxSize(10, 10); dot.setStyle("-fx-background-color:" + hue + ";-fx-background-radius:5;");
         Label name = lbl(t.kind.label, "jhub-card-title");
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
@@ -302,7 +333,7 @@ public final class InfoView {
         if (loading) msg = "Loading…";
         else if (l == null) msg = "Turned off under Sources…";
         else if (!l.source().configured())
-            msg = kind == Kind.CONTEST ? "No contest calendar yet. Add your own .ics link under Sources…" : "No hamfest calendar yet. Add a .ics link under Sources…";
+            msg = "No contest calendar yet. Add your own .ics link under Sources…";
         else if (l != null && l.error() != null && l.events().isEmpty()) msg = l.error();
         else msg = "Nothing in this range.";
         Label m = lbl(msg, "jl-emeta"); m.setWrapText(true); m.setPadding(new Insets(14, 10, 14, 10));
@@ -389,7 +420,6 @@ public final class InfoView {
         dxOn.setSelected(HubConfig.getBool("info.dx.enabled", true));
         TextField dx = new TextField(HubConfig.get("info.dx.url", "")); dx.setPromptText("default: " + UpcomingEvents.DX_DEFAULT);
         TextField contests = new TextField(HubConfig.get("info.contests.url", "")); contests.setPromptText("https://… your contest calendar (.ics link)");
-        TextField fests = new TextField(HubConfig.get("info.hamfests.url", "")); fests.setPromptText("https://… a hamfest calendar (.ics link)");
         Map<NewsFeeds.Feed, CheckBox> newsBoxes = new java.util.LinkedHashMap<>();
         java.util.Set<String> onNow = NewsFeeds.enabledIds();
         VBox newsBox = new VBox(4);
@@ -401,7 +431,7 @@ public final class InfoView {
         }
         TextArea custom = new TextArea(HubConfig.get("info.news.custom", "")); custom.setPrefRowCount(3);
         custom.setPromptText("https://example.org/feed   (one RSS or Atom address per line)");
-        Label note = lbl("Contests and hamfests come from an iCalendar (.ics) link you provide. The WA7BNM Contest Calendar permits its iCal feed for "
+        Label note = lbl("Contests come from an iCalendar (.ics) link you provide. The WA7BNM Contest Calendar permits its iCal feed for "
                 + "personal calendar use; paste your own link from contestcalendar.com. Feeds are fetched at most every six hours and kept on disk.", "jl-emeta");
         note.setWrapText(true); note.setMaxWidth(520);
         Label msg = lbl("", "jl-emeta"); msg.setStyle("-fx-text-fill:-ars-err;");
@@ -412,7 +442,7 @@ public final class InfoView {
         Label newsNote2 = lbl("News shows only the headline, the source and a link to the source site. Feeds are fetched at most every six hours.", "jl-emeta");
         newsNote2.setWrapText(true); newsNote2.setMaxWidth(520);
         VBox box = new VBox(8, lbl("Sources", "jhub-card-title"), dxOn, lbl("DXPEDITION CALENDAR (leave blank for the default)", "jl-flabel"), dx,
-                lbl("CONTEST CALENDAR", "jl-flabel"), contests, lbl("HAMFEST CALENDAR", "jl-flabel"), fests, note,
+                lbl("CONTEST CALENDAR", "jl-flabel"), contests, note,
                 lbl("NEWS FEEDS", "jhub-card-title"), newsBox, lbl("YOUR OWN NEWS FEEDS", "jl-flabel"), custom, newsNote2, btns);
         box.setPadding(new Insets(16)); box.setPrefWidth(560);
         ScrollPane boxScroll = new ScrollPane(box); boxScroll.setFitToWidth(true); boxScroll.setPrefViewportHeight(640);
@@ -423,12 +453,11 @@ public final class InfoView {
         if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
         cancel.setOnMouseClicked(e -> st.close());
         save.setOnMouseClicked(e -> {
-            for (TextField f : new TextField[]{dx, contests, fests})
+            for (TextField f : new TextField[]{dx, contests})
                 if (!f.getText().isBlank() && !UpcomingEvents.validUrl(f.getText())) { msg.setText("Addresses must start with https://"); return; }
             HubConfig.setBool("info.dx.enabled", dxOn.isSelected());
             HubConfig.set("info.dx.url", dx.getText().trim());
             HubConfig.set("info.contests.url", contests.getText().trim());
-            HubConfig.set("info.hamfests.url", fests.getText().trim());
             java.util.Set<String> on = new java.util.LinkedHashSet<>();
             for (Map.Entry<NewsFeeds.Feed, CheckBox> en : newsBoxes.entrySet()) if (en.getValue().isSelected()) on.add(en.getKey().id());
             NewsFeeds.setEnabled(on);
