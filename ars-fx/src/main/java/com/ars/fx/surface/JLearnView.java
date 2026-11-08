@@ -48,8 +48,13 @@ public final class JLearnView {
         boolean[] selectedWs = {false};             // true while the Antenna Workshop is showing
         Runnable[] openWsRef = new Runnable[1];     // (calc id is carried in wsCalc)
         String[] wsCalc = {null};
+        List<Section> flat = new java.util.ArrayList<>();
+        for (Chapter c : chapters) flat.addAll(c.sections());
+        @SuppressWarnings("unchecked") Consumer<String>[] gotoRef = new Consumer[1];
         Consumer<Section> open = s -> { selectedMorse[0] = false; selectedWs[0] = false;
-            window.getChildren().setAll(contentWindow(s, () -> { wsCalc[0] = AntennaCalcs.forSection(s.id()).id(); openWsRef[0].run(); })); };
+            int at = flat.indexOf(s);
+            window.getChildren().setAll(contentWindow(s, at > 0 ? flat.get(at - 1) : null, at >= 0 && at < flat.size() - 1 ? flat.get(at + 1) : null,
+                    t -> gotoRef[0].accept(t.id()), () -> { wsCalc[0] = AntennaCalcs.forSection(s.id()).id(); openWsRef[0].run(); })); };
         window.getChildren().setAll(welcome());
         String[] expanded = {chapters.isEmpty() ? "" : chapters.get(0).num()};   // open chapter (accordion)
         String[] selected = {null};                                              // current section id
@@ -67,6 +72,7 @@ public final class JLearnView {
             for (Chapter c : chapters) for (Section sec : c.sections()) if (sec.id().equals(id)) {
                 expanded[0] = c.num(); selected[0] = sec.id(); open.accept(sec); rebuildRef[0].run(); return; }
         };
+        gotoRef[0] = gotoSection;
         openWsRef[0] = () -> {
             selectedMorse[0] = false; selectedWs[0] = true; selected[0] = null;
             window.getChildren().setAll(AntennaWorkshopView.build(gotoSection, wsCalc[0]));
@@ -154,8 +160,20 @@ public final class JLearnView {
         sp.setStyle("-fx-background-color:-ars-bg;-fx-background:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
         return sp;
     }
-    private static Region contentWindow(Section s, Runnable openCalc) {
+    /** Previous / next section buttons, so reading on never needs a trip back to the chapter list. */
+    private static Region pager(Section prev, Section next, Consumer<Section> go) {
+        javafx.scene.control.Button b = new javafx.scene.control.Button("◀ Back"), f = new javafx.scene.control.Button("Next ▶");
+        b.getStyleClass().add("ars-btn"); f.getStyleClass().add("ars-btn");
+        b.setDisable(prev == null); f.setDisable(next == null);
+        if (prev != null) { b.setOnAction(e -> go.accept(prev)); com.ars.fx.shell.Tips.tip(b, prev.section() + " · " + prev.title()); }
+        if (next != null) { f.setOnAction(e -> go.accept(next)); com.ars.fx.shell.Tips.tip(f, next.section() + " · " + next.title()); }
+        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
+        HBox h = new HBox(8, b, gap, f); h.setAlignment(Pos.CENTER); h.setPadding(new Insets(4, 0, 4, 0));
+        return h;
+    }
+    private static Region contentWindow(Section s, Section prev, Section next, Consumer<Section> go, Runnable openCalc) {
         VBox v = new VBox(9); v.setPadding(new Insets(28, 30, 36, 30)); v.setMaxWidth(900); v.setStyle("-fx-background-color:-ars-bg;");
+        v.getChildren().add(pager(prev, next, go));
         v.getChildren().add(lbl(s.chapter() + " · SECTION " + s.section() + (s.advanced() ? "   ·   ADVANCED ⚙" : ""), "j2-content-eyebrow"));
         v.getChildren().add(wrap(lbl(s.title(), "j2-h1")));
         if (AntennaCalcs.forSection(s.id()) != null) {
@@ -170,6 +188,7 @@ public final class JLearnView {
         } else {
             for (Block b : parse(md)) v.getChildren().add(renderBlock(b));
         }
+        v.getChildren().add(pager(prev, next, go));
         ScrollPane sp = new ScrollPane(v); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setStyle("-fx-background-color:-ars-bg;-fx-background:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
         return sp;
