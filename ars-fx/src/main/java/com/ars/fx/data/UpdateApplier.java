@@ -42,6 +42,13 @@ public final class UpdateApplier {
         } catch (Exception e) { return null; }
     }
 
+    /** True when this install is a git checkout (the jar is in {@code <repo>/ars-fx/target/}): the one kind that can pull unreleased work. */
+    public static boolean isGitCheckout() {
+        Path jar = installedJar();
+        Path repo = jar == null || jar.getParent() == null || jar.getParent().getParent() == null ? null : jar.getParent().getParent().getParent();
+        return repo != null && Files.exists(repo.resolve(".git"));
+    }
+
     /** The installed launcher ({@code ars-fx.bat} / {@code ars-fx.sh}) one folder above the jar's {@code target/} folder, or null. */
     static Path launcherFor(Path jar) {
         if (jar == null || jar.getParent() == null || jar.getParent().getParent() == null) return null;

@@ -83,7 +83,8 @@ public final class UpdateBanner {
 
     private static VBox build(Release r) {
         Label title = lbl("Update available — " + r.tag(), "ub-title");
-        Label sub = lbl("You have v" + AppVersion.current() + ".", "ub-sub");
+        String dated = r.publishedDate().isEmpty() ? "" : " This release is dated " + r.publishedDate() + ".";
+        Label sub = lbl("You have v" + AppVersion.current() + "." + dated, "ub-sub");
         Label notes = lbl("What's new", "ub-link"); notes.setStyle("-fx-cursor:hand;");
         notes.setOnMouseClicked(e -> { if (hostServices != null && !r.url().isEmpty()) hostServices.showDocument(r.url()); });
         Label skip = lbl("Skip this version", "ub-link"); skip.setStyle("-fx-cursor:hand;");
@@ -99,6 +100,15 @@ public final class UpdateBanner {
             sub.setText(UpdateApplier.manualReason()); sub.setWrapText(true); sub.setMaxWidth(340);
         }
         VBox c = new VBox(4, title, sub, actions);
+        if (UpdateApplier.isGitCheckout()) {        // a checkout can pull what no release has yet: say how much that is
+            Label more = lbl("", "ub-sub"); more.setWrapText(true); more.setMaxWidth(340); more.setManaged(false); more.setVisible(false);
+            c.getChildren().add(2, more);
+            Thread t = new Thread(() -> {
+                String note = UpdateChecker.unreleasedNote(UpdateChecker.unreleasedChanges(r.tag()));
+                if (!note.isEmpty()) Platform.runLater(() -> { more.setText(note); more.setManaged(true); more.setVisible(true); });
+            }, "update-unreleased");
+            t.setDaemon(true); t.start();
+        }
         c.getStyleClass().add("ub-card");
         c.setMaxSize(VBox.USE_PREF_SIZE, VBox.USE_PREF_SIZE);
         StackPane.setAlignment(c, Pos.BOTTOM_RIGHT);
