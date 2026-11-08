@@ -1,8 +1,0 @@
-# Pages the finder starts from, one address per line. Text after # is a note.
-# A seed is a human decision: only list a site whose owner allows this (its terms, or an email yes). Note the date and
-# who agreed. Pages the crawler reaches by following links are gated by robots.txt, noindex and nofollow only.
-#
-# Awaiting permission (do not enable until the owner agrees):
-#   https://ke2yk.com/u-s-hamfest-calendar-2026/                                   # KE2YK, emailed? no reply yet
-#   https://w4dfg.org/2026/10/04/nationwide-hamfest-calendar-2026-united-states/    # W4DFG / DFARG, emailed? no reply yet
-# Not allowed: arrl.org (terms bar robots and republishing), contestcalendar.com (terms bar copying), forums.qrz.com (user posts).

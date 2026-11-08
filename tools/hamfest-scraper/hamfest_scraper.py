@@ -7,8 +7,7 @@ or run `--serve` and give the app http://127.0.0.1:8765/hamfests.ics.
 
 Standard library only. Polite by design: ARRL's robots.txt asks for a 5 second crawl delay, which
 this honours; results are cached for 24 hours so reruns do not hit the site; the User-Agent names
-the tool. ARRL's Terms of Use bar robots and republishing without written permission: do not run this against
-ARRL or publish its output until they agree (see README).
+the tool. Check ARRL's terms of use before publishing the output anywhere.
 
 Examples:
   hamfest_scraper.py                              # table of everything upcoming
