@@ -615,7 +615,10 @@ public final class JHubDashboard {
                 String msg;
                 try {
                     var r = com.ars.fx.data.UpdateChecker.check(true);
-                    msg = r == null ? "You're up to date (v" + com.ars.fx.AppVersion.current() + ")." : r.tag() + " is available.";
+                    msg = r == null ? "You're up to date (v" + com.ars.fx.AppVersion.current() + ")." : r.tag() + " is available"
+                            + (r.publishedDate().isEmpty() ? "." : " (released " + r.publishedDate() + ").");
+                    if (com.ars.fx.data.UpdateApplier.isGitCheckout())      // newer work that is merged but not released
+                        msg += " " + com.ars.fx.data.UpdateChecker.unreleasedNote(com.ars.fx.data.UpdateChecker.unreleasedChanges(r == null ? "v" + com.ars.fx.AppVersion.current() : r.tag()));
                 } catch (Exception ex) { msg = "Couldn't reach GitHub: " + ex.getMessage(); }
                 String m = msg;
                 javafx.application.Platform.runLater(() -> checkMsg.setText(m));

@@ -30,6 +30,20 @@ class UpdateCheckerTest {
     }
 
     @Test
+    void releaseDateAndUnreleasedChanges() {
+        Release r = UpdateChecker.parse("{\"tag_name\":\"v1.12.6\",\"published_at\":\"2026-11-08T14:14:51Z\"}");
+        assertFalse(r.publishedDate().isEmpty()); assertTrue(r.publishedDate().endsWith("2026"));
+        assertEquals("", UpdateChecker.parse("{\"tag_name\":\"v1.0.0\"}").publishedDate(), "no date: say nothing");
+        assertEquals(7, UpdateChecker.parseAheadBy("{\"ahead_by\":7,\"commits\":[]}"));
+        assertEquals(-1, UpdateChecker.parseAheadBy("nope"));
+        String commits = "{\"commits\":[{\"parents\":[{},{}]},{\"parents\":[{}]},{\"parents\":[{},{}]}]}";
+        assertEquals(2, UpdateChecker.parseMergedPullRequests(commits), "one change per merged pull request");
+        assertEquals("", UpdateChecker.unreleasedNote(0)); assertEquals("", UpdateChecker.unreleasedNote(-1));
+        assertTrue(UpdateChecker.unreleasedNote(1).startsWith("1 more change is on main"));
+        assertTrue(UpdateChecker.unreleasedNote(3).startsWith("3 more changes are on main"));
+    }
+
+    @Test
     void rejectsJsonWithoutTag() {
         assertThrows(IllegalArgumentException.class, () -> UpdateChecker.parse("{\"name\":\"x\"}"));
         assertThrows(IllegalArgumentException.class, () -> UpdateChecker.parse("not json"));

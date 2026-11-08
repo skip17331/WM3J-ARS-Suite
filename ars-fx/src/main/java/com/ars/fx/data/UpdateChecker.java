@@ -37,8 +37,15 @@ public final class UpdateChecker {
     /** {@code digest} is GitHub's "sha256:<hex>" for the file ("" if the release predates digests). */
     public record Asset(String name, String url, long size, String digest) {}
 
-    /** A published release: {@code tag} like {@code v1.12.0}, {@code url} its GitHub page, {@code notes} its markdown body. */
-    public record Release(String tag, String name, String url, String notes, List<Asset> assets) {
+    /** A published release: {@code tag} like {@code v1.12.0}, {@code url} its GitHub page, {@code notes} its markdown body,
+     *  {@code published} its publish time as GitHub gives it (ISO-8601, "" if unknown). */
+    public record Release(String tag, String name, String url, String notes, List<Asset> assets, String published) {
+        /** The publish date for display ("8 Nov 2026"), or "" if unknown. */
+        public String publishedDate() {
+            try { return java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale.ENGLISH)
+                    .format(java.time.OffsetDateTime.parse(published).atZoneSameInstant(java.time.ZoneId.systemDefault())); }
+            catch (RuntimeException e) { return ""; }
+        }
         /** The version without the leading {@code v}. */
         public String version() { return tag.startsWith("v") || tag.startsWith("V") ? tag.substring(1) : tag; }
     }
@@ -64,7 +71,7 @@ public final class UpdateChecker {
                 assets.add(new Asset(name, url, size, str(a, "digest")));
             }
         }
-        return new Release(tag, str(o, "name"), str(o, "html_url"), str(o, "body"), List.copyOf(assets));
+        return new Release(tag, str(o, "name"), str(o, "html_url"), str(o, "body"), List.copyOf(assets), str(o, "published_at"));
     }
 
     private static String str(JsonObject o, String k) {
@@ -97,6 +104,54 @@ public final class UpdateChecker {
     /** True if {@code r} should be offered: newer than this build and not a version the user chose to skip. */
     static boolean shouldOffer(Release r, String installed, String skippedTag) {
         return AppVersion.isNewer(r.tag(), installed) && !r.tag().equals(skippedTag);
+    }
+
+    // ---- changes not yet in a release ------------------------------------------------------------
+
+    public static final String COMPARE_URL = "https://api.github.com/repos/skip17331/WM3J-ARS-Suite/compare/";
+
+    /** How many commits {@code main} is ahead of the release {@code tag} in GitHub's compare JSON; -1 if the JSON has no count. */
+    static int parseAheadBy(String json) {
+        try {
+            JsonElement e = JsonParser.parseString(json).getAsJsonObject().get("ahead_by");
+            return e != null && e.isJsonPrimitive() ? e.getAsInt() : -1;
+        } catch (RuntimeException e) { return -1; }
+    }
+
+    /** Merge commits (pull requests) on main since {@code tag}: the count shown to people, since each PR is one change. -1 if unknown. */
+    static int parseMergedPullRequests(String json) {
+        try {
+            int n = 0;
+            for (JsonElement c : JsonParser.parseString(json).getAsJsonObject().getAsJsonArray("commits")) {
+                JsonElement p = c.getAsJsonObject().get("parents");
+                if (p != null && p.isJsonArray() && p.getAsJsonArray().size() > 1) n++;
+            }
+            return n;
+        } catch (RuntimeException e) { return -1; }
+    }
+
+    /**
+     * Changes merged into {@code main} after release {@code tag} that no release contains yet (an anonymous compare call), or -1 if
+     * it can't be found out. Only worth asking for an install that is a git checkout (see {@link UpdateApplier#isGitCheckout()}),
+     * which is the one kind of install that can pull them.
+     */
+    public static int unreleasedChanges(String tag) {
+        try {
+            HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
+            HttpResponse<String> r = http.send(HttpRequest.newBuilder(URI.create(COMPARE_URL + tag + "...main")).timeout(Duration.ofSeconds(15))
+                    .header("Accept", "application/vnd.github+json").header("User-Agent", "WM3J-ARS-Suite/" + AppVersion.current())
+                    .GET().build(), HttpResponse.BodyHandlers.ofString());
+            if (r.statusCode() != 200) return -1;
+            int merged = parseMergedPullRequests(r.body());
+            return merged > 0 ? merged : parseAheadBy(r.body());
+        } catch (Exception e) { return -1; }
+    }
+
+    /** The sentence for the update card and Check now, or "" when there is nothing to say (n <= 0 or unknown). */
+    public static String unreleasedNote(int n) {
+        if (n <= 0) return "";
+        return (n == 1 ? "1 more change is" : n + " more changes are") + " on main but not in a release yet. "
+                + "Run git pull and rebuild (install.sh / install.bat) to get " + (n == 1 ? "it." : "them.");
     }
 
     // ---- network ----------------------------------------------------------------------------------
