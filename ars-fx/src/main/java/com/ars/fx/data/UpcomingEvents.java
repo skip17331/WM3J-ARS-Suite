@@ -14,11 +14,16 @@ import java.util.function.Function;
  * What is coming up: contests, DXpeditions, hamfests. Each kind is one iCalendar feed:
  * <ul>
  *   <li><b>DXpeditions</b> - NG3K's Announced DX Operations list as an iCal feed (on by default).</li>
- *   <li><b>Contests</b> and <b>hamfests</b> - an iCal link the operator supplies (Setup on the Info page). The WA7BNM Contest
- *       Calendar's terms allow its iCal feed for personal calendar use only and ask for written permission for automated
- *       access, so this app ships no built-in address for it.</li>
+ *   <li><b>Contests</b> and <b>hamfests</b> - an iCal link the operator supplies (Setup on the Info page).</li>
+ *   <li><b>WA7BNM Contest Calendar</b> - a built-in contest source that is <b>OFF</b> ({@code info.wa7bnm.enabled}) and has no
+ *       address ({@link #WA7BNM_URL}) until its owner, Bruce Horn, WA7BNM, gives written permission: his terms bar automated
+ *       access without it. If he says yes: set {@link #WA7BNM_URL} to the feed he names, and make the switch default to true
+ *       if wanted. If he says no: delete {@code WA7BNM_*}, {@code wa7bnmOn()}, the {@code wa7bnm} branch of
+ *       {@link #sources()} and the checkbox in {@code InfoView.editSources}. His terms ask that it is labelled
+ *       "WA7BNM Contest Calendar" with a link to the site (the {@link Source} label and credit link do that). A contest
+ *       link the operator pastes themselves always wins over it.</li>
  * </ul>
- * Feeds are fetched politely: cached on disk for six hours, a manual refresh never goes to the network more than once
+ * Feeds are fetched politely: cached on disk for six hours (twelve for WA7BNM), a manual refresh never goes to the network more than once
  * every fifteen minutes, one request per feed, and a failed fetch falls back to the cache.
  */
 public final class UpcomingEvents {
@@ -40,6 +45,16 @@ public final class UpcomingEvents {
     public record Loaded(Source source, List<Event> events, Instant fetched, boolean fromCache, String error) {}
 
     public static final String DX_DEFAULT = "https://www.danplanet.com/dxcal.ics";
+
+    /** WA7BNM Contest Calendar feed address: left blank until Bruce Horn names it in his permission (see the class note). */
+    public static final String WA7BNM_URL = "";
+    public static final String WA7BNM_NAME = "WA7BNM Contest Calendar";
+    public static final String WA7BNM_SITE = "https://www.contestcalendar.com/";
+    /** One fetch every twelve hours, as agreed for this source. */
+    public static final java.time.Duration WA7BNM_KEEP = java.time.Duration.ofHours(12);
+
+    /** The built-in WA7BNM source is wanted (off by default) and has an address to fetch. */
+    public static boolean wa7bnmOn() { return HubConfig.getBool("info.wa7bnm.enabled", false) && !WA7BNM_URL.isBlank(); }
     // ---- test hooks (the fetching and caching live in FeedFetcher) ------------------------------------
     static void setDirForTest(Path p) { FeedFetcher.setDirForTest(p); }
     static void setHttpForTest(Function<String, String> f) { FeedFetcher.setHttpForTest(f); }
@@ -50,7 +65,9 @@ public final class UpcomingEvents {
         if (HubConfig.getBool("info.dx.enabled", true))
             out.add(new Source(Kind.DXPEDITION, "dx", HubConfig.get("info.dx.url", DX_DEFAULT).trim().isEmpty() ? DX_DEFAULT : HubConfig.get("info.dx.url", DX_DEFAULT).trim(),
                     "NG3K Announced DX Operations", "https://www.ng3k.com/Misc/adxo.html"));
-        out.add(new Source(Kind.CONTEST, "contests", HubConfig.get("info.contests.url", "").trim(), "WA7BNM Contest Calendar", "https://www.contestcalendar.com/"));
+        String own = HubConfig.get("info.contests.url", "").trim();
+        if (own.isEmpty() && wa7bnmOn()) out.add(new Source(Kind.CONTEST, "wa7bnm", WA7BNM_URL, WA7BNM_NAME, WA7BNM_SITE));
+        else out.add(new Source(Kind.CONTEST, "contests", own, WA7BNM_NAME, WA7BNM_SITE));
         out.add(new Source(Kind.HAMFEST, "hamfests", HubConfig.get("info.hamfests.url", "").trim(), "Hamfest calendar", ""));
         return out;
     }
@@ -61,7 +78,7 @@ public final class UpcomingEvents {
     /** Events for one source: from the cache while it is fresh, else fetched. {@code force} is a manual refresh. */
     public static Loaded load(Source src, boolean force, Instant now) {
         if (!src.configured()) return new Loaded(src, List.of(), null, false, null);
-        FeedFetcher.Fetched f = FeedFetcher.get(src.key(), src.url(), force, now);
+        FeedFetcher.Fetched f = FeedFetcher.get(src.key(), src.url(), force, now, src.key().equals("wa7bnm") ? WA7BNM_KEEP : FeedFetcher.FRESH);
         if (f.body() == null) return new Loaded(src, List.of(), null, false, f.error());
         return new Loaded(src, tag(src, f.body()), f.fetched(), f.fromCache(), f.error());
     }
