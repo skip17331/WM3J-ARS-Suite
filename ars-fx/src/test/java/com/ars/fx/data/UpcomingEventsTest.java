@@ -161,7 +161,7 @@ class UpcomingEventsTest {
         assertFalse(UpcomingEvents.validUrl("ftp://x/y"));
         Loaded l = UpcomingEvents.load(new Source(Kind.CONTEST, "contests", "file:///etc/passwd", "C", ""), false, Instant.now());
         assertNotNull(l.error());
-        Loaded blank = UpcomingEvents.load(new Source(Kind.HAMFEST, "hamfests", "", "H", ""), false, Instant.now());
+        Loaded blank = UpcomingEvents.load(new Source(Kind.CONTEST, "contests", "", "C", ""), false, Instant.now());
         assertNull(blank.error(), "an unset source is simply empty");
     }
 }

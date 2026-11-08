@@ -30,7 +30,7 @@ remembers that; **Unpin** lets it collapse again.
 
 | Module | What it is for |
 |--------|----------------|
-| **Info** | Upcoming contests, DXpeditions and hamfests, and ham-radio news headlines |
+| **Info** | Upcoming contests and DXpeditions, useful links, and ham-radio news headlines |
 | **J-Hub** | The dashboard, where normal logging happens (the QSO form, the DX cluster and the **Log tools** column), and **Setup**, the one screen for every setting |
 | **J-Log** | Contest mode: a page of its own for logging a contest. Normal logging is on the J-Hub dashboard; J-Log no longer has a dock entry |
 | **J-Map** | DX map with grayline, propagation, spots and beam headings |
@@ -317,10 +317,11 @@ them).
 ### 4.9 Info
 
 The **Info** page (first in the dock) is a look-ahead and a news board, in four tiles: **Contests**, **DXpeditions**,
-**Hamfests** and **News**.
+**Links** and **News**. **Links** opens the ARRL Special Event Stations list, the ARRL Hamfest & Convention Calendar and
+the WA7BNM Contest Calendar in your browser (nothing is downloaded or copied from them).
 
 - The calendar tiles list what is coming up in the range you choose, with a search box; click an entry to open its page.
-  DXpeditions come from NG3K's announced operations by default. **Sources…** sets your own contest or hamfest calendar (an
+  DXpeditions come from NG3K's announced operations by default. **Sources…** sets your own contest calendar (an
   `.ics` link) and switches the DXpedition list off or on; the suite ships no built-in contest feed, so the Contests tile is
   empty until you add a link.
 - **News** shows headlines from RSS / Atom feeds, filtered by source. **Feeds…** picks which feeds are on and lets you add
