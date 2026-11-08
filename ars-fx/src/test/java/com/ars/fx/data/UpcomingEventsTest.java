@@ -123,26 +123,6 @@ class UpcomingEventsTest {
     }
 
     @Test
-    void wa7bnmIsFetchedEveryTwelveHours(@TempDir Path tmp) {
-        UpcomingEvents.setDirForTest(tmp);
-        AtomicInteger hits = new AtomicInteger();
-        UpcomingEvents.setHttpForTest(u -> { hits.incrementAndGet(); return CONTESTS; });
-        Source wa = new Source(Kind.CONTEST, "wa7bnm", "https://x/wa7bnm.ics", UpcomingEvents.WA7BNM_NAME, UpcomingEvents.WA7BNM_SITE);
-        Instant t0 = Instant.parse("2026-11-05T00:00:00Z");
-        UpcomingEvents.load(wa, false, t0);
-        UpcomingEvents.load(wa, false, t0.plus(Duration.ofHours(11)));
-        assertEquals(1, hits.get(), "still fresh after 11 hours (the other feeds go stale after 6)");
-        UpcomingEvents.load(wa, false, t0.plus(Duration.ofHours(13)));
-        assertEquals(2, hits.get(), "refetched after 12 hours");
-    }
-
-    @Test
-    void wa7bnmIsOffUntilPermissionAndAnAddressExist() {
-        assertFalse(UpcomingEvents.wa7bnmOn(), "off by default");
-        for (Source s : UpcomingEvents.sources()) assertNotEquals("wa7bnm", s.key());
-    }
-
-    @Test
     void failedFetchFallsBackToTheSavedCopy(@TempDir Path tmp) {
         UpcomingEvents.setDirForTest(tmp);
         Source dx = new Source(Kind.DXPEDITION, "dx", "https://x/dx.ics", "DX", "");

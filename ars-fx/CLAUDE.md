@@ -69,7 +69,7 @@ J-Vault, J-Learn. The Morse Trainer and Antenna Workshop also have dock entries 
 | Path | Contents |
 |---|---|
 | `~/.j-hub/config.json` | All suite settings (`HubConfig`, flat key/value): station, rig, rotor, amp, antenna, cluster, transmit |
-| `~/.j-hub/info/` | Cached feeds for the Info tab (`<key>.feed` + `<key>.stamp`; six-hour cache, twelve for the WA7BNM source, `FeedFetcher`) |
+| `~/.j-hub/info/` | Cached feeds for the Info tab (`<key>.feed` + `<key>.stamp`; six-hour cache, `FeedFetcher`) |
 | `~/.j-hub/updates/` | Update-check log and downloaded update files plus helper script (`UpdateChecker`/`UpdateApplier`) |
 | `~/.j-log/` | `j-log.db`, `contest.db`, `config.db`, `translations.db`, `callhistory.db` (`CallHistory`: each call's usual state / section / zone / grid / name), `backups/`, `contest-logs/`, `exports/`; also `macros.json` (`MacroConfig`), `upload.json` (`UploadConfig`: upload logins), `lookup.json` (`LookupConfig`) and `awards/*.json` (`CustomAwards`: the operator's own award sheets, one file each) |
 | `~/.j-vault/` | `inventory.db` (J-Vault), `backups/` |

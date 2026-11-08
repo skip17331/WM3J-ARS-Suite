@@ -17,7 +17,7 @@ import java.util.function.Function;
 /**
  * Polite fetching of web feeds for the Info page (calendars and news): one request per feed, kept on disk for six hours,
  * a manual refresh never goes to the network more than once every fifteen minutes, and a failed fetch falls back to the
- * saved copy (a source may ask for a longer keep time, e.g. WA7BNM's twelve hours). Only http(s) addresses are fetched, at most 5 MB, with a User-Agent that names the app.
+ * saved copy. Only http(s) addresses are fetched, at most 5 MB, with a User-Agent that names the app.
  */
 public final class FeedFetcher {
     private FeedFetcher() {}
