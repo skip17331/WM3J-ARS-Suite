@@ -390,9 +390,6 @@ public final class InfoView {
         TextField dx = new TextField(HubConfig.get("info.dx.url", "")); dx.setPromptText("default: " + UpcomingEvents.DX_DEFAULT);
         TextField contests = new TextField(HubConfig.get("info.contests.url", "")); contests.setPromptText("https://… your contest calendar (.ics link)");
         TextField fests = new TextField(HubConfig.get("info.hamfests.url", "")); fests.setPromptText("https://… a hamfest calendar (.ics link)");
-        CheckBox wa7 = new CheckBox("Use the built-in " + UpcomingEvents.WA7BNM_NAME + " (fetched every 12 hours)");
-        wa7.setSelected(HubConfig.getBool("info.wa7bnm.enabled", false));
-        wa7.setDisable(UpcomingEvents.WA7BNM_URL.isBlank());   // off until WA7BNM gives permission and the address is set
         Map<NewsFeeds.Feed, CheckBox> newsBoxes = new java.util.LinkedHashMap<>();
         java.util.Set<String> onNow = NewsFeeds.enabledIds();
         VBox newsBox = new VBox(4);
@@ -405,9 +402,7 @@ public final class InfoView {
         TextArea custom = new TextArea(HubConfig.get("info.news.custom", "")); custom.setPrefRowCount(3);
         custom.setPromptText("https://example.org/feed   (one RSS or Atom address per line)");
         Label note = lbl("Contests and hamfests come from an iCalendar (.ics) link you provide. The WA7BNM Contest Calendar permits its iCal feed for "
-                + "personal calendar use; paste your own link from contestcalendar.com (it is used instead of the built-in one). "
-                + (UpcomingEvents.WA7BNM_URL.isBlank() ? "A built-in WA7BNM feed is not available yet: it needs the owner's permission. " : "")
-                + "Feeds are fetched at most every six hours (every 12 for the built-in WA7BNM feed) and kept on disk.", "jl-emeta");
+                + "personal calendar use; paste your own link from contestcalendar.com. Feeds are fetched at most every six hours and kept on disk.", "jl-emeta");
         note.setWrapText(true); note.setMaxWidth(520);
         Label msg = lbl("", "jl-emeta"); msg.setStyle("-fx-text-fill:-ars-err;");
         Label cancel = lbl("Cancel", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;");
@@ -417,7 +412,7 @@ public final class InfoView {
         Label newsNote2 = lbl("News shows only the headline, the source and a link to the source site. Feeds are fetched at most every six hours.", "jl-emeta");
         newsNote2.setWrapText(true); newsNote2.setMaxWidth(520);
         VBox box = new VBox(8, lbl("Sources", "jhub-card-title"), dxOn, lbl("DXPEDITION CALENDAR (leave blank for the default)", "jl-flabel"), dx,
-                lbl("CONTEST CALENDAR", "jl-flabel"), contests, wa7, lbl("HAMFEST CALENDAR", "jl-flabel"), fests, note,
+                lbl("CONTEST CALENDAR", "jl-flabel"), contests, lbl("HAMFEST CALENDAR", "jl-flabel"), fests, note,
                 lbl("NEWS FEEDS", "jhub-card-title"), newsBox, lbl("YOUR OWN NEWS FEEDS", "jl-flabel"), custom, newsNote2, btns);
         box.setPadding(new Insets(16)); box.setPrefWidth(560);
         ScrollPane boxScroll = new ScrollPane(box); boxScroll.setFitToWidth(true); boxScroll.setPrefViewportHeight(640);
@@ -431,7 +426,6 @@ public final class InfoView {
             for (TextField f : new TextField[]{dx, contests, fests})
                 if (!f.getText().isBlank() && !UpcomingEvents.validUrl(f.getText())) { msg.setText("Addresses must start with https://"); return; }
             HubConfig.setBool("info.dx.enabled", dxOn.isSelected());
-            if (!wa7.isDisabled()) HubConfig.setBool("info.wa7bnm.enabled", wa7.isSelected());
             HubConfig.set("info.dx.url", dx.getText().trim());
             HubConfig.set("info.contests.url", contests.getText().trim());
             HubConfig.set("info.hamfests.url", fests.getText().trim());
