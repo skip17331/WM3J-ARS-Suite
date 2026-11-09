@@ -95,6 +95,7 @@ public final class HubServer {
         HeardByClient.getInstance().start();
         RigClient.getInstance().start();
         RotorClient.getInstance().start();
+        RotorClient.satellite().start();                 // idles until the satellite rotor is switched on
         RemoteServer.onClientCount = HubServer::onClientCount;   // wire refcount before the server accepts clients
         RemoteServer.onReconfig    = HubServer::reconcile;
         RemoteServer.startHub();
@@ -227,6 +228,7 @@ public final class HubServer {
         try { DaemonManager.applyAll(); } catch (Exception e) { System.err.println("[hub] daemons: " + e.getMessage()); }
         RigClient.getInstance().reconnect();
         RotorClient.getInstance().reconnect();
+        RotorClient.satellite().reconnect();
         com.ars.fx.data.AmpClient.getInstance().reconnect();
         ClusterClient.getInstance().applyConfig();
         HeardByClient.getInstance().setCall(HubConfig.call());

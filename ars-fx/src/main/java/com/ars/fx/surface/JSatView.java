@@ -41,7 +41,7 @@ public final class JSatView {
     /** Each rebuild (~2 s): point the rotor and tune the rig at the focus satellite when enabled. */
     private static void autoTrack(SatInfo f) {
         if (f == null) return;
-        if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().trackTo(f.azDeg());
+        if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.forSatellites().trackTo(f.azDeg(), f.elDeg());
         if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz());
     }
 
@@ -633,7 +633,7 @@ public final class JSatView {
                     radioBox("DOWNLINK", SatService.mhz(f.downlinkHz()) + "  " + SatService.shiftKHz(f.downlinkCorrHz(), f.downlinkHz()), SatService.mhz4(f.downlinkCorrHz())),
                     radioBox("UPLINK", SatService.mhz(f.uplinkHz()) + "  " + SatService.shiftKHz(f.uplinkCorrHz(), f.uplinkHz()), SatService.mhz4(f.uplinkCorrHz())),
                     Shell.kv("Mode", f.mode(), false),
-                    satToggleRow("Track with rotor", trackRotor(), () -> { com.ars.fx.data.HubConfig.setBool("rotor.autoTrack", !trackRotor()); if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().trackTo(f.azDeg()); rebuild(); }),
+                    satToggleRow("Track with rotor", trackRotor(), () -> { com.ars.fx.data.HubConfig.setBool("rotor.autoTrack", !trackRotor()); if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.forSatellites().trackTo(f.azDeg(), f.elDeg()); rebuild(); }),
                     satToggleRow("Doppler-tune rig", dopplerTune, () -> { dopplerTune = !dopplerTune; if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz()); rebuild(); }));
         } else {
             doppler = new VBox(9, lbl("No satellite selected", "js-radio-sub"));
@@ -655,6 +655,7 @@ public final class JSatView {
                 (snap.sats().get(0).inPass() ? "now" : SatService.compactLower(snap.sats().get(0).secsToAos())) : "—";
         List<Node> rail = new ArrayList<>();
         rail.addAll(Shell.leadDrawers());   // Station ID, Rig control, Rotor control
+        if (com.ars.fx.data.RotorClient.satellite().isEnabled()) rail.add(Shell.satelliteRotorDrawer());   // the az/el rotor that tracks the satellite lives here, not on the other screens
         rail.add(drawer("Radio · Doppler", "bridge", "bridge", dopSummary, true, doppler));
         rail.add(drawer("Next passes", "sat", "sat", passSummary, true, np));
         rail.addAll(Shell.instruments(0));   // propagation, solar, band conditions, weather

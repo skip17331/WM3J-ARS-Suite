@@ -773,33 +773,58 @@ public final class JHubDashboard {
 
     private static Region rotorCenter() {
         com.ars.fx.data.RotorClient.getInstance().start();
-        HBox cells = liveStrip(new String[]{"STATUS", "AZIMUTH", "ELEVATION", "ROTCTLD"}, () -> {
-            com.ars.fx.data.RotorClient ro = com.ars.fx.data.RotorClient.getInstance();
+        com.ars.fx.data.RotorClient.satellite().start();
+        VBox conn = rotorConnection("rotor.", false);
+        VBox beh = section("BEHAVIOR",
+            cfgRow("Rotor range", "360\u00b0 turns once; 450\u00b0 has a 90\u00b0 overlap (e.g. G-1000DXA): passes carry on past 360\u00b0 instead of unwinding", cSegApply("rotor.range", new String[]{"360\u00b0","450\u00b0"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Overlap / wrap", "450\u00b0 rotors only: where it overlaps. North = travel 0 to 450\u00b0; South = -180 to +270\u00b0", cSegApply("rotor.wrap", new String[]{"North","South"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "\u00b0 az")),
+            cfgRow("Elevation rotor (az/el)", "satellite tracking also points the elevation (0-90\u00b0); leave off for an azimuth-only rotor such as an HF beam's", cToggleApply("rotor.hasElevation", false, on -> { })),
+            cfgRow("Dead-band", "satellite tracking skips moves smaller than this, on either axis (both rotors)", cUnit("rotor.deadband", "2", "\u00b0")),
+            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat; it moves the satellite rotor when one is switched on, otherwise this rotor", cToggle("rotor.autoTrack", false)));
+        VBox presets = section("BEAM PRESETS", presetRows());
+
+        // the optional second rotor, for satellites
+        Label satNote = lbl("A second rotor for satellites, such as an az/el rotator on the satellite antenna while the rotor above turns an HF beam. J-Sat's tracking drives it; everything else (spot clicks, the beam presets, the J-Map beam) stays on the rotor above. It has its own rotctld: give it its own port (this page can start it for you).", "cfg-desc");
+        satNote.setWrapText(true);
+        VBox satOn = section("SATELLITE ROTOR",
+            cfgRow("Use a satellite rotor", "off: J-Sat tracking uses the rotor above", cToggleApply("rotor2.enabled", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+        VBox satConn = rotorConnection("rotor2.", true);
+        VBox satBeh = section("SATELLITE ROTOR BEHAVIOR",
+            cfgRow("Rotor range", "360\u00b0 turns once; 450\u00b0 has a 90\u00b0 overlap: passes carry on past 360\u00b0 instead of unwinding", cSegApply("rotor2.range", new String[]{"360\u00b0","450\u00b0"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Overlap / wrap", "450\u00b0 rotors only: where it overlaps. North = travel 0 to 450\u00b0; South = -180 to +270\u00b0", cSegApply("rotor2.wrap", new String[]{"North","South"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Park position", "the Park button on the satellite rotor panel", cUnit("rotor2.park", "0", "\u00b0 az")),
+            cfgRow("Elevation rotor (az/el)", "on: a pass also points the elevation (0-90\u00b0); off if this rotor only turns", cToggleApply("rotor2.hasElevation", true, on -> { })));
+
+        return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),
+            lbl("Az/el rotor control via Hamlib rotctld \u2014 connection, presets and park position. An optional second rotor can track satellites.","cfg-desc"),
+            rotorStrip(com.ars.fx.data.RotorClient.getInstance()), conn, beh, presets,
+            satNote, satOn, rotorStrip(com.ars.fx.data.RotorClient.satellite()), satConn, satBeh);
+    }
+
+    /** The live status strip for one rotor: status, azimuth, elevation, and where its rotctld is. */
+    private static HBox rotorStrip(com.ars.fx.data.RotorClient ro) {
+        return liveStrip(new String[]{"STATUS", "AZIMUTH", "ELEVATION", "ROTCTLD"}, () -> {
             boolean on = ro.last().connected();
             return new String[][]{
-                {on ? "● CONNECTED" : ro.isConfigured() ? "○ ROTCTLD OFFLINE" : "○ NOT SET UP", "", on ? "1" : "0"},
-                {on ? String.format("%03.0f", ro.headingDeg()) : "—", on ? "°" : "", "0"},
-                {on ? String.format("%.0f", ro.last().el()) : "—", on ? "°" : "", "0"},
+                {on ? "\u25cf CONNECTED" : !ro.isEnabled() ? "\u25cb NOT SWITCHED ON" : ro.isConfigured() ? "\u25cb ROTCTLD OFFLINE" : "\u25cb NOT SET UP", "", on ? "1" : "0"},
+                {on ? String.format("%03.0f", ro.headingDeg()) : "\u2014", on ? "\u00b0" : "", "0"},
+                {on ? String.format("%.0f", ro.last().el()) : "\u2014", on ? "\u00b0" : "", "0"},
                 {ro.endpoint(), "", "0"}};
         });
-        VBox conn = section("CONNECTION",
-            cfgRow("Rotor model", null, cInputPrompt("rotor.model", "e.g. Yaesu G-1000DXA")),
-            cfgRow("Hamlib model #", "rotctld -m (run: rotctl --list)", cInput("rotor.hamlibModel", "")),
-            cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
-            cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
-            cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
-            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply("rotor.host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
-        VBox beh = section("BEHAVIOR",
-            cfgRow("Overlap / wrap", "where the rotor crosses — not applied yet", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
-            cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "° az")),
-            cfgRow("Dead-band", "satellite tracking skips moves smaller than this", cUnit("rotor.deadband", "2", "°")),
-            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat", cToggle("rotor.autoTrack", false)));
-        VBox presets = section("BEAM PRESETS", presetRows());
-        return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),
-            lbl("Az/el rotor control via Hamlib rotctld — connection, presets and park position.","cfg-desc"),
-            cells, conn, beh, presets);
+    }
+
+    /** The CONNECTION section for the main rotor ({@code p} = "rotor.") or the satellite rotor ("rotor2."): the same rows under its own keys. */
+    private static VBox rotorConnection(String p, boolean sat) {
+        return section(sat ? "SATELLITE ROTOR CONNECTION" : "CONNECTION",
+            cfgRow("Rotor model", null, cInputPrompt(p + "model", sat ? "e.g. homebrew az/el" : "e.g. Yaesu G-1000DXA")),
+            cfgRow("Hamlib model #", "rotctld -m (run: rotctl --list)", cInput(p + "hamlibModel", "")),
+            cfgRow("Interface", null, cSeg(p + "interface", new String[]{"USB","Serial","Network"}, 1)),
+            cfgRow("Serial port", null, cInput(p + "port", sat ? "/dev/ttyUSB1" : "/dev/ttyUSB0")),
+            cfgRow("Baud rate", null, cSelect(p + "baud", "9600", BAUDS)),
+            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply(p + "host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("rotctld port", sat ? "its own port, not the main rotor's" : null, cInputApply(p + "rotctldPort", sat ? "4534" : "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Start rotctld for me", null, cToggleApply(p + "startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
     }
     private static Region amplifierCenter() {
         com.ars.fx.data.AmpClient.getInstance().start();

@@ -541,7 +541,10 @@ For a typical small station with one rig, one rotator, one amp, and one antenna 
 
 ### "Two rotators on one PC?"
 
-- No problem. Run two `rotctld` processes on different ports: one on 4533, one on 4534. J-Hub today connects to one rotator. If you need two, file a feature request.
+- Yes. J-Hub can drive **two rotors**: the main rotor (for example an HF beam's) and an optional **satellite rotor** (for example an az/el rotator on the satellite antenna). Each has its own `rotctld`, so give them different ports: the main rotor uses 4533 and the satellite rotor 4534.
+- Open **J-Hub > Hardware > Rotor control** and scroll to **Satellite rotor**. Turn on **Use a satellite rotor**, then fill in its connection (Hamlib model #, serial port, baud, and a `rotctld` port that is not the main rotor's) and, if you like, **Start rotctld for me**. It has its own **Rotor range**, **Overlap / wrap**, **Park** and **Elevation rotor** settings; a satellite rotor is treated as az/el unless you turn that off.
+- **What goes where.** J-Sat's tracking (Track with rotor) drives the satellite rotor. Everything else - clicking a DX spot, the beam presets, Park, the CCW / CW buttons on the Rotor control panel, the J-Map beam - stays on the main rotor. The satellite rotor has its own panel (**Satellite rotor**) in **J-Sat**, below Rotor control, with its compass, azimuth and elevation, CCW / Stop / CW and Park; the other screens show only the main rotor. With the satellite rotor switched off, J-Sat uses the main rotor as before.
+- **Homebrew az/el rotors.** The app never talks to a rotator directly; it talks to `rotctld`, and `rotctld` speaks the rotator's own protocol. A homebrew az/el controller that expects EasyComm (EasyComm II is common) needs a Hamlib model that speaks it: run `rotctl --list`, pick the **Easycomm** entry that matches your controller, and put its number in **Hamlib model #**.
 
 ---
 
