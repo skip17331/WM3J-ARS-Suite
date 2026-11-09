@@ -164,4 +164,23 @@ class UpcomingEventsTest {
         Loaded blank = UpcomingEvents.load(new Source(Kind.CONTEST, "contests", "", "C", ""), false, Instant.now());
         assertNull(blank.error(), "an unset source is simply empty");
     }
+
+    @Test
+    void wa7bnmRssIsParsed() {
+        String rss = "<rss><channel><item><title>ARRL Sweepstakes Contest, CW</title><link>https://www.contestcalendar.com/weeklycontdetails.php?ref=1</link>"
+                + "<description>2100Z, Nov 7 to 0300Z, Nov 9</description></item>"
+                + "<item><title>Two-part</title><link>https://x/y</link><description>1400Z, Nov 15 to 0800Z, Nov 16 and 1400Z, Nov 17 to 0800Z, Nov 18</description></item>"
+                + "<item><title>Sprint</title><link>https://x/z</link><description>0100Z-0300Z, Nov 9</description></item>"
+                + "<item><title>New Year</title><link>https://x/n</link><description>1500Z, Jan 1 to 1500Z, Jan 2</description></item></channel></rss>";
+        Source ct = new Source(Kind.CONTEST, "contests", "https://x/calendar.rss", "C", "");
+        List<Event> ev = UpcomingEvents.rss(ct, rss, java.time.LocalDate.of(2026, 11, 8));
+        assertEquals(4, ev.size());
+        assertEquals(java.time.LocalDate.of(2026, 11, 7), ev.get(0).start());
+        assertEquals(java.time.LocalDate.of(2026, 11, 9), ev.get(0).end());
+        assertEquals("2100Z–0300Z", ev.get(0).time());
+        assertEquals(java.time.LocalDate.of(2026, 11, 15), ev.get(1).start());
+        assertEquals(java.time.LocalDate.of(2026, 11, 18), ev.get(1).end());
+        assertEquals("0100Z–0300Z", ev.get(2).time());
+        assertEquals(java.time.LocalDate.of(2027, 1, 1), ev.get(3).start());
+    }
 }
