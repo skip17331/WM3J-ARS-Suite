@@ -585,6 +585,12 @@ public final class JMapView {
                         any = true;
                         drawBurst(g, d.x(), d.y(), age / (double) BURST_MS, d.s().color());
                     }
+                    for (LimbDot d : limbDots) {
+                        long age = now - d.s().arrivalMs();
+                        if (age < 0 || age >= BURST_MS) continue;
+                        any = true;
+                        drawLimbBurst(g, d.x(), d.y(), d.theta(), age / (double) BURST_MS, d.s().color());
+                    }
                 }
                 if (!any) stop();                                   // nothing new on the map: no more frames until the next spot
             }
@@ -596,6 +602,50 @@ public final class JMapView {
         if (!ovBurst || burstTimer == null || com.ars.fx.shell.Fx.reduced()) return;
         long now = System.currentTimeMillis();
         for (Dot d : paintedDots) { long age = now - d.s().arrivalMs(); if (age >= 0 && age < BURST_MS) { burstTimer.start(); return; } }
+        for (LimbDot d : limbDots) { long age = now - d.s().arrivalMs(); if (age >= 0 && age < BURST_MS) { burstTimer.start(); return; } }
+    }
+
+    /** A new spot on the far side of the globe, shown as a burst on the globe's edge: {x, y} is the rim point in line with it, {@code theta} the way out from the centre. */
+    private record LimbDot(double x, double y, double theta, MapSpot s) {}
+    private static final List<LimbDot> limbDots = new ArrayList<>();
+
+    /** Called for a spot the globe cannot see. Only brand-new ones are kept: the rim point is where the line from the globe's centre through the hidden spot's projected position meets the edge. */
+    private static void noteLimbSpot(com.ars.fx.data.GlobeProjection pr, MapSpot s, double w, double h) {
+        long age = System.currentTimeMillis() - s.arrivalMs();
+        if (age < 0 || age >= BURST_MS) return;
+        com.ars.fx.data.GlobeProjection.Pt p = pr.project(s.lat(), s.lon(), 0);
+        double dx = p.x() - w / 2, dy = p.y() - h / 2, rim = pr.silhouetteRadius();
+        double theta = Math.hypot(dx, dy) < 1 ? -Math.PI / 2 : Math.atan2(dy, dx);              // dead behind the centre: say it is straight up
+        limbDots.add(new LimbDot(w / 2 + Math.cos(theta) * rim, h / 2 + Math.sin(theta) * rim, theta, s));
+    }
+
+    /**
+     * The far-side version of {@link #drawBurst}, quieter and half a burst: a glow on the globe's edge, a half ring on the outer side and five rays fanning
+     * outward, as if the spot were peeking over the horizon. Same timing and the same dark line under everything.
+     */
+    private static void drawLimbBurst(GraphicsContext g, double x, double y, double theta, double t, Color band) {
+        double a = t < 0.35 ? 1.0 : Math.pow(1 - (t - 0.35) / 0.65, 1.2);
+        double grow = 1 - Math.pow(1 - Math.min(1.0, t / 0.6), 2.2);
+        Color col = band.interpolate(Color.WHITE, 0.15).deriveColor(0, 1.2, 1.15, a), under = Color.web("#0b0f14", 0.5 * a);
+        g.setLineCap(StrokeLineCap.ROUND);
+        double gr = 16 + 8 * grow;
+        g.setFill(new javafx.scene.paint.RadialGradient(0, 0, x, y, gr, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0, band.deriveColor(0, 1.2, 1.2, 0.5 * a)), new javafx.scene.paint.Stop(1, band.deriveColor(0, 1.2, 1.2, 0))));
+        g.fillOval(x - gr, y - gr, gr * 2, gr * 2);
+        double start = -Math.toDegrees(theta) - 90;                     // JavaFX arcs run counter-clockwise, screen angles clockwise
+        double r = 5 + 17 * grow, w = 2.4 * (1 - 0.7 * t) + 0.5;
+        g.setLineWidth(w + 2.0); g.setStroke(under); g.strokeArc(x - r, y - r, r * 2, r * 2, start, 180, javafx.scene.shape.ArcType.OPEN);
+        g.setLineWidth(w); g.setStroke(col); g.strokeArc(x - r, y - r, r * 2, r * 2, start, 180, javafx.scene.shape.ArcType.OPEN);
+        double r0 = 4 + 5 * grow, r1 = 9 + 20 * grow, rayW = 2.2 * (1 - 0.55 * t) + 0.7;
+        for (int pass = 0; pass < 2; pass++) {
+            g.setLineWidth(pass == 0 ? rayW + 2.0 : rayW); g.setStroke(pass == 0 ? under : col);
+            for (int i = -2; i <= 2; i++) {
+                double ang = theta + Math.toRadians(i * 38), far = (Math.abs(i) == 1) ? r1 * 0.7 : r1;
+                g.strokeLine(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0, x + Math.cos(ang) * far, y + Math.sin(ang) * far);
+            }
+        }
+        double core = t < 0.25 ? 1.0 - t / 0.25 : 0.0;
+        if (core > 0) { g.setFill(Color.WHITE.deriveColor(0, 1, 1, 0.9 * core)); g.fillOval(x - 4.5, y - 4.5, 9, 9); }
     }
 
     /**
@@ -1024,11 +1074,11 @@ public final class JMapView {
             if (ovBeam && !Double.isNaN(beamDeg())) drawGlobeBeam(g, pr, beamDeg());
 
             double spotA = dimSpots() ? 0.28 : 1.0;
-            paintedDots.clear();
+            paintedDots.clear(); limbDots.clear();
             for (MapSpot s : globeSpots) {
                 if (spotHidden(s.call())) continue;
                 double[] xy = gp.at(s.lat(), s.lon());
-                if (xy == null) continue;
+                if (xy == null) { noteLimbSpot(pr, s, w, h); continue; }       // round the back: a burst on the globe's edge, if it is new
                 paintedDots.add(new Dot(xy[0], xy[1], s));
                 g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(xy[0] - 4.5, xy[1] - 4.5, 9, 9);
                 spotDot(g, s, xy[0], xy[1], spotA);
@@ -1151,7 +1201,7 @@ public final class JMapView {
 
         // live DX-cluster spots
         double spotA = dimSpots() ? 0.28 : 1.0;
-        paintedDots.clear();
+        paintedDots.clear(); limbDots.clear();
         for (MapSpot s : liveSpots()){
             if (spotHidden(s.call())) continue;
             double[] pp = azProject(s.lat(), s.lon(), cx, cy, R);
@@ -1526,7 +1576,7 @@ public final class JMapView {
         } else if (ovBasemap) drawCountryLabels(g, RMX, RMY, RW, RH);
 
         double spotA = dimSpots() ? 0.28 : 1.0;
-        paintedDots.clear();
+        paintedDots.clear(); limbDots.clear();
         for (MapSpot s : liveSpots()) {
             if (spotHidden(s.call())) continue;
             double x = lon2x(s.lon(), RMX, RW), y = lat2y(s.lat(), RMY, RH);
