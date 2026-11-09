@@ -880,3 +880,29 @@
 
 /* pinned dock foot (Awards, Settings, colour scheme): a hairline above it, so it reads as a separate group */
 .sx-dock-foot { -fx-border-color: -ars-border -ars-border transparent transparent; -fx-border-width: 1 1 0 0; }
+
+/* ============================================================================
+   UI POLISH, pass 2 - legible placeholders, scheme-aware focus, stat tiles tinted by module, consistent drawer radius
+   ============================================================================ */
+/* Placeholder text: JavaFX derives it from the field background, which on the dark schemes is nearly invisible. */
+.text-field, .text-area, .combo-box-base, .spinner .text-field { -fx-prompt-text-fill: -ars-t3; }
+/* Focus glow follows the scheme's accent (pass 1 hard-coded the dark scheme's cyan). */
+.text-field:focused, .jhub-mini-field:focused { -fx-border-color: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 8, 0.0, 0, 0); }
+/* Stat tiles: clearer labels, a glow on live accent values, and the module's colour on the tile's top edge. */
+.sx-stat-k { -fx-text-fill: -ars-t2; }
+.sx-stat-v.accent { -fx-effect: dropshadow(gaussian, -ars-accent-dim, 6, 0.0, 0, 0); }
+.sx-top.hue-log    .sx-stat { -fx-border-color: rgba(235,179,83,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-map    .sx-stat { -fx-border-color: rgba(38,192,207,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-digi   .sx-stat { -fx-border-color: rgba(177,145,234,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-bridge .sx-stat { -fx-border-color: rgba(111,167,238,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-sat    .sx-stat { -fx-border-color: rgba(111,200,132,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-vault  .sx-stat { -fx-border-color: rgba(219,164,117,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-learn  .sx-stat { -fx-border-color: rgba(239,125,131,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-info   .sx-stat { -fx-border-color: rgba(217,143,209,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-hub    .sx-stat { -fx-border-color: rgba(162,196,208,0.38) -ars-border -ars-border -ars-border; }
+/* Radii: containers (cards, drawers) share one corner; drawers were 9 against the cards' 10. */
+.sx-dw { -fx-background-radius: 10; -fx-border-radius: 10; }
+.sx-dw-head:hover { -fx-background-radius: 10 10 0 0; }
+/* Links and small actions answer the pointer. */
+.jhub-open:hover { -fx-underline: true; }
+.jhub-open { -fx-cursor: hand; }

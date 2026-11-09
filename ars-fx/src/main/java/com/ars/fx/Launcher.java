@@ -129,9 +129,16 @@ public class Launcher extends Application {
         // Morse Trainer and Antenna Workshop have dock entries of their own but live inside the J-Learn screen
         if (id.equals("morse"))    { com.ars.fx.surface.JLearnView.requestMorse();    id = "learn"; }
         if (id.equals("workshop")) { com.ars.fx.surface.JLearnView.requestWorkshop(); id = "learn"; }
+        String previous = Shell.currentSurface;
         Shell.currentSurface = id;
         if (id.equals("log") || id.equals("logc")) Shell.lastLogSurface = id;   // remember J-Log's mode
-        host.getChildren().setAll(buildSurface(id));
+        Region surface = buildSurface(id);
+        host.getChildren().setAll(surface);
+        if (!id.equals(previous)) {       // a short fade when the screen changes - but not on a rebuild of the same one (J-Sat does that every ~2 s)
+            surface.setOpacity(0);
+            javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(javafx.util.Duration.millis(140), surface);
+            fade.setToValue(1); fade.play();
+        }
         com.ars.fx.shell.UpdateBanner.attach(host);      // keep a pending "update available" card across navigation
         Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }

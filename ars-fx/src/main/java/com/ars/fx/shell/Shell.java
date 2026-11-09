@@ -376,7 +376,7 @@ public final class Shell {
                 HBox.setMargin(t, new Insets(0, 0, 0, TOP_TILE_GAP * s));
                 for (Node n : t.getChildren()) {
                     if (!(n instanceof Label l)) continue;
-                    double full = l.getStyleClass().contains("sx-stat-v") ? 16 : l.getStyleClass().contains("sx-clock-v") ? 18 : 0;
+                    double full = l.getStyleClass().contains("sx-stat-v") ? 18 : l.getStyleClass().contains("sx-clock-v") ? 20 : 0;
                     l.setStyle(String.format("-fx-font-size:%.1fpx;", full > 0 ? full * s : Math.max(8, 9 * s)));
                 }
             }
