@@ -43,8 +43,10 @@ public final class Glyphs {
             }
             case "workshop" -> add(g, color, line(12,4,12,20.5), line(6.5,8,17.5,8),   // a beam: boom and three elements
                     line(8,12.5,16,12.5), line(9.5,17,14.5,17));
-            case "gear" -> add(g, color, ring(12,12,3),
+            case "sun" -> add(g, color, ring(12,12,3),   // sunburst: the colour-scheme button
                     path("M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.4 5.4l2.1 2.1M16.5 16.5l2.1 2.1M18.6 5.4l-2.1 2.1M7.5 16.5l-2.1 2.1"));
+            case "gear" -> add(g, color, line(4,7,20,7), line(4,12,20,12), line(4,17,20,17),   // settings: three sliders
+                    ring(9,7,2.2), ring(15,12,2.2), ring(8,17,2.2));
             default -> { // hub: target
                 add(g, color, ring(12,12,7.5), line(12,4.5,12,2.5), line(12,21.5,12,19.5));
                 g.getChildren().add(dot(12,12,2.6,color));
