@@ -18,7 +18,6 @@ public final class ModuleConfig {
 
     /** Every module, in dock order. */
     public static final List<Mod> MODULES = List.of(
-        new Mod("info",   "Info",     "info",   "Upcoming contests and DXpeditions, news and links"),
         new Mod("log",    "J-Log",    "log",    "Logging & contests"),
         new Mod("map",    "J-Map",    "map",    "Propagation & DX spots"),
         new Mod("bridge", "J-Bridge", "bridge", "WSJT-X bridge"),
@@ -28,7 +27,9 @@ public final class ModuleConfig {
         new Mod("learn",  "J-Learn",  "learn",  "Reference"),
         // J-Learn tools with a dock entry of their own; they open inside the J-Learn screen and share its colour
         new Mod("morse",    "Morse Trainer",    "learn", "CW practice"),
-        new Mod("workshop", "Antenna Workshop", "learn", "Antenna design")
+        new Mod("workshop", "Antenna Workshop", "learn", "Antenna design"),
+        // Info sits at the foot of the module list
+        new Mod("info",   "Info",     "info",   "Upcoming contests and DXpeditions, news and links")
     );
 
     public static boolean enabled(String id) { return HubConfig.getBool("module." + id + ".enabled", true); }

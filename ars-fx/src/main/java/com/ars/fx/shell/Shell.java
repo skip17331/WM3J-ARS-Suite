@@ -236,6 +236,8 @@ public final class Shell {
                 expandOnly, com.ars.fx.surface.AwardsWindow::open));
         // Settings foot: on every module's dock, not just the J-Hub screens (gear → J-Hub Setup)
         dock.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
+        // Colour scheme: the sunburst in the bottom corner. Cycles this module's scheme (or the suite's, on J-Hub pages).
+        dock.getChildren().add(themeDockRow(expandOnly));
 
         // Scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would make
         // the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
@@ -256,6 +258,25 @@ public final class Shell {
         dock.setMinWidth(w); dock.setPrefWidth(w); dock.setMaxWidth(w);
         for (Node n : nodes) { n.setManaged(exp); n.setVisible(exp); }
     }
+    /** The sunburst row: click to advance the colour scheme; the expanded dock names the current one. */
+    private static HBox themeDockRow(List<Node> expandOnly) {
+        StackPane ic = iconTile("accent", "sun", 20, "sx-dock-ic");
+        java.util.function.Supplier<String> text = () -> "Theme · " + com.ars.fx.Themes.effective(currentSurface).label();
+        Label nm = lbl(text.get(), "sx-dock-name"); nm.setManaged(false); nm.setVisible(false);
+        HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
+        expandOnly.add(nm);
+        HBox row = new HBox(12, ic, nm); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().addAll("sx-dock-item", "accent");
+        VBox.setMargin(row, new Insets(2, 9, 8, 9));
+        Tips.tip(row, "Colour scheme - click to switch");
+        row.setStyle("-fx-cursor:hand;");
+        row.setOnMouseClicked(e -> {
+            // J-Hub pages follow the suite-wide scheme; a module keeps its own
+            if (com.ars.fx.Themes.isModule(currentSurface)) cycleModuleTheme(); else cycleGlobalTheme();
+            nm.setText(text.get());
+        });
+        return row;
+    }
+
     /** A dock row that runs an action (instead of navigating to a module). */
     private static HBox dockAction(String name, String hue, String tip, List<Node> expandOnly, Runnable action) {
         StackPane ic = iconTile(hue, hue, 20, "sx-dock-ic");
