@@ -792,7 +792,8 @@ public final class JHubDashboard {
             cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Overlap / wrap", "where the rotor crosses — not applied yet", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
+            cfgRow("Rotor range", "360° turns once; 450° has a 90° overlap (e.g. G-1000DXA): passes carry on past 360° instead of unwinding", cSegApply("rotor.range", new String[]{"360°","450°"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Overlap / wrap", "450° rotors only: where it overlaps. North = travel 0 to 450°; South = -180 to +270°", cSegApply("rotor.wrap", new String[]{"North","South"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "° az")),
             cfgRow("Elevation rotor (az/el)", "satellite tracking also points the elevation (0-90°); leave off for an azimuth-only rotor such as an HF beam's", cToggleApply("rotor.hasElevation", false, on -> { })),
             cfgRow("Dead-band", "satellite tracking skips moves smaller than this, on either axis", cUnit("rotor.deadband", "2", "°")),

@@ -94,7 +94,38 @@ public final class RotorClient {
         targetAz = ((az % 360) + 360) % 360;
         if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz); return; }   // forward to the station
         double el = Math.max(0, last.el());
-        runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", targetAz, el));          // rotctld wants a decimal point, whatever the system locale
+        runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", commandAz(targetAz), el));   // rotctld wants a decimal point, whatever the system locale
+    }
+
+    /** True when the rotor turns 450 degrees, so most bearings can be reached at two angles (J-Hub > Rotor control > Rotor range). */
+    public static boolean overlapRotor() { return HubConfig.get("rotor.range", "360").trim().startsWith("450"); }
+    /** Where a 450 degree rotor overlaps: at North (its travel is 0 to 450) or at South (-180 to +270). */
+    public static boolean overlapAtNorth() { return !"South".equalsIgnoreCase(HubConfig.get("rotor.wrap", "North").trim()); }
+
+    /** The azimuth to send for a bearing, given where the rotor is now and how it is set up. */
+    private double commandAz(double bearing) {
+        State s = last;
+        return commandAz(bearing, s.connected() ? s.az() : Double.NaN, overlapRotor(), overlapAtNorth());
+    }
+
+    /**
+     * The angle to ask the rotor for to point at {@code bearing} (any number of degrees; 0-360 compass). A 360 degree rotor has one angle per bearing. A
+     * 450 degree rotor has two for part of the circle (the overlap), and the nearer to where it is now ({@code currentAz}, its own reading; NaN if it is not
+     * answering) is chosen, so a pass that crosses the overlap carries on past 360 instead of the rotor unwinding a whole turn. Its travel is 0 to 450 when it
+     * overlaps at North, -180 to +270 when it overlaps at South. With no reading, the angle in 0-360 (or -90 to +270 at South) is used.
+     */
+    static double commandAz(double bearing, double currentAz, boolean overlap, boolean atNorth) {
+        double b = ((bearing % 360) + 360) % 360;
+        if (!overlap) return b;
+        double min = atNorth ? 0 : -180, max = atNorth ? 450 : 270;
+        if (Double.isNaN(currentAz)) return atNorth ? b : (b > max ? b - 360 : b);
+        double best = Double.NaN;
+        for (int k = -1; k <= 1; k++) {
+            double c = b + 360.0 * k;
+            if (c < min || c > max) continue;
+            if (Double.isNaN(best) || Math.abs(c - currentAz) < Math.abs(best - currentAz)) best = c;
+        }
+        return Double.isNaN(best) ? b : best;
     }
 
     /** True when the rotor has an elevation axis (J-Hub > Rotor control > Elevation rotor): satellite tracking then drives elevation as well as azimuth. */
@@ -107,7 +138,7 @@ public final class RotorClient {
         targetAz = ((az % 360) + 360) % 360;
         double e = clampEl(el);
         if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz, e); return; }   // forward to the station, elevation included
-        runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", targetAz, e));
+        runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", commandAz(targetAz), e));
     }
     /** A beam preset: shown in full on J-Hub ▸ Hardware ▸ Rotor control (where it is edited) and by {@code shortName} on the rotor drawer. */
     public record Preset(String name, String shortName, String key, int defaultAz) {
