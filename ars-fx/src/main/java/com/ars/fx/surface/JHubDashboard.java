@@ -548,8 +548,9 @@ public final class JHubDashboard {
         });
 
         VBox conn = section("CONNECTION",
-            cfgRow("Transceiver model", null, cInputPrompt("rig.model", "e.g. Icom IC-7610")),
-            cfgRow("Hamlib model #", "rigctld -m (run: rigctl --list)", cInput("rig.hamlibModel", "")),
+            cfgRow("Transceiver maker", "from the Hamlib installed on this computer (rigctl --list)", hamlibMaker("rig")),
+            cfgRow("Transceiver model", "choosing one fills in the Hamlib model # below", hamlibModel("rig")),
+            cfgRow("Hamlib model #", "set by the model above; type a number to use a model that is not listed", hamlibNumber("rig")),
             cfgRow("Interface", null, cSeg("rig.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Port", null, cInput("rig.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rig.baud", "9600", BAUDS)),
@@ -740,8 +741,9 @@ public final class JHubDashboard {
                 {ro.endpoint(), "", "0"}};
         });
         VBox conn = section("CONNECTION",
-            cfgRow("Rotor model", null, cInputPrompt("rotor.model", "e.g. Yaesu G-1000DXA")),
-            cfgRow("Hamlib model #", "rotctld -m (run: rotctl --list)", cInput("rotor.hamlibModel", "")),
+            cfgRow("Rotor maker", "from the Hamlib installed on this computer (rotctl --list)", hamlibMaker("rotor")),
+            cfgRow("Rotor model", "choosing one fills in the Hamlib model # below", hamlibModel("rotor")),
+            cfgRow("Hamlib model #", "set by the model above; type a number to use a model that is not listed", hamlibNumber("rotor")),
             cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
             cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
             cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
@@ -773,8 +775,9 @@ public final class JHubDashboard {
                 {am.endpoint(), "", "0"}};
         });
         VBox conn = section("CONNECTION",
-            cfgRow("Amplifier model", null, cInputPrompt("amp.model", "e.g. Elecraft KPA-1500")),
-            cfgRow("Hamlib model #", "ampctld -m (run: ampctl --list)", cInput("amp.hamlibModel", "")),
+            cfgRow("Amplifier maker", "from the Hamlib installed on this computer (ampctl --list)", hamlibMaker("amp")),
+            cfgRow("Amplifier model", "choosing one fills in the Hamlib model # below", hamlibModel("amp")),
+            cfgRow("Hamlib model #", "set by the model above; type a number to use a model that is not listed", hamlibNumber("amp")),
             cfgRow("Interface", null, cSeg("amp.interface", new String[]{"USB","Serial","Network"}, 0)),
             cfgRow("Serial port", null, cInput("amp.port", "/dev/ttyACM0")),
             cfgRow("Baud rate", null, cSelect("amp.baud", "38400", BAUDS)),
@@ -1439,6 +1442,57 @@ public final class JHubDashboard {
         c.setValue(cur); c.setMinWidth(220); c.setMaxWidth(260);
         c.valueProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.set(key, b));
         return tagged(c, key);
+    }
+
+    // ---- Hamlib model pickers: maker dropdown narrows the model dropdown; the model sets <kind>.model and <kind>.hamlibModel ----
+    private static final java.util.Map<String, ComboBox<String>> HL_MODEL_BOX = new java.util.HashMap<>();
+    private static final java.util.Map<String, TextField> HL_NUM_FIELD = new java.util.HashMap<>();
+    private static final java.util.Map<String, ComboBox<String>> HL_MAKER_BOX = new java.util.HashMap<>();
+
+    private static Region hamlibMaker(String kind) {
+        ComboBox<String> c = new ComboBox<>(); c.setMinWidth(220); c.setMaxWidth(260);
+        java.util.List<com.ars.fx.data.HamlibModels.Model> all = com.ars.fx.data.HamlibModels.list(kind);
+        c.getItems().addAll(all.stream().map(com.ars.fx.data.HamlibModels.Model::mfg).distinct().toList());
+        if (all.isEmpty()) { c.setPromptText("Hamlib not found"); }
+        com.ars.fx.data.HamlibModels.Model cur = com.ars.fx.data.HamlibModels.find(kind, com.ars.fx.data.HubConfig.get(kind + ".hamlibModel", ""));
+        if (cur != null) c.setValue(cur.mfg());
+        c.valueProperty().addListener((o, a, b) -> {
+            ComboBox<String> mb = HL_MODEL_BOX.get(kind);
+            if (mb == null || b == null) return;
+            mb.getItems().setAll(all.stream().filter(m -> m.mfg().equals(b)).map(com.ars.fx.data.HamlibModels.Model::label).toList());
+            mb.setValue(null);
+        });
+        HL_MAKER_BOX.put(kind, c);
+        return c;
+    }
+    private static Region hamlibModel(String kind) {
+        ComboBox<String> c = new ComboBox<>(); c.setMinWidth(220); c.setMaxWidth(260); c.setVisibleRowCount(14);
+        java.util.List<com.ars.fx.data.HamlibModels.Model> all = com.ars.fx.data.HamlibModels.list(kind);
+        com.ars.fx.data.HamlibModels.Model cur = com.ars.fx.data.HamlibModels.find(kind, com.ars.fx.data.HubConfig.get(kind + ".hamlibModel", ""));
+        if (cur != null) {
+            c.getItems().addAll(all.stream().filter(m -> m.mfg().equals(cur.mfg())).map(com.ars.fx.data.HamlibModels.Model::label).toList());
+            c.setValue(cur.label());
+        } else if (all.isEmpty()) c.setPromptText("Hamlib not found");
+        else c.setPromptText("pick a maker first");
+        c.valueProperty().addListener((o, a, b) -> {
+            if (b == null) return;
+            ComboBox<String> mk = HL_MAKER_BOX.get(kind);
+            for (com.ars.fx.data.HamlibModels.Model m : all) {
+                if (!m.label().equals(b) || (mk != null && mk.getValue() != null && !mk.getValue().equals(m.mfg()))) continue;
+                com.ars.fx.data.HubConfig.set(kind + ".model", m.mfg() + " " + m.name());
+                com.ars.fx.data.HubConfig.set(kind + ".hamlibModel", String.valueOf(m.number()));
+                TextField nf = HL_NUM_FIELD.get(kind);
+                if (nf != null) nf.setText(String.valueOf(m.number()));
+                break;
+            }
+        });
+        HL_MODEL_BOX.put(kind, c);
+        return tagged(c, kind + ".model");
+    }
+    private static TextField hamlibNumber(String kind) {
+        TextField t = cInput(kind + ".hamlibModel", "");
+        HL_NUM_FIELD.put(kind, t);
+        return t;
     }
     /** Pick list of DX clusters. Choosing one saves it and moves the single cluster connection there. */
     private static ComboBox<String> clusterPicker(java.util.function.Supplier<String> login) {
