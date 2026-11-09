@@ -403,7 +403,7 @@ public final class Shell {
     /** Have the drawer with this title open the next time it is built. */
     public static void openDrawer(String title) { DRAWER_STATE.put(title, true); }
     /** Open this drawer the first time it is built, then leave it to the operator's choice. */
-    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, true); }
+    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, com.ars.fx.data.HubConfig.getBool("drawer." + title, true)); }
 
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
@@ -412,7 +412,7 @@ public final class Shell {
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body,
                               java.util.function.Consumer<Boolean> onToggle) {
         // default closed on first sight; the operator's open/closed choice is then remembered by title
-        boolean initOpen = DRAWER_STATE.getOrDefault(title, false);
+        boolean initOpen = DRAWER_STATE.computeIfAbsent(title, k -> com.ars.fx.data.HubConfig.getBool("drawer." + k, false));   // from the last run, if it was ever changed
         VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (initOpen) dw.getStyleClass().add("open");
         StackPane ic = iconTile(hue, glyphId, 14, "sx-dw-ic");
         Label t = lbl(title, "sx-dw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
@@ -429,6 +429,7 @@ public final class Shell {
             bodyBox.setManaged(nowOpen); bodyBox.setVisible(nowOpen);
             sum.setVisible(!nowOpen); sum.setManaged(!nowOpen); cv.setRotate(nowOpen ? 90 : 0);
             DRAWER_STATE.put(title, nowOpen);
+            com.ars.fx.data.HubConfig.setBool("drawer." + title, nowOpen);   // kept for next time
             if (onToggle != null) onToggle.accept(nowOpen);
         });
         dw.getChildren().addAll(head, bodyBox);

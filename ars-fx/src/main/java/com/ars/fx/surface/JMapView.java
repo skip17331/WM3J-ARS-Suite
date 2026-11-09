@@ -165,9 +165,14 @@ public final class JMapView {
     private static boolean overlayFlag(int i) {
         return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; default -> ovNeededOnly; };
     }
-    private static void setOverlayFlag(int i, boolean v) {
+    private static void applyOverlay(int i, boolean v) {
         switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; default -> ovNeededOnly = v; }
     }
+    private static void setOverlayFlag(int i, boolean v) {
+        applyOverlay(i, v);
+        com.ars.fx.data.HubConfig.setBool("map.ov." + i, v);            // kept for next time
+    }
+    static { for (int i = 0; i < 6; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
     private static java.util.Set<String> workedCallsCache = java.util.Set.of();
     private static long workedCallsAt = 0;
     private static java.util.Set<String> workedCalls() {
@@ -179,9 +184,10 @@ public final class JMapView {
     private static boolean spotHidden(String call) { return ovNeededOnly && workedCalls().contains(call.toUpperCase()); }
 
     // ---- live DX-cluster spots on the map ---------------------------------
-    private static int spotMode = 0;                                              // 0 All · 1 CW · 2 Phone · 3 Digi
+    private static int spotMode = Math.max(0, Math.min(3, com.ars.fx.data.HubConfig.getInt("map.spotMode", 0)));   // 0 All · 1 CW · 2 Phone · 3 Digi
     private static final java.util.Set<String> spotBands = new java.util.HashSet<>();   // empty = all bands
-    private static int spotAgeMax = 20;                                           // minutes
+    static { for (String b : com.ars.fx.data.HubConfig.get("map.bands", "").split(",")) if (!b.isBlank()) spotBands.add(b.trim()); }
+    private static int spotAgeMax = Math.max(1, Math.min(60, com.ars.fx.data.HubConfig.getInt("map.spotAge", 20)));   // minutes
     private static Runnable currentSpotsRefresh;
 
     /** A spot's dot. With Path now on, a band our estimate says is probably closed fades, and one it says is likely open gets a green ring. */
@@ -461,13 +467,16 @@ public final class JMapView {
         cc.start();
         // collapsible left controls column
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
-        java.util.function.IntConsumer onProj = i -> { projection = i; renderMap.run(); };
+        java.util.function.IntConsumer onProj = i -> { projection = i; com.ars.fx.data.HubConfig.setInt("map.projection", i); renderMap.run(); };
         Runnable[] rebuildLeft = new Runnable[1];
         rebuildLeft[0] = () -> leftHolder.getChildren().setAll(com.ars.fx.shell.AutoPanel.wrap("map", false, leftRail(),
                 scrollLeft(leftPanel(projection, onProj, () -> rebuildLeft[0].run())), 270, JMapView::narrow));
         rebuildLeft[0].run();
 
         StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
+        Region projToggle = projectionToggle(onProj);                 // top right of the map, where J-Sat keeps its view buttons
+        StackPane.setAlignment(projToggle, Pos.TOP_RIGHT); StackPane.setMargin(projToggle, new Insets(12, 18, 0, 0));
+        mapWithButton.getChildren().add(projToggle);
         if (!com.ars.fx.data.HubConfig.hasLocation()) {
             Label warn = lbl("⚠ " + com.ars.fx.data.HubConfig.LOCATION_HINT + " Bearings, distances and the gray line need it.", "jm-tog-label");
             warn.setWrapText(true); warn.setMaxWidth(560);
@@ -485,8 +494,29 @@ public final class JMapView {
     }
 
     private static Region mapFrame;
+
+    // ---- projection toggle: Azimuthal / Rectangular / Globe (same look and place as J-Sat's Polar / Blue marble / Globe) ----
+    private static Label[] projBtns = new Label[0];
+    /** Light the button for {@code sel}; the region chips call this too, because picking a region switches the map to Rectangular. */
+    private static void highlightProjection(int sel) {
+        for (int i = 0; i < projBtns.length; i++) { projBtns[i].getStyleClass().remove("on"); if (i == sel) projBtns[i].getStyleClass().add("on"); }
+    }
+    private static Region projectionToggle(java.util.function.IntConsumer onProjection) {
+        HBox h = new HBox(2); h.getStyleClass().add("jm-seg");
+        String[] opts = GlobeView.supported() ? new String[]{"Azimuthal", "Rectangular", "Globe"} : new String[]{"Azimuthal", "Rectangular"};
+        projBtns = new Label[opts.length];
+        for (int i = 0; i < opts.length; i++) {
+            final int idx = i;
+            Label b = lbl(opts[i], "jm-seg-btn"); if (i == projection) b.getStyleClass().add("on");
+            b.setMinWidth(96); b.setStyle("-fx-cursor:hand;");
+            b.setOnMouseClicked(e -> { highlightProjection(idx); onProjection.accept(idx); });
+            projBtns[i] = b; h.getChildren().add(b);
+        }
+        h.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        return h;
+    }
     // Kept here, not in build(): switching modules rebuilds J-Map, and these must survive that.
-    private static int projection = 0;                    // 0 azimuthal · 1 rectangular
+    private static int projection = Math.max(0, Math.min(2, com.ars.fx.data.HubConfig.getInt("map.projection", 0)));   // 0 azimuthal · 1 rectangular · 2 globe
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static String grayLineStat() {
         if (!com.ars.fx.data.HubConfig.hasLocation()) return "set location";
@@ -576,23 +606,6 @@ public final class JMapView {
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         HBox header = new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("map", rebuild)); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));
         p.getChildren().add(header);
-        // PROJECTION — inlined (not segSel) so the region picker can flip it to Rectangular and keep the highlight in sync.
-        p.getChildren().add(lbl("PROJECTION","jm-sec"));
-        HBox projSeg = new HBox(2); projSeg.getStyleClass().add("jm-seg");
-        String[] projOpts = GlobeView.supported() ? new String[]{"Azimuthal","Rectangular","Globe"} : new String[]{"Azimuthal","Rectangular"};
-        Label[] projBtns = new Label[projOpts.length];
-        java.util.function.IntConsumer selectProj = sel -> {
-            for (int i = 0; i < projBtns.length; i++) { projBtns[i].getStyleClass().remove("on"); if (i == sel) projBtns[i].getStyleClass().add("on"); }
-        };
-        for (int i = 0; i < projOpts.length; i++) {
-            final int idx = i;
-            Label b = lbl(projOpts[i], "jm-seg-btn"); if (i == projection) b.getStyleClass().add("on");
-            HBox.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-            b.setOnMouseClicked(e -> { selectProj.accept(idx); onProjection.accept(idx); });
-            projBtns[i] = b; projSeg.getChildren().add(b);
-        }
-        p.getChildren().add(projSeg);
-
         // fixed-zoom region picker — single click. Picking a region snaps the blue
         // marble to that window AND switches the projection to Rectangular, so it
         // takes effect immediately even from the azimuthal view.
@@ -611,7 +624,7 @@ public final class JMapView {
             final int idx = i;
             Label chip = new Label(REGION_NAMES[i]);
             rchips[i] = chip;
-            chip.setOnMouseClicked(e -> { mapRegion = idx; paintChips.run(); selectProj.accept(1); onProjection.accept(1); });
+            chip.setOnMouseClicked(e -> { mapRegion = idx; com.ars.fx.data.HubConfig.setInt("map.region", idx); paintChips.run(); highlightProjection(1); onProjection.accept(1); });
             regions.getChildren().add(chip);
         }
         paintChips.run();
@@ -636,7 +649,7 @@ public final class JMapView {
             Region dot = new Region(); dot.getStyleClass().add("jm-band-dot"); dot.setStyle("-fx-background-color:"+b[1]+";");
             HBox chip = new HBox(7, dot, lbl(b[0],"jm-band-n")); chip.getStyleClass().add("jm-band"); chip.setAlignment(Pos.CENTER_LEFT);
             GridPane.setHgrow(chip, Priority.ALWAYS); chip.setMaxWidth(Double.MAX_VALUE); chip.setStyle("-fx-cursor:hand;");
-            chip.setOnMouseClicked(e -> { if (!spotBands.remove(key)) spotBands.add(key); restyleBands.run(); refreshSpots(); });
+            chip.setOnMouseClicked(e -> { if (!spotBands.remove(key)) spotBands.add(key); com.ars.fx.data.HubConfig.set("map.bands", String.join(",", spotBands)); restyleBands.run(); refreshSpots(); });
             bandChips.add(chip); bandKeys.add(key);
             bands.add(chip, i%3, i/3);
         }
@@ -644,12 +657,15 @@ public final class JMapView {
         restyleBands.run();
         p.getChildren().add(bands);
         p.getChildren().add(lbl("MODE","jm-sec"));
-        p.getChildren().add(segSel(new String[]{"All","CW","Phone","Digi"}, spotMode, i -> { spotMode = i; refreshSpots(); }));
+        p.getChildren().add(segSel(new String[]{"All","CW","Phone","Digi"}, spotMode, i -> { spotMode = i; com.ars.fx.data.HubConfig.setInt("map.spotMode", i); refreshSpots(); }));
         Label ageLbl = lbl("SPOT AGE ≤ " + spotAgeMax + " MIN","jm-sec");
+        javafx.animation.PauseTransition saveSpotAge = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+        saveSpotAge.setOnFinished(e -> com.ars.fx.data.HubConfig.setInt("map.spotAge", spotAgeMax));
         p.getChildren().add(ageLbl);
         p.getChildren().add(sliderI((spotAgeMax - 1) / 59.0, f -> {
             spotAgeMax = (int) Math.max(1, Math.round(1 + f * 59));
             ageLbl.setText("SPOT AGE ≤ " + spotAgeMax + " MIN"); refreshSpots();
+            saveSpotAge.playFromStart();                      // the slider fires on every pixel: save once it settles
         }));
         Label pn = lbl("Path now: fade closed bands, ring open ones", "jm-tog-label"); HBox.setHgrow(pn, Priority.ALWAYS); pn.setMaxWidth(Double.MAX_VALUE);
         com.ars.fx.shell.Tips.tip(pn, "Our own propagation estimate from the solar flux, sunspots and K index: a spot on a band that is probably closed from here fades, one that is likely open gets a green ring. An estimate, not a measurement. Needs your location set.");
@@ -802,7 +818,7 @@ public final class JMapView {
         VBox tr = new VBox(2, legendSpots,
             rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")), rt("spokes = 30°"));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14,18,0,0));
+        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(58,18,0,0));
         StackPane area = new StackPane(cv, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
 
@@ -833,7 +849,7 @@ public final class JMapView {
         legendSpots = rt(legendSpotsText(liveSpots().size()));
         VBox tr = new VBox(2, legendSpots, rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE); tr.setMouseTransparent(true);
-        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14, 18, 0, 0));
+        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(58, 18, 0, 0));
         StackPane area = new StackPane(mapGlobe, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
         currentMapRepaint = () -> { mapGlobe.night(ovGrayline); mapGlobe.refresh(); };
@@ -1156,7 +1172,7 @@ public final class JMapView {
         {-47,  -8,  112, 179},   // Australia / Oceania
         {-90, -58, -180, 180},   // Antarctica
     };
-    private static int mapRegion = 0;
+    private static int mapRegion = Math.max(0, Math.min(REGION_NAMES.length - 1, com.ars.fx.data.HubConfig.getInt("map.region", 0)));
     // Live equirectangular viewport the rect projection + overlays map into.
     private static double vMinLon = -180, vMaxLon = 180, vMinLat = -90, vMaxLat = 90;
     private static int appliedRegion = -1;
