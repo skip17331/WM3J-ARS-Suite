@@ -906,3 +906,12 @@
 /* Links and small actions answer the pointer. */
 .jhub-open:hover { -fx-underline: true; }
 .jhub-open { -fx-cursor: hand; }
+
+/* ============================================================================
+   UI POLISH, pass 3 - things announce themselves (see shell/Fx.java; all switch off with Setup > Appearance > Reduce effects)
+   ============================================================================ */
+/* a spot (or other list row) that has just arrived: a strong accent wash with a bar down its left edge, then a faint one, then nothing */
+.fresh-a { -fx-background-color: linear-gradient(to right, -ars-accent-line, -ars-accent-dim 70%); -fx-background-radius: 6; -fx-border-color: transparent transparent transparent -ars-accent; -fx-border-width: 0 0 0 3; -fx-border-radius: 6; }
+.fresh-b { -fx-background-color: -ars-accent-dim; -fx-background-radius: 6; }
+/* a count or value that has just changed */
+.label.flash { -fx-text-fill: -ars-accent; }

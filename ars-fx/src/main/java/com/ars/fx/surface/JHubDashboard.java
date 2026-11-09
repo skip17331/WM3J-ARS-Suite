@@ -145,7 +145,7 @@ public final class JHubDashboard {
 
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         ClusterClient cc = ClusterClient.getInstance();
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
         Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
         headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
         HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
@@ -261,7 +261,7 @@ public final class JHubDashboard {
         // ---- DX spot panel ----
         Node ic = Shell.iconTile("hub", "hub", 16, "sx-dw-ic");
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
         Label cluState = lbl(com.ars.fx.shell.FeedUi.line(cc), "jhub-clu-de");
         HBox src = new HBox(6, cdot, cluState); src.setAlignment(Pos.CENTER_LEFT);
         Label consoleBtn = lbl("Console", "jhub-clearbtn"); consoleBtn.setStyle("-fx-cursor:hand;");   // raw feed + command line
@@ -304,10 +304,10 @@ public final class JHubDashboard {
         // single render: applies filters to the live feed + refreshes status everywhere
         Runnable render = () -> Shell.keepScroll(rsp, () -> {
             boolean conn = cc.isConnected();
-            cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
             cluState.setText(com.ars.fx.shell.FeedUi.line(cc));
             if (headActRef != null) headActRef.setText(com.ars.fx.shell.FeedUi.action(cc));
-            if (headerDot != null) headerDot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            if (headerDot != null) com.ars.fx.shell.FeedUi.paint(headerDot, cc.status());
             if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             SpotNeeds.Index worked = needIndex();
             java.util.List<ClusterClient.Spot> all = cc.spots();
@@ -327,6 +327,7 @@ public final class JHubDashboard {
                     row.setStyle("-fx-cursor:hand;");
                     com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
+                    com.ars.fx.shell.Fx.fresh(row, s.arrivalMs());     // a new spot slides in and glows
                     rows.getChildren().add(row);
                 }
             }
@@ -606,7 +607,8 @@ public final class JHubDashboard {
         theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
         VBox appearance = section("APPEARANCE",
-            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme));
+            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme),
+            cfgRow("Reduce effects", "no sliding, flashing or glowing when something new arrives (new spots, changed counts, live lights)", cToggle("ui.reduceEffects", false)));
         Label checkMsg = lbl("", "cfg-lh");
         Label checkBtn = lbl("Check now", "sx-theme"); checkBtn.setStyle("-fx-cursor:hand;");
         checkBtn.setOnMouseClicked(e -> {
