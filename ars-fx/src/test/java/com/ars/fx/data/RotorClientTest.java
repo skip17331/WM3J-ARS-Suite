@@ -16,8 +16,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /** What the rotor client sends to rotctld, checked against a stand-in rotctld that records every command and answers "RPRT 0". */
 class RotorClientTest {
@@ -67,6 +66,88 @@ class RotorClientTest {
         }
     }
     private static void restore(String key, String old) { if (old == null) System.clearProperty(key); else System.setProperty(key, old); }
+
+    private interface TwoBody { void run(FakeRotctld main, FakeRotctld sat) throws Exception; }
+
+    /** Runs {@code body} with the main rotor and the satellite rotor each pointed at its own stand-in rotctld, the satellite rotor switched on or off as given. */
+    private static void withTwoRotors(boolean satelliteOn, TwoBody body) throws Exception {
+        String[] keys = {"rotor.host", "rotor.port", "rotor2.host", "rotor2.port"};
+        String[] old = new String[keys.length];
+        for (int i = 0; i < keys.length; i++) old[i] = System.getProperty(keys[i]);
+        String oldHome = System.getProperty("user.home");
+        System.setProperty("user.home", Files.createTempDirectory("rotor-test").toString());
+        HubConfig.reload();
+        HubConfig.setBool("rotor2.enabled", satelliteOn);
+        try (FakeRotctld main = new FakeRotctld(); FakeRotctld sat = new FakeRotctld()) {
+            System.setProperty("rotor.host", "127.0.0.1"); System.setProperty("rotor.port", String.valueOf(main.port()));
+            System.setProperty("rotor2.host", "127.0.0.1"); System.setProperty("rotor2.port", String.valueOf(sat.port()));
+            RotorClient.getInstance().reconnect(); RotorClient.satellite().reconnect();
+            RotorClient.getInstance().applyRemote(RotorClient.State.OFFLINE); RotorClient.satellite().applyRemote(RotorClient.State.OFFLINE);
+            body.run(main, sat);
+        } finally {
+            for (int i = 0; i < keys.length; i++) restore(keys[i], old[i]);
+            System.setProperty("user.home", oldHome);
+            HubConfig.reload();
+            RotorClient.getInstance().reconnect(); RotorClient.satellite().reconnect();
+        }
+    }
+
+    // ---- two rotors: a main rotor and a satellite rotor -------------------------------------------------------------------
+
+    @Test
+    void satelliteTrackingGoesToTheSatelliteRotorAndNothingElseDoes() throws Exception {
+        withTwoRotors(true, (main, sat) -> {
+            assertSame(RotorClient.satellite(), RotorClient.forSatellites());
+            RotorClient.forSatellites().trackTo(123.4, 45.6);              // a satellite rotor is an az/el rotor unless said otherwise
+            assertEquals("P 123.4 45.6", sat.next());
+            assertNull(main.got.poll(600, TimeUnit.MILLISECONDS), "the main rotor is not touched by satellite tracking");
+            RotorClient.getInstance().moveTo(200);                          // a spot click, a preset, the beam: the main rotor
+            assertEquals("P 200.0 0.0", main.next());
+            assertNull(sat.got.poll(600, TimeUnit.MILLISECONDS), "the satellite rotor is not touched by the main rotor's moves");
+        });
+    }
+
+    @Test
+    void withoutASatelliteRotorSatelliteTrackingUsesTheMainRotor() throws Exception {
+        withTwoRotors(false, (main, sat) -> {
+            assertSame(RotorClient.getInstance(), RotorClient.forSatellites());
+            assertFalse(RotorClient.satellite().isEnabled());
+            RotorClient.forSatellites().trackTo(123.4, 45.6);              // the main rotor is azimuth-only unless said otherwise
+            assertEquals("P 123.4 0.0", main.next());
+            assertNull(sat.got.poll(600, TimeUnit.MILLISECONDS));
+        });
+    }
+
+    @Test
+    void eachRotorHasItsOwnRangeWrapAndElevationSetting() throws Exception {
+        withTwoRotors(true, (main, sat) -> {
+            HubConfig.set("rotor.range", "360\u00b0");                        // the main rotor turns once
+            HubConfig.set("rotor2.range", "450\u00b0"); HubConfig.set("rotor2.wrap", "North");   // the satellite rotor has a 90 degree overlap
+            RotorClient.getInstance().applyRemote(new RotorClient.State(true, 350, 0));
+            RotorClient.satellite().applyRemote(new RotorClient.State(true, 350, 20));
+            RotorClient.satellite().trackTo(10, 25);
+            assertEquals("P 370.0 25.0", sat.next());                       // carries on past 360
+            RotorClient.getInstance().moveTo(10);
+            assertEquals("P 10.0 0.0", main.next());                        // a one-turn rotor: the plain angle
+            HubConfig.setBool("rotor2.hasElevation", false);               // and its own elevation switch
+            RotorClient.satellite().trackTo(60, 40);
+            assertEquals("P 420.0 20.0", sat.next());                       // holds the elevation it is at (20); bearing 60 is 420 on this overlapping rotor
+        });
+    }
+
+    @Test
+    void aSatelliteRotorThatIsSwitchedOffIsNotConfiguredEvenWithAModelSet() throws Exception {
+        withTwoRotors(false, (main, sat) -> {
+            HubConfig.set("rotor2.hamlibModel", "202");
+            assertFalse(RotorClient.satellite().isEnabled());
+            assertFalse(RotorClient.satellite().isConfigured());
+            assertEquals("not switched on", RotorClient.satellite().statusText());
+            HubConfig.setBool("rotor2.enabled", true);
+            assertTrue(RotorClient.satellite().isConfigured());
+            assertEquals("rotctld offline", RotorClient.satellite().statusText());
+            assertTrue(RotorClient.getInstance().isEnabled(), "the main rotor is always on");
+        });
+    }
 
     @Test
     void anElevationRotorIsSentTheAzimuthAndTheElevation() throws Exception {

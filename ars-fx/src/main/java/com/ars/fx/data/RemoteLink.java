@@ -136,6 +136,10 @@ public final class RemoteLink {
             if (rig != null) RigClient.getInstance().applyRemote(rig);
             RotorClient.State rot = GSON.fromJson(o.get("rotor"), RotorClient.State.class);
             if (rot != null) RotorClient.getInstance().applyRemote(rot);
+            if (o.has("rotor2")) {                                                   // the station's satellite rotor, when it has one
+                RotorClient.State sat = GSON.fromJson(o.get("rotor2"), RotorClient.State.class);
+                if (sat != null) RotorClient.satellite().applyRemote(sat);
+            }
 
             if (o.has("station") && o.get("station").isJsonObject()) applyStation(o.getAsJsonObject("station"));
         } catch (Exception ignored) { /* malformed snapshot */ }
@@ -184,7 +188,18 @@ public final class RemoteLink {
         o.addProperty("band", sp.band() == null ? "" : sp.band()); o.addProperty("de", sp.de()); o.addProperty("comment", sp.comment());
         send(o);
     }
-    public void sendRotorMove(double az) { JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az); send(o); }
+    public void sendRotorMove(double az) { sendRotorMove("", az); }
     /** As above with an elevation too (a satellite pass on an az/el rotor); a station that only knows azimuth ignores the extra field. */
-    public void sendRotorMove(double az, double el) { JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az); o.addProperty("el", el); send(o); }
+    public void sendRotorMove(double az, double el) { sendRotorMove("", az, el); }
+    /** A move for one of the station's two rotors: {@code which} is "" for the main rotor, "sat" for the satellite rotor (an older station ignores it). */
+    public void sendRotorMove(String which, double az) {
+        JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az);
+        if (which != null && !which.isEmpty()) o.addProperty("rotor", which);
+        send(o);
+    }
+    public void sendRotorMove(String which, double az, double el) {
+        JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az); o.addProperty("el", el);
+        if (which != null && !which.isEmpty()) o.addProperty("rotor", which);
+        send(o);
+    }
 }

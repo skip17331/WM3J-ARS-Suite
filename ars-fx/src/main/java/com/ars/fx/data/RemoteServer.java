@@ -118,8 +118,9 @@ public final class RemoteServer extends WebSocketServer {
                 case "rig.mode"     -> RigClient.getInstance().setMode(o.get("mode").getAsString());
                 case "rotor.move"   -> {
                     double az = o.get("az").getAsDouble();
-                    if (o.has("el")) RotorClient.getInstance().moveTo(az, o.get("el").getAsDouble());   // a satellite pass on an az/el rotor
-                    else RotorClient.getInstance().moveTo(az);
+                    RotorClient rotor = o.has("rotor") && "sat".equals(o.get("rotor").getAsString()) ? RotorClient.satellite() : RotorClient.getInstance();
+                    if (o.has("el")) rotor.moveTo(az, o.get("el").getAsDouble());   // a satellite pass on an az/el rotor
+                    else rotor.moveTo(az);
                 }
                 case "hello"        -> {                                   // client identifies itself
                     clients.put(conn, o.has("module") ? o.get("module").getAsString() : "?");
@@ -198,6 +199,7 @@ public final class RemoteServer extends WebSocketServer {
         o.add("heard", GSON.toJsonTree(HeardByClient.getInstance().spots()));
         o.add("rig",   GSON.toJsonTree(RigClient.getInstance().last()));
         o.add("rotor", GSON.toJsonTree(RotorClient.getInstance().last()));
+        if (RotorClient.satellite().isEnabled()) o.add("rotor2", GSON.toJsonTree(RotorClient.satellite().last()));   // only when there is one
         JsonObject feeds = new JsonObject();
         feeds.add("cluster", ClusterClient.getInstance().statusJson());
         feeds.add("rbn", HeardByClient.getInstance().statusJson());

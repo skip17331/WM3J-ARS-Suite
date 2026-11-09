@@ -15,12 +15,38 @@ import java.util.function.Consumer;
  * <code>p</code> → "az\nel\nRPRT 0", <code>P az el</code> slews, <code>S</code>
  * stops. Host defaults to <code>127.0.0.1</code> (never "localhost" — IPv6/IPv4
  * loopback mismatch on Windows).
+ *
+ * <p>There can be two rotors, each its own instance with its own connection and settings: the main rotor
+ * ({@link #getInstance}, settings under {@code rotor.}) and an optional <b>satellite rotor</b> ({@link #satellite},
+ * under {@code rotor2.}, off until switched on) such as an az/el rotator on the satellite antenna while the main one
+ * turns an HF beam. Satellite tracking goes to {@link #forSatellites}; everything else uses the main rotor.
  */
 public final class RotorClient {
 
-    private static final RotorClient INSTANCE = new RotorClient();
+    private static final RotorClient INSTANCE = new RotorClient("rotor.", "Rotor", "4533", false);
+    private static final RotorClient SATELLITE = new RotorClient("rotor2.", "Satellite rotor", "4534", true);
+    /** The main rotor: spot clicks, the beam presets, the J-Map beam and the web page all use it. */
     public static RotorClient getInstance() { return INSTANCE; }
-    private RotorClient() {}
+    /** The optional satellite rotor. Always an object; {@link #isEnabled} says whether it is switched on. */
+    public static RotorClient satellite() { return SATELLITE; }
+    /** The rotor that tracks satellites: the satellite rotor when it is switched on, otherwise the main one. */
+    public static RotorClient forSatellites() { return SATELLITE.isEnabled() ? SATELLITE : INSTANCE; }
+
+    /** Settings live under {@code prefix} ("rotor." or "rotor2."); {@code second} marks the satellite rotor, which has its own defaults. */
+    private final String prefix, label, defaultPort;
+    private final boolean second;
+    RotorClient(String prefix, String label, String defaultPort, boolean second) {
+        this.prefix = prefix; this.label = label; this.defaultPort = defaultPort; this.second = second;
+        this.host = resolveHost(); this.port = resolvePort();
+    }
+    /** "Rotor" or "Satellite rotor", for screens that show both. */
+    public String label() { return label; }
+    /** Whether this is the satellite rotor (as opposed to the main one). */
+    public boolean isSatelliteRotor() { return second; }
+    /** The main rotor is always on; the satellite rotor only when switched on (J-Hub > Rotor control > Satellite rotor). */
+    public boolean isEnabled() { return !second || HubConfig.getBool(prefix + "enabled", false); }
+    /** What the remote link calls it: nothing for the main rotor, "sat" for the satellite rotor. */
+    public String remoteKey() { return second ? "sat" : ""; }
 
     private static final long POLL_MS = 700;
 
@@ -28,14 +54,14 @@ public final class RotorClient {
         public static final State OFFLINE = new State(false, 0, 0);
     }
 
-    // rotctld endpoint: -Drotor.host/-Drotor.port override, else HubConfig, else default
-    private volatile String host = resolveHost();
-    private volatile int    port = resolvePort();
-    private static String resolveHost() { return System.getProperty("rotor.host", HubConfig.get("rotor.host", "127.0.0.1")); }
-    private static int resolvePort() {
-        String p = System.getProperty("rotor.port");
-        try { return p != null ? Integer.parseInt(p.trim()) : Integer.parseInt(HubConfig.get("rotor.rotctldPort", "4533").trim()); }
-        catch (Exception e) { return 4533; }
+    // rotctld endpoint: -Drotor.host/-Drotor.port (-Drotor2.host/-Drotor2.port) override, else HubConfig, else default
+    private volatile String host;
+    private volatile int    port;
+    private String resolveHost() { return System.getProperty(prefix + "host", HubConfig.get(prefix + "host", "127.0.0.1")); }
+    private int resolvePort() {
+        String p = System.getProperty(prefix + "port");
+        try { return p != null ? Integer.parseInt(p.trim()) : Integer.parseInt(HubConfig.get(prefix + "rotctldPort", defaultPort).trim()); }
+        catch (Exception e) { return Integer.parseInt(defaultPort); }
     }
     /** Re-read the endpoint from config and drop the socket so the poll loop reconnects. */
     public void reconnect() { host = resolveHost(); port = resolvePort(); closeSocket(); }
@@ -51,7 +77,8 @@ public final class RotorClient {
 
     /** True if a rotor appears to be set up: a Hamlib model is configured, or a rotor is actually answering. */
     public boolean isConfigured() {
-        String m = HubConfig.get("rotor.hamlibModel", "");
+        if (!isEnabled()) return false;
+        String m = HubConfig.get(prefix + "hamlibModel", "");
         return (m != null && !m.isBlank()) || last.connected();
     }
     public String endpoint() { return host + ":" + port; }
@@ -60,14 +87,14 @@ public final class RotorClient {
     public double headingDeg() { State s = last; return s.connected() ? ((s.az() % 360) + 360) % 360 : Double.NaN; }
 
     /** Why there is no heading, or that it is live. */
-    public String statusText() { return last.connected() ? "live" : isConfigured() ? "rotctld offline" : "no rotor set up"; }
+    public String statusText() { return last.connected() ? "live" : !isEnabled() ? "not switched on" : isConfigured() ? "rotctld offline" : "no rotor set up"; }
     public void setListener(Consumer<State> l) { this.listener = l == null ? s -> {} : l; emit(last); }
 
     public synchronized void start() {
         if (started) return;
         started = true;
         if (RemoteLink.isActive()) return;   // solo-remote: az/el arrives via applyRemote(), no local rotctld
-        Thread t = new Thread(this::loop, "rotor-poll");
+        Thread t = new Thread(this::loop, second ? "rotor2-poll" : "rotor-poll");
         t.setDaemon(true);
         t.start();
     }
@@ -77,6 +104,12 @@ public final class RotorClient {
 
     private void loop() {
         while (true) {
+            if (!isEnabled()) {                                   // a satellite rotor that is switched off: do not knock on its port
+                closeSocket();
+                if (last.connected()) emit(State.OFFLINE);
+                try { Thread.sleep(2000); } catch (InterruptedException ie) { return; }
+                continue;
+            }
             try {
                 double[] pos = parsePos(send("p"));
                 emit(new State(true, pos[0], pos[1]));
@@ -92,15 +125,15 @@ public final class RotorClient {
     /** Slew to azimuth (elevation held at current reading). */
     public void moveTo(double az) {
         targetAz = ((az % 360) + 360) % 360;
-        if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz); return; }   // forward to the station
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(remoteKey(), targetAz); return; }   // forward to the station
         double el = Math.max(0, last.el());
         runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", commandAz(targetAz), el));   // rotctld wants a decimal point, whatever the system locale
     }
 
     /** True when the rotor turns 450 degrees, so most bearings can be reached at two angles (J-Hub > Rotor control > Rotor range). */
-    public static boolean overlapRotor() { return HubConfig.get("rotor.range", "360").trim().startsWith("450"); }
+    public boolean overlapRotor() { return HubConfig.get(prefix + "range", "360").trim().startsWith("450"); }
     /** Where a 450 degree rotor overlaps: at North (its travel is 0 to 450) or at South (-180 to +270). */
-    public static boolean overlapAtNorth() { return !"South".equalsIgnoreCase(HubConfig.get("rotor.wrap", "North").trim()); }
+    public boolean overlapAtNorth() { return !"South".equalsIgnoreCase(HubConfig.get(prefix + "wrap", "North").trim()); }
 
     /** The azimuth to send for a bearing, given where the rotor is now and how it is set up. */
     private double commandAz(double bearing) {
@@ -129,7 +162,7 @@ public final class RotorClient {
     }
 
     /** True when the rotor has an elevation axis (J-Hub > Rotor control > Elevation rotor): satellite tracking then drives elevation as well as azimuth. */
-    public static boolean hasElevation() { return HubConfig.getBool("rotor.hasElevation", false); }
+    public boolean hasElevation() { return HubConfig.getBool(prefix + "hasElevation", second); }   // a satellite rotor is an az/el rotor unless said otherwise
     /** Elevation is asked for between 0 (the horizon) and 90 (straight up). */
     private static double clampEl(double el) { return Math.max(0, Math.min(90, el)); }
 
@@ -137,7 +170,7 @@ public final class RotorClient {
     public void moveTo(double az, double el) {
         targetAz = ((az % 360) + 360) % 360;
         double e = clampEl(el);
-        if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz, e); return; }   // forward to the station, elevation included
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(remoteKey(), targetAz, e); return; }   // forward to the station, elevation included
         runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", commandAz(targetAz), e));
     }
     /** A beam preset: shown in full on J-Hub ▸ Hardware ▸ Rotor control (where it is edited) and by {@code shortName} on the rotor drawer. */
@@ -154,8 +187,8 @@ public final class RotorClient {
             new Preset("Asia (LP)", "AS", "AsiaLP", 330), new Preset("Oceania", "OC", "Oceania", 250));
 
     /** The park azimuth from J-Hub ▸ Rotor control (0 when not set). */
-    public static int parkAz() {
-        try { return (int) Math.round(((Double.parseDouble(HubConfig.get("rotor.park", "0").trim()) % 360) + 360) % 360); }
+    public int parkAz() {
+        try { return (int) Math.round(((Double.parseDouble(HubConfig.get(prefix + "park", "0").trim()) % 360) + 360) % 360); }
         catch (NumberFormatException e) { return 0; }
     }
     /** The dead-band in degrees from J-Hub ▸ Rotor control: automatic tracking does not bother the rotor for less than this. */
