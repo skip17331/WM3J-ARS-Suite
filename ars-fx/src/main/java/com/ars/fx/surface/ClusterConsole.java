@@ -115,7 +115,7 @@ final class ClusterConsole {
         clear.setOnMouseClicked(e -> { log.clear(); last[0] = cc.rawSeq(); });
         Timeline tick = new Timeline(new KeyFrame(Duration.millis(250), e -> {
             TelnetFeed.Status s = cc.status();
-            dot.setStyle(FeedUi.dot(s));
+            FeedUi.paint(dot, s);
             state.setText(FeedUi.line(cc));
             detail.setText(s == TelnetFeed.Status.CONNECTED ? "Logged in as " + cc.loginCall() + ". Spots keep flowing to the other windows." : cc.detail());
             detail.setManaged(!detail.getText().isEmpty()); detail.setVisible(!detail.getText().isEmpty());

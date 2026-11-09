@@ -1,11 +1,14 @@
 package com.ars.fx.data;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Suite-wide station + hardware settings, edited on the J-Hub config pages and
@@ -48,10 +51,15 @@ public final class HubConfig {
         ensure();
         try { return root.has(key) ? root.get(key).getAsBoolean() : def; } catch (Exception e) { return def; }
     }
-    public static synchronized void set(String key, String val) { ensure(); root.addProperty(key, val == null ? "" : val); save(); changed(key); }
+    public static synchronized void set(String key, String val) { ensure(); put(key, new JsonPrimitive(val == null ? "" : val)); changed(key); }
     /** Drop a key entirely, so readers fall back to their defaults. */
-    public static synchronized void remove(String key) { ensure(); root.remove(key); save(); changed(key); }
-    public static synchronized void setBool(String key, boolean val) { ensure(); root.addProperty(key, val); save(); changed(key); }
+    public static synchronized void remove(String key) { ensure(); put(key, null); changed(key); }
+    public static synchronized void setBool(String key, boolean val) { ensure(); put(key, new JsonPrimitive(val)); changed(key); }
+    /** A whole number setting, or {@code def} when it is missing or not a number. */
+    public static int getInt(String key, int def) {
+        try { return Integer.parseInt(get(key, "").trim()); } catch (NumberFormatException e) { return def; }
+    }
+    public static void setInt(String key, int val) { set(key, String.valueOf(val)); }
 
     // convenience accessors for the most-shared identity fields
     /** Your callsign from J-Hub ▸ Station; empty until set. */
@@ -78,11 +86,31 @@ public final class HubConfig {
     public static double lon() { double[] l = location(); return l == null ? 0 : l[1]; }
     public static final String LOCATION_HINT = "Set your location (grid square or latitude / longitude) in J-Hub ▸ Station.";
 
-    private static void save() {
+    /**
+     * Change one key and write it through. The hub and every app window are separate processes, each with its own copy of this file, and each used
+     * to write its whole copy back on any change: whichever saved last undid the others' settings (a colour scheme chosen in one window reverted when
+     * another saved something unrelated). So the file is read again first and only this key is changed in it; the result becomes this process's
+     * copy too, so it picks up the other processes' changes as it goes. {@code el == null} removes the key.
+     */
+    private static void put(String key, JsonElement el) {
+        JsonObject target = root;
+        try {
+            Path p = file();
+            if (Files.exists(p)) target = JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+        } catch (Exception unreadable) { target = root; }          // keep what we have rather than lose the change
+        if (el == null) target.remove(key); else target.add(key, el);
+        root = target;
         try {
             Path p = file();
             Files.createDirectories(p.getParent());
-            Files.writeString(p, root.toString());
+            Path tmp = p.resolveSibling("config.json.tmp");        // write whole, then swap in, so no one reads half a file
+            Files.writeString(tmp, target.toString());
+            try {
+                Files.move(tmp, p, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (java.io.IOException cannotSwap) {
+                Files.writeString(p, target.toString());           // the target is held open elsewhere: write in place instead
+                Files.deleteIfExists(tmp);
+            }
         } catch (Exception ignored) { /* best-effort */ }
     }
 }

@@ -156,18 +156,23 @@ public final class JMapView {
     }
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
-    private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false;
+    private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true, ovFade = true;
     // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
     // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
     // icon strip (same idea as J-Sat's satellite list).
     private static final double NARROW_W = 1240;
     private static boolean narrow() { return mapFrame != null && mapFrame.getWidth() > 1 && mapFrame.getWidth() < NARROW_W; }
     private static boolean overlayFlag(int i) {
-        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; default -> ovNeededOnly; };
+        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; case 6 -> ovBurst; default -> ovFade; };
+    }
+    private static void applyOverlay(int i, boolean v) {
+        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; case 6 -> ovBurst = v; default -> ovFade = v; }
     }
     private static void setOverlayFlag(int i, boolean v) {
-        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; default -> ovNeededOnly = v; }
+        applyOverlay(i, v);
+        com.ars.fx.data.HubConfig.setBool("map.ov." + i, v);            // kept for next time
     }
+    static { for (int i = 0; i < 8; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
     private static java.util.Set<String> workedCallsCache = java.util.Set.of();
     private static long workedCallsAt = 0;
     private static java.util.Set<String> workedCalls() {
@@ -179,20 +184,86 @@ public final class JMapView {
     private static boolean spotHidden(String call) { return ovNeededOnly && workedCalls().contains(call.toUpperCase()); }
 
     // ---- live DX-cluster spots on the map ---------------------------------
-    private static int spotMode = 0;                                              // 0 All · 1 CW · 2 Phone · 3 Digi
+    private static int spotMode = Math.max(0, Math.min(3, com.ars.fx.data.HubConfig.getInt("map.spotMode", 0)));   // 0 All · 1 CW · 2 Phone · 3 Digi
     private static final java.util.Set<String> spotBands = new java.util.HashSet<>();   // empty = all bands
-    private static int spotAgeMax = 20;                                           // minutes
+    static { for (String b : com.ars.fx.data.HubConfig.get("map.bands", "").split(",")) if (!b.isBlank()) spotBands.add(b.trim()); }
+    private static int spotAgeMax = Math.max(1, Math.min(60, com.ars.fx.data.HubConfig.getInt("map.spotAge", 20)));   // minutes
     private static Runnable currentSpotsRefresh;
 
-    /** A spot's dot. With Path now on, a band our estimate says is probably closed fades, and one it says is likely open gets a green ring. */
+    /**
+     * A spot's dot: a soft glow in its band's colour, fading as the spot ages so what is current stands out, and a ring on the very newest. With Path now
+     * on, a band our estimate says is probably closed fades further, and one it says is likely open gets a green ring.
+     */
     private static void spotDot(javafx.scene.canvas.GraphicsContext g, MapSpot s, double x, double y, double spotA) {
         com.ars.fx.data.Propagation.Verdict v = com.ars.fx.data.PathNow.shown() ? com.ars.fx.data.PathNow.forPoint(s.lat(), s.lon(), s.freqHz()) : null;
         double a = v == com.ars.fx.data.Propagation.Verdict.CLOSED ? spotA * 0.4 : spotA;
-        g.setFill(s.color().deriveColor(0, 1, 1, a)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
+        double ageMin = Math.max(0, (System.currentTimeMillis() - s.arrivalMs()) / 60000.0);
+        a *= 1.0 - 0.45 * Math.min(1.0, ageMin / Math.max(1, spotAgeMax));              // older spots recede
+        Color c = s.color();
+        g.setFill(new javafx.scene.paint.RadialGradient(0, 0, x, y, 13, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0, c.deriveColor(0, 1, 1, 0.55 * a)), new javafx.scene.paint.Stop(1, c.deriveColor(0, 1, 1, 0))));
+        g.fillOval(x - 13, y - 13, 26, 26);
+        g.setFill(c.deriveColor(0, 1, 1, a)); g.fillOval(x - 4.5, y - 4.5, 9, 9);
+        if (ageMin < 1.5) { g.setStroke(c.deriveColor(0, 1, 1, 0.85 * a)); g.setLineWidth(1.3); g.strokeOval(x - 8, y - 8, 16, 16); }   // heard in the last minute and a half
         if (v == com.ars.fx.data.Propagation.Verdict.OPEN) {
             g.setStroke(Color.web("#4ade80", 0.95 * spotA)); g.setLineWidth(1.6); g.strokeOval(x - 6.5, y - 6.5, 13, 13);
         }
     }
+
+    /**
+     * The callsigns, drawn after every dot as small pills so they stay readable over land, sea and each other. The selected spot goes first, then the
+     * newest; each takes the first of four places round its dot (right, left, above, below) that is not on a label already placed or on the station's
+     * own call. If none is free the label is left out and the dot keeps its glow, so a crowd of spots reads as dots with a few clear names, not a smear.
+     * {@code meX} is NaN when the station is off the map.
+     */
+    private static void drawSpotLabels(GraphicsContext g, double spotA, double w, double h, double meX, double meY) {
+        labelsFading = false;
+        if (paintedDots.isEmpty()) return;
+        List<Dot> order = new ArrayList<>(paintedDots);
+        order.sort((p, q) -> {
+            boolean ps = p.s().call().equalsIgnoreCase(selectedSpotCall), qs = q.s().call().equalsIgnoreCase(selectedSpotCall);
+            if (ps != qs) return ps ? -1 : 1;
+            return Long.compare(q.s().arrivalMs(), p.s().arrivalMs());
+        });
+        Font plain = Font.font("JetBrains Mono", FontWeight.NORMAL, 11), bold = Font.font("JetBrains Mono", FontWeight.BOLD, 11);
+        List<double[]> placed = new ArrayList<>();                                          // {x, y, width, height}
+        if (!Double.isNaN(meX)) placed.add(new double[]{meX - 10, meY - 16, 14 + 8 * Math.max(3, myCall.length()), 26});
+        g.setTextAlign(TextAlignment.LEFT);
+        long now = System.currentTimeMillis();
+        double life = com.ars.fx.data.LabelFade.lifeSec(order.size(), spotAgeMax);           // the busier the map, the sooner a name goes
+        boolean anyFading = false;
+        for (Dot d : order) {
+            MapSpot s = d.s();
+            boolean sel = s.call().equalsIgnoreCase(selectedSpotCall);
+            double fade = (!ovFade || sel) ? 1.0 : com.ars.fx.data.LabelFade.alpha((now - s.arrivalMs()) / 1000.0, life);
+            if (fade < 0.06) continue;                                                      // gone: it no longer takes up room either
+            if (fade < 1.0) anyFading = true;
+            Font f = sel ? bold : plain;
+            double pw = textWidth(s.call(), f) + 10, ph = 16;
+            double[][] tries = {{d.x() + 9, d.y() - ph / 2}, {d.x() - 9 - pw, d.y() - ph / 2}, {d.x() - pw / 2, d.y() - ph - 8}, {d.x() - pw / 2, d.y() + 8}};
+            double[] at = null;
+            for (double[] c : tries) {
+                if (c[0] < 2 || c[1] < 2 || c[0] + pw > w - 2 || c[1] + ph > h - 2) continue;
+                boolean clash = false;
+                for (double[] r : placed) if (c[0] < r[0] + r[2] && c[0] + pw > r[0] && c[1] < r[1] + r[3] && c[1] + ph > r[1]) { clash = true; break; }
+                if (!clash) { at = c; break; }
+            }
+            if (at == null) { if (!sel) continue; at = tries[0]; }                          // the selected spot always gets its name
+            placed.add(new double[]{at[0], at[1], pw, ph});
+            double la = spotA * fade;
+            g.setFill(Color.web("#0b0f14", (sel ? 0.86 : 0.66) * la));
+            g.fillRoundRect(at[0], at[1], pw, ph, 7, 7);
+            g.setStroke(sel ? Color.web("#ffffff", 0.85 * la) : s.color().deriveColor(0, 1, 1, 0.55 * la)); g.setLineWidth(sel ? 1.4 : 1.0);
+            g.strokeRoundRect(at[0], at[1], pw, ph, 7, 7);
+            g.setFill(Color.web("#e8eef4", la)); g.setFont(f);
+            g.fillText(s.call(), at[0] + 5, at[1] + ph - 4.5);
+        }
+        labelsFading = anyFading;
+    }
+    /** Set by the last paint: some callsign is part-way through fading, so the map needs repainting now and then for the fade to carry on. */
+    private static boolean labelsFading = false;
+    private static final Text MEASURE = new Text();
+    private static double textWidth(String str, Font f) { MEASURE.setFont(f); MEASURE.setText(str); return MEASURE.getLayoutBounds().getWidth(); }
 
     /** A positioned cluster spot (geo-located via {@link com.ars.fx.data.Geo}). */
     public record MapSpot(String call, double lat, double lon, String band, String mode, long arrivalMs, long freqHz, Color color,
@@ -231,7 +302,7 @@ public final class JMapView {
             if (showBeacons) beaconWatch();
             long second = java.time.Instant.now().getEpochSecond();
             boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
-            if (beamMoved || (showSpotPaths && second % 15 == 0) || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
+            if (beamMoved || (showSpotPaths && second % 15 == 0) || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0) || (labelsFading && ovCallsigns && ovFade && second % 10 == 0)) repaintMap();
         }));
         beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
         beaconTicker.play();
@@ -461,13 +532,20 @@ public final class JMapView {
         cc.start();
         // collapsible left controls column
         StackPane leftHolder = new StackPane(); leftHolder.setAlignment(Pos.TOP_LEFT);
-        java.util.function.IntConsumer onProj = i -> { projection = i; renderMap.run(); };
+        java.util.function.IntConsumer onProj = i -> { projection = i; com.ars.fx.data.HubConfig.setInt("map.projection", i); renderMap.run(); };
         Runnable[] rebuildLeft = new Runnable[1];
         rebuildLeft[0] = () -> leftHolder.getChildren().setAll(com.ars.fx.shell.AutoPanel.wrap("map", false, leftRail(),
                 scrollLeft(leftPanel(projection, onProj, () -> rebuildLeft[0].run())), 270, JMapView::narrow));
         rebuildLeft[0].run();
 
-        StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
+        Canvas burst = new Canvas(); burst.setMouseTransparent(true);          // the starbursts: a light layer above the map, so the map itself is not redrawn every frame
+        burst.widthProperty().bind(mapHolder.widthProperty()); burst.heightProperty().bind(mapHolder.heightProperty());
+        StackPane.setAlignment(burst, Pos.TOP_LEFT);
+        setUpBursts(burst);
+        StackPane mapWithButton = new StackPane(mapHolder, burst, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
+        Region projToggle = projectionToggle(onProj);                 // top right of the map, where J-Sat keeps its view buttons
+        StackPane.setAlignment(projToggle, Pos.TOP_RIGHT); StackPane.setMargin(projToggle, new Insets(12, 18, 0, 0));
+        mapWithButton.getChildren().add(projToggle);
         if (!com.ars.fx.data.HubConfig.hasLocation()) {
             Label warn = lbl("⚠ " + com.ars.fx.data.HubConfig.LOCATION_HINT + " Bearings, distances and the gray line need it.", "jm-tog-label");
             warn.setWrapText(true); warn.setMaxWidth(560);
@@ -485,8 +563,159 @@ public final class JMapView {
     }
 
     private static Region mapFrame;
+
+    // ---- starburst: a short pop on the map where a spot has just arrived ----
+    private static final long BURST_MS = 2600;
+    private static Canvas burstCanvas;
+    private static javafx.animation.AnimationTimer burstTimer;
+
+    private static void setUpBursts(Canvas c) {
+        if (burstTimer != null) burstTimer.stop();
+        burstCanvas = c;
+        burstTimer = new javafx.animation.AnimationTimer() {
+            @Override public void handle(long nowNs) {
+                GraphicsContext g = burstCanvas.getGraphicsContext2D();
+                g.clearRect(0, 0, burstCanvas.getWidth(), burstCanvas.getHeight());
+                long now = System.currentTimeMillis();
+                boolean any = false;
+                if (ovBurst && !com.ars.fx.shell.Fx.reduced()) {
+                    for (Dot d : paintedDots) {
+                        long age = now - d.s().arrivalMs();
+                        if (age < 0 || age >= BURST_MS) continue;
+                        any = true;
+                        drawBurst(g, d.x(), d.y(), age / (double) BURST_MS, d.s().color());
+                    }
+                    for (LimbDot d : limbDots) {
+                        long age = now - d.s().arrivalMs();
+                        if (age < 0 || age >= BURST_MS) continue;
+                        any = true;
+                        drawLimbBurst(g, d.x(), d.y(), d.theta(), age / (double) BURST_MS, d.s().color());
+                    }
+                }
+                if (!any) stop();                                   // nothing new on the map: no more frames until the next spot
+            }
+        };
+    }
+
+    /** Called after each map paint: if a spot on the map is brand new, play its starburst. The timer runs only while there is one to play. */
+    private static void kickBursts() {
+        if (!ovBurst || burstTimer == null || com.ars.fx.shell.Fx.reduced()) return;
+        long now = System.currentTimeMillis();
+        for (Dot d : paintedDots) { long age = now - d.s().arrivalMs(); if (age >= 0 && age < BURST_MS) { burstTimer.start(); return; } }
+        for (LimbDot d : limbDots) { long age = now - d.s().arrivalMs(); if (age >= 0 && age < BURST_MS) { burstTimer.start(); return; } }
+    }
+
+    /** A new spot on the far side of the globe, shown as a burst on the globe's edge: {x, y} is the rim point in line with it, {@code theta} the way out from the centre. */
+    private record LimbDot(double x, double y, double theta, MapSpot s) {}
+    private static final List<LimbDot> limbDots = new ArrayList<>();
+
+    /** Called for a spot the globe cannot see. Only brand-new ones are kept: the rim point is where the line from the globe's centre through the hidden spot's projected position meets the edge. */
+    private static void noteLimbSpot(com.ars.fx.data.GlobeProjection pr, MapSpot s, double w, double h) {
+        long age = System.currentTimeMillis() - s.arrivalMs();
+        if (age < 0 || age >= BURST_MS) return;
+        com.ars.fx.data.GlobeProjection.Pt p = pr.project(s.lat(), s.lon(), 0);
+        double dx = p.x() - w / 2, dy = p.y() - h / 2, rim = pr.silhouetteRadius();
+        double theta = Math.hypot(dx, dy) < 1 ? -Math.PI / 2 : Math.atan2(dy, dx);              // dead behind the centre: say it is straight up
+        limbDots.add(new LimbDot(w / 2 + Math.cos(theta) * rim, h / 2 + Math.sin(theta) * rim, theta, s));
+    }
+
+    /**
+     * The far-side version of {@link #drawBurst}, quieter and half a burst: a glow on the globe's edge, a half ring on the outer side and five rays fanning
+     * outward, as if the spot were peeking over the horizon. Same timing and the same dark line under everything.
+     */
+    private static void drawLimbBurst(GraphicsContext g, double x, double y, double theta, double t, Color band) {
+        double a = t < 0.35 ? 1.0 : Math.pow(1 - (t - 0.35) / 0.65, 1.2);
+        double grow = 1 - Math.pow(1 - Math.min(1.0, t / 0.6), 2.2);
+        Color col = band.interpolate(Color.WHITE, 0.15).deriveColor(0, 1.2, 1.15, a), under = Color.web("#0b0f14", 0.5 * a);
+        g.setLineCap(StrokeLineCap.ROUND);
+        double gr = 16 + 8 * grow;
+        g.setFill(new javafx.scene.paint.RadialGradient(0, 0, x, y, gr, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0, band.deriveColor(0, 1.2, 1.2, 0.5 * a)), new javafx.scene.paint.Stop(1, band.deriveColor(0, 1.2, 1.2, 0))));
+        g.fillOval(x - gr, y - gr, gr * 2, gr * 2);
+        double start = -Math.toDegrees(theta) - 90;                     // JavaFX arcs run counter-clockwise, screen angles clockwise
+        double r = 5 + 17 * grow, w = 2.4 * (1 - 0.7 * t) + 0.5;
+        g.setLineWidth(w + 2.0); g.setStroke(under); g.strokeArc(x - r, y - r, r * 2, r * 2, start, 180, javafx.scene.shape.ArcType.OPEN);
+        g.setLineWidth(w); g.setStroke(col); g.strokeArc(x - r, y - r, r * 2, r * 2, start, 180, javafx.scene.shape.ArcType.OPEN);
+        double r0 = 4 + 5 * grow, r1 = 9 + 20 * grow, rayW = 2.2 * (1 - 0.55 * t) + 0.7;
+        for (int pass = 0; pass < 2; pass++) {
+            g.setLineWidth(pass == 0 ? rayW + 2.0 : rayW); g.setStroke(pass == 0 ? under : col);
+            for (int i = -2; i <= 2; i++) {
+                double ang = theta + Math.toRadians(i * 38), far = (Math.abs(i) == 1) ? r1 * 0.7 : r1;
+                g.strokeLine(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0, x + Math.cos(ang) * far, y + Math.sin(ang) * far);
+            }
+        }
+        double core = t < 0.25 ? 1.0 - t / 0.25 : 0.0;
+        if (core > 0) { g.setFill(Color.WHITE.deriveColor(0, 1, 1, 0.9 * core)); g.fillOval(x - 4.5, y - 4.5, 9, 9); }
+    }
+
+    /**
+     * One frame of a burst, {@code t} from 0 to 1 over {@link #BURST_MS}. It has to catch the eye on a busy map without shouting: a flash
+     * and a glow round the dot, two rings (the second a beat behind, and fainter) that spread, and eight rays (long and short alternately) that shoot out and
+     * turn a little. It holds full strength for the first 35% and then fades. Everything is drawn twice, a dark line under the band-coloured one, so it shows on
+     * a pale map as well as a dark one.
+     */
+    private static void drawBurst(GraphicsContext g, double x, double y, double t, Color band) {
+        double a = t < 0.35 ? 1.0 : Math.pow(1 - (t - 0.35) / 0.65, 1.2);                 // hold, then fade
+        double grow = 1 - Math.pow(1 - Math.min(1.0, t / 0.6), 2.2);                          // out fast, then settle
+        Color col = band.interpolate(Color.WHITE, 0.15).deriveColor(0, 1.2, 1.15, a), under = Color.web("#0b0f14", 0.55 * a);
+        g.setLineCap(StrokeLineCap.ROUND);
+
+        // a soft glow round the dot for the whole burst
+        double gr = 18 + 8 * grow;
+        g.setFill(new javafx.scene.paint.RadialGradient(0, 0, x, y, gr, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0, band.deriveColor(0, 1.2, 1.2, 0.42 * a)), new javafx.scene.paint.Stop(1, band.deriveColor(0, 1.2, 1.2, 0))));
+        g.fillOval(x - gr, y - gr, gr * 2, gr * 2);
+
+        // two rings, the second a beat behind
+        for (int k = 0; k < 2; k++) {
+            double tk = Math.max(0, Math.min(1.0, (t - 0.15 * k) / 0.6));
+            if (tk <= 0) continue;
+            double r = 6 + (26 - 6 * k) * (1 - Math.pow(1 - tk, 2.2)), w = (2.8 - 1.0 * k) * (1 - 0.7 * tk) + 0.5;
+            double ak = a * (k == 0 ? 1.0 : 0.6);
+            g.setLineWidth(w + 2.0); g.setStroke(Color.web("#0b0f14", 0.55 * ak)); g.strokeOval(x - r, y - r, r * 2, r * 2);
+            g.setLineWidth(w); g.setStroke(col.deriveColor(0, 1, 1, k == 0 ? 1.0 : 0.6)); g.strokeOval(x - r, y - r, r * 2, r * 2);
+        }
+
+        // eight rays
+        double r0 = 5 + 6 * grow, r1 = 11 + 26 * grow, turn = t * 0.7, rayW = 2.4 * (1 - 0.55 * t) + 0.7;
+        for (int pass = 0; pass < 2; pass++) {
+            g.setLineWidth(pass == 0 ? rayW + 2.0 : rayW); g.setStroke(pass == 0 ? under : col);
+            for (int i = 0; i < 8; i++) {
+                double ang = turn + i * Math.PI / 4, far = (i % 2 == 0) ? r1 : r1 * 0.62;
+                g.strokeLine(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0, x + Math.cos(ang) * far, y + Math.sin(ang) * far);
+            }
+        }
+
+        // a white-hot flash at the centre that pulses once and dims
+        double core = t < 0.25 ? 1.0 - t / 0.25 : 0.0;
+        if (core > 0) {
+            g.setFill(Color.web("#0b0f14", 0.4 * core)); g.fillOval(x - 8, y - 8, 16, 16);
+            g.setFill(Color.WHITE.deriveColor(0, 1, 1, 0.95 * core)); g.fillOval(x - 6, y - 6, 12, 12);
+        }
+    }
+
+    // ---- projection toggle: Azimuthal / Rectangular / Globe (same look and place as J-Sat's Polar / Blue marble / Globe) ----
+    private static Label[] projBtns = new Label[0];
+    /** Light the button for {@code sel}; the region chips call this too, because picking a region switches the map to Rectangular. */
+    private static void highlightProjection(int sel) {
+        for (int i = 0; i < projBtns.length; i++) { projBtns[i].getStyleClass().remove("on"); if (i == sel) projBtns[i].getStyleClass().add("on"); }
+    }
+    private static Region projectionToggle(java.util.function.IntConsumer onProjection) {
+        HBox h = new HBox(2); h.getStyleClass().add("jm-seg");
+        String[] opts = GlobeView.supported() ? new String[]{"Azimuthal", "Rectangular", "Globe"} : new String[]{"Azimuthal", "Rectangular"};
+        projBtns = new Label[opts.length];
+        for (int i = 0; i < opts.length; i++) {
+            final int idx = i;
+            Label b = lbl(opts[i], "jm-seg-btn"); if (i == projection) b.getStyleClass().add("on");
+            b.setMinWidth(96); b.setStyle("-fx-cursor:hand;");
+            b.setOnMouseClicked(e -> { highlightProjection(idx); onProjection.accept(idx); });
+            projBtns[i] = b; h.getChildren().add(b);
+        }
+        h.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        return h;
+    }
     // Kept here, not in build(): switching modules rebuilds J-Map, and these must survive that.
-    private static int projection = 0;                    // 0 azimuthal · 1 rectangular
+    private static int projection = Math.max(0, Math.min(2, com.ars.fx.data.HubConfig.getInt("map.projection", 0)));   // 0 azimuthal · 1 rectangular · 2 globe
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static String grayLineStat() {
         if (!com.ars.fx.data.HubConfig.hasLocation()) return "set location";
@@ -502,8 +731,8 @@ public final class JMapView {
         if (spotsDrawer != null && spotsDrawer.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(shown + " spots");
         java.util.List<Label> vs = new java.util.ArrayList<>(); collectStatValues(mapFrame, vs);
         if (vs.size() >= 4) {
-            vs.get(0).setText(String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));
-            vs.get(1).setText(String.valueOf(shown));
+            com.ars.fx.shell.Fx.setAndFlash(vs.get(0), String.valueOf(com.ars.fx.data.ClusterClient.getInstance().spots().size()));   // a changed count pops
+            com.ars.fx.shell.Fx.setAndFlash(vs.get(1), String.valueOf(shown));
             vs.get(2).setText(grayLineStat());
             vs.get(3).setText(beamText());
         }
@@ -576,23 +805,6 @@ public final class JMapView {
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         HBox header = new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("map", rebuild)); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));
         p.getChildren().add(header);
-        // PROJECTION — inlined (not segSel) so the region picker can flip it to Rectangular and keep the highlight in sync.
-        p.getChildren().add(lbl("PROJECTION","jm-sec"));
-        HBox projSeg = new HBox(2); projSeg.getStyleClass().add("jm-seg");
-        String[] projOpts = GlobeView.supported() ? new String[]{"Azimuthal","Rectangular","Globe"} : new String[]{"Azimuthal","Rectangular"};
-        Label[] projBtns = new Label[projOpts.length];
-        java.util.function.IntConsumer selectProj = sel -> {
-            for (int i = 0; i < projBtns.length; i++) { projBtns[i].getStyleClass().remove("on"); if (i == sel) projBtns[i].getStyleClass().add("on"); }
-        };
-        for (int i = 0; i < projOpts.length; i++) {
-            final int idx = i;
-            Label b = lbl(projOpts[i], "jm-seg-btn"); if (i == projection) b.getStyleClass().add("on");
-            HBox.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
-            b.setOnMouseClicked(e -> { selectProj.accept(idx); onProjection.accept(idx); });
-            projBtns[i] = b; projSeg.getChildren().add(b);
-        }
-        p.getChildren().add(projSeg);
-
         // fixed-zoom region picker — single click. Picking a region snaps the blue
         // marble to that window AND switches the projection to Rectangular, so it
         // takes effect immediately even from the azimuthal view.
@@ -611,7 +823,7 @@ public final class JMapView {
             final int idx = i;
             Label chip = new Label(REGION_NAMES[i]);
             rchips[i] = chip;
-            chip.setOnMouseClicked(e -> { mapRegion = idx; paintChips.run(); selectProj.accept(1); onProjection.accept(1); });
+            chip.setOnMouseClicked(e -> { mapRegion = idx; com.ars.fx.data.HubConfig.setInt("map.region", idx); paintChips.run(); highlightProjection(1); onProjection.accept(1); });
             regions.getChildren().add(chip);
         }
         paintChips.run();
@@ -636,7 +848,7 @@ public final class JMapView {
             Region dot = new Region(); dot.getStyleClass().add("jm-band-dot"); dot.setStyle("-fx-background-color:"+b[1]+";");
             HBox chip = new HBox(7, dot, lbl(b[0],"jm-band-n")); chip.getStyleClass().add("jm-band"); chip.setAlignment(Pos.CENTER_LEFT);
             GridPane.setHgrow(chip, Priority.ALWAYS); chip.setMaxWidth(Double.MAX_VALUE); chip.setStyle("-fx-cursor:hand;");
-            chip.setOnMouseClicked(e -> { if (!spotBands.remove(key)) spotBands.add(key); restyleBands.run(); refreshSpots(); });
+            chip.setOnMouseClicked(e -> { if (!spotBands.remove(key)) spotBands.add(key); com.ars.fx.data.HubConfig.set("map.bands", String.join(",", spotBands)); restyleBands.run(); refreshSpots(); });
             bandChips.add(chip); bandKeys.add(key);
             bands.add(chip, i%3, i/3);
         }
@@ -644,12 +856,15 @@ public final class JMapView {
         restyleBands.run();
         p.getChildren().add(bands);
         p.getChildren().add(lbl("MODE","jm-sec"));
-        p.getChildren().add(segSel(new String[]{"All","CW","Phone","Digi"}, spotMode, i -> { spotMode = i; refreshSpots(); }));
+        p.getChildren().add(segSel(new String[]{"All","CW","Phone","Digi"}, spotMode, i -> { spotMode = i; com.ars.fx.data.HubConfig.setInt("map.spotMode", i); refreshSpots(); }));
         Label ageLbl = lbl("SPOT AGE ≤ " + spotAgeMax + " MIN","jm-sec");
+        javafx.animation.PauseTransition saveSpotAge = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+        saveSpotAge.setOnFinished(e -> com.ars.fx.data.HubConfig.setInt("map.spotAge", spotAgeMax));
         p.getChildren().add(ageLbl);
         p.getChildren().add(sliderI((spotAgeMax - 1) / 59.0, f -> {
             spotAgeMax = (int) Math.max(1, Math.round(1 + f * 59));
             ageLbl.setText("SPOT AGE ≤ " + spotAgeMax + " MIN"); refreshSpots();
+            saveSpotAge.playFromStart();                      // the slider fires on every pixel: save once it settles
         }));
         Label pn = lbl("Path now: fade closed bands, ring open ones", "jm-tog-label"); HBox.setHgrow(pn, Priority.ALWAYS); pn.setMaxWidth(Double.MAX_VALUE);
         com.ars.fx.shell.Tips.tip(pn, "Our own propagation estimate from the solar flux, sunspots and K index: a spot on a band that is probably closed from here fades, one that is likely open gets a green ring. An estimate, not a measurement. Needs your location set.");
@@ -660,6 +875,7 @@ public final class JMapView {
         for (int oi = 0; oi < OVERLAYS.length; oi++) {
             final int idx = oi;
             Label t = lbl((String) OVERLAYS[oi][0], "jm-tog-label"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
+            if (OVERLAYS[oi].length > 1) com.ars.fx.shell.Tips.tip(t, (String) OVERLAYS[oi][1]);
             HBox row = new HBox(t, toggleSwitch(overlayFlag(idx), v -> { setOverlayFlag(idx, v); repaintMap(); }));
             row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(7, 0, 7, 0));
             p.getChildren().add(row);
@@ -802,7 +1018,7 @@ public final class JMapView {
         VBox tr = new VBox(2, legendSpots,
             rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")), rt("spokes = 30°"));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14,18,0,0));
+        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(58,18,0,0));
         StackPane area = new StackPane(cv, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
 
@@ -833,7 +1049,7 @@ public final class JMapView {
         legendSpots = rt(legendSpotsText(liveSpots().size()));
         VBox tr = new VBox(2, legendSpots, rt("rings = " + (com.ars.fx.data.Units.standard() ? "3,000 mi" : "5,000 km")));
         tr.setAlignment(Pos.TOP_RIGHT); tr.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE); tr.setMouseTransparent(true);
-        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(14, 18, 0, 0));
+        StackPane.setAlignment(tr, Pos.TOP_RIGHT); StackPane.setMargin(tr, new Insets(58, 18, 0, 0));
         StackPane area = new StackPane(mapGlobe, tr); area.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(area, Priority.ALWAYS);
         area.setMinSize(0, 0);
         currentMapRepaint = () -> { mapGlobe.night(ovGrayline); mapGlobe.refresh(); };
@@ -858,17 +1074,14 @@ public final class JMapView {
             if (ovBeam && !Double.isNaN(beamDeg())) drawGlobeBeam(g, pr, beamDeg());
 
             double spotA = dimSpots() ? 0.28 : 1.0;
-            paintedDots.clear();
+            paintedDots.clear(); limbDots.clear();
             for (MapSpot s : globeSpots) {
                 if (spotHidden(s.call())) continue;
                 double[] xy = gp.at(s.lat(), s.lon());
-                if (xy == null) continue;
+                if (xy == null) { noteLimbSpot(pr, s, w, h); continue; }       // round the back: a burst on the globe's edge, if it is new
                 paintedDots.add(new Dot(xy[0], xy[1], s));
                 g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(xy[0] - 4.5, xy[1] - 4.5, 9, 9);
                 spotDot(g, s, xy[0], xy[1], spotA);
-                if (ovCallsigns) { g.setFill(Color.web("#e8eef4", spotA)); g.setStroke(Color.web("#0b0f14", 0.7 * spotA)); g.setLineWidth(3);
-                    g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT);
-                    g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(s.call(), xy[0] + 8, xy[1] + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER); g.fillText(s.call(), xy[0] + 8, xy[1] + 4); }
             }
             if (ovGrayline) drawGlobeSun(g, pr);
             double[] me = gp.at(Q_LAT, Q_LON);
@@ -883,6 +1096,8 @@ public final class JMapView {
             drawHeardBy(g, gp);
             drawBeacons(g, gp);
             drawTracks(g, gp);
+            if (ovCallsigns) drawSpotLabels(g, spotA, w, h, me != null ? me[0] : Double.NaN, me != null ? me[1] : 0);
+            kickBursts();
         } finally { gcJump = 350; gcGlobe = null; frameSpots = null; }
     }
     /**
@@ -986,7 +1201,7 @@ public final class JMapView {
 
         // live DX-cluster spots
         double spotA = dimSpots() ? 0.28 : 1.0;
-        paintedDots.clear();
+        paintedDots.clear(); limbDots.clear();
         for (MapSpot s : liveSpots()){
             if (spotHidden(s.call())) continue;
             double[] pp = azProject(s.lat(), s.lon(), cx, cy, R);
@@ -994,7 +1209,6 @@ public final class JMapView {
             double x = pp[0], y = pp[1];
             paintedDots.add(new Dot(x, y, s));
             spotDot(g, s, x, y, spotA);
-            if (ovCallsigns) { g.setFill(ovBasemap ? P.text().deriveColor(0, 1, 1, spotA) : Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x+8, y+4); }
         }
         // the Sun — sub-solar point projected into the azimuthal map (if visible)
         if (ovGrayline) {
@@ -1014,6 +1228,8 @@ public final class JMapView {
         drawHeardBy(g, azi);
         drawBeacons(g, azi);
         drawTracks(g, azi);
+        if (ovCallsigns) drawSpotLabels(g, spotA, w, h, cx, cy);
+        kickBursts();
     }
     /** Azimuthal-equidistant night shading + terminator (gray line) centred on QTH. */
     // One image, not thousands of small rectangles: those stalled the render thread for about 400 ms on every repaint.
@@ -1136,7 +1352,8 @@ public final class JMapView {
     };
     /** Overlay toggle labels, in the order of {@code overlayFlag(i)}. */
     private static final Object[][] OVERLAYS = {
-        {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},
+        {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},{"Starburst on new spots"},
+        {"Fade old callsigns", "A callsign fades from the map after a while - sooner when the map is busy (about 75 seconds with 80 or more spots showing), later when it is quiet (up to 8 minutes with 10 or fewer). The dot stays, and the selected spot always keeps its name."},
     };
     private static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
     private static String myCall = "";
@@ -1156,7 +1373,7 @@ public final class JMapView {
         {-47,  -8,  112, 179},   // Australia / Oceania
         {-90, -58, -180, 180},   // Antarctica
     };
-    private static int mapRegion = 0;
+    private static int mapRegion = Math.max(0, Math.min(REGION_NAMES.length - 1, com.ars.fx.data.HubConfig.getInt("map.region", 0)));
     // Live equirectangular viewport the rect projection + overlays map into.
     private static double vMinLon = -180, vMaxLon = 180, vMinLat = -90, vMaxLat = 90;
     private static int appliedRegion = -1;
@@ -1359,14 +1576,13 @@ public final class JMapView {
         } else if (ovBasemap) drawCountryLabels(g, RMX, RMY, RW, RH);
 
         double spotA = dimSpots() ? 0.28 : 1.0;
-        paintedDots.clear();
+        paintedDots.clear(); limbDots.clear();
         for (MapSpot s : liveSpots()) {
             if (spotHidden(s.call())) continue;
             double x = lon2x(s.lon(), RMX, RW), y = lat2y(s.lat(), RMY, RH);
             paintedDots.add(new Dot(x, y, s));
             g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(x - 4.5, y - 4.5, 9, 9);
             spotDot(g, s, x, y, spotA);
-            if (ovCallsigns) { g.setFill(ovBasemap ? P.text().deriveColor(0, 1, 1, spotA) : Color.web("#e8eef4", spotA)); g.setFont(Font.font("JetBrains Mono", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.LEFT); g.fillText(s.call(), x + 8, y + 4); }
         }
 
         double qx = lon2x(Q_LON, RMX, RW), qy = lat2y(Q_LAT, RMY, RH);
@@ -1381,6 +1597,8 @@ public final class JMapView {
         drawHeardBy(g, rect);
         drawBeacons(g, rect);
         drawTracks(g, rect);
+        if (ovCallsigns) drawSpotLabels(g, spotA, aw, ah, qx, qy);
+        kickBursts();
         g.restore();
     }
     private static double lon2x(double lon, double rmx, double rw) { return rmx + ((lon - vMinLon) / (vMaxLon - vMinLon)) * rw; }
@@ -1465,6 +1683,7 @@ public final class JMapView {
             row.setStyle("-fx-cursor:hand;");
             com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
             row.setOnMouseClicked(e -> selectSpot(row, s));
+            com.ars.fx.shell.Fx.fresh(row, s.arrivalMs());          // a new spot slides in and glows
             spots.getChildren().add(row);
         }
     }

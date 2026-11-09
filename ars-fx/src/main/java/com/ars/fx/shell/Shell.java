@@ -230,32 +230,61 @@ public final class Shell {
         if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
-        dock.getChildren().add(spacer());
+
+        // The foot is pinned: Awards, Settings and the colour-scheme sunburst stay on screen whatever the window height. An expanded
+        // dock (with the J-Hub links) is taller than many windows, and when these rows lived in the scrolling part the sunburst was
+        // pushed below the fold the moment the pointer reached the dock.
+        VBox foot = new VBox(); foot.getStyleClass().addAll("sx-dock", "sx-dock-foot");
+        foot.setStyle("-fx-padding:6 0 6 0;");
         // Awards: opens the full awards screen from any module (same screen as J-Log's drawer "Open awards")
-        dock.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
+        foot.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
                 expandOnly, com.ars.fx.surface.AwardsWindow::open));
         // Settings foot: on every module's dock, not just the J-Hub screens (gear → J-Hub Setup)
-        dock.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
+        foot.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
+        // Colour scheme: the sunburst in the bottom corner. Cycles this module's scheme (or the suite's, on J-Hub pages).
+        foot.getChildren().add(themeDockRow(expandOnly));
 
-        // Scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would make
-        // the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
+        // The module list scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would
+        // make the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
         ScrollPane sp = new ScrollPane(dock);
         sp.getStyleClass().add("sx-dock-scroll");
         sp.setFitToWidth(true); sp.setFitToHeight(true);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setMinHeight(0);
-        sp.minWidthProperty().bind(dock.minWidthProperty());
-        sp.prefWidthProperty().bind(dock.prefWidthProperty());
-        sp.maxWidthProperty().bind(dock.maxWidthProperty());
-        sp.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
-        sp.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
-        return sp;
+        VBox.setVgrow(sp, Priority.ALWAYS);
+        VBox outer = new VBox(sp, foot);
+        outer.setMinHeight(0);
+        outer.minWidthProperty().bind(dock.minWidthProperty());
+        outer.prefWidthProperty().bind(dock.prefWidthProperty());
+        outer.maxWidthProperty().bind(dock.maxWidthProperty());
+        outer.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
+        outer.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
+        return outer;
     }
     private static void setExpanded(VBox dock, List<Node> nodes, boolean exp) {
         double w = exp ? 216 : 58;
         dock.setMinWidth(w); dock.setPrefWidth(w); dock.setMaxWidth(w);
         for (Node n : nodes) { n.setManaged(exp); n.setVisible(exp); }
     }
+    /** The sunburst row: click to advance the colour scheme; the expanded dock names the current one. */
+    private static HBox themeDockRow(List<Node> expandOnly) {
+        StackPane ic = iconTile("accent", "sun", 20, "sx-dock-ic");
+        java.util.function.Supplier<String> text = () -> "Theme · " + com.ars.fx.Themes.effective(currentSurface).label();
+        Label nm = lbl(text.get(), "sx-dock-name"); nm.setManaged(false); nm.setVisible(false);
+        HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
+        expandOnly.add(nm);
+        HBox row = new HBox(12, ic, nm); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().addAll("sx-dock-item", "accent");
+        VBox.setMargin(row, new Insets(2, 9, 8, 9));
+        Tips.tip(row, "Colour scheme - click to switch");
+        row.setStyle("-fx-cursor:hand;");
+        row.setOnMouseClicked(e -> {
+            // J-Hub pages follow the suite-wide scheme; a module keeps its own
+            if (com.ars.fx.Themes.isModule(currentSurface)) cycleModuleTheme(); else cycleGlobalTheme();
+            nm.setText(text.get());
+        });
+        return row;
+    }
+
     /** A dock row that runs an action (instead of navigating to a module). */
     private static HBox dockAction(String name, String hue, String tip, List<Node> expandOnly, Runnable action) {
         StackPane ic = iconTile(hue, hue, 20, "sx-dock-ic");
@@ -293,6 +322,7 @@ public final class Shell {
     public static HBox topBar(String hue, String glyphId, String name, String subtitle,
                               String[][] stats, String clock) {
         HBox top = new HBox(); top.getStyleClass().add("sx-top"); top.setAlignment(Pos.CENTER_LEFT);
+        if (hue != null && !hue.isBlank()) top.getStyleClass().add("hue-" + hue);   // the bar takes its module's colour (see the polish block in ars.css)
         StackPane bic = iconTile(hue, glyphId, 18, "sx-brand-ic");
         VBox bt = new VBox(1, lbl(name, "sx-brand-nm"));
         if (subtitle != null && !subtitle.isBlank()) bt.getChildren().add(lbl(subtitle, "sx-brand-ct"));
@@ -346,7 +376,7 @@ public final class Shell {
                 HBox.setMargin(t, new Insets(0, 0, 0, TOP_TILE_GAP * s));
                 for (Node n : t.getChildren()) {
                     if (!(n instanceof Label l)) continue;
-                    double full = l.getStyleClass().contains("sx-stat-v") ? 16 : l.getStyleClass().contains("sx-clock-v") ? 18 : 0;
+                    double full = l.getStyleClass().contains("sx-stat-v") ? 18 : l.getStyleClass().contains("sx-clock-v") ? 20 : 0;
                     l.setStyle(String.format("-fx-font-size:%.1fpx;", full > 0 ? full * s : Math.max(8, 9 * s)));
                 }
             }
@@ -373,7 +403,7 @@ public final class Shell {
     /** Have the drawer with this title open the next time it is built. */
     public static void openDrawer(String title) { DRAWER_STATE.put(title, true); }
     /** Open this drawer the first time it is built, then leave it to the operator's choice. */
-    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, true); }
+    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, com.ars.fx.data.HubConfig.getBool("drawer." + title, true)); }
 
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
@@ -382,7 +412,7 @@ public final class Shell {
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body,
                               java.util.function.Consumer<Boolean> onToggle) {
         // default closed on first sight; the operator's open/closed choice is then remembered by title
-        boolean initOpen = DRAWER_STATE.getOrDefault(title, false);
+        boolean initOpen = DRAWER_STATE.computeIfAbsent(title, k -> com.ars.fx.data.HubConfig.getBool("drawer." + k, false));   // from the last run, if it was ever changed
         VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (initOpen) dw.getStyleClass().add("open");
         StackPane ic = iconTile(hue, glyphId, 14, "sx-dw-ic");
         Label t = lbl(title, "sx-dw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
@@ -399,6 +429,7 @@ public final class Shell {
             bodyBox.setManaged(nowOpen); bodyBox.setVisible(nowOpen);
             sum.setVisible(!nowOpen); sum.setManaged(!nowOpen); cv.setRotate(nowOpen ? 90 : 0);
             DRAWER_STATE.put(title, nowOpen);
+            com.ars.fx.data.HubConfig.setBool("drawer." + title, nowOpen);   // kept for next time
             if (onToggle != null) onToggle.accept(nowOpen);
         });
         dw.getChildren().addAll(head, bodyBox);
@@ -546,61 +577,67 @@ public final class Shell {
 
     /** Station-ID timer drawer — the first standard drawer on every operating module. */
 
-    /** Lead drawers shown first on every operating module, in order: Station ID, Rig control
-     *  ({@link RigPanel}), Rotor control. */
+    /** Lead drawers shown first on every operating module, in order: Rig control ({@link RigPanel}) and Rotor control. The satellite rotor's drawer is
+     *  not one of them: it belongs to J-Sat, which adds it itself ({@link #satelliteRotorDrawer}). */
     public static List<Node> leadDrawers() { return List.of(RigPanel.build(), rotorControlDrawer()); }
 
     /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */
-    public static Node rotorControlDrawer() {
-        RotorClient rotor = RotorClient.getInstance();
+    public static Node rotorControlDrawer() { return rotorDrawer(RotorClient.getInstance(), "Rotor control", true); }
+    /** The same for the satellite rotor (when there is one): compass and elevation, CCW/Stop/CW and Park. Shown in J-Sat only. */
+    public static Node satelliteRotorDrawer() { return rotorDrawer(RotorClient.satellite(), "Satellite rotor", false); }
+
+    private static Node rotorDrawer(RotorClient rotor, String title, boolean presetsToo) {
         StackPane roHolder = new StackPane(); roHolder.setAlignment(Pos.TOP_LEFT);
-        VBox dw = drawer("Rotor control", "sat", "sat", rotorSummary(), false, new VBox(roHolder));
+        VBox dw = drawer(title, "sat", "sat", rotorSummary(rotor), false, new VBox(roHolder));
         String[] shown = {null};
         Runnable render = () -> {
             double az = rotor.headingDeg();
-            String key = Double.isNaN(az) ? rotor.statusText() : String.valueOf(Math.round(az));
+            String key = Double.isNaN(az) ? rotor.statusText() : Math.round(az) + "/" + (rotor.hasElevation() ? Math.round(rotor.last().el()) : 0);
             if (key.equals(shown[0])) return;                 // the rotor reports twice a second; rebuilding would eat clicks
             shown[0] = key;
-            if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(rotorSummary());
-            roHolder.getChildren().setAll(Double.isNaN(az) ? rotorOffline(rotor) : rotorLive(rotor, az));
+            if (dw.lookup(".sx-dw-sum") instanceof Label sum) sum.setText(rotorSummary(rotor));
+            roHolder.getChildren().setAll(Double.isNaN(az) ? rotorOffline(rotor) : rotorLive(rotor, az, presetsToo));
         };
         render.run();
         rotor.setListener(st -> javafx.application.Platform.runLater(render));
         rotor.start();
         return dw;
     }
-    private static String rotorSummary() {
-        double az = RotorClient.getInstance().headingDeg();
-        return Double.isNaN(az) ? RotorClient.getInstance().statusText()
-                : String.format("%03.0f° %s", az, RotorClient.cardinal(az));
+    private static String rotorSummary(RotorClient rotor) {
+        double az = rotor.headingDeg();
+        if (Double.isNaN(az)) return rotor.statusText();
+        String s = String.format("%03.0f\u00b0 %s", az, RotorClient.cardinal(az));
+        return rotor.hasElevation() ? s + String.format(" \u00b7 el %.0f\u00b0", rotor.last().el()) : s;
     }
     /** No heading to show, so no number, needle or controls: only why, and where to set it up. */
     private static Region rotorOffline(RotorClient rotor) {
-        HBox head = new HBox(2, lbl("—", "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
+        HBox head = new HBox(2, lbl("\u2014", "sx-ro-head"), lbl("\u00b0", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
         VBox info = new VBox(0, head, lbl(rotor.statusText(), "sx-ro-dir")); info.setAlignment(Pos.CENTER_LEFT);
-        Label hint = lbl("Set up the rotor in J-Hub ▸ Hardware ▸ Rotor control.", "sx-ro-dir"); hint.setWrapText(true);
+        Label hint = lbl(rotor.isSatelliteRotor() ? "Set up the satellite rotor in J-Hub \u25b8 Hardware \u25b8 Rotor control." : "Set up the rotor in J-Hub \u25b8 Hardware \u25b8 Rotor control.", "sx-ro-dir");
+        hint.setWrapText(true);
         HBox top = new HBox(13, compass(Double.NaN, 88), info); top.setAlignment(Pos.CENTER_LEFT);
         return new VBox(11, top, hint);
     }
-    private static Region rotorLive(RotorClient rotor, double az) {
+    private static Region rotorLive(RotorClient rotor, double az, boolean presetsToo) {
         VBox roInfo = new VBox(0); roInfo.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(roInfo, Priority.ALWAYS);
-        HBox head = new HBox(2, lbl(String.format("%03.0f", az), "sx-ro-head"), lbl("°", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
-        Label ccw = btn("◀ CCW","sx-ro-turn-btn"), stp = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW ▶","sx-ro-turn-btn");
+        HBox head = new HBox(2, lbl(String.format("%03.0f", az), "sx-ro-head"), lbl("\u00b0", "sx-ro-dir")); head.setAlignment(Pos.BOTTOM_LEFT);
+        Label ccw = btn("\u25c0 CCW","sx-ro-turn-btn"), stp = btn("Stop","sx-ro-turn-btn","stop"), cw = btn("CW \u25b6","sx-ro-turn-btn");
         ccw.setStyle("-fx-cursor:hand;"); stp.setStyle("-fx-cursor:hand;"); cw.setStyle("-fx-cursor:hand;");
         ccw.setOnMouseClicked(e -> rotor.nudge(-15));
         stp.setOnMouseClicked(e -> rotor.stop());
         cw.setOnMouseClicked(e -> rotor.nudge(15));
         HBox turn = new HBox(5, ccw, stp, cw); for (Node n : turn.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
-        roInfo.getChildren().addAll(head, lbl(RotorClient.cardinal(az) + " · live", "sx-ro-dir"), turn);
+        String live = RotorClient.cardinal(az) + " \u00b7 live" + (rotor.hasElevation() ? String.format(" \u00b7 el %.0f\u00b0", rotor.last().el()) : "");
+        roInfo.getChildren().addAll(head, lbl(live, "sx-ro-dir"), turn);
         VBox.setMargin(turn, new Insets(10,0,0,0));
         HBox roTop = new HBox(13, compass(az, 88), roInfo); roTop.setAlignment(Pos.CENTER_LEFT);
         GridPane presets = new GridPane(); presets.setHgap(5); presets.setVgap(5);
         java.util.List<String[]> shownPresets = new java.util.ArrayList<>();
-        for (RotorClient.Preset pr : RotorClient.PRESETS) shownPresets.add(new String[]{pr.shortName(), String.valueOf(pr.az())});   // edited under J-Hub ▸ Rotor control
-        shownPresets.add(new String[]{"Park", String.valueOf(RotorClient.parkAz())});
+        if (presetsToo) for (RotorClient.Preset pr : RotorClient.PRESETS) shownPresets.add(new String[]{pr.shortName(), String.valueOf(pr.az())});   // edited under J-Hub \u25b8 Rotor control
+        shownPresets.add(new String[]{"Park", String.valueOf(rotor.parkAz())});
         int i = 0; for (String[] p : shownPresets) {
             final int paz = Integer.parseInt(p[1]);
-            Label b = btn(p[0]+" "+paz+"°", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
+            Label b = btn(p[0]+" "+paz+"\u00b0", "sx-ro-preset"); GridPane.setHgrow(b, Priority.ALWAYS); b.setMaxWidth(Double.MAX_VALUE);
             b.setStyle("-fx-cursor:hand;"); b.setOnMouseClicked(e -> rotor.moveTo(paz));
             presets.add(b, i%3, i/3); i++;
         }

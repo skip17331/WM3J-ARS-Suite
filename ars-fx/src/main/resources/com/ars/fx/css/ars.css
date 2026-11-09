@@ -149,6 +149,7 @@
 .sx-dock-ic.learn  { -fx-background-color: #413943; -fx-text-fill: -ars-learn;  -fx-border-color: rgba(239,125,131,0.26); }
 .sx-dock-ic.info  { -fx-background-color: #40394a; -fx-text-fill: -ars-info;  -fx-border-color: rgba(217,143,209,0.26); }
 .sx-dock-ic.hub    { -fx-background-color: #34414d; -fx-text-fill: -ars-hub;    -fx-border-color: rgba(162,196,208,0.26); }
+.sx-dock-ic.accent { -fx-background-color: #29404e; -fx-text-fill: -ars-accent; -fx-border-color: -ars-accent-line; }
 .sx-dock-ic.gear   { -fx-background-color: -ars-surface-3; -fx-text-fill: -ars-t2; -fx-border-color: -ars-border-2; }
 .sx-dock-item.active.log    { -fx-background-color: #373635; }
 .sx-dock-item.active.map    { -fx-background-color: #213742; }
@@ -813,3 +814,104 @@
 .jhs-item:hover { -fx-background-color: -ars-surface-2; -fx-text-fill: -ars-t1; }
 .jhs-item.on { -fx-background-color: -ars-accent-dim; -fx-text-fill: -ars-accent; -fx-font-weight: bold; }
 .jl-award-chip.conf { -fx-text-fill: -ars-accent; -fx-background-color: -ars-surface-4; -fx-font-weight: bold; }
+
+/* ============================================================================
+   UI POLISH (feat/ui-polish) - depth, module colour, interaction. One block, token-based, so it follows every scheme.
+   Rules: shadows on cards and drawers only (the dock and top bar are painted before the content beside them, which would
+   cover a shadow, so they get gradients, a coloured edge and an edge light instead). To back this out, delete from here down.
+   ============================================================================ */
+
+/* -- depth: cards, drawers, stat tiles -- */
+.jhub-card { -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-1, 5%), -ars-surface-1);
+             -fx-border-color: -ars-border-2 -ars-border -ars-border -ars-border;
+             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.34), 12, 0.0, 0, 3); }
+.sx-dw       { -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-2, 4%), -ars-surface-2);
+               -fx-border-color: -ars-border-2 -ars-border -ars-border -ars-border;
+               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.26), 8, 0.0, 0, 2); }
+.sx-dw.open  { -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-1, 5%), -ars-surface-1);
+               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.38), 14, 0.0, 0, 4); }
+.sx-dw-head:hover { -fx-background-color: -ars-surface-3; -fx-background-radius: 9 9 0 0; }
+.sx-stat     { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-bg);
+               -fx-border-color: -ars-border-2 -ars-border -ars-border -ars-border;
+               -fx-effect: innershadow(gaussian, rgba(255,255,255,0.05), 6, 0.0, 0, 1); }
+
+/* -- module colour: the top bar takes its module's hue (underline + a faint wash), the active dock row glows -- */
+.sx-top { -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-1, 6%), -ars-surface-1);
+          -fx-border-width: 0 0 2 0; }
+.sx-top.hue-log    { -fx-border-color: transparent transparent rgba(235,179,83,0.60) transparent; }
+.sx-top.hue-map    { -fx-border-color: transparent transparent rgba(38,192,207,0.60) transparent; }
+.sx-top.hue-digi   { -fx-border-color: transparent transparent rgba(177,145,234,0.60) transparent; }
+.sx-top.hue-bridge { -fx-border-color: transparent transparent rgba(111,167,238,0.60) transparent; }
+.sx-top.hue-sat    { -fx-border-color: transparent transparent rgba(111,200,132,0.60) transparent; }
+.sx-top.hue-vault  { -fx-border-color: transparent transparent rgba(219,164,117,0.60) transparent; }
+.sx-top.hue-learn  { -fx-border-color: transparent transparent rgba(239,125,131,0.60) transparent; }
+.sx-top.hue-info   { -fx-border-color: transparent transparent rgba(217,143,209,0.60) transparent; }
+.sx-top.hue-hub    { -fx-border-color: transparent transparent rgba(162,196,208,0.60) transparent; }
+.sx-top.hue-accent { -fx-border-color: transparent transparent rgba(49,189,218,0.60) transparent; }
+.sx-brand-ic { -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.30), 6, 0.0, 0, 1); }
+.sx-dock { -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-1, 4%), -ars-surface-1); }
+.sx-dock-item.active.log    { -fx-effect: dropshadow(gaussian, rgba(235,179,83,0.30), 12, 0.0, 0, 0); }
+.sx-dock-item.active.map    { -fx-effect: dropshadow(gaussian, rgba(38,192,207,0.32), 12, 0.0, 0, 0); }
+.sx-dock-item.active.digi   { -fx-effect: dropshadow(gaussian, rgba(177,145,234,0.32), 12, 0.0, 0, 0); }
+.sx-dock-item.active.bridge { -fx-effect: dropshadow(gaussian, rgba(111,167,238,0.32), 12, 0.0, 0, 0); }
+.sx-dock-item.active.sat    { -fx-effect: dropshadow(gaussian, rgba(111,200,132,0.30), 12, 0.0, 0, 0); }
+.sx-dock-item.active.vault  { -fx-effect: dropshadow(gaussian, rgba(219,164,117,0.30), 12, 0.0, 0, 0); }
+.sx-dock-item.active.learn  { -fx-effect: dropshadow(gaussian, rgba(239,125,131,0.30), 12, 0.0, 0, 0); }
+.sx-dock-item.active.info   { -fx-effect: dropshadow(gaussian, rgba(217,143,209,0.30), 12, 0.0, 0, 0); }
+.sx-dock-item.active.hub    { -fx-effect: dropshadow(gaussian, rgba(162,196,208,0.30), 12, 0.0, 0, 0); }
+.sx-dock-item:hover .sx-dock-name { -fx-text-fill: -ars-t1; }
+
+/* -- interaction: buttons lift on hover, segmented controls read as raised when on, inputs show a focus glow -- */
+.jl-logbtn        { -fx-effect: dropshadow(gaussian, rgba(235,179,83,0.28), 10, 0.0, 0, 2); }
+.jl-logbtn:hover  { -fx-background-color: derive(-ars-log, 14%); -fx-effect: dropshadow(gaussian, rgba(235,179,83,0.50), 14, 0.0, 0, 3); }
+.jl-logbtn:pressed { -fx-background-color: derive(-ars-log, -8%); -fx-effect: dropshadow(gaussian, rgba(235,179,83,0.25), 6, 0.0, 0, 1); }
+.cfg-seg-btn.on, .jm-seg-btn.on { -fx-background-color: -ars-surface-3; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.32), 5, 0.0, 0, 1); }
+.cfg-seg-btn:hover, .jm-seg-btn:hover { -fx-text-fill: -ars-t1; }
+.text-field:focused, .jhub-mini-field:focused { -fx-border-color: -ars-accent; -fx-effect: dropshadow(gaussian, rgba(49,189,218,0.38), 8, 0.0, 0, 0); }
+.sx-theme:hover { -fx-background-color: -ars-surface-3; }
+
+/* -- light scheme: the same depth, with shadows lightened so they do not look heavy on a pale page -- */
+.ars-light .jhub-card { -fx-effect: dropshadow(gaussian, rgba(30,45,70,0.14), 10, 0.0, 0, 2); }
+.ars-light .sx-dw     { -fx-effect: dropshadow(gaussian, rgba(30,45,70,0.12), 6, 0.0, 0, 1); }
+.ars-light .sx-dw.open { -fx-effect: dropshadow(gaussian, rgba(30,45,70,0.18), 10, 0.0, 0, 3); }
+.ars-light .sx-stat   { -fx-effect: null; }
+.ars-light .sx-brand-ic { -fx-effect: null; }
+.ars-light .cfg-seg-btn.on, .ars-light .jm-seg-btn.on { -fx-effect: dropshadow(gaussian, rgba(30,45,70,0.16), 4, 0.0, 0, 1); }
+
+/* pinned dock foot (Awards, Settings, colour scheme): a hairline above it, so it reads as a separate group */
+.sx-dock-foot { -fx-border-color: -ars-border -ars-border transparent transparent; -fx-border-width: 1 1 0 0; }
+
+/* ============================================================================
+   UI POLISH, pass 2 - legible placeholders, scheme-aware focus, stat tiles tinted by module, consistent drawer radius
+   ============================================================================ */
+/* Placeholder text: JavaFX derives it from the field background, which on the dark schemes is nearly invisible. */
+.text-field, .text-area, .combo-box-base, .spinner .text-field { -fx-prompt-text-fill: -ars-t3; }
+/* Focus glow follows the scheme's accent (pass 1 hard-coded the dark scheme's cyan). */
+.text-field:focused, .jhub-mini-field:focused { -fx-border-color: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 8, 0.0, 0, 0); }
+/* Stat tiles: clearer labels, a glow on live accent values, and the module's colour on the tile's top edge. */
+.sx-stat-k { -fx-text-fill: -ars-t2; }
+.sx-stat-v.accent { -fx-effect: dropshadow(gaussian, -ars-accent-dim, 6, 0.0, 0, 0); }
+.sx-top.hue-log    .sx-stat { -fx-border-color: rgba(235,179,83,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-map    .sx-stat { -fx-border-color: rgba(38,192,207,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-digi   .sx-stat { -fx-border-color: rgba(177,145,234,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-bridge .sx-stat { -fx-border-color: rgba(111,167,238,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-sat    .sx-stat { -fx-border-color: rgba(111,200,132,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-vault  .sx-stat { -fx-border-color: rgba(219,164,117,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-learn  .sx-stat { -fx-border-color: rgba(239,125,131,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-info   .sx-stat { -fx-border-color: rgba(217,143,209,0.38) -ars-border -ars-border -ars-border; }
+.sx-top.hue-hub    .sx-stat { -fx-border-color: rgba(162,196,208,0.38) -ars-border -ars-border -ars-border; }
+/* Radii: containers (cards, drawers) share one corner; drawers were 9 against the cards' 10. */
+.sx-dw { -fx-background-radius: 10; -fx-border-radius: 10; }
+.sx-dw-head:hover { -fx-background-radius: 10 10 0 0; }
+/* Links and small actions answer the pointer. */
+.jhub-open:hover { -fx-underline: true; }
+.jhub-open { -fx-cursor: hand; }
+
+/* ============================================================================
+   UI POLISH, pass 3 - things announce themselves (see shell/Fx.java; all switch off with Setup > Appearance > Reduce effects)
+   ============================================================================ */
+/* a spot (or other list row) that has just arrived: a strong accent wash with a bar down its left edge, then a faint one, then nothing */
+.fresh-a { -fx-background-color: linear-gradient(to right, -ars-accent-line, -ars-accent-dim 70%); -fx-background-radius: 6; -fx-border-color: transparent transparent transparent -ars-accent; -fx-border-width: 0 0 0 3; -fx-border-radius: 6; }
+.fresh-b { -fx-background-color: -ars-accent-dim; -fx-background-radius: 6; }
+/* a count or value that has just changed */
+.label.flash { -fx-text-fill: -ars-accent; }

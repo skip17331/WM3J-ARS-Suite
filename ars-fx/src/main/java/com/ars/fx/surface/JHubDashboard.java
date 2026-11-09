@@ -145,7 +145,7 @@ public final class JHubDashboard {
 
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         ClusterClient cc = ClusterClient.getInstance();
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
         Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
         headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
         HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
@@ -159,10 +159,8 @@ public final class JHubDashboard {
     private static HBox threeCol() {
         // the full normal-log entry form + recent log (same as J-Log) beside the DX cluster
         VBox entry = JLogCockpit.embeddedEntry();
-        entry.setMinWidth(560); entry.setPrefWidth(760); HBox.setHgrow(entry, Priority.NEVER);
-        Region cluster = clusterCol(); cluster.setMinWidth(380); HBox.setHgrow(cluster, Priority.ALWAYS);
-        HBox windows = new HBox(20, entry, cluster);
-        windows.setFillHeight(true);
+        Region cluster = clusterCol();
+        WindowsRow windows = new WindowsRow(entry, cluster);      // side by side when there is room, stacked when there is not
         VBox left = new VBox(11, windows);
         HBox.setHgrow(left, Priority.ALWAYS);
         HBox box = new HBox(20, left, railCol());
@@ -170,6 +168,49 @@ public final class JHubDashboard {
         threeColRef = box;
         return box;
     }
+    /**
+     * The New QSO form and the DX Cluster window. The form's fields do not shrink: it needs its computed minimum width (about 685 px) for every field and the
+     * Log QSO button to show, and likes 760. Both used to be forced lower than that (a minimum of 560), so when the row got narrow, as it does with the
+     * PANELS column pinned, the form was squeezed below what its fields need and the cluster window lay over the part that spilled out. Now, when the row is
+     * too narrow for the form's minimum plus a cluster window of at least 380 px, the cluster drops below the form instead; with room, the form takes its
+     * natural width (never less than it needs) and the cluster takes the rest, as before. (All sizes are logical pixels: a 125% display shows 1.25 times these.)
+     */
+    private static final class WindowsRow extends Region {
+        private static final double FORM_PREF = 760, GAP = 20, CLUSTER_MIN = 380, STACKED_CLUSTER_H = 460;
+        private final Region entry, cluster;
+        WindowsRow(Region entry, Region cluster) {
+            this.entry = entry; this.cluster = cluster;
+            getChildren().addAll(entry, cluster);
+            setMinSize(0, 0);
+        }
+        /** What the form needs for everything on it to show. */
+        private double need() { return entry.minWidth(-1); }
+        /** What it takes when there is room. */
+        private double liked() { return Math.max(need(), FORM_PREF); }
+        private boolean stacked(double w) { return w < need() + GAP + CLUSTER_MIN; }
+        private double entryWidth(double w) {
+            return stacked(w) ? Math.max(need(), Math.min(liked(), w)) : Math.max(need(), Math.min(liked(), w - GAP - CLUSTER_MIN));
+        }
+        @Override protected double computeMinWidth(double h) { return 0; }
+        @Override protected double computePrefWidth(double h) { return liked() + GAP + CLUSTER_MIN; }
+        @Override protected double computePrefHeight(double w) {
+            double width = w > 0 ? w : getWidth() > 0 ? getWidth() : liked() + GAP + CLUSTER_MIN;
+            double ew = entryWidth(width), eh = entry.prefHeight(ew);
+            return stacked(width) ? eh + GAP + STACKED_CLUSTER_H : Math.max(eh, cluster.prefHeight(Math.max(CLUSTER_MIN, width - ew - GAP)));
+        }
+        @Override protected void layoutChildren() {
+            double w = getWidth(), h = getHeight(), ew = entryWidth(w);
+            if (stacked(w)) {
+                double eh = entry.prefHeight(ew);
+                entry.resizeRelocate(0, 0, ew, eh);
+                cluster.resizeRelocate(0, eh + GAP, w, Math.max(STACKED_CLUSTER_H, h - eh - GAP));
+            } else {
+                entry.resizeRelocate(0, 0, ew, h);
+                cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, h);
+            }
+        }
+    }
+
     /** Mini "Saved QSOs" drawer under the New-QSO / DX-cluster windows — from the real ~/.j-log DB. */
         // ---- DX cluster filter state (shared by panel + controls drawer) -------
     private static final java.util.Set<String> HF_BANDS = java.util.Set.of(
@@ -261,7 +302,7 @@ public final class JHubDashboard {
         // ---- DX spot panel ----
         Node ic = Shell.iconTile("hub", "hub", 16, "sx-dw-ic");
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
-        Region cdot = chip("jhub-mini-dot", 8); cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+        Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
         Label cluState = lbl(com.ars.fx.shell.FeedUi.line(cc), "jhub-clu-de");
         HBox src = new HBox(6, cdot, cluState); src.setAlignment(Pos.CENTER_LEFT);
         Label consoleBtn = lbl("Console", "jhub-clearbtn"); consoleBtn.setStyle("-fx-cursor:hand;");   // raw feed + command line
@@ -304,10 +345,10 @@ public final class JHubDashboard {
         // single render: applies filters to the live feed + refreshes status everywhere
         Runnable render = () -> Shell.keepScroll(rsp, () -> {
             boolean conn = cc.isConnected();
-            cdot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
             cluState.setText(com.ars.fx.shell.FeedUi.line(cc));
             if (headActRef != null) headActRef.setText(com.ars.fx.shell.FeedUi.action(cc));
-            if (headerDot != null) headerDot.setStyle(com.ars.fx.shell.FeedUi.dot(cc.status()));
+            if (headerDot != null) com.ars.fx.shell.FeedUi.paint(headerDot, cc.status());
             if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             SpotNeeds.Index worked = needIndex();
             java.util.List<ClusterClient.Spot> all = cc.spots();
@@ -327,6 +368,7 @@ public final class JHubDashboard {
                     row.setStyle("-fx-cursor:hand;");
                     com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
+                    com.ars.fx.shell.Fx.fresh(row, s.arrivalMs());     // a new spot slides in and glows
                     rows.getChildren().add(row);
                 }
             }
@@ -607,7 +649,8 @@ public final class JHubDashboard {
         theme.setStyle("-fx-cursor:hand;");
         theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
         VBox appearance = section("APPEARANCE",
-            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme));
+            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme),
+            cfgRow("Reduce effects", "no sliding, flashing or glowing when something new arrives (new spots, changed counts, live lights)", cToggle("ui.reduceEffects", false)));
         Label checkMsg = lbl("", "cfg-lh");
         Label checkBtn = lbl("Check now", "sx-theme"); checkBtn.setStyle("-fx-cursor:hand;");
         checkBtn.setOnMouseClicked(e -> {
@@ -731,34 +774,59 @@ public final class JHubDashboard {
 
     private static Region rotorCenter() {
         com.ars.fx.data.RotorClient.getInstance().start();
-        HBox cells = liveStrip(new String[]{"STATUS", "AZIMUTH", "ELEVATION", "ROTCTLD"}, () -> {
-            com.ars.fx.data.RotorClient ro = com.ars.fx.data.RotorClient.getInstance();
+        com.ars.fx.data.RotorClient.satellite().start();
+        VBox conn = rotorConnection("rotor.", false);
+        VBox beh = section("BEHAVIOR",
+            cfgRow("Rotor range", "360\u00b0 turns once; 450\u00b0 has a 90\u00b0 overlap (e.g. G-1000DXA): passes carry on past 360\u00b0 instead of unwinding", cSegApply("rotor.range", new String[]{"360\u00b0","450\u00b0"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Overlap / wrap", "450\u00b0 rotors only: where it overlaps. North = travel 0 to 450\u00b0; South = -180 to +270\u00b0", cSegApply("rotor.wrap", new String[]{"North","South"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "\u00b0 az")),
+            cfgRow("Elevation rotor (az/el)", "satellite tracking also points the elevation (0-90\u00b0); leave off for an azimuth-only rotor such as an HF beam's", cToggleApply("rotor.hasElevation", false, on -> { })),
+            cfgRow("Dead-band", "satellite tracking skips moves smaller than this, on either axis (both rotors)", cUnit("rotor.deadband", "2", "\u00b0")),
+            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat; it moves the satellite rotor when one is switched on, otherwise this rotor", cToggle("rotor.autoTrack", false)));
+        VBox presets = section("BEAM PRESETS", presetRows());
+
+        // the optional second rotor, for satellites
+        Label satNote = lbl("A second rotor for satellites, such as an az/el rotator on the satellite antenna while the rotor above turns an HF beam. J-Sat's tracking drives it; everything else (spot clicks, the beam presets, the J-Map beam) stays on the rotor above. It has its own rotctld: give it its own port (this page can start it for you).", "cfg-desc");
+        satNote.setWrapText(true);
+        VBox satOn = section("SATELLITE ROTOR",
+            cfgRow("Use a satellite rotor", "off: J-Sat tracking uses the rotor above", cToggleApply("rotor2.enabled", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+        VBox satConn = rotorConnection("rotor2.", true);
+        VBox satBeh = section("SATELLITE ROTOR BEHAVIOR",
+            cfgRow("Rotor range", "360\u00b0 turns once; 450\u00b0 has a 90\u00b0 overlap: passes carry on past 360\u00b0 instead of unwinding", cSegApply("rotor2.range", new String[]{"360\u00b0","450\u00b0"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Overlap / wrap", "450\u00b0 rotors only: where it overlaps. North = travel 0 to 450\u00b0; South = -180 to +270\u00b0", cSegApply("rotor2.wrap", new String[]{"North","South"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Park position", "the Park button on the satellite rotor panel", cUnit("rotor2.park", "0", "\u00b0 az")),
+            cfgRow("Elevation rotor (az/el)", "on: a pass also points the elevation (0-90\u00b0); off if this rotor only turns", cToggleApply("rotor2.hasElevation", true, on -> { })));
+
+        return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),
+            lbl("Az/el rotor control via Hamlib rotctld \u2014 connection, presets and park position. An optional second rotor can track satellites.","cfg-desc"),
+            rotorStrip(com.ars.fx.data.RotorClient.getInstance()), conn, beh, presets,
+            satNote, satOn, rotorStrip(com.ars.fx.data.RotorClient.satellite()), satConn, satBeh);
+    }
+
+    /** The live status strip for one rotor: status, azimuth, elevation, and where its rotctld is. */
+    private static HBox rotorStrip(com.ars.fx.data.RotorClient ro) {
+        return liveStrip(new String[]{"STATUS", "AZIMUTH", "ELEVATION", "ROTCTLD"}, () -> {
             boolean on = ro.last().connected();
             return new String[][]{
-                {on ? "● CONNECTED" : ro.isConfigured() ? "○ ROTCTLD OFFLINE" : "○ NOT SET UP", "", on ? "1" : "0"},
-                {on ? String.format("%03.0f", ro.headingDeg()) : "—", on ? "°" : "", "0"},
-                {on ? String.format("%.0f", ro.last().el()) : "—", on ? "°" : "", "0"},
+                {on ? "\u25cf CONNECTED" : !ro.isEnabled() ? "\u25cb NOT SWITCHED ON" : ro.isConfigured() ? "\u25cb ROTCTLD OFFLINE" : "\u25cb NOT SET UP", "", on ? "1" : "0"},
+                {on ? String.format("%03.0f", ro.headingDeg()) : "\u2014", on ? "\u00b0" : "", "0"},
+                {on ? String.format("%.0f", ro.last().el()) : "\u2014", on ? "\u00b0" : "", "0"},
                 {ro.endpoint(), "", "0"}};
         });
-        VBox conn = section("CONNECTION",
-            cfgRow("Rotor maker", "from the Hamlib installed on this computer (rotctl --list)", hamlibMaker("rotor")),
-            cfgRow("Rotor model", "choosing one fills in the Hamlib model # below", hamlibModel("rotor")),
-            cfgRow("Hamlib model #", "set by the model above; type a number to use a model that is not listed", hamlibNumber("rotor")),
-            cfgRow("Interface", null, cSeg("rotor.interface", new String[]{"USB","Serial","Network"}, 1)),
-            cfgRow("Serial port", null, cInput("rotor.port", "/dev/ttyUSB0")),
-            cfgRow("Baud rate", null, cSelect("rotor.baud", "9600", BAUDS)),
-            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply("rotor.host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("rotctld port", null, cInputApply("rotor.rotctldPort", "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("Start rotctld for me", null, cToggleApply("rotor.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
-        VBox beh = section("BEHAVIOR",
-            cfgRow("Overlap / wrap", "where the rotor crosses — not applied yet", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
-            cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "° az")),
-            cfgRow("Dead-band", "satellite tracking skips moves smaller than this", cUnit("rotor.deadband", "2", "°")),
-            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat", cToggle("rotor.autoTrack", false)));
-        VBox presets = section("BEAM PRESETS", presetRows());
-        return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),
-            lbl("Az/el rotor control via Hamlib rotctld — connection, presets and park position.","cfg-desc"),
-            cells, conn, beh, presets);
+    }
+
+    /** The CONNECTION section for the main rotor ({@code p} = "rotor.") or the satellite rotor ("rotor2."): the same rows under its own keys. */
+    private static VBox rotorConnection(String p, boolean sat) {
+        return section(sat ? "SATELLITE ROTOR CONNECTION" : "CONNECTION",
+            cfgRow("Rotor maker", "from the Hamlib installed on this computer (rotctl --list)", hamlibMaker(p.substring(0, p.length() - 1))),
+            cfgRow("Rotor model", "choosing one fills in the Hamlib model # below", hamlibModel(p.substring(0, p.length() - 1))),
+            cfgRow("Hamlib model #", "set by the model above; type a number to use a model that is not listed", hamlibNumber(p.substring(0, p.length() - 1))),
+            cfgRow("Interface", null, cSeg(p + "interface", new String[]{"USB","Serial","Network"}, 1)),
+            cfgRow("Serial port", null, cInput(p + "port", sat ? "/dev/ttyUSB1" : "/dev/ttyUSB0")),
+            cfgRow("Baud rate", null, cSelect(p + "baud", "9600", BAUDS)),
+            cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply(p + "host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("rotctld port", sat ? "its own port, not the main rotor's" : null, cInputApply(p + "rotctldPort", sat ? "4534" : "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Start rotctld for me", null, cToggleApply(p + "startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
     }
     private static Region amplifierCenter() {
         com.ars.fx.data.AmpClient.getInstance().start();

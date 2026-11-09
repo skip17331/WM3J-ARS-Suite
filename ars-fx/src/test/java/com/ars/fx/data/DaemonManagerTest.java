@@ -16,6 +16,17 @@ class DaemonManagerTest {
     }
 
     @Test
+    void theSatelliteRotorGetsItsOwnRotctldOnItsOwnPort() throws Exception {
+        withConfig(() -> {
+            assertNull(DaemonManager.argvFor("rotor2"), "no model number, nothing to start");
+            HubConfig.set("rotor.hamlibModel", "202"); HubConfig.set("rotor.port", "/dev/ttyUSB0");
+            HubConfig.set("rotor2.hamlibModel", "204"); HubConfig.set("rotor2.port", "/dev/ttyUSB1"); HubConfig.set("rotor2.baud", "19200");
+            assertEquals(List.of("rotctld", "-m", "202", "-r", "/dev/ttyUSB0", "-t", "4533", "-T", "127.0.0.1"), DaemonManager.argvFor("rotor"));
+            assertEquals(List.of("rotctld", "-m", "204", "-r", "/dev/ttyUSB1", "-s", "19200", "-t", "4534", "-T", "127.0.0.1"), DaemonManager.argvFor("rotor2"));
+        });
+    }
+
+    @Test
     void noHamlibModelMeansNothingToStart() throws Exception {
         withConfig(() -> assertNull(DaemonManager.argvFor("rig")));
     }

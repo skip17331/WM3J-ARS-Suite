@@ -28,6 +28,8 @@ public final class DaemonManager {
                     "rig.rigctldHost", "rig.rigctldPort", "4532", "rig.startDaemon"),
             new Spec("rotor", "rotctld", "rotor.hamlibModel", "rotor.port", "rotor.baud",
                     "rotor.host", "rotor.rotctldPort", "4533", "rotor.startDaemon"),
+            new Spec("rotor2", "rotctld", "rotor2.hamlibModel", "rotor2.port", "rotor2.baud",   // the satellite rotor's own rotctld, on its own port
+                    "rotor2.host", "rotor2.rotctldPort", "4534", "rotor2.startDaemon"),
             new Spec("amp",   "ampctld", "amp.hamlibModel",   "amp.port",   "amp.baud",
                     "amp.host", "amp.ampctldPort", "4531", "amp.startDaemon"));
 
@@ -39,7 +41,12 @@ public final class DaemonManager {
     public static void stopAll() { for (Spec s : SPECS) stop(s.kind()); }
     /** Reconcile every daemon to its current config toggle: spawn the enabled ones, stop the disabled ones.
      *  The hub calls this after re-loading config on a client's {@code hub.reconfig} nudge. */
-    public static void applyAll() { for (Spec s : SPECS) setEnabled(s.kind(), HubConfig.getBool(s.startKey(), false)); }
+    public static void applyAll() { for (Spec s : SPECS) setEnabled(s.kind(), wanted(s)); }
+
+    /** Whether {@code s}'s daemon should be running: its "start for me" switch is on, and for the satellite rotor, the rotor itself is switched on. */
+    private static boolean wanted(Spec s) {
+        return HubConfig.getBool(s.startKey(), false) && (!s.kind().equals("rotor2") || HubConfig.getBool("rotor2.enabled", false));
+    }
 
     /** The command line we started each daemon with, so a changed setting can be told from "already running". */
     private static final Map<String, List<String>> ARGV = new ConcurrentHashMap<>();
@@ -51,7 +58,7 @@ public final class DaemonManager {
      */
     public static synchronized void ensure(String kind) {
         Spec s = spec(kind);
-        if (s == null || !HubConfig.getBool(s.startKey(), false)) return;
+        if (s == null || !wanted(s)) return;
         String bin = resolveBinary(s.daemon());
         List<String> argv = bin == null ? null : buildArgv(s, bin);
         Process p = PROCS.get(kind);

@@ -23,7 +23,7 @@ public final class HamlibModels {
     /** Models for {@code kind} ("rig", "rotor" or "amp"), sorted by manufacturer then name. Cached after the first call. */
     public static List<Model> list(String kind) {
         return CACHE.computeIfAbsent(kind, k -> {
-            String tool = switch (k) { case "rotor" -> "rotctl"; case "amp" -> "ampctl"; default -> "rigctl"; };
+            String tool = k.startsWith("rotor") ? "rotctl" : k.startsWith("amp") ? "ampctl" : "rigctl";
             String bin = DaemonManager.resolveBinary(tool);
             if (bin == null) return List.of();
             try {

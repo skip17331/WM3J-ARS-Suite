@@ -8,6 +8,7 @@ import javafx.application.Platform;
 import javafx.scene.AmbientLight;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
+import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.SubScene;
@@ -18,6 +19,9 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.MeshView;
@@ -61,6 +65,7 @@ final class GlobeView extends Pane {
     private final SubScene sub;
     private final Canvas overlay = new Canvas();
     private final Translate shift = new Translate();
+    private final PointLight sunlight = new PointLight(Color.gray(0.62));   // fixed to the view, upper left, so the globe is lit from one side whichever way it is turned
     private final Rotate tilt = new Rotate(0, Rotate.X_AXIS), turn = new Rotate(0, Rotate.Y_AXIS);
 
     private double lat0 = 30, lon0 = 0, zoom = 1;
@@ -86,12 +91,16 @@ final class GlobeView extends Pane {
         this.surface = surface;
         setMinSize(0, 0); setPrefSize(0, 0);
         setStyle("-fx-background-color:-ars-bg;");
-        AmbientLight light = new AmbientLight(Color.WHITE);                  // no shading: the texture shows as drawn
+        // Shaded, so it reads as a ball: a dim fill plus one light from the upper left, on the Earth only. The night layer is a plain tint
+        // (its own white ambient light) so its colour is unchanged.
+        AmbientLight fill = new AmbientLight(Color.gray(0.42)), flat = new AmbientLight(Color.WHITE);
+        fill.getScope().add(earth); sunlight.getScope().add(earth); flat.getScope().add(night);
+        earthMat.setSpecularColor(Color.gray(0.16)); earthMat.setSpecularPower(38);   // a faint sheen on the lit side
         earth.setMaterial(earthMat);
         nightMat.setSpecularColor(null); night.setMaterial(nightMat);
         earth.setCullFace(CullFace.NONE); night.setCullFace(CullFace.NONE);        // the far side is hidden by the depth buffer, so winding does not matter
         world.getTransforms().setAll(shift, tilt, turn);                      // applied turn first, then tilt, then shift to the middle
-        Group root = new Group(world, light);
+        Group root = new Group(world, fill, sunlight, flat);
         sub = new SubScene(root, 10, 10, true, SceneAntialiasing.BALANCED);
         sub.setCamera(new PerspectiveCamera(false));
         sub.setFill(Color.TRANSPARENT);
@@ -183,6 +192,8 @@ final class GlobeView extends Pane {
         double rn = r * 1.004; night.setScaleX(rn); night.setScaleY(rn); night.setScaleZ(rn);
         shift.setX(getWidth() / 2); shift.setY(getHeight() / 2);
         tilt.setAngle(lat0); turn.setAngle(lon0);
+        double e = GlobeProjection.eyeDistance(getHeight());                      // the light sits in front of the globe, up and to the left
+        sunlight.setTranslateX(getWidth() / 2 - 1.8 * r); sunlight.setTranslateY(getHeight() / 2 - 1.5 * r); sunlight.setTranslateZ(-1.1 * e);
     }
 
     /**
@@ -300,7 +311,16 @@ final class GlobeView extends Pane {
         GlobeProjection pr = new GlobeProjection(lat0, lon0, radius(), w, h);
         hits.clear(); hitNames.clear();
 
-        double sil = pr.silhouetteRadius();                                        // a thin edge so the globe reads against the background
+        double sil = pr.silhouetteRadius();
+        // atmosphere: a glow just outside the edge and a thin bright rim just inside it
+        double outer = sil * 1.16;
+        Color glow = pal.light() ? Color.web("#4a86c5") : Color.web("#5fb0ff");
+        Color none = new Color(glow.getRed(), glow.getGreen(), glow.getBlue(), 0);
+        Color peak = new Color(glow.getRed(), glow.getGreen(), glow.getBlue(), pal.light() ? 0.30 : 0.42);
+        g.setFill(new RadialGradient(0, 0, w / 2, h / 2, outer, false, CycleMethod.NO_CYCLE,
+                new Stop(0, none), new Stop(0.90 * sil / outer, none), new Stop(sil / outer, peak), new Stop(1, none)));
+        g.fillOval(w / 2 - outer, h / 2 - outer, outer * 2, outer * 2);
+        // a thin edge so the globe reads against the background
         g.setStroke(pal.light() ? Color.web("#1c2733", 0.35) : Color.web("#9fc4e8", 0.45)); g.setLineWidth(1.5);
         g.strokeOval(w / 2 - sil, h / 2 - sil, sil * 2, sil * 2);
 
