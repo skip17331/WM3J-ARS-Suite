@@ -314,6 +314,7 @@ public final class Shell {
     public static HBox topBar(String hue, String glyphId, String name, String subtitle,
                               String[][] stats, String clock) {
         HBox top = new HBox(); top.getStyleClass().add("sx-top"); top.setAlignment(Pos.CENTER_LEFT);
+        if (hue != null && !hue.isBlank()) top.getStyleClass().add("hue-" + hue);   // the bar takes its module's colour (see the polish block in ars.css)
         StackPane bic = iconTile(hue, glyphId, 18, "sx-brand-ic");
         VBox bt = new VBox(1, lbl(name, "sx-brand-nm"));
         if (subtitle != null && !subtitle.isBlank()) bt.getChildren().add(lbl(subtitle, "sx-brand-ct"));
