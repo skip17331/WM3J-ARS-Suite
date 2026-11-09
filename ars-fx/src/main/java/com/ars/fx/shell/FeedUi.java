@@ -15,6 +15,9 @@ public final class FeedUi {
     /** Inline style for a status dot. */
     public static String dot(Status s) { return "-fx-background-color:" + color(s) + ";-fx-background-radius:99;"; }
 
+    /** Colour a status dot, and let it breathe softly while the feed is connected. */
+    public static void paint(javafx.scene.layout.Region dot, Status s) { dot.setStyle(dot(s)); Fx.pulse(dot, s == Status.CONNECTED); }
+
     /** "Connected · dxc.ve7cc.net". */
     public static String line(TelnetFeed f) { return f.status().label() + " · " + f.endpoint(); }
 

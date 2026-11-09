@@ -46,9 +46,22 @@ public final class AutoPanel {
     public static boolean isPinned(String key) { return HubConfig.getBool(configKey(key), false); }
     private static String configKey(String key) { return "panel.pinned." + key; }
 
-    public static void setPinned(String key, boolean pinned) {
-        if (pinned == isPinned(key)) return;
+    /** One live pin state per panel, which every Pin / Unpin button for that panel follows. A header can be built once and outlive
+     *  many pin changes (J-Map's right-hand column), or the panel can be pinned from elsewhere (the QSO card docks itself), so a
+     *  caption chosen when the button was built goes stale. */
+    private static final Map<String, javafx.beans.property.BooleanProperty> PIN_STATE = new HashMap<>();
+    private static javafx.beans.property.BooleanProperty pinState(String key) {
+        return PIN_STATE.computeIfAbsent(key, k -> new javafx.beans.property.SimpleBooleanProperty(isPinned(k)));
+    }
+    /** The one place a pin is stored: the saved setting and the live state the buttons follow change together. */
+    private static void store(String key, boolean pinned) {
         HubConfig.setBool(configKey(key), pinned);
+        pinState(key).set(pinned);
+    }
+
+    public static void setPinned(String key, boolean pinned) {
+        if (pinned == isPinned(key)) { pinState(key).set(pinned); return; }
+        store(key, pinned);
         Runnable rebuild = REBUILD.get(key);
         if (rebuild != null) rebuild.run();
     }
@@ -56,13 +69,17 @@ public final class AutoPanel {
     /** The Pin / Unpin button for a panel's header. {@code rebuild} puts the panel back through {@link #wrap}. */
     public static Label pinButton(String key, Runnable rebuild) {
         REBUILD.put(key, rebuild);
-        Label b = lbl(isPinned(key) ? "Unpin" : "Pin", "jhub-clearbtn");
+        pinState(key).set(isPinned(key));                      // in step with the saved setting
+        Label b = lbl("", "jhub-clearbtn");
+        b.textProperty().bind(javafx.beans.binding.Bindings.when(pinState(key)).then("Unpin").otherwise("Pin"));
+        Runnable caption = () -> Tips.tip(b, "Unpin".equals(b.getText()) ? "Let this panel collapse when the mouse leaves it" : "Keep this panel open");
+        b.textProperty().addListener((o, was, now) -> caption.run());
+        caption.run();
         b.setStyle("-fx-cursor:hand;");
-        Tips.tip(b, isPinned(key) ? "Let this panel collapse when the mouse leaves it" : "Keep this panel open");
         b.setOnMouseClicked(e -> {
             boolean pin = !isPinned(key);
             OPEN.put(key, !pin);                              // unpinning under the mouse: stay open until it leaves
-            HubConfig.setBool(configKey(key), pin);
+            store(key, pin);
             rebuild.run();
             if (!pin) scheduleClose(key, CLOSE_DELAY);
         });
@@ -77,6 +94,7 @@ public final class AutoPanel {
         panel.setEffect(null);
         panel.setVisible(true);
         panel.setManaged(true);
+        watchTyping(key, panel);
         if (isPinned(key) && !tooNarrow.getAsBoolean()) {
             SLOTS.remove(key);
             return panel;
@@ -123,7 +141,7 @@ public final class AutoPanel {
         PauseTransition t = timer(CLOSING, key, after);
         t.setOnFinished(e -> {
             Slot s = live(key);
-            if (s != null && (s.holder().isHover() || typingIn(s))) {
+            if (s != null && (s.holder().isHover() || typingIn(key, s))) {
                 t.setDuration(CLOSE_DELAY);
                 t.playFromStart();                            // still in use: look again shortly
             } else {
@@ -133,7 +151,22 @@ public final class AutoPanel {
         t.playFromStart();
     }
 
-    private static boolean typingIn(Slot s) {
+    /** When the user last pressed a key, or clicked a text field, in each panel. Keyboard focus alone does not mean someone is typing: JavaFX gives
+     *  the first text field in a panel the focus the moment the panel is revealed (if nothing else has it), which on J-Map's left column held it
+     *  open for good. */
+    private static final Map<String, Long> LAST_TYPED = new HashMap<>();
+    private static final long TYPING_GRACE_MS = 30_000;
+
+    private static void watchTyping(String key, Region panel) {
+        if (panel.getProperties().putIfAbsent("autopanel.typing", Boolean.TRUE) != null) return;   // the same panel is wrapped again on each pin change
+        panel.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, e -> LAST_TYPED.put(key, System.currentTimeMillis()));
+        panel.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> {
+            for (Object t = e.getTarget(); t instanceof Node n; t = n.getParent()) if (n instanceof TextInputControl) { LAST_TYPED.put(key, System.currentTimeMillis()); return; }
+        });
+    }
+
+    private static boolean typingIn(String key, Slot s) {
+        if (System.currentTimeMillis() - LAST_TYPED.getOrDefault(key, 0L) > TYPING_GRACE_MS) return false;
         Node focus = s.holder().getScene().getFocusOwner();
         if (!(focus instanceof TextInputControl)) return false;
         for (Parent p = focus.getParent(); p != null; p = p.getParent()) if (p == s.panel()) return true;

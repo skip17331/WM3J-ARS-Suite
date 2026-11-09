@@ -230,28 +230,36 @@ public final class Shell {
         if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
-        dock.getChildren().add(spacer());
+
+        // The foot is pinned: Awards, Settings and the colour-scheme sunburst stay on screen whatever the window height. An expanded
+        // dock (with the J-Hub links) is taller than many windows, and when these rows lived in the scrolling part the sunburst was
+        // pushed below the fold the moment the pointer reached the dock.
+        VBox foot = new VBox(); foot.getStyleClass().addAll("sx-dock", "sx-dock-foot");
+        foot.setStyle("-fx-padding:6 0 6 0;");
         // Awards: opens the full awards screen from any module (same screen as J-Log's drawer "Open awards")
-        dock.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
+        foot.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
                 expandOnly, com.ars.fx.surface.AwardsWindow::open));
         // Settings foot: on every module's dock, not just the J-Hub screens (gear → J-Hub Setup)
-        dock.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
+        foot.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
         // Colour scheme: the sunburst in the bottom corner. Cycles this module's scheme (or the suite's, on J-Hub pages).
-        dock.getChildren().add(themeDockRow(expandOnly));
+        foot.getChildren().add(themeDockRow(expandOnly));
 
-        // Scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would make
-        // the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
+        // The module list scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would
+        // make the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
         ScrollPane sp = new ScrollPane(dock);
         sp.getStyleClass().add("sx-dock-scroll");
         sp.setFitToWidth(true); sp.setFitToHeight(true);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setMinHeight(0);
-        sp.minWidthProperty().bind(dock.minWidthProperty());
-        sp.prefWidthProperty().bind(dock.prefWidthProperty());
-        sp.maxWidthProperty().bind(dock.maxWidthProperty());
-        sp.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
-        sp.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
-        return sp;
+        VBox.setVgrow(sp, Priority.ALWAYS);
+        VBox outer = new VBox(sp, foot);
+        outer.setMinHeight(0);
+        outer.minWidthProperty().bind(dock.minWidthProperty());
+        outer.prefWidthProperty().bind(dock.prefWidthProperty());
+        outer.maxWidthProperty().bind(dock.maxWidthProperty());
+        outer.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
+        outer.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
+        return outer;
     }
     private static void setExpanded(VBox dock, List<Node> nodes, boolean exp) {
         double w = exp ? 216 : 58;
@@ -314,6 +322,7 @@ public final class Shell {
     public static HBox topBar(String hue, String glyphId, String name, String subtitle,
                               String[][] stats, String clock) {
         HBox top = new HBox(); top.getStyleClass().add("sx-top"); top.setAlignment(Pos.CENTER_LEFT);
+        if (hue != null && !hue.isBlank()) top.getStyleClass().add("hue-" + hue);   // the bar takes its module's colour (see the polish block in ars.css)
         StackPane bic = iconTile(hue, glyphId, 18, "sx-brand-ic");
         VBox bt = new VBox(1, lbl(name, "sx-brand-nm"));
         if (subtitle != null && !subtitle.isBlank()) bt.getChildren().add(lbl(subtitle, "sx-brand-ct"));
@@ -367,7 +376,7 @@ public final class Shell {
                 HBox.setMargin(t, new Insets(0, 0, 0, TOP_TILE_GAP * s));
                 for (Node n : t.getChildren()) {
                     if (!(n instanceof Label l)) continue;
-                    double full = l.getStyleClass().contains("sx-stat-v") ? 16 : l.getStyleClass().contains("sx-clock-v") ? 18 : 0;
+                    double full = l.getStyleClass().contains("sx-stat-v") ? 18 : l.getStyleClass().contains("sx-clock-v") ? 20 : 0;
                     l.setStyle(String.format("-fx-font-size:%.1fpx;", full > 0 ? full * s : Math.max(8, 9 * s)));
                 }
             }
@@ -394,7 +403,7 @@ public final class Shell {
     /** Have the drawer with this title open the next time it is built. */
     public static void openDrawer(String title) { DRAWER_STATE.put(title, true); }
     /** Open this drawer the first time it is built, then leave it to the operator's choice. */
-    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, true); }
+    public static void openDrawerByDefault(String title) { DRAWER_STATE.putIfAbsent(title, com.ars.fx.data.HubConfig.getBool("drawer." + title, true)); }
 
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body) {
         return drawer(title, hue, glyphId, summary, open, body, null);
@@ -403,7 +412,7 @@ public final class Shell {
     public static VBox drawer(String title, String hue, String glyphId, String summary, boolean open, Node body,
                               java.util.function.Consumer<Boolean> onToggle) {
         // default closed on first sight; the operator's open/closed choice is then remembered by title
-        boolean initOpen = DRAWER_STATE.getOrDefault(title, false);
+        boolean initOpen = DRAWER_STATE.computeIfAbsent(title, k -> com.ars.fx.data.HubConfig.getBool("drawer." + k, false));   // from the last run, if it was ever changed
         VBox dw = new VBox(); dw.getStyleClass().add("sx-dw"); if (initOpen) dw.getStyleClass().add("open");
         StackPane ic = iconTile(hue, glyphId, 14, "sx-dw-ic");
         Label t = lbl(title, "sx-dw-t"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
@@ -420,6 +429,7 @@ public final class Shell {
             bodyBox.setManaged(nowOpen); bodyBox.setVisible(nowOpen);
             sum.setVisible(!nowOpen); sum.setManaged(!nowOpen); cv.setRotate(nowOpen ? 90 : 0);
             DRAWER_STATE.put(title, nowOpen);
+            com.ars.fx.data.HubConfig.setBool("drawer." + title, nowOpen);   // kept for next time
             if (onToggle != null) onToggle.accept(nowOpen);
         });
         dw.getChildren().addAll(head, bodyBox);

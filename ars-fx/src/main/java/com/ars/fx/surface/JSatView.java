@@ -34,7 +34,7 @@ public final class JSatView {
 
     // ── view state (persists across the 2 s snapshot rebuilds) ────────────────
     private static String selectedSat = null;   // null = follow the auto-tracked sat
-    private static int    viewMode    = 0;      // 0 = polar sky plot, 1 = blue marble, 2 = 3D globe
+    private static int    viewMode    = Math.max(0, Math.min(2, com.ars.fx.data.HubConfig.getInt("sat.view", 0)));      // 0 = polar sky plot, 1 = blue marble, 2 = 3D globe; kept between runs
     private static boolean trackRotor() { return com.ars.fx.data.HubConfig.getBool("rotor.autoTrack", false); }   // feed focus az to the rotor while in pass (J-Hub ▸ Rotor control)
     private static boolean dopplerTune = false; // feed Doppler-corrected downlink to the rig
 
@@ -338,7 +338,7 @@ public final class JSatView {
             final int idx = i;
             Label b = lbl(opts[i], "jm-seg-btn"); if (i == viewMode) b.getStyleClass().add("on");
             b.setMinWidth(96); b.setStyle("-fx-cursor:hand;");
-            b.setOnMouseClicked(e -> { viewMode = idx; rebuild(); });
+            b.setOnMouseClicked(e -> { viewMode = idx; com.ars.fx.data.HubConfig.setInt("sat.view", idx); rebuild(); });
             h.getChildren().add(b);
         }
         return h;

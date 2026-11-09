@@ -561,7 +561,7 @@ public final class JLogCockpit {
         VBox body = new VBox(8, src, rows); body.setPadding(new Insets(2, 2, 4, 2));
 
         hb.setListener(c -> Shell.keepScroll(rows, () -> {
-            cdot.setStyle(FeedUi.dot(c.status()));
+            FeedUi.paint(cdot, c.status());
             state.setText(FeedUi.line(c)); act.setText(FeedUi.action(c));
             rows.getChildren().clear();
             List<com.ars.fx.data.HeardByClient.HeardSpot> list = c.spots();
