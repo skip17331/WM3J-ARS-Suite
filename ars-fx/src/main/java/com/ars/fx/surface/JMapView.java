@@ -565,7 +565,7 @@ public final class JMapView {
     private static Region mapFrame;
 
     // ---- starburst: a short pop on the map where a spot has just arrived ----
-    private static final long BURST_MS = 1400;
+    private static final long BURST_MS = 3200;
     private static Canvas burstCanvas;
     private static javafx.animation.AnimationTimer burstTimer;
 
@@ -599,28 +599,48 @@ public final class JMapView {
     }
 
     /**
-     * One frame of a burst, {@code t} from 0 to 1: a bright flash, a ring that spreads and thins, and eight rays (long and short alternately) that shoot
-     * out and fade. Everything is drawn twice, a thin dark line under the band-coloured one, so it shows on a pale map as well as a dark one.
+     * One frame of a burst, {@code t} from 0 to 1 over {@link #BURST_MS}. It has to catch the eye on a busy map, so it is big and bright and it lingers: a flash
+     * and a glow round the dot, two rings (the second a beat behind) that spread, and eight rays (long and short alternately) that shoot out and slowly
+     * turn. It holds full strength for the first 45% and only then fades. Everything is drawn twice, a dark line under the band-coloured one, so it shows on
+     * a pale map as well as a dark one.
      */
     private static void drawBurst(GraphicsContext g, double x, double y, double t, Color band) {
-        double out = 1 - Math.pow(1 - t, 3), a = Math.pow(1 - t, 0.9);
-        Color col = band.deriveColor(0, 1.15, 1.1, a), under = Color.web("#0b0f14", 0.55 * a);
+        double a = t < 0.45 ? 1.0 : Math.pow(1 - (t - 0.45) / 0.55, 1.2);                 // hold, then fade
+        double grow = 1 - Math.pow(1 - Math.min(1.0, t / 0.7), 2.2);                          // out fast, then settle
+        Color col = band.interpolate(Color.WHITE, 0.25).deriveColor(0, 1.3, 1.25, a), under = Color.web("#0b0f14", 0.6 * a);
         g.setLineCap(StrokeLineCap.ROUND);
-        double rr = 5 + 24 * out, ringW = 2.4 * (1 - t) + 0.8;
-        g.setLineWidth(ringW + 2.2); g.setStroke(under); g.strokeOval(x - rr, y - rr, rr * 2, rr * 2);
-        g.setLineWidth(ringW); g.setStroke(col); g.strokeOval(x - rr, y - rr, rr * 2, rr * 2);
-        double r0 = 4 + 8 * out, r1 = 8 + 26 * out, turn = t * 0.6, rayW = 2.0 * (1 - t) + 0.9;
+
+        // a soft glow round the dot for the whole burst
+        double gr = 22 + 12 * grow;
+        g.setFill(new javafx.scene.paint.RadialGradient(0, 0, x, y, gr, false, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0, band.deriveColor(0, 1.2, 1.2, 0.6 * a)), new javafx.scene.paint.Stop(1, band.deriveColor(0, 1.2, 1.2, 0))));
+        g.fillOval(x - gr, y - gr, gr * 2, gr * 2);
+
+        // two rings, the second a beat behind
+        for (int k = 0; k < 2; k++) {
+            double tk = Math.max(0, Math.min(1.0, (t - 0.18 * k) / 0.7));
+            if (tk <= 0) continue;
+            double r = 6 + (36 - 8 * k) * (1 - Math.pow(1 - tk, 2.2)), w = (3.4 - 1.2 * k) * (1 - 0.7 * tk) + 0.6;
+            double ak = a * (k == 0 ? 1.0 : 0.75);
+            g.setLineWidth(w + 2.6); g.setStroke(Color.web("#0b0f14", 0.6 * ak)); g.strokeOval(x - r, y - r, r * 2, r * 2);
+            g.setLineWidth(w); g.setStroke(col.deriveColor(0, 1, 1, k == 0 ? 1.0 : 0.75)); g.strokeOval(x - r, y - r, r * 2, r * 2);
+        }
+
+        // eight rays
+        double r0 = 6 + 8 * grow, r1 = 14 + 34 * grow, turn = t * 0.9, rayW = 3.0 * (1 - 0.55 * t) + 0.8;
         for (int pass = 0; pass < 2; pass++) {
-            g.setLineWidth(pass == 0 ? rayW + 2.2 : rayW); g.setStroke(pass == 0 ? under : col);
+            g.setLineWidth(pass == 0 ? rayW + 2.6 : rayW); g.setStroke(pass == 0 ? under : col);
             for (int i = 0; i < 8; i++) {
-                double ang = turn + i * Math.PI / 4, far = (i % 2 == 0) ? r1 : r1 * 0.65;
+                double ang = turn + i * Math.PI / 4, far = (i % 2 == 0) ? r1 : r1 * 0.62;
                 g.strokeLine(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0, x + Math.cos(ang) * far, y + Math.sin(ang) * far);
             }
         }
-        if (t < 0.4) {
-            double ca = 1 - t / 0.4;
-            g.setFill(Color.web("#0b0f14", 0.45 * ca)); g.fillOval(x - 8, y - 8, 16, 16);
-            g.setFill(Color.WHITE.deriveColor(0, 1, 1, 0.95 * ca)); g.fillOval(x - 6, y - 6, 12, 12);
+
+        // a white-hot flash at the centre that pulses once and dims
+        double core = t < 0.3 ? 1.0 - t / 0.3 : 0.0;
+        if (core > 0) {
+            g.setFill(Color.web("#0b0f14", 0.45 * core)); g.fillOval(x - 10, y - 10, 20, 20);
+            g.setFill(Color.WHITE.deriveColor(0, 1, 1, core)); g.fillOval(x - 8, y - 8, 16, 16);
         }
     }
 
