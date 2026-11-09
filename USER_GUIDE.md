@@ -134,7 +134,7 @@ Extra settings:
 
 - **Rig control** — poll interval, auto band-follow, and **PTT & keying**: PTT method, CW keyer and the **PTT delay**
   used when sending macros (see [§5](#5-macros-and-transmitting)).
-- **Rotor control** — overlap/wrap, park position, dead-band, **auto-track satellites (J-Sat)** and the beam presets
+- **Rotor control** — overlap/wrap, park position, dead-band, **auto-track satellites (J-Sat)**, **Elevation rotor (az/el)** and the beam presets. Turn on *Elevation rotor* if your rotor has an elevation axis (a satellite az/el rotator): J-Sat's tracking then points the elevation at the satellite as well as the azimuth (0-90°), and the dead-band applies to both. Leave it off for an azimuth-only rotator such as an HF beam's, which is then never sent an elevation. Presets, Park and the nudge buttons only ever move the azimuth.
   (Europe, Africa, S. America, Caribbean, Asia, Oceania).
 - **Amplifier** — follow-rig-band, maximum power, standby on TX inhibit.
 - **Antenna switch** — model, host and port, follow-rig-band, and a six-port map of antenna names and bands.

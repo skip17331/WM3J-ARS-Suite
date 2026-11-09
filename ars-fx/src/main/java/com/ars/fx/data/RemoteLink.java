@@ -185,4 +185,6 @@ public final class RemoteLink {
         send(o);
     }
     public void sendRotorMove(double az) { JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az); send(o); }
+    /** As above with an elevation too (a satellite pass on an az/el rotor); a station that only knows azimuth ignores the extra field. */
+    public void sendRotorMove(double az, double el) { JsonObject o = new JsonObject(); o.addProperty("t", "rotor.move"); o.addProperty("az", az); o.addProperty("el", el); send(o); }
 }

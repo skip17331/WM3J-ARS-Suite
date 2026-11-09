@@ -116,7 +116,11 @@ public final class RemoteServer extends WebSocketServer {
             switch (t) {
                 case "rig.freq"     -> RigClient.getInstance().setFreqHz(o.get("hz").getAsLong());
                 case "rig.mode"     -> RigClient.getInstance().setMode(o.get("mode").getAsString());
-                case "rotor.move"   -> RotorClient.getInstance().moveTo(o.get("az").getAsDouble());
+                case "rotor.move"   -> {
+                    double az = o.get("az").getAsDouble();
+                    if (o.has("el")) RotorClient.getInstance().moveTo(az, o.get("el").getAsDouble());   // a satellite pass on an az/el rotor
+                    else RotorClient.getInstance().moveTo(az);
+                }
                 case "hello"        -> {                                   // client identifies itself
                     clients.put(conn, o.has("module") ? o.get("module").getAsString() : "?");
                     System.out.println("[hub] " + clients.get(conn) + " attached (" + clients.size()

@@ -41,7 +41,7 @@ public final class JSatView {
     /** Each rebuild (~2 s): point the rotor and tune the rig at the focus satellite when enabled. */
     private static void autoTrack(SatInfo f) {
         if (f == null) return;
-        if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().trackTo(f.azDeg());
+        if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().trackTo(f.azDeg(), f.elDeg());
         if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz());
     }
 
@@ -633,7 +633,7 @@ public final class JSatView {
                     radioBox("DOWNLINK", SatService.mhz(f.downlinkHz()) + "  " + SatService.shiftKHz(f.downlinkCorrHz(), f.downlinkHz()), SatService.mhz4(f.downlinkCorrHz())),
                     radioBox("UPLINK", SatService.mhz(f.uplinkHz()) + "  " + SatService.shiftKHz(f.uplinkCorrHz(), f.uplinkHz()), SatService.mhz4(f.uplinkCorrHz())),
                     Shell.kv("Mode", f.mode(), false),
-                    satToggleRow("Track with rotor", trackRotor(), () -> { com.ars.fx.data.HubConfig.setBool("rotor.autoTrack", !trackRotor()); if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().trackTo(f.azDeg()); rebuild(); }),
+                    satToggleRow("Track with rotor", trackRotor(), () -> { com.ars.fx.data.HubConfig.setBool("rotor.autoTrack", !trackRotor()); if (trackRotor() && f.inPass() && f.elDeg() > 0) com.ars.fx.data.RotorClient.getInstance().trackTo(f.azDeg(), f.elDeg()); rebuild(); }),
                     satToggleRow("Doppler-tune rig", dopplerTune, () -> { dopplerTune = !dopplerTune; if (dopplerTune && f.downlinkCorrHz() > 0) com.ars.fx.data.RigClient.getInstance().setFreqHz(f.downlinkCorrHz()); rebuild(); }));
         } else {
             doppler = new VBox(9, lbl("No satellite selected", "js-radio-sub"));

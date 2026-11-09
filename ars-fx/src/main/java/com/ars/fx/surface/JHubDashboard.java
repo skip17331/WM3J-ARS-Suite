@@ -794,7 +794,8 @@ public final class JHubDashboard {
         VBox beh = section("BEHAVIOR",
             cfgRow("Overlap / wrap", "where the rotor crosses — not applied yet", cSeg("rotor.wrap", new String[]{"North","South"}, 0)),
             cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "° az")),
-            cfgRow("Dead-band", "satellite tracking skips moves smaller than this", cUnit("rotor.deadband", "2", "°")),
+            cfgRow("Elevation rotor (az/el)", "satellite tracking also points the elevation (0-90°); leave off for an azimuth-only rotor such as an HF beam's", cToggleApply("rotor.hasElevation", false, on -> { })),
+            cfgRow("Dead-band", "satellite tracking skips moves smaller than this, on either axis", cUnit("rotor.deadband", "2", "°")),
             cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat", cToggle("rotor.autoTrack", false)));
         VBox presets = section("BEAM PRESETS", presetRows());
         return cfgPage(cfgTop("J-Hub","Hardware","Rotor control"),

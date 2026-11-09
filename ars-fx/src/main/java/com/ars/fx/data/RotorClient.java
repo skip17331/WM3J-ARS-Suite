@@ -94,7 +94,20 @@ public final class RotorClient {
         targetAz = ((az % 360) + 360) % 360;
         if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz); return; }   // forward to the station
         double el = Math.max(0, last.el());
-        runCmd(String.format("P %.1f %.1f", targetAz, el));
+        runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", targetAz, el));          // rotctld wants a decimal point, whatever the system locale
+    }
+
+    /** True when the rotor has an elevation axis (J-Hub > Rotor control > Elevation rotor): satellite tracking then drives elevation as well as azimuth. */
+    public static boolean hasElevation() { return HubConfig.getBool("rotor.hasElevation", false); }
+    /** Elevation is asked for between 0 (the horizon) and 90 (straight up). */
+    private static double clampEl(double el) { return Math.max(0, Math.min(90, el)); }
+
+    /** Slew to an azimuth and an elevation at once (a satellite pass). Elevation is held to 0-90 degrees. */
+    public void moveTo(double az, double el) {
+        targetAz = ((az % 360) + 360) % 360;
+        double e = clampEl(el);
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRotorMove(targetAz, e); return; }   // forward to the station, elevation included
+        runCmd(String.format(java.util.Locale.ROOT, "P %.1f %.1f", targetAz, e));
     }
     /** A beam preset: shown in full on J-Hub ▸ Hardware ▸ Rotor control (where it is edited) and by {@code shortName} on the rotor drawer. */
     public record Preset(String name, String shortName, String key, int defaultAz) {
@@ -127,6 +140,21 @@ public final class RotorClient {
             if (d < deadbandDeg()) return;
         }
         moveTo(az);
+    }
+
+    /**
+     * Automatic tracking of a satellite: azimuth and elevation. With an elevation rotor (see {@link #hasElevation}) it slews when either axis is further
+     * than the dead-band from where the satellite is; without one it is the azimuth-only {@link #trackTo(double)}, as before, so an HF beam's rotator is
+     * never sent an elevation.
+     */
+    public void trackTo(double az, double el) {
+        if (!hasElevation()) { trackTo(az); return; }
+        State s = last;
+        if (s.connected()) {
+            double dAz = Math.abs((((az - s.az()) % 360) + 540) % 360 - 180), dEl = Math.abs(clampEl(el) - s.el());
+            if (dAz < deadbandDeg() && dEl < deadbandDeg()) return;
+        }
+        moveTo(az, el);
     }
 
     /** Nudge the current bearing by delta degrees (CCW / CW buttons). */
