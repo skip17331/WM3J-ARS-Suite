@@ -317,8 +317,8 @@ them).
 ### 4.9 Info
 
 The **Info** page (first in the dock) is a look-ahead and a news board, in four tiles: **Contests**, **DXpeditions**,
-**Links** and **News**. **Links** opens the ARRL Special Event Stations list, the ARRL Hamfest & Convention Calendar and
-the WA7BNM Contest Calendar in your browser (nothing is downloaded or copied from them).
+**Links** and **News**. **Links** opens the ARRL Special Event Stations list and the ARRL Hamfest & Convention Calendar
+in your browser (nothing is downloaded or copied from them).
 
 - The calendar tiles list what is coming up in the range you choose, with a search box; click an entry to open its page.
   DXpeditions come from NG3K's announced operations by default; contests come from the WA7BNM Contest Calendar's RSS

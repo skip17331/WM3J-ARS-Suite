@@ -116,10 +116,15 @@ public final class PathPropagationView extends VBox {
         nodes.add(head);
 
         GridPane g = new GridPane(); g.setHgap(1); g.setVgap(1);
+        for (int c = 0; c <= 24; c++) {                                        // the hour columns share what width there is, so a narrow panel is not pushed wider
+            javafx.scene.layout.ColumnConstraints cc = new javafx.scene.layout.ColumnConstraints();
+            if (c > 0) { cc.setMinWidth(4); cc.setHgrow(Priority.ALWAYS); cc.setFillWidth(true); }
+            g.getColumnConstraints().add(cc);
+        }
         for (int h = 0; h < 24; h++) {                                         // hour axis, every three hours; the current hour marked
             Label hl = lbl(h == hr ? "▼" : (h % 3 == 0 ? String.format("%02d", h) : ""), "sx-bc-hh");
             hl.setStyle("-fx-font-size:9px;" + (h == hr ? "-fx-text-fill:-ars-accent;" : ""));
-            hl.setMinWidth(CELL_W); hl.setPrefWidth(CELL_W); hl.setAlignment(Pos.CENTER); hl.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
+            hl.setMinWidth(4); hl.setPrefWidth(CELL_W); hl.setAlignment(Pos.CENTER); hl.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
             g.add(hl, h + 1, 0);
         }
         int row = 1;
@@ -128,7 +133,7 @@ public final class PathPropagationView extends VBox {
             Label bn = lbl(b, "sx-bc-bn"); bn.setMinWidth(34); g.add(bn, 0, row);
             for (int h = 0; h < 24; h++) {
                 double r = Propagation.reliability(mhz, day.get(h));
-                Region cell = new Region(); cell.setMinSize(CELL_W, CELL_H); cell.setPrefSize(CELL_W, CELL_H);
+                Region cell = new Region(); cell.setMinSize(4, CELL_H); cell.setPrefSize(CELL_W, CELL_H); cell.setMaxWidth(Double.MAX_VALUE);
                 cell.setStyle("-fx-background-color:" + color(r) + ";-fx-background-radius:2;" + (h == hr ? "-fx-border-color:-ars-accent;-fx-border-radius:2;" : ""));
                 Tips.tip(cell, String.format(Locale.US, "%s at %02d:00Z — %d%% likely\nMUF %.1f MHz, LUF %.1f MHz", b, h, Math.round(r * 100), day.get(h).mufMhz(), day.get(h).lufMhz()));
                 g.add(cell, h + 1, row);
