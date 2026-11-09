@@ -156,23 +156,23 @@ public final class JMapView {
     }
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
-    private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false;
+    private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true;
     // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
     // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
     // icon strip (same idea as J-Sat's satellite list).
     private static final double NARROW_W = 1240;
     private static boolean narrow() { return mapFrame != null && mapFrame.getWidth() > 1 && mapFrame.getWidth() < NARROW_W; }
     private static boolean overlayFlag(int i) {
-        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; default -> ovNeededOnly; };
+        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; default -> ovBurst; };
     }
     private static void applyOverlay(int i, boolean v) {
-        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; default -> ovNeededOnly = v; }
+        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; default -> ovBurst = v; }
     }
     private static void setOverlayFlag(int i, boolean v) {
         applyOverlay(i, v);
         com.ars.fx.data.HubConfig.setBool("map.ov." + i, v);            // kept for next time
     }
-    static { for (int i = 0; i < 6; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
+    static { for (int i = 0; i < 7; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
     private static java.util.Set<String> workedCallsCache = java.util.Set.of();
     private static long workedCallsAt = 0;
     private static java.util.Set<String> workedCalls() {
@@ -527,7 +527,11 @@ public final class JMapView {
                 scrollLeft(leftPanel(projection, onProj, () -> rebuildLeft[0].run())), 270, JMapView::narrow));
         rebuildLeft[0].run();
 
-        StackPane mapWithButton = new StackPane(mapHolder, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
+        Canvas burst = new Canvas(); burst.setMouseTransparent(true);          // the starbursts: a light layer above the map, so the map itself is not redrawn every frame
+        burst.widthProperty().bind(mapHolder.widthProperty()); burst.heightProperty().bind(mapHolder.heightProperty());
+        StackPane.setAlignment(burst, Pos.TOP_LEFT);
+        setUpBursts(burst);
+        StackPane mapWithButton = new StackPane(mapHolder, burst, MapQsoCard.addButton()); HBox.setHgrow(mapWithButton, Priority.ALWAYS);
         Region projToggle = projectionToggle(onProj);                 // top right of the map, where J-Sat keeps its view buttons
         StackPane.setAlignment(projToggle, Pos.TOP_RIGHT); StackPane.setMargin(projToggle, new Insets(12, 18, 0, 0));
         mapWithButton.getChildren().add(projToggle);
@@ -548,6 +552,66 @@ public final class JMapView {
     }
 
     private static Region mapFrame;
+
+    // ---- starburst: a short pop on the map where a spot has just arrived ----
+    private static final long BURST_MS = 1400;
+    private static Canvas burstCanvas;
+    private static javafx.animation.AnimationTimer burstTimer;
+
+    private static void setUpBursts(Canvas c) {
+        if (burstTimer != null) burstTimer.stop();
+        burstCanvas = c;
+        burstTimer = new javafx.animation.AnimationTimer() {
+            @Override public void handle(long nowNs) {
+                GraphicsContext g = burstCanvas.getGraphicsContext2D();
+                g.clearRect(0, 0, burstCanvas.getWidth(), burstCanvas.getHeight());
+                long now = System.currentTimeMillis();
+                boolean any = false;
+                if (ovBurst && !com.ars.fx.shell.Fx.reduced()) {
+                    for (Dot d : paintedDots) {
+                        long age = now - d.s().arrivalMs();
+                        if (age < 0 || age >= BURST_MS) continue;
+                        any = true;
+                        drawBurst(g, d.x(), d.y(), age / (double) BURST_MS, d.s().color());
+                    }
+                }
+                if (!any) stop();                                   // nothing new on the map: no more frames until the next spot
+            }
+        };
+    }
+
+    /** Called after each map paint: if a spot on the map is brand new, play its starburst. The timer runs only while there is one to play. */
+    private static void kickBursts() {
+        if (!ovBurst || burstTimer == null || com.ars.fx.shell.Fx.reduced()) return;
+        long now = System.currentTimeMillis();
+        for (Dot d : paintedDots) { long age = now - d.s().arrivalMs(); if (age >= 0 && age < BURST_MS) { burstTimer.start(); return; } }
+    }
+
+    /**
+     * One frame of a burst, {@code t} from 0 to 1: a bright flash, a ring that spreads and thins, and eight rays (long and short alternately) that shoot
+     * out and fade. Everything is drawn twice, a thin dark line under the band-coloured one, so it shows on a pale map as well as a dark one.
+     */
+    private static void drawBurst(GraphicsContext g, double x, double y, double t, Color band) {
+        double out = 1 - Math.pow(1 - t, 3), a = Math.pow(1 - t, 0.9);
+        Color col = band.deriveColor(0, 1.15, 1.1, a), under = Color.web("#0b0f14", 0.55 * a);
+        g.setLineCap(StrokeLineCap.ROUND);
+        double rr = 5 + 24 * out, ringW = 2.4 * (1 - t) + 0.8;
+        g.setLineWidth(ringW + 2.2); g.setStroke(under); g.strokeOval(x - rr, y - rr, rr * 2, rr * 2);
+        g.setLineWidth(ringW); g.setStroke(col); g.strokeOval(x - rr, y - rr, rr * 2, rr * 2);
+        double r0 = 4 + 8 * out, r1 = 8 + 26 * out, turn = t * 0.6, rayW = 2.0 * (1 - t) + 0.9;
+        for (int pass = 0; pass < 2; pass++) {
+            g.setLineWidth(pass == 0 ? rayW + 2.2 : rayW); g.setStroke(pass == 0 ? under : col);
+            for (int i = 0; i < 8; i++) {
+                double ang = turn + i * Math.PI / 4, far = (i % 2 == 0) ? r1 : r1 * 0.65;
+                g.strokeLine(x + Math.cos(ang) * r0, y + Math.sin(ang) * r0, x + Math.cos(ang) * far, y + Math.sin(ang) * far);
+            }
+        }
+        if (t < 0.4) {
+            double ca = 1 - t / 0.4;
+            g.setFill(Color.web("#0b0f14", 0.45 * ca)); g.fillOval(x - 8, y - 8, 16, 16);
+            g.setFill(Color.WHITE.deriveColor(0, 1, 1, 0.95 * ca)); g.fillOval(x - 6, y - 6, 12, 12);
+        }
+    }
 
     // ---- projection toggle: Azimuthal / Rectangular / Globe (same look and place as J-Sat's Polar / Blue marble / Globe) ----
     private static Label[] projBtns = new Label[0];
@@ -951,6 +1015,7 @@ public final class JMapView {
             drawBeacons(g, gp);
             drawTracks(g, gp);
             if (ovCallsigns) drawSpotLabels(g, spotA, w, h, me != null ? me[0] : Double.NaN, me != null ? me[1] : 0);
+            kickBursts();
         } finally { gcJump = 350; gcGlobe = null; frameSpots = null; }
     }
     /**
@@ -1082,6 +1147,7 @@ public final class JMapView {
         drawBeacons(g, azi);
         drawTracks(g, azi);
         if (ovCallsigns) drawSpotLabels(g, spotA, w, h, cx, cy);
+        kickBursts();
     }
     /** Azimuthal-equidistant night shading + terminator (gray line) centred on QTH. */
     // One image, not thousands of small rectangles: those stalled the render thread for about 400 ms on every repaint.
@@ -1204,7 +1270,7 @@ public final class JMapView {
     };
     /** Overlay toggle labels, in the order of {@code overlayFlag(i)}. */
     private static final Object[][] OVERLAYS = {
-        {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},
+        {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},{"Starburst on new spots"},
     };
     private static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
     private static String myCall = "";
@@ -1449,6 +1515,7 @@ public final class JMapView {
         drawBeacons(g, rect);
         drawTracks(g, rect);
         if (ovCallsigns) drawSpotLabels(g, spotA, aw, ah, qx, qy);
+        kickBursts();
         g.restore();
     }
     private static double lon2x(double lon, double rmx, double rw) { return rmx + ((lon - vMinLon) / (vMaxLon - vMinLon)) * rw; }
