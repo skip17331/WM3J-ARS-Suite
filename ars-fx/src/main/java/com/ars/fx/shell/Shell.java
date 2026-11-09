@@ -577,16 +577,13 @@ public final class Shell {
 
     /** Station-ID timer drawer — the first standard drawer on every operating module. */
 
-    /** Lead drawers shown first on every operating module, in order: Rig control ({@link RigPanel}), Rotor control, and the Satellite rotor when one is switched on. */
-    public static List<Node> leadDrawers() {
-        List<Node> out = new ArrayList<>(List.of(RigPanel.build(), rotorControlDrawer()));
-        if (RotorClient.satellite().isEnabled()) out.add(satelliteRotorDrawer());
-        return out;
-    }
+    /** Lead drawers shown first on every operating module, in order: Rig control ({@link RigPanel}) and Rotor control. The satellite rotor's drawer is
+     *  not one of them: it belongs to J-Sat, which adds it itself ({@link #satelliteRotorDrawer}). */
+    public static List<Node> leadDrawers() { return List.of(RigPanel.build(), rotorControlDrawer()); }
 
     /** Live rotor-control drawer: compass, CCW/Stop/CW, presets. Shared across modules. */
     public static Node rotorControlDrawer() { return rotorDrawer(RotorClient.getInstance(), "Rotor control", true); }
-    /** The same for the satellite rotor (when there is one): compass and elevation, CCW/Stop/CW and Park. */
+    /** The same for the satellite rotor (when there is one): compass and elevation, CCW/Stop/CW and Park. Shown in J-Sat only. */
     public static Node satelliteRotorDrawer() { return rotorDrawer(RotorClient.satellite(), "Satellite rotor", false); }
 
     private static Node rotorDrawer(RotorClient rotor, String title, boolean presetsToo) {

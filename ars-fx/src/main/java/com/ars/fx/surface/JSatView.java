@@ -655,6 +655,7 @@ public final class JSatView {
                 (snap.sats().get(0).inPass() ? "now" : SatService.compactLower(snap.sats().get(0).secsToAos())) : "—";
         List<Node> rail = new ArrayList<>();
         rail.addAll(Shell.leadDrawers());   // Station ID, Rig control, Rotor control
+        if (com.ars.fx.data.RotorClient.satellite().isEnabled()) rail.add(Shell.satelliteRotorDrawer());   // the az/el rotor that tracks the satellite lives here, not on the other screens
         rail.add(drawer("Radio · Doppler", "bridge", "bridge", dopSummary, true, doppler));
         rail.add(drawer("Next passes", "sat", "sat", passSummary, true, np));
         rail.addAll(Shell.instruments(0));   // propagation, solar, band conditions, weather
