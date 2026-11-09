@@ -321,9 +321,9 @@ The **Info** page (first in the dock) is a look-ahead and a news board, in four 
 the WA7BNM Contest Calendar in your browser (nothing is downloaded or copied from them).
 
 - The calendar tiles list what is coming up in the range you choose, with a search box; click an entry to open its page.
-  DXpeditions come from NG3K's announced operations by default. **Sources…** sets your own contest calendar (an
-  `.ics` link) and switches the DXpedition list off or on; the suite ships no built-in contest feed, so the Contests tile is
-  empty until you add a link.
+  DXpeditions come from NG3K's announced operations by default; contests come from the WA7BNM Contest Calendar's RSS
+  feed (used with the owner's permission, credited on the tile, fetched at most every 12 hours). **Sources…** can swap
+  in your own contest calendar (an `.ics` link) and switches the DXpedition list off or on.
 - **News** shows headlines from RSS / Atom feeds, filtered by source. **Feeds…** picks which feeds are on and lets you add
   your own. Click a headline to read it on the source site, in your browser.
 - **⟳ Refresh** fetches again (feeds are kept six hours, and a manual refresh never goes to the network more than once

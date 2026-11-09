@@ -333,7 +333,7 @@ public final class InfoView {
         if (loading) msg = "Loading…";
         else if (l == null) msg = "Turned off under Sources…";
         else if (!l.source().configured())
-            msg = "No contest calendar yet. Add your own .ics link under Sources…";
+            msg = "No contests to show right now.";
         else if (l != null && l.error() != null && l.events().isEmpty()) msg = l.error();
         else msg = "Nothing in this range.";
         Label m = lbl(msg, "jl-emeta"); m.setWrapText(true); m.setPadding(new Insets(14, 10, 14, 10));
@@ -419,7 +419,7 @@ public final class InfoView {
         javafx.scene.control.CheckBox dxOn = new javafx.scene.control.CheckBox("Show DXpeditions (NG3K Announced DX Operations)");
         dxOn.setSelected(HubConfig.getBool("info.dx.enabled", true));
         TextField dx = new TextField(HubConfig.get("info.dx.url", "")); dx.setPromptText("default: " + UpcomingEvents.DX_DEFAULT);
-        TextField contests = new TextField(HubConfig.get("info.contests.url", "")); contests.setPromptText("https://… your contest calendar (.ics link)");
+        TextField contests = new TextField(HubConfig.get("info.contests.url", "")); contests.setPromptText("blank = WA7BNM Contest Calendar (default); or your own .ics link");
         Map<NewsFeeds.Feed, CheckBox> newsBoxes = new java.util.LinkedHashMap<>();
         java.util.Set<String> onNow = NewsFeeds.enabledIds();
         VBox newsBox = new VBox(4);
@@ -431,8 +431,8 @@ public final class InfoView {
         }
         TextArea custom = new TextArea(HubConfig.get("info.news.custom", "")); custom.setPrefRowCount(3);
         custom.setPromptText("https://example.org/feed   (one RSS or Atom address per line)");
-        Label note = lbl("Contests come from an iCalendar (.ics) link you provide. The WA7BNM Contest Calendar permits its iCal feed for "
-                + "personal calendar use; paste your own link from contestcalendar.com. Feeds are fetched at most every six hours and kept on disk.", "jl-emeta");
+        Label note = lbl("Contests come from the WA7BNM Contest Calendar RSS feed, used with the owner's permission and credited on the tile. "
+                + "It is fetched at most every 12 hours; to use a different calendar, paste an .ics link instead.", "jl-emeta");
         note.setWrapText(true); note.setMaxWidth(520);
         Label msg = lbl("", "jl-emeta"); msg.setStyle("-fx-text-fill:-ars-err;");
         Label cancel = lbl("Cancel", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;");
