@@ -156,23 +156,23 @@ public final class JMapView {
     }
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
-    private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true;
+    private static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true, ovFade = true;
     // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
     // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
     // icon strip (same idea as J-Sat's satellite list).
     private static final double NARROW_W = 1240;
     private static boolean narrow() { return mapFrame != null && mapFrame.getWidth() > 1 && mapFrame.getWidth() < NARROW_W; }
     private static boolean overlayFlag(int i) {
-        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; default -> ovBurst; };
+        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; case 6 -> ovBurst; default -> ovFade; };
     }
     private static void applyOverlay(int i, boolean v) {
-        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; default -> ovBurst = v; }
+        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; case 6 -> ovBurst = v; default -> ovFade = v; }
     }
     private static void setOverlayFlag(int i, boolean v) {
         applyOverlay(i, v);
         com.ars.fx.data.HubConfig.setBool("map.ov." + i, v);            // kept for next time
     }
-    static { for (int i = 0; i < 7; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
+    static { for (int i = 0; i < 8; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
     private static java.util.Set<String> workedCallsCache = java.util.Set.of();
     private static long workedCallsAt = 0;
     private static java.util.Set<String> workedCalls() {
@@ -217,6 +217,7 @@ public final class JMapView {
      * {@code meX} is NaN when the station is off the map.
      */
     private static void drawSpotLabels(GraphicsContext g, double spotA, double w, double h, double meX, double meY) {
+        labelsFading = false;
         if (paintedDots.isEmpty()) return;
         List<Dot> order = new ArrayList<>(paintedDots);
         order.sort((p, q) -> {
@@ -228,9 +229,15 @@ public final class JMapView {
         List<double[]> placed = new ArrayList<>();                                          // {x, y, width, height}
         if (!Double.isNaN(meX)) placed.add(new double[]{meX - 10, meY - 16, 14 + 8 * Math.max(3, myCall.length()), 26});
         g.setTextAlign(TextAlignment.LEFT);
+        long now = System.currentTimeMillis();
+        double life = com.ars.fx.data.LabelFade.lifeSec(order.size(), spotAgeMax);           // the busier the map, the sooner a name goes
+        boolean anyFading = false;
         for (Dot d : order) {
             MapSpot s = d.s();
             boolean sel = s.call().equalsIgnoreCase(selectedSpotCall);
+            double fade = (!ovFade || sel) ? 1.0 : com.ars.fx.data.LabelFade.alpha((now - s.arrivalMs()) / 1000.0, life);
+            if (fade < 0.06) continue;                                                      // gone: it no longer takes up room either
+            if (fade < 1.0) anyFading = true;
             Font f = sel ? bold : plain;
             double pw = textWidth(s.call(), f) + 10, ph = 16;
             double[][] tries = {{d.x() + 9, d.y() - ph / 2}, {d.x() - 9 - pw, d.y() - ph / 2}, {d.x() - pw / 2, d.y() - ph - 8}, {d.x() - pw / 2, d.y() + 8}};
@@ -243,14 +250,18 @@ public final class JMapView {
             }
             if (at == null) { if (!sel) continue; at = tries[0]; }                          // the selected spot always gets its name
             placed.add(new double[]{at[0], at[1], pw, ph});
-            g.setFill(Color.web("#0b0f14", (sel ? 0.86 : 0.66) * spotA));
+            double la = spotA * fade;
+            g.setFill(Color.web("#0b0f14", (sel ? 0.86 : 0.66) * la));
             g.fillRoundRect(at[0], at[1], pw, ph, 7, 7);
-            g.setStroke(sel ? Color.web("#ffffff", 0.85 * spotA) : s.color().deriveColor(0, 1, 1, 0.55 * spotA)); g.setLineWidth(sel ? 1.4 : 1.0);
+            g.setStroke(sel ? Color.web("#ffffff", 0.85 * la) : s.color().deriveColor(0, 1, 1, 0.55 * la)); g.setLineWidth(sel ? 1.4 : 1.0);
             g.strokeRoundRect(at[0], at[1], pw, ph, 7, 7);
-            g.setFill(Color.web("#e8eef4", spotA)); g.setFont(f);
+            g.setFill(Color.web("#e8eef4", la)); g.setFont(f);
             g.fillText(s.call(), at[0] + 5, at[1] + ph - 4.5);
         }
+        labelsFading = anyFading;
     }
+    /** Set by the last paint: some callsign is part-way through fading, so the map needs repainting now and then for the fade to carry on. */
+    private static boolean labelsFading = false;
     private static final Text MEASURE = new Text();
     private static double textWidth(String str, Font f) { MEASURE.setFont(f); MEASURE.setText(str); return MEASURE.getLayoutBounds().getWidth(); }
 
@@ -291,7 +302,7 @@ public final class JMapView {
             if (showBeacons) beaconWatch();
             long second = java.time.Instant.now().getEpochSecond();
             boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
-            if (beamMoved || (showSpotPaths && second % 15 == 0) || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0)) repaintMap();
+            if (beamMoved || (showSpotPaths && second % 15 == 0) || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0) || (labelsFading && ovCallsigns && ovFade && second % 10 == 0)) repaintMap();
         }));
         beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
         beaconTicker.play();
@@ -794,6 +805,7 @@ public final class JMapView {
         for (int oi = 0; oi < OVERLAYS.length; oi++) {
             final int idx = oi;
             Label t = lbl((String) OVERLAYS[oi][0], "jm-tog-label"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
+            if (OVERLAYS[oi].length > 1) com.ars.fx.shell.Tips.tip(t, (String) OVERLAYS[oi][1]);
             HBox row = new HBox(t, toggleSwitch(overlayFlag(idx), v -> { setOverlayFlag(idx, v); repaintMap(); }));
             row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(7, 0, 7, 0));
             p.getChildren().add(row);
@@ -1271,6 +1283,7 @@ public final class JMapView {
     /** Overlay toggle labels, in the order of {@code overlayFlag(i)}. */
     private static final Object[][] OVERLAYS = {
         {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},{"Starburst on new spots"},
+        {"Fade old callsigns", "A callsign fades from the map after a while - sooner when the map is busy (about 75 seconds with 80 or more spots showing), later when it is quiet (up to 8 minutes with 10 or fewer). The dot stays, and the selected spot always keeps its name."},
     };
     private static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
     private static String myCall = "";
