@@ -1447,7 +1447,7 @@ public final class JMapView {
         java.util.List<MapSpot> list = liveSpots();
         if (list.isEmpty()) {
             com.ars.fx.data.ClusterClient ccc = com.ars.fx.data.ClusterClient.getInstance();
-            Label e = lbl(ccc.isConnected() ? "Connected — no spots match the filters." : com.ars.fx.shell.FeedUi.emptyList(ccc, "cluster").replace("press Connect", "Connect in J-Hub"), "jm-spot-meta");
+            Label e = lbl(ccc.isConnected() ? "Connected — no spots match the filters." : com.ars.fx.shell.FeedUi.emptyList(ccc, "cluster"), "jm-spot-meta");
             e.setWrapText(true);
             e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
         }
@@ -1470,6 +1470,12 @@ public final class JMapView {
     }
     private static Region spotsDrawer;                    // its summary follows the live count
     private static Node[] railDrawers(VBox spots) {
+        com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
+        Label connect = lbl(com.ars.fx.shell.FeedUi.action(cc), "jl-logbtn"); connect.setStyle("-fx-cursor:hand;-fx-padding:6 14;");
+        connect.setOnMouseClicked(e -> { com.ars.fx.shell.FeedUi.toggle(cc); connect.setText(com.ars.fx.shell.FeedUi.action(cc)); });
+        Timeline connectTick = new Timeline(new KeyFrame(Duration.millis(500), e -> connect.setText(com.ars.fx.shell.FeedUi.action(cc))));
+        connectTick.setCycleCount(Timeline.INDEFINITE); connectTick.play();
+        HBox connectRow = new HBox(connect); connectRow.setAlignment(Pos.CENTER_LEFT); connectRow.setPadding(new Insets(0, 0, 8, 0));
         ScrollPane spotScroll = new ScrollPane(spots); spotScroll.setFitToWidth(true);
         spotScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); spotScroll.setPrefViewportHeight(300);
         spotScroll.setStyle("-fx-background-color:transparent;");
@@ -1477,7 +1483,7 @@ public final class JMapView {
         List<Node> rail = new ArrayList<>();
         rail.add(MapQsoCard.drawerSlot());                // New QSO, when pinned
         rail.addAll(Shell.leadDrawers());    // Rig control, Rotor control
-        spotsDrawer = Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, spotScroll);
+        spotsDrawer = Shell.drawer("DX Spots","map","map", liveSpots().size() + " spots", true, new VBox(connectRow, spotScroll));
         rail.add(spotsDrawer);
         rail.add(Shell.drawer("DX station info","accent","hub","", false, DxInfoCard.drawerBody()));
         rail.addAll(Shell.instruments(50));               // propagation, solar, band conditions, weather

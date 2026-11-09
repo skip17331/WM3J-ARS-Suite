@@ -59,6 +59,7 @@ public final class InfoView {
         final VBox rows = new VBox();
         final Label count = lbl("", "jhub-card-sub");
         final Label credit = lbl("", "jhub-card-sub");
+        final Label source = lbl("", "jhub-card-title");      // the source's name, at the top of the card
         Tile(Kind kind) { this.kind = kind; }
     }
 
@@ -242,8 +243,7 @@ public final class InfoView {
         HBox head = new HBox(9, dot, lbl("Links", "jhub-card-title")); head.getStyleClass().add("jhub-card-head");
         VBox rows = new VBox(
                 linkRow("ARRL Special Event Stations", "Special event stations on the air", "https://www.arrl.org/special-event-stations"),
-                linkRow("ARRL Hamfest & Convention Calendar", "Hamfests and conventions near you", "https://www.arrl.org/hamfests-and-conventions-calendar"),
-                linkRow("WA7BNM Contest Calendar", "Contest dates, rules and log deadlines", "https://www.contestcalendar.com/"));
+                linkRow("ARRL Hamfest & Convention Calendar", "Hamfests and conventions near you", "https://www.arrl.org/hamfests-and-conventions-calendar"));
         rows.setPadding(new Insets(4, 6, 8, 6));
         VBox card = new VBox(head, rows); card.getStyleClass().add("jhub-card"); card.setMinWidth(0);
         return card;
@@ -274,7 +274,10 @@ public final class InfoView {
         t.rows.setPadding(new Insets(4, 6, 8, 6));
         VBox.setVgrow(sp, Priority.ALWAYS);
         t.card.getStyleClass().add("jhub-card");
-        t.card.getChildren().addAll(head, sp, t.credit);
+        t.source.setPadding(new Insets(0, 16, 6, 16)); t.source.setWrapText(true);
+        t.source.setStyle("-fx-font-size:16px;-fx-font-weight:bold;");
+        t.source.setManaged(false); t.source.setVisible(false);
+        t.card.getChildren().addAll(head, t.source, sp, t.credit);
         t.card.setMinWidth(0);
     }
 
@@ -365,15 +368,19 @@ public final class InfoView {
 
     /** "Source name - updated ..." under a tile, the source name a link back to the site. */
     private static void credit(Tile t, Loaded l) {
-        if (l == null || !l.source().configured()) { t.credit.setText(""); t.credit.setOnMouseClicked(null); t.credit.setStyle(""); return; }
-        String when = l.fetched() == null ? "" : (l.fromCache() ? "  ·  saved copy from " : "  ·  updated ")
+        if (l == null || !l.source().configured()) {
+            t.credit.setText(""); t.source.setText(""); t.source.setManaged(false); t.source.setVisible(false); t.source.setOnMouseClicked(null); return;
+        }
+        String when = l.fetched() == null ? "" : (l.fromCache() ? "Saved copy from " : "Updated ")
                 + DateTimeFormatter.ofPattern("d MMM HH:mm'Z'", Locale.ENGLISH).format(l.fetched().atZone(ZoneOffset.UTC));
-        t.credit.setText(l.source().label() + when);
+        t.credit.setText(when);
+        t.source.setText(l.source().label());
+        t.source.setManaged(true); t.source.setVisible(true);
         String u = l.source().creditUrl();
         if (u != null && !u.isBlank()) {
-            t.credit.setStyle("-fx-cursor:hand;-fx-underline:true;");
-            t.credit.setOnMouseClicked(e -> open(u));
-        } else { t.credit.setStyle(""); t.credit.setOnMouseClicked(null); }
+            t.source.setStyle("-fx-font-size:16px;-fx-font-weight:bold;-fx-cursor:hand;-fx-underline:true;");
+            t.source.setOnMouseClicked(e -> open(u));
+        } else { t.source.setStyle("-fx-font-size:16px;-fx-font-weight:bold;"); t.source.setOnMouseClicked(null); }
     }
 
     static final String CONTACT = "wm3jmike@gmail.com";
