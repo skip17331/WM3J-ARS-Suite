@@ -877,3 +877,6 @@
 .ars-light .sx-stat   { -fx-effect: null; }
 .ars-light .sx-brand-ic { -fx-effect: null; }
 .ars-light .cfg-seg-btn.on, .ars-light .jm-seg-btn.on { -fx-effect: dropshadow(gaussian, rgba(30,45,70,0.16), 4, 0.0, 0, 1); }
+
+/* pinned dock foot (Awards, Settings, colour scheme): a hairline above it, so it reads as a separate group */
+.sx-dock-foot { -fx-border-color: -ars-border -ars-border transparent transparent; -fx-border-width: 1 1 0 0; }

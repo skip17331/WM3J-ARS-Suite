@@ -230,28 +230,36 @@ public final class Shell {
         if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
-        dock.getChildren().add(spacer());
+
+        // The foot is pinned: Awards, Settings and the colour-scheme sunburst stay on screen whatever the window height. An expanded
+        // dock (with the J-Hub links) is taller than many windows, and when these rows lived in the scrolling part the sunburst was
+        // pushed below the fold the moment the pointer reached the dock.
+        VBox foot = new VBox(); foot.getStyleClass().addAll("sx-dock", "sx-dock-foot");
+        foot.setStyle("-fx-padding:6 0 6 0;");
         // Awards: opens the full awards screen from any module (same screen as J-Log's drawer "Open awards")
-        dock.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
+        foot.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
                 expandOnly, com.ars.fx.surface.AwardsWindow::open));
         // Settings foot: on every module's dock, not just the J-Hub screens (gear → J-Hub Setup)
-        dock.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
+        foot.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
         // Colour scheme: the sunburst in the bottom corner. Cycles this module's scheme (or the suite's, on J-Hub pages).
-        dock.getChildren().add(themeDockRow(expandOnly));
+        foot.getChildren().add(themeDockRow(expandOnly));
 
-        // Scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would make
-        // the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
+        // The module list scrolls inside its own height: an expanded dock can be taller than the window, and a taller child would
+        // make the root centre the whole page, pushing its top off screen. The wheel reaches anything below the fold.
         ScrollPane sp = new ScrollPane(dock);
         sp.getStyleClass().add("sx-dock-scroll");
         sp.setFitToWidth(true); sp.setFitToHeight(true);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setMinHeight(0);
-        sp.minWidthProperty().bind(dock.minWidthProperty());
-        sp.prefWidthProperty().bind(dock.prefWidthProperty());
-        sp.maxWidthProperty().bind(dock.maxWidthProperty());
-        sp.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
-        sp.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
-        return sp;
+        VBox.setVgrow(sp, Priority.ALWAYS);
+        VBox outer = new VBox(sp, foot);
+        outer.setMinHeight(0);
+        outer.minWidthProperty().bind(dock.minWidthProperty());
+        outer.prefWidthProperty().bind(dock.prefWidthProperty());
+        outer.maxWidthProperty().bind(dock.maxWidthProperty());
+        outer.setOnMouseEntered(e -> setExpanded(dock, expandOnly, true));
+        outer.setOnMouseExited(e -> setExpanded(dock, expandOnly, false));
+        return outer;
     }
     private static void setExpanded(VBox dock, List<Node> nodes, boolean exp) {
         double w = exp ? 216 : 58;
