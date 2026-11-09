@@ -159,10 +159,8 @@ public final class JHubDashboard {
     private static HBox threeCol() {
         // the full normal-log entry form + recent log (same as J-Log) beside the DX cluster
         VBox entry = JLogCockpit.embeddedEntry();
-        entry.setMinWidth(560); entry.setPrefWidth(760); HBox.setHgrow(entry, Priority.NEVER);
-        Region cluster = clusterCol(); cluster.setMinWidth(380); HBox.setHgrow(cluster, Priority.ALWAYS);
-        HBox windows = new HBox(20, entry, cluster);
-        windows.setFillHeight(true);
+        Region cluster = clusterCol();
+        WindowsRow windows = new WindowsRow(entry, cluster);      // side by side when there is room, stacked when there is not
         VBox left = new VBox(11, windows);
         HBox.setHgrow(left, Priority.ALWAYS);
         HBox box = new HBox(20, left, railCol());
@@ -170,6 +168,49 @@ public final class JHubDashboard {
         threeColRef = box;
         return box;
     }
+    /**
+     * The New QSO form and the DX Cluster window. The form's fields do not shrink: it needs its computed minimum width (about 685 px) for every field and the
+     * Log QSO button to show, and likes 760. Both used to be forced lower than that (a minimum of 560), so when the row got narrow, as it does with the
+     * PANELS column pinned, the form was squeezed below what its fields need and the cluster window lay over the part that spilled out. Now, when the row is
+     * too narrow for the form's minimum plus a cluster window of at least 380 px, the cluster drops below the form instead; with room, the form takes its
+     * natural width (never less than it needs) and the cluster takes the rest, as before. (All sizes are logical pixels: a 125% display shows 1.25 times these.)
+     */
+    private static final class WindowsRow extends Region {
+        private static final double FORM_PREF = 760, GAP = 20, CLUSTER_MIN = 380, STACKED_CLUSTER_H = 460;
+        private final Region entry, cluster;
+        WindowsRow(Region entry, Region cluster) {
+            this.entry = entry; this.cluster = cluster;
+            getChildren().addAll(entry, cluster);
+            setMinSize(0, 0);
+        }
+        /** What the form needs for everything on it to show. */
+        private double need() { return entry.minWidth(-1); }
+        /** What it takes when there is room. */
+        private double liked() { return Math.max(need(), FORM_PREF); }
+        private boolean stacked(double w) { return w < need() + GAP + CLUSTER_MIN; }
+        private double entryWidth(double w) {
+            return stacked(w) ? Math.max(need(), Math.min(liked(), w)) : Math.max(need(), Math.min(liked(), w - GAP - CLUSTER_MIN));
+        }
+        @Override protected double computeMinWidth(double h) { return 0; }
+        @Override protected double computePrefWidth(double h) { return liked() + GAP + CLUSTER_MIN; }
+        @Override protected double computePrefHeight(double w) {
+            double width = w > 0 ? w : getWidth() > 0 ? getWidth() : liked() + GAP + CLUSTER_MIN;
+            double ew = entryWidth(width), eh = entry.prefHeight(ew);
+            return stacked(width) ? eh + GAP + STACKED_CLUSTER_H : Math.max(eh, cluster.prefHeight(Math.max(CLUSTER_MIN, width - ew - GAP)));
+        }
+        @Override protected void layoutChildren() {
+            double w = getWidth(), h = getHeight(), ew = entryWidth(w);
+            if (stacked(w)) {
+                double eh = entry.prefHeight(ew);
+                entry.resizeRelocate(0, 0, ew, eh);
+                cluster.resizeRelocate(0, eh + GAP, w, Math.max(STACKED_CLUSTER_H, h - eh - GAP));
+            } else {
+                entry.resizeRelocate(0, 0, ew, h);
+                cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, h);
+            }
+        }
+    }
+
     /** Mini "Saved QSOs" drawer under the New-QSO / DX-cluster windows — from the real ~/.j-log DB. */
         // ---- DX cluster filter state (shared by panel + controls drawer) -------
     private static final java.util.Set<String> HF_BANDS = java.util.Set.of(
