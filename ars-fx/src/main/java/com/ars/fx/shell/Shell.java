@@ -507,6 +507,7 @@ public final class Shell {
         HBox header = new HBox(8, lbl("PANELS", "sx-rail-title"), hsp(), AutoPanel.pinButton("rail", () -> rebuild[0].run()));
         header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("sx-rail-head");
         VBox open = new VBox(header, rail);
+        open.setStyle("-fx-background-color:-ars-bg;");   // opaque: floating open, it must not show the page behind it between the drawers
         open.setMinWidth(322); open.setPrefWidth(322); open.setMaxWidth(322);
         VBox.setVgrow(rail, Priority.ALWAYS);
 
@@ -532,6 +533,7 @@ public final class Shell {
         HBox header = new HBox(8, lbl(titleText, "sx-rail-title"), hsp(), AutoPanel.pinButton(key, () -> rebuild[0].run()));
         header.setAlignment(Pos.CENTER_LEFT); header.getStyleClass().add("sx-rail-head");
         VBox open = new VBox(header, sp);
+        open.setStyle("-fx-background-color:-ars-bg;");   // opaque, as the right rail
         open.setMinWidth(width); open.setPrefWidth(width); open.setMaxWidth(width);
         VBox.setVgrow(sp, Priority.ALWAYS);
         Label title = lbl(titleText, "sx-rail-title"); title.setRotate(90);
