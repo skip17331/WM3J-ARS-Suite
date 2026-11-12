@@ -24,7 +24,8 @@ public final class AmpClient {
 
     public record State(boolean connected, int powerStat, double swr, double pwr) {
         public static final State OFFLINE = new State(false, -1, 0, 0);
-        public String mode() { return powerStat == 2 ? "operate" : powerStat == 1 ? "standby" : powerStat == 0 ? "off" : "—"; }
+        /** Hamlib's power states: 0 off, 1 on, 2 standby, 4 operate. */
+        public String mode() { return powerStat == 4 ? "operate" : powerStat == 2 ? "standby" : powerStat == 1 ? "on" : powerStat == 0 ? "off" : "—"; }
     }
 
     private volatile String host = resolveHost();
@@ -53,6 +54,25 @@ public final class AmpClient {
         Thread t = new Thread(this::loop, "amp-poll");
         t.setDaemon(true);
         t.start();
+        RigClient.getInstance().addListener(this::followRig);
+    }
+
+    /** The band last sent to the amplifier; empty means "send it again" (nothing sent yet, or the amp has just come back). */
+    private volatile String followedBand = "";
+
+    /** Setup > Amplifier > Follow rig band: when the radio moves to another band, hand its frequency to ampctld (once per band change, and again
+     *  after the amplifier reconnects). An amplifier that has no frequency input refuses it; that is ignored, and it is not asked again until the band changes. */
+    private void followRig(RigClient.State r) {
+        applyPower();                       // the rig coming or going changes what the amp should be doing
+        if (r == null || !r.connected() || r.freqHz() <= 0 || !HubConfig.getBool("amp.followBand", true)) return;
+        if (!last.connected()) { followedBand = ""; return; }
+        String band = Bands.of(r.freqHz());
+        if (band.isEmpty() || band.equals(followedBand)) return;
+        followedBand = band;
+        long hz = r.freqHz();
+        Thread t = new Thread(() -> { try { send("\\set_freq " + hz); } catch (Exception refused) { /* no frequency input, or busy */ } }, "amp-follow");
+        t.setDaemon(true);
+        t.start();
     }
 
     private void loop() {
@@ -62,14 +82,46 @@ public final class AmpClient {
                 double swr = tryLevel("SWR");
                 double pwr = tryLevel("PWR");
                 emit(new State(true, ps, swr, pwr));
+                applyPower();
             } catch (Exception e) {
                 closeSocket();
+                appliedPower = -1;          // the amp is gone: send its state again when it is back
                 emit(State.OFFLINE);
             }
             try { Thread.sleep(POLL_MS); } catch (InterruptedException ie) { return; }
         }
     }
     private double tryLevel(String lvl) { try { return parseNum(send("\\get_level " + lvl)); } catch (Exception e) { return 0; } }
+
+    private static final int POWER_STANDBY = 2, POWER_OPERATE = 4;
+    /** The power state last sent to the amp; -1 means "send it again". */
+    private volatile int appliedPower = -1;
+
+    /** Setup > Amplifier > Operate / Standby, and Standby on TX inhibit. The amp is put in Operate only when asked for and the rig is connected; with
+     *  "Standby on TX inhibit" on, a rig that is disconnected counts as inhibited and the amp is put in Standby. */
+    static int desiredPower() {
+        boolean inhibited = HubConfig.getBool("amp.standbyOnInhibit", true) && !RigClient.getInstance().last().connected();
+        boolean operate = "Operate".equalsIgnoreCase(HubConfig.get("amp.opStandby", "Standby"));
+        return operate && !inhibited ? POWER_OPERATE : POWER_STANDBY;
+    }
+
+    /** Send the wanted power state if it is not the one already sent. Call when a setting or the rig's connection changes. */
+    public void applyPower() {
+        if (!last.connected()) return;
+        int want = desiredPower();
+        if (want == appliedPower) return;
+        appliedPower = want;
+        Thread t = new Thread(() -> { try { send("\\set_powerstat " + want); } catch (Exception refused) { /* amp has no power-state control */ } }, "amp-power");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /** Setup > Amplifier > Max power, in watts. */
+    public static double maxPowerW() {
+        try { return Double.parseDouble(HubConfig.get("amp.maxPower", "1000").trim()); } catch (Exception e) { return 1000; }
+    }
+    /** True while the amplifier's forward power is over the Max power setting. */
+    public boolean overLimit() { State s = last; return s.connected() && s.pwr() > maxPowerW(); }
 
     private void emit(State s) {
         last = s;

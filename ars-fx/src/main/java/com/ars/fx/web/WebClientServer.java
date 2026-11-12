@@ -292,6 +292,7 @@ public final class WebClientServer {
                 str(b, "grid", 8), str(b, "comment", 200), str(b, "state", 4), str(b, "county", 30), 0, refs);
         if (!ok) throw new IllegalArgumentException("the log could not be written");
         com.ars.fx.data.SessionQsos.logged(call, str(b, "grid", 8), band, mode);
+        com.ars.fx.data.AutoUpload.afterLog();
         remember(uid);
         JsonObject d = new JsonObject(); d.addProperty("ok", true); d.addProperty("dup", false); return d;
     }

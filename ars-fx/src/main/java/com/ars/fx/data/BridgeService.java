@@ -143,6 +143,7 @@ public final class BridgeService {
         JLogDb.insertAt(utc, call, freq, band, mode, q.getRstSent(), q.getRstReceived(), q.getName(), null,
                 q.getDxGrid(), q.getComments(), null, null, power);
         SessionQsos.logged(call, q.getDxGrid(), band, mode);
+        AutoUpload.afterLog();
         fire();
     }
     public static List<WsjtxDecode> decodes() { synchronized (decodes) { return new ArrayList<>(decodes); } }
