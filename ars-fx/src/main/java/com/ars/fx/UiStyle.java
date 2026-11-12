@@ -8,8 +8,9 @@ import java.util.List;
 /**
  * Look-and-feel options that sit on top of the base stylesheet ({@code ars.css}), so a look can be tried and dropped without touching it.
  *
- * <p><b>Dashboard style.</b> A style is one extra stylesheet attached to the dashboard's root node only (a node's own stylesheets reach just its
- * subtree), with every rule scoped under the {@code .ins} class this class puts on that node. "Classic" attaches nothing, so it is exactly the
+ * <p><b>Look.</b> A style is one extra stylesheet attached to a root node (a node's own stylesheets reach just its subtree), with every rule
+ * scoped under the {@code .ins} class this class puts on that node. {@link Themes#applyTo} attaches it wherever it applies a colour scheme: the
+ * main window's content and the pop-up windows, so the whole suite follows it. "Classic" attaches nothing, so it is exactly the
  * stylesheet-free look; picking it in J-Hub ▸ Setup ▸ Appearance is the whole of a revert. To try another look, drop a new css in
  * {@code css/styles/}, add one line to {@link #DASHBOARD_STYLES}, and it shows up in that menu.
  *

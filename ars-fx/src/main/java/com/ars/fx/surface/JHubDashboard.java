@@ -1134,10 +1134,10 @@ public final class JHubDashboard {
         VBox layout = section("DASHBOARD LAYOUT",
             cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",
                     cToggle("ui.dashboard.rows", true)));
-        VBox look = section("LOOK (DASHBOARD, J-MAP, J-SAT)",
+        VBox look = section("LOOK",
             cfgRow("Style", "Classic is the original look. Open the dashboard again to see a change; pick Classic to go back at any time", lookSeg));
         return cfgPage(cfgTop("J-Hub", "System", "Appearance"),
-                lbl("How the suite looks. The style applies to the J-Hub dashboard, J-Map and J-Sat; the other modules keep the classic look.", "cfg-desc"),
+                lbl("How the suite looks. The style applies to every screen and window; Classic is the original look.", "cfg-desc"),
                 size, layout, look);
     }
 

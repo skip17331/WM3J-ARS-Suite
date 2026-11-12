@@ -62,6 +62,7 @@ public final class Themes {
         for (Scheme s : SCHEMES) if (!s.cssClass().isEmpty()) root.getStyleClass().remove(s.cssClass());
         String cls = effective(surfaceId).cssClass();
         if (!cls.isEmpty() && !root.getStyleClass().contains(cls)) root.getStyleClass().add(cls);
+        if (root instanceof javafx.scene.Parent p) UiStyle.applyDashboard(p);    // the look chosen in Setup > Appearance rides on the same roots as the scheme
     }
 
     private static String nextKey(String cur) {
