@@ -216,3 +216,10 @@
 .ins .bchip.band-6m { -fx-background-color: -band-6; }
 .ins .bchip.band-2m { -fx-background-color: -band-2; }
 .ins .bchip.band-70cm { -fx-background-color: -band-70; }
+
+/* ---- New QSO card, compact: slimmer header, shorter fields ----------------------- */
+.ins .jl-entry .jhub-card-head { -fx-padding: 8 18 6 18; }
+.ins .jl-entry .jl-fin,
+.ins .jl-entry .jl-snt      { -fx-padding: 6 10 6 10; -fx-font-size: 15px; }
+.ins .jl-entry .jl-ein-call { -fx-font-size: 28px; -fx-padding: 4 14 4 14; }
+.ins .jl-entry .jl-macro { -fx-padding: 5 9 7 9; }

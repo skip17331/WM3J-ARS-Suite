@@ -163,7 +163,9 @@ public final class JLogCockpit {
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
         Label sub = lbl(JLogDb.count() + " in log · " + JLogDb.countToday() + " today", "jl-emeta");
         Label titleLbl = lbl("New QSO", "jhub-card-title");
-        VBox ttl = new VBox(1, titleLbl, sub);
+        Node ttl;
+        if (embedded) { HBox t = new HBox(10, titleLbl, sub); t.setAlignment(Pos.BASELINE_LEFT); ttl = t; }     // dashboard: one slim line
+        else ttl = new VBox(1, titleLbl, sub);
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
         Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
         contestChip.setOnMouseClicked(e -> JLogContest.promptEnter(contestChip));
@@ -174,21 +176,21 @@ public final class JLogCockpit {
         HBox head = embedded ? new HBox(11, ic, ttl, hsp, b4) : new HBox(11, ic, ttl, hsp, translatorChip, contestChip, b4);
         head.setAlignment(Pos.CENTER_LEFT);
 
-        TextField call = tf("", "", 210, true);
+        TextField call = tf("", "", embedded ? 200 : 210, true);
         call.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));        // the translator (if open) follows the call's country
         translatorChip.setOnMouseClicked(e -> TranslatorWindow.show(translatorChip, call.getText()));
-        TextField freq = tf("MHz", "14.074", 110, false);
-        TextField band = tf("auto", "20m", 80, false);
-        TextField mode = tf("", "USB", 80, false);
+        TextField freq = tf("MHz", "14.074", embedded ? 100 : 110, false);
+        TextField band = tf("auto", "20m", embedded ? 72 : 80, false);
+        TextField mode = tf("", "USB", embedded ? 72 : 80, false);
         callRef = call; freqRef = freq; bandRef = band; modeRef = mode;   // spot-click prefill
-        TextField rsnt = tf("", "59", 70, false);
-        TextField rrcv = tf("", "59", 70, false);
-        TextField name = tf("name", "", embedded ? 125 : 180, false);
-        TextField grid = tf("FN31", "", embedded ? 90 : 110, false);
-        TextField qth  = tf("city / DXCC", "", embedded ? 150 : 220, false);
-        TextField stat = tf("ST", "", embedded ? 62 : 70, false);
-        TextField cnty = tf("county", "", embedded ? 120 : 200, false);
-        TextField pwr  = tf("W", com.ars.fx.data.HubConfig.get("station.txPower", "100").trim(), embedded ? 70 : 80, false);
+        TextField rsnt = tf("", "59", embedded ? 62 : 70, false);
+        TextField rrcv = tf("", "59", embedded ? 62 : 70, false);
+        TextField name = tf("name", "", embedded ? 110 : 180, false);
+        TextField grid = tf("FN31", "", embedded ? 80 : 110, false);
+        TextField qth  = tf("city / DXCC", "", embedded ? 130 : 220, false);
+        TextField stat = tf("ST", "", embedded ? 56 : 70, false);
+        TextField cnty = tf("county", "", embedded ? 100 : 200, false);
+        TextField pwr  = tf("W", com.ars.fx.data.HubConfig.get("station.txPower", "100").trim(), embedded ? 64 : 80, false);
         TextField cmt  = tf("notes, QSL info…", "", -1, false);
         TextField iota = tf("NA-005", "", embedded ? 100 : 110, false);       // award references: island / summit / park
         TextField sota = tf("W7W/LC-001", "", embedded ? 130 : 150, false);
@@ -235,7 +237,7 @@ public final class JLogCockpit {
         Region dtsp = new Region(); HBox.setHgrow(dtsp, Priority.ALWAYS);
         HBox dtRow = new HBox(12, dtCell1, dtCell2, dtsp, nowBtn); dtRow.setAlignment(Pos.BOTTOM_LEFT);
 
-        VBox body = new VBox(embedded ? 9 : 13); body.setPadding(embedded ? new Insets(12, 18, 12, 18) : new Insets(14, 18, 16, 18));
+        VBox body = new VBox(embedded ? 7 : 13); body.setPadding(embedded ? new Insets(8, 16, 10, 16) : new Insets(14, 18, 16, 18));
         if (embedded) body.getChildren().add(new Region());          // keeps the row order widen() expects; zero height
         else body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
         body.getChildren().add(row(g("CALLSIGN", call, false), g("FREQ (MHZ)", freq, false), g("BAND", band, false), g("MODE", mode, false)));
@@ -462,20 +464,32 @@ public final class JLogCockpit {
      */
     private static void widen(VBox body, VBox dtCell1, VBox dtCell2, Label nowBtn) {
         java.util.List<Node> ch = new ArrayList<>(body.getChildren());
-        if (ch.size() < 12 || !(ch.get(1) instanceof HBox r1) || !(ch.get(4) instanceof HBox r2) || !(ch.get(5) instanceof HBox r3) || !(ch.get(7) instanceof HBox r4)) return;
-        java.util.List<Node> a = new ArrayList<>(r1.getChildren()), rst = new ArrayList<>(r2.getChildren()),
-                qthRow = new ArrayList<>(r3.getChildren()), refs = new ArrayList<>(r4.getChildren());
-        if (a.size() != 4 || rst.size() != 4 || qthRow.size() != 4 || refs.size() != 4) return;
-        Node caption = ch.get(2), scpNode = ch.get(3), refHints = ch.get(8), cmtRow = ch.get(9), sendAs = ch.get(10), macros = ch.get(11);
+        if (ch.size() < 12 || !(ch.get(1) instanceof HBox r1) || !(ch.get(4) instanceof HBox r2) || !(ch.get(5) instanceof HBox r3)
+                || !(ch.get(7) instanceof HBox r4) || !(ch.get(9) instanceof HBox cm) || !(ch.get(11) instanceof javafx.scene.layout.FlowPane macros)) return;
+        java.util.List<Node> a = new ArrayList<>(r1.getChildren()), rst = new ArrayList<>(r2.getChildren()), qthRow = new ArrayList<>(r3.getChildren()),
+                refs = new ArrayList<>(r4.getChildren()), act = new ArrayList<>(cm.getChildren());
+        if (a.size() != 4 || rst.size() != 4 || qthRow.size() != 4 || refs.size() != 4 || act.size() != 6) return;
+        Node caption = ch.get(2), scpNode = ch.get(3), refHints = ch.get(8), sendAs = ch.get(10);
         body.getChildren().clear();
 
+        // row 1: who and what: call, freq, band, mode, reports, name, QTH, state, county, grid
+        javafx.scene.layout.FlowPane row1 = flow(12, 6, a.get(0), a.get(1), a.get(2), a.get(3), rst.get(0), rst.get(1), rst.get(2),
+                qthRow.get(0), qthRow.get(1), qthRow.get(2), rst.get(3));
+        // the band-plan line and Super Check Partial share one line under the callsign
+        HBox info = new HBox(22, caption, scpNode); info.setAlignment(Pos.CENTER_LEFT); info.setMinWidth(0);
+        if (scpNode instanceof Region sr) { HBox.setHgrow(sr, Priority.ALWAYS); sr.setMinWidth(0); }
+        // row 2: power, then when and awards (date, time, the award references, confirmed), then the comment
         VBox nowBox = new VBox(nowBtn); nowBox.setAlignment(Pos.BOTTOM_LEFT);
-        javafx.scene.layout.FlowPane rowA = flow(12, 8, a.get(0), a.get(1), a.get(2), a.get(3), rst.get(0), rst.get(1), dtCell1, dtCell2, nowBox);
-        javafx.scene.layout.FlowPane rowB = flow(12, 8, rst.get(2), qthRow.get(0), qthRow.get(1), qthRow.get(2), rst.get(3), qthRow.get(3),
-                refs.get(0), refs.get(1), refs.get(2), refs.get(3));
-        HBox mac = new HBox(22, sendAs, macros); mac.setAlignment(Pos.CENTER_LEFT); mac.setMinWidth(0);      // one line: the F-keys take the rest of the row
-        HBox.setHgrow(macros, Priority.ALWAYS); if (macros instanceof Region mr) mr.setMaxWidth(Double.MAX_VALUE);
-        body.getChildren().addAll(rowA, caption, scpNode, rowB, refHints, cmtRow, mac);
+        if (act.get(0) instanceof Region cr) { cr.setMinWidth(170); cr.setPrefWidth(250); cr.setMaxWidth(250); }
+        javafx.scene.layout.FlowPane row2 = flow(12, 6, qthRow.get(3), dtCell1, dtCell2, nowBox, refs.get(0), refs.get(1), refs.get(2), refs.get(3), act.get(0));
+        // row 3: which way macros send (the hint after the ticks is left out: it is the dashboard's tightest row), the F-keys, and the actions
+        java.util.List<Node> sendCells = (sendAs instanceof javafx.scene.layout.FlowPane sf) ? new ArrayList<>(sf.getChildren()) : new ArrayList<>(List.of(sendAs));
+        if (sendCells.size() == 4) sendCells.remove(3);
+        java.util.List<Node> cells3 = new ArrayList<>(sendCells);
+        cells3.addAll(new ArrayList<>(macros.getChildren()));       // each F-key its own cell, so the row can break between them
+        cells3.add(act.get(2)); cells3.add(act.get(3)); cells3.add(act.get(4)); cells3.add(act.get(5));
+        javafx.scene.layout.FlowPane row3 = flow(12, 6, cells3.toArray(new Node[0]));
+        body.getChildren().addAll(row1, info, row2, refHints, row3);
     }
     private static javafx.scene.layout.FlowPane flow(double hgap, double vgap, Node... cells) {
         javafx.scene.layout.FlowPane f = new javafx.scene.layout.FlowPane(hgap, vgap, cells);
