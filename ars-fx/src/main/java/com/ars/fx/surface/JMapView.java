@@ -557,6 +557,7 @@ public final class JMapView {
         HBox center = new HBox(leftHolder, mapWithButton); center.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(spotsBox));
         mapFrame = (Region) Shell.frame(dock, top, center, rail, tickerBar());
+        com.ars.fx.UiStyle.applyDashboard(mapFrame);          // the dashboard look (Setup > Appearance) carries over to J-Map
         // re-collapse / expand the controls when the window crosses the narrow threshold
         mapFrame.widthProperty().addListener((o, a, b) -> { if ((a.doubleValue() < NARROW_W) != (b.doubleValue() < NARROW_W)) rebuildLeft[0].run(); });
         return mapFrame;
@@ -1678,6 +1679,7 @@ public final class JMapView {
             VBox txt = new VBox(1, hcall(s.call(), need),
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
+            if (s.band() != null && !s.band().isBlank()) row.getStyleClass().add("band-" + s.band().trim().toLowerCase());   // a band stripe in the looks that ask for one
             Node pc = com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forPoint(s.lat(), s.lon(), s.freqHz())) : null;
             if (pc != null) row.getChildren().add(pc);
             row.setStyle("-fx-cursor:hand;");

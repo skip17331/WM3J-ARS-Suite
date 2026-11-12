@@ -172,7 +172,9 @@ public final class JSatView {
                 : placeholder(snap.error().isEmpty() ? "Computing…" : snap.error());
         if (center instanceof HBox hb) hb.setFillHeight(true);
         Region rail = Shell.rail(railDrawers(snap, f));
-        return (Region) Shell.frame(dock, top, center, rail);
+        Region fr = (Region) Shell.frame(dock, top, center, rail);
+        com.ars.fx.UiStyle.applyDashboard(fr);                 // the dashboard look (Setup > Appearance) carries over to J-Sat
+        return fr;
     }
 
     /** Nothing selected (or nothing selected has elements): say so and point at the picker. */

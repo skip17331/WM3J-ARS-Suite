@@ -74,7 +74,10 @@ public final class JHubSetup {
         HBox row = new HBox(); row.setFillHeight(true); row.setMinHeight(0); VBox.setVgrow(row, Priority.ALWAYS);
         if (dock != null) row.getChildren().add(dock);
         row.getChildren().addAll(menuHolder, content);
-        VBox root = new VBox(JHubDashboard.workspaceBar(), row);
+        String call = com.ars.fx.data.HubConfig.call().toUpperCase(), grid = com.ars.fx.data.HubConfig.grid().toUpperCase();
+        String[][] heroStats = {{"CALLSIGN", call.isEmpty() ? "—" : call, "accent"}, {"GRID", grid.isEmpty() ? "—" : grid},
+                {"IARU", com.ars.fx.data.HubConfig.get("station.iaru", "R2").toUpperCase()}};
+        VBox root = new VBox(Shell.topBar("hub", "hub", "Setup", "J-Hub · your station and the suite", heroStats, null), row);
         root.setStyle("-fx-background-color:-ars-bg;"); root.setMinHeight(0);
         return root;
     }

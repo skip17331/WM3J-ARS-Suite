@@ -1,0 +1,253 @@
+/* ============================================================================
+   Dashboard style pack: COCKPIT.
+   Attached to the J-Hub dashboard's root node only (see UiStyle); every rule is scoped under .ins, so nothing here
+   reaches another module. To drop it: Setup > Appearance > Dashboard look > Classic.
+
+   Unlike Modern / Instrument this is a redesign, not a repaint:
+   - an insight strip under the hero banner: live stat tiles and a band-activity chart (JHubDashboard.insightRow)
+   - its own dark navy palette, set as the -ars-* tokens on the dashboard root, so it is always dark whatever scheme the rest of the
+     suite uses (the trays, drawers and fields on the dashboard follow it)
+   - band-coloured DX spots (a stripe per band), big readable type, a cyan Log QSO key against amber displays
+   ============================================================================ */
+
+/* ---- palette -------------------------------------------------------------- */
+.ins {
+    -fx-base: #101a30;
+    -fx-background: #070b14;
+    -fx-control-inner-background: #0b1222;
+    -fx-accent: #2fd0ff;
+    -fx-focus-color: #2fd0ff;
+    -fx-faint-focus-color: #2fd0ff33;
+
+    -ars-bg:          #070b14;
+    -ars-surface-1:   #0d1424;
+    -ars-surface-2:   #131d35;
+    -ars-surface-3:   #1a2745;
+    -ars-surface-4:   #243459;
+    -ars-border:      #1c2842;
+    -ars-border-2:    #2a3a5e;
+    -ars-border-glow: #3d5282;
+    -ars-t1: #f0f5ff;
+    -ars-t2: #b0bddb;
+    -ars-t3: #8190b6;
+    -ars-t4: #5f6e95;
+    -ars-accent:      #2fd0ff;
+    -ars-accent-dim:  rgba(47,208,255,0.13);
+    -ars-accent-line: rgba(47,208,255,0.45);
+    -ars-accent-text: #031018;
+    -ars-ok:   #4be38c;
+    -ars-warn: #ffc857;
+    -ars-err:  #ff5d6c;
+    -ars-log:  #ffb84a;
+
+}
+
+/* ---- top bar + status lights ---------------------------------------------- */
+.ins .jhub-bar    { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border transparent; }
+.ins .jhub-bar-dot,
+.ins .jhub-mini-dot { -fx-effect: dropshadow(gaussian, rgba(150,210,255,0.6), 8, 0.4, 0, 0); }
+
+/* ---- cards: cluster, entry ------------------------------------------------ */
+.ins .jhub-card,
+.ins .jl-entry {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1 55%);
+    -fx-background-radius: 16;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 26, 0.0, 0, 10);
+}
+.ins .jhub-card-head {
+    -fx-background-color: linear-gradient(to right, -ars-accent-dim, transparent 70%);
+    -fx-background-radius: 15 15 0 0;
+    -fx-padding: 15 20 14 20;
+    -fx-border-color: transparent transparent -ars-border transparent;
+}
+.ins .jhub-card-title { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.ins .jl-emeta        { -fx-text-fill: -ars-t3; }
+
+/* ---- entry: the callsign is the hero field -------------------------------- */
+.ins .jl-ein-call {
+    -fx-font-size: 36px;
+    -fx-text-fill: -ars-log;
+    -fx-background-color: -ars-bg;
+    -fx-background-radius: 13;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 13;
+    -fx-padding: 8 16 8 16;
+}
+.ins .jl-fin,
+.ins .jl-snt {
+    -fx-text-fill: -ars-t1;
+    -fx-background-color: -ars-bg;
+    -fx-background-radius: 11;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 11;
+}
+.ins .jl-fin:focused,
+.ins .jl-ein-call:focused {
+    -fx-border-color: -ars-accent;
+    -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.3, 0, 0);
+}
+.ins .jl-flabel { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .jl-eyebrow { -fx-text-fill: -ars-accent; }
+
+/* ---- keys ----------------------------------------------------------------- */
+.ins .jl-logbtn {
+    -fx-background-color: linear-gradient(to right, #2fd0ff, #4d7cff);
+    -fx-text-fill: #04101c;
+    -fx-background-radius: 13;
+    -fx-padding: 13 30 13 30;
+    -fx-font-size: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.45), 16, 0.15, 0, 3);
+}
+.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.7), 22, 0.25, 0, 3); }
+.ins .jl-logbtn:pressed { -fx-effect: null; -fx-padding: 14 30 12 30; }
+
+.ins .jl-macro {
+    -fx-background-color: -ars-surface-3;
+    -fx-background-radius: 10;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 10;
+}
+.ins .jl-macro:hover   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent; }
+.ins .jl-macro:pressed { -fx-background-color: -ars-accent-line; }
+.ins .jl-macro-fk      { -fx-text-fill: -ars-accent; }
+.ins .jl-macro-ml      { -fx-text-fill: -ars-t1; }
+
+/* ---- DX spots: bigger type (the band stripes are in the base stylesheet) ---- */
+.ins .jhub-clu-fq   { -fx-font-size: 17px; -fx-text-fill: -ars-log; }
+.ins .jhub-clu-call { -fx-font-size: 17px; -fx-text-fill: -ars-t1; }
+.ins .jhub-clu-mode { -fx-background-radius: 99; -fx-padding: 1 9 1 9; -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
+
+/* ---- drawers (right tray) and the column heads ---------------------------- */
+.ins .sx-dw {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1);
+    -fx-background-radius: 14;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 16, 0.0, 0, 5);
+}
+.ins .sx-dw-head       { -fx-background-radius: 13; -fx-padding: 12 14 12 14; }
+.ins .sx-dw-head:hover { -fx-background-color: -ars-accent-dim; }
+.ins .sx-dw-t          { -fx-font-size: 13.5px; -fx-text-fill: -ars-t1; }
+.ins .sx-dw-sum        { -fx-text-fill: -ars-accent; }
+.ins .sx-dw-body       { -fx-border-color: -ars-border transparent transparent transparent; }
+.ins .sx-rail-head     { -fx-background-color: -ars-surface-1; }
+.ins .sx-rail-title    { -fx-text-fill: -ars-accent; }
+
+/* ---- page background: a soft glow behind the content ----------------------- */
+.ins .dash-center {
+    -fx-background-color: -ars-bg,
+                          radial-gradient(center 20% 0%, radius 60%, rgba(47,208,255,0.11), transparent),
+                          radial-gradient(center 100% 35%, radius 55%, rgba(125,92,255,0.09), transparent);
+}
+
+/* ---- insight strip: stat tiles + band activity ----------------------------- */
+.ins .stat-tile {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1);
+    -fx-background-radius: 14;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 14;
+    -fx-padding: 12 16 12 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 18, 0.0, 0, 6);
+}
+.ins .stat-k   { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .stat-v   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.ins .stat-sub { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
+.ins .stat-tile.amber  { -fx-border-color: rgba(255,184,74,0.40); }
+.ins .stat-tile.cyan   { -fx-border-color: rgba(47,208,255,0.40); }
+.ins .stat-tile.green  { -fx-border-color: rgba(75,227,140,0.40); }
+.ins .stat-tile.violet { -fx-border-color: rgba(169,119,255,0.45); }
+.ins .stat-tile.amber  .stat-v { -fx-text-fill: -ars-log;    -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.5), 12, 0.2, 0, 0); }
+.ins .stat-tile.cyan   .stat-v { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.5), 12, 0.2, 0, 0); }
+.ins .stat-tile.green  .stat-v { -fx-text-fill: -ars-ok;     -fx-effect: dropshadow(gaussian, rgba(75,227,140,0.5), 12, 0.2, 0, 0); }
+.ins .stat-tile.violet .stat-v { -fx-text-fill: #c4a2ff;     -fx-effect: dropshadow(gaussian, rgba(169,119,255,0.55), 12, 0.2, 0, 0); }
+
+.ins .band-card { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); -fx-background-radius: 14;
+                  -fx-border-color: -ars-border-2; -fx-border-radius: 14; -fx-padding: 12 18 10 18;
+                  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 18, 0.0, 0, 6); }
+.ins .band-cnt { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t2; }
+.ins .band-nm  { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .bandbar  { -fx-background-radius: 6 6 2 2; -fx-min-width: 20; -fx-pref-width: 26; -fx-max-width: 34; }
+.ins .bandbar.band-160m { -fx-background-color: linear-gradient(to top, derive(-band-160, -45%), -band-160); -fx-effect: dropshadow(gaussian, -band-160, 7, 0.1, 0, 0); }
+.ins .bandbar.band-80m { -fx-background-color: linear-gradient(to top, derive(-band-80, -45%), -band-80); -fx-effect: dropshadow(gaussian, -band-80, 7, 0.1, 0, 0); }
+.ins .bandbar.band-60m { -fx-background-color: linear-gradient(to top, derive(-band-60, -45%), -band-60); -fx-effect: dropshadow(gaussian, -band-60, 7, 0.1, 0, 0); }
+.ins .bandbar.band-40m { -fx-background-color: linear-gradient(to top, derive(-band-40, -45%), -band-40); -fx-effect: dropshadow(gaussian, -band-40, 7, 0.1, 0, 0); }
+.ins .bandbar.band-30m { -fx-background-color: linear-gradient(to top, derive(-band-30, -45%), -band-30); -fx-effect: dropshadow(gaussian, -band-30, 7, 0.1, 0, 0); }
+.ins .bandbar.band-20m { -fx-background-color: linear-gradient(to top, derive(-band-20, -45%), -band-20); -fx-effect: dropshadow(gaussian, -band-20, 7, 0.1, 0, 0); }
+.ins .bandbar.band-17m { -fx-background-color: linear-gradient(to top, derive(-band-17, -45%), -band-17); -fx-effect: dropshadow(gaussian, -band-17, 7, 0.1, 0, 0); }
+.ins .bandbar.band-15m { -fx-background-color: linear-gradient(to top, derive(-band-15, -45%), -band-15); -fx-effect: dropshadow(gaussian, -band-15, 7, 0.1, 0, 0); }
+.ins .bandbar.band-12m { -fx-background-color: linear-gradient(to top, derive(-band-12, -45%), -band-12); -fx-effect: dropshadow(gaussian, -band-12, 7, 0.1, 0, 0); }
+.ins .bandbar.band-10m { -fx-background-color: linear-gradient(to top, derive(-band-10, -45%), -band-10); -fx-effect: dropshadow(gaussian, -band-10, 7, 0.1, 0, 0); }
+.ins .bandbar.band-6m { -fx-background-color: linear-gradient(to top, derive(-band-6, -45%), -band-6); -fx-effect: dropshadow(gaussian, -band-6, 7, 0.1, 0, 0); }
+.ins .bandbar.band-2m { -fx-background-color: linear-gradient(to top, derive(-band-2, -45%), -band-2); -fx-effect: dropshadow(gaussian, -band-2, 7, 0.1, 0, 0); }
+.ins .bandbar.band-70cm { -fx-background-color: linear-gradient(to top, derive(-band-70, -45%), -band-70); -fx-effect: dropshadow(gaussian, -band-70, 7, 0.1, 0, 0); }
+
+/* ---- insight strip, collapsed: one slim line, small type, band labels inside their colour chips ---- */
+.ins .insight-compact {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1);
+    -fx-background-radius: 12;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 12;
+    -fx-padding: 6 12 6 14;
+}
+.ins .cs-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .cs-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.ins .cs-v.amber  { -fx-text-fill: -ars-log; }
+.ins .cs-v.cyan   { -fx-text-fill: -ars-accent; }
+.ins .cs-v.green  { -fx-text-fill: -ars-ok; }
+.ins .cs-v.violet { -fx-text-fill: #c4a2ff; }
+.ins .bchip   { -fx-background-radius: 7; -fx-min-width: 34; -fx-pref-width: 34; -fx-min-height: 22; -fx-pref-height: 22; -fx-alignment: center;
+                -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #04101c; }
+.ins .bchip-n { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .bchip.band-160m { -fx-background-color: -band-160; }
+.ins .bchip.band-80m { -fx-background-color: -band-80; }
+.ins .bchip.band-60m { -fx-background-color: -band-60; }
+.ins .bchip.band-40m { -fx-background-color: -band-40; }
+.ins .bchip.band-30m { -fx-background-color: -band-30; }
+.ins .bchip.band-20m { -fx-background-color: -band-20; }
+.ins .bchip.band-17m { -fx-background-color: -band-17; }
+.ins .bchip.band-15m { -fx-background-color: -band-15; }
+.ins .bchip.band-12m { -fx-background-color: -band-12; }
+.ins .bchip.band-10m { -fx-background-color: -band-10; }
+.ins .bchip.band-6m { -fx-background-color: -band-6; }
+.ins .bchip.band-2m { -fx-background-color: -band-2; }
+.ins .bchip.band-70cm { -fx-background-color: -band-70; }
+
+/* ---- New QSO card, compact: slimmer header, shorter fields ----------------------- */
+.ins .jl-entry .jhub-card-head { -fx-padding: 8 18 6 18; }
+.ins .jl-entry .jl-fin,
+.ins .jl-entry .jl-snt      { -fx-padding: 6 10 6 10; -fx-font-size: 15px; }
+.ins .jl-entry .jl-ein-call { -fx-font-size: 28px; -fx-padding: 4 14 4 14; }
+.ins .jl-entry .jl-macro { -fx-padding: 5 9 7 9; }
+
+/* ============================================================================
+   Module frames (J-Map, J-Sat). Their top bar is the hero bar (ars.css, HeroBar); the palette above reaches their docks, trays and drawers.
+   ============================================================================ */
+/* J-Sat: satellite cards as cockpit cards */
+.ins .js-sat      { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); -fx-background-radius: 12; -fx-border-color: -ars-border-2; -fx-border-radius: 12;
+                    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.0, 0, 3); }
+.ins .js-sat.sel  { -fx-border-color: -ars-accent; -fx-background-color: -ars-accent-dim; }
+.ins .js-sat-nm   { -fx-font-size: 15px; }
+
+/* J-Map: spot rows with a stripe per band, like the dashboard's cluster */
+.ins .jm-spot-row { -fx-padding: 9 4 9 10; -fx-border-width: 0 0 1 4; -fx-border-color: transparent transparent -ars-border -ars-border-2; }
+.ins .jm-spot-row:hover { -fx-background-color: -ars-accent-dim; }
+.ins .jm-spot-fq  { -fx-font-size: 14px; -fx-text-fill: -ars-log; }
+.ins .jm-spot-call{ -fx-font-size: 14px; }
+.ins .jm-spot-row.band-160m { -fx-border-color: transparent transparent -ars-border -band-160; }
+.ins .jm-spot-row.band-80m { -fx-border-color: transparent transparent -ars-border -band-80; }
+.ins .jm-spot-row.band-60m { -fx-border-color: transparent transparent -ars-border -band-60; }
+.ins .jm-spot-row.band-40m { -fx-border-color: transparent transparent -ars-border -band-40; }
+.ins .jm-spot-row.band-30m { -fx-border-color: transparent transparent -ars-border -band-30; }
+.ins .jm-spot-row.band-20m { -fx-border-color: transparent transparent -ars-border -band-20; }
+.ins .jm-spot-row.band-17m { -fx-border-color: transparent transparent -ars-border -band-17; }
+.ins .jm-spot-row.band-15m { -fx-border-color: transparent transparent -ars-border -band-15; }
+.ins .jm-spot-row.band-12m { -fx-border-color: transparent transparent -ars-border -band-12; }
+.ins .jm-spot-row.band-10m { -fx-border-color: transparent transparent -ars-border -band-10; }
+.ins .jm-spot-row.band-6m { -fx-border-color: transparent transparent -ars-border -band-6; }
+.ins .jm-spot-row.band-2m { -fx-border-color: transparent transparent -ars-border -band-2; }
+.ins .jm-spot-row.band-70cm { -fx-border-color: transparent transparent -ars-border -band-70; }

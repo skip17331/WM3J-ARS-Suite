@@ -30,7 +30,8 @@ public final class JHubDashboard {
     private static Region dashRoot;
     private static boolean dashTickerStarted;
 
-    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers())); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
+    // the LOG TOOLS tray lives in threeCol(), beside the cards, so the hero and the insight strip run the full width
+    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, null, false); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
 
     /** The content of one J-Hub setup section, for {@link JHubSetup} (one screen, section menu on the left). */
     static Region setupPage(String id) {
@@ -49,15 +50,21 @@ public final class JHubDashboard {
 
     private static Region page(String activeConf, Region centerContent) { return page(activeConf, centerContent, null); }
     /** @param leftPanel optional collapsing column placed right of the dock (the dashboard's log tools) */
-    private static Region page(String activeConf, Region centerContent, Region leftPanel) {
+    private static Region page(String activeConf, Region centerContent, Region leftPanel) { return page(activeConf, centerContent, leftPanel, true); }
+    /** @param scrolls false when {@code centerContent} brings its own scrolling (the dashboard keeps its header fixed and scrolls only the cards) */
+    private static Region page(String activeConf, Region centerContent, Region leftPanel, boolean scrolls) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
         // expand-only tail so they stay reachable without changing the collapsed rail. In a solo
         // window there is no dock, so the same links become a fixed left nav column instead.
         Region nav = Shell.solo ? soloNav(activeConf) : Shell.dock("hub", hubConfigSection(activeConf));
 
-        ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = leftPanel == null ? new HBox(nav, sp) : new HBox(nav, leftPanel, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        Region centre;
+        if (scrolls) {
+            ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle("-fx-background-color:-ars-bg;"); centre = sp;
+        } else centre = centerContent;
+        centre.setMinWidth(0); HBox.setHgrow(centre, Priority.ALWAYS);
+        HBox row = leftPanel == null ? new HBox(nav, centre) : new HBox(nav, leftPanel, centre); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
         row.setMinHeight(0);
         VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;"); root.setMinHeight(0);
         return root;
@@ -79,10 +86,24 @@ public final class JHubDashboard {
         return col;
     }
 
+    /** The hero banner (and, in Cockpit, the insight strip) stay fixed at the top; only the cards underneath scroll. */
     private static Region dashboardCenter() {
-        VBox center = new VBox(10, header(), threeCol());
-        center.setPadding(new Insets(10, 24, 24, 24));
-        center.setStyle("-fx-background-color:-ars-bg;");
+        insightStrip = com.ars.fx.UiStyle.isCockpit() ? new InsightStrip() : null;
+        HBox cards = threeCol();                       // after the strip exists: the cluster card feeds it on its first render
+        VBox cardsBox = new VBox(cards); cardsBox.setPadding(new Insets(12, 24, 24, 24));
+        ScrollPane sp = new ScrollPane(cardsBox); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.getStyleClass().add("dash-scroll"); VBox.setVgrow(sp, Priority.ALWAYS); sp.setMinHeight(0);
+        // the entry form takes keyboard focus as the page opens and the scroll pane nudges the cards up to show it, which hid the card headers
+        // under the fixed strip; start from the top (a later scroll by the user is left alone)
+        sp.sceneProperty().addListener((o, was, sc) -> { if (sc != null) javafx.application.Platform.runLater(() -> javafx.application.Platform.runLater(() -> sp.setVvalue(0))); });
+
+        VBox head = insightStrip != null ? new VBox(14, header(), insightStrip) : new VBox(header());
+        head.setPadding(new Insets(10, 24, 0, 24));
+        head.setMinHeight(Region.USE_PREF_SIZE);       // the scroll area takes what is left; the header is never squeezed to make room for it
+        head.setViewOrder(-1);                         // the strip floats open over the cards, so the whole header must draw above them
+
+        VBox center = new VBox(head, sp);
+        center.getStyleClass().add("dash-center"); center.setMinHeight(0);
         return center;
     }
 
@@ -99,6 +120,7 @@ public final class JHubDashboard {
             if (dashRoot == null) return;
             if (dashRoot.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
             if (dashRoot.lookup(".jhub-uptime") instanceof Label l) l.setText("ARS Suite · up " + uptime());
+            if (dashRoot.lookup(".hero-rig") instanceof Label f && dashRoot.lookup(".hero-rig-sub") instanceof Label m) heroRig(f, m);
         }));
         t.setCycleCount(Timeline.INDEFINITE); t.play();
     }
@@ -136,20 +158,48 @@ public final class JHubDashboard {
     }
 
     // ---- center header -----------------------------------------------------
-    private static Region header() {
-        HBox crumb = new HBox(7, lbl("J-Hub", "jhub-crumb"), lbl("›", "jhub-crumb"), lbl("Dashboard", "jhub-crumb-b"));
-        crumb.setAlignment(Pos.CENTER_LEFT);
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+    private static Region header() { return heroHeader(); }
+
+    /** The dashboard header, in every style: a hero banner. Station identity, the rig's live frequency, the cluster feed and the UTC clock.
+     *  Its clock keeps the sx-clock-v class and its rig readout the hero-rig class, so the dashboard's one-second ticker keeps both current. */
+    private static Region heroHeader() {
+        String call = com.ars.fx.data.HubConfig.call().toUpperCase();
+        java.util.List<String> bits = new java.util.ArrayList<>();
+        String nm = com.ars.fx.data.HubConfig.get("station.name", "").trim(), qth = com.ars.fx.data.HubConfig.get("station.qth", "").trim();
+        String grid = com.ars.fx.data.HubConfig.grid().toUpperCase();
+        if (!nm.isEmpty()) bits.add(nm); if (!qth.isEmpty()) bits.add(qth); if (!grid.isEmpty()) bits.add(grid);
+        VBox id = new VBox(1, lbl("STATION", "hero-k"), lbl(call.isEmpty() ? "SET CALLSIGN" : call, "hero-call"),
+                lbl(bits.isEmpty() ? "Setup › Station" : String.join("  ·  ", bits), "hero-sub"));
+
+        Label rigF = lbl("—", "hero-rig"), rigM = lbl("rig offline", "hero-rig-sub");
+        heroRig(rigF, rigM);
+        VBox rig = new VBox(1, lbl("RIG", "hero-k"), rigF, rigM);
+
         ClusterClient cc = ClusterClient.getInstance();
-        Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
-        Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
+        Region cdot = chip("jhub-mini-dot", 9); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
+        Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "hero-sub");
         headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
-        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
-                lbl("UTC", "jhub-crumb"), lbl(nowUtc(), "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
-        // one line: where you are on the left, the cluster feed and the clock on the right
-        HBox row = new HBox(crumb, sp, clu); row.setAlignment(Pos.CENTER_LEFT);
+        HBox cluRow = new HBox(7, cdot, cluTxt); cluRow.setAlignment(Pos.CENTER_LEFT);
+        VBox clu = new VBox(5, lbl("DX CLUSTER", "hero-k"), cluRow);
+
+        VBox clock = new VBox(1, lbl("UTC", "hero-k"), lbl(nowUtc(), "sx-clock-v", "hero-clk"),
+                lbl(java.time.LocalDate.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM yyyy")), "hero-sub"));
+        clock.setAlignment(Pos.TOP_RIGHT);
+
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox row = new HBox(40, id, rig, sp, clu, clock); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("hero");
         return row;
     }
+    private static void heroRig(Label f, Label m) {
+        com.ars.fx.data.RigClient.State st = com.ars.fx.data.RigClient.getInstance().last();
+        boolean on = st != null && st.connected() && st.freqHz() > 0;
+        f.setText(on ? com.ars.fx.data.RigClient.fmtFreq(st.freqHz()) : "—");
+        String mode = on && st.mode() != null ? st.mode().trim() : "";
+        m.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode) : "rig offline");
+    }
+
+    // the Cockpit style's insight strip (live stats + band activity, collapsible and pinnable): see InsightStrip
+    private static InsightStrip insightStrip;
 
     // ---- 3-column area -----------------------------------------------------
     private static HBox threeColRef = new HBox();
@@ -160,7 +210,9 @@ public final class JHubDashboard {
         WindowsRow windows = new WindowsRow(entry, cluster);      // side by side when there is room, stacked when there is not
         VBox left = new VBox(11, windows);
         HBox.setHgrow(left, Priority.ALWAYS);
-        HBox box = new HBox(20, left, railCol());
+        // LOG TOOLS (left tray) starts at the same top and height as PANELS (right tray); sideDrawers() has to come after embeddedEntry()
+        Region logTools = Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers());
+        HBox box = new HBox(14, logTools, left, railCol());
         box.setFillHeight(true); VBox.setVgrow(box, Priority.ALWAYS);
         threeColRef = box;
         return box;
@@ -176,17 +228,31 @@ public final class JHubDashboard {
     private static final class WindowsRow extends Region {
         private static final double FORM_PREF = 760, GAP = 20, CLUSTER_MIN = 300, STACKED_CLUSTER_H = 460;
         private final Region entry, cluster;
+        /** Cards in rows (the default; Setup > Appearance): New QSO, then DX Cluster, then the Recent log, each its own row. Off = side by side
+         *  when there is room. */
+        private final boolean rows = com.ars.fx.data.HubConfig.getBool("ui.dashboard.rows", true);
+        /** Rows mode: what sits under the New QSO card in the entry column (the Recent log), lifted out so the cluster can go between them. */
+        private final VBox rest;
         WindowsRow(Region entry, Region cluster) {
             this.entry = entry; this.cluster = cluster;
+            VBox r = null;
+            if (rows && entry instanceof VBox col && col.getChildren().size() > 1) {
+                java.util.List<Node> tail = new java.util.ArrayList<>(col.getChildren().subList(1, col.getChildren().size()));
+                col.getChildren().removeAll(tail);
+                r = new VBox(tail.toArray(new Node[0]));
+            }
+            rest = r;
             getChildren().addAll(entry, cluster);
+            if (rest != null) getChildren().add(rest);
             setMinSize(0, 0);
         }
         /** What the form needs for everything on it to show. */
         private double need() { return entry.minWidth(-1); }
         /** What it takes when there is room. */
         private double liked() { return Math.max(need(), FORM_PREF); }
-        private boolean stacked(double w) { return w < need() + GAP + CLUSTER_MIN; }
+        private boolean stacked(double w) { return rows || w < need() + GAP + CLUSTER_MIN; }
         private double entryWidth(double w) {
+            if (rows) return w;                                  // a row: the New QSO card takes the whole width
             return stacked(w) ? Math.max(need(), Math.min(liked(), w)) : Math.max(need(), Math.min(liked(), w - GAP - CLUSTER_MIN));
         }
         @Override protected double computeMinWidth(double h) { return 0; }
@@ -194,18 +260,29 @@ public final class JHubDashboard {
         @Override protected double computePrefHeight(double w) {
             double width = w > 0 ? w : getWidth() > 0 ? getWidth() : liked() + GAP + CLUSTER_MIN;
             double ew = entryWidth(width), eh = entry.prefHeight(ew);
-            return stacked(width) ? eh + GAP + STACKED_CLUSTER_H : Math.max(eh, cluster.prefHeight(Math.max(CLUSTER_MIN, width - ew - GAP)));
+            // side by side the cluster is as tall as the New QSO card (see formHeight) and its spot list scrolls inside it; it used to ask for
+            // its content height, so a long spot list stretched the whole row far past the QSO pane
+            if (stacked(width)) return eh + GAP + STACKED_CLUSTER_H + (rest != null ? GAP + rest.prefHeight(width) : 0);
+            return eh;
         }
         @Override protected void layoutChildren() {
             double w = getWidth(), h = getHeight(), ew = entryWidth(w);
             if (stacked(w)) {
                 double eh = entry.prefHeight(ew);
                 entry.resizeRelocate(0, 0, ew, eh);
-                cluster.resizeRelocate(0, eh + GAP, w, Math.max(STACKED_CLUSTER_H, h - eh - GAP));
+                double ch = rest != null ? STACKED_CLUSTER_H : Math.max(STACKED_CLUSTER_H, h - eh - GAP);
+                cluster.resizeRelocate(0, eh + GAP, w, ch);
+                if (rest != null) rest.resizeRelocate(0, eh + GAP + ch + GAP, w, rest.prefHeight(w));
             } else {
                 entry.resizeRelocate(0, 0, ew, h);
-                cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, h);
+                cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, formHeight(ew, h));
             }
+        }
+        /** The height of the New QSO card alone: the entry column also carries the Recent log under it, which the cluster must not follow. */
+        private double formHeight(double ew, double fallback) {
+            if (entry instanceof javafx.scene.layout.Pane p && !p.getChildren().isEmpty() && p.getChildren().get(0) instanceof Region card)
+                return Math.min(fallback, card.prefHeight(ew));
+            return fallback;
         }
     }
 
@@ -350,6 +427,10 @@ public final class JHubDashboard {
             if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             SpotNeeds.Index worked = needIndex();
             java.util.List<ClusterClient.Spot> all = cc.spots();
+            if (insightStrip != null) {
+                int needed = 0; for (ClusterClient.Spot s : all) if (!tag(s, worked).isEmpty()) needed++;
+                insightStrip.update(all, needed);
+            }
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
             for (ClusterClient.Spot s : all)
                 if (bandOk(s) && modeOk(s) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);
@@ -527,6 +608,7 @@ public final class JHubDashboard {
         HBox bot = new HBox(9, lbl(s[3], "jhub-clu-mode"), lbl(s[4], "jhub-clu-de"), lbl(tail, "jhub-clu-de"));
         bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(3,0,0,0));
         VBox v = new VBox(0, top, bot); v.getStyleClass().add("jhub-clu");
+        if (s[4] != null && !s[4].isBlank()) v.getStyleClass().add("band-" + s[4].trim().toLowerCase());     // a band-coloured stripe in styles that ask for one
         return v;
     }
 
@@ -1049,11 +1131,14 @@ public final class JHubDashboard {
         VBox size = section("SIZE",
             cfgRow("Interface size", "scales everything together, in 50% steps; restart ARS Suite to apply",
                     cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, 0)));
-        VBox look = section("DASHBOARD LOOK",
+        VBox layout = section("DASHBOARD LAYOUT",
+            cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",
+                    cToggle("ui.dashboard.rows", true)));
+        VBox look = section("LOOK",
             cfgRow("Style", "Classic is the original look. Open the dashboard again to see a change; pick Classic to go back at any time", lookSeg));
         return cfgPage(cfgTop("J-Hub", "System", "Appearance"),
-                lbl("How the suite looks. Only the J-Hub dashboard takes the style; the other modules keep the classic look.", "cfg-desc"),
-                size, look);
+                lbl("How the suite looks. The style applies to every screen and window; Classic is the original look.", "cfg-desc"),
+                size, layout, look);
     }
 
     private static Region modulesCenter() {

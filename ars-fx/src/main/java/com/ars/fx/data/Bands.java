@@ -45,6 +45,21 @@ public final class Bands {
         return d == null || d.activity == null ? "" : d.activity.name();
     }
 
+    /** Which band plan the answer for this frequency came from, in words: "US FCC Part 97" or "IARU Region 2" ("" when not in a band). */
+    public static String planName(long hz) {
+        BandplanLoader.Description d = plan().describe(hz);
+        if (d == null || d.sourceId.isBlank()) return "";
+        if ("US".equalsIgnoreCase(d.sourceId)) return "US FCC Part 97";
+        if (d.sourceId.toUpperCase(Locale.ROOT).startsWith("IARU-R")) return "IARU Region " + d.sourceId.substring(6);
+        return d.sourceId;
+    }
+
+    /** {@link #describe} plus the band plan it came from, e.g. "20m · CW / data only · US FCC Part 97 band plan". */
+    public static String describeWithPlan(long hz) {
+        String d = describe(hz), p = planName(hz);
+        return d.isEmpty() || p.isEmpty() ? d : d + " · " + p + " band plan";
+    }
+
     /** What the band plan says is at this frequency, e.g. "20m · CW segment" — "" when it is not in a band. */
     public static String describe(long hz) {
         BandplanLoader.Description d = plan().describe(hz);

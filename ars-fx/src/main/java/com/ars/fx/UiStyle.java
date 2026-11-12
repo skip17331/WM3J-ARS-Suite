@@ -8,8 +8,9 @@ import java.util.List;
 /**
  * Look-and-feel options that sit on top of the base stylesheet ({@code ars.css}), so a look can be tried and dropped without touching it.
  *
- * <p><b>Dashboard style.</b> A style is one extra stylesheet attached to the dashboard's root node only (a node's own stylesheets reach just its
- * subtree), with every rule scoped under the {@code .ins} class this class puts on that node. "Classic" attaches nothing, so it is exactly the
+ * <p><b>Look.</b> A style is one extra stylesheet attached to a root node (a node's own stylesheets reach just its subtree), with every rule
+ * scoped under the {@code .ins} class this class puts on that node. {@link Themes#applyTo} attaches it wherever it applies a colour scheme: the
+ * main window's content and the pop-up windows, so the whole suite follows it. "Classic" attaches nothing, so it is exactly the
  * stylesheet-free look; picking it in J-Hub ▸ Setup ▸ Appearance is the whole of a revert. To try another look, drop a new css in
  * {@code css/styles/}, add one line to {@link #DASHBOARD_STYLES}, and it shows up in that menu.
  *
@@ -24,7 +25,9 @@ public final class UiStyle {
     /** The dashboard looks on offer. {@code css} null = the base stylesheet alone. */
     public static final List<Style> DASHBOARD_STYLES = List.of(
             new Style("classic",    "Classic",          null),
-            new Style("instrument", "Instrument panel", "/com/ars/fx/css/styles/instrument.css"));
+            new Style("instrument", "Instrument panel", "/com/ars/fx/css/styles/instrument.css"),
+            new Style("modern",     "Modern",           "/com/ars/fx/css/styles/modern.css"),
+            new Style("cockpit",    "Cockpit",          "/com/ars/fx/css/styles/cockpit.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
     /** Whole-interface scale, as the labels shown in Setup; the first is the system default (nothing is set). JavaFX on Windows only honours 50% steps: 1.25 and 1.4 behave as 1.0, 1.75 as 1.5. */
@@ -37,6 +40,9 @@ public final class UiStyle {
         for (Style s : DASHBOARD_STYLES) if (s.key().equals(k)) return s;
         return DASHBOARD_STYLES.get(0);
     }
+
+    /** The Cockpit style also swaps the dashboard's header for a hero banner (a layout change, not only a repaint). */
+    public static boolean isCockpit() { return "cockpit".equals(dashboard().key()); }
 
     /** Put the chosen dashboard look on {@code root} (and take any other off it first). */
     public static void applyDashboard(Parent root) {
