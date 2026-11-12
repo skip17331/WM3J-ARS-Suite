@@ -30,7 +30,8 @@ public final class JHubDashboard {
     private static Region dashRoot;
     private static boolean dashTickerStarted;
 
-    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers())); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
+    // the LOG TOOLS tray lives in threeCol(), beside the cards, so the hero and the insight strip run the full width
+    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
 
     /** The content of one J-Hub setup section, for {@link JHubSetup} (one screen, section menu on the left). */
     static Region setupPage(String id) {
@@ -242,7 +243,9 @@ public final class JHubDashboard {
         WindowsRow windows = new WindowsRow(entry, cluster);      // side by side when there is room, stacked when there is not
         VBox left = new VBox(11, windows);
         HBox.setHgrow(left, Priority.ALWAYS);
-        HBox box = new HBox(20, left, railCol());
+        // LOG TOOLS (left tray) starts at the same top and height as PANELS (right tray); sideDrawers() has to come after embeddedEntry()
+        Region logTools = Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers());
+        HBox box = new HBox(14, logTools, left, railCol());
         box.setFillHeight(true); VBox.setVgrow(box, Priority.ALWAYS);
         threeColRef = box;
         return box;

@@ -86,7 +86,7 @@ public final class Shell {
         Label l = lbl("", "jl-skim-meta");
         Runnable paint = () -> {
             String t = "";
-            try { t = com.ars.fx.data.Bands.describe(Math.round(Double.parseDouble(freqMhz.getText().replace(",", "").trim()) * 1_000_000.0)); }
+            try { t = com.ars.fx.data.Bands.describeWithPlan(Math.round(Double.parseDouble(freqMhz.getText().replace(",", "").trim()) * 1_000_000.0)); }
             catch (Exception ignored) { /* empty or mid-typing */ }
             l.setText(t); l.setVisible(!t.isEmpty()); l.setManaged(!t.isEmpty());
         };
