@@ -252,6 +252,7 @@ public final class JHubDashboard {
         private double liked() { return Math.max(need(), FORM_PREF); }
         private boolean stacked(double w) { return rows || w < need() + GAP + CLUSTER_MIN; }
         private double entryWidth(double w) {
+            if (rows) return w;                                  // a row: the New QSO card takes the whole width
             return stacked(w) ? Math.max(need(), Math.min(liked(), w)) : Math.max(need(), Math.min(liked(), w - GAP - CLUSTER_MIN));
         }
         @Override protected double computeMinWidth(double h) { return 0; }

@@ -183,16 +183,16 @@ public final class JLogCockpit {
         callRef = call; freqRef = freq; bandRef = band; modeRef = mode;   // spot-click prefill
         TextField rsnt = tf("", "59", 70, false);
         TextField rrcv = tf("", "59", 70, false);
-        TextField name = tf("name", "", 180, false);
-        TextField grid = tf("FN31", "", 110, false);
-        TextField qth  = tf("city / DXCC", "", 220, false);
-        TextField stat = tf("ST", "", 70, false);
-        TextField cnty = tf("county", "", 200, false);
-        TextField pwr  = tf("W", com.ars.fx.data.HubConfig.get("station.txPower", "100").trim(), 80, false);
+        TextField name = tf("name", "", embedded ? 125 : 180, false);
+        TextField grid = tf("FN31", "", embedded ? 90 : 110, false);
+        TextField qth  = tf("city / DXCC", "", embedded ? 150 : 220, false);
+        TextField stat = tf("ST", "", embedded ? 62 : 70, false);
+        TextField cnty = tf("county", "", embedded ? 120 : 200, false);
+        TextField pwr  = tf("W", com.ars.fx.data.HubConfig.get("station.txPower", "100").trim(), embedded ? 70 : 80, false);
         TextField cmt  = tf("notes, QSL info…", "", -1, false);
-        TextField iota = tf("NA-005", "", 110, false);       // award references: island / summit / park
-        TextField sota = tf("W7W/LC-001", "", 150, false);
-        TextField pota = tf("US-0001", "", 110, false);
+        TextField iota = tf("NA-005", "", embedded ? 100 : 110, false);       // award references: island / summit / park
+        TextField sota = tf("W7W/LC-001", "", embedded ? 130 : 150, false);
+        TextField pota = tf("US-0001", "", embedded ? 100 : 110, false);
         CheckBox cQsl = new CheckBox("QSL"), cLotw = new CheckBox("LoTW"), cEqsl = new CheckBox("eQSL");
         com.ars.fx.shell.Tips.tip(cQsl, "Paper QSL card received"); com.ars.fx.shell.Tips.tip(cLotw, "Confirmed on LoTW"); com.ars.fx.shell.Tips.tip(cEqsl, "Confirmed on eQSL");
         HBox confBox = new HBox(10, cQsl, cLotw, cEqsl); confBox.setAlignment(Pos.CENTER_LEFT);
@@ -235,8 +235,9 @@ public final class JLogCockpit {
         Region dtsp = new Region(); HBox.setHgrow(dtsp, Priority.ALWAYS);
         HBox dtRow = new HBox(12, dtCell1, dtCell2, dtsp, nowBtn); dtRow.setAlignment(Pos.BOTTOM_LEFT);
 
-        VBox body = new VBox(13); body.setPadding(new Insets(14, 18, 16, 18));
-        body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
+        VBox body = new VBox(embedded ? 9 : 13); body.setPadding(embedded ? new Insets(12, 18, 12, 18) : new Insets(14, 18, 16, 18));
+        if (embedded) body.getChildren().add(new Region());          // keeps the row order widen() expects; zero height
+        else body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
         body.getChildren().add(row(g("CALLSIGN", call, false), g("FREQ (MHZ)", freq, false), g("BAND", band, false), g("MODE", mode, false)));
         body.getChildren().add(Shell.bandCaption(freq));        // "20m · CW segment" from the shared band plan
         // Super Check Partial under the call, as in contest mode; a call already in the log is ticked
@@ -259,6 +260,7 @@ public final class JLogCockpit {
         body.getChildren().add(cmtRow);
         body.getChildren().add(MacroBar.sendAsRow(mode));
         body.getChildren().add(MacroBar.row(fireMacro));
+        if (embedded) widen(body, dtCell1, dtCell2, nowBtn);
 
         // recent log table
         Label lh = lbl("☰  Recent log"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
@@ -377,7 +379,7 @@ public final class JLogCockpit {
         lookupRef = doCallLookup;
         call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
-        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(940);
+        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(embedded ? Double.MAX_VALUE : 940);   // the dashboard card is as wide as the page
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
         entry.sceneProperty().addListener((o, oldS, s) -> {
             if (s == null) return;
@@ -450,6 +452,35 @@ public final class JLogCockpit {
     }
     private static void fillIfEmpty(TextField f, String v) {
         if (v != null && !v.isBlank() && (f.getText() == null || f.getText().isBlank())) f.setText(v);
+    }
+    /**
+     * The dashboard's New QSO card is as wide as the page, so its fields flow in two wrapping rows instead of the stacked rows J-Log has:
+     * identify the contact (call, freq, band, mode, reports, date, time), then who and where (name, QTH, state, county, grid, power, the award
+     * references and the confirmed ticks). The band-plan line and the Super Check Partial strip stay under the callsign row, and the macro
+     * row sits on one line. The same nodes are re-parented, so every listener wired above still works. If the rows are not what this expects
+     * (the order above changed) the stacked layout is left as it is.
+     */
+    private static void widen(VBox body, VBox dtCell1, VBox dtCell2, Label nowBtn) {
+        java.util.List<Node> ch = new ArrayList<>(body.getChildren());
+        if (ch.size() < 12 || !(ch.get(1) instanceof HBox r1) || !(ch.get(4) instanceof HBox r2) || !(ch.get(5) instanceof HBox r3) || !(ch.get(7) instanceof HBox r4)) return;
+        java.util.List<Node> a = new ArrayList<>(r1.getChildren()), rst = new ArrayList<>(r2.getChildren()),
+                qthRow = new ArrayList<>(r3.getChildren()), refs = new ArrayList<>(r4.getChildren());
+        if (a.size() != 4 || rst.size() != 4 || qthRow.size() != 4 || refs.size() != 4) return;
+        Node caption = ch.get(2), scpNode = ch.get(3), refHints = ch.get(8), cmtRow = ch.get(9), sendAs = ch.get(10), macros = ch.get(11);
+        body.getChildren().clear();
+
+        VBox nowBox = new VBox(nowBtn); nowBox.setAlignment(Pos.BOTTOM_LEFT);
+        javafx.scene.layout.FlowPane rowA = flow(12, 8, a.get(0), a.get(1), a.get(2), a.get(3), rst.get(0), rst.get(1), dtCell1, dtCell2, nowBox);
+        javafx.scene.layout.FlowPane rowB = flow(12, 8, rst.get(2), qthRow.get(0), qthRow.get(1), qthRow.get(2), rst.get(3), qthRow.get(3),
+                refs.get(0), refs.get(1), refs.get(2), refs.get(3));
+        HBox mac = new HBox(22, sendAs, macros); mac.setAlignment(Pos.CENTER_LEFT); mac.setMinWidth(0);      // one line: the F-keys take the rest of the row
+        HBox.setHgrow(macros, Priority.ALWAYS); if (macros instanceof Region mr) mr.setMaxWidth(Double.MAX_VALUE);
+        body.getChildren().addAll(rowA, caption, scpNode, rowB, refHints, cmtRow, mac);
+    }
+    private static javafx.scene.layout.FlowPane flow(double hgap, double vgap, Node... cells) {
+        javafx.scene.layout.FlowPane f = new javafx.scene.layout.FlowPane(hgap, vgap, cells);
+        f.setRowValignment(javafx.geometry.VPos.BOTTOM); f.setAlignment(Pos.BOTTOM_LEFT); f.setMinWidth(0);
+        return f;
     }
     private static TextField tf(String prompt, String init, double w, boolean call) {
         TextField t = new TextField(init == null ? "" : init);
