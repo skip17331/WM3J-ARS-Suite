@@ -228,16 +228,29 @@ public final class JHubDashboard {
     private static final class WindowsRow extends Region {
         private static final double FORM_PREF = 760, GAP = 20, CLUSTER_MIN = 300, STACKED_CLUSTER_H = 460;
         private final Region entry, cluster;
+        /** Cards in rows (the default; Setup > Appearance): New QSO, then DX Cluster, then the Recent log, each its own row. Off = side by side
+         *  when there is room. */
+        private final boolean rows = com.ars.fx.data.HubConfig.getBool("ui.dashboard.rows", true);
+        /** Rows mode: what sits under the New QSO card in the entry column (the Recent log), lifted out so the cluster can go between them. */
+        private final VBox rest;
         WindowsRow(Region entry, Region cluster) {
             this.entry = entry; this.cluster = cluster;
+            VBox r = null;
+            if (rows && entry instanceof VBox col && col.getChildren().size() > 1) {
+                java.util.List<Node> tail = new java.util.ArrayList<>(col.getChildren().subList(1, col.getChildren().size()));
+                col.getChildren().removeAll(tail);
+                r = new VBox(tail.toArray(new Node[0]));
+            }
+            rest = r;
             getChildren().addAll(entry, cluster);
+            if (rest != null) getChildren().add(rest);
             setMinSize(0, 0);
         }
         /** What the form needs for everything on it to show. */
         private double need() { return entry.minWidth(-1); }
         /** What it takes when there is room. */
         private double liked() { return Math.max(need(), FORM_PREF); }
-        private boolean stacked(double w) { return w < need() + GAP + CLUSTER_MIN; }
+        private boolean stacked(double w) { return rows || w < need() + GAP + CLUSTER_MIN; }
         private double entryWidth(double w) {
             return stacked(w) ? Math.max(need(), Math.min(liked(), w)) : Math.max(need(), Math.min(liked(), w - GAP - CLUSTER_MIN));
         }
@@ -248,14 +261,17 @@ public final class JHubDashboard {
             double ew = entryWidth(width), eh = entry.prefHeight(ew);
             // side by side the cluster is as tall as the New QSO card (see formHeight) and its spot list scrolls inside it; it used to ask for
             // its content height, so a long spot list stretched the whole row far past the QSO pane
-            return stacked(width) ? eh + GAP + STACKED_CLUSTER_H : eh;
+            if (stacked(width)) return eh + GAP + STACKED_CLUSTER_H + (rest != null ? GAP + rest.prefHeight(width) : 0);
+            return eh;
         }
         @Override protected void layoutChildren() {
             double w = getWidth(), h = getHeight(), ew = entryWidth(w);
             if (stacked(w)) {
                 double eh = entry.prefHeight(ew);
                 entry.resizeRelocate(0, 0, ew, eh);
-                cluster.resizeRelocate(0, eh + GAP, w, Math.max(STACKED_CLUSTER_H, h - eh - GAP));
+                double ch = rest != null ? STACKED_CLUSTER_H : Math.max(STACKED_CLUSTER_H, h - eh - GAP);
+                cluster.resizeRelocate(0, eh + GAP, w, ch);
+                if (rest != null) rest.resizeRelocate(0, eh + GAP + ch + GAP, w, rest.prefHeight(w));
             } else {
                 entry.resizeRelocate(0, 0, ew, h);
                 cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, formHeight(ew, h));
@@ -1114,11 +1130,14 @@ public final class JHubDashboard {
         VBox size = section("SIZE",
             cfgRow("Interface size", "scales everything together, in 50% steps; restart ARS Suite to apply",
                     cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, 0)));
+        VBox layout = section("DASHBOARD LAYOUT",
+            cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",
+                    cToggle("ui.dashboard.rows", true)));
         VBox look = section("DASHBOARD LOOK",
             cfgRow("Style", "Classic is the original look. Open the dashboard again to see a change; pick Classic to go back at any time", lookSeg));
         return cfgPage(cfgTop("J-Hub", "System", "Appearance"),
                 lbl("How the suite looks. Only the J-Hub dashboard takes the style; the other modules keep the classic look.", "cfg-desc"),
-                size, look);
+                size, layout, look);
     }
 
     private static Region modulesCenter() {
