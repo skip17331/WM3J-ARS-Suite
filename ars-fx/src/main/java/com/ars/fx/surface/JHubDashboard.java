@@ -79,8 +79,8 @@ public final class JHubDashboard {
     }
 
     private static Region dashboardCenter() {
-        VBox center = new VBox(20, header(), threeCol());
-        center.setPadding(new Insets(18, 24, 24, 24));
+        VBox center = new VBox(10, header(), threeCol());
+        center.setPadding(new Insets(10, 24, 24, 24));
         center.setStyle("-fx-background-color:-ars-bg;");
         return center;
     }
@@ -139,19 +139,15 @@ public final class JHubDashboard {
         HBox crumb = new HBox(7, lbl("J-Hub", "jhub-crumb"), lbl("›", "jhub-crumb"), lbl("Dashboard", "jhub-crumb-b"));
         crumb.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        int enabledMods = com.ars.fx.data.ModuleConfig.enabledCount();
-        VBox run = new VBox(0, lbl(enabledMods + "/" + com.ars.fx.data.ModuleConfig.all().size() + " modules", "jhub-modrun"), lbl("enabled", "jhub-modrun")); run.setAlignment(Pos.CENTER_RIGHT);
-        HBox crumbRow = new HBox(crumb, sp, run); crumbRow.setAlignment(Pos.CENTER_LEFT);
-
-        Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
         ClusterClient cc = ClusterClient.getInstance();
         Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
         Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
         headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
         HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
                 lbl("UTC", "jhub-crumb"), lbl(nowUtc(), "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
-        HBox profRow = new HBox(sp2, clu); profRow.setAlignment(Pos.CENTER_LEFT);
-        return new VBox(14, crumbRow, profRow);
+        // one line: where you are on the left, the cluster feed and the clock on the right
+        HBox row = new HBox(crumb, sp, clu); row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     // ---- 3-column area -----------------------------------------------------

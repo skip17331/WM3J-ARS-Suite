@@ -401,7 +401,6 @@
 /* center header */
 .jhub-crumb   { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
 .jhub-crumb-b { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
-.jhub-modrun  { -fx-font-size: 12px; -fx-text-fill: -ars-t3; }
 .jhub-prof    { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 99; -fx-border-radius: 99; -fx-padding: 5 11 5 9; -fx-cursor: hand; -fx-alignment: center-left; }
 .jhub-prof-nm { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .jhub-mini-dot { -fx-min-width: 8; -fx-pref-width: 8; -fx-min-height: 8; -fx-pref-height: 8; -fx-background-radius: 99; }
