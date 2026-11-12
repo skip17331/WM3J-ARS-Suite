@@ -30,9 +30,13 @@ public final class UiStyle {
             new Style("cockpit",    "Cockpit",          "/com/ars/fx/css/styles/cockpit.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
-    /** Whole-interface scale, as the labels shown in Setup; the first is the system default (nothing is set). JavaFX on Windows only honours 50% steps: 1.25 and 1.4 behave as 1.0, 1.75 as 1.5. */
-    public static final String[] SCALES = {"100%", "150%", "200%"};
+    /** Whole-interface scale, as the labels shown in Setup. 100% is the system default (nothing is set). JavaFX on Windows honours 75% and 50% as asked, but above 100% only
+     *  in 50% steps (1.25 and 1.4 behave as 1.0, 1.75 as 1.5), so there is no 125%. */
+    public static final String[] SCALES = {"50%", "75%", "100%", "150%", "200%"};
+    public static final String SCALE_DEFAULT = "100%";
     public static final String SCALE_KEY = "ui.scale";
+    /** The position of {@link #SCALE_DEFAULT} in {@link #SCALES}. */
+    public static int scaleDefaultIndex() { for (int i = 0; i < SCALES.length; i++) if (SCALES[i].equals(SCALE_DEFAULT)) return i; return 0; }
     private static final String SCOPE_CLASS = "ins";
 
     public static Style dashboard() {
@@ -64,8 +68,8 @@ public final class UiStyle {
     /** Call once, before JavaFX starts: turns the saved UI size into the toolkit's own scale property. A scale given on the command line wins. */
     public static void applyScale() {
         try {
-            String v = HubConfig.get(SCALE_KEY, SCALES[0]);
-            if (v == null || v.isBlank() || v.equals(SCALES[0])) return;
+            String v = HubConfig.get(SCALE_KEY, SCALE_DEFAULT);
+            if (v == null || v.isBlank() || v.equals(SCALE_DEFAULT)) return;
             // the toolkit wants a plain factor ("1.25"); the "125%" form is ignored
             String factor = String.valueOf(Integer.parseInt(v.replace("%", "").trim()) / 100.0);
             for (String p : new String[]{"glass.win.uiScale", "glass.gtk.uiScale"})
