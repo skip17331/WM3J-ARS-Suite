@@ -24,7 +24,8 @@ public final class UiStyle {
     /** The dashboard looks on offer. {@code css} null = the base stylesheet alone. */
     public static final List<Style> DASHBOARD_STYLES = List.of(
             new Style("classic",    "Classic",          null),
-            new Style("instrument", "Instrument panel", "/com/ars/fx/css/styles/instrument.css"));
+            new Style("instrument", "Instrument panel", "/com/ars/fx/css/styles/instrument.css"),
+            new Style("modern",     "Modern",           "/com/ars/fx/css/styles/modern.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
     /** Whole-interface scale, as the labels shown in Setup; the first is the system default (nothing is set). JavaFX on Windows only honours 50% steps: 1.25 and 1.4 behave as 1.0, 1.75 as 1.5. */

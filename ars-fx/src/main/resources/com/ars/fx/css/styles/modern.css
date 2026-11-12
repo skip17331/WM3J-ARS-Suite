@@ -1,0 +1,83 @@
+/* ============================================================================
+   Dashboard style pack: MODERN.
+   Attached to the J-Hub dashboard's root node only (see UiStyle); every rule is scoped under .ins. Colours come
+   from the -ars-* tokens, so each colour scheme works. To drop it: Setup > Appearance > Dashboard look > Classic.
+
+   Language: soft rounded cards floating on the page (a diffuse shadow and a hairline edge instead of bezels),
+   flat filled fields with an accent focus ring, pill-shaped keys and chips, more air inside every panel.
+   ============================================================================ */
+
+/* ---- top bar: flat, lifted by a soft shadow ------------------------------- */
+.ins .jhub-bar {
+    -fx-background-color: -ars-surface-1;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 10, 0.0, 0, 2);
+}
+.ins .sx-clock-v { -fx-text-fill: -ars-accent; }
+
+/* ---- cards: cluster, entry, drawers --------------------------------------- */
+.ins .jhub-card,
+.ins .jl-entry {
+    -fx-background-color: -ars-surface-1;
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(128,140,160,0.20);
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 26, 0.0, 0, 8);
+}
+.ins .jhub-card-head {
+    -fx-background-color: transparent;
+    -fx-padding: 16 20 14 20;
+    -fx-border-color: transparent transparent rgba(128,140,160,0.18) transparent;
+}
+.ins .jhub-card-title { -fx-font-size: 15px; }
+.ins .jhub-clu        { -fx-padding: 12 20 12 20; -fx-border-color: transparent transparent rgba(128,140,160,0.14) transparent; }
+.ins .jhub-clu:hover  { -fx-background-color: -ars-accent-dim; }
+.ins .jhub-clu-mode   { -fx-background-radius: 99; -fx-padding: 1 8 1 8; }
+
+.ins .sx-dw {
+    -fx-background-color: -ars-surface-1;
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(128,140,160,0.20);
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 18, 0.0, 0, 5);
+}
+.ins .sx-dw-head       { -fx-background-radius: 14; -fx-padding: 12 14 12 14; }
+.ins .sx-dw-head:hover { -fx-background-color: -ars-accent-dim; }
+.ins .sx-dw-body       { -fx-border-color: rgba(128,140,160,0.18) transparent transparent transparent; }
+
+/* ---- fields: flat, filled, accent ring on focus --------------------------- */
+.ins .jl-fin,
+.ins .jl-ein-call,
+.ins .jl-snt {
+    -fx-background-color: -ars-surface-2;
+    -fx-background-radius: 11;
+    -fx-border-color: transparent;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 11;
+}
+.ins .jl-fin:focused,
+.ins .jl-ein-call:focused {
+    -fx-background-color: -ars-surface-1;
+    -fx-border-color: -ars-accent;
+    -fx-effect: dropshadow(gaussian, -ars-accent-line, 9, 0.35, 0, 0);
+}
+
+/* ---- keys and chips: pills ------------------------------------------------ */
+.ins .jl-logbtn {
+    -fx-background-color: linear-gradient(to bottom right, derive(-ars-log, 18%), -ars-log);
+    -fx-background-radius: 99;
+    -fx-padding: 12 30 12 30;
+    -fx-effect: dropshadow(gaussian, rgba(255,170,40,0.35), 14, 0.1, 0, 4);
+}
+.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(255,170,40,0.55), 18, 0.15, 0, 5); }
+.ins .jl-logbtn:pressed { -fx-effect: null; -fx-padding: 13 30 11 30; }
+
+.ins .jl-macro {
+    -fx-background-color: -ars-surface-2;
+    -fx-background-radius: 11;
+    -fx-border-color: transparent;
+    -fx-border-radius: 11;
+}
+.ins .jl-macro:hover   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; }
+.ins .jl-macro:pressed { -fx-background-color: -ars-accent-line; }
