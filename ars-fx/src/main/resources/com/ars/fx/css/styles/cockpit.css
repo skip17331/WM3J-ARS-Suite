@@ -223,3 +223,47 @@
 .ins .jl-entry .jl-snt      { -fx-padding: 6 10 6 10; -fx-font-size: 15px; }
 .ins .jl-entry .jl-ein-call { -fx-font-size: 28px; -fx-padding: 4 14 4 14; }
 .ins .jl-entry .jl-macro { -fx-padding: 5 9 7 9; }
+
+/* ============================================================================
+   Module frames (J-Map, J-Sat): the same premise as the dashboard. The module's top bar becomes the hero: big brand,
+   glowing readouts in tiles, a big clock. The palette above already reaches their docks, trays and drawers.
+   ============================================================================ */
+.ins .sx-top      { -fx-min-height: 84; -fx-pref-height: 84; -fx-padding: 0 20 0 18;
+                    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); }
+.ins .sx-brand-ic { -fx-min-width: 46; -fx-pref-width: 46; -fx-max-width: 46; -fx-min-height: 46; -fx-pref-height: 46; -fx-max-height: 46; -fx-background-radius: 13; -fx-border-radius: 13; }
+.ins .sx-brand-nm { -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-effect: dropshadow(gaussian, -ars-accent-line, 14, 0.15, 0, 0); }
+.ins .sx-brand-ct { -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.ins .sx-stat     { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); -fx-border-color: -ars-border-2;
+                    -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 8 14 8 14;
+                    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 12, 0.0, 0, 4); }
+.ins .sx-stat-k   { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .sx-stat-v   { -fx-font-size: 20px; }
+.ins .sx-stat-v.accent { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 10, 0.2, 0, 0); }
+.ins .sx-stat-v.amber  { -fx-text-fill: -ars-log;    -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.45), 10, 0.2, 0, 0); }
+.ins .sx-clock-k  { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+.ins .sx-clock-v  { -fx-font-size: 28px; -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.2, 0, 0); }
+
+/* J-Sat: satellite cards as cockpit cards */
+.ins .js-sat      { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); -fx-background-radius: 12; -fx-border-color: -ars-border-2; -fx-border-radius: 12;
+                    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.0, 0, 3); }
+.ins .js-sat.sel  { -fx-border-color: -ars-accent; -fx-background-color: -ars-accent-dim; }
+.ins .js-sat-nm   { -fx-font-size: 15px; }
+
+/* J-Map: spot rows with a stripe per band, like the dashboard's cluster */
+.ins .jm-spot-row { -fx-padding: 9 4 9 10; -fx-border-width: 0 0 1 4; -fx-border-color: transparent transparent -ars-border -ars-border-2; }
+.ins .jm-spot-row:hover { -fx-background-color: -ars-accent-dim; }
+.ins .jm-spot-fq  { -fx-font-size: 14px; -fx-text-fill: -ars-log; }
+.ins .jm-spot-call{ -fx-font-size: 14px; }
+.ins .jm-spot-row.band-160m { -fx-border-color: transparent transparent -ars-border -band-160; }
+.ins .jm-spot-row.band-80m { -fx-border-color: transparent transparent -ars-border -band-80; }
+.ins .jm-spot-row.band-60m { -fx-border-color: transparent transparent -ars-border -band-60; }
+.ins .jm-spot-row.band-40m { -fx-border-color: transparent transparent -ars-border -band-40; }
+.ins .jm-spot-row.band-30m { -fx-border-color: transparent transparent -ars-border -band-30; }
+.ins .jm-spot-row.band-20m { -fx-border-color: transparent transparent -ars-border -band-20; }
+.ins .jm-spot-row.band-17m { -fx-border-color: transparent transparent -ars-border -band-17; }
+.ins .jm-spot-row.band-15m { -fx-border-color: transparent transparent -ars-border -band-15; }
+.ins .jm-spot-row.band-12m { -fx-border-color: transparent transparent -ars-border -band-12; }
+.ins .jm-spot-row.band-10m { -fx-border-color: transparent transparent -ars-border -band-10; }
+.ins .jm-spot-row.band-6m { -fx-border-color: transparent transparent -ars-border -band-6; }
+.ins .jm-spot-row.band-2m { -fx-border-color: transparent transparent -ars-border -band-2; }
+.ins .jm-spot-row.band-70cm { -fx-border-color: transparent transparent -ars-border -band-70; }
