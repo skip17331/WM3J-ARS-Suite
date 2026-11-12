@@ -79,6 +79,17 @@
 }
 
 /* ── extra colour schemes (token-only overrides, cycled by the theme button) ── */
+/* "Cockpit": the deep navy palette the Cockpit look was designed on, now an ordinary scheme the theme button cycles to */
+.ars-cockpit {
+    -fx-base: #101a30; -fx-background: #070b14; -fx-control-inner-background: #0b1222;
+    -fx-accent: #2fd0ff; -fx-focus-color: #2fd0ff; -fx-faint-focus-color: #2fd0ff33;
+    -ars-bg: #070b14; -ars-surface-1: #0d1424; -ars-surface-2: #131d35; -ars-surface-3: #1a2745; -ars-surface-4: #243459;
+    -ars-border: #1c2842; -ars-border-2: #2a3a5e; -ars-border-glow: #3d5282;
+    -ars-t1: #f0f5ff; -ars-t2: #b0bddb; -ars-t3: #8190b6; -ars-t4: #5f6e95;
+    -ars-accent: #2fd0ff; -ars-accent-dim: rgba(47,208,255,0.13); -ars-accent-line: rgba(47,208,255,0.45); -ars-accent-text: #031018;
+    -ars-ok: #4be38c; -ars-warn: #ffc857; -ars-err: #ff5d6c; -ars-log: #ffb84a;
+}
+
 .ars-ocean {
     -fx-base: #102036; -fx-background: #081019; -fx-control-inner-background: #0e1c2e;
     -fx-accent: #3aa3ff; -fx-focus-color: #3aa3ff; -fx-faint-focus-color: #3aa3ff33;

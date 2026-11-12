@@ -5,42 +5,9 @@
 
    Unlike Modern / Instrument this is a redesign, not a repaint:
    - an insight strip under the hero banner: live stat tiles and a band-activity chart (JHubDashboard.insightRow)
-   - its own dark navy palette, set as the -ars-* tokens on the dashboard root, so it is always dark whatever scheme the rest of the
-     suite uses (the trays, drawers and fields on the dashboard follow it)
+   - colours come from the active colour scheme (the sun button in the dock); its original navy palette is the "Cockpit" scheme in ars.css
    - band-coloured DX spots (a stripe per band), big readable type, a cyan Log QSO key against amber displays
    ============================================================================ */
-
-/* ---- palette -------------------------------------------------------------- */
-.ins {
-    -fx-base: #101a30;
-    -fx-background: #070b14;
-    -fx-control-inner-background: #0b1222;
-    -fx-accent: #2fd0ff;
-    -fx-focus-color: #2fd0ff;
-    -fx-faint-focus-color: #2fd0ff33;
-
-    -ars-bg:          #070b14;
-    -ars-surface-1:   #0d1424;
-    -ars-surface-2:   #131d35;
-    -ars-surface-3:   #1a2745;
-    -ars-surface-4:   #243459;
-    -ars-border:      #1c2842;
-    -ars-border-2:    #2a3a5e;
-    -ars-border-glow: #3d5282;
-    -ars-t1: #f0f5ff;
-    -ars-t2: #b0bddb;
-    -ars-t3: #8190b6;
-    -ars-t4: #5f6e95;
-    -ars-accent:      #2fd0ff;
-    -ars-accent-dim:  rgba(47,208,255,0.13);
-    -ars-accent-line: rgba(47,208,255,0.45);
-    -ars-accent-text: #031018;
-    -ars-ok:   #4be38c;
-    -ars-warn: #ffc857;
-    -ars-err:  #ff5d6c;
-    -ars-log:  #ffb84a;
-
-}
 
 /* ---- top bar + status lights ---------------------------------------------- */
 .ins .jhub-bar    { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border transparent; }
@@ -96,14 +63,14 @@
 
 /* ---- keys ----------------------------------------------------------------- */
 .ins .jl-logbtn {
-    -fx-background-color: linear-gradient(to right, #2fd0ff, #4d7cff);
+    -fx-background-color: linear-gradient(to right, -ars-accent, derive(-ars-accent, -28%));
     -fx-text-fill: #04101c;
     -fx-background-radius: 13;
     -fx-padding: 13 30 13 30;
     -fx-font-size: 15px;
-    -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.45), 16, 0.15, 0, 3);
+    -fx-effect: dropshadow(gaussian, -ars-accent-line, 16, 0.15, 0, 3);
 }
-.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.7), 22, 0.25, 0, 3); }
+.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, -ars-accent, 20, 0.2, 0, 3); }
 .ins .jl-logbtn:pressed { -fx-effect: null; -fx-padding: 14 30 12 30; }
 
 .ins .jl-macro {
@@ -141,7 +108,7 @@
 /* ---- page background: a soft glow behind the content ----------------------- */
 .ins .dash-center {
     -fx-background-color: -ars-bg,
-                          radial-gradient(center 20% 0%, radius 60%, rgba(47,208,255,0.11), transparent),
+                          radial-gradient(center 20% 0%, radius 60%, -ars-accent-dim, transparent),
                           radial-gradient(center 100% 35%, radius 55%, rgba(125,92,255,0.09), transparent);
 }
 
@@ -158,11 +125,11 @@
 .ins .stat-v   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .ins .stat-sub { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
 .ins .stat-tile.amber  { -fx-border-color: rgba(255,184,74,0.40); }
-.ins .stat-tile.cyan   { -fx-border-color: rgba(47,208,255,0.40); }
+.ins .stat-tile.cyan   { -fx-border-color: -ars-accent-line; }
 .ins .stat-tile.green  { -fx-border-color: rgba(75,227,140,0.40); }
 .ins .stat-tile.violet { -fx-border-color: rgba(169,119,255,0.45); }
 .ins .stat-tile.amber  .stat-v { -fx-text-fill: -ars-log;    -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.5), 12, 0.2, 0, 0); }
-.ins .stat-tile.cyan   .stat-v { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.5), 12, 0.2, 0, 0); }
+.ins .stat-tile.cyan   .stat-v { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.2, 0, 0); }
 .ins .stat-tile.green  .stat-v { -fx-text-fill: -ars-ok;     -fx-effect: dropshadow(gaussian, rgba(75,227,140,0.5), 12, 0.2, 0, 0); }
 .ins .stat-tile.violet .stat-v { -fx-text-fill: #c4a2ff;     -fx-effect: dropshadow(gaussian, rgba(169,119,255,0.55), 12, 0.2, 0, 0); }
 
