@@ -185,3 +185,34 @@
 .ins .bandbar.band-6m { -fx-background-color: linear-gradient(to top, derive(-band-6, -45%), -band-6); -fx-effect: dropshadow(gaussian, -band-6, 7, 0.1, 0, 0); }
 .ins .bandbar.band-2m { -fx-background-color: linear-gradient(to top, derive(-band-2, -45%), -band-2); -fx-effect: dropshadow(gaussian, -band-2, 7, 0.1, 0, 0); }
 .ins .bandbar.band-70cm { -fx-background-color: linear-gradient(to top, derive(-band-70, -45%), -band-70); -fx-effect: dropshadow(gaussian, -band-70, 7, 0.1, 0, 0); }
+
+/* ---- insight strip, collapsed: one slim line, small type, band labels inside their colour chips ---- */
+.ins .insight-compact {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1);
+    -fx-background-radius: 12;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 12;
+    -fx-padding: 6 12 6 14;
+}
+.ins .cs-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .cs-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.ins .cs-v.amber  { -fx-text-fill: -ars-log; }
+.ins .cs-v.cyan   { -fx-text-fill: -ars-accent; }
+.ins .cs-v.green  { -fx-text-fill: -ars-ok; }
+.ins .cs-v.violet { -fx-text-fill: #c4a2ff; }
+.ins .bchip   { -fx-background-radius: 99; -fx-padding: 2 8 2 8; -fx-min-width: 30; }
+.ins .bchip-n { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #04101c; }
+.ins .bchip-c { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #04101c; }
+.ins .bchip.band-160m { -fx-background-color: -band-160; }
+.ins .bchip.band-80m { -fx-background-color: -band-80; }
+.ins .bchip.band-60m { -fx-background-color: -band-60; }
+.ins .bchip.band-40m { -fx-background-color: -band-40; }
+.ins .bchip.band-30m { -fx-background-color: -band-30; }
+.ins .bchip.band-20m { -fx-background-color: -band-20; }
+.ins .bchip.band-17m { -fx-background-color: -band-17; }
+.ins .bchip.band-15m { -fx-background-color: -band-15; }
+.ins .bchip.band-12m { -fx-background-color: -band-12; }
+.ins .bchip.band-10m { -fx-background-color: -band-10; }
+.ins .bchip.band-6m { -fx-background-color: -band-6; }
+.ins .bchip.band-2m { -fx-background-color: -band-2; }
+.ins .bchip.band-70cm { -fx-background-color: -band-70; }
