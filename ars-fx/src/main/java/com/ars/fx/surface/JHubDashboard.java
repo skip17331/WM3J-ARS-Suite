@@ -642,7 +642,9 @@ public final class JHubDashboard {
             else conn.setText("○ ampctld " + AmpClient.getInstance().endpoint() + " · offline");
             stateV.setText(c ? s.mode() : "—");
             swrV.setText(c && s.swr() > 0 ? String.format("%.1f:1", s.swr()) : "—");
-            pwrV.setText(c && s.pwr() > 0 ? Math.round(s.pwr()) + " W" : "—");
+            boolean over = AmpClient.getInstance().overLimit();
+            pwrV.setText(c && s.pwr() > 0 ? (over ? "⚠ " : "") + Math.round(s.pwr()) + " W" : "—");
+            pwrV.setStyle(over ? "-fx-text-fill:-ars-warn;" : "");
         });
         AmpClient.getInstance().start();
         return new VBox(12, stateRow, meters, conn);
@@ -685,7 +687,7 @@ public final class JHubDashboard {
                     cSegApply("rig.ptt", new String[]{"CAT","RTS","DTR","VOX"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("CW keyer", null, cInputPrompt("rig.keyer", "e.g. Winkeyer USB")));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Auto band-follow", "not applied yet", cToggle("rig.autoBandFollow", true)),
+            cfgRow("Auto band-follow", "the New QSO frequency, band and mode follow the radio while it is connected (a digital rig mode leaves the mode as typed)", cToggle("rig.autoBandFollow", true)),
             cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
@@ -910,7 +912,7 @@ public final class JHubDashboard {
     }
     private static Region amplifierCenter() {
         com.ars.fx.data.AmpClient.getInstance().start();
-        HBox cells = liveStrip(new String[]{"STATUS", "BAND", "SWR", "AMPCTLD"}, () -> {
+        HBox cells = liveStrip(new String[]{"STATUS", "BAND", "SWR", "FORWARD", "AMPCTLD"}, () -> {
             com.ars.fx.data.AmpClient am = com.ars.fx.data.AmpClient.getInstance();
             com.ars.fx.data.AmpClient.State st = am.last();
             boolean on = st != null && st.connected();
@@ -920,6 +922,7 @@ public final class JHubDashboard {
                 {on ? "● " + st.mode().toUpperCase() : "○ OFFLINE", "", on ? "1" : "0"},
                 {band.isEmpty() ? "—" : band, "", "0"},
                 {on && st.swr() > 0 ? String.format("%.1f:1", st.swr()) : "—", "", "0"},
+                {on && st.pwr() > 0 ? (am.overLimit() ? "⚠ " : "") + Math.round(st.pwr()) : "—", on && st.pwr() > 0 ? "W" + (am.overLimit() ? " over " + Math.round(AmpClient.maxPowerW()) : "") : "", "0"},
                 {am.endpoint(), "", "0"}};
         });
         VBox conn = section("CONNECTION",
@@ -933,10 +936,10 @@ public final class JHubDashboard {
             cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox beh = section("BEHAVIOR",
-            cfgRow("Follow rig band", "auto band-switch with the radio — not applied yet", cToggle("amp.followBand", true)),
-            cfgRow("Max power", "for your reference and macros — not applied yet", cUnit("amp.maxPower", "1000", "W")),
-            cfgRow("Standby on TX inhibit", "not applied yet", cToggle("amp.standbyOnInhibit", true)),
-            cfgRow("Operate / Standby", "not applied yet — set it on the amplifier", cSeg("amp.opStandby", new String[]{"Operate","Standby"}, 1)));
+            cfgRow("Follow rig band", "when the radio changes band, send its frequency to the amplifier", cToggle("amp.followBand", true)),
+            cfgRow("Max power", "forward power over this is flagged on the dashboard and here; it does not change the amplifier. Also fills the {AMPMAXPOWER} macro", cUnit("amp.maxPower", "1000", "W")),
+            cfgRow("Standby on TX inhibit", "put the amplifier in Standby while the rig is disconnected", cToggleApply("amp.standbyOnInhibit", true, on -> AmpClient.getInstance().applyPower())),
+            cfgRow("Operate / Standby", "sent to the amplifier; it is re-sent when the amplifier reconnects, and Standby is used while the rig is disconnected (see above)", cSegApply("amp.opStandby", new String[]{"Operate","Standby"}, 1, () -> AmpClient.getInstance().applyPower())));
         return cfgPage(cfgTop("J-Hub","Hardware","Amplifier"),
             lbl("Linear amplifier control via Hamlib ampctld — band-follow, power limit and standby.","cfg-desc"),
             cells, conn, beh);
@@ -1000,11 +1003,10 @@ public final class JHubDashboard {
             cfgRow("WSJT-X UDP port", "set the same port in WSJT-X ▸ Settings ▸ Reporting; applied as soon as you leave the field", cInputApply("data.wsjtxPort", "2237", com.ars.fx.data.BridgeService::restart)),
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
                     cToggle("digi.localSkimmer", false)),
-            cfgRow("Auto-log FT8/FT4 QSOs", "adds each QSO WSJT-X logs to the J-Log database (skips one already there)", cToggle("data.autoLogFt8", false)),
-            cfgRow("PSK Reporter upload", "not applied yet", cToggle("data.pskReporter", false)));
+            cfgRow("Auto-log FT8/FT4 QSOs", "adds each QSO WSJT-X logs to the J-Log database (skips one already there)", cToggle("data.autoLogFt8", false)));
         VBox logbook = section("LOGBOOK & EXPORT",
             cfgRow("Cabrillo / CSV charset", "ASCII drops accents and replaces other characters with ?",  cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
-            cfgRow("LoTW / eQSL auto-upload", "not applied yet — use the Upload section below", cToggle("data.lotwAutoUpload", false)),
+            cfgRow("LoTW / eQSL auto-upload", "after each QSO you log, send the ones not yet sent to LoTW and eQSL, whichever is switched on in the Upload section below. Only QSOs logged after this version are sent this way; older ones go through the Upload section. A failed upload is tried again after the next QSO", cToggle("data.lotwAutoUpload", false)),
             cfgRow("Super Check Partial", "the contest call check: downloads the call list from supercheckpartial.com when a contest page is opened - MASTER.SCP (about 350 KB), or MASTERSS / MASTERDX / MASUSVE (100-260 KB) for Sweepstakes and ARRL DX - at most once a day for each, and only when it has changed. Nothing about you or your log is sent", cToggle(com.ars.fx.data.ScpStore.KEY_AUTO, true)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
             cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor",

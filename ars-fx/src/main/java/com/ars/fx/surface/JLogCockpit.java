@@ -275,6 +275,22 @@ public final class JLogCockpit {
         TextField[] all = {call, name, grid, qth, stat, cnty, cmt, iota, sota, pota};
         long[] editId = {-1};
         String[] lastLk = {""};
+
+        // Setup > Rig > Auto band-follow: the frequency, band and mode fields track the radio, so they need no retyping. A field being typed in, a QSO
+        // being edited, or a rig that is not connected is left alone; a digital rig mode (PKT...) leaves the mode as typed, since the radio cannot say FT8 / PSK.
+        Consumer<com.ars.fx.data.RigClient.State> followRig = rs -> {
+            if (rs == null || !rs.connected() || rs.freqHz() <= 0 || editId[0] >= 0 || !com.ars.fx.data.HubConfig.getBool("rig.autoBandFollow", true)) return;
+            String f = com.ars.fx.data.RigClient.fmtFreqShort(rs.freqHz());
+            if (!freq.isFocused() && !f.equals(freq.getText())) freq.setText(f);
+            String bd = JLogDb.bandFor(f); if (bd == null) bd = "";   // the same lookup the logger uses, so the text matches what Log QSO would store
+            if (!band.isFocused() && !bd.equals(band.getText())) band.setText(bd);
+            String m = rs.mode() == null ? "" : rs.mode().trim().toUpperCase(java.util.Locale.ROOT);
+            if (!m.isEmpty() && !m.startsWith("PKT") && !mode.isFocused() && !m.equals(mode.getText())) mode.setText(m);
+        };
+        freq.sceneProperty().addListener((o, was, now) -> {    // only while on screen: nothing is left listening when the page is closed
+            if (now != null) com.ars.fx.data.RigClient.getInstance().addListener(followRig);
+            else com.ars.fx.data.RigClient.getInstance().removeListener(followRig);
+        });
         Runnable[] refresh = new Runnable[1];
 
         Runnable exitEdit = () -> {
@@ -333,7 +349,7 @@ public final class JLogCockpit {
                     : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
                             rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs);
             if (ok) {
-                if (editId[0] < 0) com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText());   // J-Map's session arcs
+                if (editId[0] < 0) { com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText()); com.ars.fx.data.AutoUpload.afterLog(); }   // J-Map's session arcs; LoTW / eQSL auto-upload
                 long rowId = editId[0] >= 0 ? editId[0] : JLogDb.maxId();
                 JLogDb.QsoFull saved = JLogDb.byId(rowId);
                 if (saved != null) {
