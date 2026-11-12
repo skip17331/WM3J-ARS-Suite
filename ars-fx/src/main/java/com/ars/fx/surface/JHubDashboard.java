@@ -276,7 +276,9 @@ public final class JHubDashboard {
         @Override protected double computePrefHeight(double w) {
             double width = w > 0 ? w : getWidth() > 0 ? getWidth() : liked() + GAP + CLUSTER_MIN;
             double ew = entryWidth(width), eh = entry.prefHeight(ew);
-            return stacked(width) ? eh + GAP + STACKED_CLUSTER_H : Math.max(eh, cluster.prefHeight(Math.max(CLUSTER_MIN, width - ew - GAP)));
+            // side by side the cluster is as tall as the New QSO card (see formHeight) and its spot list scrolls inside it; it used to ask for
+            // its content height, so a long spot list stretched the whole row far past the QSO pane
+            return stacked(width) ? eh + GAP + STACKED_CLUSTER_H : eh;
         }
         @Override protected void layoutChildren() {
             double w = getWidth(), h = getHeight(), ew = entryWidth(w);
@@ -286,8 +288,14 @@ public final class JHubDashboard {
                 cluster.resizeRelocate(0, eh + GAP, w, Math.max(STACKED_CLUSTER_H, h - eh - GAP));
             } else {
                 entry.resizeRelocate(0, 0, ew, h);
-                cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, h);
+                cluster.resizeRelocate(ew + GAP, 0, w - ew - GAP, formHeight(ew, h));
             }
+        }
+        /** The height of the New QSO card alone: the entry column also carries the Recent log under it, which the cluster must not follow. */
+        private double formHeight(double ew, double fallback) {
+            if (entry instanceof javafx.scene.layout.Pane p && !p.getChildren().isEmpty() && p.getChildren().get(0) instanceof Region card)
+                return Math.min(fallback, card.prefHeight(ew));
+            return fallback;
         }
     }
 
