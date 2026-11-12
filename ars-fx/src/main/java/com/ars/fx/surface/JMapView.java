@@ -434,6 +434,34 @@ public final class JMapView {
 
     // ── "Who's hearing me" — RBN skimmers that spotted our call ───────────────
     private static boolean showHeardBy = false;
+    /** Session QSOs: an arc from the station to each contact logged since ARS Suite started (data/SessionQsos); a saved on/off switch. */
+    private static boolean showSession = com.ars.fx.data.HubConfig.getBool("map.sessionQsos", false);
+    private static Label sessionInfo;                          // "3 QSOs this session" line in the controls
+    private static String sessionText() {
+        int n = com.ars.fx.data.SessionQsos.count(), placed = com.ars.fx.data.SessionQsos.placedCount();
+        return n == 0 ? "No QSOs logged yet this session." : n + (n == 1 ? " QSO" : " QSOs") + " this session" + (placed < n ? " (" + (n - placed) + " not placed)" : "");
+    }
+    /** The session's arcs: station QTH to each placed contact, in the band's colour, a dot and the callsign at the far end. The newest is heavier. */
+    private static void drawSessionQsos(GraphicsContext g, Proj proj) {
+        if (!showSession || !com.ars.fx.data.HubConfig.hasLocation()) return;
+        java.util.List<com.ars.fx.data.SessionQsos.Qso> list = com.ars.fx.data.SessionQsos.all();
+        double oldW = gcWidth;
+        g.setFont(Font.font("JetBrains Mono", FontWeight.BOLD, 10)); g.setTextAlign(TextAlignment.LEFT);
+        for (int i = 0; i < list.size(); i++) {
+            com.ars.fx.data.SessionQsos.Qso q = list.get(i);
+            if (!q.placed()) continue;
+            Color col = bandColor(q.band());
+            gcWidth = i == list.size() - 1 ? 2.6 : 1.8;
+            drawGcPath(g, proj, Q_LAT, Q_LON, q.lat(), q.lon(), Color.color(col.getRed(), col.getGreen(), col.getBlue(), 0.92));
+            double[] p = proj.at(q.lat(), q.lon());
+            if (p == null) continue;
+            g.setStroke(Color.web("#0b0f14", 0.85)); g.setLineWidth(2); g.strokeOval(p[0] - 4, p[1] - 4, 8, 8);
+            g.setFill(col); g.fillOval(p[0] - 4, p[1] - 4, 8, 8);
+            g.setFill(Color.web("#0b0f14", 0.72)); g.fillRoundRect(p[0] + 5, p[1] - 16, q.call().length() * 6.2 + 8, 15, 6, 6);     // a backing, so it reads over land and sea alike
+            g.setFill(Color.web("#eef3f8", 0.97)); g.fillText(q.call(), p[0] + 9, p[1] - 5);
+        }
+        gcWidth = oldW;
+    }
     private static void drawHeardBy(GraphicsContext g, Proj proj) {
         if (!showHeardBy) return;
         java.util.List<com.ars.fx.data.HeardByClient.HeardSpot> spots = com.ars.fx.data.HeardByClient.getInstance().spots();
@@ -962,6 +990,23 @@ public final class JMapView {
         htr.setAlignment(Pos.CENTER_LEFT); htr.setPadding(new Insets(7, 0, 4, 0));
         p.getChildren().add(htr);
 
+        // Session QSOs: an arc from the station to each QSO logged since ARS Suite started
+        p.getChildren().add(lbl("SESSION QSOs", "jm-sec"));
+        Label sq = lbl("Draw an arc to each QSO logged this session", "jm-tog-label"); sq.setWrapText(true); HBox.setHgrow(sq, Priority.ALWAYS); sq.setMaxWidth(Double.MAX_VALUE);
+        HBox sqr = new HBox(sq, toggleSwitch(showSession, v -> { showSession = v; com.ars.fx.data.HubConfig.setBool("map.sessionQsos", v); repaintMap(); }));
+        sqr.setAlignment(Pos.CENTER_LEFT); sqr.setPadding(new Insets(7, 0, 4, 0));
+        sessionInfo = lbl(sessionText(), "jm-tog-label"); sessionInfo.setWrapText(true);
+        Label sqClear = lbl("Clear", "jhub-clearbtn"); sqClear.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(sqClear, "Forget this session's QSOs on the map (the log is not touched)");
+        sqClear.setOnMouseClicked(e -> com.ars.fx.data.SessionQsos.clear());
+        HBox sqInfoRow = new HBox(10, sessionInfo, sqClear); sqInfoRow.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(sessionInfo, Priority.ALWAYS); sessionInfo.setMaxWidth(Double.MAX_VALUE);
+        p.getChildren().addAll(sqr, sqInfoRow);
+        // a QSO logged anywhere in the app updates the count and, when the switch is on, the map
+        com.ars.fx.data.SessionQsos.setListener(() -> javafx.application.Platform.runLater(() -> {
+            if (sessionInfo != null) sessionInfo.setText(sessionText());
+            if (showSession) repaintMap();
+        }));
+
         return p;
     }
     /** Interactive slider — click/drag sets the value and reports the fraction. */
@@ -1097,6 +1142,7 @@ public final class JMapView {
             drawHeardBy(g, gp);
             drawBeacons(g, gp);
             drawTracks(g, gp);
+            drawSessionQsos(g, gp);
             if (ovCallsigns) drawSpotLabels(g, spotA, w, h, me != null ? me[0] : Double.NaN, me != null ? me[1] : 0);
             kickBursts();
         } finally { gcJump = 350; gcGlobe = null; frameSpots = null; }
@@ -1229,6 +1275,7 @@ public final class JMapView {
         drawHeardBy(g, azi);
         drawBeacons(g, azi);
         drawTracks(g, azi);
+        drawSessionQsos(g, azi);
         if (ovCallsigns) drawSpotLabels(g, spotA, w, h, cx, cy);
         kickBursts();
     }
@@ -1598,6 +1645,7 @@ public final class JMapView {
         drawHeardBy(g, rect);
         drawBeacons(g, rect);
         drawTracks(g, rect);
+        drawSessionQsos(g, rect);
         if (ovCallsigns) drawSpotLabels(g, spotA, aw, ah, qx, qy);
         kickBursts();
         g.restore();

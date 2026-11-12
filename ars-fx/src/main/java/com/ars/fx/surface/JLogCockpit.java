@@ -333,6 +333,7 @@ public final class JLogCockpit {
                     : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
                             rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs);
             if (ok) {
+                if (editId[0] < 0) com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText());   // J-Map's session arcs
                 long rowId = editId[0] >= 0 ? editId[0] : JLogDb.maxId();
                 JLogDb.QsoFull saved = JLogDb.byId(rowId);
                 if (saved != null) {
