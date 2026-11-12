@@ -71,9 +71,27 @@ public final class UiStyle {
             String v = HubConfig.get(SCALE_KEY, SCALE_DEFAULT);
             if (v == null || v.isBlank() || v.equals(SCALE_DEFAULT)) return;
             // the toolkit wants a plain factor ("1.25"); the "125%" form is ignored
-            String factor = String.valueOf(Integer.parseInt(v.replace("%", "").trim()) / 100.0);
-            for (String p : new String[]{"glass.win.uiScale", "glass.gtk.uiScale"})
-                if (System.getProperty(p) == null) System.setProperty(p, factor);
+            double pct = Integer.parseInt(v.replace("%", "").trim()) / 100.0;
+            // On Linux the property replaces the scale JavaFX would pick itself (Xft.dpi / 96, or GDK_SCALE), so it has to be
+            // applied on top of that: 75% on a 2x (4K) screen is 1.5, not 0.75.
+            double linux = pct * systemScaleLinux();
+            if (System.getProperty("glass.win.uiScale") == null) System.setProperty("glass.win.uiScale", String.valueOf(pct));
+            if (System.getProperty("glass.gtk.uiScale") == null) System.setProperty("glass.gtk.uiScale", String.valueOf(linux));
         } catch (Throwable ignored) { /* a bad config must never stop the app starting */ }
+    }
+
+    /** The scale JavaFX's GTK toolkit uses when nothing is set: GDK_SCALE if given, else the X resource DPI / 96. 1.0 if unknown or not Linux. */
+    static double systemScaleLinux() {
+        try {
+            if (!System.getProperty("os.name", "").toLowerCase().contains("linux")) return 1.0;
+            String g = System.getenv("GDK_SCALE");
+            if (g != null && !g.isBlank()) return Math.max(1.0, Double.parseDouble(g.trim()));
+            Process pr = new ProcessBuilder("xrdb", "-query").redirectErrorStream(true).start();
+            try (var r = new java.io.BufferedReader(new java.io.InputStreamReader(pr.getInputStream()))) {
+                for (String line; (line = r.readLine()) != null; )
+                    if (line.startsWith("Xft.dpi:")) return Math.max(1.0, Double.parseDouble(line.substring(8).trim()) / 96.0);
+            }
+        } catch (Throwable ignored) { }
+        return 1.0;
     }
 }
