@@ -45,9 +45,6 @@ public final class UiStyle {
         return DASHBOARD_STYLES.get(0);
     }
 
-    /** The Cockpit style also swaps the dashboard's header for a hero banner (a layout change, not only a repaint). */
-    public static boolean isCockpit() { return "cockpit".equals(dashboard().key()); }
-
     /** Put the chosen dashboard look on {@code root} (and take any other off it first). */
     public static void applyDashboard(Parent root) {
         if (root == null) return;

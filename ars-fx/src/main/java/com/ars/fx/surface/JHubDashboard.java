@@ -86,9 +86,9 @@ public final class JHubDashboard {
         return col;
     }
 
-    /** The hero banner (and, in Cockpit, the insight strip) stay fixed at the top; only the cards underneath scroll. */
+    /** The hero banner and the insight strip stay fixed at the top; only the cards underneath scroll. */
     private static Region dashboardCenter() {
-        insightStrip = com.ars.fx.UiStyle.isCockpit() ? new InsightStrip() : null;
+        insightStrip = new InsightStrip();
         HBox cards = threeCol();                       // after the strip exists: the cluster card feeds it on its first render
         VBox cardsBox = new VBox(cards); cardsBox.setPadding(new Insets(12, 24, 24, 24));
         ScrollPane sp = new ScrollPane(cardsBox); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -198,7 +198,7 @@ public final class JHubDashboard {
         m.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode) : "rig offline");
     }
 
-    // the Cockpit style's insight strip (live stats + band activity, collapsible and pinnable): see InsightStrip
+    // the insight strip under the hero, in every look (live stats + band activity, collapsible and pinnable): see InsightStrip
     private static InsightStrip insightStrip;
 
     // ---- 3-column area -----------------------------------------------------
