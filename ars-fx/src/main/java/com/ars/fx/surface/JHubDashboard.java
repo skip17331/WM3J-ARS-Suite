@@ -30,7 +30,7 @@ public final class JHubDashboard {
     private static Region dashRoot;
     private static boolean dashTickerStarted;
 
-    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers())); startDashTicker(); return dashRoot; }
+    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers())); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
 
     /** The content of one J-Hub setup section, for {@link JHubSetup} (one screen, section menu on the left). */
     static Region setupPage(String id) {
@@ -41,6 +41,7 @@ public final class JHubDashboard {
             case "amp"      -> amplifierCenter();
             case "antsw"    -> antennaSwitchCenter();
             case "modules"  -> modulesCenter();
+            case "appearance" -> appearanceCenter();
             case "sat"      -> JHubSatellites.center();
             default         -> dataPage(id);     // tx, cluster, digital, lookup, logdb, upload, export, share, learn
         };
@@ -1036,6 +1037,25 @@ public final class JHubDashboard {
     }
 
     /** J-Hub ▸ Modules — turn each module on or off (reflected live in the dock + nav). */
+    /** Setup ▸ Appearance: the whole-interface size and the dashboard look. */
+    private static Region appearanceCenter() {
+        String[] looks = new String[com.ars.fx.UiStyle.DASHBOARD_STYLES.size()];
+        for (int i = 0; i < looks.length; i++) looks[i] = com.ars.fx.UiStyle.DASHBOARD_STYLES.get(i).label();
+        String curLook = com.ars.fx.UiStyle.dashboard().label();
+        int on = 0; for (int i = 0; i < looks.length; i++) if (looks[i].equals(curLook)) on = i;
+        Region lookSeg = segSel(looks, on, i -> {
+            com.ars.fx.data.HubConfig.set(com.ars.fx.UiStyle.DASHBOARD_KEY, com.ars.fx.UiStyle.DASHBOARD_STYLES.get(i).key());
+        });
+        VBox size = section("SIZE",
+            cfgRow("Interface size", "scales everything together, in 50% steps; restart ARS Suite to apply",
+                    cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, 0)));
+        VBox look = section("DASHBOARD LOOK",
+            cfgRow("Style", "Classic is the original look. Open the dashboard again to see a change; pick Classic to go back at any time", lookSeg));
+        return cfgPage(cfgTop("J-Hub", "System", "Appearance"),
+                lbl("How the suite looks. Only the J-Hub dashboard takes the style; the other modules keep the classic look.", "cfg-desc"),
+                size, look);
+    }
+
     private static Region modulesCenter() {
         java.util.List<Node> rows = new java.util.ArrayList<>();
         for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.all()) {

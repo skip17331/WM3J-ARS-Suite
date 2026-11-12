@@ -40,7 +40,7 @@ public final class JHubSetup {
             new Item("logdb", "Log database & backup"), new Item("upload", "Online upload"),
             new Item("export", "Export & Cabrillo"), new Item("labels", "Label printers")),
         new Group("SYSTEM",
-            new Item("modules", "Modules"), new Item("share", "Remote sharing"), new Item("learn", "J-Learn content")),
+            new Item("modules", "Modules"), new Item("appearance", "Appearance"), new Item("share", "Remote sharing"), new Item("learn", "J-Learn content")),
     };
 
     private static boolean known(String id) {
