@@ -200,9 +200,9 @@
 .ins .cs-v.cyan   { -fx-text-fill: -ars-accent; }
 .ins .cs-v.green  { -fx-text-fill: -ars-ok; }
 .ins .cs-v.violet { -fx-text-fill: #c4a2ff; }
-.ins .bchip   { -fx-background-radius: 99; -fx-padding: 2 8 2 8; -fx-min-width: 30; }
-.ins .bchip-n { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #04101c; }
-.ins .bchip-c { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #04101c; }
+.ins .bchip   { -fx-background-radius: 7; -fx-min-width: 34; -fx-pref-width: 34; -fx-min-height: 22; -fx-pref-height: 22; -fx-alignment: center;
+                -fx-font-family: "JetBrains Mono"; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #04101c; }
+.ins .bchip-n { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .ins .bchip.band-160m { -fx-background-color: -band-160; }
 .ins .bchip.band-80m { -fx-background-color: -band-80; }
 .ins .bchip.band-60m { -fx-background-color: -band-60; }

@@ -946,3 +946,6 @@
 .jhub-clu.band-6m { -fx-border-color: transparent transparent -ars-border -band-6; }
 .jhub-clu.band-2m { -fx-border-color: transparent transparent -ars-border -band-2; }
 .jhub-clu.band-70cm { -fx-border-color: transparent transparent -ars-border -band-70; }
+
+/* the dashboard's scrolling card area: transparent, so the page background (and the Cockpit glow) shows through */
+.dash-scroll, .dash-scroll > .viewport { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0; }

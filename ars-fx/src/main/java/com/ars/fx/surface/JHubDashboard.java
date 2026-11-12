@@ -31,7 +31,7 @@ public final class JHubDashboard {
     private static boolean dashTickerStarted;
 
     // the LOG TOOLS tray lives in threeCol(), beside the cards, so the hero and the insight strip run the full width
-    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
+    public static Region build()        { Region center = dashboardCenter(); dashRoot = page("dashboard", center, null, false); com.ars.fx.UiStyle.applyDashboard(dashRoot); startDashTicker(); return dashRoot; }
 
     /** The content of one J-Hub setup section, for {@link JHubSetup} (one screen, section menu on the left). */
     static Region setupPage(String id) {
@@ -50,15 +50,21 @@ public final class JHubDashboard {
 
     private static Region page(String activeConf, Region centerContent) { return page(activeConf, centerContent, null); }
     /** @param leftPanel optional collapsing column placed right of the dock (the dashboard's log tools) */
-    private static Region page(String activeConf, Region centerContent, Region leftPanel) {
+    private static Region page(String activeConf, Region centerContent, Region leftPanel) { return page(activeConf, centerContent, leftPanel, true); }
+    /** @param scrolls false when {@code centerContent} brings its own scrolling (the dashboard keeps its header fixed and scrolls only the cards) */
+    private static Region page(String activeConf, Region centerContent, Region leftPanel, boolean scrolls) {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
         // expand-only tail so they stay reachable without changing the collapsed rail. In a solo
         // window there is no dock, so the same links become a fixed left nav column instead.
         Region nav = Shell.solo ? soloNav(activeConf) : Shell.dock("hub", hubConfigSection(activeConf));
 
-        ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = leftPanel == null ? new HBox(nav, sp) : new HBox(nav, leftPanel, sp); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
+        Region centre;
+        if (scrolls) {
+            ScrollPane sp = new ScrollPane(centerContent); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            sp.setStyle("-fx-background-color:-ars-bg;"); centre = sp;
+        } else centre = centerContent;
+        centre.setMinWidth(0); HBox.setHgrow(centre, Priority.ALWAYS);
+        HBox row = leftPanel == null ? new HBox(nav, centre) : new HBox(nav, leftPanel, centre); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
         row.setMinHeight(0);
         VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;"); root.setMinHeight(0);
         return root;
@@ -80,12 +86,24 @@ public final class JHubDashboard {
         return col;
     }
 
+    /** The hero banner (and, in Cockpit, the insight strip) stay fixed at the top; only the cards underneath scroll. */
     private static Region dashboardCenter() {
         insightStrip = com.ars.fx.UiStyle.isCockpit() ? new InsightStrip() : null;
-        // evaluated in order: the strip exists before the cluster card first renders and feeds it
-        VBox center = insightStrip != null ? new VBox(14, header(), insightStrip, threeCol()) : new VBox(12, header(), threeCol());
-        center.setPadding(new Insets(10, 24, 24, 24));
-        center.getStyleClass().add("dash-center");
+        HBox cards = threeCol();                       // after the strip exists: the cluster card feeds it on its first render
+        VBox cardsBox = new VBox(cards); cardsBox.setPadding(new Insets(12, 24, 24, 24));
+        ScrollPane sp = new ScrollPane(cardsBox); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.getStyleClass().add("dash-scroll"); VBox.setVgrow(sp, Priority.ALWAYS); sp.setMinHeight(0);
+        // the entry form takes keyboard focus as the page opens and the scroll pane nudges the cards up to show it, which hid the card headers
+        // under the fixed strip; start from the top (a later scroll by the user is left alone)
+        sp.sceneProperty().addListener((o, was, sc) -> { if (sc != null) javafx.application.Platform.runLater(() -> javafx.application.Platform.runLater(() -> sp.setVvalue(0))); });
+
+        VBox head = insightStrip != null ? new VBox(14, header(), insightStrip) : new VBox(header());
+        head.setPadding(new Insets(10, 24, 0, 24));
+        head.setMinHeight(Region.USE_PREF_SIZE);       // the scroll area takes what is left; the header is never squeezed to make room for it
+        head.setViewOrder(-1);                         // the strip floats open over the cards, so the whole header must draw above them
+
+        VBox center = new VBox(head, sp);
+        center.getStyleClass().add("dash-center"); center.setMinHeight(0);
         return center;
     }
 

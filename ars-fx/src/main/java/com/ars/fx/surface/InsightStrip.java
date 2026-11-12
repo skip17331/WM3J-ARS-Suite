@@ -39,7 +39,6 @@ final class InsightStrip extends Pane {
     private final Label[] bigVals = new Label[4], smallVals = new Label[4];
     private final Label[] barCnt = new Label[BANDS.length], chipCnt = new Label[BANDS.length];
     private final Region[] bars = new Region[BANDS.length];
-    private final HBox[] chips = new HBox[BANDS.length];
     private final Region full, compact;
     private final DropShadow floatShadow = new DropShadow(20, Color.rgb(0, 0, 0, 0.55));
     private boolean hover;
@@ -48,9 +47,8 @@ final class InsightStrip extends Pane {
 
     InsightStrip() {
         full = buildFull(); compact = buildCompact();
-        full.setManaged(false); compact.setManaged(false);
         getChildren().addAll(compact, full);
-        setMinWidth(0); setMinHeight(0);
+        setMinWidth(0); setMinHeight(USE_PREF_SIZE);          // never squeezed: the cards scroll, this does not
         setViewOrder(-1);                                   // the floating open view must draw over the cards that follow it
         openT.setOnFinished(e -> { hover = true; relayout(); });
         closeT.setOnFinished(e -> { hover = false; relayout(); });
@@ -121,10 +119,10 @@ final class InsightStrip extends Pane {
         }
         HBox chipRow = new HBox(5); chipRow.setAlignment(Pos.CENTER_RIGHT); chipRow.setMinWidth(0);
         for (int i = 0; i < BANDS.length; i++) {
-            chipCnt[i] = lbl("", "bchip-c");
-            HBox c = new HBox(4, lbl(BANDS[i].replace("m", ""), "bchip-n"), chipCnt[i]);
-            c.setAlignment(Pos.CENTER); c.getStyleClass().addAll("bchip", "band-" + BANDS[i]);
-            chips[i] = c; chipRow.getChildren().add(c);
+            chipCnt[i] = lbl("", "bchip");                                   // the colour block: the spot count goes inside it
+            chipCnt[i].getStyleClass().add("band-" + BANDS[i]);
+            VBox c = new VBox(2, chipCnt[i], lbl(BANDS[i].replace("m", ""), "bchip-n")); c.setAlignment(Pos.CENTER);   // the band sits under it
+            chipRow.getChildren().add(c);
         }
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox row = new HBox(18, stats, sp, chipRow, AutoPanel.pinButton(KEY, this::relayout));
@@ -152,8 +150,7 @@ final class InsightStrip extends Pane {
             bars[i].setOpacity(n[i] == 0 ? 0.25 : 1);
             barCnt[i].setText(n[i] == 0 ? "" : Integer.toString(n[i]));
             chipCnt[i].setText(n[i] == 0 ? "" : Integer.toString(n[i]));
-            chipCnt[i].setManaged(n[i] != 0); chipCnt[i].setVisible(n[i] != 0);
-            chips[i].setOpacity(n[i] == 0 ? 0.35 : 1);
+            chipCnt[i].setOpacity(n[i] == 0 ? 0.3 : 1);
         }
     }
 }
