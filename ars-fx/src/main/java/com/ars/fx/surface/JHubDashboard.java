@@ -172,11 +172,12 @@ public final class JHubDashboard {
      * The New QSO form and the DX Cluster window. The form's fields do not shrink: it needs its computed minimum width (about 685 px) for every field and the
      * Log QSO button to show, and likes 760. Both used to be forced lower than that (a minimum of 560), so when the row got narrow, as it does with the
      * PANELS column pinned, the form was squeezed below what its fields need and the cluster window lay over the part that spilled out. Now, when the row is
-     * too narrow for the form's minimum plus a cluster window of at least 380 px, the cluster drops below the form instead; with room, the form takes its
+     * too narrow for the form's minimum plus a cluster window of at least 300 px, the cluster drops below the form instead (300, not more, so a maximised
+     * 1920 px window still has them side by side with the PANELS column pinned; the cluster header gives up its server text first); with room, the form takes its
      * natural width (never less than it needs) and the cluster takes the rest, as before. (All sizes are logical pixels: a 125% display shows 1.25 times these.)
      */
     private static final class WindowsRow extends Region {
-        private static final double FORM_PREF = 760, GAP = 20, CLUSTER_MIN = 380, STACKED_CLUSTER_H = 460;
+        private static final double FORM_PREF = 760, GAP = 20, CLUSTER_MIN = 300, STACKED_CLUSTER_H = 460;
         private final Region entry, cluster;
         WindowsRow(Region entry, Region cluster) {
             this.entry = entry; this.cluster = cluster;
