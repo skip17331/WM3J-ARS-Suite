@@ -1,0 +1,106 @@
+/* ============================================================================
+   Dashboard style pack: INSTRUMENT PANEL.
+   Attached to the J-Hub dashboard's root node only (see UiStyle), and every rule is scoped under .ins, so
+   nothing here reaches another module. Colours come from the -ars-* tokens, so each colour scheme still works.
+   To drop it: Setup > Appearance > Dashboard look > Classic (or delete this file and its line in UiStyle).
+
+   Language: panels are faceplates (a lit top edge fading to a darker foot, a dark bezel line round them),
+   entry fields are recessed displays, keys are raised caps with a visible lower edge, status dots are lit LEDs,
+   and the readouts (clock, spot frequencies) glow like phosphor / amber displays.
+   ============================================================================ */
+
+/* ---- top bar: the instrument's header strip ------------------------------- */
+.ins .jhub-bar {
+    -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-3, 8%), -ars-surface-1);
+    -fx-border-color: transparent transparent rgba(0,0,0,0.65) transparent;
+}
+.ins .jhub-bar-dot  { -fx-effect: dropshadow(gaussian, -ars-accent, 9, 0.45, 0, 0); }
+.ins .jhub-bar-nm   { -fx-text-fill: -ars-t1; }
+
+/* LEDs: every status dot reads as a lit lens */
+.ins .jhub-mini-dot { -fx-effect: dropshadow(gaussian, rgba(150,200,255,0.55), 7, 0.4, 0, 0); }
+
+/* ---- readouts ------------------------------------------------------------- */
+.ins .sx-clock-v {                       /* UTC clock: green phosphor */
+    -fx-text-fill: -ars-ok;
+    -fx-effect: dropshadow(gaussian, rgba(103,210,131,0.55), 9, 0.3, 0, 0);
+}
+.ins .jhub-clu-fq {                      /* spot frequency: amber display */
+    -fx-text-fill: -ars-log;
+    -fx-effect: dropshadow(gaussian, rgba(255,176,56,0.45), 7, 0.25, 0, 0);
+}
+
+/* ---- faceplate panels: cluster card, entry card, drawers ------------------ */
+.ins .jhub-card,
+.ins .jl-entry {
+    -fx-background-color: rgba(0,0,0,0.7),
+                          linear-gradient(to bottom, derive(-ars-surface-2, 6%), -ars-surface-1 28%, derive(-ars-surface-1, -4%));
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 11, 10;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1;
+    -fx-border-radius: 11;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 16, 0.1, 0, 5);
+}
+.ins .jhub-card-head {                   /* the panel's title strip */
+    -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(0,0,0,0.16));
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-color: transparent transparent rgba(0,0,0,0.6) transparent;
+}
+.ins .jhub-card-title { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; }
+.ins .jhub-clu        { -fx-border-color: transparent transparent rgba(0,0,0,0.35) transparent; }
+
+/* the right-hand drawers and the column header */
+.ins .sx-dw {
+    -fx-background-color: rgba(0,0,0,0.65),
+                          linear-gradient(to bottom, derive(-ars-surface-3, 2%), -ars-surface-2 40%, derive(-ars-surface-2, -4%));
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10, 9;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.1, 0, 3);
+}
+.ins .sx-dw-head       { -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(0,0,0,0.12)); -fx-background-radius: 9; }
+.ins .sx-dw-head:hover { -fx-background-color: linear-gradient(to bottom, rgba(255,255,255,0.09), rgba(0,0,0,0.06)); }
+.ins .sx-dw-sum        { -fx-text-fill: -ars-accent; }
+.ins .sx-rail-head     { -fx-background-color: linear-gradient(to bottom, derive(-ars-surface-3, 6%), -ars-surface-1); }
+
+/* ---- recessed entry displays ---------------------------------------------- */
+.ins .jl-fin,
+.ins .jl-ein-call {
+    -fx-background-color: linear-gradient(to bottom, derive(-ars-bg, -16%), derive(-ars-bg, -5%));
+    -fx-border-color: rgba(0,0,0,0.75) -ars-border rgba(255,255,255,0.07) -ars-border;
+    -fx-border-width: 1.5;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.6), 5, 0.2, 0, 1.5);
+}
+.ins .jl-ein-call { -fx-text-fill: -ars-log; }       /* the callsign is the display you watch */
+.ins .jl-fin:focused,
+.ins .jl-ein-call:focused {
+    -fx-border-color: -ars-log;
+    -fx-effect: dropshadow(gaussian, rgba(255,176,56,0.4), 11, 0.2, 0, 0);
+}
+.ins .jl-snt { -fx-background-color: linear-gradient(to bottom, derive(-ars-bg, -12%), derive(-ars-bg, -3%)); -fx-border-color: -ars-border-2; }
+
+/* ---- raised keys ---------------------------------------------------------- */
+.ins .jl-logbtn {                        /* Log QSO: the big amber key */
+    -fx-background-color: derive(-ars-log, -48%),
+                          linear-gradient(to bottom, derive(-ars-log, 30%), -ars-log 55%, derive(-ars-log, -8%));
+    -fx-background-insets: 0, 0 0 3 0;
+    -fx-background-radius: 9, 9;
+    -fx-padding: 11 22 14 22;
+    -fx-effect: dropshadow(gaussian, rgba(255,170,40,0.38), 13, 0.15, 0, 2);
+}
+.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(255,170,40,0.6), 16, 0.25, 0, 2); }
+.ins .jl-logbtn:pressed { -fx-background-insets: 0, 3 0 0 0; -fx-padding: 14 22 11 22; -fx-effect: null; }
+
+.ins .jl-macro {                         /* F1-F8: keycaps */
+    -fx-background-color: derive(-ars-surface-1, -30%),
+                          linear-gradient(to bottom, derive(-ars-surface-3, 12%), -ars-surface-2);
+    -fx-background-insets: 0, 0 0 3 0;
+    -fx-background-radius: 8, 8;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 8;
+    -fx-padding: 7 12 10 12;
+}
+.ins .jl-macro:hover   { -fx-border-color: -ars-accent-line; -fx-effect: dropshadow(gaussian, -ars-accent-dim, 9, 0.2, 0, 0); }
+.ins .jl-macro:pressed { -fx-background-insets: 0, 3 0 0 0; -fx-padding: 10 12 7 12; }

@@ -30,6 +30,7 @@ public class Launcher extends Application {
                 return;
             }
         }
+        UiStyle.applyScale();       // saved UI size (Setup ▸ Appearance) -> the toolkit scale; has to be set before JavaFX starts
         launch(args);
     }
 
