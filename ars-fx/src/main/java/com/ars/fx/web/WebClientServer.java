@@ -291,6 +291,7 @@ public final class WebClientServer {
         boolean ok = JLogDb.insertAt(when.format(DT), call, freq, band, mode, str(b, "rstSent", 8), str(b, "rstRcvd", 8), str(b, "name", 40), str(b, "qth", 60),
                 str(b, "grid", 8), str(b, "comment", 200), str(b, "state", 4), str(b, "county", 30), 0, refs);
         if (!ok) throw new IllegalArgumentException("the log could not be written");
+        com.ars.fx.data.SessionQsos.logged(call, str(b, "grid", 8), band, mode);
         remember(uid);
         JsonObject d = new JsonObject(); d.addProperty("ok", true); d.addProperty("dup", false); return d;
     }

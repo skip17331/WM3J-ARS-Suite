@@ -142,6 +142,7 @@ public final class BridgeService {
         try { power = (int) Math.round(Double.parseDouble(q.getTxPower().trim())); } catch (Exception ignored) { }
         JLogDb.insertAt(utc, call, freq, band, mode, q.getRstSent(), q.getRstReceived(), q.getName(), null,
                 q.getDxGrid(), q.getComments(), null, null, power);
+        SessionQsos.logged(call, q.getDxGrid(), band, mode);
         fire();
     }
     public static List<WsjtxDecode> decodes() { synchronized (decodes) { return new ArrayList<>(decodes); } }

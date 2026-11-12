@@ -197,6 +197,7 @@ final class MapQsoCard {
         boolean ok = JLogDb.insertAt(null, c, f, JLogDb.bandFor(f), mode.getText(), rstSent.getText(), rstRcvd.getText(),
                 name.getText(), qth.getText(), grid.getText(), comment.getText(), null, null, 0, refs);
         if (!ok) { status.setText("Not saved"); return; }
+        com.ars.fx.data.SessionQsos.logged(c, grid.getText(), JLogDb.bandFor(f), mode.getText());
         JLogDb.QsoFull saved = JLogDb.byId(JLogDb.maxId());
         if (saved != null) com.ars.fx.data.N1mmBroadcast.normalAdded(com.ars.fx.data.N1mmBroadcast.of(saved));
         SpotAction.takePending();                    // this contact is done; J-Log must not refill it on its next open

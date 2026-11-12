@@ -686,7 +686,7 @@ public final class JLogContest {
             // a new multiplier is worked out before the QSO is in the log (only when something is listening: it scores the log twice)
             boolean newMult = !editing && !dupe && com.ars.fx.data.N1mmBroadcast.enabled() && MultCheck.isNewMult(plugin, ContestState.qsos(), r, ContestState.ctx());
             if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); com.ars.fx.data.N1mmBroadcast.contactEdited(plugin, r, oldCall); }
-            else { ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); }
+            else { ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); com.ars.fx.data.SessionQsos.logged(r.getCallsign(), null, r.getBand(), r.getMode()); }
             ContestState.recompute();
             final QsoRecord logged = r;
             Thread lt = new Thread(() -> com.ars.fx.data.CallHistory.learn(plugin, logged), "call-history-learn");
