@@ -62,7 +62,7 @@ final class DxInfoCard {
         showing = s.call(); answer = null;
         VBox card = new VBox(8);
         card.setPadding(new Insets(14, 18, 14, 18));
-        card.setMaxSize(520, Region.USE_PREF_SIZE); card.setMinWidth(460);
+        card.setMaxSize(350, Region.USE_PREF_SIZE); card.setMinWidth(320);      // narrow, so it fits in the strip beside the globe
         card.setStyle("-fx-background-color:-ars-surface-1;-fx-background-radius:12;-fx-cursor:hand;"
                 + "-fx-border-color:-ars-border;-fx-border-width:1;-fx-border-radius:12;");
         Tips.tip(card, "Click to dismiss");
@@ -72,7 +72,7 @@ final class DxInfoCard {
         log.setOnMouseClicked(e -> { MapQsoCard.open(log, s); dismiss(); e.consume(); });
         Node action = MapQsoCard.isPinned() ? null : log;        // a docked form fills straight from the spot instead
 
-        render(card, s, workedBefore, null, 2, action);
+        render(card, s, workedBefore, null, 1, action);
         render(drawer, s, workedBefore, null, 1, null);
         pop(source, card);
         if (MapQsoCard.isPinned()) MapQsoCard.open(source, s);
@@ -84,7 +84,7 @@ final class DxInfoCard {
             Platform.runLater(() -> {
                 if (!s.call().equals(showing)) return;
                 answer = r;
-                render(card, s, workedBefore, r, 2, action);
+                render(card, s, workedBefore, r, 1, action);
                 render(drawer, s, workedBefore, r, 1, null);
                 MapQsoCard.lookupArrived(s.call(), r);
             });
@@ -171,7 +171,7 @@ final class DxInfoCard {
         if (!(root instanceof StackPane host)) return;
         dismiss();
         StackPane.setAlignment(card, Pos.TOP_RIGHT);
-        StackPane.setMargin(card, new Insets(110, 350, 0, 0));   // over the map, clear of the right column
+        StackPane.setMargin(card, MapQsoCard.popupMargin());     // the strip at the right edge of the map, off the globe, clear of the right column
         card.setOnMouseClicked(e -> dismiss());
         host.getChildren().add(card);
         toast = card;
