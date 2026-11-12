@@ -45,12 +45,6 @@ public final class ModuleConfig {
         return out;
     }
 
-    public static int enabledCount() {
-        int n = 0;
-        for (Mod m : MODULES) if (enabled(m.id())) n++;
-        return n;
-    }
-
     private static final java.util.Set<String> OPENED = java.util.concurrent.ConcurrentHashMap.newKeySet();
     /** Note that a module's screen has been opened in this session (modules with no background engine count as running once opened). */
     public static void markOpened(String id) { if (id != null) OPENED.add(id); }
