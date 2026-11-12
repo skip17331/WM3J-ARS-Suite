@@ -7,7 +7,7 @@
 
     <groupId>com.hamradio.ars</groupId>
     <artifactId>j-installer</artifactId>
-    <version>1.13.3</version>
+    <version>1.13.4</version>
     <packaging>jar</packaging>
     <name>ARS Suite Installer</name>
 
