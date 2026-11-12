@@ -1,0 +1,173 @@
+/* ============================================================================
+   Dashboard style pack: COCKPIT.
+   Attached to the J-Hub dashboard's root node only (see UiStyle); every rule is scoped under .ins, so nothing here
+   reaches another module. To drop it: Setup > Appearance > Dashboard look > Classic.
+
+   Unlike Modern / Instrument this is a redesign, not a repaint:
+   - a hero banner replaces the breadcrumb line (JHubDashboard.heroHeader): callsign, live rig frequency, cluster, UTC clock
+   - its own dark navy palette, set as the -ars-* tokens on the dashboard root, so it is always dark whatever scheme the rest of the
+     suite uses (the trays, drawers and fields on the dashboard follow it)
+   - band-coloured DX spots (a stripe per band), big readable type, a cyan Log QSO key against amber displays
+   ============================================================================ */
+
+/* ---- palette -------------------------------------------------------------- */
+.ins {
+    -fx-base: #101a30;
+    -fx-background: #070b14;
+    -fx-control-inner-background: #0b1222;
+    -fx-accent: #2fd0ff;
+    -fx-focus-color: #2fd0ff;
+    -fx-faint-focus-color: #2fd0ff33;
+
+    -ars-bg:          #070b14;
+    -ars-surface-1:   #0d1424;
+    -ars-surface-2:   #131d35;
+    -ars-surface-3:   #1a2745;
+    -ars-surface-4:   #243459;
+    -ars-border:      #1c2842;
+    -ars-border-2:    #2a3a5e;
+    -ars-border-glow: #3d5282;
+    -ars-t1: #f0f5ff;
+    -ars-t2: #b0bddb;
+    -ars-t3: #8190b6;
+    -ars-t4: #5f6e95;
+    -ars-accent:      #2fd0ff;
+    -ars-accent-dim:  rgba(47,208,255,0.13);
+    -ars-accent-line: rgba(47,208,255,0.45);
+    -ars-accent-text: #031018;
+    -ars-ok:   #4be38c;
+    -ars-warn: #ffc857;
+    -ars-err:  #ff5d6c;
+    -ars-log:  #ffb84a;
+
+    -band-160: #ff5d6c;  -band-80: #ff8a4c;  -band-60: #ffb04c;  -band-40: #ffd84c;  -band-30: #b8e04c;
+    -band-20:  #4be38c;  -band-17: #2fe0c8;  -band-15: #2fd0ff;  -band-12: #6b8cff;  -band-10: #a977ff;
+    -band-6:   #ff6bc8;  -band-2:  #ff8fd8;  -band-70: #ffa0b4;
+}
+
+/* ---- top bar + status lights ---------------------------------------------- */
+.ins .jhub-bar    { -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border transparent; }
+.ins .jhub-bar-dot,
+.ins .jhub-mini-dot { -fx-effect: dropshadow(gaussian, rgba(150,210,255,0.6), 8, 0.4, 0, 0); }
+
+/* ---- hero banner ---------------------------------------------------------- */
+.ins .hero        { -fx-padding: 4 6 6 6; }
+.ins .hero-k      { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+.ins .hero-call   { -fx-font-size: 46px; -fx-font-weight: bold; -fx-text-fill: -ars-t1;
+                    -fx-effect: dropshadow(gaussian, -ars-accent-line, 16, 0.15, 0, 0); }
+.ins .hero-sub    { -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; }
+.ins .hero-rig    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: -ars-log;
+                    -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.5), 14, 0.2, 0, 0); }
+.ins .hero-rig-sub{ -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.ins .hero-clk    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -ars-accent;
+                    -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.2, 0, 0); }
+
+/* ---- cards: cluster, entry ------------------------------------------------ */
+.ins .jhub-card,
+.ins .jl-entry {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1 55%);
+    -fx-background-radius: 16;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 26, 0.0, 0, 10);
+}
+.ins .jhub-card-head {
+    -fx-background-color: linear-gradient(to right, -ars-accent-dim, transparent 70%);
+    -fx-background-radius: 15 15 0 0;
+    -fx-padding: 15 20 14 20;
+    -fx-border-color: transparent transparent -ars-border transparent;
+}
+.ins .jhub-card-title { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.ins .jl-emeta        { -fx-text-fill: -ars-t3; }
+
+/* ---- entry: the callsign is the hero field -------------------------------- */
+.ins .jl-ein-call {
+    -fx-font-size: 36px;
+    -fx-text-fill: -ars-log;
+    -fx-background-color: -ars-bg;
+    -fx-background-radius: 13;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 13;
+    -fx-padding: 8 16 8 16;
+}
+.ins .jl-fin,
+.ins .jl-snt {
+    -fx-text-fill: -ars-t1;
+    -fx-background-color: -ars-bg;
+    -fx-background-radius: 11;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 11;
+}
+.ins .jl-fin:focused,
+.ins .jl-ein-call:focused {
+    -fx-border-color: -ars-accent;
+    -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.3, 0, 0);
+}
+.ins .jl-flabel { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
+.ins .jl-eyebrow { -fx-text-fill: -ars-accent; }
+
+/* ---- keys ----------------------------------------------------------------- */
+.ins .jl-logbtn {
+    -fx-background-color: linear-gradient(to right, #2fd0ff, #4d7cff);
+    -fx-text-fill: #04101c;
+    -fx-background-radius: 13;
+    -fx-padding: 13 30 13 30;
+    -fx-font-size: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.45), 16, 0.15, 0, 3);
+}
+.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(47,208,255,0.7), 22, 0.25, 0, 3); }
+.ins .jl-logbtn:pressed { -fx-effect: null; -fx-padding: 14 30 12 30; }
+
+.ins .jl-macro {
+    -fx-background-color: -ars-surface-3;
+    -fx-background-radius: 10;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 10;
+}
+.ins .jl-macro:hover   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent; }
+.ins .jl-macro:pressed { -fx-background-color: -ars-accent-line; }
+.ins .jl-macro-fk      { -fx-text-fill: -ars-accent; }
+.ins .jl-macro-ml      { -fx-text-fill: -ars-t1; }
+
+/* ---- DX spots: a stripe per band ------------------------------------------ */
+.ins .jhub-clu {
+    -fx-padding: 11 18 11 16;
+    -fx-border-color: transparent transparent -ars-border -ars-border-2;
+    -fx-border-width: 0 0 1 4;
+}
+.ins .jhub-clu:hover { -fx-background-color: -ars-accent-dim; }
+.ins .jhub-clu.band-160m { -fx-border-color: transparent transparent -ars-border -band-160; }
+.ins .jhub-clu.band-80m  { -fx-border-color: transparent transparent -ars-border -band-80; }
+.ins .jhub-clu.band-60m  { -fx-border-color: transparent transparent -ars-border -band-60; }
+.ins .jhub-clu.band-40m  { -fx-border-color: transparent transparent -ars-border -band-40; }
+.ins .jhub-clu.band-30m  { -fx-border-color: transparent transparent -ars-border -band-30; }
+.ins .jhub-clu.band-20m  { -fx-border-color: transparent transparent -ars-border -band-20; }
+.ins .jhub-clu.band-17m  { -fx-border-color: transparent transparent -ars-border -band-17; }
+.ins .jhub-clu.band-15m  { -fx-border-color: transparent transparent -ars-border -band-15; }
+.ins .jhub-clu.band-12m  { -fx-border-color: transparent transparent -ars-border -band-12; }
+.ins .jhub-clu.band-10m  { -fx-border-color: transparent transparent -ars-border -band-10; }
+.ins .jhub-clu.band-6m   { -fx-border-color: transparent transparent -ars-border -band-6; }
+.ins .jhub-clu.band-2m   { -fx-border-color: transparent transparent -ars-border -band-2; }
+.ins .jhub-clu.band-70cm { -fx-border-color: transparent transparent -ars-border -band-70; }
+.ins .jhub-clu-fq   { -fx-font-size: 17px; -fx-text-fill: -ars-log; }
+.ins .jhub-clu-call { -fx-font-size: 17px; -fx-text-fill: -ars-t1; }
+.ins .jhub-clu-mode { -fx-background-radius: 99; -fx-padding: 1 9 1 9; -fx-background-color: -ars-surface-4; -fx-text-fill: -ars-t1; }
+
+/* ---- drawers (right tray) and the column heads ---------------------------- */
+.ins .sx-dw {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1);
+    -fx-background-radius: 14;
+    -fx-border-color: -ars-border-2;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 16, 0.0, 0, 5);
+}
+.ins .sx-dw-head       { -fx-background-radius: 13; -fx-padding: 12 14 12 14; }
+.ins .sx-dw-head:hover { -fx-background-color: -ars-accent-dim; }
+.ins .sx-dw-t          { -fx-font-size: 13.5px; -fx-text-fill: -ars-t1; }
+.ins .sx-dw-sum        { -fx-text-fill: -ars-accent; }
+.ins .sx-dw-body       { -fx-border-color: -ars-border transparent transparent transparent; }
+.ins .sx-rail-head     { -fx-background-color: -ars-surface-1; }
+.ins .sx-rail-title    { -fx-text-fill: -ars-accent; }

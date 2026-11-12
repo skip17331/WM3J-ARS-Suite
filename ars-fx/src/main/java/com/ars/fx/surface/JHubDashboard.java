@@ -99,6 +99,7 @@ public final class JHubDashboard {
             if (dashRoot == null) return;
             if (dashRoot.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
             if (dashRoot.lookup(".jhub-uptime") instanceof Label l) l.setText("ARS Suite · up " + uptime());
+            if (dashRoot.lookup(".hero-rig") instanceof Label f && dashRoot.lookup(".hero-rig-sub") instanceof Label m) heroRig(f, m);
         }));
         t.setCycleCount(Timeline.INDEFINITE); t.play();
     }
@@ -137,6 +138,7 @@ public final class JHubDashboard {
 
     // ---- center header -----------------------------------------------------
     private static Region header() {
+        if (com.ars.fx.UiStyle.isCockpit()) return heroHeader();
         HBox crumb = new HBox(7, lbl("J-Hub", "jhub-crumb"), lbl("›", "jhub-crumb"), lbl("Dashboard", "jhub-crumb-b"));
         crumb.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
@@ -149,6 +151,44 @@ public final class JHubDashboard {
         // one line: where you are on the left, the cluster feed and the clock on the right
         HBox row = new HBox(crumb, sp, clu); row.setAlignment(Pos.CENTER_LEFT);
         return row;
+    }
+
+    /** Cockpit style: a hero banner instead of the breadcrumb line. Station identity, the rig's live frequency, the cluster feed and the UTC clock.
+     *  Its clock keeps the sx-clock-v class and its rig readout the hero-rig class, so the dashboard's one-second ticker keeps both current. */
+    private static Region heroHeader() {
+        String call = com.ars.fx.data.HubConfig.call().toUpperCase();
+        java.util.List<String> bits = new java.util.ArrayList<>();
+        String nm = com.ars.fx.data.HubConfig.get("station.name", "").trim(), qth = com.ars.fx.data.HubConfig.get("station.qth", "").trim();
+        String grid = com.ars.fx.data.HubConfig.grid().toUpperCase();
+        if (!nm.isEmpty()) bits.add(nm); if (!qth.isEmpty()) bits.add(qth); if (!grid.isEmpty()) bits.add(grid);
+        VBox id = new VBox(1, lbl("STATION", "hero-k"), lbl(call.isEmpty() ? "SET CALLSIGN" : call, "hero-call"),
+                lbl(bits.isEmpty() ? "Setup › Station" : String.join("  ·  ", bits), "hero-sub"));
+
+        Label rigF = lbl("—", "hero-rig"), rigM = lbl("rig offline", "hero-rig-sub");
+        heroRig(rigF, rigM);
+        VBox rig = new VBox(1, lbl("RIG", "hero-k"), rigF, rigM);
+
+        ClusterClient cc = ClusterClient.getInstance();
+        Region cdot = chip("jhub-mini-dot", 9); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
+        Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "hero-sub");
+        headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
+        HBox cluRow = new HBox(7, cdot, cluTxt); cluRow.setAlignment(Pos.CENTER_LEFT);
+        VBox clu = new VBox(5, lbl("DX CLUSTER", "hero-k"), cluRow);
+
+        VBox clock = new VBox(1, lbl("UTC", "hero-k"), lbl(nowUtc(), "sx-clock-v", "hero-clk"),
+                lbl(java.time.LocalDate.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM yyyy")), "hero-sub"));
+        clock.setAlignment(Pos.TOP_RIGHT);
+
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox row = new HBox(40, id, rig, sp, clu, clock); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("hero");
+        return row;
+    }
+    private static void heroRig(Label f, Label m) {
+        com.ars.fx.data.RigClient.State st = com.ars.fx.data.RigClient.getInstance().last();
+        boolean on = st != null && st.connected() && st.freqHz() > 0;
+        f.setText(on ? com.ars.fx.data.RigClient.fmtFreq(st.freqHz()) : "—");
+        String mode = on && st.mode() != null ? st.mode().trim() : "";
+        m.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode) : "rig offline");
     }
 
     // ---- 3-column area -----------------------------------------------------
@@ -527,6 +567,7 @@ public final class JHubDashboard {
         HBox bot = new HBox(9, lbl(s[3], "jhub-clu-mode"), lbl(s[4], "jhub-clu-de"), lbl(tail, "jhub-clu-de"));
         bot.setAlignment(Pos.CENTER_LEFT); HBox.setMargin(bot, new Insets(3,0,0,0));
         VBox v = new VBox(0, top, bot); v.getStyleClass().add("jhub-clu");
+        if (s[4] != null && !s[4].isBlank()) v.getStyleClass().add("band-" + s[4].trim().toLowerCase());     // a band-coloured stripe in styles that ask for one
         return v;
     }
 

@@ -25,7 +25,8 @@ public final class UiStyle {
     public static final List<Style> DASHBOARD_STYLES = List.of(
             new Style("classic",    "Classic",          null),
             new Style("instrument", "Instrument panel", "/com/ars/fx/css/styles/instrument.css"),
-            new Style("modern",     "Modern",           "/com/ars/fx/css/styles/modern.css"));
+            new Style("modern",     "Modern",           "/com/ars/fx/css/styles/modern.css"),
+            new Style("cockpit",    "Cockpit",          "/com/ars/fx/css/styles/cockpit.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
     /** Whole-interface scale, as the labels shown in Setup; the first is the system default (nothing is set). JavaFX on Windows only honours 50% steps: 1.25 and 1.4 behave as 1.0, 1.75 as 1.5. */
@@ -38,6 +39,9 @@ public final class UiStyle {
         for (Style s : DASHBOARD_STYLES) if (s.key().equals(k)) return s;
         return DASHBOARD_STYLES.get(0);
     }
+
+    /** The Cockpit style also swaps the dashboard's header for a hero banner (a layout change, not only a repaint). */
+    public static boolean isCockpit() { return "cockpit".equals(dashboard().key()); }
 
     /** Put the chosen dashboard look on {@code root} (and take any other off it first). */
     public static void applyDashboard(Parent root) {
