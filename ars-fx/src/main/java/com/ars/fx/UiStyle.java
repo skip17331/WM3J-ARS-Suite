@@ -30,9 +30,9 @@ public final class UiStyle {
             new Style("cockpit",    "Cockpit",          "/com/ars/fx/css/styles/cockpit.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
-    /** Whole-interface scale, as the labels shown in Setup. 100% is the system default (nothing is set). JavaFX on Windows honours 75% and 50% as asked, but above 100% only
+    /** Whole-interface scale, as the labels shown in Setup. 100% is the system default (nothing is set). JavaFX on Windows honours the sizes below 100% as asked, but above 100% only
      *  in 50% steps (1.25 and 1.4 behave as 1.0, 1.75 as 1.5), so there is no 125%. */
-    public static final String[] SCALES = {"50%", "75%", "100%", "150%", "200%"};
+    public static final String[] SCALES = {"50%", "75%", "85%", "100%", "150%", "200%"};
     public static final String SCALE_DEFAULT = "100%";
     public static final String SCALE_KEY = "ui.scale";
     /** The position of {@link #SCALE_DEFAULT} in {@link #SCALES}. */

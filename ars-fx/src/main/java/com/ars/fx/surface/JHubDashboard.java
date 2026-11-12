@@ -1129,7 +1129,7 @@ public final class JHubDashboard {
             com.ars.fx.data.HubConfig.set(com.ars.fx.UiStyle.DASHBOARD_KEY, com.ars.fx.UiStyle.DASHBOARD_STYLES.get(i).key());
         });
         VBox size = section("SIZE",
-            cfgRow("Interface size", "scales everything together: 50% and 75% shrink it, and above 100% it moves in 50% steps; restart ARS Suite to apply",
+            cfgRow("Interface size", "scales everything together: the sizes below 100% shrink it, and above 100% it moves in 50% steps; restart ARS Suite to apply",
                     cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, com.ars.fx.UiStyle.scaleDefaultIndex())));
         VBox layout = section("DASHBOARD LAYOUT",
             cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",
