@@ -93,13 +93,19 @@ final class MapQsoCard {
         focusFirstEmpty();
     }
 
+    /** Where J-Map's pop-ups sit: down the right edge of the map, under the view buttons and clear of the globe, which is centred in the map. When
+     *  the PANELS column is pinned open it takes the space at the edge, so they move left of it. */
+    static Insets popupMargin() {
+        return new Insets(205, com.ars.fx.shell.AutoPanel.isPinned("rail") ? 350 : 62, 0, 0);
+    }
+
     private static void float_(Node source) {
         Parent root = source.getScene() == null ? null : source.getScene().getRoot();
         if (!(root instanceof StackPane host) || host.getChildren().contains(card)) return;
         card.setStyle(FLOATING_STYLE);
         card.setMaxSize(320, Region.USE_PREF_SIZE);
         StackPane.setAlignment(card, Pos.TOP_RIGHT);
-        StackPane.setMargin(card, new Insets(110, 350, 0, 0));   // over the map, clear of the right column
+        StackPane.setMargin(card, popupMargin());                // the strip at the right edge of the map, off the globe, clear of the right column
         host.getChildren().add(card);
     }
 
