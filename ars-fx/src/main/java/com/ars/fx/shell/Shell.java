@@ -319,78 +319,10 @@ public final class Shell {
     }
 
     // ---- top bar -----------------------------------------------------------
+    /** The module screens' header: the hero bar (see {@link HeroBar}). {@code clock} is only the first reading; the bar keeps its own UTC clock. */
     public static HBox topBar(String hue, String glyphId, String name, String subtitle,
                               String[][] stats, String clock) {
-        HBox top = new HBox(); top.getStyleClass().add("sx-top"); top.setAlignment(Pos.CENTER_LEFT);
-        if (hue != null && !hue.isBlank()) top.getStyleClass().add("hue-" + hue);   // the bar takes its module's colour (see the polish block in ars.css)
-        StackPane bic = iconTile(hue, glyphId, 18, "sx-brand-ic");
-        VBox bt = new VBox(1, lbl(name, "sx-brand-nm"));
-        if (subtitle != null && !subtitle.isBlank()) bt.getChildren().add(lbl(subtitle, "sx-brand-ct"));
-        bt.setAlignment(Pos.CENTER_LEFT);
-        HBox brand = new HBox(10, bic, bt); brand.setAlignment(Pos.CENTER_LEFT); brand.setPadding(new Insets(0, 20, 0, 0));
-        top.getChildren().add(brand);
-        List<VBox> tiles = new ArrayList<>();
-        for (String[] s : stats) {   // {key, value, optional class}
-            boolean hasCls = s.length > 2 && s[2] != null && !s[2].isBlank();
-            VBox cell = new VBox(2, lbl(s[0], "sx-stat-k"),
-                    lbl(s[1], hasCls ? new String[]{"sx-stat-v", s[2]} : new String[]{"sx-stat-v"}));
-            cell.getStyleClass().add("sx-stat"); cell.setAlignment(Pos.CENTER_LEFT);
-            tiles.add(cell);
-            top.getChildren().add(cell);
-        }
-        top.getChildren().add(hsp());
-        // solo windows have no dock, so the gear that reaches J-Hub / Station settings lives in the top bar
-        if (solo) {
-            Label gear = lbl("⚙", "sx-theme"); gear.setStyle("-fx-cursor:hand;");
-            javafx.scene.control.Tooltip.install(gear, new javafx.scene.control.Tooltip("J-Hub · Station settings"));
-            Tips.tip(gear, "Open J-Hub (dashboard and settings)");
-            gear.setOnMouseClicked(e -> navigate("hub"));
-            HBox.setMargin(gear, new Insets(0, 14, 0, 0));
-            top.getChildren().add(gear);
-        }
-        top.getChildren().add(TxIndicator.build());
-        Label id = IdTimer.button(); HBox.setMargin(id, new Insets(0, 16, 0, 0));
-        top.getChildren().add(id);
-        if (clock != null) {
-            VBox c = new VBox(1, lbl("UTC", "sx-clock-k"), lbl(clock, "sx-clock-v"));
-            c.getStyleClass().add("sx-stat"); c.setAlignment(Pos.CENTER_RIGHT);
-            tiles.add(c); top.getChildren().add(c);
-        }
-        scaleWithWidth(top, tiles);
-        return top;
-    }
-
-    /** Last top-bar scale: surfaces rebuild (J-Sat every ~2 s), so a new bar starts here rather than flash full size. */
-    private static double topScale = 1;
-    private static final double TOP_MIN_SCALE = 0.5, TOP_TILE_GAP = 8, TOP_BRAND_MIN = 120;
-
-    /** Shrink the top-bar tiles and their fonts so the row fits the bar's width, instead of cutting values to "…". */
-    private static void scaleWithWidth(HBox top, List<VBox> tiles) {
-        Runnable apply = () -> {
-            double s = topScale;
-            String pad = String.format("-fx-padding:%.0f %.0f %.0f %.0f;", 5 * s, 12 * s, 5 * s, 12 * s);
-            for (VBox t : tiles) {
-                t.setStyle(pad);
-                t.setMinWidth(Region.USE_PREF_SIZE);    // the subtitle gives way when the row is tight, never a value
-                t.setMaxHeight(Region.USE_PREF_SIZE);
-                HBox.setMargin(t, new Insets(0, 0, 0, TOP_TILE_GAP * s));
-                for (Node n : t.getChildren()) {
-                    if (!(n instanceof Label l)) continue;
-                    double full = l.getStyleClass().contains("sx-stat-v") ? 18 : l.getStyleClass().contains("sx-clock-v") ? 20 : 0;
-                    l.setStyle(String.format("-fx-font-size:%.1fpx;", full > 0 ? full * s : Math.max(8, 9 * s)));
-                }
-            }
-        };
-        top.widthProperty().addListener((o, a, b) -> {
-            double row = 0, others = top.getInsets().getLeft() + top.getInsets().getRight() + 60;   // 60: margins around the (larger) ID timer
-            for (VBox t : tiles) row += t.prefWidth(-1) + TOP_TILE_GAP * topScale;
-            for (Node n : top.getChildren())
-                if (!tiles.contains(n)) others += n == top.getChildren().get(0) ? Math.min(n.prefWidth(-1), TOP_BRAND_MIN) : n.prefWidth(-1);
-            double s = Math.max(TOP_MIN_SCALE, Math.min(1, (b.doubleValue() - others) / (row / topScale * 1.03)));
-            if (b.doubleValue() <= 1 || Math.abs(s - topScale) < 0.01) return;
-            topScale = s; apply.run();
-        });
-        apply.run();
+        return HeroBar.build(hue, glyphId, name, subtitle, stats, clock);
     }
 
     // ---- collapsible drawer ------------------------------------------------

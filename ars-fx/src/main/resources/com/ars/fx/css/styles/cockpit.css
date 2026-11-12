@@ -225,24 +225,8 @@
 .ins .jl-entry .jl-macro { -fx-padding: 5 9 7 9; }
 
 /* ============================================================================
-   Module frames (J-Map, J-Sat): the same premise as the dashboard. The module's top bar becomes the hero: big brand,
-   glowing readouts in tiles, a big clock. The palette above already reaches their docks, trays and drawers.
+   Module frames (J-Map, J-Sat). Their top bar is the hero bar (ars.css, HeroBar); the palette above reaches their docks, trays and drawers.
    ============================================================================ */
-.ins .sx-top      { -fx-min-height: 84; -fx-pref-height: 84; -fx-padding: 0 20 0 18;
-                    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); }
-.ins .sx-brand-ic { -fx-min-width: 46; -fx-pref-width: 46; -fx-max-width: 46; -fx-min-height: 46; -fx-pref-height: 46; -fx-max-height: 46; -fx-background-radius: 13; -fx-border-radius: 13; }
-.ins .sx-brand-nm { -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-effect: dropshadow(gaussian, -ars-accent-line, 14, 0.15, 0, 0); }
-.ins .sx-brand-ct { -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
-.ins .sx-stat     { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); -fx-border-color: -ars-border-2;
-                    -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 8 14 8 14;
-                    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 12, 0.0, 0, 4); }
-.ins .sx-stat-k   { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
-.ins .sx-stat-v   { -fx-font-size: 20px; }
-.ins .sx-stat-v.accent { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 10, 0.2, 0, 0); }
-.ins .sx-stat-v.amber  { -fx-text-fill: -ars-log;    -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.45), 10, 0.2, 0, 0); }
-.ins .sx-clock-k  { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
-.ins .sx-clock-v  { -fx-font-size: 28px; -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.2, 0, 0); }
-
 /* J-Sat: satellite cards as cockpit cards */
 .ins .js-sat      { -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); -fx-background-radius: 12; -fx-border-color: -ars-border-2; -fx-border-radius: 12;
                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.0, 0, 3); }

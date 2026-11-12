@@ -210,15 +210,15 @@
 .sx-idbtn.over.off, .sx-idbtn.over.off:hover { -fx-text-fill: transparent; -fx-background-color: transparent; }
 
 /* per-module brand tile (precomputed mix18_s3 / rgba.28) */
-.sx-brand-ic.log    { -fx-background-color: #424240; -fx-text-fill: -ars-log;    -fx-border-color: rgba(235,179,83,0.28); }
-.sx-brand-ic.map    { -fx-background-color: #294350; -fx-text-fill: -ars-map;    -fx-border-color: rgba(38,192,207,0.28); }
-.sx-brand-ic.digi   { -fx-background-color: #393c54; -fx-text-fill: -ars-digi;   -fx-border-color: rgba(177,145,234,0.28); }
-.sx-brand-ic.bridge { -fx-background-color: #2f3f54; -fx-text-fill: -ars-bridge; -fx-border-color: rgba(111,167,238,0.28); }
-.sx-brand-ic.sat    { -fx-background-color: #2f4545; -fx-text-fill: -ars-sat;    -fx-border-color: rgba(111,200,132,0.28); }
-.sx-brand-ic.vault  { -fx-background-color: #403f43; -fx-text-fill: -ars-vault;  -fx-border-color: rgba(219,164,117,0.28); }
-.sx-brand-ic.learn  { -fx-background-color: #453a45; -fx-text-fill: -ars-learn;  -fx-border-color: rgba(239,125,131,0.28); }
-.sx-brand-ic.info  { -fx-background-color: #453a4d; -fx-text-fill: -ars-info;  -fx-border-color: rgba(217,143,209,0.28); }
-.sx-brand-ic.hub    { -fx-background-color: #364450; -fx-text-fill: -ars-hub;    -fx-border-color: rgba(162,196,208,0.28); }
+.sx-brand-ic.log, .hero-ic.log    { -fx-background-color: #424240; -fx-text-fill: -ars-log;    -fx-border-color: rgba(235,179,83,0.28); }
+.sx-brand-ic.map, .hero-ic.map    { -fx-background-color: #294350; -fx-text-fill: -ars-map;    -fx-border-color: rgba(38,192,207,0.28); }
+.sx-brand-ic.digi, .hero-ic.digi   { -fx-background-color: #393c54; -fx-text-fill: -ars-digi;   -fx-border-color: rgba(177,145,234,0.28); }
+.sx-brand-ic.bridge, .hero-ic.bridge { -fx-background-color: #2f3f54; -fx-text-fill: -ars-bridge; -fx-border-color: rgba(111,167,238,0.28); }
+.sx-brand-ic.sat, .hero-ic.sat    { -fx-background-color: #2f4545; -fx-text-fill: -ars-sat;    -fx-border-color: rgba(111,200,132,0.28); }
+.sx-brand-ic.vault, .hero-ic.vault  { -fx-background-color: #403f43; -fx-text-fill: -ars-vault;  -fx-border-color: rgba(219,164,117,0.28); }
+.sx-brand-ic.learn, .hero-ic.learn  { -fx-background-color: #453a45; -fx-text-fill: -ars-learn;  -fx-border-color: rgba(239,125,131,0.28); }
+.sx-brand-ic.info, .hero-ic.info  { -fx-background-color: #453a4d; -fx-text-fill: -ars-info;  -fx-border-color: rgba(217,143,209,0.28); }
+.sx-brand-ic.hub, .hero-ic.hub    { -fx-background-color: #364450; -fx-text-fill: -ars-hub;    -fx-border-color: rgba(162,196,208,0.28); }
 
 /* ============================================================================
    SHELL — right rail drawers
@@ -949,3 +949,13 @@
 
 /* the dashboard's scrolling card area: transparent, so the page background (and the Cockpit glow) shows through */
 .dash-scroll, .dash-scroll > .viewport { -fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0; }
+
+/* ---- module hero bar (Shell.topBar -> HeroBar): the banner every screen opens with ---- */
+.hero-bar   { -fx-min-height: 92; -fx-pref-height: 92; -fx-padding: 0 22 0 18;
+              -fx-background-color: linear-gradient(to bottom, -ars-surface-2, -ars-surface-1); }
+.hero-ic    { -fx-min-width: 50; -fx-pref-width: 50; -fx-max-width: 50; -fx-min-height: 50; -fx-pref-height: 50; -fx-max-height: 50;
+              -fx-background-radius: 14; -fx-border-radius: 14; -fx-border-width: 1; -fx-alignment: center; }
+.hero-name  { -fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-effect: dropshadow(gaussian, -ars-accent-line, 14, 0.15, 0, 0); }
+.hero-val   { -fx-font-family: "JetBrains Mono"; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.hero-val.accent { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 10, 0.2, 0, 0); }
+.hero-val.amber, .hero-val.rig { -fx-text-fill: -ars-log; -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.45), 10, 0.2, 0, 0); }
