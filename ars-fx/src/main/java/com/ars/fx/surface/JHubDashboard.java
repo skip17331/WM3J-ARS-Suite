@@ -80,9 +80,11 @@ public final class JHubDashboard {
     }
 
     private static Region dashboardCenter() {
-        VBox center = new VBox(10, header(), threeCol());
+        insightUpdate = null;
+        // evaluated in order: the insight strip registers its updater before the cluster card first renders
+        VBox center = com.ars.fx.UiStyle.isCockpit() ? new VBox(14, header(), insightRow(), threeCol()) : new VBox(12, header(), threeCol());
         center.setPadding(new Insets(10, 24, 24, 24));
-        center.setStyle("-fx-background-color:-ars-bg;");
+        center.getStyleClass().add("dash-center");
         return center;
     }
 
@@ -137,23 +139,9 @@ public final class JHubDashboard {
     }
 
     // ---- center header -----------------------------------------------------
-    private static Region header() {
-        if (com.ars.fx.UiStyle.isCockpit()) return heroHeader();
-        HBox crumb = new HBox(7, lbl("J-Hub", "jhub-crumb"), lbl("›", "jhub-crumb"), lbl("Dashboard", "jhub-crumb-b"));
-        crumb.setAlignment(Pos.CENTER_LEFT);
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        ClusterClient cc = ClusterClient.getInstance();
-        Region cdot = chip("jhub-mini-dot", 8); com.ars.fx.shell.FeedUi.paint(cdot, cc.status());
-        Label cluTxt = lbl(cc.status().label() + " · " + cc.spots().size() + " spots", "jhub-bar-sub");
-        headerDot = cdot; headerTxt = cluTxt;      // kept live by the cluster card's render
-        HBox clu = new HBox(7, lbl("Cluster", "jhub-crumb"), cdot, cluTxt,
-                lbl("UTC", "jhub-crumb"), lbl(nowUtc(), "sx-clock-v")); clu.setAlignment(Pos.CENTER_LEFT);
-        // one line: where you are on the left, the cluster feed and the clock on the right
-        HBox row = new HBox(crumb, sp, clu); row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
+    private static Region header() { return heroHeader(); }
 
-    /** Cockpit style: a hero banner instead of the breadcrumb line. Station identity, the rig's live frequency, the cluster feed and the UTC clock.
+    /** The dashboard header, in every style: a hero banner. Station identity, the rig's live frequency, the cluster feed and the UTC clock.
      *  Its clock keeps the sx-clock-v class and its rig readout the hero-rig class, so the dashboard's one-second ticker keeps both current. */
     private static Region heroHeader() {
         String call = com.ars.fx.data.HubConfig.call().toUpperCase();
@@ -189,6 +177,60 @@ public final class JHubDashboard {
         f.setText(on ? com.ars.fx.data.RigClient.fmtFreq(st.freqHz()) : "—");
         String mode = on && st.mode() != null ? st.mode().trim() : "";
         m.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode) : "rig offline");
+    }
+
+    // ---- Cockpit insight strip: live stat tiles + a band-activity chart ----------
+    private static final String[] BAND_ORDER = {"160m","80m","60m","40m","30m","20m","17m","15m","12m","10m","6m","2m","70cm"};
+    private static java.util.function.BiConsumer<java.util.List<ClusterClient.Spot>, Integer> insightUpdate;
+    private static long insightCountsAt; private static int insightToday, insightLog;
+
+    private static VBox statTile(String key, Label value, String sub, String tone) {
+        VBox t = new VBox(2, lbl(key, "stat-k"), value, lbl(sub, "stat-sub"));
+        t.getStyleClass().addAll("stat-tile", tone); t.setMinWidth(0);
+        HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
+        return t;
+    }
+    private static Region insightRow() {
+        Label vToday = lbl("0", "stat-v"), vLog = lbl("0", "stat-v"), vSpots = lbl("0", "stat-v"), vNeed = lbl("0", "stat-v");
+        HBox tiles = new HBox(12, statTile("QSOS TODAY", vToday, "logged today", "amber"), statTile("IN LOG", vLog, "total QSOs", "cyan"),
+                statTile("SPOTS ON AIR", vSpots, "cluster feed", "green"), statTile("NEW ONES", vNeed, "needed spots", "violet"));
+        tiles.setMinWidth(0); HBox.setHgrow(tiles, Priority.ALWAYS);
+
+        Label[] cnt = new Label[BAND_ORDER.length]; Region[] bar = new Region[BAND_ORDER.length];
+        HBox chart = new HBox(8); chart.setAlignment(Pos.BOTTOM_LEFT); chart.setMinHeight(86); chart.setPrefHeight(86);
+        for (int i = 0; i < BAND_ORDER.length; i++) {
+            cnt[i] = lbl("", "band-cnt"); bar[i] = new Region();
+            bar[i].getStyleClass().addAll("bandbar", "band-" + BAND_ORDER[i]);
+            VBox col = new VBox(3, cnt[i], bar[i], lbl(BAND_ORDER[i].replace("m", ""), "band-nm")); col.setAlignment(Pos.BOTTOM_CENTER);
+            HBox.setHgrow(col, Priority.ALWAYS); col.setMaxWidth(Double.MAX_VALUE); col.setMinWidth(0);
+            chart.getChildren().add(col);
+        }
+        VBox bandCard = new VBox(6, lbl("BAND ACTIVITY", "stat-k"), chart); bandCard.getStyleClass().add("band-card"); bandCard.setMinWidth(0);
+        HBox.setHgrow(bandCard, Priority.ALWAYS); bandCard.setMaxWidth(Double.MAX_VALUE); bandCard.setPrefWidth(430);
+
+        insightUpdate = (spots, needed) -> {
+            long now = System.currentTimeMillis();
+            if (now - insightCountsAt > 5000) {                      // the log counts change only when a QSO is saved
+                insightCountsAt = now;
+                try { insightToday = com.ars.fx.data.JLogDb.countToday(); insightLog = com.ars.fx.data.JLogDb.count(); } catch (Exception ignored) {}
+            }
+            vToday.setText(Integer.toString(insightToday)); vLog.setText(Integer.toString(insightLog));
+            vSpots.setText(Integer.toString(spots.size())); vNeed.setText(Integer.toString(needed));
+            int[] n = new int[BAND_ORDER.length]; int max = 1;
+            for (ClusterClient.Spot s : spots) {
+                String b = s.band() == null ? "" : s.band().trim().toLowerCase();
+                for (int i = 0; i < BAND_ORDER.length; i++) if (BAND_ORDER[i].equals(b)) { n[i]++; max = Math.max(max, n[i]); break; }
+            }
+            for (int i = 0; i < n.length; i++) {
+                double h = n[i] == 0 ? 3 : 8 + 50.0 * n[i] / max;
+                bar[i].setMinHeight(h); bar[i].setPrefHeight(h); bar[i].setMaxHeight(h);
+                bar[i].setOpacity(n[i] == 0 ? 0.25 : 1);
+                cnt[i].setText(n[i] == 0 ? "" : Integer.toString(n[i]));
+            }
+        };
+        insightUpdate.accept(ClusterClient.getInstance().spots(), 0);
+        HBox row = new HBox(14, tiles, bandCard); row.setMinWidth(0); row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     // ---- 3-column area -----------------------------------------------------
@@ -390,6 +432,10 @@ public final class JHubDashboard {
             if (headerTxt != null) headerTxt.setText(cc.status().label() + " · " + cc.spots().size() + " spots");
             SpotNeeds.Index worked = needIndex();
             java.util.List<ClusterClient.Spot> all = cc.spots();
+            if (insightUpdate != null) {
+                int needed = 0; for (ClusterClient.Spot s : all) if (!tag(s, worked).isEmpty()) needed++;
+                insightUpdate.accept(all, needed);
+            }
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
             for (ClusterClient.Spot s : all)
                 if (bandOk(s) && modeOk(s) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);

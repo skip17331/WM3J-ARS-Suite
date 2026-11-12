@@ -49,6 +49,11 @@
     /* module signature hues */
     -ars-log: #ebb353;  -ars-map: #26c0cf;  -ars-digi: #b191ea;  -ars-bridge: #6fa7ee;
     -ars-sat: #6fc884;  -ars-vault: #dba475; -ars-learn: #ef7d83; -ars-info: #d98fd1; -ars-hub: #a2c4d0;
+
+    /* amateur bands, one colour each (DX spot stripes, band-activity bars) */
+    -band-160: #ff5d6c;  -band-80: #ff8a4c;  -band-60: #ffb04c;  -band-40: #ffd84c;  -band-30: #b8e04c;
+    -band-20:  #4be38c;  -band-17: #2fe0c8;  -band-15: #2fd0ff;  -band-12: #6b8cff;  -band-10: #a977ff;
+    -band-6:   #ff6bc8;  -band-2:  #ff8fd8;  -band-70: #ffa0b4;
 }
 
 /* light palette override (token-only) */
@@ -914,3 +919,30 @@
 .fresh-b { -fx-background-color: -ars-accent-dim; -fx-background-radius: 6; }
 /* a count or value that has just changed */
 .label.flash { -fx-text-fill: -ars-accent; }
+
+
+/* ---- J-Hub dashboard: hero banner, band-striped spots, page background ----- */
+.dash-center { -fx-background-color: -ars-bg; }
+.hero        { -fx-padding: 4 6 6 6; }
+.hero-k      { -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; }
+.hero-call   { -fx-font-size: 44px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; -fx-effect: dropshadow(gaussian, -ars-accent-line, 16, 0.15, 0, 0); }
+.hero-sub    { -fx-font-size: 12.5px; -fx-text-fill: -ars-t2; }
+.hero-rig    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: -ars-log; -fx-effect: dropshadow(gaussian, rgba(255,184,74,0.45), 14, 0.2, 0, 0); }
+.hero-rig-sub{ -fx-font-family: "JetBrains Mono"; -fx-font-size: 12px; -fx-text-fill: -ars-t2; }
+.hero-clk    { -fx-font-family: "JetBrains Mono"; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, -ars-accent-line, 12, 0.2, 0, 0); }
+
+.jhub-clu { -fx-padding: 11 16 11 14; -fx-border-width: 0 0 1 4; -fx-border-color: transparent transparent -ars-border -ars-border-2; }
+.jhub-clu:hover { -fx-background-color: -ars-accent-dim; }
+.jhub-clu.band-160m { -fx-border-color: transparent transparent -ars-border -band-160; }
+.jhub-clu.band-80m { -fx-border-color: transparent transparent -ars-border -band-80; }
+.jhub-clu.band-60m { -fx-border-color: transparent transparent -ars-border -band-60; }
+.jhub-clu.band-40m { -fx-border-color: transparent transparent -ars-border -band-40; }
+.jhub-clu.band-30m { -fx-border-color: transparent transparent -ars-border -band-30; }
+.jhub-clu.band-20m { -fx-border-color: transparent transparent -ars-border -band-20; }
+.jhub-clu.band-17m { -fx-border-color: transparent transparent -ars-border -band-17; }
+.jhub-clu.band-15m { -fx-border-color: transparent transparent -ars-border -band-15; }
+.jhub-clu.band-12m { -fx-border-color: transparent transparent -ars-border -band-12; }
+.jhub-clu.band-10m { -fx-border-color: transparent transparent -ars-border -band-10; }
+.jhub-clu.band-6m { -fx-border-color: transparent transparent -ars-border -band-6; }
+.jhub-clu.band-2m { -fx-border-color: transparent transparent -ars-border -band-2; }
+.jhub-clu.band-70cm { -fx-border-color: transparent transparent -ars-border -band-70; }
