@@ -19,7 +19,7 @@ import java.util.List;
 import static com.ars.fx.shell.Shell.lbl;
 
 /**
- * The Cockpit dashboard's insight strip: four live stat tiles and a band-activity chart, in two sizes.
+ * The dashboard's insight strip, under the hero bar in every look: four live stat tiles and a band-activity chart, in two sizes.
  *
  * <ul>
  *   <li><b>Collapsed</b> (the default): one slim line of small type, with the bands as coloured chips that carry their label and count
@@ -46,6 +46,7 @@ final class InsightStrip extends Pane {
     private long countsAt; private int today, log;
 
     InsightStrip() {
+        getStyleClass().add("insight-strip");               // its rules (ars.css) are scoped to this class, so every dashboard look shows it
         full = buildFull(); compact = buildCompact();
         getChildren().addAll(compact, full);
         setMinWidth(0); setMinHeight(USE_PREF_SIZE);          // never squeezed: the cards scroll, this does not
