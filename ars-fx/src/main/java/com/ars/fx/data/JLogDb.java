@@ -95,11 +95,62 @@ public final class JLogDb {
         {"cqz", "INTEGER DEFAULT 0"}, {"ituz", "INTEGER DEFAULT 0"},
         {"lotw_rcvd", "INTEGER DEFAULT 0"}, {"eqsl_rcvd", "INTEGER DEFAULT 0"}};
 
+    /** Auto-upload bookkeeping (Setup > Data > LoTW / eQSL auto-upload): 1 = already uploaded, or older than the feature. Service id to column. */
+    private static final java.util.Map<String, String> UPLOADED_COL = java.util.Map.of("lotw", "lotw_up", "eqsl", "eqsl_up");
+
     private static void addColumns(Statement st) throws SQLException {
         java.util.Set<String> have = new java.util.HashSet<>();
         try (ResultSet rs = st.executeQuery("PRAGMA table_info(qso)")) { while (rs.next()) have.add(rs.getString("name").toLowerCase()); }
         for (String[] col : EXTRA_COLUMNS)
             if (!have.contains(col[0])) st.executeUpdate("ALTER TABLE qso ADD COLUMN " + col[0] + " " + col[1]);
+        // The upload markers: the first time they are added, keep a copy of the logbook and mark every existing QSO as done, so turning
+        // auto-upload on sends only what is logged from then on (older QSOs go through the Upload section, as before).
+        boolean needUp = false; for (String c : UPLOADED_COL.values()) if (!have.contains(c)) needUp = true;
+        if (needUp) {
+            backupBeforeUploadMarkers(st);
+            for (String c : UPLOADED_COL.values()) if (!have.contains(c)) {
+                st.executeUpdate("ALTER TABLE qso ADD COLUMN " + c + " INTEGER DEFAULT 0");
+                st.executeUpdate("UPDATE qso SET " + c + "=1");
+            }
+        }
+    }
+
+    /** One-off copy of the logbook next to it, taken before the upload markers are added. Failure to copy does not stop the migration. */
+    private static void backupBeforeUploadMarkers(Statement st) {
+        try {
+            Path db = dbPath(), bak = db.resolveSibling(db.getFileName() + ".bak-before-upload-markers");
+            if (Files.exists(bak)) return;
+            st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+            Files.copy(db, bak);
+        } catch (Throwable ignored) { }
+    }
+
+    /** A QSO not yet uploaded to a service, with its row id. */
+    public record Pending(long id, QsoExport qso) {}
+
+    /** The QSOs not yet uploaded to {@code service} ("lotw" or "eqsl"), oldest first. */
+    public static List<Pending> pendingUpload(String service) {
+        String col = UPLOADED_COL.get(service);
+        List<Pending> out = new ArrayList<>();
+        if (col == null) return out;
+        String sql = "SELECT id,callsign,datetime_utc,band,mode,frequency,power_watts,rst_sent,rst_received,"
+                + "country,operator_name,state,county,notes,sig_info," + REF_COLS + " FROM qso WHERE IFNULL(" + col + ",0)=0 ORDER BY datetime_utc ASC";
+        try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) out.add(new Pending(rs.getLong(1), new QsoExport(rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+                    rs.getString(6), rs.getInt(7), rs.getString(8), rs.getString(9), rs.getString(10), rs.getString(11),
+                    rs.getString(12), rs.getString(13), rs.getString(14), rs.getString(15), refsAt(rs, 16))));
+        } catch (Throwable t) { /* DB absent: nothing pending */ }
+        return out;
+    }
+
+    /** Record that these QSOs reached {@code service}. */
+    public static void markUploaded(String service, List<Long> ids) {
+        String col = UPLOADED_COL.get(service);
+        if (col == null || ids.isEmpty()) return;
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement("UPDATE qso SET " + col + "=1 WHERE id=?")) {
+            for (long id : ids) { ps.setLong(1, id); ps.addBatch(); }
+            ps.executeBatch();
+        } catch (Throwable t) { t.printStackTrace(); }
     }
 
     /** True if the log DB can be opened (driver present, path writable). */

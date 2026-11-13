@@ -19,7 +19,7 @@ import java.util.List;
 import static com.ars.fx.shell.Shell.lbl;
 
 /**
- * The Cockpit dashboard's insight strip: four live stat tiles and a band-activity chart, in two sizes.
+ * The dashboard's insight strip, under the hero bar in every look: four live stat tiles and a band-activity chart, in two sizes.
  *
  * <ul>
  *   <li><b>Collapsed</b> (the default): one slim line of small type, with the bands as coloured chips that carry their label and count
@@ -48,19 +48,11 @@ final class InsightStrip extends Pane {
     /** Instrument panel only: the open view shows round gauges and LED band meters instead of tiles and bars. */
     private final InstrumentStrip gauges;
 
-    /** The Cockpit strip, exactly as it was. */
-    InsightStrip() { this(false, false); }
+    InsightStrip() { this(false); }
 
-    /**
-     * @param standard {@code true} in every style but Cockpit: the strip then carries the shared {@code strip.css} rules (Cockpit has its own)
-     * @param useGauges {@code true} for the Instrument panel: the open view is the gauge row
-     */
-    InsightStrip(boolean standard, boolean useGauges) {
-        if (standard) {
-            getStyleClass().add("strip-std");
-            var css = InsightStrip.class.getResource("/com/ars/fx/css/styles/strip.css");
-            if (css != null) getStylesheets().add(css.toExternalForm());
-        }
+    /** @param useGauges {@code true} for the Instrument panel: the open view is the gauge row (the collapsed line and the Pin are the same in every look) */
+    InsightStrip(boolean useGauges) {
+        getStyleClass().add("insight-strip");               // its rules (ars.css) are scoped to this class, so every dashboard look shows it
         gauges = useGauges ? new InstrumentStrip() : null;
         full = buildFull(); compact = buildCompact();
         getChildren().addAll(compact, full);

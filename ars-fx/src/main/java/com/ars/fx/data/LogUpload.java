@@ -29,8 +29,9 @@ public final class LogUpload {
             .connectTimeout(Duration.ofSeconds(8)).build();
 
     // ---- LoTW via TrustedQSL ----------------------------------------------
-    public static Result lotw() {
-        List<JLogDb.QsoExport> rows = JLogDb.allForExport();
+    public static Result lotw() { return lotw(JLogDb.allForExport()); }
+    /** Sign and upload just these QSOs. */
+    public static Result lotw(List<JLogDb.QsoExport> rows) {
         if (rows.isEmpty()) return new Result(false, 0, "No QSOs to upload.");
         String tqsl = resolveTqsl();
         if (tqsl == null)
@@ -79,8 +80,9 @@ public final class LogUpload {
     }
 
     // ---- eQSL.cc ----------------------------------------------------------
-    public static Result eqsl() {
-        List<JLogDb.QsoExport> rows = JLogDb.allForExport();
+    public static Result eqsl() { return eqsl(JLogDb.allForExport()); }
+    /** Upload just these QSOs. */
+    public static Result eqsl(List<JLogDb.QsoExport> rows) {
         if (rows.isEmpty()) return new Result(false, 0, "No QSOs to upload.");
         String user = UploadConfig.field("eqsl", "user"), pw = UploadConfig.field("eqsl", "password");
         if (user.isBlank() || pw.isBlank()) return new Result(false, 0, "eQSL username/password not set.");

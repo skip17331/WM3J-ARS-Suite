@@ -29,8 +29,8 @@ public final class UiStyle {
             new Style("cockpit",    "Cockpit",          "/com/ars/fx/css/styles/cockpit.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
-    /** Whole-interface scale, as the labels shown in Setup. 100% is the default. */
-    public static final String[] SCALES = {"50%", "75%", "100%", "125%", "150%", "200%"};
+    /** Whole-interface scale, as the labels shown in Setup. 100% is the default. Applied live by {@link #scaled}, so any step works. */
+    public static final String[] SCALES = {"50%", "75%", "85%", "95%", "100%", "125%", "150%", "200%"};
     public static final String SCALE_DEFAULT = "100%";
     public static final String SCALE_KEY = "ui.scale";
     /** The position of {@link #SCALE_DEFAULT} in {@link #SCALES}. */
@@ -43,13 +43,10 @@ public final class UiStyle {
         return DASHBOARD_STYLES.get(0);
     }
 
-    /** The Cockpit style also swaps the dashboard's header for a hero banner (a layout change, not only a repaint). */
-    public static boolean isCockpit() { return "cockpit".equals(dashboard().key()); }
-
     /** The Modern style is the space age look: a starfield behind the page and a mission clock in the status bar. */
     public static boolean isModern() { return "modern".equals(dashboard().key()); }
 
-    /** The Instrument panel style swaps the dashboard's stat tiles for round needle gauges. */
+    /** The Instrument panel style shows round needle gauges in the status strip when it is open. */
     public static boolean isInstrument() { return "instrument".equals(dashboard().key()); }
 
     /** Put the chosen dashboard look on {@code root} (and take any other off it first). */
@@ -99,4 +96,5 @@ public final class UiStyle {
         });
         return view;
     }
+
 }
