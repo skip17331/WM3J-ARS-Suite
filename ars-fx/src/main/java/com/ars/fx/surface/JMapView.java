@@ -802,6 +802,9 @@ public final class JMapView {
         long[] last = { 0 };
         javafx.animation.AnimationTimer timer = new javafx.animation.AnimationTimer() {
             @Override public void handle(long now) {
+                // ~20 steps a second, not one per screen refresh: every step repaints the whole bar, and doing that 60 times a second for as long
+                // as the map is open was a large share of the window's CPU on a laptop GPU
+                if (last[0] != 0 && now - last[0] < 50_000_000L) return;
                 double w = pane.getWidth();
                 if (w <= 0) return;
                 if (Double.isNaN(x[0])) x[0] = w;
