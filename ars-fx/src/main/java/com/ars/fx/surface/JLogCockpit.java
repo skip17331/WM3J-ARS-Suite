@@ -493,7 +493,7 @@ public final class JLogCockpit {
         return Shell.drawer("RTTY / CW · TX & RX", "digi", "digi", "CW · " + cwRate(), false, body);
     }
     /** Post "DX <call> <kHz> <mode> <comment>" to the cluster; returns a short status for the header line. */
-    private static String postSpot(String call, String freqMhz, String mode, String comment) {
+    static String postSpot(String call, String freqMhz, String mode, String comment) {
         com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
         if (!cc.isConnected() && !com.ars.fx.data.RemoteLink.isActive()) return "✗ spot not sent — DX cluster is not connected";
         double mhz;
