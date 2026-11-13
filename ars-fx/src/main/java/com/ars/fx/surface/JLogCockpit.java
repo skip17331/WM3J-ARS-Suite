@@ -251,7 +251,8 @@ public final class JLogCockpit {
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
         body.getChildren().add(dtRow);
         body.getChildren().add(row(g("IOTA", iota, false), g("SOTA SUMMIT", sota, false), g("POTA PARK", pota, false), g("CONFIRMED", confBox, false)));
-        body.getChildren().add(RefHints.attach(call, grid, iota, sota, pota));
+        RefHints.Attached refCheck = RefHints.attachChecked(call, grid, iota, sota, pota);     // live marks under the three fields; refCheck.problems() feeds the save prompt
+        body.getChildren().add(refCheck.node());
 
         VBox cmtF = g("COMMENT", cmt, true);
         Region sp2 = new Region(); HBox.setHgrow(sp2, Priority.ALWAYS);
@@ -336,7 +337,7 @@ public final class JLogCockpit {
             sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
         }));
 
-        Runnable doLog = () -> {
+        Runnable saveNow = () -> {
             if (call.getText() == null || call.getText().isBlank()) { call.requestFocus(); return; }
             int p = 0; try { p = Integer.parseInt(pwr.getText().trim()); } catch (Exception ignored) {}
             String bandVal = (band.getText() == null || band.getText().isBlank()) ? JLogDb.bandFor(freq.getText()) : band.getText();
@@ -366,6 +367,15 @@ public final class JLogCockpit {
                 refresh[0].run();
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
             }
+        };
+        // IOTA / SOTA / POTA references that are wrong (bad shape, or looked up and not known): ask once, and let the operator save anyway - a park the service does not list yet is still a QSO.
+        Runnable doLog = () -> {
+            if (call.getText() == null || call.getText().isBlank()) { call.requestFocus(); return; }
+            java.util.List<String> bad = refCheck.problems().get();
+            if (bad.isEmpty()) { saveNow.run(); return; }
+            Confirm.show(logBtn, "Check the references", String.join("\n", bad) + "\n\nSave this QSO anyway?",
+                    new Confirm.Choice("Save anyway", true, saveNow),
+                    new Confirm.Choice("Go back and fix", false, null));
         };
         logBtn.setOnMouseClicked(e -> doLog.run());
         call.setOnAction(e -> doLog.run());

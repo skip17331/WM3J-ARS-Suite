@@ -39,33 +39,50 @@ public final class RefLookup {
     public static boolean looksLikeIota(String r) { return IOTA.matcher(normalise(r)).matches(); }
 
     // ---- POTA / SOTA ----------------------------------------------------------------------------------
-    public static Ref pota(String ref) {
-        String r = normalise(ref);
-        if (!looksLikePota(r)) return null;
-        String body = get("pota-" + r, "https://api.pota.app/park/" + r);
-        if (body == null || body.isBlank() || body.trim().equals("null")) return null;
-        try {
-            JsonNode n = JSON.readTree(body);
-            String name = n.path("name").asText("");
-            if (name.isEmpty()) return null;
-            String grid = n.path("grid6").asText(n.path("grid4").asText(""));
-            String where = n.path("locationDesc").asText("");
-            return new Ref(Kind.POTA, r, name, grid, where);
-        } catch (Exception e) { return null; }
+    /** Whether a reference is known to the service that owns it; UNREACHABLE means the answer could not be had (offline, service down), which says nothing about the reference. */
+    public enum Found { FOUND, NOT_FOUND, UNREACHABLE }
+    public record Check(Found found, Ref ref) {
+        static final Check NOT_FOUND = new Check(Found.NOT_FOUND, null), UNREACHABLE = new Check(Found.UNREACHABLE, null);
     }
 
-    public static Ref sota(String ref) {
+    public static Ref pota(String ref) { return checkPota(ref).ref(); }
+    public static Ref sota(String ref) { return checkSota(ref).ref(); }
+
+    public static Check checkPota(String ref) {
         String r = normalise(ref);
-        if (!looksLikeSota(r)) return null;
-        String body = get("sota-" + r.replace('/', '_'), "https://api2.sota.org.uk/api/summits/" + r);
-        if (body == null || body.isBlank()) return null;
+        if (!looksLikePota(r)) return Check.NOT_FOUND;
+        FeedFetcher.Fetched f = fetch("pota-" + r, "https://api.pota.app/park/" + r);
+        if (f.body() == null) return missing(f);
+        String body = f.body();
+        if (body.isBlank() || body.trim().equals("null")) return Check.NOT_FOUND;      // the service answers null for a park it does not know
         try {
             JsonNode n = JSON.readTree(body);
             String name = n.path("name").asText("");
-            if (name.isEmpty()) return null;
+            if (name.isEmpty()) return Check.NOT_FOUND;
+            String grid = n.path("grid6").asText(n.path("grid4").asText(""));
+            String where = n.path("locationDesc").asText("");
+            return new Check(Found.FOUND, new Ref(Kind.POTA, r, name, grid, where));
+        } catch (Exception e) { return Check.UNREACHABLE; }
+    }
+
+    public static Check checkSota(String ref) {
+        String r = normalise(ref);
+        if (!looksLikeSota(r)) return Check.NOT_FOUND;
+        FeedFetcher.Fetched f = fetch("sota-" + r.replace('/', '_'), "https://api2.sota.org.uk/api/summits/" + r);
+        if (f.body() == null) return missing(f);
+        if (f.body().isBlank()) return Check.NOT_FOUND;
+        try {
+            JsonNode n = JSON.readTree(f.body());
+            String name = n.path("name").asText("");
+            if (name.isEmpty()) return Check.NOT_FOUND;
             String detail = n.path("points").asInt(0) + " pts · " + n.path("altM").asInt(0) + " m · " + n.path("associationName").asText("");
-            return new Ref(Kind.SOTA, r, name, n.path("locator").asText(""), detail);
-        } catch (Exception e) { return null; }
+            return new Check(Found.FOUND, new Ref(Kind.SOTA, r, name, n.path("locator").asText(""), detail));
+        } catch (Exception e) { return Check.UNREACHABLE; }
+    }
+
+    /** A fetch that came back with nothing: an HTTP 404 means the service does not know the reference; anything else means we could not ask. */
+    private static Check missing(FeedFetcher.Fetched f) {
+        return f.error() != null && f.error().contains("HTTP 404") ? Check.NOT_FOUND : Check.UNREACHABLE;
     }
 
     // ---- IOTA -----------------------------------------------------------------------------------------
@@ -93,11 +110,22 @@ public final class RefLookup {
     private static int num(String s) { try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return 0; } }
     private static double dbl(String s) { try { return Double.parseDouble(s.trim()); } catch (NumberFormatException e) { return Double.NaN; } }
 
-    public static Ref iota(String ref) {
+    public static Ref iota(String ref) { return checkIota(ref).ref(); }
+
+    public static Check checkIota(String ref) {
         String r = normalise(ref);
-        if (!looksLikeIota(r)) return null;
-        for (IotaGroup g : iota()) if (g.ref().equals(r)) return new Ref(Kind.IOTA, r, g.name(), "", "DXCC " + g.dxcc());
-        return null;
+        if (!looksLikeIota(r)) return Check.NOT_FOUND;
+        List<IotaGroup> groups = iota();
+        if (groups.isEmpty()) return Check.UNREACHABLE;                  // the list could not be had
+        for (IotaGroup g : groups) if (g.ref().equals(r)) return new Check(Found.FOUND, new Ref(Kind.IOTA, r, g.name(), "", "DXCC " + g.dxcc()));
+        return Check.NOT_FOUND;
+    }
+
+    /** The DXCC entity number the IOTA list gives for a group, or 0 when unknown. */
+    public static int iotaDxcc(String ref) {
+        String r = normalise(ref);
+        for (IotaGroup g : iota()) if (g.ref().equals(r)) return g.dxcc();
+        return 0;
     }
 
     /**
@@ -118,8 +146,9 @@ public final class RefLookup {
         return inEntity.size() > limit ? new ArrayList<>(inEntity.subList(0, limit)) : inEntity;
     }
 
-    private static String get(String key, String url) {
-        FeedFetcher.Fetched f = FeedFetcher.get(key, url, false, Instant.now(), KEEP);
-        return f.body();
+    private static String get(String key, String url) { return fetch(key, url).body(); }
+
+    private static FeedFetcher.Fetched fetch(String key, String url) {
+        return FeedFetcher.get(key, url, false, Instant.now(), KEEP);
     }
 }
