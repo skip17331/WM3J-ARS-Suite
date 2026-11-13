@@ -286,7 +286,7 @@ public final class RigPanel {
             boolean tx = live && st.ptt();
             long bHz = live ? st.vfoBHz() : 0;
             boolean spl = live && st.split();
-            vfoBLine.setText(!live ? "" : spl ? "TX  " + (bHz > 0 ? RigClient.fmtFreqFull(bHz) : "—") + (bHz > 0 && hz > 0 ? "  (" + fmtOffset(bHz - hz) + ")" : "") : "Split off");
+            vfoBLine.setText(!live ? "" : spl ? "TX  " + (bHz > 0 ? RigClient.fmtFreqFull(bHz) : "—") + (bHz > 0 && hz > 0 ? "  (" + fmtOffset(bHz - hz) + ")" : "") : bHz > 0 ? "B  " + RigClient.fmtFreqFull(bHz) + "  ·  split off" : "Split off");
             txChips.setVisible(spl); txChips.setManaged(spl);
 
             // meters
