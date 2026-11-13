@@ -315,6 +315,11 @@
 /* contest entry validation: red = can never be valid (blocks logging), amber = not recognised (second Enter logs it) */
 .jhub-mini-field.invalid   { -fx-border-color: -ars-err;  -fx-border-width: 2; -fx-border-radius: 6; }
 .jhub-mini-field.warnfield { -fx-border-color: -ars-warn; -fx-border-width: 2; -fx-border-radius: 6; }
+.jhub-mini-field.ref-ok    { -fx-border-color: -ars-ok;   -fx-border-width: 2; -fx-border-radius: 6; }   /* IOTA / SOTA / POTA reference checked and fine */
+.ref-line-ok      { -fx-text-fill: -ars-ok; }
+.ref-line-warn    { -fx-text-fill: -ars-warn; }
+.ref-line-bad     { -fx-text-fill: -ars-err; }
+.ref-line-unknown { -fx-text-fill: -ars-t3; }
 .jl-runsp { -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 2; }
 .jl-runsp-btn { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; -fx-padding: 5 12 5 12; -fx-background-radius: 5; -fx-cursor: hand; }
 .jl-runsp-btn.on { -fx-background-color: -ars-accent; -fx-text-fill: #07141b; }
