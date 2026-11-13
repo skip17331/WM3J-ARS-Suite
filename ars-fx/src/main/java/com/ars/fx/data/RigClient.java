@@ -270,6 +270,14 @@ public final class RigClient {
         slowSplit = on; if (on && rx > 0) splitHz = rx;
         republish(java.util.Map.of(), java.util.Map.of(), on, on && rx > 0 ? rx : null);
     }
+    /** Change the receive passband (Hz), keeping the current mode (Hamlib M). */
+    public void setPassbandHz(long hz) {
+        State s = last; String m = s.mode();
+        if (!s.connected() || m == null || m.isBlank()) return;
+        hz = Math.max(50, Math.min(9999, hz));
+        cmd("M " + m.trim() + " " + hz);
+        emit(new State(true, s.freqHz(), s.mode(), s.vfo(), s.vfoBHz(), s.split(), s.ptt(), hz, s.sMeterDb(), s.swr(), s.alc(), s.rfPowerFrac(), s.levels(), s.funcs(), s.error()));
+    }
     /** Set the transmit frequency while split is on. */
     public void setSplitFreqHz(long hz) {
         if (hz <= 0) return;
@@ -316,7 +324,7 @@ public final class RigClient {
         runCmd(c);
     }
     private static final java.util.regex.Pattern ALLOWED_CMD = java.util.regex.Pattern.compile(
-            "V VFO[AB]|S [01] VFO[AB]|I [0-9]{4,10}|[JZ] -?[0-9]{1,5}|U [A-Z0-9_]{1,12} [01]|L [A-Z0-9_]{1,12} -?[0-9]{1,6}(\\.[0-9]{1,6})?|\\\\vfo_op [A-Z_]{1,12}");
+            "V VFO[AB]|S [01] VFO[AB]|I [0-9]{4,10}|[JZ] -?[0-9]{1,5}|M [A-Z0-9-]{2,8} [0-9]{2,5}|U [A-Z0-9_]{1,12} [01]|L [A-Z0-9_]{1,12} -?[0-9]{1,6}(\\.[0-9]{1,6})?|\\\\vfo_op [A-Z_]{1,12}");
     /** The hub runs a control command a window asked for, but only the kinds the rig panel sends. */
     public void runForwarded(String c) {
         if (c == null || !ALLOWED_CMD.matcher(c).matches() || !last.connected()) return;
