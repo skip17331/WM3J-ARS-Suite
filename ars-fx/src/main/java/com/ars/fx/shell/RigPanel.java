@@ -291,9 +291,13 @@ public final class RigPanel {
             double pw = live ? st.level("RFPOWER") : Double.NaN;
             dlSum.setText("AGC " + (live ? agcShort(st.level("AGC")) : "—") + " · " + (Double.isNaN(pw) ? "—" : Math.round(pw * 100) + "W"));
         };
-        // subscribe; drop our listener when the panel leaves the scene (overlay closed)
+        // subscribe; drop our listener when the panel leaves the scene (overlay closed) and take it up again when the panel comes back,
+        // otherwise a panel that is pinned / unpinned / re-docked stays frozen on its last values
         Consumer<RigClient.State> l = s -> Platform.runLater(() -> render.accept(s));
-        panel.sceneProperty().addListener((o, a, b) -> { if (b == null) rig.removeListener(l); });
+        panel.sceneProperty().addListener((o, a, b) -> {
+            rig.removeListener(l);
+            if (b != null) rig.addListener(l);   // addListener also pushes the current state straight away
+        });
         rig.addListener(l);
         rig.start();
         return panel;
