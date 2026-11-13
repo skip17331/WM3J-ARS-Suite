@@ -352,7 +352,9 @@ public final class JLogContest {
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
-        HBox actions = new HBox(12, b4, gap, clear, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
+        Label spotBtn = lbl("Log + Spot", "jl-logbtn"); spotBtn.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(spotBtn, "Save this QSO and post a spot for the station to the DX cluster, on the rig's frequency");
+        HBox actions = new HBox(12, b4, gap, clear, spotBtn, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
         problemL = lbl("", "jl-emeta"); problemL.setWrapText(true); problemL.setMaxWidth(Double.MAX_VALUE);
         problemL.setStyle("-fx-font-size:18px;-fx-font-weight:bold;-fx-text-fill:-ars-err;");
@@ -385,13 +387,17 @@ public final class JLogContest {
         body.getChildren().add(MacroBar.row(fireMacro, macroSet));
         installFKeys(body, fireMacro, macroSet == null ? com.ars.fx.data.MacroConfig.count() : macroSet.size());
 
-        Runnable doLog = () -> { if (logQso(plugin)) clearForm(); };   // recompute → listeners refresh log + trackers
-        logBtn.setOnMouseClicked(e -> doLog.run());
+        Runnable doLog = () -> { if (logQso(plugin)) finishLog(); };   // recompute → listeners refresh log + trackers
+        logBtn.setOnMouseClicked(e -> { spotAfter = false; doLog.run(); });
+        spotBtn.setOnMouseClicked(e -> {
+            if (editingRec != null) { setB4("Spot is for new QSOs, not edits", "new"); return; }
+            spotAfter = true; doLog.run();
+        });
         clear.setOnMouseClicked(e -> clearForm());
 
         // keyboard flow: Enter in any field logs (a missing required field takes the focus instead), Esc clears
         for (Control c : fieldControls.values()) {
-            if (c instanceof TextField t) t.setOnAction(e -> doLog.run());
+            if (c instanceof TextField t) t.setOnAction(e -> { spotAfter = false; doLog.run(); });
             c.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
         }
         // Space = next field (call, then the exchange in the order shown); the space itself is not typed
@@ -644,6 +650,22 @@ public final class JLogContest {
         return lv == ContestValidation.Level.OK || lv == ContestValidation.Level.SOFT;
     }
 
+    private static boolean spotAfter;        // "Log + Spot" pressed: post a spot once the QSO is saved
+    private static String spotNote = "";     // what happened to it, shown after the form clears
+
+    /** Post the spot for a QSO about to be logged, on the rig's dial frequency; returns a short status. */
+    private static String spotNow(QsoRecord r) {
+        com.ars.fx.data.RigClient.State rs = com.ars.fx.data.RigClient.getInstance().last();
+        if (rs == null || !rs.connected() || rs.freqHz() <= 0) return "✗ spot not sent — rig not connected, no frequency";
+        return JLogCockpit.postSpot(r.getCallsign(), String.valueOf(rs.freqHz() / 1e6), r.getMode(), "");
+    }
+    /** After a successful log: clear the form, then show the spot result if there is one. */
+    private static void finishLog() {
+        String note = spotNote; spotNote = ""; spotAfter = false;
+        clearForm();
+        if (!note.isEmpty()) setB4(note, "new");
+    }
+
     private static boolean logQso(ContestPlugin plugin) { return logQso(plugin, false); }
 
     /** @param dupeApproved the operator has already said "log this dupe anyway" */
@@ -678,7 +700,7 @@ public final class JLogContest {
                         call.toUpperCase() + " is already in the log for " + normBand(bandF.getText()) + " " + modeF.getText().trim().toUpperCase()
                                 + ". A dupe scores nothing. Log it anyway?",
                         new Confirm.Choice("Don't log it", true, () -> focus("callsign")),
-                        new Confirm.Choice("Log the dupe", false, () -> { if (logQso(plugin, true)) clearForm(); }));
+                        new Confirm.Choice("Log the dupe", false, () -> { if (logQso(plugin, true)) finishLog(); }));
                 return false;
             }
             r.setDupe(dupe);
@@ -686,7 +708,7 @@ public final class JLogContest {
             // a new multiplier is worked out before the QSO is in the log (only when something is listening: it scores the log twice)
             boolean newMult = !editing && !dupe && com.ars.fx.data.N1mmBroadcast.enabled() && MultCheck.isNewMult(plugin, ContestState.qsos(), r, ContestState.ctx());
             if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); com.ars.fx.data.N1mmBroadcast.contactEdited(plugin, r, oldCall); }
-            else { ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); com.ars.fx.data.SessionQsos.logged(r.getCallsign(), null, r.getBand(), r.getMode()); }
+            else { if (spotAfter) spotNote = spotNow(r); ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); com.ars.fx.data.SessionQsos.logged(r.getCallsign(), null, r.getBand(), r.getMode()); }
             ContestState.recompute();
             final QsoRecord logged = r;
             Thread lt = new Thread(() -> com.ars.fx.data.CallHistory.learn(plugin, logged), "call-history-learn");
