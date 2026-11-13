@@ -36,8 +36,8 @@ public final class RigPanel {
     private static final long FAST_HZ = 1_000, SLOW_HZ = 10;
     private static final String[] BANDS = {"160","80","60","40","30","20","17","15","12","10","6","GEN"};
     private static final String[] MODES = {"USB","LSB","CW","CW-R","RTTY","FT8","AM","FM"};
-    private static final String[] FUNCS = {"SPLIT","RIT","XIT","A=B","A/B","VOX","SPOT","LOCK"};
-    private static final String[] FUNC_SUB = {"+3k","0","0","copy","swap","on","CW","VFO"};
+    private static final String[] FUNCS = {"SPLIT","RIT","XIT","A=B","A/B","VOX","COMP","LOCK"};
+    private static final String[] FUNC_SUB = {"TX","0","0","copy","swap","vox","comp","dial"};
     private static final String[] DSP = {"AGC","PRE","ATT","NB","NR","NOTCH"};
     private static final String[] DSP_VAL = {"MID","1","off","5","3","off"};
 
@@ -60,7 +60,7 @@ public final class RigPanel {
         Region connDot = new Region(); connDot.getStyleClass().add("rc-conn-d");
         Label connTx = lbl("CAT", "rc-conn-t");
         Region connSp = new Region(); HBox.setHgrow(connSp, Priority.ALWAYS);
-        HBox statusRow = new HBox(6, lbl("Icom IC-7610 · CI-V", "rc-sub"), connSp, connDot, connTx);
+        HBox statusRow = new HBox(6, lbl(rigLabel(), "rc-sub"), connSp, connDot, connTx);
         statusRow.setAlignment(Pos.CENTER_LEFT);
 
         // ── meters strip ────────────────────────────────────────────────────
@@ -96,10 +96,8 @@ public final class RigPanel {
         HBox vfoTop = new HBox(6, vfoA, vfoB, vfoSp, splitTag); vfoTop.setAlignment(Pos.CENTER_LEFT);
         vfoA.setOnMouseClicked(e -> rig.setVfo("VFOA"));
         vfoB.setOnMouseClicked(e -> rig.setVfo("VFOB"));
-        boolean[] split = {true};   // mock default
-        splitTag.getStyleClass().add("on");
         splitTag.setStyle("-fx-cursor:hand;");
-        splitTag.setOnMouseClicked(e -> { split[0] = !split[0]; rig.setSplit(split[0]); splitTag.getStyleClass().remove("on"); if (split[0]) splitTag.getStyleClass().add("on"); });
+        splitTag.setOnMouseClicked(e -> rig.setSplit(!rig.last().split()));
 
         Label fMhz = lbl("—", "rc-freq-mhz"), fDot1 = lbl(".", "rc-freq-dot"), fKhz = lbl("—", "rc-freq-khz"),
               fDot2 = lbl(".", "rc-freq-dot"), fHz = lbl("—", "rc-freq-hz");
@@ -128,11 +126,34 @@ public final class RigPanel {
         VBox slowCol = nudgeCol("Slow", false, () -> rig.nudgeFreq(SLOW_HZ), () -> rig.nudgeFreq(-SLOW_HZ));
         HBox freqRow = new HBox(8, fastCol, freqMid, slowCol); freqRow.setAlignment(Pos.CENTER);
 
-        Label vfoBLine = lbl("", "rc-vfo-b"); vfoBLine.setMaxWidth(Double.MAX_VALUE);
+        Label vfoBLine = lbl("", "rc-vfo-b"); vfoBLine.setMaxWidth(Double.MAX_VALUE); vfoBLine.setStyle("-fx-cursor:hand;");
+        Tips.tip(vfoBLine, "Split: the transmit frequency. Click to type it, scroll to step it by 1 kHz (Shift: 100 Hz).");
+        TextField txEdit = new TextField(); txEdit.getStyleClass().add("rc-freqin"); txEdit.setAlignment(Pos.CENTER); txEdit.setManaged(false); txEdit.setVisible(false);
+        StackPane txStack = new StackPane(vfoBLine, txEdit);
+        Runnable txExit = () -> { txEdit.setManaged(false); txEdit.setVisible(false); vfoBLine.setVisible(true); vfoBLine.setManaged(true); };
+        Runnable txCommit = () -> { long hz = parseFreqInput(txEdit.getText()); if (hz > 0) rig.setSplitFreqHz(hz); txExit.run(); };
+        vfoBLine.setOnMouseClicked(e -> {
+            if (!rig.last().split()) return;
+            long hz = rig.splitFreqHz(); txEdit.setText(hz > 0 ? RigClient.fmtFreqFull(hz) : "");
+            vfoBLine.setVisible(false); vfoBLine.setManaged(false); txEdit.setManaged(true); txEdit.setVisible(true);
+            txEdit.requestFocus(); txEdit.positionCaret(txEdit.getText().length());
+        });
+        txEdit.setOnAction(e -> txCommit.run());
+        txEdit.focusedProperty().addListener((o, was, is) -> { if (!is) txCommit.run(); });
+        vfoBLine.setOnScroll(e -> {
+            if (!rig.last().split() || e.getDeltaY() == 0) return;
+            long base = rig.splitFreqHz(); if (base <= 0) return;
+            rig.setSplitFreqHz(base + (e.getDeltaY() > 0 ? 1 : -1) * (e.isShiftDown() ? 100L : 1000L)); e.consume();
+        });
+        // quick offsets from the receive frequency, for working a station that is listening up
+        HBox txChips = new HBox(6); txChips.setAlignment(Pos.CENTER);
+        txChips.getChildren().add(cellBtn("=RX", "rc-mode", () -> rig.setSplitFreqHz(rig.last().freqHz())));
+        for (int k : new int[]{1, 2, 3, 5}) txChips.getChildren().add(cellBtn("+" + k, "rc-mode", () -> rig.setSplitFreqHz(rig.last().freqHz() + k * 1000L)));
+        for (Node n : txChips.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
         Region rateSp = new Region(); HBox.setHgrow(rateSp, Priority.ALWAYS);
         HBox rate = new HBox(legend("Fast step", "1 kHz"), rateSp, legend("Slow step", "10 Hz"));
         VBox.setMargin(vfoBLine, new Insets(6, 0, 0, 0)); VBox.setMargin(rate, new Insets(9, 0, 0, 0));
-        VBox vfoCard = new VBox(9, vfoTop, freqRow, vfoBLine, rate); vfoCard.getStyleClass().add("rc-card");
+        VBox vfoCard = new VBox(9, vfoTop, freqRow, txStack, txChips, rate); vfoCard.getStyleClass().add("rc-card");
 
         // ── sub-drawer 1: Band & Mode ───────────────────────────────────────
         Map<String,Label> bandBtns = new LinkedHashMap<>();
@@ -155,21 +176,34 @@ public final class RigPanel {
         filt.add(filtTile("NR", nrVal), 2, 0); filt.add(filtTile("Notch", notchVal), 3, 0);
         VBox filterSec = section("Filter · passband", new VBox(7, pb, filt));
         Map<String,Label> fnBtns = new LinkedHashMap<>();
-        java.util.Set<String> fnLocal = new java.util.LinkedHashSet<>();   // local visual for funcs we can't read back
         GridPane fnGrid = grid(4, 5);
         for (int i = 0; i < FUNCS.length; i++) {
             String fn = FUNCS[i]; Label l = fnTile(fn, FUNC_SUB[i]); fnBtns.put(fn, l);
             l.setOnMouseClicked(e -> {
-                boolean on = !l.getStyleClass().contains("on");
+                RigClient.State cur = rig.last();
+                if (("RIT".equals(fn) || "XIT".equals(fn)) && e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {   // right-click: back to zero
+                    if ("RIT".equals(fn)) rig.setRitHz(0); else rig.setXitHz(0);
+                    return;
+                }
                 switch (fn) {
-                    case "SPLIT" -> rig.setSplit(on);
-                    case "VOX", "LOCK" -> rig.setFunc(fn, on);
-                    case "RIT", "XIT" -> { rig.setFunc(fn, on); toggleClass(l, on); fnLocal.remove(fn); if (on) fnLocal.add(fn); }
+                    case "SPLIT" -> rig.setSplit(!cur.split());
+                    case "VOX", "LOCK", "COMP", "RIT", "XIT" -> rig.setFunc(fn, !cur.func(fn));
                     case "A=B" -> rig.vfoOp("CPY");
                     case "A/B" -> rig.vfoOp("XCHG");
-                    default -> { toggleClass(l, on); fnLocal.remove(fn); if (on) fnLocal.add(fn); }   // SPOT: local
+                    default -> { }
                 }
             });
+            if ("RIT".equals(fn) || "XIT".equals(fn)) {           // scroll for the offset: 10 Hz a notch, Shift for 100 Hz
+                String key = fn + "_HZ";
+                l.setOnScroll(e -> {
+                    if (e.getDeltaY() == 0) return;
+                    double c = rig.last().level(key); long cur = Double.isNaN(c) ? 0 : Math.round(c);
+                    long next = cur + (e.getDeltaY() > 0 ? 1 : -1) * (e.isShiftDown() ? 100L : 10L);
+                    if ("RIT".equals(fn)) rig.setRitHz(next); else rig.setXitHz(next);
+                    e.consume();
+                });
+                Tips.tip(l, fn + ": click to switch on or off, scroll to change the offset (10 Hz a notch, Shift for 100 Hz), right-click for zero.");
+            }
             fnGrid.add(l, i % 4, i / 4);
         }
         VBox ffBody = new VBox(11, filterSec, section("Functions", fnGrid));
@@ -183,6 +217,7 @@ public final class RigPanel {
             Label v = lbl("—", "rc-dsp-v"); Label host = dspTile(DSP[i], v);
             dspHosts.put(DSP[i], host); dspVals.put(DSP[i], v);
             dspGrid.add(host, i % 3, i / 3);
+            wireDsp(rig, DSP[i], host);
         }
         Map<String,Slider> sliders = new LinkedHashMap<>(); Map<String,Label> sliderVals = new LinkedHashMap<>();
         VBox levels = new VBox(9,
@@ -199,7 +234,13 @@ public final class RigPanel {
         atuB.setOnMouseClicked(e -> rig.setFunc("TUNER", !atuB.getStyleClass().contains("on")));
         Label tuneB = actBtn("TUNE", "tune", rig::antTune);
         Label pttB = actBtn("● PTT", "ptt", null);
-        pttB.setOnMouseClicked(e -> rig.setPtt(!pttB.getStyleClass().contains("tx")));
+        // push-to-talk: keyed while the button is held, released when it is let go, when the pointer slips off it, or when the window loses focus
+        boolean[] held = {false};
+        Runnable release = () -> { if (held[0]) { held[0] = false; rig.setPtt(false); } };
+        pttB.setOnMousePressed(e -> { if (e.isPrimaryButtonDown() && !held[0]) { held[0] = true; rig.setPtt(true); } });
+        pttB.setOnMouseReleased(e -> release.run());
+        pttB.setOnMouseExited(e -> release.run());
+        pttB.sceneProperty().addListener((o, was, now) -> { if (now != null) now.windowProperty().addListener((ow, wo, wn) -> { if (wn != null) wn.focusedProperty().addListener((of, f0, f1) -> { if (!f1) release.run(); }); }); });
         GridPane foot = new GridPane(); foot.setHgap(8); foot.getStyleClass().add("rc-foot");
         double[] fw = {29, 29, 42};
         for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(fw[c]); foot.getColumnConstraints().add(cc); }
@@ -236,7 +277,9 @@ public final class RigPanel {
             }
             boolean tx = live && st.ptt();
             long bHz = live ? st.vfoBHz() : 0;
-            vfoBLine.setText(live ? "B  " + (bHz > 0 ? RigClient.fmtFreqFull(bHz) : "—") + "  ·  " + (st.split() ? "TX" : tx ? "TX" : "RX") : "B  —");
+            boolean spl = live && st.split();
+            vfoBLine.setText(!live ? "" : spl ? "TX  " + (bHz > 0 ? RigClient.fmtFreqFull(bHz) : "—") + (bHz > 0 && hz > 0 ? "  (" + fmtOffset(bHz - hz) + ")" : "") : "Split off");
+            txChips.setVisible(spl); txChips.setManaged(spl);
 
             // meters
             int lit = live ? (int) Math.round(Math.max(0, Math.min(22, (st.sMeterDb() + 54.0) / 94.0 * 22))) : 0;
@@ -263,6 +306,12 @@ public final class RigPanel {
             toggleClass(fnBtns.get("SPLIT"), live && st.split());
             toggleClass(fnBtns.get("VOX"), live && st.func("VOX"));
             toggleClass(fnBtns.get("LOCK"), live && st.func("LOCK"));
+            toggleClass(fnBtns.get("COMP"), live && st.func("COMP"));
+            toggleClass(fnBtns.get("RIT"), live && st.func("RIT"));
+            toggleClass(fnBtns.get("XIT"), live && st.func("XIT"));
+            setSub(fnBtns.get("RIT"), live ? fmtOffset(Math.round(nz(st.level("RIT_HZ")))) : "0");
+            setSub(fnBtns.get("XIT"), live ? fmtOffset(Math.round(nz(st.level("XIT_HZ")))) : "0");
+            setSub(fnBtns.get("SPLIT"), live && st.split() && st.vfoBHz() > 0 && hz > 0 ? fmtOffset(st.vfoBHz() - hz) : "TX");
 
             // filter / passband
             long pbHz = live ? st.passbandHz() : 0;
@@ -276,7 +325,7 @@ public final class RigPanel {
             dspSet(dspHosts, dspVals, "AGC", live && st.level("AGC") > 0, live ? agcShort(st.level("AGC")) : "—");
             dspSet(dspHosts, dspVals, "PRE", live && st.level("PREAMP") > 0, live && st.level("PREAMP") > 0 ? String.valueOf((int) st.level("PREAMP")) : "off");
             dspSet(dspHosts, dspVals, "ATT", live && st.level("ATT") > 0, live && st.level("ATT") > 0 ? (int) st.level("ATT") + "" : "off");
-            dspSet(dspHosts, dspVals, "NB", live && st.func("NB"), live && st.func("NB") ? "on" : "off");
+            dspSet(dspHosts, dspVals, "NB", live && st.func("NB"), live && st.func("NB") ? lvlInt(st, "NB", "on") : "off");
             dspSet(dspHosts, dspVals, "NR", live && st.func("NR"), live && st.func("NR") ? lvlInt(st, "NR", "on") : "off");
             dspSet(dspHosts, dspVals, "NOTCH", live && st.func("ANF"), live && st.func("ANF") ? "auto" : "off");
 
@@ -301,6 +350,13 @@ public final class RigPanel {
         rig.addListener(l);
         rig.start();
         return panel;
+    }
+
+    /** The rig as set up in J-Hub (model, and the interface when there is one). */
+    private static String rigLabel() {
+        String m = com.ars.fx.data.HubConfig.get("rig.model", "").trim(), i = com.ars.fx.data.HubConfig.get("rig.interface", "").trim();
+        if (m.isEmpty()) return "Rig";
+        return i.isEmpty() ? m : m + " · " + i;
     }
 
     // ── builders ────────────────────────────────────────────────────────────
@@ -431,9 +487,44 @@ public final class RigPanel {
         double v = st.level(level); if (Double.isNaN(v)) return fallback;
         return String.valueOf((int) Math.round(v <= 1 ? v * 15 : v));
     }
+    /** Hamlib's AGC values: 0 off, 1 super-fast, 2 fast, 3 slow, 4 user, 5 medium, 6 auto. */
     private static String agcShort(double agc) {
         if (Double.isNaN(agc) || agc <= 0) return "off";
-        return switch ((int) Math.round(agc)) { case 1, 2 -> "FST"; case 3 -> "MID"; case 4 -> "SLW"; case 5 -> "AUT"; default -> "ON"; };
+        return switch ((int) Math.round(agc)) { case 1, 2 -> "FST"; case 3 -> "SLW"; case 4 -> "USR"; case 5 -> "MID"; case 6 -> "AUT"; default -> "ON"; };
+    }
+    private static double nz(double v) { return Double.isNaN(v) ? 0 : v; }
+    /** "+1.0k" / "-120" / "0": a signed offset in Hz. */
+    private static String fmtOffset(long hz) {
+        if (hz == 0) return "0";
+        String sign = hz > 0 ? "+" : "-"; long a = Math.abs(hz);
+        return a >= 1000 ? sign + String.format(java.util.Locale.ROOT, "%.1f", a / 1000.0) + "k" : sign + a;
+    }
+    private static void setSub(Label host, String text) {
+        if (host != null && host.getGraphic() instanceof VBox box && box.getChildren().size() > 1 && box.getChildren().get(1) instanceof Label sub) sub.setText(text);
+    }
+    /** Click the DSP tiles to change the radio; scroll NB / NR for their level. IC-7300 values: preamp 0-2, attenuator 0 or 20 dB, AGC fast / mid / slow. */
+    private static void wireDsp(RigClient rig, String name, Label host) {
+        host.setOnMouseClicked(e -> {
+            RigClient.State st = rig.last();
+            if (st == null || !st.connected()) return;
+            switch (name) {
+                case "AGC" -> { long c = Math.round(nz(st.level("AGC"))); rig.setLevel("AGC", c == 2 ? 5 : c == 5 ? 3 : 2); }          // fast -> mid -> slow
+                case "PRE" -> rig.setLevel("PREAMP", (Math.round(nz(st.level("PREAMP"))) + 1) % 3);                                   // off -> 1 -> 2
+                case "ATT" -> rig.setLevel("ATT", nz(st.level("ATT")) > 0 ? 0 : 20);
+                case "NB"  -> rig.setFunc("NB", !st.func("NB"));
+                case "NR"  -> rig.setFunc("NR", !st.func("NR"));
+                case "NOTCH" -> rig.setFunc("ANF", !st.func("ANF"));
+                default -> { }
+            }
+        });
+        if ("NB".equals(name) || "NR".equals(name)) {
+            host.setOnScroll(e -> {
+                if (e.getDeltaY() == 0) return;
+                double c = nz(rig.last().level(name)); double next = Math.max(0, Math.min(1, c + (e.getDeltaY() > 0 ? 1 : -1) / 15.0));
+                rig.setLevel(name, next); if (next > 0 && !rig.last().func(name)) rig.setFunc(name, true); e.consume();
+            });
+            Tips.tip(host, name + ": click to switch on or off, scroll to change the level.");
+        }
     }
 
     /** A thin track + accent fill + knob, fraction-driven; {@code held} is true while the user drags. */

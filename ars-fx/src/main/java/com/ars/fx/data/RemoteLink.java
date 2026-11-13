@@ -116,6 +116,11 @@ public final class RemoteLink {
                 ClusterClient.getInstance().injectRaw(o.get("epoch").getAsLong(), o.get("seq").getAsLong(), lines);
                 return;
             }
+            if ("rig".equals(type)) {                      // a rig change pushed on its own, ahead of the next snapshot
+                RigClient.State rig = GSON.fromJson(o.get("rig"), RigClient.State.class);
+                if (rig != null) RigClient.getInstance().applyRemote(rig);
+                return;
+            }
             if (!"state".equals(type)) return;
             if (o.has("tx")) TxController.applyRemoteTx(o.get("tx").getAsBoolean());
             if (o.has("activity") && o.get("activity").isJsonArray()) {
@@ -180,6 +185,7 @@ public final class RemoteLink {
         send(o);
     }
     public void sendRigFreq(long hz)  { JsonObject o = new JsonObject(); o.addProperty("t", "rig.freq"); o.addProperty("hz", hz);   send(o); }
+    public void sendRigCmd(String c)  { JsonObject o = new JsonObject(); o.addProperty("t", "rig.cmd"); o.addProperty("cmd", c); send(o); }
     public void sendRigMode(String m) { JsonObject o = new JsonObject(); o.addProperty("t", "rig.mode"); o.addProperty("mode", m);  send(o); }
     /** Ask the hub to add a spot from this window's local CW skimmer to the shared spot list. */
     public void sendSpot(ClusterClient.Spot sp) {

@@ -237,6 +237,18 @@ public final class TxController {
         return out;
     }
 
+    /** The rig panel's PTT button: key or unkey, with a time limit so a forgotten key is released. Runs off the FX thread. */
+    public static void manualPtt(boolean on) {
+        PTT_QUEUE.execute(() -> {                 // one thread: key and unkey must happen in the order they were asked for
+            try {
+                if (on) { if (RigClient.getInstance().last().connected()) pttOn(MANUAL_PTT_MS); }
+                else pttOffSafely();
+            } catch (Exception e) { System.err.println("[tx] ptt: " + e.getMessage()); }
+        });
+    }
+    private static final java.util.concurrent.ExecutorService PTT_QUEUE = Executors.newSingleThreadExecutor(r -> { Thread t = new Thread(r, "tx-manual-ptt"); t.setDaemon(true); return t; });
+    private static final long MANUAL_PTT_MS = 60_000;
+
     // ── PTT (local to whoever owns the rig; forwarded from a window) ────────
     private static void pttOn(long maxMs) throws IOException {
         if (RemoteLink.isActive()) {

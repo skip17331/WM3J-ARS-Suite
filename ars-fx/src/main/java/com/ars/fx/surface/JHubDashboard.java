@@ -152,6 +152,9 @@ public final class JHubDashboard {
     private static void startDashTicker() {
         if (dashTickerStarted) return;
         dashTickerStarted = true;
+        com.ars.fx.data.RigClient.getInstance().addListener(st -> {      // the hero's rig readout follows the rig, not the one-second tick
+            if (dashRoot != null && dashRoot.lookup(".hero-rig") instanceof Label f && dashRoot.lookup(".hero-rig-sub") instanceof Label m) heroRig(f, m);
+        });
         Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> {
             if (dashRoot == null) return;
             heroDevicesTick.run();
