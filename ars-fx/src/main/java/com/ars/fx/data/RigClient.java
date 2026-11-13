@@ -130,17 +130,26 @@ public final class RigClient {
 
     private void pollOnce() throws IOException {
         long freq, pb = 0, vfoB = 0; String mode = "", vfo = "";
-        // Structural read — get_rig_info gives freq+mode+vfo+width (+VFO-B freq) in one round-trip;
-        // fall back to f/m on older Hamlib that rejects it.
-        try {
-            String info = send("\\get_rig_info");
-            long[] fm = new long[]{0, 0, 0};
-            String[] mv = parseRigInfo(info, fm);
-            freq = fm[0]; pb = fm[1]; vfoB = fm[2]; mode = mv[0]; vfo = mv[1];
-        } catch (IOException rpt) {
-            if (!isRprt(rpt)) throw rpt;
+        // Structural read. By default only the ACTIVE VFO is read (f / m / get_vfo): get_rig_info also reads VFO B, and on some Icoms
+        // (the IC-7300 among them) Hamlib does that by swapping the radio to VFO B and back every poll, so the radio flips between A and B
+        // and its relays click. Turn "rig.readBothVfos" on only for a rig that reads the other VFO without swapping.
+        if (HubConfig.getBool("rig.readBothVfos", false)) {
+            try {
+                String info = send("\\get_rig_info");
+                long[] fm = new long[]{0, 0, 0};
+                String[] mv = parseRigInfo(info, fm);
+                freq = fm[0]; pb = fm[1]; vfoB = fm[2]; mode = mv[0]; vfo = mv[1];
+            } catch (IOException rpt) {
+                if (!isRprt(rpt)) throw rpt;
+                freq = parseFreq(send("f"));
+                mode = parseMode(send("m"));
+            }
+        } else {
             freq = parseFreq(send("f"));
-            mode = parseMode(send("m"));
+            String m = send("m");
+            mode = parseMode(m);
+            pb = parsePassband(m);
+            vfo = parseVfoName(sendOpt("\\get_vfo"));
         }
         // every poll: the fast-moving meters + TX state
         int sMeter = optInt("\\get_level STRENGTH");
@@ -286,6 +295,24 @@ public final class RigClient {
             if (!s.isEmpty()) { try { return (long) Double.parseDouble(s); } catch (NumberFormatException ig) {} }
         }
         return 0;
+    }
+    /** The passband width (Hz) from a "m" reply ("Mode: LSB" / "Passband: 2400", or bare "LSB" / "2400"); 0 when absent. */
+    private static long parsePassband(String r) {
+        long v = 0;
+        for (String raw : r.split("\n")) {
+            String s = raw.contains(":") ? raw.substring(raw.indexOf(':') + 1).trim() : raw.trim();
+            if (s.isEmpty() || !s.chars().allMatch(Character::isDigit)) continue;
+            try { v = Long.parseLong(s); } catch (NumberFormatException ig) {}
+        }
+        return v;
+    }
+    /** The VFO name from a get_vfo reply ("VFO: VFOA" or "VFOA"); "" when absent. */
+    private static String parseVfoName(String r) {
+        for (String raw : r.split("\n")) {
+            String s = raw.contains(":") ? raw.substring(raw.indexOf(':') + 1).trim() : raw.trim();
+            if (s.toUpperCase().startsWith("VFO") || s.equalsIgnoreCase("MAIN") || s.equalsIgnoreCase("SUB")) return s;
+        }
+        return "";
     }
     private static String parseMode(String r) {
         for (String raw : r.split("\n")) { String s = raw.trim(); if (s.regionMatches(true, 0, "Mode:", 0, 5)) return s.substring(5).trim(); }
