@@ -159,7 +159,7 @@ public final class JSatView {
                 {"AZ / EL", f != null ? String.format("%03.0f° / %.0f°", f.azDeg(), f.elDeg()) : "—"},
                 {"AOS", f != null ? SatService.hhmmUtc(f.aosEpoch()) : "—"},
                 {"LOS", f != null ? SatService.hhmmUtc(f.losEpoch()) : "—"},
-                {"REACHABLE", reachable(f), f != null && f.inPass() ? "accent" : null},
+                {"PASS LENGTH", reachable(f), f != null && f.inPass() ? "accent" : null},
                 {"APOGEE", f != null ? com.ars.fx.data.Units.distText(f.apogeeKm()) : "—"},
                 {"PERIGEE", f != null ? com.ars.fx.data.Units.distText(f.perigeeKm()) : "—"}};
         String utc = java.time.LocalTime.now(java.time.ZoneOffset.UTC)
