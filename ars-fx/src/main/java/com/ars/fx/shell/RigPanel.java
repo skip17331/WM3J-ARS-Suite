@@ -170,10 +170,18 @@ public final class RigPanel {
         Region pbPass = new Region(); pbPass.getStyleClass().add("rc-pb-pass");
         javafx.beans.property.DoubleProperty pbFrac = new SimpleDoubleProperty(0.42);
         Pane pb = passband(pbPass, pbFrac);
-        Label bwVal = lbl("—", "rc-filt-v"), shiftVal = lbl("—", "rc-filt-v"), nrVal = lbl("—", "rc-filt-v"), notchVal = lbl("—", "rc-filt-v");
-        GridPane filt = grid(4, 6);
-        filt.add(filtTile("BW", bwVal), 0, 0); filt.add(filtTile("Shift", shiftVal), 1, 0);
-        filt.add(filtTile("NR", nrVal), 2, 0); filt.add(filtTile("Notch", notchVal), 3, 0);
+        Label bwVal = lbl("—", "rc-filt-v");
+        // NR and notch are in DSP & Levels, and the IC-7300 has no IF shift over CAT, so the bandwidth is the one filter control here
+        GridPane filt = grid(1, 6);
+        VBox bwTile = filtTile("BW", bwVal);
+        Tips.tip(bwTile, "Receive bandwidth: click to step through the usual widths, scroll to change it (50 Hz a notch below 1 kHz, else 100 Hz).");
+        bwTile.setOnMouseClicked(e -> { RigClient.State st = rig.last(); if (st.connected() && st.passbandHz() > 0) rig.setPassbandHz(nextBw(st.mode(), st.passbandHz())); });
+        bwTile.setOnScroll(e -> {
+            RigClient.State st = rig.last(); if (!st.connected() || st.passbandHz() <= 0 || e.getDeltaY() == 0) return;
+            long cur = st.passbandHz(), step = cur < 1000 ? 50 : 100;
+            rig.setPassbandHz(cur + (e.getDeltaY() > 0 ? step : -step)); e.consume();
+        });
+        filt.add(bwTile, 0, 0);
         VBox filterSec = section("Filter · passband", new VBox(7, pb, filt));
         Map<String,Label> fnBtns = new LinkedHashMap<>();
         GridPane fnGrid = grid(4, 5);
@@ -317,9 +325,6 @@ public final class RigPanel {
             long pbHz = live ? st.passbandHz() : 0;
             bwVal.setText(pbHz > 0 ? fmtBw(pbHz) : "—");
             pbFrac.set(pbHz > 0 ? Math.max(0.08, Math.min(0.92, pbHz / 5000.0)) : 0.42);
-            nrVal.setText(live && st.func("NR") ? lvlInt(st, "NR", "on") : "off");
-            notchVal.setText(live && st.func("ANF") ? "auto" : "off");
-            shiftVal.setText("—");
 
             // DSP grid
             dspSet(dspHosts, dspVals, "AGC", live && st.level("AGC") > 0, live ? agcShort(st.level("AGC")) : "—");
@@ -491,6 +496,13 @@ public final class RigPanel {
     private static String agcShort(double agc) {
         if (Double.isNaN(agc) || agc <= 0) return "off";
         return switch ((int) Math.round(agc)) { case 1, 2 -> "FST"; case 3 -> "SLW"; case 4 -> "USR"; case 5 -> "MID"; case 6 -> "AUT"; default -> "ON"; };
+    }
+    /** The next usual width above the current one for the mode, wrapping round to the narrowest. */
+    private static long nextBw(String mode, long cur) {
+        String m = mode == null ? "" : mode.toUpperCase();
+        long[] presets = m.startsWith("CW") || m.startsWith("RTTY") ? new long[]{250, 500, 1200, 2400} : new long[]{1800, 2400, 3000, 3600};
+        for (long p : presets) if (p > cur + 20) return p;
+        return presets[0];
     }
     private static double nz(double v) { return Double.isNaN(v) ? 0 : v; }
     /** "+1.0k" / "-120" / "0": a signed offset in Hz. */
