@@ -83,10 +83,13 @@ final class HeroBar {
         VBox clu = new VBox(5, lbl("DX CLUSTER", "hero-k"), cluRow); clu.getStyleClass().add("hero-stat");
         Label clk = lbl(CLOCK.format(LocalTime.now(ZoneOffset.UTC)), "hero-clk"), date = lbl("", "hero-sub");
         VBox clockBox = new VBox(1, lbl("UTC", "hero-k"), clk, date); clockBox.setAlignment(Pos.TOP_RIGHT); clockBox.getStyleClass().add("hero-stat");
-        cells.add(rig); cells.add(clu); cells.add(clockBox);
-        top.getChildren().addAll(rig, clu);
+        HeroDevices.Set devices = HeroDevices.build("hero-val");          // rotor / satellite rotor / amp, each only if switched on on its Setup page
+        if (HeroDevices.showRig()) { cells.add(rig); top.getChildren().add(rig); }
+        cells.addAll(devices.cells()); top.getChildren().addAll(devices.cells());
+        cells.add(clu); cells.add(clockBox);
+        top.getChildren().add(clu);
         top.getChildren().add(TxIndicator.build());
-        Label idTimer = IdTimer.button(); HBox.setMargin(idTimer, new Insets(0, 10, 0, 0));
+        Label idTimer = IdTimer.button(); HBox.setMargin(idTimer, new Insets(0, 10, 0, 34));
         top.getChildren().add(idTimer);
         top.getChildren().add(clockBox);
         for (Node n : cells) HBox.setMargin(n, new Insets(0, 0, 0, 0));
@@ -102,6 +105,7 @@ final class HeroBar {
             ClusterClient cc = ClusterClient.getInstance();
             FeedUi.paint(dot, cc.status());
             cluTxt.setText(cc.status().label() + "  ·  " + cc.spots().size() + " spots");
+            devices.update().run();
         };
         tick.run();
         Timeline tl = new Timeline(new KeyFrame(Duration.seconds(1), e -> tick.run()));

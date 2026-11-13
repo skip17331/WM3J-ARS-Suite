@@ -14,8 +14,7 @@ import java.util.List;
  * stylesheet-free look; picking it in J-Hub ▸ Setup ▸ Appearance is the whole of a revert. To try another look, drop a new css in
  * {@code css/styles/}, add one line to {@link #DASHBOARD_STYLES}, and it shows up in that menu.
  *
- * <p><b>UI size.</b> A whole-interface scale (text, widths, drawers and canvases together), handed to JavaFX before it starts, so it takes effect
- * on the next launch.
+ * <p><b>UI size.</b> A whole-interface scale (text, widths, drawers and canvases together), applied live by {@link #scaled} to the main window.
  */
 public final class UiStyle {
     private UiStyle() {}
@@ -30,9 +29,8 @@ public final class UiStyle {
             new Style("cockpit",    "Cockpit",          "/com/ars/fx/css/styles/cockpit.css"));
 
     public static final String DASHBOARD_KEY = "ui.style.dashboard";
-    /** Whole-interface scale, as the labels shown in Setup. 100% is the system default (nothing is set). JavaFX on Windows honours 75% and 50% as asked, but above 100% only
-     *  in 50% steps (1.25 and 1.4 behave as 1.0, 1.75 as 1.5), so there is no 125%. */
-    public static final String[] SCALES = {"50%", "75%", "100%", "150%", "200%"};
+    /** Whole-interface scale, as the labels shown in Setup. 100% is the default. */
+    public static final String[] SCALES = {"50%", "75%", "100%", "125%", "150%", "200%"};
     public static final String SCALE_DEFAULT = "100%";
     public static final String SCALE_KEY = "ui.scale";
     /** The position of {@link #SCALE_DEFAULT} in {@link #SCALES}. */
@@ -47,6 +45,12 @@ public final class UiStyle {
 
     /** The Cockpit style also swaps the dashboard's header for a hero banner (a layout change, not only a repaint). */
     public static boolean isCockpit() { return "cockpit".equals(dashboard().key()); }
+
+    /** The Modern style is the space age look: a starfield behind the page and a mission clock in the status bar. */
+    public static boolean isModern() { return "modern".equals(dashboard().key()); }
+
+    /** The Instrument panel style swaps the dashboard's stat tiles for round needle gauges. */
+    public static boolean isInstrument() { return "instrument".equals(dashboard().key()); }
 
     /** Put the chosen dashboard look on {@code root} (and take any other off it first). */
     public static void applyDashboard(Parent root) {
@@ -65,15 +69,34 @@ public final class UiStyle {
         root.getStylesheets().add(url.toExternalForm());
     }
 
-    /** Call once, before JavaFX starts: turns the saved UI size into the toolkit's own scale property. A scale given on the command line wins. */
-    public static void applyScale() {
+    /** The saved UI size as a factor (1.0 = 100%). A bad or missing value is 1.0, so a broken config never stops the app starting. */
+    public static double scale() {
         try {
-            String v = HubConfig.get(SCALE_KEY, SCALE_DEFAULT);
-            if (v == null || v.isBlank() || v.equals(SCALE_DEFAULT)) return;
-            // the toolkit wants a plain factor ("1.25"); the "125%" form is ignored
-            String factor = String.valueOf(Integer.parseInt(v.replace("%", "").trim()) / 100.0);
-            for (String p : new String[]{"glass.win.uiScale", "glass.gtk.uiScale"})
-                if (System.getProperty(p) == null) System.setProperty(p, factor);
-        } catch (Throwable ignored) { /* a bad config must never stop the app starting */ }
+            double f = Integer.parseInt(HubConfig.get(SCALE_KEY, SCALE_DEFAULT).replace("%", "").trim()) / 100.0;
+            return f >= 0.25 && f <= 4 ? f : 1.0;
+        } catch (RuntimeException e) { return 1.0; }
+    }
+
+    /**
+     * A pane that shows {@code content} at the saved UI size and follows changes to it live: the content is laid out at (window size / scale) and
+     * scaled to fill the window, so text, widths, drawers and canvases all change together. Only this window is scaled; pop-up windows are not.
+     */
+    public static javafx.scene.layout.StackPane scaled(javafx.scene.layout.Region content) {
+        javafx.scene.transform.Scale tf = new javafx.scene.transform.Scale(1, 1, 0, 0);
+        content.getTransforms().add(tf);
+        content.setManaged(false);                       // sized by hand below; dialogs the app adds to the scene root (a StackPane) still stack over it, unscaled
+        javafx.scene.layout.StackPane view = new javafx.scene.layout.StackPane(content) {
+            @Override protected void layoutChildren() {
+                super.layoutChildren();
+                double s = scale();
+                tf.setX(s); tf.setY(s);
+                content.resizeRelocate(0, 0, getWidth() / s, getHeight() / s);
+            }
+        };
+        view.setMinSize(0, 0);
+        HubConfig.addChangeListener(k -> {
+            if (SCALE_KEY.equals(k) || "*".equals(k)) javafx.application.Platform.runLater(view::requestLayout);
+        });
+        return view;
     }
 }

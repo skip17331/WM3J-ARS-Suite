@@ -45,7 +45,23 @@ final class InsightStrip extends Pane {
     private final PauseTransition openT = new PauseTransition(Duration.millis(160)), closeT = new PauseTransition(Duration.millis(450));
     private long countsAt; private int today, log;
 
-    InsightStrip() {
+    /** Instrument panel only: the open view shows round gauges and LED band meters instead of tiles and bars. */
+    private final InstrumentStrip gauges;
+
+    /** The Cockpit strip, exactly as it was. */
+    InsightStrip() { this(false, false); }
+
+    /**
+     * @param standard {@code true} in every style but Cockpit: the strip then carries the shared {@code strip.css} rules (Cockpit has its own)
+     * @param useGauges {@code true} for the Instrument panel: the open view is the gauge row
+     */
+    InsightStrip(boolean standard, boolean useGauges) {
+        if (standard) {
+            getStyleClass().add("strip-std");
+            var css = InsightStrip.class.getResource("/com/ars/fx/css/styles/strip.css");
+            if (css != null) getStylesheets().add(css.toExternalForm());
+        }
+        gauges = useGauges ? new InstrumentStrip() : null;
         full = buildFull(); compact = buildCompact();
         getChildren().addAll(compact, full);
         setMinWidth(0); setMinHeight(USE_PREF_SIZE);          // never squeezed: the cards scroll, this does not
@@ -82,6 +98,14 @@ final class InsightStrip extends Pane {
 
     // ---- open view -----------------------------------------------------------
     private Region buildFull() {
+        if (gauges != null) {                                  // Instrument panel: the dials, with the same Pin as the other styles
+            javafx.scene.layout.StackPane sp = new javafx.scene.layout.StackPane(gauges);
+            javafx.scene.Node pin = AutoPanel.pinButton(KEY, this::relayout);
+            javafx.scene.layout.StackPane.setAlignment(pin, Pos.TOP_RIGHT);
+            javafx.scene.layout.StackPane.setMargin(pin, new javafx.geometry.Insets(19, 17, 0, 0));      // lands where the collapsed bar's Pin is, so a pointer resting on it is still on it when the bar opens
+            sp.getChildren().add(pin);
+            return sp;
+        }
         HBox tiles = new HBox(12);
         for (int i = 0; i < 4; i++) {
             bigVals[i] = lbl("0", "stat-v");
@@ -125,7 +149,12 @@ final class InsightStrip extends Pane {
             chipRow.getChildren().add(c);
         }
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(18, stats, sp, chipRow, AutoPanel.pinButton(KEY, this::relayout));
+        javafx.scene.control.Label pin = AutoPanel.pinButton(KEY, this::relayout);
+        // The strip opens when the mouse enters it, and the open view has its Pin somewhere else, so a pointer heading for this Pin used to
+        // open the bar out from under it. While the pointer is on the Pin the bar stays as it is; it opens as the pointer leaves the Pin.
+        pin.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> openT.stop());          // added, not set: the tooltip keeps its own handlers
+        pin.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_EXITED, e -> { if (!pinned() && !hover) openT.playFromStart(); });
+        HBox row = new HBox(18, stats, sp, chipRow, pin);
         row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("insight-compact"); row.setMinWidth(0);
         return row;
     }
@@ -138,7 +167,8 @@ final class InsightStrip extends Pane {
             try { today = com.ars.fx.data.JLogDb.countToday(); log = com.ars.fx.data.JLogDb.count(); } catch (Exception ignored) {}
         }
         String[] v = {Integer.toString(today), Integer.toString(log), Integer.toString(spots.size()), Integer.toString(needed)};
-        for (int i = 0; i < 4; i++) { bigVals[i].setText(v[i]); smallVals[i].setText(v[i]); }
+        for (int i = 0; i < 4; i++) { if (bigVals[i] != null) bigVals[i].setText(v[i]); smallVals[i].setText(v[i]); }
+        if (gauges != null) gauges.update(spots, needed);
         int[] n = new int[BANDS.length]; int max = 1;
         for (ClusterClient.Spot s : spots) {
             String b = s.band() == null ? "" : s.band().trim().toLowerCase();
@@ -146,9 +176,11 @@ final class InsightStrip extends Pane {
         }
         for (int i = 0; i < n.length; i++) {
             double h = n[i] == 0 ? 3 : 8 + 50.0 * n[i] / max;
-            bars[i].setMinHeight(h); bars[i].setPrefHeight(h); bars[i].setMaxHeight(h);
-            bars[i].setOpacity(n[i] == 0 ? 0.25 : 1);
-            barCnt[i].setText(n[i] == 0 ? "" : Integer.toString(n[i]));
+            if (bars[i] != null) {
+                bars[i].setMinHeight(h); bars[i].setPrefHeight(h); bars[i].setMaxHeight(h);
+                bars[i].setOpacity(n[i] == 0 ? 0.25 : 1);
+                barCnt[i].setText(n[i] == 0 ? "" : Integer.toString(n[i]));
+            }
             chipCnt[i].setText(n[i] == 0 ? "" : Integer.toString(n[i]));
             chipCnt[i].setOpacity(n[i] == 0 ? 0.3 : 1);
         }
