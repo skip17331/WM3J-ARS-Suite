@@ -175,8 +175,9 @@ public final class JLogCockpit {
         com.ars.fx.shell.Tips.tip(translatorChip, "QSO phrases in other languages — follows the country of the callsign you are logging");
         HBox head = embedded ? new HBox(11, ic, ttl, hsp, b4) : new HBox(11, ic, ttl, hsp, translatorChip, contestChip, b4);
         head.setAlignment(Pos.CENTER_LEFT);
+        if (embedded) head.getStyleClass().add("jhub-card-head");     // the dashboard card gets the same coloured title strip as the other cards
 
-        TextField call = tf("", "", embedded ? 200 : 210, true);
+        TextField call =tf("", "", embedded ? 200 : 210, true);
         call.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));        // the translator (if open) follows the call's country
         translatorChip.setOnMouseClicked(e -> TranslatorWindow.show(translatorChip, call.getText()));
         TextField freq = tf("MHz", "14.074", embedded ? 100 : 110, false);
@@ -398,7 +399,8 @@ public final class JLogCockpit {
         lookupRef = doCallLookup;
         call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
-        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(embedded ? Double.MAX_VALUE : 940);   // the dashboard card is as wide as the page
+        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(embedded ? Double.MAX_VALUE : 940);
+        if (embedded) { entry.setStyle("-fx-padding:0;"); body.setPadding(new Insets(12, 18, 16, 18)); }   // no inset, so the title strip runs edge to edge like the other cards'   // the dashboard card is as wide as the page
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
         entry.sceneProperty().addListener((o, oldS, s) -> {
             if (s == null) return;
@@ -573,8 +575,11 @@ public final class JLogCockpit {
     }
     private static void col(HBox r, Node n, int i) {
         HBox cell = new HBox(n); cell.setAlignment(Pos.CENTER_LEFT);
-        if (LOGC[i] < 0) { HBox.setHgrow(cell, Priority.ALWAYS); cell.setMaxWidth(Double.MAX_VALUE); cell.setMinWidth(0); cell.setPrefWidth(0); }
-        else { cell.setMinWidth(LOGC[i]); cell.setPrefWidth(LOGC[i]); cell.setMaxWidth(LOGC[i]); }
+        if (i == LOGC.length - 1) { cell.setMinWidth(LOGC[i]); cell.setPrefWidth(LOGC[i]); cell.setMaxWidth(LOGC[i]); }   // the delete mark stays put
+        else {   // every data column grows, so on a wide row the fields spread out evenly instead of bunching left (header and rows share one grid)
+            HBox.setHgrow(cell, Priority.ALWAYS); cell.setMaxWidth(Double.MAX_VALUE);
+            cell.setMinWidth(LOGC[i] < 0 ? 0 : LOGC[i]); cell.setPrefWidth(LOGC[i] < 0 ? 120 : LOGC[i]);
+        }
         r.getChildren().add(cell);
     }
 

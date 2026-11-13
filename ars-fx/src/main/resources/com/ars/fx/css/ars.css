@@ -385,6 +385,7 @@
 /* ============================================================================
    J-HUB unified workspace (shots 01 + 09)
    ============================================================================ */
+.jhub-page { -fx-background-color: -ars-bg; }
 .jhub-bar { -fx-min-height: 30; -fx-pref-height: 30; -fx-background-color: -ars-surface-1; -fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0; -fx-padding: 0 14 0 12; -fx-alignment: center-left; }
 .jhub-bar-dot { -fx-min-width: 9; -fx-pref-width: 9; -fx-min-height: 9; -fx-pref-height: 9; -fx-background-radius: 99; -fx-background-color: -ars-accent; }
 .jhub-bar-nm  { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }

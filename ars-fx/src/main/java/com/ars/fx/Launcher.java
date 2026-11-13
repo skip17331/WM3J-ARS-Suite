@@ -30,7 +30,6 @@ public class Launcher extends Application {
                 return;
             }
         }
-        UiStyle.applyScale();       // saved UI size (Setup ▸ Appearance) -> the toolkit scale; has to be set before JavaFX starts
         launch(args);
     }
 
@@ -53,7 +52,7 @@ public class Launcher extends Application {
         com.ars.fx.data.RemoteLink.connect("ws://127.0.0.1:" + com.ars.fx.data.RemoteServer.port(), "dock");
         new Thread(com.ars.fx.HubServer::ensureRunning, "hub-ensure").start();
 
-        scene = new Scene(host, 1460, 900);
+        scene = new Scene(UiStyle.scaled(host), 1460, 900);     // the saved UI size, live (Setup ▸ Appearance)
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         com.ars.fx.shell.Tips.install(scene);
         com.ars.fx.shell.TxIndicator.installEscStop(scene);
@@ -111,7 +110,7 @@ public class Launcher extends Application {
         if (cfg.isRemote()) com.ars.fx.data.RemoteLink.connect(cfg.remote, cfg.module);
         if (cfg.autoHub)    new Thread(com.ars.fx.HubServer::ensureRunning, "hub-ensure").start();
 
-        scene = new Scene(host, cfg.window.width, cfg.window.height);
+        scene = new Scene(UiStyle.scaled(host), cfg.window.width, cfg.window.height);
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         com.ars.fx.shell.Tips.install(scene);
         com.ars.fx.shell.TxIndicator.installEscStop(scene);

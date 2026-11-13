@@ -1,83 +1,147 @@
 /* ============================================================================
-   Dashboard style pack: MODERN.
-   Attached to the J-Hub dashboard's root node only (see UiStyle); every rule is scoped under .ins. Colours come
-   from the -ars-* tokens, so each colour scheme works. To drop it: Setup > Appearance > Dashboard look > Classic.
+   Dashboard style pack: MODERN (space age).
+   Attached to the J-Hub dashboard's root node only (see UiStyle); every rule is scoped under .ins.
+   To drop it: Setup > Appearance > Dashboard look > Classic.
 
-   Language: soft rounded cards floating on the page (a diffuse shadow and a hairline edge instead of bezels),
-   flat filled fields with an accent focus ring, pill-shaped keys and chips, more air inside every panel.
+   Language: a heads-up display in deep space. The page is near-black blue with a faint nebula glow in two corners; panels are
+   glass, with a hairline cyan edge and a soft halo instead of a drop shadow; titles carry a neon wash fading to the right; entry
+   fields are dark wells that light up cyan on focus; keys are glowing capsules. Like the Instrument pack it is dark whatever
+   colour scheme is picked, because a night-sky look does not survive a white page.
    ============================================================================ */
 
-/* ---- top bar: flat, lifted by a soft shadow ------------------------------- */
-.ins .jhub-bar {
-    -fx-background-color: -ars-surface-1;
-    -fx-border-color: transparent;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 10, 0.0, 0, 2);
+/* ---- the sky ---------------------------------------------------------------- */
+.ins {
+    -ars-bg: #04060f;
+    -ars-surface-1: #0a1124;
+    -ars-surface-2: #0f1a36;
+    -ars-surface-3: #172647;
+    -ars-border: #1b3358;
+    -ars-border-2: #2b5584;
+    -ars-t1: #eef8ff;
+    -ars-t2: #d2e6f7;
+    -ars-t3: #93b4d2;
+    -ars-t4: #627f9e;
+    -ars-accent: #3df0ff;
+    -ars-accent-dim: rgba(61,240,255,0.13);
+    -ars-accent-line: rgba(61,240,255,0.50);
+    -ars-ok: #5dffb4;
+    -ars-log: #7cf0ff;
+    -fx-font-family: "Bahnschrift", "Segoe UI", sans-serif;
+    -fx-background-color:
+        radial-gradient(center 12% -8%, radius 55%, rgba(110,72,255,0.34), rgba(110,72,255,0)),
+        radial-gradient(center 100% 108%, radius 48%, rgba(0,196,255,0.22), rgba(0,196,255,0)),
+        #04060f;
 }
-.ins .sx-clock-v { -fx-text-fill: -ars-accent; }
+.ins .dash-center, .ins .dash-scroll, .ins .dash-scroll > .viewport { -fx-background-color: transparent; }
 
-/* ---- cards: cluster, entry, drawers --------------------------------------- */
+/* ---- top bar and hero banner: a lit glass strip ----------------------------- */
+.ins .jhub-bar {
+    -fx-background-color: rgba(10,17,36,0.72);
+    -fx-border-color: transparent transparent rgba(61,240,255,0.30) transparent;
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.12), 12, 0.0, 0, 2);
+}
+.ins .jhub-bar-dot, .ins .jhub-mini-dot { -fx-effect: dropshadow(gaussian, -ars-accent, 9, 0.5, 0, 0); }
+.ins .jhub-page-clear { -fx-background-color: transparent; }          /* the starfield shows through the page */
+.ins .jhub-bar-nm  { -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.6), 8, 0.2, 0, 0); }
+.ins .jhub-bar-sub { -fx-text-fill: -ars-t3; }
+.ins .jhub-uptime  {                                                   /* mission elapsed time: a lit capsule */
+    -fx-text-fill: -ars-accent;
+    -fx-background-color: rgba(61,240,255,0.10);
+    -fx-background-radius: 99;
+    -fx-border-color: rgba(61,240,255,0.45);
+    -fx-border-radius: 99;
+    -fx-padding: 2 12 2 12;
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.35), 8, 0.1, 0, 0);
+}
+.ins .hero, .ins .hero-bar {
+    -fx-background-color:
+        linear-gradient(to right, rgba(61,240,255,0.55), rgba(140,92,255,0.45), rgba(61,240,255,0.20)),
+        linear-gradient(to bottom, rgba(20,34,70,0.92), rgba(7,12,28,0.94));
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 20, 19;
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.20), 24, 0.0, 0, 0);
+}
+.ins .hero-name, .ins .hero-call { -fx-text-fill: #ffffff; -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.65), 14, 0.2, 0, 0); }
+.ins .hero-k, .ins .stat-k       { -fx-text-fill: -ars-accent; -fx-font-weight: bold; }
+.ins .hero-sub, .ins .jl-emeta   { -fx-text-fill: -ars-t3; }
+.ins .hero-val, .ins .hero-rig   { -fx-text-fill: #ffffff; -fx-effect: dropshadow(gaussian, rgba(124,92,255,0.75), 12, 0.25, 0, 0); }
+.ins .hero-clk, .ins .sx-clock-v { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.70), 12, 0.3, 0, 0); }
+
+/* ---- cards: cluster, entry, drawers = glass panels --------------------------- */
 .ins .jhub-card,
 .ins .jl-entry {
-    -fx-background-color: -ars-surface-1;
-    -fx-background-radius: 16;
-    -fx-border-color: rgba(128,140,160,0.20);
-    -fx-border-width: 1;
-    -fx-border-radius: 16;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 26, 0.0, 0, 8);
+    -fx-background-color:
+        linear-gradient(to bottom, rgba(61,240,255,0.40), rgba(124,92,255,0.22) 60%, rgba(61,240,255,0.14)),
+        linear-gradient(to bottom, rgba(18,32,66,0.94), rgba(7,12,28,0.96));
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 20, 19;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.16), 28, 0.0, 0, 0);
 }
 .ins .jhub-card-head {
-    -fx-background-color: transparent;
-    -fx-padding: 16 20 14 20;
-    -fx-border-color: transparent transparent rgba(128,140,160,0.18) transparent;
+    -fx-background-color: linear-gradient(to right, rgba(61,240,255,0.24), rgba(124,92,255,0.10) 55%, rgba(0,0,0,0));
+    -fx-background-radius: 19 19 0 0;
+    -fx-padding: 16 22 14 22;
+    -fx-border-color: transparent transparent rgba(61,240,255,0.28) transparent;
 }
-.ins .jhub-card-title { -fx-font-size: 15px; }
-.ins .jhub-clu        { -fx-padding: 12 20 12 20; -fx-border-color: transparent transparent rgba(128,140,160,0.14) transparent; }
-.ins .jhub-clu:hover  { -fx-background-color: -ars-accent-dim; }
-.ins .jhub-clu-mode   { -fx-background-radius: 99; -fx-padding: 1 8 1 8; }
+.ins .jhub-card-title { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #ffffff; -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.5), 8, 0.15, 0, 0); }
+.ins .jl-flabel       { -fx-text-fill: -ars-accent; -fx-font-weight: bold; }
+.ins .jhub-clu        { -fx-padding: 12 22 12 22; -fx-border-color: transparent transparent rgba(61,240,255,0.12) transparent; }
+.ins .jhub-clu:hover  { -fx-background-color: linear-gradient(to right, rgba(61,240,255,0.16), rgba(0,0,0,0)); }
+.ins .jhub-clu-mode   { -fx-background-radius: 99; -fx-padding: 1 9 1 9; }
+.ins .jhub-clu-fq     { -fx-text-fill: -ars-accent; -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.5), 6, 0.2, 0, 0); }
 
 .ins .sx-dw {
-    -fx-background-color: -ars-surface-1;
-    -fx-background-radius: 14;
-    -fx-border-color: rgba(128,140,160,0.20);
-    -fx-border-radius: 14;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 18, 0.0, 0, 5);
+    -fx-background-color:
+        linear-gradient(to bottom, rgba(61,240,255,0.32), rgba(124,92,255,0.16)),
+        linear-gradient(to bottom, rgba(16,28,58,0.94), rgba(7,12,28,0.96));
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 16, 15;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.12), 18, 0.0, 0, 0);
 }
-.ins .sx-dw-head       { -fx-background-radius: 14; -fx-padding: 12 14 12 14; }
-.ins .sx-dw-head:hover { -fx-background-color: -ars-accent-dim; }
-.ins .sx-dw-body       { -fx-border-color: rgba(128,140,160,0.18) transparent transparent transparent; }
+.ins .sx-dw-head       { -fx-background-radius: 15; -fx-padding: 12 16 12 16; }
+.ins .sx-dw-head:hover { -fx-background-color: linear-gradient(to right, rgba(61,240,255,0.18), rgba(0,0,0,0)); }
+.ins .sx-dw-sum        { -fx-text-fill: -ars-accent; }
+.ins .sx-dw-body       { -fx-border-color: rgba(61,240,255,0.18) transparent transparent transparent; }
+.ins .sx-rail-head     { -fx-background-color: rgba(10,17,36,0.6); }
 
-/* ---- fields: flat, filled, accent ring on focus --------------------------- */
+/* ---- fields: dark wells that light up ---------------------------------------- */
 .ins .jl-fin,
 .ins .jl-ein-call,
 .ins .jl-snt {
-    -fx-background-color: -ars-surface-2;
-    -fx-background-radius: 11;
-    -fx-border-color: transparent;
-    -fx-border-width: 1.5;
-    -fx-border-radius: 11;
+    -fx-background-color: rgba(2,5,14,0.78);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(61,240,255,0.22);
+    -fx-border-width: 1.2;
+    -fx-border-radius: 12;
+    -fx-text-fill: #ffffff;
 }
+.ins .jl-ein-call { -fx-text-fill: -ars-accent; }
 .ins .jl-fin:focused,
 .ins .jl-ein-call:focused {
-    -fx-background-color: -ars-surface-1;
+    -fx-background-color: rgba(4,9,22,0.92);
     -fx-border-color: -ars-accent;
-    -fx-effect: dropshadow(gaussian, -ars-accent-line, 9, 0.35, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.65), 12, 0.3, 0, 0);
 }
 
-/* ---- keys and chips: pills ------------------------------------------------ */
+/* ---- keys: glowing capsules --------------------------------------------------- */
 .ins .jl-logbtn {
-    -fx-background-color: linear-gradient(to bottom right, derive(-ars-log, 18%), -ars-log);
+    -fx-background-color: linear-gradient(to right, #20e3ff, #7c5cff);
     -fx-background-radius: 99;
-    -fx-padding: 12 30 12 30;
-    -fx-effect: dropshadow(gaussian, rgba(255,170,40,0.35), 14, 0.1, 0, 4);
+    -fx-text-fill: #03060f;
+    -fx-font-weight: bold;
+    -fx-padding: 12 32 12 32;
+    -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.55), 18, 0.2, 0, 0);
 }
-.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(255,170,40,0.55), 18, 0.15, 0, 5); }
-.ins .jl-logbtn:pressed { -fx-effect: null; -fx-padding: 13 30 11 30; }
+.ins .jl-logbtn:hover   { -fx-effect: dropshadow(gaussian, rgba(124,92,255,0.85), 22, 0.3, 0, 0); }
+.ins .jl-logbtn:pressed { -fx-effect: null; -fx-padding: 13 32 11 32; }
 
 .ins .jl-macro {
-    -fx-background-color: -ars-surface-2;
-    -fx-background-radius: 11;
-    -fx-border-color: transparent;
-    -fx-border-radius: 11;
+    -fx-background-color: rgba(61,240,255,0.07);
+    -fx-background-radius: 99;
+    -fx-border-color: rgba(61,240,255,0.30);
+    -fx-border-radius: 99;
 }
-.ins .jl-macro:hover   { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; }
-.ins .jl-macro:pressed { -fx-background-color: -ars-accent-line; }
+.ins .jl-macro:hover   { -fx-background-color: rgba(61,240,255,0.20); -fx-border-color: -ars-accent; -fx-effect: dropshadow(gaussian, rgba(61,240,255,0.55), 11, 0.25, 0, 0); }
+.ins .jl-macro:pressed { -fx-background-color: rgba(124,92,255,0.40); }

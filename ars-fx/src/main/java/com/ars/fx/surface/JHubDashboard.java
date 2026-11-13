@@ -66,7 +66,12 @@ public final class JHubDashboard {
         centre.setMinWidth(0); HBox.setHgrow(centre, Priority.ALWAYS);
         HBox row = leftPanel == null ? new HBox(nav, centre) : new HBox(nav, leftPanel, centre); row.setFillHeight(true); VBox.setVgrow(row, Priority.ALWAYS);
         row.setMinHeight(0);
-        VBox root = new VBox(workspaceBar(), row); root.setStyle("-fx-background-color:-ars-bg;"); root.setMinHeight(0);
+        VBox root = new VBox(workspaceBar(), row); root.getStyleClass().add("jhub-page"); root.setMinHeight(0);   // background from the stylesheet, so a style pack can replace it
+        if (com.ars.fx.UiStyle.isModern()) {          // space age: the page sits over a starfield
+            root.getStyleClass().add("jhub-page-clear");
+            StackPane sky = new StackPane(new Starfield(), root); sky.setMinHeight(0);
+            return sky;
+        }
         return root;
     }
 
@@ -88,16 +93,17 @@ public final class JHubDashboard {
 
     /** The hero banner and the insight strip stay fixed at the top; only the cards underneath scroll. */
     private static Region dashboardCenter() {
-        insightStrip = new InsightStrip();
+        insightStrip = new InsightStrip(com.ars.fx.UiStyle.isInstrument());     // every look has the collapsible, pinnable strip; Instrument shows gauges when it is open
         HBox cards = threeCol();                       // after the strip exists: the cluster card feeds it on its first render
-        VBox cardsBox = new VBox(cards); cardsBox.setPadding(new Insets(12, 24, 24, 24));
+        VBox cardsBox = new VBox(14, cards); cardsBox.setPadding(new Insets(12, 24, 24, 24));
+        if (fullWidthLog != null) { VBox.setVgrow(cards, Priority.NEVER); cardsBox.getChildren().add(fullWidthLog); }   // the log spans the whole width under the cards
         ScrollPane sp = new ScrollPane(cardsBox); sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.getStyleClass().add("dash-scroll"); VBox.setVgrow(sp, Priority.ALWAYS); sp.setMinHeight(0);
         // the entry form takes keyboard focus as the page opens and the scroll pane nudges the cards up to show it, which hid the card headers
         // under the fixed strip; start from the top (a later scroll by the user is left alone)
         sp.sceneProperty().addListener((o, was, sc) -> { if (sc != null) javafx.application.Platform.runLater(() -> javafx.application.Platform.runLater(() -> sp.setVvalue(0))); });
 
-        VBox head = insightStrip != null ? new VBox(14, header(), insightStrip) : new VBox(header());
+        VBox head = new VBox(14, header(), insightStrip);
         head.setPadding(new Insets(10, 24, 0, 24));
         head.setMinHeight(Region.USE_PREF_SIZE);       // the scroll area takes what is left; the header is never squeezed to make room for it
         head.setViewOrder(-1);                         // the strip floats open over the cards, so the whole header must draw above them
@@ -112,14 +118,45 @@ public final class JHubDashboard {
         long m = (System.currentTimeMillis() - START) / 60000;
         return m < 60 ? m + "m" : (m / 60) + "h " + (m % 60) + "m";
     }
+    /** The status bar's right-hand readout: uptime, or in the space age style the mission elapsed time. */
+    private static String barUptime() {
+        if (!com.ars.fx.UiStyle.isModern()) return "ARS Suite · up " + uptime();
+        long s = (System.currentTimeMillis() - START) / 1000;
+        return String.format("MET  T+ %02d:%02d:%02d", s / 3600, s / 60 % 60, s % 60);
+    }
+    /** A thin orbit line with a glowing dot that circles along it; the dot sits still when Reduce effects is on. */
+    private static Region orbitTrack() {
+        Pane track = new Pane(); track.setMinHeight(30); track.setPrefHeight(30); track.setMouseTransparent(true);
+        HBox.setHgrow(track, Priority.ALWAYS); track.setMinWidth(0);
+        Region line = new Region(); line.setPrefHeight(1); line.setMinHeight(1); line.setMaxHeight(1);
+        line.setStyle("-fx-background-color: linear-gradient(to right, rgba(61,240,255,0), rgba(61,240,255,0.55) 50%, rgba(124,92,255,0));");
+        Region dot = new Region(); dot.setPrefSize(7, 7); dot.setMinSize(7, 7); dot.setMaxSize(7, 7);
+        dot.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 99; -fx-effect: dropshadow(gaussian, #3df0ff, 10, 0.6, 0, 0);");
+        track.getChildren().addAll(line, dot);
+        javafx.beans.property.SimpleDoubleProperty phase = new javafx.beans.property.SimpleDoubleProperty(0.5);
+        Runnable place = () -> {
+            double w = track.getWidth(), h = track.getHeight();
+            line.resizeRelocate(0, h / 2, w, 1);
+            dot.relocate(Math.max(0, w - 7) * phase.get(), h / 2 - 3);
+        };
+        track.widthProperty().addListener((o, a, b) -> place.run());
+        track.heightProperty().addListener((o, a, b) -> place.run());
+        phase.addListener((o, a, b) -> place.run());
+        Timeline orbit = new Timeline(new KeyFrame(javafx.util.Duration.ZERO, new javafx.animation.KeyValue(phase, 0.0)),
+                new KeyFrame(javafx.util.Duration.seconds(16), new javafx.animation.KeyValue(phase, 1.0, javafx.animation.Interpolator.LINEAR)));
+        orbit.setCycleCount(Timeline.INDEFINITE);
+        track.sceneProperty().addListener((o, was, sc) -> { if (sc == null) orbit.stop(); else if (!com.ars.fx.shell.Fx.reduced()) orbit.play(); });
+        return track;
+    }
     private static String nowUtc() { return java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")); }
     private static void startDashTicker() {
         if (dashTickerStarted) return;
         dashTickerStarted = true;
         Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> {
             if (dashRoot == null) return;
+            heroDevicesTick.run();
             if (dashRoot.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
-            if (dashRoot.lookup(".jhub-uptime") instanceof Label l) l.setText("ARS Suite · up " + uptime());
+            if (dashRoot.lookup(".jhub-uptime") instanceof Label l) l.setText(barUptime());
             if (dashRoot.lookup(".hero-rig") instanceof Label f && dashRoot.lookup(".hero-rig-sub") instanceof Label m) heroRig(f, m);
         }));
         t.setCycleCount(Timeline.INDEFINITE); t.play();
@@ -132,8 +169,8 @@ public final class JHubDashboard {
         HBox brand = new HBox(8, dot, lbl("J-Hub", "jhub-bar-nm"), brandCall);
         brand.setAlignment(Pos.CENTER_LEFT);
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label idTimer = com.ars.fx.shell.IdTimer.button();
-        HBox bar = new HBox(brand, sp, lbl("ARS Suite · up " + uptime(), "jhub-bar-sub", "jhub-uptime"), idTimer);
+        if (com.ars.fx.UiStyle.isModern()) sp = orbitTrack();      // space age: a satellite crawls along a thin orbit line between the two ends
+        HBox bar = new HBox(brand, sp, lbl(barUptime(), "jhub-bar-sub", "jhub-uptime"));
         bar.setSpacing(14); bar.getStyleClass().add("jhub-bar"); bar.setAlignment(Pos.CENTER_LEFT);
         return bar;
     }
@@ -187,7 +224,13 @@ public final class JHubDashboard {
         clock.setAlignment(Pos.TOP_RIGHT);
 
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox row = new HBox(40, id, rig, sp, clu, clock); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("hero");
+        Label idTimer = com.ars.fx.shell.IdTimer.button();
+        com.ars.fx.shell.HeroDevices.Set devices = com.ars.fx.shell.HeroDevices.build("hero-rig");   // rotor / satellite rotor / amp, if switched on in Setup
+        heroDevicesTick = devices.update(); heroDevicesTick.run();
+        HBox row = new HBox(40, id);
+        if (com.ars.fx.shell.HeroDevices.showRig()) row.getChildren().add(rig);
+        row.getChildren().addAll(devices.cells());
+        row.getChildren().addAll(sp, clu, idTimer, clock); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("hero");
         return row;
     }
     private static void heroRig(Label f, Label m) {
@@ -200,10 +243,15 @@ public final class JHubDashboard {
 
     // the insight strip under the hero, in every look (live stats + band activity, collapsible and pinnable): see InsightStrip
     private static InsightStrip insightStrip;
+    /** Brings the hero banner's extra device readouts (rotor, amp) up to date; run by the dashboard's one-second ticker. */
+    private static Runnable heroDevicesTick = () -> {};
 
     // ---- 3-column area -----------------------------------------------------
     private static HBox threeColRef = new HBox();
+    /** The Recent log, lifted out of the card column so it can run the full width of the dashboard. */
+    private static VBox fullWidthLog;
     private static HBox threeCol() {
+        fullWidthLog = null;
         // the full normal-log entry form + recent log (same as J-Log) beside the DX cluster
         VBox entry = JLogCockpit.embeddedEntry();
         Region cluster = clusterCol();
@@ -236,12 +284,13 @@ public final class JHubDashboard {
         WindowsRow(Region entry, Region cluster) {
             this.entry = entry; this.cluster = cluster;
             VBox r = null;
-            if (rows && entry instanceof VBox col && col.getChildren().size() > 1) {
+            if (entry instanceof VBox col && col.getChildren().size() > 1) {
                 java.util.List<Node> tail = new java.util.ArrayList<>(col.getChildren().subList(1, col.getChildren().size()));
                 col.getChildren().removeAll(tail);
                 r = new VBox(tail.toArray(new Node[0]));
             }
-            rest = r;
+            fullWidthLog = r;                  // the Recent log goes under the whole row (tray, cards and rail), see dashboardCenter()
+            rest = null;
             getChildren().addAll(entry, cluster);
             if (rest != null) getChildren().add(rest);
             setMinSize(0, 0);
@@ -688,7 +737,8 @@ public final class JHubDashboard {
             cfgRow("CW keyer", null, cInputPrompt("rig.keyer", "e.g. Winkeyer USB")));
         VBox beh = section("BEHAVIOR",
             cfgRow("Auto band-follow", "the New QSO frequency, band and mode follow the radio while it is connected (a digital rig mode leaves the mode as typed)", cToggle("rig.autoBandFollow", true)),
-            cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+            cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Show status in hero bar", "the rig's frequency, mode and connection in the banner at the top of every screen", cToggle(com.ars.fx.shell.HeroDevices.KEY_RIG, true)));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
@@ -727,12 +777,6 @@ public final class JHubDashboard {
 
         VBox units = section("UNITS",
             cfgRow("Units", "Metric: km · °C · km/h · hPa · m      Standard (US): mi · °F · mph · inHg · ft", unitSystemSeg()));
-        Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "sx-theme");
-        theme.setStyle("-fx-cursor:hand;");
-        theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
-        VBox appearance = section("APPEARANCE",
-            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme),
-            cfgRow("Reduce effects", "no sliding, flashing or glowing when something new arrives (new spots, changed counts, live lights)", cToggle("ui.reduceEffects", false)));
         Label checkMsg = lbl("", "cfg-lh");
         Label checkBtn = lbl("Check now", "sx-theme"); checkBtn.setStyle("-fx-cursor:hand;");
         checkBtn.setOnMouseClicked(e -> {
@@ -757,7 +801,7 @@ public final class JHubDashboard {
             cfgRow("Check for updates", "once a day, from GitHub — nothing about you is sent", cToggle("update.check", true)),
             cfgRow("Refresh country files", "weekly, from country-files.com — keeps DXCC prefixes and zones current", cToggle("cty.update", true)),
             cfgRow("Check now", null, checkRow));
-        VBox v = new VBox(20, top, desc, cells, id, loc, units, appearance, updates, zones);
+        VBox v = new VBox(20, top, desc, cells, id, loc, units, updates, zones);
         v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
@@ -864,14 +908,16 @@ public final class JHubDashboard {
             cfgRow("Park position", "the Park button on the rotor panel", cUnit("rotor.park", "0", "\u00b0 az")),
             cfgRow("Elevation rotor (az/el)", "satellite tracking also points the elevation (0-90\u00b0); leave off for an azimuth-only rotor such as an HF beam's", cToggleApply("rotor.hasElevation", false, on -> { })),
             cfgRow("Dead-band", "satellite tracking skips moves smaller than this, on either axis (both rotors)", cUnit("rotor.deadband", "2", "\u00b0")),
-            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat; it moves the satellite rotor when one is switched on, otherwise this rotor", cToggle("rotor.autoTrack", false)));
+            cfgRow("Auto-track satellites (J-Sat)", "same switch as Track with rotor in J-Sat; it moves the satellite rotor when one is switched on, otherwise this rotor", cToggle("rotor.autoTrack", false)),
+            cfgRow("Show status in hero bar", "the rotor's heading and connection in the banner at the top of every screen", cToggle(com.ars.fx.shell.HeroDevices.KEY_ROTOR, false)));
         VBox presets = section("BEAM PRESETS", presetRows());
 
         // the optional second rotor, for satellites
         Label satNote = lbl("A second rotor for satellites, such as an az/el rotator on the satellite antenna while the rotor above turns an HF beam. J-Sat's tracking drives it; everything else (spot clicks, the beam presets, the J-Map beam) stays on the rotor above. It has its own rotctld: give it its own port (this page can start it for you).", "cfg-desc");
         satNote.setWrapText(true);
         VBox satOn = section("SATELLITE ROTOR",
-            cfgRow("Use a satellite rotor", "off: J-Sat tracking uses the rotor above", cToggleApply("rotor2.enabled", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+            cfgRow("Use a satellite rotor", "off: J-Sat tracking uses the rotor above", cToggleApply("rotor2.enabled", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Show status in hero bar", "the satellite rotor's heading and connection in the banner (only while it is switched on above)", cToggle(com.ars.fx.shell.HeroDevices.KEY_SAT, false)));
         VBox satConn = rotorConnection("rotor2.", true);
         VBox satBeh = section("SATELLITE ROTOR BEHAVIOR",
             cfgRow("Rotor range", "360\u00b0 turns once; 450\u00b0 has a 90\u00b0 overlap: passes carry on past 360\u00b0 instead of unwinding", cSegApply("rotor2.range", new String[]{"360\u00b0","450\u00b0"}, 0, () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
@@ -939,7 +985,8 @@ public final class JHubDashboard {
             cfgRow("Follow rig band", "when the radio changes band, send its frequency to the amplifier", cToggle("amp.followBand", true)),
             cfgRow("Max power", "forward power over this is flagged on the dashboard and here; it does not change the amplifier. Also fills the {AMPMAXPOWER} macro", cUnit("amp.maxPower", "1000", "W")),
             cfgRow("Standby on TX inhibit", "put the amplifier in Standby while the rig is disconnected", cToggleApply("amp.standbyOnInhibit", true, on -> AmpClient.getInstance().applyPower())),
-            cfgRow("Operate / Standby", "sent to the amplifier; it is re-sent when the amplifier reconnects, and Standby is used while the rig is disconnected (see above)", cSegApply("amp.opStandby", new String[]{"Operate","Standby"}, 1, () -> AmpClient.getInstance().applyPower())));
+            cfgRow("Operate / Standby", "sent to the amplifier; it is re-sent when the amplifier reconnects, and Standby is used while the rig is disconnected (see above)", cSegApply("amp.opStandby", new String[]{"Operate","Standby"}, 1, () -> AmpClient.getInstance().applyPower())),
+            cfgRow("Show status in hero bar", "the amplifier's operate / standby state and SWR in the banner at the top of every screen", cToggle(com.ars.fx.shell.HeroDevices.KEY_AMP, false)));
         return cfgPage(cfgTop("J-Hub","Hardware","Amplifier"),
             lbl("Linear amplifier control via Hamlib ampctld — band-follow, power limit and standby.","cfg-desc"),
             cells, conn, beh);
@@ -1129,18 +1176,26 @@ public final class JHubDashboard {
         int on = 0; for (int i = 0; i < looks.length; i++) if (looks[i].equals(curLook)) on = i;
         Region lookSeg = segSel(looks, on, i -> {
             com.ars.fx.data.HubConfig.set(com.ars.fx.UiStyle.DASHBOARD_KEY, com.ars.fx.UiStyle.DASHBOARD_STYLES.get(i).key());
+            // live: rebuild Setup on this same section (re-applies the stylesheet); the dashboard and other screens are rebuilt each time they are opened
+            javafx.application.Platform.runLater(() -> Shell.navigate("setup:appearance"));
         });
+        Label theme = lbl("◑ " + com.ars.fx.Themes.byKey(com.ars.fx.Themes.global()).label(), "sx-theme");
+        theme.setStyle("-fx-cursor:hand;");
+        theme.setOnMouseClicked(e -> theme.setText("◑ " + Shell.cycleGlobalTheme().label()));
+        VBox colour = section("COLOUR",
+            cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme),
+            cfgRow("Reduce effects", "no sliding, flashing or glowing when something new arrives (new spots, changed counts, live lights)", cToggle("ui.reduceEffects", false)));
         VBox size = section("SIZE",
-            cfgRow("Interface size", "scales everything together: the sizes below 100% shrink it, and above 100% it moves in 50% steps; restart ARS Suite to apply",
+            cfgRow("Interface size", "scales the whole window together (text, widths, drawers); applies at once. Pop-up windows keep their own size",
                     cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, com.ars.fx.UiStyle.scaleDefaultIndex())));
         VBox layout = section("DASHBOARD LAYOUT",
             cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",
                     cToggle("ui.dashboard.rows", true)));
         VBox look = section("LOOK",
-            cfgRow("Style", "Classic is the original look. Open the dashboard again to see a change; pick Classic to go back at any time", lookSeg));
+            cfgRow("Style", "Classic is the original look. A change shows at once; pick Classic to go back at any time", lookSeg));
         return cfgPage(cfgTop("J-Hub", "System", "Appearance"),
                 lbl("How the suite looks. The style applies to every screen and window; Classic is the original look.", "cfg-desc"),
-                size, layout, look);
+                colour, size, layout, look);
     }
 
     private static Region modulesCenter() {
