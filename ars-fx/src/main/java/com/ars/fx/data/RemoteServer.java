@@ -57,6 +57,7 @@ public final class RemoteServer extends WebSocketServer {
             s.start();                 // non-blocking; spins its own accept thread
             INSTANCE = s;
             s.beginBroadcast();
+            RigClient.getInstance().addDirectListener(s::pushRig);   // rig changes go out at once, not with the once-a-second snapshot
             System.out.println("[remote] J-Hub sharing server listening on " + host + ":" + port
                     + (lanShared() ? " (LAN-visible)" : " (local only)"));
         } catch (Exception e) {
@@ -115,6 +116,7 @@ public final class RemoteServer extends WebSocketServer {
             String t = o.has("t") ? o.get("t").getAsString() : "";
             switch (t) {
                 case "rig.freq"     -> RigClient.getInstance().setFreqHz(o.get("hz").getAsLong());
+                case "rig.cmd"      -> RigClient.getInstance().runForwarded(o.get("cmd").getAsString());
                 case "rig.mode"     -> RigClient.getInstance().setMode(o.get("mode").getAsString());
                 case "rotor.move"   -> {
                     double az = o.get("az").getAsDouble();
@@ -167,6 +169,14 @@ public final class RemoteServer extends WebSocketServer {
         }, "remote-raw");
         raw.setDaemon(true);
         raw.start();
+    }
+
+    /** One small message with the rig state, sent as soon as it changes. */
+    private void pushRig(RigClient.State st) {
+        if (getConnections().isEmpty()) return;
+        JsonObject o = new JsonObject();
+        o.addProperty("t", "rig"); o.add("rig", GSON.toJsonTree(st));
+        try { broadcast(o.toString()); } catch (Exception ignored) {}
     }
 
     private void pushRaw() {

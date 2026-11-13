@@ -81,15 +81,20 @@ public final class Fx {
      */
     public static void pulse(Node n, boolean on) {
         Object current = n.getProperties().get("fx.pulse");
-        if (!on || reduced()) {
+        if (!on || reduced() || !HubConfig.getBool("ui.pulse", false)) {   // off unless asked for: every frame of it is a whole-window present, a third of a core on a laptop
             if (current instanceof Animation a) a.stop();
             n.getProperties().remove("fx.pulse");
             n.setOpacity(1.0);
             return;
         }
         if (current != null) return;
-        FadeTransition breathe = new FadeTransition(Duration.millis(1100), n);
-        breathe.setFromValue(1.0); breathe.setToValue(0.4);
+        // Stepped, not a smooth fade: a smooth fade asks the renderer for a new frame 60 times a second for as long as a feed is connected,
+        // which on a laptop GPU cost a third of a core for one small dot. Eight steps a cycle (about 7 a second) reads the same and costs a tenth.
+        final int steps = 8;
+        javafx.animation.Timeline breathe = new javafx.animation.Timeline();
+        for (int i = 0; i <= steps; i++)
+            breathe.getKeyFrames().add(new javafx.animation.KeyFrame(Duration.millis(1100.0 * i / steps),
+                    new javafx.animation.KeyValue(n.opacityProperty(), 1.0 - 0.6 * i / steps, javafx.animation.Interpolator.DISCRETE)));
         breathe.setAutoReverse(true); breathe.setCycleCount(Animation.INDEFINITE);
         n.getProperties().put("fx.pulse", breathe);
         n.sceneProperty().addListener((o, was, now) -> { if (now == null) breathe.pause(); else breathe.play(); });

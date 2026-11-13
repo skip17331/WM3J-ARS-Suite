@@ -94,14 +94,22 @@ final class HeroBar {
         top.getChildren().add(clockBox);
         for (Node n : cells) HBox.setMargin(n, new Insets(0, 0, 0, 0));
 
-        Runnable tick = () -> {
-            clk.setText(CLOCK.format(LocalTime.now(ZoneOffset.UTC)));
-            date.setText(DATE.format(LocalDate.now(ZoneOffset.UTC)));
+        Runnable rigNow = () -> {
             RigClient.State st = RigClient.getInstance().last();
             boolean on = st != null && st.connected() && st.freqHz() > 0;
             rigF.setText(on ? RigClient.fmtFreq(st.freqHz()) : "—");
             String mode = on && st.mode() != null ? st.mode().trim() : "";
             rigM.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode) : "rig offline");
+        };
+        java.util.function.Consumer<RigClient.State> rigLive = st -> rigNow.run();          // the readout follows the rig as it changes, not once a second
+        rig.sceneProperty().addListener((o, was, now) -> {
+            RigClient.getInstance().removeListener(rigLive);
+            if (now != null) RigClient.getInstance().addListener(rigLive);
+        });
+        Runnable tick = () -> {
+            clk.setText(CLOCK.format(LocalTime.now(ZoneOffset.UTC)));
+            date.setText(DATE.format(LocalDate.now(ZoneOffset.UTC)));
+            rigNow.run();
             ClusterClient cc = ClusterClient.getInstance();
             FeedUi.paint(dot, cc.status());
             cluTxt.setText(cc.status().label() + "  ·  " + cc.spots().size() + " spots");

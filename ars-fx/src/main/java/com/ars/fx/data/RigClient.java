@@ -105,7 +105,13 @@ public final class RigClient {
     }
 
     /** Push a rig state received from the station (solo-remote mode). */
-    public void applyRemote(State s) { if (s != null) emit(s); }
+    public void applyRemote(State s) { if (s != null) emit(guard(s)); }
+
+    /** Frequency, mode and PTT are read every {@code fastMs()}; the meters and level banks on every METER_EVERY-th of those. */
+    private static final int METER_EVERY = 4;
+    private static long fastMs() { return Math.max(100, pollMs() / 6); }
+    /** Released after every command so the poller reads the rig straight away instead of at the end of its sleep. */
+    private final java.util.concurrent.Semaphore wake = new java.util.concurrent.Semaphore(0);
 
     private void loop() {
         while (true) {
@@ -115,19 +121,55 @@ public final class RigClient {
                 emit(new State(false, 0, "", "", 0, false, false, 0, Integer.MIN_VALUE, -1, -1, -1,
                         java.util.Map.of(), java.util.Map.of(), e.getMessage() == null ? "offline" : e.getMessage()));
             }
-            try { Thread.sleep(pollMs()); } catch (InterruptedException ie) { return; }
+            try { wake.tryAcquire(fastMs(), java.util.concurrent.TimeUnit.MILLISECONDS); wake.drainPermits(); } catch (InterruptedException ie) { return; }
         }
     }
 
     // levels/funcs read on the slow cadence (every SLOW_EVERY-th poll) — they change rarely
-    private static final String[] LEVEL_NAMES = {"AF","RF","RFPOWER","MICGAIN","SQL","NR","PREAMP","ATT","AGC","COMP"};
-    private static final String[] FUNC_NAMES  = {"NB","ANF","NR","VOX","LOCK","TUNER","COMP"};
-    private static final int SLOW_EVERY = 4;
+    private static final String[] LEVEL_NAMES = {"AF","RF","RFPOWER","MICGAIN","SQL","NR","NB","PREAMP","ATT","AGC","COMP"};
+    private static final String[] FUNC_NAMES  = {"NB","ANF","NR","VOX","LOCK","TUNER","COMP","RIT","XIT"};
+    private static final String[] SLOW_ITEMS = slowItems();
+    private static String[] slowItems() {
+        java.util.List<String> l = new java.util.ArrayList<>();
+        for (String n : LEVEL_NAMES) l.add("L:" + n);
+        for (String n : FUNC_NAMES) l.add("F:" + n);
+        l.add("SPLIT"); l.add("SPLITFREQ"); l.add("RIT_HZ"); l.add("XIT_HZ");
+        return l.toArray(new String[0]);
+    }
+    private int slowIdx = 0;
+    // written by the poll thread and (for an immediate on-screen answer) by command callers, so concurrent maps
+    private final java.util.Map<String,Double> lvAcc = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String,Boolean> fnAcc = new java.util.concurrent.ConcurrentHashMap<>();
+    /** Items to read back at once, ahead of the round-robin: what a command just changed. */
+    private final java.util.concurrent.ConcurrentLinkedQueue<String> prio = new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private volatile long splitHz = 0;
     private int cycle = 0;
     private volatile java.util.Map<String,Double> slowLevels = java.util.Map.of();
     private volatile java.util.Map<String,Boolean> slowFuncs = java.util.Map.of();
     private volatile boolean slowSplit = false;
+    private volatile String lastVfoName = "";
+    private volatile int mSmeter = Integer.MIN_VALUE; private volatile double mSwr = -1, mAlc = -1, mPwr = -1;
 
+    private void readItem(String item) {
+        if (item.startsWith("L:")) { String n = item.substring(2); double v = optDouble("\\get_level " + n); if (v >= 0) lvAcc.put(n, v); else lvAcc.remove(n); }
+        else if (item.startsWith("F:")) { String n = item.substring(2); Boolean f = optBoolOrNull("\\get_func " + n); if (f != null) fnAcc.put(n, f); else fnAcc.remove(n); }
+        else if (item.equals("SPLIT")) slowSplit = Boolean.TRUE.equals(parseBool(sendOpt("\\get_split_vfo")));
+        else if (item.equals("SPLITFREQ")) { if (slowSplit) { long hz = parseFreq(sendOpt("\\get_split_freq")); if (hz > 0) splitHz = hz; } }
+        else if (item.equals("RIT_HZ") || item.equals("XIT_HZ")) {
+            String body = sendOpt(item.equals("RIT_HZ") ? "\\get_rit" : "\\get_xit");
+            Double v = parseSigned(body);
+            if (v != null) lvAcc.put(item, v);
+        }
+    }
+    private void publishBanks() { slowLevels = new java.util.LinkedHashMap<>(lvAcc); slowFuncs = new java.util.LinkedHashMap<>(fnAcc); }
+    /** The number in a reply such as "RIT: -120" or "Frequency: 7074000" (sign kept); null when there is none. */
+    private static Double parseSigned(String r) {
+        for (String raw : r.split("\n")) {
+            String t = raw.contains(":") ? raw.substring(raw.indexOf(':') + 1).trim() : raw.trim();
+            try { return Double.parseDouble(t); } catch (NumberFormatException ig) { /* next line */ }
+        }
+        return null;
+    }
     private void pollOnce() throws IOException {
         long freq, pb = 0, vfoB = 0; String mode = "", vfo = "";
         // Structural read. By default only the ACTIVE VFO is read (f / m / get_vfo): get_rig_info also reads VFO B, and on some Icoms
@@ -149,31 +191,52 @@ public final class RigClient {
             String m = send("m");
             mode = parseMode(m);
             pb = parsePassband(m);
-            vfo = parseVfoName(sendOpt("\\get_vfo"));
+            if (cycle % METER_EVERY == 0) lastVfoName = parseVfoName(sendOpt("\\get_vfo"));
+            vfo = lastVfoName;
         }
-        // every poll: the fast-moving meters + TX state
-        int sMeter = optInt("\\get_level STRENGTH");
-        double swr = optDouble("\\get_level SWR");
-        double pwr = optDouble("\\get_level RFPOWER");
-        double alc = optDouble("\\get_level ALC");
         boolean ptt = optBool("t");
-
-        // slow cadence: the level/func banks + split (rarely change; keep last between refreshes)
-        if (cycle % SLOW_EVERY == 0) {
-            java.util.Map<String,Double> lv = new java.util.LinkedHashMap<>();
-            for (String n : LEVEL_NAMES) { double v = optDouble("\\get_level " + n); if (v >= 0) lv.put(n, v); }
-            java.util.Map<String,Boolean> fn = new java.util.LinkedHashMap<>();
-            for (String n : FUNC_NAMES) { Boolean b = optBoolOrNull("\\get_func " + n); if (b != null) fn.put(n, b); }
-            slowLevels = lv; slowFuncs = fn; slowSplit = Boolean.TRUE.equals(parseBool(sendOpt("\\get_split_vfo")));
+        // the meters are slower than the dial: read them on every METER_EVERY-th poll and keep the last values between
+        if (cycle % METER_EVERY == 0) {
+            mSmeter = optInt("\\get_level STRENGTH");
+            mSwr = optDouble("\\get_level SWR");
+            mPwr = optDouble("\\get_level RFPOWER");
+            mAlc = optDouble("\\get_level ALC");
         }
+        int sMeter = mSmeter; double swr = mSwr, pwr = mPwr, alc = mAlc;
+
+        // the level / func banks and split change rarely: read ONE per poll, round and round, so no poll is ever held up by the bank;
+        // what a command just changed is read back first, so the panel shows the radio's own answer within a poll or two
+        String item;
+        int guard = 0;
+        while ((item = prio.poll()) != null && guard++ < 6) readItem(item);
+        readItem(SLOW_ITEMS[slowIdx++ % SLOW_ITEMS.length]);
+        publishBanks();
         cycle++;
         java.util.Map<String,Double> levels = new java.util.LinkedHashMap<>(slowLevels);
         if (pwr >= 0) levels.put("RFPOWER", pwr);   // freshen the fast-read power
-        emit(new State(true, freq, mode, vfo, vfoB, slowSplit, ptt, pb, sMeter, swr, alc, pwr, levels, slowFuncs, ""));
+        if (slowSplit && splitHz > 0) vfoB = splitHz;      // with split on, "VFO B" is the transmit frequency
+        emit(guard(new State(true, freq, mode, vfo, vfoB, slowSplit, ptt, pb, sMeter, swr, alc, pwr, levels, slowFuncs, "")));
     }
 
     // ── Commands (run on the poll thread to serialise socket access) ──────────
+    // The dial the operator just asked for. Shown at once, and kept for a moment against a poll that was already in flight (it would
+    // bring the old value back for one frame), and the base for the next nudge so hold-to-repeat steps from where it is going, not from where
+    // the last poll saw it.
+    private volatile long cmdHz = 0; private volatile long cmdAt = 0;
+    private static final long CMD_HOLD_MS = 600;
+    private static State withFreq(State s, long hz) {
+        return new State(s.connected(), hz, s.mode(), s.vfo(), s.vfoBHz(), s.split(), s.ptt(), s.passbandHz(), s.sMeterDb(), s.swr(), s.alc(),
+                s.rfPowerFrac(), s.levels(), s.funcs(), s.error());
+    }
+    private State guard(State s) {
+        long hz = cmdHz;
+        if (hz > 0 && s.connected() && s.freqHz() != hz && System.currentTimeMillis() - cmdAt < CMD_HOLD_MS) return withFreq(s, hz);
+        return s;
+    }
     public void setFreqHz(long hz) {
+        cmdHz = hz; cmdAt = System.currentTimeMillis();
+        State s = last;
+        if (s.connected() && s.freqHz() != hz) emit(withFreq(s, hz));
         if (RemoteLink.isActive()) { RemoteLink.get().sendRigFreq(hz); return; }   // forward to the station
         runCmd("F " + hz);
     }
@@ -186,7 +249,7 @@ public final class RigClient {
     /** Step the dial by {@code deltaHz} from the last known frequency (fast/slow tuning, hold-to-repeat).
      *  Routes through {@link #setFreqHz} so it is forwarded in solo-remote mode too. */
     public void nudgeFreq(long deltaHz) {
-        long base = last.freqHz();
+        long base = (cmdHz > 0 && System.currentTimeMillis() - cmdAt < 1500) ? cmdHz : last.freqHz();
         if (base <= 0) return;
         setFreqHz(Math.max(0, base + deltaHz));
     }
@@ -195,19 +258,47 @@ public final class RigClient {
     //    solo-remote forwarder yet, so they no-op over a RemoteLink; locally they
     //    use the Hamlib short verbs (V/S/T/U/L). An unsupported verb just RPRTs. ──
     /** Select the active VFO (Hamlib {@code V}: "VFOA" / "VFOB"). */
-    public void setVfo(String vfo)        { if (RemoteLink.isActive()) return; runCmd("V " + vfo); }
+    public void setVfo(String vfo)        { cmd("V " + vfo); }
     /** A momentary VFO operation (Hamlib {@code \\vfo_op}: "CPY" = A=B, "XCHG" = A/B swap, …). */
-    public void vfoOp(String op)          { if (RemoteLink.isActive()) return; runCmd("\\vfo_op " + op); }
+    public void vfoOp(String op)          { cmd("\\vfo_op " + op); }
     /** Enable/disable split (Hamlib {@code S}: on → TX on VFOB, off → VFOA). */
-    public void setSplit(boolean on)      { if (RemoteLink.isActive()) return; runCmd(on ? "S 1 VFOB" : "S 0 VFOA"); }
+    /** Split on copies VFO A to B first, so the transmit frequency starts equal to the receive frequency (never on some other band). */
+    public void setSplit(boolean on) {
+        long rx = last.freqHz();
+        if (on) { cmd("\\vfo_op CPY"); }
+        cmd(on ? "S 1 VFOB" : "S 0 VFOA");
+        slowSplit = on; if (on && rx > 0) splitHz = rx;
+        republish(java.util.Map.of(), java.util.Map.of(), on, on && rx > 0 ? rx : null);
+    }
+    /** Set the transmit frequency while split is on. */
+    public void setSplitFreqHz(long hz) {
+        if (hz <= 0) return;
+        splitHz = hz; cmd("I " + hz);
+        republish(java.util.Map.of(), java.util.Map.of(), null, hz);
+    }
+    /** The transmit frequency to step from while split is on (the last one asked for or read). */
+    public long splitFreqHz() { long b = last.vfoBHz(); return b > 0 ? b : splitHz; }
+    /** RIT / XIT offset in Hz (Hamlib J / Z). */
+    public void setRitHz(long hz) { hz = Math.max(-9999, Math.min(9999, hz)); cmd("J " + hz); republish(java.util.Map.of("RIT_HZ", (double) hz), java.util.Map.of(), null, null); }
+    public void setXitHz(long hz) { hz = Math.max(-9999, Math.min(9999, hz)); cmd("Z " + hz); republish(java.util.Map.of("XIT_HZ", (double) hz), java.util.Map.of(), null, null); }
+    /** Show a changed setting at once, laid over the last state (the radio's own answer follows within a poll and replaces it). */
+    private void republish(java.util.Map<String,Double> lvOver, java.util.Map<String,Boolean> fnOver, Boolean splitOver, Long txOver) {
+        lvAcc.putAll(lvOver); fnAcc.putAll(fnOver); publishBanks();      // the hub's own bank, read by the next poll anyway
+        State s = last;
+        if (!s.connected()) return;
+        java.util.Map<String,Double> lv = new java.util.LinkedHashMap<>(s.levels() == null ? java.util.Map.of() : s.levels()); lv.putAll(lvOver);
+        java.util.Map<String,Boolean> fn = new java.util.LinkedHashMap<>(s.funcs() == null ? java.util.Map.of() : s.funcs()); fn.putAll(fnOver);
+        emit(new State(true, s.freqHz(), s.mode(), s.vfo(), txOver != null ? txOver : s.vfoBHz(), splitOver != null ? splitOver : s.split(), s.ptt(),
+                s.passbandHz(), s.sMeterDb(), s.swr(), s.alc(), s.rfPowerFrac(), lv, fn, s.error()));
+    }
     /** Key/unkey the transmitter (Hamlib {@code T}). */
-    public void setPtt(boolean on)        { if (RemoteLink.isActive()) return; runCmd(on ? "T 1" : "T 0"); }
+    public void setPtt(boolean on)        { TxController.manualPtt(on); }   // through the transmit controller: a time limit, and released if the window goes
     /** Toggle a named function — NB, NR, ANF, COMP, … (Hamlib {@code U <name> 0|1}). */
-    public void setFunc(String name, boolean on) { if (RemoteLink.isActive()) return; runCmd("U " + name + " " + (on ? 1 : 0)); }
+    public void setFunc(String name, boolean on) { cmd("U " + name + " " + (on ? 1 : 0)); republish(java.util.Map.of(), java.util.Map.of(name, on), null, null); }
     /** Set a named level — RFPOWER, AF, RF, SQL, MICGAIN, … 0..1 (Hamlib {@code L <name> <val>}). */
-    public void setLevel(String name, double val) { if (RemoteLink.isActive()) return; runCmd("L " + name + " " + val); }
+    public void setLevel(String name, double val) { cmd("L " + name + " " + (val == Math.rint(val) ? String.valueOf((long) val) : String.format(java.util.Locale.ROOT, "%.4f", val))); republish(java.util.Map.of(name, val), java.util.Map.of(), null, null); }
     /** Trigger the antenna tuner / start a tune cycle (Hamlib {@code U TUNER 1}). */
-    public void antTune()                 { if (RemoteLink.isActive()) return; runCmd("U TUNER 1"); }
+    public void antTune()                 { cmd("\\vfo_op TUNE"); }   // starts the tuning cycle; "U TUNER 1" only switches the tuner on
 
     /** A raw Hamlib command, waiting for the rig's reply (throws if it refuses). Only the process that owns the rig
      *  can use it — a window attached to the hub asks the hub instead (see {@link TxController}). */
@@ -216,9 +307,40 @@ public final class RigClient {
         return send(cmd);
     }
 
+    /** One thread, in order: a held tuning arrow sends a command every 90 ms, and separate threads could land them out of order. */
+    private final java.util.concurrent.ExecutorService cmdQueue = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "rig-cmd"); t.setDaemon(true); return t; });
+    /** A control command: sent to the station's hub when this window is attached to one, else straight to rigctld. */
+    private void cmd(String c) {
+        if (RemoteLink.isActive()) { RemoteLink.get().sendRigCmd(c); return; }
+        runCmd(c);
+    }
+    private static final java.util.regex.Pattern ALLOWED_CMD = java.util.regex.Pattern.compile(
+            "V VFO[AB]|S [01] VFO[AB]|I [0-9]{4,10}|[JZ] -?[0-9]{1,5}|U [A-Z0-9_]{1,12} [01]|L [A-Z0-9_]{1,12} -?[0-9]{1,6}(\\.[0-9]{1,6})?|\\\\vfo_op [A-Z_]{1,12}");
+    /** The hub runs a control command a window asked for, but only the kinds the rig panel sends. */
+    public void runForwarded(String c) {
+        if (c == null || !ALLOWED_CMD.matcher(c).matches() || !last.connected()) return;
+        runCmd(c);
+    }
+    /** The poll items a command may have changed. */
+    private static java.util.List<String> itemsFor(String c) {
+        String[] t = c.split("\\s+");
+        return switch (t[0]) {
+            case "U" -> t.length > 1 ? java.util.List.of("F:" + t[1]) : java.util.List.of();
+            case "L" -> t.length > 1 ? java.util.List.of("L:" + t[1]) : java.util.List.of();
+            case "S", "V" -> java.util.List.of("SPLIT", "SPLITFREQ");
+            case "I" -> java.util.List.of("SPLITFREQ");
+            case "J" -> java.util.List.of("RIT_HZ", "F:RIT");
+            case "Z" -> java.util.List.of("XIT_HZ", "F:XIT");
+            default -> java.util.List.of();
+        };
+    }
     private void runCmd(String cmd) {
-        Thread t = new Thread(() -> { try { send(cmd); } catch (IOException ignored) {} }, "rig-cmd");
-        t.setDaemon(true); t.start();
+        cmdQueue.execute(() -> {
+            try { send(cmd); } catch (IOException ignored) {}
+            for (String it : itemsFor(cmd)) prio.add(it);       // read back what this changed
+            wake.release();
+        });
     }
 
     // ── Optional level reads — an RPRT (unsupported) yields sentinel, not a drop ─
@@ -243,8 +365,14 @@ public final class RigClient {
     /** Send, returning "" on any error (for optional structural reads like get_split_vfo). */
     private String sendOpt(String cmd) { try { return send(cmd); } catch (IOException e) { return ""; } }
 
+    /** Called on the poll thread with every change, with no JavaFX involved: the hub (which has no UI) pushes it to the windows. */
+    private final java.util.List<Consumer<State>> directListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+    public void addDirectListener(Consumer<State> l) { if (l != null) directListeners.add(l); }
+
     private void emit(State s) {
+        if (s.equals(last)) return;                 // nothing changed: no repaint, no message
         last = s;
+        for (Consumer<State> l : directListeners) { try { l.accept(s); } catch (Exception ignored) {} }
         for (Consumer<State> l : listeners) {
             try { javafx.application.Platform.runLater(() -> l.accept(s)); }
             catch (IllegalStateException noFx) { /* toolkit not up (tests) */ }
