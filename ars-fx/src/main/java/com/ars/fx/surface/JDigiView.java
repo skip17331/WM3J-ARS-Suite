@@ -92,7 +92,7 @@ public final class JDigiView {
 
         // bind live listeners (latest build wins)
         if (svc != null) {
-            svc.setSpectrumListener(s -> Platform.runLater(() -> wf.push(s.getMagnitudes())));
+            svc.setSpectrumListener(s -> Platform.runLater(() -> { if (wf.shown()) wf.push(s.getMagnitudes()); }));   // not while J-Digi is off screen
             svc.setDecodeListener(line -> Platform.runLater(() -> { decode.appendText(line.endsWith("\n") ? line : line + "\n"); }));
             svc.setStatusListener(s -> Platform.runLater(() -> { highlight(tabs, TABS, s.getMode().name()); statusStrip.setText(statusText(s, svc)); }));
         }
@@ -144,29 +144,31 @@ public final class JDigiView {
     // ---- live waterfall ----------------------------------------------------
     private static final class WaterfallView {
         private static final int W = 1010, H = 130;
-        private final Canvas canvas = new Canvas(W, H);
+        // The image is shown through an ImageView, so the GPU scales it to the window and a new row costs one small texture upload; a canvas
+        // that redraws the scaled image on every row repainted the full width of the window in software, many times a second.
         private final WritableImage img = new WritableImage(W, H);
+        private final javafx.scene.image.ImageView view = new javafx.scene.image.ImageView(img);
         private final int[] scratch = new int[W * (H - 1)];
         private final javafx.scene.image.WritablePixelFormat<java.nio.IntBuffer> FMT = PixelFormat.getIntArgbInstance();
 
         WaterfallView() {
             var pw = img.getPixelWriter();
             for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) pw.setArgb(x, y, 0xff05080c);
-            redraw();
         }
         Region node() {
             Region cursor = new Region(); cursor.getStyleClass().add("wf-cursor"); cursor.setMinWidth(2); cursor.setMaxWidth(2); cursor.setMaxHeight(Double.MAX_VALUE);
             // The canvas is not resizable, so on its own it pins the whole page at W px wide and clips both side
             // columns in a narrower window. Let it follow the available width instead (redraw() scales the image).
-            Pane holder = new Pane(canvas);
+            Pane holder = new Pane(view);
             holder.setMinWidth(0); holder.setPrefWidth(W);
             holder.setMinHeight(H); holder.setPrefHeight(H); holder.setMaxHeight(H);
-            canvas.widthProperty().bind(holder.widthProperty());
-            canvas.widthProperty().addListener((o, ov, nv) -> redraw());
+            view.setPreserveRatio(false); view.setFitHeight(H);
+            view.fitWidthProperty().bind(holder.widthProperty());
             StackPane wf = new StackPane(holder, cursor); StackPane.setAlignment(cursor, Pos.CENTER); wf.setMaxWidth(Double.MAX_VALUE);
             wf.setMinWidth(0);
             return wf;
         }
+        boolean shown() { return view.getScene() != null; }
         void push(double[] mag) {
             if (mag == null || mag.length == 0) return;
             var pr = img.getPixelReader(); var pw = img.getPixelWriter();
@@ -176,9 +178,7 @@ public final class JDigiView {
                 int bin = (int) ((double) x / W * mag.length);
                 pw.setArgb(x, H - 1, color(mag[Math.min(bin, mag.length - 1)]));
             }
-            redraw();
         }
-        private void redraw() { canvas.getGraphicsContext2D().drawImage(img, 0, 0, canvas.getWidth(), canvas.getHeight()); }
         private int color(double m) {
             double db = 20 * Math.log10(m + 1e-9);
             double t = Math.max(0, Math.min(1, (db + 90) / 60));   // -90..-30 dB → 0..1
