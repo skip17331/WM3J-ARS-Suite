@@ -259,8 +259,10 @@ public final class JLogCockpit {
         Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
         Label cancel = lbl("Cancel edit", "jl-clearbtn"); cancel.setStyle("-fx-cursor:hand;"); cancel.setVisible(false); cancel.setManaged(false);
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
+        Label spotBtn = lbl("Log + Spot", "jl-logbtn"); spotBtn.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(spotBtn, "Save this QSO and post a spot for the station to the DX cluster (call, frequency, mode and your comment)");
         Shell.QslToggle printQsl = Shell.qslToggle();
-        HBox cmtRow = new HBox(12, cmtF, sp2, printQsl.node, cancel, clear, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
+        HBox cmtRow = new HBox(12, cmtF, sp2, printQsl.node, cancel, clear, spotBtn, logBtn); cmtRow.setAlignment(Pos.BOTTOM_LEFT);
         body.getChildren().add(cmtRow);
         body.getChildren().add(MacroBar.sendAsRow(mode));
         body.getChildren().add(MacroBar.row(fireMacro));
@@ -337,6 +339,8 @@ public final class JLogCockpit {
             sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
         }));
 
+        boolean[] spotAfter = {false};     // set by "Log + Spot": after a successful save, also post the spot
+        String[] spotNote = {""};
         Runnable saveNow = () -> {
             if (call.getText() == null || call.getText().isBlank()) { call.requestFocus(); return; }
             int p = 0; try { p = Integer.parseInt(pwr.getText().trim()); } catch (Exception ignored) {}
@@ -351,6 +355,8 @@ public final class JLogCockpit {
                     : JLogDb.insertAt(dt, call.getText(), freq.getText(), bandVal, mode.getText(),
                             rsnt.getText(), rrcv.getText(), name.getText(), qth.getText(), grid.getText(), cmt.getText(), stat.getText(), cnty.getText(), p, refs);
             if (ok) {
+                if (spotAfter[0] && editId[0] < 0) spotNote[0] = postSpot(call.getText(), freq.getText(), mode.getText(), cmt.getText());
+                spotAfter[0] = false;
                 if (editId[0] < 0) { com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText()); com.ars.fx.data.AutoUpload.afterLog(); }   // J-Map's session arcs; LoTW / eQSL auto-upload
                 long rowId = editId[0] >= 0 ? editId[0] : JLogDb.maxId();
                 JLogDb.QsoFull saved = JLogDb.byId(rowId);
@@ -363,6 +369,7 @@ public final class JLogCockpit {
                 exitEdit.run();
                 for (TextField t : all) t.clear();
                 b4.setText(idleB4); b4.setStyle(""); lastLk[0] = "";
+                if (!spotNote[0].isEmpty()) { b4.setText(spotNote[0]); spotNote[0] = ""; }
                 call.requestFocus();
                 refresh[0].run();
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
@@ -377,9 +384,13 @@ public final class JLogCockpit {
                     new Confirm.Choice("Save anyway", true, saveNow),
                     new Confirm.Choice("Go back and fix", false, null));
         };
-        logBtn.setOnMouseClicked(e -> doLog.run());
-        call.setOnAction(e -> doLog.run());
-        cmt.setOnAction(e -> doLog.run());
+        logBtn.setOnMouseClicked(e -> { spotAfter[0] = false; doLog.run(); });
+        spotBtn.setOnMouseClicked(e -> {
+            if (editId[0] >= 0) { b4.setText("Spot is for new QSOs, not edits"); return; }
+            spotAfter[0] = true; doLog.run();
+        });
+        call.setOnAction(e -> { spotAfter[0] = false; doLog.run(); });
+        cmt.setOnAction(e -> { spotAfter[0] = false; doLog.run(); });
         Runnable clearForm = () -> { exitEdit.run(); for (TextField t : all) t.clear(); b4.setText(idleB4); b4.setStyle(""); lastLk[0] = ""; };
         clearRef = clearForm;
         clear.setOnMouseClicked(e -> { clearForm.run(); call.requestFocus(); });
@@ -481,6 +492,17 @@ public final class JLogCockpit {
         VBox body = new VBox(9, modeRow, rx, txRow); body.setPadding(new Insets(4, 2, 4, 2));
         return Shell.drawer("RTTY / CW · TX & RX", "digi", "digi", "CW · " + cwRate(), false, body);
     }
+    /** Post "DX <call> <kHz> <mode> <comment>" to the cluster; returns a short status for the header line. */
+    private static String postSpot(String call, String freqMhz, String mode, String comment) {
+        com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
+        if (!cc.isConnected() && !com.ars.fx.data.RemoteLink.isActive()) return "✗ spot not sent — DX cluster is not connected";
+        double mhz;
+        try { mhz = Double.parseDouble(freqMhz.trim()); } catch (Exception e) { return "✗ spot not sent — no valid frequency"; }
+        String note = ((mode == null ? "" : mode.trim()) + " " + (comment == null ? "" : comment.trim())).trim();
+        if (note.length() > 30) note = note.substring(0, 30);     // cluster comments are short
+        cc.sendCommand(String.format(java.util.Locale.ROOT, "DX %s %.1f %s", call.trim().toUpperCase(java.util.Locale.ROOT), mhz * 1000.0, note).trim());
+        return "✓ spotted " + call.trim().toUpperCase(java.util.Locale.ROOT) + " on the cluster";
+    }
     private static void fillIfEmpty(TextField f, String v) {
         if (v != null && !v.isBlank() && (f.getText() == null || f.getText().isBlank())) f.setText(v);
     }
@@ -497,7 +519,7 @@ public final class JLogCockpit {
                 || !(ch.get(7) instanceof HBox r4) || !(ch.get(9) instanceof HBox cm) || !(ch.get(11) instanceof javafx.scene.layout.FlowPane macros)) return;
         java.util.List<Node> a = new ArrayList<>(r1.getChildren()), rst = new ArrayList<>(r2.getChildren()), qthRow = new ArrayList<>(r3.getChildren()),
                 refs = new ArrayList<>(r4.getChildren()), act = new ArrayList<>(cm.getChildren());
-        if (a.size() != 4 || rst.size() != 4 || qthRow.size() != 4 || refs.size() != 4 || act.size() != 6) return;
+        if (a.size() != 4 || rst.size() != 4 || qthRow.size() != 4 || refs.size() != 4 || act.size() != 7) return;
         Node caption = ch.get(2), scpNode = ch.get(3), refHints = ch.get(8), sendAs = ch.get(10);
         body.getChildren().clear();
 
@@ -514,9 +536,14 @@ public final class JLogCockpit {
         // row 3: which way macros send (the hint after the ticks is left out: it is the dashboard's tightest row), the F-keys, and the actions
         java.util.List<Node> sendCells = (sendAs instanceof javafx.scene.layout.FlowPane sf) ? new ArrayList<>(sf.getChildren()) : new ArrayList<>(List.of(sendAs));
         if (sendCells.size() == 4) sendCells.remove(3);
-        java.util.List<Node> cells3 = new ArrayList<>(sendCells);
+        java.util.List<Node> cells3 = new ArrayList<>();
+        if (sendCells.size() == 3) {    // "Macros send as" over its two ticks: one cell the height of an F-key button, so the row stays on one line
+            HBox ticks = new HBox(10, sendCells.get(1), sendCells.get(2)); ticks.setAlignment(Pos.CENTER_LEFT);
+            VBox stack = new VBox(2, sendCells.get(0), ticks); stack.setAlignment(Pos.CENTER_LEFT); stack.setMinWidth(Region.USE_PREF_SIZE);
+            cells3.add(stack);
+        } else cells3.addAll(sendCells);
         cells3.addAll(new ArrayList<>(macros.getChildren()));       // each F-key its own cell, so the row can break between them
-        cells3.add(act.get(2)); cells3.add(act.get(3)); cells3.add(act.get(4)); cells3.add(act.get(5));
+        cells3.add(act.get(2)); cells3.add(act.get(3)); cells3.add(act.get(4)); cells3.add(act.get(5)); cells3.add(act.get(6));
         javafx.scene.layout.FlowPane row3 = flow(12, 6, cells3.toArray(new Node[0]));
         body.getChildren().addAll(row1, info, row2, refHints, row3);
     }
