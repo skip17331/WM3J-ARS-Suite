@@ -91,6 +91,7 @@ public final class JSatView {
         host.getChildren().add(placeholder("Acquiring TLEs & computing passes…"));
         // re-layout when the window crosses the narrow threshold (auto-collapse the sat list)
         host.widthProperty().addListener((o, a, b) -> { if ((a.doubleValue() < NARROW_W) != (b.doubleValue() < NARROW_W)) rebuild(); });
+        host.sceneProperty().addListener((o, was, now) -> { if (now != null && stale) { stale = false; rebuild(); } });
         SatService.getInstance().setListener(s -> rebuild());
         SatService.getInstance().start();
         // tick the UTC clock once a second (updates just the clock label, not the whole frame)
@@ -105,7 +106,17 @@ public final class JSatView {
         return host;
     }
     private static boolean rebuildHeld;
+    /** The screen has changed while it was not shown; it is rebuilt when it is next put on screen. */
+    private static boolean stale;
     private static void rebuild() {
+        if (host != null && host.getScene() == null) {
+            // Not on screen: build nothing (a whole screen of widgets every two seconds for no one to see, each one registering listeners that were
+            // never removed), but keep doing what has to go on in the background: point the rotor, Doppler-tune the rig, sound the pass alarms.
+            Snapshot snap = SatService.getInstance().snapshot();
+            autoTrack(focus(snap)); checkAlarms(snap);
+            stale = true;
+            return;
+        }
         if (viewMode == 2 && globe != null && globe.busy()) { rebuildHeld = true; return; }      // do not pull the globe out from under a drag; run it on release
         rebuildHeld = false;
         if (host != null) Shell.keepScroll(host, () -> host.getChildren().setAll(frame(SatService.getInstance().snapshot())));
