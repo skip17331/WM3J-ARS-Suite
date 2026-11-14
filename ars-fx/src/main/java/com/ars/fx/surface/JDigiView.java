@@ -92,8 +92,8 @@ public final class JDigiView {
 
         // bind live listeners (latest build wins)
         if (svc != null) {
-            // About 6 waterfall rows a second, each the stronger of every bin since the last row (so a short signal is not lost). Every row is
-            // a new frame of a 4K window and this laptop's GPU pays about the same for every frame; the spectrum arrives at about 14 a second.
+            // 2 waterfall rows a second by default (J-Hub config digi.waterfallRows, 1 to 8), each the stronger of every bin since the last row (so a short signal is not lost). Every row is
+            // a new frame of a 4K window and this laptop's GPU pays about the same for every frame; the spectrum arrives at about 14 a second, and every row costs about 5 points of CPU.
             // Runs on the audio thread.
             double[][] acc = { null }; long[] lastRow = { 0 };
             svc.setSpectrumListener(s -> {
@@ -102,7 +102,8 @@ public final class JDigiView {
                 if (acc[0] == null || acc[0].length != m.length) acc[0] = m.clone();
                 else for (int i = 0; i < m.length; i++) if (m[i] > acc[0][i]) acc[0][i] = m[i];
                 long now = System.nanoTime();
-                if (now - lastRow[0] < 160_000_000L) return;
+                long gap = 1_000_000_000L / Math.max(1, Math.min(8, com.ars.fx.data.HubConfig.getInt("digi.waterfallRows", 2)));   // rows a second, 1 to 8
+                if (now - lastRow[0] < gap - 20_000_000L) return;
                 lastRow[0] = now;
                 double[] row = acc[0]; acc[0] = null;
                 Platform.runLater(() -> { if (wf.shown()) wf.push(row); });   // not while J-Digi is off screen
