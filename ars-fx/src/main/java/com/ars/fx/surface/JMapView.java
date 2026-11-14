@@ -1777,8 +1777,9 @@ public final class JMapView {
         com.ars.fx.data.ClusterClient cc = com.ars.fx.data.ClusterClient.getInstance();
         Label connect = lbl(com.ars.fx.shell.FeedUi.action(cc), "jl-logbtn"); connect.setStyle("-fx-cursor:hand;-fx-padding:6 14;");
         connect.setOnMouseClicked(e -> { com.ars.fx.shell.FeedUi.toggle(cc); connect.setText(com.ars.fx.shell.FeedUi.action(cc)); });
-        Timeline connectTick = new Timeline(new KeyFrame(Duration.millis(500), e -> connect.setText(com.ars.fx.shell.FeedUi.action(cc))));
-        connectTick.setCycleCount(Timeline.INDEFINITE); connectTick.play();
+        // with the other one-second clocks, and only while the button is on screen (this timeline was never stopped, so each rebuild of the
+        // drawer left another one running behind it)
+        com.ars.fx.shell.Fx.everySecondWhileShown(connect, () -> connect.setText(com.ars.fx.shell.FeedUi.action(cc)));
         HBox connectRow = new HBox(connect); connectRow.setAlignment(Pos.CENTER_LEFT); connectRow.setPadding(new Insets(0, 0, 8, 0));
         ScrollPane spotScroll = new ScrollPane(spots); spotScroll.setFitToWidth(true);
         spotScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); spotScroll.setPrefViewportHeight(300);
