@@ -65,24 +65,26 @@ public class SendPracticeSession {
     public void onCharacter(Consumer<Character> l) { this.charListener = l; }
     public void onElement(Consumer<DecodedElement> l) { this.elementListener = l; }
 
-    public void accept(KeyEvent ev) { decoder.accept(ev); }
-    public void tick(long now) { decoder.tick(now); }
+    // Synchronized: key events arrive on the FX thread (keyboard) or a serial thread (Arduino), the timing tick runs on its own thread, and the metrics
+    // are read on the FX thread. The decoder and the lists here are plain, so one lock keeps them apart.
+    public synchronized void accept(KeyEvent ev) { decoder.accept(ev); }
+    public synchronized void tick(long now) { decoder.tick(now); }
 
     public Mode mode()        { return mode; }
     public String target()    { return target; }
-    public String decoded()   { return decoded.toString(); }
+    public synchronized String decoded()   { return decoded.toString(); }
 
-    public SendingDiagnostics.Result diagnostics() {
+    public synchronized SendingDiagnostics.Result diagnostics() {
         return new SendingDiagnostics().analyse(elements);
     }
 
-    public SendingDiagnostics.TroubleReport troubleReport() {
+    public synchronized SendingDiagnostics.TroubleReport troubleReport() {
         return new SendingDiagnostics()
                 .buildTroubleReport(target, decoded.toString(), ditByChar, dahByChar);
     }
 
     /** Guided-mode character-by-character correctness ratio. */
-    public double accuracy() {
+    public synchronized double accuracy() {
         if (mode != Mode.GUIDED || target.isEmpty()) return 0.0;
         int n = Math.min(target.length(), decoded.length());
         int correct = 0;
