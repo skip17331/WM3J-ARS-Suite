@@ -117,8 +117,14 @@ public final class NetNode {
     }
     private void addChat(ChatMsg m) { chat.addLast(m); while (chat.size() > CHAT_KEEP) chat.pollFirst(); fire(); }
 
-    private static final class Conn { String nonce = NetAuth.nonce(); boolean authed; String station = ""; volatile byte[] sk; }
+    private static final class Conn { String nonce = NetAuth.nonce(); boolean authed; String station = ""; volatile byte[] sk; final long born = System.currentTimeMillis(); }
     private static final long STALE_MS = 20_000;
+    // A socket the pings keep alive can still be stuck: a host that accepted a join but never sent its challenge, a connect that hangs, a client that
+    // never says hello. Pings only tell the other end is up, not that the handshake is going anywhere, so each stage has a deadline.
+    private volatile long handshakeLimitMs = 15_000, unauthLimitMs = 15_000;
+    private volatile long attemptMs;
+    /** For tests: how long a join may take to be welcomed, and how long a connection to the host may stay unauthenticated. */
+    void setHandshakeLimitsForTest(long joinMs, long unauthMs) { handshakeLimitMs = joinMs; unauthLimitMs = unauthMs; }
 
     public NetNode(String station, String op, String key, NetStore store, Supplier<NetStatus> myStatus) {
         this.station = station; this.op = op == null ? "" : op; this.key = key; this.store = store; this.myStatus = myStatus;
@@ -171,9 +177,17 @@ public final class NetNode {
     }
 
     private synchronized void tryConnect() {
-        if (role != Role.JOIN || connecting || (client != null && client.isOpen())) return;
+        if (role != Role.JOIN) return;
+        Cli stuck = client;
+        if (stuck != null && !connected && attemptMs > 0 && System.currentTimeMillis() - attemptMs > handshakeLimitMs) {
+            lastProblem = "the host did not complete the handshake";      // open (or never opened) but not welcomed in time: drop it and start over
+            client = null; connecting = false;
+            try { stuck.close(); } catch (Exception ignored) { }
+            fire();
+        }
+        if (connecting || (client != null && client.isOpen())) return;
         try {
-            connecting = true;
+            connecting = true; attemptMs = System.currentTimeMillis();
             Cli c = new Cli(new URI("ws://" + joinHost + ":" + joinPort));
             c.setConnectionLostTimeout(10);
             client = c;
@@ -217,6 +231,8 @@ public final class NetNode {
     private void tick() {
         long now = System.currentTimeMillis();
         roster.values().removeIf(s -> now - s.seenMs() > STALE_MS);
+        for (Map.Entry<WebSocket, Conn> e : conns.entrySet())             // HOST: a connection that never proved the key is not kept
+            if (!e.getValue().authed && now - e.getValue().born > unauthLimitMs) { try { e.getKey().close(); } catch (Exception ignored) { } }
         publishStatus();
         fire();
     }
@@ -283,8 +299,9 @@ public final class NetNode {
         /** Sends a message, sealed once the handshake is done. */
         void out(String msg) { byte[] k = sk; send(k == null ? msg : NetCrypt.seal(k, msg)); }
         @Override public void onOpen(ServerHandshake h) { /* the host speaks first: it sends a challenge */ }
-        @Override public void onClose(int code, String reason, boolean remote) { connecting = false; connected = false; fire(); }
-        @Override public void onError(Exception e) { lastProblem = "cannot reach " + joinHost + ":" + joinPort; connecting = false; fire(); }
+        // a client we already gave up on must not clear the state of the one that replaced it
+        @Override public void onClose(int code, String reason, boolean remote) { if (client != Cli.this) return; connecting = false; connected = false; fire(); }
+        @Override public void onError(Exception e) { if (client != Cli.this) return; lastProblem = "cannot reach " + joinHost + ":" + joinPort; connecting = false; fire(); }
         @Override public void onMessage(String text) {
             if (sk != null) { text = NetCrypt.open(sk, text); if (text == null) return; }                    // after the handshake only sealed frames count
             JsonObject m = NetProto.parse(text);
