@@ -121,7 +121,6 @@ public final class ContestState {
         catch (Exception e) { return List.of(); }
     }
 
-    /** Recompute the aggregate score from the contest log and notify listeners. */
     private static String lastKey = "";
     private static long lastFullMs;
     private static final long REFRESH_MS = 60_000;
@@ -145,6 +144,7 @@ public final class ContestState {
         recompute();
     }
 
+    /** Recompute the aggregate score from the contest log and notify listeners. */
     public static synchronized void recompute() {
         if (plugin == null) { score = ContestScore.of(0, 0, 0, 0); fire(); return; }
         try {

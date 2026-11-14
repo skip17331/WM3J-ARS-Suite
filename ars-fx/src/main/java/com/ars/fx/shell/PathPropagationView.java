@@ -68,14 +68,14 @@ public final class PathPropagationView extends VBox {
         check.setText(com.ars.fx.data.PropagationCheck.summary());
         refresh();
         // follows a spot clicked elsewhere, moves the "now" column and picks up fresh space-weather data; stops when the panel is taken off screen
-        Timeline tick = new Timeline(new KeyFrame(Duration.seconds(2), e -> {
+        int[] beat = {0};
+        Fx.everySecondWhileShown(this, () -> {                  // every 2 s, in the same frame as the other clocks'
+            if ((beat[0]++ & 1) != 0) return;
             String t = HubConfig.get(KEY_TARGET, "");
             if (!target.isFocused() && !t.equals(target.getText().trim())) target.setText(t);
             check.setText(com.ars.fx.data.PropagationCheck.summary());
             refresh();
-        }));
-        tick.setCycleCount(Animation.INDEFINITE);
-        sceneProperty().addListener((o, was, now) -> { if (now == null) tick.stop(); else tick.play(); });
+        });
     }
 
     /** Redraws only if something that changes the picture has changed. */
