@@ -1223,7 +1223,7 @@ public final class JLogContest {
         if (tickerStarted) return;
         tickerStarted = true;
         javafx.animation.Timeline tl = new javafx.animation.Timeline(new javafx.animation.KeyFrame(
-                javafx.util.Duration.seconds(3), e -> ContestState.recompute()));
+                javafx.util.Duration.seconds(3), e -> ContestState.recomputeIfChanged()));
         tl.setCycleCount(javafx.animation.Timeline.INDEFINITE); tl.play();
     }
 
