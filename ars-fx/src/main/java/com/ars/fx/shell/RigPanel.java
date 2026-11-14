@@ -352,7 +352,7 @@ public final class RigPanel {
             rig.removeListener(l);
             if (b != null) rig.addListener(l);   // addListener also pushes the current state straight away
         });
-        rig.addListener(l);
+        if (panel.getScene() != null) rig.addListener(l);      // otherwise it is added when the panel is put on screen (a panel that is built and never shown must not stay registered)
         rig.start();
         return panel;
     }

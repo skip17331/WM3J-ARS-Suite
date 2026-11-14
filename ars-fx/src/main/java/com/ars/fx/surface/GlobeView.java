@@ -59,7 +59,7 @@ final class GlobeView extends Pane {
     static boolean supported() { return Platform.isSupported(ConditionalFeature.SCENE3D); }
 
     private static final int TEX_W = 2048, TEX_H = 1024;
-    private final MeshView earth = new MeshView(sphereMesh(180, 360)), night = new MeshView(sphereMesh(90, 180));
+    private final MeshView earth = new MeshView(sphereMesh(90, 180)), night = new MeshView(sphereMesh(60, 120));   // 2 degree rings: the edge is within a pixel of round at normal zoom, at a quarter of the triangles
     private final PhongMaterial earthMat = new PhongMaterial(Color.WHITE), nightMat = new PhongMaterial(Color.WHITE);
     private final Group world = new Group(earth, night);
     private final SubScene sub;
@@ -101,7 +101,7 @@ final class GlobeView extends Pane {
         earth.setCullFace(CullFace.NONE); night.setCullFace(CullFace.NONE);        // the far side is hidden by the depth buffer, so winding does not matter
         world.getTransforms().setAll(shift, tilt, turn);                      // applied turn first, then tilt, then shift to the middle
         Group root = new Group(world, fill, sunlight, flat);
-        sub = new SubScene(root, 10, 10, true, SceneAntialiasing.BALANCED);
+        sub = new SubScene(root, 10, 10, true, SceneAntialiasing.DISABLED);
         sub.setCamera(new PerspectiveCamera(false));
         sub.setFill(Color.TRANSPARENT);
         sub.setMouseTransparent(true);                                         // the pane takes the mouse; the 3D picking is not used
@@ -114,13 +114,13 @@ final class GlobeView extends Pane {
             if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
             dragX = e.getX(); dragY = e.getY();
             lon0 = wrap(lon0 - dx * k); lat0 = Math.max(-88, Math.min(88, lat0 + dy * k));
-            applyView(); redraw();
+            applyView(); interact();
         });
         setOnMouseReleased(e -> released.run());
         setOnScroll(e -> {
             if (e.getDeltaY() == 0) return;
             zoom = Math.max(0.55, Math.min(8, zoom * Math.pow(1.0015, e.getDeltaY())));
-            applyView(); redraw();
+            applyView(); interact();
         });
         setOnMouseClicked(e -> {
             if (moved) return;
@@ -303,6 +303,38 @@ final class GlobeView extends Pane {
     }
 
     // ── the overlay ───────────────────────────────────────────────────────────
+    /** Redraw the overlay once per screen frame however many mouse events arrived since the last one (a drag sends well over a hundred a second). */
+    private final javafx.animation.AnimationTimer redrawTimer = new javafx.animation.AnimationTimer() {
+        @Override public void handle(long now) { stop(); redraw(); }
+    };
+    private void requestRedraw() { redrawTimer.start(); }
+
+    /** True while the globe is being dragged or zoomed: the overlay is then drawn without its soft extras (halos, footprint tints, label outlines),
+     *  which are the costly part to rasterise, and drawn in full again a moment after the last movement. */
+    private boolean interacting;
+    private final javafx.animation.PauseTransition settle = new javafx.animation.PauseTransition(javafx.util.Duration.millis(180));
+    { settle.setOnFinished(e -> { interacting = false; requestRedraw(); }); }
+    private void interact() { interacting = true; settle.playFromStart(); requestRedraw(); }
+
+    /** The glow around the globe, drawn once to an image: its colour stops are fractions of its radius, so the one image serves every zoom
+     *  (scaled when drawn) and a frame no longer has to rasterise a gradient across most of the window. */
+    private static javafx.scene.image.Image glowImage;
+    private static boolean glowLight;
+    private static javafx.scene.image.Image glow(boolean light) {
+        if (glowImage != null && glowLight == light) return glowImage;
+        int n = 512; double sil = n / 2 / 1.16;
+        Color base = light ? Color.web("#4a86c5") : Color.web("#5fb0ff");
+        Color none = new Color(base.getRed(), base.getGreen(), base.getBlue(), 0);
+        Color peak = new Color(base.getRed(), base.getGreen(), base.getBlue(), light ? 0.30 : 0.42);
+        Canvas c = new Canvas(n, n);
+        c.getGraphicsContext2D().setFill(new RadialGradient(0, 0, n / 2.0, n / 2.0, n / 2.0, false, CycleMethod.NO_CYCLE,
+                new Stop(0, none), new Stop(0.90 * sil / (n / 2.0), none), new Stop(sil / (n / 2.0), peak), new Stop(1, none)));
+        c.getGraphicsContext2D().fillOval(0, 0, n, n);
+        javafx.scene.SnapshotParameters sp = new javafx.scene.SnapshotParameters(); sp.setFill(Color.TRANSPARENT);
+        glowImage = c.snapshot(sp, null); glowLight = light;
+        return glowImage;
+    }
+
     private void redraw() {
         double w = getWidth(), h = getHeight();
         if (w < 2 || h < 2) return;
@@ -314,24 +346,19 @@ final class GlobeView extends Pane {
         double sil = pr.silhouetteRadius();
         // atmosphere: a glow just outside the edge and a thin bright rim just inside it
         double outer = sil * 1.16;
-        Color glow = pal.light() ? Color.web("#4a86c5") : Color.web("#5fb0ff");
-        Color none = new Color(glow.getRed(), glow.getGreen(), glow.getBlue(), 0);
-        Color peak = new Color(glow.getRed(), glow.getGreen(), glow.getBlue(), pal.light() ? 0.30 : 0.42);
-        g.setFill(new RadialGradient(0, 0, w / 2, h / 2, outer, false, CycleMethod.NO_CYCLE,
-                new Stop(0, none), new Stop(0.90 * sil / outer, none), new Stop(sil / outer, peak), new Stop(1, none)));
-        g.fillOval(w / 2 - outer, h / 2 - outer, outer * 2, outer * 2);
+        g.drawImage(glow(pal.light()), w / 2 - outer, h / 2 - outer, outer * 2, outer * 2);
         // a thin edge so the globe reads against the background
         g.setStroke(pal.light() ? Color.web("#1c2733", 0.35) : Color.web("#9fc4e8", 0.45)); g.setLineWidth(1.5);
         g.strokeOval(w / 2 - sil, h / 2 - sil, sil * 2, sil * 2);
 
         for (double[] r : rings) {
             double[][] circle = GlobeProjection.circle(r[0], r[1], r[2], 90);
-            if (r[7] > 0) tint(g, pr, r[0], r[1], circle, new Color(r[3], r[4], r[5], r[7]));
+            if (r[7] > 0 && !interacting) tint(g, pr, r[0], r[1], circle, new Color(r[3], r[4], r[5], r[7]));
             g.setStroke(new Color(r[3], r[4], r[5], r[6])); g.setLineWidth(r.length > 8 ? r[8] : 1.6); g.setLineDashes(null);
             line(g, pr, circle, 0);
         }
         for (Poly p : polys) {
-            if (p.glow() > 0) {                                                    // a soft halo first, so the line reads as lit
+            if (p.glow() > 0 && !interacting) {                                    // a soft halo first, so the line reads as lit
                 g.setStroke(new Color(p.color().getRed(), p.color().getGreen(), p.color().getBlue(), p.color().getOpacity() * 0.22));
                 g.setLineWidth(p.width() + p.glow()); g.setLineDashes(null); g.setLineCap(javafx.scene.shape.StrokeLineCap.ROUND);
                 line(g, pr, p.points(), p.altKm());
@@ -380,7 +407,7 @@ final class GlobeView extends Pane {
             }
             SatIcon.draw(g, p.x(), p.y(), m.color(), m.focus() ? 22 : 17, a, heading);
             g.setFont(Font.font("JetBrains Mono", m.focus() ? FontWeight.BOLD : FontWeight.NORMAL, m.focus() ? 12 : 10)); g.setTextAlign(TextAlignment.LEFT);
-            g.setStroke(Color.web("#0b0f14", 0.7 * a)); g.setLineWidth(3); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(m.name(), p.x() + 14, p.y() + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER);
+            if (!interacting) { g.setStroke(Color.web("#0b0f14", 0.7 * a)); g.setLineWidth(3); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND); g.strokeText(m.name(), p.x() + 14, p.y() + 4); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.MITER); }
             g.setFill(Color.web("#e8eef4", a)); g.fillText(m.name(), p.x() + 14, p.y() + 4);
             hits.add(new double[]{p.x(), p.y()}); hitNames.add(m.name());
         }
