@@ -155,14 +155,13 @@ public final class JHubDashboard {
         com.ars.fx.data.RigClient.getInstance().addListener(st -> {      // the hero's rig readout follows the rig, not the one-second tick
             if (dashRoot != null && dashRoot.lookup(".hero-rig") instanceof Label f && dashRoot.lookup(".hero-rig-sub") instanceof Label m) heroRig(f, m);
         });
-        Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> {
+        com.ars.fx.shell.Fx.everySecond(() -> {
             if (dashRoot == null) return;
             heroDevicesTick.run();
             if (dashRoot.lookup(".sx-clock-v") instanceof Label l) l.setText(nowUtc());
             if (dashRoot.lookup(".jhub-uptime") instanceof Label l) l.setText(barUptime());
             if (dashRoot.lookup(".hero-rig") instanceof Label f && dashRoot.lookup(".hero-rig-sub") instanceof Label m) heroRig(f, m);
-        }));
-        t.setCycleCount(Timeline.INDEFINITE); t.play();
+        });
     }
     private static String brandCallText() { String c = com.ars.fx.data.HubConfig.call(); return c.isEmpty() ? "" : "· " + c.toUpperCase(); }
     static Region workspaceBar() {
@@ -832,9 +831,7 @@ public final class JHubDashboard {
             }
         };
         paint.run();
-        Timeline t = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), e -> paint.run()));
-        t.setCycleCount(Timeline.INDEFINITE);
-        row.sceneProperty().addListener((o, was, sc) -> { if (sc == null) t.stop(); else { paint.run(); t.play(); } });
+        com.ars.fx.shell.Fx.everySecondWhileShown(row, paint);
         return row;
     }
 

@@ -83,7 +83,7 @@ public final class JMapView {
         }
     }
     private static Runnable currentMapRepaint;
-    private static javafx.animation.Timeline beaconTicker;
+    private static boolean beaconTicker;
     /** Beacon index transmitting on band b right now (slot = UTC%180 /10; band offsets by one slot each). */
     private static int activeBeacon(int band) {
         int slot = (int) ((java.time.Instant.now().getEpochSecond() % 180) / 10);
@@ -293,19 +293,18 @@ public final class JMapView {
     private static void refreshSpots() { repaintMap(); if (currentSpotsRefresh != null) currentSpotsRefresh.run(); }
 
     private static void startBeaconTicker() {
-        if (beaconTicker != null) return;
+        if (beaconTicker) return;
+        beaconTicker = true;
         // 1 Hz tick keeps the top bar live. The map itself is costly to repaint and barely changes: beacons step every
         // 10 s, the sun about a quarter of a degree a minute. New spots repaint it on their own.
-        beaconTicker = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+        com.ars.fx.shell.Fx.everySecond(() -> {
             updateMapTopbar();                                 // ticking clock + live SPOTS/SHOWN/GRAY-LINE/BEAM
             if (beaconInfo != null) beaconInfo.setText(showBeacons ? beaconLine() : "");
             if (showBeacons) beaconWatch();
             long second = java.time.Instant.now().getEpochSecond();
             boolean beamMoved = Math.round(beamDeg()) != paintedBeam;
             if (beamMoved || (showSpotPaths && second % 15 == 0) || (showBeacons ? second % 10 == 0 : ovGrayline && second % 60 == 0) || (labelsFading && ovCallsigns && ovFade && second % 10 == 0)) repaintMap();
-        }));
-        beaconTicker.setCycleCount(javafx.animation.Timeline.INDEFINITE);
-        beaconTicker.play();
+        });
     }
     /** Projects (lat,lon) to canvas {x,y}, or null when off-map (azimuthal beyond the disk). */
     private interface Proj { double[] at(double lat, double lon); }

@@ -828,15 +828,14 @@ public final class JLogCockpit {
     private static void startTicker() {
         if (tickerStarted) return;
         tickerStarted = true;
-        Timeline t = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+        com.ars.fx.shell.Fx.everySecond(() -> {
             if (host != null && host.lookup(".sx-clock-v") instanceof Label l)
                 l.setText(java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
             // keep the QSO date/time live until the operator overrides (and not while editing them)
             if (dateRef != null && manualRef != null && !manualRef[0] && !dateRef.isFocused() && !timeRef.isFocused()) {
                 dateRef.setText(nowDate()); timeRef.setText(nowTime());
             }
-        }));
-        t.setCycleCount(Timeline.INDEFINITE); t.play();
+        });
     }
 
     // ---- helpers -----------------------------------------------------------

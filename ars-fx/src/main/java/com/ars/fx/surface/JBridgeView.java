@@ -79,7 +79,8 @@ public final class JBridgeView {
         refresh.run();
 
         // local sequence clock, timed to the mode WSJT-X reports (its UDP feed carries no period; derive it from UTC)
-        Timeline seq = new Timeline(new KeyFrame(Duration.millis(250), e -> {
+        // once a second with the other clocks (it was four times a second, each a frame; the label counts whole seconds anyway)
+        com.ars.fx.shell.Fx.everySecond(() -> {
             WsjtxStatus ws = BridgeService.status();
             String mode = ws != null ? nz(ws.getMode()) : "";
             double period = periodSec(mode);
@@ -90,11 +91,13 @@ public final class JBridgeView {
                     + (mode.isBlank() || mode.equals("—") ? " (FT8 assumed) ·" : " (" + mode + ") ·"));
             seqLbl.setText(even ? "EVEN slot" : "ODD slot");
             nextLbl.setText("· " + (int) Math.ceil(left) + "s to next");
-            slotEven.getStyleClass().remove("on"); slotOdd.getStyleClass().remove("on");
-            (even ? slotEven : slotOdd).getStyleClass().add("on");
+            Region lit = even ? slotEven : slotOdd, dark = even ? slotOdd : slotEven;
+            if (!lit.getStyleClass().contains("on") || dark.getStyleClass().contains("on")) {      // restyle only when the slot flips
+                slotEven.getStyleClass().remove("on"); slotOdd.getStyleClass().remove("on");
+                (even ? slotEven : slotOdd).getStyleClass().add("on");
+            }
             ((Region) prog.getChildrenUnmodifiable().get(1)).setMaxWidth(prog.getWidth() * (into / period));
-        }));
-        seq.setCycleCount(Timeline.INDEFINITE); seq.play();
+        });
 
         VBox center = new VBox(13, Shell.betaNote("J-Bridge"), conn, seqRow, tableHost, footer);
         center.setPadding(new Insets(16, 18, 16, 18)); center.setStyle("-fx-background-color:-ars-bg;"); HBox.setHgrow(center, Priority.ALWAYS);

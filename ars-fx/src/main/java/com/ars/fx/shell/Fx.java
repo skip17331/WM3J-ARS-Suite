@@ -63,6 +63,33 @@ public final class Fx {
         if (was != null && !was.isEmpty()) flash(l);
     }
 
+    private static final java.util.List<Runnable> beat = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private static Timeline heartbeat;
+    /**
+     * Run {@code r} on the FX thread once a second, together with everything else that ticks each second. Separate one-second timelines start at
+     * different moments, so each fires in its own frame; on this laptop every frame of a 4K window costs about the same whatever changed, so
+     * three clocks were three frames a second. One shared timeline puts them all in the same frame. Returns what stops it. Call on the FX thread.
+     */
+    public static Runnable everySecond(Runnable r) {
+        beat.add(r);
+        if (heartbeat == null) {
+            heartbeat = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+                for (Runnable x : beat) { try { x.run(); } catch (RuntimeException ex) { /* one failing tick must not stop the others */ } }
+            }));
+            heartbeat.setCycleCount(Animation.INDEFINITE);
+            heartbeat.play();
+        }
+        return () -> beat.remove(r);
+    }
+    /** Like {@link #everySecond} but only while {@code n} is in a window. */
+    public static void everySecondWhileShown(Node n, Runnable r) {
+        Runnable[] stop = { n.getScene() != null ? everySecond(r) : null };
+        n.sceneProperty().addListener((o, was, sc) -> {
+            if (sc == null) { if (stop[0] != null) { stop[0].run(); stop[0] = null; } }
+            else if (stop[0] == null) stop[0] = everySecond(r);
+        });
+    }
+
     /** The value's colour turns to the accent for a moment and it swells slightly and settles. */
     public static void flash(Label l) {
         if (reduced()) return;

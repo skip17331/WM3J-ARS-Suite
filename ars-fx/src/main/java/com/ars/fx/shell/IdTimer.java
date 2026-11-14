@@ -20,7 +20,7 @@ public final class IdTimer {
     private IdTimer() {}
 
     private static int seconds = 600;
-    private static Timeline ticker;
+    private static Runnable ticker;
     private static final List<Runnable> updaters = new CopyOnWriteArrayList<>();
 
     /** Compact countdown for the top bar; click it after you identify to start the 10 minutes again. */
@@ -40,9 +40,7 @@ public final class IdTimer {
 
     private static void start() {
         if (ticker != null) return;
-        ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> { seconds--; notifyUpd(); }));
-        ticker.setCycleCount(Timeline.INDEFINITE);
-        ticker.play();
+        ticker = Fx.everySecond(() -> { seconds--; notifyUpd(); });
     }
     private static void notifyUpd() { for (Runnable r : updaters) r.run(); }
     private static void applyClass(Node n) {

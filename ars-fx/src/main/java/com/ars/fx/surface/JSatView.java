@@ -97,11 +97,10 @@ public final class JSatView {
         // tick the UTC clock once a second (updates just the clock label, not the whole frame)
         if (!clockStarted) {
             clockStarted = true;
-            Timeline clock = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            com.ars.fx.shell.Fx.everySecond(() -> {
                 if (host != null && host.lookup(".sx-clock-v") instanceof Label l)
                     l.setText(java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(HMS));
-            }));
-            clock.setCycleCount(Timeline.INDEFINITE); clock.play();
+            });
         }
         return host;
     }
