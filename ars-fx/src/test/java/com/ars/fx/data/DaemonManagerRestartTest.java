@@ -27,7 +27,8 @@ class DaemonManagerRestartTest {
 
             HubConfig.reload();
             HubConfig.set("rigctld.bin", bin.toString());
-            HubConfig.set("rig.hamlibModel", "1035"); HubConfig.set("rig.port", "/dev/ttyUSB9");
+            Path dev = dir.resolve("ttyUSB9"); Files.writeString(dev, "x");          // a stand-in for the serial device: a daemon is not started while its device is missing
+            HubConfig.set("rig.hamlibModel", "1035"); HubConfig.set("rig.port", dev.toString());
             HubConfig.set("rig.rigctldPort", "45329");                       // a port nothing listens on
             HubConfig.setBool("rig.startDaemon", true);
 
