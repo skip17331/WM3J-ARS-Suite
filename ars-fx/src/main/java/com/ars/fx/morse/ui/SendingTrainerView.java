@@ -33,9 +33,13 @@ public class SendingTrainerView {
     private final ToneGenerator tone;
     private final TimingDecoder decoder = new TimingDecoder();
 
-    private SendPracticeSession session;
+    private volatile SendPracticeSession session;
     private KeyEventSource source;
-    private AnimationTimer ticker;
+    // The decoder needs a timing tick every few milliseconds to close a character or a word once the key has been up long enough. It used to be an
+    // AnimationTimer, which asks for a new frame of the window 60 times a second for as long as a session is open, and on a 4K laptop screen
+    // every frame is expensive. A background thread does the tick, and the screen is refreshed 5 times a second.
+    private java.util.concurrent.ScheduledExecutorService tickPool;
+    private final java.util.concurrent.atomic.AtomicBoolean refreshQueued = new java.util.concurrent.atomic.AtomicBoolean();
 
     private final ComboBox<String> inputBox = new ComboBox<>();
     private final ComboBox<String> modeBox  = new ComboBox<>();
@@ -90,6 +94,7 @@ public class SendingTrainerView {
         root.setCenter(center);
 
         rootPane = root;
+        root.sceneProperty().addListener((o, was, sc) -> { if (sc == null) stopSession(); });     // leave the screen and the session, its tick and the key source stop
         root.setFocusTraversable(true);
         javafx.application.Platform.runLater(root::requestFocus);    // so the spacebar key reaches the keyer once the pane is shown
         return root;
@@ -113,18 +118,19 @@ public class SendingTrainerView {
         source = createSource();
         if (source != null) source.start(ev -> session.accept(ev));
 
-        ticker = new AnimationTimer() {
-            long lastUiUpdate = 0;
-            @Override public void handle(long ns) {
-                long nowMs = System.currentTimeMillis();
-                if (session != null) session.tick(nowMs);
-                if (nowMs - lastUiUpdate > 200) {
-                    lastUiUpdate = nowMs;
-                    refreshMetrics();
-                }
-            }
-        };
-        ticker.start();
+        java.util.concurrent.ScheduledExecutorService pool = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "send-practice-tick"); t.setDaemon(true); return t; });
+        int[] beats = {0};
+        pool.scheduleAtFixedRate(() -> {
+            try {
+                SendPracticeSession s = session;
+                if (s == null) return;
+                s.tick(System.currentTimeMillis());
+                if (++beats[0] % 8 == 0 && refreshQueued.compareAndSet(false, true))      // every 200 ms
+                    Platform.runLater(() -> { refreshQueued.set(false); refreshMetrics(); });
+            } catch (RuntimeException ignored) { /* a bad tick must not end the timer */ }
+        }, 25, 25, java.util.concurrent.TimeUnit.MILLISECONDS);
+        tickPool = pool;
     }
 
     private KeyEventSource createSource() {
@@ -152,7 +158,7 @@ public class SendingTrainerView {
     }
 
     private void stopSession() {
-        if (ticker != null) { ticker.stop(); ticker = null; }
+        if (tickPool != null) { tickPool.shutdownNow(); tickPool = null; }
         if (source != null) { source.stop(); source = null; }
         if (session != null) refreshMetrics();
     }
