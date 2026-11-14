@@ -61,6 +61,14 @@ public final class RemoteLink {
     private volatile WebSocketClient ws;
     private volatile boolean connected = false;
     private volatile boolean closing = false;
+    private volatile long lastRx = System.currentTimeMillis();   // when anything last arrived from the hub
+    private static final long QUIET_LIMIT_MS = 20_000;           // the hub sends state every second
+    private Thread quietWatch;
+
+    /** True when the hub link claims to be up but nothing has arrived for longer than the limit: the hub's broadcast has stalled or the path is dead. */
+    static boolean hubQuiet(boolean connected, boolean closing, long now, long lastRx, long limitMs) {
+        return connected && !closing && now - lastRx > limitMs;
+    }
 
     private RemoteLink(URI uri, String identity) { this.uri = uri; this.identity = identity; }
     public boolean isConnected() { return connected; }
@@ -68,8 +76,8 @@ public final class RemoteLink {
 
     private void open() {
         ws = new WebSocketClient(uri) {
-            @Override public void onOpen(ServerHandshake h) { connected = true; sendHello(); }
-            @Override public void onMessage(String message) { handle(message); }
+            @Override public void onOpen(ServerHandshake h) { connected = true; lastRx = System.currentTimeMillis(); sendHello(); }
+            @Override public void onMessage(String message) { lastRx = System.currentTimeMillis(); handle(message); }
             @Override public void onClose(int code, String reason, boolean remote) {
                 connected = false;
                 TxController.applyRemoteTx(false);
@@ -79,7 +87,26 @@ public final class RemoteLink {
             @Override public void onError(Exception ex) { /* reconnect handles it */ }
         };
         ws.setConnectionLostTimeout(30);
+        startQuietWatch();
         try { ws.connect(); } catch (Exception e) { scheduleReconnect(); }
+    }
+
+    /** Pings catch a dead path; this catches a live socket whose hub has stopped sending state (a stalled broadcast): drop it and reconnect. */
+    private synchronized void startQuietWatch() {
+        if (quietWatch != null) return;
+        quietWatch = new Thread(() -> {
+            while (!closing) {
+                try { Thread.sleep(5000); } catch (InterruptedException e) { return; }
+                WebSocketClient c = ws;
+                if (c != null && hubQuiet(connected, closing, System.currentTimeMillis(), lastRx, QUIET_LIMIT_MS)) {
+                    System.err.println("[link] nothing from the hub for " + (System.currentTimeMillis() - lastRx) / 1000 + " s: reconnecting");
+                    lastRx = System.currentTimeMillis();            // give the new link its own full interval
+                    try { c.closeConnection(1006, "the hub went quiet"); } catch (Exception ignored) { }   // onClose schedules the reconnect
+                }
+            }
+        }, "remote-quiet-watch");
+        quietWatch.setDaemon(true);
+        quietWatch.start();
     }
 
     private void close() {
@@ -99,7 +126,7 @@ public final class RemoteLink {
         Thread t = new Thread(() -> {
             try { Thread.sleep(3000); } catch (InterruptedException e) { return; }
             WebSocketClient c = ws;
-            if (c != null && !connected && !closing) { try { c.reconnect(); } catch (Exception ignored) {} }
+            if (c != null && !connected && !closing) { try { c.reconnect(); } catch (Exception e) { scheduleReconnect(); } }   // a failed attempt tries again, for ever
         }, "remote-reconnect");
         t.setDaemon(true);
         t.start();
