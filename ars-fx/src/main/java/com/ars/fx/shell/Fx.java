@@ -70,10 +70,20 @@ public final class Fx {
      */
     public static void steadyCaret(javafx.scene.Scene scene) {
         scene.focusOwnerProperty().addListener((o, was, now) -> {
-            if (now instanceof javafx.scene.control.TextInputControl t && !HubConfig.getBool("ui.caretBlink", false)) {
-                if (t.getSkin() instanceof javafx.scene.control.skin.TextInputControlSkin<?> sk) sk.setCaretAnimating(false);
-            }
+            if (now instanceof javafx.scene.control.TextInputControl t && !HubConfig.getBool("ui.caretBlink", false)) steady(t);
         });
+        if (scene.getFocusOwner() instanceof javafx.scene.control.TextInputControl t && !HubConfig.getBool("ui.caretBlink", false)) steady(t);   // already focused
+    }
+
+    /**
+     * Turn the blink off on one field, whenever its skin exists. A field can get the focus before its skin is built (the log screens focus the
+     * callsign box as they open), and the skin is replaced when the theme changes, so this watches the skin as well as acting at once.
+     */
+    private static void steady(javafx.scene.control.TextInputControl t) {
+        if (t.getProperties().putIfAbsent("fx.steadyCaret", Boolean.TRUE) != null) return;        // once per field
+        Runnable apply = () -> { if (t.getSkin() instanceof javafx.scene.control.skin.TextInputControlSkin<?> sk) sk.setCaretAnimating(false); };
+        apply.run();
+        t.skinProperty().addListener((o, was, now) -> apply.run());
     }
 
     private static final java.util.List<Runnable> beat = new java.util.concurrent.CopyOnWriteArrayList<>();
