@@ -76,3 +76,4 @@ git-sync.log
 
 # release staging produced by build-release.sh
 dist/
+.attach_pid*
