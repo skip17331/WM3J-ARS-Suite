@@ -25,6 +25,7 @@ public final class NetStrip extends VBox {
     private final Label line = lbl("", "ct-note"), others = lbl("", "ct-note"), warn = lbl("", "ct-note"), ops = lbl("", "ct-note"), chatLog = lbl("", "ct-note");
     private final TextField chatIn = new TextField();
     private long opsAt;
+    private volatile boolean opsBusy;
 
     public NetStrip() {
         super(2);
@@ -37,9 +38,8 @@ public final class NetStrip extends VBox {
         getChildren().addAll(line, others, warn, ops, chatLog, chatIn);
         managedProperty().bind(visibleProperty());
         refresh();
-        Timeline tick = new Timeline(new KeyFrame(Duration.seconds(2), e -> refresh()));
-        tick.setCycleCount(Animation.INDEFINITE);
-        sceneProperty().addListener((o, was, now) -> { if (now == null) tick.stop(); else tick.play(); });
+        int[] beat = {0};
+        com.ars.fx.shell.Fx.everySecondWhileShown(this, () -> { if ((beat[0]++ & 1) == 0) refresh(); });   // every 2 s, in the same frame as the other clocks
     }
 
     private void refresh() {
@@ -55,9 +55,16 @@ public final class NetStrip extends VBox {
                 .collect(Collectors.joining("   ·   ")));
         warn.setText(String.join("\n", NetConflicts.warnings(ContestNetwork.myStatus(), roster)));
         long now = System.currentTimeMillis();
-        if (now - opsAt > 10_000) {                                                // the log is read from disk, so not on every tick
-            opsAt = now;
-            ops.setText(com.ars.fx.net.OperatorStats.line(com.ars.fx.net.OperatorStats.compute(com.ars.fx.data.ContestState.qsos())));
+        if (now - opsAt > 10_000 && !opsBusy) {                                    // the log is read from disk and counted: off the FX thread (60 ms at 10,000 QSOs)
+            opsAt = now; opsBusy = true;
+            Thread t = new Thread(() -> {
+                String text = null;                                               // null: it failed, keep what was shown
+                try { text = com.ars.fx.net.OperatorStats.line(com.ars.fx.net.OperatorStats.compute(com.ars.fx.data.ContestState.qsos())); }
+                catch (RuntimeException ignored) { }
+                String done = text;
+                javafx.application.Platform.runLater(() -> { if (done != null) ops.setText(done); opsBusy = false; });
+            }, "net-ops-stats");
+            t.setDaemon(true); t.start();
         }
         List<NetNode.ChatMsg> chat = n.chatHistory();
         chatLog.setText(chat.subList(Math.max(0, chat.size() - 3), chat.size()).stream()
