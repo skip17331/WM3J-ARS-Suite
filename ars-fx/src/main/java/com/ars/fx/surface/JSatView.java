@@ -92,7 +92,7 @@ public final class JSatView {
         // re-layout when the window crosses the narrow threshold (auto-collapse the sat list)
         host.widthProperty().addListener((o, a, b) -> { if ((a.doubleValue() < NARROW_W) != (b.doubleValue() < NARROW_W)) rebuild(); });
         host.sceneProperty().addListener((o, was, now) -> { if (now != null && stale) { stale = false; rebuild(); } });
-        SatService.getInstance().setListener(s -> rebuild());
+        SatService.getInstance().setListener(s -> tick());
         SatService.getInstance().start();
         // tick the UTC clock once a second (updates just the clock label, not the whole frame)
         if (!clockStarted) {
@@ -103,6 +103,19 @@ public final class JSatView {
             });
         }
         return host;
+    }
+    private static long lastBuildMs;
+    /** The satellite service reports every 2 s. Rotor tracking, Doppler and the pass alarms need that rate; the picture does not: rebuilding the whole
+     *  screen (every widget, the globe's geometry) twice a second-and-a-half cost about a quarter of a core on the 4K laptop, so the screen is redrawn
+     *  every 4 s and the control work runs on every report. */
+    private static void tick() {
+        long now = System.currentTimeMillis();
+        if (host != null && host.getScene() != null && now - lastBuildMs < 3500) {
+            Snapshot snap = SatService.getInstance().snapshot();
+            autoTrack(focus(snap)); checkAlarms(snap);
+            return;
+        }
+        rebuild();
     }
     private static boolean rebuildHeld;
     /** The screen has changed while it was not shown; it is rebuilt when it is next put on screen. */
@@ -118,6 +131,7 @@ public final class JSatView {
         }
         if (viewMode == 2 && globe != null && globe.busy()) { rebuildHeld = true; return; }      // do not pull the globe out from under a drag; run it on release
         rebuildHeld = false;
+        lastBuildMs = System.currentTimeMillis();
         if (host != null) Shell.keepScroll(host, () -> host.getChildren().setAll(frame(SatService.getInstance().snapshot())));
     }
 
