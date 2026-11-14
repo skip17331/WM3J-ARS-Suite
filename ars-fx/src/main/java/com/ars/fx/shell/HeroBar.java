@@ -116,9 +116,7 @@ final class HeroBar {
             devices.update().run();
         };
         tick.run();
-        Timeline tl = new Timeline(new KeyFrame(Duration.seconds(1), e -> tick.run()));
-        tl.setCycleCount(Timeline.INDEFINITE); tl.play();
-        top.sceneProperty().addListener((o, was, sc) -> { if (sc == null) tl.stop(); else tl.play(); });
+        Fx.everySecondWhileShown(top, tick);                   // with the other one-second clocks, in one frame
 
         fitToWidth(top, cells);
         return top;
