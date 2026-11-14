@@ -99,10 +99,27 @@ public final class WebClientServer {
     public static void init() {
         HubConfig.addChangeListener(k -> { if (k != null && (k.startsWith("web.") || k.equals("*"))) apply(); });
         apply();
+        Thread retry = new Thread(() -> {                            // a port that was busy at start-up (an old hub still closing) is tried again
+            while (true) {
+                try { Thread.sleep(30_000); } catch (InterruptedException e) { return; }
+                try { retryIfDown(); } catch (Exception ignored) { }
+            }
+        }, "web-client-retry");
+        retry.setDaemon(true);
+        retry.start();
+    }
+
+    /** Wanted but not running (the bind failed): try again. Quiet when nothing is wrong. */
+    static synchronized void retryIfDown() {
+        if (enabled() && server == null) apply();
     }
 
     static synchronized int start(int port) throws IOException {
         stop();
+        // The JDK server never times a request or a response out unless told to: a phone that stalls mid-response (a bad mobile link) would hold
+        // one of the four worker threads for ever. Replies here are small, so 30 s is generous.
+        if (System.getProperty("sun.net.httpserver.maxReqTime") == null) System.setProperty("sun.net.httpserver.maxReqTime", "30");
+        if (System.getProperty("sun.net.httpserver.maxRspTime") == null) System.setProperty("sun.net.httpserver.maxRspTime", "30");
         HttpServer s = HttpServer.create(new InetSocketAddress(port), 16);
         s.createContext("/", WebClientServer::route);
         s.setExecutor(Executors.newFixedThreadPool(4, r -> { Thread t = new Thread(r, "web-client"); t.setDaemon(true); return t; }));
