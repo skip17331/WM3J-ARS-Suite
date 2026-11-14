@@ -122,6 +122,29 @@ public final class ContestState {
     }
 
     /** Recompute the aggregate score from the contest log and notify listeners. */
+    private static String lastKey = "";
+    private static long lastFullMs;
+    private static final long REFRESH_MS = 60_000;
+
+    /**
+     * The timer's version of {@link #recompute}: does the work only when something has changed. Recomputing loads every QSO of the contest and
+     * scores them all, on the FX thread: about 5 ms at 200 QSOs, 25 ms at 3,000 and 60 ms at 10,000, every 3 s for as long as the page is open,
+     * which in a big contest is a stutter while typing. A change to the log, the open contest, the station facts or the QTC points makes a new key;
+     * a full recompute still runs once a minute in case something changed the database by a path that does not count.
+     */
+    public static synchronized void recomputeIfChanged() {
+        long now = System.currentTimeMillis();
+        String key;
+        try {
+            int qtc = 0;
+            if (plugin != null) { try { qtc = com.jlog.db.ContestQtcDao.getInstance().totalQtcPointsByContest(plugin.getContestId()); } catch (Exception ignored) { } }
+            key = (plugin == null ? "-" : plugin.getContestId()) + "|" + ContestQsoDao.getInstance().writeCount() + "|" + qtc + "|" + ctx();
+        } catch (Exception e) { recompute(); return; }
+        if (key.equals(lastKey) && now - lastFullMs < REFRESH_MS) return;
+        lastKey = key; lastFullMs = now;
+        recompute();
+    }
+
     public static synchronized void recompute() {
         if (plugin == null) { score = ContestScore.of(0, 0, 0, 0); fire(); return; }
         try {

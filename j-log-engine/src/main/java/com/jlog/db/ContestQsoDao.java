@@ -23,6 +23,9 @@ public class ContestQsoDao {
     private static final ContestQsoDao INSTANCE = new ContestQsoDao();
 
     public static ContestQsoDao getInstance() { return INSTANCE; }
+    /** Counts every change made to the contest log through this DAO, so a caller can tell cheaply that nothing has changed since it last looked. */
+    private static final java.util.concurrent.atomic.AtomicLong WRITES = new java.util.concurrent.atomic.AtomicLong();
+    public long writeCount() { return WRITES.get(); }
 
     private Connection conn() {
         return DatabaseManager.getInstance().getContestConnection();
@@ -47,6 +50,7 @@ public class ContestQsoDao {
     }
 
     public long insert(QsoRecord qso) throws SQLException {
+        WRITES.incrementAndGet();
         if (qso.getUid() == null || qso.getUid().isBlank()) qso.setUid(UUID.randomUUID().toString());
         if (qso.getOrigin() == null || qso.getOrigin().isBlank()) qso.setOrigin(stationId);
         if (qso.getUpdatedMs() <= 0) qso.setUpdatedMs(System.currentTimeMillis());
@@ -94,6 +98,7 @@ public class ContestQsoDao {
 
     /** An edit made at this station: stamps the change time and tells the listeners. */
     public void update(QsoRecord qso) throws SQLException {
+        WRITES.incrementAndGet();
         qso.setUpdatedMs(System.currentTimeMillis());
         if (qso.getUid() == null || qso.getUid().isBlank()) { QsoRecord cur = findById(qso.getId()); if (cur != null) qso.setUid(cur.getUid()); }
         updateRow(qso, qso.getPoints(), qso.isDupe());
@@ -135,6 +140,7 @@ public class ContestQsoDao {
 
     /** Erases a QSO at this station; a tombstone is left so the deletion reaches the other stations. */
     public void delete(long id) throws SQLException {
+        WRITES.incrementAndGet();
         QsoRecord cur = findById(id);
         try (PreparedStatement ps = conn().prepareStatement("DELETE FROM contest_qso WHERE id=?")) {
             ps.setLong(1, id); ps.executeUpdate();
@@ -150,6 +156,7 @@ public class ContestQsoDao {
      * sent to other stations (each station works these out for itself, from its own position and the merged log).
      */
     public void updateDerived(long id, int points, boolean dupe) throws SQLException {
+        WRITES.incrementAndGet();
         try (PreparedStatement ps = conn().prepareStatement("UPDATE contest_qso SET points=?, is_dupe=? WHERE id=?")) {
             ps.setInt(1, points); ps.setInt(2, dupe ? 1 : 0); ps.setLong(3, id); ps.executeUpdate();
         }
@@ -206,6 +213,7 @@ public class ContestQsoDao {
      * this station to work out.
      */
     public void applyReplica(QsoRecord q) throws SQLException {
+        WRITES.incrementAndGet();
         QsoRecord cur = findByUid(q.getUid());
         if (cur != null) {
             q.setId(cur.getId());
@@ -219,6 +227,7 @@ public class ContestQsoDao {
 
     /** A deletion that arrived from another station: removes the QSO if we have it and remembers the deletion. Quiet. */
     public void applyReplicaDelete(String uid, String contestId, long ts) throws SQLException {
+        WRITES.incrementAndGet();
         try (PreparedStatement ps = conn().prepareStatement("DELETE FROM contest_qso WHERE uid=?")) { ps.setString(1, uid); ps.executeUpdate(); }
         writeTombstone(uid, contestId, ts);
     }
