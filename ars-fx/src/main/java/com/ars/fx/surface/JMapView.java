@@ -1463,16 +1463,33 @@ public final class JMapView {
             setWindow(vMinLon - dx / lastRW * lonSpan, vMinLat + dy / lastRH * latSpan, lonSpan, latSpan);
             currentMapRepaint.run();
         });
+        // Wheel zoom glides: each notch moves a target, and every frame the view eases toward it about the point under the pointer.
+        // tz = { target lon span, target lat span, anchor lon, anchor lat, anchor fx, anchor fy, last frame time }
+        double[] tz = new double[7];
+        boolean[] zooming = { false };
+        javafx.animation.AnimationTimer zoomTimer = new javafx.animation.AnimationTimer() {
+            @Override public void handle(long now) {
+                double lonSpan = vMaxLon - vMinLon, latSpan = vMaxLat - vMinLat;
+                double dt = tz[6] == 0 ? 0.016 : Math.min(0.05, (now - tz[6]) / 1e9);
+                tz[6] = now;
+                double k = 1 - Math.exp(-dt / 0.07);             // ~70 ms time constant, independent of the frame rate
+                boolean done = Math.abs(tz[0] / lonSpan - 1) < 0.002;
+                double nLon = done ? tz[0] : lonSpan + (tz[0] - lonSpan) * k, nLat = done ? tz[1] : latSpan + (tz[1] - latSpan) * k;
+                setWindow(tz[2] - tz[4] * nLon, tz[3] - (1 - tz[5]) * nLat, nLon, nLat);
+                currentMapRepaint.run();
+                if (done) { stop(); zooming[0] = false; tz[6] = 0; }
+            }
+        };
         area.setOnScroll(e -> {
             if (e.getDeltaY() == 0) return;
-            double lonSpan = vMaxLon - vMinLon, latSpan = vMaxLat - vMinLat;
+            double lonSpan = zooming[0] ? tz[0] : vMaxLon - vMinLon, latSpan = zooming[0] ? tz[1] : vMaxLat - vMinLat;
+            double cLon = vMaxLon - vMinLon, cLat = vMaxLat - vMinLat;
             double fx = Math.max(0, Math.min(1, (e.getX() - lastRMX) / lastRW)), fy = Math.max(0, Math.min(1, (e.getY() - lastRMY) / lastRH));
-            double lonAt = vMinLon + fx * lonSpan, latAt = vMaxLat - fy * latSpan;
+            tz[2] = vMinLon + fx * cLon; tz[3] = vMaxLat - fy * cLat; tz[4] = fx; tz[5] = fy;   // the point under the pointer stays put
             double f = Math.exp(e.getDeltaY() / 300.0);           // wheel up zooms in
             double ns = Math.max(Math.min(1.0 / f, Math.min(360 / lonSpan, 180 / latSpan)), 2.0 / latSpan);   // spans never exceed the world nor go under 2 degrees
-            double nLon = lonSpan * ns, nLat = latSpan * ns;
-            setWindow(lonAt - fx * nLon, latAt - (1 - fy) * nLat, nLon, nLat);
-            currentMapRepaint.run();
+            tz[0] = lonSpan * ns; tz[1] = latSpan * ns;
+            if (!zooming[0]) { zooming[0] = true; tz[6] = 0; zoomTimer.start(); }
         });
         area.setOnMouseClicked(e -> {
             if (press[2] == 1) { press[2] = 0; return; }          // the end of a drag is not a click

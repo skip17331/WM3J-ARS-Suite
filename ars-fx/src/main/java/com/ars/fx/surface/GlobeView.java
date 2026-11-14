@@ -119,8 +119,8 @@ final class GlobeView extends Pane {
         setOnMouseReleased(e -> released.run());
         setOnScroll(e -> {
             if (e.getDeltaY() == 0) return;
-            zoom = Math.max(0.55, Math.min(8, zoom * Math.pow(1.0015, e.getDeltaY())));
-            applyView(); interact();
+            zoomTarget = Math.max(0.55, Math.min(8, (zoomRunning ? zoomTarget : zoom) * Math.pow(1.0015, e.getDeltaY())));
+            if (!zoomRunning) { zoomRunning = true; zoomLast = 0; zoomAnimT.start(); }
         });
         setOnMouseClicked(e -> {
             if (moved) return;
@@ -186,6 +186,19 @@ final class GlobeView extends Pane {
     }
 
     /** Size and turn the spheres. The camera is the default one, so the plane through the globe's centre is 1:1 with pixels. */
+    /** Wheel zoom glides toward {@code zoomTarget}, easing a little each frame. */
+    private double zoomTarget = 1, zoomLast;
+    private final javafx.animation.AnimationTimer zoomAnimT = new javafx.animation.AnimationTimer() {
+        @Override public void handle(long now) {
+            double dt = zoomLast == 0 ? 0.016 : Math.min(0.05, (now - zoomLast) / 1e9);
+            zoomLast = now;
+            zoom += (zoomTarget - zoom) * (1 - Math.exp(-dt / 0.07));
+            if (Math.abs(zoomTarget / zoom - 1) < 0.002) { zoom = zoomTarget; stop(); zoomRunning = false; }
+            applyView(); interact();
+        }
+    };
+    private boolean zoomRunning;
+
     private void applyView() {
         double r = radius();
         earth.setScaleX(r); earth.setScaleY(r); earth.setScaleZ(r);
