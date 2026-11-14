@@ -805,6 +805,9 @@ public final class JMapView {
         line.setCache(true); line.setCacheHint(javafx.scene.CacheHint.SPEED);
         javafx.animation.AnimationTimer timer = new javafx.animation.AnimationTimer() {
             @Override public void handle(long now) {
+                // 30 steps a second: every frame costs about the same whatever the size of the change (the window is presented whole, and this
+                // laptop's GPU drives a 4K screen), so the render thread's CPU follows the ticker's frame rate. 60 cost over a core, 20 looked choppy.
+                if (last[0] != 0 && now - last[0] < 30_000_000L) return;
                 double w = pane.getWidth();
                 if (w <= 0) return;
                 if (Double.isNaN(x[0])) x[0] = w;
