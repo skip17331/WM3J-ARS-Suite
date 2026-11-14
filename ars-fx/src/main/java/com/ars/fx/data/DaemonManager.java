@@ -36,12 +36,15 @@ public final class DaemonManager {
     private static final Map<String, Process> PROCS = new ConcurrentHashMap<>();
 
     /** Spawn any enabled daemon not already running (e.g. at app start). */
-    public static void ensureAll() { for (Spec s : SPECS) ensure(s.kind()); }
+    public static void ensureAll() {
+        for (Spec s : SPECS) ensure(s.kind());
+        DaemonWatchdog.start();                    // then keep them healthy: stale after a USB drop, not answering ...
+    }
     /** Kill every daemon we spawned (called on app shutdown so none are left orphaned). */
     public static void stopAll() { for (Spec s : SPECS) stop(s.kind()); }
     /** Reconcile every daemon to its current config toggle: spawn the enabled ones, stop the disabled ones.
      *  The hub calls this after re-loading config on a client's {@code hub.reconfig} nudge. */
-    public static void applyAll() { for (Spec s : SPECS) setEnabled(s.kind(), wanted(s)); }
+    public static void applyAll() { DaemonWatchdog.resetLimits(); for (Spec s : SPECS) setEnabled(s.kind(), wanted(s)); }
 
     /** Whether {@code s}'s daemon should be running: its "start for me" switch is on, and for the satellite rotor, the rotor itself is switched on. */
     private static boolean wanted(Spec s) {
@@ -50,6 +53,9 @@ public final class DaemonManager {
 
     /** The command line we started each daemon with, so a changed setting can be told from "already running". */
     private static final Map<String, List<String>> ARGV = new ConcurrentHashMap<>();
+    /** The serial device's identity and the time when each daemon was started, so DaemonWatchdog can tell a device that was re-plugged since. */
+    private static final Map<String, String> DEVID = new ConcurrentHashMap<>();
+    private static final Map<String, Long> SPAWNED = new ConcurrentHashMap<>();
 
     /**
      * Spawn the daemon for {@code kind} if its toggle is on and the binary exists. A daemon we started earlier is left
@@ -73,10 +79,15 @@ public final class DaemonManager {
             if (portOpen(host, parsePort(HubConfig.get(s.portKey(), s.defaultPort()), s.defaultPort()))) return;
         }
         if (argv == null) return;                                 // not installed, or no Hamlib model # (needed for -m)
+        String serial = HubConfig.get(s.serialKey(), "").trim();
+        String devNow = DaemonWatchdog.deviceId(serial);
+        if (DaemonWatchdog.watchable(serial) && devNow == null) return;   // its device is not there (radio off / cable out): DaemonWatchdog starts it when it returns
         try {
             Process np = new ProcessBuilder(argv).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
             PROCS.put(kind, np);
             ARGV.put(kind, argv);
+            DEVID.put(kind, devNow == null ? "" : devNow);
+            SPAWNED.put(kind, System.currentTimeMillis());
         } catch (Exception ignored) { /* spawn failed — operator runs it manually */ }
     }
 
@@ -113,9 +124,28 @@ public final class DaemonManager {
     /** Stop the daemon we spawned for {@code kind} (toggle turned off / app exit). */
     public static synchronized void stop(String kind) {
         Process p = PROCS.remove(kind);
-        ARGV.remove(kind);
+        ARGV.remove(kind); DEVID.remove(kind); SPAWNED.remove(kind);
         if (p != null) p.destroy();
     }
+
+    /** Stop and start {@code kind}'s daemon again (the watchdog's repair). */
+    public static synchronized void restart(String kind) {
+        Process p = PROCS.get(kind);
+        stop(kind);
+        if (p != null) try { p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+        ensure(kind);
+    }
+
+    // ---- what DaemonWatchdog needs to see ------------------------------------
+    static java.util.List<String> kinds() { java.util.List<String> k = new ArrayList<>(); for (Spec s : SPECS) k.add(s.kind()); return k; }
+    static boolean wantedNow(String kind) { Spec s = spec(kind); return s != null && wanted(s); }
+    static String serialOf(String kind) { Spec s = spec(kind); return s == null ? "" : HubConfig.get(s.serialKey(), "").trim(); }
+    static String hostOf(String kind) { Spec s = spec(kind); return s == null ? "127.0.0.1" : HubConfig.get(s.hostKey(), "127.0.0.1").trim(); }
+    static int portOf(String kind) { Spec s = spec(kind); return s == null ? 0 : parsePort(HubConfig.get(s.portKey(), s.defaultPort()), s.defaultPort()); }
+    /** Something is already answering on the daemon's endpoint (ours, or one started by hand). */
+    static boolean listening(String kind) { Spec s = spec(kind); return s != null && portOpen(hostOf(kind), portOf(kind)); }
+    static String spawnDeviceId(String kind) { String d = DEVID.get(kind); return d == null || d.isEmpty() ? null : d; }
+    static long spawnedAt(String kind) { return SPAWNED.getOrDefault(kind, System.currentTimeMillis()); }
 
     public static boolean running(String kind) { Process p = PROCS.get(kind); return p != null && p.isAlive(); }
 
