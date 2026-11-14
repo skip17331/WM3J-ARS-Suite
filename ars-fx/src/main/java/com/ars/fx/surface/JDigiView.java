@@ -92,9 +92,34 @@ public final class JDigiView {
 
         // bind live listeners (latest build wins)
         if (svc != null) {
-            svc.setSpectrumListener(s -> Platform.runLater(() -> { if (wf.shown()) wf.push(s.getMagnitudes()); }));   // not while J-Digi is off screen
+            // About 6 waterfall rows a second, each the stronger of every bin since the last row (so a short signal is not lost). Every row is
+            // a new frame of a 4K window and this laptop's GPU pays about the same for every frame; the spectrum arrives at about 14 a second.
+            // Runs on the audio thread.
+            double[][] acc = { null }; long[] lastRow = { 0 };
+            svc.setSpectrumListener(s -> {
+                double[] m = s.getMagnitudes();
+                if (m == null || m.length == 0) return;
+                if (acc[0] == null || acc[0].length != m.length) acc[0] = m.clone();
+                else for (int i = 0; i < m.length; i++) if (m[i] > acc[0][i]) acc[0][i] = m[i];
+                long now = System.nanoTime();
+                if (now - lastRow[0] < 160_000_000L) return;
+                lastRow[0] = now;
+                double[] row = acc[0]; acc[0] = null;
+                Platform.runLater(() -> { if (wf.shown()) wf.push(row); });   // not while J-Digi is off screen
+            });
             svc.setDecodeListener(line -> Platform.runLater(() -> { decode.appendText(line.endsWith("\n") ? line : line + "\n"); }));
-            svc.setStatusListener(s -> Platform.runLater(() -> { highlight(tabs, TABS, s.getMode().name()); statusStrip.setText(statusText(s, svc)); }));
+            // The status line carries the peak frequency and SNR, which change on every modem update (about 6 a second), and every change was a
+            // repaint of that strip. Show it once a second; a new mode or a transmit change still shows at once.
+            long[] statusAt = { 0 }; String[] statusKey = { "" };
+            svc.setStatusListener(s -> Platform.runLater(() -> {
+                highlight(tabs, TABS, s.getMode().name());
+                String key = s.getMode().name() + "|" + s.getTxStatusText();
+                long now = System.nanoTime();
+                if (!key.equals(statusKey[0]) || now - statusAt[0] >= 1_000_000_000L) {
+                    statusKey[0] = key; statusAt[0] = now;
+                    statusStrip.setText(statusText(s, svc));
+                }
+            }));
         }
 
         VBox center = new VBox(12, Shell.betaNote("J-Digi"), wfHeader(), wf.node(), modeRow, decode, txRow, macros);
@@ -104,7 +129,13 @@ public final class JDigiView {
     }
 
     private static void highlight(Label[] tabs, String[][] defs, String activeEnum) {
-        for (int i = 0; i < tabs.length; i++) { tabs[i].getStyleClass().remove("on"); if (defs[i][1].equals(activeEnum)) tabs[i].getStyleClass().add("on"); }
+        // Only touch a tab whose state changes: this runs on every modem status update (several a second) and removing then re-adding the class
+        // restyled and repainted the active tab each time, a new frame of a 4K window for nothing.
+        for (int i = 0; i < tabs.length; i++) {
+            boolean want = defs[i][1].equals(activeEnum), has = tabs[i].getStyleClass().contains("on");
+            if (want && !has) tabs[i].getStyleClass().add("on");
+            else if (!want && has) tabs[i].getStyleClass().remove("on");
+        }
     }
     private static String statusText(ModemStatus s, ModemService svc) {
         if (svc == null) return "engine offline";
