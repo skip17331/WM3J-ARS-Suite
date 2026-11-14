@@ -67,7 +67,7 @@ public class QsoTrainerView {
 
     private List<QsoGenerator.Turn> turns = List.of();
     private int turnIndex = 0;
-    private SendPracticeSession sendSession;
+    private volatile SendPracticeSession sendSession;      // read by the tick thread and the key sources as well as the screen
     private KeyEventSource source;
     private final TimingDecoder decoder = new TimingDecoder();
     private int receiveCorrect = 0;
@@ -168,6 +168,7 @@ public class QsoTrainerView {
         root.getProperties().put("livePane",    liveScorePane);
 
         rootPane = root;
+        root.sceneProperty().addListener((o, was, sc) -> { if (sc == null) stopAnyInput(); });    // leave the screen and the key source and tick stop
         refreshModeUi();
         return root;
     }
@@ -209,10 +210,12 @@ public class QsoTrainerView {
         score.setText("Playing… type as you go.");
         userCopy.requestFocus();
 
-        new Thread(() -> {
+        Thread play = new Thread(() -> {
             try { player.playBlocking(currentQso); }
             catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
-        }, "qso-play").start();
+        }, "qso-play");
+        play.setDaemon(true);                                  // a stuck audio line must not keep the program from exiting
+        play.start();
     }
 
     private void revealAndScore() {
@@ -272,10 +275,12 @@ public class QsoTrainerView {
             liveCopy.setDisable(false);
             liveCopy.requestFocus();
             stopAnyInput();
-            new Thread(() -> {
+            Thread dx = new Thread(() -> {
                 try { player.playBlocking(t.text()); }
                 catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
-            }, "qso-dx-turn").start();
+            }, "qso-dx-turn");
+            dx.setDaemon(true);
+            dx.start();
         } else {
             turnPrompt.setText("Send: " + t.text());
             liveCopy.setDisable(true);
@@ -327,22 +332,25 @@ public class QsoTrainerView {
 
     private void startSendCapture() {
         decoder.reset();
-        sendSession = new SendPracticeSession(SendPracticeSession.Mode.FREE, "", decoder);
-        sendSession.onCharacter(c -> Platform.runLater(() ->
+        SendPracticeSession mine = new SendPracticeSession(SendPracticeSession.Mode.FREE, "", decoder);
+        sendSession = mine;
+        mine.onCharacter(c -> Platform.runLater(() ->
                 liveSendDecoded.appendText(String.valueOf(c))));
         source = createSource();
         if (source != null) {
             source.start(ev -> {
-                if (sendSession != null) sendSession.accept(ev);
+                { SendPracticeSession cur = sendSession; if (cur != null) cur.accept(ev); }
             });
         }
         // Drive decoder.tick periodically so word boundaries finalize without
         // requiring an explicit AnimationTimer per turn.
+        // Each turn's tick thread watches its own session: it used to watch "any session", so a thread whose turn had ended kept ticking
+        // for ever when the next turn's session was in place before it woke, and they piled up over a QSO.
         Thread tick = new Thread(() -> {
             try {
-                while (sendSession != null) {
+                while (sendSession == mine) {
                     Thread.sleep(50);
-                    if (sendSession != null) sendSession.tick(System.currentTimeMillis());
+                    if (sendSession == mine) mine.tick(System.currentTimeMillis());
                 }
             } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
         }, "qso-send-tick");
@@ -359,7 +367,7 @@ public class QsoTrainerView {
                 k.start(ev -> {
                     if (ev.type() == com.ars.fx.morse.decoder.KeyEvent.Type.DOWN) tone.keyDown();
                     else tone.keyUp();
-                    if (sendSession != null) sendSession.accept(ev);
+                    { SendPracticeSession cur = sendSession; if (cur != null) cur.accept(ev); }
                 });
                 yield k;
             }
