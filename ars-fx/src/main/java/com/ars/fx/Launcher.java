@@ -57,6 +57,7 @@ public class Launcher extends Application {
         com.ars.fx.shell.Tips.install(scene);
         com.ars.fx.shell.TxIndicator.installEscStop(scene);
         Shell.installPageKeys(scene);
+        com.ars.fx.shell.Fx.steadyCaret(scene);
         show(System.getProperty("surface", "hub"));
 
         stage.setTitle("ARS Suite");
@@ -115,6 +116,7 @@ public class Launcher extends Application {
         com.ars.fx.shell.Tips.install(scene);
         com.ars.fx.shell.TxIndicator.installEscStop(scene);
         Shell.installPageKeys(scene);
+        com.ars.fx.shell.Fx.steadyCaret(scene);
         show(cfg.module);
 
         stage.setTitle(cfg.windowTitle());

@@ -63,6 +63,19 @@ public final class Fx {
         if (was != null && !was.isEmpty()) flash(l);
     }
 
+    /**
+     * A text field with the focus blinks its caret twice a second, and every blink is a new frame of the whole window, for as long as the field
+     * keeps the focus (the log screens focus the callsign box at once). That was about two of the ten frames a second on an otherwise still
+     * screen. The caret stays on, solid, instead. Set {@code ui.caretBlink} true in the config to get the blink back.
+     */
+    public static void steadyCaret(javafx.scene.Scene scene) {
+        scene.focusOwnerProperty().addListener((o, was, now) -> {
+            if (now instanceof javafx.scene.control.TextInputControl t && !HubConfig.getBool("ui.caretBlink", false)) {
+                if (t.getSkin() instanceof javafx.scene.control.skin.TextInputControlSkin<?> sk) sk.setCaretAnimating(false);
+            }
+        });
+    }
+
     private static final java.util.List<Runnable> beat = new java.util.concurrent.CopyOnWriteArrayList<>();
     private static Timeline heartbeat;
     /**
