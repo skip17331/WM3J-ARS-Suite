@@ -10,6 +10,14 @@ No label printers to test with at the moment, so these wait.
 - [ ] **S** Confirm the Amateur Radio menu folder shows on Cinnamon after the installer fix.
 - [ ] **S** Check the 2026-10-03 9K2IC (70cm DMR) entry in the log — looks like a mistyped date.
 
+## 1b. CPU / lag on the 4K laptop (HP Spectre, Intel UHD 620)
+Found 2026-11-14. On the map screen the render thread sat in the Mesa driver's `X11GLContext.nMakeCurrent` (51 of 60 stack samples), not in our drawing; each frame costs about the same whatever changed, and cost follows window pixels (a 1280x720 window used half the CPU of the maximized 3840x2016 one) and frames per second. JavaFX flags did not help (tried: vsync off, software pipeline, pulse cap 30, uploading painter, `vblank_mode=0`, DRI3 off, vram hints). So **fewer frames is the only lever**; a rewrite would not change it.
+- [x] J-Map ticker: scrolling forced 30-60 frames a second; it now shows pages (PR #196). J-Map went from about 90% to about 30% of a core. **Not yet watched through a page change and fade**; check the 7-second page time feels right.
+- [ ] **S** Check the other always-running animations for the same cost, one screen at a time (measure each with the ticker-style test: CPU over 8 s, in 3 samples): `JHubDashboard` orbit (16 s linear timeline, runs the whole time the dashboard shows), `Fx` breathe, `TxIndicator` pulse (should stop when not transmitting), `JMapView` beacon ticker, `Starfield`, `RigPanel` (90 ms timeline), `JSatView` clock, J-Digi waterfall (about 55% of a core in use). Anything that moves for its own sake should stop when the screen is not showing, or step every few seconds.
+- [ ] **S** Check whether a lower display resolution (2560x1440 in Cinnamon) or a smaller window is acceptable: 2.25 times fewer pixels everywhere. User's choice; not changed.
+- [ ] **S** Watch the external USB drive (`sda`, Realtek enclosure on the Thunderbolt / USB-C controller `0000:39:00.0`): the controller died 4 times in 3 hours on 2026-11-14 (kernel: "xHCI host controller not responding", then freezes). With the drive unplugged there were no errors. If it returns: try another cable or port, boot option `pcie_aspm=off`, and `fsck.vfat` the drive (it was flagged "not properly unmounted").
+- Measuring tips: `jcmd` cannot attach to a window started with `sg dialout` (start without it for profiling); `javafx.pulseLogger=true` shows the repainted regions; a bench script that launches, opens J-Map and samples `/proc/PID/stat` lives only in the old scratchpad, so rewrite it if needed. Other programs (Chrome) change the numbers by tens of points, so close them first.
+
 ## 2. Next — award tracking
 Built: real DXCC resolution, per-QSO confirmations, IOTA / SOTA / POTA fields, the awards screen (DXCC matrix, WAS, WAC, grids, IOTA, POTA, SOTA, zones) and your own award sheets (My awards).
 
