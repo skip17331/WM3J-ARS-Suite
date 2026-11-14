@@ -94,6 +94,19 @@ public abstract class TelnetFeed {
     public String loginCall() { return call; }
     public String key() { return key; }
 
+    // ── stale-link detection ────────────────────────────────────────────────
+    // A link that dies without the server closing it (Wi-Fi asleep, a NAT entry expired, a router restarted) leaves read() waiting for ever and
+    // the status on CONNECTED with no spots coming in. After a quiet spell a blank line is sent (cluster software answers it with its prompt);
+    // if nothing at all has arrived a while after that, the link is taken as dead and the reconnect loop takes over.
+    private volatile long probeOverrideMs = -1, deadOverrideMs = -1;
+    /** For tests: how long a connection may be silent before it is probed, and before it is given up on. */
+    void setIdleLimits(long probeMs, long deadMs) { probeOverrideMs = probeMs; deadOverrideMs = deadMs; }
+    private long idleProbeMs() { return probeOverrideMs >= 0 ? probeOverrideMs : cfgSeconds("data." + key + "IdleProbeSec", 120); }
+    private long idleDeadMs() { return deadOverrideMs >= 0 ? deadOverrideMs : cfgSeconds("data." + key + "IdleDeadSec", 180); }
+    private static long cfgSeconds(String k, int def) {
+        try { return Math.max(0, Long.parseLong(HubConfig.get(k, String.valueOf(def)).trim())) * 1000L; } catch (Exception e) { return def * 1000L; }
+    }
+
     /** Most failed attempts before giving up, from J-Hub ▸ Data ({@code data.<key>MaxTries}); 0 = never give up. */
     public int maxTries() {
         try { return Math.max(0, Integer.parseInt(HubConfig.get("data." + key + "MaxTries", "5").trim())); }
@@ -244,6 +257,8 @@ public abstract class TelnetFeed {
         int logins = 0;                 // how many times we have answered a login prompt (some servers ask twice)
         boolean answered = false;       // the server has sent something since our (last) login
         long loginAt = 0;
+        long lastRx = System.currentTimeMillis();   // when any byte last arrived
+        boolean probed = false;                     // a blank line has been sent since then
 
         while (!paused && socket == s) {
             int n;
@@ -261,9 +276,20 @@ public abstract class TelnetFeed {
                 if (logins == 0 && now - t0 > PROMPT_WAIT_MS) { sendLogin(); logins++; loginAt = now; answered = false; }   // silent server: send the call anyway
                 // Connected only means the server has answered after our login. A server that stays silent is not connected.
                 if (logins > 0 && !answered && now - loginAt > SILENT_LIMIT_MS) throw new IOException("the server did not answer the login");
+                if (logins > 0 && answered) {                        // logged in: has anything been heard lately?
+                    long probeAfter = idleProbeMs(), deadAfter = idleDeadMs();
+                    long quiet = now - lastRx;
+                    if (deadAfter > 0 && quiet > deadAfter) throw new IOException("nothing heard for " + (quiet / 1000) + " s: the connection looks dead");
+                    if (probeAfter > 0 && !probed && quiet > probeAfter) {
+                        probed = true;
+                        OutputStream o = out;
+                        if (o != null) { o.write("\r\n".getBytes(StandardCharsets.ISO_8859_1)); o.flush(); }   // a dead socket fails here, at once
+                    }
+                }
                 continue;
             }
             if (n < 0) return;                                    // server closed
+            lastRx = System.currentTimeMillis(); probed = false;  // heard something: the link is alive
             for (int i = 0; i < n; i++) {
                 int b = buf[i] & 0xFF;
                 if (b == 0xFF) { i = telnetOption(buf, i, n, s.getOutputStream()); continue; }   // IAC negotiation — skip (and decline)
