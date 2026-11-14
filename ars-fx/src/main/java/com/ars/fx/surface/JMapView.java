@@ -773,7 +773,7 @@ public final class JMapView {
 
     // ---- bottom alert scroller (port of original J-Map DxScrollerBar) ------
     private static Region tickerBar() {
-        double H = 42, speed = 70;                            // px per second
+        double H = 42, pageSeconds = 7;                       // how long each page of the ticker stays up
         Pane pane = new Pane();
         pane.setMinHeight(H); pane.setPrefHeight(H); pane.setMaxHeight(H);
         pane.setStyle("-fx-background-color:#07090c;-fx-border-color:#2c3540 transparent transparent transparent;-fx-border-width:1 0 0 0;");
@@ -781,47 +781,60 @@ public final class JMapView {
         clip.widthProperty().bind(pane.widthProperty()); clip.setHeight(H);
         pane.setClip(clip);
 
-        // One text node slid along by the GPU: redrawing a canvas on a timer steps unevenly against the screen refresh.
+        // Pages, not a scroll. A scrolling bar forced a new frame 30 to 60 times a second for as long as the map was open, and on this class of
+        // laptop GPU every frame of a 4K window costs about the same (the render thread sits in the driver's makeCurrent / swap), so the
+        // ticker alone cost about 60 to 90 points of CPU. A page changes every few seconds and the screen is otherwise still.
         Font font = Font.font("JetBrains Mono", 12.5);
         Text line = new Text(); line.setFont(font); line.setFill(Color.web("#c3ccd6"));
         line.setTextOrigin(javafx.geometry.VPos.CENTER); line.setLayoutY(H / 2);
-        line.setCache(true); line.setCacheHint(javafx.scene.CacheHint.SPEED);
         pane.getChildren().add(line);
 
-        double[] singleW = new double[1];
-        Runnable refreshText = () -> {
-            String one = com.ars.fx.data.SolarData.tickerText(com.ars.fx.data.SolarData.getInstance().snapshot(), grayLineStat()) + "   ";
-            Text meas = new Text(one); meas.setFont(font);
-            singleW[0] = meas.getLayoutBounds().getWidth();
-            int copies = (int) Math.ceil(Math.max(pane.getWidth(), 1920) / singleW[0]) + 1;   // enough to fill the bar past the wrap
-            line.setText(one.repeat(copies));
+        java.util.List<String> pages = new java.util.ArrayList<>();
+        int[] shown = { 0 };
+        Runnable show = () -> {
+            if (pages.isEmpty()) { line.setText(""); return; }
+            line.setText(pages.get(shown[0] % pages.size()));
+            line.setLayoutX(Math.max(12, (pane.getWidth() - line.getLayoutBounds().getWidth()) / 2));   // centred
         };
-        refreshText.run();
-
-        double[] x = { Double.NaN };
-        long[] last = { 0 };
-        // drawn once into a texture: moving it every frame is then a GPU translate, so the ticker can step at the full screen rate
-        // (smooth) without repainting the text each time (which was the CPU cost that made it step at 20 a second)
-        line.setCache(true); line.setCacheHint(javafx.scene.CacheHint.SPEED);
-        javafx.animation.AnimationTimer timer = new javafx.animation.AnimationTimer() {
-            @Override public void handle(long now) {
-                // 30 steps a second: every frame costs about the same whatever the size of the change (the window is presented whole, and this
-                // laptop's GPU drives a 4K screen), so the render thread's CPU follows the ticker's frame rate. 60 cost over a core, 20 looked choppy.
-                if (last[0] != 0 && now - last[0] < 30_000_000L) return;
-                double w = pane.getWidth();
-                if (w <= 0) return;
-                if (Double.isNaN(x[0])) x[0] = w;
-                if (last[0] != 0) x[0] -= speed * (now - last[0]) / 1e9;   // by elapsed time, so a busy frame can't slow it
-                last[0] = now;
-                if (x[0] <= -singleW[0]) { refreshText.run(); x[0] = 0; }  // new figures only where the line repeats
-                line.setTranslateX(x[0]);
+        Runnable rebuild = () -> {                             // pack as many items as fit the bar onto each page
+            double w = pane.getWidth() - 40;
+            if (w <= 0) return;
+            String all = com.ars.fx.data.SolarData.tickerText(com.ars.fx.data.SolarData.getInstance().snapshot(), grayLineStat());
+            pages.clear();
+            String sep = "   ●   ", cur = "";
+            for (String item : all.split("●")) {
+                item = item.strip();
+                if (item.isEmpty()) continue;
+                String tryText = cur.isEmpty() ? item : cur + sep + item;
+                Text meas = new Text(tryText); meas.setFont(font);
+                if (!cur.isEmpty() && meas.getLayoutBounds().getWidth() > w) { pages.add(cur); cur = item; } else cur = tryText;
             }
+            if (!cur.isEmpty()) pages.add(cur);
+            show.run();
         };
-        timer.start();
-        Runnable onData = refreshText;                         // new figures as soon as they arrive, not only at the next wrap
+        rebuild.run();
+
+        // a short fade between pages (a third of a second of frames every few seconds)
+        javafx.animation.Timeline pager = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(pageSeconds), e -> {
+            if (pages.size() < 2 || pane.getScene() == null) return;
+            javafx.animation.FadeTransition out = new javafx.animation.FadeTransition(javafx.util.Duration.millis(150), line);
+            out.setToValue(0);
+            out.setOnFinished(f -> {
+                shown[0] = (shown[0] + 1) % pages.size();
+                show.run();
+                javafx.animation.FadeTransition in = new javafx.animation.FadeTransition(javafx.util.Duration.millis(150), line);
+                in.setToValue(1); in.play();
+            });
+            out.play();
+        }));
+        pager.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        pager.play();
+        javafx.beans.value.ChangeListener<Number> onWidth = (o, a, b) -> rebuild.run();
+        pane.widthProperty().addListener(onWidth);
+        Runnable onData = rebuild;                             // new figures as soon as they arrive
         com.ars.fx.data.SolarData.getInstance().addListener(onData);
         pane.sceneProperty().addListener((o, old, sc) -> {
-            if (sc == null && old != null) { timer.stop(); com.ars.fx.data.SolarData.getInstance().removeListener(onData); }
+            if (sc == null && old != null) { pager.stop(); com.ars.fx.data.SolarData.getInstance().removeListener(onData); }
         });
         return pane;
     }
