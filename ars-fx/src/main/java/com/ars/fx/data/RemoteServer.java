@@ -214,6 +214,7 @@ public final class RemoteServer extends WebSocketServer {
         feeds.add("cluster", ClusterClient.getInstance().statusJson());
         feeds.add("rbn", HeardByClient.getInstance().statusJson());
         o.add("feeds", feeds);
+        o.add("daemons", DaemonStatus.snapshot());      // J-Hub's settings show what the rig / rotor / amp daemons are doing
         o.addProperty("tx", TxController.hubTransmitting());
         o.add("activity", GSON.toJsonTree(ClusterClient.getInstance().activityFlat()));
         JsonObject st = new JsonObject();

@@ -150,7 +150,7 @@ public final class QslLabel {
     public static Qso fromContest(com.jlog.model.QsoRecord r) {
         String when = r.getDateTimeUtc() == null ? ""
                 : r.getDateTimeUtc().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return new Qso(r.getCallsign(), when, r.getFrequency(), r.getBand(), r.getMode(), r.getRstSent(), r.getRstReceived(),
+        return new Qso(r.getCallsign(), when, ContestFreq.toMhz(r.getFrequency()), r.getBand(), r.getMode(), r.getRstSent(), r.getRstReceived(),
                 r.getOperatorName(), r.getCountry());
     }
 

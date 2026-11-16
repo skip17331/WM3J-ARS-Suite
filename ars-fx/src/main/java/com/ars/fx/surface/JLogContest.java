@@ -693,6 +693,8 @@ public final class JLogContest {
             if (!editing) {
                 r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
                 r.setSerialSent(String.valueOf(serial));
+                String khz = com.ars.fx.data.ContestFreq.rigKhz(bandF.getText());   // Cabrillo's frequency column; none if no rig or it is on another band
+                if (khz != null) r.setFrequency(khz);
             }
             fillFromForm(plugin, r);
             List<QsoRecord> prior = new ArrayList<>(ContestQsoDao.getInstance().findByCallsign(cid, call));

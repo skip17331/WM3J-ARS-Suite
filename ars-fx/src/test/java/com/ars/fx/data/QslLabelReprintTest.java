@@ -47,6 +47,16 @@ class QslLabelReprintTest {
     }
 
     @Test
+    void contestFrequencyIsStoredInKilohertzButLabelledInMegahertz() {
+        QsoRecord r = new QsoRecord();
+        r.setCallsign("K1ABC");
+        r.setFrequency("14025");                               // what the contest page stores (Cabrillo's unit)
+        assertEquals("14.025", QslLabel.fromContest(r).freq());
+        r.setFrequency("14.074");                              // a QSO that already carries MHz is not divided again
+        assertEquals("14.074", QslLabel.fromContest(r).freq());
+    }
+
+    @Test
     void contestQsoWithNoTimeOrReportsStillConverts() {
         QsoRecord r = new QsoRecord();
         r.setCallsign("N0CALL");

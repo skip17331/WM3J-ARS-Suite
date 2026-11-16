@@ -168,13 +168,18 @@ public final class DaemonWatchdog {
     /** The last thing the watchdog did for {@code kind}, for a status line; empty when it has done nothing. */
     public static String last(String kind) { return LAST.getOrDefault(kind, ""); }
 
+    private static final Map<String, String> DEVSTATE = new ConcurrentHashMap<>();
+    /** What the last check saw of {@code kind}'s serial device: "ok", "gone", or "" when it is not watched (network, not wanted, not checked yet). */
+    public static String deviceState(String kind) { return DEVSTATE.getOrDefault(kind, ""); }
+
     /** One check of one daemon. */
     static void check(String kind) {
-        if (!DaemonManager.wantedNow(kind)) { FAILS.remove(kind); return; }
+        if (!DaemonManager.wantedNow(kind)) { FAILS.remove(kind); DEVSTATE.remove(kind); return; }
         String serial = DaemonManager.serialOf(kind);
         boolean watch = watchable(serial);
         boolean alive = DaemonManager.running(kind);
         String now = watch ? deviceId(serial) : null;
+        if (watch) DEVSTATE.put(kind, now == null ? "gone" : "ok"); else DEVSTATE.remove(kind);
         if (alive && watch && now != null) {
             if (probe(kind)) FAILS.put(kind, 0); else FAILS.merge(kind, 1, Integer::sum);
         } else FAILS.put(kind, 0);
