@@ -253,6 +253,9 @@ public final class JLogContest {
 
     // ---- LOG TOOLS column: the contest actions that used to crowd the title bar -----------------------------
     /** The collapsing column beside the dock, as on the J-Hub dashboard: contest actions, translator, awards, database tools. */
+    /** The "print a label for each new contest QSO" switch (its own setting, off by default). */
+    private static Shell.QslToggle printQsl;
+
     private static Region toolsColumn(ContestPlugin plugin) {
         Shell.openDrawerByDefault("Contest");
         Label pick = lbl("Change contest", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
@@ -275,7 +278,8 @@ public final class JLogContest {
         Label layoutBtn = lbl("Layout\u2026", "jl-clearbtn"); layoutBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(layoutBtn, "Open this contest's layout file: a reminder note, the order of the tabs and of the exchange fields");
         layoutBtn.setOnMouseClicked(e -> openLayoutFile(plugin));
-        VBox contestBody = new VBox(8, export, times, layoutBtn, pick, normal);
+        printQsl = Shell.contestQslToggle();
+        VBox contestBody = new VBox(8, export, times, layoutBtn, printQsl.node, pick, normal);
         Node contestDrawer = Shell.drawer("Contest", "log", "log", plugin.getContestName(), true, contestBody);
         Node[] more = JLogCockpit.contestSideDrawers(() -> {
             Control cf = fieldControls == null ? null : fieldControls.get("callsign");
@@ -710,6 +714,7 @@ public final class JLogContest {
             if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); com.ars.fx.data.N1mmBroadcast.contactEdited(plugin, r, oldCall); }
             else { if (spotAfter) spotNote = spotNow(r); ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); com.ars.fx.data.SessionQsos.logged(r.getCallsign(), null, r.getBand(), r.getMode()); }
             ContestState.recompute();
+            if (!editing && !dupe && printQsl != null) printQsl.afterSave(com.ars.fx.data.QslLabel.fromContest(r));   // new, non-dupe QSOs only
             final QsoRecord logged = r;
             Thread lt = new Thread(() -> com.ars.fx.data.CallHistory.learn(plugin, logged), "call-history-learn");
             lt.setDaemon(true); lt.start();
@@ -1154,7 +1159,7 @@ public final class JLogContest {
     private static Node logHeader() {
         HBox h = new HBox(9,
                 col("UTC", 54), col("CALL", 90), col("BAND", 48), col("MODE", 46),
-                col("SN", 44), col("EXCHANGE", -1), col("PTS", 46), col("", 92));
+                col("SN", 44), col("EXCHANGE", -1), col("PTS", 46), col("", 138));
         h.getStyleClass().add("jl-loghd"); h.setAlignment(Pos.CENTER_LEFT); return h;
     }
     private static Node logRow(QsoRecord q) {
@@ -1165,9 +1170,16 @@ public final class JLogContest {
         if (q.isDupe()) pts.setStyle("-fx-text-fill:-ars-err;-fx-font-weight:bold;");      // a dupe in the log is called out, not just dimmed
         Label edit = lbl("Edit", "jl-clearbtn"); edit.setStyle("-fx-cursor:hand;");
         Label erase = lbl("Erase", "jl-clearbtn"); erase.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-err;");
+        Label labelBtn = lbl("Label", "jl-clearbtn"); labelBtn.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(labelBtn, "Print the QSL label for this QSO (printer and size: Setup ▸ Label printers)");
         edit.setOnMouseClicked(e -> loadForEdit(q));
         erase.setOnMouseClicked(e -> eraseQso(erase, q));
-        HBox acts = new HBox(10, edit, erase); acts.setMinWidth(92); acts.setPrefWidth(92); acts.setAlignment(Pos.CENTER_RIGHT);
+        labelBtn.setOnMouseClicked(e -> {
+            setB4("⋯ printing label for " + q.getCallsign() + "…", "new");
+            com.ars.fx.data.QslLabel.printAsync(com.ars.fx.data.QslLabel.fromContest(q), r -> Platform.runLater(() ->
+                    setB4((r.ok() ? "✓ " : "✗ ") + r.message(), r.ok() ? "new" : "dupe")));
+        });
+        HBox acts = new HBox(10, labelBtn, edit, erase); acts.setMinWidth(138); acts.setPrefWidth(138); acts.setAlignment(Pos.CENTER_RIGHT);
         HBox r = new HBox(9,
                 cell(utc, 54), cell(q.getCallsign(), 90), cell(z(q.getBand()), 48), cell(z(q.getMode()), 46),
                 cell(z(q.getSerialSent()), 44), cell(exch, -1), pts, acts);

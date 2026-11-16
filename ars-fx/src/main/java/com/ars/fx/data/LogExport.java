@@ -103,6 +103,28 @@ public final class LogExport {
 
     public static Path defaultBackupDir() { return resolve(null); }
 
+    /** A log-browser row as an export row (the browser's QTH / name / grid are the same columns the exporter reads). */
+    public static JLogDb.QsoExport fromFull(JLogDb.QsoFull q) {
+        return new JLogDb.QsoExport(q.call(), q.datetimeUtc(), q.band(), q.mode(), q.freq(), q.powerW(), q.rstSent(),
+                q.rstRcvd(), q.qth(), q.name(), q.state(), q.county(), q.notes(), q.grid(), q.refs());
+    }
+
+    /** Write just these QSOs (the browser's filtered view, in the order shown) to {@code file}.
+     *  The format follows the extension: {@code .csv} is CSV, anything else is ADIF. */
+    public static Result exportFiltered(Path file, List<JLogDb.QsoFull> rows) {
+        try {
+            List<JLogDb.QsoExport> out = new java.util.ArrayList<>(rows.size());
+            for (JLogDb.QsoFull q : rows) out.add(fromFull(q));
+            boolean csv = file.getFileName().toString().toLowerCase().endsWith(".csv");
+            String body = csv ? toCsv(out) : toAdif(out);
+            if (file.getParent() != null) Files.createDirectories(file.getParent());
+            Files.writeString(file, forExport(body), StandardCharsets.UTF_8);
+            return new Result(true, out.size(), file.toString(), null);
+        } catch (Exception e) {
+            return new Result(false, 0, null, e.getMessage());
+        }
+    }
+
     // ---- helpers -----------------------------------------------------------
     private static Path resolve(String dir) {
         String d = (dir == null || dir.isBlank()) ? System.getProperty("user.home") + "/.j-log/backups" : dir.trim();
