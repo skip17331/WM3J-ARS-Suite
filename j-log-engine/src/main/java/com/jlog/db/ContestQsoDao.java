@@ -376,7 +376,23 @@ public class ContestQsoDao {
         return list;
     }
 
-    private QsoRecord map(ResultSet rs) throws SQLException {
+    /**
+     * Every QSO in a contest database file the caller has opened, newest first: of {@code contestId}, or of every contest in the file
+     * when it is null or blank. For browsing a contest log that is not the one the engine has open; it only reads, and does not touch
+     * this DAO's own connection.
+     */
+    public static List<QsoRecord> readAll(Connection c, String contestId) throws SQLException {
+        boolean all = contestId == null || contestId.isBlank();
+        List<QsoRecord> list = new ArrayList<>();
+        try (PreparedStatement ps = c.prepareStatement("SELECT * FROM contest_qso"
+                + (all ? "" : " WHERE contest_id=?") + " ORDER BY datetime_utc DESC, id DESC")) {
+            if (!all) ps.setString(1, contestId);
+            try (ResultSet rs = ps.executeQuery()) { while (rs.next()) list.add(map(rs)); }
+        }
+        return list;
+    }
+
+    private static QsoRecord map(ResultSet rs) throws SQLException {
         QsoRecord q = new QsoRecord();
         q.setId             (rs.getLong  ("id"));
         q.setContestId      (rs.getString("contest_id"));
