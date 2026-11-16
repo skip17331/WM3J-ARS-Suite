@@ -37,6 +37,8 @@ class DaemonWatchdogTest {
 
     @Test
     void deviceIdentityChangesWhenTheNodeIsRecreated() throws Exception {
+        // /dev nodes: a Windows temp path is not one (Windows watches COM ports instead, see DaemonWatchdogComPortTest)
+        Assumptions.assumeFalse(DaemonWatchdog.windows, "a /dev node test; Windows watches COM ports");
         Path dir = Files.createTempDirectory("wd-dev");
         Path dev = dir.resolve("ttyUSB0");
         assertNull(DaemonWatchdog.deviceId(dev.toString()), "absent");

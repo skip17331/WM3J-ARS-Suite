@@ -40,7 +40,7 @@ public final class DaemonWatchdog {
      * What to do about one daemon. Pure, so the rules can be tested without hardware.
      *
      * @param procAlive      the daemon we started is running
-     * @param deviceApplies  its serial setting is a device path we can watch (a /dev/... node), not a COM port or a network address
+     * @param deviceApplies  its serial setting is a device we can watch (a /dev/... node, or a Windows COM port), not a network address
      * @param deviceNow      identity of the device node now, or null when it is absent
      * @param deviceAtSpawn  identity of the node when the daemon was started, or null
      * @param sinceSpawnMs   how long the daemon has been running
@@ -59,9 +59,17 @@ public final class DaemonWatchdog {
         return Action.NONE;
     }
 
-    /** Identity of the device node at {@code serial}: where it really points, its inode and change time. Null when absent or not a path. */
+    /** Identity of the device at {@code serial}: for a /dev node where it really points, its inode and change time; for a Windows
+     *  COM port its name and driver device. Null when it is absent, or not something we can watch. */
     public static String deviceId(String serial) {
-        if (serial == null || !serial.startsWith("/")) return null;
+        if (serial == null) return null;
+        String com = windows ? comName(serial) : null;
+        if (com != null) {
+            Map<String, String> ports = comPorts();
+            String dev = ports == null ? null : ports.get(com);     // null list = unreadable: treated like "not watchable", see watchable()
+            return dev == null ? null : com + "#" + dev;
+        }
+        if (!serial.startsWith("/")) return null;
         try {
             Path p = Paths.get(serial);
             if (!Files.exists(p)) return null;
@@ -74,8 +82,67 @@ public final class DaemonWatchdog {
         }
     }
 
-    /** True when {@code serial} is a /dev-style path we can watch. */
-    public static boolean watchable(String serial) { return serial != null && serial.startsWith("/"); }
+    /** True when {@code serial} is a device we can watch: a /dev-style path, or on Windows a COM port while the registry's port list
+     *  can be read (and J-Hub's {@code daemon.watchComPorts} has not been switched off). When the list cannot be read this is false,
+     *  so the daemon is treated as before (only a dead one is started again) and never stopped on a guess. */
+    public static boolean watchable(String serial) {
+        if (serial == null) return false;
+        if (serial.startsWith("/")) return true;
+        return windows && comName(serial) != null && HubConfig.getBool("daemon.watchComPorts", true) && comPorts() != null;
+    }
+
+    // ---- Windows COM ports ---------------------------------------------------
+
+    /** Windows: the serial setting is a COM port ("COM3" or "\\.\COM3") and the registry's SERIALCOMM list says which exist. Tests change this. */
+    static volatile boolean windows = System.getProperty("os.name", "").toLowerCase().contains("win");
+    /** The COM ports present now (name to driver device), or null when the list could not be read. Tests replace this. */
+    static volatile java.util.function.Supplier<Map<String, String>> comLister = DaemonWatchdog::queryComPorts;
+
+    private static final java.util.regex.Pattern COM = java.util.regex.Pattern.compile("(?i)^(?:\\\\\\\\[.?]\\\\)?(COM[0-9]+)$");
+    private static final java.util.regex.Pattern COMM_LINE = java.util.regex.Pattern.compile("(?i)^\\s*(\\S+)\\s+REG_SZ\\s+(COM[0-9]+)\\s*$");
+    private static long comAt;
+    private static Map<String, String> comCache;            // the last list that was read; kept when a later read fails
+
+    /** "COM3" for "COM3", "com3" or "\\.\COM3"; null for anything else. */
+    static String comName(String serial) {
+        if (serial == null) return null;
+        java.util.regex.Matcher m = COM.matcher(serial.trim());
+        return m.matches() ? m.group(1).toUpperCase(java.util.Locale.ROOT) : null;
+    }
+
+    /** The COM ports present, read at most every 2 s (several daemons are checked together); the last good list when a read fails; null if none has ever been read. */
+    private static synchronized Map<String, String> comPorts() {
+        long now = System.currentTimeMillis();
+        if (comAt == 0 || now - comAt > 2000) {
+            Map<String, String> fresh = comLister.get();
+            if (fresh != null) comCache = fresh;
+            comAt = now;
+        }
+        return comCache;
+    }
+    static synchronized void resetComCache() { comAt = 0; comCache = null; }
+
+    /** Parse {@code reg query HKLM\HARDWARE\DEVICEMAP\SERIALCOMM}: lines like "    \Device\BthModem1    REG_SZ    COM3". */
+    static Map<String, String> parseSerialComm(String out) {
+        Map<String, String> m = new java.util.LinkedHashMap<>();
+        if (out == null) return m;
+        for (String line : out.split("\\R")) {
+            java.util.regex.Matcher x = COMM_LINE.matcher(line);
+            if (x.matches()) m.put(x.group(2).toUpperCase(java.util.Locale.ROOT), x.group(1));
+        }
+        return m;
+    }
+
+    /** Ask Windows which COM ports exist. Null when that could not be read (reg.exe missing, slow or failing), so the caller falls back to not watching. */
+    static Map<String, String> queryComPorts() {
+        try {
+            Process p = new ProcessBuilder("reg", "query", "HKLM\\HARDWARE\\DEVICEMAP\\SERIALCOMM").redirectErrorStream(true).start();
+            if (!p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)) { p.destroyForcibly(); return null; }
+            int rc = p.exitValue();
+            if (rc == 0) return parseSerialComm(new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+            return rc == 1 ? new java.util.LinkedHashMap<>() : null;     // exit 1: the key is absent, i.e. no serial ports at all
+        } catch (Exception e) { return null; }
+    }
 
     // ---- the loop ----------------------------------------------------------
 
