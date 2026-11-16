@@ -100,13 +100,15 @@ public final class Shell {
     public static final class QslToggle {
         public final javafx.scene.layout.VBox node;
         private final Label status = lbl("", "jl-emeta");
-        QslToggle() {
-            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox("Print QSL label on save (beta)");
-            cb.setSelected(com.ars.fx.data.QslLabel.printOnSave());
-            cb.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.QslLabel.setPrintOnSave(b));
-            com.ars.fx.data.HubConfig.addChangeListener(k -> { if ("label.printOnSave".equals(k) || "*".equals(k))
-                javafx.application.Platform.runLater(() -> cb.setSelected(com.ars.fx.data.QslLabel.printOnSave())); });
-            Tips.tip(cb, "Print a QSL label whenever a QSO is saved — choose the printer in Setup ▸ Label printers");
+        private final String key;
+        QslToggle(String key, String text, String tip) {
+            this.key = key;
+            javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox(text);
+            cb.setSelected(com.ars.fx.data.HubConfig.getBool(key, false));
+            cb.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.HubConfig.setBool(key, b));
+            com.ars.fx.data.HubConfig.addChangeListener(k -> { if (key.equals(k) || "*".equals(k))
+                javafx.application.Platform.runLater(() -> cb.setSelected(com.ars.fx.data.HubConfig.getBool(key, false))); });
+            Tips.tip(cb, tip);
             status.setWrapText(true); status.setMaxWidth(230);
             // Says where the label will go, so the tick box is never a mystery.
             Label dest = lbl("", "jl-emeta"); dest.setMaxWidth(230);
@@ -126,7 +128,7 @@ public final class Shell {
         }
         /** Called after a new QSO is saved: prints if the switch is on. */
         public void afterSave(com.ars.fx.data.QslLabel.Qso q) {
-            if (!com.ars.fx.data.QslLabel.printOnSave()) return;
+            if (!com.ars.fx.data.HubConfig.getBool(key, false)) return;
             status.setText("⋯ printing label…");
             com.ars.fx.data.QslLabel.printAsync(q, r -> javafx.application.Platform.runLater(() -> {
                 status.setText((r.ok() ? "✓ " : "✗ ") + r.message());
@@ -135,7 +137,15 @@ public final class Shell {
             }));
         }
     }
-    public static QslToggle qslToggle() { return new QslToggle(); }
+    public static QslToggle qslToggle() {
+        return new QslToggle(com.ars.fx.data.QslLabel.KEY_PRINT_ON_SAVE, "Print QSL label on save (beta)",
+                "Print a QSL label whenever a QSO is saved — choose the printer in Setup ▸ Label printers");
+    }
+    /** The contest page's own switch: a separate setting, off by default, so a busy contest never prints a card for every contact unasked. */
+    public static QslToggle contestQslToggle() {
+        return new QslToggle(com.ars.fx.data.QslLabel.KEY_PRINT_ON_CONTEST_SAVE, "Print a label for each new contest QSO (beta)",
+                "Print a QSL label for every new, non-dupe contest QSO as it is logged (edits and dupes never print) — choose the printer in Setup ▸ Label printers");
+    }
 
     /** A button that is not wired up yet: shown greyed out, does nothing when clicked, and says so in its tooltip. */
     public static Label placeholderButton(String text, String styleClass, String tooltip) {

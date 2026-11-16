@@ -106,8 +106,10 @@ public final class QslLabel {
 
     // ---- settings ---------------------------------------------------------------------------------
 
-    public static boolean printOnSave()          { return HubConfig.getBool("label.printOnSave", false); }
-    public static void setPrintOnSave(boolean b) { HubConfig.setBool("label.printOnSave", b); }
+    public static final String KEY_PRINT_ON_SAVE = "label.printOnSave";
+    public static final String KEY_PRINT_ON_CONTEST_SAVE = "label.printOnContestSave";
+    public static boolean printOnSave()          { return HubConfig.getBool(KEY_PRINT_ON_SAVE, false); }
+    public static void setPrintOnSave(boolean b) { HubConfig.setBool(KEY_PRINT_ON_SAVE, b); }
 
     public static Model currentModel() { return model(HubConfig.get("label.model", MODELS.get(0).id())); }
     /** "zpl" only when the model supports it AND the operator chose it; otherwise "driver". */
@@ -138,6 +140,19 @@ public final class QslLabel {
     /** What goes on the label. */
     public record Qso(String call, String dateTimeUtc, String freq, String band, String mode,
                       String rstSent, String rstRcvd, String name, String qth) {}
+
+    /** A normal-log row (the log browser) as label content, for a reprint. */
+    public static Qso fromFull(JLogDb.QsoFull q) {
+        return new Qso(q.call(), q.datetimeUtc(), q.freq(), q.band(), q.mode(), q.rstSent(), q.rstRcvd(), q.name(), q.qth());
+    }
+
+    /** A contest QSO as label content. Contest rows keep the other station's name / QTH in the same columns as the normal log. */
+    public static Qso fromContest(com.jlog.model.QsoRecord r) {
+        String when = r.getDateTimeUtc() == null ? ""
+                : r.getDateTimeUtc().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return new Qso(r.getCallsign(), when, r.getFrequency(), r.getBand(), r.getMode(), r.getRstSent(), r.getRstReceived(),
+                r.getOperatorName(), r.getCountry());
+    }
 
     private record Line(String text, double weight, boolean bold) {}
 

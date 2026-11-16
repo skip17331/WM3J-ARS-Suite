@@ -53,6 +53,8 @@ final class LogBrowser {
         Label edit = lbl("Edit", "jl-clearbtn"); edit.setStyle("-fx-cursor:hand;");
         Label del = lbl("Delete", "jl-clearbtn"); del.setStyle("-fx-cursor:hand;");
         Label refresh = lbl("⟳ Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
+        Label export = lbl("Export…", "jl-clearbtn"); export.setStyle("-fx-cursor:hand;");
+        Label printLbl = lbl("Print label", "jl-clearbtn"); printLbl.setStyle("-fx-cursor:hand;");
 
         TableView<JLogDb.QsoFull> table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);   // NOTES takes whatever width is left
@@ -128,8 +130,40 @@ final class LogBrowser {
                     }));
         });
 
+        // Export what the table shows now (search + Band + Mode filters, in the sort order on screen) to ADIF or CSV.
+        export.setOnMouseClicked(e -> {
+            if (sorted.isEmpty()) { count.setText("Nothing to export — no QSOs match"); return; }
+            javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+            fc.setTitle("Export " + sorted.size() + " QSO" + (sorted.size() == 1 ? "" : "s"));
+            fc.getExtensionFilters().addAll(new javafx.stage.FileChooser.ExtensionFilter("ADIF (*.adi)", "*.adi"),
+                    new javafx.stage.FileChooser.ExtensionFilter("CSV (*.csv)", "*.csv"));
+            fc.setInitialFileName("j-log-filtered");
+            java.io.File dir = com.ars.fx.data.LogExport.defaultBackupDir().toFile();
+            if (dir.isDirectory()) fc.setInitialDirectory(dir);
+            java.io.File f = fc.showSaveDialog(export.getScene().getWindow());
+            if (f == null) return;
+            boolean csv = fc.getSelectedExtensionFilter() != null && fc.getSelectedExtensionFilter().getDescription().startsWith("CSV");
+            String name = f.getName().toLowerCase();
+            if (!name.endsWith(".csv") && !name.endsWith(".adi") && !name.endsWith(".adif"))
+                f = new java.io.File(f.getPath() + (csv ? ".csv" : ".adi"));      // the chosen filter decides when no extension was typed
+            com.ars.fx.data.LogExport.Result r = com.ars.fx.data.LogExport.exportFiltered(f.toPath(), new java.util.ArrayList<>(sorted));
+            count.setText(r.ok() ? "✓ Exported " + r.count() + " QSO" + (r.count() == 1 ? "" : "s") + " to " + f.getName()
+                                 : "✗ Export failed: " + r.error());
+        });
+        com.ars.fx.shell.Tips.tip(export, "Save the QSOs shown now (after the search, Band and Mode filters) as ADIF or CSV");
+
+        // Reprint the QSL label for the selected QSO (the "print on save" switch only covers a QSO as it is first logged).
+        printLbl.setOnMouseClicked(e -> {
+            JLogDb.QsoFull q = table.getSelectionModel().getSelectedItem();
+            if (q == null) { count.setText("Select a QSO to print its label"); return; }
+            count.setText("⋯ printing label for " + q.call() + "…");
+            com.ars.fx.data.QslLabel.printAsync(com.ars.fx.data.QslLabel.fromFull(q), r -> javafx.application.Platform.runLater(() ->
+                    count.setText((r.ok() ? "✓ " : "✗ ") + r.message())));
+        });
+        com.ars.fx.shell.Tips.tip(printLbl, "Print the QSL label for the selected QSO again — printer and label size are set in Setup ▸ Label printers");
+
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox bar = new HBox(10, search, band, mode, count, sp, refresh, edit, del);
+        HBox bar = new HBox(10, search, band, mode, count, sp, refresh, export, printLbl, edit, del);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(10, 14, 10, 14));
         Label hint = lbl("Click a heading to sort · double-click a row to edit it in J-Log · CONF: Q = QSL card, L = LoTW, E = eQSL", "jl-emeta");
         hint.setPadding(new Insets(0, 14, 8, 14));
