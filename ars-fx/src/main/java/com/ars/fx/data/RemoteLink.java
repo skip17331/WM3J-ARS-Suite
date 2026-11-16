@@ -161,6 +161,8 @@ public final class RemoteLink {
                 if (f.has("rbn"))     HeardByClient.getInstance().applyRemoteStatus(f.getAsJsonObject("rbn"));
             }
 
+            if (o.has("daemons") && o.get("daemons").isJsonObject()) DaemonStatus.apply(o.getAsJsonObject("daemons"));
+
             ClusterClient.getInstance().injectSpots(listOf(o.get("spots"), ClusterClient.Spot.class));
             HeardByClient.getInstance().injectSpots(listOf(o.get("heard"), HeardByClient.HeardSpot.class));
 

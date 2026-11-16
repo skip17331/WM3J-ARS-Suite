@@ -51,6 +51,11 @@ public final class QtcPane {
         try { List<QsoRecord> all = ContestState.qsos(); if (!all.isEmpty()) last = all.get(0); } catch (RuntimeException ignored) {}
         if (last != null) { partner.setText(last.getCallsign()); band.setText(last.getBand() == null ? "" : last.getBand()); mode.setText(last.getMode() == null ? "" : last.getMode()); }
         else if (plugin.getLockedMode() != null) mode.setText(plugin.getLockedMode());
+        // the QRG the QTC was sent or received on (Cabrillo kHz): the rig's, when it is on this band; else the last QSO's; else blank (the band's own value is exported)
+        TextField qrg = field("kHz", 70);
+        String rigNow = com.ars.fx.data.ContestFreq.rigKhz(band.getText());
+        qrg.setText(rigNow != null ? rigNow
+                : last != null && last.getFrequency() != null && !last.getFrequency().isBlank() ? last.getFrequency().trim() : "");
 
         Label seriesL = lbl("", "ct-note"), msg = lbl("", "ct-note"), totals = lbl("", "ct-note"); msg.setWrapText(true); msg.setMaxWidth(300);
         GridPane grid = new GridPane(); grid.setHgap(6); grid.setVgap(3);
@@ -84,6 +89,7 @@ public final class QtcPane {
                 edit.setOnMouseClicked(e -> {                                    // load the series into the form; Save replaces it
                     dir.setValue("SENT".equalsIgnoreCase(f.getDirection()) ? "Sent" : "Received");
                     partner.setText(f.getPartnerCall()); band.setText(f.getQtcBand() == null ? "" : f.getQtcBand()); mode.setText(f.getQtcMode() == null ? "" : f.getQtcMode());
+                    qrg.setText(nz(f.getQtcQrg()));
                     for (int r = 0; r < ROWS; r++) {
                         QtcRecord q = r < g.size() ? g.get(r) : null;
                         rows.get(r)[0].setText(q == null ? "" : nz(q.getQsoTime())); rows.get(r)[1].setText(q == null ? "" : nz(q.getQsoCall())); rows.get(r)[2].setText(q == null ? "" : nz(q.getQsoSerial()));
@@ -123,12 +129,19 @@ public final class QtcPane {
             if (editing) ex.removeIf(r -> r.getSeriesNo() == editNo[0] && editDir[0] != null && editDir[0].equalsIgnoreCase(r.getDirection()));   // the series being corrected does not count against itself
             String problem = QtcRules.validate(own, p, QtcRules.continentOf(p, DxccInfo::of), d, lines, ex, "RTTY".equalsIgnoreCase(plugin.getLockedMode()));
             if (problem != null) { msg.setText(problem); msg.setStyle("-fx-text-fill:-ars-err;"); return; }
+            String qrgText = qrg.getText() == null ? "" : qrg.getText().trim();
+            if (!qrgText.isEmpty() && !qrgText.matches("\\d{3,6}")) {
+                msg.setText("Frequency in kHz, like 14025 (or leave it blank for the band's own value)."); msg.setStyle("-fx-text-fill:-ars-err;"); return;
+            }
+            if (qrgText.isEmpty()) { String rigNow2 = com.ars.fx.data.ContestFreq.rigKhz(band.getText()); if (rigNow2 != null) qrgText = rigNow2; }
+            final String qrgFinal = qrgText;
             int no = editing && d.equalsIgnoreCase(editDir[0]) ? editNo[0] : QtcRules.nextSeries(ex, d);
             List<QtcRecord> made = new ArrayList<>();
             for (QtcRules.Line l : lines) {
                 QtcRecord r = new QtcRecord();
                 r.setContestId(cid); r.setPartnerCall(p); r.setDirection(d); r.setSeriesNo(no); r.setSeriesSize(lines.size());
                 r.setQtcBand(band.getText().trim().toLowerCase()); r.setQtcMode(mode.getText().trim().toUpperCase());
+                r.setQtcQrg(qrgFinal.isEmpty() ? null : qrgFinal);
                 r.setQtcDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
                 r.setQsoTime(l.time()); r.setQsoCall(l.call()); r.setQsoSerial(l.serial());
                 made.add(r);
@@ -147,10 +160,11 @@ public final class QtcPane {
         refresh.run();
 
         HBox head = new HBox(6, dir, partner, band, mode); head.setAlignment(Pos.CENTER_LEFT);
+        HBox freq = new HBox(6, qrg, lbl("kHz · blank = the band's own value in the Cabrillo file", "ct-note")); freq.setAlignment(Pos.CENTER_LEFT);
         HBox buttons = new HBox(12, clear, save); buttons.setAlignment(Pos.CENTER_RIGHT);
         Label rule = lbl("Up to 10 QTCs a series, 10 in all with one station (sent and received together); a QSO is reported once. A European station receives QTCs, a non-European one sends them (RTTY: any station, different continents). Edit or Delete a saved series from the list above.", "ct-note");
         rule.setWrapText(true); rule.setMaxWidth(300);
-        VBox box = new VBox(6, head, seriesL, grid, msg, buttons, totals, history, rule);
+        VBox box = new VBox(6, head, freq, seriesL, grid, msg, buttons, totals, history, rule);
         box.setPadding(new Insets(2));
         ContestState.addListener(() -> Platform.runLater(refresh));
         return box;

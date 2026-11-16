@@ -80,8 +80,7 @@ public class CabrilloExporter {
             for (QsoRecord q : qsos) {
                 if (q.isDupe()) continue;
 
-                String freq = q.getFrequency() != null ? q.getFrequency() : "14000";
-                String band = cabBand(q.getBand());
+                String freq = cabFreq(q.getFrequency(), q.getBand());
                 String mode = cabMode(q.getMode());
                 String date = q.getDateTimeUtc() != null ? q.getDateTimeUtc().format(CAB_DATE) : "0000-00-00";
                 String time = q.getDateTimeUtc() != null ? q.getDateTimeUtc().format(CAB_TIME) : "0000";
@@ -112,7 +111,7 @@ public class CabrilloExporter {
                 String qTime = r.getQtcDateTimeUtc() != null
                         ? r.getQtcDateTimeUtc().format(CAB_TIME) : "0000";
                 pw.printf("QTC: %5s %-2s %s %s %-13s %5s %-13s %4s %-13s %s%n",
-                    r.getQtcQrg() != null && !r.getQtcQrg().isBlank() ? r.getQtcQrg() : "14000",
+                    cabFreq(r.getQtcQrg(), r.getQtcBand()),
                     cabMode(r.getQtcMode()), qDate, qTime,
                     callRx, r.getSeriesNo() + "/" + r.getSeriesSize(), callTx,
                     nullSafe(r.getQsoTime()), nullSafe(r.getQsoCall()), nullSafe(r.getQsoSerial()));
@@ -248,18 +247,32 @@ public class CabrilloExporter {
         }
     }
 
-    private static String cabBand(String band) {
-        if (band == null) return "??";
-        return switch (band) {
+    /**
+     * The frequency column of a {@code QSO:} or {@code QTC:} line: the frequency logged (kHz), or, when none was logged, the
+     * band's Cabrillo value ("7000" for 40m, "144" for 2m). Never another band's number: it used to fall back to 14000 for every band.
+     */
+    static String cabFreq(String freq, String band) {
+        return freq != null && !freq.isBlank() ? freq.trim() : cabBand(band);
+    }
+
+    /** Cabrillo's value for a band when the exact frequency is not known: the band's lowest kHz for HF, the band name for VHF and up. */
+    static String cabBand(String band) {
+        if (band == null || band.isBlank()) return "??";
+        return switch (band.trim().toLowerCase(java.util.Locale.ROOT)) {
             case "160m" -> "1800";
             case "80m"  -> "3500";
             case "40m"  -> "7000";
+            case "30m"  -> "10100";
             case "20m"  -> "14000";
+            case "17m"  -> "18068";
             case "15m"  -> "21000";
+            case "12m"  -> "24890";
             case "10m"  -> "28000";
             case "6m"   -> "50";
             case "2m"   -> "144";
+            case "1.25m" -> "222";
             case "70cm" -> "432";
+            case "23cm" -> "1.2G";
             default     -> band;
         };
     }

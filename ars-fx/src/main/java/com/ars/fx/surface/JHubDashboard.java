@@ -740,6 +740,7 @@ public final class JHubDashboard {
         VBox beh = section("BEHAVIOR",
             cfgRow("Auto band-follow", "the New QSO frequency, band and mode follow the radio while it is connected (a digital rig mode leaves the mode as typed)", cToggle("rig.autoBandFollow", true)),
             cfgRow("Start rigctld for me", "spawn the daemon with the model/serial above", cToggleApply("rig.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            daemonStatusRow("rig"),
             cfgRow("Show status in hero bar", "the rig's frequency, mode and connection in the banner at the top of every screen", cToggle(com.ars.fx.shell.HeroDevices.KEY_RIG, true)));
 
         VBox v = new VBox(20, top, desc, cells, conn, ptt, beh);
@@ -954,7 +955,21 @@ public final class JHubDashboard {
             cfgRow("Baud rate", null, cSelect(p + "baud", "9600", BAUDS)),
             cfgRow("rotctld host", "Hamlib rotor daemon", cInputApply(p + "host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("rotctld port", sat ? "its own port, not the main rotor's" : null, cInputApply(p + "rotctldPort", sat ? "4534" : "4533", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("Start rotctld for me", null, cToggleApply(p + "startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+            cfgRow("Start rotctld for me", null, cToggleApply(p + "startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            daemonStatusRow(p.substring(0, p.length() - 1)));
+    }
+
+    /** A status line under a "Start ... for me" switch: what the daemon is doing now, and the watchdog's last action. It updates every second while shown. */
+    private static HBox daemonStatusRow(String kind) {
+        Label l = lbl("", "cfg-lh"); l.setWrapText(true); l.setMaxWidth(460);
+        Runnable paint = () -> {
+            com.ars.fx.data.DaemonStatus.Line s = com.ars.fx.data.DaemonStatus.line(kind);
+            l.setText(s.text());
+            l.setStyle("warn".equals(s.level()) ? "-fx-text-fill:-ars-warn;" : "");
+        };
+        paint.run();
+        com.ars.fx.shell.Fx.everySecondWhileShown(l, paint);
+        return cfgRow("Daemon status", "what J-Hub's daemon is doing, and the last thing the watchdog did", l);
     }
     private static Region amplifierCenter() {
         com.ars.fx.data.AmpClient.getInstance().start();
@@ -980,7 +995,8 @@ public final class JHubDashboard {
             cfgRow("Baud rate", null, cSelect("amp.baud", "38400", BAUDS)),
             cfgRow("ampctld host", "Hamlib amp daemon", cInputApply("amp.host", "127.0.0.1", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("ampctld port", null, cInputApply("amp.ampctldPort", "4531", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
-            cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
+            cfgRow("Start ampctld for me", null, cToggleApply("amp.startDaemon", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            daemonStatusRow("amp"));
         VBox beh = section("BEHAVIOR",
             cfgRow("Follow rig band", "when the radio changes band, send its frequency to the amplifier", cToggle("amp.followBand", true)),
             cfgRow("Max power", "forward power over this is flagged on the dashboard and here; it does not change the amplifier. Also fills the {AMPMAXPOWER} macro", cUnit("amp.maxPower", "1000", "W")),
