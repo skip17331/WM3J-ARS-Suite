@@ -1,7 +1,7 @@
 {
   "contestId":   "MO_QSO_PARTY",
   "contestName": "Missouri QSO Party",
-  "version":     "1.0.0",
+  "version":     "1.1.0",
 
   "exchangeFormat": "MO: RS(T) + county (3-letter, Table 1). Non-MO: RS(T) + state/province. DX: RS(T) + 'DX'. 160-10m + 6/2/1.25m/70cm. No FT8/FT4. MO works everyone; non-MO works MO only.",
 
@@ -27,15 +27,20 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
+  "multiplierList": "/com/jlog/counties/mo.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: MO entrant = MO counties + 49 states + 13 CA prov + 1 (if ≥1 DX worked); non-MO entrant = MO counties only. W0MA & K0GQ = one-time +100 each (post-multiply). OFF-LOG/claimed (sponsor re-adjudicates): +100 e-log submission, +1/QSO 40-80m Sat/Sun 1400-2000Z window (cap +250), mobile/portable ≥50-QSO/county mult — not reliably log-derivable. Claimed — BEARS-St.Louis re-adjudicates.",
+    "scoreFormula": "(Σ QSO pts × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: MO entrant = MO counties (115: the 114 counties + St. Louis City, codes from Table 1 of the 2026 rules, bundled as counties/mo.json) + 49 states + 13 CA prov + 1 (if ≥1 DX worked); non-MO entrant = MO counties only. W0MA & K0GQ = one-time +100 each (post-multiply). Also applied (2026 rules): +100 for submitting the Cabrillo log electronically; +1 per QSO on 40 / 80 m between 1400 and 2000 UTC Saturday and Sunday (at most +250, added after the multiply); a mobile or portable entry with ≥50 valid QSOs from a county gets that county's multiplier (CATEGORY-STATION MOBILE or PORTABLE, from the sent county logged on each QSO); each station is worked once per mode per band per MO county, so a mobile re-works everyone from each new county. Claimed — BEARS-St.Louis re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
+      "electronicLogBonus": 100,
+      "timeWindowBonus": {"bands": ["40m", "80m"], "windows": ["SAT 14:00-20:00", "SUN 14:00-20:00"], "pointsPerQso": 1, "cap": 250},
+      "activationBonus": {"minQsos": 50, "asMultiplier": true, "stations": ["MOBILE", "PORTABLE"]},
+      "ownCountyDupe": true,
       "stateName": "Missouri",
       "stateAbbr": "MO",
-      "countyCodeLen": 3,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "once",
       "inStateCountsStates": true,

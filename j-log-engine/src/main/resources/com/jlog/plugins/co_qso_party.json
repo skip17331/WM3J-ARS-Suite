@@ -30,9 +30,10 @@
   "scoringRules": {
     "pointsPerQso": 2,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × Σ mults, mults counted PER MODE not per band) + bonuses. 2 pts per valid QSO (a QSO must include a CO station). CO entrant mult/mode = each CO county + each US state + each Canadian province/territory + 1 DX (if any DX worked) = 128/mode max. Non-CO entrant mult/mode = each CO county (64/mode max). CO works everyone; non-CO scores CO contacts only. AK/HI = state mults only; DC→MD; USA/Canada are not DX. Mixed = CW & Phone QSOs/mults computed separately then summed (per_mode). County-line = 2 logged QSOs. Claimed/running — the GMCC COQP committee re-adjudicates. NOT applied (off-log/self/category): CO mobile/portable +500 per county activated with ≥15 QSOs (entrant-self); power/operator categories.",
+    "scoreFormula": "(Σ QSO pts × Σ mults, mults counted PER MODE not per band) + bonuses. 2 pts per valid QSO (a QSO must include a CO station). CO entrant mult/mode = each CO county + each US state + each Canadian province/territory + 1 DX (if any DX worked) = 128/mode max. Non-CO entrant mult/mode = each CO county (64/mode max). CO works everyone; non-CO scores CO contacts only. AK/HI = state mults only; DC→MD; USA/Canada are not DX. Mixed = CW & Phone QSOs/mults computed separately then summed (per_mode). County-line = 2 logged QSOs. Claimed/running — the GMCC COQP committee re-adjudicates. Applied: CO mobile/portable +500 per CO county activated with ≥15 QSOs (CATEGORY-STATION MOBILE, PORTABLE or ROVER, from the sent county logged on each QSO). NOT applied: power/operator categories.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 500, "minQsos": 15, "stations": ["MOBILE", "PORTABLE", "ROVER"]},
       "stateName": "Colorado",
       "stateAbbr": "CO",
       "dcCountsAsMd": true,

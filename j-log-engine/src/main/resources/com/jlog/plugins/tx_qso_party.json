@@ -32,9 +32,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE for the QSO Party — not per band, not per mode) + bonuses. Pts: Phone 2, CW & Digital 3. TX works everyone; non-TX scores TX contacts only (non-TX↔non-TX no credit). TX entrant mult = TX counties + US states (excl TX) + 13 Canadian provinces + each DXCC country (excl USA/Canada/AK/HI; DC→MD); extra DXCC = points only. Non-TX entrant mult = TX counties (254 max). TX mobile county-change = new QSO + new county; county-line = separate QSO per county. Claimed/running — the TQP committee re-adjudicates. NOT applied (off-log/self/category): +500 per Texas-mobile-worked-in-5-different-counties tier bonus (per-mobile distinct-county tracking — committee computes); TX-mobile +1000 per county with ≥5 QSOs (entrant-self); power/operator categories.",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE for the QSO Party — not per band, not per mode) + bonuses. Pts: Phone 2, CW & Digital 3. TX works everyone; non-TX scores TX contacts only (non-TX↔non-TX no credit). TX entrant mult = TX counties + US states (excl TX) + 13 Canadian provinces + each DXCC country (excl USA/Canada/AK/HI; DC→MD); extra DXCC = points only. Non-TX entrant mult = TX counties (254 max). TX mobile county-change = new QSO + new county; county-line = separate QSO per county. Claimed/running — the TQP committee re-adjudicates. Applied: TX-mobile +1000 per TX county activated with ≥5 QSOs (CATEGORY-STATION MOBILE or ROVER, from the sent county logged on each QSO); a mobile entrant re-works everyone from each new county. NOT applied: the +500 per Texas mobile worked in 5 different counties tier bonus (committee computes); power/operator categories.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 1000, "minQsos": 5, "stations": ["MOBILE", "ROVER"]},
+      "ownCountyDupe": true,
       "stateName": "Texas",
       "stateAbbr": "TX",
       "dcCountsAsMd": true,

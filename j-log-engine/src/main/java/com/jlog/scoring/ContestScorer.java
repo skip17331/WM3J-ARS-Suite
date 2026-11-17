@@ -277,7 +277,68 @@ public final class ContestScorer {
             String rc = q.getContestField1() == null ? "" : q.getContestField1().trim().toUpperCase();
             if (qpUpper(c.getRareCounties()).contains(rc)) base *= c.getRareQsoMultiplier();
         }
+        if (c != null && c.getPointsByPower() != null && !ctx.power().isEmpty()) {
+            Integer pp = c.getPointsByPower().get(ctx.power());    // IDQP: every QRP QSO is worth 5, whatever the mode
+            if (pp != null) base = pp;
+        }
         return base;
+    }
+
+    /** The entrant's own county on this QSO: the logged sent-county field when the contest has one, else the context's sent QTH. */
+    static String ownCounty(ContestPlugin plugin, QsoRecord q, StationContext ctx) {
+        String v = RecordFields.value(plugin, q, "state_prov_sent");
+        if (v == null || v.isBlank()) v = ctx == null ? "" : ctx.sentQth();
+        return v == null ? "" : v.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    /** A station category ("ROVER-LIMITED") is in the list if it, or its part before the first '-' ("ROVER"), is. */
+    static boolean stationIn(String station, List<String> list) {
+        if (station == null || station.isBlank() || list == null) return false;
+        String s = station.trim().toUpperCase(java.util.Locale.ROOT);
+        String head = s.contains("-") ? s.substring(0, s.indexOf('-')) : s;
+        for (String l : list) {
+            if (l == null) continue;
+            String u = l.trim().toUpperCase(java.util.Locale.ROOT);
+            if (u.equals(s) || u.equals(head)) return true;
+        }
+        return false;
+    }
+
+    /** A CATEGORY-STATION multiplier lookup with the same "ROVER-LIMITED" → "ROVER" fallback; 1 when not listed. */
+    private static double categoryFactor(Map<String, Double> table, String value) {
+        if (table == null || value == null || value.isBlank()) return 1;
+        String s = value.trim().toUpperCase(java.util.Locale.ROOT);
+        Double f = table.get(s);
+        if (f == null && s.contains("-")) f = table.get(s.substring(0, s.indexOf('-')));
+        return f == null ? 1 : f;
+    }
+
+    /** Is the band below 50 MHz (160 m to 10 m)? */
+    private static boolean below50Mhz(String band) {
+        if (band == null) return false;
+        String b = band.trim().toLowerCase(java.util.Locale.ROOT);
+        if (!b.endsWith("m") || b.endsWith("cm") || b.endsWith("mm")) return false;
+        try { return Double.parseDouble(b.substring(0, b.length() - 1)) > 6; } catch (NumberFormatException e) { return false; }
+    }
+
+    /** Does the QSO's UTC time fall in one of the windows ("SAT 14:00-20:00", "14:00-20:00")? */
+    static boolean inWindow(QsoRecord q, List<String> windows) {
+        if (q == null || q.getDateTimeUtc() == null || windows == null) return false;
+        java.time.LocalDateTime t = q.getDateTimeUtc();
+        for (String w : windows) {
+            if (w == null) continue;
+            String[] p = w.trim().toUpperCase(java.util.Locale.ROOT).split("\\s+");
+            String span = p[p.length - 1];
+            if (p.length > 1 && !t.getDayOfWeek().name().startsWith(p[0])) continue;
+            String[] se = span.split("-");
+            if (se.length != 2) continue;
+            try {
+                java.time.LocalTime s = java.time.LocalTime.parse(se[0]), e = java.time.LocalTime.parse(se[1]);
+                java.time.LocalTime x = t.toLocalTime();
+                if (!x.isBefore(s) && x.isBefore(e)) return true;
+            } catch (java.time.format.DateTimeParseException ignored) { }
+        }
+        return false;
     }
 
     private static ContestPlugin.QsoPartyConfig qpCfg(ContestPlugin plugin) {
@@ -287,6 +348,12 @@ public final class ContestScorer {
     private static Set<String> qpUpper(List<String> in) {
         Set<String> s = new HashSet<>();
         if (in != null) for (String v : in) if (v != null) s.add(v.trim().toUpperCase());
+        return s;
+    }
+
+    private static Set<String> qpLower(List<String> in) {
+        Set<String> s = new HashSet<>();
+        if (in != null) for (String v : in) if (v != null) s.add(v.trim().toLowerCase(java.util.Locale.ROOT));
         return s;
     }
 
@@ -570,10 +637,36 @@ public final class ContestScorer {
             int dxCap = c == null ? 0 : c.getDxMultCap();
             boolean dcMd = c != null && c.isDcCountsAsMd();
             Set<String> dxCounted = new HashSet<>();
+            // entrant-category rules: own counties activated (QSOs and distinct calls per county), the time-window count,
+            // the sweep calls worked, own counties as free multipliers
+            ContestPlugin.QsoPartyConfig.ActivationBonus act = c == null ? null : c.getActivationBonus();
+            boolean actOn = act != null && (act.getStations() == null || act.getStations().isEmpty() || stationIn(ctx.station(), act.getStations()));
+            Map<String, Integer> actQsos = new LinkedHashMap<>();
+            Map<String, Set<String>> actCalls = new java.util.HashMap<>();
+            ContestPlugin.QsoPartyConfig.TimeWindowBonus tw = c == null ? null : c.getTimeWindowBonus();
+            Set<String> twBands = tw == null ? Set.of() : qpLower(tw.getBands());
+            int twQsos = 0;
+            ContestPlugin.QsoPartyConfig.BonusSweep sweep = c == null ? null : c.getBonusSweep();
+            Set<String> sweepCalls = sweep == null ? Set.of() : qpUpper(sweep.getCalls());
+            Set<String> sweepSeen = new HashSet<>();
+            boolean homeMult = c != null && c.isHomeCountyMult();
+            boolean hf = c != null && c.isBonusStationsBelow50Mhz();
             for (QsoRecord q : qsos) {
                 if (q.isDupe()) continue;
                 String b  = q.getBand() == null ? "" : q.getBand();
                 String mc = QsoParty.modeClass(q.getMode(), merge, mergeCw);
+                boolean scores = q.getPoints() > 0;
+                if (scores) {
+                    String own = ownCounty(plugin, q, ctx);
+                    String callKey = QsoParty.baseCall(q.getCallsign());
+                    if (actOn && !own.isEmpty()) {
+                        actQsos.merge(own, 1, Integer::sum);
+                        actCalls.computeIfAbsent(own, k -> new HashSet<>()).add(callKey);
+                    }
+                    if (homeMult && meIn && QsoParty.isCounty(own, counties, countyLen, byExcl)) mset.add("C|" + own);
+                    if (tw != null && twBands.contains(b.trim().toLowerCase(java.util.Locale.ROOT)) && inWindow(q, tw.getWindows())) twQsos++;
+                    if (sweepCalls.contains(callKey)) sweepSeen.add(callKey);
+                }
                 String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
                 String R  = q.getContestField1() == null ? ""
                         : q.getContestField1().trim().toUpperCase();
@@ -586,19 +679,20 @@ public final class ContestScorer {
                 String sk = "per_mode".equals(scope) ? mc + "|"
                           : "per_band".equals(scope) ? b + "|"
                           : "per_band_mode".equals(scope) ? b + "|" + mc + "|" : "";
-                if (!bonusMap.isEmpty()) {
+                boolean bonusBand = !hf || below50Mhz(b);                // WIQP: the W9FK bonus counts below 50 MHz only
+                if (bonusBand && !bonusMap.isEmpty()) {
                     String bc = QsoParty.baseCall(call);
                     Integer bp = bonusMap.get(bc);
                     if (bp != null && bonusSeen.add(bc + "|" + b + "|" + mc))
                         bonusPts += bp;
                 }
-                if (!bonusOnce.isEmpty()) {
+                if (bonusBand && !bonusOnce.isEmpty()) {
                     String bc = QsoParty.baseCall(call);
                     Integer bp = bonusOnce.get(bc);
                     if (bp != null && bonusOnceSeen.add(bc))
                         bonusPts += bp;
                 }
-                if (!bonusPerMode.isEmpty()) {
+                if (bonusBand && !bonusPerMode.isEmpty()) {
                     String bc = QsoParty.baseCall(call);
                     Integer bp = bonusPerMode.get(bc);
                     if (bp != null && bonusPerModeSeen.add(bc + "|" + mc))
@@ -649,6 +743,20 @@ public final class ContestScorer {
             else if (c != null && c.getSweepBonusThreshold2() > 0
                     && rareSeen.size() >= c.getSweepBonusThreshold2())
                 bonusPts += c.getSweepBonusPoints2();
+            if (actOn) {                                                 // counties the mobile / rover entrant activated
+                for (Map.Entry<String, Integer> e : actQsos.entrySet()) {
+                    if (e.getValue() < Math.max(1, act.getMinQsos())) continue;
+                    if (act.getMinCalls() > 0 && actCalls.getOrDefault(e.getKey(), Set.of()).size() < act.getMinCalls()) continue;
+                    if (act.isAsMultiplier()) mset.add("C|" + e.getKey());
+                    else bonusPts += act.getPoints();
+                }
+            }
+            if (tw != null && twQsos > 0) {
+                int twPts = twQsos * Math.max(1, tw.getPointsPerQso());
+                bonusPts += tw.getCap() > 0 ? Math.min(twPts, tw.getCap()) : twPts;
+            }
+            if (sweep != null && !sweepCalls.isEmpty() && sweepSeen.size() == sweepCalls.size()) bonusPts += sweep.getPoints();
+            if (c != null && c.getElectronicLogBonus() > 0) bonusPts += c.getElectronicLogBonus();
             int qpMults = mset.size();
             if (meIn && divisor > 0)
                 qpMults += gridCeil
@@ -660,7 +768,10 @@ public final class ContestScorer {
             if (c != null && c.getMultCap() > 0)
                 qpMults = Math.min(qpMults, c.getMultCap());
             int total = sumPoints(qsos);
-            return ContestScore.of(count, total, qpMults, total * qpMults + bonusPts);
+            // power and station-category multipliers scale QSO points × multipliers; bonuses are added after them
+            double factor = c == null ? 1 : categoryFactor(c.getPowerMultiplier(), ctx.power()) * categoryFactor(c.getStationMultiplier(), ctx.station());
+            long scored = Math.round((double) total * qpMults * factor);
+            return ContestScore.of(count, total, qpMults, (int) Math.min(Integer.MAX_VALUE, scored + bonusPts));
         }
 
         if (rules != null && "wag".equals(rules.getMultiplierType())) {
@@ -891,9 +1002,13 @@ public final class ContestScorer {
             boolean mrgCw = qpc != null && qpc.isMergeCwDigital();
             String cls = QsoParty.modeClass(cand.getMode(), merge, mrgCw);
             String qth = nz(RecordFields.value(plugin, cand, "state_prov_rcvd")).trim().toUpperCase();
+            // ownCountyDupe: a mobile / rover entrant re-works everyone from each new county, so the county it sent is part of the key
+            boolean own = qpc != null && qpc.isOwnCountyDupe();
+            String mine = own ? nz(RecordFields.value(plugin, cand, "state_prov_sent")).trim().toUpperCase() : "";
             return anyMatch(prior, r -> band.equals(nz(r.getBand()))
                     && cls.equals(QsoParty.modeClass(r.getMode(), merge, mrgCw))
-                    && qth.equals(nz(r.getContestField1()).trim().toUpperCase()));
+                    && qth.equals(nz(r.getContestField1()).trim().toUpperCase())
+                    && (!own || mine.equals(nz(RecordFields.value(plugin, r, "state_prov_sent")).trim().toUpperCase())));
         }
         String mode = nz(cand.getMode());
         return anyMatch(prior, r -> band.equals(nz(r.getBand())) && mode.equals(nz(r.getMode())));

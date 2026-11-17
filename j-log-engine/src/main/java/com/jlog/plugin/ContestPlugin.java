@@ -281,6 +281,72 @@ public class ContestPlugin {
         private Map<String,Integer> bonusPointCalls;    // out-of-state +pts for working these calls
         private List<String> clubMultCalls;             // each counts as a multiplier (scope-applied)
 
+        // ---- entrant-category rules (StationContext.power / station, the Cabrillo categories) ----
+        private Map<String,Double> powerMultiplier;     // CATEGORY-POWER → × (QSO pts × mults); bonuses are added
+                                                        //   after it. e.g. {"QRP":3,"LOW":2,"HIGH":1}
+        private Map<String,Double> stationMultiplier;   // CATEGORY-STATION → × as above (MDC: ROVER 4 ...)
+        private Map<String,Integer> pointsByPower;      // CATEGORY-POWER → every scoring QSO is worth this
+                                                        //   (IDQP: all QRP QSOs = 5)
+        private ActivationBonus activationBonus;        // mobile / rover / portable: per own county activated
+        private boolean ownCountyDupe;                  // the entrant's own sent county (per QSO) is part of the
+                                                        //   dupe key: a mobile re-works everyone from a new county
+        private boolean homeCountyMult;                 // in-state entrant: each own county with ≥1 QSO is a
+                                                        //   county multiplier, worked or not (NCQP)
+        private boolean bonusStationsBelow50Mhz;        // bonusStations only for QSOs below 50 MHz (WIQP W9FK)
+        private int electronicLogBonus;                 // post-multiply bonus for submitting the log electronically
+                                                        //   (every log this app writes is Cabrillo, so always given)
+        private TimeWindowBonus timeWindowBonus;        // +pts per QSO on given bands inside UTC windows, capped
+        private BonusSweep bonusSweep;                  // +pts once every one of these calls has been worked
+
+        /** Per own county (the per-QSO sent county) activated by an entrant of one of {@code stations}: a county counts once it
+         *  has {@code minQsos} scoring QSOs with at least {@code minCalls} different stations. It earns {@code points} after the
+         *  multiply, or, with {@code asMultiplier}, that county as a multiplier instead (MOQP: 50 QSOs). */
+        public static class ActivationBonus {
+            private int points; private int minQsos = 1; private int minCalls; private boolean asMultiplier;
+            private List<String> stations;              // CATEGORY-STATION values (a "ROVER-LIMITED" entry matches "ROVER")
+            public int getPoints(){ return points; }            public void setPoints(int v){ points = v; }
+            public int getMinQsos(){ return minQsos; }          public void setMinQsos(int v){ minQsos = v; }
+            public int getMinCalls(){ return minCalls; }        public void setMinCalls(int v){ minCalls = v; }
+            public boolean isAsMultiplier(){ return asMultiplier; } public void setAsMultiplier(boolean v){ asMultiplier = v; }
+            public List<String> getStations(){ return stations; }   public void setStations(List<String> v){ stations = v; }
+        }
+        /** {@code pointsPerQso} for each scoring QSO on {@code bands} inside one of {@code windows} ("SAT 14:00-20:00", UTC; the
+         *  day is optional), at most {@code cap} in all (0 = no cap), added after the multiply (MOQP: 40 / 80 m, +1, cap 250). */
+        public static class TimeWindowBonus {
+            private List<String> bands; private List<String> windows; private int pointsPerQso = 1; private int cap;
+            public List<String> getBands(){ return bands; }     public void setBands(List<String> v){ bands = v; }
+            public List<String> getWindows(){ return windows; } public void setWindows(List<String> v){ windows = v; }
+            public int getPointsPerQso(){ return pointsPerQso; } public void setPointsPerQso(int v){ pointsPerQso = v; }
+            public int getCap(){ return cap; }                  public void setCap(int v){ cap = v; }
+        }
+        /** {@code points} once, after the multiply, when every call in {@code calls} has been worked (NCQP "HIKENC": +200). */
+        public static class BonusSweep {
+            private List<String> calls; private int points;
+            public List<String> getCalls(){ return calls; }     public void setCalls(List<String> v){ calls = v; }
+            public int getPoints(){ return points; }            public void setPoints(int v){ points = v; }
+        }
+
+        public Map<String,Double> getPowerMultiplier(){ return powerMultiplier; }
+        public void setPowerMultiplier(Map<String,Double> v){ this.powerMultiplier = v; }
+        public Map<String,Double> getStationMultiplier(){ return stationMultiplier; }
+        public void setStationMultiplier(Map<String,Double> v){ this.stationMultiplier = v; }
+        public Map<String,Integer> getPointsByPower(){ return pointsByPower; }
+        public void setPointsByPower(Map<String,Integer> v){ this.pointsByPower = v; }
+        public ActivationBonus getActivationBonus(){ return activationBonus; }
+        public void setActivationBonus(ActivationBonus v){ this.activationBonus = v; }
+        public boolean isOwnCountyDupe(){ return ownCountyDupe; }
+        public void setOwnCountyDupe(boolean v){ this.ownCountyDupe = v; }
+        public boolean isHomeCountyMult(){ return homeCountyMult; }
+        public void setHomeCountyMult(boolean v){ this.homeCountyMult = v; }
+        public boolean isBonusStationsBelow50Mhz(){ return bonusStationsBelow50Mhz; }
+        public void setBonusStationsBelow50Mhz(boolean v){ this.bonusStationsBelow50Mhz = v; }
+        public int getElectronicLogBonus(){ return electronicLogBonus; }
+        public void setElectronicLogBonus(int v){ this.electronicLogBonus = v; }
+        public TimeWindowBonus getTimeWindowBonus(){ return timeWindowBonus; }
+        public void setTimeWindowBonus(TimeWindowBonus v){ this.timeWindowBonus = v; }
+        public BonusSweep getBonusSweep(){ return bonusSweep; }
+        public void setBonusSweep(BonusSweep v){ this.bonusSweep = v; }
+
         public String getStateName(){ return stateName; }
         public void setStateName(String v){ this.stateName = v; }
         public String getStateAbbr(){ return stateAbbr; }

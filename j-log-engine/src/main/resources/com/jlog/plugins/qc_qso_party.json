@@ -90,9 +90,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Total = Σ QSO pts × Σ mults, mults counted once PER BAND (not per mode). Pts: phone 1, CW 2. VE2 entrant: Quebec regions + Canadian provinces/territories + US states + one DX; non-VE2 entrant: Quebec regions only. No bonus station in 2026. Not scored: the mobile bonus (300 per region activated with 3+ contacts) — add it by hand. Claimed — QCQP committee re-adjudicates.",
+    "scoreFormula": "Total = Σ QSO pts × Σ mults, mults counted once PER BAND (not per mode). Pts: phone 1, CW 2. VE2 entrant: Quebec regions + Canadian provinces/territories + US states + one DX; non-VE2 entrant: Quebec regions only. No bonus station in 2026. Mobile bonus: 300 per region activated with 3+ contacts with 3 different stations (CATEGORY-STATION MOBILE or ROVER, from the sent region logged on each QSO); a mobile re-works everyone from each new region. Claimed — QCQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 300, "minQsos": 3, "minCalls": 3, "stations": ["MOBILE", "ROVER"]},
+      "ownCountyDupe": true,
       "stateName": "Quebec",
       "stateAbbr": "QC",
       "countyCodeLen": 3,
