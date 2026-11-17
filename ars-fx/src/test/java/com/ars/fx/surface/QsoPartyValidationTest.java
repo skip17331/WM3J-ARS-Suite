@@ -61,7 +61,7 @@ class QsoPartyValidationTest {
     }
 
     @Test void partiesWithoutACheckedListOnlyWarn() throws Exception {
-        for (String f : new String[]{"new_england"}) {
+        for (String f : new String[]{"new_england", "ok"}) {   // OK: an old (OKDXA) list, so a miss only warns
             ContestPlugin p = new ObjectMapper().readValue(Path.of("..", "j-log-engine", "src", "main", "resources", "com", "jlog", "plugins", f + "_qso_party.json").toFile(), ContestPlugin.class);
             assertFalse(QsoPartySide.countyListDefinitive(p), f + " is not a list we can check");
         }

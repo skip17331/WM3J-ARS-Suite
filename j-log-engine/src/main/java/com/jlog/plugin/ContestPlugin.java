@@ -208,6 +208,8 @@ public class ContestPlugin {
                                                          //     as the STATE mult (ORDES → "OR");
                                                          //     a non-area entrant still counts the
                                                          //     whole code as a distinct county.
+        private boolean areaPrefixPerMode;              // the area-prefix STATE mult above counts once per mode
+                                                        //   too (ACQP: an Atlantic province, per band AND mode)
         private List<String> inStateGrids;              // 4-char grids inside the state (FT8)
         private Map<String,Integer> pointsByModeClass;  // PH|CW|RY|DG → QSO points
         private Map<String,Integer> pointsByModeClassOut;// same, but for an OUT-of-state
@@ -361,6 +363,8 @@ public class ContestPlugin {
         public void setCountyCodeLen(int v){ this.countyCodeLen = v; }
         public boolean isCountyByExclusion(){ return countyByExclusion; }
         public void setCountyByExclusion(boolean v){ this.countyByExclusion = v; }
+        public boolean isAreaPrefixPerMode(){ return areaPrefixPerMode; }
+        public void setAreaPrefixPerMode(boolean v){ this.areaPrefixPerMode = v; }
         public int getAreaStatePrefixLen(){ return areaStatePrefixLen; }
         public void setAreaStatePrefixLen(int v){ this.areaStatePrefixLen = v; }
         public Map<String,Integer> getQsoPointCalls(){ return qsoPointCalls; }
