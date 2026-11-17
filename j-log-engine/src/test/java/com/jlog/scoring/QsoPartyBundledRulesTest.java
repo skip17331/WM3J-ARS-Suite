@@ -97,6 +97,19 @@ class QsoPartyBundledRulesTest {
         assertEquals(s.points() * s.mults() + 100 + 1, s.score(), "+100 e-log, +1 time window");
     }
 
+    @Test void missouriCountiesComeFromTheOfficialList() {
+        ContestPlugin mo = plugin("MO_QSO_PARTY");
+        java.util.List<String> list = com.jlog.plugin.MultiplierLists.load(mo.getMultiplierList());
+        assertEquals(115, list.size(), "114 counties + St. Louis City (2026 rules, Table 1)");
+        assertTrue(list.containsAll(List.of("SLC", "STL", "STG", "CPG", "NMD", "WRT")));
+        StationContext out = StationContext.of("W1XX", "FN31", "MA", "LOW", "FIXED");
+        QsoRecord real = q(mo, out, "K0AA", "20m", "CW", "JAC", "MA");
+        QsoRecord fake = q(mo, out, "K0AB", "20m", "CW", "XYZ", "MA");       // three letters, but not a Missouri county
+        assertTrue(real.getPoints() > 0, "an out-of-state entrant scores a Missouri county");
+        assertEquals(0, fake.getPoints(), "any three-letter code used to count; now only the official ones do");
+        assertEquals(1, ContestScorer.score(mo, List.of(real, fake), out, mo.computeMultiplierDbColumn(), NO_BANDS, 0).mults());
+    }
+
     @Test void ontarioRoverReworksFromANewArea() {
         ContestPlugin on = plugin("ON_QSO_PARTY");
         assertTrue(cfg("ON_QSO_PARTY").isOwnCountyDupe());
