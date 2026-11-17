@@ -65,8 +65,9 @@ final class SentExchange {
         if (plugin != null && QsoPartySide.isParty(plugin) && isStateField(fd.getId())) return QsoPartySide.sentQth(plugin);   // per party
         if (fd.getId().equals("rst_sent")) return isPhone(mode) ? "59" : "599";
         String v = HubConfig.get(key(fd.getId()), "").trim().toUpperCase();
-        if (fd.getId().equals("grid_sent") && v.length() > 4 && plugin != null
-                && plugin.getContestId() != null && plugin.getContestId().toUpperCase().contains("VHF")) v = v.substring(0, 4);   // VHF contests: 4-character grid
+        // every contest grid exchange is the 4-character square (ARRL VHF, ARRL International Digital, CQ WW Digital). Only IDs
+        // containing "VHF" used to be cut, so a 6-character station grid went out whole in the two digital contests
+        if (fd.getId().equals("grid_sent") && v.length() > 4) v = v.substring(0, 4);
         return v;
     }
 
