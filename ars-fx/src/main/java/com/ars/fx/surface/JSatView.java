@@ -314,13 +314,18 @@ public final class JSatView {
         repaint.run();
         }
 
-        // AZ / EL are in the top bar and the up/downlink, Doppler shift and mode in the Radio · Doppler drawer: not repeated here
+        // AZ / EL are in the top bar: not repeated here. The radio tiles stay, since the Radio · Doppler drawer is hidden while the rail is collapsed
         timerAos = f.aosEpoch(); timerLos = f.losEpoch();
+        long dopHz = f.downlinkCorrHz() - f.downlinkHz();
         String[][] cells = {
                 {"LOS IN", losTimerText(), "", ""},
                 {"ALTITUDE", com.ars.fx.data.Units.distNum(f.altKm()), com.ars.fx.data.Units.distUnit(), ""},
                 {"RANGE", com.ars.fx.data.Units.distNum(f.rangeKm()), com.ars.fx.data.Units.distUnit(), ""},
-                {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""}};
+                {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""},
+                {"DOPPLER", String.format("%+.1f", dopHz / 1000.0), "kHz", dopHz < 0 ? "y" : ""},
+                {"UPLINK", SatService.mhz4(f.uplinkCorrHz()), f.uplinkCorrHz() > 0 ? "MHz" : "", ""},
+                {"DOWNLINK", SatService.mhz4(f.downlinkCorrHz()), f.downlinkCorrHz() > 0 ? "MHz" : "", ""},
+                {"MODE", f.mode() == null || f.mode().isBlank() ? "—" : f.mode(), "", ""}};
         // wraps to a second line when the plot column is too narrow for every tile
         javafx.scene.layout.FlowPane tel = new javafx.scene.layout.FlowPane(12, 12); tel.setAlignment(Pos.CENTER); tel.setPadding(new Insets(0, 0, 22, 0));
         List<Label> keys = new ArrayList<>(), vals = new ArrayList<>(), units = new ArrayList<>();
