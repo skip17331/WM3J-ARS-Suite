@@ -67,6 +67,7 @@ public class Launcher extends Application {
         stage.show();
         AppIcons.closeSplash();                         // the native splash from the jar manifest, once a window is up
         com.ars.fx.shell.UpdateBanner.install(host, getHostServices());
+        com.ars.fx.surface.SpotAlertCard.install(host);   // watch-list / needed-spot alerts; off until switched on in J-Hub ▸ Setup ▸ DX cluster
         com.ars.fx.data.CtyUpdater.start();             // weekly refresh of the country files; off via J-Hub ▸ Station ▸ Updates
         com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates
         com.ars.fx.data.N1mmBroadcast.init();
@@ -142,6 +143,7 @@ public class Launcher extends Application {
             fade.setToValue(1); fade.play();
         }
         com.ars.fx.shell.UpdateBanner.attach(host);      // keep a pending "update available" card across navigation
+        com.ars.fx.surface.SpotAlertCard.attach(host);
         Themes.applyTo(host, id);          // effective scheme for this surface (module override or global)
     }
 
