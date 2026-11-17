@@ -43,8 +43,7 @@ public final class LogImport {
                     + " " + time.substring(0, 2) + ":" + time.substring(2, 4) + ":" + (time.length() >= 6 ? time.substring(4, 6) : "00");
             String freq = r.get("FREQ");
             String band = r.get("BAND") != null ? r.get("BAND").toLowerCase(Locale.ROOT) : Bands.ofMhz(freq);
-            String sub = r.get("SUBMODE"), mode = (sub != null && !sub.isBlank() && ("USB".equalsIgnoreCase(sub) || "LSB".equalsIgnoreCase(sub)
-                    || r.get("MODE") == null || "PSK".equalsIgnoreCase(r.get("MODE")))) ? sub : r.get("MODE");
+            String mode = modeOf(r.get("MODE"), r.get("SUBMODE"));
             JLogDb.Refs refs = refsOf(r);
             if (!have.add(key(call, dt, band, mode))) {
                 JLogDb.mergeRefs(call, dt, band, mode, refs);   // a LoTW / eQSL download confirms what is already logged
@@ -58,6 +57,18 @@ public final class LogImport {
         }
         try { CallHistory.learnFromAdif(records); } catch (RuntimeException ignored) { /* the call history is a convenience */ }
         return new Result(true, added, dupes, bad, null);
+    }
+
+    /**
+     * The mode to log for an ADIF MODE / SUBMODE pair: the submode when the mode is only its family (SSB → USB / LSB, PSK → PSK31,
+     * MFSK → FT4 / JS8 / Q65 ..., DOMINO → DOMINOEX) or missing, else the mode. WSJT-X writes FT4 as MODE=MFSK SUBMODE=FT4; it used to
+     * come in as "MFSK".
+     */
+    static String modeOf(String mode, String sub) {
+        if (sub == null || sub.isBlank()) return mode;
+        if (mode == null || mode.isBlank()) return sub.trim();
+        String m = mode.trim().toUpperCase(Locale.ROOT);
+        return m.equals("SSB") || m.equals("PSK") || m.equals("MFSK") || m.equals("DOMINO") ? sub.trim() : mode;
     }
 
     /** The award-tracking fields of one ADIF record: IOTA / SOTA / POTA references, zones and confirmation flags. */
