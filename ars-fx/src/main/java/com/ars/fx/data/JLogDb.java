@@ -125,6 +125,61 @@ public final class JLogDb {
         } catch (Throwable ignored) { }
     }
 
+    /** What {@link #repairFrequencies()} found and changed. */
+    public record FreqRepair(int frequencies, int bands) {}
+
+    /**
+     * One-time clean-up of QSOs saved before frequencies were normalised: a frequency typed in kHz ("14025"), with a decimal comma
+     * ("14,025") or in spot style ("14.025.0") was stored as typed and read as MHz, so the QSO got no band. Each such frequency
+     * is rewritten in MHz ({@link Bands#normaliseMhz}), and an empty band is filled in from the frequency. A frequency already in
+     * MHz is never rewritten ("14.0740" stays as it is), and nothing else in a QSO changes. The first time anything needs
+     * changing, a copy of the logbook is kept next to it ({@code j-log.db.bak-before-freq-repair}). Safe to run at every start:
+     * a repaired log has nothing left to change.
+     */
+    public static FreqRepair repairFrequencies() {
+        record Fix(long id, String freq, String band) {}
+        List<Fix> fixes = new ArrayList<>();
+        int freqs = 0, bands = 0;
+        try (Connection c = open()) {
+            try (Statement st = c.createStatement(); ResultSet rs = st.executeQuery("SELECT id, frequency, band FROM qso")) {
+                while (rs.next()) {
+                    String f = rs.getString(2), b = rs.getString(3);
+                    if (f == null || f.isBlank()) continue;
+                    String n = Bands.normaliseMhz(f);
+                    boolean newFreq = !sameNumber(f, n) && Bands.ofMhz(n) != null;
+                    String useFreq = newFreq ? n : f;
+                    String newBand = (b == null || b.isBlank()) ? Bands.ofMhz(useFreq) : null;
+                    if (!newFreq && newBand == null) continue;
+                    fixes.add(new Fix(rs.getLong(1), useFreq, newBand == null ? b : newBand));
+                    if (newFreq) freqs++;
+                    if (newBand != null) bands++;
+                }
+            }
+            if (fixes.isEmpty()) return new FreqRepair(0, 0);
+            try (Statement st = c.createStatement()) { backupOnce(st, ".bak-before-freq-repair"); }
+            try (PreparedStatement ps = c.prepareStatement("UPDATE qso SET frequency=?, band=? WHERE id=?")) {
+                for (Fix x : fixes) { ps.setString(1, x.freq()); ps.setString(2, x.band()); ps.setLong(3, x.id()); ps.addBatch(); }
+                ps.executeBatch();
+            }
+        } catch (Throwable t) { return new FreqRepair(0, 0); }
+        return new FreqRepair(freqs, bands);
+    }
+
+    /** True when both read as the same plain number ("14.0740" and "14.074"); false when either is not one ("14,025"). */
+    private static boolean sameNumber(String a, String b) {
+        try { return Double.parseDouble(a.trim()) == Double.parseDouble(b.trim()); } catch (RuntimeException e) { return false; }
+    }
+
+    /** A copy of the logbook next to it with this suffix, unless one exists. Failure to copy does not stop the caller. */
+    private static void backupOnce(Statement st, String suffix) {
+        try {
+            Path db = dbPath(), bak = db.resolveSibling(db.getFileName() + suffix);
+            if (Files.exists(bak)) return;
+            st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+            Files.copy(db, bak);
+        } catch (Throwable ignored) { }
+    }
+
     /** A QSO not yet uploaded to a service, with its row id. */
     public record Pending(long id, QsoExport qso) {}
 
