@@ -138,7 +138,14 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$TAG" -m "Nightly release $TAG"
-          git push origin "$TAG"
+          # GitHub has rejected this push ("remote rejected ... (failed)") right after the bump commit was pushed in the
+          # same run (twice on 2026-11-17; a run that only tags went through). Try again after a pause before giving up.
+          for i in 1 2 3 4 5; do
+            if git push origin "$TAG"; then break; fi
+            if [ "$i" = 5 ]; then echo "::error::could not push $TAG after 5 tries"; exit 1; fi
+            echo "tag push refused (try $i); retrying in $((i * 15)) s"
+            sleep $((i * 15))
+          done
           # Tags pushed with GITHUB_TOKEN don't fire release.yml's push trigger, so start it explicitly.
           gh workflow run release.yml -f tag="$TAG"
           echo "Started release.yml for $TAG" >> "$GITHUB_STEP_SUMMARY"

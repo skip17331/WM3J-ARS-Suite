@@ -160,6 +160,25 @@ class QsoPartyBundledRulesTest {
         assertEquals(0, q(ok, out, "K5AB", "20m", "CW", "XYZ", "MA").getPoints(), "any three letters used to count");
     }
 
+    /** MNQP 2027: CW 3 / Phone 2; mults once per mode; an MN station's mults are states incl. MN (no MN counties), DC, VE, 1 DX. */
+    @Test void minnesota2027() {
+        ContestPlugin mn = plugin("MN_QSO_PARTY");
+        StationContext in = StationContext.of("W0XX", "EN34", "HEN", "LOW", "FIXED");
+        List<QsoRecord> l = List.of(
+                q(mn, in, "K0AA", "20m", "CW", "DAK", "HEN"),     // an MN county: the MN state multiplier, not a county one
+                q(mn, in, "K0AB", "20m", "CW", "RAM", "HEN"),     // another MN county: MN again, no new multiplier
+                q(mn, in, "W1AA", "20m", "CW", "MA", "HEN"),
+                q(mn, in, "W1AB", "20m", "SSB", "MA", "HEN"));    // MA on SSB: a new multiplier (per mode)
+        assertEquals(3, l.get(0).getPoints(), "CW is 3 points in 2027");
+        assertEquals(2, l.get(3).getPoints(), "Phone 2");
+        ContestScore s = ContestScorer.score(mn, l, in, mn.computeMultiplierDbColumn(), NO_BANDS, 0);
+        assertEquals(3, s.mults(), "CW: MN, MA; SSB: MA");
+        assertEquals(11 * 3, s.score());
+        StationContext out = StationContext.of("W1XX", "FN42", "MA", "LOW", "FIXED");
+        List<QsoRecord> o = List.of(q(mn, out, "K0AA", "20m", "CW", "DAK", "MA"), q(mn, out, "K0AA", "40m", "SSB", "DAK", "MA"));
+        assertEquals(2, ContestScorer.score(mn, o, out, mn.computeMultiplierDbColumn(), NO_BANDS, 0).mults(), "outside MN: DAK on CW and on SSB");
+    }
+
     @Test void ontarioRoverReworksFromANewArea() {
         ContestPlugin on = plugin("ON_QSO_PARTY");
         assertTrue(cfg("ON_QSO_PARTY").isOwnCountyDupe());
