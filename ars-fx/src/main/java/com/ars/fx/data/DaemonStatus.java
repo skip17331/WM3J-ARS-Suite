@@ -27,6 +27,7 @@ public final class DaemonStatus {
             d.addProperty("running", DaemonManager.running(k));
             d.addProperty("device", DaemonWatchdog.deviceState(k));
             d.addProperty("last", DaemonWatchdog.last(k));
+            d.addProperty("lastAt", DaemonWatchdog.lastAt(k));
             o.add(k, d);
         }
         return o;
@@ -40,9 +41,29 @@ public final class DaemonStatus {
         if (RemoteLink.isActive()) {
             JsonObject all = remote, d = all != null && all.has(kind) && all.get(kind).isJsonObject() ? all.getAsJsonObject(kind) : null;
             if (d == null) return new Line("off", "waiting for the hub…");
-            return describe(bool(d, "wanted"), bool(d, "running"), str(d, "device"), str(d, "last"));
+            return describe(bool(d, "wanted"), bool(d, "running"), str(d, "device"), str(d, "last"), ago(num(d, "lastAt")));
         }
-        return describe(DaemonManager.wantedNow(kind), DaemonManager.running(kind), DaemonWatchdog.deviceState(kind), DaemonWatchdog.last(kind));
+        return describe(DaemonManager.wantedNow(kind), DaemonManager.running(kind), DaemonWatchdog.deviceState(kind),
+                DaemonWatchdog.last(kind), ago(DaemonWatchdog.lastAt(kind)));
+    }
+
+    /** Milliseconds since {@code atMs}, or -1 when it is unknown (0). */
+    private static long ago(long atMs) { return atMs <= 0 ? -1 : Math.max(0, System.currentTimeMillis() - atMs); }
+
+    /** "just now", "4 min ago", "2 h 5 min ago", "3 d ago"; "" when unknown. Pure, so it can be tested. */
+    public static String agoText(long agoMs) {
+        if (agoMs < 0) return "";
+        long min = agoMs / 60_000;
+        if (min < 1) return "just now";
+        if (min < 60) return min + " min ago";
+        long h = min / 60;
+        if (h < 24) return h + " h" + (min % 60 == 0 ? "" : " " + (min % 60) + " min") + " ago";
+        return (h / 24) + " d ago";
+    }
+
+    /** As {@link #describe(boolean, boolean, String, String, long)} with no time for the last action. */
+    public static Line describe(boolean wanted, boolean running, String device, String last) {
+        return describe(wanted, running, device, last, -1);
     }
 
     /**
@@ -52,10 +73,13 @@ public final class DaemonStatus {
      * @param running the daemon J-Hub started is running
      * @param device  "ok", "gone", "noaccess" or "" (the serial device the watchdog last saw)
      * @param last    the watchdog's last action for it, or ""
+     * @param agoMs   how long ago that action was, or -1 when unknown
      */
-    public static Line describe(boolean wanted, boolean running, String device, String last) {
+    public static Line describe(boolean wanted, boolean running, String device, String last, long agoMs) {
         if (!wanted) return new Line("off", "Not started by J-Hub (the switch is off)");
-        String tail = last == null || last.isBlank() ? "" : "  ·  last: " + last.replaceFirst("^\\w+ daemon: ", "");
+        String when = agoText(agoMs);
+        String tail = last == null || last.isBlank() ? ""
+                : "  ·  last" + (when.isEmpty() ? "" : " (" + when + ")") + ": " + last.replaceFirst("^\\w+ daemon: ", "");
         if ("noaccess".equals(device)) return new Line("warn", "✖ No permission to open the serial port. Add your user to the dialout (or uucp) group, then log out and back in" + tail);
         if (running) return new Line("ok", "● Running" + tail);
         if ("gone".equals(device)) return new Line("warn", "○ Waiting for the device to come back; it starts by itself" + tail);
@@ -63,5 +87,6 @@ public final class DaemonStatus {
     }
 
     private static boolean bool(JsonObject o, String k) { return o.has(k) && !o.get(k).isJsonNull() && o.get(k).getAsBoolean(); }
+    private static long num(JsonObject o, String k) { try { return o.has(k) && !o.get(k).isJsonNull() ? o.get(k).getAsLong() : 0; } catch (Exception e) { return 0; } }
     private static String str(JsonObject o, String k) { return o.has(k) && !o.get(k).isJsonNull() ? o.get(k).getAsString() : ""; }
 }
