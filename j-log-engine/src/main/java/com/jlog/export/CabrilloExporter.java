@@ -272,7 +272,19 @@ public class CabrilloExporter {
             case "2m"   -> "144";
             case "1.25m" -> "222";
             case "70cm" -> "432";
+            case "4m"   -> "70";
             case "23cm" -> "1.2G";
+            case "33cm" -> "902";       // these five used to go out as the band name ("33cm"), which log checkers reject
+            case "13cm" -> "2.3G";
+            case "9cm"  -> "3.4G";
+            case "6cm"  -> "5.7G";
+            case "3cm"  -> "10G";
+            case "1.25cm" -> "24G";
+            case "6mm"  -> "47G";
+            case "4mm"  -> "76G";
+            case "2.5mm" -> "119G";
+            case "2mm"  -> "142G";
+            case "1mm"  -> "241G";
             default     -> band;
         };
     }
