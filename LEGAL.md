@@ -52,7 +52,11 @@ the features you use, and to the services you set up:
   with the logins you enter.
 
 Your log, settings and caches stay on your computer in your home folder (`~/.j-log`, `~/.j-hub` and similar). Logins you
-enter are stored there too, so protect that folder as you would any file holding passwords.
+enter are stored there too, **as plain text, not encrypted**: upload logins in `~/.j-log/upload.json`, lookup logins in
+`~/.j-log/lookup.json`, and the contest network key in `~/.j-hub/config.json`. On Linux and macOS the suite makes those files
+readable by your account only; on Windows your profile folder already limits them to you. Anyone who can sign in as you, or
+who gets a copy of the files (a backup, a shared folder), can read them, so protect that folder as you would any file holding
+passwords.
 
 ## Add, change or remove a source
 

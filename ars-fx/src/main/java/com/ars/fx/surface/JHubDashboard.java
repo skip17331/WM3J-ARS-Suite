@@ -467,14 +467,25 @@ public final class JHubDashboard {
         boolean[] mapOn = {"map".equals(com.ars.fx.data.HubConfig.get("data.clusterView", "list"))};
         Label viewBtn = lbl(mapOn[0] ? "List" : "Map", "jhub-clu-flt"); viewBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(viewBtn, "Switch between the spot list and the band map");
-        flt.getChildren().addAll(fsp, viewBtn, lbl("+ Spot", "jhub-clu-flt"));
+        Label spotBtn = lbl("+ Spot", "jhub-clu-flt"); spotBtn.setStyle("-fx-cursor:hand;");
+        flt.getChildren().addAll(fsp, viewBtn, spotBtn);
         flt.setAlignment(Pos.CENTER_LEFT); flt.setPadding(new Insets(12, 16, 12, 16));
+        SpotEntry spot = spotEntry();                                  // opens under the filter line; "+ Spot" shows and hides it
+        Region spotRow = spot.view();
+        spotRow.setVisible(false); spotRow.setManaged(false);
+        com.ars.fx.shell.Tips.tip(spotBtn, "Send a spot to the cluster");
+        spotBtn.setOnMouseClicked(e -> {
+            boolean show = !spotRow.isVisible();
+            spotRow.setVisible(show); spotRow.setManaged(show);
+            if (show) spot.onOpen().run();
+        });
+        VBox fltBox = new VBox(flt, spotRow);
 
         VBox rows = new VBox();
         Label empty = lbl(com.ars.fx.shell.FeedUi.emptyList(cc, "cluster")); empty.setStyle("-fx-font-size:12px;-fx-text-fill:-ars-t4;-fx-padding:18 16 18 16;"); empty.setWrapText(true);
         rows.getChildren().add(empty);
         ScrollPane rsp = new ScrollPane(rows); rsp.setFitToWidth(true); rsp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); rsp.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(rsp, Priority.ALWAYS);
-        VBox card = new VBox(head, flt, mapOn[0] ? map : rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
+        VBox card = new VBox(head, fltBox, mapOn[0] ? map : rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
         if (compact) { card.setMinHeight(200); card.setPrefHeight(RAIL_CLUSTER_H); }   // RailSplit sizes it: whatever the panels under it leave
 
         // ---- controls drawer ----
@@ -559,7 +570,7 @@ public final class JHubDashboard {
             mapOn[0] = !mapOn[0];
             com.ars.fx.data.HubConfig.set("data.clusterView", mapOn[0] ? "map" : "list");
             viewBtn.setText(mapOn[0] ? "List" : "Map");
-            card.getChildren().setAll(head, flt, mapOn[0] ? map : rsp);
+            card.getChildren().setAll(head, fltBox, mapOn[0] ? map : rsp);
             render.run();
         });
         cc.setListener(c -> render.run());
@@ -569,6 +580,39 @@ public final class JHubDashboard {
         VBox col = new VBox(11, card, controls);
         HBox.setHgrow(col, Priority.ALWAYS); col.setMinWidth(compact ? 0 : 360);
         return col;
+    }
+    /** The "+ Spot" form and what to run each time it is opened. */
+    private record SpotEntry(Region view, Runnable onOpen) {}
+    /**
+     * The cluster card's "+ Spot" form: call, frequency in MHz (taken from the rig each time the form opens, when the rig is connected and
+     * the field is empty) and a comment, sent as {@code DX <call> <kHz> <comment>} through {@link JLogCockpit#postSpot}, the same path as
+     * Log + Spot. The fields wrap, so it also fits the 322 px PANELS column.
+     */
+    private static SpotEntry spotEntry() {
+        TextField call = new TextField(); call.setPromptText("Call"); call.getStyleClass().add("jhub-mini-field"); call.setPrefColumnCount(8);
+        TextField freq = new TextField(); freq.setPromptText("MHz");  freq.getStyleClass().add("jhub-mini-field"); freq.setPrefColumnCount(7);
+        TextField cmt  = new TextField(); cmt.setPromptText("Comment (mode, report)"); cmt.getStyleClass().add("jhub-mini-field"); cmt.setPrefColumnCount(14);
+        Label send = lbl("Send", "jhub-clearbtn"); send.setStyle("-fx-cursor:hand;");
+        Label status = lbl("", "jhub-conn"); status.setWrapText(true);
+        Runnable go = () -> {
+            if (call.getText() == null || call.getText().isBlank()) { status.setText("✗ type the call to spot"); return; }
+            String r = JLogCockpit.postSpot(call.getText(), freq.getText() == null ? "" : freq.getText(), "", cmt.getText());
+            status.setText(r);
+            if (r.startsWith("✓")) { call.clear(); cmt.clear(); }
+        };
+        send.setOnMouseClicked(e -> go.run());
+        call.setOnAction(e -> go.run()); freq.setOnAction(e -> go.run()); cmt.setOnAction(e -> go.run());
+        javafx.scene.layout.FlowPane fields = new javafx.scene.layout.FlowPane(8, 8, call, freq, cmt, send);
+        fields.setAlignment(Pos.CENTER_LEFT);
+        VBox box = new VBox(6, fields, status); box.setPadding(new Insets(0, 16, 12, 16));
+        Runnable onOpen = () -> {
+            status.setText("");
+            com.ars.fx.data.RigClient.State s = com.ars.fx.data.RigClient.getInstance().last();
+            if ((freq.getText() == null || freq.getText().isBlank()) && s != null && s.connected() && s.freqHz() > 0)
+                freq.setText(String.format(java.util.Locale.ROOT, "%.4f", s.freqHz() / 1e6));
+            call.requestFocus();
+        };
+        return new SpotEntry(box, onOpen);
     }
     /** A spot as one line for the narrow PANELS column: frequency, call, any NEW tag, then the mode at the right. The call is never cut short. */
     private static Region cluRowCompact(String[] s) {

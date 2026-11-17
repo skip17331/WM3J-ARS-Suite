@@ -89,6 +89,7 @@ public final class LookupConfig {
             Path p = file();
             Files.createDirectories(p.getParent());
             Files.writeString(p, root.toString());
+            PrivateFiles.restrict(p);                     // holds the lookup passwords
         } catch (Exception ignored) { /* best-effort */ }
     }
 
