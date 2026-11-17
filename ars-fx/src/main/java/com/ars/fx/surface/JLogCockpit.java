@@ -343,6 +343,8 @@ public final class JLogCockpit {
         String[] spotNote = {""};
         Runnable saveNow = () -> {
             if (call.getText() == null || call.getText().isBlank()) { call.requestFocus(); return; }
+            String nf = com.ars.fx.data.Bands.normaliseMhz(freq.getText());   // "14025" (kHz) or "14,025" -> "14.025"
+            if (nf != null && !nf.equals(freq.getText())) freq.setText(nf);
             int p = 0; try { p = Integer.parseInt(pwr.getText().trim()); } catch (Exception ignored) {}
             String bandVal = (band.getText() == null || band.getText().isBlank()) ? JLogDb.bandFor(freq.getText()) : band.getText();
             String dt = manualTime[0] ? composeDt(dateF.getText(), timeF.getText()) : null;

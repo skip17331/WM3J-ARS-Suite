@@ -226,6 +226,8 @@ public final class JLogDb {
                                  String comment, String state, String county, int powerW, Refs r) {
         if (call == null || call.isBlank()) return false;
         if (r == null) r = Refs.NONE;
+        freq = Bands.normaliseMhz(freq);                       // kHz or a decimal comma as typed -> MHz, as the log and ADIF keep it
+        if ((band == null || band.isBlank()) && freq != null) band = Bands.ofMhz(freq);
         String sql = "UPDATE qso SET callsign=?,datetime_utc=?,band=?,mode=?,frequency=?,power_watts=?,"
                 + "rst_sent=?,rst_received=?,country=?,operator_name=?,state=?,county=?,notes=?,sig_info=?,"
                 + "iota=?,sota_ref=?,pota_ref=?,cqz=?,ituz=?,qsl_received=?,lotw_rcvd=?,eqsl_rcvd=? WHERE id=?";
@@ -364,6 +366,8 @@ public final class JLogDb {
                                    String grid, String comment, String state, String county, int powerW, Refs r) {
         if (call == null || call.isBlank()) return false;
         if (r == null) r = Refs.NONE;
+        freq = Bands.normaliseMhz(freq);                       // kHz or a decimal comma as typed -> MHz, as the log and ADIF keep it
+        if ((band == null || band.isBlank()) && freq != null) band = Bands.ofMhz(freq);
         String sql = "INSERT INTO qso(callsign,datetime_utc,band,mode,frequency,power_watts,"
                 + "rst_sent,rst_received,country,operator_name,state,county,notes,"
                 + "qsl_sent,qsl_received,sig,sig_info,iota,sota_ref,pota_ref,cqz,ituz,lotw_rcvd,eqsl_rcvd) "
