@@ -89,6 +89,14 @@
     -ars-accent: #2fd0ff; -ars-accent-dim: rgba(47,208,255,0.13); -ars-accent-line: rgba(47,208,255,0.45); -ars-accent-text: #031018;
     -ars-ok: #4be38c; -ars-warn: #ffc857; -ars-err: #ff5d6c; -ars-log: #ffb84a;
 }
+/* "Instrument": the matte black, white-lettered palette the Instrument panel look was designed on */
+.ars-instrument {
+    -fx-base: #1c1f23; -fx-background: #0b0c0e; -fx-control-inner-background: #16181b;
+    -ars-bg: #0b0c0e; -ars-surface-1: #16181b; -ars-surface-2: #1c1f23; -ars-surface-3: #262a30; -ars-surface-4: #30343a;
+    -ars-border: #30343a; -ars-border-2: #4a4f57; -ars-border-glow: #5c626b;
+    -ars-t1: #ffffff; -ars-t2: #eceef1; -ars-t3: #c3c8cf; -ars-t4: #8e949d;
+    -ars-log: #ffb038;
+}
 
 .ars-ocean {
     -fx-base: #102036; -fx-background: #081019; -fx-control-inner-background: #0e1c2e;

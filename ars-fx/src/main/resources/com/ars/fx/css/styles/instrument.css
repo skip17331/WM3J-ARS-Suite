@@ -1,7 +1,8 @@
 /* ============================================================================
    Dashboard style pack: INSTRUMENT PANEL.
    Attached to the J-Hub dashboard's root node only (see UiStyle), and every rule is scoped under .ins, so
-   nothing here reaches another module. Colours come from the -ars-* tokens, so each colour scheme still works.
+   nothing here reaches another module. Colours come from the active colour scheme (the sun button in the dock);
+   the matte black palette the look was designed on is the "Instrument" scheme in ars.css.
    To drop it: Setup > Appearance > Dashboard look > Classic (or delete this file and its line in UiStyle).
 
    Language: panels are faceplates (a lit top edge fading to a darker foot, a dark bezel line round them),
@@ -9,36 +10,26 @@
    and the readouts (clock, spot frequencies) glow like phosphor / amber displays.
    ============================================================================ */
 
-/* ---- the panel itself: matte black, white block lettering, whatever the colour scheme ---------- */
+/* ---- the panel itself: block lettering on the scheme's page colour ---------- */
 .ins {
-    -ars-bg: #0b0c0e;
-    -ars-surface-1: #16181b;
-    -ars-surface-2: #1c1f23;
-    -ars-surface-3: #262a30;
-    -ars-border: #30343a;
-    -ars-border-2: #4a4f57;
-    -ars-t1: #ffffff;
-    -ars-t2: #eceef1;
-    -ars-t3: #c3c8cf;
-    -ars-t4: #8e949d;
     -fx-font-family: "Bahnschrift", "Segoe UI", "Roboto Condensed", sans-serif;
-    -fx-background-color: #0b0c0e;
+    -fx-background-color: -ars-bg;
 }
-.ins .dash-center, .ins .dash-scroll, .ins .dash-scroll > .viewport { -fx-background-color: #0b0c0e; }
+.ins .dash-center, .ins .dash-scroll, .ins .dash-scroll > .viewport { -fx-background-color: -ars-bg; }
 .ins .jhub-card-title,
 .ins .hero-name, .ins .hero-call,
-.ins .jl-flabel, .ins .hero-k, .ins .stat-k, .ins .jhub-nav-sec { -fx-font-weight: bold; -fx-text-fill: #ffffff; }
-.ins .jl-emeta, .ins .hero-sub { -fx-text-fill: #c3c8cf; }
+.ins .jl-flabel, .ins .hero-k, .ins .stat-k, .ins .jhub-nav-sec { -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
+.ins .jl-emeta, .ins .hero-sub { -fx-text-fill: -ars-t2; }
 
-/* the banner across the top is a lit instrument cluster: a dark bezelled strip with amber and green readouts */
+/* the banner across the top is a lit instrument cluster: a bezelled strip with amber and green readouts */
 .ins .hero, .ins .hero-bar {
-    -fx-background-color: #000000, linear-gradient(to bottom, #2a2d32, #131518 55%, #0c0d0f);
+    -fx-background-color: derive(-ars-bg, -45%), linear-gradient(to bottom, derive(-ars-surface-3, 6%), -ars-surface-1 55%, -ars-bg);
     -fx-background-insets: 0, 1;
     -fx-background-radius: 12, 11;
     -fx-border-color: transparent;
 }
 .ins .hero-call, .ins .hero-val, .ins .hero-rig {
-    -fx-text-fill: #ffb038;                                          /* the rig frequency and callsign: amber segment display */
+    -fx-text-fill: -ars-log;                                         /* the rig frequency and callsign: amber segment display */
     -fx-effect: dropshadow(gaussian, rgba(255,176,56,0.5), 8, 0.25, 0, 0);
 }
 .ins .hero-clk { -fx-text-fill: -ars-ok; -fx-effect: dropshadow(gaussian, rgba(103,210,131,0.6), 9, 0.3, 0, 0); }
@@ -49,13 +40,13 @@
     -fx-border-color: transparent transparent rgba(0,0,0,0.65) transparent;
 }
 .ins .jhub-bar-dot  { -fx-effect: dropshadow(gaussian, -ars-accent, 9, 0.45, 0, 0); }
-.ins .jhub-bar-nm   { -fx-text-fill: #ffffff; -fx-font-weight: bold; }
-.ins .jhub-bar-sub  { -fx-text-fill: #c3c8cf; }
+.ins .jhub-bar-nm   { -fx-text-fill: -ars-t1; -fx-font-weight: bold; }
+.ins .jhub-bar-sub  { -fx-text-fill: -ars-t2; }
 .ins .jhub-uptime   {                                    /* uptime: a small green LCD window set into the strip */
     -fx-text-fill: -ars-ok;
-    -fx-background-color: #000000;
+    -fx-background-color: derive(-ars-bg, -45%);
     -fx-background-radius: 4;
-    -fx-border-color: #4a4f57;
+    -fx-border-color: -ars-border-2;
     -fx-border-radius: 4;
     -fx-padding: 2 10 2 10;
     -fx-effect: innershadow(gaussian, rgba(0,0,0,0.9), 4, 0.3, 0, 1);
