@@ -18,6 +18,7 @@ public class PassPredictor {
     private static final double MIN_ELEVATION  = 0.0;    // horizon (degrees)
     private static final int    MAX_PASSES     = 10;
     private static final double LOOK_AHEAD_SEC = 86400.0; // 24 hours
+    private static final double MAX_BACKTRACK_SEC = 3600.0; // how far back to look for the AOS of a pass in progress (GEO / HEO sats stay up)
 
     private final Sgp4Propagator propagator = new Sgp4Propagator();
 
@@ -36,7 +37,17 @@ public class PassPredictor {
         propagator.init(tle);
         List<SatellitePass> passes = new ArrayList<>();
 
+        // A pass already in progress at startTime: back up to just before it rose, so it is found whole
+        // (its real AOS and its real peak), not as a pass that begins now.
         double tSec    = 0.0;
+        double[] first = getState(startTime, obsLat, obsLon, obsAlt);
+        if (first != null && first[1] > MIN_ELEVATION) {
+            while (tSec > -MAX_BACKTRACK_SEC) {
+                double[] s = getState(startTime.plusSeconds((long) (tSec - STEP_SEC)), obsLat, obsLon, obsAlt);
+                tSec -= STEP_SEC;
+                if (s == null || s[1] <= MIN_ELEVATION) break;
+            }
+        }
         double prevEl  = -90.0;
         boolean inPass = false;
 
@@ -85,7 +96,9 @@ public class PassPredictor {
                     double[] losState = getState(losTime, obsLat, obsLon, obsAlt);
                     double losAz = losState != null ? losState[0] : az;
 
-                    if (maxEl >= 5.0) {  // only include passes ≥ 5° elevation
+                    // only passes ≥ 5° elevation, except one already in progress: the satellite is up, so that
+                    // pass is the one to show (dropping it made the next orbit's LOS read as "time left")
+                    if (maxEl >= 5.0 || !aosTime.isAfter(startTime)) {
                         passes.add(new SatellitePass(
                             tle.name, tle.noradId,
                             aosTime, losTime, maxElTime,
