@@ -27,10 +27,12 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
+  "multiplierList": "/com/jlog/counties/ky.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) [× Power Mult — off-log] + K4KCG bonus + e-log bonus. Pts: Phone 1, CW 2. KY entrant mult = each KY county (120, from KY stations) + each US state incl DC + each Canadian province; DX = QSO pts only (no mult). Non-KY entrant mult = KY counties. KY works everyone; non-KY scores KY contacts only (non-KY↔non-KY no credit). KY mobiles/expeditions county-change = new QSO + new county; KY fixed picks one county on a line. Bonus station K4KCG = +100 per QSO, once per band & mode (post-multiply). Claimed/running — the KYQP committee re-adjudicates. Applied from the entry's Cabrillo CATEGORY-POWER: Power Multiplier ×3 QRP (≤5W) / ×2 LOW (≤100W) / ×1 HIGH; the +100 electronic-submission bonus. A mobile/expedition entrant re-works everyone from each new county. (Checked against the 2027 draft rules only.)",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) [× Power Mult — off-log] + K4KCG bonus + e-log bonus. Pts: Phone 1, CW 2. KY entrant mult = each KY county (120, from KY stations) + each US state incl DC + each Canadian province; DX = QSO pts only (no mult). Non-KY entrant mult = KY counties. KY works everyone; non-KY scores KY contacts only (non-KY↔non-KY no credit). KY mobiles/expeditions county-change = new QSO + new county; KY fixed picks one county on a line. Bonus station K4KCG = +100 per QSO, once per band & mode (post-multiply). Claimed/running — the KYQP committee re-adjudicates. Applied from the entry's Cabrillo CATEGORY-POWER: Power Multiplier ×3 QRP (≤5W) / ×2 LOW (≤100W) / ×1 HIGH; the +100 electronic-submission bonus. A mobile/expedition entrant re-works everyone from each new county. (Checked against the 2027 draft rules only.) County codes: the official list bundled as counties/ky.json (120 codes, from kyqsoparty.org's county page, read 2026-11-17); a code not on it is refused.",
     "allowDupes": false,
     "qsoParty": {
       "powerMultiplier": {"QRP": 3, "LOW": 2, "HIGH": 1},
@@ -38,7 +40,6 @@
       "ownCountyDupe": true,
       "stateName": "Kentucky",
       "stateAbbr": "KY",
-      "countyByExclusion": true,
       "pointsByModeClass": { "PH": 1, "CW": 2 },
       "multScope": "once",
       "inStateCountsCounties": true,

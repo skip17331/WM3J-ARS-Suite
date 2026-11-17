@@ -82,6 +82,9 @@ public final class QsoPartySide {
             java.util.Map.entry("NC", 100), java.util.Map.entry("NH", 10), java.util.Map.entry("NM", 33), java.util.Map.entry("NS", 18),
             java.util.Map.entry("ON", 50), java.util.Map.entry("BC", 43), java.util.Map.entry("QC", 17),
             java.util.Map.entry("LA", 64), java.util.Map.entry("MO", 115),      // MO: 114 counties + St. Louis City (2026 rules, Table 1)
+            // official lists added 2026-11-17 (sources in each definition's formula note); AC = Atlantic Canada's 47 divisions
+            java.util.Map.entry("WI", 72), java.util.Map.entry("CO", 64), java.util.Map.entry("ID", 44), java.util.Map.entry("AR", 75),
+            java.util.Map.entry("KY", 120), java.util.Map.entry("AC", 47),
             java.util.Map.entry("NY", 62), java.util.Map.entry("OH", 88), java.util.Map.entry("PA", 67), java.util.Map.entry("SC", 46),
             java.util.Map.entry("TN", 95), java.util.Map.entry("TX", 254), java.util.Map.entry("VT", 14), java.util.Map.entry("WA", 39));
 

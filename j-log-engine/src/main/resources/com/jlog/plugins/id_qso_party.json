@@ -27,17 +27,18 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
+  "multiplierList": "/com/jlog/counties/id.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: Phone 1, CW 2, Digital 2 — ALL QRP QSOs = 5 (applied when the entry's Cabrillo CATEGORY-POWER is QRP). Mults counted ONCE PER MODE (regardless of band): ID entrant = each US state (Idaho counted as the single state mult, not per-county) + CA province + each DXCC country; non-ID entrant = ID counties (44). Mobile county-change/county-line = new QSO per county (a mobile entrant re-works everyone from each new county). Dormant-county +500/1000/1500 bonus = off-log/claimed (entrant/category & list-based). Claimed — IDQP committee re-adjudicates (rules themselves note loggers won't score correctly).",
+    "scoreFormula": "Σ QSO pts × Σ mults. Pts: Phone 1, CW 2, Digital 2 — ALL QRP QSOs = 5 (applied when the entry's Cabrillo CATEGORY-POWER is QRP). Mults counted ONCE PER MODE (regardless of band): ID entrant = each US state (Idaho counted as the single state mult, not per-county) + CA province + each DXCC country; non-ID entrant = ID counties (44). Mobile county-change/county-line = new QSO per county (a mobile entrant re-works everyone from each new county). Dormant-county +500/1000/1500 bonus = off-log/claimed (entrant/category & list-based). Claimed — IDQP committee re-adjudicates (rules themselves note loggers won't score correctly). County codes: the official list bundled as counties/id.json (44 codes, from idahoqsoparty.org's county list (linked from the 2026 rules), read 2026-11-17); a code not on it is refused.",
     "allowDupes": false,
     "qsoParty": {
       "pointsByPower": {"QRP": 5},
       "ownCountyDupe": true,
       "stateName": "Idaho",
       "stateAbbr": "ID",
-      "countyCodeLen": 3,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "per_mode",
       "inStateCountsStates": true,

@@ -27,10 +27,12 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
+  "multiplierList": "/com/jlog/counties/ar.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) + bonuses. 1 pt/QSO any band/mode; Mobile/Portable/Rover entries score 2/QSO (from the entry's Cabrillo CATEGORY-STATION). AR entrant mult = AR counties (75) + US states except AR (49) + Canadian provinces (13) + ONE DX mult. Non-AR entrant mult = AR counties (75). AR works everyone; non-AR scores AR contacts only (non-AR↔non-AR no credit). Mobile/Portable/Rover county-change = new QSO + new county. Bonus station WR5P = +200 per valid QSO, once per band & mode (post-multiply). Claimed/running — the ARQP committee re-adjudicates. Applied: Rover/Portable +200 per AR county activated (CATEGORY-STATION ROVER or PORTABLE, from the sent county logged on each QSO); a mobile/rover entrant re-works everyone from each new county. NOT applied (proof): live-stream +500 (proof-based).",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) + bonuses. 1 pt/QSO any band/mode; Mobile/Portable/Rover entries score 2/QSO (from the entry's Cabrillo CATEGORY-STATION). AR entrant mult = AR counties (75) + US states except AR (49) + Canadian provinces (13) + ONE DX mult. Non-AR entrant mult = AR counties (75). AR works everyone; non-AR scores AR contacts only (non-AR↔non-AR no credit). Mobile/Portable/Rover county-change = new QSO + new county. Bonus station WR5P = +200 per valid QSO, once per band & mode (post-multiply). Claimed/running — the ARQP committee re-adjudicates. Applied: Rover/Portable +200 per AR county activated (CATEGORY-STATION ROVER or PORTABLE, from the sent county logged on each QSO); a mobile/rover entrant re-works everyone from each new county. NOT applied (proof): live-stream +500 (proof-based). County codes: the official list bundled as counties/ar.json (75 codes, from arkqp.com's county abbreviation list (linked from the 2026 rules), read 2026-11-17); a code not on it is refused.",
     "allowDupes": false,
     "qsoParty": {
       "pointsByStation": {"MOBILE": 2, "PORTABLE": 2, "ROVER": 2},
@@ -38,7 +40,6 @@
       "ownCountyDupe": true,
       "stateName": "Arkansas",
       "stateAbbr": "AR",
-      "countyByExclusion": true,
       "multScope": "once",
       "inStateCountsCounties": true,
       "inStateOwnStateMult": false,
