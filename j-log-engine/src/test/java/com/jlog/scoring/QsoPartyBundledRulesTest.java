@@ -111,6 +111,39 @@ class QsoPartyBundledRulesTest {
         assertEquals(1, ContestScorer.score(mo, List.of(real, fake), out, mo.computeMultiplierDbColumn(), NO_BANDS, 0).mults());
     }
 
+    /** The official lists added 2026-11-17: each definition uses its list, of the state's real size, and the guesswork rules are gone. */
+    @Test void officialCountyListsReplaceTheGuesswork() {
+        java.util.Map<String, Integer> want = java.util.Map.of("WI_QSO_PARTY", 72, "CO_QSO_PARTY", 64, "ID_QSO_PARTY", 44,
+                "AR_QSO_PARTY", 75, "KY_QSO_PARTY", 120, "ACQP_QSO_PARTY", 47);
+        for (var e : want.entrySet()) {
+            ContestPlugin p = plugin(e.getKey());
+            java.util.List<String> list = com.jlog.plugin.MultiplierLists.load(p.getMultiplierList());
+            assertEquals(e.getValue().intValue(), list.size(), e.getKey());
+            assertEquals(e.getValue().intValue(), new java.util.HashSet<>(list).size(), e.getKey() + " has no duplicates");
+            assertEquals(0, cfg(e.getKey()).getCountyCodeLen(), e.getKey());
+            assertFalse(cfg(e.getKey()).isCountyByExclusion(), e.getKey());
+        }
+        // a few codes checked by eye against the sources
+        assertTrue(com.jlog.plugin.MultiplierLists.load(plugin("WI_QSO_PARTY").getMultiplierList()).containsAll(List.of("MRN", "MRQ", "WSB", "WSR", "GRL")));
+        assertTrue(com.jlog.plugin.MultiplierLists.load(plugin("KY_QSO_PARTY").getMultiplierList()).containsAll(List.of("BOL", "CAE", "MCY", "TRM", "HSN")));
+        assertTrue(com.jlog.plugin.MultiplierLists.load(plugin("ACQP_QSO_PARTY").getMultiplierList()).containsAll(List.of("NSANP", "NLASJ", "PEKGS", "NBSJC", "NSHRM")));
+        assertTrue(com.jlog.plugin.MultiplierLists.load(plugin("AR_QSO_PARTY").getMultiplierList()).containsAll(List.of("SFR", "VBN", "LRV", "JAK", "PLK")));
+    }
+
+    @Test void kentuckyNoLongerCountsAnyLongCodeAsACounty() {
+        ContestPlugin ky = plugin("KY_QSO_PARTY");
+        StationContext out = StationContext.of("W1XX", "FN31", "MA", "LOW", "FIXED");
+        assertTrue(q(ky, out, "K4AA", "20m", "CW", "FAY", "MA").getPoints() > 0, "Fayette is a Kentucky county");
+        assertEquals(0, q(ky, out, "K4AB", "20m", "CW", "XYZ", "MA").getPoints(), "by exclusion any 3 letters counted; the list does not");
+    }
+
+    @Test void atlanticCanadaKeepsItsProvinceMultiplier() {
+        ContestPlugin ac = plugin("ACQP_QSO_PARTY");
+        StationContext in = StationContext.of("VE1XX", "FN84", "NSHRM", "LOW", "FIXED");
+        List<QsoRecord> l = List.of(q(ac, in, "VE1AA", "20m", "SSB", "NSANP", "NSHRM"), q(ac, in, "VE9AA", "20m", "SSB", "NBYOR", "NSHRM"));
+        assertEquals(2, ContestScorer.score(ac, l, in, ac.computeMultiplierDbColumn(), NO_BANDS, 0).mults(), "NS and NB on 20m, from the codes' first two letters");
+    }
+
     @Test void ontarioRoverReworksFromANewArea() {
         ContestPlugin on = plugin("ON_QSO_PARTY");
         assertTrue(cfg("ON_QSO_PARTY").isOwnCountyDupe());

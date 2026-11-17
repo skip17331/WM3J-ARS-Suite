@@ -27,10 +27,12 @@
     { "id": "state_prov_sent", "label": "My Co/St", "type": "text", "width": 90, "required": false, "entryRow": 1, "persistent": true }
   ],
 
+  "multiplierList": "/com/jlog/counties/wi.json",
+
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: WI entrant = WI counties + US states (WI allowed) + CA provinces (DX = QSO pts only, no mult); non-WI entrant = WI counties only. W9FK = +100 per band+mode below 50 MHz (post-multiply). Power mult ×2/×1.5/×1 (QRP/Low/High) applied from the entry's Cabrillo CATEGORY-POWER; WI mobile/portable +500 per WI county activated with ≥12 QSOs, from the sent county logged on each QSO. Claimed — WIQP committee re-adjudicates.",
+    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: WI entrant = WI counties + US states (WI allowed) + CA provinces (DX = QSO pts only, no mult); non-WI entrant = WI counties only. W9FK = +100 per band+mode below 50 MHz (post-multiply). Power mult ×2/×1.5/×1 (QRP/Low/High) applied from the entry's Cabrillo CATEGORY-POWER; WI mobile/portable +500 per WI county activated with ≥12 QSOs, from the sent county logged on each QSO. Claimed — WIQP committee re-adjudicates. County codes: the official list bundled as counties/wi.json (72 codes, from the WIQP County Reference Sheet (warac.org, linked from the 2026 rules), read 2026-11-17); a code not on it is refused.",
     "allowDupes": false,
     "qsoParty": {
       "powerMultiplier": {"QRP": 2, "LOW": 1.5, "HIGH": 1},
@@ -38,7 +40,6 @@
       "activationBonus": {"points": 500, "minQsos": 12, "stations": ["MOBILE", "PORTABLE", "ROVER"]},
       "stateName": "Wisconsin",
       "stateAbbr": "WI",
-      "countyCodeLen": 3,
       "pointsByModeClass": { "PH": 1, "CW": 2, "DG": 2 },
       "multScope": "once",
       "inStateCountsStates": true,
