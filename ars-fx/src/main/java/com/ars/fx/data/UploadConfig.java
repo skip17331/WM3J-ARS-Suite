@@ -85,6 +85,7 @@ public final class UploadConfig {
             Path p = file();
             Files.createDirectories(p.getParent());
             Files.writeString(p, root.toString());
+            PrivateFiles.restrict(p);                     // holds the upload passwords
         } catch (Exception ignored) { /* best-effort */ }
     }
 }
