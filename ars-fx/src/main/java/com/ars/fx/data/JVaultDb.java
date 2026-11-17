@@ -25,6 +25,15 @@ public final class JVaultDb {
     /** A first-call contact. Phone and e-mail are what the family needs most; they are optional so older rows still read. */
     public record Contact(int id, String name, String callsign, String relationship, String itemsWanted, String phone, String email) {}
     public record Totals(int count, double value, int installed) {}
+    /**
+     * What the family needs to close the station's license and memberships: the FCC Registration Number (FRN), license class and
+     * expiry, <em>where</em> the FCC (CORES / ULS) login password is kept (never the password itself), the ARRL member number and
+     * other clubs. Shown in the estate document's FCC and ARRL sections. All optional.
+     */
+    public record LicenseInfo(String frn, String licenseClass, String expires, String passwordWhere, String arrlMember, String clubs) {
+        public static LicenseInfo empty() { return new LicenseInfo("", "", "", "", "", ""); }
+    }
+    private static final String[] INFO_KEYS = {"frn", "licenseClass", "expires", "passwordWhere", "arrlMember", "clubs"};
 
     public static final String[] DISPOSITIONS = {"working", "needs repair", "for sale", "sold", "retired", "spare"};
     public static final String[] INSTALL = {"installed", "stored", "spare", "loaned"};
@@ -57,6 +66,7 @@ public final class JVaultDb {
                     + "notes TEXT,extra_fields TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)");
             st.execute("CREATE TABLE IF NOT EXISTS first_call_contacts(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,callsign TEXT,phone TEXT,email TEXT,"
                     + "relationship TEXT,items_wanted TEXT,notes TEXT,priority INTEGER NOT NULL DEFAULT 100,created_at TEXT NOT NULL,updated_at TEXT NOT NULL)");
+            st.execute("CREATE TABLE IF NOT EXISTS estate_info(key TEXT PRIMARY KEY,value TEXT)");
             try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM equipment_types")) {
                 if (rs.next() && rs.getInt(1) == 0) {
                     try (PreparedStatement ps = c.prepareStatement("INSERT OR IGNORE INTO equipment_types(name,display_order) VALUES(?,?)")) {
@@ -183,6 +193,23 @@ public final class JVaultDb {
     public static boolean deleteContact(int id) {
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement("DELETE FROM first_call_contacts WHERE id=?")) {
             ps.setInt(1, id); return ps.executeUpdate() > 0;
+        } catch (Throwable t) { return false; }
+    }
+
+    public static LicenseInfo licenseInfo() {
+        java.util.Map<String, String> m = new java.util.HashMap<>();
+        try (Connection c = open(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery("SELECT key,value FROM estate_info")) {
+            while (rs.next()) m.put(rs.getString(1), rs.getString(2));
+        } catch (Throwable t) { /* empty */ }
+        return new LicenseInfo(nz(m.get("frn")), nz(m.get("licenseClass")), nz(m.get("expires")), nz(m.get("passwordWhere")),
+                nz(m.get("arrlMember")), nz(m.get("clubs")));
+    }
+    public static boolean saveLicenseInfo(LicenseInfo li) {
+        String[] v = {li.frn(), li.licenseClass(), li.expires(), li.passwordWhere(), li.arrlMember(), li.clubs()};
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement("INSERT OR REPLACE INTO estate_info(key,value) VALUES(?,?)")) {
+            for (int i = 0; i < INFO_KEYS.length; i++) { ps.setString(1, INFO_KEYS[i]); ps.setString(2, v[i] == null ? "" : v[i].trim()); ps.addBatch(); }
+            ps.executeBatch();
+            return true;
         } catch (Throwable t) { return false; }
     }
 

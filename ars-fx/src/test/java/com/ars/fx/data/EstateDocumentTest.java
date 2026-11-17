@@ -35,7 +35,45 @@ class EstateDocumentTest {
         assertTrue(h.contains("Icom IC-7300") && h.contains("Elecraft KPA500"));
         assertTrue(h.contains("2 items, estimated total <b>$2,700</b>"));
         assertTrue(h.contains("Do not climb a tower"));
-        assertTrue(h.contains("(WM3J) should be reported"));
+        assertTrue(h.contains("(WM3J) should be canceled with the FCC"));
+    }
+
+    @Test
+    void usCallGetsTheFccAndArrlStepsWithTheLicenseDetails() {
+        JVaultDb.LicenseInfo li = new JVaultDb.LicenseInfo("0012345678", "Amateur Extra", "2031-04-12", "Blue folder, desk drawer", "1234567", "Anytown ARC");
+        String h = EstateDocument.html(ST, li, List.of(), List.of(), DAY);
+        int fcc = h.indexOf("<h2>Canceling the radio license (FCC)</h2>"), arrl = h.indexOf("<h2>Reporting to ARRL (Silent Key)</h2>");
+        assertTrue(fcc > 0 && arrl > fcc, "FCC section, then ARRL");
+        assertTrue(h.contains("0012345678") && h.contains("Amateur Extra") && h.contains("2031-04-12") && h.contains("Blue folder, desk drawer"));
+        assertTrue(h.contains("fcc.gov/wireless/available-support-services") && h.contains("Submit a help request"));
+        assertTrue(h.contains("Print it and sign it by hand") && h.contains("does not accept requests by mail or fax"));
+        assertTrue(h.contains("CANCELED") && h.contains("877-480-3201"));
+        assertTrue(h.contains("sk@arrl.org") && h.contains("1-860-594-0303") && h.contains("1234567") && h.contains("Anytown ARC"));
+        assertTrue(h.contains("does <b>not</b> cancel the FCC license"));
+    }
+
+    @Test
+    void noFrnStillShowsTheStepsForAUsCallAndSaysWhereToFindIt() {
+        String h = EstateDocument.html(ST, List.of(), List.of(), DAY);
+        assertTrue(h.contains("<h2>Canceling the radio license (FCC)</h2>"));
+        assertTrue(h.contains("not recorded (the FCC&#39;s license search shows it with the call sign)"));
+        assertFalse(h.contains("ARRL member number"), "no empty member row");
+    }
+
+    @Test
+    void nonUsCallWithoutFrnGetsTheGeneralNoteOnly() {
+        String h = EstateDocument.html(new EstateDocument.Station("G4ABC", "", ""), List.of(), List.of(), DAY);
+        assertFalse(h.contains("Canceling the radio license (FCC)"));
+        assertFalse(h.contains("sk@arrl.org"));
+        assertTrue(h.contains("(G4ABC) should be reported to the licensing authority"));
+    }
+
+    @Test
+    void recognisesUsCalls() {
+        for (String c : new String[]{"WM3J", "K1A", "N0XYZ", "KD9ABC", "AA1AA", "AL7X", "wm3j/p", "W1AW/4"})
+            assertTrue(EstateDocument.isUsCall(c), c);
+        for (String c : new String[]{"", "G4ABC", "VE3XYZ", "AM1A", "JA1ABC", "KH6", "W1"})
+            assertFalse(EstateDocument.isUsCall(c), c);
     }
 
     @Test

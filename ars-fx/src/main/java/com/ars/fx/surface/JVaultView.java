@@ -71,7 +71,8 @@ public final class JVaultView {
 
         Region rail = Shell.rail(new Node[]{
                 Shell.drawer("Item detail", "vault", "vault", "", true, detailBody),
-                Shell.drawer("Estate · first-call contacts", "learn", "learn", "", true, estateBody())});
+                Shell.drawer("Estate · first-call contacts", "learn", "learn", "", true, estateBody()),
+                Shell.drawer("Estate · license & memberships", "learn", "learn", "", false, licenseBody())});
         return Shell.frame(dock, top, sp, rail);
     }
 
@@ -118,7 +119,7 @@ public final class JVaultView {
         estate.setOnMouseClicked(e -> {
             try {
                 com.ars.fx.data.EstateDocument.Station st = com.ars.fx.data.EstateDocument.Station.fromSettings();
-                String html = com.ars.fx.data.EstateDocument.html(st, JVaultDb.items(null, null), JVaultDb.contacts(), java.time.LocalDate.now());
+                String html = com.ars.fx.data.EstateDocument.html(st, JVaultDb.licenseInfo(), JVaultDb.items(null, null), JVaultDb.contacts(), java.time.LocalDate.now());
                 Path f = com.ars.fx.data.EstateDocument.save(com.ars.fx.data.EstateDocument.folder(), st.call(), html, java.time.LocalDateTime.now());
                 status.setText("✓ Estate document saved → " + f + " (opening it in your browser: print it or save it as PDF from there)");
                 com.ars.fx.data.LinkOpener.openFile(f, () -> javafx.application.Platform.runLater(() ->
@@ -276,6 +277,32 @@ public final class JVaultView {
         VBox form = new VBox(6, new HBox(6, nm, cs), new HBox(6, ph, em), new HBox(6, rel, want), add);
         box.getChildren().addAll(list, form);
         return box;
+    }
+
+    /**
+     * The details the family needs to cancel the license and report the Silent Key, printed in the estate document's FCC and ARRL
+     * sections: the FRN, license class and expiry, where the FCC login password is kept (never the password), the ARRL member number
+     * and other clubs.
+     */
+    private static VBox licenseBody() {
+        JVaultDb.LicenseInfo li = JVaultDb.licenseInfo();
+        TextField frn = mini("FRN (10 digits)"), cls = mini("license class, e.g. Amateur Extra"), exp = mini("expires, e.g. 2031-04-12"),
+                where = mini("where the FCC login password is kept"), arrl = mini("ARRL member number"), clubs = mini("other clubs to tell");
+        frn.setText(li.frn()); cls.setText(li.licenseClass()); exp.setText(li.expires());
+        where.setText(li.passwordWhere()); arrl.setText(li.arrlMember()); clubs.setText(li.clubs());
+        Label note = lbl("Printed in the estate document so your family can cancel the license with the FCC and report you to ARRL. "
+                + "Write down where the FCC (CORES / ULS) password is kept, not the password itself. Your FRN is shown with your call in the FCC's license search.", "jv-note");
+        note.setWrapText(true);
+        Label status = lbl("", "jv-note"); status.setWrapText(true);
+        Label save = btn("Save", true);
+        save.setOnMouseClicked(e -> {
+            String f = frn.getText() == null ? "" : frn.getText().replaceAll("[\\s-]", "");
+            if (!f.isEmpty() && !f.matches("\\d{10}")) { status.setText("✗ An FRN is 10 digits; check it and save again."); return; }
+            frn.setText(f);
+            boolean ok = JVaultDb.saveLicenseInfo(new JVaultDb.LicenseInfo(f, cls.getText(), exp.getText(), where.getText(), arrl.getText(), clubs.getText()));
+            status.setText(ok ? "✓ Saved. Make a new estate document to print it." : "✗ Could not save.");
+        });
+        return new VBox(7, note, frn, new HBox(6, cls, exp), where, new HBox(6, arrl, clubs), save, status);
     }
 
     // ---- helpers -----------------------------------------------------------

@@ -33,8 +33,18 @@ public final class EstateDocument {
 
     private static final DateTimeFormatter LONG_DATE = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH);
 
-    /** The document for these items and contacts, prepared on {@code date}. */
+    /** The document without license details (no FRN, class, memberships). */
     public static String html(Station st, List<JVaultDb.Item> items, List<JVaultDb.Contact> contacts, LocalDate date) {
+        return html(st, JVaultDb.LicenseInfo.empty(), items, contacts, date);
+    }
+
+    /**
+     * The document for these items and contacts, prepared on {@code date}. For a US call sign, or when an FRN is given, it adds the
+     * FCC license-cancellation and ARRL Silent Key sections (procedures as ARRL describes them in November 2026; each section points to
+     * the page that keeps them current).
+     */
+    public static String html(Station st, JVaultDb.LicenseInfo li, List<JVaultDb.Item> items, List<JVaultDb.Contact> contacts, LocalDate date) {
+        if (li == null) li = JVaultDb.LicenseInfo.empty();
         List<JVaultDb.Item> kept = new ArrayList<>(), sold = new ArrayList<>();
         for (JVaultDb.Item i : items) ("sold".equalsIgnoreCase(nz(i.disposition())) ? sold : kept).add(i);
         Map<String, List<JVaultDb.Item>> byCat = new LinkedHashMap<>();           // items() is already in category order
@@ -43,6 +53,7 @@ public final class EstateDocument {
 
         String call = nz(st.call()).toUpperCase(Locale.ROOT);
         String who = String.join(" · ", nonBlank(call, nz(st.name()), nz(st.qth())));
+        boolean us = !blank(li.frn()) || isUsCall(call);
         StringBuilder b = new StringBuilder(16_384);
         b.append("<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">\n")
          .append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
@@ -60,8 +71,10 @@ public final class EstateDocument {
          .append("<li><b>Do not climb a tower or take antennas down yourself.</b> Towers, masts and antennas are dangerous to work on. Ask a first-call contact or a professional tower crew.</li>\n")
          .append("<li><b>Switch off and unplug</b> the radios and power supplies. Large batteries store a lot of energy; leave them to someone who knows how to handle them.</li>\n")
          .append("<li><b>The values here are the owner's own estimates</b>, not appraisals. Used prices vary; a first-call contact can advise.</li>\n")
-         .append("<li><b>The radio license</b>").append(blank(call) ? "" : " (" + esc(call) + ")")
-         .append(" should be reported to the licensing authority (in the US, the FCC) so it can be canceled. A first-call contact or the local radio club can help.</li>\n")
+         .append("<li><b>The radio license</b>").append(blank(call) ? "" : " (" + esc(call) + ")");
+        if (us) b.append(" should be canceled with the FCC, and ARRL told so the name is listed among the Silent Keys. Both are explained step by step below, under <i>Canceling the radio license</i> and <i>Reporting to ARRL</i>; a first-call contact can do them for you.</li>\n");
+        else b.append(" should be reported to the licensing authority so it can be canceled. A first-call contact or the local radio club can help.</li>\n");
+        b
          .append("<li><b>The station logbook</b> is kept on the computer by this program. Ask a first-call contact to export a copy before the computer is cleared or sold.</li>\n")
          .append("</ol></section>\n");
 
@@ -79,6 +92,8 @@ public final class EstateDocument {
             b.append("</tbody></table>\n");
         }
         b.append("</section>\n");
+
+        if (us) { fccSection(b, call, nz(st.name()), li); arrlSection(b, li); }
 
         // ---- summary -------------------------------------------------------------
         b.append("<section><h2>Summary</h2>\n<p class=\"total\">").append(kept.size()).append(kept.size() == 1 ? " item" : " items")
@@ -115,6 +130,66 @@ public final class EstateDocument {
          .append(" · keep this with the will or other important papers, and print a new copy when the equipment changes.</footer>\n")
          .append("</body></html>\n");
         return b.toString();
+    }
+
+    /** Canceling a deceased licensee's FCC license, as ARRL describes it (arrl.org/cancelling-a-license, November 2026). */
+    private static void fccSection(StringBuilder b, String call, String name, JVaultDb.LicenseInfo li) {
+        b.append("<section class=\"steps\"><h2>Canceling the radio license (FCC)</h2>\n<table class=\"facts\"><tbody>\n");
+        fact(b, "Call sign", blank(call) ? "not recorded" : call);
+        if (!blank(name)) fact(b, "Licensee", name);
+        fact(b, "FCC Registration Number (FRN)", blank(li.frn()) ? "not recorded (the FCC's license search shows it with the call sign)" : li.frn());
+        if (!blank(li.licenseClass())) fact(b, "License class", li.licenseClass());
+        if (!blank(li.expires())) fact(b, "License expires", li.expires());
+        if (!blank(li.passwordWhere())) fact(b, "FCC login (CORES / ULS) password is kept", li.passwordWhere());
+        b.append("</tbody></table>\n<ol>\n")
+         .append("<li><b>Write a short request</b> giving the licensee's name and call sign").append(blank(li.frn()) ? "" : ", the FRN above,")
+         .append(" and why you are asking, for example <i>\"He was my father; he passed away on 1/1/2026.\"</i> <b>Print it and sign it by hand</b>, then scan it: the FCC needs a request that has been physically signed.</li>\n")
+         .append("<li><b>Proof of death:</b> a copy of the <b>death certificate</b>, or the <b>complete</b> newspaper obituary that shows the date of death. A link to an obituary on the web is not enough. Scan it too.</li>\n")
+         .append("<li>On the FCC's Support Services page, ").append(link("https://www.fcc.gov/wireless/available-support-services", "fcc.gov/wireless/available-support-services"))
+         .append(", choose <b>Submit a help request</b>, fill in the form and attach the signed request and the proof. The FCC does not accept requests by mail or fax.</li>\n")
+         .append("<li><b>Allow one to two weeks.</b> Then look up the call sign in the FCC's license search (ULS, ")
+         .append(link("https://www.fcc.gov/wireless/systems-utilities/universal-licensing-system", "fcc.gov/wireless/systems-utilities/universal-licensing-system"))
+         .append("): its status will read <b>CANCELED</b>, effective from the date of death.</li>\n</ol>\n")
+         .append("<p class=\"hint\">Questions: FCC Licensing Support Center, 877-480-3201 (Monday to Friday, 8 am to 6 pm Eastern), or ")
+         .append(link("https://www.fcc.gov/wtbhelp", "fcc.gov/wtbhelp"))
+         .append(". The FCC changes its procedures from time to time; ARRL keeps current instructions at ")
+         .append(link("https://www.arrl.org/cancelling-a-license", "arrl.org/cancelling-a-license"))
+         .append(". A close relative may later be able to apply to keep the call sign; the same page explains how.</p>\n</section>\n");
+    }
+
+    /** Reporting a Silent Key to ARRL, as ARRL describes it (arrl.org/silent-key-submission-guidelines, November 2026). */
+    private static void arrlSection(StringBuilder b, JVaultDb.LicenseInfo li) {
+        b.append("<section class=\"steps\"><h2>Reporting to ARRL (Silent Key)</h2>\n");
+        if (!blank(li.arrlMember()) || !blank(li.clubs())) {
+            b.append("<table class=\"facts\"><tbody>\n");
+            if (!blank(li.arrlMember())) fact(b, "ARRL member number", li.arrlMember());
+            if (!blank(li.clubs())) fact(b, "Other clubs to tell", li.clubs());
+            b.append("</tbody></table>\n");
+        }
+        b.append("<ol>\n<li><b>E-mail sk@arrl.org</b> with the name, call sign and date of death")
+         .append(blank(li.arrlMember()) ? "" : " and the member number above")
+         .append(". Or fill in ARRL's <b>Report a Silent Key</b> form (")
+         .append(link("https://www.arrl.org/silent-key-submission-guidelines", "arrl.org/silent-key-submission-guidelines"))
+         .append(") and e-mail it, fax it to 1-860-594-0303, or mail it to ARRL, 225 Main Street, Newington, CT 06111-1400.</li>\n")
+         .append("<li><b>Include one proof of death:</b> an obituary notice that shows the date of death, a copy of the death certificate, or a letter from the family attorney or the estate executor.</li>\n")
+         .append("<li><b>Anyone may send it:</b> family, a friend or another amateur, so a first-call contact can do it for you.</li>\n");
+        if (!blank(li.clubs())) b.append("<li>Let the clubs listed above know as well.</li>\n");
+        b.append("</ol>\n<p class=\"hint\">The name appears in the Silent Keys column of ARRL's magazine, QST, after four to five months. Reporting to ARRL does <b>not</b> cancel the FCC license; that is the separate step above. Questions: ARRL, 1-860-594-0200 (toll-free 1-888-277-5289), sk@arrl.org.</p>\n</section>\n");
+    }
+
+    private static void fact(StringBuilder b, String k, String v) {
+        b.append("<tr><th>").append(esc(k)).append("</th><td>").append(esc(v)).append("</td></tr>\n");
+    }
+    /** A link that still reads on paper: the visible text is the address. */
+    private static String link(String href, String text) { return "<a href=\"" + esc(href) + "\">" + esc(text) + "</a>"; }
+
+    /** A US amateur call (K, N, W or AA-AL prefix, one digit, 1-3 letter suffix), ignoring a portable / suffix. */
+    static boolean isUsCall(String call) {
+        if (blank(call)) return false;
+        String c = call.trim().toUpperCase(Locale.ROOT);
+        int slash = c.indexOf('/');
+        if (slash > 0) c = c.substring(0, slash);
+        return c.matches("(?:[KNW][A-Z]{0,2}|A[A-L])[0-9][A-Z]{1,3}");
     }
 
     private static void itemTable(StringBuilder b, List<JVaultDb.Item> items) {
@@ -163,6 +238,8 @@ public final class EstateDocument {
         .contacts td { font-size: 13.5px; } .summary { width: auto; min-width: 50%; } .total { font-size: 15px; }
         .empty { font-style: italic; }
         .notes .line { border-bottom: 1px solid #999; height: 30px; }
+        .facts { width: auto; min-width: 60%; margin-bottom: 8px; } .facts th { width: 260px; background: #f4f4f4; } .facts td { font-size: 14px; font-weight: bold; }
+        .steps li { margin: 6px 0; } a { color: #111; }
         footer { margin-top: 24px; border-top: 1px solid #999; padding-top: 6px; }
         .print { float: right; font: 14px Arial, sans-serif; padding: 7px 14px; cursor: pointer; }
         @page { margin: 15mm; }

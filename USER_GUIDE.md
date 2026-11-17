@@ -292,7 +292,15 @@ spreadsheet file. The data is a private database, kept apart from your log.
 print it or save it as PDF. It starts with what to do first (there is no rush, call the first-call contacts, do not climb
 the tower, the license), then the contacts with their phone numbers, a summary of the equipment and its estimated value,
 the inventory by category, anything marked sold (listed apart and not counted), and space for handwritten notes. The
-station name comes from Setup ▸ Station. Each one is saved in `~/.j-vault/estate/`, readable by your account only; print a
+station name comes from Setup ▸ Station.
+
+For a US call sign (or once an FRN is entered) the document also has two step-by-step sections: **Canceling the radio
+license (FCC)** — the signed request, the proof of death, the FCC's online Support Services form, and how to check the
+license shows CANCELED — and **Reporting to ARRL (Silent Key)** — sk@arrl.org or ARRL's Report a Silent Key form, and the
+proof ARRL accepts. Fill in the **Estate · license & memberships** drawer so they carry your details: your FRN (10 digits;
+shown with your call in the FCC's license search), license class and expiry, **where** your FCC (CORES / ULS) login password
+is kept (never the password itself), your ARRL member number and other clubs to tell. The steps follow ARRL's pages as of
+November 2026; each section names the page that keeps them current. Each one is saved in `~/.j-vault/estate/`, readable by your account only; print a
 new copy when the equipment or the contacts change.
 
 ### 4.7 Morse Trainer and QSO simulator
