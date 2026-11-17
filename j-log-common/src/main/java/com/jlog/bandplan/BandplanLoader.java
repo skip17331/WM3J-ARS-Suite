@@ -152,7 +152,10 @@ public final class BandplanLoader {
         ensureLoaded();
         Bandplan p = region(region != null ? region : DEFAULT_REGION);
         List<String> out = new java.util.ArrayList<>();
-        if (p != null) for (BandRange r : p.bands()) out.add(r.name());
+        if (p == null) return out;
+        List<BandRange> sorted = new java.util.ArrayList<>(p.bands());
+        sorted.sort(java.util.Comparator.comparingLong(BandRange::lowerHz));     // by frequency, whatever order the file lists them in
+        for (BandRange r : sorted) out.add(r.name());
         return out;
     }
 
