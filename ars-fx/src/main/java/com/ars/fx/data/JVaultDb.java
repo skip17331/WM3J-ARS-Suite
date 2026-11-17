@@ -22,7 +22,8 @@ public final class JVaultDb {
                        String disposition, String installStatus, String location, String notes) {
         public String title() { return (nz(manufacturer) + " " + nz(model)).trim(); }
     }
-    public record Contact(int id, String name, String callsign, String relationship, String itemsWanted) {}
+    /** A first-call contact. Phone and e-mail are what the family needs most; they are optional so older rows still read. */
+    public record Contact(int id, String name, String callsign, String relationship, String itemsWanted, String phone, String email) {}
     public record Totals(int count, double value, int installed) {}
 
     public static final String[] DISPOSITIONS = {"working", "needs repair", "for sale", "sold", "retired", "spare"};
@@ -163,17 +164,19 @@ public final class JVaultDb {
     public static List<Contact> contacts() {
         List<Contact> out = new ArrayList<>();
         try (Connection c = open(); Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery("SELECT id,name,callsign,relationship,items_wanted FROM first_call_contacts ORDER BY priority,name")) {
-            while (rs.next()) out.add(new Contact(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5)));
+             ResultSet rs = st.executeQuery("SELECT id,name,callsign,relationship,items_wanted,phone,email FROM first_call_contacts ORDER BY priority,name")) {
+            while (rs.next()) out.add(new Contact(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+                    rs.getString(6), rs.getString(7)));
         } catch (Throwable t) { /* empty */ }
         return out;
     }
-    public static boolean addContact(String name, String callsign, String relationship, String itemsWanted) {
+    public static boolean addContact(String name, String callsign, String relationship, String itemsWanted, String phone, String email) {
         String now = LocalDateTime.now().toString();
         try (Connection c = open(); PreparedStatement ps = c.prepareStatement(
-                "INSERT INTO first_call_contacts(name,callsign,relationship,items_wanted,created_at,updated_at) VALUES(?,?,?,?,?,?)")) {
+                "INSERT INTO first_call_contacts(name,callsign,relationship,items_wanted,phone,email,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")) {
             ps.setString(1, nzn(name)); ps.setString(2, nzn(callsign)); ps.setString(3, nzn(relationship));
-            ps.setString(4, nzn(itemsWanted)); ps.setString(5, now); ps.setString(6, now);
+            ps.setString(4, nzn(itemsWanted)); ps.setString(5, nzn(phone)); ps.setString(6, nzn(email));
+            ps.setString(7, now); ps.setString(8, now);
             return ps.executeUpdate() > 0;
         } catch (Throwable t) { return false; }
     }

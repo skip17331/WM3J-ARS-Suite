@@ -57,7 +57,7 @@ One app, these modules — each a surface you can dock or float in its own windo
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
 | **J‑Sat** | Satellite tracker with Doppler correction and rotor control. |
-| **J‑Vault** | Shack inventory + **first‑call contacts** so your family knows who to call when you're SK, with CSV export. SQLite‑backed. |
+| **J‑Vault** | Shack inventory + **first‑call contacts** so your family knows who to call when you're SK, with a **printable estate document** and CSV export. SQLite‑backed. |
 | **J‑Learn** | Embedded amateur‑radio reference library — 30 chapters, 300+ sections covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; markdown source seeds to `~/.j-learn/content/` so you can edit content without rebuilding. |
 | **Morse Trainer** | Learning and practicing CW — Koch‑method letter trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. |
 
@@ -95,8 +95,11 @@ When an operator becomes a Silent Key, families inherit a shack of expensive
 gear they don't recognize. J‑Vault keeps a categorized **equipment inventory**
 (make / model / serial / value / disposition / location) alongside
 **first‑call contacts** — the people who should be called, priority‑sorted, and
-the gear each is interested in — and **exports it to CSV** for sharing or print.
-(A formatted, printable estate‑handoff document is planned but not built yet.)
+the gear each is interested in. **Estate document** turns it into one printable
+page for your family — what to do first (no rush, don't climb the tower, call
+these people), the contacts with their phone numbers, and the inventory with
+estimated values — to print or save as PDF and keep with your papers. Also
+exports to CSV.
 
 ### J‑Learn — your reference library, in‑app
 
@@ -257,8 +260,8 @@ compatibility, long‑term openness.
   backend.
 - **WSJT‑X** integration via **J‑Bridge** UDP listener.
 - **JSON contest modules** — drop‑in plug‑ins for new contests.
-- **Estate handoff** — J‑Vault keeps the inventory and first‑call contacts your
-  family will need, exported as CSV (a formatted printable document is planned).
+- **Estate handoff** — J‑Vault produces a printable inventory + first‑call
+  contacts document for your family.
 
 Runs on:
 
