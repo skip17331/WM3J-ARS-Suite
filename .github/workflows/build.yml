@@ -58,6 +58,22 @@ jobs:
           mvn -B -DskipTests ${{ matrix.fxprofile }} -f ars-fx/pom.xml package
           mvn -B -DskipTests -f installer/pom.xml package
 
+      # Run the tests of the app and the libraries it embeds, on both systems, so a pull request cannot merge red
+      # and the Windows-only paths (COM ports, file locking) are exercised here and not only on a developer's PC.
+      # release.yml runs the same set again on Linux before it publishes.
+      - name: Run tests
+        shell: bash
+        run: |
+          set -e
+          for m in j-log-common j-log-engine j-digi j-bridge; do
+            echo "::group::test $m"
+            mvn -B -f "$m/pom.xml" test
+            echo "::endgroup::"
+          done
+          echo "::group::test ars-fx"
+          mvn -B ${{ matrix.fxprofile }} -f ars-fx/pom.xml test     # the profile picks this system's JavaFX natives
+          echo "::endgroup::"
+
       # Collect the app + installer jars into one artifact per OS. Testers can
       # download these from the run page on github.com — no need to build locally.
       - name: Upload built jars

@@ -46,7 +46,7 @@ jobs:
       # Gate the release on green tests for what actually ships: the ars-fx app
       # and the shared libraries it embeds. Install the libs first (consumers
       # resolve them from the local .m2; engine depends on common), then test.
-      # ars-fx itself has no tests, so its `test` is a compile/pass.
+      # ars-fx carries most of the tests (500+); build.yml runs the same set on every pull request.
       - name: Run tests
         shell: bash
         run: |
