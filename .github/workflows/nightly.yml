@@ -7,7 +7,8 @@ name: Nightly release
 #
 # Safe to re-run: if the version in the poms is already ahead of the last tag (a manual
 # `chore(release)` bump, or a nightly that failed after bumping) that version is released
-# as-is instead of bumping again.
+# as-is instead of bumping again. When HEAD is such a bump and changes nothing but the version,
+# the green-build check looks at its parent (a bump this workflow pushed never runs build.yml).
 #
 # Run it by hand from the Actions tab any time ("force" skips the green-build and
 # docs-only checks). Cutting a release by hand with a v* tag still works as before.
@@ -75,10 +76,26 @@ jobs:
           fi
 
           if [ "$release" = true ] && [ "$FORCE" != "true" ]; then
-            OK="$(gh run list --workflow build.yml --branch main --commit "$SHA" --status success \
+            # A version bump pushed by this workflow never runs build.yml (pushes made with
+            # GITHUB_TOKEN start no workflows), so a re-run after a nightly that failed past the
+            # bump could never pass this check. If HEAD changes nothing but version lines, the
+            # build that counts is its parent's. "Only bumps the version": every removed line,
+            # with the old version replaced by the new one, is exactly the added line.
+            CHECK="$SHA"
+            if [ "$POM_VER" != "$LAST_VER" ] && git rev-parse -q --verify HEAD^ >/dev/null; then
+              DIFF="$(git diff -U0 HEAD^ HEAD)"
+              MINUS="$(grep -E '^-' <<<"$DIFF" | grep -v '^--- ' | cut -c2- | sed "s/${LAST_VER//./\\.}/${POM_VER}/g" || true)"
+              PLUS="$(grep -E '^\+' <<<"$DIFF" | grep -v '^+++ ' | cut -c2- || true)"
+              if [ -n "$PLUS" ] && [ "$MINUS" = "$PLUS" ]; then
+                CHECK="$(git rev-parse HEAD^)"
+                echo "HEAD only bumps the version; checking the build of ${CHECK:0:8} instead."
+              fi
+            fi
+            OK="$(gh run list --workflow build.yml --branch main --commit "$CHECK" --status success \
                     --json conclusion --jq 'length' || echo 0)"
             if [ "$OK" -lt 1 ]; then
-              echo "::warning::build.yml has not passed on ${SHA:0:8} - not releasing tonight."
+              echo "::warning::build.yml has not passed on ${CHECK:0:8} - not releasing tonight."
+              echo "Not released: build.yml has not passed on ${CHECK:0:8} (run with force to skip this check)." >> "$GITHUB_STEP_SUMMARY"
               release=false
             fi
           fi
