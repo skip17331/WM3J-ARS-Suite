@@ -30,11 +30,6 @@ public final class HeardByClient extends TelnetFeed {
                 HubConfig.getBool("data.rbnAutoConnect", false));
     }
 
-    // DX de <skimmer>:  <freqKHz>  <spotted>  <comment incl. mode/snr/wpm>  <hhmm>Z
-    // RBN skimmer calls carry a trailing "-#", so '#' is allowed in the spotter group.
-    private static final Pattern SPOT = Pattern.compile(
-            "DX de\\s+([A-Z0-9/#\\-]+)[:\\s]+([\\d.]+)\\s+([A-Z0-9/\\-]+)\\s+(.*?)\\s+(\\d{4}Z?)\\s*$",
-            Pattern.CASE_INSENSITIVE);
 
     private static final int MAX_SPOTS = 40;
 
@@ -63,15 +58,12 @@ public final class HeardByClient extends TelnetFeed {
     @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); } }
 
     @Override protected void onLine(String line) {
-        Matcher m = SPOT.matcher(line);
-        if (!m.find()) return;
-        String spotted = m.group(3).toUpperCase();
-        if (!spotted.equalsIgnoreCase(call)) return;     // keep only spots OF us
-        long freqHz;
-        try { freqHz = (long) (Double.parseDouble(m.group(2)) * 1000); }
-        catch (NumberFormatException e) { return; }
-        String spotter = m.group(1).toUpperCase();
-        String comment = m.group(4).trim();
+        SpotLine.Parsed p = SpotLine.parse(line);
+        if (p == null) return;
+        if (!p.call().equalsIgnoreCase(call)) return;     // keep only spots OF us
+        long freqHz = p.freqHz();
+        String spotter = p.spotter();
+        String comment = p.comment();
         HeardSpot hs = new HeardSpot(freqHz, spotter, ClusterClient.detectMode(comment, freqHz),
                 ClusterClient.freqToBand(freqHz), comment, System.currentTimeMillis());
         synchronized (this) {
