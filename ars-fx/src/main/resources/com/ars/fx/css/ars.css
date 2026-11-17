@@ -97,6 +97,16 @@
     -ars-t1: #ffffff; -ars-t2: #eceef1; -ars-t3: #c3c8cf; -ars-t4: #8e949d;
     -ars-log: #ffb038;
 }
+/* "Space": the deep-space navy and cyan palette the Modern look was designed on */
+.ars-space {
+    -fx-base: #0f1a36; -fx-background: #04060f; -fx-control-inner-background: #0a1124;
+    -fx-accent: #3df0ff; -fx-focus-color: #3df0ff; -fx-faint-focus-color: #3df0ff33;
+    -ars-bg: #04060f; -ars-surface-1: #0a1124; -ars-surface-2: #0f1a36; -ars-surface-3: #172647; -ars-surface-4: #1f3259;
+    -ars-border: #1b3358; -ars-border-2: #2b5584; -ars-border-glow: #3a6aa0;
+    -ars-t1: #eef8ff; -ars-t2: #d2e6f7; -ars-t3: #93b4d2; -ars-t4: #627f9e;
+    -ars-accent: #3df0ff; -ars-accent-dim: rgba(61,240,255,0.13); -ars-accent-line: rgba(61,240,255,0.50); -ars-accent-text: #03060f;
+    -ars-ok: #5dffb4; -ars-log: #7cf0ff;
+}
 
 .ars-ocean {
     -fx-base: #102036; -fx-background: #081019; -fx-control-inner-background: #0e1c2e;

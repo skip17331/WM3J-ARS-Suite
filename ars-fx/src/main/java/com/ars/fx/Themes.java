@@ -35,7 +35,8 @@ public final class Themes {
             new Scheme("rose",   "Rose",   "ars-rose"),
             new Scheme("nord",   "Nord",   "ars-nord"),
             new Scheme("cockpit", "Cockpit", "ars-cockpit"),
-            new Scheme("instrument", "Instrument", "ars-instrument"));
+            new Scheme("instrument", "Instrument", "ars-instrument"),
+            new Scheme("space", "Space", "ars-space"));
 
     /** Surfaces that keep their own scheme. J-Hub pages (dashboard/config) always follow the global. */
     private static final Set<String> MODULES = Set.of("log", "map", "sat", "digi", "bridge", "vault", "learn", "info");
