@@ -133,8 +133,9 @@ public final class CallsignRegion {
         String right = parts.length > 1 ? parts[parts.length - 1] : "";
         boolean rightIsModifier = right.matches("[0-9]|P|M|MM|AM|QRP|MOBILE|PORTABLE");
         if (rightIsModifier) return left;
-        boolean leftIsPrefix  = left .matches("[A-Z]{1,3}[0-9]?");
-        boolean rightIsPrefix = right.matches("[A-Z]{1,3}[0-9]?");
+        // a prefix may start with a digit (5B Cyprus, 3D2 Fiji, 9A Croatia, 4X Israel): W1AW/5B is in Cyprus
+        boolean leftIsPrefix  = left .matches("[0-9]?[A-Z]{1,3}[0-9]?");
+        boolean rightIsPrefix = right.matches("[0-9]?[A-Z]{1,3}[0-9]?");
         if (rightIsPrefix && !leftIsPrefix) return right;
         if (leftIsPrefix  && !rightIsPrefix) return left;
         return left;
