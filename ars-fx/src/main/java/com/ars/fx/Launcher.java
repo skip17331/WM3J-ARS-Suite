@@ -37,6 +37,12 @@ public class Launcher extends Application {
     public void start(Stage stage) {
         Shell.onThemeChanged = () -> { Themes.applyTo(host, Shell.currentSurface); com.ars.fx.surface.JMapView.themeChanged(); };
         com.ars.fx.data.Bands.applyRegion();            // the operator's IARU region picks the band plan
+        Thread fr = new Thread(() -> {                  // QSOs once saved with the frequency in kHz: MHz and a band (nothing to do after the first run)
+            com.ars.fx.data.JLogDb.FreqRepair r = com.ars.fx.data.JLogDb.repairFrequencies();
+            if (r.frequencies() + r.bands() > 0)
+                System.out.println("J-Log: " + r.frequencies() + " frequencies put in MHz, " + r.bands() + " bands filled in (copy kept as j-log.db.bak-before-freq-repair)");
+        }, "freq-repair");
+        fr.setDaemon(true); fr.start();
 
         // Solo launch? `-Dars.config=<file>` or `--config <file>` runs one module (J-Map/J-Sat) on its own.
         com.ars.fx.data.SoloConfig cfg = resolveSoloConfig();
