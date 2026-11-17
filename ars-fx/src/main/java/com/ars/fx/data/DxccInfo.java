@@ -92,6 +92,10 @@ public final class DxccInfo {
     /** What is known about {@code call}'s DXCC entity, or null when it cannot be resolved (or is maritime / aero mobile). */
     public static Info of(String call) {
         if (call == null || call.chars().noneMatch(Character::isDigit)) return null;   // every callsign has a digit; "TEST" or "QRZ" is not one
+        // an exact-call entry in the country files is the specific answer and beats any prefix: 4U1UN is the United Nations HQ,
+        // 4U1ITU the ITU HQ, though the prefix table files 4U under Italy
+        Info exact = fromCtyMatch(CtyData.current().exactMatch(call));
+        if (exact != null) return exact;
         DxccResolver.Entity e;
         try { e = DxccResolver.getInstance().resolve(call); } catch (RuntimeException ex) { e = null; }
         if (e == null) return fromCty(call);          // the engine's table has no answer: ask the contest country files
@@ -113,14 +117,29 @@ public final class DxccInfo {
         if (call == null) return null;
         String c = call.strip().toUpperCase(java.util.Locale.ROOT);
         if (!CALLISH.matcher(c).matches()) return null;                    // junk such as "TEST" must not land in an entity
-        CtyData.Match m = CtyData.current().lookup(c);
+        return fromCtyMatch(CtyData.current().lookup(c));
+    }
+
+    private static Info fromCtyMatch(CtyData.Match m) {
         if (m == null) return null;
         CtyData.Entity en = m.entity();
         int n = bridgeNumber(en);
         // when the engine knows the entity under another prefix, use its number and name so the entity is counted once
-        String name = n > 0 ? countryName(String.valueOf(n)) : en.name();
+        String name = n > 0 && table().containsKey(String.valueOf(n)) ? countryName(String.valueOf(n)) : en.name();
         return new Info(name, m.continent(), n, en.lat(), en.lonEast());
     }
+
+    /**
+     * ADIF entity numbers of the entities cty.dat reaches only through exact calls ("=4U1UN"), keyed by cty.dat's primary prefix:
+     * they have no ordinary prefix to probe the engine's table with, so {@link #bridgeNumber} could not find their number.
+     */
+    private static final Map<String, Integer> EXACT_ONLY = Map.of(
+            "4U1I", 117,    // ITU HQ, Geneva
+            "4U1U", 289,    // United Nations HQ, New York
+            "4U1V", 206,    // Vienna International Centre
+            "BS7", 506,     // Scarborough Reef
+            "VK0H", 111,    // Heard Island
+            "VK0M", 153);   // Macquarie Island
 
     /** The engine's DXCC number for a cty.dat entity, found by resolving one of its other prefixes; 0 when it has none. */
     private static int bridgeNumber(CtyData.Entity en) {
@@ -134,7 +153,8 @@ public final class DxccInfo {
                     if (r != null) return Integer.parseInt(r.id());
                 } catch (RuntimeException ignored) { /* try the next prefix */ }
             }
-            return 0;
+            Integer known = EXACT_ONLY.get(k.primary().replace("*", ""));
+            return known == null ? 0 : known;
         });
     }
 

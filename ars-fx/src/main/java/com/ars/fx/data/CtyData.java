@@ -141,6 +141,12 @@ public final class CtyData {
     // ---- lookup -----------------------------------------------------------------------------------------
     private static final java.util.Set<String> SUFFIXES = java.util.Set.of("P", "M", "MM", "AM", "QRP", "QRPP", "LH", "A", "B", "R", "T", "J");
 
+    /** Only an exact-call entry ("=4U1UN" in cty.dat) for this call, else null. */
+    public Match exactMatch(String call) {
+        if (call == null) return null;
+        return exact.get(call.strip().toUpperCase(Locale.ROOT));
+    }
+
     /** The entity for a callsign: an exact-call entry first, else the longest matching prefix. Null when nothing fits. */
     public Match lookup(String call) {
         if (call == null) return null;
