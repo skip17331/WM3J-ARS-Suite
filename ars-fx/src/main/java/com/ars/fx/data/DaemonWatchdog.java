@@ -169,8 +169,15 @@ public final class DaemonWatchdog {
     public static String last(String kind) { return LAST.getOrDefault(kind, ""); }
 
     private static final Map<String, String> DEVSTATE = new ConcurrentHashMap<>();
-    /** What the last check saw of {@code kind}'s serial device: "ok", "gone", or "" when it is not watched (network, not wanted, not checked yet). */
+    /** What the last check saw of {@code kind}'s serial device: "ok", "gone", "noaccess" (present but not readable/writable by us), or "" when it is not watched (network, not wanted, not checked yet). */
     public static String deviceState(String kind) { return DEVSTATE.getOrDefault(kind, ""); }
+
+    /** The device is there but this process cannot read and write it (typically: user not in dialout/uucp, or not re-logged-in since). */
+    static boolean noAccess(String serial) {
+        if (serial == null || !serial.startsWith("/")) return false;
+        Path p = Paths.get(serial);
+        return Files.exists(p) && !(Files.isReadable(p) && Files.isWritable(p));
+    }
 
     /** One check of one daemon. */
     static void check(String kind) {
@@ -179,7 +186,7 @@ public final class DaemonWatchdog {
         boolean watch = watchable(serial);
         boolean alive = DaemonManager.running(kind);
         String now = watch ? deviceId(serial) : null;
-        if (watch) DEVSTATE.put(kind, now == null ? "gone" : "ok"); else DEVSTATE.remove(kind);
+        if (watch) DEVSTATE.put(kind, now == null ? "gone" : noAccess(serial) ? "noaccess" : "ok"); else DEVSTATE.remove(kind);
         if (alive && watch && now != null) {
             if (probe(kind)) FAILS.put(kind, 0); else FAILS.merge(kind, 1, Integer::sum);
         } else FAILS.put(kind, 0);

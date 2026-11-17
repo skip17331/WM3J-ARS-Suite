@@ -99,7 +99,8 @@ final class HeroBar {
             boolean on = st != null && st.connected() && st.freqHz() > 0;
             rigF.setText(on ? RigClient.fmtFreq(st.freqHz()) : "—");
             String mode = on && st.mode() != null ? st.mode().trim() : "";
-            rigM.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode) : "rig offline");
+            rigM.setText(on ? (mode.isEmpty() ? "MHz" : "MHz  ·  " + mode)
+                    : "noaccess".equals(com.ars.fx.data.DaemonWatchdog.deviceState("rig")) ? "no serial permission (dialout)" : "rig offline");
         };
         java.util.function.Consumer<RigClient.State> rigLive = st -> rigNow.run();          // the readout follows the rig as it changes, not once a second
         rig.sceneProperty().addListener((o, was, now) -> {

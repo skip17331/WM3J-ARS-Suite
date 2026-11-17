@@ -25,6 +25,21 @@ class DaemonStatusTest {
     }
 
     @Test
+    void unreadableSerialPortSaysWhyAndHowToFixIt() {
+        Line l = DaemonStatus.describe(true, false, "noaccess", "");
+        assertEquals("warn", l.level());
+        assertTrue(l.text().contains("dialout"), l.text());
+        assertEquals("warn", DaemonStatus.describe(true, true, "noaccess", "").level(), "even if a daemon is up, no access is flagged");
+    }
+
+    @Test
+    void noAccessIsFalseForMissingDevicesAndNonPaths() {
+        assertFalse(DaemonWatchdog.noAccess("/dev/does-not-exist"));
+        assertFalse(DaemonWatchdog.noAccess("COM3"));
+        assertFalse(DaemonWatchdog.noAccess(null));
+    }
+
+    @Test
     void wantedButNotRunningIsAWarning() {
         Line gone = DaemonStatus.describe(true, false, "gone", "rig daemon: device COM3 is gone: stopped the daemon, waiting for it to come back");
         assertEquals("warn", gone.level());
