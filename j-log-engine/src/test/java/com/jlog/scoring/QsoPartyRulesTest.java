@@ -158,6 +158,19 @@ class QsoPartyRulesTest {
         assertEquals(7 + 100 + 2 + 100 + 200, ContestScorer.score(pl, l, in("LOW", "FIXED"), "field1", NO_BANDS, 0).score());
     }
 
+    @Test void mobileWorkedInEveryFiveCountiesEarnsABonus() throws Exception {
+        ContestPlugin pl = party("\"inStateCounties\":[\"C1\",\"C2\",\"C3\",\"C4\",\"C5\",\"C6\"],\"mobileCountiesBonus\":{\"perCounties\":5,\"points\":500}");
+        List<QsoRecord> l = new ArrayList<>();
+        for (String c : List.of("C1", "C2", "C3", "C4")) l.add(q("K5MOB", "20m", "CW", c, "ZZ", 1));
+        StationContext out = StationContext.of("W1XX", "FN20", "ZZ", "LOW", "FIXED");
+        int four = ContestScorer.score(pl, l, out, "field1", NO_BANDS, 0).score();
+        l.add(q("K5MOB", "40m", "SSB", "C5", "ZZ", 1));
+        l.add(q("K5MOB", "40m", "CW", "C5", "ZZ", 1));                     // same county again: counts once
+        ContestScore five = ContestScorer.score(pl, l, out, "field1", NO_BANDS, 0);
+        assertEquals(five.points() * five.mults() + 500, five.score(), "5 counties: +500");
+        assertEquals(4 * 4, four, "4 counties: no bonus yet");
+    }
+
     @Test void noNewRulesMeansTheScoreIsUnchanged() throws Exception {
         ContestPlugin pl = party("");
         List<QsoRecord> l = List.of(q("K1A", "20m", "CW", "BBB", "AAA", 2), q("K1B", "20m", "CW", "CCC", "BBB", 2));
