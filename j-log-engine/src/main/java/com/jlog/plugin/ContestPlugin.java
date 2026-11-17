@@ -301,6 +301,8 @@ public class ContestPlugin {
                                                         //   (every log this app writes is Cabrillo, so always given)
         private TimeWindowBonus timeWindowBonus;        // +pts per QSO on given bands inside UTC windows, capped
         private BonusSweep bonusSweep;                  // +pts once every one of these calls has been worked
+        private MobileCountiesBonus mobileCountiesBonus; // +pts for each N different in-state counties one station
+                                                        //   (a mobile) is worked from (TQP: +500 per 5, repeating)
 
         /** Per own county (the per-QSO sent county) activated by an entrant of one of {@code stations}: a county counts once it
          *  has {@code minQsos} scoring QSOs with at least {@code minCalls} different stations. It earns {@code points} after the
@@ -322,6 +324,14 @@ public class ContestPlugin {
             public List<String> getWindows(){ return windows; } public void setWindows(List<String> v){ windows = v; }
             public int getPointsPerQso(){ return pointsPerQso; } public void setPointsPerQso(int v){ pointsPerQso = v; }
             public int getCap(){ return cap; }                  public void setCap(int v){ cap = v; }
+        }
+        /** {@code points} after the multiply for every {@code perCounties} different in-state counties the same station (base call) is worked
+         *  from, any band or mode, one contact per county counting (TQP: +500 for each Texas mobile worked in 5 counties, +500 more for
+         *  each further 5). Only a mobile can be worked from several counties, so no mobile flag is needed. */
+        public static class MobileCountiesBonus {
+            private int perCounties = 5; private int points;
+            public int getPerCounties(){ return perCounties; } public void setPerCounties(int v){ perCounties = v; }
+            public int getPoints(){ return points; }           public void setPoints(int v){ points = v; }
         }
         /** {@code points} once, after the multiply, when every call in {@code calls} has been worked (NCQP "HIKENC": +200). */
         public static class BonusSweep {
@@ -350,6 +360,8 @@ public class ContestPlugin {
         public void setElectronicLogBonus(int v){ this.electronicLogBonus = v; }
         public TimeWindowBonus getTimeWindowBonus(){ return timeWindowBonus; }
         public void setTimeWindowBonus(TimeWindowBonus v){ this.timeWindowBonus = v; }
+        public MobileCountiesBonus getMobileCountiesBonus(){ return mobileCountiesBonus; }
+        public void setMobileCountiesBonus(MobileCountiesBonus v){ this.mobileCountiesBonus = v; }
         public BonusSweep getBonusSweep(){ return bonusSweep; }
         public void setBonusSweep(BonusSweep v){ this.bonusSweep = v; }
 

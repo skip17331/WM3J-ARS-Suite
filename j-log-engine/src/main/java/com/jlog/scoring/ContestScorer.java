@@ -656,6 +656,8 @@ public final class ContestScorer {
             Set<String> sweepCalls = sweep == null ? Set.of() : qpUpper(sweep.getCalls());
             Set<String> sweepSeen = new HashSet<>();
             boolean homeMult = c != null && c.isHomeCountyMult();
+            ContestPlugin.QsoPartyConfig.MobileCountiesBonus mcb = c == null ? null : c.getMobileCountiesBonus();
+            Map<String, Set<String>> mobileCounties = new java.util.HashMap<>();   // base call → in-state counties it was worked from
             boolean hf = c != null && c.isBonusStationsBelow50Mhz();
             for (QsoRecord q : qsos) {
                 if (q.isDupe()) continue;
@@ -672,6 +674,10 @@ public final class ContestScorer {
                     if (homeMult && meIn && QsoParty.isCounty(own, counties, countyLen, byExcl)) mset.add("C|" + own);
                     if (tw != null && twBands.contains(b.trim().toLowerCase(java.util.Locale.ROOT)) && inWindow(q, tw.getWindows())) twQsos++;
                     if (sweepCalls.contains(callKey)) sweepSeen.add(callKey);
+                    if (mcb != null) {
+                        String rc = q.getContestField1() == null ? "" : q.getContestField1().trim().toUpperCase(java.util.Locale.ROOT);
+                        if (QsoParty.isCounty(rc, counties, countyLen, byExcl)) mobileCounties.computeIfAbsent(callKey, x -> new HashSet<>()).add(rc);
+                    }
                 }
                 String call = q.getCallsign() == null ? "" : q.getCallsign().trim().toUpperCase();
                 String R  = q.getContestField1() == null ? ""
@@ -762,6 +768,8 @@ public final class ContestScorer {
                 bonusPts += tw.getCap() > 0 ? Math.min(twPts, tw.getCap()) : twPts;
             }
             if (sweep != null && !sweepCalls.isEmpty() && sweepSeen.size() == sweepCalls.size()) bonusPts += sweep.getPoints();
+            if (mcb != null && mcb.getPerCounties() > 0)                 // TQP: +500 per 5 counties a mobile was worked from, repeating
+                for (Set<String> cs : mobileCounties.values()) bonusPts += (cs.size() / mcb.getPerCounties()) * mcb.getPoints();
             if (c != null && c.getElectronicLogBonus() > 0) bonusPts += c.getElectronicLogBonus();
             int qpMults = mset.size();
             if (meIn && divisor > 0)
