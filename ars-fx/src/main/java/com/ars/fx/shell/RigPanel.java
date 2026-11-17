@@ -124,7 +124,7 @@ public final class RigPanel {
 
         VBox fastCol = nudgeCol("Fast", true, () -> rig.nudgeFreq(FAST_HZ), () -> rig.nudgeFreq(-FAST_HZ));
         VBox slowCol = nudgeCol("Slow", false, () -> rig.nudgeFreq(SLOW_HZ), () -> rig.nudgeFreq(-SLOW_HZ));
-        HBox freqRow = new HBox(8, fastCol, freqMid, slowCol); freqRow.setAlignment(Pos.CENTER);
+        HBox freqRow = new HBox(6, fastCol, freqMid, slowCol); freqRow.setAlignment(Pos.CENTER);
 
         Label vfoBLine = lbl("", "rc-vfo-b"); vfoBLine.setMaxWidth(Double.MAX_VALUE); vfoBLine.setStyle("-fx-cursor:hand;");
         Tips.tip(vfoBLine, "Split: the transmit frequency. Click to type it, scroll to step it by 1 kHz (Shift: 100 Hz).");
