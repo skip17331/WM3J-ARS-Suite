@@ -37,14 +37,15 @@ public final class Maidenhead {
     }
 
     /**
-     * Geographic center of a 4- or 6-character Maidenhead grid as
+     * Geographic center of a 4-, 6-, 8- or 10-character Maidenhead grid as
      * {@code {latitudeDeg, longitudeDeg}}, or {@code null} if the grid is not
-     * a valid 4- or 6-char locator. 6-char input is resolved to the subsquare
+     * valid locator. 6-char input is resolved to the subsquare
      * center; 4-char to the square center. Used by distance-scored contests.
      */
     public static double[] center(String s) {
         if (s == null) return null;
         String t = s.trim().toUpperCase();
+        if (t.matches("[A-R]{2}[0-9]{2}[A-X]{2}[0-9]{2}([A-X]{2})?")) return extended(t);   // 8 / 10 characters
         boolean six = isValid6(t);
         if (!six && !isValid4(t)) return null;
 
@@ -66,6 +67,21 @@ public final class Maidenhead {
             lat += 0.5;   // center of the 1° square
         }
         return new double[] { lat, lon };
+    }
+
+    /**
+     * Centre of an 8- or 10-character locator (FN20xr45, FN20xr45ab). Station setup takes any grid, and an operator who entered
+     * a precise 8-character one used to get no location at all: no bearings, distances or home point on the map.
+     */
+    private static double[] extended(String t) {
+        double lon = -180 + (t.charAt(0) - 'A') * 20 + (t.charAt(2) - '0') * 2 + (t.charAt(4) - 'A') * (2.0 / 24) + (t.charAt(6) - '0') * (2.0 / 240);
+        double lat =  -90 + (t.charAt(1) - 'A') * 10 + (t.charAt(3) - '0')     + (t.charAt(5) - 'A') * (1.0 / 24) + (t.charAt(7) - '0') * (1.0 / 240);
+        double w = 2.0 / 240, h = 1.0 / 240;                                     // the 8-character square
+        if (t.length() == 10) {
+            lon += (t.charAt(8) - 'A') * (w / 24); lat += (t.charAt(9) - 'A') * (h / 24);
+            w /= 24; h /= 24;
+        }
+        return new double[] { lat + h / 2, lon + w / 2 };
     }
 
     /**
