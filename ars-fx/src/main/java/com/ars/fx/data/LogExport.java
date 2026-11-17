@@ -44,7 +44,7 @@ public final class LogExport {
         field(sb, "QSO_DATE", dt[0]); field(sb, "TIME_ON", dt[1]);
         field(sb, "BAND", q.band() == null ? null : q.band().toLowerCase());
         String[] m = mode(q.mode()); field(sb, "MODE", m[0]); field(sb, "SUBMODE", m[1]);
-        field(sb, "FREQ", q.freq());
+        field(sb, "FREQ", Bands.normaliseMhz(q.freq()));                  // ADIF wants MHz; a QSO typed in kHz is fixed here
         field(sb, "RST_SENT", q.rstSent()); field(sb, "RST_RCVD", q.rstRcvd());
         field(sb, "NAME", q.name()); field(sb, "QTH", q.qth()); field(sb, "GRIDSQUARE", q.grid());
         field(sb, "STATE", q.state()); field(sb, "CNTY", q.county());

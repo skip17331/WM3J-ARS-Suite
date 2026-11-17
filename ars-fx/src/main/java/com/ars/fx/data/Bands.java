@@ -25,12 +25,45 @@ public final class Bands {
 
     /** Same, for a frequency typed in MHz ("14.074" or "14,074"); null if it cannot be read or is out of band. */
     public static String ofMhz(String mhz) {
-        if (mhz == null) return null;
+        String n = normaliseMhz(mhz);
+        if (n == null) return null;
         try {
-            double f = Double.parseDouble(mhz.replace(",", "").trim());
-            String b = plan().bandName(Math.round(f * 1_000_000.0));
-            return b;
+            String b = plan().bandName(Math.round(Double.parseDouble(n) * 1_000_000.0));
+            return b == null || b.isEmpty() ? null : b;
         } catch (Exception e) { return null; }
+    }
+
+    /**
+     * A typed or stored frequency as plain MHz ("14.025"), the unit the log and ADIF use. Accepts what operators type:
+     * <ul>
+     *   <li>kHz, as contest loggers take it: "14025" is 14.025 MHz. It used to be read as 14,025 MHz, so the QSO got no band
+     *       and was exported as {@code <FREQ:5>14025}, which LoTW and Club Log reject;</li>
+     *   <li>a decimal comma: "14,025" (it used to lose the comma and become 14,025 MHz);</li>
+     *   <li>the spot-list style "14.025.0".</li>
+     * </ul>
+     * A number of 1000 or more is taken as kHz when that lands in a band, except at 10 GHz and up where MHz is what microwave
+     * operators type (10368). Anything else is returned trimmed and unchanged; null and blank stay as they are.
+     */
+    public static String normaliseMhz(String s) {
+        if (s == null) return null;
+        String t = s.replace(" ", "").trim();
+        if (t.isEmpty()) return t;
+        if (t.matches("\\d+\\.\\d{3}\\.\\d+")) t = t.substring(0, t.lastIndexOf('.')) + t.substring(t.lastIndexOf('.') + 1);
+        if (t.contains(",")) t = t.contains(".") ? t.replace(",", "") : t.replace(',', '.');
+        double v;
+        try { v = Double.parseDouble(t); } catch (NumberFormatException e) { return s.trim(); }
+        if (v <= 0) return s.trim();
+        if (v >= 1000 && v < 10_000_000 && inBand(v / 1000) && (v < 10_000 || !inBand(v))) return plain(v / 1000);
+        return plain(v);
+    }
+
+    private static boolean inBand(double mhz) {
+        String b = plan().bandName(Math.round(mhz * 1_000_000.0));
+        return b != null && !b.isEmpty();
+    }
+
+    private static String plain(double mhz) {
+        return new java.math.BigDecimal(mhz).setScale(6, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     }
 
     /** "20" for "20m", "70" for "70cm" … for panels that label bands by number only; null out of band. */
