@@ -719,8 +719,8 @@ public final class ContestScorer {
                 boolean isCty = !isDx && QsoParty.isCounty(R, counties, countyLen, byExcl);
                 if (meIn || multsAll) {
                     if (isCty) {
-                        if (areaPfx > 0 && R.length() >= areaPfx)
-                            mset.add(sk + "S|" + R.substring(0, areaPfx));
+                        if (areaPfx > 0 && R.length() >= areaPfx)       // ACQP: an Atlantic province counts per band AND mode
+                            mset.add(sk + (c != null && c.isAreaPrefixPerMode() ? mc + "|" : "") + "S|" + R.substring(0, areaPfx));
                         else if (ownState) mset.add(sk + "S|" + stateAbbr);
                         else if (inCounties) mset.add(sk + "C|" + R);
                     } else if (isDx) {

@@ -142,6 +142,22 @@ class QsoPartyBundledRulesTest {
         StationContext in = StationContext.of("VE1XX", "FN84", "NSHRM", "LOW", "FIXED");
         List<QsoRecord> l = List.of(q(ac, in, "VE1AA", "20m", "SSB", "NSANP", "NSHRM"), q(ac, in, "VE9AA", "20m", "SSB", "NBYOR", "NSHRM"));
         assertEquals(2, ContestScorer.score(ac, l, in, ac.computeMultiplierDbColumn(), NO_BANDS, 0).mults(), "NS and NB on 20m, from the codes' first two letters");
+        // 2026 rules: an Atlantic province counts on each band AND mode, so NS on 20m CW is another multiplier; a state stays per band
+        List<QsoRecord> withCw = new ArrayList<>(l);
+        withCw.add(q(ac, in, "VE1AB", "20m", "CW", "NSCOL", "NSHRM"));
+        withCw.add(q(ac, in, "W1AA", "20m", "SSB", "MA", "NSHRM"));
+        withCw.add(q(ac, in, "W1AB", "20m", "CW", "MA", "NSHRM"));
+        assertEquals(4, ContestScorer.score(ac, withCw, in, ac.computeMultiplierDbColumn(), NO_BANDS, 0).mults(), "NS SSB, NB SSB, NS CW, MA once on 20m");
+    }
+
+    @Test void oklahomaUsesTheOkdxaList() {
+        ContestPlugin ok = plugin("OK_QSO_PARTY");
+        java.util.List<String> list = com.jlog.plugin.MultiplierLists.load(ok.getMultiplierList());
+        assertEquals(77, list.size());
+        assertTrue(list.containsAll(List.of("GNT", "GRA", "GRV", "MCU", "RGM", "WDW", "WAT")));
+        StationContext out = StationContext.of("W1XX", "FN31", "MA", "LOW", "FIXED");
+        assertTrue(q(ok, out, "K5AA", "20m", "CW", "TUL", "MA").getPoints() > 0);
+        assertEquals(0, q(ok, out, "K5AB", "20m", "CW", "XYZ", "MA").getPoints(), "any three letters used to count");
     }
 
     @Test void ontarioRoverReworksFromANewArea() {
