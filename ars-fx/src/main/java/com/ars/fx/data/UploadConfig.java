@@ -34,7 +34,11 @@ public final class UploadConfig {
                     new Field("callsign", "Callsign", false),
                     new Field("email", "Email", false),
                     new Field("password", "Password", true),
-                    new Field("apikey", "API key", true))));
+                    new Field("apikey", "API key", true))),
+            new Service("wavelog", "Wavelog", "your Wavelog's address, a read/write API key (Account > API) and the station profile id", List.of(
+                    new Field("url", "Wavelog address (https://...)", false),
+                    new Field("apikey", "API key (read/write)", true),
+                    new Field("station", "Station profile id", false))));
 
     private static JsonObject root;
 

@@ -141,6 +141,75 @@ public final class LogUpload {
                 + (fail > 0 && lastErr != null ? " (" + lastErr + ")" : ""));
     }
 
+    // ---- Wavelog (API v1: POST <address>/index.php/api/qso) -----------------
+    /** QSOs per request: Wavelog takes several ADIF records in one "string" and dupe-checks them itself. */
+    static final int WAVELOG_BATCH = 100;
+
+    public static Result wavelog() {
+        return wavelog(JLogDb.allForExport(), UploadConfig.field("wavelog", "url"), UploadConfig.field("wavelog", "apikey"),
+                UploadConfig.field("wavelog", "station"));
+    }
+
+    /**
+     * Send {@code rows} to a Wavelog log (docs.wavelog.org, API v1 "api/qso"): JSON {key, station_profile_id, type:"adif", string} with up
+     * to {@link #WAVELOG_BATCH} ADIF records per request. Wavelog skips QSOs it already has, so the whole log can be sent again safely.
+     * The v1 docs do not describe the reply, so a 2xx answer without an error / abort status counts as accepted, and Wavelog's own reply
+     * is shown either way.
+     */
+    public static Result wavelog(List<JLogDb.QsoExport> rows, String address, String key, String station) {
+        if (rows.isEmpty()) return new Result(false, 0, "No QSOs to upload.");
+        String endpoint = wavelogEndpoint(address);
+        if (endpoint == null || key == null || key.isBlank() || station == null || station.isBlank())
+            return new Result(false, 0, "Wavelog address, API key and station profile id not all set.");
+        int sent = 0;
+        String last = "";
+        for (int i = 0; i < rows.size(); i += WAVELOG_BATCH) {
+            List<JLogDb.QsoExport> part = rows.subList(i, Math.min(rows.size(), i + WAVELOG_BATCH));
+            StringBuilder adif = new StringBuilder();
+            for (JLogDb.QsoExport q : part) adif.append(LogExport.toAdifRecord(q));
+            com.google.gson.JsonObject body = new com.google.gson.JsonObject();
+            body.addProperty("key", key.trim());
+            body.addProperty("station_profile_id", station.trim());
+            body.addProperty("type", "adif");
+            body.addProperty("string", adif.toString());
+            try {
+                HttpRequest req = HttpRequest.newBuilder(URI.create(endpoint)).timeout(Duration.ofSeconds(60))
+                        .header("Content-Type", "application/json").header("Accept", "application/json")
+                        .header("User-Agent", "ARS-Suite-JLog")
+                        .POST(HttpRequest.BodyPublishers.ofString(body.toString(), StandardCharsets.UTF_8)).build();
+                HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+                last = resp.body();
+                String status = wavelogStatus(last);
+                boolean ok = resp.statusCode() / 100 == 2 && !"error".equals(status) && !"abort".equals(status) && !"failed".equals(status);
+                if (!ok) return new Result(sent > 0, sent, "Wavelog: stopped after " + sent + " QSOs (HTTP " + resp.statusCode() + "): " + tail(last));
+                sent += part.size();
+            } catch (Exception e) {
+                return new Result(sent > 0, sent, "Wavelog upload error after " + sent + " QSOs: " + e.getMessage());
+            }
+        }
+        return new Result(true, sent, "Wavelog: sent " + sent + " QSOs (Wavelog skips ones it already has): " + tail(last));
+    }
+
+    /** "https://log.example.com", ".../", ".../index.php" or the full ".../index.php/api/qso" all give the api/qso endpoint; null when blank. */
+    static String wavelogEndpoint(String address) {
+        if (address == null || address.isBlank()) return null;
+        String a = address.trim();
+        if (!a.matches("(?i)https?://.*")) a = "https://" + a;
+        a = a.replaceAll("/+$", "");
+        if (a.toLowerCase(java.util.Locale.ROOT).endsWith("/api/qso")) return a;
+        if (a.toLowerCase(java.util.Locale.ROOT).endsWith("/index.php")) return a + "/api/qso";
+        return a + "/index.php/api/qso";
+    }
+
+    /** The "status" of a JSON reply, lower-cased; "" when there is none or it is not JSON. */
+    static String wavelogStatus(String body) {
+        try {
+            com.google.gson.JsonElement e = com.google.gson.JsonParser.parseString(body == null ? "" : body);
+            if (e.isJsonObject() && e.getAsJsonObject().has("status")) return e.getAsJsonObject().get("status").getAsString().toLowerCase(java.util.Locale.ROOT);
+        } catch (RuntimeException ignored) { }
+        return "";
+    }
+
     // ---- HTTP helpers ------------------------------------------------------
     private static String post(String url, Multipart mp) throws Exception {
         HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(60))

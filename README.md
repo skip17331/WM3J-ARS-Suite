@@ -131,10 +131,12 @@ J‑Log/J‑Digi, **not** from per‑app duplicates.
 
 ### Log uploaders
 
-Push QSOs from J‑Log to **eQSL.cc**, **Club Log**, **QRZ Logbook**, and
-**HRDLog** with one click. Credentials are encrypted on disk
-(AES‑GCM, key tied to this machine). Already‑uploaded QSOs are tracked
-so subsequent runs only push the new ones.
+Push QSOs from J‑Log to **LoTW** (signed with TrustedQSL), **eQSL.cc**,
+**Club Log**, **QRZ Logbook** and **Wavelog** with one click. LoTW and
+eQSL can also upload each new QSO automatically, tracking which QSOs each
+has already had; **Get confirmations** downloads your LoTW and eQSL
+confirmations. Logins are stored in `~/.j-log/upload.json`, readable by
+your account only but not encrypted (see [LEGAL.md](LEGAL.md)).
 
 ### J‑Map
 
