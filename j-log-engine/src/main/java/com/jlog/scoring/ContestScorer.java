@@ -281,6 +281,12 @@ public final class ContestScorer {
             Integer pp = c.getPointsByPower().get(ctx.power());    // IDQP: every QRP QSO is worth 5, whatever the mode
             if (pp != null) base = pp;
         }
+        if (c != null && c.getPointsByStation() != null && !ctx.station().isEmpty()) {
+            String st = ctx.station();                               // ARQP: mobile / portable / rover QSOs are worth 2
+            Integer sp = c.getPointsByStation().get(st);
+            if (sp == null && st.contains("-")) sp = c.getPointsByStation().get(st.substring(0, st.indexOf('-')));
+            if (sp != null) base = sp;
+        }
         return base;
     }
 

@@ -76,6 +76,14 @@ class QsoPartyRulesTest {
         assertEquals(2, ContestScorer.points(pl, cw, in("LOW", "FIXED")));
     }
 
+    @Test void pointsByStationSetsEveryScoringQsosPoints() throws Exception {
+        ContestPlugin pl = party("\"pointsByStation\":{\"MOBILE\":2,\"ROVER\":2}");
+        QsoRecord a = q("K1A", "20m", "SSB", "BBB", "AAA", 0);
+        assertEquals(2, ContestScorer.points(pl, a, in("LOW", "MOBILE")));
+        assertEquals(2, ContestScorer.points(pl, a, in("LOW", "ROVER-UNLIMITED")), "ROVER-UNLIMITED counts as ROVER");
+        assertEquals(1, ContestScorer.points(pl, a, in("LOW", "FIXED")));
+    }
+
     // ---- mobile / rover county activation ---------------------------------------
 
     @Test void activationBonusPerOwnCountyWithEnoughQsos() throws Exception {
