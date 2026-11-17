@@ -59,6 +59,7 @@ class QsoPartyBundledRulesTest {
         assertEquals(1.5, cfg("VT_QSO_PARTY").getPowerMultiplier().get("LOW"));
         assertEquals(4.0, cfg("MDC_QSO_PARTY").getStationMultiplier().get("ROVER"));
         assertEquals(5, cfg("ID_QSO_PARTY").getPointsByPower().get("QRP"));
+        assertEquals(2, cfg("AR_QSO_PARTY").getPointsByStation().get("ROVER"));
     }
 
     @Test void pennsylvaniaRoverActivatesACountyAt10Qsos() {

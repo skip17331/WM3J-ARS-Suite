@@ -287,6 +287,8 @@ public class ContestPlugin {
         private Map<String,Double> stationMultiplier;   // CATEGORY-STATION → × as above (MDC: ROVER 4 ...)
         private Map<String,Integer> pointsByPower;      // CATEGORY-POWER → every scoring QSO is worth this
                                                         //   (IDQP: all QRP QSOs = 5)
+        private Map<String,Integer> pointsByStation;    // CATEGORY-STATION → every scoring QSO is worth this
+                                                        //   (ARQP: mobile / portable / rover = 2)
         private ActivationBonus activationBonus;        // mobile / rover / portable: per own county activated
         private boolean ownCountyDupe;                  // the entrant's own sent county (per QSO) is part of the
                                                         //   dupe key: a mobile re-works everyone from a new county
@@ -332,6 +334,8 @@ public class ContestPlugin {
         public void setStationMultiplier(Map<String,Double> v){ this.stationMultiplier = v; }
         public Map<String,Integer> getPointsByPower(){ return pointsByPower; }
         public void setPointsByPower(Map<String,Integer> v){ this.pointsByPower = v; }
+        public Map<String,Integer> getPointsByStation(){ return pointsByStation; }
+        public void setPointsByStation(Map<String,Integer> v){ this.pointsByStation = v; }
         public ActivationBonus getActivationBonus(){ return activationBonus; }
         public void setActivationBonus(ActivationBonus v){ this.activationBonus = v; }
         public boolean isOwnCountyDupe(){ return ownCountyDupe; }
