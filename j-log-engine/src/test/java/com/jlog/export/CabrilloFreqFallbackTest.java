@@ -39,6 +39,14 @@ class CabrilloFreqFallbackTest {
         assertEquals("7000", CabrilloExporter.cabBand(" 40M "));
         assertEquals("??",   CabrilloExporter.cabBand(null));
         assertEquals("??",   CabrilloExporter.cabBand(""));
-        assertEquals("4m",   CabrilloExporter.cabBand("4m"));
+        assertEquals("60m",  CabrilloExporter.cabBand("60m"));
+    }
+
+    @Test void bandWithoutAFrequencyUsesTheCabrilloDesignator() {
+        assertEquals("14000", CabrilloExporter.cabFreq(null, "20m"));
+        assertEquals("14025", CabrilloExporter.cabFreq("14025", "20m"), "a logged frequency wins");
+        String[][] vhf = {{"6m","50"},{"4m","70"},{"2m","144"},{"1.25m","222"},{"70cm","432"},{"33cm","902"},
+                          {"23cm","1.2G"},{"13cm","2.3G"},{"9cm","3.4G"},{"6cm","5.7G"},{"3cm","10G"}};
+        for (String[] b : vhf) assertEquals(b[1], CabrilloExporter.cabFreq("", b[0]), b[0]);
     }
 }
