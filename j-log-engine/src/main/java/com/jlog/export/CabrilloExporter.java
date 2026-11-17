@@ -277,17 +277,19 @@ public class CabrilloExporter {
         };
     }
 
-    private static String cabMode(String mode) {
-        if (mode == null) return "??";
-        return switch (mode.toUpperCase()) {
-            case "CW"           -> "CW";
-            case "USB", "LSB",
-                 "AM", "FM"     -> "PH";
-            case "RTTY","FSK-R" -> "RY";
-            case "FT8","FT4",
-                 "PSK31"        -> "DG";
-            default             -> "PH";
-        };
+    /**
+     * The Cabrillo mode code for a logged mode: CW, PH (all voice), RY (RTTY / FSK) or DG (every other data mode). Anything
+     * not named used to fall to PH, so CW-R went out as phone and JS8, PSK63, Olivia, MFSK, DominoEX, Q65 and DIGI as phone
+     * instead of DG.
+     */
+    static String cabMode(String mode) {
+        if (mode == null || mode.isBlank()) return "??";
+        String m = mode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (m.equals("CW") || m.equals("CW-R") || m.equals("CWR")) return "CW";
+        if (m.equals("SSB") || m.equals("USB") || m.equals("LSB") || m.equals("AM") || m.equals("FM") || m.equals("PH")
+                || m.equals("PHONE") || m.equals("DV") || m.equals("VOICE") || m.equals("DIGITALVOICE")) return "PH";
+        if (m.startsWith("RTTY") || m.startsWith("FSK") || m.equals("RY")) return "RY";
+        return "DG";                                                     // FT8, FT4, JS8, PSK*, MFSK*, OLIVIA, DOMINO*, Q65, DIGI, PKT* ...
     }
 
     private static String nullSafe(String s) {
