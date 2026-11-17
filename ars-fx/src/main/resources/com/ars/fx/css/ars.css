@@ -549,6 +549,7 @@
 .js-tel-k { -fx-font-size: 9px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .js-tel-v { -fx-font-family: "JetBrains Mono"; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -ars-t1; }
 .js-tel-v.neg { -fx-text-fill: -ars-sat; }
+.js-tel-v.js-los-timer.live { -fx-text-fill: -ars-ok; }   /* the AOS-to-LOS countdown while a pass is on */
 .js-tel-u { -fx-font-size: 10px; -fx-text-fill: -ars-t3; }
 /* radio · doppler */
 .js-radio { -fx-background-color: -ars-surface-2; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 11 14 11 14; }

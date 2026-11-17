@@ -100,6 +100,7 @@ public final class JSatView {
             com.ars.fx.shell.Fx.everySecond(() -> {
                 if (host != null && host.lookup(".sx-clock-v") instanceof Label l)
                     l.setText(java.time.LocalTime.now(java.time.ZoneOffset.UTC).format(HMS));
+                if (host != null && host.lookup(".js-los-timer") instanceof Label t) paintLosTimer(t);
             });
         }
         return host;
@@ -160,16 +161,27 @@ public final class JSatView {
         return snap.tracked();
     }
 
-    /** How long the focus sat is reachable: time-left while in a pass, else the next pass window. */
+    /** How long the focus sat's pass (the one in progress, else the next) lasts, AOS to LOS. The time left is the LOS IN timer. */
     private static String reachable(SatInfo f) {
         if (f == null) return "—";
         long window = (f.losEpoch() > f.aosEpoch() && f.aosEpoch() > 0) ? f.losEpoch() - f.aosEpoch() : f.nextDurSec();
-        if (window <= 0) return "—";
-        if (f.inPass()) {
-            long left = f.losEpoch() - java.time.Instant.now().getEpochSecond();
-            if (left > 0) return SatService.compact(left) + " left";
-        }
-        return SatService.compact(window);
+        return window <= 0 ? "—" : SatService.compact(window);
+    }
+
+    /** AOS / LOS (epoch s) of the focus satellite's pass, for the LOS IN timer that ticks between frame rebuilds. */
+    private static volatile long timerAos = -1, timerLos = -1;
+    private static String losTimerText() { return losTimer(timerAos, timerLos, java.time.Instant.now().getEpochSecond()); }
+    private static void paintLosTimer(Label t) {
+        String txt = losTimerText();
+        t.setText(txt);
+        boolean live = !txt.startsWith("-");
+        if (live != t.getStyleClass().contains("live")) { if (live) t.getStyleClass().add("live"); else t.getStyleClass().remove("live"); }
+    }
+    /** The countdown from AOS to LOS: "07:42" (or "1:02:05") while the pass is on, "--:--" before AOS or after LOS. Pure, for tests. */
+    static String losTimer(long aos, long los, long now) {
+        if (aos <= 0 || los <= aos || now < aos || now >= los) return "--:--";
+        long left = los - now, h = left / 3600, m = left / 60 % 60, sec = left % 60;
+        return h > 0 ? String.format("%d:%02d:%02d", h, m, sec) : String.format("%02d:%02d", m, sec);
     }
 
     private static Region frame(Snapshot snap) {
@@ -302,17 +314,13 @@ public final class JSatView {
         repaint.run();
         }
 
-        long dopHz = f.downlinkCorrHz() - f.downlinkHz();
+        // AZ / EL are in the top bar and the up/downlink, Doppler shift and mode in the Radio · Doppler drawer: not repeated here
+        timerAos = f.aosEpoch(); timerLos = f.losEpoch();
         String[][] cells = {
-                {"AZIMUTH", String.format("%03.0f", f.azDeg()), "°", ""},
-                {"ELEVATION", String.format("%.0f", f.elDeg()), "°", f.elDeg() < 0 ? "y" : ""},
+                {"LOS IN", losTimerText(), "", ""},
                 {"ALTITUDE", com.ars.fx.data.Units.distNum(f.altKm()), com.ars.fx.data.Units.distUnit(), ""},
                 {"RANGE", com.ars.fx.data.Units.distNum(f.rangeKm()), com.ars.fx.data.Units.distUnit(), ""},
-                {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""},
-                {"DOPPLER", String.format("%+.1f", dopHz / 1000.0), "kHz", dopHz < 0 ? "y" : ""},
-                {"UPLINK", SatService.mhz4(f.uplinkCorrHz()), f.uplinkCorrHz() > 0 ? "MHz" : "", ""},
-                {"DOWNLINK", SatService.mhz4(f.downlinkCorrHz()), f.downlinkCorrHz() > 0 ? "MHz" : "", ""},
-                {"MODE", f.mode() == null || f.mode().isBlank() ? "—" : f.mode(), "", ""}};
+                {"RANGE RATE", com.ars.fx.data.Units.kmsNum(f.rangeRateKmS()), com.ars.fx.data.Units.kmsUnit(), f.rangeRateKmS() < 0 ? "y" : ""}};
         // wraps to a second line when the plot column is too narrow for every tile
         javafx.scene.layout.FlowPane tel = new javafx.scene.layout.FlowPane(12, 12); tel.setAlignment(Pos.CENTER); tel.setPadding(new Insets(0, 0, 22, 0));
         List<Label> keys = new ArrayList<>(), vals = new ArrayList<>(), units = new ArrayList<>();
@@ -320,6 +328,7 @@ public final class JSatView {
         for (String[] c : cells) {
             Label k = lbl(c[0], "js-tel-k"), v = lbl(c[1], "js-tel-v"), u = lbl(c[2], "js-tel-u");
             if (c[3].equals("y")) v.getStyleClass().add("neg");
+            if (c[0].equals("LOS IN")) { v.getStyleClass().add("js-los-timer"); paintLosTimer(v); }
             HBox vu = new HBox(3, v, u); vu.setAlignment(Pos.BOTTOM_LEFT);
             VBox cell = new VBox(3, k, vu); cell.getStyleClass().add("js-tel");
             keys.add(k); vals.add(v); units.add(u); tiles.add(cell);
