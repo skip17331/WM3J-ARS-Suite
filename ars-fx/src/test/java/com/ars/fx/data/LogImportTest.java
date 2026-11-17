@@ -49,4 +49,29 @@ class LogImportTest {
         assertEquals(1, r.size());
         assertEquals("a <b> c d", r.get(0).get("COMMENT"));
     }
+
+    // José is 4 characters and 5 UTF-8 bytes; fields packed with no space between them
+    private static final String REC = "<EOH><CALL:5>EA1AB<NAME:%d>José<QTH:6>Madrid<GRIDSQUARE:4>IN80"
+            + "<QSO_DATE:8>20260101<TIME_ON:4>1200<BAND:3>20m<MODE:2>CW<EOR>";
+
+    @Test void aByteLengthAfterANonAsciiLetterNoLongerSwallowsTheNextField() {
+        Map<String, String> r = LogImport.parse(String.format(REC, 5)).get(0);
+        assertEquals("José", r.get("NAME"));
+        assertEquals("Madrid", r.get("QTH"), "used to be lost");
+        assertEquals("IN80", r.get("GRIDSQUARE"));
+    }
+
+    @Test void aCharacterLengthStillWorks() {
+        Map<String, String> r = LogImport.parse(String.format(REC, 4)).get(0);
+        assertEquals("José", r.get("NAME"));
+        assertEquals("Madrid", r.get("QTH"));
+    }
+
+    @Test void threeAndFourByteCharacters() {
+        // Tokyo in kanji: 2 chars, 6 bytes. An emoji: 2 chars (a surrogate pair), 4 bytes.
+        assertEquals("東京", LogImport.parse("<CALL:5>JA1AA<QTH:6>東京<EOR>").get(0).get("QTH"));
+        Map<String, String> r = LogImport.parse("<CALL:5>JA1AA<COMMENT:6>hi😀<NAME:3>Ken<EOR>").get(0);
+        assertEquals("hi😀", r.get("COMMENT"));
+        assertEquals("Ken", r.get("NAME"));
+    }
 }

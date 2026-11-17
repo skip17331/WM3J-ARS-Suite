@@ -99,7 +99,29 @@ public final class LogImport {
         catch (CharacterCodingException e) { return new String(b, java.nio.charset.Charset.forName("windows-1252")); }
     }
 
-    /** Each record's fields by upper-case name. Lengths are in bytes of the original, so they are counted on the decoded text. */
+    /**
+     * Where a field's value ends. ADIF lengths are counted in UTF-8 bytes by most loggers (Log4OM, N1MM+, Club Log) and in
+     * characters by some; they differ only when the value has a non-ASCII letter. Counting characters for a byte length ran
+     * past the value: "<NAME:5>José<QTH:6>Madrid" gave NAME "José<" and lost QTH (and any later field) of that record.
+     * The byte reading is taken when it lands on the next tag, a space or the end, otherwise the character reading.
+     */
+    static int valueEnd(String t, int start, int len) {
+        int n = t.length();
+        int charEnd = Math.min(n, start + len);
+        int bytes = 0, j = start;
+        while (j < n) {
+            int cp = t.codePointAt(j);
+            int w = cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4;
+            if (bytes + w > len) break;
+            bytes += w; j += Character.charCount(cp);
+        }
+        int byteEnd = j;
+        if (byteEnd == charEnd) return charEnd;
+        boolean byteClean = byteEnd >= n || t.charAt(byteEnd) == '<' || Character.isWhitespace(t.charAt(byteEnd));
+        return byteClean ? byteEnd : charEnd;
+    }
+
+    /** Each record's fields by upper-case name; see {@link #valueEnd} for how a length is read. */
     static List<Map<String, String>> parse(String t) {
         List<Map<String, String>> out = new ArrayList<>();
         int i = 0, n = t.length();
@@ -120,7 +142,7 @@ public final class LogImport {
             if (name.equals("EOH") || p.length < 2) continue;
             int len;
             try { len = Integer.parseInt(p[1].trim()); } catch (NumberFormatException e) { continue; }
-            int end = Math.min(n, i + len);
+            int end = valueEnd(t, i, len);
             String val = t.substring(i, end).trim();
             if (!val.isEmpty()) cur.put(name, val);
             i = end;
