@@ -71,7 +71,8 @@ public final class JVaultView {
 
         Region rail = Shell.rail(new Node[]{
                 Shell.drawer("Item detail", "vault", "vault", "", true, detailBody),
-                Shell.drawer("Estate · first-call contacts", "learn", "learn", "", true, estateBody())});
+                Shell.drawer("Estate · first-call contacts", "learn", "learn", "", true, estateBody()),
+                Shell.drawer("Estate · license & memberships", "learn", "learn", "", false, licenseBody())});
         return Shell.frame(dock, top, sp, rail);
     }
 
@@ -113,7 +114,19 @@ public final class JVaultView {
                 status.setText("✓ Exported " + JVaultDb.totals().count() + " items → " + f);
             } catch (Exception ex) { status.setText("✗ Export failed: " + ex.getMessage()); }
         });
-        HBox row = new HBox(12, search, catBox, sp, export, add); row.setAlignment(Pos.CENTER_LEFT);
+        Label estate = btn("Estate document", false);
+        com.ars.fx.shell.Tips.tip(estate, "A printable page for your family: what to do first, your first-call contacts and the inventory. Opens in your browser to print or save as PDF");
+        estate.setOnMouseClicked(e -> {
+            try {
+                com.ars.fx.data.EstateDocument.Station st = com.ars.fx.data.EstateDocument.Station.fromSettings();
+                String html = com.ars.fx.data.EstateDocument.html(st, JVaultDb.licenseInfo(), JVaultDb.items(null, null), JVaultDb.contacts(), java.time.LocalDate.now());
+                Path f = com.ars.fx.data.EstateDocument.save(com.ars.fx.data.EstateDocument.folder(), st.call(), html, java.time.LocalDateTime.now());
+                status.setText("✓ Estate document saved → " + f + " (opening it in your browser: print it or save it as PDF from there)");
+                com.ars.fx.data.LinkOpener.openFile(f, () -> javafx.application.Platform.runLater(() ->
+                        status.setText("✓ Estate document saved → " + f + " (could not open it: open that file in a browser to print it)")));
+            } catch (Exception ex) { status.setText("✗ Estate document failed: " + ex.getMessage()); }
+        });
+        HBox row = new HBox(12, search, catBox, sp, estate, export, add); row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
 
@@ -245,6 +258,8 @@ public final class JVaultView {
             else for (JVaultDb.Contact c : cs) {
                 VBox txt = new VBox(1, lbl(c.name() + (c.callsign() == null || c.callsign().isBlank() ? "" : " · " + c.callsign()), "jv-doc-t"),
                         lbl(nv(c.relationship()) + (c.itemsWanted() == null || c.itemsWanted().isBlank() ? "" : " — " + c.itemsWanted()), "jv-doc-s"));
+                String reach = String.join(" · ", java.util.stream.Stream.of(c.phone(), c.email()).filter(s -> s != null && !s.isBlank()).toList());
+                if (!reach.isEmpty()) txt.getChildren().add(lbl(reach, "jv-doc-s"));
                 HBox.setHgrow(txt, Priority.ALWAYS); txt.setMaxWidth(Double.MAX_VALUE);
                 Label x = lbl("✕", "jv-doc-d"); x.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-t4;");
                 boolean[] armed = {false};
@@ -254,13 +269,40 @@ public final class JVaultView {
             }
         };
         refresh[0].run();
-        TextField nm = mini("name"), cs = mini("callsign"), rel = mini("relationship"), want = mini("items wanted");
+        TextField nm = mini("name"), cs = mini("callsign"), rel = mini("relationship"), want = mini("items wanted"),
+                ph = mini("phone"), em = mini("e-mail");
         Label add = btn("Add contact", true);
-        add.setOnMouseClicked(e -> { if (!nm.getText().isBlank()) { JVaultDb.addContact(nm.getText(), cs.getText(), rel.getText(), want.getText());
-            for (TextField t : new TextField[]{nm, cs, rel, want}) t.clear(); refresh[0].run(); } });
-        VBox form = new VBox(6, new HBox(6, nm, cs), new HBox(6, rel, want), add);
+        add.setOnMouseClicked(e -> { if (!nm.getText().isBlank()) { JVaultDb.addContact(nm.getText(), cs.getText(), rel.getText(), want.getText(), ph.getText(), em.getText());
+            for (TextField t : new TextField[]{nm, cs, rel, want, ph, em}) t.clear(); refresh[0].run(); } });
+        VBox form = new VBox(6, new HBox(6, nm, cs), new HBox(6, ph, em), new HBox(6, rel, want), add);
         box.getChildren().addAll(list, form);
         return box;
+    }
+
+    /**
+     * The details the family needs to cancel the license and report the Silent Key, printed in the estate document's FCC and ARRL
+     * sections: the FRN, license class and expiry, where the FCC login password is kept (never the password), the ARRL member number
+     * and other clubs.
+     */
+    private static VBox licenseBody() {
+        JVaultDb.LicenseInfo li = JVaultDb.licenseInfo();
+        TextField frn = mini("FRN (10 digits)"), cls = mini("license class, e.g. Amateur Extra"), exp = mini("expires, e.g. 2031-04-12"),
+                where = mini("where the FCC login password is kept"), arrl = mini("ARRL member number"), clubs = mini("other clubs to tell");
+        frn.setText(li.frn()); cls.setText(li.licenseClass()); exp.setText(li.expires());
+        where.setText(li.passwordWhere()); arrl.setText(li.arrlMember()); clubs.setText(li.clubs());
+        Label note = lbl("Printed in the estate document so your family can cancel the license with the FCC and report you to ARRL. "
+                + "Write down where the FCC (CORES / ULS) password is kept, not the password itself. Your FRN is shown with your call in the FCC's license search.", "jv-note");
+        note.setWrapText(true);
+        Label status = lbl("", "jv-note"); status.setWrapText(true);
+        Label save = btn("Save", true);
+        save.setOnMouseClicked(e -> {
+            String f = frn.getText() == null ? "" : frn.getText().replaceAll("[\\s-]", "");
+            if (!f.isEmpty() && !f.matches("\\d{10}")) { status.setText("✗ An FRN is 10 digits; check it and save again."); return; }
+            frn.setText(f);
+            boolean ok = JVaultDb.saveLicenseInfo(new JVaultDb.LicenseInfo(f, cls.getText(), exp.getText(), where.getText(), arrl.getText(), clubs.getText()));
+            status.setText(ok ? "✓ Saved. Make a new estate document to print it." : "✗ Could not save.");
+        });
+        return new VBox(7, note, frn, new HBox(6, cls, exp), where, new HBox(6, arrl, clubs), save, status);
     }
 
     // ---- helpers -----------------------------------------------------------
