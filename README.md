@@ -53,8 +53,8 @@ One app, these modules — each a surface you can dock or float in its own windo
 |---|---|
 | **J‑Hub** | The control surface: dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, and all settings. Reached from the dock (docked) or the ⚙ gear (loose). |
 | **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
-| **J‑Map** | Real‑time DX map with grayline, propagation overlays, weather, aurora, and great‑circle paths to spotted DX. |
-| **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
+| **J‑Map** | Real‑time DX map (flat, azimuthal or 3D globe) with grayline, beacons, propagation estimates and great‑circle paths to spotted DX. |
+| **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK16, DominoEX, CW and AX.25 packet. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
 | **J‑Sat** | Satellite tracker with Doppler correction and rotor control. |
 | **J‑Vault** | Shack inventory + **first‑call contacts** so your family knows who to call when you're SK, with a **printable estate document** and CSV export. SQLite‑backed. |
@@ -140,15 +140,18 @@ your account only but not encrypted (see [LEGAL.md](LEGAL.md)).
 
 ### J‑Map
 
-Real‑time grayline + DX spots + ITU/CQ zones + Skywarn / aurora /
-geomagnetic alerts + tropo + lightning + weather radar. Shares one DX‑cluster
+Real‑time DX spots on a flat, azimuthal or 3D‑globe map, with the grayline,
+your beam heading and range rings, spot paths and station‑to‑station tracks,
+the NCDXF beacons (with QSY and band hopping), who's hearing you, and a
+path‑open estimate on each spot from the solar data. Shares one DX‑cluster
 connection with the rest of the suite (one telnet connection serves every
 module). Runs loose on a second machine as a dedicated shack display.
 
 ### J‑Sat
 
-Doppler‑corrected satellite tracking with rotor control. ISS APRS, FM birds,
-linear birds. Pass prediction with editable keplerian elements.
+Doppler‑corrected satellite tracking with rotor control, pass prediction and
+pass alarms, shown as a polar plot, a Blue Marble map or a 3D globe. Orbital
+elements are downloaded and cached in `~/.j-sat/`.
 
 ---
 
