@@ -139,3 +139,14 @@
 }
 .ins .jl-macro:hover   { -fx-border-color: -ars-accent-line; -fx-effect: dropshadow(gaussian, -ars-accent-dim, 9, 0.2, 0, 0); }
 .ins .jl-macro:pressed { -fx-background-insets: 0, 3 0 0 0; -fx-padding: 10 12 7 12; }
+
+/* ---- band activity meters (InstrumentStrip.BandMeters): a faceplate in the scheme's colours ---------------- */
+.ins .ins-meters {
+    -fx-background-color: linear-gradient(to bottom, -ars-surface-2, derive(-ars-surface-1, -4%));
+    -fx-background-radius: 14;
+    -fx-border-color: -ars-border-2;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 14;
+}
+.ins .ins-meters-ink { -fx-fill: -ars-t1; }          /* the title and band labels */
+.ins .ins-meters-off { -fx-fill: -ars-surface-3; }   /* unlit LED segments */

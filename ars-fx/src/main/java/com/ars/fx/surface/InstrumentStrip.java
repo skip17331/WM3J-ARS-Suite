@@ -29,7 +29,7 @@ import java.util.List;
  * The Instrument panel dashboard's gauge row: four round needle dials (QSOs today, QSOs in the log, spots on air, needed spots) and a bank of
  * LED-segment meters for band activity. It replaces the Cockpit's stat tiles in that look only, and is kept current by {@link #update}.
  *
- * <p>Everything is drawn on canvases with fixed colours, because a real panel is dark whatever the room lighting: a bezel, a black face, white
+ * <p>The band meters' panel follows the colour scheme (see {@link BandMeters}). The dials are drawn with fixed colours, because a real gauge is dark whatever the room lighting: a bezel, a black face, white
  * block numerals, and an orange needle that swings to the new reading when it changes. A dial's scale grows by steps (10, 20, 50, 100, ...)
  * so the needle always has somewhere to go.
  */
@@ -164,14 +164,32 @@ final class InstrumentStrip extends HBox {
     }
 
     // ---- band activity: banks of LED segments ----------------------------------
+    /**
+     * The panel's background and border come from the stylesheet ({@code .ins-meters} in instrument.css), so they follow the colour scheme. The
+     * lettering and the unlit segments take theirs from two hidden {@link javafx.scene.text.Text} nodes styled there too, read back on each draw;
+     * the lit segments keep their fixed green / amber / red, which is what the meter means.
+     */
     private static final class BandMeters extends Pane {
         private final Canvas cv = new Canvas();
+        private final javafx.scene.text.Text ink = hiddenSwatch("ins-meters-ink"), off = hiddenSwatch("ins-meters-off");
         private int[] n = new int[BANDS.length];
 
         BandMeters() {
-            getChildren().add(cv);
+            getStyleClass().add("ins-meters");
+            getChildren().addAll(cv, ink, off);
             setMinSize(0, 158); setPrefSize(430, 158); setMaxHeight(158);
             widthProperty().addListener((o, a, b) -> draw());
+            ink.fillProperty().addListener((o, a, b) -> draw());          // the scheme changed: redraw in its colours
+            off.fillProperty().addListener((o, a, b) -> draw());
+        }
+
+        private static javafx.scene.text.Text hiddenSwatch(String styleClass) {
+            javafx.scene.text.Text t = new javafx.scene.text.Text();
+            t.getStyleClass().add(styleClass); t.setVisible(false); t.setManaged(false);
+            return t;
+        }
+        private static Color colour(javafx.scene.text.Text swatch, Color fallback) {
+            return swatch.getFill() instanceof Color c ? c : fallback;
         }
         void set(int[] counts) { n = counts; draw(); }
 
@@ -181,12 +199,10 @@ final class InstrumentStrip extends HBox {
             double w = getWidth(), h = getHeight();
             if (w < 40 || h < 40) return;
             GraphicsContext g = cv.getGraphicsContext2D();
-            g.clearRect(0, 0, w, h);
-            g.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, new Stop(0, Color.web("#15171a")), new Stop(1, Color.web("#0a0b0d"))));
-            g.fillRoundRect(0, 0, w, h, 14, 14);
-            g.setStroke(Color.web("#3a3e45")); g.setLineWidth(1.5); g.strokeRoundRect(0.75, 0.75, w - 1.5, h - 1.5, 14, 14);
+            g.clearRect(0, 0, w, h);                                       // the panel behind is the region's own CSS background
+            Color text = colour(ink, Color.WHITE), unlit = colour(off, Color.web("#1d2024"));
             g.setTextAlign(TextAlignment.LEFT); g.setTextBaseline(javafx.geometry.VPos.TOP);
-            g.setFill(Color.WHITE); g.setFont(font(10));
+            g.setFill(text); g.setFont(font(10));
             g.fillText("BAND ACTIVITY", 16, 11);
             int max = 1; for (int v : n) max = Math.max(max, v);
             int cols = BANDS.length, segs = 9;
@@ -199,10 +215,10 @@ final class InstrumentStrip extends HBox {
                     boolean on = s < lit;
                     Color base = s < 5 ? Color.web("#67d283") : s < 7 ? Color.web("#ffb038") : Color.web("#ff5a4a");
                     double y = top + (segs - 1 - s) * sh;
-                    g.setFill(on ? base : Color.web("#1d2024"));
+                    g.setFill(on ? base : unlit);
                     g.fillRoundRect(sx, y + 1, sw, sh - 2.5, 2, 2);
                 }
-                g.setFill(Color.WHITE); g.setFont(font(9.5));
+                g.setFill(text); g.setFont(font(9.5));
                 g.fillText(BANDS[i], x + cw / 2, h - 12);
             }
         }
