@@ -256,13 +256,23 @@ public final class JHubDashboard {
         fullWidthLog = null;
         // the full normal-log entry form + recent log (same as J-Log) beside the DX cluster
         VBox entry = JLogCockpit.embeddedEntry();
-        Region cluster = clusterCol();
-        WindowsRow windows = new WindowsRow(entry, cluster);      // side by side when there is room, stacked when there is not
-        VBox left = new VBox(11, windows);
+        boolean clusterRight = clusterInRail();
+        VBox left;
+        Region rail;
+        if (clusterRight) {
+            // Setup > Appearance: the DX Cluster and its controls head the PANELS column, and the Recent log stays under the New QSO form
+            // (the entry column as J-Log builds it), in the place the cluster had
+            left = new VBox(11, entry);
+            rail = railCol(clusterCol(true));
+        } else {
+            WindowsRow windows = new WindowsRow(entry, clusterCol());   // side by side when there is room, stacked when there is not
+            left = new VBox(11, windows);
+            rail = railCol(null);
+        }
         HBox.setHgrow(left, Priority.ALWAYS);
         // LOG TOOLS (left tray) starts at the same top and height as PANELS (right tray); sideDrawers() has to come after embeddedEntry()
         Region logTools = Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, JLogCockpit.sideDrawers());
-        HBox box = new HBox(14, logTools, left, railCol());
+        HBox box = new HBox(14, logTools, left, rail);
         box.setFillHeight(true); VBox.setVgrow(box, Priority.ALWAYS);
         threeColRef = box;
         return box;
@@ -422,7 +432,14 @@ public final class JHubDashboard {
 
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     /** The DX Cluster window (spot list + cluster controls). Also used on J-Log, so the two always look and behave alike. */
-    static Region clusterCol() {
+    static Region clusterCol() { return clusterCol(false); }
+    /** The compact cluster card's preferred height in the PANELS column (it gets less when the panels under it need the room, see RailSplit). */
+    private static final double RAIL_CLUSTER_H = 460;
+    /**
+     * @param compact true for the 322 px PANELS column: a spot is one line (frequency, call, any NEW tag, mode) with the spotter, comment, band
+     *                and age in its tooltip, the card takes the height the panels under it leave, and the controls drawer stacks its band / mode pickers
+     */
+    static Region clusterCol(boolean compact) {
         ClusterClient cc = ClusterClient.getInstance();
 
         // ---- DX spot panel ----
@@ -458,6 +475,7 @@ public final class JHubDashboard {
         rows.getChildren().add(empty);
         ScrollPane rsp = new ScrollPane(rows); rsp.setFitToWidth(true); rsp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); rsp.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(rsp, Priority.ALWAYS);
         VBox card = new VBox(head, flt, mapOn[0] ? map : rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
+        if (compact) { card.setMinHeight(200); card.setPrefHeight(RAIL_CLUSTER_H); }   // RailSplit sizes it: whatever the panels under it leave
 
         // ---- controls drawer ----
         TextField login  = new TextField(cc.loginCall()); login.getStyleClass().add("jhub-mini-field"); login.setMinWidth(96); login.setMaxWidth(96);
@@ -491,12 +509,13 @@ public final class JHubDashboard {
                 rows.getChildren().add(empty);
             } else {
                 for (ClusterClient.Spot s : shown) {
-                    Region row = cluRow(new String[]{
-                            ClusterClient.fmtFreq(s.freqHz()), s.call(), tag(s, worked), s.mode(), s.band(),
-                            s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) },
+                    String[] f = { ClusterClient.fmtFreq(s.freqHz()), s.call(), tag(s, worked), s.mode(), s.band(),
+                            s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) };
+                    Region row = compact ? cluRowCompact(f) : cluRow(f,
                             com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forSpot(s.call(), s.freqHz())) : null);
                     row.setStyle("-fx-cursor:hand;");
-                    com.ars.fx.shell.Tips.tip(row, "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam");
+                    String hint = "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam";
+                    com.ars.fx.shell.Tips.tip(row, compact ? spotDetails(f) + "\n" + hint : hint);
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
                     com.ars.fx.shell.Fx.fresh(row, s.arrivalMs());     // a new spot slides in and glows
                     rows.getChildren().add(row);
@@ -513,9 +532,12 @@ public final class JHubDashboard {
 
         VBox bandsF = labeled("BANDS", segSel(CLU_BANDS, cluSel("data.clusterBand", CLU_BANDS), i -> { com.ars.fx.data.HubConfig.set("data.clusterBand", CLU_BANDS[i]); render.run(); }));
         VBox modesF = labeled("MODES", segSel(CLU_MODES, cluSel("data.clusterMode", CLU_MODES), i -> { com.ars.fx.data.HubConfig.set("data.clusterMode", CLU_MODES[i]); render.run(); }));
-        HBox row2 = new HBox(12, bandsF, modesF); row2.setAlignment(Pos.BOTTOM_LEFT);
+        Region row2;
+        if (compact) row2 = new VBox(10, bandsF, modesF);      // side by side they are wider than the PANELS column
+        else { HBox h = new HBox(12, bandsF, modesF); h.setAlignment(Pos.BOTTOM_LEFT); row2 = h; }
 
         Label nkl = lbl("Needed only (new entity / band / mode; new multiplier in a contest)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
+        if (compact) nkl.setWrapText(true);
         HBox needed = new HBox(nkl, switchToggle(cluNeededOnly, v -> { cluNeededOnly = v; render.run(); }));
         needed.getStyleClass().add("sx-kv"); needed.setAlignment(Pos.CENTER_LEFT);
 
@@ -545,8 +567,31 @@ public final class JHubDashboard {
         render.run();
 
         VBox col = new VBox(11, card, controls);
-        HBox.setHgrow(col, Priority.ALWAYS); col.setMinWidth(360);
+        HBox.setHgrow(col, Priority.ALWAYS); col.setMinWidth(compact ? 0 : 360);
         return col;
+    }
+    /** A spot as one line for the narrow PANELS column: frequency, call, any NEW tag, then the mode at the right. The call is never cut short. */
+    private static Region cluRowCompact(String[] s) {
+        Label fq = lbl(s[0], "jhub-clu-fq"); fq.setMinWidth(64);
+        Label call = lbl(s[1], "jhub-clu-call"); call.setMinWidth(Region.USE_PREF_SIZE);
+        HBox top = new HBox(8, fq, call);
+        if (!s[2].isEmpty()) { Label need = lbl(s[2], "jhub-need"); need.setMinWidth(0); top.getChildren().add(need); }
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        Label mode = lbl(s[3], "jhub-clu-mode"); mode.setMinWidth(Region.USE_PREF_SIZE);
+        top.getChildren().addAll(sp, mode);
+        top.setAlignment(Pos.CENTER_LEFT);
+        VBox v = new VBox(top); v.getStyleClass().add("jhub-clu");
+        if (s[4] != null && !s[4].isBlank()) v.getStyleClass().add("band-" + s[4].trim().toLowerCase());
+        return v;
+    }
+    /** What the compact row leaves out, for its tooltip: band, spotter, comment and age. */
+    private static String spotDetails(String[] s) {
+        StringBuilder b = new StringBuilder(s[1]).append("  ").append(s[0]);
+        if (s[4] != null && !s[4].isBlank()) b.append("  ").append(s[4]);
+        b.append("\nde ").append(s[5]);
+        if (s[6] != null && !s[6].isBlank()) b.append("  · ").append(s[6]);
+        b.append("\n").append(s[7]);
+        return b.toString();
     }
     private static String filterSummary() {
         String[] b = {"All bands","HF","VHF+"}, m = {"All modes","CW","Phone","Digi"};
@@ -664,17 +709,55 @@ public final class JHubDashboard {
     }
 
     // ---- drawer rail (rig + rotor + space wx) ------------------------------
-    private static Region railCol() {
+    /** Setup > Appearance > "DX Cluster in the right column": the cluster heads the PANELS column instead of sitting under / beside New QSO. */
+    static final String CLUSTER_RIGHT_KEY = "ui.dashboard.clusterRight";
+    private static boolean clusterInRail() { return com.ars.fx.data.HubConfig.getBool(CLUSTER_RIGHT_KEY, false); }
+
+    /** @param cluster the compact DX Cluster (card + controls) to put at the top of the column, or null for the panels alone */
+    private static Region railCol(Region cluster) {
         VBox col = new VBox(11, com.ars.fx.shell.RigPanel.build(),
                 Shell.rotorControlDrawer(),
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
                 Shell.solarSpaceWeatherDrawer());
+        if (cluster != null) {
+            // the cluster must never push the panels out of sight: they keep the height they need (scrolling, with a bar, if they need more
+            // than there is) and the cluster takes what is left
+            col.setMinWidth(0);                                   // with a scroll bar showing, the panels fit beside it instead of under it
+            ScrollPane sp = new ScrollPane(col);
+            sp.getStyleClass().add("sx-dock-scroll"); sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            return Shell.collapsibleRail(new RailSplit(cluster, sp));
+        }
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
         ScrollPane sp = new ScrollPane(col);                  // floating, it can't lean on the page to scroll
         sp.getStyleClass().add("sx-dock-scroll"); sp.setFitToWidth(true);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         return Shell.collapsibleRail(sp);
+    }
+    /**
+     * The PANELS column with the DX Cluster on top. The panels below (rig, rotor, amplifier, propagation, solar) get the height they ask for, so
+     * every one of them stays in view; the cluster gets the rest, but never less than {@link #CLUSTER_MIN}. When the open panels need more than is
+     * left after that, their own scroll pane shows a bar. (The plain column could let its content run off the bottom, because it had no cluster
+     * above it to crowd the panels out.)
+     */
+    private static final class RailSplit extends Region {
+        private static final double GAP = 11, CLUSTER_MIN = 300, PANELS_MIN = 120;
+        private final Region cluster, panels;
+        RailSplit(Region cluster, Region panels) {
+            this.cluster = cluster; this.panels = panels;
+            getChildren().addAll(cluster, panels);
+        }
+        @Override protected double computePrefWidth(double h)  { return 322; }
+        @Override protected double computeMinHeight(double w) { return CLUSTER_MIN + GAP + PANELS_MIN; }
+        @Override protected double computePrefHeight(double w) { return cluster.prefHeight(w) + GAP + panels.prefHeight(w); }
+        @Override protected void layoutChildren() {
+            double w = getWidth(), h = getHeight();
+            double ch = Math.max(CLUSTER_MIN, h - GAP - panels.prefHeight(w));   // the cluster grows into whatever the panels do not need
+            double ph = Math.max(0, h - ch - GAP);                               // the panels scroll if they need more than this
+            cluster.resizeRelocate(0, 0, w, ch);
+            panels.resizeRelocate(0, ch + GAP, w, ph);
+        }
     }
     private static Region ampBody() {
         Label stateV = lbl("—", "jhub-pill", "grey");
@@ -1206,7 +1289,9 @@ public final class JHubDashboard {
                     cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, com.ars.fx.UiStyle.scaleDefaultIndex())));
         VBox layout = section("DASHBOARD LAYOUT",
             cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",
-                    cToggle("ui.dashboard.rows", true)));
+                    cToggle("ui.dashboard.rows", true)),
+            cfgRow("DX Cluster in the right column", "the DX Cluster and its controls go to the top of the PANELS column (one line per spot; hover a spot for the spotter and comment), and the Recent log takes the cluster's place under New QSO. Pin PANELS to keep the cluster in view. Open the dashboard again to see a change",
+                    cToggle(CLUSTER_RIGHT_KEY, false)));
         VBox look = section("LOOK",
             cfgRow("Style", "Classic is the original look. A change shows at once; pick Classic to go back at any time", lookSeg));
         return cfgPage(cfgTop("J-Hub", "System", "Appearance"),
