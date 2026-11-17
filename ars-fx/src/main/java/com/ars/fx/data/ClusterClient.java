@@ -27,10 +27,6 @@ public final class ClusterClient extends TelnetFeed {
                 HubConfig.getBool("data.clusterAutoConnect", false));   // not on by default: the operator opts in (J-Hub ▸ Data ▸ DX Cluster)
     }
 
-    // DX de <spotter>:  <freqKHz>  <spotted>  <comment>  <hhmm>Z
-    private static final Pattern SPOT = Pattern.compile(
-            "DX de\\s+([A-Z0-9/\\-]+)[:\\s]+([\\d.]+)\\s+([A-Z0-9/\\-]+)\\s+(.*?)\\s+(\\d{4}Z?)\\s*$",
-            Pattern.CASE_INSENSITIVE);
 
     private static final int MAX_SPOTS = 40;
 
@@ -145,9 +141,7 @@ public final class ClusterClient extends TelnetFeed {
     @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); activityLog.clear(); } }
 
     @Override protected void onLine(String line) {
-        Matcher m = SPOT.matcher(line);
-        if (!m.find()) return;
-        Spot spot = parse(m);
+        Spot spot = parse(line);
         if (spot == null) return;
         recordActivity(spot);
         synchronized (this) {
@@ -157,13 +151,14 @@ public final class ClusterClient extends TelnetFeed {
         fire();
     }
 
-    private static Spot parse(Matcher m) {
-        long freqHz;
-        try { freqHz = (long) (Double.parseDouble(m.group(2)) * 1000); }
-        catch (NumberFormatException e) { return null; }
-        String de = m.group(1).toUpperCase();
-        String call = m.group(3).toUpperCase();
-        String comment = m.group(4).trim();
+    /** A spot from one cluster line ({@link SpotLine}); null when the line is not a spot. */
+    static Spot parse(String line) {
+        SpotLine.Parsed p = SpotLine.parse(line);
+        if (p == null) return null;
+        long freqHz = p.freqHz();
+        String de = p.spotter();
+        String call = p.call();
+        String comment = p.comment();
         String band = freqToBand(freqHz);
         String mode = detectMode(comment, freqHz);
         return new Spot(freqHz, call, mode, band, de, comment, System.currentTimeMillis());
