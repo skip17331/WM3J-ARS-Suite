@@ -1400,6 +1400,7 @@ public final class JHubDashboard {
                         case "eqsl" -> com.ars.fx.data.LogUpload.eqsl();
                         case "qrz_logbook" -> com.ars.fx.data.LogUpload.qrzLogbook();
                         case "clublog" -> com.ars.fx.data.LogUpload.clublog();
+                        case "wavelog" -> com.ars.fx.data.LogUpload.wavelog();
                         default -> new com.ars.fx.data.LogUpload.Result(false, 0, "unknown service");
                     };
                     javafx.application.Platform.runLater(() -> report.accept(r));
