@@ -433,11 +433,11 @@ public final class JHubDashboard {
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     /** The DX Cluster window (spot list + cluster controls). Also used on J-Log, so the two always look and behave alike. */
     static Region clusterCol() { return clusterCol(false); }
-    /** Height of the compact cluster card in the PANELS column: the column scrolls, so the card needs a height of its own. */
+    /** The compact cluster card's preferred height in the PANELS column (it gets less when the panels under it need the room, see RailSplit). */
     private static final double RAIL_CLUSTER_H = 460;
     /**
      * @param compact true for the 322 px PANELS column: a spot is one line (frequency, call, any NEW tag, mode) with the spotter, comment, band
-     *                and age in its tooltip, the card has a fixed height, and the controls drawer stacks its band / mode pickers
+     *                and age in its tooltip, the card takes the height the panels under it leave, and the controls drawer stacks its band / mode pickers
      */
     static Region clusterCol(boolean compact) {
         ClusterClient cc = ClusterClient.getInstance();
@@ -475,7 +475,7 @@ public final class JHubDashboard {
         rows.getChildren().add(empty);
         ScrollPane rsp = new ScrollPane(rows); rsp.setFitToWidth(true); rsp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); rsp.setStyle("-fx-background-color:transparent;"); VBox.setVgrow(rsp, Priority.ALWAYS);
         VBox card = new VBox(head, flt, mapOn[0] ? map : rsp); card.getStyleClass().add("jhub-card"); VBox.setVgrow(card, Priority.ALWAYS);
-        if (compact) { card.setMinHeight(RAIL_CLUSTER_H); card.setPrefHeight(RAIL_CLUSTER_H); card.setMaxHeight(RAIL_CLUSTER_H); }
+        if (compact) { card.setMinHeight(200); card.setPrefHeight(RAIL_CLUSTER_H); }   // RailSplit sizes it: whatever the panels under it leave
 
         // ---- controls drawer ----
         TextField login  = new TextField(cc.loginCall()); login.getStyleClass().add("jhub-mini-field"); login.setMinWidth(96); login.setMaxWidth(96);
@@ -720,12 +720,44 @@ public final class JHubDashboard {
                 Shell.drawer("Amplifier", "bridge", "bridge", "", false, ampBody()),
                 Shell.propagationDrawer(),
                 Shell.solarSpaceWeatherDrawer());
-        if (cluster != null) col.getChildren().add(0, cluster);
+        if (cluster != null) {
+            // the cluster must never push the panels out of sight: they keep the height they need (scrolling, with a bar, if they need more
+            // than there is) and the cluster takes what is left
+            col.setMinWidth(0);                                   // with a scroll bar showing, the panels fit beside it instead of under it
+            ScrollPane sp = new ScrollPane(col);
+            sp.getStyleClass().add("sx-dock-scroll"); sp.setFitToWidth(true);
+            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            return Shell.collapsibleRail(new RailSplit(cluster, sp));
+        }
         col.setMinWidth(322); col.setPrefWidth(322); col.setMaxWidth(322);
         ScrollPane sp = new ScrollPane(col);                  // floating, it can't lean on the page to scroll
         sp.getStyleClass().add("sx-dock-scroll"); sp.setFitToWidth(true);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         return Shell.collapsibleRail(sp);
+    }
+    /**
+     * The PANELS column with the DX Cluster on top. The panels below (rig, rotor, amplifier, propagation, solar) get the height they ask for, so
+     * every one of them stays in view; the cluster gets the rest, but never less than {@link #CLUSTER_MIN}. When the open panels need more than is
+     * left after that, their own scroll pane shows a bar. (The plain column could let its content run off the bottom, because it had no cluster
+     * above it to crowd the panels out.)
+     */
+    private static final class RailSplit extends Region {
+        private static final double GAP = 11, CLUSTER_MIN = 300, PANELS_MIN = 120;
+        private final Region cluster, panels;
+        RailSplit(Region cluster, Region panels) {
+            this.cluster = cluster; this.panels = panels;
+            getChildren().addAll(cluster, panels);
+        }
+        @Override protected double computePrefWidth(double h)  { return 322; }
+        @Override protected double computeMinHeight(double w) { return CLUSTER_MIN + GAP + PANELS_MIN; }
+        @Override protected double computePrefHeight(double w) { return cluster.prefHeight(w) + GAP + panels.prefHeight(w); }
+        @Override protected void layoutChildren() {
+            double w = getWidth(), h = getHeight();
+            double ch = Math.max(CLUSTER_MIN, h - GAP - panels.prefHeight(w));   // the cluster grows into whatever the panels do not need
+            double ph = Math.max(0, h - ch - GAP);                               // the panels scroll if they need more than this
+            cluster.resizeRelocate(0, 0, w, ch);
+            panels.resizeRelocate(0, ch + GAP, w, ph);
+        }
     }
     private static Region ampBody() {
         Label stateV = lbl("—", "jhub-pill", "grey");
