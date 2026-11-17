@@ -378,7 +378,7 @@ public final class JHubDashboard {
         switch (cluSel("data.clusterMode", CLU_MODES)) {
             case 1: return "CW".equals(s.mode());
             case 2: return "SSB".equals(s.mode());
-            case 3: return java.util.Set.of("FT8","FT4","RTTY","PSK31","JS8").contains(s.mode());
+            case 3: return java.util.Set.of("FT8","FT4","RTTY","PSK31","JS8","DIGI").contains(s.mode());
             default: return true;
         }
     }
