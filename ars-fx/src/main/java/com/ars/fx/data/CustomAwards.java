@@ -254,7 +254,7 @@ public final class CustomAwards {
             case "sota" -> r.sota();
             case "pota" -> r.pota();
             case "country" -> {
-                DxccInfo.Info info = q.call() == null ? null : DxccInfo.of(q.call().trim().toUpperCase(Locale.ROOT));
+                DxccInfo.Info info = q.call() == null ? null : DxccInfo.of(q.call().trim().toUpperCase(Locale.ROOT), DxccInfo.utc(q.datetimeUtc()));   // at the QSO's time: Club Log exceptions are dated
                 yield info == null ? null : info.country();
             }
             case "name" -> q.name();
