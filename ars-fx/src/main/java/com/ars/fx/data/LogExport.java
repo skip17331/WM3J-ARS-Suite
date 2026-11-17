@@ -202,15 +202,21 @@ public final class LogExport {
         if (dt == null || dt.length() < 19) return new String[]{null, null};
         return new String[]{dt.substring(0, 10).replace("-", ""), dt.substring(11, 19).replace(":", "")};
     }
-    /** Map a logged mode to ADIF MODE + SUBMODE (USB/LSB → SSB; PSK31 → PSK). */
-    private static String[] mode(String m) {
+    /**
+     * Map a logged mode to ADIF MODE + SUBMODE. ADIF lists several modes only as submodes: USB / LSB under SSB, PSK31 / PSK63 ...
+     * under PSK, FT4 / JS8 / Q65 / FST4 / MFSK16 ... under MFSK, DOMINOEX under DOMINO. Writing MODE=FT4 is not valid ADIF, and
+     * LoTW / eQSL / Club Log may refuse it.
+     */
+    static String[] mode(String m) {
         if (m == null) return new String[]{null, null};
-        switch (m.trim().toUpperCase()) {
-            case "USB": return new String[]{"SSB", "USB"};
-            case "LSB": return new String[]{"SSB", "LSB"};
-            case "PSK31": return new String[]{"PSK", "PSK31"};
-            case "PSK63": return new String[]{"PSK", "PSK63"};
-            default: return new String[]{m.trim().toUpperCase(), null};
+        String u = m.trim().toUpperCase(java.util.Locale.ROOT);
+        switch (u) {
+            case "USB": case "LSB": return new String[]{"SSB", u};
+            case "PSK31": case "PSK63": case "PSK125": case "PSK250": case "QPSK31": case "QPSK63": return new String[]{"PSK", u};
+            case "FT4": case "JS8": case "Q65": case "FST4": case "FST4W": case "MFSK4": case "MFSK8": case "MFSK11": case "MFSK16":
+            case "MFSK22": case "MFSK32": case "MFSK64": case "MFSK128": case "FSQCALL": return new String[]{"MFSK", u};
+            case "DOMINOEX": case "DOMINOF": return new String[]{"DOMINO", u};
+            default: return new String[]{u, null};
         }
     }
     private static String csv(String s) {

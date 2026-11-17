@@ -21,6 +21,29 @@ class LogImportTest {
         assertEquals("010203", r.get(1).get("TIME_ON"));
     }
 
+    @Test void submodesComeInAsTheModeOperatorsKnow() {
+        assertEquals("FT4", LogImport.modeOf("MFSK", "FT4"), "WSJT-X's FT4 used to come in as MFSK");
+        assertEquals("JS8", LogImport.modeOf("MFSK", "JS8"));
+        assertEquals("USB", LogImport.modeOf("SSB", "USB"));
+        assertEquals("PSK31", LogImport.modeOf("PSK", "PSK31"));
+        assertEquals("DOMINOEX", LogImport.modeOf("DOMINO", "DOMINOEX"));
+        assertEquals("FT8", LogImport.modeOf("FT8", null));
+        assertEquals("SSB", LogImport.modeOf("SSB", ""));
+        assertEquals("OLIVIA", LogImport.modeOf("OLIVIA", "OLIVIA 8/250"), "a mode that is not only a family keeps its name");
+        assertEquals("FT4", LogImport.modeOf(null, "FT4"));
+    }
+
+    @Test void exportWritesValidAdifModesAndImportReadsThemBack() {
+        String[][] cases = {{"FT4", "MFSK", "FT4"}, {"JS8", "MFSK", "JS8"}, {"Q65", "MFSK", "Q65"}, {"USB", "SSB", "USB"},
+                {"PSK31", "PSK", "PSK31"}, {"DOMINOEX", "DOMINO", "DOMINOEX"}, {"FT8", "FT8", null}, {"CW", "CW", null}, {"RTTY", "RTTY", null}};
+        for (String[] c : cases) {
+            String[] m = LogExport.mode(c[0]);
+            assertEquals(c[1], m[0], c[0] + " MODE");
+            assertEquals(c[2], m[1], c[0] + " SUBMODE");
+            assertEquals(c[0], LogImport.modeOf(m[0], m[1]), c[0] + " round trip");
+        }
+    }
+
     @Test void lengthSkipsEmbeddedAngleBrackets() {
         List<Map<String, String>> r = LogImport.parse("<EOH><CALL:4>N0AB<COMMENT:9>a <b> c d!<EOR>");
         assertEquals(1, r.size());
