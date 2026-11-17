@@ -68,7 +68,9 @@ public final class ContestState {
     public static StationContext ctx() {
         // QSO parties score in-state and out-of-state entrants differently, by the sent QTH (county or state): that, not the SS section
         String qth = plugin != null && QsoPartySide.isParty(plugin) ? QsoPartySide.sentQth(plugin) : HubConfig.get("contest.ss.section", "");
-        return StationContext.of(HubConfig.call(), HubConfig.grid(), qth);
+        // power and station category (Setup > Contest > Cabrillo) drive QSO parties' power / station multipliers and mobile bonuses
+        return StationContext.of(HubConfig.call(), HubConfig.grid(), qth,
+                HubConfig.get("contest.cab.power", "HIGH"), HubConfig.get("contest.cab.station", "FIXED"));
     }
 
     /**

@@ -30,9 +30,12 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) [× Power Mult — off-log] [+50 e-log — off-log]. Entrant-asymmetric pts: IN-DE Phone 1 / CW+Digital 2; OUT-DE Phone 10 / CW+Digital 20. DE entrant mult = each US state (DC→MD) + Canadian provinces + each DXCC country (not USA); a DE-to-DE QSO scores points only (no mult). Non-DE entrant mult = DE counties NDE/KDE/SDE. DE works everyone; non-DE scores DE contacts only. Mobiles county-change = new QSO + new county; county-line logged as 2 QSOs. Claimed/running — the DEQP committee re-adjudicates. NOT applied (off-log): Power Multiplier (×3 ≤5W / ×2 ≤100W / ×1 >100W, default ×1); +50 electronic-submission bonus; FT8/FT4 WSJT-FD-overlay county encoding (1A/2A/3A) — the logged county field governs.",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) [× Power Mult — off-log] [+50 e-log — off-log]. Entrant-asymmetric pts: IN-DE Phone 1 / CW+Digital 2; OUT-DE Phone 10 / CW+Digital 20. DE entrant mult = each US state (DC→MD) + Canadian provinces + each DXCC country (not USA); a DE-to-DE QSO scores points only (no mult). Non-DE entrant mult = DE counties NDE/KDE/SDE. DE works everyone; non-DE scores DE contacts only. Mobiles county-change = new QSO + new county; county-line logged as 2 QSOs. Claimed/running — the DEQP committee re-adjudicates. Applied from the entry's Cabrillo CATEGORY-POWER: Power Multiplier ×3 QRP (≤5W) / ×2 LOW (≤100W) / ×1 HIGH; the +50 electronic-submission bonus (this app submits Cabrillo electronically). A mobile entrant re-works everyone from each new county (its sent county is part of the dupe key). NOT applied: FT8/FT4 WSJT-FD-overlay county encoding (1A/2A/3A) — the logged county field governs.",
     "allowDupes": false,
     "qsoParty": {
+      "powerMultiplier": {"QRP": 3, "LOW": 2, "HIGH": 1},
+      "electronicLogBonus": 50,
+      "ownCountyDupe": true,
       "stateName": "Delaware",
       "stateAbbr": "DE",
       "inStateCounties": ["NDE","KDE","SDE"],

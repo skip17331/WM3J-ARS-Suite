@@ -32,9 +32,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (each counted ONCE PER MODE, regardless of band) [× Power Multiplier — off-log]. Pts: Phone 1/band, CW 2/band. FL entrant mult = 50 states incl FL + DC + 13 Canadian provinces + each DXCC country (outside US/Canada); NO in-state county mult. Non-FL entrant mult = 67 FL counties. FL works everyone for pts; non-FL scores FL contacts only. FL mobiles/expeditions county-change = new QSO + new county credit. Claimed/running — the FCG re-adjudicates. NOT applied (category/self-report, off-log): Power Multiplier (x3 <=5W / x2 <100W / x1 >100W, default x1); Mobile/Expedition 'multipliers once overall' variant (category-dependent — standard per-mode mult is applied); Special 1x1 'no multiplier' variant; Maritime-Mobile ITU-Region (R1/R2/R3) multiplier (rare; resolved as a DXCC-each entity when the MM call classifies DX, else a claimed edge).",
+    "scoreFormula": "Σ QSO pts × Σ mults (each counted ONCE PER MODE, regardless of band) [× Power Multiplier — off-log]. Pts: Phone 1/band, CW 2/band. FL entrant mult = 50 states incl FL + DC + 13 Canadian provinces + each DXCC country (outside US/Canada); NO in-state county mult. Non-FL entrant mult = 67 FL counties. FL works everyone for pts; non-FL scores FL contacts only. FL mobiles/expeditions county-change = new QSO + new county credit. Claimed/running — the FCG re-adjudicates. Applied from the entry's Cabrillo CATEGORY-POWER: Power Multiplier x3 QRP (<=5W) / x2 LOW (<100W) / x1 HIGH. A mobile/expedition entrant re-works everyone from each new county. NOT applied (category/self-report, off-log): Mobile/Expedition 'multipliers once overall' variant (category-dependent — standard per-mode mult is applied); Special 1x1 'no multiplier' variant; Maritime-Mobile ITU-Region (R1/R2/R3) multiplier (rare; resolved as a DXCC-each entity when the MM call classifies DX, else a claimed edge).",
     "allowDupes": false,
     "qsoParty": {
+      "powerMultiplier": {"QRP": 3, "LOW": 2, "HIGH": 1},
+      "ownCountyDupe": true,
       "stateName": "Florida",
       "stateAbbr": "FL",
       "countyByExclusion": true,

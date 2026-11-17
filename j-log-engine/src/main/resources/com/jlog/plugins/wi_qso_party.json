@@ -30,9 +30,12 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: WI entrant = WI counties + US states (WI allowed) + CA provinces (DX = QSO pts only, no mult); non-WI entrant = WI counties only. W9FK = +100 per band+mode (post-multiply). Power mult ×2/×1.5/×1 (QRP/Low/High) and WI mobile/portable +500/county@≥12 are OFF-LOG/claimed (entrant category / self-report). Claimed — WIQP committee re-adjudicates.",
+    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + bonus. Pts: Phone 1, CW/Digital 2. Mults counted ONCE: WI entrant = WI counties + US states (WI allowed) + CA provinces (DX = QSO pts only, no mult); non-WI entrant = WI counties only. W9FK = +100 per band+mode below 50 MHz (post-multiply). Power mult ×2/×1.5/×1 (QRP/Low/High) applied from the entry's Cabrillo CATEGORY-POWER; WI mobile/portable +500 per WI county activated with ≥12 QSOs, from the sent county logged on each QSO. Claimed — WIQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
+      "powerMultiplier": {"QRP": 2, "LOW": 1.5, "HIGH": 1},
+      "bonusStationsBelow50Mhz": true,
+      "activationBonus": {"points": 500, "minQsos": 12, "stations": ["MOBILE", "PORTABLE", "ROVER"]},
       "stateName": "Wisconsin",
       "stateAbbr": "WI",
       "countyCodeLen": 3,

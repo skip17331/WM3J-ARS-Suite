@@ -32,9 +32,10 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (power multiplier — a station category — applied off-log by the sponsor). Pts/mode: PH 1, CW 3, RTTY 2, Digital 2; out-of-VT works VT only; W1AW/1 +2 to out-of-VT. Mults ONCE PER MODE: VT entrant = 50 states + 13 VE prov/terr + DXCC (excl US/CA/AK/HI) + 14 VT counties + W1NVT + Σdistinct-FT8-grids/3. Out-of-VT entrant = VT counties + W1NVT + min(distinct VT FT8 grids, 5). Claimed — VTQP committee re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults × power multiplier (×2 QRP / ×1.5 LOW / ×1 HIGH, from the entry's Cabrillo CATEGORY-POWER; checked against the 2027 rules only). Pts/mode: PH 1, CW 3, RTTY 2, Digital 2; out-of-VT works VT only; W1AW/1 +2 to out-of-VT. Mults ONCE PER MODE: VT entrant = 50 states + 13 VE prov/terr + DXCC (excl US/CA/AK/HI) + 14 VT counties + W1NVT + Σdistinct-FT8-grids/3. Out-of-VT entrant = VT counties + W1NVT + min(distinct VT FT8 grids, 5). Claimed — VTQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
+      "powerMultiplier": {"QRP": 2, "LOW": 1.5, "HIGH": 1},
       "stateName": "Vermont",
       "stateAbbr": "VT",
       "inStateCounties": ["ADD","BEN","CAL","CHI","ESS","FRA","GRA","LAM","ORA","ORL","RUT","WAS","WNH","WNS"],

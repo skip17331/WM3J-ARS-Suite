@@ -30,9 +30,11 @@
   "scoringRules": {
     "pointsPerQso": 2,
     "multiplierType": "qso_party",
-    "scoreFormula": "Total = Σ QSO pts × Σ mults. Pts: Phone 2, CW 3, Digital 3 (no FT8/4); workable per band AND mode. OK entrant: works everyone; mults = 77 OK counties + 50 states (DC=MD) + 13 CA prov/terr + each DXCC (excl US/CA/KH6/KL7), counted ONCE across bands/modes. Non-OK entrant: works OK only; mult = 77 OK counties. Mobile county-change/county-line = new QSO per county. OK-mobile +500/county@≥10 QSOs = off-log/claimed (category-dependent). Claimed — OKQP committee re-adjudicates.",
+    "scoreFormula": "Total = Σ QSO pts × Σ mults. Pts: Phone 2, CW 3, Digital 3 (no FT8/4); workable per band AND mode. OK entrant: works everyone; mults = 77 OK counties + 50 states (DC=MD) + 13 CA prov/terr + each DXCC (excl US/CA/KH6/KL7), counted ONCE across bands/modes. Non-OK entrant: works OK only; mult = 77 OK counties. Mobile county-change/county-line = new QSO per county. OK-mobile +500 per OK county activated with ≥10 QSOs (CATEGORY-STATION MOBILE or ROVER, from the sent county logged on each QSO); a mobile entrant re-works everyone from each new county. Claimed — OKQP committee re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 500, "minQsos": 10, "stations": ["MOBILE", "ROVER"]},
+      "ownCountyDupe": true,
       "stateName": "Oklahoma",
       "stateAbbr": "OK",
       "dcCountsAsMd": true,

@@ -30,9 +30,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults. Pts: Phone 1, CW 2, Digital 2 — ALL QRP QSOs = 5 (off-log/claimed: power is an entrant category, applied by the committee/logger). Mults counted ONCE PER MODE (regardless of band): ID entrant = each US state (Idaho counted as the single state mult, not per-county) + CA province + each DXCC country; non-ID entrant = ID counties (44). Mobile county-change/county-line = new QSO per county. Dormant-county +500/1000/1500 bonus = off-log/claimed (entrant/category & list-based). Claimed — IDQP committee re-adjudicates (rules themselves note loggers won't score correctly).",
+    "scoreFormula": "Σ QSO pts × Σ mults. Pts: Phone 1, CW 2, Digital 2 — ALL QRP QSOs = 5 (applied when the entry's Cabrillo CATEGORY-POWER is QRP). Mults counted ONCE PER MODE (regardless of band): ID entrant = each US state (Idaho counted as the single state mult, not per-county) + CA province + each DXCC country; non-ID entrant = ID counties (44). Mobile county-change/county-line = new QSO per county (a mobile entrant re-works everyone from each new county). Dormant-county +500/1000/1500 bonus = off-log/claimed (entrant/category & list-based). Claimed — IDQP committee re-adjudicates (rules themselves note loggers won't score correctly).",
     "allowDupes": false,
     "qsoParty": {
+      "pointsByPower": {"QRP": 5},
+      "ownCountyDupe": true,
       "stateName": "Idaho",
       "stateAbbr": "ID",
       "countyCodeLen": 3,
