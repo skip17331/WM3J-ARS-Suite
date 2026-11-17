@@ -62,4 +62,28 @@ class SpotLineTest {
         assertEquals("20m", s.band());
         assertEquals("CW", s.mode());
     }
+
+    @Test void aModeNamedInTheCommentWins() {
+        assertEquals("CW", ClusterClient.detectMode("CW 599", 14_200_000L));
+        assertEquals("FT8", ClusterClient.detectMode("FT8 -12 dB", 14_025_000L));
+        assertEquals("SSB", ClusterClient.detectMode("USB 59", 14_025_000L));
+    }
+
+    @Test void withoutOneTheBandPlanDecides() {
+        // these all used to be SSB: a CW spot with "599" was hidden by the CW filter and tagged with the wrong mode group
+        assertEquals("CW", ClusterClient.detectMode("599 tnx", 14_025_000L));
+        assertEquals("CW", ClusterClient.detectMode("", 7_015_000L));
+        assertEquals("SSB", ClusterClient.detectMode("59", 14_250_000L));
+        assertEquals("SSB", ClusterClient.detectMode("", 3_800_000L));
+    }
+
+    @Test void ft8AndFt4OnEveryBandNotJustThree() {
+        assertEquals("FT8", ClusterClient.detectMode("", 1_841_200L));
+        assertEquals("FT8", ClusterClient.detectMode("", 10_137_500L));
+        assertEquals("FT8", ClusterClient.detectMode("-15", 28_075_300L));
+        assertEquals("FT8", ClusterClient.detectMode("", 50_314_000L));
+        assertEquals("FT4", ClusterClient.detectMode("", 14_081_000L));
+        assertEquals("FT4", ClusterClient.detectMode("", 7_048_000L));
+        assertNull(ClusterClient.wsjtMode(14_078_000L), "between the FT8 and FT4 passbands");
+    }
 }

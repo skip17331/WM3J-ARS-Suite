@@ -136,11 +136,13 @@ public final class SpotAction {
         if (mode == null || mode.isBlank()) return "";
         String m = mode.trim().toUpperCase();
         if (m.equals("SSB") || m.equals("PHONE")) return hz > 0 && hz < 10_000_000 ? "LSB" : "USB";
+        if (m.equals("DIGI")) return "";     // a spot in a data segment with no mode named: leave the log's mode for the operator
         return m;
     }
 
     /** Spot mode → a Hamlib mode token rigctld understands, or null to leave the rig's mode alone. */
     static String hamlibMode(String mode, long hz) {
+        if (mode != null && mode.trim().equalsIgnoreCase("DIGI")) return "PKTUSB";   // data segment: data mode on the rig
         String m = logMode(mode, hz);
         switch (m) {
             case "": return null;

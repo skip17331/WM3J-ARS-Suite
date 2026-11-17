@@ -187,11 +187,27 @@ public final class ClusterClient extends TelnetFeed {
             if (uc.contains("CW"))   return "CW";
             if (uc.contains("SSB") || uc.contains("LSB") || uc.contains("USB")) return "SSB";
         }
-        long khz = freqHz / 1000;
-        if (khz >= 14074 && khz <= 14075) return "FT8";
-        if (khz >= 7074  && khz <= 7075)  return "FT8";
-        if (khz >= 21074 && khz <= 21075) return "FT8";
-        return "SSB";
+        String wsjt = wsjtMode(freqHz);
+        if (wsjt != null) return wsjt;
+        // nothing in the comment: what the band plan uses this frequency for. It used to fall back to SSB everywhere, so a CW
+        // spot whose comment was just "599" was filed as SSB (hidden by the CW filter, wrong NEW MODE tags)
+        return switch (Bands.activityAt(freqHz)) {
+            case "CW", "BEACON" -> "CW";
+            case "DATA" -> "DIGI";
+            default -> "SSB";
+        };
+    }
+
+    /** Standard FT8 / FT4 dial frequencies (kHz). A spot within the 3 kHz audio passband above one is that mode. */
+    private static final double[] FT8_DIALS = {1840, 3573, 5357, 7074, 10136, 14074, 18100, 21074, 24915, 28074, 50313, 144174};
+    private static final double[] FT4_DIALS = {3575, 7047.5, 10140, 14080, 18104, 21140, 24919, 28180, 50318, 144170};
+
+    /** "FT8" / "FT4" when the frequency sits in one of their standard passbands, else null. */
+    static String wsjtMode(long freqHz) {
+        double khz = freqHz / 1000.0;
+        for (double d : FT4_DIALS) if (khz >= d && khz < d + 3) return "FT4";
+        for (double d : FT8_DIALS) if (khz >= d && khz < d + 3) return "FT8";
+        return null;
     }
 
     /** 14022000 → "14.022.0" (MHz.kHz.100Hz). */
