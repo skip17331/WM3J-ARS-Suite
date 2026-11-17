@@ -30,9 +30,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) + bonuses. Pts: Phone 1, CW & Digital 2 (all non-CW digital = one class). WV entrant mult = WV counties (55, from WV stations) + each US state (50, WV counts as a state, DC→MD) + Canadian provinces (13) + each DXCC entity (USA/AK/HI/Canada excluded). Non-WV entrant mult = WV counties (55). WV works everyone; non-WV scores WV contacts only. Mobiles county-change = new QSO + new county; county-line = 2 QSO/2 mult. Bonus station W8WVA = +100 once per band & mode (post-multiply). Claimed/running — the WVQP committee re-adjudicates. NOT applied (off-log/self): WV-mobile +100 per WV county activated (entrant-self).",
+    "scoreFormula": "Σ QSO pts × Σ mults (counted ONCE PER CONTEST) + bonuses. Pts: Phone 1, CW & Digital 2 (all non-CW digital = one class). WV entrant mult = WV counties (55, from WV stations) + each US state (50, WV counts as a state, DC→MD) + Canadian provinces (13) + each DXCC entity (USA/AK/HI/Canada excluded). Non-WV entrant mult = WV counties (55). WV works everyone; non-WV scores WV contacts only. Mobiles county-change = new QSO + new county; county-line = 2 QSO/2 mult. Bonus station W8WVA = +100 once per band & mode (post-multiply). Claimed/running — the WVQP committee re-adjudicates. Applied: WV-mobile +100 per WV county activated (CATEGORY-STATION MOBILE or ROVER, from the sent county logged on each QSO); a mobile entrant re-works everyone from each new county.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 100, "minQsos": 1, "stations": ["MOBILE", "ROVER"]},
+      "ownCountyDupe": true,
       "stateName": "West Virginia",
       "stateAbbr": "WV",
       "dcCountsAsMd": true,

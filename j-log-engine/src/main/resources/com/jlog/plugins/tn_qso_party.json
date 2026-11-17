@@ -32,9 +32,11 @@
   "scoringRules": {
     "pointsPerQso": 3,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × Σ mults, mults counted PER BAND) + bonuses. 3 pts/QSO regardless of mode. Each station workable once per Phone / CW / Digital per band (all voice = phone, all non-CW digital = one class). TN entrant mult/band = TN counties (95) + US states (49, NOT TN, DC→MD) + Canadian provinces (13) + DXCC entities (less USA/Canada/AK/HI; AK/HI=states). Non-TN entrant mult/band = TN counties (95). TN works everyone; non-TN scores TN contacts only. TN mobile/rover county-change = new QSO + new county; county-line = 2 logged QSOs. Bonus station K4TCG = +100 per QSO (once per band & mode, post-multiply). Claimed/running — the TCG TNQP committee re-adjudicates. NOT applied (off-log/self/category): TN-mobile/rover +500 per county with ≥10 QSOs AND its claim-1-extra-county multiplier (entrant-self); power/operator categories.",
+    "scoreFormula": "(Σ QSO pts × Σ mults, mults counted PER BAND) + bonuses. 3 pts/QSO regardless of mode. Each station workable once per Phone / CW / Digital per band (all voice = phone, all non-CW digital = one class). TN entrant mult/band = TN counties (95) + US states (49, NOT TN, DC→MD) + Canadian provinces (13) + DXCC entities (less USA/Canada/AK/HI; AK/HI=states). Non-TN entrant mult/band = TN counties (95). TN works everyone; non-TN scores TN contacts only. TN mobile/rover county-change = new QSO + new county; county-line = 2 logged QSOs. Bonus station K4TCG = +100 per QSO (once per band & mode, post-multiply). Claimed/running — the TCG TNQP committee re-adjudicates. Applied: TN-mobile/rover +500 per TN county activated with ≥10 QSOs (CATEGORY-STATION MOBILE or ROVER, from the sent county logged on each QSO); a mobile/rover entrant re-works everyone from each new county. NOT applied: the mobile/rover claim-1-extra-county multiplier; power/operator categories.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 500, "minQsos": 10, "stations": ["MOBILE", "ROVER"]},
+      "ownCountyDupe": true,
       "stateName": "Tennessee",
       "stateAbbr": "TN",
       "dcCountsAsMd": true,

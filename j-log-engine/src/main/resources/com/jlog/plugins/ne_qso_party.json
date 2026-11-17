@@ -30,9 +30,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ geo mults (counted ONCE PER CONTEST — not per band, not per mode) + station bonuses. Pts: Digital 1, Phone 2, CW 3 (RTTY=Digital). NE entrant geo mult = each NE county + each US state + each Canadian province + each DXCC country worked. Non-NE entrant geo mult = NE counties only (max 93). NE works everyone; non-NE scores NE contacts only. Mobile/portable county-change = new QSO + new county credit. Station bonuses (once each): KA0BOJ +100, K0SMM/K0RPT/K0NEB/NF0N/N0FER/KE0XQ +50 each. Claimed/running — Nebraska QSO Party committee re-adjudicates. NOT applied (category/self-report, off-log): Power Multiplier (×5 QRP / ×2 <100W / ×1 >100W, default ×1); RARE GRID activator bonus (DN91CE/DE/EE — entrant's own grid, not log-derivable); Satellite category (4 pts/QSO — declared overlay). The separate FT8/FT4 grid-square competition is a distinct entry/log and is intentionally NOT scored here.",
+    "scoreFormula": "Σ QSO pts × Σ geo mults (counted ONCE PER CONTEST — not per band, not per mode) + station bonuses. Pts: Digital 1, Phone 2, CW 3 (RTTY=Digital). NE entrant geo mult = each NE county + each US state + each Canadian province + each DXCC country worked. Non-NE entrant geo mult = NE counties only (max 93). NE works everyone; non-NE scores NE contacts only. Mobile/portable county-change = new QSO + new county credit. Station bonuses (once each): KA0BOJ +100, K0SMM/K0RPT/K0NEB/NF0N/N0FER/KE0XQ +50 each. Claimed/running — Nebraska QSO Party committee re-adjudicates. Applied from the entry's Cabrillo CATEGORY-POWER: Power Multiplier ×5 QRP / ×2 LOW (<100W) / ×1 HIGH (values from the 2025 summary sheet; the 2026 rules could not be read). A mobile/portable entrant re-works everyone from each new county. NOT applied (category/self-report, off-log): RARE GRID activator bonus (DN91CE/DE/EE — entrant's own grid, not log-derivable); Satellite category (4 pts/QSO — declared overlay). The separate FT8/FT4 grid-square competition is a distinct entry/log and is intentionally NOT scored here.",
     "allowDupes": false,
     "qsoParty": {
+      "powerMultiplier": {"QRP": 5, "LOW": 2, "HIGH": 1},
+      "ownCountyDupe": true,
       "stateName": "Nebraska",
       "stateAbbr": "NE",
       "countyByExclusion": true,

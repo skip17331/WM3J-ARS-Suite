@@ -90,9 +90,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Total = Σ QSO pts × Σ mults, mults counted once PER BAND. Pts: phone 2, CW 2; 10 for VA3CCO, VE3CCO, VE3ODX, VA3RAC, VE3RHQ. Ontario entrant: Ontario counties + Canadian provinces/territories + US states (+DC) + each DXCC country; non-Ontario entrant: Ontario counties only. Not scored: the mobile/rover bonus (300 per Ontario area activated with 3+ contacts) — add it by hand. Claimed — CCO re-adjudicates.",
+    "scoreFormula": "Total = Σ QSO pts × Σ mults, mults counted once PER BAND. Pts: phone 2, CW 2; 10 for VA3CCO, VE3CCO, VE3ODX, VA3RAC, VE3RHQ. Ontario entrant: Ontario counties + Canadian provinces/territories + US states (+DC) + each DXCC country; non-Ontario entrant: Ontario counties only. Mobile/rover bonus: 300 per Ontario area activated with 3+ contacts with 3 different stations (CATEGORY-STATION MOBILE or ROVER, from the sent area logged on each QSO); a mobile/rover re-works everyone from each new area. Claimed — CCO re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
+      "activationBonus": {"points": 300, "minQsos": 3, "minCalls": 3, "stations": ["MOBILE", "ROVER"]},
+      "ownCountyDupe": true,
       "stateName": "Ontario",
       "stateAbbr": "ON",
       "countyCodeLen": 3,

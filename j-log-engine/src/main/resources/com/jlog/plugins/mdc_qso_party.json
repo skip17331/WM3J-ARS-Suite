@@ -30,9 +30,12 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Contact pts × State-Mult [× Station-Category Mult × Power Mult — off-log] + bonuses. Pts: CW 3, Phone 1. MDC entrant State-Mult = each MD county/city incl BAL & WDC (25) + each US state less MD (49) + Canadian provinces (13) + each DXCC except USA/Canada/HI/AK. Non-MDC entrant State-Mult = the 25 MDC jurisdictions. MD itself is NOT a state mult. MDC works everyone; non-MDC scores MDC contacts only (non-MDC↔non-MDC no credit). Location-change (MDC entity, or US-state/prov/country) = new station. Bonuses: W3VPR +50 once (any mode); all-25 MDC jurisdictions +500 else 13+ jurisdictions +250. Claimed/running — the AARC MDC committee re-adjudicates. NOT applied (off-log/category): Station-Category Multiplier (Club1/Rover4/Portable3/Mobile2/Fixed1) and Power Multiplier (QRP3/Low2/High1) — both default ×1, committee applies from the entry category.",
+    "scoreFormula": "Contact pts × State-Mult [× Station-Category Mult × Power Mult — off-log] + bonuses. Pts: CW 3, Phone 1. MDC entrant State-Mult = each MD county/city incl BAL & WDC (25) + each US state less MD (49) + Canadian provinces (13) + each DXCC except USA/Canada/HI/AK. Non-MDC entrant State-Mult = the 25 MDC jurisdictions. MD itself is NOT a state mult. MDC works everyone; non-MDC scores MDC contacts only (non-MDC↔non-MDC no credit). Location-change (MDC entity, or US-state/prov/country) = new station. Bonuses: W3VPR +50 once (any mode); all-25 MDC jurisdictions +500 else 13+ jurisdictions +250. Claimed/running — the AARC MDC committee re-adjudicates. Applied from the entry's Cabrillo categories: Station-Category Multiplier (CATEGORY-STATION ROVER ×4 / PORTABLE ×3 / MOBILE ×2 / FIXED ×1; a club entry is ×1) and Power Multiplier (QRP ×3 / LOW ×2 / HIGH ×1). An entrant that changes location re-works everyone (its sent county is part of the dupe key).",
     "allowDupes": false,
     "qsoParty": {
+      "stationMultiplier": {"CLUB": 1, "ROVER": 4, "PORTABLE": 3, "MOBILE": 2, "FIXED": 1},
+      "powerMultiplier": {"QRP": 3, "LOW": 2, "HIGH": 1},
+      "ownCountyDupe": true,
       "stateName": "Maryland-DC",
       "stateAbbr": "MDC",
       "inStateCounties": ["ALY","ANA","BAL","BCT","CLV","CLN","CRL","CEC","CHS","DRC","FRD","GAR","HFD","HWD","KEN","MON","PGE","QAN","STM","SMR","TAL","WAS","WIC","WRC","WDC"],

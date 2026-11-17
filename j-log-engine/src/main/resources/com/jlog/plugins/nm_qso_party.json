@@ -30,9 +30,11 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + W1AW/5 one-time +250 (post-multiply). Pts: Phone 1, CW/Digital 2. Mults counted ONCE (any mode/band): NM entrant = NM counties + states + CA prov + each DXCC; non-NM entrant = NM counties (33). Power ×5/×2/×1 (QRP/Low/High) and NM mobile +5000/county@≥15 are OFF-LOG/claimed (entrant category / self-report). Claimed — NMQP organizers re-adjudicate.",
+    "scoreFormula": "(Σ QSO pts × power-mult × Σ mults) + W1AW/5 one-time +250 (post-multiply). Pts: Phone 1, CW/Digital 2. Mults counted ONCE (any mode/band): NM entrant = NM counties + states + CA prov + each DXCC; non-NM entrant = NM counties (33). Power ×5/×2/×1 (QRP/Low/High) applied from the entry's Cabrillo CATEGORY-POWER; NM mobile/rover +5000 per NM county activated with ≥15 QSOs, from the sent county logged on each QSO, when CATEGORY-STATION is MOBILE or ROVER. Claimed — NMQP organizers re-adjudicate.",
     "allowDupes": false,
     "qsoParty": {
+      "powerMultiplier": {"QRP": 5, "LOW": 2, "HIGH": 1},
+      "activationBonus": {"points": 5000, "minQsos": 15, "stations": ["MOBILE", "ROVER"]},
       "stateName": "New Mexico",
       "stateAbbr": "NM",
       "dcCountsAsMd": true,
