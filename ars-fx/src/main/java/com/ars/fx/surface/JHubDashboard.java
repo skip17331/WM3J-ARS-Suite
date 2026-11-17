@@ -129,9 +129,9 @@ public final class JHubDashboard {
         Pane track = new Pane(); track.setMinHeight(30); track.setPrefHeight(30); track.setMouseTransparent(true);
         HBox.setHgrow(track, Priority.ALWAYS); track.setMinWidth(0);
         Region line = new Region(); line.setPrefHeight(1); line.setMinHeight(1); line.setMaxHeight(1);
-        line.setStyle("-fx-background-color: linear-gradient(to right, rgba(61,240,255,0), rgba(61,240,255,0.55) 50%, rgba(124,92,255,0));");
+        line.setStyle("-fx-background-color: linear-gradient(to right, transparent, -ars-accent-line 50%, transparent);");   // scheme colours, so it follows the theme button
         Region dot = new Region(); dot.setPrefSize(7, 7); dot.setMinSize(7, 7); dot.setMaxSize(7, 7);
-        dot.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 99; -fx-effect: dropshadow(gaussian, #3df0ff, 10, 0.6, 0, 0);");
+        dot.setStyle("-fx-background-color: -ars-t1; -fx-background-radius: 99; -fx-effect: dropshadow(gaussian, -ars-accent, 10, 0.6, 0, 0);");
         track.getChildren().addAll(line, dot);
         javafx.beans.property.SimpleDoubleProperty phase = new javafx.beans.property.SimpleDoubleProperty(0.5);
         Runnable place = () -> {
