@@ -30,11 +30,18 @@ public class CallsignParser {
 
     /**
      * Matches standard amateur callsigns including portable/prefix variants:
-     *   W3ABC, VK3ABC, OH2BH, 5B4AIF, OZ/DL3YM, W3ABC/P
+     *   W3ABC, VK3ABC, OH2BH, 5B4AIF, 3Y0J, 2E0ABC, A61BK, OZ/DL3YM, W3ABC/P
+     * The base call may start with a digit (3Y0J, 5B4AIF, 9A1A) and have one or two digits after the prefix letters (A61BK).
      */
     private static final Pattern CALLSIGN_RE = Pattern.compile(
-        "\\b([A-Z0-9]{1,3}/)?([A-Z]{1,2}[0-9][A-Z]{1,4})(/[A-Z0-9]+)?\\b"
+        "\\b([A-Z0-9]{1,3}/)?([0-9]?[A-Z]{1,2}[0-9]{1,2}[A-Z]{1,4})(/[A-Z0-9]+)?\\b"
     );
+
+    /** A token as a call candidate: FT8 shows a hashed call in angle brackets, "<K1ABC/P>"; an unresolved "<...>" is no call. */
+    private static String clean(String token) {
+        if (token.length() > 2 && token.startsWith("<") && token.endsWith(">")) return token.substring(1, token.length() - 1);
+        return token;
+    }
 
     /** Tokens that are never callsigns in WSJT-X messages */
     private static final Set<String> RESERVED = new HashSet<>(Arrays.asList(
@@ -57,7 +64,8 @@ public class CallsignParser {
 
         // ── CQ [<modifier>] <CALL> [<GRID>] ──────────────────────────────────
         if (msg.startsWith("CQ ")) {
-            for (String token : msg.substring(3).split("\\s+")) {
+            for (String raw : msg.substring(3).split("\\s+")) {
+                String token = clean(raw);
                 if (!RESERVED.contains(token) && isCallsign(token)) {
                     return stripPortableSuffix(token);
                 }
@@ -68,8 +76,8 @@ public class CallsignParser {
         // ── DE <CALL> [<GRID>] ────────────────────────────────────────────────
         if (msg.startsWith("DE ")) {
             String[] parts = msg.split("\\s+");
-            if (parts.length >= 2 && isCallsign(parts[1])) {
-                return stripPortableSuffix(parts[1]);
+            if (parts.length >= 2 && isCallsign(clean(parts[1]))) {
+                return stripPortableSuffix(clean(parts[1]));
             }
             return null;
         }
@@ -77,8 +85,8 @@ public class CallsignParser {
         // ── TU; <OUR_CALL> <DX_CALL> <REPORT> ────────────────────────────────
         if (msg.startsWith("TU;")) {
             String[] parts = msg.split("\\s+");
-            if (parts.length >= 3 && isCallsign(parts[2])) {
-                return stripPortableSuffix(parts[2]);
+            if (parts.length >= 3 && isCallsign(clean(parts[2]))) {
+                return stripPortableSuffix(clean(parts[2]));
             }
             return null;
         }
@@ -86,7 +94,8 @@ public class CallsignParser {
         // ── Two-callsign exchange ─────────────────────────────────────────────
         String[] tokens = msg.split("\\s+");
         java.util.List<String> calls = new java.util.ArrayList<>();
-        for (String t : tokens) {
+        for (String raw : tokens) {
+            String t = clean(raw);
             if (!RESERVED.contains(t) && isCallsign(t)) calls.add(stripPortableSuffix(t));
         }
 
@@ -120,7 +129,8 @@ public class CallsignParser {
         if (msg.startsWith("CQ ") || msg.startsWith("DE ") || msg.startsWith("TU;")) return extractDxCallsign(message);
 
         java.util.List<String> calls = new java.util.ArrayList<>();
-        for (String t : msg.split("\\s+")) {
+        for (String raw : msg.split("\\s+")) {
+            String t = clean(raw);
             if (!RESERVED.contains(t) && isCallsign(t)) calls.add(stripPortableSuffix(t));
         }
         if (calls.isEmpty()) return null;
