@@ -733,11 +733,11 @@
 .rc-vfobtn.on { -fx-background-color: -ars-accent-dim; -fx-border-color: -ars-accent-line; -fx-text-fill: -ars-accent; }
 .rc-tag     { -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 3 7 3 7; -fx-background-radius: 4; -fx-border-radius: 4; -fx-border-width: 1; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border; -fx-text-fill: -ars-t3; }
 .rc-tag.split.on { -fx-text-fill: -ars-warn; -fx-background-color: -ars-warn-soft; -fx-border-color: rgba(238,187,88,0.35); }
-.rc-freq-mhz { -fx-font-family: "JetBrains Mono"; -fx-font-size: 33px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; }
-.rc-freq-dot { -fx-font-family: "JetBrains Mono"; -fx-font-size: 33px; -fx-font-weight: 600; -fx-text-fill: -ars-t3; }
-.rc-freq-khz { -fx-font-family: "JetBrains Mono"; -fx-font-size: 33px; -fx-font-weight: 600; -fx-text-fill: -ars-accent; }
-.rc-freq-hz  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 22px; -fx-font-weight: 600; -fx-text-fill: -ars-t3; }
-.rc-freqin  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 31px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; -fx-highlight-fill: -ars-accent-dim; }
+.rc-freq-mhz { -fx-font-family: "JetBrains Mono"; -fx-font-size: 27px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; }
+.rc-freq-dot { -fx-font-family: "JetBrains Mono"; -fx-font-size: 27px; -fx-font-weight: 600; -fx-text-fill: -ars-t3; }
+.rc-freq-khz { -fx-font-family: "JetBrains Mono"; -fx-font-size: 27px; -fx-font-weight: 600; -fx-text-fill: -ars-accent; }
+.rc-freq-hz  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: -ars-t3; }
+.rc-freqin  { -fx-font-family: "JetBrains Mono"; -fx-font-size: 25px; -fx-font-weight: 600; -fx-text-fill: -ars-t1; -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; -fx-highlight-fill: -ars-accent-dim; }
 .rc-freq-u  { -fx-font-size: 11px; -fx-text-fill: -ars-t3; }
 .rc-nudge-lbl { -fx-font-size: 7.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t4; }
 .rc-arr     { -fx-font-size: 12px; -fx-text-fill: -ars-t2; -fx-background-color: -ars-surface-3; -fx-border-color: -ars-border-2; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6; -fx-min-height: 26; }
