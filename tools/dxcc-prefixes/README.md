@@ -11,7 +11,10 @@ tools/dxcc-prefixes/gen_dxcc_prefixes.py --refresh-adif  # also re-download the 
 tools/dxcc-prefixes/gen_dxcc_prefixes.py --cty FILE      # use another cty.dat
 ```
 
-then `mvn install` in `j-log-engine` and `mvn test` in `ars-fx`: `CtyDataTest.engineTableAgreesWithCountryFiles` fails if a
+The table also carries cty.dat's exact-call entries (`=4U1UN`) wherever the prefixes alone would give another entity or
+continent; those rows have `"exact":true` and `DxccResolver` checks them, as whole calls, before any prefix.
+
+Then run `mvn install` in `j-log-engine` and `mvn test` in `ars-fx`: `CtyDataTest.engineTableAgreesWithCountryFiles` fails if a
 cty.dat prefix is unresolved, an entity ends up with two numbers, or two entities share one.
 
 Files here:

@@ -11,8 +11,10 @@ How it works
      used), with the OVERRIDES below for names that do not match.
   3. For every prefix cty.dat gives an entity, add or replace a table row when the table does not already resolve that
      prefix to the same number and continent. Shorter prefixes go first so a longer one sees what the shorter changed.
-     Exact-callsign entries (=W1AW) are ignored: the engine matches prefixes only.
-  4. Write the table (one row per line, same layout as before).
+  4. For every exact-callsign entry (=4U1UN) the finished prefix table would place differently (another entity or
+     continent), add a row with "exact":true. The engine checks those whole calls before any prefix: 4U1UN is the UN in
+     New York (NA), not Italy, and KC4USV is Antarctica, not the USA.
+  5. Write the table (one row per line, same layout as before; exact rows last, sorted by call).
 
   --cty           country file to read (default: the copy the app ships, ars-fx/src/main/resources/com/ars/fx/cty/cty.dat)
   --refresh-adif  download the current ADIF entity list from adif.org into adif-entities.json first
@@ -135,12 +137,25 @@ def build(cty_path):
         row = dict(prefix=b, country=names.get(n) or e['name'], continent=cont, dxcc=n, lat=round(e['lat'], 2), lon=round(e['lon'], 2))
         added[b] = row; table[b] = row
     keep = [r for r in base if r['prefix'].upper() not in added]
-    return keep + list(added.values()), len(base), len(added)
+    exact = {}
+    for e in ents:
+        n = number[e['name']]
+        if n is None: continue
+        for a in e['aliases']:
+            if not a.startswith('='): continue
+            b, c = split(a[1:])
+            cont = c or e['cont']
+            cur = res(b)
+            if cur is not None and cur['dxcc'] == n and cur['continent'] == cont: continue
+            exact[b] = dict(prefix=b, country=names.get(n) or e['name'], continent=cont, dxcc=n,
+                            lat=round(e['lat'], 2), lon=round(e['lon'], 2), exact=True)
+    return keep + list(added.values()) + [exact[k] for k in sorted(exact)], len(base), len(added) + len(exact)
 
 def render(rows):
     def line(e):
         d = dict(prefix=e['prefix'], country=e['country'], continent=e['continent'], dxcc=e['dxcc'], lat=e['lat'], lon=e['lon'])
         if 'timezone' in e: d['timezone'] = e['timezone']
+        if e.get('exact'): d['exact'] = True
         return '  ' + json.dumps(d, separators=(',', ':'), ensure_ascii=False)
     return '[\n' + ',\n'.join(line(e) for e in rows) + '\n]\n'
 

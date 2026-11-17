@@ -39,6 +39,9 @@ public final class DxccResolver {
 
     public record Entity(String id, String continent) {}
 
+    /** whole callsign → entity, for the country files' exact-call entries ("exact":true rows): 4U1UN is the UN in New York,
+     *  not Italy; KC4USV is Antarctica, not the USA. Checked before any prefix. */
+    private final Map<String, Entity> byExactCall = new HashMap<>();
     /** prefix → resolved entity (dxcc id + continent). Primary table. */
     private final Map<String, Entity> byPrefix = new HashMap<>();
     /** length of the longest prefix in the table, so a lookup tries at most that many leading slices. */
@@ -66,8 +69,8 @@ public final class DxccResolver {
                         // Multiple prefixes can share a DXCC number; the entity
                         // id is that number so distinct-country counts collapse
                         // correctly. First write wins on duplicate prefixes.
-                        byPrefix.putIfAbsent(pfx.toUpperCase(),
-                                new Entity(dx.asText(), cont));
+                        (e.path("exact").asBoolean(false) ? byExactCall : byPrefix)
+                                .putIfAbsent(pfx.toUpperCase(), new Entity(dx.asText(), cont));
                     }
                 }
             }
@@ -91,8 +94,8 @@ public final class DxccResolver {
         }
         maxFallback = entityFallback.keySet().stream().mapToInt(String::length).max().orElse(1);
 
-        log.info("DxccResolver: {} prefixes + {} entity fallbacks loaded",
-                byPrefix.size(), entityFallback.size());
+        log.info("DxccResolver: {} prefixes + {} exact calls + {} entity fallbacks loaded",
+                byPrefix.size(), byExactCall.size(), entityFallback.size());
     }
 
     /** True for maritime / aeronautical mobile — CQ WW: zone mult only, no country. */
@@ -105,8 +108,12 @@ public final class DxccResolver {
     /** Resolve to {entity,continent}; null if MM/AM or unresolvable. */
     public Entity resolve(String rawCall) {
         if (rawCall == null || rawCall.isBlank() || isMaritimeOrAir(rawCall)) return null;
+        Entity x = byExactCall.get(rawCall.trim().toUpperCase(java.util.Locale.ROOT));   // e.g. KC4/W1WCN as written
+        if (x != null) return x;
         String call = CallsignRegion.normalise(rawCall);
         if (call.isEmpty()) return null;
+        x = byExactCall.get(call);                           // 4U1UN/P is still 4U1UN
+        if (x != null) return x;
         Entity e = longest(call, byPrefix, maxPrefix);       // longest match wins
         return e != null ? e : longest(call, entityFallback, maxFallback);   // entities the table lacks
     }
