@@ -99,15 +99,20 @@ class LocalSkimmerSpotsTest {
         // A plain socket client, so no window link is injecting the hub's list back over itself (in one process the
         // hub and a window would share a single list; in the real app they are separate processes).
         withHub(45392, () -> {
-            java.util.concurrent.atomic.AtomicBoolean open = new java.util.concurrent.atomic.AtomicBoolean();
-            org.java_websocket.client.WebSocketClient c = new org.java_websocket.client.WebSocketClient(new java.net.URI("ws://127.0.0.1:45392")) {
-                @Override public void onOpen(org.java_websocket.handshake.ServerHandshake h) { open.set(true); }
-                @Override public void onMessage(String m) {}
-                @Override public void onClose(int code, String reason, boolean remote) {}
-                @Override public void onError(Exception e) {}
-            };
-            c.connect();
-            assertTrue(await(open::get, 8000), "could not connect to the hub");
+            // The hub starts its accept thread in the background, so the first try can come before the port is bound (seen on a
+            // slow Windows CI runner: refused once, never retried, "could not connect"). Try again until it answers, as the app's link does.
+            org.java_websocket.client.WebSocketClient c = null;
+            for (long end = System.currentTimeMillis() + 15_000; c == null && System.currentTimeMillis() < end; ) {
+                org.java_websocket.client.WebSocketClient tryC = new org.java_websocket.client.WebSocketClient(new java.net.URI("ws://127.0.0.1:45392")) {
+                    @Override public void onOpen(org.java_websocket.handshake.ServerHandshake h) {}
+                    @Override public void onMessage(String m) {}
+                    @Override public void onClose(int code, String reason, boolean remote) {}
+                    @Override public void onError(Exception e) {}
+                };
+                if (tryC.connectBlocking(2, java.util.concurrent.TimeUnit.SECONDS)) c = tryC;
+                else { tryC.close(); Thread.sleep(200); }
+            }
+            assertNotNull(c, "could not connect to the hub");
             ClusterClient.Spot sp = DigiEngine.skimmerSpot(heard("ZL2XYZ", 14_035_000L), "WM3J", 1L);
             c.send("{\"t\":\"spot.add\",\"hz\":" + sp.freqHz() + ",\"call\":\"ZL2XYZ\",\"mode\":\"CW\",\"band\":\"20m\",\"de\":\"WM3J-SKM\",\"comment\":\"x\"}");
             assertTrue(await(() -> has("ZL2XYZ"), 5000), "the hub did not add the spot");
