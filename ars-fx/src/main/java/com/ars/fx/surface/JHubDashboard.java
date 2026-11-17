@@ -424,6 +424,9 @@ public final class JHubDashboard {
         return cwSet;
     }
 
+    /** The tag a spot shows in the spot list ("NEW ONE", "NEW BAND", a contest's NEW MULT ..., or "" when not needed), for spot alerts. */
+    static String needLabel(ClusterClient.Spot s) { return tag(s, needIndex()); }
+
     private static SpotNeeds.Need need(ClusterClient.Spot s, SpotNeeds.Index ix) {
         return SpotNeeds.classify(ix, s.call(), s.band(), s.mode(), SpotNeeds.resolver());
     }
@@ -1188,7 +1191,14 @@ public final class JHubDashboard {
             cfgRow("RBN connection tries", "give up after this many failed attempts (0 = keep trying)",
                     cInputApply("data.rbnMaxTries", "5", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("RBN auto-connect on start", "off by default — \"who's hearing me\" skimmer spots; Connect from the Heard By panel",
-                    cToggle("data.rbnAutoConnect", false)));
+                    cToggle("data.rbnAutoConnect", false)),
+            cfgRow("Spot alerts", "a card in the corner (and a chime) when a spot arrives that you want; the same call on the same band alerts once every 30 minutes",
+                    cToggle(com.ars.fx.data.SpotAlerts.KEY_ON, false)),
+            cfgRow("Alert on needed spots", "spots tagged NEW ONE / NEW BAND / NEW MODE (a new multiplier on the contest page)",
+                    cToggle(com.ars.fx.data.SpotAlerts.KEY_NEEDED, true)),
+            cfgRow("Watch list", "calls or prefixes to alert on, separated by commas: K1ABC, VP8*, 3Y0J",
+                    cInput(com.ars.fx.data.SpotAlerts.KEY_WATCH, "")),
+            cfgRow("Alert chime", null, cToggle(com.ars.fx.data.SpotAlerts.KEY_SOUND, true)));
         VBox wsjt = section("WSJT-X / DIGITAL",
             cfgRow("WSJT-X UDP port", "set the same port in WSJT-X ▸ Settings ▸ Reporting; applied as soon as you leave the field", cInputApply("data.wsjtxPort", "2237", com.ars.fx.data.BridgeService::restart)),
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
