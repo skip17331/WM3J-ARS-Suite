@@ -51,27 +51,28 @@ One app, these modules — each a surface you can dock or float in its own windo
 
 | Module | What it does |
 |---|---|
-| **J‑Hub** | The control surface: dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, antenna workshop, and all settings. Reached from the dock (docked) or the ⚙ gear (loose). |
+| **J‑Hub** | The control surface: dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, and all settings. Reached from the dock (docked) or the ⚙ gear (loose). |
 | **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
 | **J‑Map** | Real‑time DX map with grayline, propagation overlays, weather, aurora, and great‑circle paths to spotted DX. |
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK, Feld Hell. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
 | **J‑Sat** | Satellite tracker with Doppler correction and rotor control. |
 | **J‑Vault** | Shack inventory + **first‑call contacts** so your family knows who to call when you're SK, with CSV export. SQLite‑backed. |
-| **J‑Learn** | Embedded amateur‑radio reference library — ~200 sections covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; markdown source seeds to `~/.j-learn/content/` so you can edit content without rebuilding. |
+| **J‑Learn** | Embedded amateur‑radio reference library — 30 chapters, 300+ sections covering propagation, antennas, RF safety, troubleshooting, formulas, operating practice, emcomm. Searchable; markdown source seeds to `~/.j-learn/content/` so you can edit content without rebuilding. |
 | **Morse Trainer** | Learning and practicing CW — Koch‑method letter trainer, QSO simulator, sending trainer with real‑time decoding, analytics, and optional Arduino / Pi keyer hardware support. |
 
 A shared **j‑log‑engine** library underpins logging across J‑Log, J‑Digi,
 and J‑Bridge so everything writes to one set of databases under `~/.j‑log/`.
-In **loose** mode the per‑module windows share live state (spots, rig, rotor,
-station identity) through a small **background hub** in the system tray; in
-**docked** mode they all share one process.
+Docked or loose, the windows attach to a small **background hub** (in the
+system tray) that owns the radio daemons and the live feeds, so they all
+share one set of spots, rig, rotor and station identity, and closing a window
+never drops the radio.
 
 ---
 
 ## Highlights
 
-### Antenna Workshop (inside J‑Hub)
+### Antenna Workshop (opens in J‑Learn; its own dock entry)
 
 A **questionnaire‑driven antenna recommender** + **13 live calculators**:
 
@@ -95,14 +96,14 @@ gear they don't recognize. J‑Vault keeps a categorized **equipment inventory**
 (make / model / serial / value / disposition / location) alongside
 **first‑call contacts** — the people who should be called, priority‑sorted, and
 the gear each is interested in — and **exports it to CSV** for sharing or print.
-(A one‑click formatted estate‑handoff document is on the roadmap.)
+(A formatted, printable estate‑handoff document is planned but not built yet.)
 
 ### J‑Learn — your reference library, in‑app
 
-Twenty‑two chapters, ~200 sections, written for operators who already
+Thirty chapters and more than 300 sections, written for operators who already
 have their license. Searchable, with an Advanced toggle for engineering
 depth. Cross‑references jump straight to the calculator or sub‑section
-you need. Bundled into J‑Hub — no separate install, no internet required.
+you need. Bundled into the app — no separate install, no internet required.
 
 ### One settings surface
 
@@ -247,17 +248,17 @@ compatibility, long‑term openness.
 - **JavaFX 21** — clean, responsive, cross‑platform UI; one app, all modules.
 - **Maven** — one shaded jar per OS, built from the `ars-fx` module over the
   shared engine library (`j-log-engine`).
-- **Java‑WebSocket** — in **loose** mode a small background hub (port 8090)
-  shares live state (spots, rig, rotor, station) with each module window, and
-  with a J‑Map/J‑Sat display on a second machine.
+- **Java‑WebSocket** — the small background hub (port 8090) shares live state
+  (spots, rig, rotor, station) with the docked window or each loose module
+  window, and with a J‑Map/J‑Sat display on a second machine.
 - **SQLite** — local persistence for QSOs, contests, macros, inventory,
   callsign cache.
 - **Hamlib** (`rigctld` / `rotctld` / `ampctld`) — universal rig / rotor / amp
   backend.
 - **WSJT‑X** integration via **J‑Bridge** UDP listener.
 - **JSON contest modules** — drop‑in plug‑ins for new contests.
-- **Estate handoff** — J‑Vault produces a printable inventory + first‑call
-  contacts document for your family.
+- **Estate handoff** — J‑Vault keeps the inventory and first‑call contacts your
+  family will need, exported as CSV (a formatted printable document is planned).
 
 Runs on:
 
