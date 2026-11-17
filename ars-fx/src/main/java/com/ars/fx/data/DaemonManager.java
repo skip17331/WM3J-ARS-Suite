@@ -91,6 +91,12 @@ public final class DaemonManager {
         } catch (Exception ignored) { /* spawn failed — operator runs it manually */ }
     }
 
+    /** The only /dev/ttyUSB* or /dev/ttyACM* node present, else "" (none or ambiguous — the operator picks one). */
+    private static String soleSerialPort() {
+        java.io.File[] f = new java.io.File("/dev").listFiles((d, n) -> n.startsWith("ttyUSB") || n.startsWith("ttyACM"));
+        return f != null && f.length == 1 ? f[0].getPath() : "";
+    }
+
     /** The command line for {@code s}'s daemon from the current settings, or null when there is no Hamlib model number. */
     private static List<String> buildArgv(Spec s, String bin) {
         String model = HubConfig.get(s.modelKey(), "").trim();
@@ -98,6 +104,7 @@ public final class DaemonManager {
         List<String> argv = new ArrayList<>();
         argv.add(bin); argv.add("-m"); argv.add(model);
         String serial = HubConfig.get(s.serialKey(), "").trim();
+        if (serial.isBlank() && s.kind().equals("rig")) serial = soleSerialPort();   // fresh install: the one USB serial device present
         if (!serial.isBlank()) { argv.add("-r"); argv.add(serial); }
         String baud = HubConfig.get(s.baudKey(), "").trim();
         if (!baud.isBlank()) { argv.add("-s"); argv.add(baud); }

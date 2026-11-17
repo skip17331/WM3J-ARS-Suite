@@ -97,4 +97,25 @@ if [[ -z "$INSTALLER_JAR" || ! -f "$INSTALLER_JAR" ]]; then
     exit 1
 fi
 
+# Linux: rig / amp serial ports (/dev/ttyUSB*, /dev/ttyACM*) are owned by a group
+# (dialout on Fedora/Debian/Ubuntu, uucp on Arch). Without membership rigctld can't open the
+# radio and the rig shows "offline". Group changes need a fresh login to take effect.
+if [[ "$(uname -s)" == "Linux" ]]; then
+    SERIAL_GROUP=""
+    for g in dialout uucp; do getent group "$g" >/dev/null 2>&1 && { SERIAL_GROUP="$g"; break; }; done
+    if [[ -n "$SERIAL_GROUP" ]] && ! id -nG "$USER" | tr ' ' '\n' | grep -qx "$SERIAL_GROUP"; then
+        echo
+        echo "NOTE: '$USER' is not in the '$SERIAL_GROUP' group, so the rig's serial port can't be opened."
+        if [[ -t 0 ]]; then
+            read -r -p "Add $USER to '$SERIAL_GROUP' now (uses sudo)? [Y/n] " ans
+            if [[ ! "$ans" =~ ^[Nn] ]]; then
+                sudo usermod -aG "$SERIAL_GROUP" "$USER" && echo "Added. Log out and back in for it to take effect."
+            fi
+        else
+            echo "Run: sudo usermod -aG $SERIAL_GROUP $USER   (then log out and back in)"
+        fi
+        echo
+    fi
+fi
+
 exec java -jar "$INSTALLER_JAR" --root "$SCRIPT_DIR" "$@"
