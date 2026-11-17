@@ -18,16 +18,21 @@ import java.util.function.Function;
 public final class SpotAlerts {
     private SpotAlerts() {}
 
-    public static final String KEY_ON = "alerts.enabled", KEY_NEEDED = "alerts.needed", KEY_WATCH = "alerts.watch", KEY_SOUND = "alerts.sound";
+    public static final String KEY_ON = "alerts.enabled", KEY_NEEDED = "alerts.needed", KEY_WATCH = "alerts.watch", KEY_SOUND = "alerts.sound",
+            KEY_MW_TOP = "alerts.mostWantedTop";
     /** The same call + band alerts again only after this long. */
     static final long REPEAT_MS = 30 * 60_000L;
     /** Only spots that arrived this recently alert. */
     static final long FRESH_MS = 10 * 60_000L;
 
     /** What to alert on: the watch list (exact calls, or prefixes ending in '*') and whether needed spots alert. */
-    public record Settings(boolean enabled, boolean needed, List<String> watch) {
+    public record Settings(boolean enabled, boolean needed, List<String> watch, int mostWantedTop) {
+        /** Without the Most Wanted rule. */
+        public Settings(boolean enabled, boolean needed, List<String> watch) { this(enabled, needed, watch, 0); }
         public static Settings fromConfig() {
-            return new Settings(HubConfig.getBool(KEY_ON, false), HubConfig.getBool(KEY_NEEDED, true), parse(HubConfig.get(KEY_WATCH, "")));
+            int top;
+            try { top = Integer.parseInt(HubConfig.get(KEY_MW_TOP, "0").trim()); } catch (NumberFormatException e) { top = 0; }
+            return new Settings(HubConfig.getBool(KEY_ON, false), HubConfig.getBool(KEY_NEEDED, true), parse(HubConfig.get(KEY_WATCH, "")), Math.max(0, top));
         }
     }
 
@@ -70,6 +75,12 @@ public final class SpotAlerts {
      */
     public static List<Alert> check(List<ClusterClient.Spot> spots, Function<ClusterClient.Spot, String> needTag, Settings s,
                                     long now, Map<String, Long> seen) {
+        return check(spots, needTag, sp -> 0, s, now, seen);
+    }
+
+    /** As above, also alerting on entities in Club Log's Most Wanted top {@code s.mostWantedTop()} ({@code rank}: 0 = unknown). */
+    public static List<Alert> check(List<ClusterClient.Spot> spots, Function<ClusterClient.Spot, String> needTag,
+                                    java.util.function.ToIntFunction<ClusterClient.Spot> rank, Settings s, long now, Map<String, Long> seen) {
         List<Alert> out = new ArrayList<>();
         if (s == null || !s.enabled() || spots == null) return out;
         seen.values().removeIf(t -> now - t > REPEAT_MS);
@@ -84,6 +95,10 @@ public final class SpotAlerts {
                 String t = needTag == null ? "" : needTag.apply(sp);
                 if (t != null && !t.isBlank()) reason = t;
             }
+            if (reason == null && s.mostWantedTop() > 0 && rank != null) {
+                int r = rank.applyAsInt(sp);
+                if (r > 0 && r <= s.mostWantedTop()) reason = "Most Wanted #" + r;
+            }
             if (reason == null) continue;
             seen.put(key, now);
             out.add(new Alert(sp, reason));
@@ -95,7 +110,7 @@ public final class SpotAlerts {
     private static final Map<String, Long> SEEN = new HashMap<>();
     /** {@link #check} against the app's settings, clock and remembered alerts. Call on the FX thread (the cluster listener's thread). */
     public static List<Alert> checkNow(List<ClusterClient.Spot> spots, Function<ClusterClient.Spot, String> needTag) {
-        return check(spots, needTag, Settings.fromConfig(), System.currentTimeMillis(), SEEN);
+        return check(spots, needTag, sp -> MostWanted.rank(sp.call()), Settings.fromConfig(), System.currentTimeMillis(), SEEN);
     }
 
     /** A short two-tone chime on a background thread (never on the FX thread); silently does nothing without an audio device. */
