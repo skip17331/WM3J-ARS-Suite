@@ -185,7 +185,29 @@ class BandplanLoaderTest {
     @Test
     void bandNamesAreLowestFirst() {
         var names = BandplanLoader.getInstance().bandNames("IARU-R2");
-        assertEquals("160m", names.get(0));
-        assertTrue(names.contains("70cm"));
+        assertEquals("2190m", names.get(0), "the lowest band, now that LF / MF are in the plan");
+        assertTrue(names.indexOf("160m") < names.indexOf("80m"));
+        assertTrue(names.indexOf("1.25m") < names.indexOf("70cm"), "by frequency, not the file's order");
+        assertTrue(names.indexOf("6m") < names.indexOf("4m") || !names.contains("4m"));
+        assertEquals("3cm", names.get(names.size() - 1));
+    }
+
+    @Test
+    void lfMfVhfAndMicrowaveBandsHaveNames() {
+        BandplanLoader b = BandplanLoader.getInstance();
+        // these all used to come back null, so a 23cm QSO or a 136 kHz spot had no band; names follow ADIF (2190m, not 2200m)
+        for (String r : new String[]{"IARU-R1", "IARU-R2", "IARU-R3"}) {
+            assertEquals("2190m", b.bandName(136_000, r), r);
+            assertEquals("630m", b.bandName(475_500, r), r);
+            assertEquals("23cm", b.bandName(1_296_100_000L, r), r);
+            assertEquals("13cm", b.bandName(2_320_100_000L, r), r);
+            assertEquals("3cm", b.bandName(10_368_100_000L, r), r);
+        }
+        assertNotNull(b.region("IARU-R1").band("4m"), "4m is a Region 1 band");
+        assertNull(b.region("IARU-R2").band("4m"), "not in Region 2's own plan");
+        assertNotNull(b.region("IARU-R2").band("33cm"), "33cm is a Region 2 band");
+        assertNull(b.region("IARU-R1").band("33cm"));
+        assertEquals("4m", b.bandName(70_200_000, "IARU-R2"), "a spot from Region 1 still gets its band name");
+        assertNull(b.bandName(1_000_000, "IARU-R2"), "between bands is still no band");
     }
 }

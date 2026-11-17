@@ -6,6 +6,18 @@
       "name": "IARU Region 1 (Europe, Africa, Middle East, North Asia)",
       "bands": [
         {
+          "name": "2190m", "lower": 135700, "upper": 137800,
+          "segments": [
+            { "lower": 135700, "upper": 137800, "activity": "MIXED", "label": "LF, narrow modes (CW / data)" }
+          ]
+        },
+        {
+          "name": "630m", "lower": 472000, "upper": 479000,
+          "segments": [
+            { "lower": 472000, "upper": 479000, "activity": "MIXED", "label": "MF, narrow modes (CW / data)" }
+          ]
+        },
+        {
           "name": "160m", "lower": 1810000, "upper": 2000000,
           "segments": [
             { "lower": 1810000, "upper": 1838000, "activity": "CW",     "label": "CW" },
@@ -131,6 +143,30 @@
             { "lower": 435000000, "upper": 438000000, "activity": "SAT",    "label": "Satellite subband" },
             { "lower": 438000000, "upper": 440000000, "activity": "PHONE",  "label": "FM repeater inputs / digital" }
           ]
+        },
+        {
+          "name": "4m", "lower": 70000000, "upper": 70500000,
+          "segments": [
+            { "lower": 70000000, "upper": 70500000, "activity": "MIXED", "label": "All modes (in the Region 1 countries that allocate it)" }
+          ]
+        },
+        {
+          "name": "23cm", "lower": 1240000000, "upper": 1300000000,
+          "segments": [
+            { "lower": 1240000000, "upper": 1300000000, "activity": "MIXED", "label": "All modes (sub-bands vary by country)" }
+          ]
+        },
+        {
+          "name": "13cm", "lower": 2300000000, "upper": 2450000000,
+          "segments": [
+            { "lower": 2300000000, "upper": 2450000000, "activity": "MIXED", "label": "All modes (allocation varies by country)" }
+          ]
+        },
+        {
+          "name": "3cm", "lower": 10000000000, "upper": 10500000000,
+          "segments": [
+            { "lower": 10000000000, "upper": 10500000000, "activity": "MIXED", "label": "All modes (allocation varies by country)" }
+          ]
         }
       ]
     },
@@ -138,6 +174,18 @@
     "IARU-R2": {
       "name": "IARU Region 2 (Americas)",
       "bands": [
+        {
+          "name": "2190m", "lower": 135700, "upper": 137800,
+          "segments": [
+            { "lower": 135700, "upper": 137800, "activity": "MIXED", "label": "LF, narrow modes (CW / data)" }
+          ]
+        },
+        {
+          "name": "630m", "lower": 472000, "upper": 479000,
+          "segments": [
+            { "lower": 472000, "upper": 479000, "activity": "MIXED", "label": "MF, narrow modes (CW / data)" }
+          ]
+        },
         {
           "name": "160m", "lower": 1800000, "upper": 2000000,
           "segments": [
@@ -274,6 +322,30 @@
             { "lower": 222250000, "upper": 223380000, "activity": "MIXED",  "label": "Mixed-mode / simplex" },
             { "lower": 223380000, "upper": 225000000, "activity": "PHONE",  "label": "FM repeaters" }
           ]
+        },
+        {
+          "name": "33cm", "lower": 902000000, "upper": 928000000,
+          "segments": [
+            { "lower": 902000000, "upper": 928000000, "activity": "MIXED", "label": "All modes (Region 2)" }
+          ]
+        },
+        {
+          "name": "23cm", "lower": 1240000000, "upper": 1300000000,
+          "segments": [
+            { "lower": 1240000000, "upper": 1300000000, "activity": "MIXED", "label": "All modes (sub-bands vary by country)" }
+          ]
+        },
+        {
+          "name": "13cm", "lower": 2300000000, "upper": 2450000000,
+          "segments": [
+            { "lower": 2300000000, "upper": 2450000000, "activity": "MIXED", "label": "All modes (allocation varies by country)" }
+          ]
+        },
+        {
+          "name": "3cm", "lower": 10000000000, "upper": 10500000000,
+          "segments": [
+            { "lower": 10000000000, "upper": 10500000000, "activity": "MIXED", "label": "All modes (allocation varies by country)" }
+          ]
         }
       ]
     },
@@ -281,6 +353,18 @@
     "IARU-R3": {
       "name": "IARU Region 3 (Asia, Pacific, Oceania)",
       "bands": [
+        {
+          "name": "2190m", "lower": 135700, "upper": 137800,
+          "segments": [
+            { "lower": 135700, "upper": 137800, "activity": "MIXED", "label": "LF, narrow modes (CW / data)" }
+          ]
+        },
+        {
+          "name": "630m", "lower": 472000, "upper": 479000,
+          "segments": [
+            { "lower": 472000, "upper": 479000, "activity": "MIXED", "label": "MF, narrow modes (CW / data)" }
+          ]
+        },
         {
           "name": "160m", "lower": 1800000, "upper": 2000000,
           "segments": [
@@ -395,6 +479,24 @@
             { "lower": 433000000, "upper": 435000000, "activity": "PHONE",  "label": "FM repeaters / simplex" },
             { "lower": 435000000, "upper": 438000000, "activity": "SAT",    "label": "Satellite subband" },
             { "lower": 438000000, "upper": 440000000, "activity": "MIXED",  "label": "Digital / experimental" }
+          ]
+        },
+        {
+          "name": "23cm", "lower": 1240000000, "upper": 1300000000,
+          "segments": [
+            { "lower": 1240000000, "upper": 1300000000, "activity": "MIXED", "label": "All modes (sub-bands vary by country)" }
+          ]
+        },
+        {
+          "name": "13cm", "lower": 2300000000, "upper": 2450000000,
+          "segments": [
+            { "lower": 2300000000, "upper": 2450000000, "activity": "MIXED", "label": "All modes (allocation varies by country)" }
+          ]
+        },
+        {
+          "name": "3cm", "lower": 10000000000, "upper": 10500000000,
+          "segments": [
+            { "lower": 10000000000, "upper": 10500000000, "activity": "MIXED", "label": "All modes (allocation varies by country)" }
           ]
         }
       ]
