@@ -424,6 +424,23 @@ public final class JHubDashboard {
         return cwSet;
     }
 
+    /** Setup: the Club Log token (kept with the upload logins), Update now, and what the list holds. */
+    private static Region mostWantedControls() {
+        javafx.scene.control.PasswordField tok = new javafx.scene.control.PasswordField();
+        tok.setText(com.ars.fx.data.MostWanted.token()); tok.setPromptText("cl_..."); tok.getStyleClass().add("jhub-mini-field"); tok.setPrefWidth(170);
+        tok.textProperty().addListener((o, a, b) -> com.ars.fx.data.MostWanted.setToken(b));
+        int n = com.ars.fx.data.MostWanted.size();
+        Label st = lbl(n > 0 ? n + " entities ranked" : "no list yet", "jhub-conn");
+        Label upd = lbl("Update now", "jhub-clearbtn"); upd.setStyle("-fx-cursor:hand;");
+        upd.setOnMouseClicked(e -> {
+            st.setText("⋯ asking Club Log…");
+            Thread t = new Thread(() -> { String m = com.ars.fx.data.MostWanted.refresh(); javafx.application.Platform.runLater(() -> st.setText(m)); }, "most-wanted");
+            t.setDaemon(true); t.start();
+        });
+        HBox h = new HBox(8, tok, upd, st); h.setAlignment(Pos.CENTER_RIGHT);
+        return h;
+    }
+
     /** The tag a spot shows in the spot list ("NEW ONE", "NEW BAND", a contest's NEW MULT ..., or "" when not needed), for spot alerts. */
     static String needLabel(ClusterClient.Spot s) { return tag(s, needIndex()); }
 
@@ -528,7 +545,9 @@ public final class JHubDashboard {
                     Region row = compact ? cluRowCompact(f) : cluRow(f,
                             com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forSpot(s.call(), s.freqHz())) : null);
                     row.setStyle("-fx-cursor:hand;");
-                    String hint = "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam";
+                    int mw = com.ars.fx.data.MostWanted.rank(s.call());
+                    String hint = (mw > 0 ? "Club Log Most Wanted #" + mw + "\n" : "")
+                            + "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam";
                     com.ars.fx.shell.Tips.tip(row, compact ? spotDetails(f) + "\n" + hint : hint);
                     row.setOnMouseClicked(e -> SpotAction.onSpot(row, s.call(), s.freqHz(), s.mode(), s.band()));
                     com.ars.fx.shell.Fx.fresh(row, s.arrivalMs());     // a new spot slides in and glows
@@ -1198,7 +1217,11 @@ public final class JHubDashboard {
                     cToggle(com.ars.fx.data.SpotAlerts.KEY_NEEDED, true)),
             cfgRow("Watch list", "calls or prefixes to alert on, separated by commas: K1ABC, VP8*, 3Y0J",
                     cInput(com.ars.fx.data.SpotAlerts.KEY_WATCH, "")),
-            cfgRow("Alert chime", null, cToggle(com.ars.fx.data.SpotAlerts.KEY_SOUND, true)));
+            cfgRow("Alert chime", null, cToggle(com.ars.fx.data.SpotAlerts.KEY_SOUND, true)),
+            cfgRow("Alert on Club Log Most Wanted", "alert on spots of entities in the Most Wanted top N (0 = off; needs the Club Log token below)",
+                    cInput(com.ars.fx.data.SpotAlerts.KEY_MW_TOP, "0")),
+            cfgRow("Club Log token", "for Club Log's Most Wanted ranking: create one at Club Log ▸ Settings ▸ API (it starts cl_). The list is fetched once a month",
+                    mostWantedControls()));
         VBox wsjt = section("WSJT-X / DIGITAL",
             cfgRow("WSJT-X UDP port", "set the same port in WSJT-X ▸ Settings ▸ Reporting; applied as soon as you leave the field", cInputApply("data.wsjtxPort", "2237", com.ars.fx.data.BridgeService::restart)),
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
