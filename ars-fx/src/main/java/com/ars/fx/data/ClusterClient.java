@@ -131,11 +131,23 @@ public final class ClusterClient extends TelnetFeed {
      *  It is left out of the activity heat map, which stays a picture of the cluster feed. */
     public void addLocalSpot(Spot spot) {
         if (spot == null) return;
-        synchronized (this) {
-            spots.addFirst(spot);
-            while (spots.size() > MAX_SPOTS) spots.removeLast();
-        }
+        synchronized (this) { addDeduped(spots, spot, MAX_SPOTS); }
         fire();
+    }
+
+    /** Two spots within this of each other, same call and band, are the same station (re-spotted by another station). */
+    static final long SAME_SPOT_HZ = 3_000;
+
+    /**
+     * Put {@code s} at the top of {@code list}, replacing an earlier spot of the same call on the same band within
+     * {@link #SAME_SPOT_HZ}, and keep at most {@code max}. A popular DXpedition re-spotted twenty times used to fill half the
+     * 40-spot list with copies and push every other station out; now it holds one line, the newest (with its spotter and comment).
+     */
+    static void addDeduped(java.util.Deque<Spot> list, Spot s, int max) {
+        list.removeIf(o -> o.call() != null && o.call().equalsIgnoreCase(s.call()) && java.util.Objects.equals(o.band(), s.band())
+                && Math.abs(o.freqHz() - s.freqHz()) <= SAME_SPOT_HZ);
+        list.addFirst(s);
+        while (list.size() > max) list.removeLast();
     }
 
     @Override protected void onEndpointChanged() { synchronized (this) { spots.clear(); activityLog.clear(); } }
@@ -144,10 +156,7 @@ public final class ClusterClient extends TelnetFeed {
         Spot spot = parse(line);
         if (spot == null) return;
         recordActivity(spot);
-        synchronized (this) {
-            spots.addFirst(spot);
-            while (spots.size() > MAX_SPOTS) spots.removeLast();
-        }
+        synchronized (this) { addDeduped(spots, spot, MAX_SPOTS); }
         fire();
     }
 
