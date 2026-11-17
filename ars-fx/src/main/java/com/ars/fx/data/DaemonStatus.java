@@ -50,12 +50,13 @@ public final class DaemonStatus {
      *
      * @param wanted  its "Start ... for me" switch is on
      * @param running the daemon J-Hub started is running
-     * @param device  "ok", "gone" or "" (the serial device the watchdog last saw)
+     * @param device  "ok", "gone", "noaccess" or "" (the serial device the watchdog last saw)
      * @param last    the watchdog's last action for it, or ""
      */
     public static Line describe(boolean wanted, boolean running, String device, String last) {
         if (!wanted) return new Line("off", "Not started by J-Hub (the switch is off)");
         String tail = last == null || last.isBlank() ? "" : "  ·  last: " + last.replaceFirst("^\\w+ daemon: ", "");
+        if ("noaccess".equals(device)) return new Line("warn", "✖ No permission to open the serial port. Add your user to the dialout (or uucp) group, then log out and back in" + tail);
         if (running) return new Line("ok", "● Running" + tail);
         if ("gone".equals(device)) return new Line("warn", "○ Waiting for the device to come back; it starts by itself" + tail);
         return new Line("warn", "○ Not running" + tail);
