@@ -52,6 +52,41 @@ class QsoPartyBundledRulesTest {
         }
     }
 
+    /**
+     * Amateur Radio Club QSO Party (punch list 3-3): points come from the class the other station sends, with no multiplier.
+     * It used to score by mode (CW 3, phone 1, digital 2) times club members worked. The rules page's own example: 6
+     * registered clubs, 3 unregistered, 46 club members, 7 non-members, 1 youth = 600 + 150 + 230 + 21 + 20 = 1021.
+     */
+    @Test void clubQsoPartyScoresByTheClassWorked() {
+        ContestPlugin arc = plugin("ARC_QSO_PARTY");
+        StationContext me = StationContext.of("K2AA", "FM29", "R", "", "");
+        List<QsoRecord> l = new ArrayList<>();
+        String[] bands = {"160m", "80m", "40m", "20m", "15m", "10m", "6m", "2m"};
+        String[] modes = {"CW", "SSB", "FM", "RTTY"};
+        int[] counts = {6, 3, 46, 7, 1};
+        String[] classes = {"R", "U", "C", "N", "Y"};
+        int n = 0;
+        for (int k = 0; k < classes.length; k++)
+            for (int i = 0; i < counts[k]; i++, n++)
+                l.add(q(arc, me, "W" + (n % 10) + "X" + (char) ('A' + n / 10) + (char) ('A' + i % 26), bands[n % bands.length],
+                        modes[n % modes.length], classes[k], "R"));
+        ContestScore s = ContestScorer.score(arc, l, me, arc.computeMultiplierDbColumn(), NO_BANDS, 0);
+        assertEquals(63, s.qsoCount());
+        assertEquals(1021, s.points());
+        assertEquals(1, s.mults(), "no multiplier");
+        assertEquals(1021, s.score());
+    }
+
+    @Test void clubQsoPartyClassIsTheLastWordAndModeDoesNotMatter() {
+        ContestPlugin arc = plugin("ARC_QSO_PARTY");
+        StationContext me = StationContext.of("K2AA", "FM29", "R", "", "");
+        assertEquals(100, q(arc, me, "W2EA", "40m", "SSB", "R", "R").getPoints());
+        assertEquals(100, q(arc, me, "W2EA", "40m", "CW", "110 R", "R").getPoints(), "club age typed in front of the class");
+        assertEquals(50, q(arc, me, "W2EB", "20m", "RTTY", "u", "R").getPoints());
+        assertEquals(3, q(arc, me, "K2UK", "20m", "CW", "N", "R").getPoints());
+        assertEquals(0, q(arc, me, "K2UK", "20m", "CW", "BOB", "R").getPoints(), "no class letter: no points");
+    }
+
     @Test void powerMultipliersFromTheDefinitions() {
         assertEquals(3.0, cfg("DE_QSO_PARTY").getPowerMultiplier().get("QRP"));
         assertEquals(5.0, cfg("NM_QSO_PARTY").getPowerMultiplier().get("QRP"));

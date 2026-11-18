@@ -618,6 +618,11 @@ final class JHubSetupPages {
                 tf.setText(com.ars.fx.data.UploadConfig.field(s.id(), f.key()));
                 tf.getStyleClass().add("jhub-mini-field"); tf.setPromptText(f.label()); tf.setMinWidth(120); tf.setMaxWidth(150);
                 saveWhenSettled(tf, () -> { String v = tf.getText(); return () -> com.ars.fx.data.UploadConfig.setField(s.id(), f.key(), v); });
+                if (s.id().equals("eqsl") && f.secret()) {            // eQSL's download refuses a '#' in the password (its server, not us)
+                    Runnable hashNote = () -> { if (eqslHashNote(tf.getText()) != null) status.setText(eqslHashNote(tf.getText())); };
+                    tf.textProperty().addListener((o, a, b) -> hashNote.run());
+                    hashNote.run();
+                }
                 fields.getChildren().add(tf);
             }
             Label up = cfgBtn("Upload"); up.setOnMouseClicked(e -> {
@@ -1010,6 +1015,17 @@ final class JHubSetupPages {
     static final String[] BAUDS = {"1200","2400","4800","9600","19200","38400","57600","115200"};
     /** Free-text field bound to a HubConfig key. */
     /** The contest network's shared key: kept in the system keyring, so not bound to a config key like the other fields. */
+    /**
+     * The note Setup shows under Online upload when an eQSL password contains '#', or null. eQSL's download interface
+     * (Get confirmations) fails with one although the suite sends it correctly encoded; the website and the upload are fine.
+     */
+    static String eqslHashNote(String password) {
+        return password != null && password.contains("#")
+                ? "eQSL: a # in your password stops Get confirmations (eQSL's download refuses it; uploading and the eQSL website "
+                  + "are fine). To download confirmations, change your eQSL password on eqsl.cc to one without # and enter it here."
+                : null;
+    }
+
     static PasswordField networkKeyField() {
         PasswordField t = new PasswordField(); t.setText(com.ars.fx.net.ContestNetwork.sharedKey()); t.getStyleClass().add("jhub-mini-field");
         t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);

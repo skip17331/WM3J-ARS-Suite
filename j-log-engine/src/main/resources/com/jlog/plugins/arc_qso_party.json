@@ -1,9 +1,9 @@
 {
   "contestId":   "ARC_QSO_PARTY",
   "contestName": "Amateur Radio Club QSO Party",
-  "version":     "1.0.0",
+  "version":     "2.0.0",
 
-  "exchangeFormat": "Club members: call /(club age) + club acronym (e.g. /104 SJRA). Non-club members: call + name. Everyone works everyone. Bands: all except 60/30/17/12m; repeater contacts allowed (= phone). FT8/JT65 excluded (no exchange).",
+  "exchangeFormat": "Call + class letter: R registered club station, U unregistered club station, C club member, N not a club member, Y youth operator (18 or under). Club stations sign call/club age (K2AA/110 R). Everyone works everyone, once per band and mode. Bands: all except 60/30/17/12m; repeater contacts allowed (= phone).",
 
   "stationClassifier": "callsignRegion",
 
@@ -22,33 +22,32 @@
       "options": ["CW","SSB","USB","LSB","FM","AM","RTTY","PSK31","Digital"]
     },
     { "id": "rst_rcvd", "label": "RST R", "type": "text", "width": 50, "required": false, "entryRow": 0 },
-    { "id": "state_prov_rcvd", "label": "Age+Club / Name", "type": "text", "width": 120, "required": true, "entryRow": 0 },
+    { "id": "state_prov_rcvd", "label": "Class", "type": "text", "width": 70, "required": true, "entryRow": 0, "options": ["R","U","C","N","Y"] },
     { "id": "rst_sent", "label": "RST S", "type": "text", "width": 50, "required": false, "entryRow": 1 },
-    { "id": "state_prov_sent", "label": "My Age+Club", "type": "text", "width": 110, "required": false, "entryRow": 1, "persistent": true }
+    { "id": "state_prov_sent", "label": "My class", "type": "text", "width": 70, "required": false, "entryRow": 1, "persistent": true, "options": ["R","U","C","N","Y"] }
   ],
 
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "(Σ QSO pts × unique Club Members worked) + (Club Stations worked × 100). Pts: CW 3, Phone 1 (SSB/FM/AM/USB/LSB & repeater), Digital 2 (PSK/RTTY; FT8/JT65 excluded — no exchange). Every QSO scores (club or not). Multiplier = count of DISTINCT club-member base callsigns worked — a club member signs 'call /###' so the received exchange carries the club-age digits; a non-club member sends only a name (no digit). Each club member counted once as a multiplier regardless of band/mode (also counts in the QSO total). Worked once per band/mode (no cross band/mode). Claimed/running — the SJRA K2AA committee re-adjudicates. NOT applied (off-log): the +100-per-approved-Club-Station bonus (the approved Club-Station appendix list is not in the published rules — counted by the sponsor; not fabricated here); club-age/acronym vs name and international acronym-only club members are resolved by the sponsor's log check.",
+    "scoreFormula": "Σ QSO points, no multiplier (rules 2026, II.E). Points by the class the other station sends: R registered club station 100, U unregistered club station 50, C club member 5, N non-member 3, Y youth (18 or under) 20; mode does not matter. Once per band and mode. Rules: sites.google.com/view/wwwclubqsopartyorg/rules (2026-06 event, read 2026-11-18); one line there (V.C, 'registered clubs are worth 50 points instead of 20') contradicts every other statement of the values on both pages and is not followed. A QSO with no class letter scores 0. The club competition (score divided by 1 - members worked / active members) is calculated by the sponsor.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Amateur Radio Clubs",
       "stateAbbr": "ARC",
-      "clubMemberMult": true,
       "pointsAllQsos": true,
-      "pointsByModeClass": { "CW": 3, "PH": 1, "DG": 2 },
-      "mergeRttyDigital": true,
+      "pointsByRcvd": { "R": 100, "U": 50, "C": 5, "N": 3, "Y": 20 },
+      "noMultiplier": true,
       "ft8GridDivisor": 0,
       "outStateGridCap": 0
     }
   },
 
-  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": [] },
+  "multiplierModel": { "field": "state_prov_rcvd", "perBand": false, "validValues": ["R","U","C","N","Y"] },
 
   "row2Panes": [
     { "paneIndex": 1, "paneType": "worked_before", "title": "Worked Before", "config": {} },
-    { "paneIndex": 2, "paneType": "worked_mults",  "title": "Club Members Worked", "config": {} },
+    { "paneIndex": 2, "paneType": "worked_mults",  "title": "Classes Worked", "config": {} },
     { "paneIndex": 3, "paneType": "statistics",    "title": "Statistics", "config": {} }
   ],
 
@@ -60,7 +59,7 @@
   "sections": [],
   "layout": {
     "fieldOrder": ["callsign", "state_prov_rcvd", "rst_rcvd"],
-    "tiles": ["mults", "qsosByBand"],
+    "tiles": ["qsosByBand"],
     "macroSet": "contest",
     "cq": "CQ QP {MYCALL}"
   }

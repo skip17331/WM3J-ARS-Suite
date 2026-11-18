@@ -45,7 +45,19 @@ public class ModemService {
     private static final int MAX_DECODE_HISTORY = 100;
     private static final long DUPLICATE_SUPPRESS_MS = 1500L;
 
-    private static final Preferences PREFS = Preferences.userNodeForPackage(ModemService.class);
+    private static final Preferences PREFS = prefsNode();
+
+    /**
+     * Where the modem's settings live: the package's node (on Windows, the registry under HKCU\Software\JavaSoft\Prefs), or the
+     * node named by {@code -Djdigi.prefs.node}. The tests set that. They used to rely on {@code -Djava.util.prefs.userRoot},
+     * which only the file-based store (Linux) honours: on Windows the test runs changed the operator's real J-Digi settings
+     * (CW speed left at 60 wpm, the skimmer switch) and raced a running ARS Suite writing the same keys, which made
+     * DigiEngineSyncTest fail now and then.
+     */
+    static Preferences prefsNode() {
+        String n = System.getProperty("jdigi.prefs.node");
+        return n == null || n.isBlank() ? Preferences.userNodeForPackage(ModemService.class) : Preferences.userRoot().node(n.trim());
+    }
     private static final String PREF_MODE         = "modem.mode";
     private static final String PREF_RTTY_REVERSE = "rtty.reverse";
     private static final String PREF_AUDIO_INPUT  = "audio.input.device";

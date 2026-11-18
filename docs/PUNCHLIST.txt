@@ -62,6 +62,21 @@ IDs
         four blocks, AFC fits the tone comb and ignores band noise, symbol timing waits for a full
         window of signal, word spaces kept, and the timing search is coarse-then-fine (about a third
         of the CPU). OliviaRoundTripTest covers it.
+3-1     eQSL # in the password: external (eQSL's download service refuses it; the suite sends it
+        correctly encoded, and uploading and the eqsl.cc website accept it). Setup now warns as the
+        password is typed, and the user guide says to use an eQSL password without # for Get
+        confirmations.
+3-3     Amateur Radio Club QSO Party scores by the class the other station sends (R 100, U 50, C 5,
+        N 3, Y 20), no multiplier, as the 2026 rules say; the Class field offers those five letters.
+        The rules page's own example scores 1021 in the tests.
+3-4     CPQP county list checked: not a bug. Our 65 districts are the 2023 federal ridings (AB 37,
+        SK 14, MB 14), which the sponsor's multipliers page and maps use; the rules text still says
+        62 (the ridings before the 2025 election). The definition's note now says so.
+3-8     Flaky DigiEngineSyncTest fixed: on Windows the tests used the operator's real J-Digi
+        settings in the registry (the userRoot isolation only works on Linux), racing a running ARS
+        Suite and leaving the CW speed at 60 wpm. Tests now use their own preferences node
+        (-Djdigi.prefs.node) on every OS.
+3-9     Contest QSO labels carry the contest and the exchange received (e.g. CQ WW CW - 599 14).
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -111,6 +126,8 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 2a-20   Olivia receive: J-Digi's own Olivia 8/500 TX through an audio loopback decodes cleanly from
         the first lines, with spaces between words; also 300 Hz off-centre. (Not against fldigi: see
         3-12.)
+3-7     Your log: the 2026-10-03 9K2IC (70cm DMR) QSO looks like a mistyped date. Check it and
+        correct it in the log browser if it is wrong.
 4a-1    Contest network key in the keyring: set the key in Setup > Contest network; it is masked,
         works for Host / Join, and is gone from ~/.j-hub/config.json (an older key there moves to
         the keyring).
@@ -142,19 +159,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 3. KNOWN BUGS
 ====================================================================================================
 
-3-1     eQSL download fails when the password contains #.
-3-2     PA QSO Party: bonus station K3ZMC is multiplied; the rules also say bonuses are added after
-        the multiplier. Ask the PA QSO Party Association which is meant.
-3-3     Amateur Radio Club QSO Party: scored by mode; the rules score by the other station's class
-        (C 5, N 3, R 100, U 50, Y 20).
-3-4     CPQP county list has 3 more Alberta districts than the 62 in the rules.
-3-5     Nebraska QSO Party values come from the 2025 summary sheet (power tiers and bonus stations
-        may be wrong).
-3-6     South Dakota QSO Party rules are from 2022.
-3-7     Data: the 2026-10-03 9K2IC (70cm DMR) entry looks like a mistyped date.
-3-8     Flaky test: DigiEngineSyncTest.modemFollowsJHubSettings; keep its surefire report if it
-        fails again.
-3-9     Contest QSO labels may be sparse (no RST or name); an exchange line may be needed.
 3-11    Olivia: an off-centre signal loses its start. AFC can only recognise a signal 300 Hz
         off-centre once enough content has been heard; the retune restarts acquisition, so a short
         transmission loses everything before that point (the reference recording keeps only "YZ K").
@@ -203,6 +207,11 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 4c-7    NC 2027: confirm HIKENC calls and +100 per county against the final rules (party 28 Feb
         2027).
 4c-8    KY: re-check when the final 2027 rules appear.
+3-2     PA QSO Party: bonus station K3ZMC is multiplied; the rules also say bonuses are added after
+        the multiplier. Ask the PA QSO Party Association which is meant.
+3-5     Nebraska QSO Party values come from the 2025 summary sheet (power tiers and bonus stations
+        may be wrong).
+3-6     South Dakota QSO Party rules are from 2022.
 
 ====================================================================================================
 5. FUTURE
