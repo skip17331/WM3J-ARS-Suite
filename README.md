@@ -21,8 +21,9 @@ programs.
 
 ---
 
-**Just want to install it?** → **[INSTALL.md](INSTALL.md)** — focused
-step‑by‑step setup for Linux and Windows (git, Java, Maven, build, run).
+**Just want to install it?** → **[INSTALL.md](INSTALL.md)** — download a
+release jar, or build from source with menu shortcuts, on Linux, Windows,
+macOS and Raspberry Pi.
 
 **Already installed?** → **[USER_GUIDE.md](USER_GUIDE.md)** — app
 walkthrough, per‑module setup notes and troubleshooting.
@@ -51,8 +52,8 @@ One app, these modules — each a surface you can dock or float in its own windo
 
 | Module | What it does |
 |---|---|
-| **J‑Hub** | The control surface: dashboard, station identity, callsign lookups, macros, DX cluster + RBN, log uploaders, and all settings. Reached from the dock (docked) or the ⚙ gear (loose). |
-| **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Real‑time validation, multipliers, JSON contest plug‑ins. |
+| **J‑Hub** | The control surface: dashboard, DX cluster + RBN with spot alerts, callsign lookups, macros, log uploaders, and **Setup**, the one screen for every setting (Settings in the dock). |
+| **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Over 80 contests (46 state and province QSO parties among them), real‑time validation, multipliers, Cabrillo export. |
 | **J‑Map** | Real‑time DX map (flat, azimuthal or 3D globe) with grayline, beacons, propagation estimates and great‑circle paths to spotted DX. |
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK16, DominoEX, CW and AX.25 packet. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
@@ -108,14 +109,31 @@ have their license. Searchable, with an Advanced toggle for engineering
 depth. Cross‑references jump straight to the calculator or sub‑section
 you need. Bundled into the app — no separate install, no internet required.
 
+### Contesting
+
+J‑Log's contest page is built for speed: over 80 contest definitions
+(including 46 state and province QSO parties with their county lists and
+entrant rules), dupe and multiplier checks as you type, Super Check Partial,
+call history that fills the exchange, a band map, F‑key messages and
+Cabrillo export. A **contest network** links several computers on the LAN
+into one multi‑operator log, and an **N1MM+‑compatible UDP broadcast** feeds
+programs that listen for N1MM+.
+
+### DX spotting
+
+One DX‑cluster and RBN connection serves every module. Spots are tagged
+**NEW ONE / NEW BAND / NEW MODE** against your log, **spot alerts** pop up
+(with a chime) for your watch list or anything you need, and with a Club Log
+key you get the **Most Wanted** rank on each spot and Club Log's DXCC
+exceptions for odd DXpedition calls.
+
 ### One settings surface
 
-Every operator preference lives in **J‑Hub inside the app** — callsign, grid,
+Every operator preference lives in **Setup** inside the app — callsign, grid,
 rig backend, Hamlib host/port, IARU region + country (for bandplan captions),
-PTT method, CW WPM, DX cluster, log uploaders, macros. Reach it from the dock
-(docked) or the ⚙ gear in any window's top bar (loose). One place, no per‑app
-duplicate config files; in loose mode the change reaches every window through
-the background hub.
+PTT method, CW WPM, DX cluster, log uploaders, macros. Reach it from
+**Settings** in the dock. One place, no per‑app duplicate config files; in
+loose mode the change reaches every window through the background hub.
 
 ### Languages
 
@@ -135,8 +153,16 @@ Push QSOs from J‑Log to **LoTW** (signed with TrustedQSL), **eQSL.cc**,
 **Club Log**, **QRZ Logbook** and **Wavelog** with one click. LoTW and
 eQSL can also upload each new QSO automatically, tracking which QSOs each
 has already had; **Get confirmations** downloads your LoTW and eQSL
-confirmations. Logins are stored in `~/.j-log/upload.json`, readable by
-your account only but not encrypted (see [LEGAL.md](LEGAL.md)).
+confirmations. Passwords and keys are kept in your operating system's
+keyring (Windows Credential Manager, macOS Keychain, the Linux Secret
+Service); where there is none, in owner‑only files (see [LEGAL.md](LEGAL.md)).
+
+### Phone web client and updates
+
+A small web page lets a phone on your own network log QSOs (handy for POTA /
+SOTA), watch the spots and see the rig; it is off until you switch it on. The
+app checks GitHub once a day for a new release and, on Windows and Linux,
+installs it for you.
 
 ### J‑Map
 
@@ -181,6 +207,14 @@ in a single window, or float the modules you want — your choice.
 **Full step‑by‑step instructions are in [INSTALL.md](INSTALL.md).**
 The 30‑second version:
 
+### Download a release (no build)
+
+Install Java 21, download the jar for your system from the
+[Releases page](https://github.com/skip17331/WM3J-ARS-Suite/releases)
+and run it: `java -jar ars-fx-<version>-<system>.jar`. That is the whole
+app; it keeps itself up to date on Windows and Linux. To get menu
+shortcuts, build from source instead:
+
 ### Linux
 
 ```bash
@@ -192,8 +226,9 @@ cd ~/ARS_Suite
 ./ars-fx/ars-fx.sh                 # docked; or  --module log  (loose) / --hub (tray)
 ```
 
-Shortcuts appear in your system menu under **Network / HamRadio** — **ARS
-Suite** (docked) plus a window per module and **ARS Suite Hub**. Arch /
+Shortcuts appear in an **Amateur Radio** folder in your application menu
+(GNOME, which has no folders, lists them directly) — **ARS Suite** (docked)
+plus a window per module and **ARS Suite Hub**. Arch /
 openSUSE / other distros — same flow, see [INSTALL.md](INSTALL.md) for the
 package-manager line.
 
@@ -252,7 +287,8 @@ compatibility, long‑term openness.
 
 ## Technology Overview
 
-- **Java 21+** — the suite is pure Java; no native code.
+- **Java 21+** — the suite is pure Java with no native code of its own
+  (JavaFX and the SQLite driver bring theirs, inside the jar).
 - **JavaFX 21** — clean, responsive, cross‑platform UI; one app, all modules.
 - **Maven** — one shaded jar per OS, built from the `ars-fx` module over the
   shared engine library (`j-log-engine`).
