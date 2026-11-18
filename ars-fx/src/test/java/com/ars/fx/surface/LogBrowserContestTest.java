@@ -43,4 +43,13 @@ class LogBrowserContestTest {
         assertFalse(h.contains("zz9"));
         assertDoesNotThrow(() -> LogBrowser.contestHaystack(new QsoRecord()), "a QSO with nothing filled in");
     }
+
+    @Test
+    void aLogCanBeChangedHereOnlyWhenItIsTheActiveContest() {
+        assertFalse(LogBrowser.changeable(null));
+        assertFalse(LogBrowser.changeable(info("CQ WW SSB", "nov.db", 5, true, true)), "an archived log is never changed");
+        assertFalse(LogBrowser.changeable(info("CQ WW SSB", "nov.db", 5, false, false)), "not the log in use");
+        assertFalse(LogBrowser.changeable(info("CQ WW SSB", "nov.db", 5, true, false)), "no contest is open on the contest page");
+        assertFalse(JLogContest.isActiveContest(null));
+    }
 }
