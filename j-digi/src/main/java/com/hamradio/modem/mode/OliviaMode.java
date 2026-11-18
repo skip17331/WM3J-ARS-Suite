@@ -102,6 +102,8 @@ public class OliviaMode implements DigitalMode {
     private double  peakAvg      = 0.0;  // EMA of per-symbol peakness
     private int     peakSamples  = 0;
     private int     badSyms      = 0;
+    /** Best timing score of the last acquisition attempt that did not lock yet (-1: none). Lock waits for it to stop rising. */
+    private double  candScore    = -1.0;
 
     // ── AFC running spectrum ──────────────────────────────────────────
     /** Peak-held FFT magnitude across recent frames. A single Olivia
@@ -124,13 +126,18 @@ public class OliviaMode implements DigitalMode {
     /** Set once we've found block alignment via exhaustive Walsh-confidence
      *  search over all 64 candidate starting offsets. */
     private boolean blockSynced  = false;
-    /** Rolling 128-symbol soft-value buffer used to find block sync. */
+    /** Soft-value buffer used to find block sync: SYNC_BLOCKS blocks for every candidate start, plus one block of slack. */
     private double[][] syncBuf;
     private int     syncBufIdx   = 0;
-    private static final int SYNC_BUF_SYMS = BLOCK_SYMBOLS * 2;
+    /** Blocks scored together for each candidate block start. One was not enough: with no scrambling, a window shifted by
+     *  16 or 32 symbols can decode as a clean (wrong) codeword, so 3 in 4 transmissions locked onto the wrong boundary. */
+    private static final int SYNC_BLOCKS   = 4;
+    private static final int SYNC_BUF_SYMS = BLOCK_SYMBOLS * (SYNC_BLOCKS + 1);
 
     // ── Output ────────────────────────────────────────────────────────
     private final StringBuilder pending = new StringBuilder();
+    /** Text has been emitted since the last block sync: leading spaces are lead-in only before that. */
+    private boolean emittedSinceSync = false;
     private double lastSnr  = 0.0;
     private double lastConf = 0.0;
 
@@ -180,6 +187,7 @@ public class OliviaMode implements DigitalMode {
             rawSymCount  = 0;
             blockSymIdx  = 0;
             blocksDecoded = 0;
+            candScore    = -1.0;
             // Drop the integrated AFC spectrum so a fresh QSO at a
             // different audio offset doesn't get pulled toward the
             // previous QSO's tones, and snap the centre back to the
@@ -283,14 +291,37 @@ public class OliviaMode implements DigitalMode {
         // 75 % bandwidth ensures the spectrum is showing nearly the full
         // Olivia signal so the edge midpoint is an accurate centre estimate.
         if (occupiedBw < expectedBw * 0.75) return;
+        // Much wider than an Olivia signal is band noise: peak-held for long enough, noise fills the whole search range
+        // evenly (1,000-1,300 Hz "occupied" for a 500 Hz mode), and AFC used to retune to the middle of it before the
+        // signal arrived, then lock with every tone off.
+        if (occupiedBw > expectedBw * 1.5) return;
 
-        double newCenter = ((firstAbove + lastAbove) / 2.0) * binHz;
+        // The edge midpoint is only a rough guess: the edges of the peak-held spectrum are not symmetric about the tones, and
+        // it landed half a tone spacing off (1468.8 Hz for a signal at 1500), just outside the deadband, so AFC detuned a
+        // centred signal and every tone was measured between two real ones. Refine it by fitting the tone comb: the centre
+        // within one tone spacing of the guess where the spectrum is strongest at all numTones tone positions.
+        double guess = ((firstAbove + lastAbove) / 2.0) * binHz;
+        double newCenter = guess, bestComb = -1.0;
+        for (double c = guess - toneSpacing; c <= guess + toneSpacing; c += 1.0) {
+            double comb = 0.0;
+            for (int t = 0; t < numTones; t++) comb += spectrumAt(c + (t - (numTones - 1) / 2.0) * toneSpacing, binHz);
+            if (comb > bestComb) { bestComb = comb; newCenter = c; }
+        }
         double jump = Math.abs(newCenter - centerHz);
         if (jump < AFC_DEADBAND_HZ || jump > AFC_MAX_JUMP_HZ) return;
 
         debug(String.format("AFC %.1f → %.1f Hz (Δ%.1f, bw≈%.0f)",
                 centerHz, newCenter, jump, occupiedBw));
         retune(newCenter);
+    }
+
+    /** The peak-held spectrum at {@code hz}, interpolated between bins; 0 outside it. */
+    private double spectrumAt(double hz, double binHz) {
+        double x = hz / binHz;
+        int i = (int) Math.floor(x);
+        if (i < 0 || i + 1 >= afcSpectrum.length) return 0.0;
+        double f = x - i;
+        return afcSpectrum[i] * (1 - f) + afcSpectrum[i + 1] * f;
     }
 
     /** Move the band centre to {@code newCenter} and rebuild the tone table. */
@@ -309,6 +340,7 @@ public class OliviaMode implements DigitalMode {
         peakAvg     = 0.0;
         peakSamples = 0;
         badSyms     = 0;
+        candScore   = -1.0;
         // Don't reset afcSpectrum — keep integrated FFT data so we can
         // confirm the new centre fits the signal (no double-AFC oscillation
         // since AFC won't fire again unless the centroid jumps > deadband).
@@ -340,6 +372,7 @@ public class OliviaMode implements DigitalMode {
         peakAvg      = 0.0;
         peakSamples  = 0;
         badSyms      = 0;
+        candScore    = -1.0;
         afcSpectrum  = null;
         afcFrames    = 0;
         pending.setLength(0);
@@ -382,6 +415,31 @@ public class OliviaMode implements DigitalMode {
      * concentrates energy in one tone per symbol, giving peakness ≈ numTones.
      * Lock on the offset with the highest mean peakness.
      */
+    /** Mean peakness of the eval window at sample offset {@code off}, and how many distinct strongest tones it saw;
+     *  null when no symbol fits. */
+    private double[] scoreOffset(int off, int evalStart, int evalSyms) {
+        double score = 0.0;
+        int    count = 0;
+        int    seenMask = 0;
+        for (int s = 0; s < evalSyms; s++) {
+            int start = evalStart + off + s * spS;
+            if (start + spS > nSamples) break;
+            double[] p = goertzelAll(start, spS);
+            double max = 0.0, sum = 0.0;
+            int    maxIdx = 0;
+            for (int t = 0; t < numTones; t++) {
+                if (p[t] > max) { max = p[t]; maxIdx = t; }
+                sum += p[t];
+            }
+            if (sum > 1e-12) {
+                score += max / sum * numTones;
+                count++;
+                seenMask |= (1 << maxIdx);
+            }
+        }
+        return count == 0 ? null : new double[]{score / count, Integer.bitCount(seenMask)};
+    }
+
     private void tryAcquireSymbolSync() {
         int evalSyms = Math.min(24, rawSymCount - 1);
         if (evalSyms < MIN_LOCK_SYMS) return;
@@ -401,34 +459,21 @@ public class OliviaMode implements DigitalMode {
         int evalStart = evalEnd - evalSyms * spS;
         if (evalStart < 0) evalStart = 0;
 
-        for (int off = 0; off < spS; off++) {
-            double score = 0.0;
-            int    count = 0;
-            int    seenMask = 0;
-            for (int s = 0; s < evalSyms; s++) {
-                int start = evalStart + off + s * spS;
-                if (start + spS > nSamples) break;
-                double[] p = goertzelAll(start, spS);
-                double max = 0.0, sum = 0.0;
-                int    maxIdx = 0;
-                for (int t = 0; t < numTones; t++) {
-                    if (p[t] > max) { max = p[t]; maxIdx = t; }
-                    sum += p[t];
-                }
-                if (sum > 1e-12) {
-                    score += max / sum * numTones;
-                    count++;
-                    seenMask |= (1 << maxIdx);
-                }
-            }
-            if (count > 0) {
-                score /= count;
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestOff   = off;
-                    bestDistinct = Integer.bitCount(seenMask);
-                }
-            }
+        // Coarse then fine: every COARSE-th offset, then each offset within COARSE of the best. Peakness changes smoothly
+        // with the offset (the Goertzel windows overlap the true symbol by spS - |error|), so this finds the same best
+        // offset as trying all spS of them, with about a quarter of the work. Trying every offset on every frame while
+        // unlocked was the modem's one real CPU cost (3.8% of a core; every other mode is under 0.1%).
+        int coarse = Math.max(1, spS / 16);
+        for (int off = 0; off < spS; off += coarse) {
+            double[] r = scoreOffset(off, evalStart, evalSyms);
+            if (r != null && r[0] > bestScore) { bestScore = r[0]; bestOff = off; bestDistinct = (int) r[1]; }
+        }
+        int centre = bestOff;
+        for (int d = -coarse + 1; d < coarse; d++) {
+            if (d == 0) continue;
+            int off = Math.floorMod(centre + d, spS);
+            double[] r = scoreOffset(off, evalStart, evalSyms);
+            if (r != null && r[0] > bestScore) { bestScore = r[0]; bestOff = off; bestDistinct = (int) r[1]; }
         }
 
         // Reject signals with too few distinct tones — single-tone lead-in
@@ -437,7 +482,14 @@ public class OliviaMode implements DigitalMode {
         // gives 4+. Requiring ≥ 4 prevents committing to wrong frequencies.
         if (bestDistinct < 4) return;
 
-        if (bestScore >= LOCK_PEAK_RATIO) {
+        if (bestScore < LOCK_PEAK_RATIO) { candScore = -1.0; return; }
+        // Wait for the score to stop rising. While the signal is still arriving, the eval window is part noise: its best
+        // offset is a poor estimate (scores of 4.8 and 7.1 against 8.0 clean) and, once locked, nothing corrected it, so a
+        // signal that began while the decoder was hearing noise was decoded with the timing off. Each new frame of signal
+        // raises the score; once it no longer does, the window is all signal and its offset is the right one.
+        if (bestScore > candScore + 0.05) { candScore = bestScore; return; }
+        candScore = -1.0;
+        {
             symLocked    = true;
             blockSynced  = false;
             syncBufIdx   = 0;
@@ -492,6 +544,7 @@ public class OliviaMode implements DigitalMode {
                     peakAvg     = 0.0;
                     peakSamples = 0;
                     badSyms     = 0;
+                    candScore   = -1.0;
                     return;
                 }
             } else {
@@ -536,22 +589,23 @@ public class OliviaMode implements DigitalMode {
      */
     private void finishBlockSync() {
         int    bestOff  = 0;
-        double bestConf = -1.0;
+        double bestConf = Double.NEGATIVE_INFINITY;
         for (int off = 0; off < BLOCK_SYMBOLS; off++) {
-            double conf = trialWalshConfidence(syncBuf, off);
+            double conf = 0.0;                                   // log-confidence summed over SYNC_BLOCKS consecutive blocks
+            for (int j = 0; j < SYNC_BLOCKS; j++) conf += Math.log(Math.max(1e-9, trialWalshConfidence(syncBuf, off + j * BLOCK_SYMBOLS)));
             if (conf > bestConf) { bestConf = conf; bestOff = off; }
         }
-        debug(String.format("BLOCK SYNC off=%d conf=%.2f", bestOff, bestConf));
+        debug(String.format("BLOCK SYNC off=%d logconf=%.2f", bestOff, bestConf));
 
-        // Emit the first full content block (suppressed if it's still
-        // lead-in spaces — decodeBlock appends to pending which gets
-        // trimmed on emit anyway).
-        decodeBlock(syncBuf, bestOff, true);
-        blocksDecoded++;
+        // Emit the blocks the search covered (lead-in spaces among them are dropped on emit).
+        for (int j = 0; j < SYNC_BLOCKS; j++) {
+            decodeBlock(syncBuf, bestOff + j * BLOCK_SYMBOLS, true);
+            blocksDecoded++;
+        }
 
-        // The remainder of syncBuf (after the decoded block) becomes the
+        // The remainder of syncBuf (after the decoded blocks) becomes the
         // start of the next active block.
-        int consumed = bestOff + BLOCK_SYMBOLS;
+        int consumed = bestOff + SYNC_BLOCKS * BLOCK_SYMBOLS;
         int carry    = SYNC_BUF_SYMS - consumed;
         for (int k = 0; k < carry; k++) {
             for (int b = 0; b < bitsPerSymbol; b++) {
@@ -561,6 +615,7 @@ public class OliviaMode implements DigitalMode {
         blockSymIdx = carry;
         syncBufIdx  = 0;
         blockSynced = true;
+        emittedSinceSync = false;
     }
 
     /** Trial decode at {@code startSym}: average Walsh peak / runner-up
@@ -679,9 +734,14 @@ public class OliviaMode implements DigitalMode {
         // Wait for at least one full decoded block before emitting
         if (blocksDecoded < MIN_EMIT_BLOCKS) return Optional.empty();
 
-        String text = pending.toString().trim();
+        // Each emit is one 3-character block or a few. Trimming every one removed real word spaces whenever they fell at a
+        // block edge ("CQ CQ DE" came out as "CQCQDE"). Only the lead-in (spaces before the first text after sync) and
+        // all-space blocks (lead-in / lead-out) are dropped now.
+        String text = pending.toString();
         pending.setLength(0);
-        if (text.isEmpty()) return Optional.empty();
+        if (text.isBlank()) return Optional.empty();
+        if (!emittedSinceSync) text = text.stripLeading();
+        emittedSinceSync = true;
 
         debug("EMIT '" + text + "'");
         return Optional.of(new DecodeMessage(
