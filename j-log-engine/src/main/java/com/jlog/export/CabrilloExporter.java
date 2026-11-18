@@ -26,7 +26,21 @@ public class CabrilloExporter {
     private static final DateTimeFormatter CAB_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter CAB_TIME = DateTimeFormatter.ofPattern("HHmm");
 
+    /**
+     * What the host knows better than the engine: the program name for CREATED-BY, and the claimed score exactly as the contest
+     * page shows it (from {@link com.jlog.scoring.ContestScorer} with the operator's own station context). A null score falls
+     * back to {@link #computeClaimedScore}, a rough points-times-multipliers sum.
+     */
+    public record Options(String createdBy, Integer claimedScore) {
+        public static final Options DEFAULT = new Options("WM3J ARS Suite", null);
+    }
+
     public static void export(ContestPlugin plugin, Path destination) throws Exception {
+        export(plugin, destination, Options.DEFAULT);
+    }
+
+    public static void export(ContestPlugin plugin, Path destination, Options opts) throws Exception {
+        if (opts == null) opts = Options.DEFAULT;
         // fetchByContest sorts datetime_utc DESC for the cockpit UI
         // ("newest at top"). Cabrillo sponsors want the log in chronological
         // order, so re-sort ascending here. Nulls (corrupt rows missing a
@@ -47,7 +61,7 @@ public class CabrilloExporter {
             // pre-export dialog) rather than being hardcoded. Score computed
             // against plugin rules instead of being a raw point sum.
             pw.println("START-OF-LOG: 3.0");
-            pw.println("CREATED-BY: j-Log v1.5.0");
+            pw.println("CREATED-BY: " + (opts.createdBy() == null || opts.createdBy().isBlank() ? Options.DEFAULT.createdBy() : opts.createdBy()));
             // Honor the plugin's sponsor-accepted name when set; otherwise
             // fall back to the internal id with underscores dashed. Override
             // is required for split-side plugins (ARRL_DX_SSB_US/DX both
@@ -67,19 +81,25 @@ public class CabrilloExporter {
             pw.println("CATEGORY-TRANSMITTER: " + cfg.getCabTransmitter());
             pw.println("CATEGORY-STATION: "     + cfg.getCabStation());
             if (!cfg.getCabTime().isBlank())  pw.println("CATEGORY-TIME: "  + cfg.getCabTime());
-            pw.println("CLAIMED-SCORE: "        + computeClaimedScore(plugin));
+            // the score the contest page shows; the rough sum below ignored every special rule (power multipliers,
+            // bonuses, a contest with no multiplier: the Club QSO Party claimed five times its score)
+            pw.println("CLAIMED-SCORE: "        + (opts.claimedScore() != null ? opts.claimedScore() : computeClaimedScore(plugin)));
             pw.println("NAME: "    + nullSafe(cfg.getOperatorName()));
             pw.println("ADDRESS: " + nullSafe(cfg.getQth()));
             if (!cfg.getCabEmail().isBlank()) pw.println("EMAIL: " + cfg.getCabEmail());
             if (!cfg.getCabClub().isBlank())  pw.println("CLUB: "  + cfg.getCabClub());
             if (!nullSafe(cfg.getGridSquare()).isBlank())
                 pw.println("GRID-LOCATOR: " + cfg.getGridSquare());
+            String ops = operators(qsos, cfg.getStationCallsign());
+            if (cfg.getCabOperator().toUpperCase(java.util.Locale.ROOT).startsWith("MULTI") && !ops.isEmpty())
+                pw.println("OPERATORS: " + ops);           // required for a multi-op entry; the contest network logs who made each QSO
             pw.println("X-JLOG-PLUGIN: " + plugin.getContestId() + " v" + plugin.getVersion());
             pw.println();
 
             for (QsoRecord q : qsos) {
-                if (q.isDupe()) continue;
-
+                // Dupes stay in. ARRL and CQ ask for them to be left in the log: their checkers score a dupe at zero with no
+                // penalty. Leaving them out lost the points of any QSO wrongly marked as a dupe (a QSO-party mobile worked
+                // again from a new county, a QSO that came in over the contest network).
                 String freq = cabFreq(q.getFrequency(), q.getBand());
                 String mode = cabMode(q.getMode());
                 String date = q.getDateTimeUtc() != null ? q.getDateTimeUtc().format(CAB_DATE) : "0000-00-00";
@@ -121,6 +141,16 @@ public class CabrilloExporter {
             log.info("Cabrillo export: {} QSOs, {} QTCs to {}",
                     qsos.size(), qtcs.size(), destination);
         }
+    }
+
+    /** The distinct operators of these QSOs, in the order first seen, upper case, space separated; "" when none is logged. */
+    static String operators(List<QsoRecord> qsos, String stationCall) {
+        java.util.LinkedHashSet<String> s = new java.util.LinkedHashSet<>();
+        for (QsoRecord q : qsos) {
+            String o = q.getOperator();
+            if (o != null && !o.isBlank()) s.add(o.trim().toUpperCase(java.util.Locale.ROOT));
+        }
+        return String.join(" ", s);
     }
 
     /** True for a QTC we received: "RX", or "RECEIVED" as the QTC pane stores it ("TX" / "SENT" is one we sent). */
