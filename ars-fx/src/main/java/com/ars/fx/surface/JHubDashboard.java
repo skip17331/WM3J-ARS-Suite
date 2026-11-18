@@ -441,6 +441,20 @@ public final class JHubDashboard {
         return h;
     }
 
+    /** Setup: Update now for Club Log's DXCC exceptions, and how many calls the file holds. */
+    private static Region clubLogCtyControls() {
+        int n = com.ars.fx.data.ClubLogCty.size();
+        Label st = lbl(n > 0 ? n + " calls" : com.ars.fx.data.ClubLogCty.apiKey().isEmpty() ? "no API key set" : "no file yet", "jhub-conn");
+        Label upd = lbl("Update now", "jhub-clearbtn"); upd.setStyle("-fx-cursor:hand;");
+        upd.setOnMouseClicked(e -> {
+            st.setText("⋯ asking Club Log…");
+            Thread t = new Thread(() -> { String m = com.ars.fx.data.ClubLogCty.refresh(); javafx.application.Platform.runLater(() -> st.setText(m)); }, "clublog-cty");
+            t.setDaemon(true); t.start();
+        });
+        HBox h = new HBox(8, upd, st); h.setAlignment(Pos.CENTER_RIGHT);
+        return h;
+    }
+
     /** The tag a spot shows in the spot list ("NEW ONE", "NEW BAND", a contest's NEW MULT ..., or "" when not needed), for spot alerts. */
     static String needLabel(ClusterClient.Spot s) { return tag(s, needIndex()); }
 
@@ -1221,7 +1235,9 @@ public final class JHubDashboard {
             cfgRow("Alert on Club Log Most Wanted", "alert on spots of entities in the Most Wanted top N (0 = off; needs the Club Log token below)",
                     cInput(com.ars.fx.data.SpotAlerts.KEY_MW_TOP, "0")),
             cfgRow("Club Log token", "for Club Log's Most Wanted ranking: create one at Club Log ▸ Settings ▸ API (it starts cl_). The list is fetched once a month",
-                    mostWantedControls()));
+                    mostWantedControls()),
+            cfgRow("Club Log DXCC exceptions", "calls Club Log places by hand for a date range (DXpeditions, special events), checked before the prefix tables. Uses the Club Log API key from Online log upload; fetched once a day",
+                    clubLogCtyControls()));
         VBox wsjt = section("WSJT-X / DIGITAL",
             cfgRow("WSJT-X UDP port", "set the same port in WSJT-X ▸ Settings ▸ Reporting; applied as soon as you leave the field", cInputApply("data.wsjtxPort", "2237", com.ars.fx.data.BridgeService::restart)),
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
