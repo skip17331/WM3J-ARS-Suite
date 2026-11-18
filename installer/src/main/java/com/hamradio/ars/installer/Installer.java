@@ -219,7 +219,7 @@ public final class Installer {
 
     /** Delete files matching {@code glob} in {@code dir} whose names are not in {@code keep}. Used to
      *  clear our own (ars-fx*) shortcuts that a later run no longer writes. */
-    private static void pruneStale(Path dir, String glob, Set<String> keep, List<String> pruned) {
+    static void pruneStale(Path dir, String glob, Set<String> keep, List<String> pruned) {
         if (!Files.isDirectory(dir)) return;
         try (var ds = Files.newDirectoryStream(dir, glob)) {
             for (Path p : ds) {
@@ -229,7 +229,7 @@ public final class Installer {
         } catch (Exception ignored) {}
     }
 
-    private static void writeDesktopEntry(Path path, String title, String comment,
+    static void writeDesktopEntry(Path path, String title, String comment,
                                           Path launchScript, String args, String iconPath, String categories)
             throws java.io.IOException {
         StringBuilder sb = new StringBuilder();
@@ -398,7 +398,7 @@ public final class Installer {
         try { launcherPath.toFile().setExecutable(true, false); } catch (Exception ignored) {}
     }
 
-    private static String escapeXml(String s) {
+    static String escapeXml(String s) {
         return s.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -483,7 +483,7 @@ public final class Installer {
      *  the runnable shaded/fat uber jar and skipping the thin
      *  {@code original-}/{@code -sources}/{@code -javadoc} artifacts. Returns
      *  the resolved jar, or {@code null} if no runnable jar is present. */
-    private static Path resolveJar(Path sourceRoot, String jarHint) {
+    static Path resolveJar(Path sourceRoot, String jarHint) {
         Path hint = sourceRoot.resolve(jarHint);
         if (Files.exists(hint)) return hint;                 // exact manifest match
 
@@ -632,7 +632,7 @@ public final class Installer {
      * up to 256x256, so we downscale to 256. Vista+ accepts a raw PNG payload
      * inside the ICO container, so no BMP/DIB encoding is needed.
      */
-    private static void pngToIco(Path png, Path ico) throws java.io.IOException {
+    static void pngToIco(Path png, Path ico) throws java.io.IOException {
         BufferedImage src = ImageIO.read(png.toFile());
         if (src == null) throw new java.io.IOException("unreadable image: " + png);
 
@@ -696,7 +696,7 @@ public final class Installer {
      * InvalidPathException. Quotes are never valid in a Windows path, so it's
      * safe to drop them.
      */
-    private static String cleanPathArg(String s) {
+    static String cleanPathArg(String s) {
         if (s == null) return "";
         s = s.trim();
         while (s.startsWith("\"")) s = s.substring(1);
@@ -705,18 +705,22 @@ public final class Installer {
     }
 
     private static Path resolveSourceRoot(String[] args) {
+        return resolveSourceRoot(args, System.getenv("ARS_SUITE_HOME"), Paths.get("").toAbsolutePath().normalize());
+    }
+
+    /** The suite's checkout: {@code --root}, else {@code ARS_SUITE_HOME}, else the current folder or its parent when it holds
+     *  {@code ars-fx/pom.xml} (the app; the old per-program {@code j-hub/} folder is gone). */
+    static Path resolveSourceRoot(String[] args, String env, Path cwd) {
         for (int i = 0; i < args.length - 1; i++) {
             if ("--root".equals(args[i]) || "-r".equals(args[i])) {
                 return Paths.get(cleanPathArg(args[i + 1])).toAbsolutePath().normalize();
             }
         }
-        String env = System.getenv("ARS_SUITE_HOME");
         if (env != null && !env.isBlank()) {
             return Paths.get(cleanPathArg(env)).toAbsolutePath().normalize();
         }
-        Path cwd = Paths.get("").toAbsolutePath().normalize();
-        if (Files.exists(cwd.resolve("j-hub/pom.xml"))) return cwd;
-        if (cwd.getParent() != null && Files.exists(cwd.getParent().resolve("j-hub/pom.xml")))
+        if (Files.exists(cwd.resolve("ars-fx/pom.xml"))) return cwd;
+        if (cwd.getParent() != null && Files.exists(cwd.getParent().resolve("ars-fx/pom.xml")))
             return cwd.getParent();
         throw new IllegalStateException(
             "Cannot find ARS Suite source root. Pass --root <path> or set ARS_SUITE_HOME.");

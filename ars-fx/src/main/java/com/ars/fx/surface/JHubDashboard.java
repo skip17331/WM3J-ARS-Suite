@@ -427,6 +427,20 @@ public final class JHubDashboard {
         return h;
     }
 
+    /** Setup: Update now for Club Log's DXCC exceptions, and how many calls the file holds. */
+    static Region clubLogCtyControls() {
+        int n = com.ars.fx.data.ClubLogCty.size();
+        Label st = lbl(n > 0 ? n + " calls" : com.ars.fx.data.ClubLogCty.apiKey().isEmpty() ? "no API key set" : "no file yet", "jhub-conn");
+        Label upd = lbl("Update now", "jhub-clearbtn"); upd.setStyle("-fx-cursor:hand;");
+        upd.setOnMouseClicked(e -> {
+            st.setText("⋯ asking Club Log…");
+            Thread t = new Thread(() -> { String m = com.ars.fx.data.ClubLogCty.refresh(); javafx.application.Platform.runLater(() -> st.setText(m)); }, "clublog-cty");
+            t.setDaemon(true); t.start();
+        });
+        HBox h = new HBox(8, upd, st); h.setAlignment(Pos.CENTER_RIGHT);
+        return h;
+    }
+
     /** The tag a spot shows in the spot list ("NEW ONE", "NEW BAND", a contest's NEW MULT ..., or "" when not needed), for spot alerts. */
     static String needLabel(ClusterClient.Spot s) { return tag(s, needIndex()); }
 

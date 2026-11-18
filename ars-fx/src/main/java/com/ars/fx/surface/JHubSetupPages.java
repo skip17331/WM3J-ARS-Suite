@@ -412,7 +412,9 @@ final class JHubSetupPages {
             cfgRow("Alert on Club Log Most Wanted", "alert on spots of entities in the Most Wanted top N (0 = off; needs the Club Log token below)",
                     cInput(com.ars.fx.data.SpotAlerts.KEY_MW_TOP, "0")),
             cfgRow("Club Log token", "for Club Log's Most Wanted ranking: create one at Club Log ▸ Settings ▸ API (it starts cl_). The list is fetched once a month",
-                    mostWantedControls()));
+                    mostWantedControls()),
+            cfgRow("Club Log DXCC exceptions", "calls Club Log places by hand for a date range (DXpeditions, special events), checked before the prefix tables. Uses the Club Log API key from Online log upload; fetched once a day",
+                    clubLogCtyControls()));
         VBox wsjt = section("WSJT-X / DIGITAL",
             cfgRow("WSJT-X UDP port", "set the same port in WSJT-X ▸ Settings ▸ Reporting; applied as soon as you leave the field", cInputApply("data.wsjtxPort", "2237", com.ars.fx.data.BridgeService::restart)),
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
