@@ -158,23 +158,23 @@ public final class JMapView {
     }
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
-    static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true, ovFade = true;
+    static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true, ovFade = true, ovCountries = true;
     // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
     // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
     // icon strip (same idea as J-Sat's satellite list).
     static final double NARROW_W = 1240;
     static boolean narrow() { return mapFrame != null && mapFrame.getWidth() > 1 && mapFrame.getWidth() < NARROW_W; }
     static boolean overlayFlag(int i) {
-        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; case 6 -> ovBurst; default -> ovFade; };
+        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; case 6 -> ovBurst; case 7 -> ovFade; default -> ovCountries; };
     }
     static void applyOverlay(int i, boolean v) {
-        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; case 6 -> ovBurst = v; default -> ovFade = v; }
+        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; case 6 -> ovBurst = v; case 7 -> ovFade = v; default -> ovCountries = v; }
     }
     static void setOverlayFlag(int i, boolean v) {
         applyOverlay(i, v);
         com.ars.fx.data.HubConfig.setBool("map.ov." + i, v);            // kept for next time
     }
-    static { for (int i = 0; i < 8; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
+    static { for (int i = 0; i < 9; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
     static java.util.Set<String> workedCallsCache = java.util.Set.of();
     static long workedCallsAt = 0;
     static java.util.Set<String> workedCalls() {

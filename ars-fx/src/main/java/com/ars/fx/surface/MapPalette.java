@@ -18,6 +18,15 @@ record MapPalette(Color ocean, Color land, Color coast, Color border, Color stat
                 light ? Color.web("#1b4a85", 0.34) : Color.web("#04060a", 0.5), light);
     }
 
+    // Natural Earth's MAPCOLOR7 (1-7) as small turns of the land colour: neighbours always differ, and land still reads as land.
+    private static final double[] HUE = {0, 16, -16, 32, -8, 8, -30}, SAT = {1, 1.15, 0.8, 0.95, 1.25, 0.7, 1.05}, BRI = {1, 0.9, 1.08, 0.97, 0.94, 1.12, 1.03};
+    /** The fill for a country of map colour {@code c} (1-7). */
+    Color country(int c) {
+        int i = Math.floorMod(c - 1, 7);
+        double bri = light ? 1 + (BRI[i] - 1) * 0.6 : BRI[i], sat = light ? SAT[i] * 1.6 : SAT[i];
+        return land.deriveColor(HUE[i], sat, bri, 1);
+    }
+
     static MapPalette forScheme(String key) {
         return switch (key == null ? "dark" : key) {
             case "light"  -> of("#b7d6ea", "#ece6d2", "#8da07f", "#a58f5c", "#ffffff", true);

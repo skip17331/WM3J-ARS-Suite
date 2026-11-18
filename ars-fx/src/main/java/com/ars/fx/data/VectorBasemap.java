@@ -53,17 +53,33 @@ public final class VectorBasemap {
         DataInputStream d = new DataInputStream(new java.io.BufferedInputStream(new GZIPInputStream(gz), 1 << 16));
         int n = d.readInt();
         Ring[] out = new Ring[n];
-        for (int i = 0; i < n; i++) {
-            int m = d.readInt();
-            double[] ll = new double[m * 2];
-            double x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-            for (int j = 0; j < m; j++) {
-                double lo = d.readShort() / 100.0, la = d.readShort() / 100.0;
-                ll[j * 2] = lo; ll[j * 2 + 1] = la;
-                if (lo < x0) x0 = lo; if (lo > x1) x1 = lo; if (la < y0) y0 = la; if (la > y1) y1 = la;
-            }
-            out[i] = new Ring(ll, x0, x1, y0, y1);
-        }
+        for (int i = 0; i < n; i++) out[i] = readRing(d);
         return new VectorBasemap(out);
+    }
+
+    /** One ring: a point count, then (lon, lat) shorts in hundredths of a degree. */
+    static Ring readRing(DataInputStream d) throws IOException {
+        int m = d.readInt();
+        double[] ll = new double[m * 2];
+        double x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+        for (int j = 0; j < m; j++) {
+            double lo = d.readShort() / 100.0, la = d.readShort() / 100.0;
+            ll[j * 2] = lo; ll[j * 2 + 1] = la;
+            if (lo < x0) x0 = lo; if (lo > x1) x1 = lo; if (la < y0) y0 = la; if (la > y1) y1 = la;
+        }
+        return new Ring(ll, x0, x1, y0, y1);
+    }
+
+    /** Whether a point is inside a ring, in plain longitude / latitude (the rings are cut at 180 degrees, so this holds). */
+    public static boolean contains(Ring r, double lon, double lat) {
+        if (lon < r.minLon() || lon > r.maxLon() || lat < r.minLat() || lat > r.maxLat()) return false;
+        double[] ll = r.ll();
+        int n = ll.length / 2;
+        boolean in = false;
+        for (int i = 0, j = n - 1; i < n; j = i++) {
+            double xi = ll[i * 2], yi = ll[i * 2 + 1], xj = ll[j * 2], yj = ll[j * 2 + 1];
+            if ((yi > lat) != (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) in = !in;
+        }
+        return in;
     }
 }

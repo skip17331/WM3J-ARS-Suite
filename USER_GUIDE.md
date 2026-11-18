@@ -242,7 +242,10 @@ native speakers.
 A full-screen map with a controls panel:
 
 - **Projection** — rectangular, or azimuthal centred on your grid.
-- **Overlays** — grayline and the other map layers, switched on and off.
+- **Overlays** — grayline and the other map layers, switched on and off. **Country colours** (on by default) fills each
+  country in its own shade of the land colour, so borders are easy to see; neighbours never share one. Both projections
+  show country names: the azimuthal map shows the larger countries out to 120 degrees, the rectangular map more of them
+  as you zoom in.
 - **DX Spots** — filter by **band**, **mode**, **spot age** and **need** (ATNO / band-fill). Select a spot to see its
   DXCC entity, beam heading and distance in **DX station info**.
 - **Who's hearing me · RBN** — plots stations that have heard you.
