@@ -37,6 +37,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.ars.fx.surface.JLogContestSend.*;
+import static com.ars.fx.surface.JLogContestScore.*;
+import static com.ars.fx.surface.JLogContestLog.*;
 import static com.ars.fx.shell.Shell.lbl;
 
 /**
@@ -47,29 +50,29 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class JLogContest {
     private JLogContest() {}
 
-    private static final DateTimeFormatter HMS = DateTimeFormatter.ofPattern("HH:mm:ss");
+    static final DateTimeFormatter HMS = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     // value controls for the active plugin's entry fields, keyed by field id
-    private static Map<String, Control> fieldControls;
-    private static TextField bandF, modeF;
-    private static Label serialV;
-    private static Label sendV;                          // "what to send" line
-    private static QsoRecord editingRec;                 // the logged QSO being corrected (null = logging a new one)
-    private static Label editL;                          // "editing ..." banner
-    private static boolean callGivesMult;                // this contest's multiplier can be told from the call alone
-    private static Label memoryL;                        // "exchange filled from your earlier QSO"
-    private static final java.util.Map<String, String> spotMemo = new java.util.concurrent.ConcurrentHashMap<>();
-    private static volatile List<QsoRecord> logSnap;     // the contest log as of the last change, for spot tags
-    private static Label problemL;                       // what is wrong with the entry (invalid section, missing field...)
-    private static String problemOwner = "";             // field the message is about
-    private static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
-    private static Label similarL;                       // possible-duplicate callsigns
-    private static com.ars.fx.surface.contest.ScpBox scpBox;   // Super Check Partial strip under the call
-    private static final java.util.Set<String> keepIds = new java.util.HashSet<>();   // fields that survive Clear (sent + persistent)
-    private static final java.util.Set<String> askedSent = new java.util.HashSet<>();  // contests whose missing exchange was asked this session
-    private static int serial = 1;
-    private static Label b4;                 // worked-before / dupe indicator
-    private static StackPane host;
+    static Map<String, Control> fieldControls;
+    static TextField bandF, modeF;
+    static Label serialV;
+    static Label sendV;                          // "what to send" line
+    static QsoRecord editingRec;                 // the logged QSO being corrected (null = logging a new one)
+    static Label editL;                          // "editing ..." banner
+    static boolean callGivesMult;                // this contest's multiplier can be told from the call alone
+    static Label memoryL;                        // "exchange filled from your earlier QSO"
+    static final java.util.Map<String, String> spotMemo = new java.util.concurrent.ConcurrentHashMap<>();
+    static volatile List<QsoRecord> logSnap;     // the contest log as of the last change, for spot tags
+    static Label problemL;                       // what is wrong with the entry (invalid section, missing field...)
+    static String problemOwner = "";             // field the message is about
+    static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
+    static Label similarL;                       // possible-duplicate callsigns
+    static com.ars.fx.surface.contest.ScpBox scpBox;   // Super Check Partial strip under the call
+    static final java.util.Set<String> keepIds = new java.util.HashSet<>();   // fields that survive Clear (sent + persistent)
+    static final java.util.Set<String> askedSent = new java.util.HashSet<>();  // contests whose missing exchange was asked this session
+    static int serial = 1;
+    static Label b4;                 // worked-before / dupe indicator
+    static StackPane host;
 
     public static Region build() {
         ContestConfigBridge.bootstrap();
@@ -112,7 +115,7 @@ public final class JLogContest {
         HBox.setHgrow(main, Priority.ALWAYS);
         host = new StackPane((Region) Shell.frame(dock, top, withTools, rail));
 
-        ContestState.addListener(() -> Platform.runLater(JLogContest::refreshScoreStats));
+        ContestState.addListener(() -> Platform.runLater(JLogContestScore::refreshScoreStats));
         ContestState.recompute();
         startTicker();
 
@@ -128,7 +131,7 @@ public final class JLogContest {
 
     /** On entering contest mode (or switching contest) ask which database to log to, unless already chosen this session.
      *  Cancelling leaves contest mode — it cannot run without a database. */
-    private static void maybeChooseDb(ContestPlugin plugin) {
+    static void maybeChooseDb(ContestPlugin plugin) {
         if (ContestLogs.confirmed()) return;
         Platform.runLater(() -> ContestDbDialog.show(host, plugin, () -> Shell.navigate("logc"),
                 () -> { ContestLogs.resetConfirmation(); Shell.navigate("hub"); }));
@@ -178,7 +181,7 @@ public final class JLogContest {
     }
 
     // ---- contest panes as tabs (multiplier trackers, maps, statistics) ------
-    private static TabPane contestTabs(ContestPlugin plugin) {
+    static TabPane contestTabs(ContestPlugin plugin) {
         List<Map.Entry<String, Region>> panes = com.ars.fx.surface.contest.TrackerFactory.titledPanes(plugin);
         if (panes.isEmpty()) return null;
         TabPane tp = new TabPane(); tp.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -209,7 +212,7 @@ public final class JLogContest {
     }
 
     /** {QSOs/h over the last 10 minutes, QSOs in the last 60 minutes} - dupes don't count. */
-    private static int[] rates() {
+    static int[] rates() {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         int c10 = 0, c60 = 0;
         for (QsoRecord q : ContestState.qsos()) {
@@ -223,7 +226,7 @@ public final class JLogContest {
 
 
     // ---- recent contest-log pane (refreshed on every score recompute) -----
-    private static VBox recentLogPane() {
+    static VBox recentLogPane() {
         Label lh = lbl("☰  Last 10 QSOs"); lh.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:-ars-t3;");
         VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
         fillLog(tbl);
@@ -237,7 +240,7 @@ public final class JLogContest {
     }
 
     // ---- top toolbar: contest name + pick / normal / export ----------------
-    private static Region toolbar(ContestPlugin plugin) {
+    static Region toolbar(ContestPlugin plugin) {
         Node ic = Shell.iconTile("log", "log", 16, "sx-dw-ic");
         Label name = lbl(plugin.getContestName(), "jhub-card-title");
         Label fmt = lbl(plugin.getExchangeFormat() == null ? "" : plugin.getExchangeFormat(), "jl-emeta");
@@ -254,9 +257,9 @@ public final class JLogContest {
     // ---- LOG TOOLS column: the contest actions that used to crowd the title bar -----------------------------
     /** The collapsing column beside the dock, as on the J-Hub dashboard: contest actions, translator, awards, database tools. */
     /** The "print a label for each new contest QSO" switch (its own setting, off by default). */
-    private static Shell.QslToggle printQsl;
+    static Shell.QslToggle printQsl;
 
-    private static Region toolsColumn(ContestPlugin plugin) {
+    static Region toolsColumn(ContestPlugin plugin) {
         Shell.openDrawerByDefault("Contest");
         Label pick = lbl("Change contest", "jl-clearbtn"); pick.setStyle("-fx-cursor:hand;");
         pick.setOnMouseClicked(e -> Confirm.show(pick, "Change contest?",
@@ -290,7 +293,7 @@ public final class JLogContest {
     }
 
     // ---- entry pane: band/mode + plugin fields + log table -----------------
-    private static VBox entryPane(ContestPlugin plugin) {
+    static VBox entryPane(ContestPlugin plugin) {
         fieldControls = new LinkedHashMap<>();
         keepIds.clear();
         serial = ContestState.nextSerial();
@@ -452,7 +455,7 @@ public final class JLogContest {
     }
 
     /** The mode a contest opens in: the one it pins, else the one its name says (SSB / CW / RTTY / digital), else the rig's, else CW. */
-    private static String defaultMode(ContestPlugin plugin, com.ars.fx.data.RigClient.State rs) {
+    static String defaultMode(ContestPlugin plugin, com.ars.fx.data.RigClient.State rs) {
         String m = SentExchange.contestMode(plugin);
         if (m != null) return m;
         String own = ContestLayout.resolve(plugin).modeOrNull();                           // the contest's own layout
@@ -462,100 +465,9 @@ public final class JLogContest {
         return rs.connected() && rs.mode() != null && !rs.mode().isBlank() ? rs.mode() : "SSB";   // Auto: follow the rig, else SSB
     }
 
-    // ---- "SEND" line: exactly what to say / key, built from Setup ----------------
-    private static String sendText(ContestPlugin plugin) {
-        List<String> parts = new ArrayList<>();
-        if (fieldControls.containsKey("serial_rcvd")) parts.add(String.valueOf(serial));      // contests that exchange a serial number
-        for (FieldDef fd : SentExchange.sentFields(plugin)) {
-            String v = value(fd.getId());
-            parts.add(v.isEmpty() ? "?" : v);
-            if (fd.getId().equals("prec_sent")) parts.add(HubConfig.call().toUpperCase());    // Sweepstakes: NR PREC CALL CHK SECT
-        }
-        return parts.isEmpty() ? "-" : String.join("   ", parts);
-    }
-    /** "RUN" or "S&P": whether you are calling CQ or hunting. Passed on in the N1MM+ messages (RadioInfo IsRunning, contact IsRunQSO). */
-    private static Region runRow() {
-        Label tag = lbl("Operating", "jl-skim-meta");
-        Label chip = lbl(ContestState.isRun() ? "RUN" : "S&P", "jl-clearbtn");
-        chip.setStyle("-fx-cursor:hand;-fx-font-weight:bold;");
-        com.ars.fx.shell.Tips.tip(chip, "Click to switch between running (calling CQ) and search-and-pounce. Other programs listening on the N1MM+ broadcast are told.");
-        chip.setOnMouseClicked(e -> {
-            boolean run = !ContestState.isRun();
-            ContestState.setRun(run);
-            chip.setText(run ? "RUN" : "S&P");
-            com.ars.fx.data.N1mmBroadcast.runChanged();
-        });
-        HBox row = new HBox(12, tag, chip); row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    /** What you send, in the contest's own (Cabrillo) order, e.g. "5NN 05" or "5NN 001" or "1D ORG"; the report is cut (599 = 5NN). */
-    static String exchangeText(ContestPlugin plugin) {
-        List<String> parts = new ArrayList<>();
-        boolean resolved = plugin.getCabrilloSent() != null && !plugin.getCabrilloSent().isEmpty();
-        if (resolved) for (String id : plugin.getCabrilloSent()) {
-            if (id.equals("serial_sent")) { parts.add(String.valueOf(serial)); continue; }
-            FieldDef fd = plugin.getEntryFields().stream().filter(f -> f.getId().equals(id)).findFirst().orElse(null);
-            if (fd == null) { resolved = false; break; }
-            parts.add(value(id));
-        }
-        if (!resolved) {                                              // the Cabrillo names are not field ids: fall back to the SEND line's order
-            parts.clear();
-            if (fieldControls.containsKey("serial_rcvd")) parts.add(String.valueOf(serial));
-            for (FieldDef fd : SentExchange.sentFields(plugin)) parts.add(value(fd.getId()));
-        }
-        parts.removeIf(String::isEmpty);
-        return com.ars.fx.data.ContestMacros.cut(String.join(" ", parts));
-    }
-    /** The placeholders only a contest page knows. */
-    private static Map<String, String> macroTags(ContestPlugin plugin) {
-        return Map.of("{EXCH}", exchangeText(plugin), "{NR}", String.valueOf(serial));
-    }
-
-    private static Region sendRow(ContestPlugin plugin) {
-        Label tag = lbl("SEND", "jl-flabel"); tag.setMinWidth(70);
-        sendV = lbl(sendText(plugin), "jhub-rig-fq");
-        sendV.setStyle("-fx-font-size:22px;-fx-font-weight:bold;-fx-text-fill:-ars-ok;");
-        Label edit = lbl("Edit", "jl-clearbtn"); edit.setStyle("-fx-cursor:hand;");
-        edit.setOnMouseClicked(e -> SentExchange.ask(edit, plugin, SentExchange.sentFields(plugin), modeF.getText(), () -> reloadSent(plugin)));
-        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
-        HBox row = new HBox(10, tag, sendV, gap, edit); row.setAlignment(Pos.CENTER_LEFT);
-        // the report follows the mode (59 on phone, 599 otherwise) and the line follows the serial / any edit
-        modeF.textProperty().addListener((o, a, b) -> reloadSent(plugin));
-        return row;
-    }
-    /** Re-read every sent field (Setup, saved answers, mode-dependent report) into its control and redraw the SEND line. */
-    private static void reloadSent(ContestPlugin plugin) {
-        for (FieldDef fd : SentExchange.sentFields(plugin)) {
-            Control c = fieldControls.get(fd.getId());
-            if (c != null) setControl(c, SentExchange.value(plugin, fd, modeF.getText()));
-        }
-        refreshSend(plugin);
-    }
-    private static void refreshSend(ContestPlugin plugin) { if (sendV != null) sendV.setText(sendText(plugin)); }
-    @SuppressWarnings("unchecked")
-    private static void setControl(Control c, String v) {
-        if (c instanceof TextField t) t.setText(v == null ? "" : v);
-        else if (c instanceof ComboBox<?> cb) ((ComboBox<String>) cb).setValue(v == null || v.isEmpty() ? null : v);
-    }
-    /** Ask for any part of the exchange Setup does not know, once per contest per session. */
-    private static void askSentIfMissing(ContestPlugin plugin) {
-        List<FieldDef> miss = SentExchange.missing(plugin, modeF.getText());
-        if (miss.isEmpty() || !askedSent.add(plugin.getContestId())) return;
-        Platform.runLater(() -> SentExchange.ask(host, plugin, miss, modeF.getText(), () -> reloadSent(plugin)));
-    }
-
-    private static HBox wrapRow(String tag, List<Node> cells) {
-        Label t = lbl(tag, "jl-flabel"); t.setMinWidth(70);
-        HBox fields = new HBox(12); fields.getChildren().addAll(cells); fields.setAlignment(Pos.BOTTOM_LEFT);
-        HBox.setHgrow(fields, Priority.ALWAYS);
-        HBox row = new HBox(10, t, fields); row.setAlignment(Pos.BOTTOM_LEFT);
-        return row;
-    }
-
     // ---- save -------------------------------------------------------------
     /** "NEW MULT" for a spot that would add a multiplier, else "". Remembered until the log changes. */
-    private static String spotTag(ContestPlugin plugin, com.ars.fx.data.ClusterClient.Spot spot) {
+    static String spotTag(ContestPlugin plugin, com.ars.fx.data.ClusterClient.Spot spot) {
         String key = spot.call() + "|" + spot.band() + "|" + spot.mode();
         return spotMemo.computeIfAbsent(key, k -> {
             List<QsoRecord> snap = logSnap;
@@ -567,7 +479,7 @@ public final class JLogContest {
         });
     }
     /** Fill {@code cand}'s multiplier field from the call history. False when there is nothing usable (then no tag is better than a wrong one). */
-    private static boolean fromHistory(ContestPlugin plugin, QsoRecord cand) {
+    static boolean fromHistory(ContestPlugin plugin, QsoRecord cand) {
         var mm = plugin.getMultiplierModel();
         if (mm == null || mm.getField() == null) return false;
         String slot = plugin.fieldSlotColumn(mm.getField());
@@ -584,7 +496,7 @@ public final class JLogContest {
     }
 
     /** F1-F8 key the macros, for as long as this page is on screen (and never after: the keys are handed back when the page leaves the scene). */
-    private static void installFKeys(Node anchor, java.util.function.IntConsumer fire, int count) {
+    static void installFKeys(Node anchor, java.util.function.IntConsumer fire, int count) {
         javafx.scene.input.KeyCode[] fk = {javafx.scene.input.KeyCode.F1, javafx.scene.input.KeyCode.F2, javafx.scene.input.KeyCode.F3, javafx.scene.input.KeyCode.F4,
                 javafx.scene.input.KeyCode.F5, javafx.scene.input.KeyCode.F6, javafx.scene.input.KeyCode.F7, javafx.scene.input.KeyCode.F8};
         List<javafx.scene.input.KeyCodeCombination> mine = new ArrayList<>();
@@ -602,7 +514,7 @@ public final class JLogContest {
     }
 
     /** Is this call already in the open contest's log (on any band)? Rebuilt only when the log changes size. */
-    private static java.util.function.Predicate<String> workedInContest() {
+    static java.util.function.Predicate<String> workedInContest() {
         java.util.Set<String>[] calls = new java.util.Set[]{java.util.Set.of()};
         int[] n = {-1};
         return c -> {
@@ -617,7 +529,7 @@ public final class JLogContest {
     }
 
     /** Copy what is on the form (call, band, mode and every exchange field) into a record. */
-    private static void fillFromForm(ContestPlugin plugin, QsoRecord r) {
+    static void fillFromForm(ContestPlugin plugin, QsoRecord r) {
         r.setCallsign(value("callsign").toUpperCase());
         r.setBand(normBand(bandF.getText()));
         r.setMode(modeF.getText().trim().toUpperCase());
@@ -636,7 +548,7 @@ public final class JLogContest {
         }
     }
     /** A record of the QSO being typed, not yet logged. */
-    private static QsoRecord candidate(ContestPlugin plugin) {
+    static QsoRecord candidate(ContestPlugin plugin) {
         QsoRecord r = new QsoRecord();
         r.setContestId(plugin.getContestId());
         r.setDateTimeUtc(LocalDateTime.now(ZoneOffset.UTC));
@@ -644,7 +556,7 @@ public final class JLogContest {
         return r;
     }
     /** Enough typed to ask "is it a new multiplier?": the multiplier field filled in and valid, or (when the call gives it) a call. */
-    private static boolean readyForMult(ContestPlugin plugin) {
+    static boolean readyForMult(ContestPlugin plugin) {
         if (value("callsign").length() < 3 || bandF.getText().isBlank() || modeF.getText().isBlank()) return false;
         var mm = plugin.getMultiplierModel();
         if (mm == null || mm.getField() == null) return true;
@@ -655,26 +567,26 @@ public final class JLogContest {
         return lv == ContestValidation.Level.OK || lv == ContestValidation.Level.SOFT;
     }
 
-    private static boolean spotAfter;        // "Log + Spot" pressed: post a spot once the QSO is saved
-    private static String spotNote = "";     // what happened to it, shown after the form clears
+    static boolean spotAfter;        // "Log + Spot" pressed: post a spot once the QSO is saved
+    static String spotNote = "";     // what happened to it, shown after the form clears
 
     /** Post the spot for a QSO about to be logged, on the rig's dial frequency; returns a short status. */
-    private static String spotNow(QsoRecord r) {
+    static String spotNow(QsoRecord r) {
         com.ars.fx.data.RigClient.State rs = com.ars.fx.data.RigClient.getInstance().last();
         if (rs == null || !rs.connected() || rs.freqHz() <= 0) return "✗ spot not sent — rig not connected, no frequency";
         return JLogCockpit.postSpot(r.getCallsign(), String.valueOf(rs.freqHz() / 1e6), r.getMode(), "");
     }
     /** After a successful log: clear the form, then show the spot result if there is one. */
-    private static void finishLog() {
+    static void finishLog() {
         String note = spotNote; spotNote = ""; spotAfter = false;
         clearForm();
         if (!note.isEmpty()) setB4(note, "new");
     }
 
-    private static boolean logQso(ContestPlugin plugin) { return logQso(plugin, false); }
+    static boolean logQso(ContestPlugin plugin) { return logQso(plugin, false); }
 
     /** @param dupeApproved the operator has already said "log this dupe anyway" */
-    private static boolean logQso(ContestPlugin plugin, boolean dupeApproved) {
+    static boolean logQso(ContestPlugin plugin, boolean dupeApproved) {
         String call = value("callsign");
         if (call == null || call.isBlank()) { focus("callsign"); return false; }
         // required-field check (band/mode come from the dedicated selectors)
@@ -729,7 +641,7 @@ public final class JLogContest {
     }
 
     // ---- edit / erase a logged QSO ------------------------------------------------
-    private static String slotValue(QsoRecord q, String slot) {
+    static String slotValue(QsoRecord q, String slot) {
         return switch (slot) {
             case "field1" -> q.getContestField1();
             case "field2" -> q.getContestField2();
@@ -740,7 +652,7 @@ public final class JLogContest {
         };
     }
     /** Load a logged QSO into the entry form; Enter then saves it back in place, Esc drops the edit. */
-    private static void loadForEdit(QsoRecord q) {
+    static void loadForEdit(QsoRecord q) {
         ContestPlugin plugin = ContestState.plugin();
         if (plugin == null || fieldControls == null) return;
         clearForm();
@@ -776,8 +688,8 @@ public final class JLogContest {
     }
     /** The log browser's Delete: same confirmation, dupe re-check, N1MM and network notices as Erase on the contest page. */
     static void eraseFromBrowser(Node source, QsoRecord q, Runnable after) { eraseQso(source, q, after); }
-    private static void eraseQso(Node source, QsoRecord q) { eraseQso(source, q, null); }
-    private static void eraseQso(Node source, QsoRecord q, Runnable after) {
+    static void eraseQso(Node source, QsoRecord q) { eraseQso(source, q, null); }
+    static void eraseQso(Node source, QsoRecord q, Runnable after) {
         Confirm.show(source, "Erase this QSO?",
                 q.getCallsign() + "  " + z(q.getBand()) + " " + z(q.getMode())
                         + (q.getDateTimeUtc() == null ? "" : "  " + q.getDateTimeUtc().format(HMS).substring(0, 5) + "Z")
@@ -796,14 +708,14 @@ public final class JLogContest {
                 }));
     }
     /** Re-decide which QSOs are dupes, oldest first, after one was edited or erased. */
-    private static void reflagDupes(ContestPlugin plugin) {
+    static void reflagDupes(ContestPlugin plugin) {
         try {
             List<QsoRecord> all = new ArrayList<>(ContestQsoDao.getInstance().fetchByContest(plugin.getContestId()));
             for (QsoRecord q : com.ars.fx.data.DupeFlags.recompute(plugin, all)) ContestQsoDao.getInstance().updateDerived(q.getId(), q.getPoints(), q.isDupe());
         } catch (Exception e) { System.err.println("[contest] dupe re-check failed: " + e.getMessage()); }
     }
 
-    private static void setSlot(QsoRecord r, String slot, String v) {
+    static void setSlot(QsoRecord r, String slot, String v) {
         switch (slot) {
             case "field1" -> r.setContestField1(v);
             case "field2" -> r.setContestField2(v);
@@ -814,10 +726,10 @@ public final class JLogContest {
         }
     }
 
-    private static void updateDupe(ContestPlugin plugin) { updateDupe(plugin, true); }
+    static void updateDupe(ContestPlugin plugin) { updateDupe(plugin, true); }
 
     /** @param fromCall true when the call, band or mode changed (may refill the exchange from an earlier QSO); false for an exchange edit */
-    private static void updateDupe(ContestPlugin plugin, boolean fromCall) {
+    static void updateDupe(ContestPlugin plugin, boolean fromCall) {
         String call = value("callsign");
         if (call == null || call.length() < 2) { setB4("New", ""); if (similarL != null) similarL.setText(""); if (memoryL != null) memoryL.setText(""); return; }
         final String typed = call.toUpperCase();
@@ -852,7 +764,7 @@ public final class JLogContest {
 
     /** Exchange memory: a station you have worked before usually sends the same exchange (SS precedence / check / section, a state, a zone), so fill
      *  in the blank received fields from that QSO. Serial numbers and reports are never copied. Nothing is overwritten. */
-    private static void prefillFromEarlier(ContestPlugin plugin, QsoRecord earlier) {
+    static void prefillFromEarlier(ContestPlugin plugin, QsoRecord earlier) {
         boolean anyTyped = false;
         for (FieldDef fd : plugin.getEntryFields()) {
             if (fd.getEntryRow() == 1 || isNotExchange(fd.getId())) continue;
@@ -874,7 +786,7 @@ public final class JLogContest {
      * Blank received fields are filled from the history, but only with a value the contest accepts for that field, and only if the
      * operator has not started typing. @return true when at least one field was filled
      */
-    private static boolean prefillFromHistory(ContestPlugin plugin, String call, java.util.Map<String, String> hist) {
+    static boolean prefillFromHistory(ContestPlugin plugin, String call, java.util.Map<String, String> hist) {
         for (FieldDef fd : plugin.getEntryFields()) {
             if (fd.getEntryRow() == 1 || isNotExchange(fd.getId())) continue;
             if (!value(fd.getId()).isBlank()) return false;
@@ -894,16 +806,16 @@ public final class JLogContest {
         return filled > 0;
     }
     /** Would the contest take this value in this field? Anything short of a clean pass is not used. */
-    private static boolean acceptable(ContestPlugin plugin, FieldDef fd, String v) {
+    static boolean acceptable(ContestPlugin plugin, FieldDef fd, String v) {
         return ContestValidation.check(plugin, fd, v, true).level() == ContestValidation.Level.OK;
     }
-    private static boolean isNotExchange(String id) {
+    static boolean isNotExchange(String id) {
         return id.equals("callsign") || id.equals("band") || id.equals("mode") || id.startsWith("rst") || id.startsWith("serial");
     }
 
     /** Logged calls that look like what is being typed: they start with it, contain it, or are contained in it
      *  (a partial call, or one letter too many). Other than an exact match; at most 8, with band and mode. */
-    private static String similarCalls(ContestPlugin plugin, String typed) {
+    static String similarCalls(ContestPlugin plugin, String typed) {
         if (typed.length() < 3) return "";
         java.util.Map<String, String> found = new java.util.TreeMap<>();
         try {
@@ -921,7 +833,7 @@ public final class JLogContest {
         }
         return String.join(",  ", out);
     }
-    private static void setB4(String text, String cls) {
+    static void setB4(String text, String cls) {
         if (b4 == null) return;
         b4.setText(text);
         b4.getStyleClass().removeAll("dupe", "b4", "new");
@@ -929,21 +841,21 @@ public final class JLogContest {
     }
 
     // ---- validation ------------------------------------------------------------
-    private static void showProblem(String owner, String msg) { problemOwner = owner; if (problemL != null) problemL.setText(msg); }
-    private static void clearProblem(String owner) { if (owner.equals(problemOwner)) showProblem("", ""); }
-    private static void mark(Control c, ContestValidation.Result r) {
+    static void showProblem(String owner, String msg) { problemOwner = owner; if (problemL != null) problemL.setText(msg); }
+    static void clearProblem(String owner) { if (owner.equals(problemOwner)) showProblem("", ""); }
+    static void mark(Control c, ContestValidation.Result r) {
         c.getStyleClass().removeAll("invalid", "warnfield");
         if (r.level() == ContestValidation.Level.HARD) c.getStyleClass().add("invalid");
         else if (r.level() == ContestValidation.Level.SOFT) c.getStyleClass().add("warnfield");
     }
-    private static void liveCheck(ContestPlugin plugin, FieldDef fd, Control c, boolean complete) {
+    static void liveCheck(ContestPlugin plugin, FieldDef fd, Control c, boolean complete) {
         ContestValidation.Result r = ContestValidation.check(plugin, fd, value(fd.getId()), complete);
         mark(c, r);
         if (r.level() == ContestValidation.Level.HARD || (complete && r.level() == ContestValidation.Level.SOFT)) showProblem(fd.getId(), r.message());
         else clearProblem(fd.getId());
     }
     /** Hard problems stop the QSO; "not recognised" ones need a second Enter. */
-    private static boolean validateEntry(ContestPlugin plugin) {
+    static boolean validateEntry(ContestPlugin plugin) {
         List<String> soft = new ArrayList<>();
         for (FieldDef fd : plugin.getEntryFields()) {
             Control c = fieldControls.get(fd.getId());
@@ -961,7 +873,7 @@ public final class JLogContest {
         return true;
     }
 
-    private static void clearForm() {
+    static void clearForm() {
         for (Map.Entry<String, Control> en : fieldControls.entrySet()) {
             if (keepIds.contains(en.getKey())) continue;
             Control c = en.getValue();
@@ -981,275 +893,9 @@ public final class JLogContest {
         focus("callsign");
     }
 
-    // ---- score readout ----------------------------------------------------
-    private static String[][] scoreStats() {
-        ContestScore s = ContestState.score();
-        String[][] tiles = new String[][]{
-                {"QSOs", String.valueOf(s.qsoCount())},
-                {"MULTS", String.valueOf(s.mults())},
-                {"PTS", String.valueOf(s.points())},
-                {"SCORE", String.format("%,d", s.score()), "accent"},
-                {"10-MIN RATE", rates()[0] + "/h"},
-                {"60-MIN RATE", rates()[1] + "/h"}};
-        ContestPlugin p = ContestState.plugin();
-        List<String[]> out = new ArrayList<>(java.util.Arrays.asList(tiles));
-        String[] left = leftTile(p);
-        if (left != null) out.add(left);
-        String[] clock = clockTile(p);
-        if (clock != null) out.add(clock);
-        out.addAll(layoutTiles(p));
-        return out.toArray(new String[0][]);
-    }
-
-    /** The extra tiles the contest's layout asks for ({@code tiles}). */
-    private static List<String[]> layoutTiles(ContestPlugin p) {
-        if (p == null) return List.of();
-        List<String> kinds = ContestLayout.resolve(p).tiles();
-        if (kinds.isEmpty()) return List.of();
-        return com.ars.fx.data.ContestTiles.compute(kinds, ContestState.qsos(), ContestState.score(), ContestState.workedMults());
-    }
-
-    /** "CONTEST CLOCK": time to the start / left, and off time so far; only once the operator has set the contest's times. */
-    private static String[] clockTile(ContestPlugin p) {
-        if (p == null) return null;
-        com.ars.fx.data.ContestClock.Window w = com.ars.fx.data.ContestClock.window(p.getContestId());
-        if (!w.valid()) return null;
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        com.ars.fx.data.ContestClock.Status st = com.ars.fx.data.ContestClock.status(w, now);
-        String text = st.text();
-        if (st.phase() != com.ars.fx.data.ContestClock.Phase.BEFORE) {
-            List<LocalDateTime> times = new ArrayList<>();
-            for (QsoRecord q : ContestState.qsos()) if (!q.isDupe()) times.add(q.getDateTimeUtc());
-            java.time.Duration off = com.ars.fx.data.ContestClock.offTime(times, w, now, java.time.Duration.ofMinutes(30));
-            if (!off.isZero()) text += "  \u00b7  off " + com.ars.fx.data.ContestClock.span(off);
-        }
-        return new String[]{"CONTEST CLOCK", text};
-    }
-
-    /** The side of a state QSO party this operator is on - in-state (sends a county) or out-of-state (sends a state / province) - or a prompt to say. */
-    private static Node sideChip(ContestPlugin plugin) {
-        if (!QsoPartySide.isParty(plugin)) return null;
-        String qth = QsoPartySide.sentQth(plugin), st = QsoPartySide.partyState(plugin);
-        QsoPartySide.Side sd = QsoPartySide.side(plugin, qth);
-        Label l = lbl(sd == null ? "Set your QTH \u203a" : QsoPartySide.label(sd) + (st.isEmpty() ? "" : " (" + st + ")") + " \u00b7 sending " + qth, "jl-eyebrow");
-        String color = sd == null ? "-ars-warn" : sd == QsoPartySide.Side.IN_STATE ? "-ars-ok" : "-ars-accent";
-        l.setStyle("-fx-cursor:hand;-fx-font-size:12px;-fx-font-weight:bold;-fx-text-fill:" + color + ";-fx-border-color:" + color
-                + ";-fx-border-radius:10;-fx-padding:3 10 3 10;");
-        String tip = sd == null ? "Tell the app where you are: your county if you are in " + st + ", otherwise your state or province."
-                : sd == QsoPartySide.Side.IN_STATE
-                ? "You are in " + st + ": you send your county and work everyone - counties, other states and provinces, and DX. Click to change."
-                : "You are outside " + st + ": you send your state or province and work only " + st + " stations (counties). Click to change.";
-        com.ars.fx.shell.Tips.tip(l, tip);
-        l.setOnMouseClicked(e -> SentExchange.ask(l, plugin, SentExchange.sentFields(plugin), modeF.getText(), () -> Shell.navigate("logc")));
-        return l;
-    }
-
-    /** Make (if need be) and open the operator's layout file for this contest; the page picks it up the next time it is opened. */
-    private static void openLayoutFile(ContestPlugin plugin) {
-        try {
-            List<String> tabs = new ArrayList<>();
-            if (plugin.getRow2Panes() != null) for (var pd : plugin.getRow2Panes()) {
-                String type = pd.getPaneType() == null ? "" : pd.getPaneType();
-                if (type.equals("dupe_checker") || type.equals("worked_before")) continue;
-                tabs.add(pd.getTitle() == null || pd.getTitle().isBlank() ? type : pd.getTitle());
-            }
-            List<String> ids = plugin.getEntryFields().stream().map(FieldDef::getId).filter(i -> !i.equals("band") && !i.equals("mode")).toList();
-            java.nio.file.Path f = ContestLayout.ensureUserFile(plugin, tabs, ids);
-            com.ars.fx.data.LinkOpener.openFile(f, () -> setB4("Layout file: " + f, "new"));
-        } catch (Exception e) { setB4("Could not make the layout file: " + e.getMessage(), "dupe"); }
-    }
-
-    private static void editTimes(Node owner, ContestPlugin plugin) {
-        com.ars.fx.data.ContestClock.Window w = com.ars.fx.data.ContestClock.window(plugin.getContestId());
-        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        TextField start = new TextField(w.start() == null ? "" : f.format(w.start())), end = new TextField(w.end() == null ? "" : f.format(w.end()));
-        start.setPromptText("2026-11-28 00:00"); end.setPromptText("2026-11-30 00:00");
-        Label msg = lbl("", "jl-emeta"); msg.setStyle("-fx-text-fill:-ars-err;");
-        Label hint = lbl("Times are UTC. They are kept for this contest only, so enter them each year. Off time counts gaps of 30 minutes or more.", "jl-emeta");
-        hint.setWrapText(true); hint.setMaxWidth(380);
-        Label cancel = lbl("Cancel", "jl-clearbtn"), save = lbl("Save", "jl-logbtn"), clear = lbl("Clear", "jl-clearbtn");
-        for (Label l : new Label[]{cancel, save, clear}) l.setStyle("-fx-cursor:hand;");
-        Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
-        HBox btns = new HBox(14, clear, msg, gap, cancel, save); btns.setAlignment(Pos.CENTER_LEFT);
-        VBox box = new VBox(8, lbl("Contest times \u2014 " + plugin.getContestName(), "jhub-card-title"), lbl("START (UTC)", "jl-flabel"), start,
-                lbl("END (UTC)", "jl-flabel"), end, hint, btns);
-        box.setPadding(new Insets(16)); box.setPrefWidth(420);
-        javafx.scene.Scene scene = new javafx.scene.Scene(box);
-        com.ars.fx.Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
-        com.ars.fx.Themes.applyTo(box, "log");
-        javafx.stage.Stage st = new javafx.stage.Stage(); st.setTitle("Contest times"); st.setScene(scene);
-        st.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-        if (owner != null && owner.getScene() != null && owner.getScene().getWindow() != null) st.initOwner(owner.getScene().getWindow());
-        cancel.setOnMouseClicked(e -> st.close());
-        clear.setOnMouseClicked(e -> { com.ars.fx.data.ContestClock.setWindow(plugin.getContestId(), null); st.close(); Shell.navigate("logc"); });
-        save.setOnMouseClicked(e -> {
-            LocalDateTime a = com.ars.fx.data.ContestClock.parse(start.getText()), b = com.ars.fx.data.ContestClock.parse(end.getText());
-            if (a == null || b == null) { msg.setText("Use yyyy-MM-dd HH:mm"); return; }
-            if (!b.isAfter(a)) { msg.setText("The end must be after the start"); return; }
-            com.ars.fx.data.ContestClock.setWindow(plugin.getContestId(), new com.ars.fx.data.ContestClock.Window(a, b));
-            st.close(); Shell.navigate("logc");                      // rebuild so the clock tile appears
-        });
-        st.show();
-    }
-
-    /** Label of the "multipliers still to work" tile, or null when the contest has no fixed set of multipliers (prefixes, DXCC). */
-    private static String leftLabel(ContestPlugin p) {
-        if (p == null || universe(p) == null) return null;
-        if (p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS")) return "TO CLEAN SWEEP";
-        if (QsoPartySide.isParty(p) && QsoPartySide.side(p) != null) return QsoPartySide.side(p) == QsoPartySide.Side.IN_STATE ? "MULTS LEFT" : "COUNTIES LEFT";
-        String t = p.getScoringRules() == null || p.getScoringRules().getMultiplierType() == null ? "" : p.getScoringRules().getMultiplierType();
-        return switch (t) {
-            case "sections" -> "SECTIONS LEFT";
-            case "states" -> "STATES LEFT";
-            case "zone_country", "zone_country_state" -> "ZONES LEFT";
-            default -> "MULTS LEFT";
-        };
-    }
-    /** The multipliers there are to collect: for a state QSO party, what this side of the party can work; else the contest's own list. */
-    private static List<String> universe(ContestPlugin p) {
-        if (QsoPartySide.isParty(p)) {
-            QsoPartySide.Side sd = QsoPartySide.side(p);
-            if (sd != null) { List<String> u = QsoPartySide.multUniverse(p, sd); if (u != null) return u; }
-        }
-        return com.ars.fx.surface.contest.TrackerFactory.multiplierUniverse(p);
-    }
-    private static String[] leftTile(ContestPlugin p) {
-        String label = leftLabel(p);
-        return label == null ? null : new String[]{label, leftText(p)};
-    }
-    /** "12 sections" / "CLEAN SWEEP!" - for contests that count multipliers per band, the ones left on the band in use. */
-    private static String leftText(ContestPlugin p) {
-        List<String> all = universe(p);
-        if (all == null) return "";
-        java.util.Set<String> worked = new java.util.HashSet<>();
-        boolean perBand = p.getMultiplierModel() != null && p.getMultiplierModel().isPerBand();
-        String band = bandF == null ? "" : normBand(bandF.getText());
-        if (perBand && !band.isEmpty()) {
-            for (Map.Entry<String, List<String>> e : ContestState.score().workedByBand().entrySet())
-                if (e.getKey() != null && e.getKey().equalsIgnoreCase(band)) for (String v : e.getValue()) worked.add(v.toUpperCase());
-        } else {
-            for (String v : ContestState.workedMults()) worked.add(v.toUpperCase());
-        }
-        int left = 0;
-        for (String v : all) if (!worked.contains(v.toUpperCase())) left++;
-        boolean sweep = p.getContestId() != null && p.getContestId().toUpperCase().startsWith("ARRL_SS");
-        if (left == 0) return sweep ? "CLEAN SWEEP!" : "ALL WORKED";
-        return left + (perBand && !band.isEmpty() ? " on " + band : "");
-    }
-    private static void refreshScoreStats() {
-        if (host == null) return;
-        Region frame = (Region) host.getChildren().get(0);
-        List<Label> vs = new ArrayList<>(); collectStatV(frame, vs);
-        ContestScore s = ContestState.score();
-        if (vs.size() >= 4) {
-            vs.get(0).setText(String.valueOf(s.qsoCount()));
-            vs.get(1).setText(String.valueOf(s.mults()));
-            vs.get(2).setText(String.valueOf(s.points()));
-            vs.get(3).setText(String.format("%,d", s.score()));
-        }
-        if (vs.size() >= 6) { int[] r = rates(); vs.get(4).setText(r[0] + "/h"); vs.get(5).setText(r[1] + "/h"); }
-        if (vs.size() >= 7 && leftLabel(ContestState.plugin()) != null) vs.get(6).setText(leftText(ContestState.plugin()));
-        int clockAt = 6 + (leftLabel(ContestState.plugin()) != null ? 1 : 0);
-        String[] clock = clockTile(ContestState.plugin());
-        if (clock != null && vs.size() > clockAt) vs.get(clockAt).setText(clock[1]);
-        int extraAt = clockAt + (clock != null ? 1 : 0);
-        List<String[]> extra = layoutTiles(ContestState.plugin());
-        for (int i = 0; i < extra.size() && extraAt + i < vs.size(); i++) vs.get(extraAt + i).setText(extra.get(i)[1]);
-    }
-    private static void collectStatV(Node n, List<Label> out) {
-        if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
-        if (n instanceof Parent p) for (Node c : p.getChildrenUnmodifiable()) collectStatV(c, out);
-    }
-
-    // ---- recent contest log table -----------------------------------------
-    private static void fillLog(VBox tbl) { fillLog(tbl, 10); }
-    private static void fillLog(VBox tbl, int limit) {
-        tbl.getChildren().clear();
-        tbl.getChildren().add(logHeader());
-        List<QsoRecord> rows = ContestState.qsos();
-        if (rows.isEmpty()) {
-            Label none = lbl("No QSOs yet — log one above"); none.setStyle("-fx-font-size:11px;-fx-text-fill:-ars-t4;-fx-padding:12 8;");
-            tbl.getChildren().add(none); return;
-        }
-        int n = 0;
-        for (QsoRecord q : rows) { if (n++ >= limit) break; tbl.getChildren().add(logRow(q)); }
-    }
-    private static Node logHeader() {
-        HBox h = new HBox(9,
-                col("UTC", 54), col("CALL", 90), col("BAND", 48), col("MODE", 46),
-                col("SN", 44), col("EXCHANGE", -1), col("PTS", 46), col("", 138));
-        h.getStyleClass().add("jl-loghd"); h.setAlignment(Pos.CENTER_LEFT); return h;
-    }
-    private static Node logRow(QsoRecord q) {
-        String utc = q.getDateTimeUtc() == null ? "" : q.getDateTimeUtc().format(HMS).substring(0, 5);
-        String exch = String.join(" ", strip(q.getSerialReceived(), q.getContestField1(), q.getContestField2(),
-                q.getContestField3(), q.getContestField4(), q.getContestField5()));
-        Label pts = cell(q.isDupe() ? "DUPE" : String.valueOf(q.getPoints()), 46);
-        if (q.isDupe()) pts.setStyle("-fx-text-fill:-ars-err;-fx-font-weight:bold;");      // a dupe in the log is called out, not just dimmed
-        Label edit = lbl("Edit", "jl-clearbtn"); edit.setStyle("-fx-cursor:hand;");
-        Label erase = lbl("Erase", "jl-clearbtn"); erase.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-err;");
-        Label labelBtn = lbl("Label", "jl-clearbtn"); labelBtn.setStyle("-fx-cursor:hand;");
-        com.ars.fx.shell.Tips.tip(labelBtn, "Print the QSL label for this QSO (printer and size: Setup ▸ Label printers)");
-        edit.setOnMouseClicked(e -> loadForEdit(q));
-        erase.setOnMouseClicked(e -> eraseQso(erase, q));
-        labelBtn.setOnMouseClicked(e -> {
-            setB4("⋯ printing label for " + q.getCallsign() + "…", "new");
-            com.ars.fx.data.QslLabel.printAsync(com.ars.fx.data.QslLabel.fromContest(q), r -> Platform.runLater(() ->
-                    setB4((r.ok() ? "✓ " : "✗ ") + r.message(), r.ok() ? "new" : "dupe")));
-        });
-        HBox acts = new HBox(10, labelBtn, edit, erase); acts.setMinWidth(138); acts.setPrefWidth(138); acts.setAlignment(Pos.CENTER_RIGHT);
-        HBox r = new HBox(9,
-                cell(utc, 54), cell(q.getCallsign(), 90), cell(z(q.getBand()), 48), cell(z(q.getMode()), 46),
-                cell(z(q.getSerialSent()), 44), cell(exch, -1), pts, acts);
-        r.getStyleClass().add("jl-logrow"); r.setAlignment(Pos.CENTER_LEFT);
-        if (q.isDupe()) r.setOpacity(0.75);
-        return r;
-    }
-    private static String[] strip(String... parts) {
-        List<String> out = new ArrayList<>();
-        for (String p : parts) if (p != null && !p.isBlank()) out.add(p);
-        return out.toArray(new String[0]);
-    }
-
-    /** Every QSO of the contest in a window of its own, each with Edit / Erase - for correcting something older than the last ten. */
-    private static void openAllQsos() {
-        ContestPlugin plugin = ContestState.plugin();
-        if (plugin == null) return;
-        VBox tbl = new VBox(); tbl.getStyleClass().add("jl-logtbl");
-        Runnable fill = () -> fillLog(tbl, Integer.MAX_VALUE);
-        fill.run();
-        ContestState.addListener(() -> Platform.runLater(fill));
-        ScrollPane sp = new ScrollPane(tbl); sp.setFitToWidth(true); sp.setStyle("-fx-background-color:-ars-bg;");
-        VBox root = new VBox(sp); VBox.setVgrow(sp, Priority.ALWAYS); root.setStyle("-fx-background-color:-ars-bg;");
-        javafx.scene.Scene scene = new javafx.scene.Scene(root, 900, 620);
-        com.ars.fx.Theme.apply(scene, false); com.ars.fx.shell.Tips.install(scene);
-        com.ars.fx.Themes.applyTo(root, "log");
-        javafx.stage.Stage st = new javafx.stage.Stage();
-        st.setTitle(plugin.getContestName() + " \u2014 all QSOs"); st.setScene(scene);
-        st.show();
-    }
-
-    // ---- Cabrillo export --------------------------------------------------
-    private static void exportCabrillo(ContestPlugin plugin) {
-        try {
-            ContestConfigBridge.syncStationToEngine();
-            java.nio.file.Path dir = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-log", "exports");
-            java.nio.file.Files.createDirectories(dir);
-            java.nio.file.Path out = dir.resolve(plugin.getContestId() + "_" + HubConfig.call() + ".cbr");
-            com.jlog.export.CabrilloExporter.export(plugin, out);
-            if (com.ars.fx.data.LogExport.asciiOnly()) {            // J-Hub ▸ Data ▸ charset: ASCII
-                String txt = java.nio.file.Files.readString(out, java.nio.charset.StandardCharsets.UTF_8);
-                java.nio.file.Files.writeString(out, com.ars.fx.data.LogExport.forExport(txt), java.nio.charset.StandardCharsets.US_ASCII);
-            }
-            setB4("Exported → " + out, "new");
-        } catch (Exception e) {
-            setB4("Export failed: " + e.getMessage(), "dupe");
-        }
-    }
-
     // ---- ticker -----------------------------------------------------------
-    private static boolean tickerStarted = false;
-    private static void startTicker() {
+    static boolean tickerStarted = false;
+    static void startTicker() {
         if (tickerStarted) return;
         tickerStarted = true;
         javafx.animation.Timeline tl = new javafx.animation.Timeline(new javafx.animation.KeyFrame(
@@ -1258,7 +904,7 @@ public final class JLogContest {
     }
 
     // ---- small helpers ----------------------------------------------------
-    private static Control controlFor(FieldDef fd) {
+    static Control controlFor(FieldDef fd) {
         if ("combo".equalsIgnoreCase(fd.getType()) && fd.getOptions() != null && !fd.getOptions().isEmpty()) {
             ComboBox<String> cb = new ComboBox<>(); cb.getItems().addAll(fd.getOptions());
             cb.getStyleClass().add("jhub-mini-field");
@@ -1270,13 +916,13 @@ public final class JLogContest {
         double w = fd.getWidth() > 0 ? fd.getWidth() : 96; t.setMinWidth(w); t.setPrefWidth(w);
         return Shell.caps(t);   // exchange fields are upper case (stored upper case in the DB)
     }
-    private static String value(String id) {
+    static String value(String id) {
         Control c = fieldControls.get(id);
         if (c instanceof TextField t) return t.getText() == null ? "" : t.getText().trim();
         if (c instanceof ComboBox<?> cb) { Object v = cb.getValue(); return v == null ? "" : v.toString().trim(); }
         return "";
     }
-    private static void focus(String id) { Control c = fieldControls.get(id); if (c != null) c.requestFocus(); }
+    static void focus(String id) { Control c = fieldControls.get(id); if (c != null) c.requestFocus(); }
 
     /** Fill an exchange field from a clicked map region, then focus the call field. Called by ContestMapPane. */
     @SuppressWarnings("unchecked")
@@ -1288,22 +934,22 @@ public final class JLogContest {
         Control call = fieldControls.get("callsign"); if (call != null) call.requestFocus();
     }
 
-    private static TextField tf(String prompt, String init, double w) {
+    static TextField tf(String prompt, String init, double w) {
         TextField t = new TextField(init == null ? "" : init);
         if (prompt != null && !prompt.isEmpty()) t.setPromptText(prompt);
         t.getStyleClass().add("jhub-mini-field");
         if (w > 0) { t.setMinWidth(w); t.setPrefWidth(w); }
         return Shell.caps(t);
     }
-    private static VBox g(String label, Node field) {
+    static VBox g(String label, Node field) {
         VBox v = new VBox(5, lbl(label, "jl-flabel"), field); v.setAlignment(Pos.TOP_LEFT);
         return v;
     }
-    private static Label col(String s, double w) { Label l = lbl(s, "jl-logc-h"); if (w > 0) { l.setMinWidth(w); l.setPrefWidth(w); } else { HBox.setHgrow(l, Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); } return l; }
-    private static Label cell(String s, double w) { Label l = lbl(s == null ? "" : s, "jl-logc"); if (w > 0) { l.setMinWidth(w); l.setPrefWidth(w); } else { HBox.setHgrow(l, Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); } return l; }
+    static Label col(String s, double w) { Label l = lbl(s, "jl-logc-h"); if (w > 0) { l.setMinWidth(w); l.setPrefWidth(w); } else { HBox.setHgrow(l, Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); } return l; }
+    static Label cell(String s, double w) { Label l = lbl(s == null ? "" : s, "jl-logc"); if (w > 0) { l.setMinWidth(w); l.setPrefWidth(w); } else { HBox.setHgrow(l, Priority.ALWAYS); l.setMaxWidth(Double.MAX_VALUE); } return l; }
 
-    private static String z(String s) { return s == null ? "" : s; }
-    private static String nowUtc() { return java.time.LocalTime.now(ZoneOffset.UTC).format(HMS); }
-    private static String normBand(String b) { if (b == null) return ""; b = b.trim().toLowerCase(); return b.matches("\\d+") ? b + "m" : b; }
-    private static String bandFor(long hz) { String b = com.ars.fx.data.JLogDb.bandFor(String.format(java.util.Locale.US, "%.3f", hz / 1e6)); return b == null ? "20m" : b; }
+    static String z(String s) { return s == null ? "" : s; }
+    static String nowUtc() { return java.time.LocalTime.now(ZoneOffset.UTC).format(HMS); }
+    static String normBand(String b) { if (b == null) return ""; b = b.trim().toLowerCase(); return b.matches("\\d+") ? b + "m" : b; }
+    static String bandFor(long hz) { String b = com.ars.fx.data.JLogDb.bandFor(String.format(java.util.Locale.US, "%.3f", hz / 1e6)); return b == null ? "20m" : b; }
 }
