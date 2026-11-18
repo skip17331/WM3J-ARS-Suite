@@ -171,11 +171,13 @@ public final class QslLabel {
         return c.isEmpty() ? x : c + " \u00b7 " + x;
     }
 
-    private record Line(String text, double weight, boolean bold) {}
+    /** One printed line: its text, its share of the label height, and whether it is bold. */
+    public record Line(String text, double weight, boolean bold) {}
 
     private static String s(String v) { return v == null ? "" : v.trim(); }
 
-    private static List<Line> layout(Qso q) {
+    /** The lines a label for this QSO carries, top to bottom: what the printer draws and what the Setup preview shows. */
+    public static List<Line> layout(Qso q) {
         String dt = s(q.dateTimeUtc());
         if (dt.isEmpty()) dt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC).format(Instant.now());
         String when = (dt.length() >= 16 ? dt.substring(0, 16) : dt) + "Z";
@@ -236,6 +238,12 @@ public final class QslLabel {
     }
 
     // ---- driver path (Java 2D) --------------------------------------------------------------------
+
+    /** True when the stock is a narrow strip: the text then runs along its long edge (the page is fed short edge across). */
+    public static boolean isStrip(Size sz) {
+        double shortMm = Math.min(sz.wMm(), sz.hMm()), longMm = Math.max(sz.wMm(), sz.hMm());
+        return longMm > shortMm * 1.5;
+    }
 
     private static final double PT_PER_MM = 72.0 / 25.4;
 

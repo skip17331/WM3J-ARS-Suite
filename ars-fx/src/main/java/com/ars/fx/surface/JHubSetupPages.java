@@ -774,6 +774,14 @@ final class JHubSetupPages {
         });
         rebuild[0].run();
 
+        // what a printed label looks like: the sample QSO laid out exactly as the printer will (same lines, same shares of the height)
+        VBox previewBox = new VBox(6); previewBox.setAlignment(Pos.CENTER_LEFT);
+        Runnable[] paintPreview = new Runnable[1];
+        paintPreview[0] = () -> previewBox.getChildren().setAll(labelPreview(model.getValue()));
+        paintPreview[0].run();
+        model.valueProperty().addListener((o, a, b) -> paintPreview[0].run());
+        dyn.getChildren().addListener((javafx.collections.ListChangeListener<Node>) c -> paintPreview[0].run());
+
         CheckBox auto = new CheckBox(); auto.setSelected(com.ars.fx.data.QslLabel.printOnSave());
         auto.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.QslLabel.setPrintOnSave(b));
         Label test = cfgBtn("Test print");
@@ -787,8 +795,38 @@ final class JHubSetupPages {
                 cfgRow("Print a label when a QSO is saved", "same switch as \"Print QSL label\" on the J-Log form", auto),
                 cfgRow("Printer model", "Brother QL, DYMO LabelWriter, Zebra, Rollo — or any printer with a system driver", model),
                 dyn,
+                cfgRow("Preview", "a sample QSO on the label stock chosen above, drawn the way it prints (a strip label is shown turned the way it feeds)", previewBox),
                 cfgRow("Test", "prints a sample label with the settings above", test));
         return new VBox(6, lbl("QSL LABEL PRINTER", "cfg-sec"), card, status);
+    }
+    /** The sample label as a picture: a white label the shape of the chosen stock with the printed lines on it. */
+    private static Node labelPreview(com.ars.fx.data.QslLabel.Model m) {
+        com.ars.fx.data.QslLabel.Size sz = com.ars.fx.data.QslLabel.currentSize(m);
+        boolean strip = com.ars.fx.data.QslLabel.isStrip(sz);
+        double wMm = strip ? Math.max(sz.wMm(), sz.hMm()) : sz.wMm(), hMm = strip ? Math.min(sz.wMm(), sz.hMm()) : sz.hMm();
+        double maxW = 420, maxH = 260, k = Math.min(maxW / wMm, maxH / hMm);      // pixels per mm
+        double w = wMm * k, h = hMm * k, pad = 2.5 * k;
+        javafx.scene.canvas.Canvas cv = new javafx.scene.canvas.Canvas(w, h);
+        javafx.scene.canvas.GraphicsContext g = cv.getGraphicsContext2D();
+        g.setFill(javafx.scene.paint.Color.WHITE); g.fillRoundRect(0, 0, w, h, 8, 8);
+        g.setFill(javafx.scene.paint.Color.BLACK); g.setTextAlign(javafx.scene.text.TextAlignment.CENTER); g.setTextBaseline(javafx.geometry.VPos.CENTER);
+        java.util.List<com.ars.fx.data.QslLabel.Line> lines = com.ars.fx.data.QslLabel.layout(com.ars.fx.data.QslLabel.sample());
+        double total = 0; for (com.ars.fx.data.QslLabel.Line l : lines) total += l.weight();
+        double usableW = w - 2 * pad, usableH = h - 2 * pad, y = pad;
+        for (com.ars.fx.data.QslLabel.Line l : lines) {
+            double band = usableH * l.weight() / total, size = Math.max(5, band * 0.82);
+            javafx.scene.text.FontWeight fw = l.bold() ? javafx.scene.text.FontWeight.BOLD : javafx.scene.text.FontWeight.NORMAL;
+            javafx.scene.text.Text probe = new javafx.scene.text.Text(l.text()); probe.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
+            double tw = probe.getLayoutBounds().getWidth();
+            if (tw > usableW && tw > 0) size = Math.max(5, size * usableW / tw);
+            g.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
+            g.fillText(l.text(), w / 2, y + band / 2);
+            y += band;
+        }
+        StackPane frame = new StackPane(cv); frame.setStyle("-fx-border-color:-ars-border-2;-fx-border-radius:9;-fx-padding:1;");
+        frame.setMaxSize(w + 2, h + 2);
+        Label cap = lbl(sz.label(), "cfg-lh");
+        return new VBox(4, frame, cap);
     }
     /** Call history: what each station usually sends (state, section, zone, name), learned from the logs or imported. */
     static VBox callHistorySection() {
