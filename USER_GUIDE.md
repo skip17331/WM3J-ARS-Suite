@@ -51,10 +51,12 @@ what they do before you rely on them. QSL label printing is beta too.
 - **Docked** (the **ARS Suite** shortcut): everything in one window, one program. Live data is shared directly.
 - **Loose** (the per-module shortcuts, or `--module <id>`): each module in its own window. They share data through a
   small **background hub** in the system tray, which owns the radio connections and feeds. The first loose window
-  you open starts it. A loose window has no dock; the **⚙ gear** in its top bar opens J-Hub settings, with a
-  "← Back" link to return.
+  you open starts it. A loose window has no dock; its **Settings** (gear) entry opens Setup, with a "← Back" link to
+  return.
 
-The hub's only network port is **8090**. See [§6](#6-running-loose-and-a-second-machine-display).
+The hub listens on port **8090**, and by default other computers on your LAN can reach it (*Share with solo modules on
+the LAN*, Setup ▸ Remote sharing). The other network ports, all off until you switch them on, are listed in
+[INSTALL.md](INSTALL.md#what-you-get). See also [§6](#6-running-loose-and-a-second-machine-display).
 
 ### Starting up
 
@@ -104,7 +106,7 @@ it open) groups the pages:
 | **Radio** | Rig control, Rotor control, Amplifier, Antenna switch, Transmit & macros |
 | **Data & spotting** | DX cluster & RBN, WSJT-X / digital, Callsign lookup, Satellites |
 | **Logbook** | Log database & backup, Online upload, Export & Cabrillo, Label printers |
-| **System** | Modules, Remote sharing, J-Learn content |
+| **System** | Modules, Appearance, Remote sharing, J-Learn content |
 
 Choosing a page swaps the right-hand side without leaving the screen.
 
@@ -135,11 +137,11 @@ Extra settings:
 - **Rig control** — poll interval, auto band-follow, and **PTT & keying**: PTT method, CW keyer and the **PTT delay**
   used when sending macros (see [§5](#5-macros-and-transmitting)).
 - **Rotor control** — rotor range and overlap/wrap, park position, dead-band, **auto-track satellites (J-Sat)**, **Elevation rotor (az/el)** and the beam presets. Turn on *Elevation rotor* if your rotor has an elevation axis (a satellite az/el rotator): J-Sat's tracking then points the elevation at the satellite as well as the azimuth (0-90°), and the dead-band applies to both. Leave it off for an azimuth-only rotator such as an HF beam's, which is then never sent an elevation. Presets, Park and the nudge buttons only ever move the azimuth. If your rotor turns 450° (a 90° overlap, as on the Yaesu G-800 / G-1000 / G-2800 DXA), set **Rotor range** to 450° and **Overlap / wrap** to where it overlaps (North = travel 0 to 450°, South = −180 to +270°): every move then goes to whichever of the two angles for the bearing is nearer to where the rotor is, so a satellite pass that crosses the overlap carries on past 360° instead of unwinding a whole turn. Leave the range at 360° for a rotor that turns once. **A second rotor:** below these settings there is a **Satellite rotor** group (for example an az/el rotator on the satellite antenna while the main rotor turns an HF beam). Turn on **Use a satellite rotor** and give it its own connection, with its own `rotctld` port; it has its own range, overlap, park and elevation settings. J-Sat's tracking drives it; everything else (spot clicks, presets, the J-Map beam) stays on the main rotor, and it gets its own panel in J-Sat, below Rotor control (the other screens show only the main rotor). With it off, J-Sat uses the main rotor.
-  (Europe, Africa, S. America, Caribbean, Asia, Oceania).
 - **Amplifier** — follow-rig-band, maximum power, standby on TX inhibit.
 - **Antenna switch** — model, host and port, follow-rig-band, and a six-port map of antenna names and bands.
 
-On Linux, make sure you are in the `dialout` group to reach serial ports: `ls -l /dev/ttyUSB*`.
+On Linux, make sure you are in the `dialout` group (`uucp` on Arch) to reach serial ports: `ls -l /dev/ttyUSB*`.
+`install.sh` offers to add you; log out and back in afterwards.
 
 ### 3.3 Data, logbook and system pages
 
@@ -149,15 +151,16 @@ Everything that carries data in or out is on these Setup pages.
 |------|--------------|
 | **Log database & backup** | Which database and table the normal log uses, with its QSO count and size (**Open folder**); the **contest databases** (each with its contest, start date and QSO count: **Archive** moves one into storage, **Restore** brings it back; archived logs sit in `~/.j-log/archive/<Contest>_<Year>/`); the **Call history** (see [§4.1](#41-j-log)); and **Backup, export & import**: **Export ADIF** or **Export CSV** to a timestamped file, and **Import ADIF…** into the normal log (QSOs already in it are skipped). |
 | **Online upload** | **LoTW** (signed with TrustedQSL), **eQSL.cc**, **QRZ Logbook**, **Club Log** and **Wavelog**, each with its login, an **Upload** button and an auto-upload tick (Wavelog: your Wavelog's address, a read/write API key from Account ▸ API, and the station profile id — the number in the address bar when you edit the station profile; it sends the whole log in batches and Wavelog skips QSOs it already has). **Get confirmations** downloads your LoTW and eQSL confirmations and ticks the matching QSOs. **Note:** eQSL's download does not work if your eQSL password contains a `#`. The password is the same one you use on eqsl.cc, and the website and uploading accept it, but eQSL's download service refuses it. To use Get confirmations for eQSL, change your password on eqsl.cc to one without `#` and enter the new one here. |
-| **Export & Cabrillo** | The Cabrillo / CSV character set; the **N1MM+ UDP broadcast** (off by default), which sends your contest log to GridTracker, Log4OM and the like; the **contest network** (host or join a multi-operator contest over the LAN); and the categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club) plus Sweepstakes precedence, check and section. |
+| **Export & Cabrillo** | The Cabrillo / CSV character set, LoTW / eQSL auto-upload and Super Check Partial; the **phone web client** (off by default, see [§4.10](#410-phone-web-client)); the **N1MM+ UDP broadcast** (off by default), which sends your contest log to GridTracker, Log4OM and the like; the **contest network** (host or join a multi-operator contest over the LAN; the shared key is kept in your system keyring); and the categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club) plus Sweepstakes precedence, check and section. |
 | **Label printers (beta)** | Printer model (Brother QL, DYMO LabelWriter, Zebra, Rollo or any system printer), label stock, printer or network address, copies and a **Test print** button. Used by **Print QSL label** on the New QSO form. |
-| **DX cluster & RBN** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying); the Reverse Beacon Network has its own auto-connect and retry limit. **Spot alerts** (off by default): a card in the bottom-left corner and a chime when a spot arrives for a call on your **watch list** (calls or prefixes such as `VP8*`) or one your log needs (NEW ONE / NEW BAND / NEW MODE, or a new multiplier on the contest page); click a spot in the card to use it. The same call on the same band alerts once every 30 minutes. With a **Club Log token** (Club Log ▸ Settings ▸ API) the app keeps Club Log's **Most Wanted** ranking (fetched at most once a month): each spot's tooltip shows the entity's place, and **Alert on Club Log Most Wanted** alerts on the top N. |
-| **WSJT-X / digital** | UDP port (2237), auto-log FT8/FT4 contacts, PSK Reporter upload, and the local CW skimmer. |
+| **DX cluster & RBN** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying); the Reverse Beacon Network has its own auto-connect and retry limit. **Spot alerts** (off by default): a card in the bottom-left corner and a chime when a spot arrives for a call on your **watch list** (calls or prefixes such as `VP8*`) or one your log needs (NEW ONE / NEW BAND / NEW MODE, or a new multiplier on the contest page); click a spot in the card to use it. The same call on the same band alerts once every 30 minutes. With a **Club Log token** (Club Log ▸ Settings ▸ API) the app keeps Club Log's **Most Wanted** ranking (fetched at most once a month): each spot's tooltip shows the entity's place, and **Alert on Club Log Most Wanted** alerts on the top N. With a **Club Log API key**, **Club Log DXCC exceptions** (**Update now**) fetches the calls Club Log places by hand for a date range (DXpeditions, special events), so those calls get the right entity. |
+| **WSJT-X / digital** | UDP port (2237), auto-log FT8/FT4 contacts, and the local CW skimmer. |
 | **Callsign lookup** | Callook.info (free, US), HamQTH, QRZ.com XML, QRZCQ, HamCall, and a local CSV callbook file. Tried top to bottom; the first answer fills name, QTH, grid, state and county. |
 | **Satellites** | See [§3.4](#34-satellites). |
 | **Transmit & macros** | CW speed, the keyer, the **PTT delay**, the voice output device, and the F1–F8 station macros — see [§5](#5-macros-and-transmitting). |
 | **Modules** | See [§3.5](#35-modules). |
-| **Remote sharing** | Share live data with solo J-Map / J-Sat windows on other machines over the LAN (port 8090). |
+| **Appearance** | The **colour scheme** (Dark, Light, Ocean, Forest, Amber, Rose, Nord, Cockpit, Instrument, Space), the dashboard **style** (Classic, Instrument panel, Modern, Cockpit), **interface size**, **reduce effects** (no sliding or flashing), **stack cards in rows**, and **DX Cluster in the right column** (the cluster moves to the top of the PANELS column and the Recent log takes its place). |
+| **Remote sharing** | Share live data with solo J-Map / J-Sat windows on other machines over the LAN (port 8090). **On by default**; switch it off to keep the hub to this computer. |
 | **J-Learn content** | Where J-Learn's chapters come from and how to refresh them — see [§4.8](#48-j-learn). |
 
 The **Station** page's **Updates** section also has **Refresh country files**. Once a week the suite downloads the
@@ -191,10 +194,12 @@ across the top of each always tells you which database you are writing to, with 
 **Normal logging (the J-Hub dashboard)**
 
 - **New QSO** — callsign, band, mode, frequency, RST sent and received, name, QTH, state, county, grid, power and
-  comment, then **Log QSO ⏎**. Typing a call looks it up (see *Callsign lookup* above) and shows its DXCC entity,
+  comment, then **Log QSO ⏎**. Type the frequency in MHz (`14.025`), kHz (`14025`) or with a decimal comma
+  (`14,025`); it is saved in MHz and the band follows. Typing a call looks it up (see *Callsign lookup* above) and shows its DXCC entity,
   beam heading and your previous contacts with it. **Print QSL label** prints a label for each new QSO when you save it; pick the printer in Setup ▸ Label printers. *(Beta.)*
 - **IOTA, SOTA and POTA** — optional fields for the other station's island, summit and park (hunter credit), with lookups, and **Confirmed** boxes for a paper QSL, LoTW or eQSL. Import an ADIF file downloaded from LoTW or eQSL, or use **Get confirmations** (Setup ▸ Online upload), and the QSOs already in your log are marked confirmed.
-- **Recent log** — your latest QSOs; select one to edit or delete it. **Browse full log ⤢** opens every QSO in a sortable, searchable table (sort by any column heading, search by call, name, QTH, grid, state, county or notes, filter by band and mode; double-click a row to edit it).
+- **Recent log** — your latest QSOs; select one to edit or delete it. **Browse full log ⤢** opens every QSO in a sortable, searchable table (sort by any column heading, search by call, name, QTH, grid, state, county or notes, filter by band and mode; double-click a row to edit it). Contest logs show there too: a QSO of the contest open on
+  the contest page can be edited (it loads into the contest form) or erased; other contest logs are view-only.
 - **DX Cluster** — live spots with a **Console** button that opens a raw-feed pop-up with a command line (history, and
   shortcuts such as `SH/DX 20` and `SET/FT8`). The status is always **Disconnected**, **Connecting** or **Connected**,
   and **Stop** cancels a connection that is not coming up. A spot that would be a **new DXCC entity, band or mode** for you is tagged.
@@ -204,7 +209,7 @@ across the top of each always tells you which database you are writing to, with 
 
 **Contest mode** — in the *Log mode* drawer, press **⇄ Contest mode…**.
 
-1. **Choose a contest** from the list of about 87 supported contests (there is a search box). J-Log offers the last one you used first.
+1. **Choose a contest** from the list of over 80 supported contests, 46 of them state and province QSO parties (there is a search box). J-Log offers the last one you used first.
 2. **Choose a database.** Either **continue an existing one** (each is shown with its contest and start date), or
    **start a new one**. A new log gets a suggested name such as `NovSwpSSB2026.db`, which you can change. Asked each time you enter contest mode.
 3. **Say what you send.** Anything of your own exchange that Setup does not know (for example your Sweepstakes section) is asked once per contest.
@@ -213,6 +218,7 @@ across the top of each always tells you which database you are writing to, with 
 
 What the contest page does for you:
 
+- **Type-ahead.** Section, county and state fields suggest from the contest's list as you type.
 - **Validation.** A section, precedence, zone or callsign that can never be valid is refused. Where the list is not definitive (a state or county in a QSO party that is not recognised) it warns and asks for a second **Enter**.
 - **Dupes** ask permission before they are logged.
 - **Exchange memory and call history.** A station you have worked before in this contest has its exchange filled in. For a station you have not, the **call history** fills it from what that station usually sends (state, section, zone, grid, name, Sweepstakes precedence and check); anything filled in is marked, and you check it before you log. The history learns from your own contest QSOs and can be rebuilt from your logs (**Setup ▸ Log database & backup ▸ Call history ▸ Build from my logs**) or seeded from a call history CSV file (**Import file…**; N1MM+ call history files work). Your own QSOs always win over imported values.
@@ -261,7 +267,10 @@ Set your latitude and longitude first. Distances follow your Units setting.
 
 *Beta.* The built-in modem decodes from your sound card. Pick a mode tab — **CW, RTTY, PSK31, Olivia, MFSK16, DominoEX** or
 **AX.25** — and watch the **waterfall** and the **decoder** text. The audio spectrum is live. J-Digi starts its own
-audio when the app starts; no hub link is needed.
+audio when the app starts; no hub link is needed. With the **local CW skimmer** on (Setup ▸ WSJT-X / digital) it also
+picks CW callsigns out of the whole passband and adds them to the spot list. J-Digi's Olivia is the suite's own
+simplified form of the mode: it decodes J-Digi's own transmissions, but has not been shown to work with other Olivia
+programs such as fldigi.
 
 ### 4.4 J-Bridge
 
@@ -275,7 +284,8 @@ In WSJT-X, open *File ▸ Settings ▸ Reporting* and tick **Accept UDP requests
 
 Shows the satellites you chose in Setup ▸ Satellites: the selected satellite's position, **Next passes**, and a
 **Radio · Doppler** panel. A satellite with no orbital data is flagged with a warning; satellites with no radio data
-still get position and passes. The switch at the top right chooses the view: **Polar** (the sky above you),
+still get position and passes. The lower bar shows the pass's AOS time and an **LOS IN** timer counting down the pass in progress (or the next
+one), and the **AOS / LOS alarm** switch chirps when a satellite rises and sets. The switch at the top right chooses the view: **Polar** (the sky above you),
 **Blue marble** (a flat world map with ground tracks) or **Globe** (a 3D Earth: drag to turn it, wheel to zoom, click a
 satellite to select it, double-click to centre on your station; the selected satellite shows its footprint and, in a pass,
 a line to you). Globe is hidden on a computer without 3D support. On the world map and the globe satellites are drawn as little satellites (the polar plot keeps dots); each orbit line glows ahead of the satellite and is dashed behind it, and the selected one has arrowheads. Every satellite's footprint is tinted with its colour, and stronger when your station is inside it; a line runs from your station to each satellite above your horizon. Click a satellite to select it and dim the others; click anywhere off a satellite to bring them all back. A link at the top takes you back to the picker. With *Auto-track satellites* on, the
@@ -347,6 +357,20 @@ in your browser (nothing is downloaded or copied from them).
 - The row of links along the bottom opens the project's web pages, and the **licence**, **Code of Conduct** and **legal
   notes**, which open from copies kept on your computer.
 
+### 4.10 Phone web client
+
+A page your phone (or any browser) opens on your own network, for logging away from the shack (POTA / SOTA) or keeping an
+eye on it. Switch it on in **Setup ▸ Export & Cabrillo ▸ Phone web client**; the same section shows the **address to
+open** (`http://<this computer>:8095/`) and an **access token**, made for you the first time, which the page asks for once.
+
+- **Log** a QSO into your normal log. With no network, the page keeps the QSO on the phone and sends it, with its
+  original time, when the connection comes back; it is never logged twice.
+- **Spots** shows the DX cluster with the band-open estimate; **Tune the rig from the phone** (off by default) lets a spot
+  tune the rig, only while it is connected and not transmitting.
+- The rig's frequency and mode, and your recent log.
+
+It is plain HTTP: use it on your own network only. To reach it from outside, use a VPN.
+
 ---
 
 ## 5. Macros and transmitting
@@ -385,7 +409,7 @@ when a window closes, and by a watchdog.
 **Loose windows.** Start a module on its own with its shortcut, or from a terminal:
 
 ```bash
-./ars-fx/ars-fx.sh --module map      # log | logc | map | sat | digi | bridge | vault | learn
+./ars-fx/ars-fx.sh --module map      # log | logc | map | sat | digi | bridge | vault | learn | morse | workshop
 ./ars-fx/ars-fx.sh --hub             # the background hub only
 ```
 
@@ -393,7 +417,8 @@ The hub owns the Hamlib daemons and the live feeds (DX cluster, RBN, rig, rotor)
 `ws://127.0.0.1:8090`. Windows show the last known values and reconnect on their own if the hub restarts.
 
 **A second machine.** J-Map or J-Sat can run on a laptop or Raspberry Pi and follow your station over the LAN.
-Switch on *Share with solo modules on the LAN* in **Setup ▸ Remote sharing**, open port **8090** to your LAN, and
+Check that *Share with solo modules on the LAN* is on in **Setup ▸ Remote sharing** (it is by default), open port
+**8090** to your LAN, and
 start the display with a launch file — the steps and a sample are in
 [INSTALL.md § Second-machine display](INSTALL.md#second-machine-display).
 
@@ -402,7 +427,8 @@ start the display with a launch file — the steps and a sample are in
 ## 7. Troubleshooting
 
 **A loose window shows no spots or rig data.** The background hub isn't running. Open **ARS Suite Hub**, run
-`ars-fx.sh --hub`, or open any module; the first one starts it. Check it is listening with `ss -ltn | grep 8090`. For a
+`ars-fx.sh --hub`, or open any module; the first one starts it. Check it is listening with `ss -ltn | grep 8090`
+(Windows: `netstat -an | findstr 8090`). For a
 display on another machine, allow inbound TCP 8090 on the station's firewall, LAN only.
 
 **The DX cluster won't connect.** Look at the status: **Connecting** means the server hasn't answered after login
@@ -450,7 +476,10 @@ expected and what happened. If you started the app from a terminal, include any 
 
 | Path | Contents |
 |------|----------|
-| `~/.j-hub/config.json` | All settings, including station, rig, cluster, macros and upload logins |
+| `~/.j-hub/config.json` | All settings: station, rig, cluster, transmit, display |
+| `~/.j-hub/scp/` | Super Check Partial call lists |
+| `~/.j-log/upload.json`, `lookup.json` | Upload and lookup settings: user names, and passwords only when there is no system keyring |
+| `~/.j-log/macros.json` | Your macros |
 | `~/.j-log/j-log.db` | Normal log |
 | `~/.j-log/callhistory.db` | Call history: each station's usual state, section, zone, grid and name |
 | `~/.j-log/contest-logs/` | Contest databases (one per contest and year) |
@@ -466,5 +495,8 @@ expected and what happened. If you started the app from a terminal, include any 
 | `~/.j-sat/tles.txt` | Downloaded orbital elements |
 | `~/.j-map/` | Cached map data |
 
-Your login details for upload services and callsign lookups are stored in `config.json`; keep that file private.
-To move to a new computer, copy `~/.j-hub/` and `~/.j-log/`.
+Passwords, API keys and tokens (upload and lookup logins, the Club Log token, the contest network key) are kept in your
+system's keyring: Windows Credential Manager, the macOS Keychain or the Linux Secret Service (`secret-tool`). Where there
+is none they stay in `upload.json` / `lookup.json` / `config.json`, readable by your account only; see
+[LEGAL.md](LEGAL.md). To move to a new computer, copy `~/.j-hub/`, `~/.j-log/` and `~/.j-vault/`, then enter your
+passwords again in Setup (the keyring does not travel with the folders).
