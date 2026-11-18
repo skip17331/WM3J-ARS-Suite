@@ -172,29 +172,72 @@ public final class QslLabel {
     }
 
     /** One printed line: its text, its share of the label height, and whether it is bold. */
-    public record Line(String text, double weight, boolean bold) {}
+    public record Line(String text, double weight, boolean bold, List<String> cells, double[] cols, boolean right, double scale) {
+        /** A plain centred line of text. */
+        public Line(String text, double weight, boolean bold) { this(text, weight, bold, null, null, false, 1.0); }
+        /** A line set at {@code scale} times its fitted size and pushed to the right edge. */
+        public static Line corner(String text, double weight, double scale) { return new Line(text, weight, true, null, null, true, scale); }
+        /** A row of boxed cells (the QSL table); {@code cols} are the cells' shares of the width, summing to 1, shared by every row of the table. */
+        public boolean isRow() { return cells != null; }
+    }
+    private static Line row(List<String> cells, double[] cols, double weight, boolean bold) {
+        return new Line(String.join(" | ", cells), weight, bold, cells, cols, false, 1.0);
+    }
+    /** Column shares for a table: each as wide as its longer entry (header or value) plus room around it. */
+    private static double[] columnShares(List<String> head, List<String> vals) {
+        double[] w = new double[head.size()]; double sum = 0;
+        for (int i = 0; i < w.length; i++) { w[i] = Math.max(head.get(i).length(), vals.get(i).length()) + 2.5; sum += w[i]; }
+        for (int i = 0; i < w.length; i++) w[i] /= sum;
+        return w;
+    }
 
     private static String s(String v) { return v == null ? "" : v.trim(); }
 
-    /** The lines a label for this QSO carries, top to bottom: what the printer draws and what the Setup preview shows. */
+    /** The QSL label's optional parts: id, checkbox text, and whether it is on by default. The call is always printed. */
+    public record Field(String id, String label, boolean on) {}
+    public static final List<Field> QSL_FIELDS = List.of(
+            new Field("date", "Date", true), new Field("time", "UTC time", true), new Field("band", "Band", true),
+            new Field("freq", "Frequency (MHz)", false), new Field("mode", "Mode", true),
+            new Field("rst", "RST", true), new Field("sign", "\"73 and Good DX!\"", true));
+    public static boolean show(String id) {
+        for (Field f : QSL_FIELDS) if (f.id().equals(id)) return HubConfig.getBool("label.qsl." + id, f.on());
+        return false;
+    }
+    /** Which labels a save prints: the QSL confirmation and / or the address label (from QRZ.com). */
+    public static boolean printQsl()     { return HubConfig.getBool("label.print.qsl", true); }
+    public static boolean printAddress() { return HubConfig.getBool("label.print.address", false); }
+
+    /** The QSL label: a boxed table (To callsign | Date | UTC | Band | Mode | RST), the QSO under it, then "73 and Good DX!". Columns follow the Setup ticks. */
     public static List<Line> layout(Qso q) {
         String dt = s(q.dateTimeUtc());
         if (dt.isEmpty()) dt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC).format(Instant.now());
-        String when = (dt.length() >= 16 ? dt.substring(0, 16) : dt) + "Z";
-        String fb = (s(q.freq()).isEmpty() ? "" : s(q.freq()) + " MHz  ") + (s(q.band()).isEmpty() ? "" : s(q.band()) + "  ") + s(q.mode());
-        String rst = (s(q.rstSent()).isEmpty() && s(q.rstRcvd()).isEmpty()) ? "" : "RST " + s(q.rstSent()) + " / " + s(q.rstRcvd());
-        String who = (s(q.name()) + (s(q.name()).isEmpty() || s(q.qth()).isEmpty() ? "" : " · ") + s(q.qth())).trim();
-        String me = HubConfig.call();
-        String sig = "TNX QSO · 73" + (me.isEmpty() ? "" : " de " + me);
-
+        String date = dt.length() >= 10 ? dt.substring(0, 10) : dt, time = dt.length() >= 16 ? dt.substring(11, 16) + " Z" : "";
+        List<String> head = new ArrayList<>(), vals = new ArrayList<>();
+        head.add("To callsign"); vals.add(s(q.call()).toUpperCase(Locale.ROOT));
+        if (show("date")) { head.add("Date");  vals.add(date); }
+        if (show("time")) { head.add("UTC");   vals.add(time); }
+        if (show("freq")) { head.add("MHz");   vals.add(s(q.freq())); }
+        if (show("band")) { head.add("Band");  vals.add(s(q.band()).toUpperCase(Locale.ROOT)); }
+        if (show("mode")) { head.add("Mode");  vals.add(s(q.mode()).toUpperCase(Locale.ROOT)); }
+        if (show("rst"))  { head.add("RST");   vals.add(s(q.rstSent())); }
+        double[] cols = columnShares(head, vals);
         List<Line> l = new ArrayList<>();
-        l.add(new Line("QSL  " + s(q.call()).toUpperCase(Locale.ROOT), 3.0, true));
-        l.add(new Line(when, 1.2, false));
-        if (!fb.isBlank()) l.add(new Line(fb.trim(), 1.2, false));
-        if (!rst.isEmpty()) l.add(new Line(rst, 1.0, false));
-        if (!who.isEmpty()) l.add(new Line(who, 1.0, false));
-        if (!s(q.exchange()).isEmpty()) l.add(new Line(s(q.exchange()), 1.0, false));
-        l.add(new Line(sig, 1.0, true));
+        l.add(row(head, cols, 1.0, false));
+        l.add(row(vals, cols, 1.7, true));
+        if (show("sign")) l.add(Line.corner("73 and Good DX!", 1.0, 0.5));    // half size, lower right corner
+        return l;
+    }
+
+    /** The address label: line 1 the name, line 2 "ARS <callsign>", then the mailing address (street, then city / state / zip, and the country when not the US). */
+    public static List<Line> addressLayout(CallsignLookup.Address a) {
+        List<Line> l = new ArrayList<>();
+        l.add(new Line(s(a.name()).isEmpty() ? s(a.call()).toUpperCase(Locale.ROOT) : s(a.name()), 1.4, true));
+        l.add(new Line("ARS " + s(a.call()).toUpperCase(Locale.ROOT), 1.4, true));
+        if (!s(a.line1()).isEmpty()) l.add(new Line(s(a.line1()), 1.2, false));
+        String csz = (s(a.line2()) + (s(a.state()).isEmpty() ? "" : (s(a.line2()).isEmpty() ? "" : ", ") + s(a.state())) + (s(a.zip()).isEmpty() ? "" : " " + s(a.zip()))).trim();
+        if (!csz.isEmpty()) l.add(new Line(csz, 1.2, false));
+        String country = s(a.country());
+        if (!country.isEmpty() && !country.equalsIgnoreCase("United States")) l.add(new Line(country.toUpperCase(Locale.ROOT), 1.2, true));
         return l;
     }
 
@@ -213,8 +256,23 @@ public final class QslLabel {
         t.setDaemon(true); t.start();
     }
 
-    /** Prints the label with the saved settings (blocking). */
+    /** Prints the label(s) chosen in Setup for this QSO (blocking): the QSL confirmation, and / or an address label looked up on QRZ.com. */
     public static Result print(Qso q) throws Exception {
+        boolean qsl = printQsl(), addr = printAddress();
+        if (!qsl && !addr) return new Result(false, "No label type is ticked in Setup > Label printers");
+        List<String> msg = new ArrayList<>();
+        boolean ok = true;
+        if (qsl) { Result r = printLines("QSL label " + s(q.call()), layout(q)); ok &= r.ok(); msg.add(r.message()); }
+        if (addr) {
+            CallsignLookup.Address a = CallsignLookup.qrzAddress(q.call());
+            if (a == null) { ok = false; msg.add("No address label: " + CallsignLookup.qrzAddressError); }
+            else { Result r = printLines("Address label " + s(q.call()), addressLayout(a)); ok &= r.ok(); msg.add(r.message()); }
+        }
+        return new Result(ok, String.join("; ", msg));
+    }
+
+    /** Prints one label made of these lines with the saved printer settings. */
+    private static Result printLines(String jobName, List<Line> lines) throws Exception {
         Model m = currentModel();
         Size sz = currentSize(m);
         String printer = HubConfig.get("label.printer", "").trim();
@@ -223,11 +281,11 @@ public final class QslLabel {
             String host = HubConfig.get("label.host", "").trim();
             if (host.isEmpty() && printer.isEmpty()) return new Result(false, "No label printer set — choose one in Setup ▸ Label printers");
             int dpi = (int) num(HubConfig.get("label.dpi", String.valueOf(m.dpi())));
-            sendZpl(zpl(q, sz, dpi > 0 ? dpi : 203, copies), host, printer);
+            sendZpl(zpl(lines, sz, dpi > 0 ? dpi : 203, copies), host, printer);
             return new Result(true, "Label sent to " + (host.isEmpty() ? printer : host));
         }
         if (printer.isEmpty()) return new Result(false, "No label printer set — choose one in Setup ▸ Label printers");
-        printDriver(q, sz, printer, copies);
+        printDriver(jobName, lines, sz, printer, copies);
         return new Result(true, "Label sent to " + printer);
     }
 
@@ -235,6 +293,29 @@ public final class QslLabel {
     public static Qso sample() {
         return new Qso("K1ABC", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC).format(Instant.now()),
                 "14.074", "20m", "FT8", "-10", "-12", "Sample", "Baltimore MD");
+    }
+
+    /** Prints sample labels of the types ticked in Setup (the address label uses a made-up address, so no QRZ.com lookup is made). */
+    public static Result printTest() throws Exception {
+        boolean qsl = printQsl(), addr = printAddress();
+        if (!qsl && !addr) return new Result(false, "No label type is ticked");
+        List<String> msg = new ArrayList<>(); boolean ok = true;
+        if (qsl) { Result r = printLines("QSL label test", layout(sample())); ok &= r.ok(); msg.add(r.message()); }
+        if (addr) { Result r = printLines("Address label test", addressLayout(sampleAddress())); ok &= r.ok(); msg.add(r.message()); }
+        return new Result(ok, String.join("; ", msg));
+    }
+    public static void printTestAsync(java.util.function.Consumer<Result> done) {
+        Thread t = new Thread(() -> {
+            Result r;
+            try { r = printTest(); } catch (Throwable e) { r = new Result(false, "Label not printed: " + e.getMessage()); }
+            if (done != null) done.accept(r);
+        }, "qsl-label-test");
+        t.setDaemon(true); t.start();
+    }
+
+    /** Sample address for the preview and the test print. */
+    public static CallsignLookup.Address sampleAddress() {
+        return new CallsignLookup.Address("K1ABC", "Pat Sample", "123 Main Street", "Baltimore", "MD", "21201", "United States");
     }
 
     // ---- driver path (Java 2D) --------------------------------------------------------------------
@@ -247,7 +328,7 @@ public final class QslLabel {
 
     private static final double PT_PER_MM = 72.0 / 25.4;
 
-    private static void printDriver(Qso q, Size sz, String printerName, int copies) throws Exception {
+    private static void printDriver(String jobName, List<Line> lines, Size sz, String printerName, int copies) throws Exception {
         PrintService svc = null;
         for (PrintService ps : PrintServiceLookup.lookupPrintServices(null, null))
             if (ps.getName().equals(printerName)) { svc = ps; break; }
@@ -264,7 +345,6 @@ public final class QslLabel {
         pf.setPaper(paper);
         pf.setOrientation(PageFormat.PORTRAIT);
 
-        List<Line> lines = layout(q);
         Printable body = (g, fmt, idx) -> {
             if (idx > 0) return Printable.NO_SUCH_PAGE;
             draw((Graphics2D) g, lines, pageW, pageH, strip);
@@ -272,7 +352,7 @@ public final class QslLabel {
         };
         java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
         job.setPrintService(svc);
-        job.setJobName("QSL label " + s(q.call()));
+        job.setJobName(jobName);
         job.setPrintable(body, pf);
         job.setCopies(copies);
         try { job.print(); } catch (PrinterException e) { throw new Exception(e.getMessage(), e); }
@@ -293,11 +373,30 @@ public final class QslLabel {
         double y = pad;
         for (Line l : lines) {
             double band = usableH * l.weight() / total;
+            if (l.isRow()) {                                   // a boxed table row: each cell outlined, its text centred in it, one font size across the row
+                double x = pad;
+                float size = (float) (band * 0.7);
+                for (int i = 0; i < l.cells().size(); i++)
+                    size = Math.min(size, fit(g, new Line(l.cells().get(i), 0, l.bold()), l.cols()[i] * usableW - 4, band * 0.7).getSize2D());
+                Font rf = new Font(Font.SANS_SERIF, l.bold() ? Font.BOLD : Font.PLAIN, 100).deriveFont(size);
+                g.setFont(rf); FontMetrics rm = g.getFontMetrics();
+                g.setStroke(new java.awt.BasicStroke(1f));
+                for (int i = 0; i < l.cells().size(); i++) {
+                    double cw = l.cols()[i] * usableW;
+                    g.draw(new java.awt.geom.Rectangle2D.Double(x, y, cw, band));
+                    String t = l.cells().get(i);
+                    g.drawString(t, (float) (x + (cw - rm.stringWidth(t)) / 2), (float) (y + (band - rm.getHeight()) / 2 + rm.getAscent()));
+                    x += cw;
+                }
+                y += band;
+                continue;
+            }
             Font f = fit(g, l, usableW, band * 0.82);
+            if (l.scale() != 1.0) f = f.deriveFont((float) (f.getSize2D() * l.scale()));
             g.setFont(f);
             FontMetrics fm = g.getFontMetrics();
             double baseline = y + (band - fm.getHeight()) / 2 + fm.getAscent();
-            g.drawString(l.text(), (float) (pad + (usableW - fm.stringWidth(l.text())) / 2), (float) baseline);
+            g.drawString(l.text(), (float) (l.right() ? pad + usableW - fm.stringWidth(l.text()) : pad + (usableW - fm.stringWidth(l.text())) / 2), (float) baseline);
             y += band;
         }
         g.setTransform(saved);
@@ -314,23 +413,41 @@ public final class QslLabel {
 
     // ---- ZPL path ---------------------------------------------------------------------------------
 
-    static String zpl(Qso q, Size sz, int dpi, int copies) {
+    static String zpl(Qso q, Size sz, int dpi, int copies) { return zpl(layout(q), sz, dpi, copies); }
+
+    static String zpl(List<Line> lines, Size sz, int dpi, int copies) {
         double dotsPerMm = dpi / 25.4;
         int w = (int) Math.round(sz.wMm() * dotsPerMm), h = (int) Math.round(sz.hMm() * dotsPerMm);
         int pad = (int) Math.round(2.5 * dotsPerMm);
         int usableW = w - 2 * pad, usableH = h - 2 * pad;
-        List<Line> lines = layout(q);
         double total = 0; for (Line l : lines) total += l.weight();
         StringBuilder z = new StringBuilder("^XA^CI28^PW").append(w).append("^LL").append(h).append("^LH0,0\n");
         double y = pad;
         for (Line l : lines) {
             double band = usableH * l.weight() / total;
+            if (l.isRow()) {                                   // boxed cells, text centred in each, one font size across the row
+                int fh = (int) (band * 0.7);
+                for (int i = 0; i < l.cells().size(); i++)
+                    fh = (int) Math.min(fh, l.cols()[i] * usableW / (Math.max(1, l.cells().get(i).length()) * (l.bold() ? 0.68 : 0.6)));
+                fh = Math.max(12, fh);
+                double x = pad;
+                for (int i = 0; i < l.cells().size(); i++) {
+                    int cw = (int) Math.round(l.cols()[i] * usableW);
+                    z.append("^FO").append((int) x).append(',').append((int) y).append("^GB").append(cw).append(',').append((int) band).append(",1^FS\n")
+                     .append("^FO").append((int) x).append(',').append((int) (y + (band - fh) / 2))
+                     .append("^FB").append(cw).append(",1,0,C,0^A0N,").append(fh).append(',').append(fh)
+                     .append("^FD").append(zplEscape(l.cells().get(i))).append("^FS\n");
+                    x += cw;
+                }
+                y += band;
+                continue;
+            }
             String txt = zplEscape(l.text());
             // ZPL font 0 is proportional; ~0.6 em per character is a safe fit estimate
-            int fh = (int) Math.max(12, Math.min(band * 0.82, usableW / (Math.max(1, txt.length()) * 0.6)));
+            int fh = (int) Math.max(12, Math.min(band * 0.82, usableW / (Math.max(1, txt.length()) * 0.6)) * l.scale());
             int top = (int) (y + (band - fh) / 2);
             z.append("^FO").append(pad).append(',').append(top)
-             .append("^FB").append(usableW).append(",1,0,C,0")                 // centred in the usable width
+             .append("^FB").append(usableW).append(",1,0,").append(l.right() ? "R" : "C").append(",0")                 // centred in the usable width
              .append("^A0N,").append(fh).append(',').append(fh)
              .append("^FD").append(txt).append("^FS\n");
             y += band;

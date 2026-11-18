@@ -500,7 +500,7 @@ final class JHubSetupPages {
                 lbl("Push your log to LoTW, eQSL, QRZ Logbook and Club Log.", "cfg-desc"),
                 uploadSection());
             case "labels" -> cfgPage(cfgTop("J-Hub", "Logbook", "Label printers"),
-                lbl("Print a QSL label for each QSO as it is logged. Tick \"Print QSL label\" on the J-Log form to turn it on.", "cfg-desc"),
+                lbl("Print a QSL label and / or an address label (from QRZ.com) for each QSO as it is logged. Tick \"Print label on save\" on the J-Log form to turn it on.", "cfg-desc"),
                 labelSection());
             case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
                 lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
@@ -775,32 +775,57 @@ final class JHubSetupPages {
         rebuild[0].run();
 
         // what a printed label looks like: the sample QSO laid out exactly as the printer will (same lines, same shares of the height)
-        VBox previewBox = new VBox(6); previewBox.setAlignment(Pos.CENTER_LEFT);
+        VBox previewBox = new VBox(12); previewBox.setAlignment(Pos.CENTER_LEFT);
         Runnable[] paintPreview = new Runnable[1];
-        paintPreview[0] = () -> previewBox.getChildren().setAll(labelPreview(model.getValue()));
+        paintPreview[0] = () -> {
+            previewBox.getChildren().clear();
+            if (com.ars.fx.data.QslLabel.printQsl()) previewBox.getChildren().add(labelPreview(model.getValue(), com.ars.fx.data.QslLabel.layout(com.ars.fx.data.QslLabel.sample()), "QSL label"));
+            if (com.ars.fx.data.QslLabel.printAddress()) previewBox.getChildren().add(labelPreview(model.getValue(), com.ars.fx.data.QslLabel.addressLayout(com.ars.fx.data.QslLabel.sampleAddress()), "Address label (from QRZ.com)"));
+            if (previewBox.getChildren().isEmpty()) previewBox.getChildren().add(lbl("No label type is ticked.", "cfg-lh"));
+        };
         paintPreview[0].run();
         model.valueProperty().addListener((o, a, b) -> paintPreview[0].run());
         dyn.getChildren().addListener((javafx.collections.ListChangeListener<Node>) c -> paintPreview[0].run());
 
         CheckBox auto = new CheckBox(); auto.setSelected(com.ars.fx.data.QslLabel.printOnSave());
         auto.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.QslLabel.setPrintOnSave(b));
+        // which labels a save prints, and what goes on the QSL label (each tick repaints the preview)
+        CheckBox wantQsl = new CheckBox("QSL label"), wantAddr = new CheckBox("Address label");
+        wantQsl.setSelected(com.ars.fx.data.QslLabel.printQsl()); wantAddr.setSelected(com.ars.fx.data.QslLabel.printAddress());
+        wantQsl.selectedProperty().addListener((o, a, b) -> { com.ars.fx.data.HubConfig.setBool("label.print.qsl", b); paintPreview[0].run(); });
+        wantAddr.selectedProperty().addListener((o, a, b) -> { com.ars.fx.data.HubConfig.setBool("label.print.address", b); paintPreview[0].run(); });
+        com.ars.fx.shell.Tips.tip(wantAddr, "A mailing label for the envelope: the station's name and postal address, looked up on QRZ.com when the QSO is saved. Needs QRZ.com set up in Setup > Callsign lookup.");
+        HBox which = new HBox(18, wantQsl, wantAddr); which.setAlignment(Pos.CENTER_LEFT);
+        javafx.scene.layout.FlowPane fields = new javafx.scene.layout.FlowPane(16, 6); fields.setPrefWrapLength(420);
+        for (com.ars.fx.data.QslLabel.Field f : com.ars.fx.data.QslLabel.QSL_FIELDS) {
+            CheckBox cb = new CheckBox(f.label()); cb.setSelected(com.ars.fx.data.QslLabel.show(f.id()));
+            cb.selectedProperty().addListener((o, a, b) -> { com.ars.fx.data.HubConfig.setBool("label.qsl." + f.id(), b); paintPreview[0].run(); });
+            fields.getChildren().add(cb);
+        }
+        Label qrzNote = lbl("", "cfg-lh"); qrzNote.setWrapText(true);
+        var qrz = com.ars.fx.data.LookupConfig.get("qrz");
+        if (!qrz.enabled() || qrz.user() == null || qrz.user().isBlank())
+            qrzNote.setText("The address label comes from QRZ.com: turn QRZ.com on, with your login, in Setup ▸ Callsign lookup first.");
+
         Label test = cfgBtn("Test print");
         test.setOnMouseClicked(e -> {
             status.setText("⋯ printing test label…");
-            com.ars.fx.data.QslLabel.printAsync(com.ars.fx.data.QslLabel.sample(), r ->
+            com.ars.fx.data.QslLabel.printTestAsync(r ->
                     javafx.application.Platform.runLater(() -> status.setText((r.ok() ? "✓ " : "✗ ") + r.message())));
         });
 
         card.getChildren().addAll(
-                cfgRow("Print a label when a QSO is saved", "same switch as \"Print QSL label\" on the J-Log form", auto),
+                cfgRow("Print a label when a QSO is saved", "same switch as \"Print label on save\" on the J-Log form", auto),
+                cfgRow("Labels to print", "each saved QSO prints the ticked labels, one after the other, on the stock below", new VBox(4, which, qrzNote)),
+                cfgRow("QSL label shows", "the callsign is always printed; tick what else goes on the QSL", fields),
                 cfgRow("Printer model", "Brother QL, DYMO LabelWriter, Zebra, Rollo — or any printer with a system driver", model),
                 dyn,
-                cfgRow("Preview", "a sample QSO on the label stock chosen above, drawn the way it prints (a strip label is shown turned the way it feeds)", previewBox),
-                cfgRow("Test", "prints a sample label with the settings above", test));
+                cfgRow("Preview", "samples on the label stock chosen above, drawn the way they print (a strip label is shown turned the way it feeds)", previewBox),
+                cfgRow("Test", "prints the ticked sample labels with the settings above (no QRZ.com lookup)", test));
         return new VBox(6, lbl("QSL LABEL PRINTER", "cfg-sec"), card, status);
     }
     /** The sample label as a picture: a white label the shape of the chosen stock with the printed lines on it. */
-    private static Node labelPreview(com.ars.fx.data.QslLabel.Model m) {
+    private static Node labelPreview(com.ars.fx.data.QslLabel.Model m, java.util.List<com.ars.fx.data.QslLabel.Line> lines, String title) {
         com.ars.fx.data.QslLabel.Size sz = com.ars.fx.data.QslLabel.currentSize(m);
         boolean strip = com.ars.fx.data.QslLabel.isStrip(sz);
         double wMm = strip ? Math.max(sz.wMm(), sz.hMm()) : sz.wMm(), hMm = strip ? Math.min(sz.wMm(), sz.hMm()) : sz.hMm();
@@ -810,23 +835,43 @@ final class JHubSetupPages {
         javafx.scene.canvas.GraphicsContext g = cv.getGraphicsContext2D();
         g.setFill(javafx.scene.paint.Color.WHITE); g.fillRoundRect(0, 0, w, h, 8, 8);
         g.setFill(javafx.scene.paint.Color.BLACK); g.setTextAlign(javafx.scene.text.TextAlignment.CENTER); g.setTextBaseline(javafx.geometry.VPos.CENTER);
-        java.util.List<com.ars.fx.data.QslLabel.Line> lines = com.ars.fx.data.QslLabel.layout(com.ars.fx.data.QslLabel.sample());
         double total = 0; for (com.ars.fx.data.QslLabel.Line l : lines) total += l.weight();
         double usableW = w - 2 * pad, usableH = h - 2 * pad, y = pad;
         for (com.ars.fx.data.QslLabel.Line l : lines) {
             double band = usableH * l.weight() / total, size = Math.max(5, band * 0.82);
+            if (l.isRow()) {                                   // boxed cells, as printed
+                javafx.scene.text.FontWeight rw = l.bold() ? javafx.scene.text.FontWeight.BOLD : javafx.scene.text.FontWeight.NORMAL;
+                double rs = band * 0.7;
+                for (int i = 0; i < l.cells().size(); i++) {
+                    javafx.scene.text.Text pr = new javafx.scene.text.Text(l.cells().get(i)); pr.setFont(javafx.scene.text.Font.font("SansSerif", rw, rs));
+                    double tw = pr.getLayoutBounds().getWidth(), cw = l.cols()[i] * usableW - 4;
+                    if (tw > cw && tw > 0) rs = Math.max(5, rs * cw / tw);
+                }
+                g.setFont(javafx.scene.text.Font.font("SansSerif", rw, rs)); g.setStroke(javafx.scene.paint.Color.BLACK); g.setLineWidth(1);
+                double x = pad;
+                for (int i = 0; i < l.cells().size(); i++) {
+                    double cw = l.cols()[i] * usableW;
+                    g.strokeRect(x, y, cw, band);
+                    g.fillText(l.cells().get(i), x + cw / 2, y + band / 2);
+                    x += cw;
+                }
+                y += band;
+                continue;
+            }
             javafx.scene.text.FontWeight fw = l.bold() ? javafx.scene.text.FontWeight.BOLD : javafx.scene.text.FontWeight.NORMAL;
             javafx.scene.text.Text probe = new javafx.scene.text.Text(l.text()); probe.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
             double tw = probe.getLayoutBounds().getWidth();
             if (tw > usableW && tw > 0) size = Math.max(5, size * usableW / tw);
+            size *= l.scale();
             g.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
-            g.fillText(l.text(), w / 2, y + band / 2);
+            g.setTextAlign(l.right() ? javafx.scene.text.TextAlignment.RIGHT : javafx.scene.text.TextAlignment.CENTER);
+            g.fillText(l.text(), l.right() ? w - pad : w / 2, y + band / 2);
             y += band;
         }
         StackPane frame = new StackPane(cv); frame.setStyle("-fx-border-color:-ars-border-2;-fx-border-radius:9;-fx-padding:1;");
         frame.setMaxSize(w + 2, h + 2);
         Label cap = lbl(sz.label(), "cfg-lh");
-        return new VBox(4, frame, cap);
+        return new VBox(4, lbl(title, "cfg-lt"), frame, cap);
     }
     /** Call history: what each station usually sends (state, section, zone, name), learned from the logs or imported. */
     static VBox callHistorySection() {
