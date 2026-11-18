@@ -300,7 +300,10 @@ public final class JHubDashboard {
         private boolean stacked(double w) { return rows || w < need() + GAP + CLUSTER_MIN; }
         private double entryWidth(double w) {
             if (rows) return w;                                  // a row: the New QSO card takes the whole width
-            return stacked(w) ? Math.max(need(), Math.min(liked(), w)) : Math.max(need(), Math.min(liked(), w - GAP - CLUSTER_MIN));
+            if (stacked(w)) return Math.max(need(), Math.min(liked(), w));
+            // the cluster has no data to speak of: it takes two thirds of the room it used to (never under its minimum), the QSO card the rest
+            double cluster = Math.max(CLUSTER_MIN, (w - GAP - liked()) * 2.0 / 3.0);
+            return Math.max(need(), w - GAP - cluster);
         }
         @Override protected double computeMinWidth(double h) { return 0; }
         @Override protected double computePrefWidth(double h) { return liked() + GAP + CLUSTER_MIN; }
