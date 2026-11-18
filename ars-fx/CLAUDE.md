@@ -43,7 +43,7 @@ platform's JavaFX natives.
 | Package | Contents |
 |---|---|
 | `com.ars.fx` | `Launcher`/`Main` (entry points), `HubServer`, `Theme`/`Themes`, `AppIcons`, `AppVersion` (build version stamped from `version.properties`; version compare for the update check) |
-| `surface/` | One class per screen: `JHubDashboard` (dashboard + the setup page builders), `InfoView` (Info tab: Upcoming contests / DXpeditions from iCal feeds, a Links tile of plain links; contests default to the WA7BNM RSS feed (permission granted, credit required, 12-hour cache), `data/UpcomingEvents` + `data/IcalFeed`; a News tile of headlines from RSS/Atom feeds, `data/NewsFeeds` + `data/FeedParser`; both fetch through `data/FeedFetcher`), `JHubSetup` (the one Setup screen: second left menu, section swapped on the right; open a section with `Shell.navigate("setup:<id>")`), `JLogCockpit` (the normal-mode QSO form; it is no longer a page of its own: `JHubDashboard` embeds `embeddedEntry()` and the collapsing LOG TOOLS column from `sideDrawers()`), `JLogContest` (the one-screen contest page: entry bar built from the plugin's fields, the SEND line from `SentExchange`, entry checks from `ContestValidation`, tab order from `ContestLayout`, dupes asked first, edit / erase, spot tags via `data/MultCheck` and `data/CallHistory`, and its own LOG TOOLS column from `toolsColumn()`; `contest/` holds the trackers, maps, `NetStrip`, `QtcPane`), `AwardsWindow` + `CustomAwardsView` (the awards screen and My awards), `LegalView` (the local licence / Code of Conduct / legal notes), `JMapView` (also the NCDXF beacon overlay and its QSY / Auto QSY), `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
+| `surface/` | One class per screen, with large ones split into helpers: `JHubDashboard` (the dashboard) and `JHubSetupPages` (every Setup page and the controls they are built from; `JHubContestDbs`, `JHubLearnContent` and `JHubSatellites` hold three of the pages), `InfoView` (Info tab: Upcoming contests / DXpeditions from iCal feeds, a Links tile of plain links; contests default to the WA7BNM RSS feed (permission granted, credit required, 12-hour cache), `data/UpcomingEvents` + `data/IcalFeed`; a News tile of headlines from RSS/Atom feeds, `data/NewsFeeds` + `data/FeedParser`; both fetch through `data/FeedFetcher`), `JHubSetup` (the one Setup screen: second left menu, section swapped on the right; open a section with `Shell.navigate("setup:<id>")`), `JLogCockpit` (the normal-mode QSO form; it is no longer a page of its own: `JHubDashboard` embeds `embeddedEntry()` and the collapsing LOG TOOLS column from `sideDrawers()`), `JLogContest` (the one-screen contest page: entry bar built from the plugin's fields, the SEND line from `SentExchange`, entry checks from `ContestValidation`, tab order from `ContestLayout`, dupes asked first, edit / erase, spot tags via `data/MultCheck` and `data/CallHistory`, and its own LOG TOOLS column from `toolsColumn()`; split into `JLogContestSend` (the SEND line), `JLogContestScore` (score tiles, clock, what is left) and `JLogContestLog` (recent-log table, all-QSOs window, Cabrillo export); `contest/` holds the trackers, maps, `NetStrip`, `QtcPane`), `AwardsWindow` + `CustomAwardsView` (the awards screen and My awards), `LegalView` (the local licence / Code of Conduct / legal notes), `JMapView` (also the NCDXF beacon overlay and its QSY / Auto QSY; `JMapControls` is its left panel and `JMapCanvases` the three map views), `JSatView`, `JDigiView`, `JBridgeView`, `JVaultView`, `JLearnView`, plus dialogs (`TranslatorWindow`, `ContestPicker`, ...) and `contest/` |
 | `shell/` | Docking shell and shared widgets: `Shell`, `RigPanel`, `Tips`, `TxIndicator`, `FeedUi`, `AutoPanel`, `Glyphs`, `IdTimer` (station-ID countdown), `UpdateBanner` |
 | `data/` | Non-UI services: `HubConfig`, `ModuleConfig`, `SoloConfig`, `ClusterClient`, `RigClient`, `RotorClient`, `AmpClient`, `DaemonManager`, `RemoteLink`/`RemoteServer`, `JLogDb`, `JVaultDb`, `LogImport`/`LogExport`/`LogUpload`, `MacroConfig`, `SatService`/`TleStore`, `DigiEngine`, `BridgeService`, `DxccInfo`, `CtyData` + `CtyUpdater` + `ZoneLookup` (the contest country files, their weekly refresh into `~/.j-hub/cty/`, and the CQ zone from a grid square), `Awards` / `AwardLevels` / `CustomAwards`, `CallHistory` (what each call usually sends; fills the exchange, tags spots), `MultCheck`, `SpotNeeds`, `N1mm` + `N1mmBroadcast`, `LegalDocs`, `LinkOpener`, `LearnContent`, `Bands`, `UpdateChecker`/`UpdateApplier`, `AntennaCalcs` + `AntennaRecommender` (Antenna Workshop maths, shown by `surface/AntennaWorkshopView` inside J-Learn) |
 | `net/` | The contest network (`ContestNetwork`): one station hosts, others join over the LAN, every station keeps a full copy of the contest log |
@@ -60,7 +60,7 @@ J-Vault, J-Learn. The Morse Trainer and Antenna Workshop also have dock entries 
 | Library | How ars-fx uses it |
 |---|---|
 | `j-digi` | `DigiEngine` runs `ModemService.startupEmbedded()` (audio capture only) and keeps the modem's PTT in step with the J-Hub rig settings (`rig.ptt`, `rig.rigctldHost`, `rig.rigctldPort`) and Transmit settings (`tx.cwWpm`, `tx.cwKeyer`) via `HubConfig.addChangeListener`, and switches the local CW skimmer from `digi.localSkimmer` (its spots go to the shared list through the hub: a window sends `spot.add`, `RemoteServer` calls `ClusterClient.addLocalSpot`), and passes it the rig's dial frequency and mode from `RigClient`; a library with no window or launcher of its own |
-| `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`, or J-Hub ▸ Data ▸ WSJT-X UDP port, `data.wsjtxPort`) and enriches each decode (callsign, band/mode, DXCC country, distance and bearing via `DxccInfo`); a library with no standalone app |
+| `j-bridge` | `BridgeService` starts a `WsjtxUdpListener` on UDP 2237 (`-Dwsjtx.port`, or Setup ▸ WSJT-X / digital ▸ WSJT-X UDP port, `data.wsjtxPort`) and enriches each decode (callsign, band/mode, DXCC country, distance and bearing via `DxccInfo`); a library with no standalone app |
 | `j-log-engine` | SQLite DAOs, contest plugins/scoring, Cabrillo export, `DxccResolver` |
 | `j-log-common` | Shared models and `BandplanLoader` |
 
@@ -71,7 +71,7 @@ J-Vault, J-Learn. The Morse Trainer and Antenna Workshop also have dock entries 
 | `~/.j-hub/config.json` | All suite settings (`HubConfig`, flat key/value): station, rig, rotor, amp, antenna, cluster, transmit |
 | `~/.j-hub/info/` | Cached feeds for the Info tab (`<key>.feed` + `<key>.stamp`; six-hour cache, `FeedFetcher`) |
 | `~/.j-hub/updates/` | Update-check log and downloaded update files plus helper script (`UpdateChecker`/`UpdateApplier`) |
-| `~/.j-log/` | `j-log.db`, `contest.db`, `config.db`, `translations.db`, `callhistory.db` (`CallHistory`: each call's usual state / section / zone / grid / name), `backups/`, `contest-logs/`, `exports/`; also `macros.json` (`MacroConfig`), `upload.json` (`UploadConfig`: upload logins), `lookup.json` (`LookupConfig`) and `awards/*.json` (`CustomAwards`: the operator's own award sheets, one file each) |
+| `~/.j-log/` | `j-log.db`, `contest.db`, `config.db`, `translations.db`, `callhistory.db` (`CallHistory`: each call's usual state / section / zone / grid / name), `backups/`, `contest-logs/`, `exports/`; also `macros.json` (`MacroConfig`), `upload.json` (`UploadConfig`: upload logins), `lookup.json` (`LookupConfig`; passwords, API keys and tokens in both go to the OS keyring through `data/SecretStore` when one is available, as does the contest network key) and `awards/*.json` (`CustomAwards`: the operator's own award sheets, one file each) |
 | `~/.j-vault/` | `inventory.db` (J-Vault), `backups/` |
 | `~/.j-sat/` | `tles.txt` TLE cache, `settings.json` (J-Sat selection and settings) |
 | `~/.j-map/cache/` | Cached sun image for J-Map |
@@ -92,9 +92,9 @@ The j-digi modem keeps its own settings in Java Preferences, not here (see `../j
 - **Shared screens, one hub.** Data clients (`ClusterClient`, `RigClient` ...) must no-op their `start()` when a
   `RemoteLink` is active, so a docked or loose window never opens a second feed.
 - **J-Learn content** lives in the repo root `../j-learn-content/` and is packaged into the jar; users update it from
-  J-Hub ▸ Data ▸ J-Learn content.
+  Setup ▸ J-Learn content.
 - **Update check.** `UpdateChecker.start()` (from `Launcher`) checks once a day, anonymously; it can be turned off in
-  J-Hub ▸ Station ▸ Updates. `UpdateBanner` shows a pending update; `UpdateApplier` downloads it and runs the helper
+  Setup ▸ Station ▸ Check for updates. `UpdateBanner` shows a pending update; `UpdateApplier` downloads it and runs the helper
   script bundled in `resources/com/ars/fx/update/` (`update-unix.sh`, `update-windows.ps1`).
 - **Transmit safety.** `Launcher` shuts down `TxController` on exit so the transmitter is never left keyed; Esc stops
   transmit (`TxIndicator.installEscStop`).
@@ -104,9 +104,11 @@ The j-digi modem keeps its own settings in Java Preferences, not here (see `../j
 - **DXCC prefix table.** `j-log-engine/.../scoring/dxcc-prefixes.json` is generated from `cty.dat` and the ADIF entity codes by
   `../tools/dxcc-prefixes/gen_dxcc_prefixes.py` (see its README); do not hand-edit it, edit `base-prefixes.json` there.
   `CtyDataTest.engineTableAgreesWithCountryFiles` checks the two agree.
-- Themes: styles are in `src/main/resources/com/ars/fx/css/ars.css`; the Morse Trainer views use `.mt-root` rules.
+- Themes: the base styles and the colour schemes (`Themes.SCHEMES`) are in `src/main/resources/com/ars/fx/css/ars.css`; the
+  dashboard styles (Instrument panel, Modern, Cockpit; `UiStyle.DASHBOARD_STYLES`) are one file each in `css/styles/`, chosen in
+  Setup ▸ Appearance; the Morse Trainer views use `.mt-root` rules.
 
 ## Testing
 
-JUnit 5 under `src/test/java/com/ars/fx` (the Morse Trainer and its Arduino keyer parser, plus `data` tests for `HubConfig` and ADIF import). Run `mvn test`.
+JUnit 5 under `src/test/java/com/ars/fx`: about 650 tests, run on Linux and Windows for every pull request (`.github/workflows/build.yml`). Run `mvn test`; tests that touch settings set `user.home` to a temp folder, and the J-Digi modem's Java Preferences go to a test node (`-Djdigi.prefs.node` in the surefire `argLine`).
 Libraries have their own tests in each module.

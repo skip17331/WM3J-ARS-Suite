@@ -9,7 +9,7 @@ JTDX**). It has no window, launcher, config file or hub link of its own — the 
 window UI, `HubClient`, `MessagePublisher`) was removed; the whole suite is now the single `ars-fx` app.
 
 `ars-fx` embeds it: `com.ars.fx.data.BridgeService` creates a `WsjtxUdpListener` and the J-Bridge surface shows
-decodes, status and the connected source app. The UDP port is `-Dwsjtx.port`, else J-Hub ▸ Data ▸ WSJT-X UDP port
+decodes, status and the connected source app. The UDP port is `-Dwsjtx.port`, else Setup ▸ WSJT-X / digital ▸ WSJT-X UDP port
 (`data.wsjtxPort`), else 2237.
 
 MSHV is intentionally **not** supported — it is closed-source freeware with no native macOS build, which fails the
@@ -74,5 +74,5 @@ callsign (`CallsignParser.extractDxCallsign`), the dial frequency, mode and band
 from the *transmitting* station's callsign (`CallsignParser.extractSenderCallsign`, looked up with `ars-fx`'s `DxccInfo` — on a directed message such as
 `W3ABC K3XYZ -10` that is the second call), its DXCC country, continent, a position, and the distance and bearing from the
 station. A decode that ends in a 4-character
-grid uses that grid as the far end; otherwise the middle of the country is used. The station position comes from J-Hub ▸
+grid uses that grid as the far end; otherwise the middle of the country is used. The station position comes from Setup ▸
 Station (latitude/longitude, else the grid square); with neither set, distance and bearing stay at zero.

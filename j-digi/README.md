@@ -4,7 +4,7 @@ The digital-modes engine of the WM3J ARS Suite: soundcard capture, FFT/waterfall
 CW, RTTY, PSK31, Olivia, MFSK16, Domino-EX and AX.25.
 
 This is a **library**, not an app. It has no window or launcher of its own: `ars-fx` embeds it as the J-Digi surface
-(see the [User Guide](../USER_GUIDE.md)). The only standalone module in the suite is J-Map.
+(see the [User Guide](../USER_GUIDE.md)).
 
 ## Modes
 
@@ -20,6 +20,10 @@ This is a **library**, not an app. It has no window or launcher of its own: `ars
 
 Push-to-talk is VOX (default) or Hamlib `rigctld`. Decoders are validated by audio loopback; on-air testing against
 real signals is still outstanding.
+
+**Olivia** is a simplified form of the mode: no per-block scrambling, no bit interleaving and a 64-character set. J-Digi's
+transmitter and receiver agree with each other (`OliviaRoundTripTest`), but it has not been shown to interoperate with
+standard Olivia (fldigi); see `docs/PUNCHLIST.txt` item 3-12.
 
 ## Build
 
