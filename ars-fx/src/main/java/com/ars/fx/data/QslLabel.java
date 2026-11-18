@@ -172,18 +172,31 @@ public final class QslLabel {
     }
 
     /** One printed line: its text, its share of the label height, and whether it is bold. */
-    public record Line(String text, double weight, boolean bold) {}
+    public record Line(String text, double weight, boolean bold, List<String> cells, double[] cols) {
+        /** A plain centred line of text. */
+        public Line(String text, double weight, boolean bold) { this(text, weight, bold, null, null); }
+        /** A row of boxed cells (the QSL table); {@code cols} are the cells' shares of the width, summing to 1, shared by every row of the table. */
+        public boolean isRow() { return cells != null; }
+    }
+    private static Line row(List<String> cells, double[] cols, double weight, boolean bold) {
+        return new Line(String.join(" | ", cells), weight, bold, cells, cols);
+    }
+    /** Column shares for a table: each as wide as its longer entry (header or value) plus room around it. */
+    private static double[] columnShares(List<String> head, List<String> vals) {
+        double[] w = new double[head.size()]; double sum = 0;
+        for (int i = 0; i < w.length; i++) { w[i] = Math.max(head.get(i).length(), vals.get(i).length()) + 2.5; sum += w[i]; }
+        for (int i = 0; i < w.length; i++) w[i] /= sum;
+        return w;
+    }
 
     private static String s(String v) { return v == null ? "" : v.trim(); }
 
     /** The QSL label's optional parts: id, checkbox text, and whether it is on by default. The call is always printed. */
     public record Field(String id, String label, boolean on) {}
     public static final List<Field> QSL_FIELDS = List.of(
-            new Field("date", "Date", true), new Field("time", "Time (UTC)", true),
-            new Field("freq", "Frequency", true), new Field("band", "Band", false), new Field("mode", "Mode", true),
-            new Field("rst", "Signal reports (RST sent / received)", true),
-            new Field("name", "Name and QTH", false), new Field("exchange", "Contest and exchange", true),
-            new Field("sign", "\"TNX QSO · 73 de\" your call", true));
+            new Field("date", "Date", true), new Field("time", "UTC time", true), new Field("band", "Band", true),
+            new Field("freq", "Frequency (MHz)", false), new Field("mode", "Mode", true),
+            new Field("rst", "RST", true), new Field("sign", "\"73 and Good DX!\"", true));
     public static boolean show(String id) {
         for (Field f : QSL_FIELDS) if (f.id().equals(id)) return HubConfig.getBool("label.qsl." + id, f.on());
         return false;
@@ -192,38 +205,32 @@ public final class QslLabel {
     public static boolean printQsl()     { return HubConfig.getBool("label.print.qsl", true); }
     public static boolean printAddress() { return HubConfig.getBool("label.print.address", false); }
 
-    /** The lines the QSL label carries for this QSO, top to bottom, honouring the Setup checkboxes: what the printer draws and the Setup preview shows. */
+    /** The QSL label: a boxed table (To callsign | Date | UTC | Band | Mode | RST), the QSO under it, then "73 and Good DX!". Columns follow the Setup ticks. */
     public static List<Line> layout(Qso q) {
         String dt = s(q.dateTimeUtc());
         if (dt.isEmpty()) dt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC).format(Instant.now());
-        String date = dt.length() >= 10 ? dt.substring(0, 10) : dt, time = dt.length() >= 16 ? dt.substring(11, 16) + "Z" : "";
-        String when = ((show("date") ? date : "") + (show("date") && show("time") && !time.isEmpty() ? "  " : "") + (show("time") ? time : "")).trim();
-        StringBuilder fbs = new StringBuilder();
-        if (show("freq") && !s(q.freq()).isEmpty()) fbs.append(s(q.freq())).append(" MHz  ");
-        if (show("band") && !s(q.band()).isEmpty()) fbs.append(s(q.band())).append("  ");
-        if (show("mode")) fbs.append(s(q.mode()));
-        String fb = fbs.toString().trim();
-        String rst = (s(q.rstSent()).isEmpty() && s(q.rstRcvd()).isEmpty()) ? "" : "RST " + s(q.rstSent()) + " / " + s(q.rstRcvd());
-        String who = (s(q.name()) + (s(q.name()).isEmpty() || s(q.qth()).isEmpty() ? "" : " · ") + s(q.qth())).trim();
-        String me = HubConfig.call();
-        String sig = "TNX QSO · 73" + (me.isEmpty() ? "" : " de " + me);
-
+        String date = dt.length() >= 10 ? dt.substring(0, 10) : dt, time = dt.length() >= 16 ? dt.substring(11, 16) + " Z" : "";
+        List<String> head = new ArrayList<>(), vals = new ArrayList<>();
+        head.add("To callsign"); vals.add(s(q.call()).toUpperCase(Locale.ROOT));
+        if (show("date")) { head.add("Date");  vals.add(date); }
+        if (show("time")) { head.add("UTC");   vals.add(time); }
+        if (show("freq")) { head.add("MHz");   vals.add(s(q.freq())); }
+        if (show("band")) { head.add("Band");  vals.add(s(q.band()).toUpperCase(Locale.ROOT)); }
+        if (show("mode")) { head.add("Mode");  vals.add(s(q.mode()).toUpperCase(Locale.ROOT)); }
+        if (show("rst"))  { head.add("RST");   vals.add(s(q.rstSent())); }
+        double[] cols = columnShares(head, vals);
         List<Line> l = new ArrayList<>();
-        l.add(new Line("QSL  " + s(q.call()).toUpperCase(Locale.ROOT), 3.0, true));
-        if (!when.isEmpty()) l.add(new Line(when, 1.2, false));
-        if (!fb.isBlank()) l.add(new Line(fb, 1.2, false));
-        if (show("rst") && !rst.isEmpty()) l.add(new Line(rst, 1.0, false));
-        if (show("name") && !who.isEmpty()) l.add(new Line(who, 1.0, false));
-        if (show("exchange") && !s(q.exchange()).isEmpty()) l.add(new Line(s(q.exchange()), 1.0, false));
-        if (show("sign")) l.add(new Line(sig, 1.0, true));
+        l.add(row(head, cols, 1.0, false));
+        l.add(row(vals, cols, 1.7, true));
+        if (show("sign")) l.add(new Line("73 and Good DX!", 1.4, true));
         return l;
     }
 
-    /** The address label: the station's name and postal address, as a mailing label for the envelope. */
+    /** The address label: line 1 the name, line 2 "ARS <callsign>", then the mailing address (street, then city / state / zip, and the country when not the US). */
     public static List<Line> addressLayout(CallsignLookup.Address a) {
         List<Line> l = new ArrayList<>();
-        String name = s(a.name()).isEmpty() ? s(a.call()) : s(a.name()).toUpperCase(Locale.ROOT) + "  " + s(a.call()).toUpperCase(Locale.ROOT);
-        l.add(new Line(name, 1.4, true));
+        l.add(new Line(s(a.name()).isEmpty() ? s(a.call()).toUpperCase(Locale.ROOT) : s(a.name()), 1.4, true));
+        l.add(new Line("ARS " + s(a.call()).toUpperCase(Locale.ROOT), 1.4, true));
         if (!s(a.line1()).isEmpty()) l.add(new Line(s(a.line1()), 1.2, false));
         String csz = (s(a.line2()) + (s(a.state()).isEmpty() ? "" : (s(a.line2()).isEmpty() ? "" : ", ") + s(a.state())) + (s(a.zip()).isEmpty() ? "" : " " + s(a.zip()))).trim();
         if (!csz.isEmpty()) l.add(new Line(csz, 1.2, false));
@@ -364,6 +371,24 @@ public final class QslLabel {
         double y = pad;
         for (Line l : lines) {
             double band = usableH * l.weight() / total;
+            if (l.isRow()) {                                   // a boxed table row: each cell outlined, its text centred in it, one font size across the row
+                double x = pad;
+                float size = (float) (band * 0.7);
+                for (int i = 0; i < l.cells().size(); i++)
+                    size = Math.min(size, fit(g, new Line(l.cells().get(i), 0, l.bold()), l.cols()[i] * usableW - 4, band * 0.7).getSize2D());
+                Font rf = new Font(Font.SANS_SERIF, l.bold() ? Font.BOLD : Font.PLAIN, 100).deriveFont(size);
+                g.setFont(rf); FontMetrics rm = g.getFontMetrics();
+                g.setStroke(new java.awt.BasicStroke(1f));
+                for (int i = 0; i < l.cells().size(); i++) {
+                    double cw = l.cols()[i] * usableW;
+                    g.draw(new java.awt.geom.Rectangle2D.Double(x, y, cw, band));
+                    String t = l.cells().get(i);
+                    g.drawString(t, (float) (x + (cw - rm.stringWidth(t)) / 2), (float) (y + (band - rm.getHeight()) / 2 + rm.getAscent()));
+                    x += cw;
+                }
+                y += band;
+                continue;
+            }
             Font f = fit(g, l, usableW, band * 0.82);
             g.setFont(f);
             FontMetrics fm = g.getFontMetrics();
@@ -397,6 +422,23 @@ public final class QslLabel {
         double y = pad;
         for (Line l : lines) {
             double band = usableH * l.weight() / total;
+            if (l.isRow()) {                                   // boxed cells, text centred in each, one font size across the row
+                int fh = (int) (band * 0.7);
+                for (int i = 0; i < l.cells().size(); i++)
+                    fh = (int) Math.min(fh, l.cols()[i] * usableW / (Math.max(1, l.cells().get(i).length()) * (l.bold() ? 0.68 : 0.6)));
+                fh = Math.max(12, fh);
+                double x = pad;
+                for (int i = 0; i < l.cells().size(); i++) {
+                    int cw = (int) Math.round(l.cols()[i] * usableW);
+                    z.append("^FO").append((int) x).append(',').append((int) y).append("^GB").append(cw).append(',').append((int) band).append(",1^FS\n")
+                     .append("^FO").append((int) x).append(',').append((int) (y + (band - fh) / 2))
+                     .append("^FB").append(cw).append(",1,0,C,0^A0N,").append(fh).append(',').append(fh)
+                     .append("^FD").append(zplEscape(l.cells().get(i))).append("^FS\n");
+                    x += cw;
+                }
+                y += band;
+                continue;
+            }
             String txt = zplEscape(l.text());
             // ZPL font 0 is proportional; ~0.6 em per character is a safe fit estimate
             int fh = (int) Math.max(12, Math.min(band * 0.82, usableW / (Math.max(1, txt.length()) * 0.6)));

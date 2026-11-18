@@ -839,6 +839,25 @@ final class JHubSetupPages {
         double usableW = w - 2 * pad, usableH = h - 2 * pad, y = pad;
         for (com.ars.fx.data.QslLabel.Line l : lines) {
             double band = usableH * l.weight() / total, size = Math.max(5, band * 0.82);
+            if (l.isRow()) {                                   // boxed cells, as printed
+                javafx.scene.text.FontWeight rw = l.bold() ? javafx.scene.text.FontWeight.BOLD : javafx.scene.text.FontWeight.NORMAL;
+                double rs = band * 0.7;
+                for (int i = 0; i < l.cells().size(); i++) {
+                    javafx.scene.text.Text pr = new javafx.scene.text.Text(l.cells().get(i)); pr.setFont(javafx.scene.text.Font.font("SansSerif", rw, rs));
+                    double tw = pr.getLayoutBounds().getWidth(), cw = l.cols()[i] * usableW - 4;
+                    if (tw > cw && tw > 0) rs = Math.max(5, rs * cw / tw);
+                }
+                g.setFont(javafx.scene.text.Font.font("SansSerif", rw, rs)); g.setStroke(javafx.scene.paint.Color.BLACK); g.setLineWidth(1);
+                double x = pad;
+                for (int i = 0; i < l.cells().size(); i++) {
+                    double cw = l.cols()[i] * usableW;
+                    g.strokeRect(x, y, cw, band);
+                    g.fillText(l.cells().get(i), x + cw / 2, y + band / 2);
+                    x += cw;
+                }
+                y += band;
+                continue;
+            }
             javafx.scene.text.FontWeight fw = l.bold() ? javafx.scene.text.FontWeight.BOLD : javafx.scene.text.FontWeight.NORMAL;
             javafx.scene.text.Text probe = new javafx.scene.text.Text(l.text()); probe.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
             double tw = probe.getLayoutBounds().getWidth();
