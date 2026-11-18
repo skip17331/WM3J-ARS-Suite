@@ -27,6 +27,7 @@
         <fx.scope>compile</fx.scope>
         <!-- start surface; override: mvn javafx:run -Dsurface=map -->
         <surface>hub</surface>
+        <ars.devhook></ars.devhook>   <!-- dev runs: folder for DevHook commands (.claude/skills/run-ars-fx/app.sh); empty = off -->
     </properties>
 
     <dependencies>
@@ -111,6 +112,7 @@
                     <mainClass>com.ars.fx.Launcher</mainClass>
                     <options>
                         <option>-Dsurface=${surface}</option>
+                        <option>-Dars.devhook=${ars.devhook}</option>
                     </options>
                 </configuration>
             </plugin>

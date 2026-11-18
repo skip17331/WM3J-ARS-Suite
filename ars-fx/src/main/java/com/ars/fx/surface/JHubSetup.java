@@ -60,7 +60,7 @@ public final class JHubSetup {
 
         Runnable[] rebuildMenu = new Runnable[1];
         Runnable showPage = () -> {
-            ScrollPane sp = new ScrollPane(JHubDashboard.setupPage(cur[0]));
+            ScrollPane sp = new ScrollPane(JHubSetupPages.setupPage(cur[0]));
             sp.setFitToWidth(true); sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             sp.setStyle("-fx-background-color:-ars-bg;");
             content.getChildren().setAll(sp);
