@@ -242,7 +242,12 @@ public final class JLogCockpit {
         if (embedded) body.getChildren().add(new Region());          // keeps the row order widen() expects; zero height
         else body.getChildren().add(lbl("Enter the full QSO — callsign, signal report, name/QTH, grid, comment.", "jl-cp-empty"));
         body.getChildren().add(row(g("CALLSIGN", call, false), g("FREQ (MHZ)", freq, false), g("BAND", band, false), g("MODE", mode, false)));
-        body.getChildren().add(Shell.bandCaption(freq));        // "20m · CW segment" from the shared band plan
+        Label bandCap = Shell.bandCaption(freq);                // "20m · CW segment" from the shared band plan
+        if (embedded) {                                          // dashboard: the band-plan line lives in the card header; a zero-height placeholder keeps widen()'s row order
+            bandCap.setMinWidth(0);
+            head.getChildren().add(head.getChildren().indexOf(hsp) + 1, bandCap);
+            body.getChildren().add(new Region());
+        } else body.getChildren().add(bandCap);
         // Super Check Partial under the call, as in contest mode; a call already in the log is ticked
         com.ars.fx.surface.contest.ScpBox scp = new com.ars.fx.surface.contest.ScpBox(c -> { call.setText(c); call.requestFocus(); call.positionCaret(c.length()); }, normalWorked());
         call.textProperty().addListener((o, a, b) -> scp.update(b));
@@ -522,14 +527,14 @@ public final class JLogCockpit {
         java.util.List<Node> a = new ArrayList<>(r1.getChildren()), rst = new ArrayList<>(r2.getChildren()), qthRow = new ArrayList<>(r3.getChildren()),
                 refs = new ArrayList<>(r4.getChildren()), act = new ArrayList<>(cm.getChildren());
         if (a.size() != 4 || rst.size() != 4 || qthRow.size() != 4 || refs.size() != 4 || act.size() != 7) return;
-        Node caption = ch.get(2), scpNode = ch.get(3), refHints = ch.get(8), sendAs = ch.get(10);
+        Node scpNode = ch.get(3), refHints = ch.get(8), sendAs = ch.get(10);
         body.getChildren().clear();
 
         // row 1: who and what: call, freq, band, mode, reports, name, QTH, state, county, grid
         javafx.scene.layout.FlowPane row1 = flow(12, 6, a.get(0), a.get(1), a.get(2), a.get(3), rst.get(0), rst.get(1), rst.get(2),
                 qthRow.get(0), qthRow.get(1), qthRow.get(2), rst.get(3));
-        // the band-plan line and Super Check Partial share one line under the callsign
-        HBox info = new HBox(22, caption, scpNode); info.setAlignment(Pos.CENTER_LEFT); info.setMinWidth(0);
+        // Super Check Partial under the callsign (the band-plan line is in the card header)
+        HBox info = new HBox(22, scpNode); info.setAlignment(Pos.CENTER_LEFT); info.setMinWidth(0);
         if (scpNode instanceof Region sr) { HBox.setHgrow(sr, Priority.ALWAYS); sr.setMinWidth(0); }
         // row 2: power, then when and awards (date, time, the award references, confirmed), then the comment
         VBox nowBox = new VBox(nowBtn); nowBox.setAlignment(Pos.BOTTOM_LEFT);
@@ -545,9 +550,12 @@ public final class JLogCockpit {
             cells3.add(stack);
         } else cells3.addAll(sendCells);
         cells3.addAll(new ArrayList<>(macros.getChildren()));       // each F-key its own cell, so the row can break between them
-        cells3.add(act.get(2)); cells3.add(act.get(3)); cells3.add(act.get(4)); cells3.add(act.get(5)); cells3.add(act.get(6));
         javafx.scene.layout.FlowPane row3 = flow(12, 6, cells3.toArray(new Node[0]));
-        body.getChildren().addAll(row1, info, row2, refHints, row3);
+        // the actions are their own row, pinned to the lower right of the card whatever the width: Clear, Log + Spot and Log QSO never wrap in among the F-keys
+        Region pin = new Region(); HBox.setHgrow(pin, Priority.ALWAYS);
+        HBox actions = new HBox(12, act.get(2), pin, act.get(3), act.get(4), act.get(5), act.get(6));
+        actions.setAlignment(Pos.BOTTOM_RIGHT); actions.setMinWidth(0);
+        body.getChildren().addAll(row1, info, row2, refHints, row3, actions);
     }
     private static javafx.scene.layout.FlowPane flow(double hgap, double vgap, Node... cells) {
         javafx.scene.layout.FlowPane f = new javafx.scene.layout.FlowPane(hgap, vgap, cells);
