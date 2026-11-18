@@ -42,26 +42,27 @@ class OliviaRoundTripTest {
         return out.toString();
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {77, 123})
-    void decodesFromTheseStartingOffsets(int lead) {
-        String got = roundTrip(TEXT, lead, 0.02);
-        assertTrue(got.contains("W1AW W1AW"), "lead " + lead + ": decoded \"" + got + "\"");
-    }
-
     /**
-     * Known bug (punch list 3-10): whether a transmission decodes depends on where in the audio stream it starts. At these
-     * offsets the receiver locks onto the wrong symbol timing and prints consistent garbage (lead 0: "SASATUG1QG G1QG[...")
-     * or a scrambled copy (lead 3001), although the audio is the same as at 77 / 123, which decode perfectly. The fault is
-     * in OliviaMode's acquisition (tryAcquireSymbolSync and the block alignment after it), not the transmitter: the
-     * independent reference recording decodes too. Enable this when fixing it.
+     * Whether a transmission decoded used to depend on where in the audio stream it started (punch list 3-10): only 20 of 85
+     * start offsets came out right, and the rest were garbage ("SASATUG1QG...") or a scrambled copy. Every offset here
+     * failed before the fix: 0 / 5 / 97 (block sync locked 16 symbols off), 776 / 1843 (AFC retuned half a tone off),
+     * 5820 / 7081 (symbol timing locked while the signal was still arriving), 3001. The text must also keep its word
+     * spaces, which used to be trimmed off at block edges ("CQCQDE").
      */
-    @org.junit.jupiter.api.Disabled("known bug: Olivia symbol sync depends on the start offset (punch list 3-10)")
     @ParameterizedTest
-    @ValueSource(ints = {0, 5, 3001})
+    @ValueSource(ints = {0, 5, 77, 97, 123, 776, 1843, 3001, 5820, 7081})
     void decodesFromAnyStartingOffset(int lead) {
         String got = roundTrip(TEXT, lead, 0.02);
-        assertTrue(got.contains("W1AW W1AW"), "lead " + lead + ": decoded \"" + got + "\"");
+        assertTrue(got.contains("CQ CQ DE W1AW W1AW K"), "lead " + lead + ": decoded \"" + got + "\"");
+    }
+
+    /** A wider sweep: one start offset every 97 samples across a whole 64-symbol block (85 offsets). All must decode. */
+    @Test
+    void decodesFromEveryOffsetAcrossABlock() {
+        StringBuilder bad = new StringBuilder();
+        for (int lead = 0; lead < 8192; lead += 97)
+            if (!roundTrip(TEXT, lead, 0.02).contains("CQ CQ DE W1AW W1AW K")) bad.append(lead).append(' ');
+        assertTrue(bad.isEmpty(), "start offsets that did not decode: " + bad);
     }
 
     /** The reference recording made by tools/j-digi-test-signals (an independent Python encoder), through the same receiver. */
@@ -84,17 +85,35 @@ class OliviaRoundTripTest {
         return out.toString();
     }
 
-    @Test
-    void decodesTheReferenceRecording() throws Exception {
-        java.nio.file.Path wav = java.nio.file.Path.of("../tools/j-digi-test-signals/olivia_test_suite/olivia_8_500_1500hz.wav");
+    private static String reference(String centreHz) throws Exception {
+        java.nio.file.Path wav = java.nio.file.Path.of("../tools/j-digi-test-signals/olivia_test_suite/olivia_8_500_" + centreHz + "hz.wav");
         org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(wav), "reference recording not present");
-        String got = decodeWav(wav);
-        assertTrue(got.contains("W3XYZ"), "decoded \"" + got + "\"");
+        return decodeWav(wav);
     }
 
+    /** The independent reference recording, centred. */
     @Test
-    void decodesThroughHeavierNoise() {
-        String got = roundTrip(TEXT, 77, 0.08);
-        assertTrue(got.contains("W1AW"), "decoded \"" + got + "\"");
+    void decodesTheReferenceRecording() throws Exception {
+        String got = reference("1500");
+        assertTrue(got.contains("CQ CQ CQ DE W3XYZ K"), "decoded \"" + got + "\"");
+    }
+
+    /**
+     * The same, 300 Hz either side: AFC has to find the signal. It can only do that once enough of the content has been
+     * heard, and the retune starts acquisition again, so this short recording loses everything before "YZ K" (punch list
+     * 3-11; the decoder did the same before the 3-10 fix). This checks AFC still finds and decodes it.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"1200", "1800"})
+    void findsAnOffCentreReferenceRecording(String centreHz) throws Exception {
+        String got = reference(centreHz);
+        assertTrue(got.contains("YZ K"), centreHz + " Hz: decoded \"" + got + "\"");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {77, 3001})
+    void decodesThroughHeavierNoise(int lead) {
+        String got = roundTrip(TEXT, lead, 0.08);
+        assertTrue(got.contains("CQ CQ DE W1AW W1AW K"), "lead " + lead + ": decoded \"" + got + "\"");
     }
 }
