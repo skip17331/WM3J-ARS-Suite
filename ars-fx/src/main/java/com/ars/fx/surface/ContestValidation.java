@@ -110,14 +110,14 @@ final class ContestValidation {
         return t.matches("\\d+") ? String.valueOf(Integer.parseInt(t)) : t;
     }
     /** The contest's fixed set of values for its multiplier field, when the field is that field. */
-    private static List<String> multiplierValues(ContestPlugin p, String id) {
+    static List<String> multiplierValues(ContestPlugin p, String id) {
         var mm = p.getMultiplierModel();
         if (mm == null || mm.getField() == null || !mm.getField().equals(id)) return null;
         return mm.getValidValues();
     }
 
     // ---- state / province / county (QSO parties): a miss is refused where the county list is complete, else it only warns ----
-    private static boolean isStateField(ContestPlugin p, String id) {
+    static boolean isStateField(ContestPlugin p, String id) {
         if (!id.equals("state_prov_rcvd") && !id.equals("state_rcvd")) return false;
         String t = p.getScoringRules() == null ? null : p.getScoringRules().getMultiplierType();
         return "qso_party".equals(t) || "states".equals(t) || "state_prov_country".equals(t);
