@@ -221,7 +221,7 @@ public final class Shell {
     public static Region dock(String activeId) { return dock(activeId, null); }
 
     /** @param tailExpandOnly extra rows (e.g. the J-Hub config links) shown only when the dock is
-     *  expanded, appended after the modules and before the Station-settings foot. */
+     *  expanded, appended after the modules and before the foot. */
     public static Region dock(String activeId, List<Node> tailExpandOnly) {
         if (solo) return null;   // solo module windows have no dock
         VBox dock = new VBox(); dock.getStyleClass().add("sx-dock");
@@ -241,7 +241,7 @@ public final class Shell {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
 
-        // The foot is pinned: Awards, Settings and the colour-scheme sunburst stay on screen whatever the window height. An expanded
+        // The foot is pinned: Awards and the colour-scheme sunburst stay on screen whatever the window height. An expanded
         // dock (with the J-Hub links) is taller than many windows, and when these rows lived in the scrolling part the sunburst was
         // pushed below the fold the moment the pointer reached the dock.
         VBox foot = new VBox(); foot.getStyleClass().addAll("sx-dock", "sx-dock-foot");
@@ -249,8 +249,6 @@ public final class Shell {
         // Awards: opens the full awards screen from any module (same screen as J-Log's drawer "Open awards")
         foot.getChildren().add(dockAction("Awards", "vault", "Awards - DXCC, WAS, WAC, grids, IOTA, POTA, SOTA, zones",
                 expandOnly, com.ars.fx.surface.AwardsWindow::open));
-        // Settings foot: on every module's dock, not just the J-Hub screens (gear → J-Hub Setup)
-        foot.getChildren().add(dockItem("station", "Settings", "gear", true, activeId, expandOnly));
         // Colour scheme: the sunburst in the bottom corner. Cycles this module's scheme (or the suite's, on J-Hub pages).
         foot.getChildren().add(themeDockRow(expandOnly));
 
