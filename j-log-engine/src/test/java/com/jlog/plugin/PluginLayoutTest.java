@@ -2,6 +2,7 @@ package com.jlog.plugin;
 
 import com.jlog.util.AppConfig;
 import com.jlog.db.DatabaseManager;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,6 +19,13 @@ class PluginLayoutTest {
         AppConfig.getInstance().load();
         DatabaseManager.getInstance().initAll();
         PluginLoader.getInstance().init();
+    }
+
+    /** Release SQLite handles so JUnit can delete the @TempDir on Windows. */
+    @AfterAll
+    static void closeDb() {
+        com.jlog.db.BackupService.getInstance().stop();
+        DatabaseManager.getInstance().closeAll();
     }
 
     @Test
