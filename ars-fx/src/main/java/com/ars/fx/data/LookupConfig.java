@@ -71,7 +71,23 @@ public final class LookupConfig {
                 }
             }
         } catch (Exception ignored) { /* defaults */ }
+        // the password lives in the system keyring when there is one; a copy still in the file is moved there (save() leaves it out of the file)
+        boolean moved = false;
+        for (Prov prov : PROVIDERS) {
+            Setting st = map.get(prov.id());
+            if (st == null || !SecretStore.available()) continue;
+            if (st.secret().isEmpty()) {
+                String kept = SecretStore.get(account(prov.id()));
+                if (!kept.isEmpty()) map.put(prov.id(), new Setting(st.enabled(), st.user(), kept, st.extra()));
+            } else moved = true;
+        }
+        if (moved) save();
     }
+
+    static String account(String id) { return "lookup." + id + ".secret"; }
+
+    /** Test hook: forget what was read, so the next call reads the file again. */
+    static synchronized void resetForTest() { map = null; }
 
     private static String str(JsonObject o, String k) { return o.has(k) && !o.get(k).isJsonNull() ? o.get(k).getAsString() : ""; }
 
@@ -82,7 +98,9 @@ public final class LookupConfig {
                 JsonObject o = new JsonObject();
                 o.addProperty("enabled", e.getValue().enabled());
                 o.addProperty("user", e.getValue().user());
-                o.addProperty("secret", e.getValue().secret());
+                String secret = e.getValue().secret();
+                if (SecretStore.available() && SecretStore.put(account(e.getKey()), secret)) secret = "";    // kept in the keyring, not in the file
+                o.addProperty("secret", secret);
                 o.addProperty("extra", e.getValue().extra());
                 root.add(e.getKey(), o);
             }
