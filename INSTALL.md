@@ -27,8 +27,18 @@ The source installer adds these shortcuts, all of which start the same jar:
 | **J-Log, J-Map, J-Sat, J-Digi, J-Vault, J-Learn** | That module in its own window |
 | **ARS Suite Hub** | The background hub only (system tray) |
 
-There is no web interface. The only network port the suite opens is **8090** — the hub's sharing port, used by loose
-windows on the same machine and by a second-machine display ([see below](#second-machine-display)).
+**Network ports.** By default the hub and J-Bridge listen on your network; everything else is off until you switch it on in Setup.
+
+| Port | What | Default |
+|------|------|---------|
+| TCP 8090 | The hub: loose windows on this machine, and a second-machine display ([see below](#second-machine-display)). *Share with solo modules on the LAN* (Setup ▸ Remote sharing) is **on by default**; switch it off to keep the hub to this machine | on, LAN |
+| TCP 8095 | Phone web client: log QSOs, watch spots and the rig from a phone on your network | off |
+| TCP 12070, UDP 12071 | Contest network (multi-operator) and finding the host on the LAN | off |
+| UDP 12060 / 13064 | N1MM+-compatible broadcast out / set-frequency requests in | off |
+| UDP 2237 | Listens for WSJT-X (J-Bridge); any network interface, so WSJT-X on another computer can send to it | on |
+
+Rig, rotor and amplifier control talk to Hamlib's daemons on this computer (4532–4534) and are not reachable from the
+network.
 
 ---
 
@@ -45,6 +55,9 @@ Optional, for the matching features:
 
 - **Hamlib** (`rigctld`, `rotctld`, `ampctld`) — rig, rotor and amplifier control.
 - **WSJT-X** — if you run FT8 / FT4 / MSK144 through J-Bridge.
+- **Linux: `secret-tool`** (package `libsecret-tools` on Debian / Ubuntu, `libsecret` on Fedora / Arch) — keeps your
+  upload and lookup passwords in the desktop keyring (GNOME Keyring, KWallet). Windows and macOS have a keyring built in.
+  Without one, passwords are kept in owner-only files instead (see [LEGAL.md](LEGAL.md)).
 
 **No JavaFX download is needed.** Each jar carries the JavaFX runtime for its own platform. The one exception is the
 64-bit ARM (Raspberry Pi) jar, which needs a JDK that includes JavaFX — see [Raspberry Pi](#raspberry-pi--arm64).
@@ -84,10 +97,12 @@ Check with `java --version` — it must say 21 or higher.
    java -cp   ars-fx-<version>-linux-x86_64.jar com.ars.fx.HubServer   # background hub only
    ```
 
-   On Windows you can usually double-click the jar. Module ids for `--module` are
-   `log`, `logc`, `map`, `sat`, `digi`, `bridge`, `vault` and `learn`.
+   On Windows you can usually double-click the jar. Module ids for `--module` are `log` (J-Log), `logc` (the contest
+   page), `map`, `sat`, `digi`, `bridge`, `vault`, `learn`, `morse` (the Morse Trainer) and `workshop` (the Antenna
+   Workshop); the last two open inside J-Learn.
 
-A jar run this way gives you the full app but no menu shortcuts. For shortcuts, use Option B.
+A jar run this way gives you the full app but no menu shortcuts. For shortcuts, use Option B. Keep the jar in a folder
+you can write to: the app updates itself there (see [Updating](#updating)).
 
 ---
 
@@ -114,6 +129,10 @@ cd ~/ARS_Suite
 `~/.local/share/applications/` and icons to `~/.local/share/icons/`. You get eight shortcuts: ARS Suite, six module
 windows and the hub. It is safe to re-run at any time and never touches your settings or logs. If the jars are already
 built, use `./install.sh --skip-build`.
+
+Rig and amplifier serial ports (`/dev/ttyUSB*`, `/dev/ttyACM*`) belong to the `dialout` group (`uucp` on Arch). If you
+are not in it, `install.sh` offers to add you (it uses `sudo`); log out and back in afterwards. Without it, Hamlib cannot
+open the radio and the rig shows *offline*.
 
 Open your application menu and search for **ARS Suite**, or run it from a terminal:
 
@@ -217,7 +236,7 @@ natives.
 ## First launch
 
 1. Start **ARS Suite**. A splash screen appears, then the app opens on the **J-Hub** dashboard.
-2. Go to **J-Hub ▸ Station** and enter your callsign and grid square. Everything else can wait.
+2. Open **Setup ▸ Station** and enter your callsign and grid square. Everything else can wait.
 3. **J-Learn** copies its reference library to `~/.j-learn/content/` the first time you open it.
 
 The rest of the setup — radio, cluster, log databases, uploads — is in **[USER_GUIDE.md](USER_GUIDE.md)**. All settings
@@ -239,8 +258,8 @@ J-Map or J-Sat makes a good dedicated display on a second monitor, a laptop or a
    └──────────────────────────┘                 └──────────────────┘
 ```
 
-1. **On the station PC**, open **J-Hub ▸ Data ▸ Remote sharing** and switch on *Share with solo modules on the LAN*
-   (the port is 8090 unless you change it). Allow the port through the firewall for your LAN only, for example
+1. **On the station PC**, check that **Setup ▸ Remote sharing ▸ Share with solo modules on the LAN** is on (it is by
+   default; the port is 8090 unless you change it). Allow the port through the firewall for your LAN only, for example
    `sudo ufw allow from 192.168.0.0/24 to any port 8090`.
 2. **On the display machine**, install the app (either option) and write a small launch file pointing at the station:
 
@@ -264,7 +283,14 @@ the rig at the shack. If the link drops, the display reconnects by itself. The l
 
 ## Updating
 
-**Source install**
+**From inside the app (Windows and Linux).** Once a day the app asks GitHub whether a newer release exists (anonymously:
+nothing about you is sent; switch it off in **Setup ▸ Station ▸ Check for updates**). When there is one, a banner offers
+it. **Update now** downloads the release jar for your system, checks it against the SHA-256 checksum GitHub
+publishes, then replaces the jar once the app has closed and starts the new version, going back to the old one if the
+new one does not start. This needs the jar's folder to be writable; if it is not, the banner says why instead of offering **Update now**. On **macOS** the
+banner only tells you; update by hand as below.
+
+**By hand — source install**
 
 ```bash
 cd ~/ARS_Suite && git pull && ./install.sh          # Linux / macOS
@@ -273,10 +299,10 @@ cd ~/ARS_Suite && git pull && ./install.sh          # Linux / macOS
 cd $HOME\ARS_Suite ; git pull ; .\install.bat       # Windows
 ```
 
-**Release jar** — download the newer jar and run that instead.
+**By hand — release jar.** Download the newer jar and run that instead.
 
 Updating never touches your settings, logs or databases. The reference library in `~/.j-learn/content/` is also left
-alone; to bring it up to date, use **J-Hub ▸ Data ▸ J-Learn content ▸ Update files**.
+alone; to bring it up to date, use **Setup ▸ J-Learn content ▸ Update files**.
 
 ---
 
@@ -285,11 +311,14 @@ alone; to bring it up to date, use **J-Hub ▸ Data ▸ J-Learn content ▸ Upda
 | Path | What's there |
 |------|--------------|
 | `~/ARS_Suite/` | Source and built jars (`ars-fx/target/ars-fx-*.jar`) — source installs only |
-| `~/.j-hub/config.json` | All suite settings: station, rig, cluster, macros, upload logins |
+| `~/.j-hub/config.json` | All suite settings: station, rig, cluster, transmit, display |
+| `~/.j-hub/updates/` | The update check's log and downloaded updates |
 | `~/.j-log/j-log.db` | The normal log |
 | `~/.j-log/contest-logs/` | Contest logs, one database per contest and year (e.g. `NovSwpSSB2026.db`) |
 | `~/.j-log/archive/<Contest>_<Year>/` | Contest databases you have archived |
-| `~/.j-log/backups/` | ADIF / CSV exports made from J-Hub ▸ Data |
+| `~/.j-log/backups/` | ADIF / CSV backups made from Setup ▸ Log database & backup |
+| `~/.j-log/upload.json`, `lookup.json`, `macros.json` | Upload and lookup settings (user names; passwords only when there is no keyring) and your macros |
+| The system keyring | Upload and lookup passwords, the Club Log token and the contest network key: Windows Credential Manager, the macOS Keychain, or the Linux Secret Service, under `ars-suite` |
 | `~/.j-vault/inventory.db` | J-Vault inventory |
 | `~/.j-learn/content/` | J-Learn chapters (editable; `content.backup` holds the previous copy after an update) |
 | `~/.j-sat/`, `~/.j-map/` | Orbital data and cached map data |
@@ -297,7 +326,8 @@ alone; to bring it up to date, use **J-Hub ▸ Data ▸ J-Learn content ▸ Upda
 | `~/Applications/ARS Suite*.app`, `~/Applications/J-*.app` | macOS app bundles |
 | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\` | Windows shortcuts |
 
-Back up `~/.j-log/` and `~/.j-hub/` and you have your whole station.
+Back up `~/.j-log/`, `~/.j-hub/` and `~/.j-vault/` and you have your whole station, except the passwords kept in the
+system keyring: after restoring onto a new computer, enter them again in Setup.
 
 ---
 
@@ -330,7 +360,14 @@ the `mvn install` loop under [Building by hand](#building-by-hand).
 
 **A loose window shows no spots, or can't reach the hub** — The background hub isn't running. Open **ARS Suite Hub**, run
 `ars-fx.sh --hub`, or open any module window — the first one starts it. Check it is listening with
-`ss -ltn | grep 8090`.
+`ss -ltn | grep 8090` (Linux / macOS) or `netstat -an | findstr 8090` (Windows).
+
+**The rig shows *offline* on Linux** — You are probably not in the `dialout` group (`uucp` on Arch), so Hamlib cannot
+open the serial port. `sudo usermod -aG dialout $USER`, then log out and back in. Re-running `./install.sh` offers to do
+it for you.
+
+**The update banner says it can't update** — The jar's folder isn't writable, or you're on macOS. Update by hand
+([Updating](#updating)).
 
 **No tray icon** — Some desktops (GNOME on Wayland) have no system tray. The hub then runs without one; stop it with
 `Ctrl-C` in its terminal or `pkill -f com.ars.fx.HubServer`.

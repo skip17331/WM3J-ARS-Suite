@@ -9,7 +9,7 @@ The ARS Suite runs two ways from the **same jar**:
 
 ```bash
 ./run-loose.sh log      # open J-Log in its own window
-./run-loose.sh map      # log | logc | map | sat | digi | vault | learn | bridge
+./run-loose.sh map      # log | logc | map | sat | digi | vault | learn | bridge | morse | workshop
 ./run-loose.sh hub      # start ONLY the background hub (tray), open nothing
 ```
 
@@ -22,8 +22,8 @@ the hub up automatically (`HubServer.ensureRunning()`); closing the last window
 leaves the hub in the tray until you quit it there. On desktops with no usable
 tray (e.g. GNOME/Wayland) the hub runs headless — stop it with Ctrl-C / `kill`.
 
-Loose windows reach **J-Hub / Station settings** via the ⚙ gear in their top bar
-(there is no dock); the settings pages offer a "← Back to <module>" link.
+Loose windows reach **Setup** through the Settings (gear) entry; the Setup pages offer a
+"← Back to <module>" link.
 
 ## Solo J-Map / J-Sat (JSON-driven, incl. remote over the LAN)
 
@@ -82,8 +82,8 @@ java -jar ars-fx-pi.jar --config j-map-remote.json
 
 ## Remote (talk to the station over the LAN)
 
-When `remote` is set, the solo window connects to the station computer running
-the **J-Hub dock app**, which shares its live state over a WebSocket:
+When `remote` is set, the solo window connects to the station computer's
+**background hub**, which shares its live state over a WebSocket:
 
 - **station → solo:** DX-cluster spots, "heard by" RBN spots, rig freq/mode,
   rotor az/el, station QTH/call.
@@ -91,13 +91,10 @@ the **J-Hub dock app**, which shares its live state over a WebSocket:
   remote J-Map tunes the rig and (on confirm) turns the rotor *at the shack*;
   J-Sat's Doppler tracking and auto-rotor drive the real hardware.
 
-The station serves automatically on port **8090**. To change or disable it, set
-in `~/.j-hub/config.json` on the station:
-
-```
-remote.port           8090       # listen port
-remote.serverEnabled  true        # set false to turn sharing off
-```
+On the station, **Setup ▸ Remote sharing** has the switch (*Share with solo modules on
+the LAN*, on by default) and the port (8090). With the switch off the hub listens on
+this computer only, for its own loose windows. Allow the port through the station's
+firewall for your LAN only.
 
 Without `remote`, the solo window behaves exactly like the in-dock build and
 talks to local Hamlib daemons on that machine.
