@@ -52,12 +52,16 @@ the features you use, and to the services you set up:
 - **DX cluster, reverse beacon, callsign lookups, log uploads** (LoTW, eQSL, QRZ, Club Log, Wavelog) — only the ones you configure,
   with the logins you enter.
 
-Your log, settings and caches stay on your computer in your home folder (`~/.j-log`, `~/.j-hub` and similar). Logins you
-enter are stored there too, **as plain text, not encrypted**: upload logins in `~/.j-log/upload.json`, lookup logins in
-`~/.j-log/lookup.json`, and the contest network key in `~/.j-hub/config.json`. On Linux and macOS the suite makes those files
-readable by your account only; on Windows your profile folder already limits them to you. Anyone who can sign in as you, or
-who gets a copy of the files (a backup, a shared folder), can read them, so protect that folder as you would any file holding
-passwords.
+Your log, settings and caches stay on your computer in your home folder (`~/.j-log`, `~/.j-hub` and similar). Passwords, API keys and tokens you
+enter (log upload logins, lookup logins, the Club Log token) are kept in your operating system's own store when it has one: the
+Secret Service (GNOME Keyring, KWallet; needs `secret-tool`) on Linux, the login Keychain on macOS, Credential Manager's
+password vault on Windows. Then they are not in `~/.j-log/upload.json` or `~/.j-log/lookup.json` at all; a password already in
+those files is moved to the store the first time the suite starts. If no store can be reached (for example `secret-tool` is not
+installed), they stay in those files **as plain text, not encrypted**, as before, and the suite makes the files readable by your
+account only on Linux and macOS (on Windows your profile folder already limits them to you). The contest network key is still
+in `~/.j-hub/config.json` in plain text. Anyone who can sign in as you, or who gets a copy of the plain-text files (a backup, a
+shared folder), can read what is in them, so protect that folder as you would any file holding passwords. To keep secrets out of
+the system store, start the suite with `-Dars.keyring=false`.
 
 ## Add, change or remove a source
 

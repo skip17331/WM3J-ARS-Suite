@@ -50,6 +50,7 @@ public final class UploadConfig {
     }
     public static synchronized String field(String id, String key) {
         ensure();
+        if (isSecret(id, key)) { String v = SecretStore.get(account(id, key)); if (!v.isEmpty()) return v; }   // the system keyring first
         if (!root.has(id)) return "";
         JsonObject o = root.getAsJsonObject(id);
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : "";
@@ -58,8 +59,42 @@ public final class UploadConfig {
         ensure(); obj(id).addProperty("enabled", en); save();
     }
     public static synchronized void setField(String id, String key, String val) {
-        ensure(); obj(id).addProperty(key, val == null ? "" : val); save();
+        ensure();
+        if (isSecret(id, key) && SecretStore.put(account(id, key), val)) {        // kept in the system keyring: none of it goes in the file
+            if (root.has(id)) root.getAsJsonObject(id).remove(key);
+            save();
+            return;
+        }
+        obj(id).addProperty(key, val == null ? "" : val); save();
     }
+
+    /** A password, API key or token: kept in the system keyring when there is one. */
+    static boolean isSecret(String id, String key) {
+        if ("token".equals(key)) return true;                                        // Club Log's Most Wanted token (not in SERVICES)
+        for (Service s : SERVICES) if (s.id().equals(id)) for (Field f : s.fields()) if (f.key().equals(key)) return f.secret();
+        return false;
+    }
+    static String account(String id, String key) { return "upload." + id + "." + key; }
+
+    /** Move every secret still in the file into the keyring (when there is one), leaving the file without them. */
+    private static void migrate() {
+        if (!SecretStore.available()) return;
+        boolean changed = false;
+        for (String id : new java.util.ArrayList<>(root.keySet())) {
+            if (!root.get(id).isJsonObject()) continue;
+            JsonObject o = root.getAsJsonObject(id);
+            for (String key : new java.util.ArrayList<>(o.keySet())) {
+                if (!isSecret(id, key) || o.get(key).isJsonNull() || !o.get(key).isJsonPrimitive()) continue;
+                String v = o.get(key).getAsString();
+                if (v.isBlank()) { o.remove(key); changed = true; continue; }
+                if (SecretStore.put(account(id, key), v)) { o.remove(key); changed = true; }
+            }
+        }
+        if (changed) save();
+    }
+
+    /** Test hook: forget what was read, so the next call reads the file again. */
+    static synchronized void resetForTest() { root = null; }
     public static synchronized String tqslPath() {
         ensure();
         return root.has("tqslPath") && !root.get("tqslPath").isJsonNull() ? root.get("tqslPath").getAsString() : "";
@@ -83,6 +118,7 @@ public final class UploadConfig {
             Path p = file();
             if (Files.exists(p)) root = JsonParser.parseString(Files.readString(p)).getAsJsonObject();
         } catch (Exception ignored) { root = new JsonObject(); }
+        migrate();
     }
     private static void save() {
         try {
