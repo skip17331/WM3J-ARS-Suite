@@ -9,7 +9,8 @@ import java.security.SecureRandom;
 /**
  * The shared-key handshake of the contest network. The host sends a one-time nonce; a station proves it knows the key by sending an HMAC of
  * the nonce and its own name, so the key itself never crosses the network and a recorded proof cannot be replayed on a later connection.
- * This keeps stray devices on the LAN out of the log; it does not encrypt the QSOs that follow, which cross the LAN in the clear.
+ * This keeps stray devices on the LAN out of the log. The messages that follow are encrypted by {@link NetCrypt}, under a key made
+ * from the shared key and this connection's nonce.
  */
 public final class NetAuth {
     private NetAuth() {}

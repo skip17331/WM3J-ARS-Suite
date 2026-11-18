@@ -193,6 +193,10 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 4a. Code
 --------
 
+4a-5    Contest network key: 4 characters minimum. Someone who records one connection's handshake on
+        the LAN can try keys offline, and a short key falls in seconds, opening the encryption.
+        Raise the minimum (10?) and warn on short keys. Decide first: existing networks with a
+        shorter key would refuse to start until it is changed. Size: S.
 
 4b. QSO-party rules (code once the details are confirmed)
 ---------------------------------------------------------
