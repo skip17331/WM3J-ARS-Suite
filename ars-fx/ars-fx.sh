@@ -6,6 +6,7 @@
 #   ars-fx.sh --module log    -> one module un-docked (loose), attached to the hub
 #                                (log | logc | map | sat | digi | vault | learn | bridge)
 #   ars-fx.sh --hub           -> background hub only (system tray), open nothing
+#   ars-fx.sh --stop-hub      -> tell the background hub on this machine to quit
 #
 # The installer's shortcuts all call this script with different args (see
 # installer/src/main/resources/manifest.json), so the docked, loose, and hub
@@ -24,6 +25,9 @@ if [ -z "${JAR:-}" ]; then
 fi
 
 cd "$DIR"
+if [ "${1:-}" = "--stop-hub" ]; then
+  exec java -Dfile.encoding=UTF-8 -cp "$JAR" com.ars.fx.HubServer --stop
+fi
 if [ "${1:-}" = "--hub" ]; then
   exec java -Dfile.encoding=UTF-8 -cp "$JAR" com.ars.fx.HubServer
 fi
