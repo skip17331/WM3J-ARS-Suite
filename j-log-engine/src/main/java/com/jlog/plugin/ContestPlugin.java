@@ -294,6 +294,8 @@ public class ContestPlugin {
         private boolean noMultiplier;                   // the score is the sum of QSO points (and bonuses): no multiplier
                                                         //   (ARQP: mobile / portable / rover = 2)
         private ActivationBonus activationBonus;        // mobile / rover / portable: per own county activated
+        private boolean scorePerOwnCounty;              // a log made from several own counties (a mobile) scores each county as a log of its
+                                                        //   own and adds the scores up (MSQP); one county: unchanged
         private boolean ownCountyDupe;                  // the entrant's own sent county (per QSO) is part of the
                                                         //   dupe key: a mobile re-works everyone from a new county
         private boolean homeCountyMult;                 // in-state entrant: each own county with ≥1 QSO is a
@@ -356,6 +358,8 @@ public class ContestPlugin {
         public void setPointsByStation(Map<String,Integer> v){ this.pointsByStation = v; }
         public ActivationBonus getActivationBonus(){ return activationBonus; }
         public void setActivationBonus(ActivationBonus v){ this.activationBonus = v; }
+        public boolean isScorePerOwnCounty(){ return scorePerOwnCounty; }
+        public void setScorePerOwnCounty(boolean v){ this.scorePerOwnCounty = v; }
         public boolean isOwnCountyDupe(){ return ownCountyDupe; }
         public void setOwnCountyDupe(boolean v){ this.ownCountyDupe = v; }
         public boolean isHomeCountyMult(){ return homeCountyMult; }

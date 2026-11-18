@@ -51,6 +51,47 @@ public class QsoRecord {
     // ---- Constructors ----
     public QsoRecord() {}
 
+    /**
+     * A field-for-field copy (every field, the id, uid and origin included). A QSO-party contact on a county line is logged once per
+     * county: the copies differ only in the county, and each is given a new id and uid when it is inserted.
+     */
+    public QsoRecord copy() {
+        QsoRecord c = new QsoRecord();
+        c.id = id;
+        c.callsign = callsign;
+        c.dateTimeUtc = dateTimeUtc;
+        c.band = band;
+        c.mode = mode;
+        c.frequency = frequency;
+        c.powerWatts = powerWatts;
+        c.rstSent = rstSent;
+        c.rstReceived = rstReceived;
+        c.country = country;
+        c.operatorName = operatorName;
+        c.state = state;
+        c.county = county;
+        c.notes = notes;
+        c.qslSent = qslSent;
+        c.qslReceived = qslReceived;
+        c.sig = sig;
+        c.sigInfo = sigInfo;
+        c.contestId = contestId;
+        c.operator = operator;
+        c.serialSent = serialSent;
+        c.serialReceived = serialReceived;
+        c.contestField1 = contestField1;
+        c.contestField2 = contestField2;
+        c.contestField3 = contestField3;
+        c.contestField4 = contestField4;
+        c.contestField5 = contestField5;
+        c.points = points;
+        c.isDupe = isDupe;
+        c.uid = uid;
+        c.origin = origin;
+        c.updatedMs = updatedMs;
+        return c;
+    }
+
     // ---- Getters / Setters ----
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
