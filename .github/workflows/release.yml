@@ -54,7 +54,7 @@ jobs:
           for lib in j-log-common j-log-engine j-digi j-bridge; do
             mvn -B -q -DskipTests -f "$lib/pom.xml" install
           done
-          for m in j-log-common j-log-engine j-digi j-bridge ars-fx; do
+          for m in j-log-common j-log-engine j-digi j-bridge ars-fx installer; do
             echo "::group::test $m"
             mvn -B -f "$m/pom.xml" test
             echo "::endgroup::"
