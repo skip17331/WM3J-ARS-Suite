@@ -32,7 +32,7 @@ final class JHubLearnContent {
         src.setPromptText(LearnContent.DEFAULT_SOURCE);
         src.focusedProperty().addListener((o, was, now) -> { if (!now) LearnContent.setSource(src.getText()); });
 
-        Label update = JHubDashboard.cfgBtn("Update files"), restore = JHubDashboard.cfgBtn("Restore bundled copy"), open = JHubDashboard.cfgBtn("Open folder");
+        Label update = JHubSetupPages.cfgBtn("Update files"), restore = JHubSetupPages.cfgBtn("Restore bundled copy"), open = JHubSetupPages.cfgBtn("Open folder");
         boolean[] busy = {false};
         update.setOnMouseClicked(e -> {
             if (busy[0]) return; busy[0] = true; LearnContent.setSource(src.getText());
@@ -62,9 +62,9 @@ final class JHubLearnContent {
                 lbl("Use after the chapters are updated on GitHub, or to undo local edits", "cfg-lh")), sp, btns);
         actions.getStyleClass().add("cfg-row"); actions.setAlignment(Pos.CENTER_LEFT);
         HBox statusRow = new HBox(status); statusRow.getStyleClass().add("cfg-row"); statusRow.setStyle("-fx-border-width:0;");
-        return JHubDashboard.section("J-LEARN CONTENT",
-            JHubDashboard.cfgRow("Chapters on disk", LogDbInfo.pretty(LearnContent.dir()), state),
-            JHubDashboard.cfgRow("Update source", "a .zip URL (GitHub archive or a content-only zip), a local .zip, or a folder", src),
+        return JHubSetupPages.section("J-LEARN CONTENT",
+            JHubSetupPages.cfgRow("Chapters on disk", LogDbInfo.pretty(LearnContent.dir()), state),
+            JHubSetupPages.cfgRow("Update source", "a .zip URL (GitHub archive or a content-only zip), a local .zip, or a folder", src),
             actions, statusRow);
     }
 }
