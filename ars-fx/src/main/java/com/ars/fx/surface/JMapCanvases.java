@@ -190,6 +190,12 @@ final class JMapCanvases {
 
         // real day/night terminator (gray line) projected into the azimuthal map
         if (ovGrayline) drawAzimuthalGrayLine(g, cx, cy, R);
+        if (ovBasemap) {                                          // country names over the night shading, under everything else
+            g.save();
+            g.beginPath(); g.arc(cx, cy, R, R, 0, 360); g.closePath(); g.clip();
+            drawAzimuthalLabels(g, cx, cy, R);
+            g.restore();
+        }
 
         // range rings
         if (ovRings) {
@@ -317,44 +323,91 @@ final class JMapCanvases {
         return r.maxLat() < -60 || (r.minLon() > -75 && r.maxLon() < -10 && r.minLat() > 58 && r.points() > 200);
     }
 
-    /** Land and borders in the azimuthal projection. Long edges are split so they bend like great circles; points past 140 degrees are held there (the disk clips at 135). */
+    /** One shape on the azimuthal map, projected in degrees of arc from the station (see {@link com.ars.fx.data.AzimuthalPath}). */
+    record AzShape(java.util.List<double[]> paths, int colour, boolean ice) {}
+    static java.util.List<AzShape> azShapes = java.util.List.of();
+    static java.util.List<double[]> azBorders = java.util.List.of();
+    static String azKey = "";
+    static final double AZ_HOLD = 140.0;                                  // degrees; the disk itself ends at about 135
+
+    /** Project the land (or the countries) and borders for this station once; redone only when the station or the switch changes. */
+    static void azPrepare() {
+        String key = Q_LAT + "/" + Q_LON + "/" + ovCountries;
+        if (key.equals(azKey)) return;
+        java.util.List<AzShape> shapes = new java.util.ArrayList<>();
+        if (ovCountries) {
+            for (com.ars.fx.data.CountryShapes.Country c : com.ars.fx.data.CountryShapes.all())
+                for (com.ars.fx.data.CountryShapes.Polygon poly : c.polygons()) {
+                    java.util.List<double[]> rings = new java.util.ArrayList<>();
+                    for (com.ars.fx.data.VectorBasemap.Ring r : poly.rings()) rings.add(r.ll());
+                    shapes.add(new AzShape(com.ars.fx.data.AzimuthalPath.polygon(rings, Q_LAT, Q_LON, AZ_HOLD,
+                            com.ars.fx.data.CountryShapes.contains(poly, Q_LON, Q_LAT)), c.colour(), c.ice()));
+                }
+        } else {
+            for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.land().rings())
+                shapes.add(new AzShape(com.ars.fx.data.AzimuthalPath.polygon(java.util.List.of(r.ll()), Q_LAT, Q_LON, AZ_HOLD,
+                        com.ars.fx.data.VectorBasemap.contains(r, Q_LON, Q_LAT)), 0, isIce(r)));
+        }
+        java.util.List<double[]> borders = new java.util.ArrayList<>();
+        for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.borders().rings())
+            borders.add(com.ars.fx.data.AzimuthalPath.line(r.ll(), Q_LAT, Q_LON, AZ_HOLD));
+        azShapes = shapes; azBorders = borders; azKey = key;
+    }
+
+    /** Land (or countries, each in its colour) and borders in the azimuthal projection, with no wedge at the antipode. */
     static void drawVectorAzimuthal(GraphicsContext g, double cx, double cy, double R) {
-        double maxD = 140.0 * 111.195 / 15000.0;                          // normalised distance cap
-        g.setFill(P.land()); g.setStroke(P.coast()); g.setLineWidth(0.8);
-        for (com.ars.fx.data.VectorBasemap.Ring ring : com.ars.fx.data.VectorBasemap.land().rings()) {
-            boolean ice = isIce(ring);
-            g.setFill(ice ? P.ice() : P.land()); g.setStroke(ice ? P.iceCoast() : P.coast());
-            azPath(g, ring.ll(), cx, cy, R, maxD, true);
+        azPrepare();
+        double k = R * 111.195 / 15000.0;                                  // pixels per degree of arc
+        g.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD); g.setLineWidth(0.8);
+        for (AzShape sh : azShapes) {
+            g.setFill(sh.ice() ? P.ice() : sh.colour() > 0 ? P.country(sh.colour()) : P.land());
+            g.setStroke(sh.ice() ? P.iceCoast() : P.coast());
+            g.beginPath();
+            for (double[] xy : sh.paths()) azAppend(g, xy, cx, cy, k, true);
             g.fill(); g.stroke();
         }
+        g.setFillRule(javafx.scene.shape.FillRule.NON_ZERO);
         g.setStroke(P.border()); g.setLineWidth(0.7);
-        for (com.ars.fx.data.VectorBasemap.Ring ring : com.ars.fx.data.VectorBasemap.borders().rings()) {
-            azPath(g, ring.ll(), cx, cy, R, maxD, false);
-            g.stroke();
-        }
+        for (double[] xy : azBorders) { g.beginPath(); azAppend(g, xy, cx, cy, k, false); g.stroke(); }
     }
-    static void azPath(GraphicsContext g, double[] ll, double cx, double cy, double R, double maxD, boolean close) {
-        g.beginPath();
-        int n = ll.length / 2;
-        double plat = 0, plon = 0;
+    static void azAppend(GraphicsContext g, double[] xy, double cx, double cy, double k, boolean close) {
+        int n = xy.length / 2;
+        if (n == 0) return;
+        double lx = 0, ly = 0;
         for (int i = 0; i < n; i++) {
-            double lat = ll[i * 2 + 1], lon = ll[i * 2];
-            int sub = 1;
-            if (i > 0) {
-                double dd = Math.max(Math.abs(lat - plat), Math.abs(lon - plon));
-                sub = Math.min(40, Math.max(1, (int) Math.ceil(dd / 1.0)));
-            }
-            for (int k = 1; k <= sub; k++) {
-                double f = (double) k / sub, la = i == 0 ? lat : plat + (lat - plat) * f, lo = i == 0 ? lon : plon + (lon - plon) * f;
-                double[] p = azProject(la, lo, cx, cy, R);
-                double x = p[0], y = p[1];
-                if (p[2] > maxD) { double sc = maxD / p[2]; x = cx + (x - cx) * sc; y = cy + (y - cy) * sc; }
-                if (i == 0) g.moveTo(x, y); else g.lineTo(x, y);
-            }
-            plat = lat; plon = lon;
+            double x = cx + xy[i * 2] * k, y = cy + xy[i * 2 + 1] * k;
+            if (i > 0 && i < n - 1 && Math.abs(x - lx) < 0.6 && Math.abs(y - ly) < 0.6) continue;   // under a pixel apart
+            if (i == 0) g.moveTo(x, y); else g.lineTo(x, y);
+            lx = x; ly = y;
         }
         if (close) g.closePath();
     }
+
+    /** Country names on the azimuthal map: the larger countries, more of them where the map stretches, none past 120 degrees. */
+    static void drawAzimuthalLabels(GraphicsContext g, double cx, double cy, double R) {
+        double k = R * 111.195 / 15000.0;
+        g.setFont(Font.font("IBM Plex Sans", FontWeight.NORMAL, 11)); g.setTextAlign(TextAlignment.CENTER);
+        g.setTextBaseline(javafx.geometry.VPos.CENTER);
+        g.setLineWidth(3); g.setLineJoin(javafx.scene.shape.StrokeLineJoin.ROUND);
+        java.util.List<double[]> placed = new java.util.ArrayList<>();
+        for (com.ars.fx.data.MapLabels.Label l : com.ars.fx.data.MapLabels.countries()) {
+            double[] p = com.ars.fx.data.AzimuthalPath.point(l.lat(), l.lon(), Q_LAT, Q_LON);
+            if (p[2] > 120 || p[2] < 1) continue;
+            double rad = Math.toRadians(p[2]), stretch = rad / Math.sin(rad);              // east-west stretch of this projection
+            if (l.minZoom() > azLabelZoom(R) + Math.log(stretch) / Math.log(2)) continue;
+            double x = cx + p[0] * k, y = cy + p[1] * k, hw = l.name().length() * 3.3 + 3, hh = 8;
+            boolean clash = Math.hypot(x - cx, y - cy) < 26;                           // keep the station's own call clear
+            for (double[] r : placed) if (Math.abs(x - r[0]) < hw + r[2] && Math.abs(y - r[1]) < hh + r[3]) { clash = true; break; }
+            if (clash) continue;
+            placed.add(new double[]{x, y, hw, hh});
+            g.setStroke(P.halo()); g.strokeText(l.name(), x, y);
+            g.setFill(P.text().deriveColor(0, 1, 1, 0.85)); g.fillText(l.name(), x, y);
+        }
+        g.setTextBaseline(javafx.geometry.VPos.BASELINE);
+    }
+    /** Which of Natural Earth's label levels the azimuthal map shows near the station: 3 (about 100 of the larger countries) on a
+     *  disk 400 pixels across, more on a bigger one. Overlapping names are skipped, most important kept. */
+    static double azLabelZoom(double R) { return 3.0 + Math.log(Math.max(100, R) / 400.0) / Math.log(2); }
     /** Project a geographic point into the azimuthal-equidistant map (centred on QTH). Returns {x,y,distNorm}. */
     static double[] azProject(double lat, double lon, double cx, double cy, double R) {
         double qLatR = Math.toRadians(Q_LAT), latR = Math.toRadians(lat), dLon = Math.toRadians(lon - Q_LON);
@@ -377,6 +430,7 @@ final class JMapCanvases {
     static final Object[][] OVERLAYS = {
         {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},{"Starburst on new spots"},
         {"Fade old callsigns", "A callsign fades from the map after a while - sooner when the map is busy (about 75 seconds with 80 or more spots showing), later when it is quiet (up to 8 minutes with 10 or fewer). The dot stays, and the selected spot always keeps its name."},
+        {"Country colours", "Each country in its own shade of the land colour, so borders are easy to see; neighbours never share one. Off: all land in one colour."},
     };
     static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
     static String myCall = "";
@@ -484,7 +538,20 @@ final class JMapCanvases {
         g.setFill(P.ocean()); g.fillRect(rmx, rmy, rw, rh);
         double pxPerDeg = rw / (vMaxLon - vMinLon);
         g.setFill(P.land()); g.setStroke(P.coast()); g.setLineWidth(0.8);
-        for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.land().rings()) {
+        if (ovCountries) {                                        // each country in its colour (neighbours always differ)
+            g.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD);
+            for (com.ars.fx.data.CountryShapes.Country c : com.ars.fx.data.CountryShapes.all()) {
+                g.setFill(c.ice() ? P.ice() : P.country(c.colour())); g.setStroke(c.ice() ? P.iceCoast() : P.coast());
+                for (com.ars.fx.data.CountryShapes.Polygon poly : c.polygons()) {
+                    if (poly.maxLon() < vMinLon || poly.minLon() > vMaxLon || poly.maxLat() < vMinLat || poly.minLat() > vMaxLat) continue;
+                    g.beginPath();
+                    for (com.ars.fx.data.VectorBasemap.Ring r : poly.rings()) rectAppend(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, true);
+                    g.fill(); g.stroke();
+                }
+            }
+            g.setFillRule(javafx.scene.shape.FillRule.NON_ZERO);
+        }
+        for (com.ars.fx.data.VectorBasemap.Ring r : ovCountries ? new com.ars.fx.data.VectorBasemap.Ring[0] : com.ars.fx.data.VectorBasemap.land().rings()) {
             if (!ringVisible(r)) continue;
             boolean ice = isIce(r);
             g.setFill(ice ? P.ice() : P.land()); g.setStroke(ice ? P.iceCoast() : P.coast());
@@ -532,6 +599,10 @@ final class JMapCanvases {
     }
     static void rectPath(GraphicsContext g, double[] ll, double rmx, double rmy, double rw, double rh, double pxPerDeg, boolean close) {
         g.beginPath();
+        rectAppend(g, ll, rmx, rmy, rw, rh, pxPerDeg, close);
+    }
+    /** One ring added to the current path (several make a polygon with holes). */
+    static void rectAppend(GraphicsContext g, double[] ll, double rmx, double rmy, double rw, double rh, double pxPerDeg, boolean close) {
         double minStep = 0.6 / pxPerDeg, lx = 0, ly = 0;
         int n = ll.length / 2;
         for (int i = 0; i < n; i++) {
