@@ -1,0 +1,231 @@
+ARS SUITE PUNCH LIST
+Updated 2026-11-18. Started from the 2026-11-17 review.
+
+Sections
+  1   Completed
+  2   Completed, needs testing  (2a running app, 2b needs the rig, 2c needs accounts or
+      servers, 2d other equipment)
+  3   Known bugs
+  4   Identified need, needs coding  (4a code, 4b QSO-party rules, 4c information from sponsors)
+  5   Future (and decided against)
+
+IDs
+  Every item has a permanent ID: its section and a number (2a-3, 3-2, 4b-1). An ID never
+  changes. When an item is finished it moves to section 1 keeping its ID, and the gap it
+  leaves is not refilled, so "2a-3 is done" always means the same item. New items take the
+  next unused number in their section.
+
+  [!] = check before the next contest you enter.
+
+====================================================================================================
+1. COMPLETED
+====================================================================================================
+
+1-1     Tests run on every pull request, on Linux and Windows.
+1-2     release.yml comment corrected; TODO.md lists open work only.
+1-3     README matches the code (unbuilt features removed: HRDLog, encrypted logins, J-Map weather /
+        radar, ISS APRS, Feld Hell).
+1-4     Upload, lookup and hub config files are owner-only on Linux / macOS; LEGAL.md names them.
+1-5     Contest network carries each QSO's five contest fields, so a rover's per-QSO county reaches
+        every station.
+1-6     Cabrillo writes each rover QSO's own sent county.
+1-7     Cabrillo: data modes export as DG, CW-R as CW; 33 cm-3 cm bands have their Cabrillo codes.
+1-8     Contest DXCC table honours cty.dat's exact calls (UN / ITU HQ, Antarctic bases, DXpedition
+        calls).
+1-9     Band plan has 2190 m, 630 m, 4 m, 33 cm, 23 cm, 13 cm, 3 cm.
+1-10    QSO-party county lists: MO, WI, CO, ID, AR, KY, ACQP (definitive); OK (warn-only).
+1-11    QSO-party rules re-read: NC 2027, MN 2027, MO 2026, VT 2027, KY 2027 draft, TX mobile bonus,
+        ACQP per band and mode.
+1-12    Colour schemes: Instrument panel and Modern looks through every scheme; band activity meters
+        follow.
+1-13    DX Cluster in the right column, with every panel still shown.
+1-14    "+ Spot" on the dashboard sends a spot.
+1-15    J-Vault estate document prints, with the FCC ULS / FRN boxes and ARRL Silent Key steps.
+1-16    Spot alerts: card and chime for watch-list and needed spots.
+1-17    Club Log Most Wanted rank in spot tooltips.
+1-18    Frequency typed in kHz or with a decimal comma saves in MHz with its band; older kHz QSOs
+        repaired at start-up.
+1-19    Propagation estimate screens (spot card, list dots, J-Map rings); PropagationCheck left
+        collecting.
+1-20    Band map: click-to-tune, segment shading, own-skimmer labels.
+1-21    Windows COM-port watchdog: rigctld stops and restarts with the rig.
+1-22    J-Sat mid-pass and the J-Map globe with a real rotor, beacons and a busy cluster.
+1-23    CPU under load (rig, live cluster, satellite pass).
+1-24    Label printers (Brother, DYMO, Zebra) and the print-label buttons.
+1-25    Linux: Cinnamon menu folder, 4K resolution choice, USB drive controller.
+1-26    Nightly releases: v1.13.16 and v1.13.17 tagged and published.
+1-27    JHubDashboard, JMapView and JLogContest split into smaller classes.
+4a-2    J-Digi audio thread profiled (2 min of audio per mode): FFT, decoder, signal classifier and
+        CW skimmer together cost under 0.1% of a core in every mode except Olivia (about 3.8%, its
+        symbol-sync search while unlocked; see 3-10).
+3-10    Olivia receive fixed: 85 of 85 start offsets decode (was 20 of 85). Block sync scored over
+        four blocks, AFC fits the tone comb and ignores band noise, symbol timing waits for a full
+        window of signal, word spaces kept, and the timing search is coarse-then-fine (about a third
+        of the CPU). OliviaRoundTripTest covers it.
+
+====================================================================================================
+2. COMPLETED, NEEDS TESTING
+====================================================================================================
+
+Built and unit-tested; not yet seen working in the running app or with real equipment.
+
+2a. Running app, no hardware
+----------------------------
+
+2a-1    Club Log DXCC exceptions: with the Club Log API key, Update now (Setup > DX cluster) fetches
+        cty.xml; a current DXpedition call shows its real entity; the beam heading to it is right
+        (<long> east-positive).
+2a-2    Cluster spots: with a cluster showing the spotter's grid / state, spots still appear; CW
+        spots without "CW" show as CW; a much-spotted station holds one line.
+2a-3    WSJT-X: digit-first calls (3Y0J, 9A1A) and hashed <calls> show their callsign in J-Bridge.
+2a-4    ADIF import: WSJT-X FT4 shows as FT4; another logger's export with accented names keeps QTH
+        and grid.
+2a-5    Contest exports: 4U1UN scores as the UN (NA); CQ WW Digital SEND shows a 4-character grid; a
+        JS8 QSO's Cabrillo line says DG.
+2a-6    8-character station grid: with no lat / lon set, bearings, distances and the map home point
+        appear.
+2a-7    Log browser: Band / Mode filters, Delete, filtered Export... (open in a spreadsheet, import
+        elsewhere), contest logs (sort, filter, search, export, label).
+2a-8    Log browser, contest QSOs: edit and erase a QSO of the active contest; the contest page and
+        score follow.
+2a-9    Contest page: score tiles, F1-F8 in CW and a serial-number contest, Space-key field order.
+2a-10   Contest type-ahead: section, county and state fields suggest from the list; the RTTY Roundup
+        layout.
+2a-11   Call history: build from my logs; exchange fill and NEW MULT? tags in Sweepstakes / a QSO
+        party; import a real N1MM+ call history file.
+2a-12   Daemon status lines under each "Start ... for me" switch, with the watchdog's last action
+        and how long ago it was.
+2a-13   Vector basemap: dark, forest, amber, rose and nord palettes; region chips; Basemap switch;
+        spots / beam / beacons while zoomed.
+2a-14   Contest page on a 5,000-QSO log, and NetStrip with the network on.
+2a-15   Phone web client: browser and phone; log form, offline queue, spots tab, token entry.
+2a-16   QSO parties on the contest page: QRP in DE or NM; PA rover across two counties; NC mobile
+        (own-county mults, +100, HIKENC); MO mobile (50-QSO mult, window point).
+2a-17   ON / QC scoring against a real 2026 log.
+2a-18   Passwords in the Windows keyring: after the upgrade, saved logins (LoTW, eQSL, QRZ, Club
+        Log, Wavelog, lookups) still work, are gone from upload.json / lookup.json, and appear in
+        Credential Manager. Typing in a password field is smooth (it saves when you pause or leave
+        the field), passwords are masked, and Upload right after typing uses the new password.
+2a-19   J-Sat ground tracks (cached 10 s): tracks still follow the satellites; CPU lower with many
+        satellites shown.
+2a-20   Olivia receive: J-Digi's own Olivia 8/500 TX through an audio loopback decodes cleanly from
+        the first lines, with spaces between words; also 300 Hz off-centre. (Not against fldigi: see
+        3-12.)
+4a-1    Contest network key in the keyring: set the key in Setup > Contest network; it is masked,
+        works for Host / Join, and is gone from ~/.j-hub/config.json (an older key there moves to
+        the keyring).
+
+
+2b. Needs the rig
+-----------------
+
+2b-1    [!] Cabrillo frequencies: two bands with the rig on; QSO lines show real kHz; how robots
+        treat VHF (144, 432).
+
+2c. Needs real accounts or servers
+----------------------------------
+
+2c-1    LoTW and eQSL confirmation download.
+2c-2    Wavelog upload to a real server.
+2c-3    Quiet cluster server: not reconnected every 3 minutes.
+2c-4    POTA / IOTA lookups (POTA uses an unofficial interface; check the IOTA list's terms).
+2c-5    [!] N1MM+ UDP broadcast against GridTracker / Log4OM and a real N1MM+ capture (frequency
+        units, IsRunQSO).
+
+2d. Other equipment
+-------------------
+
+2d-1    [!] Contest network on two computers, including pulling a cable mid-contest.
+2d-2    Passwords in the macOS keychain: save and reuse a login on a Mac.
+
+====================================================================================================
+3. KNOWN BUGS
+====================================================================================================
+
+3-1     eQSL download fails when the password contains #.
+3-2     PA QSO Party: bonus station K3ZMC is multiplied; the rules also say bonuses are added after
+        the multiplier. Ask the PA QSO Party Association which is meant.
+3-3     Amateur Radio Club QSO Party: scored by mode; the rules score by the other station's class
+        (C 5, N 3, R 100, U 50, Y 20).
+3-4     CPQP county list has 3 more Alberta districts than the 62 in the rules.
+3-5     Nebraska QSO Party values come from the 2025 summary sheet (power tiers and bonus stations
+        may be wrong).
+3-6     South Dakota QSO Party rules are from 2022.
+3-7     Data: the 2026-10-03 9K2IC (70cm DMR) entry looks like a mistyped date.
+3-8     Flaky test: DigiEngineSyncTest.modemFollowsJHubSettings; keep its surefire report if it
+        fails again.
+3-9     Contest QSO labels may be sparse (no RST or name); an exchange line may be needed.
+3-11    Olivia: an off-centre signal loses its start. AFC can only recognise a signal 300 Hz
+        off-centre once enough content has been heard; the retune restarts acquisition, so a short
+        transmission loses everything before that point (the reference recording keeps only "YZ K").
+        Fix: after lock, decode back into the buffered audio without printing the noise before the
+        signal. Older than the 3-10 fix. Size M.
+3-12    J-Digi's Olivia is probably not standard Olivia. The transmitter, receiver and test
+        generator share a simplified scheme: no per-block scrambling code, no bit interleaving
+        across symbols, and a 64-character set. Olivia as specified (and as fldigi sends it) has all
+        three, so J-Digi likely cannot exchange text with other Olivia stations. Confirm with
+        fldigi, then implement the standard framing in both directions. Size L.
+
+====================================================================================================
+4. IDENTIFIED NEED, NEEDS CODING
+====================================================================================================
+
+4a. Code
+--------
+
+4a-4    J-Digi screen CPU: the waterfall and the status update posted to the screen on every audio
+        frame (about 8 a second). Size: S. Notes: 4a-2 showed the modem itself is under 0.1% of a
+        core, so the 14 points J-Digi measured above idle are the screen. Measure with
+        -Dsurface=digi, then draw / post less often.
+
+4b. QSO-party rules (code once the details are confirmed)
+---------------------------------------------------------
+
+4b-1    ID. Rule: Dormant-county bonus +500 / +1,000 / +1,500 (25 counties). Blocked on: "More than
+        10" vs "10" QSOs; which counties qualify. Size: S.
+4b-2    TN. Rule: Mobile / rover "claim one extra county" multiplier. Blocked on: The rule text.
+        Size: S.
+4b-3    NS. Rule: +10 per rover / Field Day station worked, per mode. Blocked on: A way to tell a
+        rover in the log. Size: S.
+4b-4    ME, MS. Rule: A mobile's score summed per county activated. Size: M.
+4b-5    several. Rule: County-line / exchanges ("ADA/CAN"). Blocked on: Decide: split into two lines
+        or accept /. Size: S.
+
+4c. Information needed from sponsors
+------------------------------------
+
+4c-1    SD county list (pdarc.org unreachable).
+4c-2    OK list confirmation at k5cm.com, then make it definitive.
+4c-3    ME, NS, WA lists never compared with the official ones.
+4c-4    HI, IA, IL, MS, MN have no list file.
+4c-5    Maine sponsor's new site (wssm.org is parked).
+4c-6    Nebraska current rules (none found online).
+4c-7    NC 2027: confirm HIKENC calls and +100 per county against the final rules (party 28 Feb
+        2027).
+4c-8    KY: re-check when the final 2027 rules appear.
+
+====================================================================================================
+5. FUTURE
+====================================================================================================
+
+5-1     Native WinKeyer. Size: M. Notes: Speed pot, paddle break-in, buffered sending.
+5-2     QSO audio recording. Size: M. Notes: j-digi's AudioEngine already captures audio.
+5-3     SO2R. Size: L. Notes: Only if serious contesters are a target audience.
+5-4     Contest network: standby host, shared QTCs and normal log, messages / skeds, operator roles.
+        Size: L. Notes: After 2d-1.
+5-5     Propagation stage 2. Size: M. Notes: Driven by the PropagationCheck results; P.533 maps need
+        a licence check.
+5-6     Info tab: Active now, more news sources, calendars, your stats, reference tiles. Size: L.
+5-7     Basemap: country names on the azimuthal map, per-country colours, antipode wedge. Size: M.
+5-8     Call history: fetch a published master file. Size: S. Notes: No stable public source yet.
+5-9     Cloudlog / HRDLog upload. Size: S.
+5-10    Band decoder / antenna switch. Size: M.
+5-11    Panadapter / SDR (TCI, SmartSDR). Size: L.
+5-12    Localization. Size: L. Notes: English only; no resource bundles.
+5-13    Screen-reader accessibility. Size: M. Notes: No accessible text on controls.
+5-14    Emergency communications (GoKit). Size: M. Notes: Parked.
+5-15    Decided against: PSK Reporter, a WSJT-X activity layer. Notes: Left to GridTracker.
+4a-3    Decided against: N1MM+ rotator messages (UDP 12040 / 13010). Notes: ARS Suite turns the
+        rotor itself through Hamlib (RotorClient). The messages only matter when N1MM+ is the logger
+        and another program drives the rotor; those operators already have PstRotator or N1MM Rotor.
+        The packet layout is also published only as images.
