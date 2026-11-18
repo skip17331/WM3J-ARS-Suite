@@ -1,28 +1,25 @@
 package com.hamradio.modem.tx;
 
 import com.hamradio.modem.audio.AudioEngine;
+import com.hamradio.modem.dsp.OliviaCodec;
 
 import java.util.Arrays;
 
 /**
- * Olivia MFSK transmitter.
+ * Olivia MFSK transmitter: standard Olivia, so fldigi and other Olivia programs can read it (punch list 3-12).
  *
  * Default: 8 tones, 500 Hz bandwidth, 1500 Hz centre, 8000 Hz sample rate.
  *
- * Encoding pipeline:
- *   1. Map each input character to a 6-bit Olivia code (ASCII − 0x20, clamped
- *      to 0–63; lowercase mapped to uppercase; unknowns → space).
- *   2. Pad with lead-in / lead-out space blocks.
- *   3. For each 64-symbol block, take log2(numTones) characters (one per bit plane).
- *   4. For each symbol position k (0–63) and bit plane b:
- *        walshBit = popcount(charCode_b & k) & 1
- *        bit b of symbol[k] = walshBit
- *      The symbol index selects which of the N tones to transmit.
- *   5. Generate phase-continuous MFSK audio at constant amplitude.
+ * Coding is {@link OliviaCodec}: 7-bit ASCII, one character per bit of the symbol, each a scrambled 64-chip Walsh function spread
+ * diagonally across the block's symbols, Gray-coded onto the tones. A few blocks of NUL characters go before and after the text
+ * (the receiver uses them to find the block timing; Olivia programs show nothing for them).
+ *
+ * Each symbol is a tone shaped by a raised cosine two symbol periods long, overlapping its neighbours by half, with the phase
+ * stepped by a quarter turn either way between symbols, as the reference modulator does: a clean, narrow spectrum.
  *
  * Tone frequencies:
- *   lowestTone = centre − BW/2 + spacing/2
- *   tone[i]    = lowestTone + i × spacing
+ *   lowestTone = centre - BW/2 + spacing/2
+ *   tone[i]    = lowestTone + i * spacing
  */
 public class OliviaTransmitter implements DigitalTransmitter {
 
@@ -32,8 +29,6 @@ public class OliviaTransmitter implements DigitalTransmitter {
     private static final double DEFAULT_AMPLITUDE  = 0.45;
 
     private static final int    BLOCK_SYMBOLS      = 64;
-    private static final int    CHAR_SET_SIZE      = 64;
-    private static final char   CHAR_OFFSET        = 0x20;
     /** Lead-in / lead-out blocks of space characters (give the RX time to sync). */
     private static final int    LEAD_BLOCKS        = 3;
 
@@ -93,48 +88,30 @@ public class OliviaTransmitter implements DigitalTransmitter {
      */
     private int[] buildSymbolStream(String text) {
         if (text == null) text = "";
-
-        // Map to 6-bit Olivia character codes
         int[] codes = normalizeText(text);
-
-        // Pad to a whole number of blocks (bitsPerSymbol chars per block)
         int contentBlocks = (codes.length + bitsPerSymbol - 1) / bitsPerSymbol;
         int totalBlocks   = LEAD_BLOCKS + contentBlocks + LEAD_BLOCKS;
-        int totalChars    = totalBlocks * bitsPerSymbol;
-
-        int[] padded = new int[totalChars]; // zero-filled = space
-        int contentStart = LEAD_BLOCKS * bitsPerSymbol;
-        System.arraycopy(codes, 0, padded, contentStart,
-                Math.min(codes.length, totalChars - contentStart));
-
-        // Encode each block into BLOCK_SYMBOLS tone indices
+        int[] padded = new int[totalBlocks * bitsPerSymbol];           // zero-filled = NUL
+        System.arraycopy(codes, 0, padded, LEAD_BLOCKS * bitsPerSymbol, codes.length);
         int[] symbols = new int[totalBlocks * BLOCK_SYMBOLS];
         for (int blk = 0; blk < totalBlocks; blk++) {
-            for (int k = 0; k < BLOCK_SYMBOLS; k++) {
-                int sym = 0;
-                for (int b = 0; b < bitsPerSymbol; b++) {
-                    int charCode   = padded[blk * bitsPerSymbol + b];
-                    int walshBit   = Integer.bitCount(charCode & k) & 1;
-                    sym           |= (walshBit << b);
-                }
-                symbols[blk * BLOCK_SYMBOLS + k] = sym;
-            }
+            int[] chars = java.util.Arrays.copyOfRange(padded, blk * bitsPerSymbol, (blk + 1) * bitsPerSymbol);
+            System.arraycopy(OliviaCodec.encodeBlock(chars), 0, symbols, blk * BLOCK_SYMBOLS, BLOCK_SYMBOLS);
         }
         return symbols;
     }
 
-    /**
-     * Map each character in text to a 6-bit Olivia code (0–63 = ASCII 0x20–0x5F).
-     * Lowercase → uppercase.  Out-of-range → space (0).
-     */
-    private static int[] normalizeText(String text) {
-        int[] codes = new int[text.length()];
+    /** 7-bit ASCII as typed; a line break goes as CR LF, as Olivia programs expect; anything else outside ASCII as '?'. */
+    static int[] normalizeText(String text) {
+        StringBuilder b = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (c >= 'a' && c <= 'z') c = (char)(c - 32); // to uppercase
-            int code = c - CHAR_OFFSET;
-            codes[i] = (code >= 0 && code < CHAR_SET_SIZE) ? code : 0;
+            if (c == '\r') continue;
+            if (c == '\n') { b.append("\r\n"); continue; }
+            b.append(c >= 0x20 && c < 0x7F || c == '\t' ? c : '?');
         }
+        int[] codes = new int[b.length()];
+        for (int i = 0; i < codes.length; i++) codes[i] = b.charAt(i);
         return codes;
     }
 
@@ -142,61 +119,58 @@ public class OliviaTransmitter implements DigitalTransmitter {
     // SampleSource — phase-continuous MFSK audio
     // =================================================================
 
+    /** Overlapping raised-cosine symbols, two periods long, the phase stepped a quarter turn either way between them. */
     private static final class OliviaSampleSource implements SampleSource {
-
-        private final int[]    symbols;
+        private final int[] symbols;
         private final double[] toneFreqs;
-        private final int      spS;
-        private final double   sampleRate;
-        private final double   amplitude;
+        private final int spS;
+        private final double sampleRate, amplitude;
+        private final java.util.Random rnd = new java.util.Random();
+        /** Samples of the current period: the second half of symbol k-1 plus the first half of symbol k. */
+        private final float[] period;
+        private final float[] tail;          // the second half of the symbol last added, for the next period
+        private int periodIdx = 0, posInPeriod;
+        private double phase = 0;
+        private boolean finished = false, closed = false;
 
-        private int    symIdx      = 0;
-        private int    sampleInSym = 0;
-        /** Running phase (radians); kept continuous across tone changes. */
-        private double phase       = 0.0;
+        OliviaSampleSource(int[] symbols, double[] toneFreqs, int spS, double sampleRate, double amplitude) {
+            this.symbols = symbols; this.toneFreqs = toneFreqs; this.spS = spS; this.sampleRate = sampleRate; this.amplitude = amplitude;
+            period = new float[spS]; tail = new float[spS];
+            posInPeriod = spS;                                    // nothing made yet
+        }
 
-        private boolean finished = false;
-        private boolean closed   = false;
-
-        OliviaSampleSource(int[] symbols, double[] toneFreqs, int spS,
-                           double sampleRate, double amplitude) {
-            this.symbols    = symbols;
-            this.toneFreqs  = toneFreqs;
-            this.spS        = spS;
-            this.sampleRate = sampleRate;
-            this.amplitude  = amplitude;
+        /** Period p holds the tail of symbol p-1 and the head of symbol p (none past the last: the final tail rings out). */
+        private boolean nextPeriod() {
+            if (periodIdx > symbols.length) return false;
+            System.arraycopy(tail, 0, period, 0, spS);
+            java.util.Arrays.fill(tail, 0f);
+            if (periodIdx < symbols.length) {
+                double w = 2 * Math.PI * toneFreqs[symbols[periodIdx]] / sampleRate;
+                for (int n = 0; n < 2 * spS; n++) {
+                    double shape = 0.5 * (1 - Math.cos(Math.PI * n / spS));       // 0 .. 1 .. 0 over two periods
+                    float v = (float) (amplitude * shape * Math.cos(phase + w * n));
+                    if (n < spS) period[n] += v; else tail[n - spS] = v;
+                }
+                phase += w * spS + (rnd.nextBoolean() ? Math.PI / 2 : -Math.PI / 2);
+                phase %= 2 * Math.PI;
+            }
+            periodIdx++;
+            posInPeriod = 0;
+            return true;
         }
 
         @Override
         public int read(float[] buffer, int offset, int length) {
             if (closed || finished || buffer == null || length <= 0) return -1;
-
             int written = 0;
             while (written < length) {
-                if (symIdx >= symbols.length) { finished = true; break; }
-
-                double freq      = toneFreqs[symbols[symIdx]];
-                double phaseStep = 2.0 * Math.PI * freq / sampleRate;
-
-                buffer[offset + written] = (float)(Math.sin(phase) * amplitude);
-                phase += phaseStep;
-                // Keep phase in [0, 2π) to avoid floating-point drift
-                if (phase >= 2.0 * Math.PI) phase -= 2.0 * Math.PI;
-
-                written++;
-                if (++sampleInSym >= spS) {
-                    sampleInSym = 0;
-                    symIdx++;
-                    // Phase is already continuous — no reset needed
-                }
+                if (posInPeriod >= spS && !nextPeriod()) { finished = true; break; }
+                buffer[offset + written++] = period[posInPeriod++];
             }
             return written > 0 ? written : -1;
         }
 
-        @Override
-        public boolean isFinished() { return finished || closed; }
-
-        @Override
-        public void close() { closed = true; finished = true; }
+        @Override public boolean isFinished() { return finished || closed; }
+        @Override public void close() { closed = true; finished = true; }
     }
 }

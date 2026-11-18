@@ -1,5 +1,6 @@
 package com.hamradio.modem.mode;
 
+import com.hamradio.modem.dsp.OliviaCodec;
 import com.hamradio.modem.model.DecodeMessage;
 import com.hamradio.modem.model.ModeType;
 import com.hamradio.modem.model.SignalSnapshot;
@@ -8,24 +9,18 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Olivia MFSK decoder.
+ * Olivia MFSK decoder: standard Olivia, as fldigi and other Olivia programs send it (punch list 3-12).
  *
  * Default: 8 tones, 500 Hz bandwidth, 1500 Hz centre.
  *
- * Protocol (Jalocha / SP9VRC):
  *   Tone spacing   = bandwidth / numTones   (62.5 Hz for 8/500)
  *   Symbol rate    = bandwidth / numTones   (62.5 baud for 8/500)
  *   Samples/symbol = sampleRate / symbolRate  (128 at 8 kHz)
- *   Bits/symbol    = log2(numTones)  (3 for 8 tones)
- *   Block size     = 64 symbols (fixed for all variants)
- *   Chars/block    = log2(numTones) — one character per bit plane
- *   Character set  = 64 chars, ASCII 0x20 (space) through 0x5F (_)
+ *   Block          = 64 symbols, one 7-bit ASCII character per bit of the symbol (3 for 8 tones)
  *
- * FEC — Walsh-Hadamard coding per bit plane:
- *   For each bit plane b (0 .. bitsPerSymbol-1), the 64 soft values
- *   v[k] = (power in tones with bit_b=1) - (power in tones with bit_b=0)
- *   are Walsh-Hadamard transformed.  The index of the largest |transform|
- *   value is the decoded character code for that bit plane.
+ * Block coding is {@link OliviaCodec}: Gray-decoded soft bits per symbol, the diagonal spread undone, descrambled, and a fast
+ * Hadamard transform per character. The scrambling also makes the right block alignment stand out, so block sync tries every
+ * start and keeps the one whose characters decode most confidently.
  *
  * Tone detection: Goertzel algorithm, one call per tone per symbol.
  *
@@ -41,8 +36,6 @@ public class OliviaMode implements DigitalMode {
 
     // ── Protocol constants ────────────────────────────────────────────
     private static final int    BLOCK_SYMBOLS     = 64;
-    private static final int    CHAR_SET_SIZE     = 64;    // 2^6
-    private static final char   CHAR_OFFSET       = 0x20;  // space
 
     // ── Thresholds ────────────────────────────────────────────────────
     private static final double MIN_RMS           = 0.003;
@@ -554,14 +547,7 @@ public class OliviaMode implements DigitalMode {
     private void extractSymbols() {
         while (symOffset + spS <= nSamples) {
             double[] powers = goertzelAll(symOffset, spS);
-            double[] softs  = new double[bitsPerSymbol];
-            for (int b = 0; b < bitsPerSymbol; b++) {
-                double v = 0.0;
-                for (int i = 0; i < numTones; i++) {
-                    v += ((i >> b) & 1) == 1 ? powers[i] : -powers[i];
-                }
-                softs[b] = v;
-            }
+            double[] softs  = OliviaCodec.softBits(powers, bitsPerSymbol);
 
             // Update SNR + per-symbol peakness
             double maxP = 0.0, sumP = 0.0;
@@ -636,20 +622,6 @@ public class OliviaMode implements DigitalMode {
             for (int j = 0; j < SYNC_BLOCKS; j++) conf += Math.log(Math.max(1e-9, trialWalshConfidence(syncBuf, off + j * BLOCK_SYMBOLS)));
             if (conf > bestConf) { bestConf = conf; bestOff = off; }
         }
-        // A first block of nothing but lead-in (spaces: one steady tone, the same at every shift) proves nothing about where
-        // blocks start, and with the start of a transmission now kept (backtrack) the window can be mostly lead-in, leaving a
-        // single content block to decide and the boundary a few symbols off. Drop what is surely lead-in and look again.
-        // A window that decodes as spaces is mostly lead-in, so content cannot begin before about its middle: dropping
-        // up to bestOff + 16 is safe and always makes progress. (Dropping the whole block lost a first block of content
-        // that began late in it.)
-        if (allSpaces(syncBuf, bestOff)) {
-            int drop = Math.min(SYNC_BUF_SYMS - 1, bestOff + 16);
-            debug(String.format("BLOCK SYNC deferred: off=%d starts in the lead-in, dropping %d symbols", bestOff, drop));
-            int keep = SYNC_BUF_SYMS - drop;
-            for (int k = 0; k < keep; k++) System.arraycopy(syncBuf[drop + k], 0, syncBuf[k], 0, bitsPerSymbol);
-            syncBufIdx = keep;
-            return;
-        }
         debug(String.format("BLOCK SYNC off=%d logconf=%.2f", bestOff, bestConf));
 
         // Emit the blocks the search covered (lead-in spaces among them are dropped on emit).
@@ -668,40 +640,21 @@ public class OliviaMode implements DigitalMode {
             }
         }
         blockSymIdx = carry;
+        if (blockSymIdx == BLOCK_SYMBOLS) {                       // sync at offset 0 leaves one whole block over: decode it now
+            decodeBlock(blockSoft, 0, true);
+            blocksDecoded++;
+            blockSymIdx = 0;
+        }
         syncBufIdx  = 0;
         blockSynced = true;
         emittedSinceSync = false;
-    }
-
-    /** True when the block at {@code startSym} decodes to a space in every bit plane (Walsh index 0). */
-    private boolean allSpaces(double[][] soft, int startSym) {
-        for (int b = 0; b < bitsPerSymbol; b++) {
-            double[] v = new double[BLOCK_SYMBOLS];
-            for (int k = 0; k < BLOCK_SYMBOLS; k++) v[k] = soft[startSym + k][b];
-            fwht(v);
-            int best = 0; double bestAbs = -1.0;
-            for (int c = 0; c < CHAR_SET_SIZE; c++) { double a = Math.abs(v[c]); if (a > bestAbs) { bestAbs = a; best = c; } }
-            if (best != 0) return false;
-        }
-        return true;
     }
 
     /** Trial decode at {@code startSym}: average Walsh peak / runner-up
      *  ratio across all bit planes. Higher = cleaner alignment. */
     private double trialWalshConfidence(double[][] soft, int startSym) {
         double avg = 0.0;
-        for (int b = 0; b < bitsPerSymbol; b++) {
-            double[] v = new double[BLOCK_SYMBOLS];
-            for (int k = 0; k < BLOCK_SYMBOLS; k++) v[k] = soft[startSym + k][b];
-            fwht(v);
-            double best = 0.0, second = 0.0;
-            for (int c = 0; c < CHAR_SET_SIZE; c++) {
-                double a = Math.abs(v[c]);
-                if (a > best)        { second = best; best = a; }
-                else if (a > second) { second = a; }
-            }
-            avg += (second > 1e-12) ? (best / second) : 10.0;
-        }
+        for (int b = 0; b < bitsPerSymbol; b++) avg += OliviaCodec.decodeChar(soft, startSym, b).ratio();
         return avg / bitsPerSymbol;
     }
 
@@ -716,62 +669,13 @@ public class OliviaMode implements DigitalMode {
      */
     private void decodeBlock(double[][] soft, int startSym, boolean appendToPending) {
         double blockConf = 0.0;
-
         for (int b = 0; b < bitsPerSymbol; b++) {
-            double[] v = new double[BLOCK_SYMBOLS];
-            for (int k = 0; k < BLOCK_SYMBOLS; k++) v[k] = soft[startSym + k][b];
-
-            fwht(v);  // in-place Walsh-Hadamard transform
-
-            int    best = 0, second = -1;
-            double bestAbs = 0.0, secondAbs = 0.0;
-            for (int c = 0; c < CHAR_SET_SIZE; c++) {
-                double a = Math.abs(v[c]);
-                if (a > bestAbs) {
-                    secondAbs = bestAbs; second = best;
-                    bestAbs   = a;       best   = c;
-                } else if (a > secondAbs) {
-                    secondAbs = a; second = c;
-                }
-            }
-
-            double ratio = (secondAbs > 1e-12) ? bestAbs / secondAbs : 10.0;
-            blockConf += Math.min(ratio / 10.0, 1.0);
-
-            char ch;
-            if (ratio >= MIN_CONF_RATIO) {
-                ch = (char)(best + CHAR_OFFSET);
-                debug(String.format("CHAR '%c' code=%d ratio=%.2f plane=%d", ch, best, ratio, b));
-            } else {
-                // Low confidence — decode anyway (Olivia FEC should handle noise)
-                ch = (char)(best + CHAR_OFFSET);
-                debug(String.format("CHAR '%c' code=%d ratio=%.2f (low) plane=%d", ch, best, ratio, b));
-            }
-            if (appendToPending) pending.append(ch);
+            OliviaCodec.Decoded d = OliviaCodec.decodeChar(soft, startSym, b);
+            blockConf += Math.min(d.ratio() / 10.0, 1.0);
+            debug(String.format("CHAR %d ratio=%.2f plane=%d", d.ch(), d.ratio(), b));
+            if (appendToPending && d.ratio() >= MIN_CONF_RATIO) pending.append((char) d.ch());
         }
-
         lastConf = Math.min(0.99, blockConf / bitsPerSymbol);
-    }
-
-    // =================================================================
-    // Fast Walsh-Hadamard Transform (in-place, size must be power of 2)
-    // =================================================================
-
-    /**
-     * Computes v[c] = (1/n) * sum_k( v_orig[k] * (-1)^popcount(c & k) ).
-     */
-    private static void fwht(double[] v) {
-        int n = v.length;
-        for (int step = 1; step < n; step <<= 1) {
-            for (int i = 0; i < n; i += step << 1) {
-                for (int j = i; j < i + step; j++) {
-                    double a = v[j], b = v[j + step];
-                    v[j]        = a + b;
-                    v[j + step] = a - b;
-                }
-            }
-        }
-        for (int i = 0; i < n; i++) v[i] /= n;
     }
 
     // =================================================================
@@ -805,7 +709,7 @@ public class OliviaMode implements DigitalMode {
         // Each emit is one 3-character block or a few. Trimming every one removed real word spaces whenever they fell at a
         // block edge ("CQ CQ DE" came out as "CQCQDE"). Only the lead-in (spaces before the first text after sync) and
         // all-space blocks (lead-in / lead-out) are dropped now.
-        String text = pending.toString();
+        String text = shown(pending);
         pending.setLength(0);
         if (text.isBlank()) return Optional.empty();
         if (!emittedSinceSync) text = text.stripLeading();
@@ -814,6 +718,16 @@ public class OliviaMode implements DigitalMode {
         debug("EMIT '" + text + "'");
         return Optional.of(new DecodeMessage(
                 ModeType.OLIVIA, text, rigHz, centerHz, lastSnr, lastConf));
+    }
+
+    /** What a person sees: printable ASCII, tabs and line breaks (CR LF as one); NUL (the idle fill) and other control codes dropped. */
+    static String shown(CharSequence raw) {
+        StringBuilder b = new StringBuilder(raw.length());
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (c >= 0x20 && c < 0x7F || c == '\n' || c == '\t') b.append(c);
+        }
+        return b.toString();
     }
 
     private static void debug(String msg) {

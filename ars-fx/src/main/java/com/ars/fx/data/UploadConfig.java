@@ -38,7 +38,14 @@ public final class UploadConfig {
             new Service("wavelog", "Wavelog", "your Wavelog's address, a read/write API key (Account > API) and the station profile id", List.of(
                     new Field("url", "Wavelog address (https://...)", false),
                     new Field("apikey", "API key (read/write)", true),
-                    new Field("station", "Station profile id", false))));
+                    new Field("station", "Station profile id", false))),
+            new Service("cloudlog", "Cloudlog", "your Cloudlog's address, a read/write API key (Admin > API) and the station profile id", List.of(
+                    new Field("url", "Cloudlog address (https://...)", false),
+                    new Field("apikey", "API key (read/write)", true),
+                    new Field("station", "Station profile id", false))),
+            new Service("hrdlog", "HRDLog.net", "your HRDLog callsign and upload code (HRDLog: Options > Upload code); sends only QSOs not sent before", List.of(
+                    new Field("callsign", "HRDLog callsign", false),
+                    new Field("code", "Upload code", true))));
 
     private static JsonObject root;
 
