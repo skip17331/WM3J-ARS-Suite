@@ -151,7 +151,7 @@ Everything that carries data in or out is on these Setup pages.
 |------|--------------|
 | **Log database & backup** | Which database and table the normal log uses, with its QSO count and size (**Open folder**); the **contest databases** (each with its contest, start date and QSO count: **Archive** moves one into storage, **Restore** brings it back; archived logs sit in `~/.j-log/archive/<Contest>_<Year>/`); the **Call history** (see [§4.1](#41-j-log)); and **Backup, export & import**: **Export ADIF** or **Export CSV** to a timestamped file, and **Import ADIF…** into the normal log (QSOs already in it are skipped). **QSO recording** (off by default): with *Record each QSO* on, the app keeps the last two minutes of receive audio (J-Digi's audio input) and saves the last *Seconds per QSO* (default 60) as a WAV file with every QSO you log on the log form, the contest page or the map card, in `~/.j-log/recordings/<date>/` (**Open folder**). |
 | **Online upload** | **LoTW** (signed with TrustedQSL), **eQSL.cc**, **QRZ Logbook**, **Club Log** and **Wavelog**, each with its login, an **Upload** button and an auto-upload tick (Wavelog: your Wavelog's address, a read/write API key from Account ▸ API, and the station profile id — the number in the address bar when you edit the station profile; it sends the whole log in batches and Wavelog skips QSOs it already has). **Get confirmations** downloads your LoTW and eQSL confirmations and ticks the matching QSOs. **Note:** eQSL's download does not work if your eQSL password contains a `#`. The password is the same one you use on eqsl.cc, and the website and uploading accept it, but eQSL's download service refuses it. To use Get confirmations for eQSL, change your password on eqsl.cc to one without `#` and enter the new one here. |
-| **Export & Cabrillo** | The Cabrillo / CSV character set, LoTW / eQSL auto-upload and Super Check Partial; the **phone web client** (off by default, see [§4.10](#410-phone-web-client)); the **N1MM+ UDP broadcast** (off by default), which sends your contest log to GridTracker, Log4OM and the like; the **contest network** (host or join a multi-operator contest over the LAN; the shared key is kept in your system keyring); and the categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club) plus Sweepstakes precedence, check and section. |
+| **Export & Cabrillo** | The Cabrillo / CSV character set, LoTW / eQSL auto-upload and Super Check Partial; the **phone web client** (off by default, see [§4.10](#410-phone-web-client)); the **N1MM+ UDP broadcast** (off by default), which sends your contest log to GridTracker, Log4OM and the like; the **contest network** (host or join a multi-operator contest over the LAN; the shared key must be at least 10 characters, the same on every station, and is kept in your system keyring; everything after the login is encrypted); and the categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club) plus Sweepstakes precedence, check and section. |
 | **Label printers (beta)** | Printer model (Brother QL, DYMO LabelWriter, Zebra, Rollo or any system printer), label stock, printer or network address, copies and a **Test print** button. Used by **Print QSL label** on the New QSO form. |
 | **DX cluster & RBN** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying); the Reverse Beacon Network has its own auto-connect and retry limit. **Spot alerts** (off by default): a card in the bottom-left corner and a chime when a spot arrives for a call on your **watch list** (calls or prefixes such as `VP8*`) or one your log needs (NEW ONE / NEW BAND / NEW MODE, or a new multiplier on the contest page); click a spot in the card to use it. The same call on the same band alerts once every 30 minutes. With a **Club Log token** (Club Log ▸ Settings ▸ API) the app keeps Club Log's **Most Wanted** ranking (fetched at most once a month): each spot's tooltip shows the entity's place, and **Alert on Club Log Most Wanted** alerts on the top N. With a **Club Log API key**, **Club Log DXCC exceptions** (**Update now**) fetches the calls Club Log places by hand for a date range (DXpeditions, special events), so those calls get the right entity. |
 | **WSJT-X / digital** | UDP port (2237), auto-log FT8/FT4 contacts, and the local CW skimmer. |
@@ -214,7 +214,7 @@ across the top of each always tells you which database you are writing to, with 
    **start a new one**. A new log gets a suggested name such as `NovSwpSSB2026.db`, which you can change. Asked each time you enter contest mode.
 3. **Say what you send.** Anything of your own exchange that Setup does not know (for example your Sweepstakes section) is asked once per contest.
 4. **Log on one screen.** Down the left: the entry bar built from the contest's exchange, with the **SEND** line (exactly what to say or key, built from your Setup details; **Edit** changes it) and a live score line: QSOs, mults, points, score, 10- and 60-minute rates, a **mults left** tile, and a **contest clock** once you have set the times. Below the entry are the last QSOs, with **Edit** and **Erase** on each (and **All QSOs →** for the lot). On the right: the DX cluster over the contest's own tabs (multiplier trackers and maps, dupe and worked-before panes, statistics).
-5. **LOG TOOLS** is a column beside the dock (it folds to a strip; **Pin** keeps it open). Its **Contest** drawer holds **Export Cabrillo ⤓** (writes the file for submission, using the categories set in Setup ▸ Export & Cabrillo), **Contest times…**, **Layout…** (a reminder note, the order of the tabs and of the exchange fields), **Change contest** and **Leave contest**. Its **Translator** drawer follows the call you are logging.
+5. **LOG TOOLS** is a column beside the dock (it folds to a strip; **Pin** keeps it open). Its **Contest** drawer holds **Export Cabrillo ⤓** (writes the file for submission, using the categories set in Setup ▸ Export & Cabrillo; dupes are kept in it, as ARRL and CQ ask, CLAIMED-SCORE is the score the page shows, and a multi-op entry lists its OPERATORS), **Contest times…**, **Layout…** (a reminder note, the order of the tabs and of the exchange fields), **Change contest** and **Leave contest**. Its **Translator** drawer follows the call you are logging.
 
 What the contest page does for you:
 
@@ -382,6 +382,22 @@ open** (`http://<this computer>:8095/`) and an **access token**, made for you th
 
 It is plain HTTP: use it on your own network only. To reach it from outside, use a VPN.
 
+### 4.11 Propagation estimate
+
+The suite works out its own estimate of which bands are open on a path, from the solar flux, sunspot number and K index it already
+downloads. It is a simple model and says so on screen.
+
+- **Propagation drawer** (right-hand rail): the bands' day and night ratings and the DX cluster's activity, and below them a 24-hour
+  by band grid for the path from your station to the last spot you clicked.
+- **Spot card**: a **Path now** line (likely open, marginal or probably closed, with the MUF and LUF) and a **Best time** line.
+- **Spot lists** show a green, amber or grey dot, and on **J-Map** a spot fades when its band is probably closed and gets a green ring
+  when it is likely open (the **Path now** filter switch).
+- **The check.** Every DX cluster spot of 1,000 km or more is a path that was open, so the suite asks the estimate about each one and
+  counts its answers per band; the drawer shows the running result (click it to start again). It can only count misses, not false
+  alarms. Each checked path is also kept in `~/.j-hub/propcheck/observations.csv` so a change to the model can be measured against
+  everything heard so far. In November 2026 the check found the estimate far too pessimistic above 20 m; the model now allows for the
+  winter anomaly and the equatorial anomaly, and counting started again for it.
+
 ---
 
 ## 5. Macros and transmitting
@@ -492,6 +508,7 @@ expected and what happened. If you started the app from a terminal, include any 
 | `~/.j-log/upload.json`, `lookup.json` | Upload and lookup settings: user names, and passwords only when there is no system keyring |
 | `~/.j-log/macros.json` | Your macros |
 | `~/.j-log/recordings/` | QSO recordings, one folder per day (UTC), when QSO recording is on |
+| `~/.j-hub/propcheck/observations.csv` | The paths the propagation check has heard (the newest 20,000) |
 | `~/.j-log/j-log.db` | Normal log |
 | `~/.j-log/callhistory.db` | Call history: each station's usual state, section, zone, grid and name |
 | `~/.j-log/contest-logs/` | Contest databases (one per contest and year) |

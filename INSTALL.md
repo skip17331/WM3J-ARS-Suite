@@ -318,6 +318,8 @@ alone; to bring it up to date, use **Setup ▸ J-Learn content ▸ Update files*
 | `~/.j-log/contest-logs/` | Contest logs, one database per contest and year (e.g. `NovSwpSSB2026.db`) |
 | `~/.j-log/archive/<Contest>_<Year>/` | Contest databases you have archived |
 | `~/.j-log/backups/` | ADIF / CSV backups made from Setup ▸ Log database & backup |
+| `~/.j-log/recordings/` | QSO recordings (when Setup ▸ Log database & backup ▸ Record each QSO is on) |
+| `~/.j-hub/propcheck/` | The paths the propagation estimate's self-check has heard |
 | `~/.j-log/upload.json`, `lookup.json`, `macros.json` | Upload and lookup settings (user names; passwords only when there is no keyring) and your macros |
 | The system keyring | Upload and lookup passwords, the Club Log token and the contest network key: Windows Credential Manager, the macOS Keychain, or the Linux Secret Service, under `ars-suite` |
 | `~/.j-vault/inventory.db` | J-Vault inventory |

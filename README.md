@@ -157,6 +157,13 @@ confirmations. Passwords and keys are kept in your operating system's
 keyring (Windows Credential Manager, macOS Keychain, the Linux Secret
 Service); where there is none, in owner‑only files (see [LEGAL.md](LEGAL.md)).
 
+### Info page and QSO recording
+
+The **Info** page gathers what is coming up and what is on now: contest and DXpedition calendars, ham-radio news, POTA activators
+on the air (tagged when your log needs the entity or the park), your log's statistics, and sunrise / sunset and greyline times at
+your station. **QSO recording** (off by default) keeps the last minutes of receive audio and saves the end of it as a WAV file with
+each QSO you log.
+
 ### Phone web client and updates
 
 A small web page lets a phone on your own network log QSOs (handy for POTA /
