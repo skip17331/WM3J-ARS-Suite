@@ -359,7 +359,7 @@ public final class JLogCockpit {
             if (ok) {
                 if (spotAfter[0] && editId[0] < 0) spotNote[0] = postSpot(call.getText(), freq.getText(), mode.getText(), cmt.getText());
                 spotAfter[0] = false;
-                if (editId[0] < 0) { com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText()); com.ars.fx.data.AutoUpload.afterLog(); }   // J-Map's session arcs; LoTW / eQSL auto-upload
+                if (editId[0] < 0) { com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText()); com.ars.fx.data.QsoRecorder.logged(call.getText(), bandVal, mode.getText()); com.ars.fx.data.AutoUpload.afterLog(); }   // J-Map's session arcs; LoTW / eQSL auto-upload
                 long rowId = editId[0] >= 0 ? editId[0] : JLogDb.maxId();
                 JLogDb.QsoFull saved = JLogDb.byId(rowId);
                 if (saved != null) {

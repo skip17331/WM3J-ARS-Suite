@@ -76,6 +76,7 @@ public class Launcher extends Application {
         com.ars.fx.shell.UpdateBanner.install(host, getHostServices());
         com.ars.fx.surface.SpotAlertCard.install(host);
         com.ars.fx.data.ClubLogCty.init();               // Club Log DXCC exceptions: daily, only with the Club Log API key set
+        com.ars.fx.data.QsoRecorder.init();              // QSO audio recording; off until switched on in Setup > Log database & backup
         com.ars.fx.data.MostWanted.init();               // Club Log Most Wanted: refreshed at most monthly, only with a token set   // watch-list / needed-spot alerts; off until switched on in J-Hub ▸ Setup ▸ DX cluster
         com.ars.fx.data.CtyUpdater.start();             // weekly refresh of the country files; off via J-Hub ▸ Station ▸ Updates
         com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates

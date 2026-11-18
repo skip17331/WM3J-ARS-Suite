@@ -495,7 +495,7 @@ final class JHubSetupPages {
                 lookupSection());
             case "logdb" -> cfgPage(cfgTop("J-Hub", "Logbook", "Log database & backup"),
                 lbl("Which database files J-Log writes to, the contest databases, and ADIF / CSV backup.", "cfg-desc"),
-                cells, logDatabaseSection(), JHubContestDbs.build(), callHistorySection(), backupSection());
+                cells, logDatabaseSection(), JHubContestDbs.build(), callHistorySection(), recordingSection(), backupSection());
             case "upload" -> cfgPage(cfgTop("J-Hub", "Logbook", "Online upload"),
                 lbl("Push your log to LoTW, eQSL, QRZ Logbook and Club Log.", "cfg-desc"),
                 uploadSection());
@@ -828,6 +828,26 @@ final class JHubSetupPages {
         return new VBox(6, lbl("CALL HISTORY", "cfg-sec"), card);
     }
     /** Real ADIF / CSV backup export of the J-Log database. */
+    /** QSO audio recording (punch list 5-2): the last seconds of receive audio saved as a WAV file with each QSO logged. */
+    static VBox recordingSection() {
+        Label status = lbl("", "cfg-lh"); status.setWrapText(true); status.setMaxWidth(Double.MAX_VALUE);
+        java.nio.file.Path dir = com.ars.fx.data.QsoRecorder.folder();
+        Label open = cfgBtn("Open folder");
+        open.setOnMouseClicked(e -> {
+            try { java.nio.file.Files.createDirectories(dir); } catch (java.io.IOException ignored) { }
+            status.setText(com.ars.fx.data.LogDbInfo.openFolder(dir) ? "Opened " + dir : "Could not open the folder: it is " + dir);
+        });
+        HBox btns = new HBox(10, open); btns.setAlignment(Pos.CENTER_LEFT);
+        return section("QSO RECORDING",
+            cfgRow("Record each QSO", "keeps the last minutes of receive audio and saves the end of it as a WAV file with every QSO you log "
+                    + "(log form, contest page, map card). It records J-Digi's audio input: choose your rig's audio in J-Digi. Off by default",
+                    cToggle(com.ars.fx.data.QsoRecorder.KEY_ON, false)),
+            cfgRow("Seconds per QSO", "how much audio before the moment you log it: 10 to 120 (default 60)",
+                    cInput(com.ars.fx.data.QsoRecorder.KEY_SECONDS, String.valueOf(com.ars.fx.data.QsoRecorder.DEFAULT_SECONDS))),
+            cfgRow("Recordings", "one folder per day (UTC): time_call_band_mode.wav", btns),
+            status);
+    }
+
     static VBox backupSection() {
         TextField dir = new TextField(com.ars.fx.data.LogExport.defaultBackupDir().toString());
         dir.getStyleClass().add("jhub-mini-field"); dir.setMinWidth(280); dir.setMaxWidth(Double.MAX_VALUE);
