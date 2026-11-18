@@ -53,13 +53,13 @@ the features you use, and to the services you set up:
   with the logins you enter.
 
 Your log, settings and caches stay on your computer in your home folder (`~/.j-log`, `~/.j-hub` and similar). Passwords, API keys and tokens you
-enter (log upload logins, lookup logins, the Club Log token) are kept in your operating system's own store when it has one: the
+enter (log upload logins, lookup logins, the Club Log token, the contest network key) are kept in your operating system's own store when it has one: the
 Secret Service (GNOME Keyring, KWallet; needs `secret-tool`) on Linux, the login Keychain on macOS, Credential Manager's
 password vault on Windows. Then they are not in `~/.j-log/upload.json` or `~/.j-log/lookup.json` at all; a password already in
-those files is moved to the store the first time the suite starts. If no store can be reached (for example `secret-tool` is not
+those files (or a network key in `~/.j-hub/config.json`) is moved to the store the first time the suite reads it. If no store can be reached (for example `secret-tool` is not
 installed), they stay in those files **as plain text, not encrypted**, as before, and the suite makes the files readable by your
-account only on Linux and macOS (on Windows your profile folder already limits them to you). The contest network key is still
-in `~/.j-hub/config.json` in plain text. Anyone who can sign in as you, or who gets a copy of the plain-text files (a backup, a
+account only on Linux and macOS (on Windows your profile folder already limits them to you); the network key then stays in
+`~/.j-hub/config.json`. Anyone who can sign in as you, or who gets a copy of the plain-text files (a backup, a
 shared folder), can read what is in them, so protect that folder as you would any file holding passwords. To keep secrets out of
 the system store, start the suite with `-Dars.keyring=false`.
 

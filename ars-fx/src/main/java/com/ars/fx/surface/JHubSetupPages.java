@@ -14,6 +14,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -455,7 +457,7 @@ final class JHubSetupPages {
             cfgRow("Score to", "an address for the score alone (blank = the address above)", cInput(com.ars.fx.data.N1mmBroadcast.KEY_DEST + ".score", "")));
         VBox network = section("CONTEST NETWORK (MULTI-OPERATOR)",
             cfgRow("Network mode", "Off, or Host (this station is the one the others join) or Join (connect to the host). Every station keeps its own full copy of the log, so one that loses the host keeps logging and catches up when it is back", cSelect(com.ars.fx.net.ContestNetwork.KEY_MODE, "Off", "Off", "Host", "Join")),
-            cfgRow("Shared key", "the same on every station, at least 4 characters. It is never sent, only a proof that you know it. The QSOs themselves cross your LAN unencrypted, so use this on a network you trust", cInput(com.ars.fx.net.ContestNetwork.KEY_KEY, "")),
+            cfgRow("Shared key", "the same on every station, at least 4 characters. It is never sent, only a proof that you know it. The QSOs themselves cross your LAN unencrypted, so use this on a network you trust", networkKeyField()),
             cfgRow("Host address", "Join only: the host station's IP address or name, such as 192.168.1.20. Leave it blank to find the host on the network by itself (the host announces its name and port, never the key)", cInput(com.ars.fx.net.ContestNetwork.KEY_HOST, "")),
             cfgRow("Announce this host", "Host only: tell the local network this host is here, so a station joining with no address can find it", cToggle(com.ars.fx.net.ContestNetwork.KEY_ANNOUNCE, true)),
             cfgRow("Port", "the host listens on it and the others connect to it (default 12070); open it in the host's firewall", cInput(com.ars.fx.net.ContestNetwork.KEY_PORT, String.valueOf(com.ars.fx.net.ContestNetwork.DEFAULT_PORT))),
@@ -612,15 +614,18 @@ final class JHubSetupPages {
             en.selectedProperty().addListener((o, a, b) -> com.ars.fx.data.UploadConfig.setEnabled(s.id(), en.isSelected()));
             HBox fields = new HBox(8); fields.setAlignment(Pos.CENTER_RIGHT);
             for (com.ars.fx.data.UploadConfig.Field f : s.fields()) {
-                TextField tf = new TextField(com.ars.fx.data.UploadConfig.field(s.id(), f.key()));
+                TextField tf = f.secret() ? new PasswordField() : new TextField();        // passwords are masked
+                tf.setText(com.ars.fx.data.UploadConfig.field(s.id(), f.key()));
                 tf.getStyleClass().add("jhub-mini-field"); tf.setPromptText(f.label()); tf.setMinWidth(120); tf.setMaxWidth(150);
-                tf.textProperty().addListener((o, a, b) -> com.ars.fx.data.UploadConfig.setField(s.id(), f.key(), tf.getText()));
+                saveWhenSettled(tf, () -> { String v = tf.getText(); return () -> com.ars.fx.data.UploadConfig.setField(s.id(), f.key(), v); });
                 fields.getChildren().add(tf);
             }
             Label up = cfgBtn("Upload"); up.setOnMouseClicked(e -> {
                 status.setText("⋯ uploading to " + s.label() + "…");
                 final String id = s.id();
+                flushSaves();
                 Thread t = new Thread(() -> {
+                    waitForSaves();                                                   // a password typed just now is the one used
                     com.ars.fx.data.LogUpload.Result r = switch (id) {
                         case "lotw" -> com.ars.fx.data.LogUpload.lotw();
                         case "eqsl" -> com.ars.fx.data.LogUpload.eqsl();
@@ -638,7 +643,9 @@ final class JHubSetupPages {
                 dl.setOnMouseClicked(e -> {
                     status.setText("\u22ef asking " + s.label() + " for your confirmations\u2026");
                     final String id = s.id();
+                    flushSaves();
                     Thread t = new Thread(() -> {
+                        waitForSaves();
                         com.ars.fx.data.ConfirmSync.Result r = id.equals("lotw") ? com.ars.fx.data.ConfirmSync.lotw() : com.ars.fx.data.ConfirmSync.eqsl();
                         javafx.application.Platform.runLater(() -> status.setText((r.ok() ? "\u2713 " : "\u2717 ") + r.service() + ": " + r.message()));
                     }, "confirm-sync");
@@ -665,7 +672,7 @@ final class JHubSetupPages {
             HBox controls = new HBox(8); controls.setAlignment(Pos.CENTER_RIGHT);
             if (p.creds()) {
                 user = macroField(cur.user(), 130); user.setPromptText("user / call");
-                secret = new TextField(cur.secret()); secret.getStyleClass().add("jhub-mini-field"); secret.setPromptText("password / key"); secret.setMinWidth(150); secret.setMaxWidth(150);
+                secret = new PasswordField(); secret.setText(cur.secret()); secret.getStyleClass().add("jhub-mini-field"); secret.setPromptText("password / key"); secret.setMinWidth(150); secret.setMaxWidth(150);
                 controls.getChildren().addAll(user, secret);
             } else if (p.path()) {
                 path = macroField(cur.extra(), 290); path.setPromptText("~/callbook.csv  (call,name,city,state,county,country,grid)");
@@ -673,12 +680,15 @@ final class JHubSetupPages {
             }
             controls.getChildren().add(en);
             final TextField fu = user, fs = secret, fp = path;
-            Runnable persist = () -> com.ars.fx.data.LookupConfig.set(p.id(), en.isSelected(),
-                    fu == null ? "" : fu.getText(), fs == null ? "" : fs.getText(), fp == null ? "" : fp.getText());
-            en.selectedProperty().addListener((o, a, b) -> persist.run());
-            if (fu != null) fu.textProperty().addListener((o, a, b) -> persist.run());
-            if (fs != null) fs.textProperty().addListener((o, a, b) -> persist.run());
-            if (fp != null) fp.textProperty().addListener((o, a, b) -> persist.run());
+            java.util.function.Supplier<Runnable> persist = () -> {                 // read on the FX thread, saved on the save thread
+                boolean on = en.isSelected();
+                String u = fu == null ? "" : fu.getText(), sc = fs == null ? "" : fs.getText(), x = fp == null ? "" : fp.getText();
+                return () -> com.ars.fx.data.LookupConfig.set(p.id(), on, u, sc, x);
+            };
+            en.selectedProperty().addListener((o, a, b) -> SAVE.execute(persist.get()));
+            if (fu != null) saveWhenSettled(fu, persist);
+            if (fs != null) saveWhenSettled(fs, persist);
+            if (fp != null) saveWhenSettled(fp, persist);
             card.getChildren().add(cfgRow(p.label(), p.hint(), controls));
         }
         if (!card.getChildren().isEmpty()) card.getChildren().get(card.getChildren().size() - 1).setStyle("-fx-border-width:0;");
@@ -999,6 +1009,49 @@ final class JHubSetupPages {
     // ---- config-bound interactive controls (persist to HubConfig) ----------
     static final String[] BAUDS = {"1200","2400","4800","9600","19200","38400","57600","115200"};
     /** Free-text field bound to a HubConfig key. */
+    /** The contest network's shared key: kept in the system keyring, so not bound to a config key like the other fields. */
+    static PasswordField networkKeyField() {
+        PasswordField t = new PasswordField(); t.setText(com.ars.fx.net.ContestNetwork.sharedKey()); t.getStyleClass().add("jhub-mini-field");
+        t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);
+        saveWhenSettled(t, () -> { String v = t.getText(); return () -> {
+            boolean kept = com.ars.fx.net.ContestNetwork.storeKey(v);                // the keyring, off the FX thread
+            javafx.application.Platform.runLater(() -> com.ars.fx.net.ContestNetwork.keyStored(v, kept));   // the config change (restarts the network) on the FX thread
+        }; });
+        return t;
+    }
+
+    /** One thread for settings saves, so they happen in the order typed and never on the FX thread. */
+    static final java.util.concurrent.ExecutorService SAVE = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "settings-save"); t.setDaemon(true); return t;
+    });
+    /** Fields typed in whose save has not started yet. FX thread only. */
+    private static final java.util.Map<javafx.animation.PauseTransition, java.util.function.Supplier<Runnable>> PENDING = new java.util.LinkedHashMap<>();
+
+    /**
+     * Save a field once typing settles: 0.7 s after the last key, on Enter, or when the field is left, on the {@link #SAVE}
+     * thread. {@code snapshot} runs on the FX thread and returns the save to run with the values it read. Passwords and keys
+     * go to the system keyring, which runs a command for every write (a PowerShell process on Windows): saving on every
+     * keystroke, as these fields used to, froze typing for about a second per character.
+     */
+    static void saveWhenSettled(TextInputControl t, java.util.function.Supplier<Runnable> snapshot) {
+        javafx.animation.PauseTransition p = new javafx.animation.PauseTransition(javafx.util.Duration.millis(700));
+        Runnable fire = () -> { if (PENDING.remove(p) != null) { p.stop(); SAVE.execute(snapshot.get()); } };
+        p.setOnFinished(e -> fire.run());
+        t.textProperty().addListener((o, a, b) -> { PENDING.put(p, snapshot); p.playFromStart(); });
+        t.focusedProperty().addListener((o, was, now) -> { if (!now) fire.run(); });
+        if (t instanceof TextField tf) tf.addEventHandler(javafx.event.ActionEvent.ACTION, e -> fire.run());
+    }
+
+    /** FX thread: start every pending save now (before an action that reads the settings). */
+    static void flushSaves() {
+        for (var e : new java.util.ArrayList<>(PENDING.entrySet())) { e.getKey().stop(); SAVE.execute(e.getValue().get()); }
+        PENDING.clear();
+    }
+
+    /** Background thread: wait until every save started so far has finished (at most 20 s). */
+    static void waitForSaves() {
+        try { SAVE.submit(() -> { }).get(20, java.util.concurrent.TimeUnit.SECONDS); } catch (Exception ignored) { }
+    }
     static TextField cInput(String key, String def) {
         TextField t = new TextField(com.ars.fx.data.HubConfig.get(key, def)); t.getStyleClass().add("jhub-mini-field");
         t.setMinWidth(220); t.setMaxWidth(260); t.setAlignment(Pos.CENTER_RIGHT);

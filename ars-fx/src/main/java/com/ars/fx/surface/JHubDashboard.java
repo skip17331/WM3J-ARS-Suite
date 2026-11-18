@@ -414,13 +414,14 @@ public final class JHubDashboard {
     static Region mostWantedControls() {
         javafx.scene.control.PasswordField tok = new javafx.scene.control.PasswordField();
         tok.setText(com.ars.fx.data.MostWanted.token()); tok.setPromptText("cl_..."); tok.getStyleClass().add("jhub-mini-field"); tok.setPrefWidth(170);
-        tok.textProperty().addListener((o, a, b) -> com.ars.fx.data.MostWanted.setToken(b));
+        JHubSetupPages.saveWhenSettled(tok, () -> { String v = tok.getText(); return () -> com.ars.fx.data.MostWanted.setToken(v); });
         int n = com.ars.fx.data.MostWanted.size();
         Label st = lbl(n > 0 ? n + " entities ranked" : "no list yet", "jhub-conn");
         Label upd = lbl("Update now", "jhub-clearbtn"); upd.setStyle("-fx-cursor:hand;");
         upd.setOnMouseClicked(e -> {
             st.setText("⋯ asking Club Log…");
-            Thread t = new Thread(() -> { String m = com.ars.fx.data.MostWanted.refresh(); javafx.application.Platform.runLater(() -> st.setText(m)); }, "most-wanted");
+            JHubSetupPages.flushSaves();
+            Thread t = new Thread(() -> { JHubSetupPages.waitForSaves(); String m = com.ars.fx.data.MostWanted.refresh(); javafx.application.Platform.runLater(() -> st.setText(m)); }, "most-wanted");
             t.setDaemon(true); t.start();
         });
         HBox h = new HBox(8, tok, upd, st); h.setAlignment(Pos.CENTER_RIGHT);
