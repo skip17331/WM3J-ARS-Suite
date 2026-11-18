@@ -45,7 +45,7 @@ endorses, this project.
 The suite has no accounts and the author does not run a server that collects your data. It talks to the internet only for
 the features you use, and to the services you set up:
 
-- **Update check** — once a day it asks GitHub for the latest release, anonymously. Turn it off in J-Hub ▸ Station ▸ Updates.
+- **Update check** — once a day it asks GitHub for the latest release, anonymously. Turn it off in Setup ▸ Station ▸ Check for updates.
 - **Info page** — it downloads the feeds you have switched on. Those sites can see your IP address and a User-Agent of
   the form `WM3J-ARS-Suite/<version>`. Feeds are kept on disk for six hours so each is fetched rarely.
 - **Club Log Most Wanted** — only if you enter a Club Log token: the ranking is fetched with it at most once a month.

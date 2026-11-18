@@ -64,7 +64,7 @@ transmission is under way). `ars-fx` calls it from `DigiEngine.syncPtt()` so J-D
 `rig.ptt` `VOX` → `VOX`; `CAT`, `RTS` or `DTR` → `HAMLIB` (the rigctld daemon does the keying); host and port from
 `rig.rigctldHost` / `rig.rigctldPort`. The Hamlib CW keyer reads the same host and port.
 
-CW speed and keyer are set the same way with `applyCwSettings(keyer, wpm)`: `ars-fx` maps J-Hub ▸ Data ▸ Transmit's *CW speed*
+CW speed and keyer are set the same way with `applyCwSettings(keyer, wpm)`: `ars-fx` maps Setup ▸ Transmit & macros' *CW speed*
 (`tx.cwWpm`) to `cw.wpm` and its *J-Digi CW keyer* (`tx.cwKeyer`: Audio → `AUDIO`, Rig keyer → `HAMLIB`) to `cw.keyer`. Wire protocol is the plain rigctld set; a non-zero
 `RPRT` surfaces as an `IOException` through `AudioTxEngine`'s `onError`.
 
@@ -104,7 +104,9 @@ not the spot path, and it has not been investigated. `ModemServiceSkimmerTest` c
 
 Mode (`modem.mode`), RTTY reverse (`rtty.reverse`), audio devices (`audio.input.device`, `audio.output.device`), PTT and
 keyer settings, and the skimmer switch (`skimmer.local.enabled`) persist via Java `Preferences`
-(typically `~/.java/.userPrefs/com/hamradio/modem`), **not** a file in `~/.j-digi/`. `ModemService` reads the saved mode
+(typically `~/.java/.userPrefs/com/hamradio/modem`; on Windows the registry under `HKCU\Software\JavaSoft\Prefs`), **not**
+a file in `~/.j-digi/`. `-Djdigi.prefs.node=<path>` moves them to another node; the tests set it (surefire `argLine`) so a test
+run never touches the operator's settings. `-Djava.util.prefs.userRoot` alone does not do that on Windows, where the store is the registry. `ModemService` reads the saved mode
 on init and writes it on each mode switch.
 
 ## Packages
