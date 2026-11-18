@@ -166,6 +166,11 @@ Built and unit-tested; not yet seen working in the running app or with real equi
         stage 1's (propcheck.tally: 10m 0/3/80, 12m 0/10/30, 17m 12/2/21, 20m 27/7/28
         open/marginal/closed). If a band is still weak, tune the model by replaying
         ~/.j-hub/propcheck/observations.csv (PropagationCheck.replay).
+5-6     Info tab, new tiles: Active now (POTA activators in the last hour and DXpeditions on the air
+        today, with NEW ONE / NEW PARK; a click tunes and fills the log form), Your stats (counts
+        match the log browser and Awards), Reference (sunrise / sunset at your QTH, licence reminder
+        from J-Vault, J-Learn tip opens J-Learn); the IARU feeds in News; every tile above still
+        shows.
 3-7     Your log: the 2026-10-03 9K2IC (70cm DMR) QSO looks like a mistyped date. Check it and
         correct it in the log browser if it is wrong.
 4a-1    Contest network key in the keyring: set the key in Setup > Contest network; it is masked,
@@ -249,7 +254,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 5-3     SO2R. Size: L. Notes: Only if serious contesters are a target audience.
 5-4     Contest network: standby host, shared QTCs and normal log, messages / skeds, operator roles.
         Size: L. Notes: After 2d-1.
-5-6     Info tab: Active now, more news sources, calendars, your stats, reference tiles. Size: L.
 5-7     Basemap: country names on the azimuthal map, per-country colours, antipode wedge. Size: M.
 5-8     Call history: fetch a published master file. Size: S. Notes: No stable public source yet.
 5-9     Cloudlog / HRDLog upload. Size: S.
@@ -258,6 +262,10 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 5-12    Localization. Size: L. Notes: English only; no resource bundles.
 5-13    Screen-reader accessibility. Size: M. Notes: No accessible text on controls.
 5-14    Emergency communications (GoKit). Size: M. Notes: Parked.
+5-16    Info tab, still to do. Size: M. Notes: RBN who-hears-me summary in Active now; SOTA
+        activators (needs SOTA's developer registration and approval first); CQ, FCC, WSJT-X and
+        podcast news (no usable feeds); more calendars (special events, nets, satellite news,
+        distance filter); AMSAT's slow feed.
 5-15    Decided against: PSK Reporter, a WSJT-X activity layer. Notes: Left to GridTracker.
 4a-3    Decided against: N1MM+ rotator messages (UDP 12040 / 13010). Notes: ARS Suite turns the
         rotor itself through Hamlib (RotorClient). The messages only matter when N1MM+ is the logger
