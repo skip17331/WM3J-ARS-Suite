@@ -12,18 +12,18 @@ class NetPureTest {
     // ---- auth ----
     @Test void aProofIsRightOnlyForTheSameKeyNonceAndStation() {
         String n = NetAuth.nonce();
-        String p = NetAuth.proof("secret1", n, "STN-B");
-        assertTrue(NetAuth.verify("secret1", n, "STN-B", p));
-        assertFalse(NetAuth.verify("secret2", n, "STN-B", p), "another key");
-        assertFalse(NetAuth.verify("secret1", NetAuth.nonce(), "STN-B", p), "a recorded proof cannot be replayed on a new connection");
-        assertFalse(NetAuth.verify("secret1", n, "STN-C", p), "another station name");
-        assertFalse(NetAuth.verify("secret1", n, "STN-B", null)); assertFalse(NetAuth.verify(null, n, "STN-B", p)); assertFalse(NetAuth.verify("abc", n, "STN-B", p), "a key under 4 characters is refused");
-        assertFalse(p.contains("secret1"), "the key is not in the proof");
+        String p = NetAuth.proof("secret-one-key", n, "STN-B");
+        assertTrue(NetAuth.verify("secret-one-key", n, "STN-B", p));
+        assertFalse(NetAuth.verify("secret-two-key", n, "STN-B", p), "another key");
+        assertFalse(NetAuth.verify("secret-one-key", NetAuth.nonce(), "STN-B", p), "a recorded proof cannot be replayed on a new connection");
+        assertFalse(NetAuth.verify("secret-one-key", n, "STN-C", p), "another station name");
+        assertFalse(NetAuth.verify("secret-one-key", n, "STN-B", null)); assertFalse(NetAuth.verify(null, n, "STN-B", p)); assertFalse(NetAuth.verify("abc", n, "STN-B", p), "a key under 4 characters is refused");
+        assertFalse(p.contains("secret-one-key"), "the key is not in the proof");
     }
     @Test void noncesAreFreshAndHex() {
         String a = NetAuth.nonce(), b = NetAuth.nonce();
         assertTrue(a.matches("[0-9a-f]{32}")); assertNotEquals(a, b);
-        assertTrue(NetAuth.keyOk("abcd")); assertFalse(NetAuth.keyOk("abc")); assertFalse(NetAuth.keyOk("   ")); assertFalse(NetAuth.keyOk(null));
+        assertTrue(NetAuth.keyOk("ten-chars!")); assertFalse(NetAuth.keyOk("nine-char")); assertFalse(NetAuth.keyOk("abcd"), "4 used to be enough"); assertFalse(NetAuth.keyOk("   ")); assertFalse(NetAuth.keyOk(null));
     }
 
     // ---- merge ----
