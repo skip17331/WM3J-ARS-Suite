@@ -15,7 +15,9 @@ import java.security.SecureRandom;
 public final class NetAuth {
     private NetAuth() {}
 
-    public static final int MIN_KEY = 4;
+    /** The shortest shared key accepted. Someone who records one handshake on the LAN can try keys offline against the proof, and the
+     *  session key comes from the shared key too, so a short one fell in seconds and opened the traffic. It was 4. */
+    public static final int MIN_KEY = 10;
     private static final SecureRandom RNG = new SecureRandom();
 
     public static boolean keyOk(String key) { return key != null && key.trim().length() >= MIN_KEY; }

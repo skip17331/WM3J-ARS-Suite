@@ -70,6 +70,9 @@ IDs
         (a rough points-times-multipliers sum ignored special rules, so the Club QSO Party claimed
         five times its score); CREATED-BY names the app and version (was 'j-Log v1.5.0'); a multi-op
         entry lists its OPERATORS.
+4a-5    Contest network key: at least 10 characters (was 4; a recorded handshake let a short key be
+        found offline, and with it the session encryption). A network with a shorter key will not
+        start until the key is changed, and says so.
 4a-2    J-Digi audio thread profiled (2 min of audio per mode): FFT, decoder, signal classifier and
         CW skimmer together cost under 0.1% of a core in every mode except Olivia (about 3.8%, its
         symbol-sync search while unlocked; see 3-10).
@@ -193,10 +196,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 4a. Code
 --------
 
-4a-5    Contest network key: 4 characters minimum. Someone who records one connection's handshake on
-        the LAN can try keys offline, and a short key falls in seconds, opening the encryption.
-        Raise the minimum (10?) and warn on short keys. Decide first: existing networks with a
-        shorter key would refuse to start until it is changed. Size: S.
 
 4b. QSO-party rules (code once the details are confirmed)
 ---------------------------------------------------------
