@@ -42,7 +42,7 @@ public final class JHubDashboard {
         // Same icon dock as every operating module; the J-Hub config links ride along as an
         // expand-only tail so they stay reachable without changing the collapsed rail. In a solo
         // window there is no dock, so the same links become a fixed left nav column instead.
-        Region nav = Shell.solo ? soloNav(activeConf) : Shell.dock("hub", hubConfigSection(activeConf));
+        Region nav = Shell.solo ? soloNav(activeConf) : Shell.dock("hub");
 
         Region centre;
         if (scrolls) {

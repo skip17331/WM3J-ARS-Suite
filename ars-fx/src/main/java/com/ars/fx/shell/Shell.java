@@ -71,7 +71,7 @@ public final class Shell {
         Map.entry("digi",  Color.web("#b191ea")), Map.entry("bridge", Color.web("#6fa7ee")),
         Map.entry("sat",   Color.web("#6fc884")), Map.entry("vault",  Color.web("#dba475")),
         Map.entry("learn", Color.web("#ef7d83")), Map.entry("hub",    Color.web("#a2c4d0")),
-        Map.entry("info",  Color.web("#d98fd1")),
+        Map.entry("info",  Color.web("#d98fd1")), Map.entry("setup", Color.web("#b4bfcb")),
         Map.entry("accent",Color.web("#31bdda")), Map.entry("t2",     Color.web("#97a4b2")));
 
     // ---- small helpers -----------------------------------------------------
@@ -194,7 +194,7 @@ public final class Shell {
         Color c = HUE.getOrDefault(hue, HUE.get("t2"));
         StackPane tile = new StackPane(Glyphs.glyph(glyphId, glyphSize, c));
         tile.getStyleClass().addAll(tileClasses);
-        if (!hue.equals("gear")) tile.getStyleClass().add(hue);
+        tile.getStyleClass().add(hue);
         return tile;
     }
 
@@ -237,6 +237,8 @@ public final class Shell {
             if (m.id().equals("log")) continue;   // logging lives on the J-Hub dashboard; contest mode is reached from its Log tools
             dock.getChildren().add(dockItem(m.id(), m.name(), m.hue(), com.ars.fx.data.ModuleConfig.running(m.id()), activeId, expandOnly));
         }
+        // Setup is a dock entry like any module (its page is the J-Hub setup screen, reached through "station")
+        dock.getChildren().add(dockItem("station", "Setup", "setup", true, activeId, expandOnly));
         if (tailExpandOnly != null) for (Node n : tailExpandOnly) {
             n.setManaged(false); n.setVisible(false); expandOnly.add(n); dock.getChildren().add(n);
         }
@@ -309,20 +311,19 @@ public final class Shell {
         return dockItemRaw(id, name, hue, running, active, expandOnly);
     }
     private static HBox dockItemRaw(String id, String name, String hue, boolean running, String active, List<Node> expandOnly) {
-        StackPane ic = iconTile(hue, hue.equals("gear") ? "gear" : id, 20, "sx-dock-ic");
+        StackPane ic = iconTile(hue, hue.equals("setup") ? "gear" : id, 20, "sx-dock-ic");
         if (!running && !id.equals(active)) ic.setOpacity(0.62);
         Label nm = lbl(name, "sx-dock-name"); nm.setManaged(false); nm.setVisible(false); HBox.setHgrow(nm, Priority.ALWAYS); nm.setMaxWidth(Double.MAX_VALUE);
         Region dot = new Region(); dot.getStyleClass().addAll("sx-dock-dot"); if (running) dot.getStyleClass().add("on");
         dot.setManaged(false); dot.setVisible(false);
-        expandOnly.add(nm); if (!hue.equals("gear")) expandOnly.add(dot);
+        expandOnly.add(nm); if (!hue.equals("setup")) expandOnly.add(dot);
         HBox row = new HBox(12, ic, nm, dot); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("sx-dock-item");
-        if (!hue.equals("gear")) row.getStyleClass().add(hue);
+        row.getStyleClass().add(hue);
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
         // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
-        Tips.tip(row, hue.equals("gear") ? "Station settings" : name + (isBeta(id) ? " (beta)" : "") + (running ? "" : " (not running)"));
-        if (!hue.equals("gear")) row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
-        else { row.setStyle("-fx-cursor:hand;"); row.setOnMouseClicked(e -> navigate("station")); }   // gear → Station settings
+        Tips.tip(row, hue.equals("setup") ? "Setup - station, radio, data, log and the suite" : name + (isBeta(id) ? " (beta)" : "") + (running ? "" : " (not running)"));
+        row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
         return row;
     }
 

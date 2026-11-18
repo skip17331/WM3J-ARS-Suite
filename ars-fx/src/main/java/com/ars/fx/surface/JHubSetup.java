@@ -52,7 +52,7 @@ public final class JHubSetup {
     /** The Setup screen, opened on {@code initial} (a section id from the menu; anything else opens Station). */
     public static Region build(String initial) {
         String[] cur = {known(initial) ? initial : "station"};
-        Region dock = Shell.dock("hub", JHubDashboard.hubConfigSection("setup"));   // null in a solo window
+        Region dock = Shell.dock("station");   // null in a solo window
 
         StackPane content = new StackPane(); content.setAlignment(Pos.TOP_LEFT); HBox.setHgrow(content, Priority.ALWAYS);
         content.setStyle("-fx-background-color:-ars-bg;");
