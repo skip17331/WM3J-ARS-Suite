@@ -230,7 +230,7 @@ public final class Shell {
 
         com.ars.fx.data.ModuleConfig.markOpened(activeId);
         // J-Hub at top
-        dock.getChildren().add(dockItem("hub", "J-Hub", "hub", true, activeId, expandOnly));
+        dock.getChildren().add(dockItem("hub", "Dashboard", "hub", true, activeId, expandOnly));
         Label sec = lbl("MODULES", "sx-dock-sec"); sec.setManaged(false); sec.setVisible(false); expandOnly.add(sec);
         dock.getChildren().add(sec);
         for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) {
