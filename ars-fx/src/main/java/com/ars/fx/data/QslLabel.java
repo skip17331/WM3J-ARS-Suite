@@ -139,7 +139,13 @@ public final class QslLabel {
 
     /** What goes on the label. */
     public record Qso(String call, String dateTimeUtc, String freq, String band, String mode,
-                      String rstSent, String rstRcvd, String name, String qth) {}
+                      String rstSent, String rstRcvd, String name, String qth, String exchange) {
+        /** A normal-log QSO: no contest exchange. */
+        public Qso(String call, String dateTimeUtc, String freq, String band, String mode,
+                   String rstSent, String rstRcvd, String name, String qth) {
+            this(call, dateTimeUtc, freq, band, mode, rstSent, rstRcvd, name, qth, "");
+        }
+    }
 
     /** A normal-log row (the log browser) as label content, for a reprint. */
     public static Qso fromFull(JLogDb.QsoFull q) {
@@ -151,7 +157,18 @@ public final class QslLabel {
         String when = r.getDateTimeUtc() == null ? ""
                 : r.getDateTimeUtc().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         return new Qso(r.getCallsign(), when, ContestFreq.toMhz(r.getFrequency()), r.getBand(), r.getMode(), r.getRstSent(), r.getRstReceived(),
-                r.getOperatorName(), r.getCountry());
+                r.getOperatorName(), r.getCountry(), contestLine(r.getContestId(), LogExport.exchange(r)));
+    }
+
+    /**
+     * "CQ WW CW · 5NN 05": the contest and the exchange received. A contest QSO rarely has a name or RST of its own, so its label
+     * used to carry little more than the call and time; the exchange is the one thing every contest QSO has.
+     */
+    static String contestLine(String contestId, String exchange) {
+        String c = contestId == null ? "" : contestId.trim().replace('_', ' ');
+        String x = exchange == null ? "" : exchange.trim();
+        if (x.isEmpty()) return c;
+        return c.isEmpty() ? x : c + " \u00b7 " + x;
     }
 
     private record Line(String text, double weight, boolean bold) {}
@@ -174,6 +191,7 @@ public final class QslLabel {
         if (!fb.isBlank()) l.add(new Line(fb.trim(), 1.2, false));
         if (!rst.isEmpty()) l.add(new Line(rst, 1.0, false));
         if (!who.isEmpty()) l.add(new Line(who, 1.0, false));
+        if (!s(q.exchange()).isEmpty()) l.add(new Line(s(q.exchange()), 1.0, false));
         l.add(new Line(sig, 1.0, true));
         return l;
     }

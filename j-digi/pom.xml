@@ -197,7 +197,7 @@
                 <version>3.2.5</version>
                 <configuration>
                     <!-- the modem keeps its settings in Java Preferences; tests must never touch the user's real ones -->
-                    <argLine>-Djava.util.prefs.userRoot=${project.build.directory}/test-prefs</argLine>
+                    <argLine>-Djava.util.prefs.userRoot=${project.build.directory}/test-prefs -Djdigi.prefs.node=ars-suite-tests/jdigi</argLine>
                 </configuration>
             </plugin>
         </plugins>

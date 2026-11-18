@@ -290,6 +290,8 @@ public class ContestPlugin {
         private Map<String,Integer> pointsByPower;      // CATEGORY-POWER → every scoring QSO is worth this
                                                         //   (IDQP: all QRP QSOs = 5)
         private Map<String,Integer> pointsByStation;    // CATEGORY-STATION → every scoring QSO is worth this
+        private Map<String,Integer> pointsByRcvd;       // the class the other station sends (its last exchange word) → QSO points (ARC: R 100, U 50 ...)
+        private boolean noMultiplier;                   // the score is the sum of QSO points (and bonuses): no multiplier
                                                         //   (ARQP: mobile / portable / rover = 2)
         private ActivationBonus activationBonus;        // mobile / rover / portable: per own county activated
         private boolean ownCountyDupe;                  // the entrant's own sent county (per QSO) is part of the
@@ -347,6 +349,10 @@ public class ContestPlugin {
         public Map<String,Integer> getPointsByPower(){ return pointsByPower; }
         public void setPointsByPower(Map<String,Integer> v){ this.pointsByPower = v; }
         public Map<String,Integer> getPointsByStation(){ return pointsByStation; }
+        public Map<String,Integer> getPointsByRcvd(){ return pointsByRcvd; }
+        public void setPointsByRcvd(Map<String,Integer> v){ this.pointsByRcvd = v; }
+        public boolean isNoMultiplier(){ return noMultiplier; }
+        public void setNoMultiplier(boolean v){ this.noMultiplier = v; }
         public void setPointsByStation(Map<String,Integer> v){ this.pointsByStation = v; }
         public ActivationBonus getActivationBonus(){ return activationBonus; }
         public void setActivationBonus(ActivationBonus v){ this.activationBonus = v; }

@@ -277,6 +277,11 @@ public final class ContestScorer {
             String rc = q.getContestField1() == null ? "" : q.getContestField1().trim().toUpperCase();
             if (qpUpper(c.getRareCounties()).contains(rc)) base *= c.getRareQsoMultiplier();
         }
+        if (c != null && c.getPointsByRcvd() != null) {             // ARC: the class letter the other station sends sets the points
+            String rc = rcvdClass(q.getContestField1());
+            Integer rp = c.getPointsByRcvd().get(rc);
+            base = rp == null ? 0 : rp;                              // no class (or one not in the rules): no points
+        }
         if (c != null && c.getPointsByPower() != null && !ctx.power().isEmpty()) {
             Integer pp = c.getPointsByPower().get(ctx.power());    // IDQP: every QRP QSO is worth 5, whatever the mode
             if (pp != null) base = pp;
@@ -288,6 +293,13 @@ public final class ContestScorer {
             if (sp != null) base = sp;
         }
         return base;
+    }
+
+    /** The class in a received exchange: its last word, upper case ("110 R" or "R" → "R"); "" when there is none. */
+    static String rcvdClass(String field) {
+        if (field == null || field.isBlank()) return "";
+        String[] w = field.trim().toUpperCase(java.util.Locale.ROOT).split("[\\s/]+");
+        return w[w.length - 1];
     }
 
     /** The entrant's own county on this QSO: the logged sent-county field when the contest has one, else the context's sent QTH. */
@@ -781,6 +793,7 @@ public final class ContestScorer {
                                      : Math.min(inDg.size(), outCap);
             if (c != null && c.getMultCap() > 0)
                 qpMults = Math.min(qpMults, c.getMultCap());
+            if (c != null && c.isNoMultiplier()) qpMults = 1;           // ARC: the score is the sum of the QSO points
             int total = sumPoints(qsos);
             // power and station-category multipliers scale QSO points × multipliers; bonuses are added after them
             double factor = c == null ? 1 : categoryFactor(c.getPowerMultiplier(), ctx.power()) * categoryFactor(c.getStationMultiplier(), ctx.station());
