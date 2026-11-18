@@ -4,6 +4,7 @@ import com.ars.fx.data.Bands;
 import com.ars.fx.data.ContestState;
 import com.ars.fx.data.DupeFlags;
 import com.ars.fx.data.HubConfig;
+import com.ars.fx.data.SecretStore;
 import com.ars.fx.data.RigClient;
 import com.jlog.db.ContestQsoDao;
 import com.jlog.db.ContestQsoDao.Change;
@@ -90,6 +91,35 @@ public final class ContestNetwork {
         apply();
     }
 
+    /** The keyring entry (service "ars-suite") that holds the shared key. */
+    static final String KEY_ACCOUNT = "contest-network-key";
+
+    /**
+     * The shared network key. Kept in the system keyring when there is one (Windows Credential Manager, macOS Keychain, the
+     * Secret Service on Linux), like the upload and lookup passwords; a key still in {@code ~/.j-hub/config.json} from an older
+     * version is moved there the first time it is read. Without a keyring it stays in the config file, as before.
+     */
+    public static String sharedKey() {
+        String plain = HubConfig.get(KEY_KEY, "");
+        if (!SecretStore.available()) return plain;
+        if (!plain.isEmpty()) {                                              // an older version's key: move it out of the file
+            if (SecretStore.put(KEY_ACCOUNT, plain)) HubConfig.remove(KEY_KEY);
+            return plain;
+        }
+        return SecretStore.get(KEY_ACCOUNT);
+    }
+
+    /** Set the shared key (Setup ▸ Contest network). Goes to the keyring when there is one; the network restarts with it. */
+    public static void setSharedKey(String key) { keyStored(key, storeKey(key)); }
+
+    /** The keyring half of {@link #setSharedKey}: true when the keyring now holds {@code key}. Runs a system command, so not on the FX thread. */
+    public static boolean storeKey(String key) { return SecretStore.available() && SecretStore.put(KEY_ACCOUNT, key == null ? "" : key); }
+
+    /** The config half of {@link #setSharedKey}: nothing in the file when the keyring took the key, else the key itself. Either change restarts the network. */
+    public static void keyStored(String key, boolean inKeyring) {
+        if (inKeyring) HubConfig.remove(KEY_KEY); else HubConfig.set(KEY_KEY, key == null ? "" : key);
+    }
+
     /** Settings changed: restart the network once the operator has stopped typing. */
     private static void scheduleApply() { if (applyQueued.compareAndSet(false, true)) WORK.schedule(() -> { applyQueued.set(false); apply(); }, 900, TimeUnit.MILLISECONDS); }
 
@@ -103,7 +133,7 @@ public final class ContestNetwork {
         startError = "";
         String mode = mode();
         if (mode.equals("Off")) return;
-        String key = HubConfig.get(KEY_KEY, "");
+        String key = sharedKey();
         if (!NetAuth.keyOk(key)) { startError = "Set a shared key of at least " + NetAuth.MIN_KEY + " characters (the same on every station)."; return; }
         NetNode n = new NetNode(station(), operator(), key, new DbStore(), ContestNetwork::myStatus);
         n.setSerialSource(ContestState::localNextSerial);
