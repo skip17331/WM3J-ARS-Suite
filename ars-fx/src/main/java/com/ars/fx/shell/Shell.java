@@ -230,7 +230,20 @@ public final class Shell {
 
         com.ars.fx.data.ModuleConfig.markOpened(activeId);
         // J-Hub at top
-        dock.getChildren().add(dockItem("hub", "Dashboard", "hub", true, activeId, expandOnly));
+        HBox hubItem = dockItem("hub", "Dashboard", "hub", true, activeId, expandOnly);
+        dock.getChildren().add(hubItem);
+        // Right-click: the kill switch. The background hub outlives the windows (and a killed window cannot tell it to stop), so it can be stopped from here.
+        javafx.scene.control.ContextMenu killMenu = new javafx.scene.control.ContextMenu();
+        javafx.scene.control.MenuItem killItem = new javafx.scene.control.MenuItem("Quit ARS Suite and stop the background hub");
+        killItem.setOnAction(e -> {
+            Thread t = new Thread(() -> {
+                com.ars.fx.HubServer.stopRunning();
+                javafx.application.Platform.runLater(() -> { javafx.application.Platform.exit(); });
+            }, "quit-all");
+            t.setDaemon(true); t.start();
+        });
+        killMenu.getItems().add(killItem);
+        hubItem.setOnContextMenuRequested(e -> { killMenu.show(hubItem, e.getScreenX(), e.getScreenY()); e.consume(); });
         Label sec = lbl("MODULES", "sx-dock-sec"); sec.setManaged(false); sec.setVisible(false); expandOnly.add(sec);
         dock.getChildren().add(sec);
         for (com.ars.fx.data.ModuleConfig.Mod m : com.ars.fx.data.ModuleConfig.enabledModules()) {

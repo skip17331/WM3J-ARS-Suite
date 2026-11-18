@@ -38,6 +38,8 @@ public final class RemoteServer extends WebSocketServer {
      *  drive the refcount/linger shutdown; a {@code hub.reconfig} nudge from a client triggers a reconcile. */
     public static volatile IntConsumer onClientCount;
     public static volatile Runnable onReconfig;
+    /** Set by the hub: stop the whole hub process. Only a window on this machine may ask (see {@code hub.quit}). */
+    public static volatile Runnable onQuit;
 
     private final Map<WebSocket, String> clients = new ConcurrentHashMap<>();   // conn → module label (from "hello")
     private final Map<WebSocket, Long> rawCursor = new ConcurrentHashMap<>();   // conn → last cluster raw-log seq it has been sent
@@ -140,6 +142,11 @@ public final class RemoteServer extends WebSocketServer {
                 case "spot.add"     -> ClusterClient.getInstance().addLocalSpot(new ClusterClient.Spot(    // a window's local skimmer heard a call
                         o.get("hz").getAsLong(), o.get("call").getAsString(), o.get("mode").getAsString(), o.get("band").getAsString(),
                         o.get("de").getAsString(), o.get("comment").getAsString(), System.currentTimeMillis()));
+                case "hub.quit"     -> {                                   // the operator's kill switch: loopback clients only, never the LAN
+                    java.net.InetSocketAddress from = conn.getRemoteSocketAddress();
+                    Runnable r = onQuit;
+                    if (r != null && from != null && from.getAddress() != null && from.getAddress().isLoopbackAddress()) r.run();
+                }
                 case "hub.reconfig" -> { Runnable r = onReconfig; if (r != null) r.run(); }   // re-read config + reconcile
                 default             -> { /* ignore unknown */ }
             }

@@ -70,6 +70,10 @@ public final class HubServer {
     private static volatile ScheduledFuture<?> pendingShutdown;
 
     public static void main(String[] args) {
+        if (args.length > 0 && "--stop".equals(args[0])) {            // ars-fx.sh --stop-hub
+            System.out.println(stopRunning() ? "[hub] told the hub to quit" : "[hub] no hub is running on :" + RemoteServer.port());
+            System.exit(0);
+        }
         int port = RemoteServer.port();
         auto = Boolean.getBoolean("ars.hub.auto");
 
@@ -98,6 +102,7 @@ public final class HubServer {
         RotorClient.satellite().start();                 // idles until the satellite rotor is switched on
         RemoteServer.onClientCount = HubServer::onClientCount;   // wire refcount before the server accepts clients
         RemoteServer.onReconfig    = HubServer::reconcile;
+        RemoteServer.onQuit        = () -> { System.out.println("[hub] quit requested by a window"); ALIVE.countDown(); };
         RemoteServer.startHub();
         com.ars.fx.web.WebClientServer.init();             // the phone page, if the operator turned it on
         if (!auto) scheduleStartupIdleCheck();   // a hub started on its own must not hold the cluster for nobody
@@ -112,6 +117,24 @@ public final class HubServer {
         try { ALIVE.await(); } catch (InterruptedException ignored) {}
         cleanup();
         System.exit(0);
+    }
+
+    /** Asks the hub running on this machine to quit (the hub only obeys a connection from the loopback address). True if one was reached. */
+    public static boolean stopRunning() {
+        int port = RemoteServer.port();
+        if (!portOpen(port)) return false;
+        try {
+            org.java_websocket.client.WebSocketClient c = new org.java_websocket.client.WebSocketClient(new java.net.URI("ws://127.0.0.1:" + port)) {
+                @Override public void onOpen(org.java_websocket.handshake.ServerHandshake h) { send("{\"t\":\"hub.quit\"}"); }
+                @Override public void onMessage(String m) {}
+                @Override public void onClose(int code, String reason, boolean remote) {}
+                @Override public void onError(Exception e) {}
+            };
+            if (!c.connectBlocking(2, java.util.concurrent.TimeUnit.SECONDS)) return false;
+            Thread.sleep(400);                                      // let the message out before the socket goes
+            c.close();
+            return true;
+        } catch (Exception e) { return false; }
     }
 
     /** Ensure a hub is listening on the sharing port, spawning one (detached) if not. Used by every client

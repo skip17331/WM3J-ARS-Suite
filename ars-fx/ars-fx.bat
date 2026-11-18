@@ -3,6 +3,7 @@ rem Production launcher for the installed ARS Suite (runs the packaged jar).
 rem   ars-fx.bat                -> docked app (J-Hub + all modules)
 rem   ars-fx.bat --module log   -> one module un-docked (loose), attached to the hub
 rem   ars-fx.bat --hub          -> background hub only (system tray)
+rem   ars-fx.bat --stop-hub     -> tell the background hub on this machine to quit
 rem The installer's Start-Menu shortcuts call this with different args.
 setlocal
 set "SCRIPT_DIR=%~dp0"
@@ -18,7 +19,9 @@ if not defined JAR (
 
 cd /d "%SCRIPT_DIR%"
 rem javaw has no console; start returns at once, so this script's own window closes too.
-if "%~1"=="--hub" (
+if "%~1"=="--stop-hub" (
+  java -Dfile.encoding=UTF-8 -cp "%JAR%" com.ars.fx.HubServer --stop
+) else if "%~1"=="--hub" (
   start "" javaw -Dfile.encoding=UTF-8 -cp "%JAR%" com.ars.fx.HubServer
 ) else (
   start "" javaw -Dfile.encoding=UTF-8 -jar "%JAR%" %*
