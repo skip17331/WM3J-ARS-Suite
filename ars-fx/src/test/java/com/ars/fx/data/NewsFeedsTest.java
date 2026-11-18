@@ -80,7 +80,7 @@ class NewsFeedsTest {
             assertTrue(f.site().startsWith("http"), f.id());
             if (f.defaultOn()) defaults++;
         }
-        assertEquals(7, defaults, "the societies-and-news set is on by default");
+        assertEquals(9, defaults, "the societies-and-news set is on by default (IARU and IARU Region 1 joined it 2026-11-18)");
     }
 
     @Test

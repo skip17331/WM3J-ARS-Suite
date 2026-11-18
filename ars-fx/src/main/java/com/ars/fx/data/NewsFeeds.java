@@ -38,6 +38,8 @@ public final class NewsFeeds {
         new Feed("arnews",   "Amateur Radio Newsline","https://www.arnewsline.org/news?format=rss",              "https://www.arnewsline.org/",     Group.OFFICIAL, true),
         new Feed("amsat",    "AMSAT",                 "https://www.amsat.org/feed",                             "https://www.amsat.org/",          Group.OFFICIAL, true),
         new Feed("rsgb",     "RSGB",                  "https://rsgb.org/main/feed/",                            "https://rsgb.org/",               Group.OFFICIAL, true),
+        new Feed("iaru",     "IARU",                  "https://www.iaru.org/feed/",                             "https://www.iaru.org/",           Group.OFFICIAL, true),     // band plans and spectrum (2026-11-18)
+        new Feed("iarur1",   "IARU Region 1",         "https://www.iaru-r1.org/feed/",                          "https://www.iaru-r1.org/",        Group.OFFICIAL, true),
         new Feed("hamweekly","Ham Weekly",            "https://daily.hamweekly.com/atom.xml",                   "https://daily.hamweekly.com/",    Group.OFFICIAL, true),
         new Feed("amateurradio","AmateurRadio.com",   "https://feeds.feedburner.com/amateurradiocom",           "https://www.amateurradio.com/",   Group.OFFICIAL, true),
         new Feed("dxzone",   "The DXZone",            "https://feeds.feedburner.com/dxzone/xml",                "https://www.dxzone.com/",         Group.OFFICIAL, true),
@@ -49,7 +51,8 @@ public final class NewsFeeds {
         new Feed("amateurlogic","AmateurLogic.TV",    "https://www.amateurlogic.tv/blog/?feed=rss2",            "https://www.amateurlogic.tv/",    Group.BLOGS, false),
         new Feed("soldersmoke","SolderSmoke",         "https://feeds.feedburner.com/SoldersmokeDailyNews",      "https://soldersmoke.blogspot.com/", Group.BLOGS, false),
         new Feed("machamradio","Mac Ham Radio",       "https://machamradio.com/feed",                           "https://machamradio.com/",        Group.BLOGS, false),
-        new Feed("hamradiodx","Ham Radio DX",         "https://hamradiodx.net/feed",                            "https://hamradiodx.net/",         Group.BLOGS, false));
+        new Feed("hamradiodx","Ham Radio DX",         "https://hamradiodx.net/feed",                            "https://hamradiodx.net/",         Group.BLOGS, false),
+        new Feed("hamlib",   "Hamlib releases",       "https://github.com/Hamlib/Hamlib/releases.atom",         "https://github.com/Hamlib/Hamlib/releases", Group.BLOGS, false));   // new rig / rotor support
 
     private static final String ON_KEY = "info.news.on";            // comma separated catalog ids; unset = the defaults
     private static final String CUSTOM_KEY = "info.news.custom";    // the operator's own feeds, one https:// address per line

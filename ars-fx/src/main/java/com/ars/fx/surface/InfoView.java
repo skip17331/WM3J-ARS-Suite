@@ -152,12 +152,12 @@ public final class InfoView {
             runNews.accept(false);
             if (busy[0]) return;
             busy[0] = true;
-            runLoad(false, all, loads, tiles, status, render, () -> busy[0] = false);
+            runLoad(false, all, loads, tiles, status, render, () -> { busy[0] = false; InfoTiles.refresh(false); });
         };
         Label refresh = lbl("⟳ Refresh", "jl-clearbtn"); refresh.setStyle("-fx-cursor:hand;");
         refresh.setOnMouseClicked(e -> {
             runNews.accept(true);
-            if (!busy[0]) { busy[0] = true; runLoad(true, all, loads, tiles, status, render, () -> busy[0] = false); }
+            if (!busy[0]) { busy[0] = true; runLoad(true, all, loads, tiles, status, render, () -> { busy[0] = false; InfoTiles.refresh(true); }); }
         });
         Label sources = lbl("Sources…", "jl-clearbtn"); sources.setStyle("-fx-cursor:hand;");
         sources.setOnMouseClicked(e -> editSources(sources, () -> load[0].run()));
@@ -205,11 +205,16 @@ public final class InfoView {
         VBox.setVgrow(nscroll, Priority.ALWAYS);
         grid.add(newsCard, 0, 1, 3, 1);
         javafx.scene.layout.GridPane.setFillHeight(newsCard, true);
+        // ---- a third row: Active now, Your stats, Reference (punch list 5-6); the rows above keep everything they had ----
+        VBox activeTile = InfoTiles.activeTile(() -> List.copyOf(all)), statsTile = InfoTiles.statsTile(), refTile = InfoTiles.referenceTile();
+        grid.add(activeTile, 0, 2); grid.add(statsTile, 1, 2); grid.add(refTile, 2, 2);
+        for (Node n : List.of(activeTile, statsTile, refTile)) javafx.scene.layout.GridPane.setFillHeight(n, true);
         grid.setVgap(16);
         grid.getRowConstraints().clear();
-        javafx.scene.layout.RowConstraints r0 = new javafx.scene.layout.RowConstraints(); r0.setPercentHeight(42); r0.setFillHeight(true);
-        javafx.scene.layout.RowConstraints r1 = new javafx.scene.layout.RowConstraints(); r1.setPercentHeight(58); r1.setFillHeight(true);
-        grid.getRowConstraints().addAll(r0, r1);
+        javafx.scene.layout.RowConstraints r0 = new javafx.scene.layout.RowConstraints(); r0.setPercentHeight(32); r0.setFillHeight(true);
+        javafx.scene.layout.RowConstraints r1 = new javafx.scene.layout.RowConstraints(); r1.setPercentHeight(38); r1.setFillHeight(true);
+        javafx.scene.layout.RowConstraints r2 = new javafx.scene.layout.RowConstraints(); r2.setPercentHeight(30); r2.setFillHeight(true);
+        grid.getRowConstraints().addAll(r0, r1, r2);
 
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox bar = new HBox(12, lbl("Info", "jhub-card-title"), range, search, sp, status, refresh, sources);

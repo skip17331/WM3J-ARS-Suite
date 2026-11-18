@@ -345,8 +345,8 @@ them).
 
 ### 4.9 Info
 
-The **Info** page (first in the dock) is a look-ahead and a news board, in four tiles: **Contests**, **DXpeditions**,
-**Links** and **News**. **Links** opens the ARRL Special Event Stations list and the ARRL Hamfest & Convention Calendar
+The **Info** page (first in the dock) is a look-ahead and a news board: **Contests**, **DXpeditions** and **Links** across the
+top, **News** across the middle, and **Active now**, **Your stats** and **Reference** along the bottom. **Links** opens the ARRL Special Event Stations list and the ARRL Hamfest & Convention Calendar
 in your browser (nothing is downloaded or copied from them).
 
 - The calendar tiles list what is coming up in the range you choose, with a search box; click an entry to open its page.
@@ -358,6 +358,13 @@ in your browser (nothing is downloaded or copied from them).
 - **⟳ Refresh** fetches again (feeds are kept six hours, and a manual refresh never goes to the network more than once
   every fifteen minutes); if a fetch fails the saved copy is shown.
 - **Request a change** starts an email to the project contact, to ask for a feed or calendar to be added.
+- **Active now** lists Parks on the Air activators spotted in the last hour (from pota.app, at most every five minutes) and
+  DXpeditions whose dates include today, tagged **NEW ONE** (an entity your log needs) or **NEW PARK**; click one to tune to it
+  and fill the log form. Summits on the Air is not included: SOTA's terms require each developer to register with them first.
+- **Your stats**: QSOs today, this month, this year and in all; DXCC worked, confirmed and new this month; confirmations by
+  LoTW, eQSL and paper; and how many QSOs are still to go to LoTW and eQSL.
+- **Reference**: sunrise and sunset at your station today (UTC) with the greyline hour around each, a reminder when the licence
+  expiry in J-Vault is less than 180 days away, and a J-Learn section for the day (click to open J-Learn).
 - The row of links along the bottom opens the project's web pages, and the **licence**, **Code of Conduct** and **legal
   notes**, which open from copies kept on your computer.
 
