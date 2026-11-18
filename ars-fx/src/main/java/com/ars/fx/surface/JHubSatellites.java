@@ -93,7 +93,7 @@ final class JHubSatellites {
         Runnable persist = () -> { SatSelection.setSelected(sel); updateStats.run(); debounce.playFromStart(); };
 
         // ── orbital data ────────────────────────────────────────────────────
-        Label refresh = JHubDashboard.cfgBtn("Refresh now");
+        Label refresh = JHubSetupPages.cfgBtn("Refresh now");
         refresh.setOnMouseClicked(e -> {
             if (TleStore.refreshing()) return;
             status.setText("Downloading from Celestrak and AMSAT…");
@@ -107,8 +107,8 @@ final class JHubSatellites {
         for (String[] s : TleStore.SOURCES) { if (srcs.length() > 0) srcs.append(" · "); srcs.append(s[0]); }
         VBox data = new VBox(); data.getStyleClass().add("cfg-card");
         data.getChildren().addAll(
-                JHubDashboard.cfgRow("Download orbital elements", srcs.toString(), refresh),
-                JHubDashboard.cfgRow("Refresh automatically", "once a day while J-Sat runs", JHubDashboard.switchToggle(TleStore.autoRefresh(), TleStore::setAutoRefresh)));
+                JHubSetupPages.cfgRow("Download orbital elements", srcs.toString(), refresh),
+                JHubSetupPages.cfgRow("Refresh automatically", "once a day while J-Sat runs", JHubDashboard.switchToggle(TleStore.autoRefresh(), TleStore::setAutoRefresh)));
         HBox statusRow = new HBox(status); statusRow.getStyleClass().add("cfg-row"); statusRow.setStyle("-fx-border-width:0;");
         data.getChildren().add(statusRow);
 
@@ -120,15 +120,15 @@ final class JHubSatellites {
         Region elSeg = JHubDashboard.segSel(new String[]{"Any", "≥ 10°", "≥ 30°", "≥ 60°"}, minElIdx, i -> { minElIdx = i; renderList[0].run(); });
         Region dataSw = JHubDashboard.switchToggle(dataOnly, v -> { dataOnly = v; renderList[0].run(); });
 
-        Label selShown = JHubDashboard.cfgBtn("Select shown"), clrShown = JHubDashboard.cfgBtn("Clear shown"), reset = JHubDashboard.cfgBtn("Reset to defaults");
+        Label selShown = JHubSetupPages.cfgBtn("Select shown"), clrShown = JHubSetupPages.cfgBtn("Clear shown"), reset = JHubSetupPages.cfgBtn("Reset to defaults");
         HBox actions = new HBox(10, selShown, clrShown, reset); actions.setAlignment(Pos.CENTER_LEFT);
 
         VBox ctl = new VBox(); ctl.getStyleClass().add("cfg-card");
         ctl.getChildren().addAll(
-                JHubDashboard.cfgRow("Find", "narrow the list", search),
-                JHubDashboard.cfgRow("Show", null, showSeg),
-                JHubDashboard.cfgRow("Has a pass in the next 24 h", "best elevation over your station", elSeg),
-                JHubDashboard.cfgRow("Only satellites with orbital data", "hides ones J-Sat cannot track yet", dataSw));
+                JHubSetupPages.cfgRow("Find", "narrow the list", search),
+                JHubSetupPages.cfgRow("Show", null, showSeg),
+                JHubSetupPages.cfgRow("Has a pass in the next 24 h", "best elevation over your station", elSeg),
+                JHubSetupPages.cfgRow("Only satellites with orbital data", "hides ones J-Sat cannot track yet", dataSw));
         HBox actRow = new HBox(20, count, new Region(), actions); actRow.getStyleClass().add("cfg-row"); actRow.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(actRow.getChildren().get(1), Priority.ALWAYS);
         ctl.getChildren().add(actRow);
@@ -165,7 +165,7 @@ final class JHubSatellites {
                 + "plus the amateur radio registry — a satellite with elements but no radio data is tracked for position and passes only.", "cfg-desc");
         desc.setWrapText(true);
         VBox pickSec = new VBox(6, lbl("SATELLITE SELECTION", "cfg-sec"), ctl, list);
-        return JHubDashboard.cfgPage(JHubDashboard.cfgTop("J-Hub", "Satellites"), desc, cells,
+        return JHubSetupPages.cfgPage(JHubSetupPages.cfgTop("J-Hub", "Satellites"), desc, cells,
                 new VBox(6, lbl("ORBITAL DATA", "cfg-sec"), data), pickSec);
     }
 

@@ -36,7 +36,7 @@ final class JHubContestDbs {
             java.util.List<Info> arch = ContestLogs.archived();
             for (Info i : arch) archCard.getChildren().add(archivedRow(i, status, refresh[0]));
             if (arch.isEmpty()) archCard.getChildren().add(emptyRow("Nothing archived."));
-            Label open = JHubDashboard.cfgBtn("Open archive folder");
+            Label open = JHubSetupPages.cfgBtn("Open archive folder");
             open.setOnMouseClicked(e -> status.setText(LogDbInfo.openFolder(ContestLogs.archiveRoot())
                     ? "Opened " + LogDbInfo.pretty(ContestLogs.archiveRoot())
                     : "Could not open the folder — it is " + ContestLogs.archiveRoot()));
@@ -64,7 +64,7 @@ final class JHubContestDbs {
     }
 
     private static HBox usableRow(Info i, Label status, Runnable refresh) {
-        Label archive = JHubDashboard.cfgBtn("Archive");
+        Label archive = JHubSetupPages.cfgBtn("Archive");
         archive.setOnMouseClicked(e -> Confirm.show(archive, "Archive " + i.fileName() + "?",
                 "It moves to " + LogDbInfo.pretty(ContestLogs.archiveRoot()) + "/<contest>_<year>/ and is no longer offered when you enter contest mode. "
                         + "Its QSOs are kept in the file, and you can restore it from this page."
@@ -80,7 +80,7 @@ final class JHubContestDbs {
     }
 
     private static HBox archivedRow(Info i, Label status, Runnable refresh) {
-        Label restore = JHubDashboard.cfgBtn("Restore");
+        Label restore = JHubSetupPages.cfgBtn("Restore");
         restore.setOnMouseClicked(e -> {
             try { status.setText("✓ Restored to " + LogDbInfo.pretty(ContestLogs.restore(i.path()))); }
             catch (Exception ex) { status.setText("✗ Could not restore: " + ex.getMessage()); }
