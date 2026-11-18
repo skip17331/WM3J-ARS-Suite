@@ -531,15 +531,17 @@ public final class JLogCockpit {
         body.getChildren().clear();
 
         // row 1: who and what: call, freq, band, mode, reports, name, QTH, state, county, grid
+        VBox nowBox = new VBox(nowBtn); nowBox.setAlignment(Pos.BOTTOM_LEFT);
+        // the same flow carries on after GRID with power, date, time and the award references, so GRID is never left alone on a line
         javafx.scene.layout.FlowPane row1 = flow(12, 6, a.get(0), a.get(1), a.get(2), a.get(3), rst.get(0), rst.get(1), rst.get(2),
-                qthRow.get(0), qthRow.get(1), qthRow.get(2), rst.get(3));
+                qthRow.get(0), qthRow.get(1), qthRow.get(2), rst.get(3),
+                qthRow.get(3), dtCell1, dtCell2, nowBox, refs.get(0), refs.get(1), refs.get(2));
         // Super Check Partial under the callsign (the band-plan line is in the card header)
         HBox info = new HBox(22, scpNode); info.setAlignment(Pos.CENTER_LEFT); info.setMinWidth(0);
         if (scpNode instanceof Region sr) { HBox.setHgrow(sr, Priority.ALWAYS); sr.setMinWidth(0); }
-        // row 2: power, then when and awards (date, time, the award references, confirmed), then the comment
-        VBox nowBox = new VBox(nowBtn); nowBox.setAlignment(Pos.BOTTOM_LEFT);
-        if (act.get(0) instanceof Region cr) { cr.setMinWidth(170); cr.setPrefWidth(250); cr.setMaxWidth(250); }
-        javafx.scene.layout.FlowPane row2 = flow(12, 6, qthRow.get(3), dtCell1, dtCell2, nowBox, refs.get(0), refs.get(1), refs.get(2), refs.get(3), act.get(0));
+        // row 2: the comment (20 characters longer than it was) and the QSL / LoTW / eQSL ticks on the same line
+        if (act.get(0) instanceof Region cr) { cr.setMinWidth(250); cr.setPrefWidth(420); cr.setMaxWidth(420); }
+        javafx.scene.layout.FlowPane row2 = flow(12, 6, act.get(0), refs.get(3));
         // row 3: which way macros send (the hint after the ticks is left out: it is the dashboard's tightest row), the F-keys, and the actions
         java.util.List<Node> sendCells = (sendAs instanceof javafx.scene.layout.FlowPane sf) ? new ArrayList<>(sf.getChildren()) : new ArrayList<>(List.of(sendAs));
         if (sendCells.size() == 4) sendCells.remove(3);
