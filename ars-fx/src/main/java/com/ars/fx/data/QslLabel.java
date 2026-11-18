@@ -176,12 +176,33 @@ public final class QslLabel {
 
     private static String s(String v) { return v == null ? "" : v.trim(); }
 
-    /** The lines a label for this QSO carries, top to bottom: what the printer draws and what the Setup preview shows. */
+    /** The QSL label's optional parts: id, checkbox text, and whether it is on by default. The call is always printed. */
+    public record Field(String id, String label, boolean on) {}
+    public static final List<Field> QSL_FIELDS = List.of(
+            new Field("date", "Date", true), new Field("time", "Time (UTC)", true),
+            new Field("freq", "Frequency", true), new Field("band", "Band", false), new Field("mode", "Mode", true),
+            new Field("rst", "Signal reports (RST sent / received)", true),
+            new Field("name", "Name and QTH", false), new Field("exchange", "Contest and exchange", true),
+            new Field("sign", "\"TNX QSO · 73 de\" your call", true));
+    public static boolean show(String id) {
+        for (Field f : QSL_FIELDS) if (f.id().equals(id)) return HubConfig.getBool("label.qsl." + id, f.on());
+        return false;
+    }
+    /** Which labels a save prints: the QSL confirmation and / or the address label (from QRZ.com). */
+    public static boolean printQsl()     { return HubConfig.getBool("label.print.qsl", true); }
+    public static boolean printAddress() { return HubConfig.getBool("label.print.address", false); }
+
+    /** The lines the QSL label carries for this QSO, top to bottom, honouring the Setup checkboxes: what the printer draws and the Setup preview shows. */
     public static List<Line> layout(Qso q) {
         String dt = s(q.dateTimeUtc());
         if (dt.isEmpty()) dt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC).format(Instant.now());
-        String when = (dt.length() >= 16 ? dt.substring(0, 16) : dt) + "Z";
-        String fb = (s(q.freq()).isEmpty() ? "" : s(q.freq()) + " MHz  ") + (s(q.band()).isEmpty() ? "" : s(q.band()) + "  ") + s(q.mode());
+        String date = dt.length() >= 10 ? dt.substring(0, 10) : dt, time = dt.length() >= 16 ? dt.substring(11, 16) + "Z" : "";
+        String when = ((show("date") ? date : "") + (show("date") && show("time") && !time.isEmpty() ? "  " : "") + (show("time") ? time : "")).trim();
+        StringBuilder fbs = new StringBuilder();
+        if (show("freq") && !s(q.freq()).isEmpty()) fbs.append(s(q.freq())).append(" MHz  ");
+        if (show("band") && !s(q.band()).isEmpty()) fbs.append(s(q.band())).append("  ");
+        if (show("mode")) fbs.append(s(q.mode()));
+        String fb = fbs.toString().trim();
         String rst = (s(q.rstSent()).isEmpty() && s(q.rstRcvd()).isEmpty()) ? "" : "RST " + s(q.rstSent()) + " / " + s(q.rstRcvd());
         String who = (s(q.name()) + (s(q.name()).isEmpty() || s(q.qth()).isEmpty() ? "" : " · ") + s(q.qth())).trim();
         String me = HubConfig.call();
@@ -189,12 +210,25 @@ public final class QslLabel {
 
         List<Line> l = new ArrayList<>();
         l.add(new Line("QSL  " + s(q.call()).toUpperCase(Locale.ROOT), 3.0, true));
-        l.add(new Line(when, 1.2, false));
-        if (!fb.isBlank()) l.add(new Line(fb.trim(), 1.2, false));
-        if (!rst.isEmpty()) l.add(new Line(rst, 1.0, false));
-        if (!who.isEmpty()) l.add(new Line(who, 1.0, false));
-        if (!s(q.exchange()).isEmpty()) l.add(new Line(s(q.exchange()), 1.0, false));
-        l.add(new Line(sig, 1.0, true));
+        if (!when.isEmpty()) l.add(new Line(when, 1.2, false));
+        if (!fb.isBlank()) l.add(new Line(fb, 1.2, false));
+        if (show("rst") && !rst.isEmpty()) l.add(new Line(rst, 1.0, false));
+        if (show("name") && !who.isEmpty()) l.add(new Line(who, 1.0, false));
+        if (show("exchange") && !s(q.exchange()).isEmpty()) l.add(new Line(s(q.exchange()), 1.0, false));
+        if (show("sign")) l.add(new Line(sig, 1.0, true));
+        return l;
+    }
+
+    /** The address label: the station's name and postal address, as a mailing label for the envelope. */
+    public static List<Line> addressLayout(CallsignLookup.Address a) {
+        List<Line> l = new ArrayList<>();
+        String name = s(a.name()).isEmpty() ? s(a.call()) : s(a.name()).toUpperCase(Locale.ROOT) + "  " + s(a.call()).toUpperCase(Locale.ROOT);
+        l.add(new Line(name, 1.4, true));
+        if (!s(a.line1()).isEmpty()) l.add(new Line(s(a.line1()), 1.2, false));
+        String csz = (s(a.line2()) + (s(a.state()).isEmpty() ? "" : (s(a.line2()).isEmpty() ? "" : ", ") + s(a.state())) + (s(a.zip()).isEmpty() ? "" : " " + s(a.zip()))).trim();
+        if (!csz.isEmpty()) l.add(new Line(csz, 1.2, false));
+        String country = s(a.country());
+        if (!country.isEmpty() && !country.equalsIgnoreCase("United States")) l.add(new Line(country.toUpperCase(Locale.ROOT), 1.2, true));
         return l;
     }
 
@@ -213,8 +247,23 @@ public final class QslLabel {
         t.setDaemon(true); t.start();
     }
 
-    /** Prints the label with the saved settings (blocking). */
+    /** Prints the label(s) chosen in Setup for this QSO (blocking): the QSL confirmation, and / or an address label looked up on QRZ.com. */
     public static Result print(Qso q) throws Exception {
+        boolean qsl = printQsl(), addr = printAddress();
+        if (!qsl && !addr) return new Result(false, "No label type is ticked in Setup > Label printers");
+        List<String> msg = new ArrayList<>();
+        boolean ok = true;
+        if (qsl) { Result r = printLines("QSL label " + s(q.call()), layout(q)); ok &= r.ok(); msg.add(r.message()); }
+        if (addr) {
+            CallsignLookup.Address a = CallsignLookup.qrzAddress(q.call());
+            if (a == null) { ok = false; msg.add("No address label: " + CallsignLookup.qrzAddressError); }
+            else { Result r = printLines("Address label " + s(q.call()), addressLayout(a)); ok &= r.ok(); msg.add(r.message()); }
+        }
+        return new Result(ok, String.join("; ", msg));
+    }
+
+    /** Prints one label made of these lines with the saved printer settings. */
+    private static Result printLines(String jobName, List<Line> lines) throws Exception {
         Model m = currentModel();
         Size sz = currentSize(m);
         String printer = HubConfig.get("label.printer", "").trim();
@@ -223,11 +272,11 @@ public final class QslLabel {
             String host = HubConfig.get("label.host", "").trim();
             if (host.isEmpty() && printer.isEmpty()) return new Result(false, "No label printer set — choose one in Setup ▸ Label printers");
             int dpi = (int) num(HubConfig.get("label.dpi", String.valueOf(m.dpi())));
-            sendZpl(zpl(q, sz, dpi > 0 ? dpi : 203, copies), host, printer);
+            sendZpl(zpl(lines, sz, dpi > 0 ? dpi : 203, copies), host, printer);
             return new Result(true, "Label sent to " + (host.isEmpty() ? printer : host));
         }
         if (printer.isEmpty()) return new Result(false, "No label printer set — choose one in Setup ▸ Label printers");
-        printDriver(q, sz, printer, copies);
+        printDriver(jobName, lines, sz, printer, copies);
         return new Result(true, "Label sent to " + printer);
     }
 
@@ -235,6 +284,29 @@ public final class QslLabel {
     public static Qso sample() {
         return new Qso("K1ABC", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneOffset.UTC).format(Instant.now()),
                 "14.074", "20m", "FT8", "-10", "-12", "Sample", "Baltimore MD");
+    }
+
+    /** Prints sample labels of the types ticked in Setup (the address label uses a made-up address, so no QRZ.com lookup is made). */
+    public static Result printTest() throws Exception {
+        boolean qsl = printQsl(), addr = printAddress();
+        if (!qsl && !addr) return new Result(false, "No label type is ticked");
+        List<String> msg = new ArrayList<>(); boolean ok = true;
+        if (qsl) { Result r = printLines("QSL label test", layout(sample())); ok &= r.ok(); msg.add(r.message()); }
+        if (addr) { Result r = printLines("Address label test", addressLayout(sampleAddress())); ok &= r.ok(); msg.add(r.message()); }
+        return new Result(ok, String.join("; ", msg));
+    }
+    public static void printTestAsync(java.util.function.Consumer<Result> done) {
+        Thread t = new Thread(() -> {
+            Result r;
+            try { r = printTest(); } catch (Throwable e) { r = new Result(false, "Label not printed: " + e.getMessage()); }
+            if (done != null) done.accept(r);
+        }, "qsl-label-test");
+        t.setDaemon(true); t.start();
+    }
+
+    /** Sample address for the preview and the test print. */
+    public static CallsignLookup.Address sampleAddress() {
+        return new CallsignLookup.Address("K1ABC", "Pat Sample", "123 Main Street", "Baltimore", "MD", "21201", "United States");
     }
 
     // ---- driver path (Java 2D) --------------------------------------------------------------------
@@ -247,7 +319,7 @@ public final class QslLabel {
 
     private static final double PT_PER_MM = 72.0 / 25.4;
 
-    private static void printDriver(Qso q, Size sz, String printerName, int copies) throws Exception {
+    private static void printDriver(String jobName, List<Line> lines, Size sz, String printerName, int copies) throws Exception {
         PrintService svc = null;
         for (PrintService ps : PrintServiceLookup.lookupPrintServices(null, null))
             if (ps.getName().equals(printerName)) { svc = ps; break; }
@@ -264,7 +336,6 @@ public final class QslLabel {
         pf.setPaper(paper);
         pf.setOrientation(PageFormat.PORTRAIT);
 
-        List<Line> lines = layout(q);
         Printable body = (g, fmt, idx) -> {
             if (idx > 0) return Printable.NO_SUCH_PAGE;
             draw((Graphics2D) g, lines, pageW, pageH, strip);
@@ -272,7 +343,7 @@ public final class QslLabel {
         };
         java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
         job.setPrintService(svc);
-        job.setJobName("QSL label " + s(q.call()));
+        job.setJobName(jobName);
         job.setPrintable(body, pf);
         job.setCopies(copies);
         try { job.print(); } catch (PrinterException e) { throw new Exception(e.getMessage(), e); }
@@ -314,12 +385,13 @@ public final class QslLabel {
 
     // ---- ZPL path ---------------------------------------------------------------------------------
 
-    static String zpl(Qso q, Size sz, int dpi, int copies) {
+    static String zpl(Qso q, Size sz, int dpi, int copies) { return zpl(layout(q), sz, dpi, copies); }
+
+    static String zpl(List<Line> lines, Size sz, int dpi, int copies) {
         double dotsPerMm = dpi / 25.4;
         int w = (int) Math.round(sz.wMm() * dotsPerMm), h = (int) Math.round(sz.hMm() * dotsPerMm);
         int pad = (int) Math.round(2.5 * dotsPerMm);
         int usableW = w - 2 * pad, usableH = h - 2 * pad;
-        List<Line> lines = layout(q);
         double total = 0; for (Line l : lines) total += l.weight();
         StringBuilder z = new StringBuilder("^XA^CI28^PW").append(w).append("^LL").append(h).append("^LH0,0\n");
         double y = pad;

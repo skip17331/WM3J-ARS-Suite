@@ -45,4 +45,18 @@ class QslLabelTest {
     @Test void unknownModelFallsBackToFirst() {
         assertEquals(QslLabel.MODELS.get(0), QslLabel.model("nope"));
     }
+
+    @Test void anAddressLabelHasNameAddressCityStateZip() {
+        var lines = QslLabel.addressLayout(new CallsignLookup.Address("W1AW", "Hiram Maxim", "225 Main St", "Newington", "CT", "06111", "United States"));
+        assertEquals("HIRAM MAXIM  W1AW", lines.get(0).text());
+        assertEquals("225 Main St", lines.get(1).text());
+        assertEquals("Newington, CT 06111", lines.get(2).text());
+        assertEquals(3, lines.size());           // no country line for a US address
+    }
+
+    @Test void aForeignAddressLabelEndsWithTheCountry() {
+        var lines = QslLabel.addressLayout(new CallsignLookup.Address("DL1ABC", "Hans", "Hauptstr 1", "Berlin", "", "10115", "Germany"));
+        assertEquals("GERMANY", lines.get(lines.size() - 1).text());
+        assertEquals("Berlin 10115", lines.get(2).text());
+    }
 }

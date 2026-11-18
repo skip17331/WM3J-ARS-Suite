@@ -138,8 +138,8 @@ public final class Shell {
         }
     }
     public static QslToggle qslToggle() {
-        return new QslToggle(com.ars.fx.data.QslLabel.KEY_PRINT_ON_SAVE, "Print QSL label on save (beta)",
-                "Print a QSL label whenever a QSO is saved — choose the printer in Setup ▸ Label printers");
+        return new QslToggle(com.ars.fx.data.QslLabel.KEY_PRINT_ON_SAVE, "Print label on save (beta)",
+                "Print the labels ticked in Setup ▸ Label printers (QSL and / or address) whenever a QSO is saved");
     }
     /** The contest page's own switch: a separate setting, off by default, so a busy contest never prints a card for every contact unasked. */
     public static QslToggle contestQslToggle() {

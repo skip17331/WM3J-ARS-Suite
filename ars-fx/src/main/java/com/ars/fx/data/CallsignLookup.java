@@ -114,6 +114,32 @@ public final class CallsignLookup {
         return new Result(c, name, tag(body, "addr2"), tag(body, "state"), tag(body, "county"),
                 tag(body, "country"), tag(body, "grid"), "QRZ");
     }
+    /** A station's postal address as QRZ.com holds it, for the address label. */
+    public record Address(String call, String name, String line1, String line2, String state, String zip, String country) {
+        public boolean found() { return nb(line1) || nb(line2); }
+    }
+    /** Why {@link #qrzAddress} gave nothing, for the operator: filled in on every miss. */
+    public static volatile String qrzAddressError = "";
+    /** The mailing address QRZ.com has for {@code call}, or null (see {@link #qrzAddressError}). Needs QRZ.com enabled in Setup > Callsign lookup. */
+    public static Address qrzAddress(String call) {
+        qrzAddressError = "";
+        if (call == null || call.isBlank()) { qrzAddressError = "no callsign"; return null; }
+        LookupConfig.Setting s = LookupConfig.get("qrz");
+        if (!s.enabled() || blank(s.user()) || blank(s.secret())) { qrzAddressError = "QRZ.com is not set up in Setup > Callsign lookup"; return null; }
+        String c = call.trim().toUpperCase();
+        try {
+            if (qrzKey == null) qrzKey = qrzSession(s);
+            String body = qrzLookup(c);
+            if (body != null && (body.toLowerCase().contains("session timeout") || body.toLowerCase().contains("invalid session"))) {
+                qrzKey = qrzSession(s); body = qrzLookup(c);
+            }
+            if (body == null) { qrzAddressError = "QRZ.com did not answer"; return null; }
+            Address a = new Address(c, join(tag(body, "fname"), tag(body, "name")), tag(body, "addr1"), tag(body, "addr2"),
+                    tag(body, "state"), tag(body, "zip"), tag(body, "country"));
+            if (!a.found()) qrzAddressError = "QRZ.com has no address for " + c;
+            return a.found() ? a : null;
+        } catch (Exception e) { qrzAddressError = "QRZ.com lookup failed: " + e.getMessage(); return null; }
+    }
     private static String qrzSession(LookupConfig.Setting s) throws Exception {
         String body = httpGet("https://xmldata.qrz.com/xml/current/?username=" + enc(s.user()) + ";password=" + enc(s.secret()));
         return tag(body, "Key");
