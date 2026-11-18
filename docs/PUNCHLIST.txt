@@ -157,6 +157,10 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 2a-20   Olivia receive: J-Digi's own Olivia 8/500 TX through an audio loopback decodes cleanly from
         the first lines, with spaces between words; also 300 Hz off-centre. (Not against fldigi: see
         3-12.)
+5-2     QSO audio recording: switch on Setup > Log database & backup > Record each QSO, choose the
+        rig's audio in J-Digi, log a few QSOs (log form, contest page, map card) and play the WAV
+        files in ~/.j-log/recordings/<date>/: the last 60 s of receive audio, named
+        time_call_band_mode.
 3-7     Your log: the 2026-10-03 9K2IC (70cm DMR) QSO looks like a mistyped date. Check it and
         correct it in the log browser if it is wrong.
 4a-1    Contest network key in the keyring: set the key in Setup > Contest network; it is masked,
@@ -237,7 +241,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 ====================================================================================================
 
 5-1     Native WinKeyer. Size: M. Notes: Speed pot, paddle break-in, buffered sending.
-5-2     QSO audio recording. Size: M. Notes: j-digi's AudioEngine already captures audio.
 5-3     SO2R. Size: L. Notes: Only if serious contesters are a target audience.
 5-4     Contest network: standby host, shared QTCs and normal log, messages / skeds, operator roles.
         Size: L. Notes: After 2d-1.

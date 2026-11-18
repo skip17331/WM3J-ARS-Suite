@@ -360,6 +360,14 @@ public class ModemService {
     public boolean isLocalSkimmerEnabled() { return localSkimmer.isEnabled(); }
 
     /** Receive each callsign the local skimmer spots (called on the audio thread; keep it quick). */
+    /**
+     * Also hand every captured audio frame (the receive audio, 8 kHz mono, about 1,024 samples) to {@code listener}, on the
+     * capture thread. The host's QSO recorder keeps a ring of it. The listener must be quick and must not keep the array.
+     */
+    public void addAudioListener(java.util.function.Consumer<float[]> listener) { audioEngine.addListener(listener); }
+
+    public void removeAudioListener(java.util.function.Consumer<float[]> listener) { audioEngine.removeListener(listener); }
+
     public void setSpotListener(Consumer<com.hamradio.modem.dsp.SkimmerSpotPublisher.LocalSpot> l) {
         this.spotListener = l != null ? l : s -> {};
     }
