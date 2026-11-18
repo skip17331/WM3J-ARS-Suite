@@ -92,7 +92,7 @@ When `remote` is set, the solo window connects to the station computer's
   J-Sat's Doppler tracking and auto-rotor drive the real hardware.
 
 On the station, **Setup ▸ Remote sharing** has the switch (*Share with solo modules on
-the LAN*, on by default) and the port (8090). With the switch off the hub listens on
+the LAN*, off by default) and the port (8090). With the switch off the hub listens on
 this computer only, for its own loose windows. Allow the port through the station's
 firewall for your LAN only.
 

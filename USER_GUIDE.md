@@ -54,8 +54,8 @@ what they do before you rely on them. QSL label printing is beta too.
   you open starts it. A loose window has no dock; its **Settings** (gear) entry opens Setup, with a "← Back" link to
   return.
 
-The hub listens on port **8090**, and by default other computers on your LAN can reach it (*Share with solo modules on
-the LAN*, Setup ▸ Remote sharing). The other network ports, all off until you switch them on, are listed in
+The hub listens on port **8090**, on this computer only until you switch on *Share with solo modules on the LAN*
+(Setup ▸ Remote sharing). The other network ports, all off until you switch them on, are listed in
 [INSTALL.md](INSTALL.md#what-you-get). See also [§6](#6-running-loose-and-a-second-machine-display).
 
 ### Starting up
@@ -160,7 +160,7 @@ Everything that carries data in or out is on these Setup pages.
 | **Transmit & macros** | CW speed, the keyer, the **PTT delay**, the voice output device, and the F1–F8 station macros — see [§5](#5-macros-and-transmitting). |
 | **Modules** | See [§3.5](#35-modules). |
 | **Appearance** | The **colour scheme** (Dark, Light, Ocean, Forest, Amber, Rose, Nord, Cockpit, Instrument, Space), the dashboard **style** (Classic, Instrument panel, Modern, Cockpit), **interface size**, **reduce effects** (no sliding or flashing), **stack cards in rows**, and **DX Cluster in the right column** (the cluster moves to the top of the PANELS column and the Recent log takes its place). |
-| **Remote sharing** | Share live data with solo J-Map / J-Sat windows on other machines over the LAN (port 8090). **On by default**; switch it off to keep the hub to this computer. |
+| **Remote sharing** | Share live data with solo J-Map / J-Sat windows on other machines over the LAN (port 8090). **Off by default**: with it off, only this computer can reach the hub. Turn it on only on a network you trust; any device on it can then see your spots and tune the rig. |
 | **J-Learn content** | Where J-Learn's chapters come from and how to refresh them — see [§4.8](#48-j-learn). |
 
 The **Station** page's **Updates** section also has **Refresh country files**. Once a week the suite downloads the
@@ -417,7 +417,7 @@ The hub owns the Hamlib daemons and the live feeds (DX cluster, RBN, rig, rotor)
 `ws://127.0.0.1:8090`. Windows show the last known values and reconnect on their own if the hub restarts.
 
 **A second machine.** J-Map or J-Sat can run on a laptop or Raspberry Pi and follow your station over the LAN.
-Check that *Share with solo modules on the LAN* is on in **Setup ▸ Remote sharing** (it is by default), open port
+Switch on *Share with solo modules on the LAN* in **Setup ▸ Remote sharing** (it is off by default), open port
 **8090** to your LAN, and
 start the display with a launch file — the steps and a sample are in
 [INSTALL.md § Second-machine display](INSTALL.md#second-machine-display).

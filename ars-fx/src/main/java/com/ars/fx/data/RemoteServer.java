@@ -26,8 +26,8 @@ import java.util.function.IntConsumer;
  * rotor via the local {@link RigClient} / {@link RotorClient}.
  *
  * <p>Uses {@code org.java-websocket}, the same library the rest of the suite's
- * hub speaks. Bound on {@code remote.port} (default 8090); disable with
- * {@code remote.serverEnabled=false}.
+ * hub speaks. Bound on {@code remote.port} (default 8090): on loopback only, unless
+ * {@code remote.serverEnabled} (Setup > Remote sharing, off by default) opens it to the LAN.
  */
 public final class RemoteServer extends WebSocketServer {
 
@@ -70,7 +70,10 @@ public final class RemoteServer extends WebSocketServer {
     public static int port() {
         try { return Integer.parseInt(HubConfig.get("remote.port", "8090").trim()); } catch (Exception e) { return 8090; }
     }
-    private static boolean lanShared() { return HubConfig.getBool("remote.serverEnabled", true); }
+    /** LAN sharing is off until the operator switches it on: a hub open to the LAN lets any device there see the spots and send
+     *  tune and rotate commands (it used to be on by default). An operator who switched it on keeps it on. */
+    static final boolean LAN_SHARED_DEFAULT = false;
+    private static boolean lanShared() { return HubConfig.getBool("remote.serverEnabled", LAN_SHARED_DEFAULT); }
     private static String bindHost() { return lanShared() ? "0.0.0.0" : "127.0.0.1"; }
 
     /** Stop the sharing server (idempotent). The broadcast loop exits when it no longer is INSTANCE. */
