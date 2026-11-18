@@ -119,7 +119,10 @@ final class JLogContestLog {
             java.nio.file.Path dir = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-log", "exports");
             java.nio.file.Files.createDirectories(dir);
             java.nio.file.Path out = dir.resolve(plugin.getContestId() + "_" + HubConfig.call() + ".cbr");
-            com.jlog.export.CabrilloExporter.export(plugin, out);
+            com.ars.fx.data.ContestState.recompute();                // the score as the contest page shows it, freshly worked out
+            com.jlog.scoring.ContestScore sc = com.ars.fx.data.ContestState.score();
+            com.jlog.export.CabrilloExporter.export(plugin, out, new com.jlog.export.CabrilloExporter.Options(
+                    "WM3J ARS Suite " + com.ars.fx.AppVersion.current(), sc == null ? null : sc.score()));
             if (com.ars.fx.data.LogExport.asciiOnly()) {            // J-Hub ▸ Data ▸ charset: ASCII
                 String txt = java.nio.file.Files.readString(out, java.nio.charset.StandardCharsets.UTF_8);
                 java.nio.file.Files.writeString(out, com.ars.fx.data.LogExport.forExport(txt), java.nio.charset.StandardCharsets.US_ASCII);

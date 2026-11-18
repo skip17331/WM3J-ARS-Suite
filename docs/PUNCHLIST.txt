@@ -65,6 +65,11 @@ IDs
         panes above). The waterfall now lives in its own buffer shown through a PixelBuffer: one
         copy and one update per row, and it no longer shows in the profile. Whole-process CPU is now
         about 6% against about 5% for a quiet screen (J-Vault), within run-to-run noise.
+3-13    Cabrillo export: dupes stay in the log (ARRL and CQ ask for that; leaving them out lost the
+        points of any QSO wrongly marked a dupe); CLAIMED-SCORE is the score the contest page shows
+        (a rough points-times-multipliers sum ignored special rules, so the Club QSO Party claimed
+        five times its score); CREATED-BY names the app and version (was 'j-Log v1.5.0'); a multi-op
+        entry lists its OPERATORS.
 4a-2    J-Digi audio thread profiled (2 min of audio per mode): FFT, decoder, signal classifier and
         CW skimmer together cost under 0.1% of a core in every mode except Olivia (about 3.8%, its
         symbol-sync search while unlocked; see 3-10).
