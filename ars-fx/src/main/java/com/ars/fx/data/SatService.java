@@ -129,12 +129,14 @@ public final class SatService {
     public void reload() {
         Thread t = new Thread(() -> {
             synchronized (this) {
-                tles = TleStore.current(); defs = buildDefs(); nextPass.clear(); lastPassMs = 0;
+                tles = TleStore.current(); defs = buildDefs(); nextPass.clear(); lastPassMs = 0; trackCache.clear();
             }
             if (started) { try { recompute(); } catch (Exception ignored) {} }
         }, "sat-reload");
         t.setDaemon(true); t.start();
     }
+
+    private final GroundTrackCache trackCache = new GroundTrackCache(10_000);
 
     private synchronized void recompute() {
         if (defs == null || tles == null) return;
@@ -165,20 +167,22 @@ public final class SatService {
             double apogeeKm = sma * (1 + tle.eccentricity) - 6378.137;
             double perigeeKm = sma * (1 - tle.eccentricity) - 6378.137;
 
-            // ground track: sub-satellite point over one orbital period, centred on now
-            double periodMin = tle.meanMotion > 0 ? 1440.0 / tle.meanMotion : 95.0;
-            int steps = 90;
-            List<double[]> tr = new ArrayList<>();
-            for (int i = 0; i <= steps; i++) {
-                Instant when = now.plusMillis((long) ((-periodMin * 0.5 + periodMin * i / steps) * 60000));
-                try {
-                    double[] pvk = prop.propagate(when);
-                    if (pvk == null) continue;
-                    double[] geo = CoordTransform.eciToGeodetic(new double[]{pvk[0], pvk[1], pvk[2]}, when);
-                    tr.add(new double[]{geo[0], geo[1]});
-                } catch (Exception ignored) {}
-            }
-            double[][] track = tr.toArray(new double[0][]);
+            // ground track: sub-satellite point over one orbital period, centred on when it was computed; reused for a few seconds
+            final double[][] track = trackCache.get(d.norad(), tle, System.currentTimeMillis(), () -> {
+                double periodMin = tle.meanMotion > 0 ? 1440.0 / tle.meanMotion : 95.0;
+                int steps = 90;
+                List<double[]> tr = new ArrayList<>();
+                for (int i = 0; i <= steps; i++) {
+                    Instant when = now.plusMillis((long) ((-periodMin * 0.5 + periodMin * i / steps) * 60000));
+                    try {
+                        double[] pvk = prop.propagate(when);
+                        if (pvk == null) continue;
+                        double[] geo = CoordTransform.eciToGeodetic(new double[]{pvk[0], pvk[1], pvk[2]}, when);
+                        tr.add(new double[]{geo[0], geo[1]});
+                    } catch (Exception ignored) {}
+                }
+                return tr.toArray(new double[0][]);
+            });
 
             if (refreshPasses) {
                 try {
