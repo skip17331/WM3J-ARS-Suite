@@ -430,6 +430,7 @@ public final class JLogContest {
             if (fieldControls.get(fd.getId()) instanceof TextField t) {
                 t.textProperty().addListener((o, a, b) -> { softArmed = false; liveCheck(plugin, fd, t, false); });
                 t.focusedProperty().addListener((o, was, now) -> { if (!now) liveCheck(plugin, fd, t, true); });
+                if (!PickList.universe(plugin, fd).isEmpty()) PickList.attach(t, () -> PickList.universe(plugin, fd));   // type-ahead for a fixed list
             }
         }
 
