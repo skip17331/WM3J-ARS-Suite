@@ -59,6 +59,12 @@ IDs
         only until it is switched on. It used to be on, so any device on the LAN could see the spots
         and send tune and rotate commands. An install that never set it now has it off; a
         second-machine display needs it switched on once.
+4a-4    J-Digi screen CPU: profiled on Windows, half of J-Digi's CPU samples were adding one
+        waterfall row (the whole image read back and rewritten with a pixel-format conversion each
+        way, then the new row set one pixel at a time, each write re-checking the layout of the
+        panes above). The waterfall now lives in its own buffer shown through a PixelBuffer: one
+        copy and one update per row, and it no longer shows in the profile. Whole-process CPU is now
+        about 6% against about 5% for a quiet screen (J-Vault), within run-to-run noise.
 4a-2    J-Digi audio thread profiled (2 min of audio per mode): FFT, decoder, signal classifier and
         CW skimmer together cost under 0.1% of a core in every mode except Olivia (about 3.8%, its
         symbol-sync search while unlocked; see 3-10).
@@ -182,10 +188,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 4a. Code
 --------
 
-4a-4    J-Digi screen CPU: the waterfall and the status update posted to the screen on every audio
-        frame (about 8 a second). Size: S. Notes: 4a-2 showed the modem itself is under 0.1% of a
-        core, so the 14 points J-Digi measured above idle are the screen. Measure with
-        -Dsurface=digi, then draw / post less often.
 
 4b. QSO-party rules (code once the details are confirmed)
 ---------------------------------------------------------
