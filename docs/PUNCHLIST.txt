@@ -55,6 +55,10 @@ IDs
 1-25    Linux: Cinnamon menu folder, 4K resolution choice, USB drive controller.
 1-26    Nightly releases: v1.13.16 and v1.13.17 tagged and published.
 1-27    JHubDashboard, JMapView and JLogContest split into smaller classes.
+1-28    LAN sharing (Setup > Remote sharing) is off by default: the hub listens on this computer
+        only until it is switched on. It used to be on, so any device on the LAN could see the spots
+        and send tune and rotate commands. An install that never set it now has it off; a
+        second-machine display needs it switched on once.
 4a-2    J-Digi audio thread profiled (2 min of audio per mode): FFT, decoder, signal classifier and
         CW skimmer together cost under 0.1% of a core in every mode except Olivia (about 3.8%, its
         symbol-sync search while unlocked; see 3-10).

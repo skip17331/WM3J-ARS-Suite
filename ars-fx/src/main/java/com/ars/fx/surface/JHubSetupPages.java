@@ -427,8 +427,8 @@ final class JHubSetupPages {
             cfgRow("LoTW / eQSL auto-upload", "after each QSO you log, send the ones not yet sent to LoTW and eQSL, whichever is switched on in the Upload section below. Only QSOs logged after this version are sent this way; older ones go through the Upload section. A failed upload is tried again after the next QSO", cToggle("data.lotwAutoUpload", false)),
             cfgRow("Super Check Partial", "the contest call check: downloads the call list from supercheckpartial.com when a contest page is opened - MASTER.SCP (about 350 KB), or MASTERSS / MASTERDX / MASUSVE (100-260 KB) for Sweepstakes and ARRL DX - at most once a day for each, and only when it has changed. Nothing about you or your log is sent", cToggle(com.ars.fx.data.ScpStore.KEY_AUTO, true)));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
-            cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor",
-                    cToggleApply("remote.serverEnabled", true, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
+            cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor. Off: only this computer can reach the hub. On: any device on your network can see the spots and tune / rotate, so turn it on only on a network you trust",
+                    cToggleApply("remote.serverEnabled", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("WebSocket port", "the solo module connects to ws://<this-pc>:<port>",
                     cInputApply("remote.port", "8090", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox phone = section("PHONE WEB CLIENT",

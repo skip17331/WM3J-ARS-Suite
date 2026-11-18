@@ -27,11 +27,11 @@ The source installer adds these shortcuts, all of which start the same jar:
 | **J-Log, J-Map, J-Sat, J-Digi, J-Vault, J-Learn** | That module in its own window |
 | **ARS Suite Hub** | The background hub only (system tray) |
 
-**Network ports.** By default the hub and J-Bridge listen on your network; everything else is off until you switch it on in Setup.
+**Network ports.** By default the hub listens on this computer only and J-Bridge listens for WSJT-X; everything else is off until you switch it on in Setup.
 
 | Port | What | Default |
 |------|------|---------|
-| TCP 8090 | The hub: loose windows on this machine, and a second-machine display ([see below](#second-machine-display)). *Share with solo modules on the LAN* (Setup ▸ Remote sharing) is **on by default**; switch it off to keep the hub to this machine | on, LAN |
+| TCP 8090 | The hub: loose windows on this machine, and a second-machine display ([see below](#second-machine-display)). Other computers reach it only once you switch on *Share with solo modules on the LAN* (Setup ▸ Remote sharing) | on, this computer only |
 | TCP 8095 | Phone web client: log QSOs, watch spots and the rig from a phone on your network | off |
 | TCP 12070, UDP 12071 | Contest network (multi-operator) and finding the host on the LAN | off |
 | UDP 12060 / 13064 | N1MM+-compatible broadcast out / set-frequency requests in | off |
@@ -258,8 +258,9 @@ J-Map or J-Sat makes a good dedicated display on a second monitor, a laptop or a
    └──────────────────────────┘                 └──────────────────┘
 ```
 
-1. **On the station PC**, check that **Setup ▸ Remote sharing ▸ Share with solo modules on the LAN** is on (it is by
-   default; the port is 8090 unless you change it). Allow the port through the firewall for your LAN only, for example
+1. **On the station PC**, switch on **Setup ▸ Remote sharing ▸ Share with solo modules on the LAN** (it is off by
+   default; the port is 8090 unless you change it). Do this only on a network you trust: any device on it can then see
+   your spots and tune the rig. Allow the port through the firewall for your LAN only, for example
    `sudo ufw allow from 192.168.0.0/24 to any port 8090`.
 2. **On the display machine**, install the app (either option) and write a small launch file pointing at the station:
 
