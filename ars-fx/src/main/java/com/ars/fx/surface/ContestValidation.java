@@ -49,6 +49,16 @@ final class ContestValidation {
         if (v.isEmpty()) return Result.OK;
         String label = fd.getLabel() == null || fd.getLabel().isBlank() ? id : fd.getLabel();
 
+        // a QSO-party county line, "ADA/CAN": each county is checked on its own and the worst result counts
+        if (v.contains("/") && com.ars.fx.data.CountyLine.applies(plugin, id)) {
+            Result worst = Result.OK;
+            for (String part : com.ars.fx.data.CountyLine.parts(v)) {
+                Result r = check(plugin, fd, part, complete);
+                if (r.level().ordinal() > worst.level().ordinal()) worst = r;
+            }
+            return worst;
+        }
+
         if ("callsign".equals(id)) return callsign(v);
 
         // the field's own format

@@ -87,6 +87,39 @@ class QsoPartyBundledRulesTest {
         assertEquals(0, q(arc, me, "K2UK", "20m", "CW", "BOB", "R").getPoints(), "no class letter: no points");
     }
 
+    /**
+     * Mississippi QSO Party (punch list 4b-4): a mobile's score is one score per county it operated from, added up. From HIN it
+     * works an MA and an NY station (2 CW QSOs: 4 pts x 2 mults = 8); from WAR another MA station (2 pts x 1 mult = 2). Per county
+     * that is 10; scored as one log (as it used to be) it would be 6 pts x 2 mults = 12.
+     */
+    @Test void mississippiMobileScoresEachCountyAsALogOfItsOwn() {
+        ContestPlugin ms = plugin("MS_QSO_PARTY");
+        StationContext mobile = StationContext.of("W5XX", "EM42", "HIN", "LOW", "MOBILE");
+        List<QsoRecord> l = new ArrayList<>();
+        l.add(q(ms, mobile, "K1AA", "40m", "CW", "MA", "HIN"));
+        l.add(q(ms, mobile, "K2BB", "40m", "CW", "NY", "HIN"));
+        l.add(q(ms, mobile, "K3CC", "40m", "CW", "MA", "WAR"));
+        for (int i = 0; i < l.size(); i++) {                        // as the app marks dupes: each QSO against the earlier ones of its call
+            QsoRecord c = l.get(i);
+            List<QsoRecord> prior = l.subList(0, i).stream().filter(r -> r.getCallsign().equals(c.getCallsign())).toList();
+            c.setDupe(ContestScorer.isDupe(ms, c, prior));
+        }
+        assertEquals(0, l.stream().filter(QsoRecord::isDupe).count(), "re-working a station from a new county is not a dupe");
+        ContestScore s = ContestScorer.score(ms, l, mobile, ms.computeMultiplierDbColumn(), NO_BANDS, 0);
+        assertEquals(3, s.qsoCount());
+        assertEquals(10, s.score(), "HIN: 4 pts x 2 mults (MA, NY) + WAR: 2 pts x 1 mult (MA) = 10; as one log it was 6 pts x 2 mults = 12");
+    }
+
+    @Test void aMississippiFixedStationIsUnchanged() {
+        ContestPlugin ms = plugin("MS_QSO_PARTY");
+        StationContext fixed = StationContext.of("W5XX", "EM42", "HIN", "LOW", "FIXED");
+        List<QsoRecord> l = new ArrayList<>();
+        l.add(q(ms, fixed, "K1AA", "40m", "CW", "MA", "HIN"));
+        l.add(q(ms, fixed, "K2BB", "40m", "CW", "NY", "HIN"));
+        ContestScore s = ContestScorer.score(ms, l, fixed, ms.computeMultiplierDbColumn(), NO_BANDS, 0);
+        assertEquals(8, s.score(), "one county: 4 pts x 2 mults, as before");
+    }
+
     @Test void powerMultipliersFromTheDefinitions() {
         assertEquals(3.0, cfg("DE_QSO_PARTY").getPowerMultiplier().get("QRP"));
         assertEquals(5.0, cfg("NM_QSO_PARTY").getPowerMultiplier().get("QRP"));

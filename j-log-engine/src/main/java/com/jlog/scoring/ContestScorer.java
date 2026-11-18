@@ -419,6 +419,31 @@ public final class ContestScorer {
     public static ContestScore score(ContestPlugin plugin, List<QsoRecord> qsos,
                                       StationContext ctx, String multColumn,
                                       List<String> contestBands, int qtcPoints) {
+        ContestScore whole = score0(plugin, qsos, ctx, multColumn, contestBands, qtcPoints);
+        var rules = plugin.getScoringRules();
+        ContestPlugin.QsoPartyConfig qp = rules == null || !"qso_party".equals(rules.getMultiplierType()) ? null : qpCfg(plugin);
+        if (qp == null || !qp.isScorePerOwnCounty()) return whole;
+        // MSQP: a mobile's score is the sum of one score per county it operated from, each county's QSOs a log of their own sent
+        // from that county. A log made from one county (a fixed station) is unchanged.
+        Map<String, List<QsoRecord>> byCounty = new java.util.LinkedHashMap<>();
+        for (QsoRecord q : qsos) {
+            String c = ownCounty(plugin, q, ctx);
+            if (!c.isEmpty()) byCounty.computeIfAbsent(c, k -> new ArrayList<>()).add(q);
+        }
+        if (byCounty.size() < 2) return whole;
+        int n = 0, pts = 0, mults = 0; long sum = 0;
+        for (var e : byCounty.entrySet()) {
+            StationContext cc = StationContext.of(ctx.ownCallsign(), ctx.ownGrid(), e.getKey(), ctx.power(), ctx.station());
+            ContestScore s = score0(plugin, e.getValue(), cc, multColumn, contestBands, 0);
+            n += s.qsoCount(); pts += s.points(); mults += s.mults(); sum += s.score();
+        }
+        return new ContestScore(n, pts, mults, (int) Math.min(Integer.MAX_VALUE, sum + qtcPoints),
+                whole.painter(), whole.worked(), whole.workedByMode(), whole.workedByBand(), whole.zonesWorked());
+    }
+
+    private static ContestScore score0(ContestPlugin plugin, List<QsoRecord> qsos,
+                                       StationContext ctx, String multColumn,
+                                       List<String> contestBands, int qtcPoints) {
         int count = 0;
         for (QsoRecord q : qsos) if (!q.isDupe()) count++;
         var rules = plugin.getScoringRules();

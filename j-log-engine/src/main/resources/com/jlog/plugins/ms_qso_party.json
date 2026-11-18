@@ -30,11 +30,13 @@
   "scoringRules": {
     "pointsPerQso": 1,
     "multiplierType": "qso_party",
-    "scoreFormula": "Σ QSO pts × Σ mults (once, any band/mode). Pts: SSB 1, CW/RTTY/FT4-8 2. MS entrant = MS counties + 49 states + CA prov + DXCC (SSB/CW/RTTY) + (Σ distinct FT8/4 grids ÷4, round UP); non-MS entrant = MS counties (SSB/CW/RTTY) + count of distinct MS grids (EM41-44/EM50-54) in FT8/4. Mobile/portable score summed per county = off-log/claimed. Claimed — Vicksburg ARC re-adjudicates.",
+    "scoreFormula": "Σ QSO pts × Σ mults (once, any band/mode). Pts: SSB 1, CW/RTTY/FT4-8 2. MS entrant = MS counties + 49 states + CA prov + DXCC (SSB/CW/RTTY) + (Σ distinct FT8/4 grids ÷4, round UP); non-MS entrant = MS counties (SSB/CW/RTTY) + count of distinct MS grids (EM41-44/EM50-54) in FT8/4. Mobile / portable: each county operated from is scored as a log of its own and the scores are added (scorePerOwnCounty); a station may be worked again from each new county (ownCountyDupe). Claimed — Vicksburg ARC re-adjudicates.",
     "allowDupes": false,
     "qsoParty": {
       "stateName": "Mississippi",
       "stateAbbr": "MS",
+      "scorePerOwnCounty": true,
+      "ownCountyDupe": true,
       "countyCodeLen": 3,
       "inStateGrids": ["EM41","EM42","EM43","EM44","EM50","EM51","EM52","EM53","EM54"],
       "pointsByModeClass": { "PH": 1, "CW": 2, "RY": 2, "DG": 2 },

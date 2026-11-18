@@ -610,6 +610,22 @@ public final class JLogContest {
                 if (khz != null) r.setFrequency(khz);
             }
             fillFromForm(plugin, r);
+            if (!editing) {
+                // a county line ("ADA/CAN"): one QSO per county, or per pair of counties when both stations are on lines. Those that are
+                // not dupes are logged at once; if every one is a dupe, the first goes through the usual dupe question below.
+                List<QsoRecord> lines = com.ars.fx.data.CountyLine.expand(plugin, r);
+                if (lines.size() > 1) {
+                    List<QsoRecord> seen = new ArrayList<>(ContestQsoDao.getInstance().findByCallsign(cid, call));
+                    List<QsoRecord> keep = new ArrayList<>();
+                    for (QsoRecord c : lines) if (!ContestScorer.isDupe(plugin, c, seen)) { keep.add(c); seen.add(c); }
+                    if (!keep.isEmpty()) return logCountyLine(plugin, keep);
+                    QsoRecord first = lines.get(0);
+                    for (String id : com.ars.fx.data.CountyLine.FIELDS) {     // carry on with the first county only
+                        String slot = plugin.fieldSlotColumn(id);
+                        if (slot != null) setSlot(r, slot, slotValue(first, slot));
+                    }
+                }
+            }
             List<QsoRecord> prior = new ArrayList<>(ContestQsoDao.getInstance().findByCallsign(cid, call));
             if (editing) prior.removeIf(x -> x.getId() == r.getId());
             boolean dupe = ContestScorer.isDupe(plugin, r, prior);
@@ -638,6 +654,26 @@ public final class JLogContest {
             System.err.println("[contest] log failed: " + e.getMessage());
             return false;
         }
+    }
+
+    /** Log the QSOs of one county-line contact (none of them a dupe): one serial number, one QSL label, every line in the log. */
+    private static boolean logCountyLine(ContestPlugin plugin, List<QsoRecord> qsos) throws Exception {
+        for (QsoRecord c : qsos) {
+            c.setDupe(false);
+            c.setPoints(ContestScorer.points(plugin, c, ContestState.ctx()));
+            ContestQsoDao.getInstance().insert(c);
+            com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, c, false);
+        }
+        QsoRecord first = qsos.get(0);
+        if (spotAfter) spotNote = spotNow(first);
+        serial++;
+        com.ars.fx.data.SessionQsos.logged(first.getCallsign(), null, first.getBand(), first.getMode());
+        ContestState.recompute();
+        if (printQsl != null) printQsl.afterSave(com.ars.fx.data.QslLabel.fromContest(first));
+        Thread lt = new Thread(() -> com.ars.fx.data.CallHistory.learn(plugin, first), "call-history-learn");
+        lt.setDaemon(true); lt.start();
+        setB4("Logged " + qsos.size() + " QSOs: county line", "new");
+        return true;
     }
 
     // ---- edit / erase a logged QSO ------------------------------------------------

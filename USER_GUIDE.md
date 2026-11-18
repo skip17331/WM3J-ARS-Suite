@@ -219,6 +219,10 @@ across the top of each always tells you which database you are writing to, with 
 What the contest page does for you:
 
 - **Type-ahead.** Section, county and state fields suggest from the contest's list as you type.
+- **County lines** (QSO parties). A station on a county line sends both counties: type them with a slash, `ADA/CAN`, and it
+  is logged as one QSO per county. The same works in your own county field when you are mobile on a line (one QSO per pair
+  when both stations are on lines). Each county is checked on its own, and only the combinations that are not dupes are logged.
+  In the Mississippi QSO Party a mobile's score is worked out per county and added up, as its rules say.
 - **Validation.** A section, precedence, zone or callsign that can never be valid is refused. Where the list is not definitive (a state or county in a QSO party that is not recognised) it warns and asks for a second **Enter**.
 - **Dupes** ask permission before they are logged.
 - **Exchange memory and call history.** A station you have worked before in this contest has its exchange filled in. For a station you have not, the **call history** fills it from what that station usually sends (state, section, zone, grid, name, Sweepstakes precedence and check); anything filled in is marked, and you check it before you log. The history learns from your own contest QSOs and can be rebuilt from your logs (**Setup ▸ Log database & backup ▸ Call history ▸ Build from my logs**) or seeded from a call history CSV file (**Import file…**; N1MM+ call history files work). Your own QSOs always win over imported values.

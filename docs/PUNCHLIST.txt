@@ -73,6 +73,13 @@ IDs
 4a-5    Contest network key: at least 10 characters (was 4; a recorded handshake let a short key be
         found offline, and with it the session encryption). A network with a shorter key will not
         start until the key is changed, and says so.
+4b-4    Mississippi QSO Party: a mobile's score is one score per county it operated from, added up
+        (scorePerOwnCounty), and a station may be worked again from each new county (ownCountyDupe).
+        Maine not changed: its definition does not record a per-county rule and the sponsor's site
+        is gone (4c-5); add it once its rules are found.
+4b-5    County-line contacts: 'ADA/CAN' in a QSO party's county field (received, or your own as a
+        mobile) is logged as one QSO per county, or per pair when both stations are on lines; each
+        county is validated on its own and only combinations that are not dupes are logged.
 4a-2    J-Digi audio thread profiled (2 min of audio per mode): FFT, decoder, signal classifier and
         CW skimmer together cost under 0.1% of a core in every mode except Olivia (about 3.8%, its
         symbol-sync search while unlocked; see 3-10).
@@ -206,9 +213,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
         Size: S.
 4b-3    NS. Rule: +10 per rover / Field Day station worked, per mode. Blocked on: A way to tell a
         rover in the log. Size: S.
-4b-4    ME, MS. Rule: A mobile's score summed per county activated. Size: M.
-4b-5    several. Rule: County-line / exchanges ("ADA/CAN"). Blocked on: Decide: split into two lines
-        or accept /. Size: S.
 
 4c. Information needed from sponsors
 ------------------------------------
