@@ -862,8 +862,10 @@ final class JHubSetupPages {
             javafx.scene.text.Text probe = new javafx.scene.text.Text(l.text()); probe.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
             double tw = probe.getLayoutBounds().getWidth();
             if (tw > usableW && tw > 0) size = Math.max(5, size * usableW / tw);
+            size *= l.scale();
             g.setFont(javafx.scene.text.Font.font("SansSerif", fw, size));
-            g.fillText(l.text(), w / 2, y + band / 2);
+            g.setTextAlign(l.right() ? javafx.scene.text.TextAlignment.RIGHT : javafx.scene.text.TextAlignment.CENTER);
+            g.fillText(l.text(), l.right() ? w - pad : w / 2, y + band / 2);
             y += band;
         }
         StackPane frame = new StackPane(cv); frame.setStyle("-fx-border-color:-ars-border-2;-fx-border-radius:9;-fx-padding:1;");

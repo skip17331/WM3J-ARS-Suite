@@ -36,6 +36,8 @@ class QslLabelTest {
         assertEquals("FT8", lines.get(1).cells().get(4));
         assertEquals("-10", lines.get(1).cells().get(5));
         assertEquals("73 and Good DX!", lines.get(2).text());
+        assertTrue(lines.get(2).right());
+        assertEquals(0.5, lines.get(2).scale(), 1e-9);
         double sum = 0; for (double c : lines.get(0).cols()) sum += c;
         assertEquals(1.0, sum, 1e-9);
     }

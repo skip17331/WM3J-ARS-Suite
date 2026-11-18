@@ -172,14 +172,16 @@ public final class QslLabel {
     }
 
     /** One printed line: its text, its share of the label height, and whether it is bold. */
-    public record Line(String text, double weight, boolean bold, List<String> cells, double[] cols) {
+    public record Line(String text, double weight, boolean bold, List<String> cells, double[] cols, boolean right, double scale) {
         /** A plain centred line of text. */
-        public Line(String text, double weight, boolean bold) { this(text, weight, bold, null, null); }
+        public Line(String text, double weight, boolean bold) { this(text, weight, bold, null, null, false, 1.0); }
+        /** A line set at {@code scale} times its fitted size and pushed to the right edge. */
+        public static Line corner(String text, double weight, double scale) { return new Line(text, weight, true, null, null, true, scale); }
         /** A row of boxed cells (the QSL table); {@code cols} are the cells' shares of the width, summing to 1, shared by every row of the table. */
         public boolean isRow() { return cells != null; }
     }
     private static Line row(List<String> cells, double[] cols, double weight, boolean bold) {
-        return new Line(String.join(" | ", cells), weight, bold, cells, cols);
+        return new Line(String.join(" | ", cells), weight, bold, cells, cols, false, 1.0);
     }
     /** Column shares for a table: each as wide as its longer entry (header or value) plus room around it. */
     private static double[] columnShares(List<String> head, List<String> vals) {
@@ -222,7 +224,7 @@ public final class QslLabel {
         List<Line> l = new ArrayList<>();
         l.add(row(head, cols, 1.0, false));
         l.add(row(vals, cols, 1.7, true));
-        if (show("sign")) l.add(new Line("73 and Good DX!", 1.4, true));
+        if (show("sign")) l.add(Line.corner("73 and Good DX!", 1.0, 0.5));    // half size, lower right corner
         return l;
     }
 
@@ -390,10 +392,11 @@ public final class QslLabel {
                 continue;
             }
             Font f = fit(g, l, usableW, band * 0.82);
+            if (l.scale() != 1.0) f = f.deriveFont((float) (f.getSize2D() * l.scale()));
             g.setFont(f);
             FontMetrics fm = g.getFontMetrics();
             double baseline = y + (band - fm.getHeight()) / 2 + fm.getAscent();
-            g.drawString(l.text(), (float) (pad + (usableW - fm.stringWidth(l.text())) / 2), (float) baseline);
+            g.drawString(l.text(), (float) (l.right() ? pad + usableW - fm.stringWidth(l.text()) : pad + (usableW - fm.stringWidth(l.text())) / 2), (float) baseline);
             y += band;
         }
         g.setTransform(saved);
@@ -441,10 +444,10 @@ public final class QslLabel {
             }
             String txt = zplEscape(l.text());
             // ZPL font 0 is proportional; ~0.6 em per character is a safe fit estimate
-            int fh = (int) Math.max(12, Math.min(band * 0.82, usableW / (Math.max(1, txt.length()) * 0.6)));
+            int fh = (int) Math.max(12, Math.min(band * 0.82, usableW / (Math.max(1, txt.length()) * 0.6)) * l.scale());
             int top = (int) (y + (band - fh) / 2);
             z.append("^FO").append(pad).append(',').append(top)
-             .append("^FB").append(usableW).append(",1,0,C,0")                 // centred in the usable width
+             .append("^FB").append(usableW).append(",1,0,").append(l.right() ? "R" : "C").append(",0")                 // centred in the usable width
              .append("^A0N,").append(fh).append(',').append(fh)
              .append("^FD").append(txt).append("^FS\n");
             y += band;
