@@ -4,10 +4,8 @@ Kept in the repo so it carries over between sessions. Tick items off (`[x]`) as 
 Ordered by priority: do the tiers top to bottom. Size is a rough guess: S = under a day, M = a few days, L = a week or more.
 
 ## 1. On hold — verify what shipped in v1.12.2
-No label printers to test with at the moment, so these wait.
-- [ ] **S** QSL label printing (beta): try on real hardware — Brother QL-810W, DYMO LabelWriter 550, Zebra ZD421 (ZPL and driver modes). Check size, margins, rotation on narrow strip labels. Fix what it finds before adding more printers.
+Left from v1.12.2.
 - [ ] **S** Log browser: click through the Band / Mode filters and Delete + confirmation (only tested through a harness).
-- [ ] **S** Confirm the Amateur Radio menu folder shows on Cinnamon after the installer fix.
 - [ ] **S** Check the 2026-10-03 9K2IC (70cm DMR) entry in the log — looks like a mistyped date.
 
 ## 1b. CPU / lag on the 4K laptop (HP Spectre, Intel UHD 620)
@@ -26,9 +24,7 @@ Found 2026-11-14. On the map screen the render thread sat in the Mesa driver's `
 
 ## 1c. Check after the 2026-11-18 merge (PRs #256-#266)
 Merged with CI green; none of it has been seen in the running app.
-- [ ] **S** J-Sat: a pass in progress shows its own time left (not the next orbit's, was 1h30); the AOS-to-LOS countdown counts during a live pass; the lower bar shows only AZ / EL changes as intended.
 - [ ] **S** Club Log DXCC exceptions: **Update now** with the Club Log API key (element names came from gocldb, not Club Log's docs); a DXpedition call shows its real entity; `<long>` is assumed east-positive.
-- [ ] **S** Setup, J-Map and the contest page after the file splits (`JHubSetupPages`, `JMapControls` / `JMapCanvases`, `JLogContestSend` / `Score` / `Log`): click through every Setup section, the three map views and left panel, and the contest page (SEND line, score tiles, recent log, All QSOs, Export). Moved code, no behaviour change intended.
 - [ ] **S** Dev tooling: `./app.sh shot` (DevHook, PR #259) is the way to take screenshots of the running app on Fedora KDE Wayland; the installer, j-bridge and j-log-common tests now run in CI.
 
 ## 2. Next — award tracking
@@ -71,8 +67,6 @@ From comparing the suite with N1MM+, DXLab, Log4OM, Wavelog, GridTracker and the
   - [ ] **M** More calendars: special event stations, net schedules, satellite news; filter by distance from your grid.
   - [ ] **M** Your stats: QSOs this month, new entities, QSL / LoTW confirmations, upload errors.
   - [ ] **M** Reference: greyline / sunrise-sunset timetable and best bands by time of day, callsign of the day + quick lookup, licence renewal reminder, tip of the day (can surface new J-Learn chapters).
-- [ ] **S** QSL label reprint and contest printing (built 2026-11-16, `QslLabelReprintTest`): try with a printer - Print label in the log browser, the contest **Label** button and the auto-print switch. Contest QSOs often have no RST or name, so the card may be sparse; an exchange line may be wanted. Edits in the normal log still do not print.
-- [ ] **S** Windows COM-port watchdog (built 2026-11-16, `DaemonWatchdogComPortTest`; `daemon.watchComPorts=false` turns it off): unplug a USB-serial rig on Windows and check the daemon stops, then restarts when it returns. Limits: a re-plug quicker than the 4 s check is not seen (3 failed probes still catch a dead daemon after about 12 s); the end-to-end repair test still skips on Windows; a virtual port missing from the registry list is treated as gone.
 - [ ] **S** `DigiEngineSyncTest.modemFollowsJHubSettings` failed once in a full run (an `assertEquals`, message not kept) and has passed in 6 full runs and alone since, so it is not understood. If it fails again, copy `ars-fx/target/surefire-reports/com.ars.fx.data.DigiEngineSyncTest.txt` before re-running. Suspects: another test's background thread reloading or setting `HubConfig` while it runs, and the modem's saved preferences in `target/test-prefs` carrying over between runs.
 - [ ] **S** Log browser **Export…** of the filtered view (built 2026-11-16): try it in the running app with a filter on - the save dialog, the count message, and the file in a spreadsheet and in another logger.
 - [ ] **S** Log browser contest logs (built 2026-11-16, view only): try in the running app - pick a contest log in use and an archived one, sort, filter, search for an exchange, Export a filtered set and import the ADIF into another logger, print a label. Editing and erasing a contest QSO from the browser is built (2026-11-18) for the contest open on the contest page: Edit / double-click loads it into the contest form, Delete erases it as the contest page does; **try both, and check an erase reaches a second station on the contest network**. Archived logs and other contests stay view-only.
