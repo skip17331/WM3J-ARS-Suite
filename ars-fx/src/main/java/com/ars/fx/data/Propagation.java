@@ -14,7 +14,11 @@ import java.util.List;
  *       matters: at the middle of the first and last hop for the F2 layer, and at the ends of every hop for D-layer absorption.</li>
  *   <li>foF2, the F2 layer's critical frequency, comes from the solar flux (about 6.5 MHz at noon for a flux of 70, rising by 5 MHz to a flux
  *       of 200), falls with the sun's zenith angle to 45% of the noon value at night, is trimmed at high latitude, and is cut when the
- *       K index is 4 or more (a disturbed ionosphere).</li>
+ *       K index is 4 or more (a disturbed ionosphere). Stage 2 adds two well-known departures from that, both stronger when the sun is
+ *       active: the <b>winter anomaly</b> (mid-latitude daytime foF2 is higher in local winter than in summer: up to +35% at the winter
+ *       solstice, as much lower at the summer one) and the <b>equatorial anomaly</b> (the crests of daytime and evening foF2 about 15&deg;
+ *       either side of the equator that carry 10 m and 6 m across it: up to +40%). The first check (November 2026, about 400 open paths)
+ *       found the model far too pessimistic above 20 m: 96% of 10 m paths heard over 1,000 km were called closed.</li>
  *   <li>The MUF of a hop is foF2 times the secant of the angle at which the ray meets the F2 layer (a thin layer 320 km up, a spherical
  *       Earth, a ray leaving at the lowest angle the hop length allows). A 3,000 km hop comes out near 3.0 times foF2, the M(3000)F2 of
  *       a typical day. The path MUF is the lower of the two ends: the F2 reflection points nearest the terminals set it, as in common practice
@@ -26,7 +30,7 @@ import java.util.List;
  *   <li>Day-to-day variation is a spread of 13% on the MUF and 20% on the LUF (judgement, not measurement: tuned so daytime 80 m is not left open on a long path); the chance a frequency is open is the chance it is below
  *       the day's MUF and above the day's LUF.</li>
  * </ol>
- * What it leaves out: sporadic E and E-layer paths, the winter anomaly and the equatorial anomaly, grey-line enhancement, polar and
+ * What it leaves out: sporadic E and E-layer paths, grey-line enhancement, polar and
  * auroral paths, atmospheric noise and the operator's power and antennas. It is an estimate, and the app says so.
  */
 public final class Propagation {
@@ -128,6 +132,36 @@ public final class Propagation {
 
     // ---- the ionosphere ----------------------------------------------------------------------------------------------
 
+    /** foF2 on day {@code doy} of the year: {@link #foF2(double, double, Weather)} with the winter and equatorial anomalies. */
+    public static double foF2(double cosChi, double lat, Weather w, int doy) {
+        return foF2(cosChi, lat, w) * winterAnomaly(cosChi, lat, doy, w.sfi()) * equatorialAnomaly(cosChi, lat, w.sfi());
+    }
+
+    /** How strongly the sun's activity brings out the anomalies: 0 at a flux of 70 (quiet), 1 from 200. */
+    static double activity(double sfi) { return Math.max(0, Math.min(1, (sfi - 70.0) / 130.0)); }
+
+    /**
+     * The winter anomaly: daytime foF2 at mid-latitudes is higher in local winter than in summer, most of all near 45&deg; and when the sun
+     * is active. 1 at night, at the equinoxes and away from mid-latitudes; up to 1.35 at the local winter solstice, 0.65 at the summer one.
+     */
+    static double winterAnomaly(double cosChi, double lat, int doy, double sfi) {
+        if (cosChi <= 0) return 1.0;
+        double solstice = lat >= 0 ? 355 : 172;                                       // 21 December / 21 June
+        double season = Math.cos(2 * Math.PI * (doy - solstice) / 365.25);              // 1 in local winter, -1 in summer
+        double midLat = Math.max(0, 1 - Math.abs(Math.abs(lat) - 45) / 25);             // 45 deg, fading out by 20 and 70
+        return 1 + 0.35 * activity(sfi) * midLat * Math.sqrt(cosChi) * season;
+    }
+
+    /**
+     * The equatorial anomaly: foF2 has crests about 15&deg; either side of the equator by day and into the evening (transequatorial paths
+     * on 10 m and 6 m). Up to 1.4 at a crest with an active sun; 1 away from the tropics and late at night.
+     */
+    static double equatorialAnomaly(double cosChi, double lat, double sfi) {
+        double crest = Math.max(0, 1 - Math.abs(Math.abs(lat) - 15) / 12);              // 15 deg, fading out by 3 and 27
+        double time = cosChi > 0 ? 1.0 : cosChi > -0.3 ? 0.6 : 0.0;                       // day, the evening after, not the small hours
+        return 1 + 0.4 * activity(sfi) * crest * time;
+    }
+
     /** The F2 layer's critical frequency (MHz) at a place where the cosine of the sun's zenith angle is {@code cosChi}. */
     public static double foF2(double cosChi, double lat, Weather w) {
         double noon = 6.5 + 0.0385 * (w.sfi() - 70.0);
@@ -147,7 +181,7 @@ public final class Propagation {
         for (int i = 0; i < n; i++) {
             if (i == 0 || i == n - 1) {                                                // F2: the reflection points nearest each terminal limit the path
                 Point mid = along(tx, rx, (i + 0.5) / n);
-                muf = Math.min(muf, foF2(cosZenith(mid, doy, utcHours), mid.lat(), w) * secantF2(hop));
+                muf = Math.min(muf, foF2(cosZenith(mid, doy, utcHours), mid.lat(), w, doy) * secantF2(hop));
             }
             double xa = Math.max(cosZenith(along(tx, rx, (double) i / n), doy, utcHours), 0);          // D: where the ray crosses it, near the hop's two ends
             double xb = Math.max(cosZenith(along(tx, rx, (double) (i + 1) / n), doy, utcHours), 0);

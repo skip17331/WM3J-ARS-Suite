@@ -23,7 +23,31 @@ import java.util.TreeMap;
 public final class PropagationCheck {
     private PropagationCheck() {}
 
-    public static final String KEY = "propcheck.tally";
+    /** The tallies of the current model. Stage 2 (winter and equatorial anomalies) counts afresh; stage 1's are kept under
+     *  "propcheck.tally" for comparison. Bump this when the model changes, so each version is judged on its own. */
+    public static final String KEY = "propcheck.tally.v2";
+    /** Each checked path, one line each, so a changed model can be tried against everything heard so far (see {@link #replay}). */
+    static final int KEEP_OBSERVATIONS = 20_000;
+    private static final List<String> pendingObs = new ArrayList<>();
+
+    /** One path the check heard: when, on what frequency, between which two places, in what space weather. */
+    public record Obs(long epochSec, double fMhz, double lat1, double lon1, double lat2, double lon2, double sfi, double ssn, double k) {
+        String line() {
+            return String.format(java.util.Locale.ROOT, "%d,%.4f,%.2f,%.2f,%.2f,%.2f,%.0f,%.0f,%.1f", epochSec, fMhz, lat1, lon1, lat2, lon2, sfi, ssn, k);
+        }
+        static Obs parse(String line) {
+            String[] f = line.split(",");
+            if (f.length != 9) return null;
+            try {
+                return new Obs(Long.parseLong(f[0]), Double.parseDouble(f[1]), Double.parseDouble(f[2]), Double.parseDouble(f[3]),
+                        Double.parseDouble(f[4]), Double.parseDouble(f[5]), Double.parseDouble(f[6]), Double.parseDouble(f[7]), Double.parseDouble(f[8]));
+            } catch (NumberFormatException e) { return null; }
+        }
+    }
+
+    static java.nio.file.Path observationsFile() {
+        return java.nio.file.Paths.get(System.getProperty("user.home"), ".j-hub", "propcheck", "observations.csv");
+    }
     static final double MIN_KM = 1000;
 
     /** Counts for one band. */
@@ -49,6 +73,8 @@ public final class PropagationCheck {
         if (band == null || band.isEmpty()) return null;
         Propagation.Verdict v = Propagation.verdictNow(spotter, station, w, utc, freqHz / 1e6);
         if (v == null) return null;
+        pendingObs.add(new Obs(utc.toEpochSecond(ZoneOffset.UTC), freqHz / 1e6, spotter.lat(), spotter.lon(), station.lat(), station.lon(),
+                w.sfi(), w.ssn(), w.k()).line());
         load();
         TALLY.merge(band, new Tally(0, 0, 0).add(v), (a, b) -> new Tally(a.open() + b.open(), a.marginal() + b.marginal(), a.closed() + b.closed()));
         if (++unsaved >= 25) save();
@@ -143,10 +169,54 @@ public final class PropagationCheck {
     }
 
     private static void load() { if (!loaded) { decode(HubConfig.get(KEY, "")); loaded = true; } }
-    private static void save() { HubConfig.set(KEY, encode()); unsaved = 0; }
+    private static void save() { HubConfig.set(KEY, encode()); unsaved = 0; saveObservations(); }
+
+    /** Appends the paths heard since the last save; keeps the newest {@link #KEEP_OBSERVATIONS}. */
+    private static void saveObservations() {
+        if (pendingObs.isEmpty()) return;
+        java.nio.file.Path f = observationsFile();
+        try {
+            java.nio.file.Files.createDirectories(f.getParent());
+            java.nio.file.Files.write(f, pendingObs, java.nio.charset.StandardCharsets.US_ASCII,
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            pendingObs.clear();
+            List<String> all = java.nio.file.Files.readAllLines(f, java.nio.charset.StandardCharsets.US_ASCII);
+            if (all.size() > KEEP_OBSERVATIONS * 3 / 2)
+                java.nio.file.Files.write(f, all.subList(all.size() - KEEP_OBSERVATIONS, all.size()), java.nio.charset.StandardCharsets.US_ASCII);
+        } catch (java.io.IOException e) { System.err.println("[propcheck] could not save the observations: " + e.getMessage()); }
+    }
+
+    /** Every path saved so far, oldest first. */
+    public static synchronized List<Obs> observations() {
+        saveObservations();
+        java.nio.file.Path f = observationsFile();
+        List<Obs> out = new ArrayList<>();
+        try {
+            if (java.nio.file.Files.exists(f))
+                for (String l : java.nio.file.Files.readAllLines(f, java.nio.charset.StandardCharsets.US_ASCII)) { Obs o = Obs.parse(l); if (o != null) out.add(o); }
+        } catch (java.io.IOException ignored) { }
+        return out;
+    }
+
+    /**
+     * What the model as it is now says about saved paths, tallied per band like the live check: the way to judge a change to the model
+     * against everything heard so far, instead of waiting weeks for a new tally.
+     */
+    public static java.util.Map<String, Tally> replay(List<Obs> obs) {
+        java.util.Map<String, Tally> out = new TreeMap<>();
+        for (Obs o : obs) {
+            Propagation.Weather w = new Propagation.Weather(o.sfi(), o.ssn(), o.k());
+            LocalDateTime t = LocalDateTime.ofEpochSecond(o.epochSec(), 0, ZoneOffset.UTC);
+            Propagation.Verdict v = Propagation.verdictNow(new Propagation.Point(o.lat1(), o.lon1()), new Propagation.Point(o.lat2(), o.lon2()), w, t, o.fMhz());
+            String band = Bands.of(Math.round(o.fMhz() * 1e6));
+            if (v == null || band == null || band.isEmpty()) continue;
+            out.merge(band, new Tally(0, 0, 0).add(v), (a, b) -> new Tally(a.open() + b.open(), a.marginal() + b.marginal(), a.closed() + b.closed()));
+        }
+        return out;
+    }
     /** Writes the tallies now (the app calls this on a clean exit). */
     public static synchronized void flush() { if (loaded && unsaved > 0) save(); }
 
     /** Tests: forget what was loaded so the next read starts from the config again. */
-    static synchronized void forgetForTest() { TALLY.clear(); loaded = false; unsaved = 0; lastSpotMs = System.currentTimeMillis(); }
+    static synchronized void forgetForTest() { TALLY.clear(); loaded = false; unsaved = 0; pendingObs.clear(); lastSpotMs = System.currentTimeMillis(); }
 }
