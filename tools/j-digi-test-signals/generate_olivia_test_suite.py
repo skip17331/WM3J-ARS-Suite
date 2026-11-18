@@ -2,119 +2,103 @@
 """
 generate_olivia_test_suite.py
 
-Generate known-answer Olivia MFSK WAV files for decoder testing.
+Known-answer Olivia 8/500 WAV files for J-Digi's decoder tests, in STANDARD Olivia (punch list 3-12), as fldigi and the other
+Olivia programs send it. Written straight from the published description of the mode (Pawel Jalocha, SP9VRC) and fldigi's
+reference behaviour, separately from J-Digi's Java, so the two check each other.
 
 Expected text:
     CQ CQ CQ DE W3XYZ K
 
-Olivia protocol (Jalocha/SP9VRC, matches j-digi's OliviaTransmitter):
-  * 8 tones, 500 Hz bandwidth, 1500 Hz centre (the 8/500 variant)
-  * Tone spacing  = bandwidth / numTones = 62.5 Hz
-  * Symbol rate   = tone spacing          = 62.5 baud
-  * Samples/sym   = sampleRate / symRate  = 128 (at 8 kHz)
-  * Bits/symbol   = log2(numTones)        = 3
-  * Block size    = 64 symbols
-  * Chars/block   = bits/symbol           = 3
-  * Charset       = ASCII 0x20–0x5F (64 chars)
-  * FEC           = Walsh-Hadamard per bit plane
-  * Phase         = continuous across tone changes
+The mode:
+  * 8 tones, 500 Hz: tone spacing 62.5 Hz, 62.5 baud, 128 samples per symbol at 8 kHz
+  * a block is 64 symbols and carries 3 characters (one per bit of the 3-bit symbol), 7-bit ASCII
+  * each character c becomes 64 chips: a vector with +1 at c (c < 64) or -1 at c - 64, through an inverse fast Hadamard
+    transform (pairs (a, b) -> (a - b, a + b), largest stride first)
+  * chip t of character f is negated where bit (13 f + t) mod 64 of 0xE257E6D0291574EC is set
+  * a negative chip t of character f sets bit (f + t) mod 3 of symbol t
+  * symbol s goes out as tone gray(s) = s ^ (s >> 1)
+  * each tone is shaped by 1 - cos over two symbol periods (overlapping its neighbours by half), and the phase steps a
+    quarter turn either way between symbols
+  * like fldigi, tones sit on multiples of 31.25 Hz (half the spacing): the first is bin int((f0 - 234.375) / 31.25) + 1
 
-Encoding (per block of 3 chars c0, c1, c2):
-  For each symbol position k in 0..63:
-     bit_b of tone index = popcount(c_b AND k) AND 1, for b = 0,1,2
+Idle: blocks of NUL characters before and after (fldigi shows nothing for NUL).
 """
 
 from __future__ import annotations
 
 import math
 import os
+import random
 import struct
 import wave
-from dataclasses import dataclass
 
 SAMPLE_RATE = 8000
+SPS = 128                      # samples per symbol
+TONES = 8
+BPS = 3
+BLOCK = 64
+SCRAMBLE = 0xE257E6D0291574EC
 AMPLITUDE = 0.45
-LEAD_IN_SECONDS = 0.75
-TAIL_SECONDS = 0.50
+LEAD_BLOCKS = 2
 TEXT = "CQ CQ CQ DE W3XYZ K"
 
-NUM_TONES        = 8
-BANDWIDTH_HZ     = 500
-DEFAULT_CENTER   = 1500.0
-BITS_PER_SYMBOL  = 3            # log2(8)
-BLOCK_SYMBOLS    = 64
-CHAR_SET_SIZE    = 64           # 2^6
-CHAR_OFFSET      = 0x20
-LEAD_BLOCKS      = 3            # lead-in + lead-out blocks of spaces
+
+def ifht(v: list[int]) -> None:
+    step = len(v) // 2
+    while step:
+        for p in range(0, len(v), 2 * step):
+            for q in range(p, p + step):
+                a, b = v[q], v[q + step]
+                v[q], v[q + step] = a - b, a + b
+        step //= 2
 
 
-@dataclass(frozen=True)
-class OliviaConfig:
-    center_hz: float
-    name: str
+def encode_block(chars: list[int]) -> list[int]:
+    sym = [0] * BLOCK
+    for f, c in enumerate(chars):
+        c &= 0x7F
+        w = [0] * BLOCK
+        if c < BLOCK:
+            w[c] = 1
+        else:
+            w[c - BLOCK] = -1
+        ifht(w)
+        for t in range(BLOCK):
+            chip = -w[t] if (SCRAMBLE >> ((f * 13 + t) % 64)) & 1 else w[t]
+            if chip < 0:
+                sym[t] |= 1 << ((f + t) % BPS)
+    return [s ^ (s >> 1) for s in sym]
 
 
-def normalize_text(text: str) -> list[int]:
-    """ASCII → 6-bit Olivia codes (space = 0). Lowercase → uppercase."""
-    codes = []
-    for ch in text:
-        if 'a' <= ch <= 'z':
-            ch = chr(ord(ch) - 32)
-        code = ord(ch) - CHAR_OFFSET
-        codes.append(code if 0 <= code < CHAR_SET_SIZE else 0)
-    return codes
+def symbols_for(text: str) -> list[int]:
+    codes = [ord(ch) & 0x7F for ch in text]
+    codes += [0] * (-len(codes) % BPS)
+    codes = [0] * (LEAD_BLOCKS * BPS) + codes + [0] * (LEAD_BLOCKS * BPS)
+    out: list[int] = []
+    for i in range(0, len(codes), BPS):
+        out += encode_block(codes[i:i + BPS])
+    return out
 
 
-def build_symbol_stream(text: str) -> list[int]:
-    """Map text → list of tone indices, padded with lead-in/lead-out blocks."""
-    codes = normalize_text(text)
-
-    content_blocks = (len(codes) + BITS_PER_SYMBOL - 1) // BITS_PER_SYMBOL
-    total_blocks   = LEAD_BLOCKS + content_blocks + LEAD_BLOCKS
-    total_chars    = total_blocks * BITS_PER_SYMBOL
-
-    padded = [0] * total_chars              # zero-filled = space
-    content_start = LEAD_BLOCKS * BITS_PER_SYMBOL
-    for i, c in enumerate(codes):
-        if content_start + i < total_chars:
-            padded[content_start + i] = c
-
-    symbols = []
-    for blk in range(total_blocks):
-        for k in range(BLOCK_SYMBOLS):
-            sym = 0
-            for b in range(BITS_PER_SYMBOL):
-                char_code = padded[blk * BITS_PER_SYMBOL + b]
-                walsh_bit = bin(char_code & k).count("1") & 1
-                sym |= (walsh_bit << b)
-            symbols.append(sym)
-    return symbols
+def first_tone_hz(centre: float) -> float:
+    bin_hz = SAMPLE_RATE / (2 * SPS)                       # 31.25
+    offset = 500 * (1 - 0.5 / TONES) / 2                   # 234.375
+    first_bin = int((centre - offset) / bin_hz) + 1
+    return first_bin * bin_hz
 
 
-def encode_olivia_wave(cfg: OliviaConfig, text: str) -> list[float]:
-    # Tone frequencies — same formula as the Java transmitter
-    tone_spacing = BANDWIDTH_HZ / NUM_TONES
-    lowest_tone  = cfg.center_hz - BANDWIDTH_HZ / 2.0 + tone_spacing / 2.0
-    tone_freqs   = [lowest_tone + i * tone_spacing for i in range(NUM_TONES)]
-    spS          = max(1, round(SAMPLE_RATE / tone_spacing))
-
-    symbols = build_symbol_stream(text)
-    samples: list[float] = []
-
-    samples.extend([0.0] * round(LEAD_IN_SECONDS * SAMPLE_RATE))
-
+def modulate(symbols: list[int], centre: float, seed: int) -> list[float]:
+    rnd = random.Random(seed)
+    f0 = first_tone_hz(centre)
+    out = [0.0] * ((len(symbols) + 1) * SPS)
     phase = 0.0
-    for sym in symbols:
-        freq = tone_freqs[sym]
-        phase_step = 2.0 * math.pi * freq / SAMPLE_RATE
-        for _ in range(spS):
-            samples.append(AMPLITUDE * math.sin(phase))
-            phase += phase_step
-            if phase >= 2.0 * math.pi:
-                phase -= 2.0 * math.pi
-
-    samples.extend([0.0] * round(TAIL_SECONDS * SAMPLE_RATE))
-    return samples
+    for k, s in enumerate(symbols):
+        w = 2 * math.pi * (f0 + 62.5 * s) / SAMPLE_RATE
+        for n in range(2 * SPS):
+            shape = 0.5 * (1 - math.cos(math.pi * n / SPS))
+            out[k * SPS + n] += AMPLITUDE * shape * math.cos(phase + w * n)
+        phase += w * SPS + (math.pi / 2 if rnd.random() < 0.5 else -math.pi / 2)
+    return out
 
 
 def write_wav(path: str, samples: list[float]) -> None:
@@ -122,32 +106,18 @@ def write_wav(path: str, samples: list[float]) -> None:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(SAMPLE_RATE)
-        frames = bytearray()
-        for s in samples:
-            clipped = max(-1.0, min(1.0, s))
-            frames.extend(struct.pack("<h", int(round(clipped * 32767.0))))
-        wf.writeframes(frames)
+        wf.writeframes(b"".join(struct.pack("<h", max(-32767, min(32767, int(round(x * 32767))))) for x in samples))
 
 
 def main() -> None:
-    out_dir = "olivia_test_suite"
+    out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "olivia_test_suite")
     os.makedirs(out_dir, exist_ok=True)
-
-    configs = [
-        OliviaConfig(1500.0, "olivia_8_500_1500hz"),  # baseline default
-        OliviaConfig(1200.0, "olivia_8_500_1200hz"),  # off-center low
-        OliviaConfig(1800.0, "olivia_8_500_1800hz"),  # off-center high
-    ]
-
-    for cfg in configs:
-        samples = encode_olivia_wave(cfg, TEXT)
-        path = os.path.join(out_dir, f"{cfg.name}.wav")
+    silence = [0.0] * int(0.75 * SAMPLE_RATE)
+    for centre in (1500, 1200, 1800):
+        samples = silence + modulate(symbols_for(TEXT), centre, seed=centre) + silence[: SAMPLE_RATE // 2]
+        path = os.path.join(out_dir, f"olivia_8_500_{centre}hz.wav")
         write_wav(path, samples)
-        dur = len(samples) / SAMPLE_RATE
-        print(f"Wrote {path}  ({dur:.2f} s)")
-
-    print("\nExpected text:")
-    print(repr(TEXT))
+        print(f"{path}: first tone {first_tone_hz(centre):.2f} Hz, {len(samples) / SAMPLE_RATE:.1f} s")
 
 
 if __name__ == "__main__":

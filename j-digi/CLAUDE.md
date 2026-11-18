@@ -21,7 +21,7 @@ Java 21, Maven. `j-log-common` and `j-log-engine` must be in `~/.m2` first (`../
 ## Status
 
 Decode is implemented and audio-loopback validated for every bundled mode. Transmit exists for CW, RTTY, PSK31,
-Olivia, MFSK16 and Domino-EX. **AX.25 is decode-only** (`ModemService` throws `UnsupportedOperationException` for
+Olivia, MFSK16 and Domino-EX. Olivia is standard Olivia (`dsp/OliviaCodec`: 7-bit text, scrambling, diagonal interleave, Gray code; shaped symbols on transmit), checked against signals made to the published description (`../tools/j-digi-test-signals/generate_olivia_test_suite.py`), not yet against fldigi on air. **AX.25 is decode-only** (`ModemService` throws `UnsupportedOperationException` for
 AX.25 WAV export). Don't describe the modem as production-grade until it has been tested on air against real signals.
 
 ## Architecture

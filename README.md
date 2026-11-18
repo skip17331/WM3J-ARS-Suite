@@ -150,7 +150,7 @@ J‑Log/J‑Digi, **not** from per‑app duplicates.
 ### Log uploaders
 
 Push QSOs from J‑Log to **LoTW** (signed with TrustedQSL), **eQSL.cc**,
-**Club Log**, **QRZ Logbook** and **Wavelog** with one click. LoTW and
+**Club Log**, **QRZ Logbook**, **Wavelog**, **Cloudlog** and **HRDLog.net** with one click. LoTW and
 eQSL can also upload each new QSO automatically, tracking which QSOs each
 has already had; **Get confirmations** downloads your LoTW and eQSL
 confirmations. Passwords and keys are kept in your operating system's

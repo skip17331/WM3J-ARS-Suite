@@ -637,6 +637,8 @@ final class JHubSetupPages {
                         case "qrz_logbook" -> com.ars.fx.data.LogUpload.qrzLogbook();
                         case "clublog" -> com.ars.fx.data.LogUpload.clublog();
                         case "wavelog" -> com.ars.fx.data.LogUpload.wavelog();
+                        case "cloudlog" -> com.ars.fx.data.LogUpload.cloudlog();
+                        case "hrdlog" -> com.ars.fx.data.LogUpload.hrdlog();
                         default -> new com.ars.fx.data.LogUpload.Result(false, 0, "unknown service");
                     };
                     javafx.application.Platform.runLater(() -> report.accept(r));

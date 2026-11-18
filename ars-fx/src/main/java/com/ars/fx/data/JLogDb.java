@@ -95,8 +95,11 @@ public final class JLogDb {
         {"cqz", "INTEGER DEFAULT 0"}, {"ituz", "INTEGER DEFAULT 0"},
         {"lotw_rcvd", "INTEGER DEFAULT 0"}, {"eqsl_rcvd", "INTEGER DEFAULT 0"}};
 
-    /** Auto-upload bookkeeping (Setup > Data > LoTW / eQSL auto-upload): 1 = already uploaded, or older than the feature. Service id to column. */
-    private static final java.util.Map<String, String> UPLOADED_COL = java.util.Map.of("lotw", "lotw_up", "eqsl", "eqsl_up");
+    /** Upload bookkeeping, service id to column: 1 = already uploaded. For LoTW / eQSL auto-upload, QSOs older than the feature also count
+     *  as done; HRDLog takes one QSO per request, so its column records what has gone, and its first upload sends the whole log. */
+    private static final java.util.Map<String, String> UPLOADED_COL = java.util.Map.of("lotw", "lotw_up", "eqsl", "eqsl_up", "hrdlog", "hrdlog_up");
+    /** The markers that start with every existing QSO marked done. */
+    private static final java.util.Set<String> START_DONE = java.util.Set.of("lotw_up", "eqsl_up");
 
     private static void addColumns(Statement st) throws SQLException {
         java.util.Set<String> have = new java.util.HashSet<>();
@@ -105,13 +108,11 @@ public final class JLogDb {
             if (!have.contains(col[0])) st.executeUpdate("ALTER TABLE qso ADD COLUMN " + col[0] + " " + col[1]);
         // The upload markers: the first time they are added, keep a copy of the logbook and mark every existing QSO as done, so turning
         // auto-upload on sends only what is logged from then on (older QSOs go through the Upload section, as before).
-        boolean needUp = false; for (String c : UPLOADED_COL.values()) if (!have.contains(c)) needUp = true;
-        if (needUp) {
-            backupBeforeUploadMarkers(st);
-            for (String c : UPLOADED_COL.values()) if (!have.contains(c)) {
-                st.executeUpdate("ALTER TABLE qso ADD COLUMN " + c + " INTEGER DEFAULT 0");
-                st.executeUpdate("UPDATE qso SET " + c + "=1");
-            }
+        boolean needUp = false; for (String c : START_DONE) if (!have.contains(c)) needUp = true;
+        if (needUp) backupBeforeUploadMarkers(st);
+        for (String c : UPLOADED_COL.values()) if (!have.contains(c)) {
+            st.executeUpdate("ALTER TABLE qso ADD COLUMN " + c + " INTEGER DEFAULT 0");
+            if (START_DONE.contains(c)) st.executeUpdate("UPDATE qso SET " + c + "=1");
         }
     }
 
@@ -183,7 +184,7 @@ public final class JLogDb {
     /** A QSO not yet uploaded to a service, with its row id. */
     public record Pending(long id, QsoExport qso) {}
 
-    /** The QSOs not yet uploaded to {@code service} ("lotw" or "eqsl"), oldest first. */
+    /** The QSOs not yet uploaded to {@code service} ("lotw", "eqsl" or "hrdlog"), oldest first. */
     public static List<Pending> pendingUpload(String service) {
         String col = UPLOADED_COL.get(service);
         List<Pending> out = new ArrayList<>();

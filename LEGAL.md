@@ -49,7 +49,7 @@ the features you use, and to the services you set up:
 - **Info page** — it downloads the feeds you have switched on. Those sites can see your IP address and a User-Agent of
   the form `WM3J-ARS-Suite/<version>`. Feeds are kept on disk for six hours so each is fetched rarely.
 - **Club Log Most Wanted** — only if you enter a Club Log token: the ranking is fetched with it at most once a month.
-- **DX cluster, reverse beacon, callsign lookups, log uploads** (LoTW, eQSL, QRZ, Club Log, Wavelog) — only the ones you configure,
+- **DX cluster, reverse beacon, callsign lookups, log uploads** (LoTW, eQSL, QRZ, Club Log, Wavelog, Cloudlog, HRDLog) — only the ones you configure,
   with the logins you enter.
 
 Your log, settings and caches stay on your computer in your home folder (`~/.j-log`, `~/.j-hub` and similar). Passwords, API keys and tokens you

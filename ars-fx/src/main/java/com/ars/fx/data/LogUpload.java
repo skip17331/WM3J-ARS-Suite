@@ -141,7 +141,9 @@ public final class LogUpload {
                 + (fail > 0 && lastErr != null ? " (" + lastErr + ")" : ""));
     }
 
-    // ---- Wavelog (API v1: POST <address>/index.php/api/qso) -----------------
+    // ---- Wavelog and Cloudlog (the same API: POST <address>/index.php/api/qso) ----
+    // Wavelog began as a fork of Cloudlog and kept its QSO API; Cloudlog's own source (Api.php, qso()) takes the same JSON, reads
+    // every ADIF record in "string", answers "failed" with a reason on an error and 201 "created" with an imported_count.
     /** QSOs per request: Wavelog takes several ADIF records in one "string" and dupe-checks them itself. */
     static final int WAVELOG_BATCH = 100;
 
@@ -157,10 +159,24 @@ public final class LogUpload {
      * is shown either way.
      */
     public static Result wavelog(List<JLogDb.QsoExport> rows, String address, String key, String station) {
+        return apiQso("Wavelog", rows, address, key, station);
+    }
+
+    public static Result cloudlog() {
+        return cloudlog(JLogDb.allForExport(), UploadConfig.field("cloudlog", "url"), UploadConfig.field("cloudlog", "apikey"),
+                UploadConfig.field("cloudlog", "station"));
+    }
+
+    /** Send {@code rows} to a Cloudlog log: the same request as Wavelog. Cloudlog skips QSOs it already has. */
+    public static Result cloudlog(List<JLogDb.QsoExport> rows, String address, String key, String station) {
+        return apiQso("Cloudlog", rows, address, key, station);
+    }
+
+    static Result apiQso(String name, List<JLogDb.QsoExport> rows, String address, String key, String station) {
         if (rows.isEmpty()) return new Result(false, 0, "No QSOs to upload.");
         String endpoint = wavelogEndpoint(address);
         if (endpoint == null || key == null || key.isBlank() || station == null || station.isBlank())
-            return new Result(false, 0, "Wavelog address, API key and station profile id not all set.");
+            return new Result(false, 0, name + " address, API key and station profile id not all set.");
         int sent = 0;
         String last = "";
         for (int i = 0; i < rows.size(); i += WAVELOG_BATCH) {
@@ -181,14 +197,101 @@ public final class LogUpload {
                 last = resp.body();
                 String status = wavelogStatus(last);
                 boolean ok = resp.statusCode() / 100 == 2 && !"error".equals(status) && !"abort".equals(status) && !"failed".equals(status);
-                if (!ok) return new Result(sent > 0, sent, "Wavelog: stopped after " + sent + " QSOs (HTTP " + resp.statusCode() + "): " + tail(last));
+                if (!ok) return new Result(sent > 0, sent, name + ": stopped after " + sent + " QSOs (HTTP " + resp.statusCode() + "): " + reason(last));
                 sent += part.size();
             } catch (Exception e) {
-                return new Result(sent > 0, sent, "Wavelog upload error after " + sent + " QSOs: " + e.getMessage());
+                return new Result(sent > 0, sent, name + " upload error after " + sent + " QSOs: " + e.getMessage());
             }
         }
-        return new Result(true, sent, "Wavelog: sent " + sent + " QSOs (Wavelog skips ones it already has): " + tail(last));
+        return new Result(true, sent, name + ": sent " + sent + " QSOs (" + name + " skips ones it already has)" + imported(last));
     }
+
+    /** The "reason" of a JSON error reply, else the end of the reply. */
+    static String reason(String body) {
+        try {
+            com.google.gson.JsonElement e = com.google.gson.JsonParser.parseString(body == null ? "" : body);
+            if (e.isJsonObject() && e.getAsJsonObject().has("reason")) return e.getAsJsonObject().get("reason").getAsString();
+        } catch (RuntimeException ignored) { }
+        return tail(body);
+    }
+
+    /** ", N new in the last batch" from a reply's imported_count (Cloudlog sends one, and echoes the whole ADIF back, so the reply itself
+     *  is not shown then); otherwise the end of the reply, as before. */
+    static String imported(String body) {
+        try {
+            com.google.gson.JsonElement e = com.google.gson.JsonParser.parseString(body == null ? "" : body);
+            if (e.isJsonObject() && e.getAsJsonObject().has("imported_count")) return ", " + e.getAsJsonObject().get("imported_count").getAsInt() + " new in the last batch";
+        } catch (RuntimeException ignored) { }
+        return body == null || body.isBlank() ? "" : ": " + tail(body);
+    }
+
+    // ---- HRDLog.net (one QSO per request: POST robot.hrdlog.net/newentry.aspx) ----
+    // HRDLog's documentation was unreachable (site under maintenance on 2026-11-18); the request and the replies are taken from
+    // Cloudlog's working HRDLog upload (Logbook_model push_qso_to_hrdlog): form fields Callsign, Code, ADIFData; "<insert>1" added,
+    // "<insert>0" already there, "Unknown user" / "Invalid token" a wrong login.
+    static final String HRDLOG_URL = "https://robot.hrdlog.net/newentry.aspx";
+    /** Errors in a row (not a wrong login) after which the upload stops: the site is probably down. */
+    static final int HRDLOG_MAX_ERRORS = 5;
+
+    public static Result hrdlog() {
+        String call = UploadConfig.field("hrdlog", "callsign"), code = UploadConfig.field("hrdlog", "code");
+        return hrdlog(JLogDb.pendingUpload("hrdlog"), call, code, (url, form) -> {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(30))
+                    .header("Content-Type", "application/x-www-form-urlencoded").header("User-Agent", "ARS-Suite-JLog")
+                    .POST(HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8)).build();
+            return HTTP.send(req, HttpResponse.BodyHandlers.ofString()).body();
+        }, ids -> JLogDb.markUploaded("hrdlog", ids));
+    }
+
+    /** Sends a form, returns the reply body. */
+    interface FormPoster { String post(String url, String form) throws Exception; }
+
+    /** What HRDLog said about one QSO. */
+    enum HrdlogReply { ADDED, DUPLICATE, BAD_LOGIN, ERROR }
+
+    static HrdlogReply hrdlogReply(String body) {
+        String b = body == null ? "" : body.toLowerCase(java.util.Locale.ROOT);
+        if (b.contains("<insert>1")) return HrdlogReply.ADDED;
+        if (b.contains("<insert>0")) return HrdlogReply.DUPLICATE;
+        if (b.contains("unknown user</error>") || b.contains("invalid token</error>")) return HrdlogReply.BAD_LOGIN;
+        return HrdlogReply.ERROR;
+    }
+
+    static Result hrdlog(List<JLogDb.Pending> pending, String call, String code, FormPoster http, java.util.function.Consumer<List<Long>> markSent) {
+        if (call == null || call.isBlank() || code == null || code.isBlank())
+            return new Result(false, 0, "HRDLog callsign and upload code not both set.");
+        if (pending.isEmpty()) return new Result(true, 0, "HRDLog: nothing new to send (every QSO has gone already).");
+        int added = 0, dup = 0, failed = 0, inRow = 0;
+        String lastErr = null;
+        List<Long> done = new java.util.ArrayList<>();
+        try {
+            for (JLogDb.Pending p : pending) {
+                String form = "Callsign=" + enc(call.trim().toUpperCase(java.util.Locale.ROOT)) + "&Code=" + enc(code.trim())
+                        + "&ADIFData=" + enc(LogExport.toAdifRecord(p.qso()));
+                String body;
+                try { body = http.post(HRDLOG_URL, form); }
+                catch (Exception e) { body = null; lastErr = e.getMessage(); }
+                HrdlogReply r = body == null ? HrdlogReply.ERROR : hrdlogReply(body);
+                switch (r) {
+                    case ADDED -> { added++; done.add(p.id()); inRow = 0; }
+                    case DUPLICATE -> { dup++; done.add(p.id()); inRow = 0; }
+                    case BAD_LOGIN -> { return new Result(added > 0, added, "HRDLog refused the callsign or upload code" + sentSoFar(added, dup)); }
+                    case ERROR -> {
+                        failed++; inRow++;
+                        if (body != null) lastErr = tail(body);
+                        if (inRow >= HRDLOG_MAX_ERRORS) return new Result(added > 0, added, "HRDLog: stopped after " + inRow + " errors in a row"
+                                + sentSoFar(added, dup) + (lastErr != null ? " (" + lastErr + ")" : ""));
+                    }
+                }
+            }
+        } finally {
+            markSent.accept(done);                       // whatever reached HRDLog is not sent again
+        }
+        return new Result(failed == 0, added, "HRDLog: " + added + " added, " + dup + " already there, " + failed + " failed"
+                + (failed > 0 && lastErr != null ? " (" + lastErr + "); press Upload again to retry them" : ""));
+    }
+
+    private static String sentSoFar(int added, int dup) { return added + dup == 0 ? "." : "; " + added + " added and " + dup + " already there before that."; }
 
     /** "https://log.example.com", ".../", ".../index.php" or the full ".../index.php/api/qso" all give the api/qso endpoint; null when blank. */
     static String wavelogEndpoint(String address) {

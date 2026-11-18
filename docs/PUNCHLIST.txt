@@ -197,22 +197,26 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 2c-4    POTA / IOTA lookups (POTA uses an unofficial interface; check the IOTA list's terms).
 2c-5    [!] N1MM+ UDP broadcast against GridTracker / Log4OM and a real N1MM+ capture (frequency
         units, IsRunQSO).
+5-9     Cloudlog and HRDLog.net upload (Setup > Online upload). Cloudlog: same as Wavelog, check
+        the QSOs arrive. HRDLog: the first upload sends the whole log, the next only new QSOs; a
+        wrong upload code stops with a clear message.
 
 2d. Other equipment
 -------------------
 
 2d-1    [!] Contest network on two computers, including pulling a cable mid-contest.
 2d-2    Passwords in the macOS keychain: save and reuse a login on a Mac.
+3-12    [!] Olivia is now standard Olivia (7-bit text, scrambling, interleaving, Gray code, shaped
+        symbols). Send from J-Digi and read it in fldigi, and the other way round, on the air or
+        through an audio cable; lower case and punctuation should come through. Decoding a published
+        recording of a real Olivia 8/500 signal (sigidwiki.com, Olivia_8-500.mp3) is a quick check
+        without a second station.
 
 ====================================================================================================
 3. KNOWN BUGS
 ====================================================================================================
 
-3-12    J-Digi's Olivia is probably not standard Olivia. The transmitter, receiver and test
-        generator share a simplified scheme: no per-block scrambling code, no bit interleaving
-        across symbols, and a 64-character set. Olivia as specified (and as fldigi sends it) has all
-        three, so J-Digi likely cannot exchange text with other Olivia stations. Confirm with
-        fldigi, then implement the standard framing in both directions. Size L.
+None open.
 
 ====================================================================================================
 4. IDENTIFIED NEED, NEEDS CODING
@@ -259,7 +263,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 5-4     Contest network: standby host, shared QTCs and normal log, messages / skeds, operator roles.
         Size: L. Notes: After 2d-1.
 5-8     Call history: fetch a published master file. Size: S. Notes: No stable public source yet.
-5-9     Cloudlog / HRDLog upload. Size: S.
 5-10    Band decoder / antenna switch. Size: M.
 5-11    Panadapter / SDR (TCI, SmartSDR). Size: L.
 5-13    Screen-reader accessibility. Size: M. Notes: No accessible text on controls.
