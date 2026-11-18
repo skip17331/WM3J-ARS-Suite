@@ -77,6 +77,12 @@ IDs
         Suite and leaving the CW speed at 60 wpm. Tests now use their own preferences node
         (-Djdigi.prefs.node) on every OS.
 3-9     Contest QSO labels carry the contest and the exchange received (e.g. CQ WW CW - 599 14).
+3-11    Olivia off-centre signals decode from their start (the reference recordings 300 Hz
+        off-centre came out as only "YZ K"; now the whole message). The retune keeps the buffered
+        audio, decoding steps back to where the signal began, and block sync waits past the lead-in.
+        Found with it: symbol lock accepted a score below band noise (2.2 against about 2.7), so a
+        signal AFC had not yet tuned to could be locked and decoded as garbage (now half of a
+        perfect score); and while unlocked the audio buffer grew without end (now the last 16 s).
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -159,11 +165,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 3. KNOWN BUGS
 ====================================================================================================
 
-3-11    Olivia: an off-centre signal loses its start. AFC can only recognise a signal 300 Hz
-        off-centre once enough content has been heard; the retune restarts acquisition, so a short
-        transmission loses everything before that point (the reference recording keeps only "YZ K").
-        Fix: after lock, decode back into the buffered audio without printing the noise before the
-        signal. Older than the 3-10 fix. Size M.
 3-12    J-Digi's Olivia is probably not standard Olivia. The transmitter, receiver and test
         generator share a simplified scheme: no per-block scrambling code, no bit interleaving
         across symbols, and a 64-character set. Olivia as specified (and as fldigi sends it) has all

@@ -19,8 +19,11 @@ class OliviaRoundTripTest {
     private static final String TEXT = "CQ CQ DE W1AW W1AW K ";
 
     /** Decode {@code text} sent after {@code leadSamples} of noise; returns everything the decoder emitted. */
-    static String roundTrip(String text, int leadSamples, double noise) {
-        OliviaTransmitter tx = new OliviaTransmitter();
+    static String roundTrip(String text, int leadSamples, double noise) { return roundTrip(text, leadSamples, noise, 1500.0); }
+
+    /** The same, with the transmitter centred on {@code centreHz} (the receiver starts at 1500 Hz and has to find it). */
+    static String roundTrip(String text, int leadSamples, double noise, double centreHz) {
+        OliviaTransmitter tx = new OliviaTransmitter(AudioEngine.SAMPLE_RATE, 8, 500, centreHz, 0.5);
         OliviaMode rx = new OliviaMode();
         FftAnalyzer fft = new FftAnalyzer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
         SampleSource src = tx.createSampleSource(text + text + text);
@@ -99,15 +102,46 @@ class OliviaRoundTripTest {
     }
 
     /**
-     * The same, 300 Hz either side: AFC has to find the signal. It can only do that once enough of the content has been
-     * heard, and the retune starts acquisition again, so this short recording loses everything before "YZ K" (punch list
-     * 3-11; the decoder did the same before the 3-10 fix). This checks AFC still finds and decodes it.
+     * The same, 300 Hz either side: AFC can only find the signal once it has heard much of it. These used to keep only
+     * "YZ K" (punch list 3-11): the retune threw the buffered audio away and decoding began at the lock point. Now the
+     * audio is kept and decoding steps back to where the signal began, so the whole message comes out.
      */
     @ParameterizedTest
     @ValueSource(strings = {"1200", "1800"})
-    void findsAnOffCentreReferenceRecording(String centreHz) throws Exception {
+    void decodesAnOffCentreReferenceRecordingInFull(String centreHz) throws Exception {
         String got = reference(centreHz);
-        assertTrue(got.contains("YZ K"), centreHz + " Hz: decoded \"" + got + "\"");
+        assertTrue(got.contains("CQ CQ CQ DE W3XYZ K"), centreHz + " Hz: decoded \"" + got + "\"");
+    }
+
+    /** Our own transmitter 250 Hz off the receiver's centre, after some band noise: the whole text, from the start. */
+    @ParameterizedTest
+    @ValueSource(ints = {0, 3001})
+    void decodesOurOwnOffCentreSignalInFull(int lead) {
+        String got = roundTrip(TEXT, lead, 0.02, 1250.0);
+        assertTrue(got.contains("CQ CQ DE W1AW W1AW K"), "lead " + lead + ": decoded \"" + got + "\"");
+    }
+
+    /**
+     * Listening to band noise must not grow the audio buffer without end. Unlocked, it never shrank and doubled whenever it
+     * filled (about 100 MB an hour); it now keeps the last 16 s.
+     */
+    @Test
+    void longNoiseDoesNotGrowTheBuffer() throws Exception {
+        OliviaMode rx = new OliviaMode();
+        FftAnalyzer fft = new FftAnalyzer(AudioEngine.FRAME_SIZE, AudioEngine.SAMPLE_RATE);
+        Random rnd = new Random(3);
+        int frames = (int) (120 * AudioEngine.SAMPLE_RATE / AudioEngine.FRAME_SIZE);      // two minutes
+        for (int i = 0; i < frames; i++) {
+            float[] f = new float[AudioEngine.FRAME_SIZE];
+            for (int k = 0; k < f.length; k++) f[k] = (float) (rnd.nextGaussian() * 0.05);
+            FftAnalyzer.SpectrumResult r = fft.analyze(f);
+            rx.process(new SignalSnapshot(f, r.magnitudes(), r.rms(), r.peakFrequencyHz(), AudioEngine.SAMPLE_RATE), 0L);
+        }
+        java.lang.reflect.Field fb = OliviaMode.class.getDeclaredField("sampleBuf"); fb.setAccessible(true);
+        java.lang.reflect.Field fn = OliviaMode.class.getDeclaredField("nSamples"); fn.setAccessible(true);
+        int held = fn.getInt(rx), capacity = ((float[]) fb.get(rx)).length;
+        assertTrue(held <= 16 * 8000 + AudioEngine.FRAME_SIZE, "samples held after 2 min of noise: " + held);
+        assertTrue(capacity <= 262_144, "buffer capacity after 2 min of noise: " + capacity);
     }
 
     @ParameterizedTest

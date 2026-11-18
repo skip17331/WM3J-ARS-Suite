@@ -46,8 +46,11 @@ public class OliviaMode implements DigitalMode {
 
     // ── Thresholds ────────────────────────────────────────────────────
     private static final double MIN_RMS           = 0.003;
-    /** Peakness threshold to acquire symbol lock (random = 1/numTones). */
-    private static final double LOCK_PEAK_RATIO   = 2.2;
+    /** Symbol lock needs a mean peakness of at least this fraction of numTones (a clean, correctly tuned signal scores
+     *  about numTones). It used to be a fixed 2.2, below band noise itself (the strongest of 8 random tones averages about
+     *  2.7 times the mean), so the decoder could lock on noise or on a signal AFC had not yet tuned to, then stop AFC at
+     *  block sync and print garbage for the whole transmission (a signal 250 Hz off-centre). */
+    private static final double LOCK_PEAK_FRACTION = 0.5;
     /** Minimum blocks decoded before emitting text. */
     private static final int    MIN_EMIT_BLOCKS   = 1;
     /** Symbols of signal needed before we attempt sync acquisition. */
@@ -115,6 +118,10 @@ public class OliviaMode implements DigitalMode {
      *  allowed. Gives AFC time to retune off-centre signals before the
      *  symbol-sync scan would commit to wrong tone frequencies. */
     private static final int AFC_SETTLE_FRAMES = 8;
+    /** Audio kept while not locked: enough to decode back to the start of a transmission AFC had to find first. */
+    private static final double MAX_UNLOCKED_SECONDS = 16.0;
+    /** Mean peakness (of numTones) of the symbols just before a lock point for backtracking to take them as signal. */
+    private static final double BACKTRACK_PEAK_FRACTION = 0.55;
 
     // ── Block accumulation ────────────────────────────────────────────
     /** Soft bit values: [symbol index 0..63][bit plane 0..bitsPerSymbol-1]. */
@@ -330,9 +337,9 @@ public class OliviaMode implements DigitalMode {
         double bw         = numTones * toneSpacing;
         double lowestTone = newCenter - bw / 2.0 + toneSpacing / 2.0;
         for (int i = 0; i < numTones; i++) toneFreqs[i] = lowestTone + i * toneSpacing;
-        // After a retune the buffered baseband is at the wrong frequency
-        // for the Goertzels, so drop it and re-acquire from scratch.
-        nSamples    = 0;
+        // Re-acquire timing and block sync at the new tones, but keep the buffered audio: it is raw audio, which the
+        // Goertzels measure at whatever toneFreqs now are. Dropping it (as this used to) threw away everything heard
+        // before AFC could recognise an off-centre signal, so a short transmission lost its start.
         symLocked   = false;
         blockSynced = false;
         syncBufIdx  = 0;
@@ -387,6 +394,17 @@ public class OliviaMode implements DigitalMode {
     // =================================================================
 
     private void appendSamples(float[] samples) {
+        // Unlocked, symOffset stays 0, so the compaction below never dropped anything and the buffer doubled whenever it
+        // filled: listening to band noise in Olivia for an hour grew it by about 100 MB. Keep the last MAX_UNLOCKED_SECONDS.
+        int cap = (int) (sampleRate * MAX_UNLOCKED_SECONDS);
+        if (!symLocked && nSamples + samples.length > cap) {
+            int drop = nSamples + samples.length - cap;
+            drop = Math.min(nSamples, drop - drop % spS);              // whole symbols, so timing found later still fits
+            if (drop > 0) {
+                System.arraycopy(sampleBuf, drop, sampleBuf, 0, nSamples - drop);
+                nSamples -= drop;
+            }
+        }
         // Compact if needed: drop samples before current position
         if (nSamples + samples.length > sampleBuf.length) {
             int keep = Math.max(0, symOffset - spS);
@@ -440,6 +458,28 @@ public class OliviaMode implements DigitalMode {
         return count == 0 ? null : new double[]{score / count, Integer.bitCount(seenMask)};
     }
 
+    /** The earliest symbol start at or before {@code start}, on the same timing, from which every 3-symbol run is signal. */
+    private int backtrack(int start) {
+        double need = BACKTRACK_PEAK_FRACTION * numTones;
+        int s = start;
+        while (s - 3 * spS >= 0) {
+            double sum = 0.0;
+            for (int k = 1; k <= 3; k++) sum += symbolPeakness(s - k * spS);
+            if (sum / 3 < need) break;
+            s -= spS;
+        }
+        if (s != start) debug(String.format("BACKTRACK %d symbols", (start - s) / spS));
+        return s;
+    }
+
+    /** Strongest tone power over the mean (numTones for a clean single tone, about 2 for noise) of the symbol at {@code start}. */
+    private double symbolPeakness(int start) {
+        double[] p = goertzelAll(start, spS);
+        double max = 0.0, sum = 0.0;
+        for (double v : p) { sum += v; if (v > max) max = v; }
+        return sum > 1e-12 ? max / (sum / numTones) : 0.0;
+    }
+
     private void tryAcquireSymbolSync() {
         int evalSyms = Math.min(24, rawSymCount - 1);
         if (evalSyms < MIN_LOCK_SYMS) return;
@@ -482,7 +522,7 @@ public class OliviaMode implements DigitalMode {
         // gives 4+. Requiring ≥ 4 prevents committing to wrong frequencies.
         if (bestDistinct < 4) return;
 
-        if (bestScore < LOCK_PEAK_RATIO) { candScore = -1.0; return; }
+        if (bestScore < LOCK_PEAK_FRACTION * numTones) { candScore = -1.0; return; }
         // Wait for the score to stop rising. While the signal is still arriving, the eval window is part noise: its best
         // offset is a poor estimate (scores of 4.8 and 7.1 against 8.0 clean) and, once locked, nothing corrected it, so a
         // signal that began while the decoder was hearing noise was decoded with the timing off. Each new frame of signal
@@ -493,9 +533,10 @@ public class OliviaMode implements DigitalMode {
             symLocked    = true;
             blockSynced  = false;
             syncBufIdx   = 0;
-            // Start processing at the eval window, not the buffer start —
-            // the buffer start is lead-in, the eval window is content.
-            symOffset    = evalStart + bestOff;
+            // Start at the eval window, then step back over earlier symbols that are clearly this signal (a strong single
+            // tone each): an off-centre signal is only found after AFC has heard much of it, and its start is still in the
+            // buffer. Noise before the signal fails the test, so it is not decoded into garbage.
+            symOffset    = backtrack(evalStart + bestOff);
             blockSymIdx  = 0;
             blocksDecoded = 0;
             peakAvg      = 0.0;
@@ -595,6 +636,20 @@ public class OliviaMode implements DigitalMode {
             for (int j = 0; j < SYNC_BLOCKS; j++) conf += Math.log(Math.max(1e-9, trialWalshConfidence(syncBuf, off + j * BLOCK_SYMBOLS)));
             if (conf > bestConf) { bestConf = conf; bestOff = off; }
         }
+        // A first block of nothing but lead-in (spaces: one steady tone, the same at every shift) proves nothing about where
+        // blocks start, and with the start of a transmission now kept (backtrack) the window can be mostly lead-in, leaving a
+        // single content block to decide and the boundary a few symbols off. Drop what is surely lead-in and look again.
+        // A window that decodes as spaces is mostly lead-in, so content cannot begin before about its middle: dropping
+        // up to bestOff + 16 is safe and always makes progress. (Dropping the whole block lost a first block of content
+        // that began late in it.)
+        if (allSpaces(syncBuf, bestOff)) {
+            int drop = Math.min(SYNC_BUF_SYMS - 1, bestOff + 16);
+            debug(String.format("BLOCK SYNC deferred: off=%d starts in the lead-in, dropping %d symbols", bestOff, drop));
+            int keep = SYNC_BUF_SYMS - drop;
+            for (int k = 0; k < keep; k++) System.arraycopy(syncBuf[drop + k], 0, syncBuf[k], 0, bitsPerSymbol);
+            syncBufIdx = keep;
+            return;
+        }
         debug(String.format("BLOCK SYNC off=%d logconf=%.2f", bestOff, bestConf));
 
         // Emit the blocks the search covered (lead-in spaces among them are dropped on emit).
@@ -616,6 +671,19 @@ public class OliviaMode implements DigitalMode {
         syncBufIdx  = 0;
         blockSynced = true;
         emittedSinceSync = false;
+    }
+
+    /** True when the block at {@code startSym} decodes to a space in every bit plane (Walsh index 0). */
+    private boolean allSpaces(double[][] soft, int startSym) {
+        for (int b = 0; b < bitsPerSymbol; b++) {
+            double[] v = new double[BLOCK_SYMBOLS];
+            for (int k = 0; k < BLOCK_SYMBOLS; k++) v[k] = soft[startSym + k][b];
+            fwht(v);
+            int best = 0; double bestAbs = -1.0;
+            for (int c = 0; c < CHAR_SET_SIZE; c++) { double a = Math.abs(v[c]); if (a > bestAbs) { bestAbs = a; best = c; } }
+            if (best != 0) return false;
+        }
+        return true;
     }
 
     /** Trial decode at {@code startSym}: average Walsh peak / runner-up
