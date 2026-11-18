@@ -89,9 +89,19 @@ public final class DxccInfo {
         return m;
     }
 
-    /** What is known about {@code call}'s DXCC entity, or null when it cannot be resolved (or is maritime / aero mobile). */
-    public static Info of(String call) {
+    /** What is known about {@code call}'s DXCC entity now, or null when it cannot be resolved (or is maritime / aero mobile). */
+    public static Info of(String call) { return of(call, null); }
+
+    /** As {@link #of(String)}, at {@code when} (a QSO's time; null = now): Club Log's dated exceptions depend on it. */
+    public static Info of(String call, java.time.Instant when) {
         if (call == null || call.chars().noneMatch(Character::isDigit)) return null;   // every callsign has a digit; "TEST" or "QRZ" is not one
+        // Club Log's exceptions place single calls by hand for a date range (DXpeditions, special events): the most specific answer
+        ClubLogCty.CallException ce = ClubLogCty.at(call, when);
+        if (ce != null) {
+            Entry en = table().get(String.valueOf(ce.adif()));
+            return new Info(en != null ? en.country() : titleCase(ce.entity()), ce.cont(), ce.adif(),
+                    Double.isNaN(ce.lat()) && en != null ? en.lat() : ce.lat(), Double.isNaN(ce.lon()) && en != null ? en.lon() : ce.lon());
+        }
         // an exact-call entry in the country files is the specific answer and beats any prefix: 4U1UN is the United Nations HQ,
         // 4U1ITU the ITU HQ, though the prefix table files 4U under Italy
         Info exact = fromCtyMatch(CtyData.current().exactMatch(call));
@@ -107,6 +117,25 @@ public final class DxccInfo {
         }
         int n; try { n = Integer.parseInt(e.id()); } catch (NumberFormatException ex) { n = 0; }
         return new Info(en.country(), e.continent(), n, en.lat(), en.lon());
+    }
+
+    /** A log time "yyyy-MM-dd HH:mm[:ss]" (UTC) as an instant; null when it is missing or unreadable (then "now" is used). */
+    public static java.time.Instant utc(String dt) {
+        if (dt == null || dt.length() < 16) return null;
+        try { return java.time.LocalDateTime.parse(dt.trim().replace(' ', 'T')).toInstant(java.time.ZoneOffset.UTC); }
+        catch (RuntimeException e) { return null; }
+    }
+
+    /** "SOUTH SHETLAND ISLANDS" -> "South Shetland Islands" (Club Log writes entity names in capitals). */
+    static String titleCase(String s) {
+        if (s == null || s.isBlank()) return null;
+        StringBuilder b = new StringBuilder();
+        for (String w : s.trim().toLowerCase(java.util.Locale.ROOT).split("\\s+")) {
+            if (b.length() > 0) b.append(' ');
+            b.append(w.length() <= 2 && !b.isEmpty() && (w.equals("of") || w.equals("&") || w.equals("la") || w.equals("de")) ? w
+                    : Character.toUpperCase(w.charAt(0)) + w.substring(1));
+        }
+        return b.toString();
     }
 
     private static final java.util.regex.Pattern CALLISH = java.util.regex.Pattern.compile("[A-Z0-9]{1,3}[0-9][A-Z0-9]*[A-Z](/[A-Z0-9]+)*|[A-Z0-9]+/[A-Z0-9]+");

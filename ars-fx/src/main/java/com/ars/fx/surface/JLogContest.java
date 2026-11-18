@@ -763,7 +763,21 @@ public final class JLogContest {
                 + " \u2014 Enter saves the change, Esc cancels");
         focus("callsign");
     }
-    private static void eraseQso(Node source, QsoRecord q) {
+    /** True when {@code contestId} is the contest on the contest page now: its QSOs can be edited and erased from the log browser. */
+    static boolean isActiveContest(String contestId) {
+        ContestPlugin p = ContestState.plugin();
+        return p != null && contestId != null && contestId.equals(p.getContestId());
+    }
+    /** The log browser's Edit: load {@code q} into the contest page's entry form. False when the contest page has not been opened yet. */
+    static boolean editFromBrowser(QsoRecord q) {
+        if (fieldControls == null || !isActiveContest(q.getContestId())) return false;
+        loadForEdit(q);
+        return true;
+    }
+    /** The log browser's Delete: same confirmation, dupe re-check, N1MM and network notices as Erase on the contest page. */
+    static void eraseFromBrowser(Node source, QsoRecord q, Runnable after) { eraseQso(source, q, after); }
+    private static void eraseQso(Node source, QsoRecord q) { eraseQso(source, q, null); }
+    private static void eraseQso(Node source, QsoRecord q, Runnable after) {
         Confirm.show(source, "Erase this QSO?",
                 q.getCallsign() + "  " + z(q.getBand()) + " " + z(q.getMode())
                         + (q.getDateTimeUtc() == null ? "" : "  " + q.getDateTimeUtc().format(HMS).substring(0, 5) + "Z")
@@ -777,6 +791,7 @@ public final class JLogContest {
                         ContestPlugin p = ContestState.plugin();
                         if (p != null) reflagDupes(p);      // erasing the first contact can turn a later "dupe" into a valid QSO
                         ContestState.recompute();
+                        if (after != null) after.run();
                     } catch (Exception e) { setB4("Erase failed: " + e.getMessage(), "dupe"); }
                 }));
     }

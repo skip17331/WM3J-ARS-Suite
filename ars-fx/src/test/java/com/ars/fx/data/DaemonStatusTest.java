@@ -25,6 +25,18 @@ class DaemonStatusTest {
     }
 
     @Test
+    void theLastRepairSaysWhenItHappened() {
+        Line l = DaemonStatus.describe(true, true, "ok", "rig daemon: device back: started the daemon", 4 * 60_000L + 5_000);
+        assertTrue(l.text().endsWith("last (4 min ago): device back: started the daemon"), l.text());
+        assertTrue(DaemonStatus.describe(true, true, "ok", "rig daemon: x", -1).text().endsWith("last: x"), "no time known: no brackets");
+        assertEquals("just now", DaemonStatus.agoText(20_000));
+        assertEquals("2 h ago", DaemonStatus.agoText(120 * 60_000L));
+        assertEquals("2 h 5 min ago", DaemonStatus.agoText(125 * 60_000L));
+        assertEquals("3 d ago", DaemonStatus.agoText(3 * 24 * 3_600_000L + 1));
+        assertEquals("", DaemonStatus.agoText(-1));
+    }
+
+    @Test
     void unreadableSerialPortSaysWhyAndHowToFixIt() {
         Line l = DaemonStatus.describe(true, false, "noaccess", "");
         assertEquals("warn", l.level());

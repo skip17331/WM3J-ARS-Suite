@@ -8,6 +8,7 @@ import com.ars.fx.data.JLogDb;
 import com.ars.fx.data.LogExport;
 import com.ars.fx.data.QslLabel;
 import com.jlog.model.QsoRecord;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -46,7 +47,8 @@ import static com.ars.fx.shell.Shell.lbl;
  * included. Click a column heading to sort (click again to reverse); the search box matches call, name, QTH, grid, state, county, notes
  * and IOTA / POTA / SOTA references (a contest log: call, exchange, notes); the Band and Mode lists narrow it further.
  * <p>Normal log: double-click a row (or press Edit) to load it into the J-Log form; Delete asks first.
- * Contest logs are view-only here (edit or erase on the contest page). In both, Export saves what is shown as ADIF or CSV and
+ * A contest log is view-only here unless it is the contest on the contest page now: then Edit loads the QSO into that page's form and
+ * Delete erases it exactly as the contest page does (dupes re-checked, N1MM and the contest network told). In both, Export saves what is shown as ADIF or CSV and
  * Print label prints the selected QSO's QSL label.
  */
 final class LogBrowser {
@@ -59,7 +61,8 @@ final class LogBrowser {
     private static final DateTimeFormatter MINUTE = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final String NORMAL_PROMPT = "Search call, name, QTH, grid, state, county, notes…";
     private static final String NORMAL_HINT = "Click a heading to sort · double-click a row to edit it in J-Log · CONF: Q = QSL card, L = LoTW, E = eQSL";
-    private static final String CONTEST_HINT = "Contest log, view only: edit or erase QSOs on the contest page · click a heading to sort · Label prints the selected QSO's QSL label · FREQ is in kHz";
+    private static final String CONTEST_EDIT_HINT = "Contest log · double-click a row to edit it on the contest page · Delete erases it from the log and the score · Label prints the selected QSO's QSL label · FREQ is in kHz";
+    private static final String CONTEST_HINT = "Contest log, view only (the contest on the contest page can be edited here) · click a heading to sort · Label prints the selected QSO's QSL label · FREQ is in kHz";
 
     /** Open the browser (or bring it forward and refresh it). {@code onEdit} loads a QSO into the J-Log form. */
     static void show(Node owner, Consumer<Long> onEdit, Runnable afterChange) {
@@ -182,10 +185,11 @@ final class LogBrowser {
             boolean c = isContest.getAsBoolean();
             table.setVisible(!c); table.setManaged(!c);
             ctable.setVisible(c); ctable.setManaged(c);
-            edit.setDisable(c); del.setDisable(c);
-            hint.setText(c ? CONTEST_HINT : NORMAL_HINT);
-            search.setPromptText(c ? "Search call, exchange, notes…" : NORMAL_PROMPT);
             int i = source.getSelectionModel().getSelectedIndex() - 1;
+            boolean live = c && i >= 0 && i < logs.size() && changeable(logs.get(i));
+            edit.setDisable(c && !live); del.setDisable(c && !live);
+            hint.setText(!c ? NORMAL_HINT : live ? CONTEST_EDIT_HINT : CONTEST_HINT);
+            search.setPromptText(c ? "Search call, exchange, notes…" : NORMAL_PROMPT);
             active[0] = c && i >= 0 && i < logs.size() ? logs.get(i).path() : null;
         };
         // the Log list: the normal log, then every usable and archived contest log (the one chosen stays chosen across a refresh)
@@ -214,7 +218,14 @@ final class LogBrowser {
         refresh.setOnMouseClicked(e -> reload.run());
 
         Runnable doEdit = () -> {
-            if (isContest.getAsBoolean()) return;                       // contest QSOs are edited on the contest page
+            if (isContest.getAsBoolean()) {                             // a contest QSO is edited in the contest page's form
+                QsoRecord r = ctable.getSelectionModel().getSelectedItem();
+                int i = source.getSelectionModel().getSelectedIndex() - 1;
+                if (r == null || i < 0 || i >= logs.size() || !changeable(logs.get(i))) return;
+                if (!JLogContest.editFromBrowser(r)) count.setText("Open the contest page first, then Edit loads the QSO into its form");
+                else count.setText("✎ " + r.getCallsign() + " is loaded in the contest page: Enter saves it, Esc cancels");
+                return;
+            }
             JLogDb.QsoFull q = table.getSelectionModel().getSelectedItem();
             if (q != null && onEdit != null) {
                 onEdit.accept(q.id());
@@ -223,8 +234,15 @@ final class LogBrowser {
         };
         edit.setOnMouseClicked(e -> doEdit.run());
         table.setOnMouseClicked(e -> { if (e.getClickCount() == 2) doEdit.run(); });
+        ctable.setOnMouseClicked(e -> { if (e.getClickCount() == 2) doEdit.run(); });
         del.setOnMouseClicked(e -> {
-            if (isContest.getAsBoolean()) return;
+            if (isContest.getAsBoolean()) {
+                QsoRecord r = ctable.getSelectionModel().getSelectedItem();
+                int i = source.getSelectionModel().getSelectedIndex() - 1;
+                if (r != null && i >= 0 && i < logs.size() && changeable(logs.get(i)))
+                    JLogContest.eraseFromBrowser(ctable, r, () -> Platform.runLater(() -> { refreshRows.run(); if (afterChange != null) afterChange.run(); }));
+                return;
+            }
             JLogDb.QsoFull q = table.getSelectionModel().getSelectedItem();
             if (q == null) return;
             Confirm.show(table, "Delete this QSO?", q.call() + " · " + JLogDb.dateOf(q.datetimeUtc()) + " " + JLogDb.hhmm(q.datetimeUtc())
@@ -333,6 +351,11 @@ final class LogBrowser {
         mode.getItems().setAll("All modes"); mode.getItems().addAll(modes);
         band.setValue(keepB != null && band.getItems().contains(keepB) ? keepB : "All bands");
         mode.setValue(keepM != null && mode.getItems().contains(keepM) ? keepM : "All modes");
+    }
+
+    /** A contest log the app is writing to and showing on the contest page: its QSOs can be edited and erased here. */
+    static boolean changeable(ContestLogs.Info i) {
+        return i != null && i.current() && !i.archived() && JLogContest.isActiveContest(i.contestId());
     }
 
     /** "CQ WW SSB · NovCqWw.db · 412 QSOs (archived)": what the Log list shows for a contest log. */
