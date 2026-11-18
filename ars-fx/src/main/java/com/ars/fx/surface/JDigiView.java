@@ -178,14 +178,19 @@ public final class JDigiView {
         private static final int W = 1010, H = 130;
         // The image is shown through an ImageView, so the GPU scales it to the window and a new row costs one small texture upload; a canvas
         // that redraws the scaled image on every row repainted the full width of the window in software, many times a second.
-        private final WritableImage img = new WritableImage(W, H);
+        // The pixels live in our own array, shown through a PixelBuffer in the GPU's own format (premultiplied ARGB; every colour here is
+        // opaque, so the values are the same). A new row is one array copy, one row of colours and one updateBuffer. It used to read the whole
+        // image back and write it again (a format conversion each way, about 130,000 pixels twice a row) and then set the new row a pixel at
+        // a time: 1,010 setArgb calls, each of which marked the image changed and made JavaFX re-check the layout of the waterfall and every
+        // pane above it. Together that was half of J-Digi's CPU (punch list 4a-4).
+        private final int[] pix = new int[W * H];
+        private final javafx.scene.image.PixelBuffer<java.nio.IntBuffer> buf =
+                new javafx.scene.image.PixelBuffer<>(W, H, java.nio.IntBuffer.wrap(pix), PixelFormat.getIntArgbPreInstance());
+        private final WritableImage img = new WritableImage(buf);
         private final javafx.scene.image.ImageView view = new javafx.scene.image.ImageView(img);
-        private final int[] scratch = new int[W * (H - 1)];
-        private final javafx.scene.image.WritablePixelFormat<java.nio.IntBuffer> FMT = PixelFormat.getIntArgbInstance();
 
         WaterfallView() {
-            var pw = img.getPixelWriter();
-            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) pw.setArgb(x, y, 0xff05080c);
+            java.util.Arrays.fill(pix, 0xff05080c);
         }
         Region node() {
             Region cursor = new Region(); cursor.getStyleClass().add("wf-cursor"); cursor.setMinWidth(2); cursor.setMaxWidth(2); cursor.setMaxHeight(Double.MAX_VALUE);
@@ -203,22 +208,29 @@ public final class JDigiView {
         boolean shown() { return view.getScene() != null; }
         void push(double[] mag) {
             if (mag == null || mag.length == 0) return;
-            var pr = img.getPixelReader(); var pw = img.getPixelWriter();
-            pr.getPixels(0, 1, W, H - 1, FMT, scratch, 0, W);   // scroll up one row
-            pw.setPixels(0, 0, W, H - 1, FMT, scratch, 0, W);
-            for (int x = 0; x < W; x++) {
-                int bin = (int) ((double) x / W * mag.length);
-                pw.setArgb(x, H - 1, color(mag[Math.min(bin, mag.length - 1)]));
-            }
+            waterfallRow(pix, W, H, mag);
+            buf.updateBuffer(b -> null);                        // the whole image changed (it scrolled): one notification
         }
-        private int color(double m) {
-            double db = 20 * Math.log10(m + 1e-9);
-            double t = Math.max(0, Math.min(1, (db + 90) / 60));   // -90..-30 dB → 0..1
-            int r, g, b;
-            if (t < 0.5) { double u = t / 0.5; r = 0; g = (int) (u * 200); b = (int) (60 + u * 195); }   // blue→cyan
-            else { double u = (t - 0.5) / 0.5; r = (int) (u * 255); g = (int) (200 + u * 55); b = (int) (255 - u * 255); }  // cyan→yellow→white
-            return 0xff000000 | (clamp(r) << 16) | (clamp(g) << 8) | clamp(b);
-        }
-        private int clamp(int v) { return v < 0 ? 0 : (v > 255 ? 255 : v); }
     }
+
+    /** Scroll {@code p} ({@code w} x {@code h}, row-major) up one row and paint {@code mag} into the bottom row. */
+    static void waterfallRow(int[] p, int w, int h, double[] mag) {
+        System.arraycopy(p, w, p, 0, w * (h - 1));
+        int base = w * (h - 1);
+        for (int x = 0; x < w; x++) {
+            int bin = (int) ((double) x / w * mag.length);
+            p[base + x] = waterfallColor(mag[Math.min(bin, mag.length - 1)]);
+        }
+    }
+
+    /** Waterfall colour for an FFT magnitude: -90 dB and below dark blue, through cyan, to yellow at -30 dB. Opaque. */
+    static int waterfallColor(double m) {
+        double db = 20 * Math.log10(m + 1e-9);
+        double t = Math.max(0, Math.min(1, (db + 90) / 60));   // -90..-30 dB → 0..1
+        int r, g, b;
+        if (t < 0.5) { double u = t / 0.5; r = 0; g = (int) (u * 200); b = (int) (60 + u * 195); }   // blue→cyan
+        else { double u = (t - 0.5) / 0.5; r = (int) (u * 255); g = (int) (200 + u * 55); b = (int) (255 - u * 255); }  // cyan→yellow
+        return 0xff000000 | (clamp(r) << 16) | (clamp(g) << 8) | clamp(b);
+    }
+    private static int clamp(int v) { return v < 0 ? 0 : (v > 255 ? 255 : v); }
 }
