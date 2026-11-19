@@ -73,16 +73,21 @@ public final class WebClientServer {
         return DEFAULT_PORT;
     }
 
-    /** The access token; made (24 random characters) the first time it is needed. */
+    /** No 0 / O, 1 / I / L: a token read off a screen and typed on a phone cannot be misread. */
+    static final String TOKEN_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    static final int TOKEN_LENGTH = 8, TOKEN_MIN = 6;
+
+    /** A new access token: 8 characters from a 31-letter alphabet (about 40 bits: plenty for a home network). */
+    static String newToken() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < TOKEN_LENGTH; i++) sb.append(TOKEN_ALPHABET.charAt(RNG.nextInt(TOKEN_ALPHABET.length())));
+        return sb.toString();
+    }
+
+    /** The access token; made the first time it is needed. A token set earlier (24 characters, or one you typed yourself) is kept. */
     public static synchronized String token() {
         String t = HubConfig.get(KEY_TOKEN, "").trim();
-        if (t.length() < 12) {
-            byte[] b = new byte[16]; RNG.nextBytes(b);
-            StringBuilder sb = new StringBuilder();
-            for (byte x : b) sb.append(Character.forDigit((x >> 4) & 0xf, 16)).append(Character.forDigit(x & 0xf, 16));
-            t = sb.substring(0, 24);
-            HubConfig.set(KEY_TOKEN, t);
-        }
+        if (t.length() < TOKEN_MIN) { t = newToken(); HubConfig.set(KEY_TOKEN, t); }
         return t;
     }
 
@@ -179,7 +184,7 @@ public final class WebClientServer {
             if (a != null && a.startsWith("Bearer ")) given = a.substring(7).trim();
         }
         if (given == null) return false;
-        return MessageDigest.isEqual(given.trim().getBytes(StandardCharsets.UTF_8), token().getBytes(StandardCharsets.UTF_8));
+        return MessageDigest.isEqual(given.trim().toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.UTF_8), token().toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.UTF_8));   // a phone keyboard may lower-case what was typed
     }
 
     private static void page(HttpExchange ex, String name, String type) throws IOException {

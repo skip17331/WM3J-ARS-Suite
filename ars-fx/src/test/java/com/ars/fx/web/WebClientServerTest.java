@@ -67,13 +67,13 @@ class WebClientServerTest {
     }
 
     @Test void theTokenIsMadeOnceAndStable() {
-        assertEquals(24, token.length());
-        assertTrue(token.matches("[0-9a-f]{24}"));
+        assertEquals(8, token.length());
+        assertTrue(token.matches("[A-HJKMNP-Z2-9]{8}"));
         assertEquals(token, WebClientServer.token());
         HubConfig.set(WebClientServer.KEY_TOKEN, "my-own-token-1234");
         assertEquals("my-own-token-1234", WebClientServer.token(), "the operator's own is kept");
         HubConfig.set(WebClientServer.KEY_TOKEN, "short");
-        assertTrue(WebClientServer.token().length() >= 12, "a token too short to be safe is replaced");
+        assertEquals(8, WebClientServer.token().length(), "a token too short to be safe is replaced");
     }
 
     @Test void theStateHasTheStationAndSaysWhenThereIsNoRigOrRotor() throws Exception {

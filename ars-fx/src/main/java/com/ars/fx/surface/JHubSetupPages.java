@@ -436,7 +436,7 @@ final class JHubSetupPages {
             cfgRow("Port", "the page is at http://<this computer>:<port>/", cInputApply(com.ars.fx.web.WebClientServer.KEY_PORT, String.valueOf(com.ars.fx.web.WebClientServer.DEFAULT_PORT), () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Access token", "the phone must give this; it is made for you the first time. Change it to lock out a phone that should no longer log", cInputApply(com.ars.fx.web.WebClientServer.KEY_TOKEN, com.ars.fx.web.WebClientServer.enabled() ? com.ars.fx.web.WebClientServer.token() : "", () -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
             cfgRow("Address to open", com.ars.fx.web.WebClientServer.enabled() ? "open this on the phone once; it keeps the token" : "turn the client on first",
-                    lbl(phoneUrl(), "cfg-lh")),
+                    phoneAddress()),
             cfgRow("Tune the rig from the phone", "lets the Spots page tune the rig: only while it is connected and not transmitting, and only inside an amateur band", cToggleApply(com.ars.fx.web.WebClientServer.KEY_CONTROL, false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())));
         VBox n1mm = section("N1MM-COMPATIBLE BROADCAST (GRIDTRACKER, LOG4OM …)",
             cfgRow("Broadcast the log", "sends each contest QSO (call, band, mode, exchange) over UDP in N1MM+'s format so other programs can follow your log live. Off until you turn it on, and it goes only to the addresses below", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_ENABLED, false)),
@@ -1102,6 +1102,22 @@ final class JHubSetupPages {
         return new VBox(6, lbl(name, "cfg-sec"), card);
     }
     /** The first address to give the phone, or a hint when the client is off or no network address was found. */
+    /** The address to open on the phone, and its QR code: scan it and the phone opens the page and keeps the token. */
+    static Node phoneAddress() {
+        VBox box = new VBox(6, lbl(phoneUrl(), "cfg-lh"));
+        if (com.ars.fx.web.WebClientServer.enabled()) {
+            java.util.List<String> u = com.ars.fx.web.WebClientServer.urls();
+            javafx.scene.image.Image img = u.isEmpty() ? null : com.ars.fx.web.PhoneQr.image(u.get(0), 5);
+            if (img != null) {
+                javafx.scene.image.ImageView v = new javafx.scene.image.ImageView(img);
+                v.setSmooth(false);
+                box.getChildren().add(v);
+                com.ars.fx.shell.Tips.tip(v, "Point the phone's camera at this to open the page with its token");
+            }
+        }
+        return box;
+    }
+
     static String phoneUrl() {
         if (!com.ars.fx.web.WebClientServer.enabled()) return "";
         java.util.List<String> u = com.ars.fx.web.WebClientServer.urls();
