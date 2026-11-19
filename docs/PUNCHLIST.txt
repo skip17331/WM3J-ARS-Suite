@@ -116,6 +116,8 @@ IDs
         score follow.
 2a-10   Contest type-ahead: section, county and state fields suggest from the list; the RTTY Roundup
         layout.
+2a-12   Daemon status lines under each "Start ... for me" switch, with the watchdog's last action
+        and how long ago it was.
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -139,8 +141,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 2a-9    Contest page: score tiles, F1-F8 in CW and a serial-number contest, Space-key field order.
 2a-11   Call history: build from my logs; exchange fill and NEW MULT? tags in Sweepstakes / a QSO
         party; import a real N1MM+ call history file.
-2a-12   Daemon status lines under each "Start ... for me" switch, with the watchdog's last action
-        and how long ago it was.
 2a-13   Vector basemap: dark, forest, amber, rose and nord palettes; region chips; Basemap switch;
         spots / beam / beacons while zoomed.
 2a-14   Contest page on a 5,000-QSO log, and NetStrip with the network on.
