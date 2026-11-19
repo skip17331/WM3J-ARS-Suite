@@ -1,5 +1,5 @@
 ARS SUITE PUNCH LIST
-Updated 2026-11-18. Started from the 2026-11-17 review.
+Updated 2026-11-19. Started from the 2026-11-17 review.
 
 Sections
   1   Completed
@@ -108,6 +108,12 @@ IDs
         Found with it: symbol lock accepted a score below band noise (2.2 against about 2.7), so a
         signal AFC had not yet tuned to could be locked and decoded as garbage (now half of a
         perfect score); and while unlocked the audio buffer grew without end (now the last 16 s).
+2a-6    8-character station grid: with no lat / lon set, bearings, distances and the map home point
+        appear.
+2a-7    Log browser: Band / Mode filters, Delete, filtered Export... (open in a spreadsheet, import
+        elsewhere), contest logs (sort, filter, search, export, label).
+2a-8    Log browser, contest QSOs: edit and erase a QSO of the active contest; the contest page and
+        score follow.
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -128,12 +134,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
         and grid.
 2a-5    Contest exports: 4U1UN scores as the UN (NA); CQ WW Digital SEND shows a 4-character grid; a
         JS8 QSO's Cabrillo line says DG.
-2a-6    8-character station grid: with no lat / lon set, bearings, distances and the map home point
-        appear.
-2a-7    Log browser: Band / Mode filters, Delete, filtered Export... (open in a spreadsheet, import
-        elsewhere), contest logs (sort, filter, search, export, label).
-2a-8    Log browser, contest QSOs: edit and erase a QSO of the active contest; the contest page and
-        score follow.
 2a-9    Contest page: score tiles, F1-F8 in CW and a serial-number contest, Space-key field order.
 2a-10   Contest type-ahead: section, county and state fields suggest from the list; the RTTY Roundup
         layout.
