@@ -121,6 +121,8 @@ IDs
 2a-13   Vector basemap: dark, forest, amber, rose and nord palettes; region chips; Basemap switch;
         spots / beam / beacons while zoomed.
 2a-14   Contest page on a 5,000-QSO log, and NetStrip with the network on.
+2a-19   J-Sat ground tracks (cached 10 s): tracks still follow the satellites; CPU lower with many
+        satellites shown. Checked on a fast desktop: under 2% CPU.
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -152,8 +154,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
         Log, Wavelog, lookups) still work, are gone from upload.json / lookup.json, and appear in
         Credential Manager. Typing in a password field is smooth (it saves when you pause or leave
         the field), passwords are masked, and Upload right after typing uses the new password.
-2a-19   J-Sat ground tracks (cached 10 s): tracks still follow the satellites; CPU lower with many
-        satellites shown.
 2a-20   Olivia receive: J-Digi's own Olivia 8/500 TX through an audio loopback decodes cleanly from
         the first lines, with spaces between words; also 300 Hz off-centre. (Not against fldigi: see
         3-12.)
