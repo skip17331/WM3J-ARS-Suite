@@ -57,6 +57,8 @@
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- J-Bridge: the WSJT-X UDP listener + decode/status models (a thin library) -->
         <dependency><groupId>com.hamradio</groupId><artifactId>j-bridge</artifactId><version>1.13.22</version></dependency>
+        <!-- QR code of the phone web client's address (Setup > Phone web client): encoder only in the app; the test decodes it again. Apache 2.0. -->
+        <dependency><groupId>com.google.zxing</groupId><artifactId>core</artifactId><version>3.5.3</version></dependency>
         <!-- Solo J-Map/J-Sat ⇄ station J-Hub link (same WS lib the suite's central hub uses) -->
         <dependency><groupId>org.java-websocket</groupId><artifactId>Java-WebSocket</artifactId><version>1.5.6</version></dependency>
         <!-- PluginLoader/ContestPlugin parse contest JSON with Jackson; pin so the shade keeps it. -->
