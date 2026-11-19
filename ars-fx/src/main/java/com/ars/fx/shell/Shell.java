@@ -50,6 +50,12 @@ public final class Shell {
     /** In solo mode, the operating module this window hosts — so the J-Hub settings pages can offer a
      *  "← Back to <module>" link (there is no dock to navigate back through). Set by the host on startup. */
     public static volatile String soloModule = "map";
+    /** Where the dock's Dashboard entry (and the next start) goes: the hub dashboard, or the contest page when that is where the operator last was. */
+    public static String home() { return "logc".equals(com.ars.fx.data.HubConfig.get("ui.home", "hub")) ? "logc" : "hub"; }
+    public static void setHome(String id) {
+        String v = "logc".equals(id) ? "logc" : "hub";
+        if (!v.equals(home()) || com.ars.fx.data.HubConfig.get("ui.home", "").isEmpty()) com.ars.fx.data.HubConfig.set("ui.home", v);
+    }
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
 
     /** Dashboard theme button: advance the suite-wide scheme (clears per-module overrides). */
@@ -336,7 +342,7 @@ public final class Shell {
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
         // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
         Tips.tip(row, hue.equals("setup") ? "Setup - station, radio, data, log and the suite" : name + (isBeta(id) ? " (beta)" : "") + (running ? "" : " (not running)"));
-        row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
+        row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id.equals("hub") ? ("logc".equals(currentSurface) ? "hub" : home()) : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
         return row;
     }
 
