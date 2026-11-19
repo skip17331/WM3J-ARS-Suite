@@ -24,6 +24,12 @@ import static com.ars.fx.shell.Shell.lbl;
 public final class NetStrip extends VBox {
     private final Label line = lbl("", "ct-note"), others = lbl("", "ct-note"), warn = lbl("", "ct-note"), ops = lbl("", "ct-note"), chatLog = lbl("", "ct-note");
     private final TextField chatIn = new TextField();
+    /** The messages: a card with a header that folds it away, and a two-line window onto the whole history that scrolls. */
+    private final Label chatHead = lbl("", "ct-note");
+    private final javafx.scene.control.ScrollPane chatScroll = new javafx.scene.control.ScrollPane(chatLog);
+    private final VBox chatCard = new VBox(2, chatHead, chatScroll);
+    private static final String KEY_CHAT_OPEN = "net.chat.open";
+    private int chatSeen; private long chatShown = -1;                  // messages already read (collapsed: the rest are "new"), and how many the card last drew
     private long opsAt;
     private volatile boolean opsBusy;
 
@@ -35,18 +41,26 @@ public final class NetStrip extends VBox {
         ops.setStyle("-fx-opacity:0.85;");
         chatIn.setPromptText("message to all stations - Enter to send"); chatIn.getStyleClass().add("jhub-mini-field");
         chatIn.setOnAction(e -> { NetNode n = ContestNetwork.node(); if (n != null) n.sendChat(chatIn.getText()); chatIn.clear(); refresh(); });
-        getChildren().addAll(line, others, warn, ops, chatLog, chatIn);
+        chatHead.setStyle("-fx-cursor:hand;-fx-font-weight:bold;");
+        chatScroll.setFitToWidth(true); chatScroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        chatScroll.setPrefHeight(44); chatScroll.setMinHeight(44); chatScroll.setMaxHeight(44);
+        chatScroll.setStyle("-fx-background-color:transparent;-fx-background:transparent;");
+        chatCard.managedProperty().bind(chatCard.visibleProperty()); chatCard.setVisible(false);
+        chatHead.setOnMouseClicked(e -> { com.ars.fx.data.HubConfig.setBool(KEY_CHAT_OPEN, !chatOpen()); chatShown = -1; refresh(); });
+        getChildren().addAll(line, others, warn, ops, chatCard, chatIn);
         managedProperty().bind(visibleProperty());
         refresh();
         int[] beat = {0};
         com.ars.fx.shell.Fx.everySecondWhileShown(this, () -> { if ((beat[0]++ & 1) == 0) refresh(); });   // every 2 s, in the same frame as the other clocks
     }
 
+    private static boolean chatOpen() { return com.ars.fx.data.HubConfig.getBool(KEY_CHAT_OPEN, true); }
+
     private void refresh() {
-        if (ContestNetwork.mode().equals("Off")) { setVisible(false); line.setText(""); others.setText(""); warn.setText(""); ops.setText(""); chatLog.setText(""); chatIn.setManaged(false); chatIn.setVisible(false); return; }
+        if (ContestNetwork.mode().equals("Off")) { setVisible(false); line.setText(""); others.setText(""); warn.setText(""); ops.setText(""); chatLog.setText(""); chatCard.setVisible(false); chatIn.setManaged(false); chatIn.setVisible(false); return; }
         setVisible(true);
         NetNode n = ContestNetwork.node();
-        if (n == null) { line.setText("NETWORK · not running — " + ContestNetwork.startError()); others.setText(""); warn.setText(""); ops.setText(""); chatLog.setText(""); chatIn.setManaged(false); chatIn.setVisible(false); return; }
+        if (n == null) { line.setText("NETWORK · not running — " + ContestNetwork.startError()); others.setText(""); warn.setText(""); ops.setText(""); chatLog.setText(""); chatCard.setVisible(false); chatIn.setManaged(false); chatIn.setVisible(false); return; }
         chatIn.setManaged(true); chatIn.setVisible(true);
         List<NetStatus> roster = n.roster();
         line.setText("NETWORK · " + n.summary() + (n.online() ? "" : ""));
@@ -67,8 +81,19 @@ public final class NetStrip extends VBox {
             t.setDaemon(true); t.start();
         }
         List<NetNode.ChatMsg> chat = n.chatHistory();
-        chatLog.setText(chat.subList(Math.max(0, chat.size() - 3), chat.size()).stream()
-                .map(c -> java.time.format.DateTimeFormatter.ofPattern("HHmm").withZone(java.time.ZoneOffset.UTC).format(java.time.Instant.ofEpochMilli(c.ts())) + "Z " + c.station() + ": " + c.text())
-                .collect(Collectors.joining("\n")));
+        boolean open = chatOpen();
+        if (open) chatSeen = chat.size();
+        chatCard.setVisible(!chat.isEmpty());
+        chatScroll.setVisible(open); chatScroll.setManaged(open);
+        int fresh = Math.max(0, chat.size() - chatSeen);
+        chatHead.setText((open ? "▾ " : "▸ ") + "MESSAGES · " + chat.size() + (fresh > 0 ? " · " + fresh + " new" : ""));
+        long stamp = chat.size() * 31L + (chat.isEmpty() ? 0 : chat.get(chat.size() - 1).ts());      // the cap of 100 keeps the size still while the messages move on
+        if (stamp != chatShown) {                                            // redraw only when a message came, so the scroll position is left alone
+            chatShown = stamp;
+            java.time.format.DateTimeFormatter hm = java.time.format.DateTimeFormatter.ofPattern("HHmm").withZone(java.time.ZoneOffset.UTC);
+            chatLog.setText(chat.stream().map(c -> hm.format(java.time.Instant.ofEpochMilli(c.ts())) + "Z " + c.station() + ": " + c.text())
+                    .collect(Collectors.joining("\n")));
+            javafx.application.Platform.runLater(() -> chatScroll.setVvalue(1));      // the newest at the bottom
+        }
     }
 }
