@@ -75,6 +75,7 @@ button.sec { margin-top:8px; padding:10px; border:1px solid var(--line); border-
   <section id="tab-spots" class="hidden"><div id="spots"></div></section>
   <section id="tab-recent" class="hidden"><div id="recent"></div></section>
   <div id="authmsg" class="msg err hidden"></div>
+  <div id="tokbox" class="hidden"><input id="tokin" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Access token (J-Hub ▸ Setup ▸ Phone web client)"><button class="act" id="toksave">Save token</button></div>
 </main>
 <script>
 "use strict";
@@ -156,7 +157,13 @@ function refreshState() {
     }
   }).catch(function () { $("hdot").className = "dot bad"; $("hrig").textContent = "no connection to the hub"; });
 }
-function auth(msg) { show("authmsg", msg, "err"); }
+function auth(msg) { show("authmsg", msg, "err"); $("tokbox").className = ""; }       // the token can be typed here as well as arriving in the address
+$("toksave").onclick = function () {
+  var t = $("tokin").value.trim();
+  if (!t) return;
+  try { localStorage.setItem(TOKEN_KEY, t); } catch (e) { /* storage may be blocked */ }
+  location.reload();
+};
 
 // ---- logging, with a queue for when the network is not there ----------------------------------------------------
 function form() {
