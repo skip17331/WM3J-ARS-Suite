@@ -140,9 +140,10 @@ public final class AmpClient {
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
         out = socket.getOutputStream();
     }
+    /** Extended protocol ("+"): every reply, a get included, ends with "RPRT n". Plain mode answers a get with a bare value and no RPRT, so the reader below would block until its timeout and the amp would show offline. */
     private synchronized String send(String cmd) throws IOException {
         ensureConnected();
-        out.write((cmd + "\n").getBytes(StandardCharsets.US_ASCII));
+        out.write(("+" + cmd + "\n").getBytes(StandardCharsets.US_ASCII));
         out.flush();
         StringBuilder sb = new StringBuilder();
         String line;
