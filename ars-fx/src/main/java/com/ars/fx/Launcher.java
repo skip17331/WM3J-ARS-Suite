@@ -64,7 +64,7 @@ public class Launcher extends Application {
         com.ars.fx.shell.TxIndicator.installEscStop(scene);
         Shell.installPageKeys(scene);
         com.ars.fx.shell.Fx.steadyCaret(scene);
-        show(System.getProperty("surface", "hub"));
+        show(System.getProperty("surface", Shell.home()));      // the dashboard, or the contest page if that is where the app was left
 
         stage.setTitle("ARS Suite");
         AppIcons.apply(stage, null);                    // the app mark — without it the panel shows a generic gear
@@ -146,6 +146,7 @@ public class Launcher extends Application {
         String previous = Shell.currentSurface;
         Shell.currentSurface = id;
         if (id.equals("log") || id.equals("logc")) Shell.lastLogSurface = id;   // remember J-Log's mode
+        if (id.equals("hub") || id.equals("logc")) Shell.setHome(id);            // the dock's Dashboard entry and the next start return here
         Region surface = buildSurface(id);
         host.getChildren().setAll(surface);
         if (!id.equals(previous)) {       // a short fade when the screen changes - but not on a rebuild of the same one (J-Sat does that every ~2 s)
