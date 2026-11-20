@@ -771,7 +771,7 @@ public final class JMapView {
         }
     }
     static void collectStatValues(Node n, java.util.List<Label> out) {
-        if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
+        if (n instanceof Label l && (l.getStyleClass().contains("hero-stat-v") || l.getStyleClass().contains("sx-stat-v"))) out.add(l);
         if (n instanceof javafx.scene.Parent p) for (Node c : p.getChildrenUnmodifiable()) collectStatValues(c, out);
     }
 
