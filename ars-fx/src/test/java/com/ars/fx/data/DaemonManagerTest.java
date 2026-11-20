@@ -62,12 +62,31 @@ class DaemonManagerTest {
         });
     }
 
+    /** Run {@code body} as if the machine had exactly these USB serial devices ("" = none), whatever is really plugged in. */
+    private static void withSerialPort(String found, Runnable body) {
+        java.util.function.Supplier<String> old = DaemonManager.serialPortFinder;
+        DaemonManager.serialPortFinder = () -> found;
+        try { body.run(); } finally { DaemonManager.serialPortFinder = old; }
+    }
+
     @Test
     void rtsWithoutASerialPortIsLeftAtTheDefault() throws Exception {
-        withConfig(() -> {
+        withConfig(() -> withSerialPort("", () -> {          // no device on the machine, so nothing to name after -p
             HubConfig.set("rig.hamlibModel", "1035"); HubConfig.set("rig.port", ""); HubConfig.set("rig.ptt", "RTS");
             assertFalse(DaemonManager.argvFor("rig").contains("-P"));
-        });
+        }));
+    }
+
+    @Test
+    void aFreshInstallUsesTheOnlySerialDeviceItFinds() throws Exception {
+        withConfig(() -> withSerialPort("/dev/ttyUSB7", () -> {
+            HubConfig.set("rig.hamlibModel", "1035"); HubConfig.set("rig.port", ""); HubConfig.set("rig.ptt", "RTS");
+            List<String> a = DaemonManager.argvFor("rig");
+            assertEquals("/dev/ttyUSB7", a.get(a.indexOf("-r") + 1), "the one device found is used for CAT");
+            assertEquals("/dev/ttyUSB7", a.get(a.indexOf("-p") + 1), "and for the RTS line");
+            HubConfig.set("rig.port", "/dev/ttyUSB0");
+            assertEquals("/dev/ttyUSB0", DaemonManager.argvFor("rig").get(DaemonManager.argvFor("rig").indexOf("-r") + 1), "a port the operator chose wins");
+        }));
     }
 
     @Test
