@@ -74,6 +74,10 @@ public final class HubServer {
             System.out.println(stopRunning() ? "[hub] told the hub to quit" : "[hub] no hub is running on :" + RemoteServer.port());
             System.exit(0);
         }
+        if (args.length > 0 && "--kill".equals(args[0])) {            // ars-fx.sh --kill-hub: ask nicely, then force
+            System.out.println(killRunning());
+            System.exit(0);
+        }
         int port = RemoteServer.port();
         auto = Boolean.getBoolean("ars.hub.auto");
 
@@ -88,6 +92,7 @@ public final class HubServer {
             System.out.println("[hub] a sharing hub is already listening on :" + port + " — nothing to do");
             return;
         }
+        writePidFile();
 
         // Own the shared backends: daemons first (so the rig/rotor clients find them), then the clients,
         // then publish state. This process is the sole owner; every window (loose or docked) is a client.
@@ -115,8 +120,74 @@ public final class HubServer {
         }
 
         try { ALIVE.await(); } catch (InterruptedException ignored) {}
+        armWatchdog(10);                                 // cleanup or exit can hang (a daemon that will not stop): do not let it hold the hub up
         cleanup();
         System.exit(0);
+    }
+
+    // ── kill switch ───────────────────────────────────────────────────────────
+
+    private static File pidFile() { return new File(new File(System.getProperty("user.home"), ".j-hub"), "hub.pid"); }
+
+    private static void writePidFile() {
+        try {
+            File f = pidFile();
+            f.getParentFile().mkdirs();
+            java.nio.file.Files.writeString(f.toPath(), Long.toString(ProcessHandle.current().pid()));
+            f.deleteOnExit();
+        } catch (Exception ignored) { /* the kill switch then falls back to the lock-free port check */ }
+    }
+
+    /** If the hub has not exited {@code seconds} after a quit was asked for, stop the JVM outright (halt skips the shutdown hooks that may be what is stuck). */
+    private static void armWatchdog(int seconds) {
+        Thread t = new Thread(() -> {
+            try { Thread.sleep(seconds * 1000L); } catch (InterruptedException ignored) { return; }
+            System.err.println("[hub] did not unload within " + seconds + " s — halting");
+            try { pidFile().delete(); } catch (Throwable ignored) { }
+            ProcessHandle.current().descendants().forEach(ProcessHandle::destroyForcibly);   // halt skips the hooks that stop rigctld: do it here so none is left holding the serial port
+            Runtime.getRuntime().halt(1);
+        }, "hub-watchdog");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /** The tray's "Kill Hub (force)": one short try at an orderly cleanup (so the transmitter is un-keyed and the daemons stop), then halt. */
+    private static void forceQuit() {
+        armWatchdog(3);
+        ALIVE.countDown();
+    }
+
+    /** {@code ars-fx.sh --kill-hub}: ask the hub to quit and wait for it to go; if it has not, kill its process (the pid in ~/.j-hub/hub.pid,
+     *  checked to still be a HubServer so a stale file can never take down something else). Returns a line to print. */
+    static String killRunning() {
+        int port = RemoteServer.port();
+        long pid = -1;
+        try { pid = Long.parseLong(java.nio.file.Files.readString(pidFile().toPath()).trim()); } catch (Exception ignored) { }
+        if (portOpen(port)) stopRunning();
+        for (int i = 0; i < 40 && alive(pid, port); i++) try { Thread.sleep(250); } catch (InterruptedException e) { break; }
+        if (!alive(pid, port)) return "[hub] stopped";
+        java.util.Optional<ProcessHandle> h = pid > 0 ? ProcessHandle.of(pid) : java.util.Optional.empty();
+        if (h.isPresent() && isHub(h.get())) {
+            java.util.List<ProcessHandle> kids = h.get().descendants().toList();      // the hub's rigctld / rotctld: killing the hub alone leaves them holding the serial port
+            h.get().destroy();                                              // SIGTERM: runs the shutdown hook
+            for (int i = 0; i < 12 && h.get().isAlive(); i++) try { Thread.sleep(250); } catch (InterruptedException e) { break; }
+            if (h.get().isAlive()) h.get().destroyForcibly();               // SIGKILL
+            for (int i = 0; i < 8 && h.get().isAlive(); i++) try { Thread.sleep(250); } catch (InterruptedException e) { break; }
+            for (ProcessHandle k : kids) if (k.isAlive()) k.destroyForcibly();
+            try { pidFile().delete(); } catch (Throwable ignored) { }
+            return h.get().isAlive() ? "[hub] could not be killed (pid " + pid + ")" : "[hub] killed (pid " + pid + (kids.isEmpty() ? ")" : ") and its " + kids.size() + " helper process(es)");
+        }
+        return portOpen(port) ? "[hub] still listening on :" + port + " but no hub pid is recorded — stop it by hand (the process running com.ars.fx.HubServer)"
+                              : "[hub] stopped";
+    }
+
+    private static boolean alive(long pid, int port) {
+        if (portOpen(port)) return true;
+        return pid > 0 && ProcessHandle.of(pid).map(h -> h.isAlive() && isHub(h)).orElse(false);
+    }
+
+    private static boolean isHub(ProcessHandle h) {
+        return h.info().commandLine().map(c -> c.contains("com.ars.fx.HubServer")).orElse(false);
     }
 
     /** Asks the hub running on this machine to quit (the hub only obeys a connection from the loopback address). True if one was reached. */
@@ -280,6 +351,9 @@ public final class HubServer {
             MenuItem quit = new MenuItem("Quit Hub");
             quit.addActionListener(e -> ALIVE.countDown());
             menu.add(quit);
+            MenuItem kill = new MenuItem("Kill Hub (force)");       // for a hub that will not unload
+            kill.addActionListener(e -> forceQuit());
+            menu.add(kill);
 
             java.awt.Image mark = AppIcons.tray(tray.getTrayIconSize().width);
             TrayIcon icon = new TrayIcon(mark != null ? mark : trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);

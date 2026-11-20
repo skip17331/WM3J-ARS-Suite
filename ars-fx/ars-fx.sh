@@ -7,6 +7,7 @@
 #                                (log | logc | map | sat | digi | vault | learn | bridge)
 #   ars-fx.sh --hub           -> background hub only (system tray), open nothing
 #   ars-fx.sh --stop-hub      -> tell the background hub on this machine to quit
+#   ars-fx.sh --kill-hub      -> quit the hub, and if it will not unload, kill its process
 #
 # The installer's shortcuts all call this script with different args (see
 # installer/src/main/resources/manifest.json), so the docked, loose, and hub
@@ -27,6 +28,9 @@ fi
 cd "$DIR"
 if [ "${1:-}" = "--stop-hub" ]; then
   exec java -Dfile.encoding=UTF-8 -cp "$JAR" com.ars.fx.HubServer --stop
+fi
+if [ "${1:-}" = "--kill-hub" ]; then
+  exec java -Dfile.encoding=UTF-8 -cp "$JAR" com.ars.fx.HubServer --kill
 fi
 if [ "${1:-}" = "--hub" ]; then
   exec java -Dfile.encoding=UTF-8 -cp "$JAR" com.ars.fx.HubServer
