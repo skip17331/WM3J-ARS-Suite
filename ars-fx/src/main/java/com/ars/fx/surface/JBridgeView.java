@@ -126,7 +126,7 @@ public final class JBridgeView {
         vs.get(3).setText(BridgeService.connected() ? "● linked" : "○ waiting");
     }
     private static void collectStatValues(Node n, List<Label> out) {
-        if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
+        if (n instanceof Label l && (l.getStyleClass().contains("hero-stat-v") || l.getStyleClass().contains("sx-stat-v"))) out.add(l);
         if (n instanceof javafx.scene.Parent p) for (Node c : p.getChildrenUnmodifiable()) collectStatValues(c, out);
     }
     private static void fillLink(VBox link) {

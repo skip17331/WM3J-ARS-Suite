@@ -220,7 +220,7 @@ final class JLogContestScore {
         for (int i = 0; i < extra.size() && extraAt + i < vs.size(); i++) vs.get(extraAt + i).setText(extra.get(i)[1]);
     }
     static void collectStatV(Node n, List<Label> out) {
-        if (n instanceof Label l && l.getStyleClass().contains("sx-stat-v")) out.add(l);
+        if (n instanceof Label l && (l.getStyleClass().contains("hero-stat-v") || l.getStyleClass().contains("sx-stat-v"))) out.add(l);
         if (n instanceof Parent p) for (Node c : p.getChildrenUnmodifiable()) collectStatV(c, out);
     }
 

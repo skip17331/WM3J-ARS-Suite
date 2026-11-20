@@ -57,7 +57,7 @@ final class HeroBar {
         // the module's own figures
         for (String[] s : stats) {                   // {key, value, optional class}
             boolean hasCls = s.length > 2 && s[2] != null && !s[2].isBlank();
-            VBox cell = new VBox(2, lbl(s[0], "hero-k"), lbl(s[1], hasCls ? new String[]{"hero-val", s[2]} : new String[]{"hero-val"}));
+            VBox cell = new VBox(2, lbl(s[0], "hero-k"), lbl(s[1], hasCls ? new String[]{"hero-val", "hero-stat-v", s[2]} : new String[]{"hero-val", "hero-stat-v"}));
             cell.getStyleClass().add("hero-stat"); cell.setAlignment(Pos.CENTER_LEFT);
             cells.add(cell); top.getChildren().add(cell);
         }
