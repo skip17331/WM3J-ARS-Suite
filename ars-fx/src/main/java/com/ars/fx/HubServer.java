@@ -114,7 +114,7 @@ public final class HubServer {
 
         Runtime.getRuntime().addShutdownHook(new Thread(HubServer::cleanup, "hub-shutdown"));
 
-        if (!installTray(port)) {
+        if (!installNativeTray(port) && !installTray(port)) {
             System.out.println("[hub] no system tray available — running headless on :" + port
                     + " (stop with Ctrl-C)" + (auto ? " — auto: exits when the last client closes" : ""));
         }
@@ -330,6 +330,56 @@ public final class HubServer {
 
     // ── tray ────────────────────────────────────────────────────────────────
 
+    /** The KDE / freedesktop tray icon, through a small bundled Python helper ({@code hub/sni_tray.py}). Java's own tray icon reaches Plasma through an
+     *  XEmbed proxy that never delivers clicks on KDE Wayland; the helper registers a real StatusNotifierItem, and a click, middle click or right click
+     *  on it prints QUIT, which stops the hub. Linux only, and only when python3 with D-Bus bindings is there: otherwise false (the AWT tray is used,
+     *  so there is never a second icon). */
+    private static boolean installNativeTray(int port) {
+        if (!System.getProperty("os.name", "").toLowerCase().contains("linux") || Boolean.getBoolean("ars.noNativeTray")) return false;
+        try {
+            java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("ars-hub-tray");
+            dir.toFile().deleteOnExit();
+            java.nio.file.Path script = dir.resolve("sni_tray.py");
+            try (java.io.InputStream in = HubServer.class.getResourceAsStream("/hub/sni_tray.py")) {
+                if (in == null) return false;
+                java.nio.file.Files.copy(in, script);
+            }
+            java.awt.Image mark = AppIcons.tray(64);
+            if (mark == null) return false;
+            BufferedImage png = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = png.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.drawImage(mark, 0, 0, 64, 64, null);
+            g.dispose();
+            javax.imageio.ImageIO.write(png, "png", dir.resolve("ars-suite-hub.png").toFile());
+            Process p = new ProcessBuilder("python3", script.toString(), dir.toString(), "ars-suite-hub",
+                    "Sharing on :" + port + ". Click to quit the hub.")
+                    .redirectError(ProcessBuilder.Redirect.DISCARD).start();
+            java.io.BufferedReader r = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
+            CountDownLatch ready = new CountDownLatch(1);
+            boolean[] ok = {false};
+            Thread t = new Thread(() -> {
+                try {
+                    for (String line; (line = r.readLine()) != null; ) {
+                        if (line.equals("READY")) { ok[0] = true; ready.countDown(); }
+                        else if (line.equals("QUIT")) { System.out.println("[hub] quit from the tray icon"); ALIVE.countDown(); }
+                        else if (line.startsWith("UNAVAILABLE")) { System.out.println("[hub] native tray: " + line); ready.countDown(); }
+                    }
+                } catch (Exception ignored) { }
+                ready.countDown();
+            }, "hub-tray-helper");
+            t.setDaemon(true);
+            t.start();
+            ready.await(5, TimeUnit.SECONDS);
+            if (!ok[0]) { p.destroyForcibly(); return false; }
+            System.out.println("[hub] tray icon installed (status notifier) — sharing on :" + port);
+            return true;
+        } catch (Exception e) {
+            System.out.println("[hub] native tray unavailable: " + e.getMessage());
+            return false;
+        }
+    }
+
     private static boolean installTray(int port) {
         if (Boolean.getBoolean("ars.noTray") || !SystemTray.isSupported()) return false;
         try {
@@ -357,7 +407,7 @@ public final class HubServer {
             java.awt.Image mark = AppIcons.tray(tray.getTrayIconSize().width);
             TrayIcon icon = new TrayIcon(mark != null ? mark : trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);
             icon.setImageAutoSize(true);
-            icon.addActionListener(e -> quitFromTray());     // a double-click on the icon (some desktops never show the right-click menu)
+            icon.addActionListener(e -> quitFromTray());     // a click on the icon (KDE's tray proxy never shows the right-click menu)
             tray.add(icon);
             trayIcon = icon;
             System.out.println("[hub] tray icon installed — sharing on :" + port);
@@ -368,18 +418,12 @@ public final class HubServer {
         }
     }
 
-    /** Double-click on the tray icon: quit the hub. With windows still attached, ask first (they lose the rig and the cluster feed). */
+    /** A click on the tray icon quits the hub, at once. (There was a "windows are still attached, quit anyway?" dialog here, but on KDE Wayland it
+     *  never showed, so the click appeared to do nothing.) The click arrives as the icon's action event: through KDE's XEmbed proxy it is a plain
+     *  left click, and other desktops send it for a double-click. */
     private static void quitFromTray() {
-        new Thread(() -> {
-            int n = RemoteServer.clientCount();
-            boolean go = true;
-            if (n > 0) try {
-                go = javax.swing.JOptionPane.showConfirmDialog(null,
-                        n + " window" + (n == 1 ? " is" : "s are") + " still using the hub. Quit it anyway?",
-                        "ARS Suite Hub", javax.swing.JOptionPane.YES_NO_OPTION) == javax.swing.JOptionPane.YES_OPTION;
-            } catch (Throwable headless) { go = true; }
-            if (go) ALIVE.countDown();
-        }, "hub-tray-quit").start();
+        System.out.println("[hub] quit from the tray icon");
+        ALIVE.countDown();
     }
 
     /** Fallback only (the app mark could not be read): a small rounded badge with a "J". */
