@@ -20,8 +20,8 @@ public final class CountryShapes {
     public record Polygon(VectorBasemap.Ring[] rings, double minLon, double maxLon, double minLat, double maxLat) {}
     /** {@code code} is Natural Earth's ADM0_A3 (USA, DEU, ATA ...); {@code colour} 1-7. */
     public record Country(String code, int colour, Polygon[] polygons) {
-        /** Antarctica and Greenland are drawn as ice. */
-        public boolean ice() { return "ATA".equals(code) || "GRL".equals(code); }
+        /** Only Antarctica is drawn as ice; Greenland is a country like the others and takes its colour. */
+        public boolean ice() { return "ATA".equals(code); }
     }
 
     private static volatile List<Country> all;

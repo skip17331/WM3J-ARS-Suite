@@ -22,6 +22,9 @@ class BasemapCountriesTest {
         assertEquals("LSO", CountryShapes.at(-29.3, 27.5).code(), "Maseru: Lesotho is a hole in South Africa, not part of it");
         assertNull(CountryShapes.at(40, -40), "mid-Atlantic");
         assertTrue(CountryShapes.at(-80, 0).ice());
+        CountryShapes.Country greenland = CountryShapes.at(72, -40);
+        assertEquals("GRL", greenland.code(), "the Greenland ice cap");
+        assertFalse(greenland.ice(), "Greenland is a country with a colour, not ice");
     }
 
     @Test void neighboursNeverShareAColour() {
