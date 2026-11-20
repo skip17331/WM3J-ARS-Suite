@@ -36,7 +36,7 @@ public final class TrackerFactory {
         Region inner = switch (type) {
             case "statistics"             -> statsPane();
             case "worked_mults", "custom" -> lightbox(universeFor(plugin));
-            case "section_tracker"        -> lightbox(plugin.getSections());
+            case "section_tracker"        -> lightbox(plugin.getSections(), callAreaGroups(pd));
             case "dxcc_list"              -> lightbox(null);
             case "county_list"            -> lightbox(universeFor(plugin));
             case "worked_before"          -> note("Worked-before shows by the call field.");
@@ -55,8 +55,22 @@ public final class TrackerFactory {
     }
 
     // ---- score-driven lightbox -------------------------------------------
-    private static Region lightbox(List<String> universe) {
-        Lightbox box = new Lightbox();
+    /** The pane's "zoneGroups" config (name + sections), in order; null when it has none. */
+    @SuppressWarnings("unchecked")
+    private static java.util.Map<String, List<String>> callAreaGroups(PaneDef pd) {
+        Object zg = pd.getConfig() == null ? null : pd.getConfig().get("zoneGroups");
+        if (!(zg instanceof List<?> l)) return null;
+        java.util.Map<String, List<String>> out = new java.util.LinkedHashMap<>();
+        for (Object o : l)
+            if (o instanceof java.util.Map<?, ?> m && m.get("name") != null && m.get("sections") instanceof List<?> ss)
+                out.put(String.valueOf(m.get("name")), (List<String>) ss);
+        return out;
+    }
+
+    private static Region lightbox(List<String> universe) { return lightbox(universe, null); }
+
+    private static Region lightbox(List<String> universe, java.util.Map<String, List<String>> groups) {
+        Lightbox box = new Lightbox().groups(groups);
         Runnable upd = () -> box.set(universe, ContestState.workedMults());
         ContestState.addListener(() -> Platform.runLater(upd));
         upd.run();
