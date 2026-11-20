@@ -121,6 +121,7 @@ IDs
 2a-13   Vector basemap: dark, forest, amber, rose and nord palettes; region chips; Basemap switch;
         spots / beam / beacons while zoomed.
 2a-14   Contest page on a 5,000-QSO log, and NetStrip with the network on.
+2a-15   Phone web client: browser and phone; log form, offline queue, spots tab, token entry.
 2a-19   J-Sat ground tracks (cached 10 s): tracks still follow the satellites; CPU lower with many
         satellites shown. Checked on a fast desktop: under 2% CPU.
 
@@ -146,7 +147,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
 2a-9    Contest page: score tiles, F1-F8 in CW and a serial-number contest, Space-key field order.
 2a-11   Call history: build from my logs; exchange fill and NEW MULT? tags in Sweepstakes / a QSO
         party; import a real N1MM+ call history file.
-2a-15   Phone web client: browser and phone; log form, offline queue, spots tab, token entry.
 2a-16   QSO parties on the contest page: QRP in DE or NM; PA rover across two counties; NC mobile
         (own-county mults, +100, HIKENC); MO mobile (50-QSO mult, window point).
 2a-17   ON / QC scoring against a real 2026 log.
