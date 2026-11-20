@@ -234,8 +234,8 @@ public final class HubServer {
 
     /** Driven by {@link RemoteServer} on every connect/disconnect. When the last client leaves (windows and LAN peers
      *  both count) a short linger timer starts, and a returning client cancels it — so swapping modules doesn't
-     *  churn the connections. If it runs out, an auto hub exits; a sticky hub (it only stops on Quit) stays up
-     *  but hangs up the DX-cluster / RBN telnet connections and leaves them down: the operator reconnects by hand. */
+     *  churn the connections. If it runs out the hub exits, whether it was auto-spawned or started with {@code --hub}.
+     *  (A {@code --hub} that nothing ever attaches to is different: see {@link #scheduleStartupIdleCheck()}.) */
     private static synchronized void onClientCount(int n) {
         if (n > 0) { hadClient = true; cancelLinger(); }
         else if (hadClient) scheduleLinger();
@@ -243,14 +243,13 @@ public final class HubServer {
     private static synchronized void scheduleLinger() {
         cancelLinger();
         int grace = lingerSeconds();
-        System.out.println("[hub] last client left — " + (auto ? "stopping" : "hanging up the cluster feeds")
-                + " in " + grace + "s unless one returns");
+        System.out.println("[hub] last client left — stopping in " + grace + "s unless one returns");
         if (clusterWanted()) notice("Last window closed",
-                "Disconnecting from the DX cluster in " + grace + " s. Open ARS Suite again to keep it connected.");
+                "The hub stops in " + grace + " s. Open ARS Suite again to keep it running.");
         pendingShutdown = LINGER.schedule(() -> {
             if (RemoteServer.clientCount() != 0) return;
-            if (auto) { System.out.println("[hub] no clients after grace — stopping"); ALIVE.countDown(); }
-            else dropFeeds();
+            System.out.println("[hub] no clients after grace — stopping");   // every hub, sticky or auto: nothing is using it, so it goes
+            ALIVE.countDown();
         }, grace, TimeUnit.SECONDS);
     }
 
@@ -358,6 +357,7 @@ public final class HubServer {
             java.awt.Image mark = AppIcons.tray(tray.getTrayIconSize().width);
             TrayIcon icon = new TrayIcon(mark != null ? mark : trayImage(tray), "ARS Suite Hub — sharing on :" + port, menu);
             icon.setImageAutoSize(true);
+            icon.addActionListener(e -> quitFromTray());     // a double-click on the icon (some desktops never show the right-click menu)
             tray.add(icon);
             trayIcon = icon;
             System.out.println("[hub] tray icon installed — sharing on :" + port);
@@ -366,6 +366,20 @@ public final class HubServer {
             System.err.println("[hub] tray unavailable: " + e.getMessage());
             return false;
         }
+    }
+
+    /** Double-click on the tray icon: quit the hub. With windows still attached, ask first (they lose the rig and the cluster feed). */
+    private static void quitFromTray() {
+        new Thread(() -> {
+            int n = RemoteServer.clientCount();
+            boolean go = true;
+            if (n > 0) try {
+                go = javax.swing.JOptionPane.showConfirmDialog(null,
+                        n + " window" + (n == 1 ? " is" : "s are") + " still using the hub. Quit it anyway?",
+                        "ARS Suite Hub", javax.swing.JOptionPane.YES_NO_OPTION) == javax.swing.JOptionPane.YES_OPTION;
+            } catch (Throwable headless) { go = true; }
+            if (go) ALIVE.countDown();
+        }, "hub-tray-quit").start();
     }
 
     /** Fallback only (the app mark could not be read): a small rounded badge with a "J". */
