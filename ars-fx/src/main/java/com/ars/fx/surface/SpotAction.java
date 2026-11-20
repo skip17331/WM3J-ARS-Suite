@@ -77,7 +77,7 @@ public final class SpotAction {
                 logMode(mode, freqHz));
         if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
         else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
-        else if (quickTarget != null) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now
+        else if (quickTarget != null && "hub".equals(Shell.currentSurface)) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now (on any other page its form is hidden: queue for J-Log instead)
         else pending = pf;
 
         // 2. tune the radio

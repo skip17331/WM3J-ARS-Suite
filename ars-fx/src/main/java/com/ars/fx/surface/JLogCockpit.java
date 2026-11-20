@@ -95,6 +95,8 @@ public final class JLogCockpit {
         VBox pane;
         try { pane = entryPane(); } finally { embedded = false; }
         startTicker();
+        SpotAction.Prefill queued = SpotAction.takePending();     // a spot clicked on another page (Info > Active now): fill the quick form it lands on
+        if (queued != null) prefillSpot(queued);
         pane.sceneProperty().addListener((o, was, sc) -> {
             if (sc != null) SpotAction.setQuickTarget(JLogCockpit::prefillSpot); else SpotAction.clearQuickTarget(JLogCockpit::prefillSpot);
         });

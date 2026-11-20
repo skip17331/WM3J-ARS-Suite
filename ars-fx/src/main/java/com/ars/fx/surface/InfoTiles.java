@@ -42,7 +42,7 @@ final class InfoTiles {
         events = calendar;
         activeRows = new VBox(); activeCount = lbl("", "jhub-card-sub");
         return card("Active now", "-ars-ok", activeCount, activeRows,
-                "POTA activators spotted in the last hour (from pota.app), and DXpeditions on the air today. NEW ONE / NEW PARK: your log still needs it. Click one to tune and fill the log form.");
+                "POTA activators spotted in the last hour (from pota.app), and DXpeditions on the air today. NEW ONE / NEW PARK: your log still needs it. Click one to tune the rig and fill J-Log-Quick on the dashboard.");
     }
 
     static VBox statsTile() {
@@ -103,7 +103,10 @@ final class InfoTiles {
         r.setStyle("-fx-border-color: transparent transparent -ars-border transparent; -fx-border-width: 0 0 1 0;" + (a != null ? "-fx-cursor:hand;" : ""));
         if (a != null) {
             long hz = Math.round(a.freqKhz() * 1000);
-            r.setOnMouseClicked(e -> SpotAction.onSpot(r, a.call(), hz, a.mode(), com.ars.fx.data.Bands.of(hz)));
+            r.setOnMouseClicked(e -> {
+                SpotAction.onSpot(r, a.call(), hz, a.mode(), com.ars.fx.data.Bands.of(hz));   // tunes, and queues the call for the log
+                Shell.navigate("hub");                                                          // the dashboard's J-Log-Quick takes it
+            });
         }
         return r;
     }
