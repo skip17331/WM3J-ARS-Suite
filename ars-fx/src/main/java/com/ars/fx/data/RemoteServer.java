@@ -147,6 +147,9 @@ public final class RemoteServer extends WebSocketServer {
                     Runnable r = onQuit;
                     if (r != null && from != null && from.getAddress() != null && from.getAddress().isLoopbackAddress()) r.run();
                 }
+                case "spot.pick"    -> {                                   // a window picked a spot: every other window may have a log form to fill
+                    for (WebSocket c : getConnections()) if (c != conn) trySend(c, message);
+                }
                 case "hub.reconfig" -> { Runnable r = onReconfig; if (r != null) r.run(); }   // re-read config + reconcile
                 default             -> { /* ignore unknown */ }
             }

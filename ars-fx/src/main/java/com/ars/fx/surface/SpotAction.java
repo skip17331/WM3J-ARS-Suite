@@ -58,6 +58,22 @@ public final class SpotAction {
     /** J-Log build() pulls (and clears) a queued prefill so a spot picked elsewhere lands in the fresh form. */
     public static Prefill takePending() { Prefill p = pending; pending = null; return p; }
 
+    /** Fill whichever log form is on screen in this window; false when none is. */
+    private static boolean fillLiveForm(Prefill pf) {
+        if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
+        else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
+        else if (quickTarget != null && "hub".equals(Shell.currentSurface)) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now (on any other page its form is hidden: queue for J-Log instead)
+        else return false;
+        return true;
+    }
+
+    /** A spot picked in another window (relayed by the hub): fill this window's log form now if it shows one, otherwise queue it for the next open. */
+    public static void onRemotePick(String call, String freqMhz, String band, String mode) {
+        if (call == null || call.isBlank()) return;
+        Prefill pf = new Prefill(call.trim().toUpperCase(), freqMhz, band, mode);
+        if (!fillLiveForm(pf)) pending = pf;
+    }
+
     /** Spot click where coordinates aren't known up front — geo-locate from the call. */
     public static void onSpot(Node source, String call, long freqHz, String mode, String band) {
         double[] ll = Geo.of(call);
@@ -75,10 +91,12 @@ public final class SpotAction {
                 freqHz > 0 ? String.format(Locale.US, "%.3f", freqHz / 1e6) : null,
                 (band == null || band.isBlank()) ? null : band,
                 logMode(mode, freqHz));
-        if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
-        else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
-        else if (quickTarget != null && "hub".equals(Shell.currentSurface)) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now (on any other page its form is hidden: queue for J-Log instead)
-        else pending = pf;
+        if (!fillLiveForm(pf)) {
+            pending = pf;
+            // J-Map / J-Sat in a window of their own: the log form is in another window, so hand the pick to the hub, which passes it on
+            com.ars.fx.data.RemoteLink l = com.ars.fx.data.RemoteLink.get();
+            if (l != null) l.sendSpotPick(pf.call(), pf.freqMhz(), pf.band(), pf.mode());
+        }
 
         // 2. tune the radio
         RigClient rig = RigClient.getInstance();

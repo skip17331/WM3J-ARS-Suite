@@ -143,6 +143,12 @@ public final class RemoteLink {
                 ClusterClient.getInstance().injectRaw(o.get("epoch").getAsLong(), o.get("seq").getAsLong(), lines);
                 return;
             }
+            if ("spot.pick".equals(type)) {                // a spot picked in another window: fill the log form here
+                String f = str(o, "mhz"), b = str(o, "band"), m = str(o, "mode");
+                String call = str(o, "call");
+                javafx.application.Platform.runLater(() -> com.ars.fx.surface.SpotAction.onRemotePick(call, f, b, m));
+                return;
+            }
             if ("rig".equals(type)) {                      // a rig change pushed on its own, ahead of the next snapshot
                 RigClient.State rig = GSON.fromJson(o.get("rig"), RigClient.State.class);
                 if (rig != null) RigClient.getInstance().applyRemote(rig);
@@ -221,6 +227,14 @@ public final class RemoteLink {
         JsonObject o = new JsonObject(); o.addProperty("t", "spot.add");
         o.addProperty("hz", sp.freqHz()); o.addProperty("call", sp.call()); o.addProperty("mode", sp.mode());
         o.addProperty("band", sp.band() == null ? "" : sp.band()); o.addProperty("de", sp.de()); o.addProperty("comment", sp.comment());
+        send(o);
+    }
+    /** Tell the hub a spot was picked in this window, so a log form in another window can fill itself. Null fields are left out. */
+    public void sendSpotPick(String call, String freqMhz, String band, String mode) {
+        JsonObject o = new JsonObject(); o.addProperty("t", "spot.pick"); o.addProperty("call", call);
+        if (freqMhz != null) o.addProperty("mhz", freqMhz);
+        if (band != null) o.addProperty("band", band);
+        if (mode != null) o.addProperty("mode", mode);
         send(o);
     }
     public void sendRotorMove(double az) { sendRotorMove("", az); }
