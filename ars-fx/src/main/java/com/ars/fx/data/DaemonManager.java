@@ -91,6 +91,9 @@ public final class DaemonManager {
         } catch (Exception ignored) { /* spawn failed — operator runs it manually */ }
     }
 
+    /** How the fresh-install serial device is found; replaceable so a test does not depend on what is plugged into the machine it runs on. */
+    static volatile java.util.function.Supplier<String> serialPortFinder = DaemonManager::soleSerialPort;
+
     /** The only /dev/ttyUSB* or /dev/ttyACM* node present, else "" (none or ambiguous — the operator picks one). */
     private static String soleSerialPort() {
         java.io.File[] f = new java.io.File("/dev").listFiles((d, n) -> n.startsWith("ttyUSB") || n.startsWith("ttyACM"));
@@ -104,7 +107,7 @@ public final class DaemonManager {
         List<String> argv = new ArrayList<>();
         argv.add(bin); argv.add("-m"); argv.add(model);
         String serial = HubConfig.get(s.serialKey(), "").trim();
-        if (serial.isBlank() && s.kind().equals("rig")) serial = soleSerialPort();   // fresh install: the one USB serial device present
+        if (serial.isBlank() && s.kind().equals("rig")) serial = serialPortFinder.get();   // fresh install: the one USB serial device present
         if (!serial.isBlank()) { argv.add("-r"); argv.add(serial); }
         String baud = HubConfig.get(s.baudKey(), "").trim();
         if (!baud.isBlank()) { argv.add("-s"); argv.add(baud); }
