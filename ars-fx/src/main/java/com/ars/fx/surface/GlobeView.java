@@ -241,9 +241,9 @@ final class GlobeView extends Pane {
 
     // ── textures ──────────────────────────────────────────────────────────────
     private void refreshTextures() {
-        String key = com.ars.fx.Themes.effectiveKey(surface);
-        if (!key.equals(textureKey)) { pal = MapPalette.forScheme(key); earthMat.setDiffuseMap(landTexture(pal)); textureKey = key; nightKey = ""; }
-        String nk = key + "/" + (System.currentTimeMillis() / 60_000);
+        String key = com.ars.fx.Themes.effectiveKey(surface) + "/" + JMapView.ovCountries;      // the Country colours switch repaints the land too
+        if (!key.equals(textureKey)) { pal = MapPalette.forScheme(com.ars.fx.Themes.effectiveKey(surface)); earthMat.setDiffuseMap(landTexture(pal, JMapView.ovCountries)); textureKey = key; nightKey = ""; }
+        String nk = com.ars.fx.Themes.effectiveKey(surface) + "/" + (System.currentTimeMillis() / 60_000);
         if (!nk.equals(nightKey)) { nightMat.setDiffuseMap(nightTexture(pal)); nightKey = nk; }
     }
 
@@ -251,7 +251,7 @@ final class GlobeView extends Pane {
     private static double ty(double lat) { return (90 - lat) / 180 * TEX_H; }
     private static double tx(double lon) { return (lon + 180) / 360 * TEX_W; }
 
-    private static Image landTexture(MapPalette p) {
+    private static Image landTexture(MapPalette p, boolean countries) {
         Canvas c = new Canvas(TEX_W, TEX_H);
         GraphicsContext g = c.getGraphicsContext2D();
         g.setFill(p.ocean()); g.fillRect(0, 0, TEX_W, TEX_H);
@@ -261,7 +261,24 @@ final class GlobeView extends Pane {
         for (int lon = -180; lon <= 180; lon += 30) { double x = tx(lon); g.strokeLine(x, 0, x, TEX_H); }
         g.setLineWidth(1.4);
         g.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD);
-        for (boolean ice : new boolean[]{false, true}) {
+        if (countries) {                                                            // each country in its own shade (neighbours never share one), as on the flat map
+            for (com.ars.fx.data.CountryShapes.Country cn : com.ars.fx.data.CountryShapes.all()) {
+                g.setFill(cn.ice() ? p.ice() : p.country(cn.colour())); g.setStroke(cn.ice() ? p.iceCoast() : p.coast());
+                for (com.ars.fx.data.CountryShapes.Polygon poly : cn.polygons()) {
+                    g.beginPath();
+                    for (VectorBasemap.Ring ring : poly.rings()) {
+                        double[] ll = ring.ll();
+                        for (int i = 0; i < ll.length; i += 2) {
+                            double x = tx(ll[i]), y = ty(ll[i + 1]);
+                            if (i == 0) g.moveTo(x, y); else g.lineTo(x, y);
+                        }
+                        g.closePath();
+                    }
+                    g.fill(); g.stroke();
+                }
+            }
+        }
+        for (boolean ice : countries ? new boolean[0] : new boolean[]{false, true}) {
             g.setFill(ice ? p.ice() : p.land()); g.setStroke(ice ? p.iceCoast() : p.coast());
             g.beginPath();
             for (VectorBasemap.Ring ring : VectorBasemap.land().rings()) {
