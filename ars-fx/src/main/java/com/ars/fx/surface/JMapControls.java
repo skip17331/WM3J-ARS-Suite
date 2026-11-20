@@ -41,14 +41,14 @@ final class JMapControls {
         return sp;
     }
     static Region leftPanel(int projection, java.util.function.IntConsumer onProjection, Runnable rebuild) {
-        VBox p = new VBox(0); p.getStyleClass().add("jm-panel");
+        VBox root = new VBox(0); root.getStyleClass().add("jm-panel");
+        VBox p = new VBox(0);                  // the body of the drawer being built; section(...) files it into root and starts the next
         Label title = lbl("MAP CONTROLS", "jm-sec"); title.setStyle("-fx-padding:0 0 0 0;"); HBox.setHgrow(title, Priority.ALWAYS); title.setMaxWidth(Double.MAX_VALUE);
         HBox header = new HBox(8, title, com.ars.fx.shell.AutoPanel.pinButton("map", rebuild)); header.setAlignment(Pos.CENTER_LEFT); header.setPadding(new Insets(0, 0, 2, 0));
-        p.getChildren().add(header);
+        root.getChildren().add(header);
         // fixed-zoom region picker — single click. Picking a region snaps the blue
         // marble to that window AND switches the projection to Rectangular, so it
         // takes effect immediately even from the azimuthal view.
-        p.getChildren().add(lbl("REGION","jm-sec"));
         FlowPane regions = new FlowPane(6, 6);
         Label[] rchips = new Label[REGION_NAMES.length];
         Runnable paintChips = () -> {
@@ -69,6 +69,7 @@ final class JMapControls {
         paintChips.run();
         regions.setPadding(new Insets(2, 0, 0, 0));
         p.getChildren().add(regions);
+        section(root, p, "Map region", REGION_NAMES[Math.max(0, Math.min(mapRegion, REGION_NAMES.length - 1))], false); p = new VBox(0);
         // bands
         HBox bandsHead = new HBox(lbl("BANDS","jm-sec")); Region bsp = new Region(); HBox.setHgrow(bsp, Priority.ALWAYS);
         bandsHead.getChildren().addAll(bsp, lbl("ALL","jm-sec-all")); bandsHead.setAlignment(Pos.CENTER_LEFT);
@@ -111,7 +112,7 @@ final class JMapControls {
         HBox pnr = new HBox(pn, toggleSwitch(com.ars.fx.data.PathNow.shown(), v -> { com.ars.fx.data.HubConfig.set("map.pathNow", String.valueOf(v)); repaintMap(); refreshSpots(); }));
         pnr.setAlignment(Pos.CENTER_LEFT); pnr.setPadding(new Insets(7, 0, 7, 0));
         p.getChildren().add(pnr);
-        p.getChildren().add(lbl("OVERLAYS","jm-sec"));
+        section(root, p, "Spot filters", "", false); p = new VBox(0);
         for (int oi = 0; oi < OVERLAYS.length; oi++) {
             final int idx = oi;
             Label t = lbl((String) OVERLAYS[oi][0], "jm-tog-label"); HBox.setHgrow(t, Priority.ALWAYS); t.setMaxWidth(Double.MAX_VALUE);
@@ -120,8 +121,8 @@ final class JMapControls {
             row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(7, 0, 7, 0));
             p.getChildren().add(row);
         }
+        section(root, p, "Map overlays", "", false); p = new VBox(0);
         // ham-to-ham tracks
-        p.getChildren().add(lbl("TRACKS (HAM TO HAM)","jm-sec"));
         javafx.scene.control.TextField trA = new javafx.scene.control.TextField(), trB = new javafx.scene.control.TextField();
         trA.setPromptText("from: call, prefix or grid"); trB.setPromptText("to: call, prefix or grid");
         for (javafx.scene.control.TextField f : new javafx.scene.control.TextField[]{trA, trB}) f.getStyleClass().add("jhub-mini-field");
@@ -139,8 +140,8 @@ final class JMapControls {
         trClear.setOnMouseClicked(e -> { com.ars.fx.data.MapTracks.clear(); trMsg.setText(""); repaintMap(); });
         HBox trBtns = new HBox(14, trDraw, trClear); trBtns.setAlignment(Pos.CENTER_LEFT); trBtns.setPadding(new Insets(4, 0, 4, 0));
         p.getChildren().addAll(trA, trB, trBtns, trMsg);
+        section(root, p, "Ham-to-ham tracks", "", false); p = new VBox(0);
         // NCDXF/IARU International Beacon Project cycle
-        p.getChildren().add(lbl("NCDXF BEACONS","jm-sec"));
         Label bt = lbl("Show beacon cycle","jm-tog-label"); HBox.setHgrow(bt, Priority.ALWAYS); bt.setMaxWidth(Double.MAX_VALUE);
         beaconInfo = lbl(showBeacons ? beaconLine() : "", "jm-tog-label"); beaconInfo.setWrapText(true);
         beaconInfo.setStyle("-fx-text-fill:#ffd84a;-fx-font-weight:bold;");
@@ -181,9 +182,9 @@ final class JMapControls {
         clearHeard.setOnMouseClicked(e -> { com.ars.fx.data.BeaconHeard.clear(); refreshBeaconHeard(); repaintMap(); });
         HBox heardBtns = new HBox(14, hear, logBtn, clearHeard); heardBtns.setAlignment(Pos.CENTER_LEFT); heardBtns.setPadding(new Insets(4, 0, 6, 0));
         p.getChildren().addAll(hpr, aur, beaconHeardInfo, heardBtns);
+        section(root, p, "NCDXF beacons", "", false); p = new VBox(0);
 
         // DX-cluster spot paths: spotted station to spotter
-        p.getChildren().add(lbl("SPOT PATHS · DX CLUSTER","jm-sec"));
         Label sp = lbl("Draw spotted \u2192 spotter for each shown spot","jm-tog-label"); HBox.setHgrow(sp, Priority.ALWAYS); sp.setMaxWidth(Double.MAX_VALUE);
         HBox spr = new HBox(sp, toggleSwitch(showSpotPaths, v -> { showSpotPaths = v; repaintMap(); }));
         spr.setAlignment(Pos.CENTER_LEFT); spr.setPadding(new Insets(7, 0, 4, 0));
@@ -193,16 +194,16 @@ final class JMapControls {
         spClear.setOnMouseClicked(e -> { spotPathsSince = System.currentTimeMillis(); selectedSpotCall = null; repaintMap(); });
         HBox spBtns = new HBox(14, spClear); spBtns.setAlignment(Pos.CENTER_LEFT); spBtns.setPadding(new Insets(0, 0, 6, 0));
         p.getChildren().addAll(spr, spBtns);
+        section(root, p, "Spot paths (DX cluster)", "", false); p = new VBox(0);
 
         // RBN "who's hearing me" overlay
-        p.getChildren().add(lbl("WHO'S HEARING ME · RBN","jm-sec"));
         Label ht = lbl("Show RBN spots of " + (myCall.isEmpty() ? "my call" : myCall.toUpperCase()),"jm-tog-label"); HBox.setHgrow(ht, Priority.ALWAYS); ht.setMaxWidth(Double.MAX_VALUE);
         HBox htr = new HBox(ht, toggleSwitch(showHeardBy, v -> { showHeardBy = v; repaintMap(); }));
         htr.setAlignment(Pos.CENTER_LEFT); htr.setPadding(new Insets(7, 0, 4, 0));
         p.getChildren().add(htr);
+        section(root, p, "Who's hearing me (RBN)", "", false); p = new VBox(0);
 
         // Session QSOs: an arc from the station to each QSO logged since ARS Suite started
-        p.getChildren().add(lbl("SESSION QSOs", "jm-sec"));
         Label sq = lbl("Draw an arc to each QSO logged this session", "jm-tog-label"); sq.setWrapText(true); HBox.setHgrow(sq, Priority.ALWAYS); sq.setMaxWidth(Double.MAX_VALUE);
         HBox sqr = new HBox(sq, toggleSwitch(showSession, v -> { showSession = v; com.ars.fx.data.HubConfig.setBool("map.sessionQsos", v); repaintMap(); }));
         sqr.setAlignment(Pos.CENTER_LEFT); sqr.setPadding(new Insets(7, 0, 4, 0));
@@ -212,13 +213,20 @@ final class JMapControls {
         sqClear.setOnMouseClicked(e -> com.ars.fx.data.SessionQsos.clear());
         HBox sqInfoRow = new HBox(10, sessionInfo, sqClear); sqInfoRow.setAlignment(Pos.CENTER_LEFT); HBox.setHgrow(sessionInfo, Priority.ALWAYS); sessionInfo.setMaxWidth(Double.MAX_VALUE);
         p.getChildren().addAll(sqr, sqInfoRow);
+        section(root, p, "Session QSOs", "", false);
         // a QSO logged anywhere in the app updates the count and, when the switch is on, the map
         com.ars.fx.data.SessionQsos.setListener(() -> javafx.application.Platform.runLater(() -> {
             if (sessionInfo != null) sessionInfo.setText(sessionText());
             if (showSession) repaintMap();
         }));
 
-        return p;
+        return root;
+    }
+    /** File one finished group of controls into the panel as a drawer (open or closed as the operator last left it; {@code openFirst} is only the very first time). */
+    private static void section(VBox root, VBox body, String title, String summary, boolean openFirst) {
+        if (openFirst) Shell.openDrawerByDefault(title);
+        body.setPadding(new Insets(2, 0, 6, 0));
+        root.getChildren().add(Shell.drawer(title, "map", "map", summary, openFirst, body));
     }
     /** Interactive slider — click/drag sets the value and reports the fraction. */
     static Region sliderI(double frac, java.util.function.DoubleConsumer onChange) {
