@@ -86,8 +86,8 @@ public final class SpotAction {
         String hm = hamlibMode(mode, freqHz);
         if (hm != null) rig.setMode(hm);
 
-        // 3. offer to rotate the antenna toward the spot
-        if (!Double.isNaN(lat) && !Double.isNaN(lon) && HubConfig.hasLocation() && RotorClient.getInstance().isConfigured()) {
+        // 3. offer to rotate the antenna toward the spot, only when a rotor is actually answering (a saved Hamlib model alone is not enough)
+        if (!Double.isNaN(lat) && !Double.isNaN(lon) && HubConfig.hasLocation() && RotorClient.getInstance().last().connected()) {
             int brg = (int) Math.round(bearing(qLat(), qLon(), lat, lon));
             askRotate(source, c, brg);
         }
