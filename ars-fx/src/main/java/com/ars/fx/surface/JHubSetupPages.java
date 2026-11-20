@@ -237,7 +237,7 @@ final class JHubSetupPages {
         return top;
     }
     static Region cfgPage(Node... rows) {
-        VBox v = new VBox(20, rows); v.setPadding(new Insets(18, 28, 40, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
+        VBox v = new VBox(34, rows); v.setPadding(new Insets(18, 28, 48, 28)); v.setMaxWidth(1080); v.setStyle("-fx-background-color:-ars-bg;");
         return v;
     }
 
@@ -422,10 +422,9 @@ final class JHubSetupPages {
             cfgRow("Local CW skimmer", "J-Digi listens to the whole audio passband for CW, picks out callsigns it is confident of and adds them to the spot list as \"-SKM\" spots. Needs the rig connected (Rig control) and uses some CPU",
                     cToggle("digi.localSkimmer", false)),
             cfgRow("Auto-log FT8/FT4 QSOs", "adds each QSO WSJT-X logs to the J-Log database (skips one already there)", cToggle("data.autoLogFt8", false)));
-        VBox logbook = section("LOGBOOK & EXPORT",
-            cfgRow("Cabrillo / CSV charset", "ASCII drops accents and replaces other characters with ?",  cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0)),
-            cfgRow("LoTW / eQSL auto-upload", "after each QSO you log, send the ones not yet sent to LoTW and eQSL, whichever is switched on in the Upload section below. Only QSOs logged after this version are sent this way; older ones go through the Upload section. A failed upload is tried again after the next QSO", cToggle("data.lotwAutoUpload", false)),
-            cfgRow("Super Check Partial", "the contest call check: downloads the call list from supercheckpartial.com when a contest page is opened - MASTER.SCP (about 350 KB), or MASTERSS / MASTERDX / MASUSVE (100-260 KB) for Sweepstakes and ARRL DX - at most once a day for each, and only when it has changed. Nothing about you or your log is sent", cToggle(com.ars.fx.data.ScpStore.KEY_AUTO, true)));
+        var charsetRow = cfgRow("Cabrillo / CSV charset", "ASCII drops accents and replaces other characters with ?",  cSeg("data.charset", new String[]{"UTF-8","ASCII"}, 0));
+        var autoUpRow = cfgRow("LoTW / eQSL auto-upload", "after each QSO you log, send the ones not yet sent to LoTW and eQSL, whichever is switched on above. Only QSOs logged after this version are sent this way; older ones are sent from the sections above. A failed upload is tried again after the next QSO", cToggle("data.lotwAutoUpload", false));
+        var scpRow = cfgRow("Super Check Partial", "the contest call check: downloads the call list from supercheckpartial.com when a contest page is opened - MASTER.SCP (about 350 KB), or MASTERSS / MASTERDX / MASUSVE (100-260 KB) for Sweepstakes and ARRL DX - at most once a day for each, and only when it has changed. Nothing about you or your log is sent", cToggle(com.ars.fx.data.ScpStore.KEY_AUTO, true));
         VBox remote = section("REMOTE SHARING (SOLO J-MAP / J-SAT)",
             cfgRow("Share with solo modules on the LAN", "lets a standalone J-Map / J-Sat (2nd PC, shack Pi) use this station's spots, rig + rotor. Off: only this computer can reach the hub. On: any device on your network can see the spots and tune / rotate, so turn it on only on a network you trust",
                     cToggleApply("remote.serverEnabled", false, on -> com.ars.fx.data.RemoteLink.nudgeReconfig())),
@@ -444,7 +443,7 @@ final class JHubSetupPages {
             cfgRow("Contacts", "QSOs added, edited and erased", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_CONTACTS, true)),
             cfgRow("Lookups", "the call as you type it, when you press Space", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_LOOKUP, true)),
             cfgRow("Radio", "the rig's frequency and mode, when they change and every 10 seconds", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_RADIO, true)),
-            cfgRow("Score", "the contest score, for N1MM+ score reporting (the categories come from Contest / Cabrillo below)", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_SCORE, false)),
+            cfgRow("Score", "the contest score, for N1MM+ score reporting (the categories come from Setup > Contest > Cabrillo & entry)", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_SCORE, false)),
             cfgRow("Spots", "each DX cluster spot as it arrives, in N1MM+'s spot message (a busy cluster is many packets a minute)", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_SPOTS, false)),
             cfgRow("Normal log", "QSOs you log in the normal log, as plain contacts with no contest, so a program that marks calls worked sees them too", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_NORMAL, true)),
             cfgRow("All computers", "contacts that arrive from other computers on the contest network, passed on the way N1MM+'s All Computers does. Leave it off unless a program needs every station's QSOs", cToggle(com.ars.fx.data.N1mmBroadcast.KEY_ALLCOMP, false)),
@@ -463,7 +462,7 @@ final class JHubSetupPages {
             cfgRow("Port", "the host listens on it and the others connect to it (default 12070); open it in the host's firewall", cInput(com.ars.fx.net.ContestNetwork.KEY_PORT, String.valueOf(com.ars.fx.net.ContestNetwork.DEFAULT_PORT))),
             cfgRow("Station name", "this computer's name on the network, unique on it (default: the computer's name). It is recorded on each QSO you log", cInput(com.ars.fx.net.ContestNetwork.KEY_STATION, "")),
             cfgRow("Operator", "who is at this station (default: your call), shown to the other stations", cInput(com.ars.fx.net.ContestNetwork.KEY_OP, "")));
-        VBox contest = section("CONTEST / CABRILLO",
+        VBox cabrillo = section("CABRILLO ENTRY",
             cfgRow("Operator category", null, cSelect("contest.cab.operator", "SINGLE-OP", new String[]{"SINGLE-OP","MULTI-OP","CHECKLOG"})),
             cfgRow("Power", "QSO parties use it for their power multiplier (QRP / LOW / HIGH as each party defines them)",
                     cSelect("contest.cab.power", "HIGH", new String[]{"HIGH","LOW","QRP"})),
@@ -475,11 +474,13 @@ final class JHubSetupPages {
             cfgRow("Station", "QSO parties use it: MOBILE, ROVER and PORTABLE entries get the county bonuses and re-work stations from each new county; MD-DC multiplies by it",
                     cSelect("contest.cab.station", "FIXED", new String[]{"FIXED","MOBILE","PORTABLE","ROVER","ROVER-LIMITED","ROVER-UNLIMITED",
                     "EXPEDITION","HQ","SCHOOL","EXPLORER","DISTRIBUTED"})),
-            cfgRow("Club", null, cInput("contest.cab.club", "")),
-            cfgRow("Mixed-mode contests open in", "QSO parties, Field Day, VHF and others that allow CW and phone. Auto follows the rig, else SSB", cSelect("contest.defaultMode", "Auto", "Auto", "SSB", "CW")),
+            cfgRow("Club", null, cInput("contest.cab.club", "")));
+        var mixedRow = cfgRow("Mixed-mode contests open in", "QSO parties, Field Day, VHF and others that allow CW and phone. Auto follows the rig, else SSB", cSelect("contest.defaultMode", "Auto", "Auto", "SSB", "CW"));
+        VBox sentSec = section("WHAT YOU SEND · SWEEPSTAKES",
             cfgRow("Sweepstakes precedence", "your sent SS precedence (A/B/U/M/Q/S)", cInput("contest.ss.precedence", "")),
             cfgRow("Sweepstakes check", "year first licensed (2 digits)", cInput("contest.ss.check", "")),
             cfgRow("Sweepstakes section", "your ARRL/RAC section", cInput("contest.ss.section", "")));
+        VBox contestPage = section("CONTEST PAGE", mixedRow, scpRow, charsetRow);
         return switch (which) {
             case "tx" -> cfgPage(cfgTop("J-Hub", "Hardware", "Transmit & macros"),
                 lbl("CW speed, keyer, PTT delay and voice output, and the F-key macros used by J-Log and J-Digi.", "cfg-desc"),
@@ -497,15 +498,24 @@ final class JHubSetupPages {
                 lbl("Which database files J-Log writes to, the contest databases, and ADIF / CSV backup.", "cfg-desc"),
                 cells, logDatabaseSection(), JHubContestDbs.build(), callHistorySection(), recordingSection(), backupSection());
             case "upload" -> cfgPage(cfgTop("J-Hub", "Logbook", "Online upload"),
-                lbl("Push your log to LoTW, eQSL, QRZ Logbook and Club Log.", "cfg-desc"),
-                uploadSection());
+                lbl("Push your log to LoTW, eQSL, QRZ Logbook, Club Log and other services, by hand or automatically after each QSO.", "cfg-desc"),
+                uploadSection(), section("AUTOMATIC UPLOAD", autoUpRow));
             case "labels" -> cfgPage(cfgTop("J-Hub", "Logbook", "Label printers"),
                 lbl("Print a QSL label and / or an address label (from QRZ.com) for each QSO as it is logged. Tick \"Print label on save\" on the J-Log form to turn it on.", "cfg-desc"),
                 labelSection());
-            case "export" -> cfgPage(cfgTop("J-Hub", "Logbook", "Export & Cabrillo"),
-                lbl("Export character set and the entry details written into Cabrillo contest logs.", "cfg-desc"),
-                logbook, phone, n1mm, network, contest);
-            case "share" -> cfgPage(cfgTop("J-Hub", "System", "Remote sharing"),
+            case "contest", "export" -> cfgPage(cfgTop("J-Hub", "Contest", "Cabrillo & entry"),
+                lbl("The entry details written into Cabrillo logs, what you send in Sweepstakes, and how the contest page behaves.", "cfg-desc"),
+                cabrillo, sentSec, contestPage);
+            case "contestnet" -> cfgPage(cfgTop("J-Hub", "Network & sharing", "Contest network"),
+                lbl("Several stations on one contest log: one hosts and the others join. Every station keeps a full copy of the log.", "cfg-desc"),
+                network);
+            case "n1mm" -> cfgPage(cfgTop("J-Hub", "Network & sharing", "N1MM broadcast"),
+                lbl("Let GridTracker, Log4OM and other programs follow your contest log live, and tune the rig from a waterfall or band map.", "cfg-desc"),
+                n1mm);
+            case "phone" -> cfgPage(cfgTop("J-Hub", "Network & sharing", "Phone web client"),
+                lbl("Log QSOs, watch the spots and see the rig from a phone on your own network.", "cfg-desc"),
+                phone);
+            case "share" -> cfgPage(cfgTop("J-Hub", "Network & sharing", "Remote sharing"),
                 lbl("Let a solo J-Map / J-Sat on another computer use this station's spots, rig and rotor.", "cfg-desc"),
                 remote);
             case "learn" -> cfgPage(cfgTop("J-Hub", "System", "J-Learn content"),
@@ -1099,7 +1109,7 @@ final class JHubSetupPages {
     static VBox section(String name, Node... rows) {
         VBox card = new VBox(rows); card.getStyleClass().add("cfg-card");
         if (rows.length > 0) rows[rows.length-1].setStyle("-fx-border-width:0;");
-        return new VBox(6, lbl(name, "cfg-sec"), card);
+        return new VBox(9, lbl(name, "cfg-sec"), card);
     }
     /** The first address to give the phone, or a hint when the client is off or no network address was found. */
     /** The address to open on the phone, and its QR code: scan it and the phone opens the page and keeps the token. */
