@@ -134,7 +134,7 @@ public final class ContestNetwork {
         String mode = mode();
         if (mode.equals("Off")) return;
         String key = sharedKey();
-        if (!NetAuth.keyOk(key)) { startError = (key == null || key.isBlank() ? "Set a shared key of" : "The shared key is too short: it now needs") + " at least " + NetAuth.MIN_KEY + " characters, in Setup > Export & Cabrillo > Shared key (the same on every station)."; return; }
+        if (!NetAuth.keyOk(key)) { startError = (key == null || key.isBlank() ? "Set a shared key of" : "The shared key is too short: it now needs") + " at least " + NetAuth.MIN_KEY + " characters, in Setup > Network & sharing > Contest network > Shared key (the same on every station)."; return; }
         NetNode n = new NetNode(station(), operator(), key, new DbStore(), ContestNetwork::myStatus);
         n.setSerialSource(ContestState::localNextSerial);
         try {
