@@ -286,7 +286,7 @@ final class GlobeView extends Pane {
         return c.snapshot(sp, null);
     }
     private static boolean isIce(VectorBasemap.Ring r) {
-        return r.maxLat() < -60 || (r.minLon() > -75 && r.maxLon() < -10 && r.minLat() > 58 && r.points() > 200);
+        return r.maxLat() < -60;
     }
 
     /** The dark side as a see-through picture: full colour well after sunset, none by day, a soft edge at the terminator. */

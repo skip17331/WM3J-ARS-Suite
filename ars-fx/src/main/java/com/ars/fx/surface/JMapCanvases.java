@@ -318,9 +318,9 @@ final class JMapCanvases {
     static void loadPalette() { P = MapPalette.forScheme(com.ars.fx.Themes.effectiveKey("map")); }
     /** Called when the theme button is pressed: repaint the map in the new colours. */
     static void themeChanged() { if (currentMapRepaint != null) currentMapRepaint.run(); }
-    /** Antarctica and Greenland are drawn as ice, everything else as land. */
+    /** Antarctica is drawn as ice, everything else (Greenland too) as land. */
     static boolean isIce(com.ars.fx.data.VectorBasemap.Ring r) {
-        return r.maxLat() < -60 || (r.minLon() > -75 && r.maxLon() < -10 && r.minLat() > 58 && r.points() > 200);
+        return r.maxLat() < -60;
     }
 
     /** One shape on the azimuthal map, projected in degrees of arc from the station (see {@link com.ars.fx.data.AzimuthalPath}). */
