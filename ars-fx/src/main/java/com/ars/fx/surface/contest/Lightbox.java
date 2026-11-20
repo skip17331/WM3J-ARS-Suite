@@ -23,16 +23,37 @@ public final class Lightbox extends VBox {
     private final Label header = lbl("", "ct-box-h");
     private final FlowPane flow = new FlowPane(5, 5);
 
+    /** Optional grouping (call area -> sections): the universe is then shown one row per group. */
+    private java.util.Map<String, List<String>> groups;
+
     public Lightbox() {
         super(6);
         getChildren().addAll(header, flow);
     }
 
+    public Lightbox groups(java.util.Map<String, List<String>> g) { this.groups = g == null || g.isEmpty() ? null : g; return this; }
+
     public void set(List<String> universe, Collection<String> worked) {
         Set<String> w = new HashSet<>();
         if (worked != null) for (String s : worked) if (s != null && !s.isBlank()) w.add(s.trim().toUpperCase());
         flow.getChildren().clear();
-        if (universe != null && !universe.isEmpty()) {
+        getChildren().removeIf(n -> n instanceof VBox);
+        flow.setVisible(true); flow.setManaged(true);
+        if (groups != null && universe != null && !universe.isEmpty()) {
+            VBox rows = new VBox(6);
+            int done = 0;
+            for (var e : groups.entrySet()) {
+                int n = 0; FlowPane fp = new FlowPane(5, 5);
+                for (String u : e.getValue()) { boolean lit = w.contains(u.trim().toUpperCase()); if (lit) n++; fp.getChildren().add(chip(u, lit)); }
+                done += n;
+                Label h = lbl(e.getKey() + "  " + n + "/" + e.getValue().size(), "ct-box-h");
+                if (n == e.getValue().size()) h.getStyleClass().add("lit");
+                rows.getChildren().addAll(h, fp);
+            }
+            flow.setVisible(false); flow.setManaged(false);
+            getChildren().add(rows);
+            header.setText(done + " / " + universe.size() + " worked");
+        } else if (universe != null && !universe.isEmpty()) {
             for (String u : universe) flow.getChildren().add(chip(u, w.contains(u.trim().toUpperCase())));
             header.setText(w.size() + " / " + universe.size() + " worked");
         } else {

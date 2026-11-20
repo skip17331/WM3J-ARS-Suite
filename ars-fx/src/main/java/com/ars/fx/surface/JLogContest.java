@@ -101,10 +101,11 @@ public final class JLogContest {
 
         Region cluster = JHubDashboard.clusterCol();
         cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(cluster, Priority.ALWAYS);
+        cluster.setPrefHeight(310); cluster.setMaxHeight(310);        // half the old height; the spot list scrolls inside it
+        VBox.setVgrow(cluster, Priority.NEVER);
         VBox right = new VBox(10, cluster);
         TabPane tabs = contestTabs(plugin);
-        if (tabs != null) right.getChildren().add(tabs);
+        if (tabs != null) { tabs.setMaxHeight(Double.MAX_VALUE); VBox.setVgrow(tabs, Priority.ALWAYS); right.getChildren().add(tabs); }   // the freed height goes to the sections / statistics
         right.setMinWidth(380); HBox.setHgrow(right, Priority.ALWAYS);
         HBox main = new HBox(14, sp, right); main.setFillHeight(true); main.setPadding(new Insets(0, 14, 10, 0));
         main.setStyle("-fx-background-color:-ars-bg;");
@@ -292,6 +293,28 @@ public final class JLogContest {
         return Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, all.toArray(new Node[0]));
     }
 
+    private static java.util.function.Consumer<com.ars.fx.data.RigClient.State> freqListener;
+
+    /** What the next QSO will be logged on: the rig's dial frequency, read-only, above the exchange row. Blank when it would not be stored. */
+    private static Node freqRow() {
+        Label v = lbl("", "jhub-rig-fq");
+        Label note = lbl("", "jl-emeta");
+        Runnable upd = () -> {
+            String khz = bandF == null ? null : com.ars.fx.data.ContestFreq.rigKhz(bandF.getText());
+            if (khz != null) { v.setText(com.ars.fx.data.ContestFreq.toMhz(khz) + " MHz"); note.setText("saved with the QSO"); }
+            else { v.setText("\u2014"); note.setText("not saved: no rig, or the rig is on another band than BAND"); }
+        };
+        com.ars.fx.data.RigClient rc = com.ars.fx.data.RigClient.getInstance();
+        if (freqListener != null) rc.removeListener(freqListener);
+        freqListener = st -> javafx.application.Platform.runLater(upd);
+        rc.addListener(freqListener);
+        if (bandF != null) bandF.textProperty().addListener((o, a, b) -> upd.run());
+        upd.run();
+        HBox h = new HBox(10, lbl("FREQ", "jl-eyebrow"), v, note);
+        h.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        return h;
+    }
+
     // ---- entry pane: band/mode + plugin fields + log table -----------------
     static VBox entryPane(ContestPlugin plugin) {
         fieldControls = new LinkedHashMap<>();
@@ -351,6 +374,7 @@ public final class JLogContest {
         editL.managedProperty().bind(editL.textProperty().isNotEmpty());
         editL.visibleProperty().bind(editL.textProperty().isNotEmpty());
         body.getChildren().add(editL);
+        body.getChildren().add(freqRow());
         body.getChildren().add(wrapRow("RECEIVED", rcvd));
         body.getChildren().add(sendRow(plugin));
 
