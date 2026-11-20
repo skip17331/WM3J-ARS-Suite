@@ -129,6 +129,10 @@ IDs
         match the log browser and Awards), Reference (sunrise / sunset at your QTH, licence reminder
         from J-Vault, J-Learn tip opens J-Learn); the IARU feeds in News; every tile above still
         shows.
+5-7     J-Map basemap: Country colours switch (on by default; each country its own shade, neighbours
+        differ) in every colour scheme, on all three views (flat, azimuthal and Globe); country names on the azimuthal map; no
+        wedge or wrongly filled land near the edge of the azimuthal map (try a station in Argentina,
+        or any station: look at the far edge).
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -171,10 +175,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
         stage 1's (propcheck.tally: 10m 0/3/80, 12m 0/10/30, 17m 12/2/21, 20m 27/7/28
         open/marginal/closed). If a band is still weak, tune the model by replaying
         ~/.j-hub/propcheck/observations.csv (PropagationCheck.replay).
-5-7     J-Map basemap: Country colours switch (on by default; each country its own shade, neighbours
-        differ) in every colour scheme, on both projections; country names on the azimuthal map; no
-        wedge or wrongly filled land near the edge of the azimuthal map (try a station in Argentina,
-        or any station: look at the far edge).
 3-7     Your log: the 2026-10-03 9K2IC (70cm DMR) QSO looks like a mistyped date. Check it and
         correct it in the log browser if it is wrong.
 4a-1    Contest network key in the keyring: set the key in Setup > Contest network; it is masked,
