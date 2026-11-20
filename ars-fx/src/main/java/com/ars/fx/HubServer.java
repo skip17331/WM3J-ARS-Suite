@@ -114,7 +114,6 @@ public final class HubServer {
 
         Runtime.getRuntime().addShutdownHook(new Thread(HubServer::cleanup, "hub-shutdown"));
 
-        installHubWindow(port);                          // the tray cannot be relied on (KDE Wayland never delivers its clicks): a taskbar entry that closes the hub too
         if (!installTray(port)) {
             System.out.println("[hub] no system tray available — running headless on :" + port
                     + " (stop with Ctrl-C)" + (auto ? " — auto: exits when the last client closes" : ""));
@@ -367,37 +366,6 @@ public final class HubServer {
             System.err.println("[hub] tray unavailable: " + e.getMessage());
             return false;
         }
-    }
-
-    /** A small window for the hub, minimised at start, so it has a taskbar entry: right-click > Close there quits the hub (and the window has
-     *  Quit / Kill buttons). Some desktops (KDE on Wayland) show the tray icon but never pass its clicks on, which left no way to close a hub. */
-    private static void installHubWindow(int port) {
-        if (java.awt.GraphicsEnvironment.isHeadless() || Boolean.getBoolean("ars.noHubWindow")) return;
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            try {
-                javax.swing.JFrame f = new javax.swing.JFrame("ARS Suite Hub");
-                f.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-                java.awt.Image mark = AppIcons.tray(64);
-                if (mark != null) f.setIconImage(mark);
-                javax.swing.JLabel info = new javax.swing.JLabel("<html><b>ARS Suite Hub</b><br>sharing on :" + port
-                        + "<br>It stops by itself when the last window closes.<br>Close this window (or the taskbar entry) to quit it.</html>");
-                javax.swing.JButton quit = new javax.swing.JButton("Quit hub");
-                quit.addActionListener(e -> quitFromTray());
-                javax.swing.JButton kill = new javax.swing.JButton("Kill (force)");
-                kill.addActionListener(e -> forceQuit());
-                javax.swing.JPanel buttons = new javax.swing.JPanel();
-                buttons.add(quit); buttons.add(kill);
-                f.getContentPane().add(info, java.awt.BorderLayout.CENTER);
-                f.getContentPane().add(buttons, java.awt.BorderLayout.SOUTH);
-                ((javax.swing.JComponent) f.getContentPane()).setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 14, 8, 14));
-                f.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override public void windowClosing(java.awt.event.WindowEvent e) { quitFromTray(); }
-                });
-                f.pack();
-                f.setState(java.awt.Frame.ICONIFIED);
-                f.setVisible(true);
-            } catch (Throwable t) { System.err.println("[hub] window unavailable: " + t.getMessage()); }
-        });
     }
 
     /** Double-click on the tray icon: quit the hub. With windows still attached, ask first (they lose the rig and the cluster feed). */
