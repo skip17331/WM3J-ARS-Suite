@@ -451,6 +451,16 @@ public final class JLogContest {
         bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
         modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
 
+        // CQ WPX: the prefix follows from the call (K1ABC -> K1), so fill it as the call is typed; one the operator has typed over is left alone
+        if (plugin.isAutoFillWpxPrefix() && fieldControls.get("prefix_rcvd") instanceof TextField pf && callC instanceof TextField cf) {
+            String[] last = {""};
+            cf.textProperty().addListener((o, a, b) -> {
+                String auto = b == null || b.isBlank() ? "" : com.jlog.util.CallsignRegion.wpxPrefix(b);
+                if (pf.getText() == null || pf.getText().isEmpty() || pf.getText().equals(last[0])) pf.setText(auto);
+                last[0] = auto;
+            });
+        }
+
         return body;
     }
 
