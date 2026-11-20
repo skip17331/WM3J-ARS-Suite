@@ -124,6 +124,11 @@ IDs
 2a-15   Phone web client: browser and phone; log form, offline queue, spots tab, token entry.
 2a-19   J-Sat ground tracks (cached 10 s): tracks still follow the satellites; CPU lower with many
         satellites shown. Checked on a fast desktop: under 2% CPU.
+5-6     Info tab, new tiles: Active now (POTA activators in the last hour and DXpeditions on the air
+        today, with NEW ONE / NEW PARK; a click tunes and fills J-Log-Quick on the dashboard), Your stats (counts
+        match the log browser and Awards), Reference (sunrise / sunset at your QTH, licence reminder
+        from J-Vault, J-Learn tip opens J-Learn); the IARU feeds in News; every tile above still
+        shows.
 
 ====================================================================================================
 2. COMPLETED, NEEDS TESTING
@@ -166,11 +171,6 @@ Built and unit-tested; not yet seen working in the running app or with real equi
         stage 1's (propcheck.tally: 10m 0/3/80, 12m 0/10/30, 17m 12/2/21, 20m 27/7/28
         open/marginal/closed). If a band is still weak, tune the model by replaying
         ~/.j-hub/propcheck/observations.csv (PropagationCheck.replay).
-5-6     Info tab, new tiles: Active now (POTA activators in the last hour and DXpeditions on the air
-        today, with NEW ONE / NEW PARK; a click tunes and fills the log form), Your stats (counts
-        match the log browser and Awards), Reference (sunrise / sunset at your QTH, licence reminder
-        from J-Vault, J-Learn tip opens J-Learn); the IARU feeds in News; every tile above still
-        shows.
 5-7     J-Map basemap: Country colours switch (on by default; each country its own shade, neighbours
         differ) in every colour scheme, on both projections; country names on the azimuthal map; no
         wedge or wrongly filled land near the edge of the azimuthal map (try a station in Argentina,
