@@ -34,22 +34,45 @@ public final class Lightbox extends VBox {
 
     private static final List<java.lang.ref.WeakReference<Lightbox>> BOXES = new ArrayList<>();
 
-    /** Blink the chip for {@code code} in every grid that has one (the section the operator just typed), so it can be found at a glance. */
+    private final List<javafx.animation.Timeline> blinkers = new ArrayList<>();
+
+    /**
+     * Blink the chip for {@code code} (the section the operator just typed) in every grid that has one, for as long as it is a NEW section: the
+     * blink goes on until the section is changed or cleared, or the QSO is logged. A section already worked does not blink. Null or blank stops it.
+     */
     public static void flash(String code) {
-        if (code == null || code.isBlank()) return;
         BOXES.removeIf(r -> r.get() == null);
-        for (java.lang.ref.WeakReference<Lightbox> r : new ArrayList<>(BOXES)) { Lightbox b = r.get(); if (b != null) b.blink(code.trim()); }
+        for (java.lang.ref.WeakReference<Lightbox> r : new ArrayList<>(BOXES)) {
+            Lightbox b = r.get();
+            if (b == null) continue;
+            b.stopBlink();
+            if (code != null && !code.isBlank()) b.blink(code.trim());
+        }
+    }
+
+    private void stopBlink() {
+        for (javafx.animation.Timeline t : blinkers) { t.stop(); }
+        blinkers.clear();
+        clearBlinkClass(this);
+    }
+    private static void clearBlinkClass(javafx.scene.Parent p) {
+        for (javafx.scene.Node n : p.getChildrenUnmodifiable()) {
+            if (n instanceof Label l) l.getStyleClass().remove("blink");
+            if (n instanceof javafx.scene.Parent c) clearBlinkClass(c);
+        }
     }
 
     private void blink(String code) {
         List<Label> hits = new ArrayList<>();
         collectChips(this, code, hits);
         for (Label l : hits) {
-            javafx.animation.Timeline t = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(180), e -> {
+            if (l.getStyleClass().contains("lit")) continue;       // already worked: not a new section
+            javafx.animation.Timeline t = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(450), e -> {
                 if (l.getStyleClass().contains("blink")) l.getStyleClass().remove("blink"); else l.getStyleClass().add("blink");
             }));
-            t.setCycleCount(8);                                   // on, off, on, off ... ends off
-            t.setOnFinished(e -> l.getStyleClass().remove("blink"));
+            t.setCycleCount(javafx.animation.Animation.INDEFINITE);
+            blinkers.add(t);
+            l.getStyleClass().add("blink");
             t.play();
         }
     }
@@ -64,6 +87,7 @@ public final class Lightbox extends VBox {
     public Lightbox groups(java.util.Map<String, List<String>> g) { this.groups = g == null || g.isEmpty() ? null : g; return this; }
 
     public void set(List<String> universe, Collection<String> worked) {
+        stopBlink();                                          // the chips are rebuilt: a logged section is lit now, so it stops
         Set<String> w = new HashSet<>();
         if (worked != null) for (String s : worked) if (s != null && !s.isBlank()) w.add(s.trim().toUpperCase());
         flow.getChildren().clear();
