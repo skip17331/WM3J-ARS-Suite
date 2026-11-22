@@ -585,11 +585,17 @@ final class JMapCanvases {
         "NT", java.util.List.of("TER"), "NU", java.util.List.of("TER"), "YT", java.util.List.of("TER"),
         "FL", java.util.List.of("NFL", "SFL", "WCF"));
     static java.util.Set<String> workedSections = java.util.Set.of();
-    static long workedSectionsAt = 0;
+    static long workedSectionsAt = 0, soloScoreAt = 0;
     /** Sections worked in the open contest, aliases resolved; re-read at most every 2 seconds because the repaint is frequent. */
     static java.util.Set<String> workedSections() {
         long now = System.currentTimeMillis();
         if (now - workedSectionsAt > 2000) {
+            // J-Map in its own window is a separate process: nothing there ever opened the contest, so the worked set was always empty.
+            // Load the active contest, and re-score every few seconds because the contest page's change counter is in the other process.
+            if (com.ars.fx.data.ContestState.plugin() == null) com.ars.fx.data.ContestState.ensureLoaded();
+            if (com.ars.fx.shell.Shell.solo && com.ars.fx.data.ContestState.plugin() != null && now - soloScoreAt > 5000) {
+                soloScoreAt = now; com.ars.fx.data.ContestState.recompute();
+            }
             java.util.Set<String> w = new java.util.HashSet<>();
             for (String m : com.ars.fx.data.ContestState.workedMults()) {
                 String u = m.trim().toUpperCase();
