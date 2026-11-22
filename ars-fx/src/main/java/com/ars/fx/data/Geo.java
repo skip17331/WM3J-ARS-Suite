@@ -93,13 +93,19 @@ public final class Geo {
         double[] base = of(call);
         if (call == null || call.isEmpty()) return base;
         java.util.Map<String, String> h = CallHistory.get(call);
-        if (h.isEmpty()) return base;
+        if (h.isEmpty()) { double[] p = PlaceLookup.get(call); return p != null ? p : base; }     // not worked before: the callbook, once it has answered
         String grid = h.get("grid");
         if (grid != null) { double[] g = com.jlog.util.Maidenhead.center(grid); if (g != null) return g; }
         for (String k : new String[]{"section", "state"}) {
             double[] s = stateCentre(h.get(k));
             if (s != null) return s;
         }
-        return base;
+        double[] p = PlaceLookup.get(call);
+        return p != null ? p : base;
+    }
+
+    /** Is this a US-area call (K, N, W, AA-AL, including Hawaii and Alaska)? The call area alone cannot say which state it is in, so these are worth a callbook lookup. */
+    public static boolean isUs(String call) {
+        return call != null && US_AREA.matcher(call.toUpperCase(java.util.Locale.ROOT).replaceAll("[-/].*", "")).find();
     }
 }
