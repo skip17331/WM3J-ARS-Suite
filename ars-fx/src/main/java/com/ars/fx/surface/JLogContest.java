@@ -644,7 +644,10 @@ public final class JLogContest {
     static String spotNow(QsoRecord r) {
         com.ars.fx.data.RigClient.State rs = com.ars.fx.data.RigClient.getInstance().last();
         if (rs == null || !rs.connected() || rs.freqHz() <= 0) return "✗ spot not sent — rig not connected, no frequency";
-        return JLogCockpit.postSpot(r.getCallsign(), String.valueOf(rs.freqHz() / 1e6), r.getMode(), "");
+        ContestPlugin pl = ContestState.plugin();
+        String mult = pl != null && pl.getMultiplierModel() != null && pl.getMultiplierModel().getField() != null ? value(pl.getMultiplierModel().getField()) : "";
+        // the contest tag and the section the station sent ("SS ENY"); without a mode, so the short cluster comment keeps it
+        return JLogCockpit.postSpot(r.getCallsign(), String.valueOf(rs.freqHz() / 1e6), "", com.ars.fx.data.SpotComment.of(pl == null ? "" : pl.getContestId(), mult));
     }
     /** After a successful log: clear the form, then show the spot result if there is one. */
     static void finishLog() {
