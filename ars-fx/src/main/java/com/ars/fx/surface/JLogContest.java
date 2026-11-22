@@ -307,7 +307,7 @@ public final class JLogContest {
             Control cf = fieldControls == null ? null : fieldControls.get("callsign");
             return cf instanceof TextField t ? t.getText() : "";
         });
-        List<Node> all = new ArrayList<>(); all.add(contestDrawer); all.add(LogDbBar.drawer(true)); all.addAll(List.of(more));
+        List<Node> all = new ArrayList<>(); all.add(contestDrawer); all.add(JLogContestLookup.drawer()); all.add(LogDbBar.drawer(true)); all.addAll(List.of(more));
         return Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, all.toArray(new Node[0]));
     }
 
