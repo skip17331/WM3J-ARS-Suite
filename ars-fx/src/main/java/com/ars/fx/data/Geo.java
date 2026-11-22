@@ -41,11 +41,29 @@ public final class Geo {
     /** {lat, lon} for a callsign (RBN "-#" suffix stripped), or null when nothing recognises it. */
     public static double[] of(String call) {
         if (call == null || call.isEmpty()) return null;
+        double[] ca = canadaArea(call);
+        if (ca != null) return ca;                                                     // VE7 is British Columbia, not the middle of Canada
         DxccInfo.Info dxcc = DxccInfo.of(call.toUpperCase().replaceAll("-.*", ""));   // W3LPL-# → W3LPL
         boolean located = dxcc != null && !Double.isNaN(dxcc.lat()) && !Double.isNaN(dxcc.lon());
         if (located && dxcc.dxcc() != DXCC_USA) return new double[]{dxcc.lat(), dxcc.lon()};
         double[] prefix = byPrefix(call);
         return prefix != null || !located ? prefix : new double[]{dxcc.lat(), dxcc.lon()};
+    }
+
+    private static final java.util.regex.Pattern CA_AREA = java.util.regex.Pattern.compile("^(V[AE]|VO|VY|CY|CZ)(\\d)[A-Z]");
+    private static final java.util.Map<String, double[]> CA = new java.util.HashMap<>();
+    static {   // province centres by call area: VE/VA 1 NS, 2 QC, 3 ON, 4 MB, 5 SK, 6 AB, 7 BC, 8 NT, 9 NB; VO1 NL, VO2 Labrador; VY1 YT, VY2 PE, VY0 NU
+        String[] t = {"VE1 45.0 -63.0","VE2 52.0 -72.0","VE3 49.5 -85.0","VE4 54.0 -98.0","VE5 54.0 -106.0","VE6 54.0 -114.0","VE7 54.5 -125.0",
+            "VE8 65.0 -120.0","VE9 46.5 -66.5","VO1 48.5 -56.0","VO2 53.5 -62.0","VY1 63.0 -135.0","VY2 46.4 -63.2","VY0 66.0 -85.0"};
+        for (String e : t) { String[] f = e.split(" "); CA.put(f[0], new double[]{Double.parseDouble(f[1]), Double.parseDouble(f[2])}); }
+    }
+    /** The province for a Canadian call by its call area (VE7ABC, VA6XY, VO1AA, VY1JA), or null for any other call. CY and CZ are Sable and St Paul islands: not placed here. */
+    static double[] canadaArea(String call) {
+        java.util.regex.Matcher m = CA_AREA.matcher(call.toUpperCase().replaceAll("[-/].*", ""));
+        if (!m.find()) return null;
+        String pre = m.group(1).equals("VA") ? "VE" : m.group(1);
+        double[] d = CA.get(pre + m.group(2));
+        return d == null ? null : new double[]{d[0], d[1]};
     }
 
     private static double[] byPrefix(String call) {
@@ -75,11 +93,13 @@ public final class Geo {
             "NH 43.7 -71.6","NJ 40.2 -74.7","NM 34.4 -106.1","NY 42.9 -75.5","NC 35.6 -79.4","ND 47.5 -100.5","OH 40.3 -82.8","OK 35.6 -97.5","OR 44.0 -120.5",
             "PA 40.9 -77.8","RI 41.7 -71.5","SC 33.9 -80.9","SD 44.4 -100.2","TN 35.9 -86.4","TX 31.5 -99.3","UT 39.3 -111.7","VT 44.0 -72.7","VA 37.5 -78.8",
             "WA 47.4 -120.5","WV 38.6 -80.6","WI 44.6 -89.9","WY 43.0 -107.5","DC 38.9 -77.0","AK 64.0 -152.0","HI 20.8 -156.5","PR 18.2 -66.5",
-            "WWA 47.5 -122.3","EWA 47.4 -119.0"};   // the two Washington sections; every other section is placed by its state
+            "WWA 47.5 -122.3","EWA 47.4 -119.0",
+            "BC 54.5 -125.0","AB 54.0 -114.0","SK 54.0 -106.0","MB 54.0 -98.0","ON 49.5 -85.0","QC 52.0 -72.0","NB 46.5 -66.5","NS 45.0 -63.0",
+            "PE 46.4 -63.2","NL 53.0 -60.0","NT 65.0 -120.0","YT 63.0 -135.0","NU 66.0 -85.0"};   // the two Washington sections; every other section is placed by its state
         for (String e : t) { String[] f = e.split(" "); STATE.put(f[0], new double[]{Double.parseDouble(f[1]), Double.parseDouble(f[2])}); }
     }
 
-    /** The centre of a US state, or of a Washington section, by its code; null for anything else. */
+    /** The centre of a US state or Canadian province, or of a Washington section, by its code; null for anything else. */
     public static double[] stateCentre(String code) {
         double[] d = code == null ? null : STATE.get(code.trim().toUpperCase());
         return d == null ? null : new double[]{d[0], d[1]};

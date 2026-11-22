@@ -47,6 +47,18 @@ class GeoTest {
         assertNull(Geo.stateCentre("DX"));
     }
 
+    /** Every Canadian call was put at one Canada-wide centre, in Saskatchewan. */
+    @Test
+    void canadianCallsComeFromTheirProvince() {
+        assertEquals(-125.0, Geo.of("VE7ABC")[1], 1);         // British Columbia
+        assertEquals(-125.0, Geo.of("VA7XY")[1], 1);
+        assertEquals(-114.0, Geo.of("VE6AA")[1], 1);          // Alberta
+        assertEquals(-106.0, Geo.of("VE5XX")[1], 1);          // Saskatchewan
+        assertEquals(-85.0, Geo.of("VE3ABC")[1], 1);          // Ontario
+        assertEquals(-135.0, Geo.of("VY1JA")[1], 1);          // Yukon
+        assertEquals(-56.0, Geo.of("VO1AA")[1], 1);           // Newfoundland
+    }
+
     @Test
     void unknownCallsStayUnplaced() {
         assertNull(Geo.of(""));
