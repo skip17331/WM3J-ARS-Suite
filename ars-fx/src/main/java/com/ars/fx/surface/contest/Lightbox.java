@@ -29,6 +29,36 @@ public final class Lightbox extends VBox {
     public Lightbox() {
         super(6);
         getChildren().addAll(header, flow);
+        BOXES.add(new java.lang.ref.WeakReference<>(this));
+    }
+
+    private static final List<java.lang.ref.WeakReference<Lightbox>> BOXES = new ArrayList<>();
+
+    /** Blink the chip for {@code code} in every grid that has one (the section the operator just typed), so it can be found at a glance. */
+    public static void flash(String code) {
+        if (code == null || code.isBlank()) return;
+        BOXES.removeIf(r -> r.get() == null);
+        for (java.lang.ref.WeakReference<Lightbox> r : new ArrayList<>(BOXES)) { Lightbox b = r.get(); if (b != null) b.blink(code.trim()); }
+    }
+
+    private void blink(String code) {
+        List<Label> hits = new ArrayList<>();
+        collectChips(this, code, hits);
+        for (Label l : hits) {
+            javafx.animation.Timeline t = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.millis(180), e -> {
+                if (l.getStyleClass().contains("blink")) l.getStyleClass().remove("blink"); else l.getStyleClass().add("blink");
+            }));
+            t.setCycleCount(8);                                   // on, off, on, off ... ends off
+            t.setOnFinished(e -> l.getStyleClass().remove("blink"));
+            t.play();
+        }
+    }
+
+    private static void collectChips(javafx.scene.Parent p, String code, List<Label> out) {
+        for (javafx.scene.Node n : p.getChildrenUnmodifiable()) {
+            if (n instanceof Label l && l.getStyleClass().contains("ct-chip") && code.equalsIgnoreCase(l.getText())) out.add(l);
+            else if (n instanceof javafx.scene.Parent c) collectChips(c, code, out);
+        }
     }
 
     public Lightbox groups(java.util.Map<String, List<String>> g) { this.groups = g == null || g.isEmpty() ? null : g; return this; }

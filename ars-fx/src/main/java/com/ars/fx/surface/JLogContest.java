@@ -481,6 +481,14 @@ public final class JLogContest {
         bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
         modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
 
+        // the multiplier field (the section): once it is typed, blink that section in the grid so it can be found at a glance
+        if (plugin.getMultiplierModel() != null && plugin.getMultiplierModel().getField() != null
+                && fieldControls.get(plugin.getMultiplierModel().getField()) instanceof TextField mf) {
+            javafx.animation.PauseTransition blinkDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
+            blinkDelay.setOnFinished(e -> com.ars.fx.surface.contest.Lightbox.flash(mf.getText()));
+            mf.textProperty().addListener((o, a, b) -> { if (b != null && !b.isBlank()) blinkDelay.playFromStart(); });
+        }
+
         // CQ WPX: the prefix follows from the call (K1ABC -> K1), so fill it as the call is typed; one the operator has typed over is left alone
         if (plugin.isAutoFillWpxPrefix() && fieldControls.get("prefix_rcvd") instanceof TextField pf && callC instanceof TextField cf) {
             String[] last = {""};
