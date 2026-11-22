@@ -406,7 +406,7 @@ public final class JLogContest {
         com.ars.fx.shell.Tips.tip(spotBtn, "Save this QSO and post a spot for the station to the DX cluster, on the rig's frequency");
         Label parkBtn = lbl("Park", "jl-clearbtn");   // set this contact aside (call, exchange, radio frequency) to try another station, and come back
         parkBtn.setStyle("-fx-cursor:hand;-fx-font-size:16px;-fx-font-weight:bold;-fx-padding:12 22 12 22;-fx-border-color:-ars-accent;-fx-border-radius:8;-fx-background-radius:8;");
-        com.ars.fx.shell.Tips.tip(parkBtn, "Park this contact (Ctrl+P): saves the call, the exchange and the radio's frequency and clears the form for another station. Click its chip (or Ctrl+1...) to come back: the form is filled in and the radio retuned.");
+        com.ars.fx.shell.Tips.tip(parkBtn, "Park this contact (Ctrl+P): saves the call, the exchange and the radio's frequency and clears the form for another station. Click its chip (or Ctrl+1 to Ctrl+3) to come back: the form is filled in and the radio retuned.");
         parkBtn.setOnMouseClicked(e -> JLogContestPark.park());
         HBox actions = new HBox(12, b4, gap, parkBtn, clear, spotBtn, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
