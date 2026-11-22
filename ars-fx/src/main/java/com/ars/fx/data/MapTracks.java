@@ -39,7 +39,7 @@ public final class MapTracks {
         if (t.isEmpty() || t.length() > 20) return null;
         if (GRID.matcher(t).matches()) return Maidenhead.center(t);
         if (!SHAPE.matcher(t).matches()) return null;          // the lookup is generous with anything that starts like a prefix, so only a call or prefix is passed to it
-        return Geo.of(t);
+        return Geo.near(t);
     }
 
     /** The track between two places, or null when either cannot be placed or both are the same spot. */

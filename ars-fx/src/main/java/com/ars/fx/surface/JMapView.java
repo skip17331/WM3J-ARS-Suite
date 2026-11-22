@@ -299,7 +299,7 @@ public final class JMapView {
         java.util.List<MapSpot> out = new java.util.ArrayList<>();
         long now = System.currentTimeMillis();
         for (com.ars.fx.data.ClusterClient.Spot s : raw) {
-            double[] ll = com.ars.fx.data.Geo.of(s.call());
+            double[] ll = com.ars.fx.data.Geo.near(s.call());
             if (ll == null) continue;
             if (!modePass(s.mode()) || !bandPass(s.band()) || (now - s.arrivalMs()) / 60000 > spotAgeMax) continue;
             out.add(new MapSpot(s.call(), ll[0], ll[1], s.band(), s.mode(), s.arrivalMs(), s.freqHz(), bandColor(s.band()), s.de(), s.comment()));
@@ -408,7 +408,7 @@ public final class JMapView {
     static double[] spotterAt(String call) {
         if (call == null) return null;
         if (SPOTTER_AT.size() > 4000) SPOTTER_AT.clear();
-        double[] ll = SPOTTER_AT.computeIfAbsent(call, c -> { double[] g = com.ars.fx.data.Geo.of(c); return g == null ? UNKNOWN : g; });
+        double[] ll = SPOTTER_AT.computeIfAbsent(call, c -> { double[] g = com.ars.fx.data.Geo.near(c); return g == null ? UNKNOWN : g; });
         return ll == UNKNOWN ? null : ll;
     }
 

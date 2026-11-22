@@ -29,6 +29,24 @@ class GeoTest {
         assertEquals(-77.5, Geo.of("W3LPL-#")[1], 0.01);
     }
 
+    /** WA7ABC / KB6ABC / N7ABC were all dropped at the generic US centre because only the first letter was looked at. */
+    @Test
+    void usCallAreaComesFromTheDigit() {
+        assertEquals(-120.0, Geo.of("KB6ABC")[1], 0.01);
+        assertEquals(-117.0, Geo.of("WA7ABC")[1], 0.01);
+        assertEquals(-117.0, Geo.of("N7ABC")[1], 0.01);
+        assertEquals(-72.0, Geo.of("AA1AA")[1], 0.01);
+        assertEquals(-157, Geo.of("KH6ABC")[1], 2);   // a special prefix still wins over the digit
+    }
+
+    @Test
+    void washingtonSectionsAreNotOnTheOregonIdahoLine() {
+        assertEquals(47.5, Geo.stateCentre("WWA")[0], 0.1);
+        assertEquals(-122.3, Geo.stateCentre("WWA")[1], 0.1);
+        assertEquals(44.0, Geo.stateCentre("OR")[0], 0.1);
+        assertNull(Geo.stateCentre("DX"));
+    }
+
     @Test
     void unknownCallsStayUnplaced() {
         assertNull(Geo.of(""));
