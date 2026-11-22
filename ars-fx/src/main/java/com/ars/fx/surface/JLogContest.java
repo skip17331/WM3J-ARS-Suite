@@ -92,7 +92,7 @@ public final class JLogContest {
         HBox top = Shell.topBar("log", "log", "J-Log", "Contest · " + plugin.getContestName(), scoreStats(), nowUtc());
 
         // One-screen operating position: entry + last QSOs on the left, DX cluster over the contest panes on the right.
-        VBox left = new VBox(8, toolbar(plugin), new com.ars.fx.surface.contest.NetStrip(), LogDbBar.build(true), entryPane(plugin), recentLogPane());
+        VBox left = new VBox(8, toolbar(plugin), new com.ars.fx.surface.contest.NetStrip(), entryPane(plugin), recentLogPane());
         left.setStyle("-fx-background-color:-ars-bg;");
         ScrollPane sp = new ScrollPane(left); sp.setFitToWidth(true); sp.setFitToHeight(true);   // scrolls only if the window is too short
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -101,8 +101,8 @@ public final class JLogContest {
 
         Region cluster = JHubDashboard.contestClusterCol();
         cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
-        cluster.setPrefHeight(310); cluster.setMaxHeight(310);        // half the old height; the spot list scrolls inside it
-        VBox.setVgrow(cluster, Priority.NEVER);
+        cluster.setMinHeight(300); cluster.setPrefHeight(620); cluster.setMaxHeight(Double.MAX_VALUE);   // twice the old 310 px; the spot list scrolls inside it, and it gives way when the window is short
+        VBox.setVgrow(cluster, Priority.ALWAYS);
         VBox right = new VBox(10, cluster);
         TabPane tabs = contestTabs(plugin);
         if (tabs != null) { tabs.setMaxHeight(Double.MAX_VALUE); VBox.setVgrow(tabs, Priority.ALWAYS); right.getChildren().add(tabs); }   // the freed height goes to the sections / statistics
@@ -111,7 +111,9 @@ public final class JLogContest {
         main.setStyle("-fx-background-color:-ars-bg;");
 
         // the right-hand rail keeps the station controls (rig, rotor); the contest panes live in the tabs
-        Region rail = Shell.rail(Shell.leadDrawers().toArray(new Node[0]));
+        List<Node> railDrawers = new ArrayList<>(Shell.leadDrawers());
+        if (JHubDashboard.contestControlsDrawer != null) railDrawers.add(0, JHubDashboard.contestControlsDrawer);   // the cluster's controls: a drawer here, so the spot list gets the room
+        Region rail = Shell.rail(railDrawers.toArray(new Node[0]));
         HBox withTools = new HBox(toolsColumn(plugin), main); withTools.setFillHeight(true);
         HBox.setHgrow(main, Priority.ALWAYS);
         host = new StackPane((Region) Shell.frame(dock, top, withTools, rail));
@@ -290,7 +292,7 @@ public final class JLogContest {
             Control cf = fieldControls == null ? null : fieldControls.get("callsign");
             return cf instanceof TextField t ? t.getText() : "";
         });
-        List<Node> all = new ArrayList<>(); all.add(contestDrawer); all.addAll(List.of(more));
+        List<Node> all = new ArrayList<>(); all.add(contestDrawer); all.add(LogDbBar.drawer(true)); all.addAll(List.of(more));
         return Shell.collapsibleLeftPanel("jlog", "LOG TOOLS", 322, all.toArray(new Node[0]));
     }
 
@@ -449,6 +451,23 @@ public final class JLogContest {
                 if (cur == fieldControls.get("callsign")) com.ars.fx.data.N1mmBroadcast.lookup(plugin, candidate(plugin));   // Space after the call: a lookup, before the QSO is logged
                 if (next != null) { next.requestFocus(); if (next instanceof TextField t) t.selectAll(); }
             });
+        }
+        // Tab / Shift+Tab stay in the entry fields (call and the exchange, in order, wrapping round): they never wander off to the send-as CW / Voice picks
+        // or the macro buttons. Band and mode come from the rig, so Tab from them goes back to the call.
+        if (!spaceOrder.isEmpty()) {
+            List<Control> tabRing = spaceOrder;
+            java.util.function.Consumer<javafx.scene.input.KeyEvent> tabMove = e -> {
+                if (e.getCode() != javafx.scene.input.KeyCode.TAB) return;
+                e.consume();
+                int at = tabRing.indexOf((Control) e.getSource());
+                int to = at < 0 ? 0 : e.isShiftDown() ? (at - 1 + tabRing.size()) % tabRing.size() : (at + 1) % tabRing.size();
+                Control next = tabRing.get(to);
+                next.requestFocus(); if (next instanceof TextField t) t.selectAll();
+            };
+            for (Control c : tabRing) c.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, tabMove::accept);
+            bandF.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, tabMove::accept);
+            modeF.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, tabMove::accept);
+            for (Control c : fieldControls.values()) if (!tabRing.contains(c)) c.setFocusTraversable(false);       // a sent-exchange or other non-entry field
         }
         bandF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
         modeF.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });

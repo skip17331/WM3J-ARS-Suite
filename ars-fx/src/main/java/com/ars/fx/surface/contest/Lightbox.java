@@ -2,6 +2,7 @@ package com.ars.fx.surface.contest;
 
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
@@ -94,15 +95,20 @@ public final class Lightbox extends VBox {
         getChildren().removeIf(n -> n instanceof VBox);
         flow.setVisible(true); flow.setManaged(true);
         if (groups != null && universe != null && !universe.isEmpty()) {
-            VBox rows = new VBox(6);
+            FlowPane boxes = new FlowPane(8, 8);               // one small box for each group, headed by its number (W7 -> 7)
+            VBox rows = new VBox(boxes);
             int done = 0;
             for (var e : groups.entrySet()) {
-                int n = 0; FlowPane fp = new FlowPane(5, 5);
+                int n = 0; FlowPane fp = new FlowPane(4, 4); fp.setPrefWrapLength(150);
                 for (String u : e.getValue()) { boolean lit = w.contains(u.trim().toUpperCase()); if (lit) n++; fp.getChildren().add(chip(u, lit)); }
                 done += n;
-                Label h = lbl(e.getKey() + "  " + n + "/" + e.getValue().size(), "ct-box-h");
-                if (n == e.getValue().size()) h.getStyleClass().add("lit");
-                rows.getChildren().addAll(h, fp);
+                java.util.regex.Matcher dm = java.util.regex.Pattern.compile("(\\d+)").matcher(e.getKey());
+                Label num = lbl(dm.find() ? dm.group(1) : e.getKey(), "ct-group-n");
+                Label cnt = lbl(n + "/" + e.getValue().size(), "ct-box-h");
+                if (n == e.getValue().size()) { num.getStyleClass().add("lit"); cnt.getStyleClass().add("lit"); }
+                HBox gh = new HBox(8, num, cnt); gh.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                VBox gb = new VBox(4, gh, fp); gb.getStyleClass().add("ct-group");
+                boxes.getChildren().add(gb);
             }
             flow.setVisible(false); flow.setManaged(false);
             getChildren().add(rows);

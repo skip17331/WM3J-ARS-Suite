@@ -222,7 +222,10 @@
 .ct-card     { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; }
 .ct-card-h   { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .ct-box-h    { -fx-font-size: 9px; -fx-text-fill: -ars-t4; }
-.ct-chip     { -fx-font-family: "JetBrains Mono"; -fx-font-size: 10px; -fx-text-fill: -ars-t4; -fx-background-color: -ars-surface-2; -fx-background-radius: 4; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 4; -fx-padding: 2 5 2 5; }
+.ct-chip     { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-text-fill: -ars-t4; -fx-background-color: -ars-surface-2; -fx-background-radius: 4; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 4; -fx-padding: 3 7 3 7; }
+.ct-group    { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 6 8 8 8; }
+.ct-group-n  { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
+.ct-group-n.lit { -fx-text-fill: -ars-ok; }
 .ct-chip.lit { -fx-text-fill: -ars-accent-text; -fx-background-color: -ars-ok; -fx-border-color: -ars-ok; -fx-font-weight: bold; }
 .ct-chip.blink { -fx-text-fill: #1c1402; -fx-background-color: -ars-warn; -fx-border-color: -ars-warn; -fx-font-weight: bold; }
 .ct-kv-k     { -fx-font-size: 10px; -fx-text-fill: -ars-t3; }

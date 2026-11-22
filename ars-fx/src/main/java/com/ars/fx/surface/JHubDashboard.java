@@ -459,6 +459,8 @@ public final class JHubDashboard {
     static Region clusterCol() { return clusterCol(false); }
     /** The cluster card for contest mode: the same band chips and mode picks as J-Map's controls, so single bands and modes can be shut off. */
     static Region contestClusterCol() { return clusterCol(false, true); }
+    /** The contest cluster's controls drawer, set by {@link #contestClusterCol()}: the contest page shows it in the right rail, not under the spot list. */
+    static Region contestControlsDrawer;
 
     // ---- contest-mode spot filters (same picks as J-Map's controls column; kept apart from J-Map's own, under contest.* keys) ----
     static final java.util.Set<String> contestBands = new java.util.HashSet<>();   // empty = all bands; "20m" form, like a spot's band
@@ -654,7 +656,8 @@ public final class JHubDashboard {
         cc.start();
         render.run();
 
-        VBox col = new VBox(11, card, controls);
+        VBox col = contest ? new VBox(11, card) : new VBox(11, card, controls);
+        if (contest) contestControlsDrawer = controls;                 // the contest page puts it in its right-hand rail
         HBox.setHgrow(col, Priority.ALWAYS); col.setMinWidth(compact ? 0 : 360);
         return col;
     }
