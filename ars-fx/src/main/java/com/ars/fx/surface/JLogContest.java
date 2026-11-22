@@ -381,7 +381,8 @@ public final class JLogContest {
         // worked-before / dupe indicator + actions
         b4 = lbl("New", "jl-eyebrow"); b4.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // DUPE / NEW / NEW BAND, readable from across the desk
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
-        Label clear = lbl("Clear", "jl-clearbtn"); clear.setStyle("-fx-cursor:hand;");
+        Label clear = lbl("Clear", "jl-clearbtn");   // a real target: the plain text link was too small to hit in a hurry
+        clear.setStyle("-fx-cursor:hand;-fx-font-size:16px;-fx-font-weight:bold;-fx-padding:12 26 12 26;-fx-border-color:-ars-err;-fx-border-radius:8;-fx-background-radius:8;");
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
         Label spotBtn = lbl("Log + Spot", "jl-logbtn"); spotBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(spotBtn, "Save this QSO and post a spot for the station to the DX cluster, on the rig's frequency");
