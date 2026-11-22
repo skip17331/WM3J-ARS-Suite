@@ -223,6 +223,9 @@
 .ct-card-h   { -fx-font-size: 8.5px; -fx-font-weight: bold; -fx-text-fill: -ars-t3; }
 .ct-box-h    { -fx-font-size: 9px; -fx-text-fill: -ars-t4; }
 .ct-chip     { -fx-font-family: "JetBrains Mono"; -fx-font-size: 13px; -fx-text-fill: -ars-t4; -fx-background-color: -ars-surface-2; -fx-background-radius: 4; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 4; -fx-padding: 3 7 3 7; }
+.jhub-need.dupe { -fx-text-fill: -ars-err; -fx-border-color: -ars-err; -fx-background-color: transparent; }
+.jhub-clu.dupe { -fx-opacity: 0.55; }
+.jhub-clu.dupe .jhub-clu-call { -fx-strikethrough: true; -fx-text-fill: -ars-err; }
 .ct-group    { -fx-background-color: -ars-surface-1; -fx-border-color: -ars-border; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 6 8 8 8; }
 .ct-group-n  { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -ars-t2; }
 .ct-group-n.lit { -fx-text-fill: -ars-ok; }

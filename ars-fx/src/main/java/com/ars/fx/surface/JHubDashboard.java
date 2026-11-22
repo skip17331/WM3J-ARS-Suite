@@ -373,6 +373,8 @@ public final class JHubDashboard {
     }
     /** Set by the contest page: what to tag a spot with while it is on screen (empty = no tag). */
     static volatile java.util.function.Function<ClusterClient.Spot, String> contestSpotTag;
+    /** Set by the contest page: is this spot a dupe in the open contest (the contest's own rule: per band, per mode or contest-wide)? */
+    static volatile java.util.function.Predicate<ClusterClient.Spot> contestSpotDupe;
 
     /** The tag on a spot: in contest mode the contest's own (NEW MULT), otherwise the new-entity / band / mode flag. */
     static String tag(ClusterClient.Spot s, SpotNeeds.Index ix) {
@@ -594,11 +596,13 @@ public final class JHubDashboard {
                 rows.getChildren().add(empty);
             } else {
                 for (ClusterClient.Spot s : shown) {
-                    String[] f = { ClusterClient.fmtFreq(s.freqHz()), s.call(), tag(s, worked), s.mode(), s.band(),
+                    boolean dupe = contest && contestSpotDupe != null && contestSpotDupe.test(s);      // already worked in this contest: say so on the row
+                    String[] f = { ClusterClient.fmtFreq(s.freqHz()), s.call(), dupe ? "DUPE" : tag(s, worked), s.mode(), s.band(),
                             s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) };
                     Region row = compact ? cluRowCompact(f) : cluRow(f,
                             com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forSpot(s.call(), s.freqHz())) : null);
                     row.setStyle("-fx-cursor:hand;");
+                    if (dupe) row.getStyleClass().add("dupe");
                     int mw = com.ars.fx.data.MostWanted.rank(s.call());
                     String hint = (mw > 0 ? "Club Log Most Wanted #" + mw + "\n" : "")
                             + "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam";
@@ -652,6 +656,7 @@ public final class JHubDashboard {
             card.getChildren().setAll(head, fltBox, mapOn[0] ? map : rsp);
             render.run();
         });
+        if (contest) com.ars.fx.data.ContestState.addListener(() -> javafx.application.Platform.runLater(render));   // a QSO logged or erased changes which spots are dupes
         cc.setListener(c -> render.run());
         cc.start();
         render.run();
@@ -699,7 +704,7 @@ public final class JHubDashboard {
         Label fq = lbl(s[0], "jhub-clu-fq"); fq.setMinWidth(64);
         Label call = lbl(s[1], "jhub-clu-call"); call.setMinWidth(Region.USE_PREF_SIZE);
         HBox top = new HBox(8, fq, call);
-        if (!s[2].isEmpty()) { Label need = lbl(s[2], "jhub-need"); need.setMinWidth(0); top.getChildren().add(need); }
+        if (!s[2].isEmpty()) { Label need = lbl(s[2], "jhub-need"); if ("DUPE".equals(s[2])) need.getStyleClass().add("dupe"); need.setMinWidth(0); top.getChildren().add(need); }
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         Label mode = lbl(s[3], "jhub-clu-mode"); mode.setMinWidth(Region.USE_PREF_SIZE);
         top.getChildren().addAll(sp, mode);
@@ -819,7 +824,7 @@ public final class JHubDashboard {
     static Region cluRow(String[] s, Node pathChip) {
         Label fq = lbl(s[0], "jhub-clu-fq"); fq.setMinWidth(64);
         HBox top = new HBox(9, fq, lbl(s[1], "jhub-clu-call"));
-        if (!s[2].isEmpty()) top.getChildren().add(lbl(s[2], "jhub-need"));     // NEW ONE / NEW BAND / NEW MODE
+        if (!s[2].isEmpty()) top.getChildren().add("DUPE".equals(s[2]) ? lbl(s[2], "jhub-need", "dupe") : lbl(s[2], "jhub-need"));     // NEW ONE / NEW BAND / NEW MODE
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS); top.getChildren().add(sp);
         if (pathChip != null) top.getChildren().add(pathChip);
         top.getChildren().add(lbl(s[7], "jhub-clu-age"));
