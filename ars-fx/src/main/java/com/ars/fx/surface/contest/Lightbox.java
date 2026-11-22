@@ -64,6 +64,9 @@ public final class Lightbox extends VBox {
     }
 
     private static Label chip(String t, boolean lit) {
-        Label l = lbl(t, "ct-chip"); if (lit) l.getStyleClass().add("lit"); return l;
+        Label l = lbl(t, "ct-chip"); if (lit) l.getStyleClass().add("lit");
+        String name = com.ars.fx.data.SectionNames.nameOf(t);                 // IA -> Iowa
+        if (name != null) com.ars.fx.shell.Tips.tip(l, name);
+        return l;
     }
 }
