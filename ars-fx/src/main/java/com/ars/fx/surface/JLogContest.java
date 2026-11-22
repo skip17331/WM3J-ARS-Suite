@@ -397,7 +397,7 @@ public final class JLogContest {
         body.getChildren().add(sendRow(plugin));
 
         // worked-before / dupe indicator + actions
-        b4 = lbl("New", "jl-eyebrow"); b4.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // DUPE / NEW / NEW BAND, readable from across the desk
+        b4 = lbl("", "jl-eyebrow"); b4.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // DUPE / NEW / NEW BAND, readable from across the desk
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         Label clear = lbl("Clear", "jl-clearbtn");   // a real target: the plain text link was too small to hit in a hurry
         clear.setStyle("-fx-cursor:hand;-fx-font-size:16px;-fx-font-weight:bold;-fx-padding:12 26 12 26;-fx-border-color:-ars-err;-fx-border-radius:8;-fx-background-radius:8;");
@@ -745,7 +745,7 @@ public final class JLogContest {
             if (editing) prior.removeIf(x -> x.getId() == r.getId());
             boolean dupe = ContestScorer.isDupe(plugin, r, prior);
             if (dupe && !dupeApproved) {   // a dupe is never logged without the operator saying so
-                setB4("\u26d4 DUPE \u2014 " + call.toUpperCase(), "dupe");
+                setB4("", "dupe");     // the call blinks red and the earlier QSO is listed: no word for it as well
                 Confirm.show(b4, "Dupe \u2014 " + call.toUpperCase(),
                         call.toUpperCase() + " is already in the log for " + normBand(bandF.getText()) + " " + modeF.getText().trim().toUpperCase()
                                 + ":\n" + describeAll(plugin, prior) + "\nA dupe scores nothing. Log it anyway?",
@@ -922,7 +922,7 @@ public final class JLogContest {
     /** @param fromCall true when the call, band or mode changed (may refill the exchange from an earlier QSO); false for an exchange edit */
     static void updateDupe(ContestPlugin plugin, boolean fromCall) {
         String call = value("callsign");
-        if (call == null || call.length() < 2) { setB4("New", ""); if (dupeInfoL != null) dupeInfoL.setText(""); if (similarL != null) similarL.setText(""); if (memoryL != null) memoryL.setText(""); return; }
+        if (call == null || call.length() < 2) { setB4("", ""); if (dupeInfoL != null) dupeInfoL.setText(""); if (similarL != null) similarL.setText(""); if (memoryL != null) memoryL.setText(""); return; }
         final String typed = call.toUpperCase();
         final QsoRecord cand = candidate(plugin);                      // read the form here, on the FX thread
         final boolean ready = readyForMult(plugin);
@@ -940,13 +940,13 @@ public final class JLogContest {
                 final QsoRecord earlier = last;
                 final java.util.Map<String, String> hist = earlier == null && fromCall ? com.ars.fx.data.CallHistory.get(typed) : java.util.Map.of();
                 Platform.runLater(() -> {
-                    String star = newMult ? "   \u2605 NEW MULT" : "";
+                    String star = newMult ? "   \u2605 NEW " + multName(plugin) : "";
                     if (dupeInfoL != null) dupeInfoL.setText(dupe ? "Already logged:\n" + describeAll(plugin, prior) : "");
-                    if (dupe) setB4("\u26d4 DUPE \u2014 " + typed, "dupe");
+                    if (dupe) setB4("", "dupe");
                     else if (!prior.isEmpty()) setB4("\u25d0 NEW BAND/MODE \u2014 " + typed + " (worked " + prior.size() + "\u00d7 elsewhere)" + star, newMult ? "new" : "b4");
                     else if (!similar.isEmpty()) setB4("\u25d0 POSSIBLE DUPE \u2014 " + typed + star, newMult ? "new" : "b4");
-                    else if (typed.length() >= 3) setB4("\u2713 NEW \u2014 " + typed + star, "new");
-                    else setB4("New", "");
+                    else if (typed.length() >= 3) setB4("\u2713 NEW CALL" + star, "new");
+                    else setB4("", "");
                     if (similarL != null) similarL.setText(similar.isEmpty() ? "" : "POSSIBLE DUPES:  " + similar);
                     if (fromCall && earlier != null && editingRec == null) prefillFromEarlier(plugin, earlier);
                     else if (fromCall && !hist.isEmpty() && editingRec == null && prefillFromHistory(plugin, typed, hist)) { /* filled */ }
@@ -1032,6 +1032,18 @@ public final class JLogContest {
         }
         return String.join(",  ", out);
     }
+    /** What the contest's multiplier is called on the indicator: NEW SECTION, NEW STATE, NEW ZONE ... or NEW MULT when it is none of those. */
+    static String multName(ContestPlugin plugin) {
+        var mm = plugin == null ? null : plugin.getMultiplierModel();
+        String f = mm == null || mm.getField() == null ? "" : mm.getField().toLowerCase(java.util.Locale.ROOT);
+        if (f.contains("sect")) return "SECTION";
+        if (f.contains("state") || f.contains("prov")) return "STATE";
+        if (f.contains("zone")) return "ZONE";
+        if (f.contains("count")) return "COUNTY";
+        if (f.contains("prefix")) return "PREFIX";
+        if (f.contains("dxcc") || f.contains("country")) return "COUNTRY";
+        return "MULT";
+    }
     static final String CALL_STYLE = "-fx-font-size:20px;-fx-font-weight:bold;";
     static javafx.animation.Timeline dupeBlink;
     /** A dupe turns the callsign red and blinking; anything else puts it back. */
@@ -1052,7 +1064,7 @@ public final class JLogContest {
     }
     static void setB4(String text, String cls) {
         if (b4 == null) return;
-        if (!text.startsWith("\u25b6")) blinkCall("dupe".equals(cls) && text.startsWith("\u26d4 DUPE"));   // a sent macro leaves it as it was
+        if (!text.startsWith("\u25b6")) blinkCall("dupe".equals(cls) && text.isEmpty());   // a sent macro leaves it as it was
         b4.setText(text);
         b4.getStyleClass().removeAll("dupe", "b4", "new");
         if (!cls.isEmpty()) b4.getStyleClass().add(cls);
@@ -1107,7 +1119,7 @@ public final class JLogContest {
         for (Control c : fieldControls.values()) c.getStyleClass().removeAll("invalid", "warnfield");
         editingRec = null; if (editL != null) editL.setText("");
         softArmed = false; showProblem("", "");
-        setB4("New", "");
+        setB4("", "");
         focus("callsign");
     }
 
