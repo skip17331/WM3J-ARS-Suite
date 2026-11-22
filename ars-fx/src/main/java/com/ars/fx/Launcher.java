@@ -62,6 +62,7 @@ public class Launcher extends Application {
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         com.ars.fx.shell.Tips.install(scene);
         com.ars.fx.shell.TxIndicator.installEscStop(scene);
+        com.ars.fx.shell.DeleteKey.install(scene);
         Shell.installPageKeys(scene);
         com.ars.fx.shell.Fx.steadyCaret(scene);
         show(System.getProperty("surface", Shell.home()));      // the dashboard, or the contest page if that is where the app was left
@@ -126,6 +127,7 @@ public class Launcher extends Application {
         Theme.apply(scene, false);   // base css; scheme applied per-surface by show()
         com.ars.fx.shell.Tips.install(scene);
         com.ars.fx.shell.TxIndicator.installEscStop(scene);
+        com.ars.fx.shell.DeleteKey.install(scene);
         Shell.installPageKeys(scene);
         com.ars.fx.shell.Fx.steadyCaret(scene);
         show(cfg.module);
