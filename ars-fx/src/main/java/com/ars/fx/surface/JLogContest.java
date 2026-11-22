@@ -357,7 +357,7 @@ public final class JLogContest {
             }
             fieldControls.put(fd.getId(), c);
             if ("callsign".equals(fd.getId()) && c instanceof TextField cf) {
-                cf.setMinWidth(210); cf.setPrefWidth(210); cf.setStyle("-fx-font-size:20px;-fx-font-weight:bold;");   // the call is what you look at
+                cf.setMinWidth(210); cf.setPrefWidth(210); cf.setStyle(CALL_STYLE);   // the call is what you look at
                 cf.textProperty().addListener((o, a, b) -> TranslatorWindow.follow(b));     // the translator (if open) follows the country
             }
             if (fd.getEntryRow() == 1) {                       // what WE send: filled from Setup / earlier answers, shown in the SEND line
@@ -922,8 +922,27 @@ public final class JLogContest {
         }
         return String.join(",  ", out);
     }
+    static final String CALL_STYLE = "-fx-font-size:20px;-fx-font-weight:bold;";
+    static javafx.animation.Timeline dupeBlink;
+    /** A dupe turns the callsign red and blinking; anything else puts it back. */
+    static void blinkCall(boolean dupe) {
+        if (dupeBlink != null) { dupeBlink.stop(); dupeBlink = null; }
+        Control c = fieldControls == null ? null : fieldControls.get("callsign");
+        if (c == null) return;
+        c.setStyle(CALL_STYLE);
+        if (!dupe) return;
+        final String red = CALL_STYLE + "-fx-text-fill:#ff3b3b;";
+        c.setStyle(red);
+        dupeBlink = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.millis(0), e -> c.setStyle(red)),
+                new javafx.animation.KeyFrame(javafx.util.Duration.millis(450), e -> c.setStyle(CALL_STYLE + "-fx-text-fill:transparent;")),
+                new javafx.animation.KeyFrame(javafx.util.Duration.millis(900)));
+        dupeBlink.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        dupeBlink.play();
+    }
     static void setB4(String text, String cls) {
         if (b4 == null) return;
+        if (!text.startsWith("\u25b6")) blinkCall("dupe".equals(cls) && text.startsWith("\u26d4 DUPE"));   // a sent macro leaves it as it was
         b4.setText(text);
         b4.getStyleClass().removeAll("dupe", "b4", "new");
         if (!cls.isEmpty()) b4.getStyleClass().add(cls);
