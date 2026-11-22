@@ -457,13 +457,61 @@ public final class JHubDashboard {
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     /** The DX Cluster window (spot list + cluster controls). Also used on J-Log, so the two always look and behave alike. */
     static Region clusterCol() { return clusterCol(false); }
+    /** The cluster card for contest mode: the same band chips and mode picks as J-Map's controls, so single bands and modes can be shut off. */
+    static Region contestClusterCol() { return clusterCol(false, true); }
+
+    // ---- contest-mode spot filters (same picks as J-Map's controls column; kept apart from J-Map's own, under contest.* keys) ----
+    static final java.util.Set<String> contestBands = new java.util.HashSet<>();   // empty = all bands; "20m" form, like a spot's band
+    static int contestMode = Math.max(0, Math.min(3, com.ars.fx.data.HubConfig.getInt("contest.spotMode", 0)));   // 0 All · 1 CW · 2 Phone · 3 Digi
+    static { for (String b : com.ars.fx.data.HubConfig.get("contest.spotBands", "").split(",")) if (!b.isBlank()) contestBands.add(b.trim()); }
+    static boolean contestPass(ClusterClient.Spot s) {
+        return (contestBands.isEmpty() || contestBands.contains(s.band())) && JMapView.modePass(contestMode, s.mode());
+    }
+    static String contestSummary() {
+        String m = new String[]{"All modes", "CW", "Phone", "Digi"}[contestMode];
+        return (contestBands.isEmpty() ? "All bands" : String.join(" ", contestBands.stream().sorted(java.util.Comparator.comparingInt((String b) -> -parseBand(b))).toList())) + " \u00b7 " + m;
+    }
+    private static int parseBand(String b) { try { return Integer.parseInt(b.replaceAll("\\D", "")); } catch (Exception e) { return 0; } }
+    /** Band chips (click to show only the picked bands; none picked = all) and the mode picks, as in J-Map; {@code onChange} re-draws the spot list. */
+    static Region contestFilters(Runnable onChange) {
+        GridPane bands = new GridPane(); bands.setHgap(6); bands.setVgap(6);
+        java.util.List<HBox> chips = new java.util.ArrayList<>(); java.util.List<String> keys = new java.util.ArrayList<>();
+        Runnable restyle = () -> {
+            boolean any = !contestBands.isEmpty();
+            for (int i = 0; i < chips.size(); i++) chips.get(i).setOpacity(!any || contestBands.contains(keys.get(i)) ? 1.0 : 0.4);
+        };
+        for (int i = 0; i < JMapCanvases.MAP_BANDS.length; i++) {
+            String[] b = JMapCanvases.MAP_BANDS[i];
+            String key = b[0] + "m";
+            Region dot = new Region(); dot.getStyleClass().add("jm-band-dot"); dot.setStyle("-fx-background-color:" + b[1] + ";");
+            HBox chip = new HBox(7, dot, lbl(b[0], "jm-band-n")); chip.getStyleClass().add("jm-band"); chip.setAlignment(Pos.CENTER_LEFT);
+            GridPane.setHgrow(chip, Priority.ALWAYS); chip.setMaxWidth(Double.MAX_VALUE); chip.setStyle("-fx-cursor:hand;");
+            chip.setOnMouseClicked(e -> {
+                if (!contestBands.remove(key)) contestBands.add(key);
+                com.ars.fx.data.HubConfig.set("contest.spotBands", String.join(",", contestBands));
+                restyle.run(); onChange.run();
+            });
+            chips.add(chip); keys.add(key);
+            bands.add(chip, i % 3, i / 3);
+        }
+        for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(100 / 3.0); bands.getColumnConstraints().add(cc); }
+        restyle.run();
+        Label all = lbl("ALL", "jm-sec-all"); all.setStyle("-fx-cursor:hand;");
+        com.ars.fx.shell.Tips.tip(all, "Show every band again");
+        all.setOnMouseClicked(e -> { contestBands.clear(); com.ars.fx.data.HubConfig.set("contest.spotBands", ""); restyle.run(); onChange.run(); });
+        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox head = new HBox(lbl("BANDS", "jm-sec"), sp, all); head.setAlignment(Pos.CENTER_LEFT);
+        Region modes = segSel(new String[]{"All", "CW", "Phone", "Digi"}, contestMode, i -> { contestMode = i; com.ars.fx.data.HubConfig.setInt("contest.spotMode", i); onChange.run(); });
+        return new VBox(8, head, bands, lbl("MODE", "jm-sec"), modes);
+    }
     /** The compact cluster card's preferred height in the PANELS column (it gets less when the panels under it need the room, see RailSplit). */
     static final double RAIL_CLUSTER_H = 460;
     /**
      * @param compact true for the 322 px PANELS column: a spot is one line (frequency, call, any NEW tag, mode) with the spotter, comment, band
      *                and age in its tooltip, the card takes the height the panels under it leave, and the controls drawer stacks its band / mode pickers
      */
-    static Region clusterCol(boolean compact) {
+    static Region clusterCol(boolean compact) { return clusterCol(compact, false); }
+    static Region clusterCol(boolean compact, boolean contest) {
         ClusterClient cc = ClusterClient.getInstance();
 
         // ---- DX spot panel ----
@@ -537,7 +585,7 @@ public final class JHubDashboard {
             }
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
             for (ClusterClient.Spot s : all)
-                if (bandOk(s) && modeOk(s) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);
+                if ((contest ? contestPass(s) : bandOk(s) && modeOk(s)) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);
             rows.getChildren().clear();
             if (shown.isEmpty()) {
                 empty.setText(conn && !all.isEmpty() ? "No spots match the current filter" : com.ars.fx.shell.FeedUi.emptyList(cc, "cluster"));
@@ -558,7 +606,7 @@ public final class JHubDashboard {
                     rows.getChildren().add(row);
                 }
             }
-            fltSummary.setText(filterSummary() + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
+            fltSummary.setText((contest ? contestSummary() : filterSummary()) + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
             if (mapOn[0]) map.update(bandMarks(shown, worked));
             boolean want = cc.wantConnected();
             statusLbl.getStyleClass().remove("live");
@@ -567,10 +615,13 @@ public final class JHubDashboard {
             act.setText(com.ars.fx.shell.FeedUi.action(cc));
         });
 
+        Region[] contestF = { null };      // contest mode: J-Map's band chips and mode picks instead of the coarse All / HF / VHF+
+        if (contest) contestF[0] = contestFilters(() -> render.run());
         VBox bandsF = labeled("BANDS", segSel(CLU_BANDS, cluSel("data.clusterBand", CLU_BANDS), i -> { com.ars.fx.data.HubConfig.set("data.clusterBand", CLU_BANDS[i]); render.run(); }));
         VBox modesF = labeled("MODES", segSel(CLU_MODES, cluSel("data.clusterMode", CLU_MODES), i -> { com.ars.fx.data.HubConfig.set("data.clusterMode", CLU_MODES[i]); render.run(); }));
         Region row2;
-        if (compact) row2 = new VBox(10, bandsF, modesF);      // side by side they are wider than the PANELS column
+        if (contest) row2 = contestF[0];
+        else if (compact) row2 = new VBox(10, bandsF, modesF);      // side by side they are wider than the PANELS column
         else { HBox h = new HBox(12, bandsF, modesF); h.setAlignment(Pos.BOTTOM_LEFT); row2 = h; }
 
         Label nkl = lbl("Needed only (new entity / band / mode; new multiplier in a contest)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);

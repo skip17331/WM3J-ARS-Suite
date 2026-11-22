@@ -99,7 +99,7 @@ public final class JLogContest {
         sp.setStyle("-fx-background-color:-ars-bg;");
         sp.setMinWidth(620); sp.setPrefWidth(780); HBox.setHgrow(sp, Priority.NEVER);
 
-        Region cluster = JHubDashboard.clusterCol();
+        Region cluster = JHubDashboard.contestClusterCol();
         cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
         cluster.setPrefHeight(310); cluster.setMaxHeight(310);        // half the old height; the spot list scrolls inside it
         VBox.setVgrow(cluster, Priority.NEVER);

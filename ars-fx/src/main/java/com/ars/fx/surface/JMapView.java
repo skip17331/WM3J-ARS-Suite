@@ -284,12 +284,14 @@ public final class JMapView {
         return out;
     }
     static java.util.List<MapSpot> liveSpots() { return spotsFrom(com.ars.fx.data.ClusterClient.getInstance().spots()); }
-    static boolean modePass(String m) {
-        if (spotMode == 0) return true;
+    static boolean modePass(String m) { return modePass(spotMode, m); }
+    /** @param mode 0 All · 1 CW · 2 Phone · 3 Digi (everything else) */
+    static boolean modePass(int mode, String m) {
+        if (mode == 0) return true;
         String u = m == null ? "" : m.toUpperCase();
         boolean cw = u.equals("CW");
         boolean phone = u.equals("SSB") || u.equals("USB") || u.equals("LSB") || u.equals("FM") || u.equals("AM") || u.contains("PHONE");
-        return spotMode == 1 ? cw : spotMode == 2 ? phone : (!cw && !phone);   // Digi = everything else
+        return mode == 1 ? cw : mode == 2 ? phone : (!cw && !phone);
     }
     static boolean bandPass(String b) { return spotBands.isEmpty() || spotBands.contains(b); }
     static void refreshSpots() { repaintMap(); if (currentSpotsRefresh != null) currentSpotsRefresh.run(); }
