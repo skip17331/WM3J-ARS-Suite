@@ -171,6 +171,7 @@ public final class JLogContest {
     public static void prefillSpot(SpotAction.Prefill p) {
         Runnable r = () -> {
             if (fieldControls == null || p == null) return;
+            if (editingRec == null) clearForm();   // a new spot is a new contact: nothing of the last one (precedence, check, section ...) stays
             Control call = fieldControls.get("callsign");
             if (call instanceof TextField t && p.call() != null) { t.setText(p.call()); t.positionCaret(t.getText().length()); }
             if (p.band() != null && !p.band().isBlank() && bandF != null) bandF.setText(p.band());
