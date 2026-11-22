@@ -404,6 +404,9 @@ public final class JMapView {
     }
 
     static final java.util.Map<String, double[]> SPOTTER_AT = new java.util.HashMap<>();   // the same few skimmers spot all day; the lookup scans a prefix table
+    static {   // a station's real place comes from the callbook a moment after it is first seen: forget the call-area guesses and repaint
+        com.ars.fx.data.PlaceLookup.onChange = () -> javafx.application.Platform.runLater(() -> { SPOTTER_AT.clear(); repaintMap(); });
+    }
     static final double[] UNKNOWN = new double[0];
     static double[] spotterAt(String call) {
         if (call == null) return null;
