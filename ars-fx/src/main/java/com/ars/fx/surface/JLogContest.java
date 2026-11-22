@@ -472,7 +472,11 @@ public final class JLogContest {
             if (fieldControls.get(fd.getId()) instanceof TextField t) t.textProperty().addListener((o, a, b) -> exchDelay.playFromStart());
         }
         Control callC = fieldControls.get("callsign");
-        if (callC instanceof TextField cf) cf.textProperty().addListener((o, a, b) -> { dupeDelay.playFromStart(); if (scpBox != null) scpBox.update(b); });
+        if (callC instanceof TextField cf) cf.textProperty().addListener((o, a, b) -> {
+            dupeDelay.playFromStart(); if (scpBox != null) scpBox.update(b);
+            // the call was deleted: whatever the dupe / call-history lookup filled in (precedence, check, section ...) goes with it
+            if ((b == null || b.isEmpty()) && a != null && !a.isEmpty() && editingRec == null) Platform.runLater(() -> { if (cf.getText() == null || cf.getText().isEmpty()) clearForm(); });   // still empty: a spot click may have set a call since
+        });
         bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
         modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
 
