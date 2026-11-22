@@ -610,9 +610,9 @@ public final class JLogContest {
         if (mm == null || mm.getField() == null) return true;
         FieldDef fd = null;
         for (FieldDef f : plugin.getEntryFields()) if (mm.getField().equals(f.getId())) fd = f;
-        if (fd == null || value(fd.getId()).isBlank()) return !callGivesMult;
-        var lv = ContestValidation.check(plugin, fd, value(fd.getId()), true).level();
-        return lv == ContestValidation.Level.OK || lv == ContestValidation.Level.SOFT;
+        if (fd == null || value(fd.getId()).isBlank()) return callGivesMult;   // no section yet: only a contest whose call alone gives the multiplier can say
+        // a section the list does not recognise (SOFT) is not a multiplier to claim either
+        return ContestValidation.check(plugin, fd, value(fd.getId()), true).level() == ContestValidation.Level.OK;
     }
 
     static boolean spotAfter;        // "Log + Spot" pressed: post a spot once the QSO is saved
