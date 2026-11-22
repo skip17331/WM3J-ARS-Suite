@@ -14,6 +14,6 @@ class SpotCommentTest {
     @Test
     void anUnknownContestGivesJustTheMultiplier() {
         assertEquals("WA", SpotComment.of("WA_QSO_PARTY", "WA"));
-        assertEquals("", SpotComment.of("ARRL_SS_CW", null));
+        assertEquals("SS", SpotComment.of("ARRL_SS_CW", null));
     }
 }
