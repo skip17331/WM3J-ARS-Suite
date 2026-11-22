@@ -14,12 +14,18 @@ import static com.ars.fx.shell.Shell.lbl;
 /**
  * Shared station-ID timer — a single 10-minute FCC-ID countdown used on both the
  * top bar of every surface. One global 1 s ticker drives every on-screen button;
- * clicking any of them resets the countdown everywhere.
+ * clicking any of them resets the countdown everywhere. Everywhere includes the other windows of a loose / undocked
+ * layout, which are separate processes: the time of the last ID is kept in {@code ~/.j-hub/id-reset} and each window reads it every
+ * second, so the countdown is worked out from that time (not counted down in memory) and they agree.
  */
 public final class IdTimer {
     private IdTimer() {}
 
-    private static int seconds = 600;
+    static final int PERIOD = 600;
+    private static int seconds = PERIOD;
+    /** When the station last identified (a reset in any window), epoch ms; the app's own start counts as an ID, as it always has. */
+    private static volatile long lastIdMs = System.currentTimeMillis();
+    private static java.nio.file.Path shared = java.nio.file.Path.of(System.getProperty("user.home"), ".j-hub", "id-reset");
     private static Runnable ticker;
     private static final List<Runnable> updaters = new CopyOnWriteArrayList<>();
 
@@ -36,11 +42,29 @@ public final class IdTimer {
         return b;
     }
 
-    public static void reset() { seconds = 600; notifyUpd(); }
+    public static void reset() {
+        lastIdMs = System.currentTimeMillis();
+        try { java.nio.file.Files.createDirectories(shared.getParent()); java.nio.file.Files.writeString(shared, Long.toString(lastIdMs)); }
+        catch (java.io.IOException ignored) { /* this window still resets; only the other windows will not hear of it */ }
+        seconds = PERIOD; notifyUpd();
+    }
+
+    /** Seconds left, from the time of the last ID: {@code now} and {@code lastId} in epoch ms. */
+    static int remaining(long now, long lastId) { return PERIOD - (int) Math.max(0, (now - lastId) / 1000); }
+
+    /** The latest ID time written by any window, or 0. */
+    static long readShared() {
+        try { return Long.parseLong(java.nio.file.Files.readString(shared).trim()); } catch (Exception e) { return 0; }
+    }
 
     private static void start() {
         if (ticker != null) return;
-        ticker = Fx.everySecond(() -> { seconds--; notifyUpd(); });
+        ticker = Fx.everySecond(() -> {
+            long f = readShared();
+            if (f > lastIdMs) lastIdMs = f;                  // another window identified
+            seconds = remaining(System.currentTimeMillis(), lastIdMs);
+            notifyUpd();
+        });
     }
     private static void notifyUpd() { for (Runnable r : updaters) r.run(); }
     private static void applyClass(Node n) {
