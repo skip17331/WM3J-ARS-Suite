@@ -86,6 +86,7 @@ public final class JLogContest {
         callGivesMult = MultCheck.multFromCallAlone(plugin, ContestState.ctx());
         // cluster spots in contest mode: NEW MULT where the multiplier can be told from the call; no DXCC flags (they mean nothing in a contest)
         JHubDashboard.contestSpotTag = spot -> spotTag(plugin, spot);
+        JHubDashboard.contestSpotDupe = spot -> spotDupe(plugin, spot);
         com.ars.fx.data.N1mmBroadcast.appInfo(plugin);                                   // tell listening programs which contest this is
 
         Region dock = Shell.dock("log");
@@ -546,6 +547,20 @@ public final class JLogContest {
             if (callGivesMult) return MultCheck.isNewMult(plugin, snap, cand, ContestState.ctx()) ? "NEW MULT" : "";
             // the multiplier is in the exchange: use what the call history says this station sends, if the contest accepts it
             return fromHistory(plugin, cand) && MultCheck.isNewMult(plugin, snap, cand, ContestState.ctx()) ? "NEW MULT?" : "";
+        });
+    }
+    private static final java.util.Map<String, Boolean> dupeMemo = new java.util.HashMap<>();
+    private static long dupeMemoSize = -1;
+    /** Is the spotted station a dupe in this contest, by the contest's own rule? Worked out from the log in memory, remembered until the log changes. */
+    static boolean spotDupe(ContestPlugin plugin, com.ars.fx.data.ClusterClient.Spot spot) {
+        List<QsoRecord> all = ContestState.qsos();
+        if (all.size() != dupeMemoSize) { dupeMemo.clear(); dupeMemoSize = all.size(); }
+        String call = spot.call() == null ? "" : spot.call().toUpperCase(java.util.Locale.ROOT);
+        return dupeMemo.computeIfAbsent(call + "|" + spot.band() + "|" + spot.mode(), k -> {
+            List<QsoRecord> prior = new ArrayList<>();
+            for (QsoRecord q : all) if (q.getCallsign() != null && q.getCallsign().equalsIgnoreCase(call)) prior.add(q);
+            if (prior.isEmpty()) return false;
+            try { return ContestScorer.isDupe(plugin, MultCheck.candidateOf(plugin, call, spot.band(), spot.mode()), prior); } catch (Exception e) { return false; }
         });
     }
     /** Fill {@code cand}'s multiplier field from the call history. False when there is nothing usable (then no tag is better than a wrong one). */
